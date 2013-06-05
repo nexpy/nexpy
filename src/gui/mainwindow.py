@@ -9,6 +9,7 @@
 # stdlib imports
 import os
 import sys
+import imp
 import re
 import webbrowser
 
@@ -82,6 +83,7 @@ class MainWindow(QtGui.QMainWindow):
         self.user_ns['plotview'] = self.plotview
         self.user_ns['treeview'] = self.treeview
         self.user_ns['tree'] = self.tree
+        self.user_ns['mainwindow'] = self
 
         mainlayout = QtGui.QHBoxLayout()
         mainlayout.addWidget(self.treeview)
@@ -91,12 +93,14 @@ class MainWindow(QtGui.QMainWindow):
 
         self.setCentralWidget(mainwindow)
 
-        self.init_menu_bar()
-
         base_path = os.path.abspath(os.path.dirname(__file__))
         icon_path = os.path.join(base_path, 'resources', 'icon', 'IPythonConsole.svg')
+        self.import_path = os.path.join(os.path.abspath(os.path.dirname(base_path)), 
+                                        'readers')
         self._app.icon = QtGui.QIcon(icon_path)
         QtGui.QApplication.setWindowIcon(self._app.icon)
+
+        self.init_menu_bar()
 
         self.setWindowTitle('NeXpy')
         self.statusBar().showMessage('Ready')
@@ -335,12 +339,24 @@ class MainWindow(QtGui.QMainWindow):
         self.add_menu_action(self.view_menu, self.clear_action)
 
     def init_import_menu(self):
-
+        """Add an import menu item for every module in self.import_path"""
         self.import_menu = self.file_menu.addMenu("Import")
-        self.import1_action = QtGui.QAction("Import 1", self)
-        self.add_menu_action(self.import_menu, self.import1_action, False)
-        self.import2_action = QtGui.QAction("Import 2", self)
-        self.add_menu_action(self.import_menu, self.import2_action, False)
+        sys.path.append(self.import_path)
+        import_names = set()
+        for file in os.listdir(self.import_path):
+            name, ext = os.path.splitext(file)
+            if name <> '__init__' and ext.startswith('.py'):
+                import_names.add(name)
+        for import_name in import_names:
+            fp, pathname, description = imp.find_module(import_name)
+            try:
+                self.import_module = imp.load_module(import_name, fp, pathname, description)
+            finally:
+                if fp:
+                    fp.close()
+            import_action = QtGui.QAction("Import "+self.import_module.filetype, self,
+                                          triggered=self.show_import_dialog)
+            self.add_menu_action(self.import_menu, import_action, self)                
 
     def open_file(self):
         fname, _ = QtGui.QFileDialog.getOpenFileName(self, 'Open file',
@@ -378,6 +394,16 @@ class MainWindow(QtGui.QMainWindow):
                 QtGui.QMessageBox.critical(
                     self, "Error saving file", str(error_message),
                     QtGui.QMessageBox.Ok, QtGui.QMessageBox.NoButton)
+
+    def show_import_dialog(self):
+        self.import_dialog = self.import_module.ImportDialog(self)
+        self.import_dialog.show()
+    
+    def import_data(self):
+        if self.import_dialog.accepted:
+            workspace = self.treeview.tree.get_new_name()
+            self.treeview.tree[workspace] = self.user_ns[workspace] = self.import_dialog.get_data()
+            self.treeview.model().treeChanged()
 
     def plot_data(self):
         node = self.treeview.model().getNode(self.treeview.currentIndex())
