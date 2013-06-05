@@ -74,6 +74,7 @@ ipython qtconsole --pylab=inline  # start with pylab in inline plotting mode
 """
 _tree = None
 _shell = None
+_mainwindow = None
 
 #-----------------------------------------------------------------------------
 # Aliases and Flags
@@ -178,6 +179,8 @@ class NXConsoleApp(BaseIPythonApplication, IPythonConsoleApp):
                                  confirm_exit=self.confirm_exit,
                                  config=self.config)
         self.window.log = self.log
+        global _mainwindow
+        _mainwindow = self.window
 
     def init_shell(self):
         """Initialize imports in the shell."""
@@ -199,7 +202,7 @@ class NXConsoleApp(BaseIPythonApplication, IPythonConsoleApp):
             s = "%s=nx.%s\n" % (_class,_class) + s
         exec s in self.window.user_ns
         
-        base_path = os.path.abspath(os.path.dirname(__file__))
+#        base_path = os.path.abspath(os.path.dirname(__file__))
 #        sample_data = os.path.join(base_path, '../examples/chopper.nxs')
 #        self.window.tree["w1"] = self.window.user_ns["w1"] = nxload(sample_data)
 
