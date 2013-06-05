@@ -24,6 +24,9 @@ class NXtree(NXgroup):
             self._model.treeChanged()
             for node in self.walk():
                 if node.changed:
+                    if node.nxgroup == self:
+                        from nexpy.gui.consoleapp import _mainwindow
+                        _mainwindow.user_ns[node.nxname] = node
                     index = self._model.getNodeIndex(node)
                     if index.isValid(): 
                         self._view.update(index)
