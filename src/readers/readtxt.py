@@ -24,7 +24,7 @@ from nexpy.gui.importdialog import BaseImportDialog
 filetype = "Text File"
 
 class ImportDialog(BaseImportDialog):
-    """Dialog to select a text file"""
+    """Dialog to import a text file"""
  
     def __init__(self, parent=None):
 

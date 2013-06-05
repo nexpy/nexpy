@@ -16,7 +16,7 @@ class BaseImportDialog(QtGui.QDialog):
         QtGui.QDialog.__init__(self, parent)
  
         self.accepted = False
-
+ 
         self.filebutton =  QtGui.QPushButton("Choose File")
         self.filebutton.clicked.connect(self.choose_file)
         self.filename = QtGui.QLineEdit(self)
@@ -30,7 +30,7 @@ class BaseImportDialog(QtGui.QDialog):
         self.buttonbox.setStandardButtons(QtGui.QDialogButtonBox.Cancel|QtGui.QDialogButtonBox.Ok)
         self.buttonbox.accepted.connect(self.accept)
         self.buttonbox.rejected.connect(self.reject)
- 
+
     def choose_file(self):
         """
         Opens a file dialog and sets the file text box to the chosen path
@@ -45,7 +45,6 @@ class BaseImportDialog(QtGui.QDialog):
 
     def accept(self):
         self.accepted = True
-        self.data = self.get_data()
         from nexpy.gui.consoleapp import _mainwindow
         _mainwindow.import_data()
         QtGui.QDialog.accept(self)

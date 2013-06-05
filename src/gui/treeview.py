@@ -118,11 +118,10 @@ class NXTreeView(QtGui.QTreeView):
 
     def rename(self):
         node = self.model().getNode(self.currentIndex())
+        self.currentIndex().setSelected(False)
+        rename = RenameDialog(node, self)
+        rename.show()
         self.statusmessage(node)
-        try:
-            node.plot()
-        except:
-            pass
 
     def oplot(self):
         node = self.model().getNode(self.currentIndex())
@@ -180,6 +179,47 @@ class NXTreeView(QtGui.QTreeView):
     def on_context_menu(self, point):
          self.popMenu.exec_( self.mapToGlobal(point) )
 
+"""
+Dialog for renaming a NeXus node
+"""
+class RenameDialog(QtGui.QDialog):
+    """Dialog to select a text file"""
+ 
+    def __init__(self, node, parent=None):
 
+        QtGui.QDialog.__init__(self, parent)
+ 
+        self.node = node
+        self.view = parent
+ 
+        namelayout = QtGui.QHBoxLayout()
+        label = QtGui.QLabel("New Name: ")
+        self.namebox = QtGui.QLineEdit()
+        self.namebox.setFixedWidth(80)
+        namelayout.addWidget(label)
+        namelayout.addWidget(self.namebox)
+
+        buttonbox = QtGui.QDialogButtonBox(self)
+        buttonbox.setOrientation(QtCore.Qt.Horizontal)
+        buttonbox.setStandardButtons(QtGui.QDialogButtonBox.Cancel|QtGui.QDialogButtonBox.Ok)
+        buttonbox.accepted.connect(self.accept)
+        buttonbox.rejected.connect(self.reject)
+
+        layout = QtGui.QVBoxLayout()
+        layout.addLayout(namelayout)
+        layout.addWidget(buttonbox) 
+        self.setLayout(layout)
+
+        self.setWindowTitle("Rename NeXus Object")
+
+    def get_name(self):
+        return self.namebox.text()
+
+    def accept(self):
+        self.node.rename(self.get_name())
+        QtGui.QDialog.accept(self)
+        
+    def reject(self):
+        QtGui.QDialog.reject(self)
 
     
