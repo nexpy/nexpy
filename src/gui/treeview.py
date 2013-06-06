@@ -103,8 +103,8 @@ class NXTreeView(QtGui.QTreeView):
         self.popMenu.addAction( self.plot_action )
         self.popMenu.addAction( self.overplot_action )
         self.popMenu.addSeparator()
-        self.popMenu.addAction( self.rename_action )
-        self.popMenu.addSeparator()
+#       self.popMenu.addAction( self.rename_action )
+#       self.popMenu.addSeparator()
         self.popMenu.addAction( self.savefile_action )
         self.popMenu.addAction( self.savefileas_action )
         
@@ -118,7 +118,6 @@ class NXTreeView(QtGui.QTreeView):
 
     def rename(self):
         node = self.model().getNode(self.currentIndex())
-        self.currentIndex().setSelected(False)
         rename = RenameDialog(node, self)
         rename.show()
         self.statusmessage(node)
@@ -216,6 +215,7 @@ class RenameDialog(QtGui.QDialog):
         return self.namebox.text()
 
     def accept(self):
+        self.view.clearSelection()
         self.node.rename(self.get_name())
         QtGui.QDialog.accept(self)
         
