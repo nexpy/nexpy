@@ -47,3 +47,9 @@ To run from the install location, add the $prefix/bin directory to your path
 (only if you installed outside the python installation), and then run:
 
     nexpy
+
+Online Help
+===========
+There is a brief tutorial on using NeXpy and the NeXus Python tree API at 
+
+    http://wiki.nexusformat.org/NeXpy

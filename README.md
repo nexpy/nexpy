@@ -5,12 +5,15 @@ NeXpy provides a high-level python interface to NeXus data contained within a si
 Installing and Running
 ======================
 
-> python setup.py install
+```
+  python setup.py install
+```
 
 To install in an alternate location:
 
-> python setup.py install --prefix=/path/to/insallation/dir
-
+```
+  python setup.py install --prefix=/path/to/insallation/dir
+```
 
 Prerequisites (must install before you can run)
 ===============================================
@@ -38,9 +41,19 @@ To run with the GUI
 You can run both from the source location or from the install location. To run
 from the source directory, simply execute:
 
-> scripts/nexpy
+```
+scripts/nexpy
+```
 
 To run from the install location, add the $prefix/bin directory to your path
 (only if you installed outside the python installation), and then run:
 
-> nexpy
+```
+nexpy
+```
+
+Online Help
+===========
+There is a brief tutorial on using NeXpy and the NeXus Python tree API at 
+
+    http://wiki.nexusformat.org/NeXpy
