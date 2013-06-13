@@ -22,11 +22,23 @@ from nexpy.gui.importdialog import BaseImportDialog
 from pyspec.spec import SpecDataFile
 
 filetype = "SPEC File"
-motors = {'tth': 'Two_Theta', 'th': 'Theta', 'chi': 'Chi', 'phi': 'Phi',
-          'ts1': 'Top_Slit1', 'bs1': 'Bot_Slit1'}
+motors = {'tth': 'two_theta', 'th': 'theta', 'chi': 'chi', 'phi': 'phi',
+          'ts1': 'top_slit1', 'bs1': 'bot_slit1'}
 
-def capitalize(line):
-    return ' '.join([s[0].upper() + s[1:] for s in line.split(' ')])
+#def capitalize(line):
+#    return ' '.join([s[0].upper() + s[1:] for s in line.split(' ')])
+
+def lower(text):
+    """
+    Return standard motors in lower case but leave others unchanged.
+    
+    The rationale is that some SPEC variables require capitalization,
+    e.g., 'NaI'
+    """
+    if text.lower() in motors.values():
+        return text.lower()
+    else:
+        return text
 
 def reshape_data(scan_data, scan_shape):
     scan_size = np.prod(scan_shape)
@@ -36,7 +48,7 @@ def reshape_data(scan_data, scan_shape):
         data = np.empty(scan_size)
         data.fill(np.NaN)
         data[0:scan_data.size] = scan_data
-    return data.reshape(scan_shape)
+    return data.reshape(scan_shape[::-1]).T
                 
 class ImportDialog(BaseImportDialog):
     """Dialog to import SPEC Scans"""
@@ -63,7 +75,7 @@ class ImportDialog(BaseImportDialog):
             root[entry].comments = scan.comments
             root[entry].data = NXdata()
             if isinstance(axis,list):
-                scan_shape = (axis[0][1].size,axis[1][1].size)
+                scan_shape = (axis[0][1].size, axis[1][1].size)
                 scan_size = np.prod(scan_shape)
                 j = 0
                 for col in cols:
@@ -90,7 +102,7 @@ class ImportDialog(BaseImportDialog):
         words = title.split()
         scan_number = 's%s' % words[1]
         scan_type = words[2]
-        cols = [capitalize(col).replace(' ', '_') for col in scan.cols]
+        cols = [lower(col.replace(' ', '_')) for col in scan.cols]
         axis = cols[0]
         try:
             if scan_type == "hscan":
