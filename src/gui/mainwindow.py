@@ -20,6 +20,7 @@ from IPython.external.qt import QtGui,QtCore
 from qtkernelmanager import QtKernelManager
 from treeview import NXTreeView
 from plotview import NXPlotView
+from datadialogs import RenameDialog
 from nexpy.api.nexus.tree import nxload, NeXusError
 
 # IPython imports
@@ -140,7 +141,7 @@ class MainWindow(QtGui.QMainWindow):
         #create menu in the order they should appear in the menu bar
         self.init_file_menu()
         self.init_edit_menu()
-        self.init_plot_menu()
+        self.init_data_menu()
         self.init_view_menu()
         self.init_magic_menu()
         self.init_window_menu()
@@ -269,22 +270,29 @@ class MainWindow(QtGui.QMainWindow):
             )
         self.add_menu_action(self.edit_menu, self.select_all_action, True)
     
-    def init_plot_menu(self):
-        self.plot_menu = self.menuBar().addMenu("Plot")
+    def init_data_menu(self):
+        self.data_menu = self.menuBar().addMenu("Data")
         
-        self.plot_menu.addSeparator()
-
         self.plot_action=QtGui.QAction("Plot Data",
             self,
             triggered=self.plot_data
             )
-        self.add_menu_action(self.plot_menu, self.plot_action, True)  
+        self.add_menu_action(self.data_menu, self.plot_action, True)  
         
         self.overplot_action=QtGui.QAction("Overplot Data",
             self,
             triggered=self.overplot_data
             )
-        self.add_menu_action(self.plot_menu, self.overplot_action, True)  
+        self.add_menu_action(self.data_menu, self.overplot_action, True)  
+
+        self.data_menu.addSeparator()
+
+        self.rename_action=QtGui.QAction("Rename Data",
+            self,
+            triggered=self.rename_data
+            )
+        self.add_menu_action(self.data_menu, self.rename_action, True)  
+
         
     def init_view_menu(self):
         self.view_menu = self.menuBar().addMenu("&View")
@@ -369,17 +377,15 @@ class MainWindow(QtGui.QMainWindow):
         if self.import_dialog.accepted:
             workspace = self.treeview.tree.get_new_name()
             self.treeview.tree[workspace] = self.user_ns[workspace] = self.import_dialog.get_data()
-            self.treeview.model().treeChanged()
 
     def open_file(self):
         fname, _ = QtGui.QFileDialog.getOpenFileName(self, 'Open file',
             os.path.expanduser('~'))
         workspace = self.treeview.tree.get_new_name()
         self.treeview.tree[workspace] = self.user_ns[workspace] = nxload(fname)
-        self.treeview.model().treeChanged()
   
     def save_file(self):
-        node = self.treeview.model().getNode(self.treeview.currentIndex())
+        node = self.treeview.getnode()
         if node.nxfile:
             try:
                 node.save()
@@ -398,7 +404,7 @@ class MainWindow(QtGui.QMainWindow):
                         QtGui.QMessageBox.Ok, QtGui.QMessageBox.NoButton)
 
     def save_file_as(self):
-        node = self.treeview.model().getNode(self.treeview.currentIndex())
+        node = self.treeview.getnode()
         fname, _ = QtGui.QFileDialog.getSaveFileName(self, "Choose a filename")
         if fname:
             try:
@@ -409,7 +415,7 @@ class MainWindow(QtGui.QMainWindow):
                     QtGui.QMessageBox.Ok, QtGui.QMessageBox.NoButton)
 
     def plot_data(self):
-        node = self.treeview.model().getNode(self.treeview.currentIndex())
+        node = self.treeview.getnode()
         self.treeview.statusmessage(node)
         try:
             node.plot()
@@ -417,13 +423,19 @@ class MainWindow(QtGui.QMainWindow):
             pass
 
     def overplot_data(self):
-        node = self.treeview.model().getNode(self.treeview.currentIndex())
+        node = self.treeview.getnode()
         self.treeview.statusmessage(node)
         try:
             node.oplot()
         except:
             pass
 
+    def rename_data(self):
+        node = self.treeview.getnode()
+        self.console._control.setFocus()
+        rename = RenameDialog(node, self)
+        rename.show()
+       
     def _make_dynamic_magic(self,magic):
         """Return a function `fun` that will execute `magic` on the console.
 
