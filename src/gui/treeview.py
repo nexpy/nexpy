@@ -1,7 +1,11 @@
 from PySide import QtCore, QtGui
-from treemodel import NXTreeModel
 from nexpy.api.nexus import NXfield, NXgroup, NXroot, NeXusError
+from datadialogs import RenameDialog
 
+def natural_sort(key):
+    import re
+    return [int(t) if t.isdigit() else t for t in re.split(r'(\d+)', key)]    
+    
 class NXtree(NXgroup):
     """
     NXtree group. This is a subclass of the NXgroup class.
@@ -12,6 +16,7 @@ class NXtree(NXgroup):
     nxname = 'tree'
     _model = None
     _view = None
+    _item = None
 
     def __setitem__(self, key, value):
         from nexpy.gui.consoleapp import _shell
@@ -20,28 +25,13 @@ class NXtree(NXgroup):
     
     def set_changed(self):
         if self._model:
-            self._view.clearSelection()
-            self._model.treeChanged()
             for node in self.walk():
-                if node.changed:
-                    if node.nxgroup == self:
-                        from nexpy.gui.consoleapp import _mainwindow
-                        _mainwindow.user_ns[node.nxname] = node
-                    index = self._model.getNodeIndex(node)
-                    if index.isValid(): 
-                        self._view.update(index)
-                    if node.nxgroup:
-                        index = self._model.getNodeIndex(node.nxgroup)
-                        if index.isValid():
-                            self._model.treeChanged(parent=index)
-                    node.set_unchanged()
-
-    def walk(self):
-        yield self
-        for node in self.entries.values():
-            if node.changed:
-                for child in node.walk():
-                    yield child
+                if hasattr(node, "_item"):
+                    node._item.emitDataChanged()
+                else:
+                    node._item = NXTreeItem(node)
+                    node.nxgroup._item.appendRow(node._item)
+                node.set_unchanged()
 
     def add(self, node):
         if isinstance(node, NXroot):
@@ -64,6 +54,9 @@ class NXtree(NXgroup):
             self[self.get_new_name()] = group
         else:
             raise NeXusError("Only a valid NXgroup can be added to the tree")
+        for node in self.walk(all_nodes=True):
+            node._item = NXTreeItem(node)
+            node.nxgroup._item.appendRow(node._item)
 
     def get_new_name(self):
         ind = []
@@ -75,27 +68,98 @@ class NXtree(NXgroup):
                 pass
         if ind == []: ind = [0]
         return 'w'+str(sorted(ind)[-1]+1)
+
+    def walk(self, all_nodes=False):
+        for node in self.entries.values():
+            if all_nodes or node.changed:
+                for child in node.walk():
+                    yield child
+
+
+class NXTreeItem(QtGui.QStandardItem):
+
+    """
+    A subclass of the QtGui.QStandardItem class to return the data from 
+    an NXnode.
+    """
+
+    def __init__(self, node):
+        self.node = node
+        super(NXTreeItem, self).__init__(self.node.nxname)
+
+    def text(self):
+        return self.node.nxname
+
+    def setText(self, text):
+        self.node.rename(text)
+        self.setData(self.node)
+    
+    def data(self, role=QtCore.Qt.DisplayRole):
+        """
+        Returns the data to be displayed in the tree.
+        """        
+
+        if role == QtCore.Qt.DisplayRole or role == QtCore.Qt.EditRole:
+            return self.node.nxname
+
+        if role == QtCore.Qt.ToolTipRole:
+            if self.node.tree.count('\n') > 50:
+                return '\n'.join(self.node.tree.split('\n')[0:50])+'\n...'
+            else:
+                return self.node.tree
+
+    def setData(self, value, role=QtCore.Qt.EditRole):
+            
+        if role == QtCore.Qt.EditRole:
+            self.node.rename(value)
+            self.emitDataChanged()
+            return True
+            
+        return False
     
 
+class NXSortModel(QtGui.QSortFilterProxyModel):
+
+    def __init__(self, parent=None):
+        super(NXSortModel, self).__init__(parent)
+
+    def lessThan(self, left, right):
+        left_text = self.sourceModel().itemFromIndex(left).text()
+        right_text = self.sourceModel().itemFromIndex(right).text()
+        return natural_sort(left_text) < natural_sort(right_text)
+
+    
 class NXTreeView(QtGui.QTreeView):
 
     def __init__(self, tree, parent=None):
         super(NXTreeView, self).__init__(parent)
 
         self.tree = tree
-        self.setModel(NXTreeModel(self.tree))
-        self.tree._model = self.model()
+        self.mainwindow = None
+        self._model = QtGui.QStandardItemModel()
+        self.proxymodel = NXSortModel(self)
+        self.proxymodel.setSourceModel(self._model)
+        self.proxymodel.setDynamicSortFilter(True)
+        self.proxymodel.setFilterCaseSensitivity(QtCore.Qt.CaseInsensitive)
+
+        self.setModel(self.proxymodel)
+
+        self._model.setColumnCount(1)
+        self._model.setHorizontalHeaderItem(0,QtGui.QStandardItem('NeXus Data'))
+        self.setSortingEnabled(True)
+        self.sortByColumn(0, QtCore.Qt.AscendingOrder)
+
+        self.tree._item = self._model.invisibleRootItem()
+        self.tree._model = self._model
         self.tree._view = self
-        self.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
-        self.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
 
         # Popup Menu
-        self.setContextMenuPolicy( QtCore.Qt.CustomContextMenu )
+        self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(self.on_context_menu)
 
         self.plot_action=QtGui.QAction("Plot Data", self, triggered=self.plot)
         self.overplot_action=QtGui.QAction("Overplot Data", self, triggered=self.oplot)
-        self.rename_action=QtGui.QAction("Rename", self, triggered=self.rename)
+        self.rename_action=QtGui.QAction("Rename", self, triggered=self.rename_data)
         self.savefile_action=QtGui.QAction("Save", self, triggered=self.save_file)
         self.savefileas_action=QtGui.QAction("Save as...", self, triggered=self.save_file_as)
 
@@ -103,27 +167,25 @@ class NXTreeView(QtGui.QTreeView):
         self.popMenu.addAction( self.plot_action )
         self.popMenu.addAction( self.overplot_action )
         self.popMenu.addSeparator()
-#       self.popMenu.addAction( self.rename_action )
-#       self.popMenu.addSeparator()
+        self.popMenu.addAction( self.rename_action )
+        self.popMenu.addSeparator()
         self.popMenu.addAction( self.savefile_action )
         self.popMenu.addAction( self.savefileas_action )
+
+    def getnode(self):
+        index = self.currentIndex()
+        return self._model.itemFromIndex(self.proxymodel.mapToSource(index)).node
         
     def plot(self):
-        node = self.model().getNode(self.currentIndex())
+        node = self.getnode()
         self.statusmessage(node)
         try:
             node.plot()
         except:
             pass
 
-    def rename(self):
-        node = self.model().getNode(self.currentIndex())
-        rename = RenameDialog(node, self)
-        rename.show()
-        self.statusmessage(node)
-
     def oplot(self):
-        node = self.model().getNode(self.currentIndex())
+        node = self.getnode()
         self.statusmessage(node)
         try:
             node.oplot()
@@ -131,7 +193,7 @@ class NXTreeView(QtGui.QTreeView):
             pass
 
     def save_file(self):
-        node = self.model().getNode(self.currentIndex())
+        node = self.getnode()
         if node.nxfile:
             try:
                 node.save()
@@ -150,7 +212,7 @@ class NXTreeView(QtGui.QTreeView):
                         QtGui.QMessageBox.Ok, QtGui.QMessageBox.NoButton)
 
     def save_file_as(self):
-        node = self.model().getNode(self.currentIndex())
+        node = self.getnode()
         fname, _ = QtGui.QFileDialog.getSaveFileName(self, "Choose a filename")
         if fname:
             try:
@@ -160,66 +222,25 @@ class NXTreeView(QtGui.QTreeView):
                     self, "Error saving file", str(error_message),
                     QtGui.QMessageBox.Ok, QtGui.QMessageBox.NoButton)
 
+    def rename_data(self):
+        self.parent().parent().rename_data()
+
+    def statusmessage(self, message):
+        if isinstance(message, NXfield):
+            text = message.tree
+        elif isinstance(message, NXgroup):
+            text = message.nxclass+':'+message.nxname+' '+message._str_attrs()
+        else:
+            text = str(message)
+        self.parent().parent().statusBar().showMessage(text.replace('\n','; '))
+
     def selectionChanged(self, new, old):
         if new.indexes():
-            node = self.model().getNode(new.indexes()[0])
+            node = self.getnode()
             self.statusmessage(node)
         else:
-            self.parent().parent().statusBar().showMessage('')
-
-    def statusmessage(self, node):
-        if isinstance(node, NXfield):
-            message = node.tree
-        else:
-            message = node.nxclass+':'+node.nxname+' '+node._str_attrs()
-        self.parent().parent().statusBar().showMessage(message.replace('\n','; '))
-            
+            self.statusmessage('')
 
     def on_context_menu(self, point):
          self.popMenu.exec_( self.mapToGlobal(point) )
 
-"""
-Dialog for renaming a NeXus node
-"""
-class RenameDialog(QtGui.QDialog):
-    """Dialog to select a text file"""
- 
-    def __init__(self, node, parent=None):
-
-        QtGui.QDialog.__init__(self, parent)
- 
-        self.node = node
-        self.view = parent
- 
-        namelayout = QtGui.QHBoxLayout()
-        label = QtGui.QLabel("New Name: ")
-        self.namebox = QtGui.QLineEdit()
-        self.namebox.setFixedWidth(80)
-        namelayout.addWidget(label)
-        namelayout.addWidget(self.namebox)
-
-        buttonbox = QtGui.QDialogButtonBox(self)
-        buttonbox.setOrientation(QtCore.Qt.Horizontal)
-        buttonbox.setStandardButtons(QtGui.QDialogButtonBox.Cancel|QtGui.QDialogButtonBox.Ok)
-        buttonbox.accepted.connect(self.accept)
-        buttonbox.rejected.connect(self.reject)
-
-        layout = QtGui.QVBoxLayout()
-        layout.addLayout(namelayout)
-        layout.addWidget(buttonbox) 
-        self.setLayout(layout)
-
-        self.setWindowTitle("Rename NeXus Object")
-
-    def get_name(self):
-        return self.namebox.text()
-
-    def accept(self):
-        self.view.clearSelection()
-        self.node.rename(self.get_name())
-        QtGui.QDialog.accept(self)
-        
-    def reject(self):
-        QtGui.QDialog.reject(self)
-
-    
