@@ -242,7 +242,6 @@ from copy import copy, deepcopy
 import numpy as np
 import napi
 from napi import NeXusError
-from nexpy.gui.treemodel import NXnode
 
 #Memory in MB
 NX_MEMORY = 500
@@ -364,8 +363,9 @@ class NeXusTree(napi.NeXus):
             else:
                 value = None
             data = NXfield(value=value,name=name,dtype=type,shape=dims,attrs=attrs)
-        self.closedata()
+        data._filepath = self.path
         data._infile = data._saved = data._changed = True
+        self.closedata()
         return data
 
     # These are groups that HDFView explicitly skips
@@ -657,7 +657,7 @@ class NXattr(object):
 
 _npattrs = filter(lambda x: not x.startswith('_'), np.ndarray.__dict__.keys())
 
-class NXobject(NXnode):
+class NXobject(object):
 
     """
     Abstract base class for elements in NeXus files.
@@ -937,6 +937,7 @@ class NXobject(NXnode):
             self.nxgroup._entries[value] = self.nxgroup._entries[self._name]
             del self.nxgroup._entries[self._name]
         self._name = str(value)
+        self._saved = False
         self.set_changed()                       
 
     def _getgroup(self):
@@ -1739,9 +1740,9 @@ class NXfield(NXobject):
         if self._value is None:
             if self.nxfile:
                 if str(self.dtype) == 'char':
-                    self._value = self.nxfile.readpath(self.nxpath)
+                    self._value = self.nxfile.readpath(self._filepath)
                 elif np.prod(self.shape) * np.dtype(self.dtype).itemsize <= NX_MEMORY*1024*1024:
-                    self._value = self.nxfile.readpath(self.nxpath)
+                    self._value = self.nxfile.readpath(self._filepath)
                 else:
                     raise MemoryError('Data size larger than NX_MEMORY=%s MB' % NX_MEMORY)
                 self._saved = True
