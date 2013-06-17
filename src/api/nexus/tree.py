@@ -1676,7 +1676,7 @@ class NXfield(NXobject):
         """
         if self._value is not None:
             if self.nxfile:
-                self._value = self.nxfile.readpath(self.nxpath)
+                self._value = self.nxfile.readpath(self._filepath)
                 self._infile = self._saved = True
             else:
                 raise IOError("Data is not attached to a file")
