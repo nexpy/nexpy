@@ -20,8 +20,8 @@ from IPython.external.qt import QtGui,QtCore
 from qtkernelmanager import QtKernelManager
 from treeview import NXTreeView
 from plotview import NXPlotView
-from datadialogs import RenameDialog
-from nexpy.api.nexus.tree import nxload, NeXusError
+from datadialogs import PlotDialog, RenameDialog
+from nexpy.api.nexus.tree import nxload, NeXusError, NXentry
 
 # IPython imports
 from IPython.frontend.qt.console.ipython_widget import IPythonWidget
@@ -152,13 +152,26 @@ class MainWindow(QtGui.QMainWindow):
         
         self.file_menu.addSeparator()
 
-        self.openfile_action=QtGui.QAction("&Open",
+        self.newfile_action=QtGui.QAction("&New file ...",
+            self,
+            shortcut=QtGui.QKeySequence.New,
+            triggered=self.new_file
+            )
+        self.add_menu_action(self.file_menu, self.newfile_action, True)  
+        
+        self.openfile_action=QtGui.QAction("&Open (read only)",
             self,
             shortcut=QtGui.QKeySequence.Open,
             triggered=self.open_file
             )
         self.add_menu_action(self.file_menu, self.openfile_action, True)  
         
+        self.openeditablefile_action=QtGui.QAction("Open (read/write)",
+            self,
+            triggered=self.open_editable_file
+            )
+        self.add_menu_action(self.file_menu, self.openeditablefile_action, True)  
+
         self.savefile_action=QtGui.QAction("&Save",
             self,
             shortcut=QtGui.QKeySequence.Save,
@@ -378,18 +391,30 @@ class MainWindow(QtGui.QMainWindow):
             workspace = self.treeview.tree.get_new_name()
             self.treeview.tree[workspace] = self.user_ns[workspace] = self.import_dialog.get_data()
 
+    def new_file(self):
+        fname, _ = QtGui.QFileDialog.getSaveFileName(self, "Choose a filename")
+        workspace = self.treeview.tree.get_new_name()
+        self.treeview.tree[workspace] = self.user_ns[workspace] = nxload(fname, 'w')
+        self.treeview.tree[workspace].entry = NXentry()
+  
     def open_file(self):
-        fname, _ = QtGui.QFileDialog.getOpenFileName(self, 'Open file',
+        fname, _ = QtGui.QFileDialog.getOpenFileName(self, 'Open file (Read Only)',
             os.path.expanduser('~'))
         workspace = self.treeview.tree.get_new_name()
         self.treeview.tree[workspace] = self.user_ns[workspace] = nxload(fname)
+  
+    def open_editable_file(self):
+        fname, _ = QtGui.QFileDialog.getOpenFileName(self, 'Open file (Read/Write)',
+            os.path.expanduser('~'))
+        workspace = self.treeview.tree.get_new_name()
+        self.treeview.tree[workspace] = self.user_ns[workspace] = nxload(fname, 'rw')
   
     def save_file(self):
         node = self.treeview.getnode()
         if node.nxfile:
             try:
                 node.save()
-            except NeXusError, error_message:
+            except NeXusError(error_message):
                 QtGui.QMessageBox.critical(
                     self, "Error saving file", str(error_message),
                     QtGui.QMessageBox.Ok, QtGui.QMessageBox.NoButton)
@@ -398,7 +423,7 @@ class MainWindow(QtGui.QMainWindow):
             if fname:
                 try:
                     node.save(fname)
-                except NeXusError, error_message:
+                except NeXusError(error_message):
                     QtGui.QMessageBox.critical(
                         self, "Error saving file", str(error_message),
                         QtGui.QMessageBox.Ok, QtGui.QMessageBox.NoButton)
@@ -409,7 +434,7 @@ class MainWindow(QtGui.QMainWindow):
         if fname:
             try:
                 node.save(fname)
-            except NeXusError, error_message:
+            except NeXusError(error_message):
                 QtGui.QMessageBox.critical(
                     self, "Error saving file", str(error_message),
                     QtGui.QMessageBox.Ok, QtGui.QMessageBox.NoButton)
@@ -419,8 +444,9 @@ class MainWindow(QtGui.QMainWindow):
         self.treeview.statusmessage(node)
         try:
             node.plot()
-        except:
-            pass
+        except KeyError, NeXusError:
+            plot = PlotDialog(node, self)
+            plot.show()
 
     def overplot_data(self):
         node = self.treeview.getnode()
@@ -432,7 +458,12 @@ class MainWindow(QtGui.QMainWindow):
 
     def rename_data(self):
         node = self.treeview.getnode()
-        self.console._control.setFocus()
+        if node.infile:
+            QtGui.QMessageBox.critical(
+                self, "Cannot rename item", 
+                "NeXus object cannot be renamed when already stored in a file",
+                QtGui.QMessageBox.Ok, QtGui.QMessageBox.NoButton)
+            raise NeXusError("Cannot rename a NeXus object already stored in a file")
         rename = RenameDialog(node, self)
         rename.show()
        
