@@ -186,11 +186,9 @@ class NXConsoleApp(BaseIPythonApplication, IPythonConsoleApp):
         """Initialize imports in the shell."""
         global _shell
         _shell = self.window.user_ns
-        s = ("import numpy\n"
-             "from numpy import *\n"
-             "import matplotlib\n"
+        s = ("import numpy as np\n"
+             "import matplotlib as mpl\n"
              "from matplotlib import pylab, mlab, pyplot\n"
-             "np = numpy\n"
              "plt = pyplot\n"
              "import nexpy.api.nexus as nx\n"
              "from nexpy.api.nexus import NXgroup, NXfield, NXattr, NXlink\n"
