@@ -405,6 +405,7 @@ class NeXusTree(napi.NeXus):
             # Build chain back structure
             for obj in children.values():
                 obj._group = group
+        group._filepath = self.path
         group._infile = group._saved = group._changed = True
         return group
 
@@ -464,8 +465,8 @@ class NeXusTree(napi.NeXus):
             # Don't use compression for small datasets
             try:
                 self.makedata(data.nxname, data.dtype, shape)
-            except StandardError,errortype:
-                print "Error in tree, makedata: ",errortype
+            except StandardError(errortype):
+                print "Error in tree, makedata: ", errortype
 
         self.opendata(data.nxname)
         self._writeattrs(data.attrs)
@@ -505,7 +506,7 @@ class NeXusTree(napi.NeXus):
         """
         Create links within the NeXus file.
 
-        THese are defined by the set of pairs returned by _writegroup.
+        These are defined by the set of pairs returned by _writegroup.
         """
         gid = {}
 
@@ -816,7 +817,10 @@ class NXobject(object):
         """
         self._close_on_exit = not self.nxfile.isopen
         self.nxfile.open() # Force file open even if closed
-        self.nxfile.openpath(self.nxpath)
+        if self._infile:
+            self.nxfile.openpath(self._filepath)
+        else:
+            self.nxfile.openpath(self.nxpath)
         self._incontext = True
         return self.nxfile
 
@@ -875,11 +879,15 @@ class NXobject(object):
             root._file = NeXusTree(filename, 'rw')
             root._setattrs(root._file.getattrs())
             for node in root.walk():
+                node._filepath = node.nxpath
                 node._infile = node._saved = True
             
         elif self.nxfile:
-            for entry in self.nxroot.values():
-                entry.write()
+            if self.nxfile.mode == napi.ACC_READ:
+                raise NeXusError("NeXus file is readonly")
+            else:
+                for entry in self.nxroot.values():
+                    entry.write()
 
         else:
             raise NeXusError("No output file specified")
@@ -1601,14 +1609,14 @@ class NXfield(NXobject):
                     else:
                     # Don't use compression for small datasets
                         path.makedata(self.nxname, self.dtype, shape)
+                self._filepath = self.nxpath
                 self._infile = True
             if not self.saved:            
                 with self as path:
                     path._writeattrs(self.attrs)
-                    value = self.nxdata
-                    if value is not None:
-                        path.putdata(value)
-                self._saved = True
+                    if self._value is not None:
+                        path.putdata(self._value)
+                        self._saved = True
         else:
             raise IOError("Data is not attached to a file")
 
@@ -2239,7 +2247,7 @@ class NXgroup(NXobject):
                 self._setattrs(path.getattrs())
                 entries = path.entries()
             for name,nxclass in entries:
-                path = self.nxpath + '/' + name
+                path = self._filepath + '/' + name
                 if nxclass == 'SDS':
                     attrs = self.nxfile.getattrs()
                     if 'target' in attrs and attrs['target'] != path:
@@ -2276,6 +2284,7 @@ class NXgroup(NXobject):
             if not self.infile:
                 with self.nxgroup as path:
                     path.makegroup(self.nxname, self.nxclass)
+                self._filepath = self.nxpath
                 self._infile = True
             with self as path:
                 path._writeattrs(self.attrs)
@@ -2425,6 +2434,9 @@ class NXgroup(NXobject):
         
         The argument should be a valid NXfield within the group.
         """
+        current_signal = self._signal()
+        if current_signal:
+            current_signal.signal = NXattr(2)
         self.entries[signal.nxname] = signal
         self.entries[signal.nxname].signal = NXattr(1)
         return self.entries[signal.nxname]
@@ -2477,13 +2489,12 @@ class NXgroup(NXobject):
         If there is no title attribute in the string, the parent
         NXentry group in the group's path is searched.
         """
-        title = self.nxpath
         if 'title' in self.entries:
             return str(self.title)
-        elif self.nxgroup:
-            if 'title' in self.nxgroup.entries:
-                return str(self.nxgroup.title)
-        return self.nxpath
+        elif self.nxgroup and 'title' in self.nxgroup.entries:
+            return str(self.nxgroup.title)
+        else:
+            return self.nxpath
 
     def _getentries(self):
         return self._entries
@@ -2651,6 +2662,7 @@ class NXlinkfield(NXlink, NXfield):
                 target = path.getdataID()
             with self.nxgroup as path:
                 path.makelink(target)
+            self._filepath = self.nxpath
             self._infile = self._saved = True
 
 NXlinkdata = NXlinkfield # For backward compatibility
@@ -2673,6 +2685,7 @@ class NXlinkgroup(NXlink, NXgroup):
                 target = path.getgroupID()
             with self.nxgroup as path:
                 path.makelink(target)
+            self._filepath = self.nxpath
             self._infile = self._saved = True
 
     def _getentries(self):
