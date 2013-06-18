@@ -1,5 +1,5 @@
 from PySide import QtCore, QtGui
-from nexpy.api.nexus import NXfield, NXgroup, NXroot, NeXusError
+from nexpy.api.nexus import NXfield, NXgroup, NXlink, NXroot, NeXusError
 from datadialogs import RenameDialog
 
 def natural_sort(key):
@@ -27,10 +27,15 @@ class NXtree(NXgroup):
         if self._model:
             for node in self.walk():
                 if hasattr(node, "_item"):
-                    node._item.emitDataChanged()
+                    if isinstance(node, NXlink) and node._item is node.nxlink._item:
+                        node._item = NXTreeItem(node)
                 else:
                     node._item = NXTreeItem(node)
+                if not node._item.isChild(node.nxgroup._item):
                     node.nxgroup._item.appendRow(node._item)
+                if node.infile:
+                    node._item.setEditable(False)
+                node._item.emitDataChanged()
                 node.set_unchanged()
 
     def add(self, node):
@@ -54,9 +59,6 @@ class NXtree(NXgroup):
             self[self.get_new_name()] = group
         else:
             raise NeXusError("Only a valid NXgroup can be added to the tree")
-        for node in self.walk(all_nodes=True):
-            node._item = NXTreeItem(node)
-            node.nxgroup._item.appendRow(node._item)
 
     def get_new_name(self):
         ind = []
@@ -69,11 +71,10 @@ class NXtree(NXgroup):
         if ind == []: ind = [0]
         return 'w'+str(sorted(ind)[-1]+1)
 
-    def walk(self, all_nodes=False):
+    def walk(self):
         for node in self.entries.values():
-            if all_nodes or node.changed:
-                for child in node.walk():
-                    yield child
+            for child in node.walk():
+                yield child
 
 
 class NXTreeItem(QtGui.QStandardItem):
@@ -86,6 +87,8 @@ class NXTreeItem(QtGui.QStandardItem):
     def __init__(self, node):
         self.node = node
         super(NXTreeItem, self).__init__(self.node.nxname)
+        if self.node.infile:
+            self.setEditable(False) 
 
     def text(self):
         return self.node.nxname
@@ -98,10 +101,8 @@ class NXTreeItem(QtGui.QStandardItem):
         """
         Returns the data to be displayed in the tree.
         """        
-
         if role == QtCore.Qt.DisplayRole or role == QtCore.Qt.EditRole:
             return self.node.nxname
-
         if role == QtCore.Qt.ToolTipRole:
             if self.node.tree.count('\n') > 50:
                 return '\n'.join(self.node.tree.split('\n')[0:50])+'\n...'
@@ -109,14 +110,20 @@ class NXTreeItem(QtGui.QStandardItem):
                 return self.node.tree
 
     def setData(self, value, role=QtCore.Qt.EditRole):
-            
         if role == QtCore.Qt.EditRole:
+            if self.node.infile:
+                raise NeXusError("NeXus data already in a file cannot be renamed")
             self.node.rename(value)
             self.emitDataChanged()
-            return True
-            
+            return True           
         return False
-    
+
+    def isChild(self, item):
+        if item.hasChildren():
+            for index in range(item.rowCount()):
+                if item.child(index) is self:
+                    return True
+        return False
 
 class NXSortModel(QtGui.QSortFilterProxyModel):
 
@@ -157,8 +164,8 @@ class NXTreeView(QtGui.QTreeView):
         self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(self.on_context_menu)
 
-        self.plot_action=QtGui.QAction("Plot Data", self, triggered=self.plot)
-        self.overplot_action=QtGui.QAction("Overplot Data", self, triggered=self.oplot)
+        self.plot_action=QtGui.QAction("Plot Data", self, triggered=self.plot_data)
+        self.overplot_action=QtGui.QAction("Overplot Data", self, triggered=self.overplot_data)
         self.rename_action=QtGui.QAction("Rename", self, triggered=self.rename_data)
         self.savefile_action=QtGui.QAction("Save", self, triggered=self.save_file)
         self.savefileas_action=QtGui.QAction("Save as...", self, triggered=self.save_file_as)
@@ -176,22 +183,6 @@ class NXTreeView(QtGui.QTreeView):
         index = self.currentIndex()
         return self._model.itemFromIndex(self.proxymodel.mapToSource(index)).node
         
-    def plot(self):
-        node = self.getnode()
-        self.statusmessage(node)
-        try:
-            node.plot()
-        except:
-            pass
-
-    def oplot(self):
-        node = self.getnode()
-        self.statusmessage(node)
-        try:
-            node.oplot()
-        except:
-            pass
-
     def save_file(self):
         node = self.getnode()
         if node.nxfile:
@@ -221,6 +212,12 @@ class NXTreeView(QtGui.QTreeView):
                 QtGui.QMessageBox.critical(
                     self, "Error saving file", str(error_message),
                     QtGui.QMessageBox.Ok, QtGui.QMessageBox.NoButton)
+
+    def plot_data(self):
+        self.parent().parent().plot_data()
+
+    def overplot_data(self):
+        self.parent().parent().overplot_data()
 
     def rename_data(self):
         self.parent().parent().rename_data()
