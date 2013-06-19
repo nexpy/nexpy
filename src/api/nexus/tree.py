@@ -1362,7 +1362,7 @@ class NXfield(NXobject):
     def __deepcopy__(self, memo):
         dpcpy = self.__class__()
         memo[id(self)] = dpcpy
-        dpcpy._value = copy(self._value)
+        dpcpy._value = copy(self.nxdata)
         dpcpy._name = copy(self.nxname)
         dpcpy._dtype = copy(self.dtype)
         dpcpy._shape = copy(self.shape)
@@ -2878,8 +2878,8 @@ class NXdata(NXgroup):
         if signal is not None:
             if isinstance(signal,NXfield):
                 if signal.nxname == "unknown": signal.nxname = "signal"
-                if "signal" not in signal.attrs: signal.signal = 1
                 self[signal.nxname] = signal
+                self[signal.nxname].signal = 1
                 signalname = signal.nxname
             else:
                 self["signal"] = signal
