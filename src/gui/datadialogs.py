@@ -1,11 +1,12 @@
 # System library imports
 from IPython.external.qt import QtGui,QtCore
+import numpy as np
 
 # NeXpy imports
 from nexpy.api.nexus import NXfield, NXgroup, NXdata
 
 class PlotDialog(QtGui.QDialog):
-    """Dialog to plot arbitrary NeXus data"""
+    """Dialog to plot arbitrary one-dimensional NeXus data"""
  
     def __init__(self, node, parent=None):
 
@@ -16,8 +17,10 @@ class PlotDialog(QtGui.QDialog):
         if isinstance(node, NXfield):
             plotlayout = QtGui.QHBoxLayout()
             self.plotbox = QtGui.QComboBox()
-            for entry in self.node.nxgroup.entries:
-                self.plotbox.addItem(node.nxgroup[entry].nxname)
+            self.plotbox.addItem('NXfield index')
+            for entry in self.node.nxgroup.entries.values():
+                if entry is not self.node and self.check_axis(entry):
+                    self.plotbox.addItem(entry.nxname)
             plotlabel = QtGui.QLabel("Choose x-axis: ")
             plotlayout.addWidget(plotlabel)
             plotlayout.addWidget(self.plotbox)
@@ -36,10 +39,25 @@ class PlotDialog(QtGui.QDialog):
         self.setWindowTitle("Plot NeXus Field")
 
     def get_axis(self):
-        return self.plotbox.itemData(self.plotbox.currentIndex())
+        axis = self.plotbox.currentText()
+        if axis == 'NXfield index':
+            return NXfield(range(1,self.node.size+1), name='index')
+        else:
+            print axis, self.node.nxgroup.entries[axis]
+            return self.node.nxgroup.entries[axis]
+
+    def check_axis(self, axis):
+        try:
+            node_len, axis_len = self.node.shape[0], axis.shape[0]
+            if axis_len == node_len or axis_len == node_len+1:
+                return True
+        except:
+            pass
+        return False
 	
     def accept(self):
-        data = NXdata(self.node, self.node.nxgroup[self.get_axis()])
+        data = NXdata(self.node, [self.get_axis()])
+        print data.tree
         data.plot()
         QtGui.QDialog.accept(self)
         
