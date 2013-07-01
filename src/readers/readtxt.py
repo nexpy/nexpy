@@ -39,9 +39,9 @@ class ImportDialog(BaseImportDialog):
         skippedbox.addWidget(self.skiprows)
  
         layout = QtGui.QVBoxLayout()
-        layout.addLayout(self.filebox)
+        layout.addLayout(self.filebox())
         layout.addLayout(skippedbox)
-        layout.addWidget(self.buttonbox)
+        layout.addWidget(self.buttonbox())
         self.setLayout(layout)
   
         self.setWindowTitle("Import "+str(filetype))

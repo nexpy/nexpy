@@ -58,8 +58,8 @@ class ImportDialog(BaseImportDialog):
         super(ImportDialog, self).__init__(parent)
         
         layout = QtGui.QVBoxLayout()
-        layout.addLayout(self.filebox)
-        layout.addWidget(self.buttonbox)
+        layout.addLayout(self.filebox())
+        layout.addWidget(self.buttonbox())
         self.setLayout(layout)
   
         self.setWindowTitle("Import "+str(filetype))
