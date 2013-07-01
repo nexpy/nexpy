@@ -242,6 +242,7 @@ class NXPlot(object):
 
         self.colorbar = None
         self.autoscale = False      
+        self.autoplot = False      
     
     def plot(self, data, fmt, xmin, xmax, ymin, ymax, vmin, vmax, **opts):
         """
@@ -700,7 +701,6 @@ class NXPlotTab(QtGui.QWidget):
             self.axiscombo = None
         if zaxis:
             self.zaxis = True
-            self.auto = False
             self.minbox = self.spinbox(self.read_minbox)
             self.maxbox = self.spinbox(self.read_maxbox)
             widgets.append(self.minbox)
@@ -717,15 +717,19 @@ class NXPlotTab(QtGui.QWidget):
             widgets.append(self.maxbox)
         if zaxis:
             self.lockbox = self.checkbox("Lock", self.set_lock)
-            self.autobox = self.checkbox("Autoscale", self.set_autoscale)
-            self.autobox.setChecked(False)
+            self.scalebox = self.checkbox("Autoscale", self.set_autoscale)
+            self.scalebox.setChecked(False)
+            self.plotbox = self.checkbox("Autoplot", self.set_autoplot)
+            self.plotbox.setChecked(False)
             self.plotbutton =  self.pushbutton("Replot", self.replot)
             widgets.append(self.lockbox)
-            widgets.append(self.autobox)
+            widgets.append(self.scalebox)
+            widgets.append(self.plotbox)
             widgets.append(self.plotbutton)
         else:
             self.lockbox = None
-            self.autobox = None
+            self.scalebox = None
+            self.plotbox = None
         if log: 
             self.logbox = self.checkbox("Log", self.set_log)
             widgets.append(self.logbox)
@@ -833,9 +837,8 @@ class NXPlotTab(QtGui.QWidget):
         if self.name == 'x' or self.name == 'y':
             self.set_sliders(self.axis.lo, hi)
             self.plot.replot_axes()
-        elif self.name == 'z' and self.auto:
-            self.plot.plotdata = self.plot.data2D()
-            self.plot.plot2D()
+        elif self.name == 'z' and self.plot.autoplot:
+            self.replot()
         elif self.name == 'v':
             self.set_sliders(self.axis.lo, hi)
             self.plot.plot2D()
@@ -855,9 +858,8 @@ class NXPlotTab(QtGui.QWidget):
         if self.name == 'x' or self.name == 'y':
             self.set_sliders(lo, self.axis.hi)
             self.plot.replot_axes()
-        elif self.name == 'z' and self.auto:
-            self.plot.plotdata = self.plot.data2D()
-            self.plot.plot2D()
+        elif self.name == 'z' and self.plot.autoplot:
+            self.replot()
         elif self.name == 'v':
             self.set_sliders(lo, self.axis.hi)
             self.plot.plot2D()
@@ -931,10 +933,16 @@ class NXPlotTab(QtGui.QWidget):
             self.axis.diff = None
 
     def set_autoscale(self):
-        if self.autobox.isChecked():
+        if self.scalebox.isChecked():
             self.plot.autoscale = True
         else:
             self.plot.autoscale = False
+
+    def set_autoplot(self):
+        if self.plotbox.isChecked():
+            self.plot.autoplot = True
+        else:
+            self.plot.autoplot = False
 
     def replot(self):
         self.plot.plotdata = self.plot.data2D()
