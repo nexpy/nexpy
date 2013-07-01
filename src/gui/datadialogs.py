@@ -17,17 +17,19 @@ class PlotDialog(QtGui.QDialog):
         if isinstance(node, NXfield):
             plotlayout = QtGui.QHBoxLayout()
             self.plotbox = QtGui.QComboBox()
-            self.plotbox.addItem('NXfield index')
             for entry in self.node.nxgroup.entries.values():
                 if entry is not self.node and self.check_axis(entry):
                     self.plotbox.addItem(entry.nxname)
+            self.plotbox.insertSeparator(0)
+            self.plotbox.insertItem(0,'NXfield index')
             plotlabel = QtGui.QLabel("Choose x-axis: ")
             plotlayout.addWidget(plotlabel)
             plotlayout.addWidget(self.plotbox)
 
         buttonbox = QtGui.QDialogButtonBox(self)
         buttonbox.setOrientation(QtCore.Qt.Horizontal)
-        buttonbox.setStandardButtons(QtGui.QDialogButtonBox.Cancel|QtGui.QDialogButtonBox.Ok)
+        buttonbox.setStandardButtons(QtGui.QDialogButtonBox.Cancel|
+                                     QtGui.QDialogButtonBox.Ok)
         buttonbox.accepted.connect(self.accept)
         buttonbox.rejected.connect(self.reject)
 
@@ -43,7 +45,6 @@ class PlotDialog(QtGui.QDialog):
         if axis == 'NXfield index':
             return NXfield(range(1,self.node.size+1), name='index')
         else:
-            print axis, self.node.nxgroup.entries[axis]
             return self.node.nxgroup.entries[axis]
 
     def check_axis(self, axis):
@@ -83,7 +84,8 @@ class RenameDialog(QtGui.QDialog):
 
         buttonbox = QtGui.QDialogButtonBox(self)
         buttonbox.setOrientation(QtCore.Qt.Horizontal)
-        buttonbox.setStandardButtons(QtGui.QDialogButtonBox.Cancel|QtGui.QDialogButtonBox.Ok)
+        buttonbox.setStandardButtons(QtGui.QDialogButtonBox.Cancel|
+                                     QtGui.QDialogButtonBox.Ok)
         buttonbox.accepted.connect(self.accept)
         buttonbox.rejected.connect(self.reject)
 
