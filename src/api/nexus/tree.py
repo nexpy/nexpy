@@ -1246,7 +1246,11 @@ class NXfield(NXobject):
         self._name = name.replace(' ','_')
         self._group = group
         self._dtype = dtype
-        if dtype == 'char':
+        if isinstance(dtype, np.dtype):
+            self._dtype = dtype
+        elif np.issubdtype(dtype, np.generic):
+            self._dtype = np.dtype(dtype)
+        elif dtype == 'char':
             self._dtype = 'char'
         elif dtype in np.typeDict:
             self._dtype = np.dtype(dtype)
@@ -1584,10 +1588,11 @@ class NXfield(NXobject):
             if self.infile:
                 with self as path:
                     shape, dtype = path.getinfo()
+                shape = tuple(shape)
                 if dtype != str(self.dtype):
                     raise NeXusError('Type of %s does not match previously saved value'
                                      %self.nxpath)
-                if shape == (1,): shape = ()
+                if shape is (1,): shape = ()
                 if dtype == 'char' and shape[0] > self.shape[0]:
                     shape = self.shape
                 if shape != self.shape:
