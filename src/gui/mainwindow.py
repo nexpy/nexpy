@@ -369,7 +369,7 @@ class MainWindow(QtGui.QMainWindow):
             if name <> '__init__' and ext.startswith('.py'):
                 self.import_names.add(name)
         self.importer = {}
-        for import_name in self.import_names:
+        for import_name in sorted(self.import_names):
             fp, pathname, description = imp.find_module(import_name)
             try:
                 import_module = imp.load_module(import_name, fp, pathname, description)
