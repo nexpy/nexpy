@@ -756,17 +756,8 @@ class NXPlotTab(QtGui.QWidget):
     def set_axis(self, axis):
         self.plot = self.plotview.mainplot
         self.axis = axis
-        if self.zaxis:
-            self.minbox.data = self.maxbox.data = self.axis.data  
-            self.minbox.data_locked = self.maxbox.data_locked = True      
-            self.minbox.setRange(0, len(self.axis.data)-1)
-            self.maxbox.setRange(0, len(self.axis.data)-1)
-        else:
-            self.minbox.set_data(axis.min, axis.max)
-            self.maxbox.set_data(axis.min, axis.max)
-            self.minbox.data_locked = self.maxbox.data_locked = False
-            self.minbox.setRange(0,200)
-            self.maxbox.setRange(0,200)            
+        self.minbox.setRange(axis.min, axis.max)
+        self.maxbox.setRange(axis.min, axis.max)
         self.minbox.setValue(axis.lo)
         self.maxbox.setValue(axis.hi)
         if not self.zaxis:
@@ -792,7 +783,7 @@ class NXPlotTab(QtGui.QWidget):
         return textbox
 
     def spinbox(self, slot):
-        spinbox = NXSpinBox()
+        spinbox = QtGui.QDoubleSpinBox()
         spinbox.setAlignment(QtCore.Qt.AlignRight)
         spinbox.setFixedWidth(100)
         spinbox.setKeyboardTracking(False)
@@ -826,7 +817,6 @@ class NXPlotTab(QtGui.QWidget):
     def read_minbox(self):
         self.block_signals(True)
         lo, hi = self.minbox.value(), self.maxbox.value()
-        self.maxbox.data = self.minbox.data
         if lo is not None and (lo <= hi or self.axis.locked): 
             self.axis.lo = lo
         else:
@@ -847,7 +837,6 @@ class NXPlotTab(QtGui.QWidget):
     def read_maxbox(self):
         self.block_signals(True)
         lo, hi = self.minbox.value(), self.maxbox.value()
-        self.minbox.data = self.maxbox.data
         if hi is not None and (hi >= lo or self.axis.locked): 
             self.axis.hi = hi
         else:
@@ -868,10 +857,10 @@ class NXPlotTab(QtGui.QWidget):
     def read_minslider(self):
         self.block_signals(True)
         self.axis.hi = self.maxbox.value()
-        range = max(self.axis.hi-self.minbox.data[0], self.axis.min_range)
-        self.axis.lo = self.minbox.data[0] + (self.minslider.value() * range / 1000)
+        range = max(self.axis.hi-self.minbox.minimum(), self.axis.min_range)
+        self.axis.lo = self.minbox.minimum() + (self.minslider.value() * range / 1000)
         self.minbox.setValue(self.axis.lo)
-        range = max(self.maxbox.data[-1]-self.axis.lo, self.axis.min_range)
+        range = max(self.maxbox.maximum()-self.axis.lo, self.axis.min_range)
         try:
             self.maxslider.setValue(1000*(self.axis.hi-self.axis.lo)/range)
         except ZeroDivisionError, OverflowError:
@@ -885,12 +874,12 @@ class NXPlotTab(QtGui.QWidget):
     def read_maxslider(self):
         self.block_signals(True)
         self.axis.lo = self.minbox.value()
-        range = max(self.maxbox.data[-1]-self.axis.lo, self.axis.min_range)
+        range = max(self.maxbox.maximum()-self.axis.lo, self.axis.min_range)
         self.axis.hi = self.axis.lo + (self.maxslider.value() * range / 1000)
         self.maxbox.setValue(self.axis.hi)
-        range = max(self.axis.hi - self.minbox.data[0], self.axis.min_range)
+        range = max(self.axis.hi - self.minbox.minimum(), self.axis.min_range)
         try:
-            self.minslider.setValue(1000*(self.axis.lo-self.minbox.data[0])/range)
+            self.minslider.setValue(1000*(self.axis.lo-self.minbox.minimum())/range)
         except ZeroDivisionError, OverflowError:
             self.minslider.setValue(1000)
         if self.name == 'x' or self.name == 'y':
@@ -900,12 +889,12 @@ class NXPlotTab(QtGui.QWidget):
         self.block_signals(False)
 
     def set_sliders(self, lo, hi):
-        range = max(hi-self.minbox.data[0], self.axis.min_range)
+        range = max(hi-self.minbox.minimum(), self.axis.min_range)
         try:
-            self.minslider.setValue(1000*(lo-self.minbox.data[0])/range)
+            self.minslider.setValue(1000*(lo-self.minbox.minimum())/range)
         except ZeroDivisionError, OverflowError:
             self.minslider.setValue(1000)
-        range = max(self.maxbox.data[-1]-lo, self.axis.min_range)
+        range = max(self.maxbox.maximum()-lo, self.axis.min_range)
         try:
             self.maxslider.setValue(1000*(hi-lo)/range)
         except ZeroDivisionError, OverflowError:
@@ -951,8 +940,8 @@ class NXPlotTab(QtGui.QWidget):
     def reset(self):
         self.axis.min = np.nanmin(self.axis.data)
         self.axis.max = np.nanmax(self.axis.data)
-        self.minbox.set_data(self.axis.min, self.axis.max)
-        self.maxbox.set_data(self.axis.min, self.axis.max)
+        self.minbox.setRange(self.axis.min, self.axis.max)
+        self.maxbox.setRange(self.axis.min, self.axis.max)
         self.set_limits(self.axis.min, self.axis.max)
         if self.name == 'x' or self.name == 'y':
             self.plot.replot_axes()
@@ -1004,44 +993,6 @@ class NXTextBox(QtGui.QLineEdit):
     def setValue(self, value):
         self.setText(str(float('%.4g' % value)))
 
-class NXSpinBox(QtGui.QSpinBox):
-
-    def __init__(self, data=None):
-        super(NXSpinBox, self).__init__()
-        self.data = data
-        self.data_locked = False
-        self.validator = QtGui.QDoubleValidator()
-
-    def value(self):
-        return float(self.data[super(NXSpinBox, self).value()])
-
-    def setValue(self, value):
-        super(NXSpinBox, self).setValue(self.valueFromText(value))
-
-    def valueFromText(self, text):
-        try:
-            value = float(unicode(text))
-            if not self.data_locked:
-                if value > self.data[-1]:
-                    self.set_data(self.data[0], value)
-                elif value < self.data[0]:
-                    self.set_data(value, self.data[-1])
-            return len(self.data[self.data<value])
-        except IndexError:
-            return self.maximum()
-
-    def textFromValue(self, value):
-        try:
-            return str(float('%.4g' % self.data[value]))
-        except:
-            return ''
-    
-    def validate(self, input, pos):
-        return self.validator.validate(input, pos)
-
-    def set_data(self, min, max):
-        if not self.data_locked:
-            self.data = np.linspace(min, max, 201)
 
 class NXProjectionTab(QtGui.QWidget):
 
