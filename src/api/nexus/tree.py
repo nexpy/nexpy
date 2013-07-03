@@ -1246,16 +1246,17 @@ class NXfield(NXobject):
         self._name = name.replace(' ','_')
         self._group = group
         self._dtype = dtype
-        if isinstance(dtype, np.dtype):
-            self._dtype = dtype
-        elif np.issubdtype(dtype, np.generic):
-            self._dtype = np.dtype(dtype)
-        elif dtype == 'char':
-            self._dtype = 'char'
-        elif dtype in np.typeDict:
-            self._dtype = np.dtype(dtype)
-        elif dtype:
-            raise NeXusError("Invalid data type: %s" % dtype)
+        if dtype:
+            if dtype == 'char':
+                self._dtype = 'char'
+            elif isinstance(dtype, str) and dtype in np.typeDict:
+                self._dtype = np.dtype(dtype)
+            elif isinstance(dtype, np.dtype):
+                self._dtype = dtype
+            elif np.issubdtype(dtype, np.generic):
+                self._dtype = np.dtype(dtype)
+            else:
+                raise NeXusError("Invalid data type: %s" % dtype)
         self._shape = tuple(shape)
         # Append extra keywords to the attribute list
         self._attrs = AttrDict()
