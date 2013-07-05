@@ -51,5 +51,5 @@ class ImportDialog(BaseImportDialog):
             v[i] = np.array(im.getdata(),dtype=dtype).reshape(im.size[1],im.size[0])
         x = NXfield(range(im.size[0]), dtype=np.uint16, name='x')
         y = NXfield(range(im.size[1]), dtype=np.uint16, name='y')
-        z = NXfield(range(len(filenames)), dtype=np.uint16, name='z')
+        z = NXfield(range(1,len(filenames)+1), dtype=np.uint16, name='z')
         return NXentry(NXdata(v,(z,x,y)))
