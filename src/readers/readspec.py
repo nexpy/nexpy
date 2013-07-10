@@ -17,6 +17,7 @@ Two GUI elements are provided for convenience:
 from IPython.external.qt import QtCore, QtGui
 
 import numpy as np
+import os
 from nexpy.api.nexus import *
 from nexpy.gui.importdialog import BaseImportDialog
 from pyspec.spec import SpecDataFile
@@ -57,18 +58,61 @@ class ImportDialog(BaseImportDialog):
 
         super(ImportDialog, self).__init__(parent)
         
-        layout = QtGui.QVBoxLayout()
-        layout.addLayout(self.filebox())
-        layout.addWidget(self.buttonbox())
-        self.setLayout(layout)
+        self.layout = QtGui.QVBoxLayout()
+        self.layout.addLayout(self.filebox())
+        self.layout.addLayout(self.scanbox())
+        self.layout.addWidget(self.buttonbox())
+        self.setLayout(self.layout)
   
         self.setWindowTitle("Import "+str(filetype))
  
+    def scanbox(self):
+        scanbox = QtGui.QHBoxLayout()
+        scanminlabel = QtGui.QLabel("Min. Scan")
+        self.scanmin = QtGui.QLineEdit()
+        self.scanmin.setFixedWidth(100)
+        self.scanmin.setAlignment(QtCore.Qt.AlignRight)
+        scanmaxlabel = QtGui.QLabel("Max. Scan")
+        self.scanmax = QtGui.QLineEdit()
+        self.scanmax.setFixedWidth(100)
+        self.scanmax.setAlignment(QtCore.Qt.AlignRight)
+        scanbox.addWidget(scanminlabel)
+        scanbox.addWidget(self.scanmin)
+        scanbox.addWidget(scanmaxlabel)
+        scanbox.addWidget(self.scanmax)
+        return scanbox
+
+    def choose_file(self):
+        """
+        Opens a file dialog and sets the file text box to the chosen path
+        """
+        filename, _ = QtGui.QFileDialog.getOpenFileName(self, 'Open file',
+            os.path.expanduser('~'))
+        self.filename.setText(str(filename))
+        self.SPECfile = SpecDataFile(self.get_filename())
+        self.spectra = self.SPECfile.findex.keys()
+        self.scanmin.setText(str(self.spectra[0]))
+        self.scanmax.setText(str(self.spectra[-1]))
+    
+    def get_spectra(self):
+        try:
+            specrange = sorted([int(self.scanmin.text()), int(self.scanmax.text())])
+            specmin = self.spectra.index(specrange[0])
+            specmax = self.spectra.index(specrange[1]) + 1
+            return specmin, specmax
+        except ValueError(error_message):
+                QtGui.QMessageBox.critical(
+                    self, "Invalid spectra", str(error_message),
+                    QtGui.QMessageBox.Ok, QtGui.QMessageBox.NoButton)
+
     def get_data(self):
-        SPECfile = SpecDataFile(self.get_filename())
         root = NXroot()
-        for i in SPECfile.findex.keys():
-            scan = SPECfile.getScan(i)
+        specmin, specmax = self.get_spectra()
+        print specmin, specmax
+        for i in self.spectra[0:specmax]:
+            scan = self.SPECfile.getScan(i)
+            if i < self.spectra[specmin]:
+                continue
             title, entry, scan_type, cols, axis = self.parse_scan(scan)
             root[entry] = NXentry()
             root[entry].title = title
