@@ -2367,7 +2367,7 @@ class NXgroup(NXobject):
         projection_axes =  [x for x in range(len(limits)) if x not in axes]
         projection_axes.sort(reverse=True)
         def make_float(value):
-            if value:
+            if value is not None:
                 return float(value)
             else:
                 return None 
@@ -3112,11 +3112,11 @@ def convert_index(index, axis):
         index = 0
     elif isinstance(index, slice) and \
         (isinstance(index.start, float) or isinstance(index.stop, float)):
-        if index.start:
+        if index.start is not None:
             start = axis.index(index.start)
         else:
             start = 0
-        if index.stop:
+        if index.stop is not None:
             stop = axis.index(index.stop,max=True)+1
         else:
             stop = axis.size - 1
