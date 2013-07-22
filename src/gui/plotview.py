@@ -792,6 +792,7 @@ class NXPlotTab(QtGui.QWidget):
 
     def combobox(self, slot):
         combobox = QtGui.QComboBox()
+        combobox.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToContents)
         combobox.setMinimumWidth(100)
         combobox.activated.connect(slot)
         return combobox
@@ -848,7 +849,6 @@ class NXPlotTab(QtGui.QWidget):
     def read_minbox(self):
         if not self.minbox.isEnabled():
             return
-        print "Minbox called"
         lo, hi = self.minbox.value(), self.maxbox.value()
         if lo == self.minbox.old_value or self.axis.locked:
             return
@@ -1083,11 +1083,13 @@ class NXProjectionTab(QtGui.QWidget):
         widgets = []
 
         self.xbox = QtGui.QComboBox()
+        self.xbox.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToContents)
         self.xbox.activated.connect(self.set_xaxis)
         widgets.append(QtGui.QLabel('X-Axis:'))
         widgets.append(self.xbox)
 
         self.ybox = QtGui.QComboBox()
+        self.ybox.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToContents)
         self.ybox.activated.connect(self.set_yaxis)
         self.ylabel = QtGui.QLabel('Y-Axis:')
         widgets.append(self.ylabel)
