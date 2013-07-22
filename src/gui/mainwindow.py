@@ -20,8 +20,8 @@ from IPython.external.qt import QtGui,QtCore
 from qtkernelmanager import QtKernelManager
 from treeview import NXTreeView
 from plotview import NXPlotView
-from datadialogs import PlotDialog, RenameDialog
-from nexpy.api.nexus.tree import nxload, NeXusError, NXentry
+from datadialogs import PlotDialog, RenameDialog#, FitDialog
+from nexpy.api.nexus.tree import nxload, NeXusError, NXentry, NXdata
 
 # IPython imports
 from IPython.frontend.qt.console.ipython_widget import IPythonWidget
@@ -306,6 +306,13 @@ class MainWindow(QtGui.QMainWindow):
             )
         self.add_menu_action(self.data_menu, self.rename_action, True)  
 
+        self.data_menu.addSeparator()
+ 
+#        self.rename_action=QtGui.QAction("Fit Data",
+#            self,
+#            triggered=self.fit_data
+#            )
+#        self.add_menu_action(self.data_menu, self.fit_action, True)
         
     def init_view_menu(self):
         self.view_menu = self.menuBar().addMenu("&View")
@@ -466,6 +473,23 @@ class MainWindow(QtGui.QMainWindow):
             raise NeXusError("Cannot rename a NeXus object already stored in a file")
         rename = RenameDialog(node, self)
         rename.show()
+       
+    def fit_data(self):
+        node = self.treeview.getnode()
+        if isinstance(node, NXdata):
+            if len(node.nxsignal.shape) == 1:
+                fit = FitDialog(node, self)
+                fit.show()
+            else:
+                QtGui.QMessageBox.critical(
+                    self, "Data not one-dimensional", 
+                    "Fitting only enabled for one-dimensional data",
+                    QtGui.QMessageBox.Ok, QtGui.QMessageBox.NoButton)
+        else:
+            QtGui.QMessageBox.critical(
+                self, "Not an NXdata node", 
+                "Only NXdata groups can be fit",
+                QtGui.QMessageBox.Ok, QtGui.QMessageBox.NoButton)
        
     def _make_dynamic_magic(self,magic):
         """Return a function `fun` that will execute `magic` on the console.
