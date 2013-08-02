@@ -312,8 +312,14 @@ class NXPlot(object):
                 if ymin: self.yaxis.lo = ymin
                 if ymax: self.yaxis.hi = ymax
 
-                if logx: self.xtab.logbox.setChecked(True)
-                if log or logy: self.ytab.logbox.setChecked(True)
+                if logx: 
+                    self.xtab.logbox.setChecked(True)
+                else:
+                    self.xtab.logbox.setChecked(False)
+                if log or logy: 
+                    self.ytab.logbox.setChecked(True)
+                else:
+                    self.ytab.logbox.setChecked(False)
 
             if fmt == '': fmt = colors[self.num%len(colors)]+'o'
                 
@@ -350,7 +356,10 @@ class NXPlot(object):
             if vmin: self.vaxis.lo = vmin
             if vmax: self.vaxis.hi = vmax
 
-            if log: self.vtab.logbox.setChecked(True)
+            if log: 
+                self.vtab.logbox.setChecked(True)
+            else:
+                self.vtab.logbox.setChecked(False)
  
             if self.dims > 2:
                 self.zaxis = self.axis[self.axes[-3].nxname]
