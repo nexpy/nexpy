@@ -20,7 +20,6 @@ import numpy as np
 import os
 from nexpy.api.nexus import *
 from nexpy.gui.importdialog import BaseImportDialog
-from pyspec.spec import SpecDataFile
 
 filetype = "SPEC File"
 motors = {'tth': 'two_theta', 'th': 'theta', 'chi': 'chi', 'phi': 'phi',
@@ -86,6 +85,7 @@ class ImportDialog(BaseImportDialog):
         """
         Opens a file dialog and sets the file text box to the chosen path
         """
+        from pyspec.spec import SpecDataFile
         filename, _ = QtGui.QFileDialog.getOpenFileName(self, 'Open file',
             os.path.expanduser('~'))
         self.filename.setText(str(filename))
