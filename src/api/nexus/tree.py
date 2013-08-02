@@ -251,16 +251,17 @@ __all__ = ['NeXusTree', 'NXobject', 'NXfield', 'NXgroup', 'NXattr', 'nxclasses',
            'NXlink', 'NXlinkfield', 'NXlinkgroup', 'SDS', 'NXlinkdata']
 
 #List of defined base classes (later added to __all__)
-nxclasses = [ 'NXroot', 'NXentry', 'NXsubentry', 'NXdata', 'NXmonitor',
-              'NXlog', 'NXsample', 'NXinstrument', 'NXaperture', 'NXattenuator',
-              'NXbeam', 'NXbeam_stop', 'NXbending_magnet', 'NXcharacterization',
-              'NXcollection', 'NXcollimator', 'NXcrystal', 'NXdetector',
-              'NXdisk_chopper', 'NXenvironment', 'NXevent_data',
-              'NXfermi_chopper', 'NXfilter', 'NXflipper', 'NXgeometry',
-              'NXguide', 'NXinsertion_device', 'NXmirror', 'NXmoderator',
-              'NXmonochromator', 'NXnote', 'NXorientation', 'NXparameter',
-              'NXpolarizer', 'NXpositioner', 'NXprocess', 'NXsensor', 'NXshape',
-              'NXsource', 'NXtranslation', 'NXuser', 'NXvelocity_selector']
+nxclasses = [ 'NXroot', 'NXentry', 'NXsubentry', 'NXdata', 'NXmonitor', 'NXlog', 
+              'NXsample', 'NXinstrument', 'NXaperture', 'NXattenuator', 'NXbeam', 
+              'NXbeam_stop', 'NXbending_magnet', 'NXcapillary', 'NXcharacterization', 
+              'NXcollection', 'NXcollimator', 'NXcrystal', 'NXdetector', 
+              'NXdetector_group', 'NXdisk_chopper', 'NXenvironment', 'NXevent_data', 
+              'NXfermi_chopper', 'NXfilter', 'NXflipper', 'NXgeometry', 'NXguide', 
+              'NXinsertion_device', 'NXmirror', 'NXmoderator', 'NXmonochromator', 
+              'NXnote', 'NXorientation', 'NXparameters', 'NXpolarizer', 
+              'NXpositioner', 'NXprocess', 'NXsensor', 'NXshape', 'NXsource', 
+              'NXsubentry', 'NXtranslation', 'NXuser', 'NXvelocity_selector', 
+              'NXxraylens']
 
 np.set_printoptions(threshold=5)
 
@@ -465,7 +466,7 @@ class NeXusTree(napi.NeXus):
             # Don't use compression for small datasets
             try:
                 self.makedata(data.nxname, data.dtype, shape)
-            except StandardError(errortype):
+            except StandardError as errortype:
                 print "Error in tree, makedata: ", errortype
 
         self.opendata(data.nxname)
