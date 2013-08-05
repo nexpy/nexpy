@@ -20,7 +20,7 @@ from IPython.external.qt import QtGui,QtCore
 from qtkernelmanager import QtKernelManager
 from treeview import NXTreeView
 from plotview import NXPlotView
-from datadialogs import PlotDialog, RenameDialog#, FitDialog
+from datadialogs import PlotDialog, RenameDialog, FitDialog
 from nexpy.api.nexus.tree import nxload, NeXusError, NXentry, NXdata
 
 # IPython imports
@@ -308,11 +308,11 @@ class MainWindow(QtGui.QMainWindow):
 
         self.data_menu.addSeparator()
  
-#        self.rename_action=QtGui.QAction("Fit Data",
-#            self,
-#            triggered=self.fit_data
-#            )
-#        self.add_menu_action(self.data_menu, self.fit_action, True)
+        self.fit_action=QtGui.QAction("Fit Data",
+            self,
+            triggered=self.fit_data
+            )
+        self.add_menu_action(self.data_menu, self.fit_action, True)
         
     def init_view_menu(self):
         self.view_menu = self.menuBar().addMenu("&View")
@@ -476,19 +476,21 @@ class MainWindow(QtGui.QMainWindow):
        
     def fit_data(self):
         node = self.treeview.getnode()
-        if isinstance(node, NXdata):
-            if len(node.nxsignal.shape) == 1:
-                fit = FitDialog(node, self)
-                fit.show()
-            else:
-                QtGui.QMessageBox.critical(
-                    self, "Data not one-dimensional", 
-                    "Fitting only enabled for one-dimensional data",
-                    QtGui.QMessageBox.Ok, QtGui.QMessageBox.NoButton)
+        try:
+            node.plot()
+        except KeyError:
+            QtGui.QMessageBox.critical(
+                self, "NeXus item not plottable", 
+                "Only plottable data can be fit",
+                QtGui.QMessageBox.Ok, QtGui.QMessageBox.NoButton)
+        data = self.plotview.mainplot.plotdata
+        if len(data.nxsignal.shape) == 1:
+            fit = FitDialog(data, self)
+            fit.show()
         else:
             QtGui.QMessageBox.critical(
-                self, "Not an NXdata node", 
-                "Only NXdata groups can be fit",
+                self, "Data not one-dimensional", 
+                "Fitting only enabled for one-dimensional data",
                 QtGui.QMessageBox.Ok, QtGui.QMessageBox.NoButton)
        
     def _make_dynamic_magic(self,magic):

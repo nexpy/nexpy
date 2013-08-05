@@ -166,18 +166,21 @@ class NXTreeView(QtGui.QTreeView):
 
         self.plot_action=QtGui.QAction("Plot Data", self, triggered=self.plot_data)
         self.overplot_action=QtGui.QAction("Overplot Data", self, triggered=self.overplot_data)
-        self.rename_action=QtGui.QAction("Rename", self, triggered=self.rename_data)
+        self.rename_action=QtGui.QAction("Rename Data", self, triggered=self.rename_data)
+        self.fit_action=QtGui.QAction("Fit Data", self, triggered=self.fit_data)
         self.savefile_action=QtGui.QAction("Save", self, triggered=self.save_file)
         self.savefileas_action=QtGui.QAction("Save as...", self, triggered=self.save_file_as)
 
-        self.popMenu = QtGui.QMenu( self )
-        self.popMenu.addAction( self.plot_action )
-        self.popMenu.addAction( self.overplot_action )
+        self.popMenu = QtGui.QMenu(self)
+        self.popMenu.addAction(self.plot_action)
+        self.popMenu.addAction(self.overplot_action)
         self.popMenu.addSeparator()
-        self.popMenu.addAction( self.rename_action )
+        self.popMenu.addAction(self.rename_action)
         self.popMenu.addSeparator()
-        self.popMenu.addAction( self.savefile_action )
-        self.popMenu.addAction( self.savefileas_action )
+        self.popMenu.addAction(self.fit_action)
+        self.popMenu.addSeparator()
+        self.popMenu.addAction(self.savefile_action)
+        self.popMenu.addAction(self.savefileas_action)
 
     def getnode(self):
         index = self.currentIndex()
@@ -222,6 +225,9 @@ class NXTreeView(QtGui.QTreeView):
     def rename_data(self):
         self.parent().parent().rename_data()
 
+    def fit_data(self):
+        self.parent().parent().fit_data()
+
     def statusmessage(self, message):
         if isinstance(message, NXfield):
             text = message.tree
@@ -239,5 +245,5 @@ class NXTreeView(QtGui.QTreeView):
             self.statusmessage('')
 
     def on_context_menu(self, point):
-         self.popMenu.exec_( self.mapToGlobal(point) )
+         self.popMenu.exec_(self.mapToGlobal(point))
 
