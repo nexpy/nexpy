@@ -374,7 +374,10 @@ class NXPlot(object):
 
         self.canvas.draw_idle()
         if self.label == "Main":
-            self.init_tabs()
+            if over:
+                self.update_tabs()
+            else:
+                self.init_tabs()
         else:
             plt.figure("Main")
 
@@ -384,7 +387,6 @@ class NXPlot(object):
         
         if not over: plt.clf()
         ax = plt.gca()
-        if not over: ax.autoscale(enable=True)
         
         self.x = self.plotdata.nxaxes[0].nxdata
         self.y = self.plotdata.nxsignal.nxdata
@@ -400,8 +402,22 @@ class NXPlot(object):
             path = self.data.nxroot.nxname+path
         ax.lines[-1].set_label(path)
 
-        if not over:
-
+        if over:
+            self.xaxis.min = min(self.xaxis.lo, self.x.min())
+            self.xaxis.max = max(self.xaxis.hi, self.x.max())
+            range = self.xaxis.max - self.xaxis.min
+            if self.xaxis.min < self.xaxis.lo:
+                self.xaxis.min = self.xaxis.min - 0.05*range
+            if self.xaxis.max > self.xaxis.hi:
+                self.xaxis.max = self.xaxis.max + 0.05*range
+            self.yaxis.min = min(self.yaxis.lo, self.y.min())
+            self.yaxis.max = max(self.yaxis.hi, self.y.max())
+            range = self.yaxis.max - self.yaxis.min
+#            if self.yaxis.min < self.yaxis.lo:
+#                self.yaxis.min = self.yaxis.min - 0.05*range
+#            if self.yaxis.max > self.yaxis.hi:
+#                self.yaxis.max = self.yaxis.max + 0.05*range
+        else:
             xlo, xhi = ax.set_xlim(auto=True)
             ylo, yhi = ax.set_ylim(auto=True)
 
@@ -429,10 +445,10 @@ class NXPlot(object):
             ax.set_ylabel(self.yaxis.label)
             ax.set_title(self.title)
 
-        self.xaxis.min, self.xaxis.max = ax.set_xlim()
-        self.yaxis.min, self.yaxis.max = ax.set_ylim()
-        self.xaxis.lo, self.xaxis.hi = self.xaxis.min, self.xaxis.max
-        self.yaxis.lo, self.yaxis.hi = self.yaxis.min, self.yaxis.max
+            self.xaxis.min, self.xaxis.max = ax.get_xlim()
+            self.yaxis.min, self.yaxis.max = ax.get_ylim()
+            self.xaxis.lo, self.xaxis.hi = self.xaxis.min, self.xaxis.max
+            self.yaxis.lo, self.yaxis.hi = self.yaxis.min, self.yaxis.max
 
         self.canvas.draw_idle()
         self.otab.push_current()
@@ -600,6 +616,20 @@ class NXPlot(object):
             self.ytab.logbox.setChecked(False)
             self.ytab.logbox.setVisible(False)
             self.ytab.axiscombo.setVisible(True)
+
+    def update_tabs(self):
+        self.xtab.minbox.setMinimum(self.xtab.axis.min)
+        self.xtab.maxbox.setMaximum(self.xtab.axis.max)
+        self.xtab.read_minslider()
+        self.xtab.read_maxslider()
+        self.xtab.minbox.setValue(self.xtab.axis.lo)
+        self.xtab.maxbox.setValue(self.xtab.axis.hi)
+        self.ytab.minbox.setMinimum(self.ytab.axis.min)
+        self.ytab.maxbox.setMaximum(self.ytab.axis.max)
+        self.ytab.read_minslider()
+        self.ytab.read_maxslider()
+        self.ytab.minbox.setValue(self.ytab.axis.lo)
+        self.ytab.maxbox.setValue(self.ytab.axis.hi)
 
     def change_axis(self, tab, axis):
         if tab == self.xtab and axis == self.yaxis:
