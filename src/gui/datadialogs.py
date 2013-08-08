@@ -1,6 +1,6 @@
 # System library imports
 from IPython.external.qt import QtGui,QtCore
-import imp, os, sys
+import imp, os, re, sys
 import numpy as np
 
 # NeXpy imports
@@ -60,7 +60,6 @@ class PlotDialog(QtGui.QDialog):
 	
     def accept(self):
         data = NXdata(self.node, [self.get_axis()])
-        print data.tree
         data.plot()
         QtGui.QDialog.accept(self)
         
@@ -112,15 +111,17 @@ class RenameDialog(QtGui.QDialog):
 class FitDialog(QtGui.QDialog):
     """Dialog to fit one-dimensional NeXus data"""
  
-    def __init__(self, data, parent=None):
+    def __init__(self, entry, parent=None):
 
         QtGui.QDialog.__init__(self, parent)
  
-        self.data = data
+        self.data = entry.data
+
+        from nexpy.gui.consoleapp import _tree
+        self.tree = _tree
         
         self.functions = []
         self.parameters = []
-        self.parameter_widgets = []
 
         self.initialize_functions()
  
@@ -142,9 +143,9 @@ class FitDialog(QtGui.QDialog):
         self.parameter_grid = self.initialize_parameter_grid()
 
         self.remove_layout = QtGui.QHBoxLayout()
-        self.removecombo = QtGui.QComboBox()
         remove_button = QtGui.QPushButton("Remove Function")
         remove_button.clicked.connect(self.remove_function)
+        self.removecombo = QtGui.QComboBox()
         self.removecombo.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToContents)
         self.removecombo.setMinimumWidth(100)
         self.remove_layout.addWidget(remove_button)
@@ -152,46 +153,60 @@ class FitDialog(QtGui.QDialog):
         self.remove_layout.addStretch()
 
         from nexpy.gui.consoleapp import _shell
-        preview_layout = QtGui.QHBoxLayout()
-        preview_button = QtGui.QPushButton('Plot Calculation')
-        preview_button.clicked.connect(self.plot_preview)
-        preview_label = QtGui.QLabel('X-axis:')
-        self.preview_minbox = QtGui.QLineEdit(str(_shell['plotview'].xtab.axis.min))
-        self.preview_minbox.setAlignment(QtCore.Qt.AlignRight)
-        preview_tolabel = QtGui.QLabel(' to ')
-        self.preview_maxbox = QtGui.QLineEdit(str(_shell['plotview'].xtab.axis.max))
-        self.preview_maxbox.setAlignment(QtCore.Qt.AlignRight)
-        self.preview_checkbox = QtGui.QCheckBox('Use Data Points')
-        preview_layout.addWidget(preview_button)
-        preview_layout.addWidget(preview_label)
-        preview_layout.addWidget(self.preview_minbox)
-        preview_layout.addWidget(preview_tolabel)
-        preview_layout.addWidget(self.preview_maxbox)
-        preview_layout.addWidget(self.preview_checkbox)
-        preview_layout.addStretch()
+        self.plot_layout = QtGui.QHBoxLayout()
+        plot_data_button = QtGui.QPushButton('Plot Data')
+        plot_data_button.clicked.connect(self.plot_data)
+        plot_function_button = QtGui.QPushButton('Plot Function')
+        plot_function_button.clicked.connect(self.plot_model)
+        self.plotcombo = QtGui.QComboBox()
+        self.plotcombo.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToContents)
+        self.plotcombo.setMinimumWidth(100)
+        plot_label = QtGui.QLabel('X-axis:')
+        self.plot_minbox = QtGui.QLineEdit(str(_shell['plotview'].xtab.axis.min))
+        self.plot_minbox.setAlignment(QtCore.Qt.AlignRight)
+        plot_tolabel = QtGui.QLabel(' to ')
+        self.plot_maxbox = QtGui.QLineEdit(str(_shell['plotview'].xtab.axis.max))
+        self.plot_maxbox.setAlignment(QtCore.Qt.AlignRight)
+        self.plot_checkbox = QtGui.QCheckBox('Use Data Points')
+        self.plot_layout.addWidget(plot_data_button)
+        self.plot_layout.addWidget(plot_function_button)
+        self.plot_layout.addWidget(self.plotcombo)
+        self.plot_layout.addWidget(plot_label)
+        self.plot_layout.addWidget(self.plot_minbox)
+        self.plot_layout.addWidget(plot_tolabel)
+        self.plot_layout.addWidget(self.plot_maxbox)
+        self.plot_layout.addWidget(self.plot_checkbox)
+        self.plot_layout.addStretch()
 
-        action_layout = QtGui.QHBoxLayout()
+        self.action_layout = QtGui.QHBoxLayout()
         fit_button = QtGui.QPushButton("Fit")
         fit_button.clicked.connect(self.fit_data)
-        action_layout.addWidget(fit_button)
-        action_layout.addStretch()
+        self.fit_label = QtGui.QLabel()
+        save_button = QtGui.QPushButton("Save Fit")
+        save_button.clicked.connect(self.save_fit)
+        restore_button = QtGui.QPushButton("Restore Parameters")
+        restore_button.clicked.connect(self.restore_parameters)
+        self.action_layout.addWidget(fit_button)
+        self.action_layout.addWidget(self.fit_label)
+        self.action_layout.addStretch()
+        self.action_layout.addWidget(save_button)
+        self.action_layout.addWidget(restore_button)
 
         button_box = QtGui.QDialogButtonBox(self)
         button_box.setOrientation(QtCore.Qt.Horizontal)
         button_box.setStandardButtons(QtGui.QDialogButtonBox.Cancel|
-                                      QtGui.QDialogButtonBox.Save)
+                                      QtGui.QDialogButtonBox.Ok)
         button_box.accepted.connect(self.accept)
         button_box.rejected.connect(self.reject)
 
         self.layout = QtGui.QVBoxLayout()
         self.layout.addLayout(function_layout)
-        self.layout.addLayout(self.parameter_grid)
-        self.layout.addLayout(preview_layout)
-        self.layout.addLayout(action_layout)
         self.layout.addWidget(button_box)
         self.setLayout(self.layout)
 
         self.setWindowTitle("Fit NeXus Data")
+
+        self.load_entry(entry)
 
     def initialize_functions(self):
 
@@ -218,8 +233,8 @@ class FitDialog(QtGui.QDialog):
     def initialize_parameter_grid(self):
         grid = QtGui.QGridLayout()
         grid.setSpacing(10)
-        headers = ['Function', 'Np', 'Name', 'Value', 'Min', 'Max', 'Fixed', 'Bound']
-        width = [100, 50, 100, 100, 100, 100, 50, 100]
+        headers = ['Function', 'Np', 'Name', 'Value', '', 'Min', 'Max', 'Fixed', 'Bound']
+        width = [100, 50, 100, 100, 100, 100, 100, 50, 100]
         column = 0
         for header in headers:
             label = QtGui.QLabel()
@@ -231,44 +246,101 @@ class FitDialog(QtGui.QDialog):
             column += 1
         return grid
 
+    def compressed_name(self, name):
+        return re.sub(r'([a-zA-Z]*) # (\d*)',r'\1\2', name)
+
+    def expanded_name(self, name):
+        return re.sub(r'([a-zA-Z]*)(\d*)',r'\1 # \2', name)
+    
+    def parse_function_name(self, name):
+        match = re.match(r'([a-zA-Z]*)(\d*)',name)
+        return match.group(1), match.group(2)
+
+    def load_entry(self, entry):
+        if 'fit' in entry.entries:
+            for group in entry.entries:
+                name, n = self.parse_function_name(group)
+                if name in self.function_module:
+                    module = self.function_module[name]
+                    parameters = []
+                    for p in module.parameters:
+                        if p in entry[group].parameters.entries:
+                            parameter = Parameter(p)
+                            parameter.value = entry[group].parameters[p].nxdata
+                            parameter.min = float(entry[group].parameters[p].attrs['min'].nxdata)
+                            parameter.max = float(entry[group].parameters[p].attrs['max'].nxdata)                        
+                            parameters.append(parameter)
+                    f = Function(group, module, parameters)
+                    self.add_function_rows(f, guess=False)
+                
     def add_function(self):
         module = self.function_module[self.functioncombo.currentText()]
         name_index = [f.module.function_name for f in self.functions].count(module.function_name)
-        name = '%s # %s' %(module.function_name,str(name_index+1))
-        parameters = [Parameter(parameter) for parameter in module.parameters]
-        function = Function(name, module, parameters)
-        self.add_parameter_rows(function)
-        self.functions.append(function)
+        name = '%s%s' %(module.function_name,str(name_index+1))
+        parameters = [Parameter(p) for p in module.parameters]
+        f = Function(name, module, parameters)
+        self.add_function_rows(f)
+    
+    def add_function_rows(self, f, guess=True):
+        self.add_parameter_rows(f)
+        self.functions.append(f)
+        if guess: self.guess_parameters()
+        self.write_parameters()
         if self.removecombo.count() == 0:
+            self.layout.insertLayout(1, self.parameter_grid)
             self.layout.insertLayout(2, self.remove_layout)
-        self.removecombo.addItem(name)
+            self.layout.insertLayout(3, self.action_layout)
+        self.removecombo.addItem(self.expanded_name(f.name))
+        if self.plotcombo.count() == 0:
+            self.layout.insertLayout(3, self.plot_layout)
+            self.plotcombo.addItem('All')
+            self.plotcombo.insertSeparator(1)
+        self.plotcombo.addItem(self.expanded_name(f.name))
 
     def remove_function(self):
-        pass
-       
-    def add_parameter_rows(self, function):        
+        name = self.compressed_name(self.removecombo.currentText())
+        f=filter(lambda x: x.name==name, self.functions)[0]
+        for row in f.rows:
+            for column in range(9):
+                item = self.parameter_grid.itemAtPosition(row, column)
+                if item is not None:
+                    widget = item.widget()
+                    if widget is not None:
+                        self.parameter_grid.removeWidget(widget)
+                        widget.deleteLater()           
+        self.functions.remove(f)
+        self.plotcombo.removeItem(self.plotcombo.findText(expanded_name))
+        self.removecombo.removeItem(self.removecombo.findText(expanded_name))
+        del(f)
+
+    def add_parameter_rows(self, f):        
         row = self.parameter_grid.rowCount()
-        self.parameter_grid.addWidget(QtGui.QLabel(function.name), row, 0)
-        for parameter in function.parameters:
-            parameter.index = row
-            parameter.value_box = QtGui.QLineEdit()
-            parameter.min_box = QtGui.QLineEdit()
-            parameter.max_box = QtGui.QLineEdit()
-            parameter.fixed_box = QtGui.QCheckBox()
-            parameter.bound_box = QtGui.QLineEdit()
-            self.parameter_grid.addWidget(QtGui.QLabel(str(parameter.index)), row, 1,
-                                          alignment=QtCore.Qt.AlignHCenter)
-            self.parameter_grid.addWidget(QtGui.QLabel(parameter.name), row, 2)
-            self.parameter_grid.addWidget(parameter.value_box, row, 3, 
-                                          alignment=QtCore.Qt.AlignRight)
-            self.parameter_grid.addWidget(parameter.min_box, row, 4, 
-                                          alignment=QtCore.Qt.AlignRight)
-            self.parameter_grid.addWidget(parameter.max_box, row, 5, 
-                                          alignment=QtCore.Qt.AlignRight)
-            self.parameter_grid.addWidget(parameter.fixed_box, row, 6, 
-                                          alignment=QtCore.Qt.AlignHCenter)
-            self.parameter_grid.addWidget(parameter.bound_box, row, 7)
-            row += row
+        name = self.expanded_name(f.name)
+        f.rows = []
+        self.parameter_grid.addWidget(QtGui.QLabel(name), row, 0)
+        for p in f.parameters:
+            p.index = row
+            p.value_box = QtGui.QLineEdit()
+            p.value_box.setAlignment(QtCore.Qt.AlignRight)
+            p.error_box = QtGui.QLabel()
+            p.min_box = QtGui.QLineEdit('-inf')
+            p.min_box.setAlignment(QtCore.Qt.AlignRight)
+            p.max_box = QtGui.QLineEdit('inf')
+            p.max_box.setAlignment(QtCore.Qt.AlignRight)
+            p.fixed_box = QtGui.QCheckBox()
+            p.bound_box = QtGui.QLineEdit()
+            self.parameter_grid.addWidget(QtGui.QLabel(str(p.index)), row, 1,
+                                          alignment = QtCore.Qt.AlignHCenter)
+            self.parameter_grid.addWidget(QtGui.QLabel(p.name), row, 2)
+            self.parameter_grid.addWidget(p.value_box, row, 3)
+            self.parameter_grid.addWidget(p.error_box, row, 4)
+            self.parameter_grid.addWidget(p.min_box, row, 5)
+            self.parameter_grid.addWidget(p.max_box, row, 6)
+            self.parameter_grid.addWidget(p.fixed_box, row, 7,
+                                          alignment = QtCore.Qt.AlignHCenter)
+            self.parameter_grid.addWidget(p.bound_box, row, 8)
+            f.rows.append(row)
+            row += 1
 
     def read_parameters(self):
         def make_float(value):
@@ -276,60 +348,71 @@ class FitDialog(QtGui.QDialog):
                 return float(value)
             except:
                 return None
-        for function in self.functions:
-            for parameter in function.parameters:
-                parameter.value = make_float(parameter.value_box.text())
-                parameter.minimum = make_float(parameter.min_box.text())
-                parameter.maximum = make_float(parameter.max_box.text())
-                parameter.fixed = parameter.fixed_box.checkState()
+        for f in self.functions:
+            for p in f.parameters:
+                p.value = make_float(p.value_box.text())
+                p.min = make_float(p.min_box.text())
+                p.max = make_float(p.max_box.text())
+                p.vary = not p.fixed_box.checkState()
 
     def write_parameters(self):
-        for function in self.functions:
-            for parameter in function.parameters:
-                if parameter.value:
-                    parameter.value_box.setText('%.6g' % parameter.value)
-                if parameter.minimum:
-                    parameter.min_box.setText('%.6g' % parameter.minimum)
-                if parameter.maximum:
-                    parameter.max_box.setText('%.6g' % parameter.maximum)
+        for f in self.functions:
+            for p in f.parameters:
+                if p.value:
+                    p.value_box.setText('%.6g' % p.value)
+                if p.vary and p.stderr:
+                    p.error_box.setText('+/- %.6g' % p.stderr)
+                else:
+                    p.error_box.setText(' ')
+                if p.min:
+                    p.min_box.setText('%.6g' % p.min)
+                if p.max:
+                    p.max_box.setText('%.6g' % p.max)
 
-    def get_preview(self):
+    def guess_parameters(self):
+        fit = Fit(self.data, self.functions)
+        for f in self.functions:
+            guess = f.module.guess(fit.x, fit.y)
+            map(lambda p,g: p.__setattr__('value', g), f.parameters, guess)
+
+    def get_model(self, f=None):
         self.read_parameters()
         fit = Fit(self.data, self.functions)
-        if self.preview_checkbox.isChecked():
+        if self.plot_checkbox.isChecked():
             x = fit.x
         else:
-            x = np.linspace(float(self.preview_minbox.text()), 
-                            float(self.preview_maxbox.text()), 201)
-        return NXdata(NXfield(fit.get_calculation(x), name='calculation'),
-                     NXfield(x, name=fit.data.nxaxes[0].nxname), 
-                     title = fit.data.nxtitle)
+            x = np.linspace(float(self.plot_minbox.text()), 
+                            float(self.plot_maxbox.text()), 201)
+        return NXdata(NXfield(fit.get_model(x,f), name='model'),
+                      NXfield(x, name=fit.data.nxaxes[0].nxname), 
+                      title = 'Fit Results')
     
-    def plot_preview(self):
-        self.get_preview().oplot('-')
+    def plot_data(self):
+        self.data.plot()
+
+    def plot_model(self):
+        plot_function = self.plotcombo.currentText()
+        if plot_function == 'All':
+            self.get_model().oplot('-')
+        else:
+            name = self.compressed_name(plot_function)
+            f=filter(lambda x: x.name==name, self.functions)[0]
+            self.get_model(f).oplot('--')
 
     def fit_data(self):
         self.read_parameters()
-        fit = Fit(self.data, self.functions)
-        fit.fit_data()
-        self.write_parameters()        
+        self.fit = Fit(self.data, self.functions)
+        self.fit.fit_data()
+        self.fit_label.setText('%s Chi^2 = %s' % (self.fit.result.message, 
+                                                  self.fit.result.redchi))
+        self.write_parameters()
 
-    def accept(self):
+    def save_fit(self):
         self.read_parameters()
-        fit = NXparameters()
-        for function in self.functions:
-            parameters = NXparameters()
-            for parameter in function.parameters:
-                parameters[parameter.name] = NXfield(parameter.value, 
-                                                minimum=parameter.minimum,
-                                                maximum=parameter.maximum)
-            fit[function.name.replace(' ','_')] = parameters
-
-        from nexpy.gui.consoleapp import _tree
-        if 'w0' not in _tree.keys():
-            scratch_space = _tree.add(NXroot(name='w0'))
+        if 'w0' not in self.tree.keys():
+            scratch_space = self.tree.add(NXroot(name='w0'))
         ind = []
-        for key in _tree['w0'].keys():
+        for key in self.tree['w0'].keys():
             try:
                 if key.startswith('f'): 
                     ind.append(int(key[1:]))
@@ -337,14 +420,36 @@ class FitDialog(QtGui.QDialog):
                 pass
         if ind == []: ind = [0]
         name = 'f'+str(sorted(ind)[-1]+1)
-        _tree['w0'][name] = NXentry()
-        _tree['w0'][name]['data'] = self.data
-        _tree['w0'][name]['fit'] = self.get_preview()
-        _tree['w0'][name]['parameters'] = fit
+        self.tree['w0'][name] = NXentry()
+        self.tree['w0'][name].title = 'Fit Results'
+        self.tree['w0'][name]['data'] = self.data
+        self.tree['w0'][name]['fit'] = self.get_model()
+        for f in self.functions:
+            self.tree['w0'][name][f.name] = self.get_model(f)
+            parameters = NXparameters()
+            for p in f.parameters:
+                parameters[p.name] = NXfield(p.value, error=p.stderr, 
+                                             initial_value=p.init_value,
+                                             min=str(p.min), max=str(p.max))
+            self.tree['w0'][name][f.name].insert(parameters)
+        fit = NXparameters()
+        fit.nfev = self.fit.result.nfev
+        fit.chisq = self.fit.result.chisqr
+        fit.redchi = self.fit.result.redchi
+        fit.message = self.fit.result.message
+        fit.lmdif_message = self.fit.result.lmdif_message
+        self.tree['w0'][name]['statistics'] = fit
 
+    def restore_parameters(self):
+        for f in self.functions:
+            for p in f.parameters:
+                p.value = p.init_value
+                p.stderr = None
+        self.fit_label.setText(' ')
+        self.write_parameters()
+   
+    def accept(self):
         QtGui.QDialog.accept(self)
         
     def reject(self):
         QtGui.QDialog.reject(self)
-
-    

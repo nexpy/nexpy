@@ -1,6 +1,6 @@
 import numpy as np
-import pyspec.mpfit as mpfit
 from scipy.optimize import leastsq
+from lmfit import minimize, Parameters, Parameter, report_fit
 
 from nexpy.api.nexus import NXdata, NXparameters, NeXusError
 
@@ -26,39 +26,35 @@ class Fit(object):
         else:
             raise TypeError("Must be an NXdata group")
 
-    def get_calculation(self, x=None):
+    def get_model(self, x=None, f=None):
         if x is None: x = self.x
-        calculation = np.zeros(x.shape,np.float64)
-        for function in self.functions:
-            calculation += function.module.values(x, [p.value for p in function.parameters])
-        return calculation
+        model = np.zeros(x.shape,np.float64)
+        if f:
+            model = f.module.values(x, [p.value for p in f.parameters])
+        else:
+            for f in self.functions:
+                model += f.module.values(x, [p.value for p in f.parameters])
+        return model
 
-    def residuals(self, p):
-        map(lambda x,y: x.__setattr__('value', y), self.parameters, p)
-        return self.y - self.get_calculation()
+    def residuals(self, parameters):
+        if self.e is not None:
+             return (self.y - self.get_model()) / self.e
+        else:
+            return self.y - self.get_model()
 
     def fit_data(self):
         """Run a scipy leastsq regression"""
-        self.parameters = []
-        for function in self.functions:
-            for parameter in function.parameters:
-                if not parameter.fixed:
-                    self.parameters.append(parameter)
-        fits, covar, info, msg, status = leastsq(self.residuals, 
-                                                 [p.value for p in self.parameters], 
-                                                 full_output = 1, factor = 0.1)
-        self.fits = fits 
-        self.stdev = np.sqrt(np.diag(covar.T))
-        self.covar = covar
-        self.info = info
-        self.status_message = msg
-        self.status_flag = status
-        print self.stdev
-        print self.info
-        print self.status_message
-        print self.status_flag
-        map(lambda x,y: x.__setattr__('value', y), self.parameters, fits)
-
+        parameters = Parameters()
+        for f in self.functions:
+            for p in f.parameters:
+                p.original_name = p.name
+                parameters[f.name+p.name] = p
+                if p.value is None:
+                    p.value = 1.0
+        self.result = minimize(self.residuals, parameters)
+        for f in self.functions:
+            for p in f.parameters:
+                p.name = p.original_name
 
 class Function(object):
 
@@ -66,17 +62,4 @@ class Function(object):
         self.name = name
         self.module = module
         self.parameters = parameters
-        self.index = None
-
-
-class Parameter(object):
-
-    def __init__(self, name=None, value=None, minimum=None, maximum=None, 
-                 fixed=False, bound=None):
-        self.name = name
-        self.value = value
-        self.minimum = minimum
-        self.maximum = maximum
-        self.fixed = fixed
-        self.bound = bound
         self.index = None
