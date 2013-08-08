@@ -286,17 +286,17 @@ class MainWindow(QtGui.QMainWindow):
     def init_data_menu(self):
         self.data_menu = self.menuBar().addMenu("Data")
         
-        self.plot_action=QtGui.QAction("Plot Data",
+        self.plot_data_action=QtGui.QAction("Plot Data",
             self,
             triggered=self.plot_data
             )
-        self.add_menu_action(self.data_menu, self.plot_action, True)  
+        self.add_menu_action(self.data_menu, self.plot_data_action, True)  
         
-        self.overplot_action=QtGui.QAction("Overplot Data",
+        self.overplot_data_action=QtGui.QAction("Overplot Data",
             self,
             triggered=self.overplot_data
             )
-        self.add_menu_action(self.data_menu, self.overplot_action, True)  
+        self.add_menu_action(self.data_menu, self.overplot_data_action, True)  
 
         self.data_menu.addSeparator()
 
@@ -446,28 +446,27 @@ class MainWindow(QtGui.QMainWindow):
                     self, "Error saving file", str(error_message),
                     QtGui.QMessageBox.Ok, QtGui.QMessageBox.NoButton)
 
-    def plot_data(self):
+    def plot_data(self, fmt='o'):
         node = self.treeview.getnode()
         self.treeview.statusmessage(node)
         try:
-            node.plot()
+            node.plot(fmt)
         except KeyError, NeXusError:
             plot = PlotDialog(node, self)
             plot.show()
 
-    def overplot_data(self):
+    def overplot_data(self, fmt='o'):
         node = self.treeview.getnode()
         self.treeview.statusmessage(node)
         try:
-            node.oplot()
+            node.oplot(fmt)
         except:
             pass
 
     def rename_data(self):
         node = self.treeview.getnode()
         if node.infile:
-            QtGui.QMessageBox.critical(
-                self, "Cannot rename item", 
+            QtGui.QMessageBox.critical(self, "Cannot rename item", 
                 "NeXus object cannot be renamed when already stored in a file",
                 QtGui.QMessageBox.Ok, QtGui.QMessageBox.NoButton)
             raise NeXusError("Cannot rename a NeXus object already stored in a file")
@@ -477,19 +476,24 @@ class MainWindow(QtGui.QMainWindow):
     def fit_data(self):
         node = self.treeview.getnode()
         try:
-            node.plot()
-        except KeyError:
-            QtGui.QMessageBox.critical(
-                self, "NeXus item not plottable", 
-                "Only plottable data can be fit",
-                QtGui.QMessageBox.Ok, QtGui.QMessageBox.NoButton)
-        data = self.plotview.mainplot.plotdata
-        if len(data.nxsignal.shape) == 1:
-            fit = FitDialog(data, self)
+            if isinstance(node, NXentry) and node.title.nxdata == 'Fit Results':
+                entry = node
+                entry.data.plot()
+            else:
+                raise NameError
+        except NameError:
+            try:
+                node.plot()
+            except KeyError:
+                QtGui.QMessageBox.critical(self, "NeXus item not plottable", 
+                    "Only plottable data can be fit",
+                    QtGui.QMessageBox.Ok, QtGui.QMessageBox.NoButton)
+            entry = NXentry(data=self.plotview.mainplot.plotdata)
+        if len(entry.data.nxsignal.shape) == 1:
+            fit = FitDialog(entry, parent=self)
             fit.show()
         else:
-            QtGui.QMessageBox.critical(
-                self, "Data not one-dimensional", 
+            QtGui.QMessageBox.critical(self, "Data not one-dimensional", 
                 "Fitting only enabled for one-dimensional data",
                 QtGui.QMessageBox.Ok, QtGui.QMessageBox.NoButton)
        

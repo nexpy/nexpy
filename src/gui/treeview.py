@@ -164,16 +164,24 @@ class NXTreeView(QtGui.QTreeView):
         self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(self.on_context_menu)
 
-        self.plot_action=QtGui.QAction("Plot Data", self, triggered=self.plot_data)
-        self.overplot_action=QtGui.QAction("Overplot Data", self, triggered=self.overplot_data)
+        self.plot_data_action=QtGui.QAction("Plot Data", self, 
+                                       triggered=self.plot_data)
+        self.plot_line_action=QtGui.QAction("Plot Line", self, 
+                                       triggered=self.plot_line)
+        self.overplot_data_action=QtGui.QAction("Overplot Data", self, 
+                                           triggered=self.overplot_data)
+        self.overplot_line_action=QtGui.QAction("Overplot Line", self, 
+                                           triggered=self.overplot_line)
         self.rename_action=QtGui.QAction("Rename Data", self, triggered=self.rename_data)
         self.fit_action=QtGui.QAction("Fit Data", self, triggered=self.fit_data)
         self.savefile_action=QtGui.QAction("Save", self, triggered=self.save_file)
         self.savefileas_action=QtGui.QAction("Save as...", self, triggered=self.save_file_as)
 
         self.popMenu = QtGui.QMenu(self)
-        self.popMenu.addAction(self.plot_action)
-        self.popMenu.addAction(self.overplot_action)
+        self.popMenu.addAction(self.plot_data_action)
+        self.popMenu.addAction(self.plot_line_action)
+        self.popMenu.addAction(self.overplot_data_action)
+        self.popMenu.addAction(self.overplot_line_action)
         self.popMenu.addSeparator()
         self.popMenu.addAction(self.rename_action)
         self.popMenu.addSeparator()
@@ -219,8 +227,14 @@ class NXTreeView(QtGui.QTreeView):
     def plot_data(self):
         self.parent().parent().plot_data()
 
+    def plot_line(self):
+        self.parent().parent().plot_data('-')
+
     def overplot_data(self):
         self.parent().parent().overplot_data()
+
+    def overplot_line(self):
+        self.parent().parent().overplot_data('-')
 
     def rename_data(self):
         self.parent().parent().rename_data()
