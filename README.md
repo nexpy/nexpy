@@ -25,6 +25,7 @@ Prerequisites (must install before you can run)
 * hdf5                 http://www.hdfgroup.org
 * mxml                 http://www.minixml.org
 * nexus                http://www.nexusformat.org
+* lmfit                http://newville.github.io/lmfit-py (Fitting only)
 * pyspec               http://pyspec.sourceforge.net    (SPEC reader only)
 
 The following environment variables may need to be set
