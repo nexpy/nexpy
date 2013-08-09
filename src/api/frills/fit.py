@@ -1,6 +1,6 @@
 import numpy as np
 from scipy.optimize import leastsq
-from lmfit import minimize, Parameters, Parameter, report_fit
+from lmfit import minimize, Parameters, Parameter, fit_report
 
 from nexpy.api.nexus import NXdata, NXparameters, NeXusError
 
@@ -44,17 +44,20 @@ class Fit(object):
 
     def fit_data(self):
         """Run a scipy leastsq regression"""
-        parameters = Parameters()
+        self.parameters = Parameters()
         for f in self.functions:
             for p in f.parameters:
                 p.original_name = p.name
-                parameters[f.name+p.name] = p
+                self.parameters[f.name+p.name] = p
                 if p.value is None:
                     p.value = 1.0
-        self.result = minimize(self.residuals, parameters)
+        self.result = minimize(self.residuals, self.parameters)
         for f in self.functions:
             for p in f.parameters:
                 p.name = p.original_name
+
+    def fit_report(self):
+        return str(fit_report(self.parameters))
 
 class Function(object):
 

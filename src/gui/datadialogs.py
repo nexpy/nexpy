@@ -182,15 +182,16 @@ class FitDialog(QtGui.QDialog):
         fit_button = QtGui.QPushButton("Fit")
         fit_button.clicked.connect(self.fit_data)
         self.fit_label = QtGui.QLabel()
-        save_button = QtGui.QPushButton("Save Fit")
-        save_button.clicked.connect(self.save_fit)
-        restore_button = QtGui.QPushButton("Restore Parameters")
-        restore_button.clicked.connect(self.restore_parameters)
+        self.report_button = QtGui.QPushButton("Show Fit Report")
+        self.report_button.clicked.connect(self.report_fit)
+        self.save_button = QtGui.QPushButton("Save Parameters")
+        self.save_button.clicked.connect(self.save_fit)
+        self.restore_button = QtGui.QPushButton("Restore Parameters")
+        self.restore_button.clicked.connect(self.restore_parameters)
         self.action_layout.addWidget(fit_button)
         self.action_layout.addWidget(self.fit_label)
         self.action_layout.addStretch()
-        self.action_layout.addWidget(save_button)
-        self.action_layout.addWidget(restore_button)
+        self.action_layout.addWidget(self.save_button)
 
         button_box = QtGui.QDialogButtonBox(self)
         button_box.setOrientation(QtCore.Qt.Horizontal)
@@ -207,6 +208,8 @@ class FitDialog(QtGui.QDialog):
         self.setWindowTitle("Fit NeXus Data")
 
         self.load_entry(entry)
+        
+        self.fitted = False
 
     def initialize_functions(self):
 
@@ -403,9 +406,48 @@ class FitDialog(QtGui.QDialog):
         self.read_parameters()
         self.fit = Fit(self.data, self.functions)
         self.fit.fit_data()
-        self.fit_label.setText('%s Chi^2 = %s' % (self.fit.result.message, 
-                                                  self.fit.result.redchi))
+        if self.fit.result.success:
+            self.fit_label.setText('Fit Successful Chi^2 = %s' % self.fit.result.redchi)
+        else:
+            self.fit_label.setText('Fit Failed Chi^2 = %s' % self.fit.result.redchi)
         self.write_parameters()
+        if not self.fitted:
+            self.action_layout.addWidget(self.report_button)
+            self.action_layout.addWidget(self.restore_button)
+            self.save_button.setText('Save Fit')
+        self.fitted = True
+
+    def report_fit(self):
+        message_box = QtGui.QMessageBox()
+        message_box.setText("Fit Results")
+        if self.fit.result.success:
+            summary = 'Fit Successful'
+        else:
+            summary = 'Fit Failed'
+        if self.fit.result.errorbars:
+            errors = 'Uncertainties estimated'
+        else:
+            errors = 'Uncertainties not estimated'
+        text = '%s\n' % summary +\
+               '%s\n' % self.fit.result.message +\
+               '%s\n' % self.fit.result.lmdif_message +\
+               'scipy.optimize.leastsq error value = %s\n' % self.fit.result.ier +\
+               'Chi^2 = %s\n' % self.fit.result.chisqr +\
+               'Reduced Chi^2 = %s\n' % self.fit.result.redchi +\
+               '%s\n' % errors +\
+               'No. of Function Evaluations = %s\n' % self.fit.result.nfev +\
+               'No. of Variables = %s\n' % self.fit.result.nvarys +\
+               'No. of Data Points = %s\n' % self.fit.result.ndata +\
+               'No. of Degrees of Freedom = %s\n' % self.fit.result.nfree +\
+               '%s' % self.fit.fit_report()
+        message_box.setInformativeText(text)
+        message_box.setStandardButtons(QtGui.QMessageBox.Ok)
+        spacer = QtGui.QSpacerItem(500, 0, 
+                                   QtGui.QSizePolicy.Minimum, 
+                                   QtGui.QSizePolicy.Expanding)
+        layout = message_box.layout()
+        layout.addItem(spacer, layout.rowCount(), 0, 1, layout.columnCount())
+        message_box.exec_()
 
     def save_fit(self):
         self.read_parameters()
