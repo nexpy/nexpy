@@ -213,11 +213,18 @@ class FitDialog(QtGui.QDialog):
 
     def initialize_functions(self):
 
+        filenames = set()
+        private_path = os.path.join(os.path.expanduser('~'), '.nexpy', 'functions')
+        if os.path.isdir(private_path):
+            sys.path.append(private_path)
+            for file in os.listdir(private_path):
+                name, ext = os.path.splitext(file)
+                if name <> '__init__' and ext.startswith('.py'):
+                    filenames.add(name)
         base_path = os.path.abspath(os.path.dirname(__file__))
         functions_path = os.path.join(os.path.abspath(os.path.dirname(base_path)), 
                                            'api', 'frills', 'functions')
         sys.path.append(functions_path)
-        filenames = set()
         for file in os.listdir(functions_path):
             name, ext = os.path.splitext(file)
             if name <> '__init__' and ext.startswith('.py'):

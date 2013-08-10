@@ -368,9 +368,16 @@ class MainWindow(QtGui.QMainWindow):
 
     def init_import_menu(self):
         """Add an import menu item for every module in self.import_path"""
-        self.import_menu = self.file_menu.addMenu("Import")
-        sys.path.append(self.import_path)
         self.import_names = set()
+        self.import_menu = self.file_menu.addMenu("Import")
+        private_path = os.path.join(os.path.expanduser('~'), '.nexpy', 'readers')
+        if os.path.isdir(private_path):
+            sys.path.append(private_path)
+            for file in os.listdir(private_path):
+                name, ext = os.path.splitext(file)
+                if name <> '__init__' and ext.startswith('.py'):
+                    self.import_names.add(name)
+        sys.path.append(self.import_path)
         for file in os.listdir(self.import_path):
             name, ext = os.path.splitext(file)
             if name <> '__init__' and ext.startswith('.py'):
