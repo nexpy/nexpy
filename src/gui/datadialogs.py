@@ -273,22 +273,26 @@ class FitDialog(QtGui.QDialog):
                             parameter.min = float(entry[group].parameters[p].attrs['min'].nxdata)
                             parameter.max = float(entry[group].parameters[p].attrs['max'].nxdata)                        
                             parameters.append(parameter)
-                    f = Function(group, module, parameters)
-                    self.add_function_rows(f, guess=False)
-                
+                    f = Function(group, module, parameters, n)
+                    self.functions.append(f)
+            self.functions = sorted(self.functions)
+            for f in self.functions:
+                self.add_function_rows(f)
+            self.write_parameters()
+               
     def add_function(self):
         module = self.function_module[self.functioncombo.currentText()]
-        name_index = [f.module.function_name for f in self.functions].count(module.function_name)
-        name = '%s%s' %(module.function_name,str(name_index+1))
+        function_index = len(self.functions) + 1
+        name = '%s%s' %(module.function_name,str(function_index))
         parameters = [Parameter(p) for p in module.parameters]
-        f = Function(name, module, parameters)
-        self.add_function_rows(f)
-    
-    def add_function_rows(self, f, guess=True):
-        self.add_parameter_rows(f)
+        f = Function(name, module, parameters, function_index)
         self.functions.append(f)
-        if guess: self.guess_parameters()
+        self.guess_parameters()
+        self.add_function_rows(f)
         self.write_parameters()
+    
+    def add_function_rows(self, f):
+        self.add_parameter_rows(f)
         if self.removecombo.count() == 0:
             self.layout.insertLayout(1, self.parameter_grid)
             self.layout.insertLayout(2, self.remove_layout)
@@ -322,7 +326,7 @@ class FitDialog(QtGui.QDialog):
         f.rows = []
         self.parameter_grid.addWidget(QtGui.QLabel(name), row, 0)
         for p in f.parameters:
-            p.index = row
+            p.parameter_index = row
             p.value_box = QtGui.QLineEdit()
             p.value_box.setAlignment(QtCore.Qt.AlignRight)
             p.error_box = QtGui.QLabel()
@@ -332,7 +336,7 @@ class FitDialog(QtGui.QDialog):
             p.max_box.setAlignment(QtCore.Qt.AlignRight)
             p.fixed_box = QtGui.QCheckBox()
             p.bound_box = QtGui.QLineEdit()
-            self.parameter_grid.addWidget(QtGui.QLabel(str(p.index)), row, 1,
+            self.parameter_grid.addWidget(QtGui.QLabel(str(p.parameter_index)), row, 1,
                                           alignment = QtCore.Qt.AlignHCenter)
             self.parameter_grid.addWidget(QtGui.QLabel(p.name), row, 2)
             self.parameter_grid.addWidget(p.value_box, row, 3)
@@ -374,9 +378,11 @@ class FitDialog(QtGui.QDialog):
 
     def guess_parameters(self):
         fit = Fit(self.data, self.functions)
+        y = np.array(fit.y)
         for f in self.functions:
-            guess = f.module.guess(fit.x, fit.y)
+            guess = f.module.guess(fit.x, y)
             map(lambda p,g: p.__setattr__('value', g), f.parameters, guess)
+            y = y - f.module.values(fit.x, guess)
 
     def get_model(self, f=None):
         self.read_parameters()
@@ -476,6 +482,7 @@ class FitDialog(QtGui.QDialog):
             self.tree['w0'][name][f.name].insert(parameters)
         fit = NXparameters()
         fit.nfev = self.fit.result.nfev
+        fit.ier = self.fit.result.ier 
         fit.chisq = self.fit.result.chisqr
         fit.redchi = self.fit.result.redchi
         fit.message = self.fit.result.message

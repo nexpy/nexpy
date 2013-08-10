@@ -61,8 +61,11 @@ class Fit(object):
 
 class Function(object):
 
-    def __init__(self, name=None, module=None, parameters=[]):
+    def __init__(self, name=None, module=None, parameters=[], function_index=0):
         self.name = name
         self.module = module
         self.parameters = parameters
-        self.index = None
+        self.function_index = function_index
+
+    def __lt__(self, other):
+         return self.function_index < other.function_index
