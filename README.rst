@@ -44,21 +44,3 @@ All of the above are included in the Enthought Python Distribution v7.3.
 PyQt4 should also work instead of PySide, but it has not been tested. NeXpy 
 automatically checks for which PyQt variant is available (PySide or PyQt4 - 
 not PyQt). 
-
-To run with the GUI
-===================
-You can run both from the source location or from the install location. To run
-from the source directory, simply execute::
-
-    $ scripts/nexpy
-
-To run from the install location, add the $prefix/bin directory to your path
-(only if you installed outside the python installation), and then run::
-
-    $ nexpy
-
-Online Help
-===========
-There is a brief tutorial on using NeXpy and the NeXus Python tree API at 
-
-    http://wiki.nexusformat.org/NeXpy
