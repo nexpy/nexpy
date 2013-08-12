@@ -6,7 +6,11 @@
 NeXpy: A Python GUI to analyze NeXus data
 =========================================
 
-Contents:
+NeXpy provides a high-level python interface to NeXus data contained within a
+simple GUI. It is designed to provide an intuitive interactive toolbox allowing 
+users both to access existing NeXus files and to create new NeXus-conforming data
+structures without expert knowledge of the file format.
+
 
 .. toctree::
    :maxdepth: 2
