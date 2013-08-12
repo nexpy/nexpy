@@ -56,4 +56,4 @@ nexpy
 
 Online Help
 ===========
-There is a brief tutorial on using NeXpy and the NeXus Python tree API on the [NeXus wiki](http://wiki.nexusformat.org/NeXpy).
+There is (incomplete) documentation on using NeXpy and the NeXus Python tree API [here](http://nexpy.github.io/nexpy).
