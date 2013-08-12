@@ -7,8 +7,14 @@ structures without expert knowledge of the file format.
 
 Installation
 ======================
+The NeXpy source code can be downloaded from the Git repository at 
+https://github.com/nexpy/nexpy::
+
+    $ git clone http://github.com/nexpy/nexpy.git
+
 To install in the standard Python location::
 
+    $ cd nexpy
     $ python setup.py install
 
 To install in an alternate location::
