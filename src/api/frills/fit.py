@@ -7,6 +7,9 @@ from nexpy.api.nexus import NXdata, NXparameters, NeXusError
 class Fit(object):
 
     def __init__(self, data=None, functions=None):
+        self.x = None
+        self.y = None
+        self.e = None
         self.set_data(data)
         self.functions = functions
         self.fit = None
