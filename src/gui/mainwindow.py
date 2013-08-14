@@ -483,7 +483,7 @@ class MainWindow(QtGui.QMainWindow):
     def fit_data(self):
         node = self.treeview.getnode()
         try:
-            if isinstance(node, NXentry) and node.title.nxdata == 'Fit Results':
+            if isinstance(node, NXentry) and node.nxtitle == 'Fit Results':
                 entry = node
                 entry.data.plot()
             else:
