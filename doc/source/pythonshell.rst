@@ -139,7 +139,7 @@ NeXus Groups
 ------------
 NeXus groups are defined as subclasses of the NXgroup class, with the class name defining
 the type of information they contain, *e.g.*, the NXsample class contains metadata that
-define the measurement sample, such as its temperature or lattic parameters. The 
+define the measurement sample, such as its temperature or lattice parameters. The 
 initialization parameters can be used to populate the group with other predefined NeXus 
 objects, either groups or fields::
 
@@ -148,9 +148,9 @@ objects, either groups or fields::
  >>> print sample.tree
  sample:NXsample
    temperature = 40.0
-   units = K
+     @units = K
 
-Note that, in this example, it was necessary to use the keyword form to add the NXfield 
+In this example, it was necessary to use the keyword form to add the NXfield 
 'temperature' since its name is otherwise undefined within the NXsample group. This name 
 is set automatically if the NXfield is added as an attribute assignment::
 
@@ -158,7 +158,7 @@ is set automatically if the NXfield is added as an attribute assignment::
  >>> sample.temperature=NXfield(40.0, units='K')
  sample:NXsample
    temperature = 40.0
-   units = K
+     @units = K
 
 The objects in NeXus groups, which can be NXfields or other NXgroups, can also be 
 assigned and referenced as dictionary items::
@@ -215,6 +215,12 @@ determines what should be plotted::
  >>> data.plot()
 
 .. image:: /images/simple-plot.png
+
+Note that the plot method uses the NeXus attributes within the groups to determine
+automatically which NXfield is the signal, what its rank and dimensions are, and which
+NXfields define the plottable axes. The same command will work for one-dimensional or
+two-dimensional data. Using the GUI (see next section), you can plot higher-dimensional
+data as well.
 
 If the data is one-dimensional, it is possible to overplot more than one data set 
 using 'over=True'. Conventional Matplotlib keywords can be used to change markers and 
