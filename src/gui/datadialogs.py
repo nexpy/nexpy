@@ -209,6 +209,7 @@ class FitDialog(QtGui.QDialog):
 
         self.load_entry(entry)
         
+        self.first_time = True
         self.fitted = False
 
     def initialize_functions(self):
@@ -294,25 +295,34 @@ class FitDialog(QtGui.QDialog):
         parameters = [Parameter(p) for p in module.parameters]
         f = Function(name, module, parameters, function_index)
         self.functions.append(f)
+        self.index_parameters()
         self.guess_parameters()
         self.add_function_rows(f)
         self.write_parameters()
+ 
+    def index_parameters(self):
+        np = 0
+        for f in sorted(self.functions):
+            for p in f.parameters:
+                np += 1
+                p.parameter_index = np        
     
     def add_function_rows(self, f):
         self.add_parameter_rows(f)
-        if self.removecombo.count() == 0:
+        if self.first_time:
             self.layout.insertLayout(1, self.parameter_grid)
             self.layout.insertLayout(2, self.remove_layout)
-            self.layout.insertLayout(3, self.action_layout)
-        self.removecombo.addItem(self.expanded_name(f.name))
-        if self.plotcombo.count() == 0:
             self.layout.insertLayout(3, self.plot_layout)
+            self.layout.insertLayout(4, self.action_layout)
             self.plotcombo.addItem('All')
             self.plotcombo.insertSeparator(1)
+        self.removecombo.addItem(self.expanded_name(f.name))
         self.plotcombo.addItem(self.expanded_name(f.name))
+        self.first_time = False
 
     def remove_function(self):
-        name = self.compressed_name(self.removecombo.currentText())
+        expanded_name = self.removecombo.currentText()
+        name = self.compressed_name(expanded_name)
         f=filter(lambda x: x.name==name, self.functions)[0]
         for row in f.rows:
             for column in range(9):
@@ -320,20 +330,43 @@ class FitDialog(QtGui.QDialog):
                 if item is not None:
                     widget = item.widget()
                     if widget is not None:
+                        widget.setVisible(False)
                         self.parameter_grid.removeWidget(widget)
                         widget.deleteLater()           
         self.functions.remove(f)
         self.plotcombo.removeItem(self.plotcombo.findText(expanded_name))
         self.removecombo.removeItem(self.removecombo.findText(expanded_name))
         del(f)
+        nf = 0
+        np = 0
+        for f in sorted(self.functions):
+            nf += 1
+            name = '%s%s' %(f.module.function_name,str(nf))
+            self.rename_function(f.name, name)
+            f.name = name
+            f.label_box.setText(self.expanded_name(f.name))
+            for p in f.parameters:
+                np += 1
+                p.parameter_index = np
+                p.parameter_box.setText(str(p.parameter_index))     
 
+    def rename_function(self, old_name, new_name):
+        old_name, new_name = self.expanded_name(old_name), self.expanded_name(new_name)
+        plot_index = self.plotcombo.findText(old_name)
+        self.plotcombo.setItemText(plot_index, new_name)
+        remove_index = self.removecombo.findText(old_name)
+        self.removecombo.setItemText(remove_index, new_name)
+        
     def add_parameter_rows(self, f):        
         row = self.parameter_grid.rowCount()
+        print "Row count is "+str(row)
         name = self.expanded_name(f.name)
         f.rows = []
-        self.parameter_grid.addWidget(QtGui.QLabel(name), row, 0)
+        f.label_box = QtGui.QLabel(name)
+        self.parameter_grid.addWidget(f.label_box, row, 0)
         for p in f.parameters:
             p.parameter_index = row
+            p.parameter_box = QtGui.QLabel(str(p.parameter_index))
             p.value_box = QtGui.QLineEdit()
             p.value_box.setAlignment(QtCore.Qt.AlignRight)
             p.error_box = QtGui.QLabel()
@@ -343,7 +376,7 @@ class FitDialog(QtGui.QDialog):
             p.max_box.setAlignment(QtCore.Qt.AlignRight)
             p.fixed_box = QtGui.QCheckBox()
             p.bound_box = QtGui.QLineEdit()
-            self.parameter_grid.addWidget(QtGui.QLabel(str(p.parameter_index)), row, 1,
+            self.parameter_grid.addWidget(p.parameter_box, row, 1,
                                           alignment = QtCore.Qt.AlignHCenter)
             self.parameter_grid.addWidget(QtGui.QLabel(p.name), row, 2)
             self.parameter_grid.addWidget(p.value_box, row, 3)
@@ -372,6 +405,8 @@ class FitDialog(QtGui.QDialog):
     def write_parameters(self):
         for f in self.functions:
             for p in f.parameters:
+                if p.parameter_index:
+                    p.parameter_box.setText(str(p.parameter_index))
                 if p.value:
                     p.value_box.setText('%.6g' % p.value)
                 if p.vary and p.stderr:
