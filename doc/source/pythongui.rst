@@ -59,10 +59,10 @@ w4.
 
 Plotting NeXus Data
 -------------------
-NXdata, NXmonitor, and NXlog data can be plotted by right-clicking on the group within 
-the tree. The plot pane contains a toolbar to change axis or signal intensity limits. 
-The slider provides a graphical way of setting minimum and/or maximum values or they can 
-be typed into the text boxes.
+NXdata, NXmonitor, and NXlog data can be plotted by selecting a group on the tree and 
+choosing "Plot Data" from the Data menu or by right-clicking on the group. The plot pane 
+contains a toolbar to change axis or signal intensity limits using sliders or text boxes.
+One of the toolbar tabs also gives access to the standard matplotlib options.
 
 .. image:: /images/axis-limits-bar.png
 
@@ -76,3 +76,21 @@ There are two checkboxes:
 **Autoscale**
     When stepping through the z-values, this checkbox determines whether the plot should 
     change the color scale.
+
+Fitting NeXus Data
+-------------------
+It is possible to fit one-dimensional data using the non-linear least-squares fitting 
+package, `lmfit-py <http://newville.github.io/lmfit-py>`_, by selecting a group on the tree 
+and choosing "Fit Data" from the Data menu or by right-clicking on the group. This opens
+a dialog window that allows multiple functions to be combined, with the option of fixing
+or limiting parameters. 
+
+.. image:: /images/nexpy-fits.png
+
+The fit can be plotted, along with the constituent functions, in the main plotting window
+and the fitting parameters displayed in a message window. The original data, the fitted 
+data, constituent functions, and the parameters can all be saved to an NXentry group in 
+in the Tree Pane for subsequent plotting, refitting, or saving to a NeXus file. The group
+is an NXentry group, with name 'f1', 'f2', etc., stored in the default scratch NXroot 
+group, w0. If you choose to fit this entry again, it will load the functions and 
+parameters from the saved fit.
