@@ -12,35 +12,109 @@ To install in the standard Python location::
 
 To install in an alternate location::
 
-    $ python setup.py install --prefix=/path/to/insallation/dir
+    $ python setup.py install --prefix=/path/to/installation/dir
 
 Required Libraries
 ==================
+Python Command-Line API
+-----------------------
+NeXpy provides a Python interface to the `NeXus C API
+<http://download.nexusformat.org/doc/html/napi.html>`_, which provides a wrapper
+for three separate file formats, HDF5, HDF4, and XML. It is necessary
+therefore to install the libraries for each format that you anticipate using. If
+you install NeXus from source, the configure script will determine what
+libraries are available (or you can choose which to include using configure
+switches). HDF4 is no longer recommended for new files but may be needed to 
+access existing data repositories. If you only intend to utilize the Python API 
+from the command-line, the only other required library is `Numpy
+<http://numpy.scipy.org>`_.
 
 =================  =================================================
-Library               URL
+Library            URL
 =================  =================================================
-PySide v1.1.0         http://www.pyside.org/
-iPython v0.13         http://ipython.org/
-numpy,scipy           http://numpy.scipy.org
-matplotlib v1.1.0     http://matplotlib.sourceforge.net
-hdf5                  http://www.hdfgroup.org
-mxml                  http://www.minixml.org (XML NeXus files only)
-nexus                 http://www.nexusformat.org
-lmfit                 http://newville.github.io/lmfit-py (Fitting only)
-pyspec                http://pyspec.sourceforge.net (SPEC reader only)
+nexus              http://www.nexusformat.org/
+hdf5               http://www.hdfgroup.org/HDF5/
+hdf4               http://www.hdfgroup.org/products/hdf4/
+mxml               http://www.minixml.org/
+numpy              http://numpy.scipy.org/
 =================  =================================================
 
-The following environment variables may need to be set
+NeXpy GUI
+---------
+The GUI is built using Qt, and should work with either PyQt, which can be 
+installed from the `PyQt website <http://www.riverbankcomputing.co.uk/>`_, or 
+`PySide <http://www.pyside.org/>`_ (although most testing has been performed 
+using PySide).
 
-NEXUSLIB
-    /point/to/lib/libNeXus.so
-PYTHONPATH
-    must include paths to ipython,numpy,scipy,matplotlib if installed in a 
-    nonstandard place
+The GUI includes an `iPython shell <http://ipython.org/>`_ and a `Matplotlib
+plotting pane <http://matplotlib.sourceforge.net>`_. The iPython shell is
+embedded in the Qt GUI using a single-process implementation of their QtConsole, 
+which utilizes the `PyZMQ library <https://github.com/zeromq/pyzmq>`_.
 
-All of the above are included in the Enthought Python Distribution v7.3.
+.. note:: Currently, NeXpy works with iPython v0.13, but is not compatible with 
+          the recently released v1.0. PyQt4 should also work instead of PySide, 
+          but it has not been tested. NeXpy automatically checks for which PyQt 
+          variant is available (PySide or PyQt4). 
+          
+=================  =================================================
+Library            URL
+=================  =================================================
+PySide v1.1.0      http://www.pyside.org/
+iPython v0.13      http://ipython.org/
+matplotlib v1.1.0  http://matplotlib.sourceforge.net/
+pyzmq 2.1.4        https://github.com/zeromq/pyzmq/
+=================  =================================================
 
-PyQt4 should also work instead of PySide, but it has not been tested. NeXpy 
-automatically checks for which PyQt variant is available (PySide or PyQt4 - 
-not PyQt). 
+Most of these packages are included in the `Enthought Python Distribution v7.3 
+<http://www.enthought.com>`_ or within Enthought's `Canopy Application
+<https://www.enthought.com/products/canopy/>`_.
+
+Additional Packages
+-------------------
+Additional functionality is provided by other external Python packages. 
+Least-squares fitting requires Matt Newville's least-squares fitting package, 
+`lmfit-py <http://newville.github.io/lmfit-py>`_. Importers may also require 
+libraries to read the imported files in their native format, *e.g.*, `PySpec 
+<http://pyspec.sourceforge.net>`_ for reading SPEC files and `PyLibTiff
+<http://code.google.com/p/pylibtiff/>`_ for reading float*32 TIFF files (the
+standard Python Imaging Library can read conventional TIFF files).
+
+=================  =================================================
+Library            URL
+=================  =================================================
+lmfit              http://newville.github.io/lmfit-py/
+pyspec             http://pyspec.sourceforge.net/
+pylibtiff          http://code.google.com/p/pylibtiff/
+=================  =================================================
+
+Installation Issues
+-------------------
+NeXpy utilizes the python wrapper to the NeXus C API distributed with the
+standard NeXus distribution. This wrapper needs the location of the libNeXus
+precompiled binary. It looks in the following places in order:
+
+===================================  =========================
+Location                             Operating System
+===================================  =========================
+os.environ['NEXUSLIB']               All
+os.environ['NEXUSDIR']\bin           Windows
+os.environ['LD_LIBRARY_PATH']        Unix
+os.environ['DYLD_LIBRARY_PATH']      Darwin (*i.e.*, Mac OS X)
+PREFIX/libm                          Unix and Darwin
+/usr/local/lib                       Unix and Darwin
+/usr/lib                             Unix and Darwin
+===================================  =========================
+
+* On Windows it looks for one of libNeXus.dll or libNeXus-0.dll.
+* On OS X it looks for libNeXus.dylib
+* On Unix it looks for libNeXus.so
+
+.. note:: NEXUSDIR defaults to 'C:\\Program Files\\NeXus Data Format'. PREFIX 
+          defaults to /usr/local, but is replaced by the value of the prefix 
+          switch used when invoking 'configure' if NeXus is installed from 
+          source. The import will raise an OSError exception if the library 
+          wasn't found or couldn't be loaded. Note that on Windows in particular 
+          this may be because the supporting HDF5 dlls were not available in the 
+          usual places. If you are extracting the NeXus library from a bundle at 
+          runtime, set os.environ['NEXUSLIB'] to the path where it is extracted 
+          before the first import of NeXpy.
