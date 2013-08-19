@@ -21,6 +21,7 @@ format.
    includeme
    pythonshell
    pythongui
+   napi
    treeapi
 
 Indices and tables

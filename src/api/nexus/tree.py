@@ -2526,7 +2526,7 @@ class NXgroup(NXobject):
         used to customize the plot.
         
         In addition to the matplotlib keyword arguments, the following
-        are defined:
+        are defined::
         
             log = True     - plot the intensity on a log scale
             logy = True    - plot the y-axis on a log scale
@@ -2800,9 +2800,12 @@ class NXdata(NXgroup):
 
     **Python Attributes**
 
-    nxsignal : The NXfield containing the attribute 'signal' with value 1
-    nxaxes   : A list of NXfields containing the signal axes
-    nxerrors : The NXfield containing the errors
+    nxsignal : property
+        The NXfield containing the attribute 'signal' with value 1
+    nxaxes : property
+        A list of NXfields containing the signal axes
+    nxerrors : property
+        The NXfield containing the errors
 
     **Examples**
 
@@ -2812,51 +2815,51 @@ class NXdata(NXgroup):
     1) Create the NXdata group with Numpy arrays that will be assigned
        default names.
        
-    >>> x = np.linspace(0, 2*np.pi, 101)
-    >>> line = NXdata(sin(x), x)
-    data:NXdata
-      signal = float64(101)
-        @axes = x
-        @signal = 1
-      axis1 = float64(101)
+       >>> x = np.linspace(0, 2*np.pi, 101)
+       >>> line = NXdata(sin(x), x)
+       data:NXdata
+         signal = float64(101)
+           @axes = x
+           @signal = 1
+         axis1 = float64(101)
       
     2) Create the NXdata group with NXfields that have their internal
        names already assigned.
 
-    >>> x = NXfield(linspace(0,2*pi,101), name='x')
-    >>> y = NXfield(linspace(0,2*pi,101), name='y')    
-    >>> X, Y = np.meshgrid(x, y)
-    >>> z = NXfield(sin(X) * sin(Y), name='z')
-    >>> entry = NXentry()
-    >>> entry.grid = NXdata(z, (x, y))
-    >>> grid.tree()
-    entry:NXentry
-      grid:NXdata
-        x = float64(101)
-        y = float64(101)
-        z = float64(101x101)
-          @axes = x:y
-          @signal = 1
+       >>> x = NXfield(linspace(0,2*pi,101), name='x')
+       >>> y = NXfield(linspace(0,2*pi,101), name='y')    
+       >>> X, Y = np.meshgrid(x, y)
+       >>> z = NXfield(sin(X) * sin(Y), name='z')
+       >>> entry = NXentry()
+       >>> entry.grid = NXdata(z, (x, y))
+       >>> grid.tree()
+       entry:NXentry
+         grid:NXdata
+           x = float64(101)
+           y = float64(101)
+           z = float64(101x101)
+             @axes = x:y
+             @signal = 1
 
     3) Create the NXdata group with keyword arguments defining the names 
        and set the signal and axes using the nxsignal and nxaxes properties.
 
-    >>> x = linspace(0,2*pi,101)
-    >>> y = linspace(0,2*pi,101)  
-    >>> X, Y = np.meshgrid(x, y)
-    >>> z = sin(X) * sin(Y)
-    >>> entry = NXentry()
-    >>> entry.grid = NXdata(z=sin(X)*sin(Y), x=x, y=y)
-    >>> entry.grid.nxsignal = entry.grid.z
-    >>> entry.grid.nxaxes = [entry.grid.x.entry.grid.y]
-    >>> grid.tree()
-    entry:NXentry
-      grid:NXdata
-        x = float64(101)
-        y = float64(101)
-        z = float64(101x101)
-          @axes = x:y
-          @signal = 1
+       >>> x = linspace(0,2*pi,101)
+       >>> y = linspace(0,2*pi,101)  
+       >>> X, Y = np.meshgrid(x, y)
+       >>> z = sin(X) * sin(Y)
+       >>> entry = NXentry()
+       >>> entry.grid = NXdata(z=sin(X)*sin(Y), x=x, y=y)
+       >>> entry.grid.nxsignal = entry.grid.z
+       >>> entry.grid.nxaxes = [entry.grid.x,entry.grid.y]
+       >>> grid.tree()
+       entry:NXentry
+         grid:NXdata
+           x = float64(101)
+           y = float64(101)
+           z = float64(101x101)
+             @axes = x:y
+             @signal = 1
     """
 
     def __init__(self, signal=None, axes=None, *items, **opts):

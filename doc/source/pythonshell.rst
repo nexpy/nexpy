@@ -233,7 +233,8 @@ or dictionary assignment::
      @units = K
 
 The NeXus objects in a group (NXfields or NXgroups) can be accessed as  
-dictionary items. 
+dictionary items::
+
  >>> sample["temperature"] = 40.0
  >>> sample.keys()
  ['temperature']
@@ -432,7 +433,7 @@ numbers or Numpy arrays::
  >>> x
  NXfield(name=x,value=[ 1.5  2.5  3.5])
  >>> x+1
-NXfield(name=x,value=[ 2.5  3.5  4.5])
+ NXfield(name=x,value=[ 2.5  3.5  4.5])
  >>> 2*x
  NXfield(name=x,value=[ 3.  5.  7.])
  >>> x+x
