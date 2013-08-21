@@ -437,112 +437,80 @@ Matplotlib keywords can be used to change markers and colors::
 
 Manipulating NeXus Data
 =======================
-Slicing
--------
-NXfield
-^^^^^^^
-A slice of an NXfield can be obtained using the usual python indexing syntax::
-
- >>> x=NXfield(np.linspace(0,2*np.pi,101))
- >>> print x[0:51]
- [ 0.          0.06283185  0.12566371 ...,  3.01592895  3.0787608 3.14159265]
-
-If either of the indices are floats, then the limits are set by the values 
-themselves (assuming the array is monotonic)::
-
- >>> print x[0.5:1.5]
- [ 0.50265482  0.56548668  0.62831853 ...,  1.38230077  1.44513262 1.50796447]
-
-NXdata
-^^^^^^
-It is also possible to slice whole NXdata groups. In this case, the slicing
-works on the multidimensional NXfield, but the full NXdata group is returned
-with both the signal data and the associated axes limited by the slice
-parameters. If either of the limits along any one axis is a float, the limits
-are set by the values of the axis::
-
- >>> a=NXdata(np.sin(x),x)
- >>> a[1.5:2.5].x
- NXfield(name=x,value=[ 1.57079633  1.72787596  1.88495559 ...,  2.19911486  2.35619449])
-
-Unless the slice reduces one of the axes to a single item, the rank of the data
-remains the same. To project data along one of the axes, and so reduce the rank
-by one, the data can be summed along that axis using the nxsum() method. This
-employs the numpy array sum() method::
-
- >>> x=y=NXfield(np.linspace(0,2*np.pi,41))
- >>> X,Y=np.meshgrid(x,y)
- >>> a=NXdata(np.sin(X)*np.sin(Y), (x,y))
- >>> print a.tree
- data:NXdata
-   axis1 = float64(41)
-   axis2 = float64(41)
-   signal = float64(41x41)
-     @axes = axis1:axis2
-     @signal = 1
- >>> print a.sum(0).tree
- data:NXdata
-   axis2 = float64(41)
-   signal = float64(41)
-     @axes = axis2
-     @long_name = Integral from 0.0 to 6.28318530718 
-     @signal = 1
-
-It is also possible to slice whole NXdata groups. In this case, the slicing
-works on the multidimensional NXfield, but the full NXdata group is returned
-with both the signal data and the associated axes limited by the slice
-parameters. If either of the limits along any one axis is a float, the limits
-are set by the values of the axis::
-
- >>> a=NXdata(np.sin(x),x)
- >>> a[1.5:2.5].x
- NXfield(name=x,value=[ 1.57079633  1.72787596  1.88495559 ...,  2.19911486  2.35619449])
-
-Unless the slice reduces one of the axes to a single item, the rank of the data
-remains the same. To project data along one of the axes, and so reduce the rank
-by one, the data can be summed along that axis using the nxsum() method. This
-employs the numpy array sum() method::
-
- >>> x=y=NXfield(np.linspace(0,2*np.pi,41))
- >>> X,Y=np.meshgrid(x,y)
- >>> a=NXdata(np.sin(X)*np.sin(Y), (x,y))
- >>> print a.tree
- data:NXdata
-   axis1 = float64(41)
-   axis2 = float64(41)
-   signal = float64(41x41)
-     @axes = axis1:axis2
-     @signal = 1
- >>> print a.sum(0).tree
- data:NXdata
-   axis2 = float64(41)
-   signal = float64(41)
-     @axes = axis2
-     @long_name = Integral from 0.0 to 6.28318530718 
-     @signal = 1
-
 Arithmetic Operations
 ---------------------
 NXfield
 ^^^^^^^
-Arithmetic operations can be applied to NXfield objects in much the same way as
-scalars or numpy arrays that they contain. This includes addition, subtraction,
-multiplication and division, either with other NXfield objects or to scalar
-numbers or numpy arrays::
+NXfields usually consist of arrays of numeric data with associated metadata, the 
+NeXus attributes (the exception is when they contain character strings). This 
+makes them similar to numpy arrays, and this module allows the use of NXfields 
+in numerical operations as if they were numpy ndarrays::
 
- >>> x=NXfield(array((1.5,2.5,3.5),name='x')
- >>> x
- NXfield(name=x,value=[ 1.5  2.5  3.5])
- >>> x+1
- NXfield(name=x,value=[ 2.5  3.5  4.5])
- >>> 2*x
- NXfield(name=x,value=[ 3.  5.  7.])
- >>> x+x
- NXfield(name=x,value=[ 3.  5.  7.])
- >>> x-x
- NXfield(name=x,value=[ 0.  0.  0.])
- >>> x/x
- NXfield(name=x,value=[ 1.  1.  1.])
+ >>> x = NXfield((1.0,2.0,3.0,4.0))
+ >>> print x+1
+ [ 2.  3.  4.  5.]
+ >>> print 2*x
+ [ 2.  4.  6.  8.]
+ >>> print x/2
+ [ 0.5  1.   1.5  2. ]
+ >>> print x**2
+ [  1.   4.   9.  16.]
+ >>> x.reshape((2,2))
+ NXfield([[ 1.  2.]
+ [ 3.  4.]])
+ >>> y = NXfield((0.5,1.5,2.5,3.5))
+ >>> x+y
+ NXfield(name=x,value=[ 1.5  3.5  5.5  7.5])
+ >>> x*y
+ NXfield(name=x,value=[  0.5   3.    7.5  14. ])
+ >>> (x+y).shape
+ (4,)
+ >>> (x+y).dtype
+ dtype('float64')
+
+Such operations return valid NXfield objects containing the same attributes 
+as the first NXobject in the expression. The 'reshape' and 'transpose' methods 
+also return NXfield objects.
+
+NXfields can be compared to other NXfields (this is a comparison of their numpy 
+arrays)::
+
+ >>> y=NXfield(np.array((1.5,2.5,3.5)),name='y')
+ >>> x == y
+ True
+
+NXfields are technically not a sub-class of the ndarray class, but they are cast
+as numpy arrays when required by numpy operations, returning either another 
+NXfield or, in some cases, an ndarray that can easily be converted to an 
+NXfield::
+
+ >>> x = NXfield((1.0,2.0,3.0,4.0)) 
+ >>> x.size
+ 4
+ >>> x.sum()
+ 10.0
+ >>> x.max()
+ 4.0
+ >>> x.mean()
+ 2.5
+ >>> x.var()
+ 1.25
+ >>> x.reshape((2,2)).sum(1)
+ array([ 3.,  7.])
+
+Finally, NXfields are cast as ndarrays for operations that require them. The 
+returned value will be the same as for the equivalent ndarray operation::
+
+ >>> np.sin(x)
+ array([ 0.84147098,  0.90929743,  0.14112001, -0.7568025 ])
+ >>> np.sqrt(x)
+ array([ 1.        ,  1.41421356,  1.73205081,  2.        ])
+ >>> print NXdata(np.sin(x), (x)).tree
+ data:NXdata
+   signal = [ 0.84147098  0.90929743  0.14112001 -0.7568025 ]
+     @axes = x
+     @signal = 1
+   x = [ 1.  2.  3.  4.]
 
 NXdata
 ^^^^^^
@@ -608,3 +576,165 @@ If data errors are included in the NXdata group (with an additional array named
    y = [ 1.99498997  1.19694429  0.70156646]
      @axes = x
      @signal = 1
+
+Some statistical operations can be performed on the NXdata group.
+
+NXdata.sum(axis=None):
+    Returns the sum of the NXdata signal data. If the axis is not specifed, the
+    total is returned. Otherwise, it is summed along the specified axis. The 
+    result is a new NXdata group containing a copy of all the metadata contained 
+    in the original NXdata group::
+
+     >>> x=np.linspace(0, 3., 4)
+     >>> y=np.linspace(0, 2., 3)
+     >>> X,Y=np.meshgrid(x,y)
+     >>> a=NXdata(X*Y,(x,y))
+     >>> print a.tree
+     data:NXdata
+       axis1 = [ 0.  1.  2.  3.]
+       axis2 = [ 0.  1.  2.]
+       signal = float64(3x4)
+         @axes = axis1:axis2
+         @signal = 1
+     >>> a.nxsignal
+     NXfield([[ 0.  0.  0.  0.]
+      [ 0.  1.  2.  3.]
+      [ 0.  2.  4.  6.]])
+     >>> a.sum()
+     18.0
+     >>> a.sum(0).nxsignal
+     NXfield([ 0.  3.  6.  9.])
+     >>> a.sum(1).nxsignal
+     NXfield([  0.   6.  12.])   
+
+NXdata.moment(order=1):
+    Returns an NXfield containing the first moment of the NXdata group assuming 
+    the signal is one-dimensional. Currently, only the first moment has been 
+    defined::
+    
+     >>> x=np.linspace(0, 10., 11)
+     >>> y=np.exp(-(x-3)**2)
+     >>> a=NXdata(y,x)
+     >>> a.moment()
+     3.0000002539776141
+
+
+Slicing
+-------
+NXfield
+^^^^^^^
+A slice of an NXfield can be obtained using the usual python indexing syntax::
+
+ >>> x=NXfield(np.linspace(0,2*np.pi,101))
+ >>> print x[0:51]
+ [ 0.          0.06283185  0.12566371 ...,  3.01592895  3.0787608 3.14159265]
+
+If either of the indices are floats, then the limits are set by the values 
+themselves (assuming the array is monotonic)::
+
+ >>> print x[0.5:1.5]
+ [ 0.50265482  0.56548668  0.62831853 ...,  1.38230077  1.44513262 1.50796447]
+
+NXdata
+^^^^^^
+It is also possible to slice whole NXdata groups. In this case, the slicing
+works on the multidimensional NXfield, but the full NXdata group is returned
+with both the signal data and the associated axes limited by the slice
+parameters. If either of the limits along any one axis is a float, the limits
+are set by the values of the axis::
+
+ >>> a=NXdata(np.sin(x),x)
+ >>> a[1.5:2.5].x
+ NXfield(name=x,value=[ 1.57079633  1.72787596  1.88495559 ...,  2.19911486  2.35619449])
+
+Unless the slice reduces one of the axes to a single item, the rank of the data
+remains the same. To project data along one of the axes, and so reduce the rank
+by one, the data can be summed along that axis using the sum() method::
+
+ >>> x=y=NXfield(np.linspace(0,2*np.pi,41))
+ >>> X,Y=np.meshgrid(x,y)
+ >>> a=NXdata(np.sin(X)*np.sin(Y), (x,y))
+ >>> print a.tree
+ data:NXdata
+   axis1 = float64(41)
+   axis2 = float64(41)
+   signal = float64(41x41)
+     @axes = axis1:axis2
+     @signal = 1
+ >>> print a.sum(0).tree
+ data:NXdata
+   axis2 = float64(41)
+   signal = float64(41)
+     @axes = axis2
+     @long_name = Integral from 0.0 to 6.28318530718 
+     @signal = 1
+
+It is also possible to slice whole NXdata groups. In this case, the slicing
+works on the multidimensional NXfield, but the full NXdata group is returned
+with both the signal data and the associated axes limited by the slice
+parameters. If either of the limits along any one axis is a float, the limits
+are set by the values of the axis::
+
+ >>> a=NXdata(np.sin(x),x)
+ >>> a[1.5:2.5].x
+ NXfield(name=x,value=[ 1.57079633  1.72787596  1.88495559 ...,  2.19911486  2.35619449])
+
+Unless the slice reduces one of the axes to a single item, the rank of the data
+remains the same. To project data along one of the axes, and so reduce the rank
+by one, the data can be summed along that axis using the sum() method. This
+employs the numpy array sum() method::
+
+ >>> x=y=NXfield(np.linspace(0,2*np.pi,41))
+ >>> X,Y=np.meshgrid(x,y)
+ >>> a=NXdata(np.sin(X)*np.sin(Y), (x,y))
+ >>> print a.tree
+ data:NXdata
+   axis1 = float64(41)
+   axis2 = float64(41)
+   signal = float64(41x41)
+     @axes = axis1:axis2
+     @signal = 1
+ >>> print a.sum(0).tree
+ data:NXdata
+   axis2 = float64(41)
+   signal = float64(41)
+     @axes = axis2
+     @long_name = Integral from 0.0 to 6.28318530718 
+     @signal = 1
+
+NXdata.project(axes, limits):
+    The project() method projects the data along a specified 1D axis or 2D axes 
+    summing over the limits, which are specified as a list of tuples for each 
+    dimension. If the axis is not to be limited, then specify the limit as 
+    *None*. The data should be at least two-dimensional and the values are 
+    assumed to be floating point. 
+
+    >>> x=np.linspace(0, 3., 4)
+    >>> y=np.linspace(0, 2., 3)
+    >>> X,Y=np.meshgrid(x,y)
+    >>> a=NXdata(X*Y,(y,x))
+    >>> print a.tree
+    data:NXdata
+      axis1 = [ 0.  1.  2.]
+      axis2 = [ 0.  1.  2.  3.]
+      signal = float64(3x4)
+        @axes = axis1:axis2
+        @signal = 1
+    >>> print a.signal
+    [[ 0.  0.  0.  0.]
+     [ 0.  1.  2.  3.]
+     [ 0.  2.  4.  6.]]
+    >>> print a.project([0],[(None,None),(0.5,2.5)]).tree
+    data:NXdata
+      axis1 = [ 0.  1.  2.]
+      axis2 = 1.5
+        @maximum = 2.0
+        @minimum = 1.0
+      signal = [ 0.  3.  6.]
+        @axes = axis1
+        @signal = 1
+
+    The :doc:`pythongui` provides a menu-based approach
+    to simplify the plotting of data projections.
+
+     
