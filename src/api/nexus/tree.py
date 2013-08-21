@@ -590,7 +590,7 @@ class NXattr(object):
         >>> entry.sample.temperature.units = NXattr('K')
         >>> entry.sample.temperature.units = 'K'
 
-    The third version above is only allowed for NXfield attributes and is
+    The fourth version above is only allowed for NXfield attributes and is
     not allowed if the attribute has the same name as one of the following
     internally defined attributes, i.e.,
 
@@ -2232,12 +2232,21 @@ class NXgroup(NXobject):
         """
         Creates a linked NXobject within the group.
 
-        All attributes are inherited from the parent object including the name
+        The argument is the parent object. All attributes are inherited from the 
+        parent object including the name.
+        
+        The root of the target and child's group must be the same.
         """
-        if isinstance(target, NXobject):
-            self[target.nxname] = NXlink(target=target, group=self)
+        if isinstance(self.nxroot, NXroot):
+            if self.nxroot == target.nxroot:
+                if isinstance(target, NXobject):
+                    self[target.nxname] = NXlink(target=target, group=self)
+                else:
+                    raise NeXusError("Link target must be an NXobject")
+            else:
+                raise NeXusError("Cannot link an object to a group with a different root")
         else:
-            raise NeXusError("Link target must be an NXobject")
+            raise NeXusError("The group must have a root object of class NXroot")                
 
     def read(self):
         """

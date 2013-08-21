@@ -277,12 +277,12 @@ class NeXus(object):
         Open the NeXus file returning a handle.
 
         mode can be one of the following:
-            nxs.ACC_READ      'r'     open a file read-only
-            nxs.ACC_RDWR      'rw'    open a file read/write
-            nxs.ACC_CREATE    'w'     open a file write
-            nxs.ACC_CREATE4   'w4'    open a Nexus file with HDF4
-            nxs.ACC_CREATE5   'w5'    open a Nexus file with HDF5
-            nxs.ACC_CREATEXML 'wx'    open a Nexus file with XML
+            nx.ACC_READ      'r'     open a file read-only
+            nx.ACC_RDWR      'rw'    open a file read/write
+            nx.ACC_CREATE    'w'     open a file write
+            nx.ACC_CREATE4   'w4'    open a Nexus file with HDF4
+            nx.ACC_CREATE5   'w5'    open a Nexus file with HDF5
+            nx.ACC_CREATEXML 'wx'    open a Nexus file with XML
 
         Raises ValueError if the open mode is invalid.
 
@@ -640,7 +640,7 @@ class NeXus(object):
         that don't need to be processed.  If the file follows the standard
         NeXus DTDs then skip any entry for which nxclass.startswith('NX') 
         is False.  For non-conforming files, skip those entries with 
-        nxclass in nxs.H4SKIP.
+        nxclass in nx.H4SKIP.
         """
         name = ctypes.create_string_buffer(MAXNAMELEN)
         nxclass = ctypes.create_string_buffer(MAXNAMELEN)
@@ -691,7 +691,7 @@ class NeXus(object):
         """
         Iterator of entries.
 
-        for name,nxclass in nxs.entries():
+        for name,nxclass in nx.entries():
             process(name,nxclass)
 
         This automatically opens the corresponding group/data for you,
@@ -701,7 +701,7 @@ class NeXus(object):
 
         This does not correspond to an existing NeXus API function,
         but instead combines the work of initgroupdir/getnextentry
-        and open/close on data and group.  Entries in nxs.H4SKIP are
+        and open/close on data and group.  Entries in nx.H4SKIP are
         ignored.
         """
         # To preserve the semantics we must read in the whole list
@@ -841,7 +841,7 @@ class NeXus(object):
         Creates a data element of the given type and shape.  See getinfo
         for details on types.  This does not open the data for writing.
 
-        Set the first dimension to nxs.UNLIMITED, for extensible data sets,
+        Set the first dimension to nx.UNLIMITED, for extensible data sets,
         and use putslab to write individual slabs.
 
         Raises ValueError if it fails.

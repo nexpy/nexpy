@@ -12,7 +12,7 @@ shell::
 
 .. note:: If you are creating NeXus groups, it is often more convenient to 
           import the data using ``from nexpy.api.nexus import \*``. Since this 
-          produces a name clash with the Numpy 'load' module, 'nxload' has been
+          produces a name clash with the numpy 'load' module, 'nxload' has been
           defined as an alias for the NeXus 'load' module. 
 
 Loading NeXus Data
@@ -66,7 +66,7 @@ a complete array, if memory allows, or as a series of slabs (see below).
 
 Creating NeXus Data
 ===================
-It is just as easy to create new NeXus data sets from scratch using Numpy 
+It is just as easy to create new NeXus data sets from scratch using numpy 
 arrays. The following example shows the creation of a simple function, which is 
 then saved to a file::
  
@@ -97,6 +97,13 @@ This file can then be loaded again::
 Note that the save() method automatically wraps any valid NeXus data in an 
 NXentry group, in order to produce a standard-compliant file.
 
+.. note:: If the save() method is called with the filename argument, a new file
+          with that name is created. If no argument is given, the save method 
+          will fail unless the data was loaded from an existing NeXus file in
+          read/write mode, *i.e.*:: 
+          
+           >>> a = nexus.load('scans.nxs', mode='rw')
+
 NeXus Objects
 =============
 NeXus data is stored as a hierarchical tree structure, much like a computer file 
@@ -106,7 +113,7 @@ can contain fields, with base class NXfield, and/or other groups.
 NeXus Fields
 ------------
 NeXus data values are stored in NeXus objects of class 'NXfield'. The NXfield
-class wraps standard Numpy arrays, scalars, and python strings so that
+class wraps standard numpy arrays, scalars, and python strings so that
 additional metadata (or attributes) and methods can be associated with them. 
 
 There are three ways to create an NXfield.
@@ -116,7 +123,7 @@ There are three ways to create an NXfield.
     >>> x = NXfield(np.linspace(0,2*np.pi,101), units='degree')
 
   The data value is given by the first positional argument, and may be a Python
-  scalar or string, or a Numpy array. In this method, keyword arguments can be
+  scalar or string, or a numpy array. In this method, keyword arguments can be
   used to define NXfield attributes.
 
 * Attribute assignment as the child of a NeXus group::
@@ -155,10 +162,10 @@ example, a float64 array can be converted to float32 on assignment::
   ('char', (9,))
 
 .. note:: Numeric dtypes can be defined either as a string, *e.g.*, 'int16', 
-          'float32', or using the Numpy dtypes, *e.g.*, np.int16, np.float32.
+          'float32', or using the numpy dtypes, *e.g.*, np.int16, np.float32.
 
 Similarly, the shape and dimension sizes of an integer or float array is 
-inherited from the assigned Numpy array. It is possible to initialize an NXfield
+inherited from the assigned numpy array. It is possible to initialize an NXfield
 array without specifying the data values in advance, *e.g.*, if the data has to
 be created in slabs::
 
@@ -203,7 +210,7 @@ of slabs using the get and put methods, respectively::
                  value = slab.get([i,j,0],size)
 
 .. note:: NXfield values are stored in its 'nxdata' attribute. For integers and
-          floats, this will be a Numpy array. If the values have not been 
+          floats, this will be a numpy array. If the values have not been 
           loaded, 'nxdata' is set to None.
 
 NeXus Groups
@@ -252,6 +259,9 @@ creating nested groups with minimal typing::
    sample:NXsample
      temperature = 40.0
 
+.. seealso:: Existing NeXus objects can also be inserted directly into groups.
+             See :mod:`nexpy.api.nexus.tree.NXgroup.insert`
+
 NXdata Groups
 ^^^^^^^^^^^^^
 NXdata groups contain data ready to be plotted. That means that the group should
@@ -267,8 +277,8 @@ here::
  >>> z=np.sin(X)*np.sin(Y)
  >>> a=NXdata(z,[x,y])
 
-The first positional argument is an NXfield or Numpy array containing the data,
-while the second is a list containing the axes, again as NXfields or Numpy
+The first positional argument is an NXfield or numpy array containing the data,
+while the second is a list containing the axes, again as NXfields or numpy
 arrays. In this example, the names of the arrays have not been defined within an
 NXfield so default names were assigned::
 
@@ -312,6 +322,96 @@ It is also possible to define the plottable signal and/or axes using the
      @signal = 1
    polar_angle = float64(101)
 
+NeXus Links
+-----------
+NeXus allows groups and fields to be assigned to multiple locations through the
+use of links. These objects have the class NXlink and contain the attribute 
+'target', which identifies the parent object.
+
+For example, the polar angle and time-of-flight arrays may logically be stored 
+with the detector information in a NXdetector group that is one of the 
+NXinstrument subgroups::
+
+ >>> print entry.instrument.tree
+ instrument:NXinstrument
+   detector:NXdetector
+    distance = float32(128)
+      @units = metre
+    polar_angle = float32(128)
+      @units = radian
+    time_of_flight = float32(8252)
+      @target = /entry/instrument/detector/time_of_flight
+      @units = microsecond
+
+However, they may also be needed as plotting axes in a NXdata group::
+
+ >>> print entry.data.tree
+ data:NXdata
+   data = uint32(128x8251)
+     @signal = 1
+     @axes = polar_angle:time_of_flight
+   polar_angle = float32(128)
+     @target = /entry/instrument/detector/polar_angle
+     @units = radian
+   time_of_flight = float32(8252)
+     @target = /entry/instrument/detector/time_of_flight
+     @units = microsecond
+ 
+Links allow the same data to be used in different contexts without using more
+memory or disk space.  
+     
+In the Python API, the user who is only interested in accessing the data does
+not need to worry if the object is parent or child. The data values and NeXus 
+attributes of the parent to the NXlink object can be accessed directly through
+the child object. The parent object can be referenced directly, if required,
+using the 'nxlink' attribute::
+
+ >>> entry.data.time_of_flight
+ NXlink('/entry/instrument/detector/time_of_flight')
+ >>> entry.data.time_of_flight.nxdata
+ array([   500.,    502.,    504., ...,  16998.,  17000.,  17002.], dtype=float32) 
+ >>> entry.data.time_of_flight.units
+ 'microsecond'
+ >>> entry.data.time_of_flight.nxlink
+ NXfield(dtype=float32,shape=(8252,))
+
+.. note:: The absolute path of the data with respect to the root object of the 
+          NeXus tree is given by the nxpath property::
+
+           >>> entry.data.time_of_flight.nxpath
+           '/entry/data/time_of_flight'
+           >>> entry.data.time_of_flight.nxlink.nxpath
+           '/entry/instrument/bank1/time_of_flight'
+
+Creating a Link
+^^^^^^^^^^^^^^^
+New links can be created within a group using the makelink method, which takes 
+the parent object as an argument::
+
+ >>> print root.tree
+ root:NXroot
+   entry:NXentry
+     data:NXdata
+     instrument:NXinstrument
+       detector:NXdetector
+         polar_angle = float64(192)
+           @units = degree
+ >>> root.entry.data.makelink(root.entry.instrument.detector.polar_angle)
+ >>> print root.tree
+ root:NXroot
+   entry:NXentry
+     data:NXdata
+       polar_angle = float64(192)
+         @target = /entry/instrument/detector/polar_angle
+         @units = degree
+     instrument:NXinstrument
+       detector:NXdetector
+         polar_angle = float64(192)
+           @target = /entry/instrument/detector/polar_angle
+           @units = degree
+
+.. seealso:: :mod:`nexpy.api.nexus.tree.NXgroup.makelink`
+
 Plotting NeXus Data
 ===================
 NXdata, NXmonitor, and NXlog groups all have a plot method, which automatically 
@@ -332,6 +432,7 @@ set using 'over=True'. By default, each plot has a new color, but conventional
 Matplotlib keywords can be used to change markers and colors::
 
  >>> data.plot(log=True)
+ >>> data.plot('r-')
  >>> data.plot(over=True, log=True, color='r') 
 
 Manipulating NeXus Data
@@ -367,7 +468,7 @@ are set by the values of the axis::
 Unless the slice reduces one of the axes to a single item, the rank of the data
 remains the same. To project data along one of the axes, and so reduce the rank
 by one, the data can be summed along that axis using the nxsum() method. This
-employs the Numpy array sum() method::
+employs the numpy array sum() method::
 
  >>> x=y=NXfield(np.linspace(0,2*np.pi,41))
  >>> X,Y=np.meshgrid(x,y)
@@ -400,7 +501,7 @@ are set by the values of the axis::
 Unless the slice reduces one of the axes to a single item, the rank of the data
 remains the same. To project data along one of the axes, and so reduce the rank
 by one, the data can be summed along that axis using the nxsum() method. This
-employs the Numpy array sum() method::
+employs the numpy array sum() method::
 
  >>> x=y=NXfield(np.linspace(0,2*np.pi,41))
  >>> X,Y=np.meshgrid(x,y)
@@ -425,9 +526,9 @@ Arithmetic Operations
 NXfield
 ^^^^^^^
 Arithmetic operations can be applied to NXfield objects in much the same way as
-scalars or Numpy arrays that they contain. This includes addition, subtraction,
+scalars or numpy arrays that they contain. This includes addition, subtraction,
 multiplication and division, either with other NXfield objects or to scalar
-numbers or Numpy arrays::
+numbers or numpy arrays::
 
  >>> x=NXfield(array((1.5,2.5,3.5),name='x')
  >>> x
