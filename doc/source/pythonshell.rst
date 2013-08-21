@@ -734,7 +734,7 @@ NXdata.project(axes, limits):
         @axes = axis1
         @signal = 1
 
-    The :doc:`pythongui` provides a menu-based approach
-    to simplify the plotting of data projections.
+    The :doc:`pythongui` provides a menu-based approach to simplify the plotting 
+    of data projections.
 
      

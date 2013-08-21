@@ -1,61 +1,82 @@
 *******************************
 Python Graphical User Interface
 *******************************
-A PyQT GUI has been created to make it easier to keep track of the loaded NeXus files and
-the results of any subsequent analysis. It is invoked from the command line by::
+A PyQT GUI has been created to make it easier to keep track of the loaded NeXus 
+files and the results of any subsequent analysis. It is invoked from the command 
+line by::
 
  > nexpy
 
 .. image:: /images/nexpy-gui.png
+   :align: center
 
-The GUI contains three main panes:
+The illustration shows the main features of the GUI:
 
-**Tree Pane**
-    This contains the tree structure of NeXus files opened in the File menu and/or any 
-    NXroot and NXentry groups created within the shell.
+**1) Tree Pane**
+    This contains the tree structure of NeXus files opened in the File menu, 
+    non-NeXus files that have been imported and converted into the NeXus format
+    using one of the NeXus readers, and NXroot, NXentry, or NXdata groups added 
+    from the shell. By default, these are given a standard name of 'w1', 'w2', 
+    *etc*, but they may be renamced by right-clicking on the group.
     
-**Plot Pane**
-    Any NXdata or NXmonitor group can be plotted in this pane by right-clicking on the 
-    relevant node in the tree.
+**2) Plot Pane**
+    This contains plots produced by (a) the Data\:Plot Data menu item, which 
+    operates on the NeXus data selected in the tree, (b) right-clicking on NeXus 
+    data in the tree, or (c) using NeXus data Plot methods from the shell. If an 
+    NXdata, NXmonitor, or NXlog group is plotted, the rank, dimensions, and 
+    plotting axes are determined automatically. If the rank of the data is 
+    greater than two, a two-dimensional slice is extracted from the data. The 
+    GUI allows the selection of alternative slices using one of the axis panels
+    (see below). If an NXfield is selected, the independent axis can be chosed 
+    from other NXfields in the same group. At the moment, this only works for 
+    one-dimensional NXfields. 
 
-**Shell Pane**
-    This is an iPython shell, with NeXpy already imported (as * so no prefixes are 
-    necessary), along with Numpy (as np) and Pylab (as plt). Any assignments to items in 
-    the tree pane are automatically reflected in the tree pane, and new NXroot, NXentry, 
-    or NXdata objects can be added to the tree from the iPython shell. The NeXus data
-    plot methods from the shell to plot into the plot pane, and Matplotlib commands can
-    be used to modify the plot characteristics. 
+**3) Shell Pane**
+    This is an iPython shell, with NeXpy already imported (as * so no prefixes 
+    are necessary), along with Numpy (as np) and Pylab (as plt). Any assignments 
+    to items in the tree pane are automatically reflected in the tree pane, and 
+    new NXroot, NXentry, or NXdata objects can be added to the tree from the 
+    iPython shell. The NeXus data plot methods from the shell to plot into the 
+    plot pane, and Matplotlib commands can be used to modify the plot 
+    characteristics. The shell has enhanced features such as autocompletion of
+    NeXus attributes and tooltips of module docstrings when you open the module
+    parentheses.
+    
+**4) Axis Panels**
+    The tabbed panels below the plot can be used to modify the plots. The 
+    number of panels depends on the rank of the original data. The 'signal',
+    'x' and 'y' panels have text boxes and sliders for adjusting the plotting
+    limits. For rank two or more, a projection panel allows the plotting of 
+    projections along different directions, using the current axis limits. For 
+    ranks greater than two, a 'z' panel allows the other dimensions to be 
+    varied. Finally, the 'options' panel provides access to the standard 
+    Matplotlib tools for modifying the plots.
 
-There are a number of useful features available when running NeXpy within the GUI shell. 
+**5) Status Bar**
+    The values and attributes of the currently selected item in the tree are
+    displayed in the status bar.
 
-#. Data can be loaded with the File\:Open menu item using a standard file browser window.
-#. All current NeXus data trees are easy to inspect in the pane on the upper left side. 
-   Hovering over a data item produces a tooltip containing a list of all the item's children. 
-#. Newly created group can be added to the tree at any time.
-#. Any changes to data sets in the scripting window will be reflected within the tree 
-   pane.
-#. NXdata and NXmonitor plots can be displayed by right-clicking and choosing 'Plot Data'.
-#. Any one-dimensional array can be plotted against any other one-dimensional array in the
-   same group.
-#. One-dimensional NXdata and NXmonitor data can be fit to a flexible combination of
-   model functions using non-linear least-squares methods by right-clicking and choosing 
-   'Fit Data'.
-#. Axis limits are set by a series of slider bars.
-#. The scripting shell provides convenient autocompletion, and automatically displays 
-   function docstrings as a tooltip when you open the function parentheses.
+**6) Tooltips**
+    The NeXus tree structure of an item in the tree pane will be displayed as
+    a tooltip when the cursor hovers over it.
 
-Adding NeXus Data to the Tree View
+Adding NeXus Data to the Tree Pane
 ----------------------------------
-If you create a NeXus group dynamically in the iPython shell, it can be added to the tree 
-view using the tree's add method::
+NXroot groups that are displayed in the tree pane are all children of a group
+of class NXtree, known as 'tree'. If you create a NeXus group dynamically in the 
+iPython shell, it can be added to the tree pane using the tree's add method::
 
  >>> a=NXroot()
  >>> a.entry = NXentry()
  >>> tree.add(a)
 
-If the group is not an NXroot group, the data will be wrapped automatically in an NXroot 
-group and given a default name that doesn't conflict with existing tree nodes, *e.g.*, 
-w4.
+If the group is not an NXroot group, the data will be wrapped automatically in 
+an NXroot group and given a default name that doesn't conflict with existing 
+tree nodes, *e.g.*, w4.
+
+.. note:: The NXroot class is still considered to be the root of the NeXus tree.
+          The NXtree group is only used by the GUI and cannot be saved to a 
+          file.
 
 Plotting NeXus Data
 -------------------
