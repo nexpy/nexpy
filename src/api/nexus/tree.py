@@ -2426,7 +2426,7 @@ class NXgroup(NXobject):
         signals = {}
         for obj in self.entries.values():
             if 'signal' in obj.attrs:
-                signals[obj.nxsignal.nxdata] = obj
+                signals[obj.attrs['signal'].nxdata] = obj
         return signals
 
     def _signal(self):
