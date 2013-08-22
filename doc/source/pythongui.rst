@@ -7,8 +7,12 @@ line by::
 
  > nexpy
 
+.. note:: This assumes that the Python 'bin' directory is in your standard shell
+          path.
+
 .. image:: /images/nexpy-gui.png
    :align: center
+   :width: 90%
 
 The illustration shows the main features of the GUI:
 
@@ -80,24 +84,93 @@ tree nodes, *e.g.*, w4.
 
 Plotting NeXus Data
 -------------------
-NXdata, NXmonitor, and NXlog data can be plotted by selecting a group on the tree and 
-choosing "Plot Data" from the Data menu or by right-clicking on the group. The plot pane 
-contains a toolbar to change axis or signal intensity limits using sliders or text boxes.
-One of the toolbar tabs also gives access to the standard matplotlib options.
+NXdata, NXmonitor, and NXlog data can be plotted by selecting a group on the 
+tree and choosing "Plot Data" from the Data menu or by right-clicking on the 
+group. Below the plot pane, a series of tabs allow manipulation of the plot
+limits and parameters.
 
-.. image:: /images/axis-limits-bar.png
+**Signal Tab**
 
-There are two checkboxes:
+    .. image:: /images/signal-tab.png
+       :align: center
+       :width: 75%
 
-**Lock**
-    If the maximum and/or minimum values are not set to the limits, then this checkbox 
-    locks the difference between the two. This checkbox disables setting of the minimum 
-    value. You can step through the z-values with automatic replots by selecting the 
-    maximum box and using the keyboard up and down arrows or by clicking the box arrows.
-**Autoscale**
-    When stepping through the z-values, this checkbox determines whether the plot should 
-    change the color scale.
+    The signal tab contains text boxes and sliders to adjust the intensity 
+    limits, a checkbox to plot the intensity on a log scale, and a dropdown menu
+    to select a color palette.
+    
+    .. note:: For a one-dimensional plot, there is no signal tab. The intensity
+              is adjusted using the y-tab.
 
+**X/Y Tab**
+
+    .. image:: /images/x-tab.png
+       :align: center
+       :width: 75%
+
+    The x and y-tabs contains text boxes and sliders to adjust the axis limits 
+    and a dropdown menu to select the axis to be plotted along x and y, 
+    respectively. The names correspond to the axis names in the NXdata group.
+    
+    .. note:: In the above image, the name of the axis happened to be x, but
+              this would not generally be true.
+
+**Z Tab**
+
+    .. image:: /images/z-tab.png
+       :align: center
+       :width: 75%
+
+    If the data rank is three or more, the 2D plot *vs* x and y is a projection 
+    along the remaining axes. The z-tab sets the limits for those projections.
+    It contains a dropdown menu for selecting the axis to be summed over and
+    two text boxes for selecting the projection limits. If you click the 'lock'
+    checkbox, the projection width is fixed allowing successive images along the
+    z-axis to be plotted by clicking the text-box arrows. 
+    
+    .. warning:: There may be a bug in PySide, which causes multiple steps to 
+                 occur for each arrow click. You can avoid this by selecting the 
+                 'maximum' text-box and using the terminal arrow keys.
+    
+    When stepping through the z-values, the 'Autoscale' checkbox determines 
+    whether the plot automatically scales the signal to the maximum intensity of
+    the slice. 
+    
+    If you use the text-box arrows or the terminal arrow keys to change the 
+    z-limits, the new slice is automatically plotted. If you change the limits
+    by editing the text-boxes, then click the 'Replot' button to force a replot.
+
+**Projection Tab**
+
+    .. image:: /images/projection-tab.png
+       :align: center
+       :width: 75%
+
+    The projection tab allows the data to be projected along one or two
+    dimensions. The limits are set by the x, y, and z-tabs, while the projection
+    axes are selected using the dropdown boxes. For a one-dimensional 
+    projection, select 'None' from the y box. The projections may be plotted in
+    a separate window, using the 'Plot' button or saved to a scratch NXdata 
+    group within 'w0' on the tree.
+    
+    .. image:: /images/projection.png
+       :align: center
+       :width: 75%
+
+**Options Tab**
+
+    .. image:: /images/options-tab.png
+       :align: center
+       :width: 75%
+
+    The options tab provides the standard Matplotlib toolbar. The 'Home' button
+    restores all plotting limits to their defaults. The 'arrow' buttons cycle
+    through previous plots. The 'zoom' button allows rectangles to be dragged 
+    over the plot to define new plotting limits. The 'options' button allows the 
+    Matplotlib plotting parameters (markers, colors, *etc*.) to be changed. The 
+    'Save' button saves the figure to a PNG file. The final button adds the 
+    plotted data to the tree pane, as an NXdata group in 'w0'.
+       
 Fitting NeXus Data
 -------------------
 It is possible to fit one-dimensional data using the non-linear least-squares fitting 
@@ -107,6 +180,8 @@ a dialog window that allows multiple functions to be combined, with the option o
 or limiting parameters. 
 
 .. image:: /images/nexpy-fits.png
+   :align: center
+   :width: 90%
 
 The fit can be plotted, along with the constituent functions, in the main plotting window
 and the fitting parameters displayed in a message window. The original data, the fitted 

@@ -420,6 +420,8 @@ determines what should be plotted::
  >>> data.plot()
 
 .. image:: /images/simple-plot.png
+   :align: center
+   :width: 80%
 
 Note that the plot method uses the NeXus attributes within the groups to
 determine automatically which NXfield is the signal, what its rank and
