@@ -51,6 +51,7 @@ class MainWindow(QtGui.QMainWindow):
         self._app.setStyle("QMacStyle")
         self.config = config
         self.confirm_exit = confirm_exit
+        self.default_directory = os.path.expanduser('~')
 
         mainwindow = QtGui.QWidget()
 
@@ -168,6 +169,7 @@ class MainWindow(QtGui.QMainWindow):
         
         self.openeditablefile_action=QtGui.QAction("Open (read/write)",
             self,
+            shortcut=QtGui.QKeySequence("Ctrl+Shift+O"),
             triggered=self.open_editable_file
             )
         self.add_menu_action(self.file_menu, self.openeditablefile_action, True)  
@@ -181,6 +183,7 @@ class MainWindow(QtGui.QMainWindow):
         
         self.savefileas_action=QtGui.QAction("Save as...",
             self,
+            shortcut=QtGui.QKeySequence.SaveAs,
             triggered=self.save_file_as
             )
         self.add_menu_action(self.file_menu, self.savefileas_action, True)  
@@ -414,21 +417,26 @@ class MainWindow(QtGui.QMainWindow):
     def new_file(self):
         fname, _ = QtGui.QFileDialog.getSaveFileName(self, "Choose a filename")
         workspace = self.treeview.tree.get_new_name()
-        self.treeview.tree[workspace] = self.user_ns[workspace] = nxload(fname, 'w')
+        self.treeview.tree[workspace] = self.user_ns[workspace] = nxload(fname, 'w5')
         self.treeview.tree[workspace].entry = NXentry()
   
     def open_file(self):
         fname, _ = QtGui.QFileDialog.getOpenFileName(self, 'Open file (Read Only)',
-            os.path.expanduser('~'))
-        workspace = self.treeview.tree.get_new_name()
+                         self.default_directory, 
+                         "NeXus Files (*.nxs *.nx5 *.h5 *.nx4 *.hdf *.xml)")
+        print fname
+        workspace = self.treeview.tree.get_name(fname)
         self.treeview.tree[workspace] = self.user_ns[workspace] = nxload(fname)
+        self.default_directory = os.path.dirname(fname)
   
     def open_editable_file(self):
         fname, _ = QtGui.QFileDialog.getOpenFileName(self, 'Open file (Read/Write)',
-            os.path.expanduser('~'))
-        workspace = self.treeview.tree.get_new_name()
+                         self.default_directory, 
+                         "NeXus Files (*.nxs *.nx5 *.h5 *.nx4 *.hdf *.xml)")
+        workspace = self.treeview.tree.get_name(fname)
         self.treeview.tree[workspace] = self.user_ns[workspace] = nxload(fname, 'rw')
-  
+        self.default_directory = os.path.dirname(fname)
+
     def save_file(self):
         node = self.treeview.getnode()
         if node.nxfile:
@@ -450,7 +458,10 @@ class MainWindow(QtGui.QMainWindow):
 
     def save_file_as(self):
         node = self.treeview.getnode()
-        fname, _ = QtGui.QFileDialog.getSaveFileName(self, "Choose a filename")
+        default_name = os.path.join(self.default_directory,node.nxname)
+        fname, _ = QtGui.QFileDialog.getSaveFileName(self, "Choose a filename",
+                         default_name, 
+                         "NeXus Files (*.nxs *.nx5 *.h5 *.nx4 *.hdf *.xml)")
         if fname:
             try:
                 node.save(fname)

@@ -1,4 +1,5 @@
 from PySide import QtCore, QtGui
+import os
 from nexpy.api.nexus import NXfield, NXgroup, NXlink, NXroot, NeXusError
 from datadialogs import RenameDialog
 
@@ -69,6 +70,25 @@ class NXtree(NXgroup):
             self[self.get_new_name()] = group
         else:
             raise NeXusError("Only a valid NXgroup can be added to the tree")
+
+    def get_name(self, filename):
+        from nexpy.gui.consoleapp import _shell
+        name = os.path.splitext(os.path.basename(filename))[0].replace(' ','_')
+        name = "".join([c for c in name.replace('-','_') 
+                        if c.isalpha() or c.isdigit() or c=='_'])
+        if name in _shell.keys():
+            ind = []
+            for key in _shell.keys():
+                try:
+                    if key.startswith(name+'_'): 
+                        ind.append(int(key[len(name)+1:]))
+                        print ind
+                except ValueError:
+                    pass
+            if ind == []: ind = [0]
+            print ind
+            name = name+'_'+str(sorted(ind)[-1]+1)
+        return name
 
     def get_new_name(self):
         from nexpy.gui.consoleapp import _shell
@@ -210,34 +230,10 @@ class NXTreeView(QtGui.QTreeView):
         return self._model.itemFromIndex(self.proxymodel.mapToSource(index)).node
         
     def save_file(self):
-        node = self.getnode()
-        if node.nxfile:
-            try:
-                node.save()
-            except NeXusError, error_message:
-                QtGui.QMessageBox.critical(
-                    self, "Error saving file", str(error_message),
-                    QtGui.QMessageBox.Ok, QtGui.QMessageBox.NoButton)
-        else:
-            fname, _ = QtGui.QFileDialog.getSaveFileName(self, "Choose a filename")
-            if fname:
-                try:
-                    node.save(fname)
-                except NeXusError, error_message:
-                    QtGui.QMessageBox.critical(
-                        self, "Error saving file", str(error_message),
-                        QtGui.QMessageBox.Ok, QtGui.QMessageBox.NoButton)
+        self.parent().parent().save_file()
 
     def save_file_as(self):
-        node = self.getnode()
-        fname, _ = QtGui.QFileDialog.getSaveFileName(self, "Choose a filename")
-        if fname:
-            try:
-                node.save(fname)
-            except NeXusError, error_message:
-                QtGui.QMessageBox.critical(
-                    self, "Error saving file", str(error_message),
-                    QtGui.QMessageBox.Ok, QtGui.QMessageBox.NoButton)
+        self.parent().parent().save_file_as()
 
     def plot_data(self):
         self.parent().parent().plot_data()
