@@ -20,7 +20,7 @@ from IPython.external.qt import QtGui,QtCore
 from qtkernelmanager import QtKernelManager
 from treeview import NXTreeView
 from plotview import NXPlotView
-from datadialogs import PlotDialog, RenameDialog, FitDialog
+from datadialogs import PlotDialog, RenameDialog, DeleteDialog, FitDialog
 from nexpy.api.nexus.tree import nxload, NeXusError, NXentry, NXdata
 
 # IPython imports
@@ -306,6 +306,12 @@ class MainWindow(QtGui.QMainWindow):
             )
         self.add_menu_action(self.data_menu, self.rename_action, True)  
 
+        self.delete_action=QtGui.QAction("Delete Data",
+            self,
+            triggered=self.delete_data
+            )
+        self.add_menu_action(self.data_menu, self.delete_action, True)  
+
         self.data_menu.addSeparator()
  
         self.fit_action=QtGui.QAction("Fit Data",
@@ -428,7 +434,7 @@ class MainWindow(QtGui.QMainWindow):
         if node.nxfile:
             try:
                 node.save()
-            except NeXusError(error_message):
+            except NeXusError, error_message:
                 QtGui.QMessageBox.critical(
                     self, "Error saving file", str(error_message),
                     QtGui.QMessageBox.Ok, QtGui.QMessageBox.NoButton)
@@ -437,7 +443,7 @@ class MainWindow(QtGui.QMainWindow):
             if fname:
                 try:
                     node.save(fname)
-                except NeXusError(error_message):
+                except NeXusError, error_message:
                     QtGui.QMessageBox.critical(
                         self, "Error saving file", str(error_message),
                         QtGui.QMessageBox.Ok, QtGui.QMessageBox.NoButton)
@@ -448,7 +454,7 @@ class MainWindow(QtGui.QMainWindow):
         if fname:
             try:
                 node.save(fname)
-            except NeXusError(error_message):
+            except NeXusError, error_message:
                 QtGui.QMessageBox.critical(
                     self, "Error saving file", str(error_message),
                     QtGui.QMessageBox.Ok, QtGui.QMessageBox.NoButton)
@@ -472,14 +478,14 @@ class MainWindow(QtGui.QMainWindow):
 
     def rename_data(self):
         node = self.treeview.getnode()
-        if node.infile:
-            QtGui.QMessageBox.critical(self, "Cannot rename item", 
-                "NeXus object cannot be renamed when already stored in a file",
-                QtGui.QMessageBox.Ok, QtGui.QMessageBox.NoButton)
-            raise NeXusError("Cannot rename a NeXus object already stored in a file")
         rename = RenameDialog(node, self)
         rename.show()
-       
+
+    def delete_data(self):
+        node = self.treeview.getnode()
+        delete = DeleteDialog(node, self)
+        delete.show()      
+               
     def fit_data(self):
         node = self.treeview.getnode()
         try:

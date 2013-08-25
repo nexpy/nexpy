@@ -108,6 +108,38 @@ class RenameDialog(QtGui.QDialog):
         QtGui.QDialog.reject(self)
 
     
+class DeleteDialog(QtGui.QDialog):
+    """Dialog to delete a NeXus node"""
+ 
+    def __init__(self, node, parent=None):
+
+        QtGui.QDialog.__init__(self, parent)
+ 
+        self.node = node
+ 
+        buttonbox = QtGui.QDialogButtonBox(self)
+        buttonbox.setOrientation(QtCore.Qt.Horizontal)
+        buttonbox.setStandardButtons(QtGui.QDialogButtonBox.Cancel|
+                                     QtGui.QDialogButtonBox.Ok)
+        buttonbox.accepted.connect(self.accept)
+        buttonbox.rejected.connect(self.reject)
+
+        layout = QtGui.QVBoxLayout()
+        layout.addWidget(QtGui.QLabel('Are you sure you want to delete "%s"?' 
+                                      % node.nxname))
+        layout.addWidget(buttonbox) 
+        self.setLayout(layout)
+
+        self.setWindowTitle("Delete NeXus Object")
+
+    def accept(self):
+        del self.node.nxgroup[self.node.nxname]
+        QtGui.QDialog.accept(self)
+        
+    def reject(self):
+        QtGui.QDialog.reject(self)
+
+    
 class FitDialog(QtGui.QDialog):
     """Dialog to fit one-dimensional NeXus data"""
  
