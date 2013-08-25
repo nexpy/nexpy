@@ -64,6 +64,17 @@ a complete array, if memory allows, or as a series of slabs (see below).
           data will have to be read as a series of slabs. The default value is
           500.
 
+
+Load Options
+------------
+There is a second optional argument to the load module that defines the access
+mode for the existing data. For example, the following opens the file in 
+read/write mode::
+
+ >>> a=nx.load('chopper.nxs', mode='rw')
+
+The default mode is 'r', *i.e.*, readonly access.
+
 Creating NeXus Data
 ===================
 It is just as easy to create new NeXus data sets from scratch using numpy 
@@ -79,7 +90,7 @@ then saved to a file::
 
 This file can then be loaded again::
 
- >>> b=nexus.load('function.nxs')
+ >>> b=nx.load('function.nxs')
  >>> print b.tree
  root:NXroot
   @HDF5_Version = 1.8.2
@@ -94,15 +105,9 @@ This file can then be loaded again::
         @axes = axis1:axis2
         @signal = 1
 
-Note that the save() method automatically wraps any valid NeXus data in an 
-NXentry group, in order to produce a standard-compliant file.
-
-.. note:: If the save() method is called with the filename argument, a new file
-          with that name is created. If no argument is given, the save method 
-          will fail unless the data was loaded from an existing NeXus file in
-          read/write mode, *i.e.*:: 
-          
-           >>> a = nexus.load('scans.nxs', mode='rw')
+.. note:: The save() method automatically wraps any valid NeXus data in an 
+          NXentry group, in order to produce a standard-compliant file. See
+          `Saving NeXus Data`_ for more details.
 
 NeXus Objects
 =============
@@ -739,4 +744,34 @@ NXdata.project(axes, limits):
     The :doc:`pythongui` provides a menu-based approach to simplify the plotting 
     of data projections.
 
+Saving NeXus Data
+=================
+Every NeXus object, whether it is a group or a field, has a save() method as 
+illustrated in `Creating NeXus Data`_. It has two optional arguments::
+
+ >>> root.save(filename='example.nxs', format='w5')
+ 
+The format parameter defines the underlying NeXus format - 'w5' for HDF5, 'w4' 
+for HDF4, and 'wx' for XML. The default is 'w5'.
+
+If the NeXus object is a NXroot group, the save() method saves the whole NeXus 
+tree. The filename can only be omitted if the tree is being saved to a file that 
+was loaded with read/write access. In this case, the format argument is ignored.
+If the tree was loaded with readonly access, any modifications must be saved to
+a new file specified by the filename argument.
+
+.. warning:: There are restrictions on what modifications can be saved to the 
+             original file when a NeXus file is loaded with read/write access. 
+             It is possible to add new NeXus objects (groups, fields, or 
+             attributes) to the tree and modify existing field values, but it is 
+             not possible to rename NeXus objects or change a field's shape or 
+             data type if it is already in the file. Attempts to save such 
+             modifications will trigger an exception.  
+
+If the object is not a NXroot group, a new file will be created and so a
+filename must be specified. Saving non-NXroot data allows parts of a NeXus tree
+to be saved for later use, *e.g.*, to store an NXsample group that will be added
+to other files. The saved NeXus object is wrapped in an NXroot group and an
+NXentry group (with name 'entry'), if necessary, in order to produce a valid
+NeXus file. Children of the NeXus object will be saved.
      

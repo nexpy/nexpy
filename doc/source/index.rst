@@ -23,6 +23,7 @@ format.
    pythongui
    napi
    treeapi
+   importdialog
 
 Indices and tables
 ==================

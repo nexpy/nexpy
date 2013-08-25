@@ -21,7 +21,9 @@ The illustration shows the main features of the GUI:
     non-NeXus files that have been imported and converted into the NeXus format
     using one of the NeXus readers, and NXroot, NXentry, or NXdata groups added 
     from the shell. By default, these are given a standard name of 'w1', 'w2', 
-    *etc*, but they may be renamced by right-clicking on the group.
+    *etc*, but they may be renamced by right-clicking on the group. Other
+    actions available by right-clicking a tree item include plotting and 
+    deleting the data.
     
 **2) Plot Pane**
     This contains plots produced by (a) the Data\:Plot Data menu item, which 
@@ -64,8 +66,8 @@ The illustration shows the main features of the GUI:
     The NeXus tree structure of an item in the tree pane will be displayed as
     a tooltip when the cursor hovers over it.
 
-Adding NeXus Data to the Tree Pane
-----------------------------------
+Adding NeXus Data to the Tree
+-----------------------------
 NXroot groups that are displayed in the tree pane are all children of a group
 of class NXtree, known as 'tree'. If you create a NeXus group dynamically in the 
 iPython shell, it can be added to the tree pane using the tree's add method::
@@ -173,20 +175,141 @@ limits and parameters.
        
 Fitting NeXus Data
 -------------------
-It is possible to fit one-dimensional data using the non-linear least-squares fitting 
-package, `lmfit-py <http://newville.github.io/lmfit-py>`_, by selecting a group on the tree 
-and choosing "Fit Data" from the Data menu or by right-clicking on the group. This opens
-a dialog window that allows multiple functions to be combined, with the option of fixing
-or limiting parameters. 
+It is possible to fit one-dimensional data using the non-linear least-squares 
+fitting package, `lmfit-py <http://newville.github.io/lmfit-py>`_, by selecting 
+a group on the tree and choosing "Fit Data" from the Data menu or by 
+right-clicking on the group. This opens a dialog window that allows multiple 
+functions to be combined, with the option of fixing or limiting parameters. 
 
 .. image:: /images/nexpy-fits.png
    :align: center
    :width: 90%
 
-The fit can be plotted, along with the constituent functions, in the main plotting window
-and the fitting parameters displayed in a message window. The original data, the fitted 
-data, constituent functions, and the parameters can all be saved to an NXentry group in 
-in the Tree Pane for subsequent plotting, refitting, or saving to a NeXus file. The group
-is an NXentry group, with name 'f1', 'f2', etc., stored in the default scratch NXroot 
-group, w0. If you choose to fit this entry again, it will load the functions and 
-parameters from the saved fit.
+The fit can be plotted, along with the constituent functions, in the main
+plotting window and the fitting parameters displayed in a message window. 
+
+The original data, the fitted data, constituent functions, and the parameters
+can all be saved to an NXentry group in the Tree Pane for subsequent plotting, 
+refitting, or saving to a NeXus file. The group is an NXentry group, with name 
+'f1', 'f2', etc., stored in the default scratch NXroot group, w0. If you choose 
+to fit this entry again, it will load the functions and parameters from the 
+saved fit.
+
+Defining a function
+^^^^^^^^^^^^^^^^^^^
+User-defined functions can be added to their private functions directory in 
+~/.nexpy/functions. The file must define the name of the function, a list of 
+parameter names, and provide two modules to return the function values and 
+starting parameters, respectively. 
+
+As an example, here is the complete Gaussian function::
+
+ import numpy as np
+
+ function_name = 'Gaussian'
+ parameters = ['Integral', 'Sigma', 'Center']
+
+ factor = np.sqrt(2*np.pi)
+
+ def values(x, p):
+     integral, sigma, center = p
+     return integral * np.exp(-(x-center)**2/(2*sigma**2)) / (sigma * factor)
+
+ def guess(x, y):
+     center = (x*y).sum()/y.sum()
+     sigma = np.sqrt(abs(((x-center)**2*y).sum()/y.sum()))
+     integral = y.max() * sigma * factor
+     return integral, sigma, center
+
+NeXpy uses the function's 'guess' module to produce starting parameters
+automatically when the function is loaded. When each function is added to the 
+model, the estimated y-values produced by that function will be subtracted from 
+the data before the next function estimate. It is useful therefore to choose the
+order of adding functions carefully. For example, if a peak is sitting on a 
+sloping background, the background function should be loaded first since it is
+estimated from the first and last data points. This guess will be subtracted
+before estimating the peak parameters. Obviously, the more functions that are 
+added, the less reliable the guesses will be. Starting parameters will have to 
+be entered manually before the fit in those cases..
+
+.. note:: If it is not possible to estimate starting parameters, just return
+          values that do not trigger an exception. 
+
+Importing NeXus Data
+--------------------
+NeXpy can import data stored in a number of other formats, including SPEC files,
+TIFF images, and text files, using the File:Import menus. If a file format is 
+not currently supported, the user can write their own. The following is an 
+example of a module that reads the original format and returns NeXus data::
+
+ def get_data(filename):
+     from libtiff import TIFF
+     im = TIFF.open(filename)
+     z = im.read_image()
+     x = range(z.shape[0])
+     y = range(z.shape[1])     
+     return NXentry(NXdata(z,(x,y)))
+
+This could be run in the shell pane and then added to the tree using::
+
+ >>> tree.add(get_data('image.tif'))
+
+Defining a Reader
+^^^^^^^^^^^^^^^^^
+With a little knowledge of PyQt, it is possible to add a reader to the 
+File:Import menu using the existing samples as a guide in the nexpy.readers
+directory. User-defined import dialogs can be added to their private readers 
+directory in ~/.nexpy/readers.
+
+Here is an example of an import dialog::
+
+ """
+ Module to read in a TIFF file and convert it to NeXus.
+
+ Each importer needs to layout the GUI buttons necessary for defining the 
+ imported file and its attributes and a single module, get_data, which returns 
+ an NXroot or NXentry object. This will be added to the NeXpy tree.
+
+ Two GUI elements are provided for convenience:
+
+     ImportDialog.filebox: Contains a "Choose File" button and a text box. Both 
+                           can be used to set the path to the imported file. 
+                           This can be retrieved as a string using 
+                           self.get_filename().
+     ImportDialog.buttonbox: Contains a "Cancel" and "OK" button to close the 
+                             dialog. This should be placed at the bottom of all 
+                             import dialogs.
+ """
+
+ from IPython.external.qt import QtCore, QtGui
+
+ import numpy as np
+ from nexpy.api.nexus import *
+ from nexpy.gui.importdialog import BaseImportDialog
+
+ filetype = "TIFF Image" #Defines the Import Menu label
+
+ class ImportDialog(BaseImportDialog):
+     """Dialog to import a TIFF image"""
+ 
+     def __init__(self, parent=None):
+
+         super(ImportDialog, self).__init__(parent)
+        
+         layout = QtGui.QVBoxLayout()
+         layout.addLayout(self.filebox())
+         layout.addWidget(self.buttonbox())
+         self.setLayout(layout)
+  
+         self.setWindowTitle("Import "+str(filetype))
+ 
+     def get_data(self):
+         from libtiff import TIFF
+         im = TIFF.open(self.get_filename())
+         z = NXfield(im.read_image(), name='z')
+         x = NXfield(range(z.shape[0]), name='x')
+         y = NXfield(range(z.shape[1]), name='y')      
+         return NXentry(NXdata(z,(x,y)))
+
+.. seealso:: See :class:`nexpy.gui.importdialog.BaseImportDialog` for other
+             pre-defined import methods.
