@@ -32,11 +32,10 @@ class NXtree(NXgroup):
             raise NeXusError("Value must be an NXroot group")
     
     def __delitem__(self, key):
-        if isinstance(key, str): #i.e., deleting a NeXus object
-            del self._entries[key]
-            from nexpy.gui.consoleapp import _shell
-            del _shell[key]
-            self.set_changed()
+        del self._entries[key]
+        from nexpy.gui.consoleapp import _shell
+        del _shell[key]
+        self.set_changed()
 
     def set_changed(self):
         if self._model:
