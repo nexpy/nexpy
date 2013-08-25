@@ -424,7 +424,6 @@ class MainWindow(QtGui.QMainWindow):
         fname, _ = QtGui.QFileDialog.getOpenFileName(self, 'Open file (Read Only)',
                          self.default_directory, 
                          "NeXus Files (*.nxs *.nx5 *.h5 *.nx4 *.hdf *.xml)")
-        print fname
         workspace = self.treeview.tree.get_name(fname)
         self.treeview.tree[workspace] = self.user_ns[workspace] = nxload(fname)
         self.default_directory = os.path.dirname(fname)

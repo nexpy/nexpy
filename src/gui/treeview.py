@@ -82,11 +82,9 @@ class NXtree(NXgroup):
                 try:
                     if key.startswith(name+'_'): 
                         ind.append(int(key[len(name)+1:]))
-                        print ind
                 except ValueError:
                     pass
             if ind == []: ind = [0]
-            print ind
             name = name+'_'+str(sorted(ind)[-1]+1)
         return name
 
