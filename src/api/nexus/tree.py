@@ -364,7 +364,7 @@ class NeXusTree(napi.NeXus):
                 value = None
             data = NXfield(value=value,name=name,dtype=type,shape=dims,attrs=attrs)
         data._filepath = self.path
-        data._infile = data._saved = data._changed = True
+        data._saved = data._changed = True
         self.closedata()
         return data
 
@@ -406,7 +406,7 @@ class NeXusTree(napi.NeXus):
             for obj in children.values():
                 obj._group = group
         group._filepath = self.path
-        group._infile = group._saved = group._changed = True
+        group._saved = group._changed = True
         return group
 
     def _readlinks(self, root, group):
@@ -729,7 +729,7 @@ class NXobject(object):
     _name = "unknown"
     _group = None
     _file = None
-    _infile = False
+    _filepath = None
     _saved = False
     _changed = True
 
@@ -817,10 +817,11 @@ class NXobject(object):
         """
         self._close_on_exit = not self.nxfile.isopen
         self.nxfile.open() # Force file open even if closed
-        if self._infile:
+        if self._filepath:
             self.nxfile.openpath(self._filepath)
         else:
             self.nxfile.openpath(self.nxpath)
+            self._filepath = self.nxpath
         self._incontext = True
         return self.nxfile
 
@@ -838,13 +839,21 @@ class NXobject(object):
     def save(self, filename=None, format='w5'):
         """
         Saves the NeXus object to a data file.
-
+        
+        If the object is an NXroot group, this can be used to save the whole
+        NeXus tree. If the tree was read from a file and the file was opened as
+        read only, then a file name must be specified. Otherwise, the tree is
+        saved to the original file. 
+        
         An error is raised if the object is an NXroot group from an external 
         file that has been opened as readonly and no file name is specified.
 
-        The object is wrapped in an NXroot group (with name 'root') and an
-        NXentry group (with name 'entry'), if necessary, in order to produce
-        a valid NeXus file.
+        If the object is not an NXroot, group, a filename must be specified. The
+        saved NeXus object is wrapped in an NXroot group (with name 'root') and 
+        an NXentry group (with name 'entry'), if necessary, in order to produce 
+        a valid NeXus file. Only the children of the object will be saved. This 
+        capability allows parts of a NeXus tree to be saved for later use, e.g., 
+        to store an NXsample group to be added to another file at a later time. 
         
         **Example**
 
@@ -872,33 +881,28 @@ class NXobject(object):
                 root = NXroot(self)
             else:
                 root = NXroot(NXentry(self))
-            if root.nxfile: root.nxfile.close()
+            
             file = NeXusTree(filename, format)
             file.writefile(root)
             file.close()
+
             root._file = NeXusTree(filename, 'rw')
             root._setattrs(root._file.getattrs())
             for node in root.walk():
                 node._filepath = node.nxpath
-                node._infile = node._saved = True
-            
-        elif self.nxfile:
+                node._saved = True
+
+        elif self.nxclass == "NXroot" and self.nxfile:
             if self.nxfile.mode == napi.ACC_READ:
                 raise NeXusError("NeXus file is readonly")
             else:
-                for entry in self.nxroot.values():
+                for entry in self.entries.values():
                     entry.write()
 
         else:
             raise NeXusError("No output file specified")
 
-    @property
-    def infile(self):
-        """
-        Property: Returns True if the object has been created in a NeXus file.
-        """
-        return self._infile
-    
+
     @property
     def saved(self):
         """
@@ -962,6 +966,9 @@ class NXobject(object):
             else:
                 return self.nxname
 
+    def _getfilepath(self):
+        return self._filepath
+
     def _getroot(self):
         if self.nxgroup is None or isinstance(self, NXroot):
             return self
@@ -983,6 +990,7 @@ class NXobject(object):
     nxname = property(_getname, _setname, doc="Property: Name of NeXus object")
     nxgroup = property(_getgroup, doc="Property: Parent group of NeXus object")
     nxpath = property(_getpath, doc="Property: Path to NeXus object")
+    nxfilepath = property(_getfilepath, doc="Property: Path to NeXus object in saved file")
     nxroot = property(_getroot, doc="Property: Root group of NeXus object's tree")
     nxfile = property(_getfile, doc="Property: File handle of NeXus object's tree")
     attrs = property(_getattrs, doc="Property: NeXus attributes for an object")
@@ -1572,7 +1580,7 @@ class NXfield(NXobject):
                     self._dtype = 'char'
                 elif dtype in np.typeDict:
                     self._dtype = np.dtype(dtype)
-                self._infile = self._saved = True
+                self._saved = True
                 self.set_changed()
         else:
             raise IOError("Data is not attached to a file")
@@ -1581,22 +1589,24 @@ class NXfield(NXobject):
         """
         Writes the NXfield, including attributes, to the NeXus file.
         """
-        if self.nxfile:
+        if not self.saved and self.nxfile:
             if self.nxfile.mode == napi.ACC_READ:
                 raise NeXusError("NeXus file is readonly")
-            if self.infile:
+            if self._filepath:
+                if self.nxpath <> self._filepath:
+                    raise NeXusError("Cannot rename data previously saved in a file")
                 with self as path:
                     shape, dtype = path.getinfo()
                 shape = tuple(shape)
                 if dtype != str(self.dtype):
                     raise NeXusError('Type of %s does not match previously saved value'
                                      %self.nxpath)
-                if shape is (1,): shape = ()
+                if shape == (1,): shape = ()
                 if dtype == 'char' and shape[0] > self.shape[0]:
                     shape = self.shape
                 if shape != self.shape:
                     raise NeXusError('Shape of %s does not match previously saved value'
-                                     %self.nxpath)
+                                     % self.nxpath)
             else:
                 shape = self.shape
                 if shape == (): shape = (1,)
@@ -1614,14 +1624,11 @@ class NXfield(NXobject):
                     # Don't use compression for small datasets
                         path.makedata(self.nxname, self.dtype, shape)
                 self._filepath = self.nxpath
-                self._infile = True
-            if not self.saved:            
-                with self as path:
-                    path._writeattrs(self.attrs)
-                    if self._value is not None:
-                        path.putdata(self._value)
-                        self._saved = True
-        else:
+            with self as path:
+                path._writeattrs(self.attrs)
+                path.putdata(self.nxdata)
+                self._saved = True
+        elif not self.saved:
             raise IOError("Data is not attached to a file")
 
     def get(self, offset, size):
@@ -1689,7 +1696,7 @@ class NXfield(NXobject):
         if self._value is not None:
             if self.nxfile:
                 self._value = self.nxfile.readpath(self._filepath)
-                self._infile = self._saved = True
+                self._saved = True
             else:
                 raise IOError("Data is not attached to a file")
 
@@ -2150,14 +2157,14 @@ class NXgroup(NXobject):
         Adds or modifies an item in the NeXus group.
         """
         if key in self.entries: 
-            infile = self._entries[key]._infile
+            filepath = self._entries[key]._filepath
             if isinstance(self._entries[key], NXlink):
                 if self._entries[key].nxlink:
                     setattr(self._entries[key].nxlink.nxgroup, key, value)
                 return
             attrs = self._entries[key].attrs
         else:
-            infile = None
+            filepath = None
             attrs = {}
         if isinstance(value, NXlink):
             self._entries[key] = value
@@ -2173,9 +2180,14 @@ class NXgroup(NXobject):
             self._entries[key]._setdata(value)
         else:
             self._entries[key] = NXfield(value=value, name=key, group=self, attrs=attrs)
-        if infile is not None: self[key]._infile = infile
+        if filepath is not None: self[key]._filepath = filepath
         self.set_changed()
     
+    def __delitem__(self, key):
+        if isinstance(key, str): #i.e., deleting a NeXus object
+            del self._entries[key]
+            self.set_changed()
+
     def __deepcopy__(self, memo):
         dpcpy = self.__class__()
         memo[id(self)] = dpcpy
@@ -2282,7 +2294,7 @@ class NXgroup(NXobject):
             for entry in self._entries.values():
                 for node in entry.walk():
                     if isinstance(node, NXlink): node.read()
-            self._infile = self._saved = True
+            self._saved = True
             self.set_changed()
         else:
             raise IOError("Data is not attached to a file")
@@ -2294,16 +2306,18 @@ class NXgroup(NXobject):
         if self.nxfile:
             if self.nxfile.mode == napi.ACC_READ:
                 raise NeXusError("NeXus file is readonly")
-            if not self.infile:
+            if self._filepath:
+                if self.nxpath <> self._filepath:
+                    raise NeXusError("Cannot rename groups previously saved in a file")
+            else:
                 with self.nxgroup as path:
                     path.makegroup(self.nxname, self.nxclass)
                 self._filepath = self.nxpath
-                self._infile = True
             with self as path:
                 path._writeattrs(self.attrs)
                 for entry in self.walk():
                     if entry is not self: entry.write()
-                self._infile = self._saved = True
+                self._saved = True
         else:
             raise IOError("Group is not attached to a file")
 
@@ -2554,9 +2568,13 @@ class NXgroup(NXobject):
             except:
                 data = data.NXentry[0]
         if data.nxclass == "NXentry":
-            try:
+            if data.NXdata:
                 data = data.NXdata[0]
-            except IndexError:
+            elif data.NXmonitor:
+                data = data.NXmonitor[0]
+            elif data.NXlog:
+                data = data.NXlog[0]
+            else:
                 raise NeXusError('No NXdata group found')
 
         # Check there is a plottable signal
@@ -2658,7 +2676,7 @@ class NXlink(NXobject):
         Reads the linked NXobject.
         """
         self.nxlink.read()
-        self._infile = self._saved = True
+        self._saved = True
         self.set_changed()
 
 
@@ -2675,13 +2693,13 @@ class NXlinkfield(NXlink, NXfield):
         Writes the linked NXfield.
         """
         self.nxlink.write()
-        if not self.infile:
+        if self._filepath is None:
             with self.nxlink as path:
                 target = path.getdataID()
             with self.nxgroup as path:
                 path.makelink(target)
             self._filepath = self.nxpath
-            self._infile = self._saved = True
+            self._saved = True
 
 NXlinkdata = NXlinkfield # For backward compatibility
 
@@ -2698,13 +2716,13 @@ class NXlinkgroup(NXlink, NXgroup):
         Writes the linked NXgroup.
         """
         self.nxlink.write()
-        if not self.infile:
+        if self._filepath is None:
             with self.nxlink as path:
                 target = path.getgroupID()
             with self.nxgroup as path:
                 path.makelink(target)
             self._filepath = self.nxpath
-            self._infile = self._saved = True
+            self._saved = True
 
     def _getentries(self):
         return self.nxlink.entries

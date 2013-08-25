@@ -4,7 +4,8 @@ from datadialogs import RenameDialog
 
 def natural_sort(key):
     import re
-    return [int(t) if t.isdigit() else t for t in re.split(r'(\d+)', key)]    
+    return [int(t) if t.isdigit() else t for t in re.split(r'(\d+)', key)]
+
     
 class NXtree(NXgroup):
     """
@@ -19,12 +20,29 @@ class NXtree(NXgroup):
     _item = None
 
     def __setitem__(self, key, value):
-        from nexpy.gui.consoleapp import _shell
-        super(NXtree, self).__setitem__(key, value)
-        _shell[key] = self._entries[key]
+        if isinstance(value, NXroot):
+            if key not in self._entries.keys():
+                super(NXtree, self).__setitem__(key, value)
+                from nexpy.gui.consoleapp import _shell
+                _shell[key] = self._entries[key]
+            else:
+                raise NeXusError("Name already in the tree")
+        else:
+            raise NeXusError("Value must be an NXroot group")
     
+    def __delitem__(self, key):
+        if isinstance(key, str): #i.e., deleting a NeXus object
+            del self._entries[key]
+            from nexpy.gui.consoleapp import _shell
+            del _shell[key]
+            self.set_changed()
+
     def set_changed(self):
         if self._model:
+            if self._item.hasChildren():
+                for row in reversed(range(self._item.rowCount())):
+                    if self._item.child(row).node.nxname not in self.entries:
+                        self._item.removeRow(row)
             for node in self.walk():
                 if hasattr(node, "_item"):
                     if isinstance(node, NXlink) and node._item is node.nxlink._item:
@@ -33,36 +51,29 @@ class NXtree(NXgroup):
                     node._item = NXTreeItem(node)
                 if not node._item.isChild(node.nxgroup._item):
                     node.nxgroup._item.appendRow(node._item)
-                if node.infile:
-                    node._item.setEditable(False)
+                if isinstance(node, NXgroup):
+                    node._item.removeMissingChildren()
                 node._item.emitDataChanged()
                 node.set_unchanged()
 
     def add(self, node):
+        from nexpy.gui.consoleapp import _shell
         if isinstance(node, NXroot):
             group = node
-            from nexpy.gui.consoleapp import _shell
             for key in _shell.keys():
                 if id(_shell[key]) == id(group):
                     group.nxname = key
             self[group.nxname] = group
         elif isinstance(node, NXgroup):
             group = NXroot(node)
-            ind = []
-            for key in self._entries.keys():
-                try:
-                    if key.startswith('w'): 
-                        ind.append(int(key[1:]))
-                except ValueError:
-                    pass
-            if ind == []: ind = [0]
             self[self.get_new_name()] = group
         else:
             raise NeXusError("Only a valid NXgroup can be added to the tree")
 
     def get_new_name(self):
+        from nexpy.gui.consoleapp import _shell
         ind = []
-        for key in self._entries.keys():
+        for key in _shell.keys():
             try:
                 if key.startswith('w'): 
                     ind.append(int(key[1:]))
@@ -87,8 +98,6 @@ class NXTreeItem(QtGui.QStandardItem):
     def __init__(self, node):
         self.node = node
         super(NXTreeItem, self).__init__(self.node.nxname)
-        if self.node.infile:
-            self.setEditable(False) 
 
     def text(self):
         return self.node.nxname
@@ -111,8 +120,6 @@ class NXTreeItem(QtGui.QStandardItem):
 
     def setData(self, value, role=QtCore.Qt.EditRole):
         if role == QtCore.Qt.EditRole:
-            if self.node.infile:
-                raise NeXusError("NeXus data already in a file cannot be renamed")
             self.node.rename(value)
             self.emitDataChanged()
             return True           
@@ -120,10 +127,16 @@ class NXTreeItem(QtGui.QStandardItem):
 
     def isChild(self, item):
         if item.hasChildren():
-            for index in range(item.rowCount()):
-                if item.child(index) is self:
+            for row in range(item.rowCount()):
+                if item.child(row) is self:
                     return True
         return False
+
+    def removeMissingChildren(self):
+        if self.hasChildren():
+            for row in reversed(range(self.rowCount())):
+                if self.child(row).node.nxname not in self.node.entries:
+                    self.removeRow(row)
 
 class NXSortModel(QtGui.QSortFilterProxyModel):
 
@@ -173,6 +186,7 @@ class NXTreeView(QtGui.QTreeView):
         self.overplot_line_action=QtGui.QAction("Overplot Line", self, 
                                            triggered=self.overplot_line)
         self.rename_action=QtGui.QAction("Rename Data", self, triggered=self.rename_data)
+        self.delete_action=QtGui.QAction("Delete Data", self, triggered=self.delete_data)
         self.fit_action=QtGui.QAction("Fit Data", self, triggered=self.fit_data)
         self.savefile_action=QtGui.QAction("Save", self, triggered=self.save_file)
         self.savefileas_action=QtGui.QAction("Save as...", self, triggered=self.save_file_as)
@@ -184,6 +198,7 @@ class NXTreeView(QtGui.QTreeView):
         self.popMenu.addAction(self.overplot_line_action)
         self.popMenu.addSeparator()
         self.popMenu.addAction(self.rename_action)
+        self.popMenu.addAction(self.delete_action)
         self.popMenu.addSeparator()
         self.popMenu.addAction(self.fit_action)
         self.popMenu.addSeparator()
@@ -238,6 +253,9 @@ class NXTreeView(QtGui.QTreeView):
 
     def rename_data(self):
         self.parent().parent().rename_data()
+
+    def delete_data(self):
+        self.parent().parent().delete_data()
 
     def fit_data(self):
         self.parent().parent().fit_data()
