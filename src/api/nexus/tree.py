@@ -2235,10 +2235,10 @@ class NXgroup(NXobject):
             if name == 'unknown': name = value.nxname
             if name in self._entries:
                 raise NeXusError("'%s' already exists in group" % name)
-            value._group = self
-            self._entries[name] = value
+            self[name] = value
+
         else:
-            self._entries[name] = NXfield(value=value, name=name, group=self)
+            self[name] = NXfield(value=value, name=name, group=self)
 
     def makelink(self, target):
         """
