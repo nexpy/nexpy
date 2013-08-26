@@ -8,25 +8,26 @@ from nexpy.api.nexus import NXfield, NXgroup, NXattr, NXroot, NXentry, NXdata, N
 from nexpy.api.frills.fit import Fit, Function, Parameter
 
 class PlotDialog(QtGui.QDialog):
-    """Dialog to plot arbitrary one-dimensional NeXus data"""
+    """Dialog to plot arbitrary NeXus data in one or two dimensions"""
  
     def __init__(self, node, parent=None):
 
         QtGui.QDialog.__init__(self, parent)
  
         self.node = node
+        self.dims = len(self.node.shape)
         
         if isinstance(node, NXfield):
             plotlayout = QtGui.QHBoxLayout()
-            self.plotbox = QtGui.QComboBox()
-            for entry in self.node.nxgroup.entries.values():
-                if entry is not self.node and self.check_axis(entry):
-                    self.plotbox.addItem(entry.nxname)
-            self.plotbox.insertSeparator(0)
-            self.plotbox.insertItem(0,'NXfield index')
-            plotlabel = QtGui.QLabel("Choose x-axis: ")
-            plotlayout.addWidget(plotlabel)
-            plotlayout.addWidget(self.plotbox)
+            plotlabel = [QtGui.QLabel("Choose x-axis: ")]
+            self.plotbox = [self.axis_box(0)]
+            plotlayout.addWidget(plotlabel[0])
+            plotlayout.addWidget(self.plotbox[0])
+            if self.dims > 1:
+                plotlabel.append(QtGui.QLabel("Choose y-axis: "))
+                self.plotbox.append(self.axis_box(1))
+                plotlayout.addWidget(plotlabel[1])
+                plotlayout.addWidget(self.plotbox[1])
 
         buttonbox = QtGui.QDialogButtonBox(self)
         buttonbox.setOrientation(QtCore.Qt.Horizontal)
@@ -42,24 +43,41 @@ class PlotDialog(QtGui.QDialog):
 
         self.setWindowTitle("Plot NeXus Field")
 
-    def get_axis(self):
-        axis = self.plotbox.currentText()
-        if axis == 'NXfield index':
-            return NXfield(range(1,self.node.size+1), name='index')
-        else:
-            return self.node.nxgroup.entries[axis]
+    def axis_box(self, axis=0):
+        plotbox = QtGui.QComboBox()
+        for node in self.node.nxgroup.entries.values():
+            if node is not self.node and self.check_axis(node, axis):
+                plotbox.addItem(node.nxname)
+        plotbox.insertSeparator(0)
+        plotbox.insertItem(0,'NXfield index')
+        return plotbox        
 
-    def check_axis(self, axis):
+    def check_axis(self, node, axis):
+        if len(node.shape) > 1:
+            return False
         try:
-            node_len, axis_len = self.node.shape[0], axis.shape[0]
+            node_len, axis_len = self.node.shape[axis], node.shape[0]
             if axis_len == node_len or axis_len == node_len+1:
                 return True
         except:
             pass
         return False
 	
+    def get_axis(self, axis=0):
+        axis_name = self.plotbox[axis].currentText()
+        if axis_name == 'NXfield index':
+            return NXfield(range(1,self.node.size+1), name='index')
+        else:
+            return self.node.nxgroup.entries[axis_name]
+
+    def get_axes(self):
+        if self.dims == 1:
+            return [self.get_axis(0)]
+        else:
+            return [self.get_axis(0), self.get_axis(1)]
+
     def accept(self):
-        data = NXdata(self.node, [self.get_axis()])
+        data = NXdata(self.node, self.get_axes())
         data.plot()
         QtGui.QDialog.accept(self)
         
@@ -236,6 +254,85 @@ class DeleteDialog(QtGui.QDialog):
 
     def accept(self):
         del self.node.nxgroup[self.node.nxname]
+        QtGui.QDialog.accept(self)
+        
+    def reject(self):
+        QtGui.QDialog.reject(self)
+
+    
+class SignalDialog(QtGui.QDialog):
+    """Dialog to set the signal of NXdata"""
+ 
+    def __init__(self, node, parent=None):
+
+        QtGui.QDialog.__init__(self, parent)
+ 
+        self.node = node
+        self.dims = len(self.node.shape)
+        
+        signal_layout = QtGui.QHBoxLayout()
+        signal_label = QtGui.QLabel("Signal Attribute")
+        self.signal_box = QtGui.QLineEdit("1")
+        signal_layout.addWidget(signal_label)
+        signal_layout.addWidget(self.signal_box)
+
+        axis_layout = [QtGui.QHBoxLayout()]
+        axis_label = [QtGui.QLabel("Choose axis 0: ")]
+        self.axis_boxes = [self.axis_box(0)]
+        axis_layout[0].addWidget(axis_label[0])
+        axis_layout[0].addWidget(self.axis_boxes[0])
+        for axis in range(1, self.dims):
+            axis_layout.append(QtGui.QHBoxLayout())
+            axis_label.append(QtGui.QLabel("Choose axis %s: " % axis))
+            self.axis_boxes.append(self.axis_box(axis))
+            axis_layout[axis].addWidget(axis_label[axis])
+            axis_layout[axis].addWidget(self.axis_boxes[axis])
+ 
+        buttonbox = QtGui.QDialogButtonBox(self)
+        buttonbox.setOrientation(QtCore.Qt.Horizontal)
+        buttonbox.setStandardButtons(QtGui.QDialogButtonBox.Cancel|
+                                     QtGui.QDialogButtonBox.Ok)
+        buttonbox.accepted.connect(self.accept)
+        buttonbox.rejected.connect(self.reject)
+
+        layout = QtGui.QVBoxLayout()
+        layout.addLayout(signal_layout)
+        for axis in range(self.dims):
+            layout.addLayout(axis_layout[axis])
+        layout.addWidget(buttonbox) 
+        self.setLayout(layout)
+
+        self.setWindowTitle("Set %s as Signal" %self.node.nxname)
+
+    def axis_box(self, axis=0):
+        axisbox = QtGui.QComboBox()
+        for node in self.node.nxgroup.entries.values():
+            if node is not self.node and self.check_axis(node, axis):
+                axisbox.addItem(node.nxname)
+        return axisbox        
+
+    def check_axis(self, node, axis):
+        if len(node.shape) > 1:
+            return False
+        try:
+            node_len, axis_len = self.node.shape[axis], node.shape[0]
+            if axis_len == node_len or axis_len == node_len+1:
+                return True
+        except:
+            pass
+        return False
+	
+    def get_axes(self):
+        return [str(self.axis_boxes[axis].currentText()) 
+                for axis in range(self.dims)]
+
+    def accept(self):
+        signal = int(self.signal_box.text())
+        if signal == 1:
+            self.node.nxgroup.nxsignal = self.node
+        else:
+            self.node.attrs["signal"] = signal
+        self.node.axes = ":".join(self.get_axes())
         QtGui.QDialog.accept(self)
         
     def reject(self):

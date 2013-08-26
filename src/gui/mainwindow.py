@@ -20,7 +20,7 @@ from IPython.external.qt import QtGui,QtCore
 from qtkernelmanager import QtKernelManager
 from treeview import NXTreeView
 from plotview import NXPlotView
-from datadialogs import PlotDialog, AddDialog, DeleteDialog, FitDialog
+from datadialogs import PlotDialog, AddDialog, DeleteDialog, SignalDialog, FitDialog
 from nexpy.api.nexus.tree import nxload, NeXusError
 from nexpy.api.nexus.tree import NXgroup, NXfield, NXroot, NXentry, NXdata
 
@@ -331,11 +331,20 @@ class MainWindow(QtGui.QMainWindow):
 
         self.data_menu.addSeparator()
  
+        self.signal_action=QtGui.QAction("Set Signal",
+            self,
+            triggered=self.set_signal
+            )
+        self.add_menu_action(self.data_menu, self.signal_action, True)  
+
+        self.data_menu.addSeparator()
+
         self.fit_action=QtGui.QAction("Fit Data",
             self,
             triggered=self.fit_data
             )
         self.add_menu_action(self.data_menu, self.fit_action, True)
+
         
     def init_view_menu(self):
         self.view_menu = self.menuBar().addMenu("&View")
@@ -493,7 +502,10 @@ class MainWindow(QtGui.QMainWindow):
         self.treeview.statusmessage(node)
         try:
             node.plot(fmt)
-        except KeyError, NeXusError:
+        except KeyError:
+            dialog = PlotDialog(node, self)
+            dialog.show()
+        except NeXusError:
             dialog = PlotDialog(node, self)
             dialog.show()
 
@@ -528,6 +540,14 @@ class MainWindow(QtGui.QMainWindow):
         node = self.treeview.getnode()
         dialog = DeleteDialog(node, self)
         dialog.show()      
+
+    def set_signal(self):
+        node = self.treeview.getnode()
+        if isinstance(node, NXfield) and node.nxgroup:
+            dialog = SignalDialog(node, self)
+            dialog.show()
+        else:
+            raise NeXusError("Invalid selection")
 
     def fit_data(self):
         node = self.treeview.getnode()
