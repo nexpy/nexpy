@@ -136,7 +136,7 @@ Data Menu
 
     .. warning:: If the NeXus tree was loaded from a file with read/write 
                  access, the deleted data will still be in the file after a 
-                 save(). However, it will not be saved to a few file.
+                 save(). However, it will not be saved to a new file.
 
 **Set Signal**
     Sets the selected tree item to the plottable signal. A dialog box allows the 
