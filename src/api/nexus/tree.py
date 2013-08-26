@@ -1811,7 +1811,58 @@ class NXfield(NXobject):
     shape = property(_getshape,doc="Property: Shape of NeXus field")
     size = property(_getsize,doc="Property: Size of NeXus field")
 
+    def plot(self, fmt='', xmin=None, xmax=None, ymin=None, ymax=None,
+             zmin=None, zmax=None, **opts):
+        """
+        Plot data if the signal and axes attributes are defined.
+
+        The format argument is used to set the color and type of the
+        markers or lines for one-dimensional plots, using the standard 
+        Mtplotlib syntax. The default is set to blue circles. All 
+        keyword arguments accepted by matplotlib.pyplot.plot can be
+        used to customize the plot.
+        
+        In addition to the matplotlib keyword arguments, the following
+        are defined::
+        
+            log = True     - plot the intensity on a log scale
+            logy = True    - plot the y-axis on a log scale
+            logx = True    - plot the x-axis on a log scale
+            over = True    - plot on the current figure
+
+        Raises NeXusError if the data could not be plotted.
+        """
+
+        from nexpy.gui.plotview import plotview
+
+        # Check there is a plottable signal
+        if 'signal' in self.attrs.keys() and 'axes' in self.attrs.keys():
+            axes = [getattr(self.nxgroup,name) for name in _readaxes(self.axes)]
+            data = NXdata(self, axes, title=self.nxpath)
+        else:
+            raise NeXusError('No plottable signal defined')
+
+        # Plot with the available plotter
+        plotview.plot(data, fmt, xmin, xmax, ymin, ymax, zmin, zmax, **opts)
+    
+    def oplot(self, fmt='', **opts):
+        """
+        Plots the data contained within the group over the current figure.
+        """
+        self.plot(fmt=fmt, over=True, **opts)
+
+    def logplot(self, fmt='', xmin=None, xmax=None, ymin=None, ymax=None,
+                zmin=None, zmax=None, **opts):
+        """
+        Plots the data intensity contained within the group on a log scale.
+        """
+        self.plot(fmt=fmt, log=True,
+                  xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax,
+                  zmin=zmin, zmax=zmax, **opts)
+
+
 SDS = NXfield # For backward compatibility
+
 
 class NXgroup(NXobject):
 
