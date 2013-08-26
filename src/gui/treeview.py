@@ -1,7 +1,6 @@
 from PySide import QtCore, QtGui
 import os
 from nexpy.api.nexus import NXfield, NXgroup, NXlink, NXroot, NeXusError
-from datadialogs import RenameDialog
 
 def natural_sort(key):
     import re
@@ -202,7 +201,10 @@ class NXTreeView(QtGui.QTreeView):
                                            triggered=self.overplot_data)
         self.overplot_line_action=QtGui.QAction("Overplot Line", self, 
                                            triggered=self.overplot_line)
+        self.add_action=QtGui.QAction("Add Data", self, triggered=self.add_data)
         self.rename_action=QtGui.QAction("Rename Data", self, triggered=self.rename_data)
+        self.copy_action=QtGui.QAction("Copy Data", self, triggered=self.copy_data)
+        self.paste_action=QtGui.QAction("Paste Data", self, triggered=self.paste_data)
         self.delete_action=QtGui.QAction("Delete Data", self, triggered=self.delete_data)
         self.fit_action=QtGui.QAction("Fit Data", self, triggered=self.fit_data)
         self.savefile_action=QtGui.QAction("Save", self, triggered=self.save_file)
@@ -214,7 +216,10 @@ class NXTreeView(QtGui.QTreeView):
         self.popMenu.addAction(self.overplot_data_action)
         self.popMenu.addAction(self.overplot_line_action)
         self.popMenu.addSeparator()
+        self.popMenu.addAction(self.add_action)
         self.popMenu.addAction(self.rename_action)
+        self.popMenu.addAction(self.copy_action)
+        self.popMenu.addAction(self.paste_action)
         self.popMenu.addAction(self.delete_action)
         self.popMenu.addSeparator()
         self.popMenu.addAction(self.fit_action)
@@ -244,8 +249,17 @@ class NXTreeView(QtGui.QTreeView):
     def overplot_line(self):
         self.parent().parent().overplot_data('-')
 
+    def add_data(self):
+        self.parent().parent().add_data()
+
     def rename_data(self):
         self.parent().parent().rename_data()
+
+    def copy_data(self):
+        self.parent().parent().copy_data()
+
+    def paste_data(self):
+        self.parent().parent().paste_data()
 
     def delete_data(self):
         self.parent().parent().delete_data()

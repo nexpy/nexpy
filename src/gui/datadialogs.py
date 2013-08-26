@@ -4,7 +4,7 @@ import imp, os, re, sys
 import numpy as np
 
 # NeXpy imports
-from nexpy.api.nexus import NXfield, NXgroup, NXroot, NXentry, NXdata, NXparameters
+from nexpy.api.nexus import NXfield, NXgroup, NXattr, NXroot, NXentry, NXdata, NXparameters
 from nexpy.api.frills.fit import Fit, Function, Parameter
 
 class PlotDialog(QtGui.QDialog):
@@ -67,21 +67,36 @@ class PlotDialog(QtGui.QDialog):
         QtGui.QDialog.reject(self)
 
     
-class RenameDialog(QtGui.QDialog):
-    """Dialog to rename a NeXus node"""
+class AddDialog(QtGui.QDialog):
+    """Dialog to add a NeXus node"""
+
+    data_types = ['char', 'float32', 'float64', 'int8', 'uint8', 'int16', 
+                  'uint16', 'int32', 'uint32', 'int64', 'uint64']
  
     def __init__(self, node, parent=None):
 
         QtGui.QDialog.__init__(self, parent)
  
         self.node = node
- 
-        namelayout = QtGui.QHBoxLayout()
-        label = QtGui.QLabel("New Name: ")
-        self.namebox = QtGui.QLineEdit(node.nxname)
-        self.namebox.setFixedWidth(200)
-        namelayout.addWidget(label)
-        namelayout.addWidget(self.namebox)
+
+        class_layout = QtGui.QHBoxLayout()
+        class_button = QtGui.QPushButton("Add")
+        class_button.clicked.connect(self.select_class)
+        self.class_box = QtGui.QComboBox()
+        if isinstance(self.node, NXgroup):
+            names = ['NXgroup', 'NXfield']
+        else:
+            names = ['NXattr']
+        for name in names:
+            self.class_box.addItem(name)
+        class_layout.addWidget(class_button)
+        class_layout.addWidget(self.class_box)
+        class_layout.addStretch()       
+
+        if isinstance(self.node, NXfield):
+            self.setWindowTitle("Add NeXus Attribute")
+        else:
+            self.setWindowTitle("Add NeXus Data")
 
         buttonbox = QtGui.QDialogButtonBox(self)
         buttonbox.setOrientation(QtCore.Qt.Horizontal)
@@ -90,18 +105,105 @@ class RenameDialog(QtGui.QDialog):
         buttonbox.accepted.connect(self.accept)
         buttonbox.rejected.connect(self.reject)
 
-        layout = QtGui.QVBoxLayout()
-        layout.addLayout(namelayout)
-        layout.addWidget(buttonbox) 
-        self.setLayout(layout)
+        self.layout = QtGui.QVBoxLayout()
+        self.layout.addLayout(class_layout)
+        self.layout.addWidget(buttonbox) 
+        self.setLayout(self.layout)
 
-        self.setWindowTitle("Rename NeXus Object")
+    def select_class(self):
+        self.class_name = self.class_box.currentText()
+        if self.class_name == "NXgroup":
+            self.layout.insertLayout(1, self.define_grid("NXgroup"))
+        else:
+           self.layout.insertLayout(1, self.define_grid("NXfield"))       
+
+    def define_grid(self, class_name):
+        grid = QtGui.QGridLayout()
+        grid.setSpacing(10)
+
+        name_label = QtGui.QLabel()
+        name_label.setAlignment(QtCore.Qt.AlignLeft)
+        name_label.setText("Name:")
+        self.name_box = QtGui.QLineEdit()
+        self.name_box.setAlignment(QtCore.Qt.AlignLeft)
+        if class_name == "NXgroup":
+            type_label = QtGui.QLabel()
+            type_label.setAlignment(QtCore.Qt.AlignLeft)
+            type_label.setText("Group Class:")
+            self.type_box = QtGui.QComboBox()
+            from nexpy.api.nexus.tree import nxclasses
+            for name in nxclasses:
+                self.type_box.addItem(name)
+            self.type_box.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToContents)
+            grid.addWidget(type_label, 0, 0)
+            grid.addWidget(self.type_box, 0, 1)
+            grid.addWidget(name_label, 1, 0)
+            grid.addWidget(self.name_box, 1, 1)
+        else:
+            grid.addWidget(name_label, 0, 0)
+            grid.addWidget(self.name_box, 0, 1)
+            value_label = QtGui.QLabel()
+            value_label.setAlignment(QtCore.Qt.AlignLeft)
+            value_label.setText("Value:")
+            self.value_box = QtGui.QLineEdit()
+            self.value_box.setAlignment(QtCore.Qt.AlignLeft)
+            grid.addWidget(value_label, 1, 0)
+            grid.addWidget(self.value_box, 1, 1)
+            type_label = QtGui.QLabel()
+            type_label.setAlignment(QtCore.Qt.AlignLeft)
+            type_label.setText("Datatype:")
+            self.type_box = QtGui.QComboBox()
+            for name in self.data_types:
+                self.type_box.addItem(name)
+            self.type_box.insertSeparator(0)
+            self.type_box.insertItem(0,'auto')
+            self.type_box.setCurrentIndex(0)
+            self.type_box.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToContents)
+            grid.addWidget(type_label, 2, 0)
+            grid.addWidget(self.type_box, 2, 1)
+        grid.setColumnMinimumWidth(1, 200)
+        return grid
 
     def get_name(self):
-        return self.namebox.text()
+        return self.name_box.text()
+
+    def get_value(self):
+        value = self.value_box.text()
+        if value:
+            dtype = self.get_type()
+            if dtype == "char":
+                return value
+            else:
+                try:
+                    return eval(value)
+                except:
+                    return str(value)
+        else:
+            return None
+
+    def get_type(self):
+        dtype = self.type_box.currentText()
+        if dtype == "auto":
+            return None
+        else:
+            return dtype 
 
     def accept(self):
-        self.node.rename(self.get_name())
+        name = self.get_name()
+        if self.class_name == "NXgroup":
+            nxclass = self.get_type()
+            if name:
+                self.node[name] = NXgroup(nxclass=nxclass)
+            else:
+                self.node.insert(NXgroup(nxclass=nxclass))
+        elif name:
+            value = self.get_value()
+            dtype = self.get_type()
+            if value is not None:
+                if self.class_name == "NXfield":
+                    self.node[name] = NXfield(value, dtype=dtype)
+                else:
+                    self.node.attrs[name] = NXattr(value, dtype=dtype)
         QtGui.QDialog.accept(self)
         
     def reject(self):
@@ -130,7 +232,7 @@ class DeleteDialog(QtGui.QDialog):
         layout.addWidget(buttonbox) 
         self.setLayout(layout)
 
-        self.setWindowTitle("Delete NeXus Object")
+        self.setWindowTitle("Delete NeXus Data")
 
     def accept(self):
         del self.node.nxgroup[self.node.nxname]
@@ -214,6 +316,12 @@ class FitDialog(QtGui.QDialog):
         fit_button = QtGui.QPushButton("Fit")
         fit_button.clicked.connect(self.fit_data)
         self.fit_label = QtGui.QLabel()
+        self.fit_checkbox = QtGui.QCheckBox('Use Errors')
+        if self.data.nxerrors:
+            self.fit_checkbox.setCheckState(QtCore.Qt.Checked)
+        else:
+            self.fit_checkbox.setCheckState(QtCore.Qt.Unchecked)
+            self.fit_checkbox.setVisible(False)
         self.report_button = QtGui.QPushButton("Show Fit Report")
         self.report_button.clicked.connect(self.report_fit)
         self.save_button = QtGui.QPushButton("Save Parameters")
@@ -221,6 +329,7 @@ class FitDialog(QtGui.QDialog):
         self.restore_button = QtGui.QPushButton("Restore Parameters")
         self.restore_button.clicked.connect(self.restore_parameters)
         self.action_layout.addWidget(fit_button)
+        self.action_layout.addWidget(self.fit_checkbox)
         self.action_layout.addWidget(self.fit_label)
         self.action_layout.addStretch()
         self.action_layout.addWidget(self.save_button)
@@ -391,7 +500,6 @@ class FitDialog(QtGui.QDialog):
         
     def add_parameter_rows(self, f):        
         row = self.parameter_grid.rowCount()
-        print "Row count is "+str(row)
         name = self.expanded_name(f.name)
         f.rows = []
         f.label_box = QtGui.QLabel(name)
@@ -465,7 +573,7 @@ class FitDialog(QtGui.QDialog):
             x = fit.x
         else:
             x = np.linspace(float(self.plot_minbox.text()), 
-                            float(self.plot_maxbox.text()), 201)
+                            float(self.plot_maxbox.text()), 1001)
         return NXdata(NXfield(fit.get_model(x,f), name='model'),
                       NXfield(x, name=fit.data.nxaxes[0].nxname), 
                       title = 'Fit Results')
@@ -484,7 +592,11 @@ class FitDialog(QtGui.QDialog):
 
     def fit_data(self):
         self.read_parameters()
-        self.fit = Fit(self.data, self.functions)
+        if self.fit_checkbox.isChecked():
+            use_errors = True
+        else:
+            use_errors = False
+        self.fit = Fit(self.data, self.functions, use_errors)
         self.fit.fit_data()
         if self.fit.result.success:
             self.fit_label.setText('Fit Successful Chi^2 = %s' % self.fit.result.redchi)

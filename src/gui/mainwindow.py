@@ -20,8 +20,9 @@ from IPython.external.qt import QtGui,QtCore
 from qtkernelmanager import QtKernelManager
 from treeview import NXTreeView
 from plotview import NXPlotView
-from datadialogs import PlotDialog, RenameDialog, DeleteDialog, FitDialog
-from nexpy.api.nexus.tree import nxload, NeXusError, NXentry, NXdata
+from datadialogs import PlotDialog, AddDialog, DeleteDialog, FitDialog
+from nexpy.api.nexus.tree import nxload, NeXusError
+from nexpy.api.nexus.tree import NXgroup, NXfield, NXroot, NXentry, NXdata
 
 # IPython imports
 from IPython.frontend.qt.console.ipython_widget import IPythonWidget
@@ -52,6 +53,7 @@ class MainWindow(QtGui.QMainWindow):
         self.config = config
         self.confirm_exit = confirm_exit
         self.default_directory = os.path.expanduser('~')
+        self.copied_node = None
 
         mainwindow = QtGui.QWidget()
 
@@ -153,12 +155,12 @@ class MainWindow(QtGui.QMainWindow):
         
         self.file_menu.addSeparator()
 
-        self.newfile_action=QtGui.QAction("&New file ...",
+        self.newworkspace_action=QtGui.QAction("&New...",
             self,
             shortcut=QtGui.QKeySequence.New,
-            triggered=self.new_file
+            triggered=self.new_workspace
             )
-        self.add_menu_action(self.file_menu, self.newfile_action, True)  
+        self.add_menu_action(self.file_menu, self.newworkspace_action, True)  
         
         self.openfile_action=QtGui.QAction("&Open (read only)",
             self,
@@ -190,12 +192,6 @@ class MainWindow(QtGui.QMainWindow):
         
         self.file_menu.addSeparator()
 
-        self.export_action=QtGui.QAction("&Save to HTML/XHTML",
-            self,
-            triggered=self.export_action_console
-            )
-        self.add_menu_action(self.file_menu, self.export_action, True)
-
         self.init_import_menu()
         
         self.file_menu.addSeparator()
@@ -205,7 +201,7 @@ class MainWindow(QtGui.QMainWindow):
             # Only override the default if there is a collision.
             # Qt ctrl = cmd on OSX, so the match gets a false positive on OSX.
             printkey = "Ctrl+Shift+P"
-        self.print_action = QtGui.QAction("&Print",
+        self.print_action = QtGui.QAction("&Print Shell",
             self,
             shortcut=printkey,
             triggered=self.print_action_console)
@@ -303,11 +299,29 @@ class MainWindow(QtGui.QMainWindow):
 
         self.data_menu.addSeparator()
 
+        self.add_action=QtGui.QAction("Add Data",
+            self,
+            triggered=self.add_data
+            )
+        self.add_menu_action(self.data_menu, self.add_action, True)  
+
         self.rename_action=QtGui.QAction("Rename Data",
             self,
             triggered=self.rename_data
             )
         self.add_menu_action(self.data_menu, self.rename_action, True)  
+
+        self.copy_action=QtGui.QAction("Copy Data",
+            self,
+            triggered=self.copy_data
+            )
+        self.add_menu_action(self.data_menu, self.copy_action, True)  
+
+        self.paste_action=QtGui.QAction("Paste Data",
+            self,
+            triggered=self.paste_data
+            )
+        self.add_menu_action(self.data_menu, self.paste_action, True)  
 
         self.delete_action=QtGui.QAction("Delete Data",
             self,
@@ -414,11 +428,12 @@ class MainWindow(QtGui.QMainWindow):
             workspace = self.treeview.tree.get_new_name()
             self.treeview.tree[workspace] = self.user_ns[workspace] = self.import_dialog.get_data()
 
-    def new_file(self):
-        fname, _ = QtGui.QFileDialog.getSaveFileName(self, "Choose a filename")
-        workspace = self.treeview.tree.get_new_name()
-        self.treeview.tree[workspace] = self.user_ns[workspace] = nxload(fname, 'w5')
-        self.treeview.tree[workspace].entry = NXentry()
+    def new_workspace(self):
+        default_name = self.treeview.tree.get_new_name()
+        name, ok = QtGui.QInputDialog.getText(self, 'New Workspace', 
+                         'Workspace Name:', text=default_name)        
+        if name and ok:
+            self.treeview.tree[name] = NXroot(NXentry())
   
     def open_file(self):
         fname, _ = QtGui.QFileDialog.getOpenFileName(self, 'Open file (Read Only)',
@@ -438,22 +453,26 @@ class MainWindow(QtGui.QMainWindow):
 
     def save_file(self):
         node = self.treeview.getnode()
-        if node.nxfile:
+        if node.nxfile and isinstance(node, NXroot):
             try:
                 node.save()
             except NeXusError, error_message:
                 QtGui.QMessageBox.critical(
-                    self, "Error saving file", str(error_message),
-                    QtGui.QMessageBox.Ok, QtGui.QMessageBox.NoButton)
+                      self, "Error saving file", str(error_message),
+                      QtGui.QMessageBox.Ok, QtGui.QMessageBox.NoButton)
         else:
-            fname, _ = QtGui.QFileDialog.getSaveFileName(self, "Choose a filename")
+            default_name = os.path.join(self.default_directory,node.nxname)
+            fname, _ = QtGui.QFileDialog.getSaveFileName(self, 
+                             "Choose a filename",
+                             default_name, 
+                             "NeXus Files (*.nxs *.nx5 *.h5 *.nx4 *.hdf *.xml)")
             if fname:
                 try:
                     node.save(fname)
                 except NeXusError, error_message:
                     QtGui.QMessageBox.critical(
-                        self, "Error saving file", str(error_message),
-                        QtGui.QMessageBox.Ok, QtGui.QMessageBox.NoButton)
+                          self, "Error saving file", str(error_message),
+                          QtGui.QMessageBox.Ok, QtGui.QMessageBox.NoButton)
 
     def save_file_as(self):
         node = self.treeview.getnode()
@@ -475,8 +494,8 @@ class MainWindow(QtGui.QMainWindow):
         try:
             node.plot(fmt)
         except KeyError, NeXusError:
-            plot = PlotDialog(node, self)
-            plot.show()
+            dialog = PlotDialog(node, self)
+            dialog.show()
 
     def overplot_data(self, fmt='o'):
         node = self.treeview.getnode()
@@ -486,16 +505,30 @@ class MainWindow(QtGui.QMainWindow):
         except:
             pass
 
+    def add_data(self):
+        node = self.treeview.getnode()      
+        dialog = AddDialog(node, self)
+        dialog.show()      
+
     def rename_data(self):
+        node = self.treeview.getnode()        
+        name, ok = QtGui.QInputDialog.getText(self, 'Rename Data', 'New Name:')        
+        if ok:
+            node.rename(name)
+
+    def copy_data(self):
+        self.copied_node = self.treeview.getnode()
+
+    def paste_data(self):
         node = self.treeview.getnode()
-        rename = RenameDialog(node, self)
-        rename.show()
+        if isinstance(node, NXgroup) and self.copied_node:
+            node.insert(self.copied_node)
 
     def delete_data(self):
         node = self.treeview.getnode()
-        delete = DeleteDialog(node, self)
-        delete.show()      
-               
+        dialog = DeleteDialog(node, self)
+        dialog.show()      
+
     def fit_data(self):
         node = self.treeview.getnode()
         try:
@@ -513,8 +546,8 @@ class MainWindow(QtGui.QMainWindow):
                     QtGui.QMessageBox.Ok, QtGui.QMessageBox.NoButton)
             entry = NXentry(data=self.plotview.mainplot.plotdata)
         if len(entry.data.nxsignal.shape) == 1:
-            fit = FitDialog(entry, parent=self)
-            fit.show()
+            dialog = FitDialog(entry, parent=self)
+            dialog.show()
         else:
             QtGui.QMessageBox.critical(self, "Data not one-dimensional", 
                 "Fitting only enabled for one-dimensional data",
