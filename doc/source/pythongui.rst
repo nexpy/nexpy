@@ -66,6 +66,42 @@ The illustration shows the main features of the GUI:
     The NeXus tree structure of an item in the tree pane will be displayed as
     a tooltip when the cursor hovers over it.
 
+NeXpy Menu Bar
+--------------
+File Menu
+^^^^^^^^^
+**New...**
+    Creates a new workspace in the tree.
+**Open (readonly)**
+    Opens a new NeXus file as read only.    
+**Open (read/write)**
+    Opens a new NeXus file with read/write access. Note that it is not possible
+    to rename items or change their shape and data type within a pre-existing 
+    file. If such changes are made, the tree will have to be saved to a new 
+    file.  
+**Save**
+    Saves the selected tree item to a NeXus file. If the selected item is a 
+    NXroot group that was loaded from a file with read/write access, the file
+    is updated with the new tree items and values. Otherwise, this will trigger
+    a "Save as..." dialog.
+**Save as...**
+    Saves the selected tree item to a new NeXus file. If the selected item is
+    not a NXroot group, it will be wrapped in one to form a valid NeXus file.
+
+    .. warning:: Saving a NeXus object embedded within a tree is not equivalent 
+                 to saving the whole tree. Only the object and its children will 
+                 be saved to a new file. 
+
+**Import**
+    Imports data from other formats. Some importers are provided with the NeXpy
+    distribution, but others will be loaded from the user's ~/.nexpy/readers 
+    directory.
+ 
+    .. seealso:: `Importing NeXus Data`_
+
+**Print Shell**
+    Prints the contents of the iPython shell.
+
 Adding NeXus Data to the Tree
 -----------------------------
 NXroot groups that are displayed in the tree pane are all children of a group
@@ -76,13 +112,19 @@ iPython shell, it can be added to the tree pane using the tree's add method::
  >>> a.entry = NXentry()
  >>> tree.add(a)
 
+If the group is an NXroot group, it will have the name used in the shell.
 If the group is not an NXroot group, the data will be wrapped automatically in 
 an NXroot group and given a default name that doesn't conflict with existing 
-tree nodes, *e.g.*, w4.
+tree nodes, *e.g.*, w4. 
 
 .. note:: The NXroot class is still considered to be the root of the NeXus tree.
           The NXtree group is only used by the GUI and cannot be saved to a 
           file.
+
+.. warning:: In python, an object may be accessible within the shell with more
+             than one name. NeXpy searches the shell dictionary for an object
+             with the same ID as the added NeXus object and so may choose a 
+             different name. The object in the tree can be renamed.
 
 Plotting NeXus Data
 -------------------
@@ -230,7 +272,7 @@ sloping background, the background function should be loaded first since it is
 estimated from the first and last data points. This guess will be subtracted
 before estimating the peak parameters. Obviously, the more functions that are 
 added, the less reliable the guesses will be. Starting parameters will have to 
-be entered manually before the fit in those cases..
+be entered manually before the fit in those cases.
 
 .. note:: If it is not possible to estimate starting parameters, just return
           values that do not trigger an exception. 
