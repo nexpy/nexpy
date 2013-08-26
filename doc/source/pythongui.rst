@@ -102,6 +102,59 @@ File Menu
 **Print Shell**
     Prints the contents of the iPython shell.
 
+Data Menu
+^^^^^^^^^
+**Plot Data**
+    Plots the selected tree item in the plotting pane. If the selected item is
+    not a valid NXdata, NXmonitor, or NXlog group, a plot dialog allows the 
+    user to specify axes with compatible dimensions to plot the data against.
+**Overplot Data**
+    Overplots the selected tree item in the plotting pane. This only works on 
+    one-dimensional data.
+**Add Data**
+    Adds data to the selected tree item. If the selected item is a group, the
+    added data can be a group or field. If the selected item is a field, the 
+    added data is an attribute. The Add Data dialog allow the name, value and 
+    data type to be specified, if adding a field, and the name and group class
+    if adding a group. The group class is specified through a dropdown menu of
+    valid NeXus group classes. 
+**Rename Data**
+    Renames the selected tree item.
+
+    .. warning:: If the NeXus tree was loaded from a file with read/write 
+                 access, it cannot be saved to the original file if items have 
+                 been renamed.
+
+**Copy Data**
+    Copies the selected tree item to a copy buffer. 
+
+**Paste Data**
+    Pastes the copy buffer to the selected group.
+    
+**Delete Data**
+    Deletes the selected tree item from the tree.
+
+    .. warning:: If the NeXus tree was loaded from a file with read/write 
+                 access, the deleted data will still be in the file after a 
+                 save(). However, it will not be saved to a few file.
+
+**Set Signal**
+    Sets the selected tree item to the plottable signal. A dialog box allows the 
+    user to specify axes with compatible dimensions to plot the data against.
+
+**Fit Data**
+    Fits the selected tree item. This assumes that the selected item is a valid 
+    NXdata group. The menu item triggers a dialog box, which allows functions
+    to be chosen and parameters to be initialized before calling a 
+    non-linear least-squares fitting module. 
+
+    .. seealso:: See `Fitting NeXus Data`_.
+    
+Other Menus
+^^^^^^^^^^^
+The Edit, View, Magic, Window, and Help Menus currently consist of menu items 
+provided by the iPython shell. All the operations act on the shell text.
+
 Adding NeXus Data to the Tree
 -----------------------------
 NXroot groups that are displayed in the tree pane are all children of a group
