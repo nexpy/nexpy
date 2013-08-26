@@ -6,10 +6,11 @@ from nexpy.api.nexus import NXdata, NXparameters, NeXusError
 
 class Fit(object):
 
-    def __init__(self, data=None, functions=None):
+    def __init__(self, data=None, functions=None, use_errors=True):
         self.x = None
         self.y = None
         self.e = None
+        self.use_errors = use_errors
         self.set_data(data)
         self.functions = functions
         self.fit = None
@@ -24,7 +25,7 @@ class Fit(object):
                 raise ValueError("Fit only possible on one-dimensional data")
             self.x = axes.nxdata.astype(np.float64)
             self.y = signal.nxdata.astype(np.float64)
-            if errors:
+            if errors and self.use_errors:
                 self.e = errors.nxdata.astype(np.float64)
         else:
             raise TypeError("Must be an NXdata group")
