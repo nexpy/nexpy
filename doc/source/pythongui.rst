@@ -117,7 +117,8 @@ Data Menu
     added data is an attribute. The Add Data dialog allow the name, value and 
     data type to be specified, if adding a field, and the name and group class
     if adding a group. The group class is specified through a dropdown menu of
-    valid NeXus group classes. 
+    valid NeXus group classes. The value field can be any valid Python 
+    expression, including numpy functions such as np.linspace().
 **Rename Data**
     Renames the selected tree item.
 
