@@ -119,6 +119,12 @@ Data Menu
     if adding a group. The group class is specified through a dropdown menu of
     valid NeXus group classes. The value field can be any valid Python 
     expression, including numpy functions such as np.linspace().
+
+.. note:: Eventually, NeXpy will access the NXDL files that define valid NeXus
+          groups and fields, ensuring that the added data conforms to the
+          standard. At present, NeXpy ensures that the NeXus data are consistent
+          with generic NeXus browsers and plotters.
+    
 **Rename Data**
     Renames the selected tree item.
 
@@ -143,6 +149,10 @@ Data Menu
     Sets the selected tree item to the plottable signal. A dialog box allows the 
     user to specify axes with compatible dimensions to plot the data against.
 
+.. note:: The use of the 'Add Data' and 'Set Signal' menu items allows, in 
+          principle, an entire NeXus data tree to be constructed using menu 
+          calls. 
+
 **Fit Data**
     Fits the selected tree item. This assumes that the selected item is a valid 
     NXdata group. The menu item triggers a dialog box, which allows functions
@@ -154,7 +164,8 @@ Data Menu
 Other Menus
 ^^^^^^^^^^^
 The Edit, View, Magic, Window, and Help Menus currently consist of menu items 
-provided by the iPython shell. All the operations act on the shell text.
+provided by the iPython shell for their Qt Console. All the operations act on 
+the shell text.
 
 Adding NeXus Data to the Tree
 -----------------------------

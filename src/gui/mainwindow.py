@@ -547,7 +547,9 @@ class MainWindow(QtGui.QMainWindow):
             dialog = SignalDialog(node, self)
             dialog.show()
         else:
-            raise NeXusError("Invalid selection")
+            QtGui.QMessageBox.critical(self, "Invalid selection", 
+                "Only NeXus fields can be a plottable signal",
+                QtGui.QMessageBox.Ok, QtGui.QMessageBox.NoButton)
 
     def fit_data(self):
         node = self.treeview.getnode()

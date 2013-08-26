@@ -48,8 +48,22 @@ class PlotDialog(QtGui.QDialog):
         for node in self.node.nxgroup.entries.values():
             if node is not self.node and self.check_axis(node, axis):
                 plotbox.addItem(node.nxname)
+        if self.node.nxgroup.nxaxes:
+            plotbox
         plotbox.insertSeparator(0)
         plotbox.insertItem(0,'NXfield index')
+        if 'axes' in self.node.attrs:
+            from nexpy.api.nexus.tree import _readaxes
+            default_axis = _readaxes(self.node.axes)[axis]
+        elif self.node.nxgroup.nxaxes:
+            default_axis = self.node.nxgroup.nxaxes[axis].nxname
+        else:
+            default_axis = None
+        if default_axis:
+            try:
+                plotbox.setCurrentIndex(plotbox.findText(default_axis))
+            except:
+                pass
         return plotbox        
 
     def check_axis(self, node, axis):
@@ -309,6 +323,18 @@ class SignalDialog(QtGui.QDialog):
         for node in self.node.nxgroup.entries.values():
             if node is not self.node and self.check_axis(node, axis):
                 axisbox.addItem(node.nxname)
+        if 'axes' in self.node.attrs:
+            from nexpy.api.nexus.tree import _readaxes
+            default_axis = _readaxes(self.node.axes)[axis]
+        elif self.node.nxgroup.nxaxes:
+            default_axis = self.node.nxgroup.nxaxes[axis].nxname
+        else:
+            default_axis = None
+        if default_axis:
+            try:
+                axisbox.setCurrentIndex(axisbox.findText(default_axis))
+            except:
+                pass
         return axisbox        
 
     def check_axis(self, node, axis):
