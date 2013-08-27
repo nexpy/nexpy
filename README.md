@@ -59,4 +59,4 @@ nexpy
 
 Online Help
 ===========
-There is documentation on using NeXpy and the NeXus Python tree API [here](http://nexpy.github.io/nexpy).
+There is documentation on using NeXpy [here](http://nexpy.github.io/nexpy).

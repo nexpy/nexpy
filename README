@@ -1,9 +1,9 @@
 Introduction
 ============
 NeXpy provides a high-level python interface to NeXus data contained within a
-simple GUI. It is designed to provide an intuitive interactive toolbox allowing users both
-to access existing NeXus files and to create new NeXus-conforming data
-structures without expert knowledge of the file format.
+simple GUI. It is designed to provide an intuitive interactive toolbox allowing 
+users both to access existing NeXus files and to create new NeXus-conforming 
+data structures without expert knowledge of the file format.
 
 Installing and Running
 ======================
@@ -12,8 +12,7 @@ Installing and Running
 
 To install in an alternate location:
 
-    python setup.py install --prefix=/path/to/insallation/dir
-
+    python setup.py install --prefix=/path/to/installation/dir
 
 Prerequisites
 =============
@@ -57,6 +56,4 @@ To run from the install location, add the $prefix/bin directory to your path
 
 Online Help
 ===========
-There is a brief tutorial on using NeXpy and the NeXus Python tree API at 
-
-    http://wiki.nexusformat.org/NeXpy
+There is documentation on using NeXpy at http://nexpy.github.io/nexpy.
