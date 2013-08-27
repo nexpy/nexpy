@@ -43,7 +43,7 @@ NeXpy GUI
 ---------
 The GUI is built using Qt, and should work with either PyQt, which can be 
 installed from the `PyQt website <http://www.riverbankcomputing.co.uk/>`_, or 
-`PySide <http://www.pyside.org/>`_ (although most testing has been performed 
+`PySide <http://www.pyside.org/>`_ (although all testing has been performed 
 using PySide).
 
 The GUI includes an `iPython shell <http://ipython.org/>`_ and a `Matplotlib

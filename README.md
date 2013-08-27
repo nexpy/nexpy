@@ -12,21 +12,24 @@ Installing and Running
 To install in an alternate location:
 
 ```
-  python setup.py install --prefix=/path/to/insallation/dir
+  python setup.py install --prefix=/path/to/installation/dir
 ```
 
-Prerequisites (must install before you can run)
-===============================================
+Prerequisites
+=============
+The following libraries are used by the full installation of NeXpy. There is 
+more details of the nature of these dependencies 
+[here](http://nexpy.github.io/nexpy).
 
-* PySide v1.1.0        http://www.pyside.org/
-* iPython v0.13        http://ipython.org/
-* numpy,scipy          http://numpy.scipy.org
-* matplotlib v1.1.0    http://matplotlib.sourceforge.net    (GUI only)
+* nexus                http://www.nexusformat.org
 * hdf5                 http://www.hdfgroup.org
 * mxml                 http://www.minixml.org
-* nexus                http://www.nexusformat.org
+* numpy,scipy          http://numpy.scipy.org
+* iPython v0.13        http://ipython.org/
+* PySide v1.1.0        http://www.pyside.org/
+* matplotlib v1.1.0    http://matplotlib.sourceforge.net    (GUI only)
 * lmfit                http://newville.github.io/lmfit-py (Fitting only)
-* pyspec               http://pyspec.sourceforge.net    (SPEC reader only)
+* pyspec               http://pyspec.sourceforge.net (SPEC reader only)
 
 The following environment variables may need to be set
 NEXUSLIB --> /point/to/lib/libNeXus.so
@@ -56,4 +59,4 @@ nexpy
 
 Online Help
 ===========
-There is (incomplete) documentation on using NeXpy and the NeXus Python tree API [here](http://nexpy.github.io/nexpy).
+There is documentation on using NeXpy and the NeXus Python tree API [here](http://nexpy.github.io/nexpy).
