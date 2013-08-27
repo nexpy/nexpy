@@ -2543,7 +2543,7 @@ class NXgroup(NXobject):
         if not isinstance(axes, list):
             axes = [axes]
         for axis in axes:
-            if axis not in self:
+            if axis.nxname not in self.keys():
                 self.insert(axis)
         self.nxsignal.axes = NXattr(":".join([axis.nxname for axis in axes]))
 

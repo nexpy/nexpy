@@ -1,6 +1,6 @@
 from PySide import QtCore, QtGui
 import os
-from nexpy.api.nexus import NXfield, NXgroup, NXlink, NXroot, NeXusError
+from nexpy.api.nexus import NXfield, NXgroup, NXentry, NXlink, NXroot, NeXusError
 
 def natural_sort(key):
     import re
@@ -20,7 +20,9 @@ class NXtree(NXgroup):
     _item = None
 
     def __setitem__(self, key, value):
-        if isinstance(value, NXroot):
+        if isinstance(value, NXroot) or isinstance(value, NXentry):
+            if isinstance(value, NXentry):
+                value = NXroot(value)
             if key not in self._entries.keys():
                 super(NXtree, self).__setitem__(key, value)
                 from nexpy.gui.consoleapp import _shell
@@ -28,7 +30,7 @@ class NXtree(NXgroup):
             else:
                 raise NeXusError("Name already in the tree")
         else:
-            raise NeXusError("Value must be an NXroot group")
+            raise NeXusError("Value must be an NXroot or NXentry group")
     
     def __delitem__(self, key):
         del self._entries[key]

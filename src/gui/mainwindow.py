@@ -435,7 +435,7 @@ class MainWindow(QtGui.QMainWindow):
     def import_data(self):
         if self.import_dialog.accepted:
             workspace = self.treeview.tree.get_new_name()
-            self.treeview.tree[workspace] = self.user_ns[workspace] = self.import_dialog.get_data()
+            self.treeview.tree[workspace] = self.import_dialog.get_data()
 
     def new_workspace(self):
         default_name = self.treeview.tree.get_new_name()
