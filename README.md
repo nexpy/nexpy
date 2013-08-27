@@ -18,8 +18,8 @@ To install in an alternate location:
 Prerequisites
 =============
 The following libraries are used by the full installation of NeXpy. There is 
-more details of the nature of these dependencies 
-[here](http://nexpy.github.io/nexpy).
+more details of the nature of these dependencies in the 
+[NeXpy documentation](http://nexpy.github.io/nexpy).
 
 * nexus                http://www.nexusformat.org
 * hdf5                 http://www.hdfgroup.org
