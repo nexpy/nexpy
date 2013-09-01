@@ -98,7 +98,7 @@ class MainWindow(QtGui.QMainWindow):
         self.setCentralWidget(mainwindow)
 
         base_path = os.path.abspath(os.path.dirname(__file__))
-        icon_path = os.path.join(base_path, 'resources', 'icon', 'IPythonConsole.svg')
+        icon_path = os.path.join(base_path, 'resources', 'icon', 'NeXpy.svg')
         self.import_path = os.path.join(os.path.abspath(os.path.dirname(base_path)), 
                                         'readers')
         self._app.icon = QtGui.QIcon(icon_path)
