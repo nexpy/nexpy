@@ -108,7 +108,6 @@ class ImportDialog(BaseImportDialog):
     def get_data(self):
         root = NXroot()
         specmin, specmax = self.get_spectra()
-        print specmin, specmax
         for i in self.spectra[0:specmax]:
             scan = self.SPECfile.getScan(i)
             if i < self.spectra[specmin]:
