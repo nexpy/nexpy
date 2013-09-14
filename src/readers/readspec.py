@@ -48,7 +48,7 @@ def reshape_data(scan_data, scan_shape):
         data = np.empty(scan_size)
         data.fill(np.NaN)
         data[0:scan_data.size] = scan_data
-    return data.reshape(scan_shape[::-1]).T
+    return data.reshape(scan_shape)
                 
 class ImportDialog(BaseImportDialog):
     """Dialog to import SPEC Scans"""
@@ -118,11 +118,12 @@ class ImportDialog(BaseImportDialog):
             root[entry].comments = scan.comments
             root[entry].data = NXdata()
             if isinstance(axis,list):
-                scan_shape = (axis[0][1].size, axis[1][1].size)
+                scan_shape = (axis[1][1].size, axis[0][1].size)
                 scan_size = np.prod(scan_shape)
                 j = 0
                 for col in cols:
-                    root[entry].data[col] = NXfield(reshape_data(scan.data[:,j], scan_shape))
+                    root[entry].data[col] = NXfield(reshape_data(scan.data[:,j], 
+                                                                 scan_shape))
                     j += 1
             else:
                 j = 0
@@ -134,8 +135,8 @@ class ImportDialog(BaseImportDialog):
             if isinstance(axis,list):
                 root[entry].data[axis[0][0]] = axis[0][1]
                 root[entry].data[axis[1][0]] = axis[1][1]
-                root[entry].data.nxaxes = [root[entry].data[axis[0][0]],
-                                           root[entry].data[axis[1][0]]]
+                root[entry].data.nxaxes = [root[entry].data[axis[1][0]],
+                                           root[entry].data[axis[0][0]]]
             else:
                 root[entry].data.nxaxes = root[entry].data[axis]
         return root

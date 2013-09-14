@@ -233,8 +233,12 @@ class NXTreeView(QtGui.QTreeView):
         self.popMenu.addAction(self.savefileas_action)
 
     def getnode(self):
-        index = self.currentIndex()
-        return self._model.itemFromIndex(self.proxymodel.mapToSource(index)).node
+        item = self._model.itemFromIndex(
+                   self.proxymodel.mapToSource(self.currentIndex()))
+        if item:
+            return item.node
+        else:
+            return None
         
     def save_file(self):
         self.parent().parent().save_file()

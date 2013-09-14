@@ -58,7 +58,7 @@ class BaseImportDialog(QtGui.QDialog):
         """
         Opens a file dialog and sets the file text box to the chosen path.
         """
-        filename, _ = QtGui.QFileDialog.getOpenFileName(self, 'Open file',
+        filename, _ = QtGui.QFileDialog.getOpenFileName(self, 'Open File',
             os.path.expanduser('~'))
         self.filename.setText(str(filename))
 
@@ -70,9 +70,9 @@ class BaseImportDialog(QtGui.QDialog):
 
     def choose_directory(self):
         """
-        Opens a file dialog and returns a directory
+        Opens a file dialog and sets the directory text box to the chosen path.
         """
-        dir = QtGui.QFileDialog.getExistingDirectory(self, 'Choose directory',
+        dir = QtGui.QFileDialog.getExistingDirectory(self, 'Choose Directory',
             dir=os.path.expanduser('~'))
         self.directoryname.setText(str(dir))
 

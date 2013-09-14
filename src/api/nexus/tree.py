@@ -242,7 +242,7 @@ import napi
 from napi import NeXusError
 
 #Memory in MB
-NX_MEMORY = 500
+NX_MEMORY = 2000
 
 __all__ = ['NeXusTree', 'NXobject', 'NXfield', 'NXgroup', 'NXattr', 'nxclasses',
            'NX_MEMORY', 'setmemory', 'load', 'save', 'tree', 'centers',
@@ -1664,6 +1664,9 @@ class NXfield(NXobject):
                     path.putslab(data.nxdata.astype(self.dtype), offset, data.shape)
                 else:
                     data = np.array(data)
+                    ndim = data.ndim
+                    for dim in range(self.ndim-ndim):
+                        data=np.expand_dims(data,0)                    
                     path.putslab(data.astype(self.dtype), offset, data.shape)
             if refresh: self.read()
         else:
@@ -2527,12 +2530,15 @@ class NXgroup(NXobject):
         """
         try:
             return [getattr(self,name) for name in _readaxes(self.nxsignal.axes)]
-        except KeyError:
+        except (KeyError, AttributeError):
             axes = {}
             for obj in self.entries:
                 if 'axis' in getattr(self,obj).attrs:
                     axes[getattr(self,obj).axis] = getattr(self,obj)
-            return [axes[key] for key in sorted(axes.keys())]
+            if axes:
+                return [axes[key] for key in sorted(axes.keys())]
+            else:
+                return None
 
     def _set_axes(self, axes):
         """

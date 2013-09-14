@@ -64,7 +64,6 @@ a complete array, if memory allows, or as a series of slabs (see below).
           data will have to be read as a series of slabs. The default value is
           500.
 
-
 Load Options
 ------------
 There is a second optional argument to the load module that defines the access
@@ -85,7 +84,7 @@ then saved to a file::
  >>> x=y=np.linspace(0,2*np.pi,101)
  >>> X,Y=np.meshgrid(x,y)
  >>> z=np.sin(X)*np.sin(Y)
- >>> a=NXdata(z,[x,y])
+ >>> a=NXdata(z,[y,x])
  >>> a.save('function.nxs')
 
 This file can then be loaded again::
@@ -278,9 +277,9 @@ here::
 
  >>> import numpy as np
  >>> x=y=np.linspace(0,2*np.pi,101)
- >>> X,Y=np.meshgrid(y,x)
+ >>> X,Y=np.meshgrid(x,y)
  >>> z=np.sin(X)*np.sin(Y)
- >>> a=NXdata(z,[x,y])
+ >>> a=NXdata(z,[y,x])
 
 The first positional argument is an NXfield or numpy array containing the data,
 while the second is a list containing the axes, again as NXfields or numpy
@@ -296,9 +295,17 @@ NXfield so default names were assigned::
      @signal = 1
 
 .. note:: The plottable signal is identified by the NXfield with the 'signal'
-          attribute set to 1. The signal NXfield defines the axes to be plotted 
-          against as a string of NXfield names delimited here by a colon. White 
-          space or commas can also be used as delimiters. 
+          attribute set to 1. The 'signal' NXfield has an attribute, 'axes', 
+          which defines the axes as a string of NXfield names delimited here by 
+          a colon. White space or commas can also be used as delimiters. The
+          NXdata constructor sets these attributes automatically.
+
+.. warning:: Numpy stores arrays by default in C, or row-major, order, *i.e.*, 
+             in the array 'signal(axis1,axis2)', axis2 is the fastest to vary. 
+             In most image formats, *e.g.*, TIFF files, the x-axis is assumed
+             to be the fastest varying axis, so we are adopting the same
+             convention and plotting as 'signal(y,x)'. The :doc:`pythongui` 
+             allows the x and y axes to be swapped.
 
 Names can be assigned explicitly when creating the NXfield through the 'name' 
 attribute::
@@ -313,6 +320,12 @@ attribute::
      @signal = 1
    polar_angle = float64(101)
 
+.. note:: In the above example, the x-axis, 'phi', was defined as a tuple in the
+          second positional argument of the NXdata call. It could also have been
+          defined as a list. However, in the case of one-dimensional signals, it
+          would also have been acceptable just to call NXdata(data, phi), 
+          *i.e.*, without embedding the axis in a tuple or list. 
+
 It is also possible to define the plottable signal and/or axes using the 
 'nxsignal' and 'nxaxes' properties, respectively::
 
@@ -326,6 +339,7 @@ It is also possible to define the plottable signal and/or axes using the
      @axes = polar_angle
      @signal = 1
    polar_angle = float64(101)
+
 
 NeXus Links
 -----------
@@ -595,7 +609,7 @@ NXdata.sum(axis=None):
      >>> x=np.linspace(0, 3., 4)
      >>> y=np.linspace(0, 2., 3)
      >>> X,Y=np.meshgrid(x,y)
-     >>> a=NXdata(X*Y,(x,y))
+     >>> a=NXdata(X*Y,(y,x))
      >>> print a.tree
      data:NXdata
        axis1 = [ 0.  1.  2.  3.]
@@ -660,7 +674,7 @@ by one, the data can be summed along that axis using the sum() method::
 
  >>> x=y=NXfield(np.linspace(0,2*np.pi,41))
  >>> X,Y=np.meshgrid(x,y)
- >>> a=NXdata(np.sin(X)*np.sin(Y), (x,y))
+ >>> a=NXdata(np.sin(X)*np.sin(Y), (y,x))
  >>> print a.tree
  data:NXdata
    axis1 = float64(41)
@@ -693,7 +707,7 @@ employs the numpy array sum() method::
 
  >>> x=y=NXfield(np.linspace(0,2*np.pi,41))
  >>> X,Y=np.meshgrid(x,y)
- >>> a=NXdata(np.sin(X)*np.sin(Y), (x,y))
+ >>> a=NXdata(np.sin(X)*np.sin(Y), (y,x))
  >>> print a.tree
  data:NXdata
    axis1 = float64(41)

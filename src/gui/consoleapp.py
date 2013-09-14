@@ -186,19 +186,26 @@ class NXConsoleApp(BaseIPythonApplication, IPythonConsoleApp):
         """Initialize imports in the shell."""
         global _shell
         _shell = self.window.user_ns
-        s = ("import numpy as np\n"
-             "import matplotlib as mpl\n"
-             "from matplotlib import pylab, mlab, pyplot\n"
-             "plt = pyplot\n"
-             "import nexpy.api.nexus as nx\n"
-             "from nexpy.api.nexus import NXgroup, NXfield, NXattr, NXlink\n"
-            )
+        s = ("import nexpy.api.nexus as nx\n"
+             "from nexpy.api.nexus import NXgroup, NXfield, NXattr, NXlink")
         exec s in self.window.user_ns
         
         s = ""
         for _class in nxclasses:
             s = "%s=nx.%s\n" % (_class,_class) + s
         exec s in self.window.user_ns
+
+        try:
+            f = open(os.path.join(os.path.expanduser('~'), '.nexpy', 
+                                  'config.py'))
+            s = ''.join(f.readlines())
+            exec s in self.window.user_ns
+        except:
+            s = ("import numpy as np\n"
+                 "import matplotlib as mpl\n"
+                 "from matplotlib import pylab, mlab, pyplot\n"
+                 "plt = pyplot")
+            exec s in self.window.user_ns
         
 #        base_path = os.path.abspath(os.path.dirname(__file__))
 #        sample_data = os.path.join(base_path, '../examples/chopper.nxs')

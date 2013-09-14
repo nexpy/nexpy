@@ -445,7 +445,7 @@ class MainWindow(QtGui.QMainWindow):
             self.treeview.tree[name] = NXroot(NXentry())
   
     def open_file(self):
-        fname, _ = QtGui.QFileDialog.getOpenFileName(self, 'Open file (Read Only)',
+        fname, _ = QtGui.QFileDialog.getOpenFileName(self, 'Open File (Read Only)',
                          self.default_directory, 
                          "NeXus Files (*.nxs *.nx5 *.h5 *.nx4 *.hdf *.xml)")
         workspace = self.treeview.tree.get_name(fname)
@@ -453,7 +453,7 @@ class MainWindow(QtGui.QMainWindow):
         self.default_directory = os.path.dirname(fname)
   
     def open_editable_file(self):
-        fname, _ = QtGui.QFileDialog.getOpenFileName(self, 'Open file (Read/Write)',
+        fname, _ = QtGui.QFileDialog.getOpenFileName(self, 'Open File (Read/Write)',
                          self.default_directory, 
                          "NeXus Files (*.nxs *.nx5 *.h5 *.nx4 *.hdf *.xml)")
         workspace = self.treeview.tree.get_name(fname)
@@ -462,7 +462,9 @@ class MainWindow(QtGui.QMainWindow):
 
     def save_file(self):
         node = self.treeview.getnode()
-        if node.nxfile and isinstance(node, NXroot):
+        if node is None:
+            return
+        elif node.nxfile and isinstance(node, NXroot):
             try:
                 node.save()
             except NeXusError, error_message:
@@ -472,7 +474,7 @@ class MainWindow(QtGui.QMainWindow):
         else:
             default_name = os.path.join(self.default_directory,node.nxname)
             fname, _ = QtGui.QFileDialog.getSaveFileName(self, 
-                             "Choose a filename",
+                             "Choose a Filename",
                              default_name, 
                              "NeXus Files (*.nxs *.nx5 *.h5 *.nx4 *.hdf *.xml)")
             if fname:
@@ -485,8 +487,10 @@ class MainWindow(QtGui.QMainWindow):
 
     def save_file_as(self):
         node = self.treeview.getnode()
+        if node is None:
+            return
         default_name = os.path.join(self.default_directory,node.nxname)
-        fname, _ = QtGui.QFileDialog.getSaveFileName(self, "Choose a filename",
+        fname, _ = QtGui.QFileDialog.getSaveFileName(self, "Choose a Filename",
                          default_name, 
                          "NeXus Files (*.nxs *.nx5 *.h5 *.nx4 *.hdf *.xml)")
         if fname:
@@ -499,34 +503,41 @@ class MainWindow(QtGui.QMainWindow):
 
     def plot_data(self, fmt='o'):
         node = self.treeview.getnode()
-        self.treeview.statusmessage(node)
-        try:
-            node.plot(fmt)
-        except KeyError:
-            dialog = PlotDialog(node, self)
-            dialog.show()
-        except NeXusError:
-            dialog = PlotDialog(node, self)
-            dialog.show()
+        if node:        
+            self.treeview.statusmessage(node)
+            try:
+                node.plot(fmt)
+            except KeyError:
+                dialog = PlotDialog(node, self)
+                dialog.show()
+            except NeXusError:
+                dialog = PlotDialog(node, self)
+                dialog.show()
 
     def overplot_data(self, fmt='o'):
         node = self.treeview.getnode()
-        self.treeview.statusmessage(node)
-        try:
-            node.oplot(fmt)
-        except:
-            pass
+        if node:        
+            self.treeview.statusmessage(node)
+            try:
+                node.oplot(fmt)
+            except:
+                pass
 
     def add_data(self):
         node = self.treeview.getnode()      
-        dialog = AddDialog(node, self)
-        dialog.show()      
+        if node:
+            dialog = AddDialog(node, self)
+            dialog.show()
+        else:
+            self.new_workspace()    
 
     def rename_data(self):
-        node = self.treeview.getnode()        
-        name, ok = QtGui.QInputDialog.getText(self, 'Rename Data', 'New Name:')        
-        if ok:
-            node.rename(name)
+        node = self.treeview.getnode()
+        if node:        
+            name, ok = QtGui.QInputDialog.getText(self, 
+                                                  'Rename Data', 'New Name:')        
+            if ok:
+                node.rename(name)
 
     def copy_data(self):
         self.copied_node = self.treeview.getnode()
@@ -538,21 +549,25 @@ class MainWindow(QtGui.QMainWindow):
 
     def delete_data(self):
         node = self.treeview.getnode()
-        dialog = DeleteDialog(node, self)
-        dialog.show()      
+        if node:
+            dialog = DeleteDialog(node, self)
+            dialog.show()      
 
     def set_signal(self):
         node = self.treeview.getnode()
-        if isinstance(node, NXfield) and node.nxgroup:
-            dialog = SignalDialog(node, self)
-            dialog.show()
-        else:
-            QtGui.QMessageBox.critical(self, "Invalid selection", 
-                "Only NeXus fields can be a plottable signal",
-                QtGui.QMessageBox.Ok, QtGui.QMessageBox.NoButton)
+        if node:
+            if isinstance(node, NXfield) and node.nxgroup:
+                dialog = SignalDialog(node, self)
+                dialog.show()
+            else:
+                QtGui.QMessageBox.critical(self, "Invalid selection", 
+                    "Only NeXus fields can be a plottable signal",
+                    QtGui.QMessageBox.Ok, QtGui.QMessageBox.NoButton)
 
     def fit_data(self):
         node = self.treeview.getnode()
+        if node is None:
+            return
         try:
             if isinstance(node, NXentry) and node.nxtitle == 'Fit Results':
                 entry = node

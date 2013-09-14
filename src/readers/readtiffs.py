@@ -49,7 +49,7 @@ class ImportDialog(BaseImportDialog):
         for i in range(1,len(filenames)):
             im = Image.open(filenames[i])
             v[i] = np.array(im.getdata(),dtype=dtype).reshape(im.size[1],im.size[0])
-        x = NXfield(range(im.size[0]), dtype=np.uint16, name='x')
-        y = NXfield(range(im.size[1]), dtype=np.uint16, name='y')
+        x = NXfield(range(im.size[1]), dtype=np.uint16, name='x')
+        y = NXfield(range(im.size[0]), dtype=np.uint16, name='y')
         z = NXfield(range(1,len(filenames)+1), dtype=np.uint16, name='z')
         return NXentry(NXdata(v,(z,x,y)))

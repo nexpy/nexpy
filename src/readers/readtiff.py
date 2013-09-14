@@ -41,17 +41,17 @@ class ImportDialog(BaseImportDialog):
             from libtiff import TIFF
             im = TIFF.open(self.get_filename())
             z = NXfield(im.read_image(), name='z')
-            x = NXfield(range(z.shape[0]), name='x')
-            y = NXfield(range(z.shape[1]), name='y')
-        except IOError:
+            y = NXfield(range(z.shape[0]), name='y')
+            x = NXfield(range(z.shape[1]), name='x')
+        except ImportError:
             import Image
             im = Image.open(self.get_filename())
             dtype = np.dtype(np.uint16)
             if im.mode == "I;32" or im.mode == "I":
                 dtype=np.dtype(np.uint32)
-            z = NXfield(np.array(im.getdata(),dtype=dtype).reshape(im.size[1],im.size[0]),
+            z = NXfield(np.array(im.getdata(),dtype=dtype),
                         name='z')
-            x = NXfield(range(im.size[0]), name='x')
             y = NXfield(range(im.size[1]), name='y')
+            x = NXfield(range(im.size[0]), name='x')
         
-        return NXentry(NXdata(z,(x,y)))
+        return NXentry(NXdata(z,(y,x)))

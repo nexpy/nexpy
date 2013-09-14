@@ -19,15 +19,19 @@ class PlotDialog(QtGui.QDialog):
         
         if isinstance(node, NXfield):
             plotlayout = QtGui.QHBoxLayout()
-            plotlabel = [QtGui.QLabel("Choose x-axis: ")]
-            self.plotbox = [self.axis_box(0)]
-            plotlayout.addWidget(plotlabel[0])
-            plotlayout.addWidget(self.plotbox[0])
-            if self.dims > 1:
-                plotlabel.append(QtGui.QLabel("Choose y-axis: "))
-                self.plotbox.append(self.axis_box(1))
+            if self.dims == 1:
+                plotlabel = [QtGui.QLabel("Choose x-axis: ")]
+                self.plotbox = [self.axis_box(0)]
+                plotlayout.addWidget(plotlabel[0])
+                plotlayout.addWidget(self.plotbox[0])
+            else:
+                plotlabel = [QtGui.QLabel("Choose x-axis: "),
+                             QtGui.QLabel("Choose y-axis: ")]
+                self.plotbox = [self.axis_box(0), self.axis_box(1)]
                 plotlayout.addWidget(plotlabel[1])
                 plotlayout.addWidget(self.plotbox[1])
+                plotlayout.addWidget(plotlabel[0])
+                plotlayout.addWidget(self.plotbox[0])
 
         buttonbox = QtGui.QDialogButtonBox(self)
         buttonbox.setOrientation(QtCore.Qt.Horizontal)
@@ -43,7 +47,7 @@ class PlotDialog(QtGui.QDialog):
 
         self.setWindowTitle("Plot NeXus Field")
 
-    def axis_box(self, axis=0):
+    def axis_box(self, axis):
         plotbox = QtGui.QComboBox()
         for node in self.node.nxgroup.entries.values():
             if node is not self.node and self.check_axis(node, axis):
@@ -77,7 +81,7 @@ class PlotDialog(QtGui.QDialog):
             pass
         return False
 	
-    def get_axis(self, axis=0):
+    def get_axis(self, axis):
         axis_name = self.plotbox[axis].currentText()
         if axis_name == 'NXfield index':
             return NXfield(range(1,self.node.size+1), name='index')
@@ -193,6 +197,13 @@ class AddDialog(QtGui.QDialog):
             self.type_box.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToContents)
             grid.addWidget(type_label, 2, 0)
             grid.addWidget(self.type_box, 2, 1)
+            shape_label = QtGui.QLabel()
+            shape_label.setAlignment(QtCore.Qt.AlignLeft)
+            shape_label.setText("Shape:")
+            self.shape_box = QtGui.QLineEdit()
+            self.shape_box.setAlignment(QtCore.Qt.AlignLeft)
+            grid.addWidget(shape_label, 3, 0)
+            grid.addWidget(self.shape_box, 3, 1)
         grid.setColumnMinimumWidth(1, 200)
         return grid
 
@@ -206,8 +217,9 @@ class AddDialog(QtGui.QDialog):
             if dtype == "char":
                 return value
             else:
+                from nexpy.gui.consoleapp import _shell
                 try:
-                    return eval(value)
+                    return eval(value,{"__builtins__": {}},_shell)
                 except:
                     return str(value)
         else:
@@ -220,6 +232,13 @@ class AddDialog(QtGui.QDialog):
         else:
             return dtype 
 
+    def get_shape(self):
+        import ast
+        try:
+            return ast.literal_eval(self.shape_box.text())
+        except ValueError:
+            return None
+
     def accept(self):
         name = self.get_name()
         if self.class_name == "NXgroup":
@@ -231,11 +250,17 @@ class AddDialog(QtGui.QDialog):
         elif name:
             value = self.get_value()
             dtype = self.get_type()
+            shape = self.get_shape()
             if value is not None:
                 if self.class_name == "NXfield":
                     self.node[name] = NXfield(value, dtype=dtype)
                 else:
                     self.node.attrs[name] = NXattr(value, dtype=dtype)
+            elif self.class_name == "NXfield":
+                if dtype is None:
+                    dtype = np.float64
+                self.node[name] = NXfield(dtype=dtype,shape=shape)
+
         QtGui.QDialog.accept(self)
         
     def reject(self):
@@ -291,13 +316,13 @@ class SignalDialog(QtGui.QDialog):
         signal_layout.addWidget(self.signal_box)
 
         axis_layout = [QtGui.QHBoxLayout()]
-        axis_label = [QtGui.QLabel("Choose axis 0: ")]
+        axis_label = [QtGui.QLabel("Choose Axis 0: ")]
         self.axis_boxes = [self.axis_box(0)]
         axis_layout[0].addWidget(axis_label[0])
         axis_layout[0].addWidget(self.axis_boxes[0])
         for axis in range(1, self.dims):
             axis_layout.append(QtGui.QHBoxLayout())
-            axis_label.append(QtGui.QLabel("Choose axis %s: " % axis))
+            axis_label.append(QtGui.QLabel("Choose Axis %s: " % axis))
             self.axis_boxes.append(self.axis_box(axis))
             axis_layout[axis].addWidget(axis_label[axis])
             axis_layout[axis].addWidget(self.axis_boxes[axis])
@@ -379,6 +404,9 @@ class FitDialog(QtGui.QDialog):
         
         self.functions = []
         self.parameters = []
+
+        self.first_time = True
+        self.fitted = False
 
         self.initialize_functions()
  
@@ -472,9 +500,6 @@ class FitDialog(QtGui.QDialog):
         self.setWindowTitle("Fit NeXus Data")
 
         self.load_entry(entry)
-        
-        self.first_time = True
-        self.fitted = False
 
     def initialize_functions(self):
 

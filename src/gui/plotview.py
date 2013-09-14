@@ -131,6 +131,7 @@ class NXPlotView(QtGui.QWidget):
         cid = self.canvas.mpl_connect('button_press_event', make_active)
         self.figuremanager._cidgcf = cid
         self.figure = self.canvas.figure
+        self.figure.number = 1
         self.figure.set_label("Main")
         
         vbox = QtGui.QVBoxLayout()
@@ -327,28 +328,25 @@ class NXPlot(object):
 
         #Higher-dimensional plot
         else:
+            self.plotdata = NXdata(NXfield(data.nxsignal.view().reshape(self.shape),
+                                           name=data.nxsignal.nxname,
+                                           attrs=data.nxsignal.attrs),
+                                   [NXfield(axis_data[i], name=self.axes[i].nxname,
+                                            attrs=self.axes[i].attrs)
+                                    for i in range(self.dims)],
+                                   title = self.title)
             if self.dims > 2:
                 dims = range(self.dims)
                 axis = dims[-2:]
                 limits = [(axis_data[i][0], axis_data[i][0]) for i in dims[:-2]]
-                limits.append((axis_data[-2].min(),axis_data[-2].max()))
-                limits.append((axis_data[-1].min(),axis_data[-1].max()))
-                self.plotdata = self.data.project(axis,limits)
-            else:
-                self.plotdata = NXdata(NXfield(data.nxsignal.view().reshape(self.shape),
-                                               name=data.nxsignal.nxname,
-                                               attrs=data.nxsignal.attrs),
-                                       [NXfield(axis_data[-2], name=self.axes[-2].nxname,
-                                                attrs=self.axes[-2].attrs),
-                                        NXfield(axis_data[-1], name=self.axes[-1].nxname,
-                                                attrs=self.axes[-1].attrs)],
-                                       title = self.title)
-
-            self.xaxis = self.axis[self.axes[-2].nxname]
+                limits.append((None, None))
+                limits.append((None, None))
+                self.plotdata = self.plotdata.project(axis,limits)
+            self.xaxis = self.axis[self.axes[-1].nxname]
             if xmin: self.xaxis.lo = xmin
             if xmax: self.xaxis.hi = xmax
 
-            self.yaxis = self.axis[self.axes[-1].nxname]
+            self.yaxis = self.axis[self.axes[-2].nxname]
             if ymin: self.yaxis.lo = ymin
             if ymax: self.yaxis.hi = ymax
 
@@ -370,7 +368,7 @@ class NXPlot(object):
             else:
                 zaxis = None                  
 
-            self.plot2D(**opts)
+            self.plot2D(over, **opts)
 
         self.canvas.draw_idle()
         if self.label == "Main":
@@ -454,14 +452,14 @@ class NXPlot(object):
         self.otab.push_current()
         plt.ion()
 
-    def plot2D(self, **opts):
+    def plot2D(self, over=False, **opts):
 
         plt.ioff()
-        plt.clf()
+        if not over: plt.clf()
 
-        self.v = self.plotdata.nxsignal.nxdata.T
-        self.x = self.plotdata.nxaxes[0].nxdata
-        self.y = self.plotdata.nxaxes[1].nxdata
+        self.v = self.plotdata.nxsignal.nxdata
+        self.x = self.plotdata.nxaxes[1].nxdata
+        self.y = self.plotdata.nxaxes[0].nxdata
 
         if self.vaxis.lo is None or self.autoscale: 
             self.vaxis.lo = np.nanmin(self.v)

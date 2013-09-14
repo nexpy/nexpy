@@ -123,7 +123,8 @@ Data Menu
 .. note:: Eventually, NeXpy will access the NXDL files that define valid NeXus
           groups and fields, ensuring that the added data conforms to the
           standard. At present, NeXpy ensures that the NeXus data are consistent
-          with generic NeXus browsers and plotters.
+          with generic NeXus browsers, which is sufficient for private use of 
+          the data.
     
 **Rename Data**
     Renames the selected tree item.
@@ -139,7 +140,10 @@ Data Menu
     Pastes the copy buffer to the selected group.
     
 **Delete Data**
-    Deletes the selected tree item from the tree.
+    Deletes the selected tree item.
+
+    .. note:: If the item was assigned to another variable in the shell, that
+              variable will not be deleted.
 
     .. warning:: If the NeXus tree was loaded from a file with read/write 
                  access, the deleted data will still be in the file after a 
@@ -420,3 +424,17 @@ Here is an example of an import dialog::
 
 .. seealso:: See :class:`nexpy.gui.importdialog.BaseImportDialog` for other
              pre-defined import methods.
+
+Configuring NeXpy
+-----------------
+The NeXpy shell imports the NeXus classes, NXfield, NXgroup, NXentry, etc. For 
+convenience, it also imports a number of other modules that are commonly used::
+
+ import numpy as np
+ import matplotlib as mpl
+ from matplotlib import pylab, mlab, pyplot
+ plt = pyplot
+
+If you require a different set of imports or prefer alternative abbreviations,
+you can replace the default startup script with your own by placing the 
+required code in ~/.nexpy/config.py.
