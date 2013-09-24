@@ -19,7 +19,6 @@ from IPython.external.qt import QtCore, QtGui
 import numpy as np
 from nexpy.api.nexus import *
 from nexpy.gui.importdialog import BaseImportDialog
-import Image
 
 filetype = "TIFF Stack"
 
@@ -39,17 +38,41 @@ class ImportDialog(BaseImportDialog):
  
     def get_data(self):
         filenames = filter(lambda x: not x.startswith('.'),self.get_filesindirectory())
-        im = Image.open(filenames[0])
-        dtype = np.dtype(np.uint16)
-        if im.mode == "I;32" or im.mode == "I":
-            dtype=np.dtype(np.uint32)
-        v = NXfield(np.zeros(shape=(len(filenames),im.size[1],im.size[0]),dtype=dtype),
-                    name='v')
-        v[0] = np.array(im.getdata(),dtype=dtype).reshape(im.size[1],im.size[0])
-        for i in range(1,len(filenames)):
-            im = Image.open(filenames[i])
-            v[i] = np.array(im.getdata(),dtype=dtype).reshape(im.size[1],im.size[0])
-        x = NXfield(range(im.size[1]), dtype=np.uint16, name='x')
-        y = NXfield(range(im.size[0]), dtype=np.uint16, name='y')
-        z = NXfield(range(1,len(filenames)+1), dtype=np.uint16, name='z')
-        return NXentry(NXdata(v,(z,x,y)))
+        try:
+            from libtiff import TIFF
+            im = TIFF.open(filenames[0])
+            v0 = im.read_image()
+            x = NXfield(range(v0.shape[1]), dtype=np.uint16, name='x')
+            y = NXfield(range(v0.shape[0]), dtype=np.uint16, name='y')
+            z = NXfield(range(1,len(filenames)+1), dtype=np.uint16, name='z')
+            v = NXfield(np.zeros(shape=(len(filenames),v0.shape[0],v0.shape[1]),
+                        dtype=v0.dtype), name='v')
+            v[0] = v0
+            for i in range(1,len(filenames)):
+                im = TIFF.open(filenames[i])
+                v[i] = im.read_image()
+        except ImportError:
+            im = Image.open(filenames[0])
+            dtype = np.dtype(np.uint16)
+            if im.mode == "I;32" or im.mode == "I":
+                dtype=np.dtype(np.uint32)
+            x = NXfield(range(im.size[0]), dtype=np.uint16, name='x')
+            y = NXfield(range(im.size[1]), dtype=np.uint16, name='y')
+            z = NXfield(range(1,len(filenames)+1), dtype=np.uint16, name='z')
+            v = NXfield(np.zeros(shape=(len(filenames),im.size[1],im.size[0]),
+                        dtype=dtype), name='v')
+            v[0] = np.array(im.getdata(),dtype=dtype).reshape(im.size[1],im.size[0])
+            for i in range(1,len(filenames)):
+                im = Image.open(filenames[i])
+                v[i] = np.array(im.getdata(),dtype=dtype).reshape(im.size[1],im.size[0])
+        return NXentry(NXdata(v,(z,y,x)))
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
