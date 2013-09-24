@@ -82,7 +82,7 @@ class BaseImportDialog(QtGui.QDialog):
         """
         return self.directoryname.text()
 
-    def get_filesindirectory(self):
+    def get_filesindirectory(self, prefix='', extension='.*'):
         """
         Returns a list of files in the selected directory.
         
@@ -91,7 +91,10 @@ class BaseImportDialog(QtGui.QDialog):
         'data2.tif' comes before 'data10.tif'.
         """
         os.chdir(self.get_directory())
-        filenames = os.listdir(os.getcwd())
+        if not extension.startswith('.'):
+            extension = '.'+extension
+        from glob import glob
+        filenames = glob(prefix+'*'+extension)
         return sorted(filenames,key=natural_sort)
 
     def accept(self):

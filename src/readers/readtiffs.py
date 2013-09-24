@@ -31,13 +31,31 @@ class ImportDialog(BaseImportDialog):
         
         layout = QtGui.QVBoxLayout()
         layout.addLayout(self.directorybox())
+        filter_layout = QtGui.QHBoxLayout()
+        prefix_label = QtGui.QLabel('File Prefix')
+        self.prefix_box = QtGui.QLineEdit()
+        ext_label = QtGui.QLabel('File Extension')
+        self.ext_box = QtGui.QLineEdit('.tif')
+        filter_layout.addWidget(prefix_label)
+        filter_layout.addWidget(self.prefix_box)
+        filter_layout.addWidget(ext_label)
+        filter_layout.addWidget(self.ext_box)
+        
+        layout.addLayout(filter_layout)
         layout.addWidget(self.buttonbox())
         self.setLayout(layout)
   
         self.setWindowTitle("Import "+str(filetype))
+
+    def get_prefix(self):
+        return self.prefix_box.text().strip()
+ 
+    def get_extension(self):
+        return self.ext_box.text().strip()
  
     def get_data(self):
-        filenames = filter(lambda x: not x.startswith('.'),self.get_filesindirectory())
+        filenames = self.get_filesindirectory(self.get_prefix(), 
+                                              self.get_extension())
         try:
             from libtiff import TIFF
             im = TIFF.open(filenames[0])
