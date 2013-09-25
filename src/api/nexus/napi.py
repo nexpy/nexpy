@@ -119,7 +119,7 @@ Caveats
 __all__ = ['UNLIMITED', 'MAXRANK', 'MAXNAMELEN','MAXPATHLEN','H4SKIP',
            'NeXus','NeXusError','nxopen']
 
-import sys, os, numpy, ctypes
+import sys, os, numpy, ctypes, ctypes.util
 
 # Defined ctypes
 from ctypes import c_void_p, c_int, c_long, c_char, c_char_p
@@ -236,14 +236,23 @@ def _libnexus():
         stdpath = [ nxprefix+'/lib', '/usr/local/lib', '/usr/lib']
         files += [os.path.join(p,lib) for p in [filedir]+ldpath+stdpath]
 
+    def load_library(filename):
+        try:
+            return ctypes.cdll[filename]
+        except:
+            raise OSError, \
+                "NeXus library %s could not be loaded: %s"%(filename,sys.exc_info())
+
     # Given a list of files, try loading the first one that is available.
     for file in files:
         if not os.path.isfile(file): continue
-        try:
-            return ctypes.cdll[file]
-        except:
-            raise OSError, \
-                "NeXus library %s could not be loaded: %s"%(file,sys.exc_info())
+        return load_library(file)
+
+    # Use find_library as a last resort
+    libname = ctypes.util.find_library('NeXus')
+    if libname:
+        return load_library(libname)
+
     raise OSError, "Set NEXUSLIB or move NeXus to one of: %s"%(", ".join(files))
 
 def _init():
