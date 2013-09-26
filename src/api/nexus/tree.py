@@ -1668,7 +1668,7 @@ class NXfield(NXobject):
                     for dim in range(self.ndim-ndim):
                         data=np.expand_dims(data,0)                    
                     path.putslab(data.astype(self.dtype), offset, data.shape)
-            if refresh: self.read()
+            if refresh and self._value is not None: self.read()
         else:
             raise IOError("Data is not attached to a file")
 
@@ -1805,6 +1805,9 @@ class NXfield(NXobject):
     def _getshape(self):
         return self._shape
 
+    def _getndim(self):
+        return len(self.shape)
+
     def _getsize(self):
         return len(self)
 
@@ -1812,6 +1815,7 @@ class NXfield(NXobject):
     nxaxes = property(_getaxes,doc="Property: The plotting axes")
     dtype = property(_getdtype,doc="Property: Data type of NeXus field")
     shape = property(_getshape,doc="Property: Shape of NeXus field")
+    ndim = property(_getndim,doc="Property: No. of dimensions of NeXus field")
     size = property(_getsize,doc="Property: Size of NeXus field")
 
     def plot(self, fmt='', xmin=None, xmax=None, ymin=None, ymax=None,
