@@ -20,7 +20,7 @@ from IPython.external.qt import QtGui,QtCore
 from qtkernelmanager import QtKernelManager
 from treeview import NXTreeView
 from plotview import NXPlotView
-from datadialogs import PlotDialog, AddDialog, DeleteDialog, SignalDialog, FitDialog
+from datadialogs import *
 from nexpy.api.nexus.tree import nxload, NeXusError
 from nexpy.api.nexus.tree import NXgroup, NXfield, NXroot, NXentry, NXdata
 
@@ -305,6 +305,12 @@ class MainWindow(QtGui.QMainWindow):
             )
         self.add_menu_action(self.data_menu, self.add_action, True)  
 
+        self.initialize_action=QtGui.QAction("Initialize Data",
+            self,
+            triggered=self.initialize_data
+            )
+        self.add_menu_action(self.data_menu, self.initialize_action, True)  
+
         self.rename_action=QtGui.QAction("Rename Data",
             self,
             triggered=self.rename_data
@@ -530,6 +536,19 @@ class MainWindow(QtGui.QMainWindow):
             dialog.show()
         else:
             self.new_workspace()    
+
+    def initialize_data(self):
+        node = self.treeview.getnode()      
+        if node:
+            if isinstance(node, NXgroup):
+                dialog = InitializeDialog(node, self)
+                dialog.show()
+            else:
+                QtGui.QMessageBox.critical(
+                    self, "NXfield node selected", 
+                    "An NXfield can only be added to an NXgroup",
+                    QtGui.QMessageBox.Ok, QtGui.QMessageBox.NoButton)
+
 
     def rename_data(self):
         node = self.treeview.getnode()

@@ -197,13 +197,6 @@ class AddDialog(QtGui.QDialog):
             self.type_box.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToContents)
             grid.addWidget(type_label, 2, 0)
             grid.addWidget(self.type_box, 2, 1)
-            shape_label = QtGui.QLabel()
-            shape_label.setAlignment(QtCore.Qt.AlignLeft)
-            shape_label.setText("Shape:")
-            self.shape_box = QtGui.QLineEdit()
-            self.shape_box.setAlignment(QtCore.Qt.AlignLeft)
-            grid.addWidget(shape_label, 3, 0)
-            grid.addWidget(self.shape_box, 3, 1)
         grid.setColumnMinimumWidth(1, 200)
         return grid
 
@@ -232,13 +225,6 @@ class AddDialog(QtGui.QDialog):
         else:
             return dtype 
 
-    def get_shape(self):
-        import ast
-        try:
-            return ast.literal_eval(self.shape_box.text())
-        except ValueError:
-            return None
-
     def accept(self):
         name = self.get_name()
         if self.class_name == "NXgroup":
@@ -250,17 +236,94 @@ class AddDialog(QtGui.QDialog):
         elif name:
             value = self.get_value()
             dtype = self.get_type()
-            shape = self.get_shape()
             if value is not None:
                 if self.class_name == "NXfield":
                     self.node[name] = NXfield(value, dtype=dtype)
                 else:
                     self.node.attrs[name] = NXattr(value, dtype=dtype)
-            elif self.class_name == "NXfield":
-                if dtype is None:
-                    dtype = np.float64
-                self.node[name] = NXfield(dtype=dtype,shape=shape)
+        QtGui.QDialog.accept(self)
+        
+    def reject(self):
+        QtGui.QDialog.reject(self)
 
+    
+class InitializeDialog(QtGui.QDialog):
+    """Dialog to initialize a NeXus field node"""
+
+    data_types = ['char', 'float32', 'float64', 'int8', 'uint8', 'int16', 
+                  'uint16', 'int32', 'uint32', 'int64', 'uint64']
+ 
+    def __init__(self, node, parent=None):
+
+        QtGui.QDialog.__init__(self, parent)
+ 
+        self.node = node
+
+        self.setWindowTitle("Initialize NeXus Data")
+
+        grid = QtGui.QGridLayout()
+        grid.setSpacing(10)
+
+        name_label = QtGui.QLabel()
+        name_label.setAlignment(QtCore.Qt.AlignLeft)
+        name_label.setText("Name:")
+        self.name_box = QtGui.QLineEdit()
+        self.name_box.setAlignment(QtCore.Qt.AlignLeft)
+        grid.addWidget(name_label, 0, 0)
+        grid.addWidget(self.name_box, 0, 1)
+        type_label = QtGui.QLabel()
+        type_label.setAlignment(QtCore.Qt.AlignLeft)
+        type_label.setText("Datatype:")
+        self.type_box = QtGui.QComboBox()
+        for name in self.data_types:
+            self.type_box.addItem(name)
+        self.type_box.setCurrentIndex(0)
+        self.type_box.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToContents)
+        grid.addWidget(type_label, 2, 0)
+        grid.addWidget(self.type_box, 2, 1)
+        shape_label = QtGui.QLabel()
+        shape_label.setAlignment(QtCore.Qt.AlignLeft)
+        shape_label.setText("Shape:")
+        self.shape_box = QtGui.QLineEdit()
+        self.shape_box.setAlignment(QtCore.Qt.AlignLeft)
+        grid.addWidget(shape_label, 3, 0)
+        grid.addWidget(self.shape_box, 3, 1)
+        grid.setColumnMinimumWidth(1, 200)
+
+        buttonbox = QtGui.QDialogButtonBox(self)
+        buttonbox.setOrientation(QtCore.Qt.Horizontal)
+        buttonbox.setStandardButtons(QtGui.QDialogButtonBox.Cancel|
+                                     QtGui.QDialogButtonBox.Ok)
+        buttonbox.accepted.connect(self.accept)
+        buttonbox.rejected.connect(self.reject)
+
+        self.layout = QtGui.QVBoxLayout()
+        self.layout.addLayout(grid)
+        self.layout.addWidget(buttonbox) 
+        self.setLayout(self.layout)
+
+    def get_name(self):
+        return self.name_box.text()
+
+    def get_type(self):
+        dtype = self.type_box.currentText()
+        return dtype 
+
+    def get_shape(self):
+        import ast
+        try:
+            return ast.literal_eval(self.shape_box.text())
+        except ValueError:
+            return None
+
+    def accept(self):
+        name = self.get_name()
+        if name:
+            dtype = self.get_type()
+            if dtype is None:
+                dtype = np.float64
+            shape = self.get_shape()
+            self.node[name] = NXfield(dtype=dtype,shape=shape)
         QtGui.QDialog.accept(self)
         
     def reject(self):

@@ -204,6 +204,7 @@ class NXTreeView(QtGui.QTreeView):
         self.overplot_line_action=QtGui.QAction("Overplot Line", self, 
                                            triggered=self.overplot_line)
         self.add_action=QtGui.QAction("Add Data", self, triggered=self.add_data)
+        self.initialize_action=QtGui.QAction("Initialize Data", self, triggered=self.initialize_data)
         self.rename_action=QtGui.QAction("Rename Data", self, triggered=self.rename_data)
         self.copy_action=QtGui.QAction("Copy Data", self, triggered=self.copy_data)
         self.paste_action=QtGui.QAction("Paste Data", self, triggered=self.paste_data)
@@ -220,6 +221,7 @@ class NXTreeView(QtGui.QTreeView):
         self.popMenu.addAction(self.overplot_line_action)
         self.popMenu.addSeparator()
         self.popMenu.addAction(self.add_action)
+        self.popMenu.addAction(self.initialize_action)
         self.popMenu.addAction(self.rename_action)
         self.popMenu.addAction(self.copy_action)
         self.popMenu.addAction(self.paste_action)
@@ -260,6 +262,9 @@ class NXTreeView(QtGui.QTreeView):
 
     def add_data(self):
         self.parent().parent().add_data()
+
+    def initialize_data(self):
+        self.parent().parent().initialize_data()
 
     def rename_data(self):
         self.parent().parent().rename_data()
