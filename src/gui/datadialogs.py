@@ -5,7 +5,12 @@ import numpy as np
 
 # NeXpy imports
 from nexpy.api.nexus import NXfield, NXgroup, NXattr, NXroot, NXentry, NXdata, NXparameters
-from nexpy.api.frills.fit import Fit, Function, Parameter
+
+# Attempt to import lmfit
+try:
+    from nexpy.api.frills.fit import Fit, Function, Parameter
+except ImportError:
+    pass
 
 class PlotDialog(QtGui.QDialog):
     """Dialog to plot arbitrary NeXus data in one or two dimensions"""

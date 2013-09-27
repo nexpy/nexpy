@@ -1,5 +1,4 @@
 import numpy as np
-from scipy.optimize import leastsq
 from lmfit import minimize, Parameters, Parameter, fit_report
 
 from nexpy.api.nexus import NXdata, NXparameters, NeXusError
