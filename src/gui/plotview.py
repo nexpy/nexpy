@@ -44,6 +44,15 @@ def new_figure_manager( *args, **kwargs ):
     manager = NXFigureManager( canvas, num )
     return manager
 
+def change_plotview(label):
+    global plotview, plotviews
+    if label in plotviews:
+        plotviews[label].make_active()
+        return plotviews[label]
+    else:
+        return NXPlotView(label)
+
+
 class NXCanvas(FigureCanvas):
 
     def __init__(self, figure):
@@ -1194,10 +1203,7 @@ class NXProjectionTab(QtGui.QWidget):
         limits = [(self.plotview.plot.axis[name].lo, 
                    self.plotview.plot.axis[name].hi) 
                     for name in self.get_axes()]
-        if "Projection" not in plotviews:
-            projection = NXPlotView("Projection")
-        else:
-            projection = plotviews["Projection"]
+        projection = change_plotview("Projection")
         projection.plot.plot(self.plotview.plot.data.project(axis, limits))
         self.plotview.make_active()
 
