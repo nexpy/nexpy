@@ -1850,7 +1850,7 @@ class NXfield(NXobject):
             raise NeXusError('No plottable signal defined')
 
         # Plot with the available plotter
-        plotview.plot(data, fmt, xmin, xmax, ymin, ymax, zmin, zmax, **opts)
+        plotview.plot.plot(data, fmt, xmin, xmax, ymin, ymax, zmin, zmax, **opts)
     
     def oplot(self, fmt='', **opts):
         """
@@ -2643,7 +2643,7 @@ class NXgroup(NXobject):
             raise NeXusError('No plottable signal defined')
 
         # Plot with the available plotter
-        plotview.plot(data, fmt, xmin, xmax, ymin, ymax, zmin, zmax, **opts)
+        plotview.plot.plot(data, fmt, xmin, xmax, ymin, ymax, zmin, zmax, **opts)
     
     def oplot(self, fmt='', **opts):
         """
