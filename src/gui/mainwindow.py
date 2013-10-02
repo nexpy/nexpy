@@ -59,7 +59,7 @@ class MainWindow(QtGui.QMainWindow):
 
         rightpane = QtGui.QWidget()
 
-        self.plotview = NXPlotView(parent=rightpane)
+        self.plotview = NXPlotView(label="Main",parent=rightpane)
         self.plotview.setMinimumSize(700, 600)
 
         self.console = IPythonWidget(config=self.config, parent=rightpane)
@@ -751,6 +751,18 @@ class MainWindow(QtGui.QMainWindow):
 
             self.add_menu_action(self.window_menu, self.minimizeAct)
             self.add_menu_action(self.window_menu, self.maximizeAct)
+            self.window_menu.addSeparator()
+        
+        self.newplot_action=QtGui.QAction("New Plot Window",
+            self,
+            shortcut=QtGui.QKeySequence("Ctrl+Shift+N"),
+            triggered=self.new_plot_window
+            )
+        self.add_menu_action(self.window_menu, self.newplot_action, True)
+
+    def new_plot_window(self):
+        from nexpy.gui.plotview import NXPlotView
+        plotview = NXPlotView()
     
     def init_help_menu(self):
         # please keep the Help menu in Mac Os even if empty. It will
