@@ -16,7 +16,7 @@ knowledge of the file format.
 
 .. warning:: The official NeXpy v0.1 has not yet been released. The current
              version is functional but is not yet fully stable. A stable version 
-             should be available shortly in September, 2013.
+             should be available shortly.
 
 
 .. toctree::
