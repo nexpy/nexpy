@@ -469,6 +469,9 @@ class FitDialog(QtGui.QDialog):
 
         from nexpy.gui.consoleapp import _tree
         self.tree = _tree
+
+        from nexpy.gui.plotview import plotview
+        self.plotview = plotview
         
         self.functions = []
         self.parameters = []
@@ -515,10 +518,10 @@ class FitDialog(QtGui.QDialog):
         self.plotcombo.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToContents)
         self.plotcombo.setMinimumWidth(100)
         plot_label = QtGui.QLabel('X-axis:')
-        self.plot_minbox = QtGui.QLineEdit(str(_shell['plotview'].xtab.axis.min))
+        self.plot_minbox = QtGui.QLineEdit(str(self.plotview.xtab.axis.min))
         self.plot_minbox.setAlignment(QtCore.Qt.AlignRight)
         plot_tolabel = QtGui.QLabel(' to ')
-        self.plot_maxbox = QtGui.QLineEdit(str(_shell['plotview'].xtab.axis.max))
+        self.plot_maxbox = QtGui.QLineEdit(str(self.plotview.xtab.axis.max))
         self.plot_maxbox.setAlignment(QtCore.Qt.AlignRight)
         self.plot_checkbox = QtGui.QCheckBox('Use Data Points')
         self.plot_layout.addWidget(plot_data_button)
@@ -900,7 +903,11 @@ class FitDialog(QtGui.QDialog):
         self.write_parameters()
    
     def accept(self):
+        from nexpy.gui.plotview import change_plotview
+        change_plotview('Main')
         QtGui.QDialog.accept(self)
         
     def reject(self):
+        from nexpy.gui.plotview import change_plotview
+        change_plotview('Main')
         QtGui.QDialog.reject(self)

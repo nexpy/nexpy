@@ -588,6 +588,8 @@ class MainWindow(QtGui.QMainWindow):
         if node is None:
             return
         try:
+            from nexpy.gui.plotview import change_plotview
+            plotview = change_plotview("Fit")
             if isinstance(node, NXentry) and node.nxtitle == 'Fit Results':
                 entry = node
                 entry.data.plot()
@@ -600,7 +602,7 @@ class MainWindow(QtGui.QMainWindow):
                 QtGui.QMessageBox.critical(self, "NeXus item not plottable", 
                     "Only plottable data can be fit",
                     QtGui.QMessageBox.Ok, QtGui.QMessageBox.NoButton)
-            entry = NXentry(data=self.plotview.mainplot.plotdata)
+            entry = NXentry(data=plotview.plot.plotdata)
         if len(entry.data.nxsignal.shape) == 1:
             dialog = FitDialog(entry, parent=self)
             dialog.show()
