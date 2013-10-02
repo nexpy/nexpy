@@ -108,9 +108,11 @@ Data Menu
     Plots the selected tree item in the plotting pane. If the selected item is
     not a valid NXdata, NXmonitor, or NXlog group, a plot dialog allows the 
     user to specify axes with compatible dimensions to plot the data against.
+
 **Overplot Data**
     Overplots the selected tree item in the plotting pane. This only works on 
     one-dimensional data.
+
 **Add Data**
     Adds data to the selected tree item. If the selected item is a group, the
     added data can be a group or field. If the selected item is a field, the 
@@ -125,6 +127,15 @@ Data Menu
           standard. At present, NeXpy ensures that the NeXus data are consistent
           with generic NeXus browsers, which is sufficient for private use of 
           the data.
+
+**Initialize Data**
+    Adds a NeXus field to the selected tree item. If the selected item is a group, the
+    added data can be a group or field. If the selected item is a field, the 
+    added data is an attribute. The Add Data dialog allow the name, value and 
+    data type to be specified, if adding a field, and the name and group class
+    if adding a group. The group class is specified through a dropdown menu of
+    valid NeXus group classes. The value field can be any valid Python 
+    expression, including numpy functions such as np.linspace().
     
 **Rename Data**
     Renames the selected tree item.
@@ -164,10 +175,22 @@ Data Menu
     non-linear least-squares fitting module. 
 
     .. seealso:: See `Fitting NeXus Data`_.
-    
+
+Window Menu
+^^^^^^^^^^^
+**New Plot Window**
+    Opens a new NeXpy plotting window, consisting of a Matplotlib plot pane and 
+    its associated axis panels. NeXpy plot commands will be directed to the 
+    currently active window. Clicking on the plot pane makes it active.
+
+    .. note:: Users familiar with pyplot can use standard pyplot commands to
+              generate Matplotlib plots in separate windows from the NeXus
+              plots, *e.g.*, 'plt.figure()' will open a new pyplot window, to 
+              which subsequent pyplot commands will be directed. 
+
 Other Menus
 ^^^^^^^^^^^
-The Edit, View, Magic, Window, and Help Menus currently consist of menu items 
+The Edit, View, Magic, and Help Menus currently consist of menu items 
 provided by the iPython shell for their Qt Console. All the operations act on 
 the shell text.
 
