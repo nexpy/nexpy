@@ -202,6 +202,7 @@ class NXConsoleApp(BaseIPythonApplication, IPythonConsoleApp):
             exec s in self.window.user_ns
         except:
             s = ("import numpy as np\n"
+                 "import scipy as sp\n"
                  "import matplotlib as mpl\n"
                  "from matplotlib import pylab, mlab, pyplot\n"
                  "plt = pyplot")
