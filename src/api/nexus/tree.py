@@ -2459,8 +2459,8 @@ class NXgroup(NXobject):
                 slab.pop(slab_axis)
                 projection_axes.pop(projection_axes.index(slab_axis))
                 for i in range(len(projection_axes)):
-                   if projection_axes[i] > slab_axis:
-                       projection_axes[i] -= 1
+                    if projection_axes[i] > slab_axis:
+                        projection_axes[i] -= 1
         def get_limits(result):
             fields = []
             for field in result.entries.values():
