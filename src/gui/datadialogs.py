@@ -470,8 +470,12 @@ class FitDialog(QtGui.QDialog):
         from nexpy.gui.consoleapp import _tree
         self.tree = _tree
 
-        from nexpy.gui.plotview import plotview
-        self.plotview = plotview
+        from nexpy.gui.plotview import NXPlotView, plotview, change_plotview
+        self.plotview = NXPlotView(label="Fit")
+        self.plotview.setMinimumSize(600,300)
+        self.plotview.setMaximumSize(1200,500)
+        plotview = change_plotview("Fit")
+        self.data.plot()
         
         self.functions = []
         self.parameters = []
@@ -563,10 +567,19 @@ class FitDialog(QtGui.QDialog):
         button_box.accepted.connect(self.accept)
         button_box.rejected.connect(self.reject)
 
+        scrollArea = QtGui.QScrollArea()
+        scrollArea.setWidgetResizable(True)
+        widget = QtGui.QWidget()
+        widget.setMinimumWidth(700)
         self.layout = QtGui.QVBoxLayout()
         self.layout.addLayout(function_layout)
         self.layout.addWidget(button_box)
-        self.setLayout(self.layout)
+        widget.setLayout(self.layout)
+        scrollArea.setWidget(widget)
+        layout = QtGui.QVBoxLayout()
+        layout.addWidget(self.plotview)
+        layout.addWidget(scrollArea)
+        self.setLayout(layout)
 
         self.setWindowTitle("Fit NeXus Data")
 
@@ -575,7 +588,8 @@ class FitDialog(QtGui.QDialog):
     def initialize_functions(self):
 
         filenames = set()
-        private_path = os.path.join(os.path.expanduser('~'), '.nexpy', 'functions')
+        private_path = os.path.join(os.path.expanduser('~'), '.nexpy', 
+                                    'functions')
         if os.path.isdir(private_path):
             sys.path.append(private_path)
             for file in os.listdir(private_path):
