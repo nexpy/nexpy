@@ -392,9 +392,18 @@ class NXPlot(object):
         self.y = self.plotdata.nxsignal.nxdata
         if self.plotdata.nxerrors:
             self.e = self.plotdata.nxerrors.nxdata
-            ax.errorbar(self.x, self.y, self.e, fmt=fmt, **opts)
         else:
             self.e = None
+
+        if self.x[0] > self.x[-1]:
+            self.x = self.x[::-1]
+            self.y = self.y[::-1]
+            if self.e is not None:
+                self.e = self.e[::-1]
+
+        if self.plotdata.nxerrors:
+            ax.errorbar(self.x, self.y, self.e, fmt=fmt, **opts)
+        else:
             ax.plot(self.x, self.y, fmt,  **opts)
 
         path = self.data.nxsignal.nxpath
@@ -462,6 +471,17 @@ class NXPlot(object):
         self.v = self.plotdata.nxsignal.nxdata
         self.x = self.plotdata.nxaxes[1].nxdata
         self.y = self.plotdata.nxaxes[0].nxdata
+        
+        if self.x[0] > self.x[-1] and self.y[0] > self.y[-1]:
+            self.x = self.x[::-1]
+            self.y = self.y[::-1]
+            self.v = self.v[::-1,::-1]
+        elif self.x[0] > self.x[-1]:
+            self.x = self.x[::-1]
+            self.v = self.v[:,::-1]
+        elif self.y[0] > self.y[-1]:
+            self.y = self.y[::-1]
+            self.v = self.v[::-1,:]
 
         if self.vaxis.lo is None or self.autoscale: 
             self.vaxis.lo = np.nanmin(self.v)
