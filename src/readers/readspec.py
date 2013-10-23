@@ -167,7 +167,7 @@ class ImportDialog(BaseImportDialog):
                 Q0, Q0start, Q0end, NQ0 = words[3], float(words[4]), float(words[5]), int(words[6])+1
                 Q1, Q1start, Q1end, NQ1 = words[7], float(words[8]), float(words[9]), int(words[10])+1
                 axis = [(Q0, np.linspace(Q0start, Q0end, NQ0)),
-                        (Q1, np.linspace(Q1end, Q1start, NQ1))]
+                        (Q1, np.linspace(Q1start, Q1end, NQ1))]                
             else:
                 if words[3] in motors.keys():
                     axis = motors[words[3]]
