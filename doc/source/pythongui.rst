@@ -248,8 +248,10 @@ limits and parameters.
     and a dropdown menu to select the axis to be plotted along x and y, 
     respectively. The names correspond to the axis names in the NXdata group.
     
-    .. note:: In the above image, the name of the axis happened to be x, but
-              this would not generally be true.
+    .. note:: If the x-axis values (and/or y-axis values in two-dimensional 
+              plots) are monotonically decreasing, the axis is flipped before 
+              plotting. Currently, the sliders only work for monotonically 
+              increasing axes. 
 
 **Z Tab**
 

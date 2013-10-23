@@ -54,7 +54,11 @@ which utilizes the `PyZMQ library <https://github.com/zeromq/pyzmq>`_.
 .. note:: Currently, NeXpy works with iPython v0.13, but is not compatible with 
           the recently released v1.0. PyQt4 should also work instead of PySide, 
           but it has not been tested. NeXpy automatically checks for which PyQt 
-          variant is available (PySide or PyQt4). 
+          variant is available (PySide or PyQt4) using an import module
+          developed for iPython. If you have both PyQt and PySide installed, it 
+          is probably safest to use PySide by setting the environment variable, 
+          QT_API, to 'pyside', or adding 
+          ``os.environ.setdefault('QT_API','pyside')`` to the startup script.
           
 =================  =================================================
 Library            URL
