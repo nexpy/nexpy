@@ -143,7 +143,6 @@ class NXConsoleApp(BaseIPythonApplication, IPythonConsoleApp):
     aliases = Dict(aliases)
     frontend_flags = Any(qt_flags)
     frontend_aliases = Any(qt_aliases)
-    kernel_manager_class = QtKernelManager
 
     stylesheet = Unicode('', config=True,
         help="path to a custom CSS stylesheet")
@@ -300,7 +299,8 @@ class NXConsoleApp(BaseIPythonApplication, IPythonConsoleApp):
         self.window.raise_()
 
         # Start the application main loop.
-        self.app.exec_()
+        guisupport.start_event_loop_qt4(self.app)
+#       self.app.exec_()
 
 #-----------------------------------------------------------------------------
 # Main entry point

@@ -17,7 +17,6 @@ import webbrowser
 from IPython.external.qt import QtGui,QtCore
 
 # local imports
-from qtkernelmanager import QtKernelManager
 from treeview import NXTreeView
 from plotview import NXPlotView
 from datadialogs import *
@@ -25,7 +24,8 @@ from nexpy.api.nexus.tree import nxload, NeXusError
 from nexpy.api.nexus.tree import NXgroup, NXfield, NXroot, NXentry, NXdata
 
 # IPython imports
-from IPython.frontend.qt.console.ipython_widget import IPythonWidget
+from IPython.qt.console.rich_ipython_widget import RichIPythonWidget
+from IPython.qt.inprocess import QtInProcessKernelManager
 
 #-----------------------------------------------------------------------------
 # Classes
@@ -62,14 +62,25 @@ class MainWindow(QtGui.QMainWindow):
         self.plotview = NXPlotView(parent=rightpane)
         self.plotview.setMinimumSize(700, 600)
 
-        self.console = IPythonWidget(config=self.config, parent=rightpane)
+        self.console = RichIPythonWidget(config=self.config, parent=rightpane)
         self.console.setMinimumSize(700, 200)
         self.console.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Fixed)
         self.console._confirm_exit = self.confirm_exit
         self.console.gui_completion = 'droplist'
-        self.console.kernel_manager = QtKernelManager(config=self.config)
+        self.console.kernel_manager = QtInProcessKernelManager()(config=self.config)
         self.console.kernel_manager.start_kernel()
-        self.console.kernel_manager.start_channels()
+        self.console.kernel_manager.kernel.gui = 'qt4'
+        self.console.kernel_client = self.console.kernel_manager.client()
+        self.console.kernel_client.start_channels()
+
+        def stop():
+            self.console.kernel_client.stop_channels()
+            self.console.kernel_manager.shutdown_kernel()
+            app.exit()
+
+        self.console.exit_requested.connect(stop)
+        self.console.show()
+
         self.shell = self.console.kernel_manager.kernel.shell
         self.user_ns = self.console.kernel_manager.kernel.shell.user_ns
 
