@@ -48,29 +48,20 @@ using PySide).
 
 The GUI includes an `iPython shell <http://ipython.org/>`_ and a `Matplotlib
 plotting pane <http://matplotlib.sourceforge.net>`_. The iPython shell is
-<<<<<<< HEAD
-embedded in the Qt GUI using a single-process implementation of their QtConsole, 
-which utilizes the `PyZMQ library <https://github.com/zeromq/pyzmq>`_.
-
-.. note:: Currently, NeXpy works with iPython v0.13, but is not compatible with 
-          the recently released v1.0. PyQt4 should also work instead of PySide, 
-          but it has not been tested. NeXpy automatically checks for which PyQt 
-          variant is available (PySide or PyQt4) using an import module
-          developed for iPython. If you have both PyQt and PySide installed, it 
-          is probably safest to use PySide by setting the environment variable, 
-          QT_API, to 'pyside', or adding 
-          ``os.environ.setdefault('QT_API','pyside')`` to the startup script.
-=======
 embedded in the Qt GUI using an implementation of their QtConsole.
->>>>>>> updated-qt-console
           
 =================  =================================================
 Library            URL
 =================  =================================================
 PySide v1.1.0      http://www.pyside.org/
-iPython v0.13      http://ipython.org/
+iPython v1.1.0     http://ipython.org/
 matplotlib v1.1.0  http://matplotlib.sourceforge.net/
 =================  =================================================
+
+.. note:: The latest updates make NeXpy compatible with iPython 1.1.0 and 
+          removes the dependency on PyZMQ. If you require a version that is 
+          compatible with iPython 0.13, please clone the ipython-0.13 branch
+          (https://github.com/nexpy/nexpy/tree/ipython-0.13).
 
 Most of these packages are included in the `Enthought Python Distribution v7.3 
 <http://www.enthought.com>`_ or within Enthought's `Canopy Application

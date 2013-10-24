@@ -25,7 +25,7 @@ more details of the nature of these dependencies in the
 * hdf5                 http://www.hdfgroup.org
 * mxml                 http://www.minixml.org
 * numpy,scipy          http://numpy.scipy.org
-* iPython v0.13        http://ipython.org/
+* iPython v1.1.0       http://ipython.org/
 * PySide v1.1.0        http://www.pyside.org/
 * matplotlib v1.1.0    http://matplotlib.sourceforge.net    (GUI only)
 * lmfit                http://newville.github.io/lmfit-py (Fitting only)
