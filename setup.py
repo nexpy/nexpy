@@ -5,7 +5,7 @@ verbose=1
 
 setup (name = "NeXpy", version = "0.1",
        description = "NeXpy",
-       url="https://github.com/nexpy/nexpy",
+       url="http://nexpy.github.io/nexpy/",
        author="NeXpy Developers",
        author_email="rosborn@anl.gov",
        package_dir = {'nexpy': 'src'},
