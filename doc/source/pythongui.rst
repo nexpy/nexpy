@@ -20,9 +20,8 @@ The illustration shows the main features of the GUI:
     This contains the tree structure of NeXus files opened in the File menu, 
     non-NeXus files that have been imported and converted into the NeXus format
     using one of the NeXus readers, and NXroot, NXentry, or NXdata groups added 
-    from the shell. By default, these are given a standard name of 'w1', 'w2', 
-    *etc*, but they may be renamced by right-clicking on the group. Other
-    actions available by right-clicking a tree item include plotting and 
+    from the shell. Various actions on the data can be performed by
+    right-clicking a tree item, include plotting, renaming, fitting and 
     deleting the data.
     
 **2) Plot Pane**
