@@ -30,7 +30,6 @@ import uuid
 from IPython.external.qt import QtCore, QtGui
 
 # Local imports
-from qtkernelmanager import QtKernelManager
 from mainwindow import MainWindow
 from treeview import NXtree
 from nexpy.api.nexus import nxload, nxclasses
@@ -50,9 +49,6 @@ from IPython.utils.py3compat import str_to_bytes
 from IPython.utils.traitlets import (
     Dict, List, Unicode, Integer, CaselessStrEnum, CBool, Any
 )
-from IPython.zmq.ipkernel import IPKernelApp
-from IPython.zmq.session import Session, default_secure
-from IPython.zmq.zmqshell import ZMQInteractiveShell
 
 from IPython.frontend.consoleapp import (
         IPythonConsoleApp, app_aliases, app_flags, flags, aliases

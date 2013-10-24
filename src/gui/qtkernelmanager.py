@@ -10,8 +10,8 @@ from IPython.external.qt import QtCore
 from IPython.config.loader import Config
 from IPython.utils.traitlets import Any, Bool, HasTraits, Instance
 from IPython.frontend.qt.util import MetaQObjectHasTraits, SuperQObject
-from IPython.zmq.session import Session
-from IPython.zmq.kernelmanager import validate_string_dict, validate_string_list
+#from IPython.zmq.session import Session
+#from IPython.zmq.kernelmanager import validate_string_dict, validate_string_list
 
 # NeXpy imports
 from qtkernel import QtSession, QtKernel
