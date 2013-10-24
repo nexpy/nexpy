@@ -1,5 +1,9 @@
 """The Qt MainWindow for NeXpy
 
+This is an expanded version on the iPython QtConsole with the addition
+of a Matplotlib plotting pane and a tree view for displaying NeXus data.
+
+The relevant QtConsole code is in IPython/qt/console/mainwindow.py
 """
 
 #-----------------------------------------------------------------------------
@@ -7,17 +11,26 @@
 #-----------------------------------------------------------------------------
 
 # stdlib imports
-import os
-import sys
 import imp
+import json
+import os
 import re
+import sys
 import webbrowser
+from threading import Thread
 
 # System library imports
 from IPython.external.qt import QtGui,QtCore
 
+from IPython.core.magic import magic_escapes
+
+def background(f):
+    """call a function in a simple thread, to prevent blocking"""
+    t = Thread(target=f)
+    t.start()
+    return t
+
 # local imports
-from qtkernelmanager import QtKernelManager
 from treeview import NXTreeView
 from plotview import NXPlotView
 from datadialogs import *
@@ -25,7 +38,8 @@ from nexpy.api.nexus.tree import nxload, NeXusError
 from nexpy.api.nexus.tree import NXgroup, NXfield, NXroot, NXentry, NXdata
 
 # IPython imports
-from IPython.frontend.qt.console.ipython_widget import IPythonWidget
+from IPython.qt.console.rich_ipython_widget import RichIPythonWidget
+from IPython.qt.inprocess import QtInProcessKernelManager
 
 #-----------------------------------------------------------------------------
 # Classes
@@ -37,13 +51,18 @@ class MainWindow(QtGui.QMainWindow):
     # 'object' interface
     #---------------------------------------------------------------------------
 
-    def __init__(self, app, tree, confirm_exit, config=None):
+    _magic_menu_dict = {}
+
+
+    def __init__(self, app, tree, confirm_exit=True, config=None):
         """ Create a MainWindow for the application
         
         Parameters
         ----------
         
         app : reference to QApplication parent
+        confirm_exit : bool, optional
+            Whether we should prompt on close of tabs
         """
 
         super(MainWindow, self).__init__()
@@ -62,14 +81,25 @@ class MainWindow(QtGui.QMainWindow):
         self.plotview = NXPlotView(label="Main",parent=rightpane)
         self.plotview.setMinimumSize(700, 600)
 
-        self.console = IPythonWidget(config=self.config, parent=rightpane)
+        self.console = RichIPythonWidget(config=self.config, parent=rightpane)
         self.console.setMinimumSize(700, 200)
         self.console.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Fixed)
         self.console._confirm_exit = self.confirm_exit
         self.console.gui_completion = 'droplist'
-        self.console.kernel_manager = QtKernelManager(config=self.config)
+        self.console.kernel_manager = QtInProcessKernelManager(config=self.config)
         self.console.kernel_manager.start_kernel()
-        self.console.kernel_manager.start_channels()
+        self.console.kernel_manager.kernel.gui = 'qt4'
+        self.console.kernel_client = self.console.kernel_manager.client()
+        self.console.kernel_client.start_channels()
+
+        def stop():
+            self.console.kernel_client.stop_channels()
+            self.console.kernel_manager.shutdown_kernel()
+            app.exit()
+
+        self.console.exit_requested.connect(stop)
+        self.console.show()
+
         self.shell = self.console.kernel_manager.kernel.shell
         self.user_ns = self.console.kernel_manager.kernel.shell.user_ns
 
@@ -629,62 +659,97 @@ class MainWindow(QtGui.QMainWindow):
 
         Notes
         -----
-        `fun` execute `magic` the console at the moment it is triggerd,
-        not the console at the moment it has been created.
+        `fun` execute `magic` the console at the moment it is triggered,
+        not the console at the moment it was created.
 
         This function is mostly used to create the "All Magics..." Menu at run time.
         """
-        # need to level nested function  to be sure to past magic
-        # on console **at run time**.
+        # need two level nested function to be sure to pass magic
+        # to active console **at run time**.
         def inner_dynamic_magic():
             self.console.execute(magic)
         inner_dynamic_magic.__name__ = "dynamics_magic_s"
         return inner_dynamic_magic
 
-    def populate_all_magic_menu(self, listofmagic=None):
-        """Clean "All Magics..." menu and repopulate it with `listofmagic`
+    def populate_all_magic_menu(self, display_data=None):
+        """Clean "All Magics..." menu and repopulate it with `display_data`
 
         Parameters
         ----------
-        listofmagic : string,
-            repr() of a list of strings, send back by the kernel
+        display_data : dict,
+            dict of display_data for the magics dict of a MagicsManager.
+            Expects json data, as the result of %lsmagic
 
-        Notes
-        -----
-        `listofmagic`is a repr() of list because it is fed with the result of
-        a 'user_expression'
         """
-        alm_magic_menu = self.all_magic_menu
-        alm_magic_menu.clear()
-
-        # list of protected magic that don't like to be called without argument
-        # append '?' to the end to print the docstring when called from the menu
-        protected_magic = set(["more","less","load_ext","pycat","loadpy","save"])
-        magics=re.findall('\w+', listofmagic)
-        for magic in magics:
-            if magic in protected_magic:
-                pmagic = '%s%s%s'%('%',magic,'?')
-            else:
-                pmagic = '%s%s'%('%',magic)
-            xaction = QtGui.QAction(pmagic,
-                self,
-                triggered=self._make_dynamic_magic(pmagic)
-                )
-            alm_magic_menu.addAction(xaction)
+        for k,v in self._magic_menu_dict.items():
+            v.clear()
+        self.all_magic_menu.clear()
+        
+        if not display_data:
+            return
+        
+        if display_data['status'] != 'ok':
+            self.log.warn("%%lsmagic user-expression failed: %s" % display_data)
+            return
+        
+        mdict = json.loads(display_data['data'].get('application/json', {}))
+        
+        for mtype in sorted(mdict):
+            subdict = mdict[mtype]
+            prefix = magic_escapes[mtype]
+            for name in sorted(subdict):
+                mclass = subdict[name]
+                magic_menu = self._get_magic_menu(mclass)
+                pmagic = prefix + name
+                
+                # Adding seperate QActions is needed for some window managers
+                xaction = QtGui.QAction(pmagic,
+                    self,
+                    triggered=self._make_dynamic_magic(pmagic)
+                    )
+                xaction_all = QtGui.QAction(pmagic,
+                    self,
+                    triggered=self._make_dynamic_magic(pmagic)
+                    )
+                magic_menu.addAction(xaction)
+                self.all_magic_menu.addAction(xaction_all)
 
     def update_all_magic_menu(self):
-        """ Update the list on magic in the "All Magics..." Menu
+        """ Update the list of magics in the "All Magics..." Menu
 
-        Request the kernel with the list of availlable magic and populate the
+        Request the kernel with the list of available magics and populate the
         menu with the list received back
 
         """
-        # first define a callback which will get the list of all magic and put it in the menu.
-        self.console._silent_exec_callback('get_ipython().lsmagic()', self.populate_all_magic_menu)
+        self.console._silent_exec_callback('get_ipython().magic("lsmagic")',
+                self.populate_all_magic_menu)
+
+    def _get_magic_menu(self,menuidentifier, menulabel=None):
+        """return a submagic menu by name, and create it if needed
+       
+        parameters:
+        -----------
+
+        menulabel : str
+            Label for the menu
+
+        Will infere the menu name from the identifier at creation if menulabel not given.
+        To do so you have too give menuidentifier as a CamelCassedString
+        """
+        menu = self._magic_menu_dict.get(menuidentifier,None)
+        if not menu :
+            if not menulabel:
+                menulabel = re.sub("([a-zA-Z]+)([A-Z][a-z])","\g<1> \g<2>",menuidentifier)
+            menu = QtGui.QMenu(menulabel,self.magic_menu)
+            self._magic_menu_dict[menuidentifier]=menu
+            self.magic_menu.insertMenu(self.magic_menu_separator,menu)
+        return menu
 
     def init_magic_menu(self):
         self.magic_menu = self.menuBar().addMenu("&Magic")
-        self.all_magic_menu = self.magic_menu.addMenu("&All Magics")
+        self.magic_menu_separator = self.magic_menu.addSeparator()
+        
+        self.all_magic_menu = self._get_magic_menu("AllMagics", menulabel="&All Magics...")
 
         # This action should usually not appear as it will be cleared when menu
         # is updated at first kernel response. Though, it is necessary when
@@ -694,12 +759,12 @@ class MainWindow(QtGui.QMainWindow):
             self, triggered=self.update_all_magic_menu)
         self.add_menu_action(self.all_magic_menu, self.pop)
         # we need to populate the 'Magic Menu' once the kernel has answer at
-        # least once let's do it immedialy, but it's assured to works
+        # least once let's do it immediately, but it's assured to works
         self.pop.trigger()
 
         self.reset_action = QtGui.QAction("&Reset",
             self,
-            statusTip="Clear all varible from workspace",
+            statusTip="Clear all variables from workspace",
             triggered=self.reset_magic_console)
         self.add_menu_action(self.magic_menu, self.reset_action)
 
@@ -717,19 +782,19 @@ class MainWindow(QtGui.QMainWindow):
 
         self.who_action = QtGui.QAction("&Who",
             self,
-            statusTip="List interactive variable",
+            statusTip="List interactive variables",
             triggered=self.who_magic_console)
         self.add_menu_action(self.magic_menu, self.who_action)
 
         self.who_ls_action = QtGui.QAction("Wh&o ls",
             self,
-            statusTip="Return a list of interactive variable",
+            statusTip="Return a list of interactive variables",
             triggered=self.who_ls_magic_console)
         self.add_menu_action(self.magic_menu, self.who_ls_action)
 
         self.whos_action = QtGui.QAction("Who&s",
             self,
-            statusTip="List interactive variable with detail",
+            statusTip="List interactive variables with details",
             triggered=self.whos_magic_console)
         self.add_menu_action(self.magic_menu, self.whos_action)
 
@@ -768,8 +833,8 @@ class MainWindow(QtGui.QMainWindow):
         # please keep the Help menu in Mac Os even if empty. It will
         # automatically contain a search field to search inside menus and
         # please keep it spelled in English, as long as Qt Doesn't support
-        # a QAction.MenuRole like HelpMenuRole otherwise it will loose
-        # this search field fonctionality
+        # a QAction.MenuRole like HelpMenuRole otherwise it will lose
+        # this search field functionality
 
         self.help_menu = self.menuBar().addMenu("&Help")
         
@@ -837,6 +902,26 @@ class MainWindow(QtGui.QMainWindow):
             if sys.platform == 'darwin':
                 self.maximizeAct.setEnabled(True)
                 self.minimizeAct.setEnabled(True)
+
+    def set_paging_console(self, paging):
+        self.console._set_paging(paging)
+
+    def restart_kernel_console(self):
+        self.console.request_restart_kernel()
+
+    def interrupt_kernel_console(self):
+        self.console.request_interrupt_kernel()
+
+    def toggle_confirm_restart_console(self):
+        widget = self.console
+        widget.confirm_restart = not widget.confirm_restart
+        self.confirm_restart_kernel_action.setChecked(widget.confirm_restart)
+
+    def update_restart_checkbox(self):
+        if self.console is None:
+            return
+        widget = self.console
+        self.confirm_restart_kernel_action.setChecked(widget.confirm_restart)
 
     def cut_console(self):
         widget = self.console
