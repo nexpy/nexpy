@@ -472,7 +472,7 @@ class FitDialog(QtGui.QDialog):
 
         from nexpy.gui.plotview import NXPlotView, plotview, change_plotview
         self.plotview = NXPlotView(label="Fit")
-        self.plotview.setMinimumSize(600,300)
+        self.plotview.setMinimumSize(700,300)
         self.plotview.setMaximumSize(1200,500)
         plotview = change_plotview("Fit")
         self.data.plot()
@@ -569,13 +569,16 @@ class FitDialog(QtGui.QDialog):
 
         scrollArea = QtGui.QScrollArea()
         scrollArea.setWidgetResizable(True)
-        widget = QtGui.QWidget()
-        widget.setMinimumWidth(700)
+        self.scroll_widget = QtGui.QWidget()
+        self.scroll_widget.setMinimumWidth(800)
+        self.scroll_widget.setMaximumHeight(800)
+        self.scroll_widget.setSizePolicy(QtGui.QSizePolicy.Expanding, 
+                                         QtGui.QSizePolicy.Expanding)
         self.layout = QtGui.QVBoxLayout()
         self.layout.addLayout(function_layout)
         self.layout.addWidget(button_box)
-        widget.setLayout(self.layout)
-        scrollArea.setWidget(widget)
+        self.scroll_widget.setLayout(self.layout)
+        scrollArea.setWidget(self.scroll_widget)
         layout = QtGui.QVBoxLayout()
         layout.addWidget(self.plotview)
         layout.addWidget(scrollArea)
@@ -673,6 +676,7 @@ class FitDialog(QtGui.QDialog):
         self.guess_parameters()
         self.add_function_rows(f)
         self.write_parameters()
+        self.scroll_widget.adjustSize()
  
     def index_parameters(self):
         np = 0
