@@ -381,9 +381,9 @@ example of a module that reads the original format and returns NeXus data::
      from libtiff import TIFF
      im = TIFF.open(filename)
      z = im.read_image()
-     x = range(z.shape[0])
-     y = range(z.shape[1])     
-     return NXentry(NXdata(z,(x,y)))
+     y = range(z.shape[0])     
+     x = range(z.shape[1])
+     return NXentry(NXdata(z,(y,x)))
 
 This could be run in the shell pane and then added to the tree using::
 
@@ -442,9 +442,9 @@ Here is an example of an import dialog::
          from libtiff import TIFF
          im = TIFF.open(self.get_filename())
          z = NXfield(im.read_image(), name='z')
-         x = NXfield(range(z.shape[0]), name='x')
-         y = NXfield(range(z.shape[1]), name='y')      
-         return NXentry(NXdata(z,(x,y)))
+         y = NXfield(range(z.shape[0]), name='y')      
+         x = NXfield(range(z.shape[1]), name='x')
+         return NXentry(NXdata(z,(y,x)))
 
 .. seealso:: See :class:`nexpy.gui.importdialog.BaseImportDialog` for other
              pre-defined import methods.
