@@ -41,3 +41,6 @@ nosetests.xml
 .Spotlight-V100
 .Trashes
 Icon?
+
+# PyCharm Files
+.idea
