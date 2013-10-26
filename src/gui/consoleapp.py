@@ -40,17 +40,16 @@ from IPython.core.application import BaseIPythonApplication
 from IPython.core.profiledir import ProfileDir
 from IPython.lib import guisupport
 from IPython.lib.kernel import tunnel_to_kernel, find_connection_file
-from IPython.frontend.qt.console.frontend_widget import FrontendWidget
-from IPython.frontend.qt.console.ipython_widget import IPythonWidget
-from IPython.frontend.qt.console.rich_ipython_widget import RichIPythonWidget
-from IPython.frontend.qt.console import styles
+from IPython.qt.console.ipython_widget import IPythonWidget
+from IPython.qt.console.rich_ipython_widget import RichIPythonWidget
+from IPython.qt.console import styles
 from IPython.utils.path import filefind
 from IPython.utils.py3compat import str_to_bytes
 from IPython.utils.traitlets import (
     Dict, List, Unicode, Integer, CaselessStrEnum, CBool, Any
 )
 
-from IPython.frontend.consoleapp import (
+from IPython.consoleapp import (
         IPythonConsoleApp, app_aliases, app_flags, flags, aliases
     )
 
