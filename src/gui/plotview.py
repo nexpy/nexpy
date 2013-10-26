@@ -18,7 +18,6 @@ from matplotlib.figure import Figure
 from matplotlib.image import NonUniformImage
 from matplotlib.colors import LogNorm, Normalize
 import matplotlib.backends.qt4_editor.figureoptions as figureoptions
-import matplotlib._image as _image
 import matplotlib.pyplot as plt
 
 from nexpy.api.nexus import NXfield, NXdata, NXroot
@@ -97,8 +96,8 @@ class NXFigureManager(FigureManager):
 
         def notify_axes_change( fig ):
            # This will be called whenever the current axes is changed
-           if self.canvas.toolbar is not None:
-               self.canvas.toolbar.update()
+            if self.canvas.toolbar is not None:
+                self.canvas.toolbar.update()
         self.canvas.figure.add_axobserver( notify_axes_change )
 
 class NXPlotView(QtGui.QWidget):
@@ -1423,18 +1422,18 @@ class NXNavigationToolbar(NavigationToolbar):
         self.release(event)
 
     def _update_view(self):
-         super(NXNavigationToolbar, self)._update_view()
-         lims = self._views()
-         if lims is None: return
-         xmin, xmax, ymin, ymax = lims[0]
-         self.plotview.xtab.axis.set_limits(xmin, xmax)
-         self.plotview.xtab.minbox.setValue(xmin)
-         self.plotview.xtab.maxbox.setValue(xmax)
-         self.plotview.xtab.set_sliders(xmin, xmax)
-         self.plotview.ytab.axis.set_limits(ymin, ymax)
-         self.plotview.ytab.minbox.setValue(ymin)
-         self.plotview.ytab.maxbox.setValue(ymax)
-         self.plotview.ytab.set_sliders(ymin, ymax)
+        super(NXNavigationToolbar, self)._update_view()
+        lims = self._views()
+        if lims is None: return
+        xmin, xmax, ymin, ymax = lims[0]
+        self.plotview.xtab.axis.set_limits(xmin, xmax)
+        self.plotview.xtab.minbox.setValue(xmin)
+        self.plotview.xtab.maxbox.setValue(xmax)
+        self.plotview.xtab.set_sliders(xmin, xmax)
+        self.plotview.ytab.axis.set_limits(ymin, ymax)
+        self.plotview.ytab.minbox.setValue(ymin)
+        self.plotview.ytab.maxbox.setValue(ymax)
+        self.plotview.ytab.set_sliders(ymin, ymax)
 
 #    def set_cursor( self, cursor ):
 #        pass
