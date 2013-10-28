@@ -961,8 +961,9 @@ class NXobject(object):
         elif isinstance(self.nxgroup, NXroot):
             return "/" + self.nxname
         else:
-            if self.nxgroup._getpath():
-                return self.nxgroup._getpath()+"/"+self.nxname
+            group_path = self.nxgroup._getpath()
+            if group_path:
+                return group_path+"/"+self.nxname
             else:
                 return self.nxname
 
