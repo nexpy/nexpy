@@ -189,6 +189,7 @@ class NXPlotView(QtGui.QWidget):
         global plotview
         plotview = self
         Gcf.set_active(self.figuremanager)
+        plotview.show()
 
     def add_menu_activation(self):
         self.activate_action=QtGui.QAction("Make '%s' active" % self.label,
@@ -685,7 +686,7 @@ class NXPlot(object):
             self.xaxis.set_limits(self.xaxis.min, self.xaxis.max)
             self.yaxis.set_limits(self.yaxis.min, self.yaxis.max)
             self.zaxis.set_limits(self.zaxis.min, self.zaxis.min)
-            axes = [self.xaxis.dim,self.yaxis.dim]
+            axes = [self.yaxis.dim, self.xaxis.dim]
             limits = []
             for axis in self.axes:
                 if self.axis[axis.nxname].dim in axes: 
@@ -1206,7 +1207,7 @@ class NXProjectionTab(QtGui.QWidget):
             axis = [x]
         else:
             y = self.get_axes().index(self.yaxis)
-            axis = [x,y]
+            axis = [y,x]
         limits = [(self.plotview.plot.axis[name].lo, 
                    self.plotview.plot.axis[name].hi) 
                     for name in self.get_axes()]
@@ -1218,7 +1219,7 @@ class NXProjectionTab(QtGui.QWidget):
             axis = [x]
         else:
             y = self.get_axes().index(self.yaxis)
-            axis = [x,y]
+            axis = [y,x]
         limits = [(self.plotview.plot.axis[name].lo, 
                    self.plotview.plot.axis[name].hi) 
                     for name in self.get_axes()]
