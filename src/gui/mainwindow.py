@@ -841,6 +841,16 @@ class MainWindow(QtGui.QMainWindow):
 
         # Help Menu
 
+        self.nexpyHelpAct = QtGui.QAction("Open NeXpy &Help Online",
+            self,
+            triggered=self._open_nexpy_online_help)
+        self.add_menu_action(self.help_menu, self.nexpyHelpAct)
+
+        self.ipythonHelpAct = QtGui.QAction("Open iPython Help Online",
+            self,
+            triggered=self._open_ipython_online_help)
+        self.add_menu_action(self.help_menu, self.ipythonHelpAct)
+
         self.intro_console_action = QtGui.QAction("&Intro to IPython",
             self,
             triggered=self.intro_console
@@ -859,11 +869,6 @@ class MainWindow(QtGui.QMainWindow):
             )
         self.add_menu_action(self.help_menu, self.guiref_console_action)
 
-        self.onlineHelpAct = QtGui.QAction("Open Online &Help",
-            self,
-            triggered=self._open_online_help)
-        self.add_menu_action(self.help_menu, self.onlineHelpAct)
-
     # minimize/maximize/fullscreen actions:
 
     def toggle_menu_bar(self):
@@ -879,7 +884,11 @@ class MainWindow(QtGui.QMainWindow):
         else:
             self.showNormal()
 
-    def _open_online_help(self):
+    def _open_nexpy_online_help(self):
+        filename="http://nexpy.github.io/nexpy/"
+        webbrowser.open(filename, new=1, autoraise=True)
+
+    def _open_ipython_online_help(self):
         filename="http://ipython.org/ipython-doc/stable/index.html"
         webbrowser.open(filename, new=1, autoraise=True)
 
