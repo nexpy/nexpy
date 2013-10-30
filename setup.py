@@ -14,5 +14,5 @@ setup (name = "NeXpy", version = "0.1",
                    'nexpy.api.frills', 'nexpy.api.frills.functions',
                    'nexpy.gui', 'nexpy.readers'],
        package_data = {'nexpy': ['gui/resources/icon/*.svg','examples/*.nxs']},
-       scripts = ['scripts/nexpy'],
+       scripts = ['scripts/nexpy', 'scripts/merge-tiffs'],
       )
