@@ -2477,7 +2477,7 @@ class NXgroup(NXobject):
                 limits = get_limits(result)
             except IndexError:
                 pass
-        if len(axes) > 1 and axes[0] > axes[1]:
+        if len(axes) > 1 and axes[1] > axes[0]:
             result.nxsignal = result.nxsignal.transpose()
             if result.nxerrors:
                 result["errors"] = result["errors"].transpose()            
