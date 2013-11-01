@@ -2,7 +2,6 @@
 
 import os, getopt, glob, sys, timeit
 import numpy as np
-from libtiff import TIFF
 from nexpy.api.nexus import *
 
 def get_files(directory, prefix, extension):
@@ -13,13 +12,26 @@ def get_files(directory, prefix, extension):
     return sorted(filenames,key=natural_sort)
 
 def open_nexus_file(directory, prefix, filenames):
-    im = TIFF.open(filenames[0])
-    v0 = im.read_image()
-    x = NXfield(range(v0.shape[1]), dtype=np.uint16, name='x')
-    y = NXfield(range(v0.shape[0]), dtype=np.uint16, name='y')
-    z = NXfield(range(1,len(filenames)+1), dtype=np.uint16, name='z')
-    v = NXfield(name='v',shape=(len(filenames),v0.shape[0],v0.shape[1]),
-                dtype=v0.dtype)
+    try:
+        from libtiff import TIFF
+        im = TIFF.open(filenames[0])
+        v0 = im.read_image()
+        x = NXfield(range(v0.shape[1]), dtype=np.uint16, name='x')
+        y = NXfield(range(v0.shape[0]), dtype=np.uint16, name='y')
+        z = NXfield(range(1,len(filenames)+1), dtype=np.uint16, name='z')
+        v = NXfield(name='v',shape=(len(filenames),v0.shape[0],v0.shape[1]),
+                    dtype=v0.dtype)
+    except ImportError:
+        import Image
+        im = Image.open(filenames[0])
+        dtype = np.dtype(np.uint16)
+        if im.mode == "I;32" or im.mode == "I":
+            dtype=np.dtype(np.uint32)
+        z = NXfield(range(1,len(filenames)+1), dtype=np.uint16, name='z')
+        y = NXfield(range(im.size[1]), name='y')
+        x = NXfield(range(im.size[0]), name='x')
+        v = NXfield(name='v', shape=(len(filenames),im.size[1],im.size[0]),
+                    dtype=dtype)
     data = NXdata(v, (z,y,x))
     nexus_file = os.path.join(directory, prefix+'.nxs')
     NXroot(NXentry(data)).save(nexus_file)
@@ -28,8 +40,15 @@ def open_nexus_file(directory, prefix, filenames):
 def write_data(nexus_file, filenames):
     root = nxload(nexus_file, 'rw')
     for i in range(len(filenames)):
-        im = TIFF.open(filenames[i])
-        v = im.read_image()
+        try:
+            im = TIFF.open(filenames[i])
+            v = im.read_image()
+        except NameError:
+            im = Image.open(filenames[i])
+            dtype = np.dtype(np.uint16)
+            if im.mode == "I;32" or im.mode == "I":
+                dtype=np.dtype(np.uint32)
+            v = np.array(im.getdata(),dtype=dtype).reshape(im.size[1],im.size[0])
         root.entry.data.v.put(v, (i, 0, 0))
     root.save()
 
@@ -45,6 +64,8 @@ if __name__=="__main__":
         sys.exit(2)
     directory = './'
     extension = 'tif'
+    first = None
+    last = None
     for opt, arg in opts:
         if opt == '-h':
             print 'merge_tiffs.py prefix -d <directory> -e <extension>'
@@ -53,6 +74,10 @@ if __name__=="__main__":
             directory = arg
         elif opt in ('-e', '--extension'):
             extension = arg
+        elif opt == '-f':
+            first = arg
+        elif opt == '-l':
+            last = arg
     prefix = args[0]
     filenames = get_files(directory, prefix, extension)
     nexus_file = open_nexus_file(directory, prefix, filenames)
