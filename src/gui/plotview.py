@@ -332,20 +332,20 @@ class NXPlot(object):
 
         #Higher-dimensional plot
         else:
-            self.plotdata = NXdata(NXfield(data.nxsignal.view().reshape(self.shape),
-                                           name=data.nxsignal.nxname,
-                                           attrs=data.nxsignal.attrs),
-                                   [NXfield(axis_data[i], name=self.axes[i].nxname,
-                                            attrs=self.axes[i].attrs)
-                                    for i in range(self.ndim)],
-                                   title = self.title)
+#            self.plotdata = NXdata(NXfield(data.nxsignal.view().reshape(self.shape),
+#                                           name=data.nxsignal.nxname,
+#                                           attrs=data.nxsignal.attrs),
+#                                   [NXfield(axis_data[i], name=self.axes[i].nxname,
+#                                            attrs=self.axes[i].attrs)
+#                                    for i in range(self.ndim)],
+#                                   title = self.title)
             if self.ndim > 2:
                 dims = range(self.ndim)
                 axis = dims[-2:]
                 limits = [(axis_data[i][0], axis_data[i][0]) for i in dims[:-2]]
                 limits.append((None, None))
                 limits.append((None, None))
-                self.plotdata = self.plotdata.project(axis,limits)
+                self.plotdata = self.data.project(axis,limits)
             self.xaxis = self.axis[self.axes[-1].nxname]
             if xmin: self.xaxis.lo = xmin
             if xmax: self.xaxis.hi = xmax
