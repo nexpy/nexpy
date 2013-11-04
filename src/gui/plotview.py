@@ -279,7 +279,7 @@ class NXPlot(object):
 
         self.data = data
         self.title = data.nxtitle
-        self.shape, self.axes = self._fixaxes(data.nxsignal, data.nxaxes)
+        self.shape, self.axes = data.nxsignal.shape, data.nxaxes
         self.ndim = len(self.shape)
         axis_data = centers(self.shape, self.axes)
         i = 0
@@ -290,21 +290,17 @@ class NXPlot(object):
             self.axis[axis.nxname].dim = i
             i = i + 1
         # Find the centers of the bins for histogrammed data
-
+        self.plotdata = NXdata(data.nxsignal,
+                               [NXfield(axis_data[i], name=self.axes[i].nxname,
+                                        attrs=self.axes[i].attrs)
+                                for i in range(self.ndim)])
 
         #One-dimensional Plot
         if self.ndim == 1:
-            self.plotdata = NXdata(NXfield(data.nxsignal.view().reshape(self.shape),
-                                           name=data.nxsignal.nxname,
-                                           attrs=data.nxsignal.attrs),
-                                   NXfield(axis_data[0], name=self.axes[0].nxname,
-                                           attrs=self.axes[0].attrs),
-                                   title = self.title)
             if data.nxerrors:
-                self.plotdata.errors = NXfield(data.errors.view().reshape(self.shape))
+                self.plotdata.errors = NXfield(data.errors)
             elif hasattr(data.nxsignal, 'units') and data.nxsignal.units == 'counts':
                 self.plotdata.errors = NXfield(np.sqrt(self.plotdata.nxsignal))
-
             if over:
                 self.num = self.num + 1
             else:
@@ -332,20 +328,14 @@ class NXPlot(object):
 
         #Higher-dimensional plot
         else:
-#            self.plotdata = NXdata(NXfield(data.nxsignal.view().reshape(self.shape),
-#                                           name=data.nxsignal.nxname,
-#                                           attrs=data.nxsignal.attrs),
-#                                   [NXfield(axis_data[i], name=self.axes[i].nxname,
-#                                            attrs=self.axes[i].attrs)
-#                                    for i in range(self.ndim)],
-#                                   title = self.title)
             if self.ndim > 2:
                 dims = range(self.ndim)
                 axis = dims[-2:]
                 limits = [(axis_data[i][0], axis_data[i][0]) for i in dims[:-2]]
                 limits.append((None, None))
                 limits.append((None, None))
-                self.plotdata = self.data.project(axis,limits)
+                self.plotdata = self.plotdata.project(axis,limits)
+           
             self.xaxis = self.axis[self.axes[-1].nxname]
             if xmin: self.xaxis.lo = xmin
             if xmax: self.xaxis.hi = xmax
