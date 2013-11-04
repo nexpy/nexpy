@@ -238,8 +238,7 @@ from __future__ import with_statement
 from copy import copy, deepcopy
 
 import numpy as np
-import napi
-from napi import NeXusError
+import h5py
 
 #Memory in MB
 NX_MEMORY = 2000
@@ -263,7 +262,13 @@ nxclasses = [ 'NXroot', 'NXentry', 'NXsubentry', 'NXdata', 'NXmonitor', 'NXlog',
 
 np.set_printoptions(threshold=5)
 
-class NeXusTree(napi.NeXus):
+
+class NeXusError(Exception):
+    """NeXus Error"""
+    pass
+
+
+class NeXusTree(h5py._hl.files.File):
 
     """
     Structure-based interface to the NeXus file API.
@@ -302,14 +307,10 @@ class NeXusTree(napi.NeXus):
 
         Large datasets are not read until they are needed.
         """
-        self.open()
-        self.openpath("/")
+        self.path = '/'
         root = self._readgroup()
-        self.close()
         root._group = None
-        # Resolve links (not necessary now that link is set as a property)
-        #self._readlinks(root, root)
-        root._file = self
+        root._filename = self.filename
         return root
 
     def writefile(self, tree):
@@ -319,11 +320,12 @@ class NeXusTree(napi.NeXus):
         The file is assumed to start empty. Updating individual objects can be
         done using the napi interface, with nx.handle as the nexus file handle.
         """
-        self.open()
+        self.path = '/'
         links = []
         for entry in tree.entries.values():
             links += self._writegroup(entry, path="")
         self._writelinks(links)
+        self._setattrs()
         self.close()
 
     def readpath(self, path):
@@ -333,11 +335,9 @@ class NeXusTree(napi.NeXus):
         Returns a numpy array containing the data, a python scalar, or a
         string depending on the shape and storage class.
         """
-        self.open()
-        self.openpath(path)
         try:
-            return self.getdata()
-        except ValueError:
+            return self[path].value
+        except KeyError:
             return None
 
     def _readdata(self, name):
@@ -346,93 +346,81 @@ class NeXusTree(napi.NeXus):
         """
         # Finally some data, but don't read it if it is big
         # Instead record the location, type and size
-        self.opendata(name)
-        attrs={}
-        attrs = self.getattrs()
+        name = self[self.path].name
+        attrs = dict(self[self.path].attrs)
         if 'target' in attrs and attrs['target'] != self.path:
             # This is a linked dataset; don't try to load it.
             data = NXlinkfield(target=attrs['target'], name=name)
         else:
-            dims,type = self.getinfo()
+            shape, dtype = self[self.path].shape, self[self.path].dtype
             #Read in the data if it's not too large
-            if np.prod(dims) < 1000:# i.e., less than 1k dims
+            if np.prod(shape) < 1000:# i.e., less than 1k dims
                 try:
-                    value = self.getdata()
+                    value = self[self.path].value
                 except ValueError:
                     value = None
             else:
                 value = None
-            data = NXfield(value=value,name=name,dtype=type,shape=dims,attrs=attrs)
+            data = NXfield(value=value,name=name,dtype=dtype,shape=shape,attrs=attrs)
+        data._filename = self.file.filename
         data._filepath = self.path
         data._saved = data._changed = True
-        self.closedata()
         return data
 
     # These are groups that HDFView explicitly skips
     _skipgroups = ['CDF0.0','_HDF_CHK_TBL_','Attr0.0','RIG0.0','RI0.0',
                    'RIATTR0.0N','RIATTR0.0C']
 
-    def _readchildren(self,n):
+    def _readchildren(self):
         children = {}
-        for _item in range(n):
-            name,nxclass = self.getnextentry()
+        for name, value in self[self.path].items():
+            self.path = value.name
+            if 'NX_class' in value.attrs:
+                nxclass = value.attrs['NX_class']
+            else:
+                nxclass = None
             if nxclass in self._skipgroups:
                 pass # Skip known bogus classes
-            elif nxclass == 'SDS': # NXgetnextentry returns 'SDS' as the class for NXfields
-                children[name] = self._readdata(name)
-            else:
-                self.opengroup(name,nxclass)
+            elif nxclass:
                 children[name] = self._readgroup()
-                self.closegroup()
+            else:
+                children[name] = self._readdata(name)
         return children
 
     def _readgroup(self):
         """
-        Reads the currently open group and returns it as an NXgroup.
+        Reads the group with the current path and returns it as an NXgroup.
         """
-        n,name,nxclass = self.getgroupinfo()
-        attrs = {}
-        attrs = self.getattrs()
+        name = self[self.path].name
+        attrs = dict(self[self.path].attrs)
+        if 'NX_class' in attrs:
+            nxclass = attrs['NX_class']
+        elif self.path == '/':
+            nxclass = 'NXroot'
+        else:
+            nxclass = 'NXgroup'
         if 'target' in attrs and attrs['target'] != self.path:
             # This is a linked group; don't try to load it.
             group = NXlinkgroup(target=attrs['target'], name=name)
         else:
-            children = self._readchildren(n)
-            # If we are subclassed with a handler for the particular
-            # NXentry class name use that constructor for the group
-            # rather than the generic NXgroup class.
+            children = self._readchildren()
             group = NXgroup(nxclass=nxclass,name=name,attrs=attrs,entries=children)
             # Build chain back structure
             for obj in children.values():
                 obj._group = group
+        group._filename = self.file.filename
         group._filepath = self.path
         group._saved = group._changed = True
         return group
 
-    def _readlinks(self, root, group):
-        """
-        Converts linked objects into direct references.
-        """
-        for entry in group.entries.values():
-            if isinstance(entry, NXlink):
-                link = root
-                try:
-                    for level in entry._target[1:].split('/'):
-                        link = getattr(link,level)
-                    entry.nxlink = link
-                except AttributeError:
-                    pass
-            elif isinstance(entry, NXgroup):
-                self._readlinks(root, entry)
-
     def _writeattrs(self, attrs):
         """
-        Returns the attributes for the currently open group/data.
+        Returns the attributes for the group/data with the current path.
 
         If no group or data object is open, the file attributes are returned.
         """
         for name,pair in attrs.iteritems():
-            self.putattr(name,pair.nxdata,pair.dtype)
+            self[self.path].attrs[name] = pair.nxdata.astype(pair.dtype)
 
     def _writedata(self, data, path):
         """
@@ -452,28 +440,13 @@ class NeXusTree(napi.NeXus):
         shape = data.shape
         if shape == (): shape = (1,)
 
-        #If the array size is too large, their product needs a long integer
-        if np.prod(shape) > 10000:
-            # Compress the fastest moving dimension of large datasets
-            slab_dims = np.ones(len(shape),'i')
-            if shape[-1] < 100000:
-                slab_dims[-1] = shape[-1]
-            else:
-                slab_dims[-1] = 100000
-            self.compmakedata(data.nxname, data.dtype, shape, 'lzw', slab_dims)
-        else:
-            # Don't use compression for small datasets
-            try:
-                self.makedata(data.nxname, data.dtype, shape)
-            except StandardError as errortype:
-                print "Error in tree, makedata: ", errortype
-
-        self.opendata(data.nxname)
-        self._writeattrs(data.attrs)
         value = data.nxdata
         if value is not None:
-            self.putdata(data.nxdata)
-        self.closedata()
+            self[self.path].create_dataset(data.nxname, value, chunks=True)
+        else:
+            self[self.path].create_dataset(data.nxname, data.shape, data.dtype, 
+                                      chunks=True)
+        self._writeattrs(data.attrs)
         return []
 
     def _writegroup(self, group, path):
@@ -487,8 +460,9 @@ class NeXusTree(napi.NeXus):
         path = path + "/" + group.nxname
 
         links = []
-        self.makegroup(group.nxname, group.nxclass)
-        self.opengroup(group.nxname, group.nxclass)
+        self[self.path] = self.create_group(group.nxname)
+        if group.nxclass and group.nxclass <> 'NXgroup':
+            self[self.path].attrs['NX_class'] = group.nxclass
         self._writeattrs(group.attrs)
         if hasattr(group, '_target'):
             links += [(path, group._target)]
@@ -499,7 +473,6 @@ class NeXusTree(napi.NeXus):
                 links += [(path+"/"+child.nxname,child._target)]
             else:
                 links += self._writegroup(child,path)
-        self.closegroup()
         return links
 
     def _writelinks(self, links):
@@ -508,31 +481,19 @@ class NeXusTree(napi.NeXus):
 
         These are defined by the set of pairs returned by _writegroup.
         """
-        gid = {}
-
-        # identify targets
-        for path,target in links:
-            gid[target] = None
-
-        # find gids for targets
-        for target in gid.iterkeys():
-            self.openpath(target)
-            # Can't tell from the name if we are linking to a group or
-            # to a dataset, so cheat and rely on getdataID to signal
-            # an error if we are not within a group.
-            try:
-                gid[target] = self.getdataID()
-            except NeXusError:
-                gid[target] = self.getgroupID()
-
         # link sources to targets
         for path,target in links:
             if path != target:
                 # ignore self-links
                 parent = "/".join(path.split("/")[:-1])
-                self.openpath(parent)
-                self.makelink(gid[target])
+                self[self.path] = h5py.SoftLink(target)
 
+    def _setattrs(self):
+        from datetime import datetime
+        self.attrs['file_time'] = datetime.now().isoformat()
+        self.attrs['NeXus_version'] = '4.3.0'
+        self.attrs['HDF5_Version'] = h5py.version.hdf5_version
+        self.attrs['h5py_version'] = h5py.version.version
 
 def _readaxes(axes):
     """
@@ -728,7 +689,7 @@ class NXobject(object):
     _class = "unknown"
     _name = "unknown"
     _group = None
-    _file = None
+    _filename = None
     _filepath = None
     _saved = False
     _changed = True
@@ -807,32 +768,6 @@ class NXobject(object):
         """
         return self._str_tree(attrs=True,recursive=True)
 
-    def __enter__(self):
-        """
-        Opens the datapath for reading or writing.
-
-        Note: the results are undefined if you try accessing
-        more than one slab at a time.  Don't nest your
-        "with data" statements!
-        """
-        self._close_on_exit = not self.nxfile.isopen
-        self.nxfile.open() # Force file open even if closed
-        if self._filepath:
-            self.nxfile.openpath(self._filepath)
-        else:
-            self.nxfile.openpath(self.nxpath)
-            self._filepath = self.nxpath
-        self._incontext = True
-        return self.nxfile
-
-    def __exit__(self, type, value, traceback):
-        """
-        Closes the file associated with the data.
-        """
-        self._incontext = False
-        if self._close_on_exit:
-            self.nxfile.close()
-
     def rename(self, name):
         self.nxname = name
 
@@ -887,7 +822,7 @@ class NXobject(object):
             file.close()
 
             root._file = NeXusTree(filename, 'rw')
-            root._setattrs(root._file.getattrs())
+            root._setattrs()
             for node in root.walk():
                 node._filepath = node.nxpath
                 node._saved = True
@@ -979,10 +914,10 @@ class NXobject(object):
             return self.nxgroup._getroot()
 
     def _getfile(self):
-        return self.nxroot._file
+        return h5py.File(self._filename)
 
     def _getfilename(self):
-        return self.nxroot._file.filename
+        return self._filename
 
     def _getattrs(self):
         return self._attrs
@@ -1257,7 +1192,10 @@ class NXfield(NXobject):
             elif isinstance(dtype, str) and dtype in np.typeDict:
                 self._dtype = np.dtype(dtype)
             elif isinstance(dtype, np.dtype):
-                self._dtype = dtype
+                if dtype.char == 'S':
+                    self._dtype = 'char'
+                else:
+                    self._dtype = dtype
             elif np.issubdtype(dtype, np.generic):
                 self._dtype = np.dtype(dtype)
             else:
@@ -1333,29 +1271,10 @@ class NXfield(NXobject):
         index = convert_index(index,self)
         if len(self) == 1:
             result = self
-        elif self._value is not None:
-            result = self.nxdata.__getitem__(index)
+        elif self._value is None:
+            result = self.nxfile[self.nxfilepath].__getitem__(index)
         else:
-            offset = np.zeros(len(self.shape),dtype=int)
-            size = np.array(self.shape)
-            if isinstance(index, int):
-                offset[0] = index
-                size[0] = 1
-            else:
-                if isinstance(index, slice): index = [index]
-                i = 0
-                for ind in index:
-                    if isinstance(ind, int):
-                        offset[i] = ind
-                        size[i] = 1
-                    else:
-                        if ind.start: offset[i] = ind.start
-                        if ind.stop: size[i] = ind.stop - offset[i]
-                    i = i + 1
-            try:
-                result = self.get(offset, size)
-            except ValueError:
-                result = self.nxdata.__getitem__(index)
+            result = self.nxdata.__getitem__(index)
         return NXfield(result, name=self.nxname, attrs=self.attrs)
 
     def __setitem__(self, index, value):
@@ -1566,23 +1485,21 @@ class NXfield(NXobject):
         case, the data have to be read in as slabs using the get method.
         """
         if self.nxfile:
-            with self as path:
-                self._setattrs(path.getattrs())
-                shape, dtype = path.getinfo()
-                if dtype == 'char':
-                    self._value = path.getdata()
-                elif np.prod(shape) * np.dtype(dtype).itemsize <= NX_MEMORY*1024*1024:
-                    self._value = path.getdata()
-                else:
-                    raise MemoryError('Data size larger than NX_MEMORY=%s MB' % NX_MEMORY)
-                self._shape = tuple(shape)
-                self._dtype = dtype
-                if dtype == 'char':
-                    self._dtype = 'char'
-                elif dtype in np.typeDict:
-                    self._dtype = np.dtype(dtype)
-                self._saved = True
-                self.set_changed()
+            self.nxfile[nxfilepath]
+            shape = self.nxfile[nxfilepath].shape
+            dtype = self.nxfile[nxfilepath].dtype
+            if np.prod(shape) * np.dtype(dtype).itemsize <= NX_MEMORY*1024*1024:
+                self._value = self.nxfile.readpath(self.nxfilepath)
+            else:
+                raise MemoryError('Data size larger than NX_MEMORY=%s MB' % NX_MEMORY)
+            self._shape = tuple(shape)
+            self._dtype = dtype
+            if dtype == 'char':
+                self._dtype = 'char'
+            elif dtype in np.typeDict:
+                self._dtype = np.dtype(dtype)
+            self._saved = True
+            self.set_changed()
         else:
             raise IOError("Data is not attached to a file")
 
@@ -1593,12 +1510,11 @@ class NXfield(NXobject):
         if not self.saved and self.nxfile:
             if self.nxfile.mode == napi.ACC_READ:
                 raise NeXusError("NeXus file is readonly")
-            if self._filepath:
-                if self.nxpath <> self._filepath:
+            if self.nxfilepath:
+                if self.nxpath <> self.nxfilepath:
                     raise NeXusError("Cannot rename data previously saved in a file")
-                with self as path:
-                    shape, dtype = path.getinfo()
-                shape = tuple(shape)
+                shape = self.nxfile[nxfilepath].shape
+                dtype = self.nxfile[nxfilepath].dtype
                 if dtype != str(self.dtype):
                     raise NeXusError('Type of %s does not match previously saved value'
                                      %self.nxpath)
@@ -1619,16 +1535,15 @@ class NXfield(NXobject):
                             slab_dims[-1] = shape[-1]
                         else:
                             slab_dims[-1] = 100000
-                        path.compmakedata(self.nxname, self.dtype, shape, 'lzw', 
+                        self.nxfile(self.nxname, self.dtype, shape, 'lzw', 
                                           slab_dims)
                     else:
                     # Don't use compression for small datasets
                         path.makedata(self.nxname, self.dtype, shape)
                 self._filepath = self.nxpath
-            with self as path:
-                path._writeattrs(self.attrs)
-                path.putdata(self.nxdata)
-                self._saved = True
+            self.nxfile[self.nxfilepath]._writeattrs(self.attrs)
+            self.nxfile[self.nxfilepath] = self.nxdata
+            self._saved = True
         elif not self.saved:
             raise IOError("Data is not attached to a file")
 
@@ -1642,9 +1557,10 @@ class NXfield(NXobject):
         Corresponds to NXgetslab(handle,data,offset,shape)
         """
         if self.nxfile:
-            with self as path:
-                value = path.getslab(offset,size)
-                return value
+            index = []
+            for i in range(len(offset)):
+                index.append((offset[i],offset[i]+size[i]))   
+            return self.nxfile[nxfilepath].__getitem__(tuple(index))
         else:
             raise IOError("Data is not attached to a file")
 
@@ -1660,15 +1576,18 @@ class NXfield(NXobject):
         if self.nxfile:
             if self.nxfile.mode == napi.ACC_READ:
                 raise NeXusError("NeXus file is readonly")
-            with self as path:
-                if isinstance(data, NXfield):
-                    path.putslab(data.nxdata.astype(self.dtype), offset, data.shape)
-                else:
-                    data = np.array(data)
-                    ndim = data.ndim
-                    for dim in range(self.ndim-ndim):
-                        data=np.expand_dims(data,0)                    
-                    path.putslab(data.astype(self.dtype), offset, data.shape)
+            index = []
+            for i in range(len(offset)):
+                index.append(offset[i],offset[i]+data.shape[i])
+            index = tuple(index)  
+            if isinstance(data, NXfield):
+                self.nxfile[nxfilepath][index] = data.nxdata.astype(self.dtype) 
+            else:
+                data = np.array(data)
+                ndim = data.ndim
+                for dim in range(self.ndim-ndim):
+                    data=np.expand_dims(data,0)                    
+                self.nxfile[nxfilepath][index] = data.astype(self.dtype) 
             if refresh and self._value is not None: self.read()
         else:
             raise IOError("Data is not attached to a file")
@@ -1699,7 +1618,7 @@ class NXfield(NXobject):
         """
         if self._value is not None:
             if self.nxfile:
-                self._value = self.nxfile.readpath(self._filepath)
+                self._value = self.nxfile.readpath(self.nxfilepath)
                 self._saved = True
             else:
                 raise IOError("Data is not attached to a file")
