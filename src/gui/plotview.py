@@ -279,7 +279,7 @@ class NXPlot(object):
 
         self.data = data
         self.title = data.nxtitle
-        self.shape, self.axes = data.nxsignal.shape, data.nxaxes
+        self.shape, self.axes = self._fixaxes(data.nxsignal, data.nxaxes)
         self.ndim = len(self.shape)
         axis_data = centers(self.shape, self.axes)
         i = 0
@@ -294,11 +294,14 @@ class NXPlot(object):
                                [NXfield(axis_data[i], name=self.axes[i].nxname,
                                         attrs=self.axes[i].attrs)
                                 for i in range(self.ndim)])
+        self.plotdata.nxsignal.shape = self.shape
+        self.plotdata['title'] = self.title
 
         #One-dimensional Plot
         if self.ndim == 1:
             if data.nxerrors:
                 self.plotdata.errors = NXfield(data.errors)
+                self.plotdata.errors.shape = self.shape
             elif hasattr(data.nxsignal, 'units') and data.nxsignal.units == 'counts':
                 self.plotdata.errors = NXfield(np.sqrt(self.plotdata.nxsignal))
             if over:
