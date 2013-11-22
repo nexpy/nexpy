@@ -100,7 +100,9 @@ class ImportDialog(BaseImportDialog):
                 return dataset['id']
 
     def get_member(self):
-        pass
+        print self.catalog_id, self.dataset_id
+        self.wrap.transfer_members(self.catalog_id, self.dataset_id, 
+            '/Users/rosborn/Desktop')
  
     def get_data(self):
         return NXentry()
