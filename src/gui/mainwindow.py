@@ -583,8 +583,8 @@ class MainWindow(QtGui.QMainWindow):
     def rename_data(self):
         node = self.treeview.getnode()
         if node:        
-            name, ok = QtGui.QInputDialog.getText(self, 
-                                                  'Rename Data', 'New Name:')        
+            name, ok = QtGui.QInputDialog.getText(self, 'Rename Data', 
+                           'New Name:', text=node.nxname)        
             if ok:
                 node.rename(name)
 
