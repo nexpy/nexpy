@@ -329,7 +329,7 @@ class NeXusTree(h5._hl.files.File):
         """
         # Finally some data, but don't read it if it is big
         # Instead record the location, type and size
-        attrs = dict(self[self.path].attrs)
+        attrs = self._getattrs()
         if 'target' in attrs and attrs['target'] != self.path:
             # This is a linked dataset; don't try to load it.
             data = NXlinkfield(target=attrs['target'], name=name)
@@ -363,7 +363,7 @@ class NeXusTree(h5._hl.files.File):
                 nxclass = None
             if nxclass in self._skipgroups:
                 pass # Skip known bogus classes
-            elif nxclass:
+            elif isinstance(value, h5._hl.group.Group):
                 children[name] = self._readgroup()
             else:
                 children[name] = self._readdata(name)
@@ -502,6 +502,9 @@ class NeXusTree(h5._hl.files.File):
         self.attrs['NeXus_version'] = '4.3.0'
         self.attrs['HDF5_Version'] = h5.version.hdf5_version
         self.attrs['h5py_version'] = h5.version.version
+
+    def _getattrs(self):
+        return dict(self[self.path].attrs)
 
 def _readaxes(axes):
     """
@@ -830,13 +833,14 @@ class NXobject(object):
             
             file = NeXusTree(filename, mode)
             file.writefile(root)
+            root._filename = file.filename
+            root._setattrs(file._getattrs())
             file.close()
 
-            root._file = NeXusTree(filename)
-            root._file._setattrs()
             for node in root.walk():
                 node._filepath = node.nxpath
                 node._saved = True
+            return root
 
         elif self.nxclass == "NXroot" and self.nxfile:
             if self.nxfilemode == 'r':
@@ -1273,7 +1277,7 @@ class NXfield(NXobject):
             self._saved = False
             self.set_changed()
 
-    def __getitem__(self, index):
+    def __getitem__(self, idx):
         """
         Returns a slice from the NXfield.
 
@@ -1285,38 +1289,40 @@ class NXfield(NXobject):
         real-space slicing should only be used on monotonically increasing (or
         decreasing) one-dimensional arrays.
         """
-        index = convert_index(index,self)
+        idx = convert_index(idx,self)
         if len(self) == 1:
             result = self
         elif self._value is None:
-            if self._memfile:
-                result = self._memfile['data'][index]
-            else:
+            if self.nxfilepath:
                 with self.nxfile as f:
-                    result = f[self.nxfilepath][index]
+                    result = f[self.nxfilepath][idx]
+            elif self._memfile:
+                result = self._memfile['data'][idx]
+            else:
+                raise NeXusError('Data not available either in file or in memory')
         else:
-            result = self.nxdata.__getitem__(index)
+            result = self.nxdata.__getitem__(idx)
         return NXfield(result, name=self.nxname, attrs=self.attrs)
 
-    def __setitem__(self, index, value):
+    def __setitem__(self, idx, value):
         """
         Assigns a slice to the NXfield.
         """
         if self._value is not None:
-            self.nxdata[index] = value
+            self.nxdata[idx] = value
             self._saved = False
             self.set_changed()
-        elif self._memfile:
-            self._memfile['data'][index] = value
-        elif self.nxfilepath:
-            if self.nxfilemode <> 'r':
+        elif self.nxfilename:
+            if self.nxfilemode != 'r':
                 with self.nxfile as f:
-                    f[self.nxfilepath][index] = value
+                    f[self.nxfilepath][idx] = value
                 self.set_changed()
             else:
                 raise NeXusError("File opened as readonly")
         else:
-            raise NeXusError("NXfield dataspace not yet allocated")
+            if self._memfile is None:
+                self._get_memfile()
+            self._memfile['data'][idx] = value
 
     def _get_memfile(self):
         if self._shape is not None and self._dtype is not None:
@@ -1553,7 +1559,9 @@ class NXfield(NXobject):
         if not self.saved:
             try:
                 with self.nxfile as f:
-                    if self.nxpath <> self.nxfilepath:
+                    if self.nxfilemode == 'r':
+                        raise NeXusError("NeXus file is readonly")
+                    if self.nxfilepath and self.nxpath != self.nxfilepath:
                         f[self.nxpath] = f[self.nxfilepath]
                         del f[self.nxfilepath]
                         self._filepath = self.nxpath
@@ -1569,6 +1577,7 @@ class NXfield(NXobject):
                         f[self.nxfilepath][()] = self._value.astype(self.dtype)
                     elif self._memfile:
                         self._memfile.copy('data', f[self.nxfilepath])
+                    f.path = self.nxpath
                     f._writeattrs(self.attrs)
                 self._saved = True
             except (AttributeError,IOError):
@@ -1598,8 +1607,8 @@ class NXfield(NXobject):
         already stores the data.
         """
         if self._value is not None:
-            if self.nxfile:
-                self._value = self.nxfile[self.nxfilepath].value
+            if self.nxfilename:
+                self._value = self.nxfile[self.nxfilepath][()]
                 self._saved = True
             else:
                 raise IOError("Data is not attached to a file")
@@ -2006,7 +2015,8 @@ class NXgroup(NXobject):
         for k,v in opts.items():
             setattr(self, k, v)
         if self.nxclass.startswith("NX"):
-            if self.nxname == "unknown": self._name = self.nxclass[2:]
+            if self.nxname == "unknown" or self.nxname == "": 
+                self._name = self.nxclass[2:]
             try: # If one exists, set the class to a valid NXgroup subclass
                 self.__class__ = globals()[self.nxclass]
             except KeyError:
@@ -2079,7 +2089,7 @@ class NXgroup(NXobject):
         else:
             self[name] = value
 
-    def __getitem__(self, index):
+    def __getitem__(self, idx):
         """
         Returns a slice from the NXgroup nxsignal attribute (if it exists) as
         a new NXdata group, if the index is a slice object.
@@ -2094,24 +2104,24 @@ class NXgroup(NXobject):
         real-space slicing should only be used on monotonically increasing (or
         decreasing) one-dimensional arrays.
         """
-        if isinstance(index, basestring): #i.e., requesting a dictionary value
-            return self._entries[index]
+        if isinstance(idx, basestring): #i.e., requesting a dictionary value
+            return self._entries[idx]
 
         if not self.nxsignal:
             raise NeXusError("No plottable signal")
         if not hasattr(self,"nxclass"):
             raise NeXusError("Indexing not allowed for groups of unknown class")
-        if isinstance(index, int) or isinstance(index, slice):
+        if isinstance(idx, int) or isinstance(idx, slice):
             axes = self.nxaxes
-            index = convert_index(index, axes[0])
-            axes[0] = axes[0][index]
-            result = NXdata(self.nxsignal[index], axes)
-            if self.nxerrors: result.errors = self.errors[index]
+            idx = convert_index(idx, axes[0])
+            axes[0] = axes[0][idx]
+            result = NXdata(self.nxsignal[idx], axes)
+            if self.nxerrors: result.errors = self.errors[idx]
         else:
             i = 0
             slices = []
             axes = self.nxaxes
-            for ind in index:
+            for ind in idx:
                 ind = convert_index(ind, axes[i])
                 axes[i] = axes[i][ind]
                 slices.append(ind)
@@ -2277,11 +2287,10 @@ class NXgroup(NXobject):
             with self.nxfile as f:
                 if self.nxfilemode == 'r':
                     raise NeXusError("NeXus file is readonly")
-                if self._filepath:
-                    if self.nxpath <> self._filepath:
-                        f[self.nxpath] = f[self.nxfilepath]
-                        del f[self.nxfilepath]
-                        self._filepath = self.nxpath
+                if self.nxfilepath and self.nxpath != self.nxfilepath:
+                    f[self.nxpath] = f[self.nxfilepath]
+                    del f[self.nxfilepath]
+                    self._filepath = self.nxpath
                 else:
                     group = f[self.nxgroup.nxpath].create_group(self.nxname)
                     group.attrs['NX_class'] = self.nxclass
@@ -3087,7 +3096,7 @@ for _class in nxclasses:
 
 #-------------------------------------------------------------------------
 
-def convert_index(index, axis):
+def convert_index(idx, axis):
     """
     Converts floating point limits to a valid array index.
     
@@ -3095,22 +3104,22 @@ def convert_index(index, axis):
     i.e., for two or more dimensional data, the index is returned unchanged.
     """
     if len(axis) == 1:
-        index = 0
-    elif isinstance(index, slice) and \
-        (isinstance(index.start, float) or isinstance(index.stop, float)):
-        if index.start is not None:
-            start = axis.index(index.start)
+        idx = 0
+    elif isinstance(idx, slice) and \
+        (isinstance(idx.start, float) or isinstance(idx.stop, float)):
+        if idx.start is not None:
+            start = axis.index(idx.start)
         else:
             start = 0
-        if index.stop is not None:
-            stop = axis.index(index.stop,max=True)+1
+        if idx.stop is not None:
+            stop = axis.index(idx.stop,max=True)+1
         else:
             stop = axis.size - 1
         if stop <= start+1:
-            index = start
+            idx = start
         else:
-            index = slice(start, stop)
-    return index
+            idx = slice(start, stop)
+    return idx
 
 def simplify_axes(data):
     shape = list(data.nxsignal.shape)
