@@ -24,9 +24,12 @@ class NXtree(NXgroup):
             if isinstance(value, NXentry):
                 value = NXroot(value)
             if key not in self._entries.keys():
-                super(NXtree, self).__setitem__(key, value)
+                value._group = self
+                value._name = key
+                self._entries[key] = value
                 from nexpy.gui.consoleapp import _shell
                 _shell[key] = self._entries[key]
+                self.set_changed()
             else:
                 raise NeXusError("Name already in the tree")
         else:
@@ -213,6 +216,8 @@ class NXTreeView(QtGui.QTreeView):
         self.fit_action=QtGui.QAction("Fit Data", self, triggered=self.fit_data)
         self.savefile_action=QtGui.QAction("Save", self, triggered=self.save_file)
         self.savefileas_action=QtGui.QAction("Save as...", self, triggered=self.save_file_as)
+        self.lockfile_action=QtGui.QAction("Lock File", self, triggered=self.lock_file)
+        self.unlockfile_action=QtGui.QAction("Unlock File", self, triggered=self.unlock_file)
 
         self.popMenu = QtGui.QMenu(self)
         self.popMenu.addAction(self.plot_data_action)
@@ -233,6 +238,9 @@ class NXTreeView(QtGui.QTreeView):
         self.popMenu.addSeparator()
         self.popMenu.addAction(self.savefile_action)
         self.popMenu.addAction(self.savefileas_action)
+        self.popMenu.addSeparator()
+        self.popMenu.addAction(self.lockfile_action)
+        self.popMenu.addAction(self.unlockfile_action)
 
     def getnode(self):
         item = self._model.itemFromIndex(
@@ -247,6 +255,12 @@ class NXTreeView(QtGui.QTreeView):
 
     def save_file_as(self):
         self.parent().parent().save_file_as()
+
+    def lock_file(self):
+        self.parent().parent().lock_file()
+
+    def unlock_file(self):
+        self.parent().parent().unlock_file()
 
     def plot_data(self):
         self.parent().parent().plot_data()
