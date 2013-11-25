@@ -222,6 +222,20 @@ class MainWindow(QtGui.QMainWindow):
         
         self.file_menu.addSeparator()
 
+        self.lockfile_action=QtGui.QAction("&Lock file",
+            self,
+            triggered=self.lock_file
+            )
+        self.add_menu_action(self.file_menu, self.lockfile_action, True)  
+        
+        self.unlockfile_action=QtGui.QAction("&Unlock file",
+            self,
+            triggered=self.unlock_file
+            )
+        self.add_menu_action(self.file_menu, self.unlockfile_action, True)  
+        
+        self.file_menu.addSeparator()
+
         self.init_import_menu()
         
         self.file_menu.addSeparator()
@@ -493,7 +507,7 @@ class MainWindow(QtGui.QMainWindow):
                          self.default_directory, 
                          "NeXus Files (*.nxs *.nx5 *.h5 *.nx4 *.hdf *.xml)")
         workspace = self.treeview.tree.get_name(fname)
-        self.treeview.tree[workspace] = self.user_ns[workspace] = nxload(fname, 'rw')
+        self.treeview.tree[workspace] = self.user_ns[workspace] = nxload(fname, 'r+')
         self.default_directory = os.path.dirname(fname)
 
     def save_file(self):
@@ -536,6 +550,23 @@ class MainWindow(QtGui.QMainWindow):
                 QtGui.QMessageBox.critical(
                     self, "Error saving file", str(error_message),
                     QtGui.QMessageBox.Ok, QtGui.QMessageBox.NoButton)
+
+    def lock_file(self):
+        node = self.treeview.getnode()
+        if isinstance(node, NXobject):
+            node.lock()
+
+    def unlock_file(self):
+        node = self.treeview.getnode()
+        if isinstance(node, NXroot):
+            msgBox = QtGui.QMessageBox()
+            msgBox.setText("Changes to an unlocked file cannot be reversed")
+            msgBox.setInformativeText("Do you want to unlock the file?")
+            msgBox.setStandardButtons(QtGui.QMessageBox.Ok | QtGui.QMessageBox.Cancel)
+            msgBox.setDefaultButton(QtGui.QMessageBox.Ok)
+            ret = msgBox.exec_()
+            if ret == QtGui.QMessageBox.Ok:
+                node.unlock()
 
     def plot_data(self, fmt='o'):
         node = self.treeview.getnode()
