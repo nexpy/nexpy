@@ -415,7 +415,7 @@ class NeXusTree(h5._hl.files.File):
         If no group or data object is open, the file attributes are returned.
         """
         for name, value in attrs.iteritems():
-            self[self.path].attrs[name] = value.nxdata.astype(value.dtype)
+            self[self.path].attrs[name] = np.asarray(value.nxdata.astype(value.dtype))
 
     def _writedata(self, data):
         """
@@ -702,6 +702,7 @@ class NXobject(object):
     _filename = None
     _mode = None
     _memfile = None
+    _tmpdata = None
     _saved = False
     _changed = True
 
@@ -1328,19 +1329,31 @@ class NXfield(NXobject):
             self.set_changed()
         else:
             if self._memfile is None:
-                self._get_memfile()
+                self._get_memdata()
             self._memfile['data'][idx] = value
 
     def _get_memfile(self):
+        import tempfile
+        self._memfile = NeXusTree(tempfile.mktemp(suffix='.nxs'),
+                                  driver='core', backing_store=False)
+
+    def _get_memdata(self):
         if self._shape is not None and self._dtype is not None:
-            import tempfile
-            self._memfile = NeXusTree(tempfile.mktemp(suffix='.nxs'),
-                                      driver='core', backing_store=False)
+            if self._memfile is None:
+                self._get_memfile()
             self._memfile.create_dataset('data', shape=self._shape, 
                                          dtype=self._dtype, 
                                          compression='lzf', chunks=True)
         else:
             raise NeXusError('Cannot allocate to field before setting shape and dtype')       
+
+    def _get_tmpdata(self, tmpdata):
+        with tmpdata[0] as f:
+            if self.nxfilemode == 'r+':
+                f.copy(tmpdata[1], self.nxpath)
+            else:
+                self._get_memfile()
+                f.copy(tmpdata[1], self._memfile, 'data')
 
     def __deepcopy__(self, memo):
         dpcpy = self.__class__()
@@ -1348,10 +1361,13 @@ class NXfield(NXobject):
         dpcpy._name = copy(self.nxname)
         dpcpy._dtype = copy(self.dtype)
         dpcpy._shape = copy(self.shape)
+        dpcpy._tmpdata = None
         if self._value is not None:
             dpcpy._value = copy(self._value)
         elif self._memfile:
             dpcpy._memfile = self._memfile
+        elif self.nxfilemode:
+            dpcpy._tmpdata = (self.nxfile, self.nxpath)
         for k, v in self.attrs.items():
             dpcpy.attrs[k] = copy(v)
         return dpcpy
@@ -1672,15 +1688,17 @@ class NXfield(NXobject):
         Returns the data if it is not larger than NX_MEMORY.
         """
         if self._value is None:
-            if self.nxfilemode:
-                if np.prod(self.shape) * np.dtype(self.dtype).itemsize <= NX_MEMORY*1024*1024:
+            if np.prod(self.shape) * np.dtype(self.dtype).itemsize <= NX_MEMORY*1024*1024:
+                if self.nxfilemode:
                     with self.nxfile as f:
                         self._value = f[self.nxpath][()]
-                    self._value.shape = self._shape
-                else:
-                    raise NeXusError('Data size larger than NX_MEMORY=%s MB' % NX_MEMORY)
+                elif self._memfile:
+                    self._value = self._memfile['data'][()]
+                    self._memfile.close()
+                    self._memfile = None
+                self._value.shape = self._shape
             else:
-                return None
+                raise NeXusError('Data size larger than NX_MEMORY=%s MB' % NX_MEMORY)
         return self._value
 
     def _setdata(self, value):
@@ -2056,8 +2074,8 @@ class NXgroup(NXobject):
         """
         if key.startswith('NX'):
             return self.component(key)
-        elif key in self.entries:
-            return self.entries[key]
+        elif key in self._entries:
+            return self._entries[key]
         elif key in self.attrs:
             return self.attrs[key].nxdata
         raise KeyError(key+" not in "+self.nxclass+":"+self.nxname)
@@ -2156,10 +2174,11 @@ class NXgroup(NXobject):
             if value.nxfilemode or value.nxgroup:
                 memo = {}
                 value = deepcopy(value, memo)
-                value._attrs = copy(value._attrs)
             value._group = self
             value._name = key
             self._entries[key] = value
+            if value._tmpdata:
+                self._entries[key]._get_tmpdata(value._tmpdata) 
         elif key in self.entries:
             self._entries[key]._setdata(value)
         else:
@@ -2177,10 +2196,7 @@ class NXgroup(NXobject):
         dpcpy = self.__class__()
         memo[id(self)] = dpcpy
         for k,v in self.items():
-            if isinstance(v, NXgroup):
-                dpcpy[k] = deepcopy(v, memo)
-            else:
-                dpcpy[k] = copy(v)
+            dpcpy[k] = deepcopy(v, memo)
         for k, v in self.attrs.items():
             dpcpy.attrs[k] = copy(v)
         return dpcpy
