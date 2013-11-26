@@ -289,12 +289,21 @@ class NXPlot(object):
             self.axis[axis.nxname].centers = axis_data[i]
             self.axis[axis.nxname].dim = i
             i = i + 1
-        # Find the centers of the bins for histogrammed data
-        self.plotdata = NXdata(data.nxsignal,
+
+        if self.ndim > 2:
+            idx=[np.s_[0] for i in data.nxsignal.shape[:-2]]
+            idx.extend([np.s_[:],np.s_[:]])
+            self.plotdata = NXdata(data.nxsignal[tuple(idx)],
+                               [NXfield(axis_data[i], name=self.axes[i].nxname,
+                                        attrs=self.axes[i].attrs)
+                                for i in [-2,-1]])
+            self.shape = self.shape[-2:]
+        else:
+            self.plotdata = NXdata(data.nxsignal,
                                [NXfield(axis_data[i], name=self.axes[i].nxname,
                                         attrs=self.axes[i].attrs)
                                 for i in range(self.ndim)])
-        self.plotdata.nxsignal.shape = self.shape
+            self.plotdata.nxsignal.shape = self.shape
         self.plotdata['title'] = self.title
 
         #One-dimensional Plot
@@ -331,13 +340,6 @@ class NXPlot(object):
 
         #Higher-dimensional plot
         else:
-            if self.ndim > 2:
-                dims = range(self.ndim)
-                axis = dims[-2:]
-                limits = [(axis_data[i][0], axis_data[i][0]) for i in dims[:-2]]
-                limits.append((None, None))
-                limits.append((None, None))
-                self.plotdata = self.plotdata.project(axis,limits)
            
             self.xaxis = self.axis[self.axes[-1].nxname]
             if xmin: self.xaxis.lo = xmin
