@@ -61,7 +61,7 @@ be multiple entries of the same NeXus class, the NXclass attribute returns a
 (possibly empty) list.
 
 The load() and save() functions are implemented using the class
-`nexus.tree.NeXusTree`, a subclass of `h5py.File`.
+`nexus.tree.NXFile`, a subclass of `h5py.File`.
 
 Example 2: Creating a NeXus file dynamically
 --------------------------------------------
@@ -243,7 +243,7 @@ import h5py as h5
 #Memory in MB
 NX_MEMORY = 2000
 
-__all__ = ['NeXusTree', 'NXobject', 'NXfield', 'NXgroup', 'NXattr', 'nxclasses',
+__all__ = ['NXFile', 'NXobject', 'NXfield', 'NXgroup', 'NXattr', 'nxclasses',
            'NX_MEMORY', 'setmemory', 'load', 'save', 'tree', 'centers',
            'NXlink', 'NXlinkfield', 'NXlinkgroup', 'SDS', 'NXlinkdata']
 
@@ -268,14 +268,14 @@ class NeXusError(Exception):
     pass
 
 
-class NeXusTree(h5._hl.files.File):
+class NXFile(h5._hl.files.File):
 
     """
     Structure-based interface to the NeXus file API.
 
     Usage::
 
-      file = NeXusTree(filename, ['r','rw','w'])
+      file = NXFile(filename, ['r','rw','w'])
         - open the NeXus file
       root = file.readfile()
         - read the structure of the NeXus file.  This returns a NeXus tree.
@@ -284,11 +284,11 @@ class NeXusTree(h5._hl.files.File):
 
     Example::
 
-      nx = NeXusTree('REF_L_1346.nxs','r')
+      nx = NXFile('REF_L_1346.nxs','r')
       tree = nx.readfile()
       for entry in tree.NXentry:
           process(entry)
-      copy = NeXusTree('modified.nxs','w')
+      copy = NXFile('modified.nxs','w')
       copy.writefile(tree)
 
     Note that the large datasets are not loaded immediately.  Instead, the
@@ -308,7 +308,7 @@ class NeXusTree(h5._hl.files.File):
             mode = 'w'
         elif mode == 'w4' or mode == 'wx':
             raise NeXusError('Only HDF5 files supported')
-        super(NeXusTree, self).__init__(name, mode, **kwds) 
+        super(NXFile, self).__init__(name, mode, **kwds) 
 
     def readfile(self):
         """
@@ -336,10 +336,14 @@ class NeXusTree(h5._hl.files.File):
             data = NXlinkfield(target=attrs['target'], name=name)
         else:
             shape, dtype = self[self.path].shape, self[self.path].dtype
+            if shape == (1,):
+                shape = ()
             #Read in the data if it's not too large
             if np.prod(shape) < 1000:# i.e., less than 1k dims
                 try:
                     value = self[self.path][()]
+                    if shape == ():
+                        value = np.asscalar(value)
                 except ValueError:
                     value = None
             else:
@@ -415,7 +419,7 @@ class NeXusTree(h5._hl.files.File):
         If no group or data object is open, the file attributes are returned.
         """
         for name, value in attrs.iteritems():
-            self[self.path].attrs[name] = np.asarray(value.nxdata.astype(value.dtype))
+            self[self.path].attrs[name] = value.nxdata
 
     def _writedata(self, data):
         """
@@ -435,7 +439,7 @@ class NeXusTree(h5._hl.files.File):
 
         value = data.nxdata
         if value is not None:
-            if np.prod(self.shape) > 10000:
+            if np.prod(data.shape) > 10000:
                 self[parent].create_dataset(data.nxname, 
                                             data=value.astype(data.dtype), 
                                             compression='lzf', chunks=True)
@@ -502,6 +506,25 @@ class NeXusTree(h5._hl.files.File):
 
     def _getattrs(self):
         return dict(self[self.path].attrs)
+
+def _getvalue(value, dtype=None, shape=None):
+    if isinstance(value, basestring):
+        _value = np.string_(value)
+    else:
+        _value = np.asarray(value)
+    if dtype:
+        if dtype == 'char':
+            dtype = np.string_
+        _value = _value.astype(dtype)
+        _dtype = dtype
+    else:
+        _dtype = _value.dtype
+    if shape:
+        _value = _value.reshape(shape)
+        _shape = tuple(shape)
+    else:
+        _shape = _value.shape
+    return _value, _dtype, _shape
 
 def _readaxes(axes):
     """
@@ -571,37 +594,19 @@ class NXattr(object):
 
     """
 
-    def __init__(self,value=None,dtype=None):
+    def __init__(self, value=None, dtype=None):
         if isinstance(value, NXattr):
-            self._data,self._dtype = value.nxdata,value.dtype
-        elif dtype:
-            if dtype == 'char':
-                self._data = np.asarray(value, dtype=np.string_)            
-                self._dtype = np.string_
-            else:
-                try:
-                    self._data = value
-                    self._dtype = np.dtype(dtype)
-                except:
-                    raise NeXusError("Invalid data type: %s" % dtype)
+            self = value
+        elif isinstance(value, NXobject):
+            raise NeXusError("A data attribute cannot be a NXfield or NXgroup")
         else:
-            if isinstance(value, basestring):
-                self._data = value
-                self._dtype = np.string_
-            elif value is not None:
-                if isinstance(value, NXobject):
-                    raise NeXusError("A data attribute cannot be a NXfield or NXgroup")
-                else:
-                    self._data = np.asarray(value)
-                self._dtype = self._data.dtype
-            else:
-                self._data,self._dtype = None, np.string_
+            self._value, self._dtype, _ = _getvalue(value, dtype)
 
     def __str__(self):
         return str(self.nxdata)
 
     def __repr__(self):
-        if str(self.dtype) == 'char':
+        if self.dtype.type == np.string_:
             return "NXattr('%s')"%self.nxdata
         else:
             return "NXattr(%s)"%self.nxdata
@@ -619,7 +624,7 @@ class NXattr(object):
         """
         Returns the attribute value.
         """
-        return self._data
+        return self._value
 
     def _getdtype(self):
         return self._dtype
@@ -662,7 +667,7 @@ class NXobject(object):
         NeXus data read from a file, this will be a group of class NXroot, but
         if the NeXus tree was defined interactively, it can be any valid
         NXgroup.
-    nxfile : NeXusTree
+    nxfile : NXFile
         The file handle of the root object of the NeXus tree containing this
         object.
     nxfilename : string
@@ -836,10 +841,11 @@ class NXobject(object):
             else:
                 root = NXroot(NXentry(self))
             
-            file = NeXusTree(filename, mode)
+            file = NXFile(filename, mode)
             file.writefile(root)
             root._filename = file.filename
             root._setattrs(file._getattrs())
+            root._mode = file.mode
             file.close()
 
             for node in root.walk():
@@ -942,9 +948,9 @@ class NXobject(object):
     def _getfile(self):
         _root = self.nxroot
         if self._filename:
-            return NeXusTree(self._filename,_root._mode)
+            return NXFile(self._filename,_root._mode)
         elif self.nxroot._filename:
-            return NeXusTree(self.nxroot._filename, _root._mode)
+            return NXFile(self.nxroot._filename, _root._mode)
         else:
             return None
 
@@ -1248,7 +1254,7 @@ class NXfield(NXobject):
 
     def __repr__(self):
         if self._value is not None:
-            if str(self.dtype) == 'char':
+            if self.dtype.type == np.string_:
                 return "NXfield('%s')" % str(self)
             else:
                 return "NXfield(%s)" % self._str_value()
@@ -1334,7 +1340,7 @@ class NXfield(NXobject):
 
     def _get_memfile(self):
         import tempfile
-        self._memfile = NeXusTree(tempfile.mktemp(suffix='.nxs'),
+        self._memfile = NXFile(tempfile.mktemp(suffix='.nxs'),
                                   driver='core', backing_store=False)
 
     def _get_memdata(self):
@@ -1694,8 +1700,6 @@ class NXfield(NXobject):
                         self._value = f[self.nxpath][()]
                 elif self._memfile:
                     self._value = self._memfile['data'][()]
-                    self._memfile.close()
-                    self._memfile = None
                 self._value.shape = self._shape
             else:
                 raise NeXusError('Data size larger than NX_MEMORY=%s MB' % NX_MEMORY)
@@ -1703,29 +1707,11 @@ class NXfield(NXobject):
 
     def _setdata(self, value):
         if value is not None:
-            if self._dtype:
-                self._value = np.asarray(value, dtype=self._dtype)
-            else:
-                self._value = np.asarray(value)
-                self._dtype = self._value.dtype
-            if self._shape:
-                if self._value.shape <> self._shape:
-                    self._value = np.asarray(value.reshape(self._shape))
-            else:
-                self._shape = self._value.shape                
+            self._value, self._dtype, self._shape = \
+                _getvalue(value, self._dtype, self._shape)
             self._saved = False
             self.set_changed()
 
-    def _check_value(self, value):
-        """
-        Checks if the a value has the same data type and dimensions as the 
-        NXfield.
-    
-        Needed if modifying an existing NXfield already in a file.
-        """
-        value = NXfield(value)
-            
-       
     def _getdtype(self):
         return self._dtype
 
@@ -2169,7 +2155,7 @@ class NXgroup(NXobject):
         else:
             attrs = {}
         if isinstance(value, NXlink):
-            self._entries[key] = value
+            value = value.nxlink
         elif isinstance(value, NXobject):
             if value.nxfilemode or value.nxgroup:
                 memo = {}
@@ -3198,7 +3184,7 @@ def load(filename, mode='r'):
 
     This is aliased to 'nxload' because of potential name clashes with Numpy
     """
-    file = NeXusTree(filename,mode)
+    file = NXFile(filename,mode)
     tree = file.readfile()
     file.close()
     return tree
@@ -3217,7 +3203,7 @@ def save(filename, group, format='w'):
         tree = NXroot(group)
     else:
         tree = NXroot(NXentry(group))
-    file = NeXusTree(filename, format)
+    file = NXFile(filename, format)
     file.writefile(tree)
     file.close()
 
