@@ -574,12 +574,10 @@ class MainWindow(QtGui.QMainWindow):
             self.treeview.statusmessage(node)
             try:
                 node.plot(fmt)
-            except KeyError:
-                dialog = PlotDialog(node, self)
-                dialog.show()
-            except NeXusError:
-                dialog = PlotDialog(node, self)
-                dialog.show()
+            except (KeyError, NeXusError):
+                if isinstance(node, NXfield):
+                    dialog = PlotDialog(node, self)
+                    dialog.show()
 
     def overplot_data(self, fmt='o'):
         node = self.treeview.getnode()
