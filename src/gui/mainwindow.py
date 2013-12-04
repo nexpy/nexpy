@@ -192,7 +192,7 @@ class MainWindow(QtGui.QMainWindow):
             )
         self.add_menu_action(self.file_menu, self.newworkspace_action, True)  
         
-        self.openfile_action=QtGui.QAction("&Open (read only)",
+        self.openfile_action=QtGui.QAction("&Open",
             self,
             shortcut=QtGui.QKeySequence.Open,
             triggered=self.open_file
@@ -553,7 +553,7 @@ class MainWindow(QtGui.QMainWindow):
 
     def lock_file(self):
         node = self.treeview.getnode()
-        if isinstance(node, NXobject):
+        if isinstance(node, NXgroup) or isinstance(node, NXfield):
             node.lock()
 
     def unlock_file(self):

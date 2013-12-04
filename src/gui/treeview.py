@@ -115,9 +115,12 @@ class NXTreeItem(QtGui.QStandardItem):
     A subclass of the QtGui.QStandardItem class to return the data from 
     an NXnode.
     """
+    _icon = os.path.join(os.path.abspath(os.path.dirname(__file__)), 
+                         'resources', 'lock-icon.png')
 
     def __init__(self, node):
         self.node = node
+        self._locked = QtGui.QIcon(self._icon)
         super(NXTreeItem, self).__init__(self.node.nxname)
 
     def text(self):
@@ -138,6 +141,11 @@ class NXTreeItem(QtGui.QStandardItem):
                 return '\n'.join(self.node.tree.split('\n')[0:50])+'\n...'
             else:
                 return self.node.tree
+        if role == QtCore.Qt.DecorationRole:
+            if isinstance(self.node, NXroot) and self.node.nxfilemode == 'r':
+                return self._locked
+            else:
+                return None
 
     def setData(self, value, role=QtCore.Qt.EditRole):
         if role == QtCore.Qt.EditRole:
