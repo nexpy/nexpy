@@ -115,12 +115,15 @@ class NXTreeItem(QtGui.QStandardItem):
     A subclass of the QtGui.QStandardItem class to return the data from 
     an NXnode.
     """
-    _icon = os.path.join(os.path.abspath(os.path.dirname(__file__)), 
-                         'resources', 'lock-icon.png')
+    _lock_icon = os.path.join(os.path.abspath(os.path.dirname(__file__)), 
+                              'resources', 'lock-icon.png')
+    _link_icon = os.path.join(os.path.abspath(os.path.dirname(__file__)), 
+                              'resources', 'link-icon.png')
 
     def __init__(self, node):
         self.node = node
-        self._locked = QtGui.QIcon(self._icon)
+        self._locked = QtGui.QIcon(self._lock_icon)
+        self._linked = QtGui.QIcon(self._link_icon)
         super(NXTreeItem, self).__init__(self.node.nxname)
 
     def text(self):
@@ -144,6 +147,8 @@ class NXTreeItem(QtGui.QStandardItem):
         if role == QtCore.Qt.DecorationRole:
             if isinstance(self.node, NXroot) and self.node.nxfilemode == 'r':
                 return self._locked
+            elif isinstance(self.node, NXlink):
+                return self._linked
             else:
                 return None
 
@@ -220,6 +225,7 @@ class NXTreeView(QtGui.QTreeView):
         self.copy_action=QtGui.QAction("Copy Data", self, triggered=self.copy_data)
         self.paste_action=QtGui.QAction("Paste Data", self, triggered=self.paste_data)
         self.delete_action=QtGui.QAction("Delete Data", self, triggered=self.delete_data)
+        self.link_action=QtGui.QAction("Show Link", self, triggered=self.show_link)
         self.signal_action=QtGui.QAction("Set Signal", self, triggered=self.set_signal)
         self.fit_action=QtGui.QAction("Fit Data", self, triggered=self.fit_data)
         self.savefile_action=QtGui.QAction("Save", self, triggered=self.save_file)
@@ -240,6 +246,8 @@ class NXTreeView(QtGui.QTreeView):
         self.popMenu.addAction(self.paste_action)
         self.popMenu.addAction(self.delete_action)
         self.popMenu.addSeparator()
+        self.popMenu.addAction(self.link_action)
+        self.popMenu.addSeparator()
         self.popMenu.addAction(self.signal_action)
         self.popMenu.addSeparator()
         self.popMenu.addAction(self.fit_action)
@@ -250,14 +258,6 @@ class NXTreeView(QtGui.QTreeView):
         self.popMenu.addAction(self.lockfile_action)
         self.popMenu.addAction(self.unlockfile_action)
 
-    def getnode(self):
-        item = self._model.itemFromIndex(
-                   self.proxymodel.mapToSource(self.currentIndex()))
-        if item:
-            return item.node
-        else:
-            return None
-        
     def save_file(self):
         self.parent().parent().save_file()
 
@@ -300,6 +300,9 @@ class NXTreeView(QtGui.QTreeView):
     def delete_data(self):
         self.parent().parent().delete_data()
 
+    def show_link(self):
+        self.parent().parent().show_link()
+
     def set_signal(self):
         self.parent().parent().set_signal()
 
@@ -315,6 +318,20 @@ class NXTreeView(QtGui.QTreeView):
             text = str(message)
         self.parent().parent().statusBar().showMessage(text.replace('\n','; '))
 
+    def getnode(self):
+        item = self._model.itemFromIndex(
+                   self.proxymodel.mapToSource(self.currentIndex()))
+        if item:
+            return item.node
+        else:
+            return None
+
+    def getindex(self, node):
+        return self.proxymodel.mapFromSource(node._item.index())
+
+    def selectnode(self, node):
+        self.setCurrentIndex(self.getindex(node))
+        
     def selectionChanged(self, new, old):
         if new.indexes():
             node = self.getnode()

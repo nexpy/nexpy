@@ -206,19 +206,12 @@ class MainWindow(QtGui.QMainWindow):
             )
         self.add_menu_action(self.file_menu, self.openeditablefile_action, True)  
 
-        self.savefile_action=QtGui.QAction("&Save",
+        self.savefile_action=QtGui.QAction("&Save as...",
             self,
             shortcut=QtGui.QKeySequence.Save,
             triggered=self.save_file
             )
         self.add_menu_action(self.file_menu, self.savefile_action, True)  
-        
-        self.savefileas_action=QtGui.QAction("Save as...",
-            self,
-            shortcut=QtGui.QKeySequence.SaveAs,
-            triggered=self.save_file_as
-            )
-        self.add_menu_action(self.file_menu, self.savefileas_action, True)  
         
         self.file_menu.addSeparator()
 
@@ -381,6 +374,14 @@ class MainWindow(QtGui.QMainWindow):
 
         self.data_menu.addSeparator()
  
+        self.link_action=QtGui.QAction("Show Link",
+            self,
+            triggered=self.show_link
+            )
+        self.add_menu_action(self.data_menu, self.link_action, True)  
+
+        self.data_menu.addSeparator()
+ 
         self.signal_action=QtGui.QAction("Set Signal",
             self,
             triggered=self.set_signal
@@ -493,7 +494,10 @@ class MainWindow(QtGui.QMainWindow):
                          'Workspace Name:', text=default_name)        
         if name and ok:
             self.treeview.tree[name] = NXroot(NXentry())
-  
+            entry = self.treeview.tree[name].entry
+            self.treeview.selectnode(self.treeview.tree[name].entry)
+            self.treeview.update()
+
     def open_file(self):
         fname, _ = QtGui.QFileDialog.getOpenFileName(self, 'Open File (Read Only)',
                          self.default_directory, 
@@ -507,35 +511,10 @@ class MainWindow(QtGui.QMainWindow):
                          self.default_directory, 
                          "NeXus Files (*.nxs *.nx5 *.h5 *.nx4 *.hdf *.xml)")
         workspace = self.treeview.tree.get_name(fname)
-        self.treeview.tree[workspace] = self.user_ns[workspace] = nxload(fname, 'r+')
+        self.treeview.tree[workspace] = self.user_ns[workspace] = nxload(fname, 'rw')
         self.default_directory = os.path.dirname(fname)
 
     def save_file(self):
-        node = self.treeview.getnode()
-        if node is None:
-            return
-        elif node.nxfile and isinstance(node, NXroot):
-            try:
-                node.save()
-            except NeXusError, error_message:
-                QtGui.QMessageBox.critical(
-                      self, "Error saving file", str(error_message),
-                      QtGui.QMessageBox.Ok, QtGui.QMessageBox.NoButton)
-        else:
-            default_name = os.path.join(self.default_directory,node.nxname)
-            fname, _ = QtGui.QFileDialog.getSaveFileName(self, 
-                             "Choose a Filename",
-                             default_name, 
-                             "NeXus Files (*.nxs *.nx5 *.h5 *.nx4 *.hdf *.xml)")
-            if fname:
-                try:
-                    node.save(fname)
-                except NeXusError, error_message:
-                    QtGui.QMessageBox.critical(
-                          self, "Error saving file", str(error_message),
-                          QtGui.QMessageBox.Ok, QtGui.QMessageBox.NoButton)
-
-    def save_file_as(self):
         node = self.treeview.getnode()
         if node is None:
             return
@@ -555,6 +534,7 @@ class MainWindow(QtGui.QMainWindow):
         node = self.treeview.getnode()
         if isinstance(node, NXgroup) or isinstance(node, NXfield):
             node.lock()
+            self.treeview.update()
 
     def unlock_file(self):
         node = self.treeview.getnode()
@@ -567,6 +547,7 @@ class MainWindow(QtGui.QMainWindow):
             ret = msgBox.exec_()
             if ret == QtGui.QMessageBox.Ok:
                 node.unlock()
+                self.treeview.update()
 
     def plot_data(self, fmt='o'):
         node = self.treeview.getnode()
@@ -630,6 +611,10 @@ class MainWindow(QtGui.QMainWindow):
         if node:
             dialog = DeleteDialog(node, self)
             dialog.show()      
+
+    def show_link(self):
+        self.treeview.selectnode(self.treeview.getnode().nxlink)
+        self.treeview.update()
 
     def set_signal(self):
         node = self.treeview.getnode()
