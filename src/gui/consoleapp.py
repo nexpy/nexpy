@@ -181,7 +181,8 @@ class NXConsoleApp(BaseIPythonApplication, IPythonConsoleApp):
         global _shell
         _shell = self.window.user_ns
         s = ("import nexpy.api.nexus as nx\n"
-             "from nexpy.api.nexus import NXgroup, NXfield, NXattr, NXlink")
+             "from nexpy.api.nexus import NXgroup, NXfield, NXattr, NXlink\n"
+             "from nexpy.api.nexus import NXFile")
         exec s in self.window.user_ns
         
         s = ""
