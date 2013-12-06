@@ -1,7 +1,7 @@
 """
 Plotting window
 """
-import sys, os, random
+import os
 
 import numpy as np
 
@@ -9,7 +9,6 @@ from IPython.external.qt import QtCore, QtGui
 
 import matplotlib
 from matplotlib._pylab_helpers import Gcf
-from matplotlib import is_interactive
 from matplotlib.backend_bases import FigureManagerBase
 from matplotlib.backends.backend_qt4 import FigureManagerQT as FigureManager
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
@@ -1163,13 +1162,18 @@ class NXProjectionTab(QtGui.QWidget):
         widgets.append(self.ylabel)
         widgets.append(self.ybox)
 
-        self.plot_button = QtGui.QPushButton("Plot", self)
-        self.plot_button.clicked.connect(self.plot_projection)
-        widgets.append(self.plot_button)
-
         self.save_button = QtGui.QPushButton("Save", self)
         self.save_button.clicked.connect(self.save_projection)
         widgets.append(self.save_button)
+
+        self.plot_button = QtGui.QPushButton("Plot", self)
+        self.plot_button.clicked.connect(self.plot_projection)
+        widgets.append(self.plot_button)
+        
+        self.overplot_box = QtGui.QCheckBox("Over")
+        self.overplot_box.setChecked(False)
+        self.overplot_box.setVisible(False)
+        widgets.append(self.overplot_box)
 
         hbox.addStretch()
         for w in widgets:
@@ -1235,7 +1239,17 @@ class NXProjectionTab(QtGui.QWidget):
     def plot_projection(self):
         axes, limits = self.get_projection()
         projection = change_plotview("Projection")
-        projection.plot.plot(self.plotview.plot.data.project(axes, limits))
+        if len(axes) == 1 and self.overplot_box.isChecked():
+            over = True
+        else:
+            over = False
+        projection.plot.plot(self.plotview.plot.data.project(axes, limits), 
+                             over=over)
+        if len(axes) == 1:
+            self.overplot_box.setVisible(True)
+        else:
+            self.overplot_box.setVisible(False)
+            self.overplot_box.setChecked(False)
         self.plotview.make_active()
 
 
@@ -1415,7 +1429,7 @@ class NXNavigationToolbar(NavigationToolbar):
                     ydim = self.plotview.ytab.axis.dim
                     self.plotview.zoom = {'x': (xdim, x0, x1), 
                                           'y': (ydim, y0, y1)}
-                if self.plotview.label <> "Projection":
+                if self.plotview.label != "Projection":
                     self.plotview.tab_widget.setCurrentWidget(self.plotview.ptab)
             elif self._button_pressed == 3:
                 if self._zoom_mode == "x":
