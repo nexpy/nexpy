@@ -20,33 +20,26 @@ Authors:
 #-----------------------------------------------------------------------------
 
 # stdlib imports
-import json
 import os
 import signal
-import sys
-import uuid
 
 # System library imports
-from IPython.external.qt import QtCore, QtGui
+from IPython.external.qt import QtCore
 
 # Local imports
 from mainwindow import MainWindow
 from treeview import NXtree
-from nexpy.api.nexus import nxload, nxclasses
+from nexpy.api.nexus import nxclasses
 
 # IPython imports
-from IPython.config.application import boolean_flag, catch_config_error
+from IPython.config.application import catch_config_error
 from IPython.core.application import BaseIPythonApplication
-from IPython.core.profiledir import ProfileDir
 from IPython.lib import guisupport
-from IPython.lib.kernel import tunnel_to_kernel, find_connection_file
 from IPython.qt.console.ipython_widget import IPythonWidget
 from IPython.qt.console.rich_ipython_widget import RichIPythonWidget
 from IPython.qt.console import styles
-from IPython.utils.path import filefind
-from IPython.utils.py3compat import str_to_bytes
 from IPython.utils.traitlets import (
-    Dict, List, Unicode, Integer, CaselessStrEnum, CBool, Any
+    Dict, Unicode, CBool, Any
 )
 
 from IPython.consoleapp import (
@@ -56,8 +49,6 @@ from IPython.consoleapp import (
 #-----------------------------------------------------------------------------
 # Network Constants
 #-----------------------------------------------------------------------------
-
-from IPython.utils.localinterfaces import LOCALHOST, LOCAL_IPS
 
 #-----------------------------------------------------------------------------
 # Globals

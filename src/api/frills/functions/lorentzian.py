@@ -9,6 +9,6 @@ def values(x, p):
 
 def guess(x, y):
     center = (x*y).sum()/y.sum()
-    gamma = np.sqrt(abs(((x-center)**2*y).sum()/y.sum()))
+    gamma = np.sqrt(np.fabs(((x-center)**2*y).sum()/y.sum()))
     integral = y.max() * np.pi * gamma
     return integral, gamma, center

@@ -15,9 +15,8 @@ Two GUI elements are provided for convenience:
 """
 import os
 
-from IPython.external.qt import QtCore, QtGui
+from IPython.external.qt import QtGui
 
-import numpy as np
 from nexpy.api.nexus import *
 from nexpy.gui.importdialog import BaseImportDialog
 

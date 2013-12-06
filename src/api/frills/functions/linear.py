@@ -1,5 +1,3 @@
-import numpy as np
-
 function_name = 'Linear'
 parameters = ['Constant', 'Slope']
 

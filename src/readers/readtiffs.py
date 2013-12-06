@@ -14,7 +14,8 @@ Two GUI elements are provided for convenience:
                             This should be placed at the bottom of all import dialogs.
 """
 
-from IPython.external.qt import QtCore, QtGui
+from IPython.external.qt import QtGui
+import Image
 
 import numpy as np
 from nexpy.api.nexus import *
