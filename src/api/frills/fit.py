@@ -64,7 +64,7 @@ class Fit(object):
 
 class Function(object):
 
-    def __init__(self, name=None, module=None, parameters=[], function_index=0):
+    def __init__(self, name=None, module=None, parameters=None, function_index=0):
         self.name = name
         self.module = module
         self.parameters = parameters
