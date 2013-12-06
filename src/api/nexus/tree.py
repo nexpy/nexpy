@@ -238,16 +238,7 @@ from copy import copy, deepcopy
 import os
 
 import numpy as np
-try:
-    import h5py as h5
-except ImportError:
-    h5 = None
-try:
-    import napi
-except (ImportError, OSError):
-    napi = None
-if not h5 and not napi:
-    raise NeXusError('Failed to import file library')
+import h5py as h5
 
 #Memory in MB
 NX_MEMORY = 2000
@@ -312,22 +303,16 @@ class NXFile(object):
         Creates an h5py File object for reading and writing.
         """
         if mode == 'w4' or mode == 'wx':
-            raise NeXusError('Only HDF5 files supported in write mode')
+            raise NeXusError('Only HDF5 files supported')
         elif mode == 'w' or mode == 'w-' or mode == 'w5':
-            if h5:
-                if mode == 'w5':
-                    mode = 'w'
-                self._file = h5.File(name, mode, **kwds)
+            if mode == 'w5':
+                mode = 'w'
+            self._file = h5.File(name, mode, **kwds)
             self._mode = 'rw'
         else:
-            try:
-                if mode == 'rw':
-                    mode = 'r+'
-                self._file = h5.File(name, mode, **kwds)
-            except IOError:
-                if mode == 'rw' or mode == 'r+':
-                    raise NeXusError('Only HDF5 files supported in write mode')
-                self._file = napi.NeXus(name, mode)
+            if mode == 'rw':
+                mode = 'r+'
+            self._file = h5.File(name, mode, **kwds)
             if mode == 'rw' or mode == 'r+':
                 self._mode = 'rw'
             else:
@@ -386,10 +371,6 @@ class NXFile(object):
         data._saved = data._changed = True
         return data
 
-    # These are HDF4 groups that HDFView explicitly skips
-    _skipgroups = ['CDF0.0','_HDF_CHK_TBL_','Attr0.0','RIG0.0','RI0.0',
-                   'RIATTR0.0N','RIATTR0.0C']
-
     def _readchildren(self):
         children = {}
         for name, value in self[self.nxpath].items():
@@ -398,9 +379,7 @@ class NXFile(object):
                 nxclass = value.attrs['NX_class']
             else:
                 nxclass = None
-            if nxclass in self._skipgroups:
-                pass # Skip known bogus classes
-            elif isinstance(value, h5._hl.group.Group):
+            if isinstance(value, h5._hl.group.Group):
                 children[name] = self._readgroup()
             else:
                 children[name] = self._readdata(name)
