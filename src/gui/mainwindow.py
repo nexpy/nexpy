@@ -35,7 +35,7 @@ from treeview import NXTreeView
 from plotview import NXPlotView
 from datadialogs import *
 from nexpy.api.nexus.tree import nxload, NeXusError
-from nexpy.api.nexus.tree import NXgroup, NXfield, NXroot, NXentry, NXdata
+from nexpy.api.nexus.tree import NXgroup, NXfield, NXroot, NXentry
 
 # IPython imports
 from IPython.qt.console.rich_ipython_widget import RichIPythonWidget
@@ -599,7 +599,13 @@ class MainWindow(QtGui.QMainWindow):
                 node.rename(name)
 
     def copy_data(self):
-        self.copied_node = self.treeview.getnode()
+        node = self.treeview.getnode()
+        if not isinstance(node, NXroot):
+            self.copied_node = self.treeview.getnode()
+        else:
+            QtGui.QMessageBox.critical(self, "Cannot copy NXroot group",
+                "Use Duplicate command to copy an NXroot group", 
+                QtGui.QMessageBox.Ok, QtGui.QMessageBox.NoButton)
 
     def paste_data(self):
         node = self.treeview.getnode()

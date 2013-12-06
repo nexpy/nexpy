@@ -99,7 +99,7 @@ modules.
     NXfield([  0.   1.   2. ...,   8.   9.  10.])
     >>> x + 10
     NXfield([ 10.  11.  12. ...,  18.  19.  20.])
-    >>> sin(x)
+    >>> np.sin(x)
     array([ 0.        ,  0.84147098,  0.90929743, ...,  0.98935825,
         0.41211849, -0.54402111])
 
@@ -107,7 +107,7 @@ If the arithmetic operation is assigned to a NeXus group attribute, it will be
 automatically cast as a valid NXfield object with the type and shape determined
 by the Numpy array type and shape.
 
-    >>> entry.data.result = sin(x)
+    >>> entry.data.result = np.sin(x)
     >>> entry.data.result
     NXfield([ 0.          0.84147098  0.90929743 ...,  0.98935825  0.41211849
      -0.54402111])
@@ -511,10 +511,13 @@ class NXFile(object):
 
     def _setattrs(self):
         from datetime import datetime
-        self.attrs['file_time'] = datetime.now().isoformat()
-        self.attrs['NeXus_version'] = '4.3.0'
-        self.attrs['HDF5_Version'] = h5.version.hdf5_version
-        self.attrs['h5py_version'] = h5.version.version
+        self._file.attrs['file_time'] = datetime.now().isoformat()
+        self._file.attrs['NeXus_version'] = '4.3.0'
+        self._file.attrs['HDF5_Version'] = h5.version.hdf5_version
+        self._file.attrs['h5py_version'] = h5.version.version
+
+    def _getfile(self):
+        return self._file
 
     def _getattrs(self):
         return dict(self[self.nxpath].attrs)
@@ -525,11 +528,9 @@ class NXFile(object):
     def _setpath(self, value):
         self._path = value
 
-    def _getfile(self):
-        return self._file
-
-    nxpath = property(_getpath, _setpath, doc="Property: Path to NeXus object")
     file = property(_getfile, doc="Property: File object of NeXus file")
+    attrs = property(_getattrs, doc="Property: File object attributes")
+    nxpath = property(_getpath, _setpath, doc="Property: Path to NeXus object")
 
 
 def _getvalue(value, dtype=None, shape=None):
@@ -2124,7 +2125,9 @@ class NXgroup(NXobject):
             raise NeXusError("NeXus file is readonly")
         elif key in self.entries and isinstance(self._entries[key], NXlink):
             raise NeXusError("Cannot assign values to an NXlink object")
-        if isinstance(value, NXlink) and self.nxroot == value.nxroot:
+        if isinstance(value, NXroot):
+            raise NeXusError("Cannot assign an NXroot group to another group")
+        elif isinstance(value, NXlink) and self.nxroot == value.nxroot:
             self._entries[key] = copy(value)
         elif isinstance(value, NXobject):
             if value.nxgroup:
