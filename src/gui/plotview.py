@@ -178,6 +178,7 @@ class NXPlotView(QtGui.QWidget):
         global plotview, plotviews
         plotview = self
         plotviews[plotview.label] = plotview
+        self.plotviews = plotviews
         
         self.show()
         
@@ -279,30 +280,33 @@ class NXPlot(object):
 
         self.data = data
         self.title = data.nxtitle
+
         self.shape, self.axes = self._fixaxes(data.nxsignal, data.nxaxes)
         self.ndim = len(self.shape)
-        axis_data = centers(self.shape, self.axes)
+        self.axis_data = centers(self.shape, self.axes)
         i = 0
         self.axis = {}
         for axis in self.axes:
             self.axis[axis.nxname] = NXPlotAxis(axis)
-            self.axis[axis.nxname].centers = axis_data[i]
+            self.axis[axis.nxname].centers = self.axis_data[i]
             self.axis[axis.nxname].dim = i
             i = i + 1
 
         if self.ndim > 2:
-            idx=[np.s_[0] for i in data.nxsignal.shape[:-2]]
+            idx=[np.s_[0] for i in self.data.nxsignal.shape[:-2]]
             idx.extend([np.s_[:],np.s_[:]])
-            self.plotdata = NXdata(data.nxsignal[tuple(idx)],
-                               [NXfield(axis_data[i], name=self.axes[i].nxname,
-                                        attrs=self.axes[i].attrs)
-                                for i in [-2,-1]])
+            self.plotdata = NXdata(self.data.nxsignal[tuple(idx)],
+                                   [NXfield(self.axis_data[i], 
+                                            name=self.axes[i].nxname,
+                                            attrs=self.axes[i].attrs)
+                                    for i in [-2,-1]])
             self.shape = self.shape[-2:]
         else:
-            self.plotdata = NXdata(data.nxsignal,
-                               [NXfield(axis_data[i], name=self.axes[i].nxname,
-                                        attrs=self.axes[i].attrs)
-                                for i in range(self.ndim)])
+            self.plotdata = NXdata(self.data.nxsignal,
+                                   [NXfield(self.axis_data[i], 
+                                            name=self.axes[i].nxname,
+                                            attrs=self.axes[i].attrs)
+                                    for i in range(self.ndim)])
             self.plotdata.nxsignal.shape = self.shape
         self.plotdata['title'] = self.title
 
@@ -552,7 +556,7 @@ class NXPlot(object):
         plt.ion()
 
     def data2D(self):
-        axes = [self.xaxis.dim,self.yaxis.dim]
+        axes = [self.yaxis.dim,self.xaxis.dim]
         limits = []
         for axis in self.axes:
             if self.axis[axis.nxname].dim in axes: 
@@ -827,6 +831,8 @@ class NXPlotTab(QtGui.QWidget):
             self.minbox.setValue(axis.lo)
             self.maxbox.setValue(axis.hi)
         else:
+            if (axis.max-axis.min) < 1e-8:
+                axis.max = axis.min + 1
             self.minbox.setRange(axis.min, axis.max)
             self.maxbox.setRange(axis.min, axis.max)
             self.minbox.setValue(self.minbox.minimum())
@@ -1007,11 +1013,11 @@ class NXPlotTab(QtGui.QWidget):
         if self.lockbox.isChecked():
             self.axis.locked = True
             lo, hi = self.axis.get_limits()
-            self.axis.diff = hi - lo
+            self.axis.diff = self.maxbox.diff = self.minbox.diff = hi - lo
             self.minbox.setDisabled(True)
         else:
             self.axis.locked = False
-            self.axis.diff = None
+            self.axis.diff = self.maxbox.diff = self.minbox.diff = None
             self.minbox.setDisabled(False)
 
     def set_autoscale(self):
@@ -1091,6 +1097,7 @@ class NXSpinBox(QtGui.QSpinBox):
         self.data = data
         self.validator = QtGui.QDoubleValidator()
         self.old_value = None
+        self.diff = None
 
     def value(self):
         return float(self.data[super(NXSpinBox, self).value()])
@@ -1113,6 +1120,12 @@ class NXSpinBox(QtGui.QSpinBox):
     
     def validate(self, input, pos):
         return self.validator.validate(input, pos)
+
+    def stepBy(self, steps):
+        if self.diff:
+            self.setValue(self.value() + steps * self.diff)
+        else:
+            super(NXSpinBox, self).stepBy(steps)
 
 
 class NXDoubleSpinBox(QtGui.QDoubleSpinBox):
@@ -1196,30 +1209,33 @@ class NXProjectionTab(QtGui.QWidget):
     def set_yaxis(self):
         self.yaxis = self.ybox.currentText()
 
-    def save_projection(self):
+    def get_projection(self):
         x = self.get_axes().index(self.xaxis)
         if self.yaxis == 'None':
-            axis = [x]
+            axes = [x]
         else:
             y = self.get_axes().index(self.yaxis)
-            axis = [y,x]
+            axes = [y,x]
         limits = [(self.plotview.plot.axis[name].lo, 
                    self.plotview.plot.axis[name].hi) 
-                    for name in self.get_axes()]
-        keep_data(self.plotview.plot.data.project(axis, limits))
+                   for name in self.get_axes()]
+        xdim, xlo, xhi = self.plotview.zoom['x']
+        ydim, ylo, yhi = self.plotview.zoom['y']
+        limits[xdim] = (xlo, xhi)
+        limits[ydim] = (ylo, yhi)
+        for axis in axes:
+            if axis not in [ydim, xdim]:
+                limits[axis] = (None, None)
+        return axes, limits
+
+    def save_projection(self):
+        axes, limits = self.get_projection()
+        keep_data(self.plotview.plot.data.project(axes, limits))
 
     def plot_projection(self):
-        x = self.get_axes().index(self.xaxis)
-        if self.yaxis == 'None':
-            axis = [x]
-        else:
-            y = self.get_axes().index(self.yaxis)
-            axis = [y,x]
-        limits = [(self.plotview.plot.axis[name].lo, 
-                   self.plotview.plot.axis[name].hi) 
-                    for name in self.get_axes()]
+        axes, limits = self.get_projection()
         projection = change_plotview("Projection")
-        projection.plot.plot(self.plotview.plot.data.project(axis, limits))
+        projection.plot.plot(self.plotview.plot.data.project(axes, limits))
         self.plotview.make_active()
 
 
@@ -1395,6 +1411,10 @@ class NXNavigationToolbar(NavigationToolbar):
                     a.set_ylim((y0, y1))
                     self.plotview.xtab.set_limits(x0, x1)
                     self.plotview.ytab.set_limits(y0, y1)
+                    xdim = self.plotview.xtab.axis.dim
+                    ydim = self.plotview.ytab.axis.dim
+                    self.plotview.zoom = {'x': (xdim, x0, x1), 
+                                          'y': (ydim, y0, y1)}
                 if self.plotview.label <> "Projection":
                     self.plotview.tab_widget.setCurrentWidget(self.plotview.ptab)
             elif self._button_pressed == 3:
@@ -1403,9 +1423,11 @@ class NXNavigationToolbar(NavigationToolbar):
                 elif self._zoom_mode == "y":
                     self.plotview.ytab.set_limits(y0, y1)
                 else:
-                    self.plotview.xtab.set_limits(x0, x1)
-                    self.plotview.ytab.set_limits(y0, y1)
-                if self.plotview.label <> "Projection":
+                    xdim = self.plotview.xtab.axis.dim
+                    ydim = self.plotview.ytab.axis.dim
+                    self.plotview.zoom = {'x': (xdim, x0, x1), 
+                                          'y': (ydim, y0, y1)}
+                if self.plotview.label != "Projection":
                     self.plotview.tab_widget.setCurrentWidget(self.plotview.ptab)
 
         self.draw()
