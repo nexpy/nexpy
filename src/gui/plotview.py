@@ -166,7 +166,7 @@ class NXPlotView(QtGui.QWidget):
         self.tab_widget.addTab(self.otab, 'options')
         self.currentTab = self.otab
         self.tab_widget.setCurrentWidget(self.currentTab)
-
+        
         vbox.addWidget(self.tab_widget)
         self.setLayout(vbox)
 
@@ -245,7 +245,8 @@ class NXPlot(object):
         self.get_cmap = self.vtab.get_cmap
 
         self.colorbar = None
-        self.autoscale = False      
+        self.autoscale = False   
+        self.zoom = None   
     
     def plot(self, data, fmt='', xmin=None, xmax=None, ymin=None, ymax=None,
              vmin=None, vmax=None, **opts):
@@ -620,9 +621,11 @@ class NXPlot(object):
                     self.tab_widget.insertTab(self.tab_widget.indexOf(self.otab),
                                               self.ptab,'projections')
                 self.ptab.set_axes()
+                if self.ptab.panel:
+                    self.ptab.panel.close()
+                self.zoom = None
             if self.ndim > 2:
                 self.ztab.set_axis(self.zaxis)
-                self.ztab.lockbox.setChecked(False)
                 self.ztab.scalebox.setChecked(False)
                 if self.tab_widget.indexOf(self.ztab) == -1:
                     self.tab_widget.insertTab(self.tab_widget.indexOf(self.ptab),
@@ -635,6 +638,7 @@ class NXPlot(object):
             self.ytab.logbox.setChecked(False)
             self.ytab.logbox.setVisible(False)
             self.ytab.axiscombo.setVisible(True)
+        self.otab.zoom()
 
     def update_tabs(self):
         self.xtab.minbox.setMinimum(self.xtab.axis.min)
@@ -879,8 +883,6 @@ class NXPlotTab(QtGui.QWidget):
         doublespinbox.setAlignment(QtCore.Qt.AlignRight)
         doublespinbox.setFixedWidth(100)
         doublespinbox.setKeyboardTracking(False)
-        doublespinbox.editingFinished.connect(slot)
-        doublespinbox.valueChanged[unicode].connect(slot)
         return doublespinbox
 
     def slider(self, slot):
@@ -1135,9 +1137,16 @@ class NXDoubleSpinBox(QtGui.QDoubleSpinBox):
         self.validator.setRange(-np.inf,np.inf)
         self.validator.setDecimals(1000)
         self.old_value = None
+        self.diff = None
     
     def validate(self, input, pos):
         return self.validator.validate(input, pos)
+
+    def stepBy(self, steps):
+        if self.diff:
+            self.setValue(self.value() + steps * self.diff)
+        else:
+            super(NXDoubleSpinBox, self).stepBy(steps)
 
 
 class NXProjectionTab(QtGui.QWidget):
@@ -1175,6 +1184,10 @@ class NXProjectionTab(QtGui.QWidget):
         self.overplot_box.setVisible(False)
         widgets.append(self.overplot_box)
 
+        self.panel_button = QtGui.QPushButton("Open Panel", self)
+        self.panel_button.clicked.connect(self.open_panel)
+        widgets.append(self.panel_button)
+
         hbox.addStretch()
         for w in widgets:
             hbox.addWidget(w)
@@ -1183,6 +1196,7 @@ class NXProjectionTab(QtGui.QWidget):
         
         self.setLayout(hbox)
 
+        self.panel = None
         self.plotview = plotview
 
     def get_axes(self):
@@ -1223,8 +1237,15 @@ class NXProjectionTab(QtGui.QWidget):
         limits = [(self.plotview.plot.axis[name].lo, 
                    self.plotview.plot.axis[name].hi) 
                    for name in self.get_axes()]
-        xdim, xlo, xhi = self.plotview.zoom['x']
-        ydim, ylo, yhi = self.plotview.zoom['y']
+        if self.plotview.zoom:
+            xdim, xlo, xhi = self.plotview.plot.zoom['x']
+            ydim, ylo, yhi = self.plotview.plot.zoom['y']
+        else:
+            xaxis = self.plotview.plot.xaxis
+            xdim, xlo, xhi = xaxis.dim, xaxis.lo, xaxis.hi
+            yaxis = self.plotview.plot.yaxis
+            ydim, ylo, yhi = yaxis.dim, yaxis.lo, yaxis.hi
+            
         limits[xdim] = (xlo, xhi)
         limits[ydim] = (ylo, yhi)
         for axis in axes:
@@ -1251,6 +1272,236 @@ class NXProjectionTab(QtGui.QWidget):
             self.overplot_box.setVisible(False)
             self.overplot_box.setChecked(False)
         self.plotview.make_active()
+
+    def open_panel(self):
+        self.panel = NXProjectionPanel(plotview=self.plotview, parent=self)
+        self.panel.show()
+        axes = [self.panel.xaxis, self.panel.yaxis]
+        for axis in axes:
+            lo, hi = self.plotview.plot.axis[axis].get_limits()
+            self.panel.minbox[axis].setValue(lo)
+            self.panel.maxbox[axis].setValue(hi)
+
+
+class NXProjectionPanel(QtGui.QDialog):
+
+    def __init__(self, plotview=None, parent=None):
+
+        QtGui.QDialog.__init__(self, parent)
+ 
+        self.plotview = plotview
+
+        layout = QtGui.QVBoxLayout()
+
+        axisbox = QtGui.QHBoxLayout()
+        widgets = []
+
+        self.xbox = QtGui.QComboBox()
+        self.xbox.setCurrentIndex(self.xbox.findText(self.plotview.plot.xaxis.name))
+        self.xbox.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToContents)
+        self.xbox.activated.connect(self.set_xaxis)
+        widgets.append(QtGui.QLabel('X-Axis:'))
+        widgets.append(self.xbox)
+        self.set_xaxis()
+
+        self.ybox = QtGui.QComboBox()
+        self.xbox.setCurrentIndex(self.ybox.findText(self.plotview.plot.yaxis.name))
+        self.ybox.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToContents)
+        self.ybox.activated.connect(self.set_yaxis)
+        self.ylabel = QtGui.QLabel('Y-Axis:')
+        widgets.append(self.ylabel)
+        widgets.append(self.ybox)
+        self.set_yaxis()
+
+        self.set_axes()
+
+        axisbox.addStretch()
+        for w in widgets:
+            axisbox.addWidget(w)
+            axisbox.setAlignment(w, QtCore.Qt.AlignVCenter)
+        axisbox.addStretch()
+
+        layout.addLayout(axisbox)
+
+        grid = QtGui.QGridLayout()
+        grid.setSpacing(10)
+        headers = ['Axis', 'Minimum', 'Maximum', 'Lock']
+        width = [50, 100, 100, 25]
+        column = 0
+        header_font = QtGui.QFont()
+        header_font.setBold(True)
+        for header in headers:
+            label = QtGui.QLabel()
+            label.setAlignment(QtCore.Qt.AlignHCenter)
+            label.setText(header)
+            label.setFont(header_font)
+            grid.addWidget(label, 0, column)
+            grid.setColumnMinimumWidth(column, width[column])
+            column += 1
+
+        row = 0
+        self.minbox = {}
+        self.maxbox = {}
+        self.lockbox = {}
+        for axis in self.get_axes():
+            row += 1
+            self.minbox[axis] = self.doublespinbox()
+            self.maxbox[axis] = self.doublespinbox()
+            self.lockbox[axis] = QtGui.QCheckBox()
+            self.lockbox[axis].setChecked(False)
+            self.lockbox[axis].stateChanged.connect(self.set_lock)
+            grid.addWidget(QtGui.QLabel(axis), row, 0)
+            grid.addWidget(self.minbox[axis], row, 1)
+            grid.addWidget(self.maxbox[axis], row, 2)
+            grid.addWidget(self.lockbox[axis], row, 3, alignment=QtCore.Qt.AlignHCenter)
+
+        layout.addLayout(grid)
+           
+        buttonbox = QtGui.QHBoxLayout()
+        widgets = []  
+        self.save_button = QtGui.QPushButton("Save", self)
+        self.save_button.clicked.connect(self.save_projection)
+        widgets.append(self.save_button)
+
+        self.plot_button = QtGui.QPushButton("Plot", self)
+        self.plot_button.clicked.connect(self.plot_projection)
+        widgets.append(self.plot_button)
+        
+        self.overplot_box = QtGui.QCheckBox("Over")
+        self.overplot_box.setChecked(False)
+        self.overplot_box.setVisible(False)
+        widgets.append(self.overplot_box)
+
+        buttonbox.addStretch()
+        for w in widgets:
+            buttonbox.addWidget(w)
+            buttonbox.setAlignment(w, QtCore.Qt.AlignVCenter)
+        buttonbox.addStretch()
+        
+        layout.addLayout(buttonbox)
+        
+        self.setLayout(layout)
+
+        for axis in self.get_axes():
+            min = self.plotview.plot.axis[axis].min
+            max = self.plotview.plot.axis[axis].max
+            self.minbox[axis].setRange(min, max)
+            self.minbox[axis].setValue(min)
+            self.minbox[axis].setSingleStep((max-min)/200)
+            self.maxbox[axis].setRange(min, max)
+            self.maxbox[axis].setValue(max)
+            self.maxbox[axis].setSingleStep((max-min)/200)
+
+    def get_axes(self):
+        return self.plotview.xtab.get_axes()
+
+    def set_axes(self):
+        axes = self.get_axes()    
+        self.xbox.clear()
+        self.xbox.addItems(axes)
+        self.xbox.setCurrentIndex(self.xbox.findText(self.plotview.plot.xaxis.name))
+        self.xaxis = self.xbox.currentText()
+        if self.plotview.plot.ndim <= 2:
+            self.ylabel.setVisible(False)
+            self.ybox.setVisible(False)
+            self.yaxis = 'None'
+        else:
+            self.ylabel.setVisible(True)
+            self.ybox.setVisible(True)
+            self.ybox.clear()
+            axes.insert(0,'None')
+            self.ybox.addItems(axes)
+            self.ybox.setCurrentIndex(self.ybox.findText(self.plotview.plot.yaxis.name))
+            self.yaxis = self.ybox.currentText()
+
+    def set_xaxis(self):
+        self.xaxis = self.xbox.currentText()
+
+    def set_yaxis(self):
+        self.yaxis = self.ybox.currentText()
+
+    def set_limits(self):
+        for axis in self.get_axes():
+            if self.lockbox[axis].isChecked():
+                min_value = self.maxbox[axis].value() - self.maxbox[axis].diff
+                self.minbox[axis].setValue(min_value)
+            elif self.minbox[axis].value() > self.maxbox[axis].value():
+                self.minbox[axis].setValue(self.maxbox[axis].value())
+        self.draw_rectangle()
+
+    def get_limits(self, axis=None):
+        if axis:
+            return self.minbox[axis].value(), self.maxbox[axis].value()
+        else:
+            return [(self.minbox[axis].value(), self.maxbox[axis].value()) 
+                     for axis in self.get_axes()]
+    
+    def set_lock(self):
+        for axis in self.get_axes():
+            if self.lockbox[axis].isChecked():
+                lo, hi = self.get_limits(axis)
+                self.minbox[axis].diff = self.maxbox[axis].diff = hi - lo
+                self.minbox[axis].setDisabled(True)
+            else:
+                self.minbox[axis].diff = self.maxbox[axis].diff = None
+                self.minbox[axis].setDisabled(False)
+
+    def get_projection(self):
+        x = self.get_axes().index(self.xaxis)
+        if self.yaxis == 'None':
+            axes = [x]
+        else:
+            y = self.get_axes().index(self.yaxis)
+            axes = [y,x]
+        limits = self.get_limits()
+        return axes, limits
+
+    def save_projection(self):
+        axes, limits = self.get_projection()
+        keep_data(self.plotview.plot.data.project(axes, limits))
+
+    def plot_projection(self):
+        axes, limits = self.get_projection()
+        projection = change_plotview("Projection")
+        if len(axes) == 1 and self.overplot_box.isChecked():
+            over = True
+        else:
+            over = False
+        projection.plot.plot(self.plotview.plot.data.project(axes, limits), 
+                             over=over)
+        if len(axes) == 1:
+            self.overplot_box.setVisible(True)
+        else:
+            self.overplot_box.setVisible(False)
+            self.overplot_box.setChecked(False)
+        self.plotview.make_active()
+
+    def doublespinbox(self):
+        doublespinbox = NXDoubleSpinBox()
+        doublespinbox.setAlignment(QtCore.Qt.AlignRight)
+        doublespinbox.setFixedWidth(100)
+        doublespinbox.setKeyboardTracking(False)
+        doublespinbox.editingFinished.connect(self.set_limits)
+        doublespinbox.valueChanged[unicode].connect(self.set_limits)
+        return doublespinbox
+
+    def draw_rectangle(self):
+        height = self.plotview.figure.bbox.height
+        ax = self.plotview.figure.axes[0]
+        x0 = self.minbox[self.xaxis].value()
+        x1 = self.maxbox[self.xaxis].value()
+        y0 = self.minbox[self.yaxis].value()
+        y1 = self.maxbox[self.yaxis].value()
+        
+        x0, y0 = ax.transData.transform((x0,y0))
+        x1, y1 = ax.transData.transform((x1,y1))
+        y0, y1 = height-y0, height-y1
+
+        w = abs(x1 - x0)
+        h = abs(y1 - y0)
+
+        rect = [ int(val)for val in min(x0,x1), min(y0, y1), w, h ]
+        self.plotview.canvas.drawRectangle(rect)
 
 
 class NXNavigationToolbar(NavigationToolbar):
@@ -1427,8 +1678,8 @@ class NXNavigationToolbar(NavigationToolbar):
                     self.plotview.ytab.set_limits(y0, y1)
                     xdim = self.plotview.xtab.axis.dim
                     ydim = self.plotview.ytab.axis.dim
-                    self.plotview.zoom = {'x': (xdim, x0, x1), 
-                                          'y': (ydim, y0, y1)}
+                    self.plotview.plot.zoom = {'x': (xdim, x0, x1), 
+                                               'y': (ydim, y0, y1)}
                 if self.plotview.label != "Projection":
                     self.plotview.tab_widget.setCurrentWidget(self.plotview.ptab)
             elif self._button_pressed == 3:
@@ -1439,8 +1690,8 @@ class NXNavigationToolbar(NavigationToolbar):
                 else:
                     xdim = self.plotview.xtab.axis.dim
                     ydim = self.plotview.ytab.axis.dim
-                    self.plotview.zoom = {'x': (xdim, x0, x1), 
-                                          'y': (ydim, y0, y1)}
+                    self.plotview.plot.zoom = {'x': (xdim, x0, x1), 
+                                               'y': (ydim, y0, y1)}
                 if self.plotview.label != "Projection":
                     self.plotview.tab_widget.setCurrentWidget(self.plotview.ptab)
 
