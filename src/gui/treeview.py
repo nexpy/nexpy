@@ -1,6 +1,8 @@
-from PySide import QtCore, QtGui
 import os
-from nexpy.api.nexus import NXfield, NXgroup, NXentry, NXlink, NXroot, NeXusError
+
+from PySide import QtCore, QtGui
+from nexpy.api.nexus import NXfield, NXgroup, NXlink, NXroot, NeXusError
+
 
 def natural_sort(key):
     import re
@@ -20,9 +22,7 @@ class NXtree(NXgroup):
     _item = None
 
     def __setitem__(self, key, value):
-        if isinstance(value, NXroot) or isinstance(value, NXentry):
-            if isinstance(value, NXentry):
-                value = NXroot(value)
+        if isinstance(value, NXroot):
             if key not in self._entries.keys():
                 value._group = self
                 value._name = key
@@ -33,7 +33,7 @@ class NXtree(NXgroup):
             else:
                 raise NeXusError("Name already in the tree")
         else:
-            raise NeXusError("Value must be an NXroot or NXentry group")
+            raise NeXusError("Value must be an NXroot group")
     
     def __delitem__(self, key):
         del self._entries[key]
@@ -61,18 +61,18 @@ class NXtree(NXgroup):
                 node.set_unchanged()
 
     def add(self, node):
-        from nexpy.gui.consoleapp import _shell
-        if isinstance(node, NXroot):
-            group = node
+        if isinstance(node, NXgroup):
+            from nexpy.gui.consoleapp import _shell
             for key in _shell.keys():
-                if id(_shell[key]) == id(group):
-                    group.nxname = key
-            self[group.nxname] = group
-        elif isinstance(node, NXgroup):
-            group = NXroot(node)
-            self[self.get_new_name()] = group
+                if id(_shell[key]) == id(node):
+                    node.nxname = key
+            if isinstance(node, NXroot):
+                self[node.nxname] = node
+            else:
+                group = NXroot(node)
+                self[self.get_new_name()] = group
         else:
-            raise NeXusError("Only a valid NXgroup can be added to the tree")
+            raise NeXusError("Only an NXgroup can be added to the tree")
 
     def get_name(self, filename):
         from nexpy.gui.consoleapp import _shell
@@ -228,8 +228,9 @@ class NXTreeView(QtGui.QTreeView):
         self.link_action=QtGui.QAction("Show Link", self, triggered=self.show_link)
         self.signal_action=QtGui.QAction("Set Signal", self, triggered=self.set_signal)
         self.fit_action=QtGui.QAction("Fit Data", self, triggered=self.fit_data)
-        self.savefile_action=QtGui.QAction("Save", self, triggered=self.save_file)
-        self.savefileas_action=QtGui.QAction("Save as...", self, triggered=self.save_file_as)
+        self.savefile_action=QtGui.QAction("Save as...", self, triggered=self.save_file)
+        self.duplicate_action=QtGui.QAction("Duplicate...", self, triggered=self.duplicate)
+        self.remove_action=QtGui.QAction("Remove", self, triggered=self.remove)
         self.lockfile_action=QtGui.QAction("Lock File", self, triggered=self.lock_file)
         self.unlockfile_action=QtGui.QAction("Unlock File", self, triggered=self.unlock_file)
 
@@ -253,7 +254,9 @@ class NXTreeView(QtGui.QTreeView):
         self.popMenu.addAction(self.fit_action)
         self.popMenu.addSeparator()
         self.popMenu.addAction(self.savefile_action)
-        self.popMenu.addAction(self.savefileas_action)
+        self.popMenu.addAction(self.duplicate_action)
+        self.popMenu.addSeparator()
+        self.popMenu.addAction(self.remove_action)
         self.popMenu.addSeparator()
         self.popMenu.addAction(self.lockfile_action)
         self.popMenu.addAction(self.unlockfile_action)
@@ -261,8 +264,11 @@ class NXTreeView(QtGui.QTreeView):
     def save_file(self):
         self.parent().parent().save_file()
 
-    def save_file_as(self):
-        self.parent().parent().save_file_as()
+    def duplicate(self):
+        self.parent().parent().duplicate()
+
+    def remove(self):
+        self.parent().parent().remove()
 
     def lock_file(self):
         self.parent().parent().lock_file()
