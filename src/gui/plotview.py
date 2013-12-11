@@ -1274,13 +1274,10 @@ class NXProjectionTab(QtGui.QWidget):
         self.plotview.make_active()
 
     def open_panel(self):
-        self.panel = NXProjectionPanel(plotview=self.plotview, parent=self)
+        if not self.panel:
+            self.panel = NXProjectionPanel(plotview=self.plotview, parent=self)
         self.panel.show()
-        axes = [self.panel.xaxis, self.panel.yaxis]
-        for axis in axes:
-            lo, hi = self.plotview.plot.axis[axis].get_limits()
-            self.panel.minbox[axis].setValue(lo)
-            self.panel.maxbox[axis].setValue(hi)
+        self.panel.update_limits()
 
 
 class NXProjectionPanel(QtGui.QDialog):
@@ -1436,6 +1433,13 @@ class NXProjectionPanel(QtGui.QDialog):
             return [(self.minbox[axis].value(), self.maxbox[axis].value()) 
                      for axis in self.get_axes()]
     
+    def update_limits(self):
+        axes = [self.xaxis, self.yaxis]
+        for axis in axes:
+            lo, hi = self.plotview.plot.axis[axis].get_limits()
+            self.minbox[axis].setValue(lo)
+            self.maxbox[axis].setValue(hi)
+
     def set_lock(self):
         for axis in self.get_axes():
             if self.lockbox[axis].isChecked():
@@ -1595,6 +1599,8 @@ class NXNavigationToolbar(NavigationToolbar):
         self.plotview.xtab.reset()
         self.plotview.ytab.reset()
         self.plotview.vtab.reset()
+        if self.plotview.ptab.panel:
+            self.plotview.ptab.panel.update_limits()            
 
     def add_data(self):
         keep_data(self.plotview.plot.plotdata)
@@ -1694,6 +1700,8 @@ class NXNavigationToolbar(NavigationToolbar):
                                                'y': (ydim, y0, y1)}
                 if self.plotview.label != "Projection":
                     self.plotview.tab_widget.setCurrentWidget(self.plotview.ptab)
+            if self.plotview.ptab.panel:
+                self.plotview.ptab.panel.update_limits()
 
         self.draw()
         self._xypress = None
@@ -1703,6 +1711,16 @@ class NXNavigationToolbar(NavigationToolbar):
 
         self.push_current()
         self.release(event)
+
+    def release_pan(self, event):
+        super(NXNavigationToolbar, self).release_pan(event)
+        ax = self.plotview.figure.gca()
+        xmin, xmax = ax.get_xlim()
+        ymin, ymax = ax.get_ylim()
+        self.plotview.xtab.set_limits(xmin, xmax)
+        self.plotview.ytab.set_limits(ymin, ymax)
+        if self.plotview.ptab.panel:
+            self.plotview.ptab.panel.update_limits()            
 
     def _update_view(self):
         super(NXNavigationToolbar, self)._update_view()
