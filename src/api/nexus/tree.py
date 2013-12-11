@@ -450,19 +450,22 @@ class NXFile(object):
         if hasattr(data,'_target'):
             return [(self.nxpath, data._target)]
 
-        if data.nxname not in self[parent]:
-            if np.prod(data.shape) > 10000:
-                self[parent].create_dataset(data.nxname, 
-                                            dtype=data.dtype, shape=data.shape,
-                                            compression='lzf', chunks=True)
-            else:
-                self[parent].create_dataset(data.nxname, 
-                                            dtype=data.dtype, shape=data.shape)
-        value = data.nxdata
-        if value is not None:
-            self[self.nxpath][()] = value   
-        elif data._memfile:
-            data._memfile.copy('data', self[parent], self.nxpath)
+        if data.nxfilemode:
+            data.nxfile.copy(data.nxpath, self[parent])
+        else:
+            if data.nxname not in self[parent]:
+                if np.prod(data.shape) > 10000:
+                    self[parent].create_dataset(data.nxname, 
+                                                dtype=data.dtype, shape=data.shape,
+                                                compression='lzf', chunks=True)
+                else:
+                    self[parent].create_dataset(data.nxname, 
+                                                dtype=data.dtype, shape=data.shape)
+            value = data.nxdata
+            if value is not None:
+                self[self.nxpath][()] = value   
+            elif data._memfile:
+                data._memfile.copy('data', self[parent], self.nxpath)
         self._writeattrs(data.attrs)
         self.nxpath = parent
         return []
@@ -511,6 +514,7 @@ class NXFile(object):
 
     def _setattrs(self):
         from datetime import datetime
+        self._file.attrs['file_name'] = self._file.filename
         self._file.attrs['file_time'] = datetime.now().isoformat()
         self._file.attrs['NeXus_version'] = '4.3.0'
         self._file.attrs['HDF5_Version'] = h5.version.hdf5_version
@@ -868,9 +872,9 @@ class NXobject(object):
             
             file = NXFile(filename, mode)
             file.writefile(root)
-            root._filename = file.filename
+            root._filename = file.file.filename
             root._setattrs(file._getattrs())
-            root._mode = file.mode
+            root._mode = file._mode
             file.close()
 
             for node in root.walk():
@@ -923,14 +927,6 @@ class NXobject(object):
         else:
             self._changed = False
     
-    def lock(self):
-        """Make the tree readonly"""
-        self.nxroot.lock()
-
-    def unlock(self):
-        """Make the tree modifiable"""
-        self.nxroot.unlock()
-
     def _getclass(self):
         return self._class
 
@@ -2632,6 +2628,9 @@ class NXroot(NXgroup):
     def __init__(self, *items, **opts):
         self._class = "NXroot"
         NXgroup.__init__(self, *items, **opts)
+
+    def rename(self, name):
+        self.nxname = name           
 
     def lock(self):
         """Make the tree readonly"""
