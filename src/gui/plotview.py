@@ -16,6 +16,7 @@ from matplotlib.backends.backend_qt4agg import NavigationToolbar2QTAgg as Naviga
 from matplotlib.figure import Figure
 from matplotlib.image import NonUniformImage
 from matplotlib.colors import LogNorm, Normalize
+from matplotlib.patches import Rectangle
 import matplotlib.backends.qt4_editor.figureoptions as figureoptions
 import matplotlib.pyplot as plt
 
@@ -621,8 +622,6 @@ class NXPlot(object):
                     self.tab_widget.insertTab(self.tab_widget.indexOf(self.otab),
                                               self.ptab,'projections')
                 self.ptab.set_axes()
-                if self.ptab.panel:
-                    self.ptab.panel.close()
                 self.zoom = None
             if self.ndim > 2:
                 self.ztab.set_axis(self.zaxis)
@@ -638,7 +637,10 @@ class NXPlot(object):
             self.ytab.logbox.setChecked(False)
             self.ytab.logbox.setVisible(False)
             self.ytab.axiscombo.setVisible(True)
-        self.otab.zoom()
+        if self.ptab.panel:
+            self.ptab.panel.destroy(True)
+            self.ptab.panel = None
+
 
     def update_tabs(self):
         self.xtab.minbox.setMinimum(self.xtab.axis.min)
@@ -1237,7 +1239,7 @@ class NXProjectionTab(QtGui.QWidget):
         limits = [(self.plotview.plot.axis[name].lo, 
                    self.plotview.plot.axis[name].hi) 
                    for name in self.get_axes()]
-        if self.plotview.zoom:
+        if self.plotview.plot.zoom:
             xdim, xlo, xhi = self.plotview.plot.zoom['x']
             ydim, ylo, yhi = self.plotview.plot.zoom['y']
         else:
@@ -1275,8 +1277,9 @@ class NXProjectionTab(QtGui.QWidget):
 
     def open_panel(self):
         if not self.panel:
-            self.panel = NXProjectionPanel(plotview=self.plotview, parent=self)
+            self.panel = NXProjectionPanel(plotview=self.plotview, parent=self)        
         self.panel.show()
+        self.panel.set_defaults()
         self.panel.update_limits()
 
 
@@ -1302,7 +1305,7 @@ class NXProjectionPanel(QtGui.QDialog):
         self.set_xaxis()
 
         self.ybox = QtGui.QComboBox()
-        self.xbox.setCurrentIndex(self.ybox.findText(self.plotview.plot.yaxis.name))
+        self.ybox.setCurrentIndex(self.ybox.findText(self.plotview.plot.yaxis.name))
         self.ybox.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToContents)
         self.ybox.activated.connect(self.set_yaxis)
         self.ylabel = QtGui.QLabel('Y-Axis:')
@@ -1374,20 +1377,17 @@ class NXProjectionPanel(QtGui.QDialog):
             buttonbox.addWidget(w)
             buttonbox.setAlignment(w, QtCore.Qt.AlignVCenter)
         buttonbox.addStretch()
+
+        self.close_button = QtGui.QPushButton("Close Panel", self)
+        self.close_button.clicked.connect(self.close)
+        buttonbox.addWidget(self.close_button)
         
         layout.addLayout(buttonbox)
         
         self.setLayout(layout)
+        self.setWindowTitle('Projection Panel')
 
-        for axis in self.get_axes():
-            min = self.plotview.plot.axis[axis].min
-            max = self.plotview.plot.axis[axis].max
-            self.minbox[axis].setRange(min, max)
-            self.minbox[axis].setValue(min)
-            self.minbox[axis].setSingleStep((max-min)/200)
-            self.maxbox[axis].setRange(min, max)
-            self.maxbox[axis].setValue(max)
-            self.maxbox[axis].setSingleStep((max-min)/200)
+        self.set_defaults()
 
     def get_axes(self):
         return self.plotview.xtab.get_axes()
@@ -1416,6 +1416,21 @@ class NXProjectionPanel(QtGui.QDialog):
 
     def set_yaxis(self):
         self.yaxis = self.ybox.currentText()
+
+    def set_defaults(self):
+        self.rectangle = None
+        self.xbox.setCurrentIndex(self.xbox.findText(self.plotview.plot.xaxis.name))
+        self.ybox.setCurrentIndex(self.ybox.findText(self.plotview.plot.yaxis.name))
+        for axis in self.get_axes():
+            min = self.plotview.plot.axis[axis].min
+            max = self.plotview.plot.axis[axis].max
+            self.minbox[axis].diff = self.maxbox[axis].diff = None
+            self.minbox[axis].setRange(min, max)
+            self.minbox[axis].setValue(min)
+            self.minbox[axis].setSingleStep((max-min)/200)
+            self.maxbox[axis].setRange(min, max)
+            self.maxbox[axis].setValue(max)
+            self.maxbox[axis].setSingleStep((max-min)/200)
 
     def set_limits(self):
         for axis in self.get_axes():
@@ -1490,22 +1505,32 @@ class NXProjectionPanel(QtGui.QDialog):
         return doublespinbox
 
     def draw_rectangle(self):
-        height = self.plotview.figure.bbox.height
+        if self.rectangle:
+            self.rectangle.remove()
         ax = self.plotview.figure.axes[0]
         x0 = self.minbox[self.xaxis].value()
         x1 = self.maxbox[self.xaxis].value()
         y0 = self.minbox[self.yaxis].value()
         y1 = self.maxbox[self.yaxis].value()
         
-        x0, y0 = ax.transData.transform((x0,y0))
-        x1, y1 = ax.transData.transform((x1,y1))
-        y0, y1 = height-y0, height-y1
+        self.rectangle = ax.add_patch(Rectangle((x0,y0),x1-x0,y1-y0))
+        self.rectangle.set_facecolor('none')
+        self.rectangle.set_linestyle('dashed')
+        self.rectangle.set_linewidth(2)
+        self.plotview.canvas.draw()
 
-        w = abs(x1 - x0)
-        h = abs(y1 - y0)
+    def closeEvent(self, event):
+        self.close()
+        event.accept()
 
-        rect = [ int(val)for val in min(x0,x1), min(y0, y1), w, h ]
-        self.plotview.canvas.drawRectangle(rect)
+    def close(self):
+        try:
+            self.rectangle.remove()
+        except:
+            pass
+        self.plotview.canvas.draw()
+        self.rectangle = None
+        QtGui.QDialog.close(self)
 
 
 class NXNavigationToolbar(NavigationToolbar):
