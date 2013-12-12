@@ -329,9 +329,9 @@ limits and parameters.
     projections limits. The x and y limits of the plot are displayed as a 
     dashed rectangle.  
 
-    .. image:: /images/projection-panel.png
-       :align: center
-       :width: 90%
+.. image:: /images/projection-panel.png
+   :align: center
+   :width: 90%
 
 **Options Tab**
 
