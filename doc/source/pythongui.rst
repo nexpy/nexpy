@@ -84,20 +84,12 @@ File Menu
     .. warning:: Saving a NeXus object embedded within a tree is not equivalent 
                  to saving the whole tree. Only the object and its children will 
                  be saved to a new file. 
-**Save as...**
-    Saves the selected tree item to a new NeXus file. If the selected item is
-    not a NXroot group, it will be wrapped in one to form a valid NeXus file.
-
-    .. warning:: Saving a NeXus object embedded within a tree is not equivalent 
-                 to saving the whole tree. Only the object and its children will 
-                 be saved to a new file. 
 
 **Duplicate...**
     Makes a copy of the NeXus file or tree, leaving the original untouched. 
     If any field in the original tree is too large to be stored in memory, its
     data is stored in an HDF5 memory-mapped file until the tree is saved to a 
     file. 
-
 **Remove**
     Removes the root item from the tree.
 
@@ -111,9 +103,9 @@ File Menu
     saved to a file, any subsequent changes will automatically update the file,
     including deleting items. 
 
-    ..warning:: Any changes to an unlocked file will be immediate and 
-                irreversible. Make sure you have a backup if your file contains
-                critical data.
+    .. warning:: Any changes to an unlocked file will be immediate and 
+                 irreversible. Make sure you have a backup if your file contains
+                 critical data.
 
 **Import**
     Imports data from other formats. Some importers are provided with the NeXpy
@@ -163,15 +155,18 @@ Data Menu
 **Rename Data**
     Renames the selected tree item.
 
-    .. warning:: If the NeXus tree was loaded from a file with read/write 
-                 access, it cannot be saved to the original file if items have 
-                 been renamed.
+    .. warning:: This action will be automatically saved to the NeXus file if
+                 it has been opened as read/write. 
 
 **Copy Data**
     Copies the selected tree item to a copy buffer. 
 
 **Paste Data**
-    Pastes the copy buffer to the selected group.
+    Pastes the copy buffer to the selected group. If the selected group is in a 
+    file open with read/write access, all fields in the copy buffer are copied 
+    to the file. If the selected group is not currently stored in a file and 
+    any field in the copy buffer is too large to be stored in memory, its data 
+    is copied to an HDF5 memory-mapped file using the h5py copy module.
     
 **Delete Data**
     Deletes the selected tree item.
@@ -180,9 +175,13 @@ Data Menu
               variable will not be deleted.
 
     .. warning:: If the NeXus tree was loaded from a file with read/write 
-                 access, the deleted data will still be in the file after a 
-                 save(). However, it will not be saved to a new file.
+                 access, the data will be immediately deleted from the file. 
+                 This action is irreversible, so ensure you have a backup.
 
+**Show Link**
+    If the selected item is an NXlink objection, the field or group to which 
+    it is linked is selected in the tree.
+ 
 **Set Signal**
     Sets the selected tree item to the plottable signal. A dialog box allows the 
     user to specify axes with compatible dimensions to plot the data against.
@@ -210,6 +209,10 @@ Window Menu
               generate Matplotlib plots in separate windows from the NeXus
               plots, *e.g.*, 'plt.figure()' will open a new pyplot window, to 
               which subsequent pyplot commands will be directed. 
+
+**Show Projection Panel**
+    Show the projection panel for the currently active plotting window. This is
+    equivalent to clicking on 'Show Panel' in the projection tab (see below).
 
 Other Menus
 ^^^^^^^^^^^

@@ -204,14 +204,12 @@ Slab Input/Output
 ^^^^^^^^^^^^^^^^^
 If the size of the NXfield array is too large to be loaded into memory (as 
 defined by NX_MEMORY), the data values should be read or written in as a series 
-of slabs using the get and put methods, respectively::
+of slabs represented by NXfield slices::
 
- >>> with root.NXentry[0].data.data as slab:
-         Ni,Nj,Nk = slab.shape
-         size = [1,1,Nk]
-         for i in range(Ni):
-             for j in range(Nj):
-                 value = slab.get([i,j,0],size)
+ >>> for i in range(Ni):
+         for j in range(Nj):
+             value = root.NXentry[0].data.data[i,j,:]
+             ...
 
 .. note:: NXfield values are stored in its 'nxdata' attribute. For integers and
           floats, this will be a numpy array. If the values have not been 
