@@ -1508,10 +1508,12 @@ class NXProjectionPanel(QtGui.QDialog):
         if self.rectangle:
             self.rectangle.remove()
         ax = self.plotview.figure.axes[0]
-        x0 = self.minbox[self.xaxis].value()
-        x1 = self.maxbox[self.xaxis].value()
-        y0 = self.minbox[self.yaxis].value()
-        y1 = self.maxbox[self.yaxis].value()
+        xp = self.plotview.plot.xaxis.name
+        yp = self.plotview.plot.yaxis.name
+        x0 = self.minbox[xp].value()
+        x1 = self.maxbox[xp].value()
+        y0 = self.minbox[yp].value()
+        y1 = self.maxbox[yp].value()
         
         self.rectangle = ax.add_patch(Rectangle((x0,y0),x1-x0,y1-y0))
         self.rectangle.set_facecolor('none')
