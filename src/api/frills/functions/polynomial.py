@@ -1,5 +1,3 @@
-import numpy as np
-
 function_name = 'Polynomial'
 parameters = ['P0', 'P1', 'P2', 'P3', 'P4']
 

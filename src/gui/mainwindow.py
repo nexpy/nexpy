@@ -35,7 +35,7 @@ from treeview import NXTreeView
 from plotview import NXPlotView
 from datadialogs import *
 from nexpy.api.nexus.tree import nxload, NeXusError
-from nexpy.api.nexus.tree import NXgroup, NXfield, NXroot, NXentry, NXdata
+from nexpy.api.nexus.tree import NXgroup, NXfield, NXroot, NXentry
 
 # IPython imports
 from IPython.qt.console.rich_ipython_widget import RichIPythonWidget
@@ -192,7 +192,7 @@ class MainWindow(QtGui.QMainWindow):
             )
         self.add_menu_action(self.file_menu, self.newworkspace_action, True)  
         
-        self.openfile_action=QtGui.QAction("&Open (read only)",
+        self.openfile_action=QtGui.QAction("&Open",
             self,
             shortcut=QtGui.QKeySequence.Open,
             triggered=self.open_file
@@ -206,19 +206,40 @@ class MainWindow(QtGui.QMainWindow):
             )
         self.add_menu_action(self.file_menu, self.openeditablefile_action, True)  
 
-        self.savefile_action=QtGui.QAction("&Save",
+        self.savefile_action=QtGui.QAction("&Save as...",
             self,
             shortcut=QtGui.QKeySequence.Save,
             triggered=self.save_file
             )
         self.add_menu_action(self.file_menu, self.savefile_action, True)  
         
-        self.savefileas_action=QtGui.QAction("Save as...",
+        self.duplicate_action=QtGui.QAction("Duplicate...",
             self,
-            shortcut=QtGui.QKeySequence.SaveAs,
-            triggered=self.save_file_as
+            triggered=self.duplicate
             )
-        self.add_menu_action(self.file_menu, self.savefileas_action, True)  
+        self.add_menu_action(self.file_menu, self.duplicate_action, True)  
+
+        self.file_menu.addSeparator()
+
+        self.remove_action=QtGui.QAction("Remove",
+            self,
+            triggered=self.remove
+            )
+        self.add_menu_action(self.file_menu, self.remove_action, True)  
+
+        self.file_menu.addSeparator()
+
+        self.lockfile_action=QtGui.QAction("&Lock File",
+            self,
+            triggered=self.lock_file
+            )
+        self.add_menu_action(self.file_menu, self.lockfile_action, True)  
+        
+        self.unlockfile_action=QtGui.QAction("&Unlock File",
+            self,
+            triggered=self.unlock_file
+            )
+        self.add_menu_action(self.file_menu, self.unlockfile_action, True)  
         
         self.file_menu.addSeparator()
 
@@ -367,6 +388,14 @@ class MainWindow(QtGui.QMainWindow):
 
         self.data_menu.addSeparator()
  
+        self.link_action=QtGui.QAction("Show Link",
+            self,
+            triggered=self.show_link
+            )
+        self.add_menu_action(self.data_menu, self.link_action, True)  
+
+        self.data_menu.addSeparator()
+ 
         self.signal_action=QtGui.QAction("Set Signal",
             self,
             triggered=self.set_signal
@@ -479,7 +508,10 @@ class MainWindow(QtGui.QMainWindow):
                          'Workspace Name:', text=default_name)        
         if name and ok:
             self.treeview.tree[name] = NXroot(NXentry())
-  
+            entry = self.treeview.tree[name].entry
+            self.treeview.selectnode(self.treeview.tree[name].entry)
+            self.treeview.update()
+
     def open_file(self):
         fname, _ = QtGui.QFileDialog.getOpenFileName(self, 'Open File (Read Only)',
                          self.default_directory, 
@@ -500,42 +532,86 @@ class MainWindow(QtGui.QMainWindow):
         node = self.treeview.getnode()
         if node is None:
             return
-        elif node.nxfile and isinstance(node, NXroot):
-            try:
-                node.save()
-            except NeXusError, error_message:
-                QtGui.QMessageBox.critical(
-                      self, "Error saving file", str(error_message),
-                      QtGui.QMessageBox.Ok, QtGui.QMessageBox.NoButton)
+        if node.nxfilemode:
+            name = self.treeview.tree.get_new_name()
+            existing = True
         else:
-            default_name = os.path.join(self.default_directory,node.nxname)
-            fname, _ = QtGui.QFileDialog.getSaveFileName(self, 
-                             "Choose a Filename",
-                             default_name, 
-                             "NeXus Files (*.nxs *.nx5 *.h5 *.nx4 *.hdf *.xml)")
-            if fname:
-                try:
-                    node.save(fname)
-                except NeXusError, error_message:
-                    QtGui.QMessageBox.critical(
-                          self, "Error saving file", str(error_message),
-                          QtGui.QMessageBox.Ok, QtGui.QMessageBox.NoButton)
-
-    def save_file_as(self):
-        node = self.treeview.getnode()
-        if node is None:
-            return
-        default_name = os.path.join(self.default_directory,node.nxname)
+            name = node.nxname
+            existing = False
+        default_name = os.path.join(self.default_directory,name)
         fname, _ = QtGui.QFileDialog.getSaveFileName(self, "Choose a Filename",
                          default_name, 
                          "NeXus Files (*.nxs *.nx5 *.h5 *.nx4 *.hdf *.xml)")
         if fname:
             try:
+                old_name = node.nxname
                 node.save(fname)
+                if existing:
+                    name = self.treeview.tree.get_name(fname)
+                    self.treeview.tree[name] = self.user_ns[name] = nxload(fname, 'rw')
+                    del self.treeview.tree[old_name]
+                    self.treeview.selectnode(self.treeview.tree[name])
+                    self.treeview.update()
+                self.default_directory = os.path.dirname(fname)
             except NeXusError, error_message:
                 QtGui.QMessageBox.critical(
                     self, "Error saving file", str(error_message),
                     QtGui.QMessageBox.Ok, QtGui.QMessageBox.NoButton)
+
+    def duplicate(self):
+        node = self.treeview.getnode()
+        if isinstance(node, NXroot):
+            if node.nxfilemode:
+                mode = node.nxfilemode
+                name = self.treeview.tree.get_new_name()
+                default_name = os.path.join(self.default_directory,name)
+                fname, _ = QtGui.QFileDialog.getSaveFileName(self, "Choose a Filename",
+                             default_name, 
+                             "NeXus Files (*.nxs *.nx5 *.h5 *.nx4 *.hdf *.xml)")
+                if fname:
+                    try:
+                        node.save(fname)
+                        name = self.treeview.tree.get_name(fname)
+                        node._mode = mode
+                        self.treeview.tree[name] = self.user_ns[name] = nxload(fname, 'rw')
+                        self.default_directory = os.path.dirname(fname)
+                    except NeXusError, error_message:
+                        QtGui.QMessageBox.critical(
+                            self, "Error saving file", str(error_message),
+                            QtGui.QMessageBox.Ok, QtGui.QMessageBox.NoButton)
+            else:
+                default_name = self.treeview.tree.get_new_name()
+                name, ok = QtGui.QInputDialog.getText(self, 'Duplicate Workspace', 
+                             'Workspace Name:', text=default_name)        
+                if name and ok:
+                    self.treeview.tree[name] = node
+            self.treeview.selectnode(self.treeview.tree[name])
+            self.treeview.update()
+
+    def remove(self):
+        node = self.treeview.getnode()
+        if isinstance(node, NXroot):
+            dialog = RemoveDialog(node, self)
+            dialog.show()      
+
+    def lock_file(self):
+        node = self.treeview.getnode()
+        if isinstance(node, NXroot):
+            node.lock()
+            self.treeview.update()
+
+    def unlock_file(self):
+        node = self.treeview.getnode()
+        if isinstance(node, NXroot):
+            msgBox = QtGui.QMessageBox()
+            msgBox.setText("Changes to an unlocked file cannot be reversed")
+            msgBox.setInformativeText("Do you want to unlock the file?")
+            msgBox.setStandardButtons(QtGui.QMessageBox.Ok | QtGui.QMessageBox.Cancel)
+            msgBox.setDefaultButton(QtGui.QMessageBox.Ok)
+            ret = msgBox.exec_()
+            if ret == QtGui.QMessageBox.Ok:
+                node.unlock()
+                self.treeview.update()
 
     def plot_data(self, fmt='o'):
         node = self.treeview.getnode()
@@ -543,12 +619,10 @@ class MainWindow(QtGui.QMainWindow):
             self.treeview.statusmessage(node)
             try:
                 node.plot(fmt)
-            except KeyError:
-                dialog = PlotDialog(node, self)
-                dialog.show()
-            except NeXusError:
-                dialog = PlotDialog(node, self)
-                dialog.show()
+            except (KeyError, NeXusError):
+                if isinstance(node, NXfield):
+                    dialog = PlotDialog(node, self)
+                    dialog.show()
 
     def overplot_data(self, fmt='o'):
         node = self.treeview.getnode()
@@ -582,35 +656,66 @@ class MainWindow(QtGui.QMainWindow):
 
     def rename_data(self):
         node = self.treeview.getnode()
-        if node:        
-            name, ok = QtGui.QInputDialog.getText(self, 
-                                                  'Rename Data', 'New Name:')        
-            if ok:
-                node.rename(name)
+        if node:
+            if node.nxfilemode != 'r':
+                name, ok = QtGui.QInputDialog.getText(self, 'Rename Data', 
+                               'New Name:', text=node.nxname)        
+                if ok:
+                    node.rename(name)
+            else:   
+                QtGui.QMessageBox.critical(self, "NeXus item cannot be renamed", 
+                    "The NeXus file is opened as read-only",
+                    QtGui.QMessageBox.Ok, QtGui.QMessageBox.NoButton)
 
     def copy_data(self):
-        self.copied_node = self.treeview.getnode()
+        node = self.treeview.getnode()
+        if not isinstance(node, NXroot):
+            self.copied_node = self.treeview.getnode()
+        else:
+            QtGui.QMessageBox.critical(self, "Cannot copy NXroot group",
+                "Use 'Duplicate File' to copy an NXroot group", 
+                QtGui.QMessageBox.Ok, QtGui.QMessageBox.NoButton)
 
     def paste_data(self):
         node = self.treeview.getnode()
         if isinstance(node, NXgroup) and self.copied_node:
-            node.insert(self.copied_node)
+            if node.nxfilemode != 'r':
+                node.insert(self.copied_node)
+            else:   
+                QtGui.QMessageBox.critical(self, "NeXus item cannot be pasted", 
+                    "The NeXus file is opened as read-only",
+                    QtGui.QMessageBox.Ok, QtGui.QMessageBox.NoButton)
 
+ 
     def delete_data(self):
         node = self.treeview.getnode()
         if node:
-            dialog = DeleteDialog(node, self)
-            dialog.show()      
+            if node.nxfilemode != 'r':
+                dialog = DeleteDialog(node, self)
+                dialog.show()
+            else:   
+                QtGui.QMessageBox.critical(self, "NeXus item cannot be deleted", 
+                    "The NeXus file is opened as read-only",
+                    QtGui.QMessageBox.Ok, QtGui.QMessageBox.NoButton)
+
+    def show_link(self):
+        self.treeview.selectnode(self.treeview.getnode().nxlink)
+        self.treeview.update()
 
     def set_signal(self):
         node = self.treeview.getnode()
         if node:
-            if isinstance(node, NXfield) and node.nxgroup:
-                dialog = SignalDialog(node, self)
-                dialog.show()
-            else:
-                QtGui.QMessageBox.critical(self, "Invalid selection", 
-                    "Only NeXus fields can be a plottable signal",
+            if node.nxfilemode != 'r':
+                if isinstance(node, NXfield) and node.nxgroup:
+                    dialog = SignalDialog(node, self)
+                    dialog.show()
+                else:
+                    QtGui.QMessageBox.critical(self, "Invalid selection", 
+                        "Only NeXus fields can be a plottable signal",
+                        QtGui.QMessageBox.Ok, QtGui.QMessageBox.NoButton)
+            else:   
+                QtGui.QMessageBox.critical(self, "NeXus item cannot be modified", 
+                    "The NeXus file is opened as read-only",
                     QtGui.QMessageBox.Ok, QtGui.QMessageBox.NoButton)
 
     def fit_data(self):
@@ -825,9 +930,22 @@ class MainWindow(QtGui.QMainWindow):
             )
         self.add_menu_action(self.window_menu, self.newplot_action, True)
 
+        self.window_menu.addSeparator()
+
+        self.panel_action=QtGui.QAction("Show Projection Panel",
+            self,
+            triggered=self.show_projection_panel
+            )
+        self.add_menu_action(self.window_menu, self.panel_action, True)
+
     def new_plot_window(self):
         from nexpy.gui.plotview import NXPlotView
         plotview = NXPlotView()
+
+    def show_projection_panel(self):
+        from nexpy.gui.plotview import plotview, NXProjectionPanel
+        plotview.ptab.panel = NXProjectionPanel(plotview=plotview, parent=plotview.ptab)
+        plotview.ptab.panel.show()
     
     def init_help_menu(self):
         # please keep the Help menu in Mac Os even if empty. It will

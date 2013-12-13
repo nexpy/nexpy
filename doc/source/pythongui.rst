@@ -72,17 +72,11 @@ File Menu
 **New...**
     Creates a new workspace in the tree.
 **Open (readonly)**
-    Opens a new NeXus file as read only.    
+    Opens a new NeXus file as read only.
 **Open (read/write)**
-    Opens a new NeXus file with read/write access. Note that it is not possible
-    to rename items or change their shape and data type within a pre-existing 
-    file. If such changes are made, the tree will have to be saved to a new 
-    file.  
-**Save**
-    Saves the selected tree item to a NeXus file. If the selected item is a 
-    NXroot group that was loaded from a file with read/write access, the file
-    is updated with the new tree items and values. Otherwise, this will trigger
-    a "Save as..." dialog.
+    Opens a new NeXus file with read/write access. Note that any changes to 
+    the file tree, using shell of GUI commands, will be automatically updated 
+    in the file.  
 **Save as...**
     Saves the selected tree item to a new NeXus file. If the selected item is
     not a NXroot group, it will be wrapped in one to form a valid NeXus file.
@@ -90,6 +84,28 @@ File Menu
     .. warning:: Saving a NeXus object embedded within a tree is not equivalent 
                  to saving the whole tree. Only the object and its children will 
                  be saved to a new file. 
+
+**Duplicate...**
+    Makes a copy of the NeXus file or tree, leaving the original untouched. 
+    If any field in the original tree is too large to be stored in memory, its
+    data is stored in an HDF5 memory-mapped file until the tree is saved to a 
+    file. 
+**Remove**
+    Removes the root item from the tree.
+
+    .. warning:: This will also remove the item with the same name from the 
+                 shell. However, if it had previously been assigned to another
+                 variable with a different name, that variable will not be 
+                 deleted. 
+
+**Unlock file**
+    Changes the file access mode to read-write. If the root tree item has been
+    saved to a file, any subsequent changes will automatically update the file,
+    including deleting items. 
+
+    .. warning:: Any changes to an unlocked file will be immediate and 
+                 irreversible. Make sure you have a backup if your file contains
+                 critical data.
 
 **Import**
     Imports data from other formats. Some importers are provided with the NeXpy
@@ -139,15 +155,18 @@ Data Menu
 **Rename Data**
     Renames the selected tree item.
 
-    .. warning:: If the NeXus tree was loaded from a file with read/write 
-                 access, it cannot be saved to the original file if items have 
-                 been renamed.
+    .. warning:: This action will be automatically saved to the NeXus file if
+                 it has been opened as read/write. 
 
 **Copy Data**
     Copies the selected tree item to a copy buffer. 
 
 **Paste Data**
-    Pastes the copy buffer to the selected group.
+    Pastes the copy buffer to the selected group. If the selected group is in a 
+    file open with read/write access, all fields in the copy buffer are copied 
+    to the file. If the selected group is not currently stored in a file and 
+    any field in the copy buffer is too large to be stored in memory, its data 
+    is copied to an HDF5 memory-mapped file using the h5py copy module.
     
 **Delete Data**
     Deletes the selected tree item.
@@ -156,9 +175,13 @@ Data Menu
               variable will not be deleted.
 
     .. warning:: If the NeXus tree was loaded from a file with read/write 
-                 access, the deleted data will still be in the file after a 
-                 save(). However, it will not be saved to a new file.
+                 access, the data will be immediately deleted from the file. 
+                 This action is irreversible, so ensure you have a backup.
 
+**Show Link**
+    If the selected item is an NXlink objection, the field or group to which 
+    it is linked is selected in the tree.
+ 
 **Set Signal**
     Sets the selected tree item to the plottable signal. A dialog box allows the 
     user to specify axes with compatible dimensions to plot the data against.
@@ -186,6 +209,10 @@ Window Menu
               generate Matplotlib plots in separate windows from the NeXus
               plots, *e.g.*, 'plt.figure()' will open a new pyplot window, to 
               which subsequent pyplot commands will be directed. 
+
+**Show Projection Panel**
+    Show the projection panel for the currently active plotting window. This is
+    equivalent to clicking on 'Show Panel' in the projection tab (see below).
 
 Other Menus
 ^^^^^^^^^^^
@@ -264,7 +291,11 @@ limits and parameters.
     two text boxes for selecting the projection limits. If you click the 'lock'
     checkbox, the projection width is fixed allowing successive images along the
     z-axis to be plotted by clicking the text-box arrows. 
-    
+
+    .. note:: Make sure that the value of both limit boxes is entered, *e.g.*, 
+              by pressing return after editing their values, before clicking on 
+              the 'lock' checkbox. 
+        
     .. warning:: There may be a bug in PySide, which causes multiple steps to 
                  occur for each arrow click. You can avoid this by selecting the 
                  'maximum' text-box and using the terminal arrow keys.
@@ -288,11 +319,22 @@ limits and parameters.
     axes are selected using the dropdown boxes. For a one-dimensional 
     projection, select 'None' from the y box. The projections may be plotted in
     a separate window, using the 'Plot' button or saved to a scratch NXdata 
-    group within 'w0' on the tree.
+    group within 'w0' on the tree. A checkbox allows the overplotting of 
+    one-dimensional projections.
     
     .. image:: /images/projection.png
        :align: center
        :width: 75%
+
+    The projection tab also contains a button to open a separate projection 
+    panel that can be used instead of the tabbed interface. This interface is
+    more convenient when making a systematic exploration of different 
+    projections limits. The x and y limits of the plot are displayed as a 
+    dashed rectangle.  
+
+.. image:: /images/projection-panel.png
+   :align: center
+   :width: 90%
 
 **Options Tab**
 

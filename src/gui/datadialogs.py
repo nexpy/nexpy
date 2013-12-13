@@ -335,6 +335,38 @@ class InitializeDialog(QtGui.QDialog):
         QtGui.QDialog.reject(self)
 
     
+class RemoveDialog(QtGui.QDialog):
+    """Dialog to remove a NeXus node from the tree"""
+ 
+    def __init__(self, node, parent=None):
+
+        QtGui.QDialog.__init__(self, parent)
+ 
+        self.node = node
+ 
+        buttonbox = QtGui.QDialogButtonBox(self)
+        buttonbox.setOrientation(QtCore.Qt.Horizontal)
+        buttonbox.setStandardButtons(QtGui.QDialogButtonBox.Cancel|
+                                     QtGui.QDialogButtonBox.Ok)
+        buttonbox.accepted.connect(self.accept)
+        buttonbox.rejected.connect(self.reject)
+
+        layout = QtGui.QVBoxLayout()
+        layout.addWidget(QtGui.QLabel('Are you sure you want to remove "%s"?' 
+                                      % node.nxname))
+        layout.addWidget(buttonbox) 
+        self.setLayout(layout)
+
+        self.setWindowTitle("Remove NeXus File")
+
+    def accept(self):
+        del self.node.nxgroup[self.node.nxname]
+        QtGui.QDialog.accept(self)
+        
+    def reject(self):
+        QtGui.QDialog.reject(self)
+
+    
 class DeleteDialog(QtGui.QDialog):
     """Dialog to delete a NeXus node"""
  
@@ -880,6 +912,26 @@ class FitDialog(QtGui.QDialog):
 
     def save_fit(self):
         self.read_parameters()
+        entry = NXentry()
+        entry['title'] = 'Fit Results'
+        entry['data'] = self.data
+        entry['fit'] = self.get_model()
+        for f in self.functions:
+            entry[f.name] = self.get_model(f)
+            parameters = NXparameters()
+            for p in f.parameters:
+                parameters[p.name] = NXfield(p.value, error=p.stderr, 
+                                             initial_value=p.init_value,
+                                             min=str(p.min), max=str(p.max))
+            entry[f.name].insert(parameters)
+        fit = NXparameters()
+        fit.nfev = self.fit.result.nfev
+        fit.ier = self.fit.result.ier 
+        fit.chisq = self.fit.result.chisqr
+        fit.redchi = self.fit.result.redchi
+        fit.message = self.fit.result.message
+        fit.lmdif_message = self.fit.result.lmdif_message
+        entry['statistics'] = fit
         if 'w0' not in self.tree.keys():
             scratch_space = self.tree.add(NXroot(name='w0'))
         ind = []
@@ -891,26 +943,7 @@ class FitDialog(QtGui.QDialog):
                 pass
         if ind == []: ind = [0]
         name = 'f'+str(sorted(ind)[-1]+1)
-        self.tree['w0'][name] = NXentry()
-        self.tree['w0'][name].title = 'Fit Results'
-        self.tree['w0'][name]['data'] = self.data
-        self.tree['w0'][name]['fit'] = self.get_model()
-        for f in self.functions:
-            self.tree['w0'][name][f.name] = self.get_model(f)
-            parameters = NXparameters()
-            for p in f.parameters:
-                parameters[p.name] = NXfield(p.value, error=p.stderr, 
-                                             initial_value=p.init_value,
-                                             min=str(p.min), max=str(p.max))
-            self.tree['w0'][name][f.name].insert(parameters)
-        fit = NXparameters()
-        fit.nfev = self.fit.result.nfev
-        fit.ier = self.fit.result.ier 
-        fit.chisq = self.fit.result.chisqr
-        fit.redchi = self.fit.result.redchi
-        fit.message = self.fit.result.message
-        fit.lmdif_message = self.fit.result.lmdif_message
-        self.tree['w0'][name]['statistics'] = fit
+        self.tree['w0'][name] = entry
 
     def restore_parameters(self):
         for f in self.functions:
