@@ -115,6 +115,7 @@ class MainWindow(QtGui.QMainWindow):
         self.treeview.setMaximumWidth(400)
         self.treeview.setSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Expanding)
         self.user_ns['plotview'] = self.plotview
+        self.user_ns['plotviews'] = self.plotviews = self.plotview.plotviews
         self.user_ns['treeview'] = self.treeview
         self.user_ns['tree'] = self.tree
         self.user_ns['mainwindow'] = self
@@ -932,16 +933,54 @@ class MainWindow(QtGui.QMainWindow):
 
         self.window_menu.addSeparator()
 
+        self.active_action = {}
+        self.active_action['Main']=QtGui.QAction('Main',
+            self,
+            triggered=lambda: self.make_active('Main'),
+            checkable=True
+            )
+        self.add_menu_action(self.window_menu, self.active_action['Main'])
+        self.currently_active = 'Main'
+        self.make_active('Main', startup=True)
+
+        self.window_separator = self.window_menu.addSeparator()
+
         self.panel_action=QtGui.QAction("Show Projection Panel",
             self,
             triggered=self.show_projection_panel
             )
-        self.add_menu_action(self.window_menu, self.panel_action, True)
+        self.add_menu_action(self.window_menu, self.panel_action)
+
+    def make_active_action(self, label):
+        self.active_action[label]=QtGui.QAction(label,
+            self,
+            triggered=lambda: self.make_active(label),
+            checkable=True
+            )
+        self.window_menu.insertAction(self.window_separator, 
+                                      self.active_action[label])
+        self.make_active(label)
 
     def new_plot_window(self):
         from nexpy.gui.plotview import NXPlotView
         plotview = NXPlotView()
+        self.make_active_action(plotview.label)
+        
+    def make_active(self, name, startup=False):
+        self.previously_active = self.currently_active
+        for key in self.active_action.keys():
+            self.active_action[key].setChecked(False)
+        self.active_action[name].setChecked(True)
+        self.currently_active = name
+        self.plotviews[name].make_active(startup)
 
+    def update_active(self, name):
+        self.previously_active = self.currently_active
+        for key in self.active_action.keys():
+            self.active_action[key].setChecked(False)
+        self.active_action[name].setChecked(True)
+        self.currently_active = name
+    
     def show_projection_panel(self):
         from nexpy.gui.plotview import plotview, NXProjectionPanel
         plotview.ptab.panel = NXProjectionPanel(plotview=plotview, parent=plotview.ptab)

@@ -186,21 +186,24 @@ class NXPlotView(QtGui.QWidget):
 #        self.grid_cb.setChecked(False)
 #        self.grid_cb.stateChanged.connect(self.on_draw)
 
-    def make_active(self):
+    def make_active(self, startup=False):
         global plotview
         plotview = self
         Gcf.set_active(self.figuremanager)
         plotview.show()
+        if not startup:
+            from nexpy.gui.consoleapp import _mainwindow
+            if self.label not in _mainwindow.active_action:
+                _mainwindow.make_active_action(self.label)
+            _mainwindow.update_active(self.label)
 
-    def add_menu_activation(self):
-        self.activate_action=QtGui.QAction("Make '%s' active" % self.label,
-            self,
-            shortcut=QtGui.QKeySequence.Open,
-            triggered=self.make_active
-            )
-        mainwindow = self.parent().parent().parent()
-        mainwindow.add_menu_action(main.window_menu, 
-                                self.activate_action, True)
+    def delete_active_action(self):
+        from nexpy.gui.consoleapp import _mainwindow
+        if self.label in _mainwindow.active_action:
+            action = _mainwindow.active_action[self.label]
+            _mainwindow.window_menu.removeAction(action)
+            del action
+        _mainwindow.make_active('Main')
 
     def save_plot(self):
         """
@@ -214,6 +217,10 @@ class NXPlotView(QtGui.QWidget):
         if path:
             self.canvas.print_figure(path, dpi=self.dpi)
             self.statusBar().showMessage('Saved to %s' % path, 2000)
+
+    def closeEvent(self, event):
+        self.delete_active_action()
+        event.accept()
                                     
 
 class NXPlot(object):
@@ -712,6 +719,7 @@ class NXPlotAxis(object):
         self.name = axis.nxname
         self.data = axis.nxdata
         self.ndim = len(axis.nxdata.shape)
+        self.dim = None
         if 'signal' in axis.attrs:
             self.signal = True
         else:
@@ -885,6 +893,8 @@ class NXPlotTab(QtGui.QWidget):
         doublespinbox.setAlignment(QtCore.Qt.AlignRight)
         doublespinbox.setFixedWidth(100)
         doublespinbox.setKeyboardTracking(False)
+        doublespinbox.editingFinished.connect(slot)
+        doublespinbox.valueChanged[unicode].connect(slot)
         return doublespinbox
 
     def slider(self, slot):
