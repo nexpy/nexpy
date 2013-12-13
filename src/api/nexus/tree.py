@@ -183,25 +183,15 @@ See `nexus.unit` for more details on the unit formats supported.
 
 Reading and Writing Slabs
 -------------------------
-The slab interface to field data works by opening the file handle and keeping it
-open as long as the slab interface is needed.  This is done in python 2.5 using
-the with statement.  Once the context is entered, get() and put() methods on the
-object allow you to read and write data a slab at a time.  For example::
+If the size of the NXfield array is too large to be loaded into memory (as 
+defined by NX_MEMORY), the data values should be read or written in as a series 
+of slabs represented by NXfield slices::
 
-    # Read a Ni x Nj x Nk array one vector at a time
-    with root.NXentry[0].data.data as slab:
-        Ni,Nj,Nk = slab.shape
-        size = [1,1,Nk]
-        for i in range(Ni):
-            for j in range(Nj):
-                value = slab.get([i,j,0],size)
+ >>> for i in range(Ni):
+         for j in range(Nj):
+             value = root.NXentry[0].data.data[i,j,:]
+             ...
 
-The equivalent can be done in Python 2.4 and lower using the context
-functions __enter__ and __exit__::
-
-    slab = data.slab.__enter__()
-    ... do the slab functions ...
-    data.slab.__exit__()
 
 Plotting NeXus data
 -------------------
@@ -1596,10 +1586,6 @@ class NXfield(NXobject):
     def add(self, data, offset):
         """
         Adds a slab into the data array.
-
-        Calls get to read in existing data before adding the value
-        and calling put. It assumes that the two sets of data have
-        compatible data types.
         """
         idx = tuple(slice(i,i+j) for i,j in zip(offset,data.shape))
         if isinstance(data, NXfield):
