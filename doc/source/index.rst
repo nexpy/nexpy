@@ -25,7 +25,6 @@ knowledge of the file format.
    includeme
    pythonshell
    pythongui
-   napi
    treeapi
    importdialog
 
