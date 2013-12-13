@@ -71,12 +71,15 @@ File Menu
 ^^^^^^^^^
 **New...**
     Creates a new workspace in the tree.
-**Open (readonly)**
-    Opens a new NeXus file as read only.
+
+**Open**
+    Opens a new NeXus file as read only. 
+
 **Open (read/write)**
     Opens a new NeXus file with read/write access. Note that any changes to 
     the file tree, using shell of GUI commands, will be automatically updated 
-    in the file.  
+    in the file.
+
 **Save as...**
     Saves the selected tree item to a new NeXus file. If the selected item is
     not a NXroot group, it will be wrapped in one to form a valid NeXus file.
@@ -90,6 +93,7 @@ File Menu
     If any field in the original tree is too large to be stored in memory, its
     data is stored in an HDF5 memory-mapped file until the tree is saved to a 
     file. 
+
 **Remove**
     Removes the root item from the tree.
 
@@ -97,6 +101,11 @@ File Menu
                  shell. However, if it had previously been assigned to another
                  variable with a different name, that variable will not be 
                  deleted. 
+
+**Lock file**
+    Changes the file access mode to read-only. This will prevent further changes
+    to the tree using either the GUI or the shell. Locked files are displayed
+    with a padlock icon. 
 
 **Unlock file**
     Changes the file access mode to read-write. If the root tree item has been
@@ -179,16 +188,16 @@ Data Menu
                  This action is irreversible, so ensure you have a backup.
 
 **Show Link**
-    If the selected item is an NXlink objection, the field or group to which 
-    it is linked is selected in the tree.
+    Selects the field or group to which the selected item is linked, if it is
+    an NXlink object, *i.e.*, shown with a link icon.
  
 **Set Signal**
     Sets the selected tree item to the plottable signal. A dialog box allows the 
     user to specify axes with compatible dimensions to plot the data against.
 
-.. note:: The use of the 'Add Data' and 'Set Signal' menu items allows, in 
-          principle, an entire NeXus data tree to be constructed using menu 
-          calls. 
+    .. note:: The use of the 'Add Data' and 'Set Signal' menu items allows, in 
+              principle, an entire NeXus data tree to be constructed using menu 
+              calls. 
 
 **Fit Data**
     Fits the selected tree item. This assumes that the selected item is a valid 
