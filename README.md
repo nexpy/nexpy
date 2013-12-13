@@ -21,9 +21,7 @@ The following libraries are used by the full installation of NeXpy. There is
 more details of the nature of these dependencies in the 
 [NeXpy documentation](http://nexpy.github.io/nexpy).
 
-* nexus                http://www.nexusformat.org
-* hdf5                 http://www.hdfgroup.org
-* mxml                 http://www.minixml.org
+* h5py                 http://www.h5py.org
 * numpy,scipy          http://numpy.scipy.org
 * iPython v1.1.0       http://ipython.org/
 * PySide v1.1.0        http://www.pyside.org/
@@ -31,14 +29,13 @@ more details of the nature of these dependencies in the
 * lmfit                http://newville.github.io/lmfit-py (Fitting only)
 * pyspec               http://pyspec.sourceforge.net (SPEC reader only)
 
-The following environment variables may need to be set
-NEXUSLIB --> /point/to/lib/libNeXus.so
+The following environment variable may need to be set
 PYTHONPATH --> must include paths to ipython,numpy,scipy,matplotlib if installed in nonstandard place
 
 All of the above are included in the Enthought Python Distribution v7.3.
 
 PyQt4 should also work instead of PySide. NeXpy automatically checks for 
-which PyQt variant is available (PySide or PyQt4 - not PyQt). 
+which PyQt variant is available (PySide or PyQt4 - not PyQt).
 
 To run with the GUI
 ===================
