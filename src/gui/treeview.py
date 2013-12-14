@@ -207,6 +207,10 @@ class NXTreeView(QtGui.QTreeView):
         self.tree._model = self._model
         self.tree._view = self
 
+        self.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
+        self.setExpandsOnDoubleClick(False)
+        self.doubleClicked.connect(self.plot_data)
+
         # Popup Menu
         self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(self.on_context_menu)
