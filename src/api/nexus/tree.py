@@ -644,7 +644,10 @@ class NXattr(object):
         """
         Returns the attribute value.
         """
-        return self._value
+        if isinstance(self._value, np.string_):
+            return self._value
+        else:
+            return self._value[()]
 
     def _getdtype(self):
         return self._dtype
@@ -2372,9 +2375,9 @@ class NXgroup(NXobject):
             return [getattr(self,name) for name in _readaxes(self.nxsignal.axes)]
         except (KeyError, AttributeError):
             axes = {}
-            for obj in self.entries:
-                if 'axis' in getattr(self,obj).attrs:
-                    axes[getattr(self,obj).axis] = getattr(self,obj)
+            for entry in self._entries:
+                if 'axis' in self[entry].attrs:
+                    axes[self[entry].axis] = self[entry]
             if axes:
                 return [axes[key] for key in sorted(axes.keys())]
             else:
