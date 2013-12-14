@@ -29,15 +29,20 @@ cmaps = ['autumn', 'bone', 'cool', 'copper', 'flag', 'gray', 'hot',
          'spectral', 'rainbow']
 colors = ['b', 'g', 'r', 'c', 'm', 'y', 'k', 'w']
 
-def new_figure_manager( *args, **kwargs ):
+def new_figure_manager( label=None, *args, **kwargs ):
     """
     Create a new figure manager instance
     """
-    nums = plt.get_fignums()
-    if nums:
-        num = max(nums) + 1
-    else:
-        num = 1
+    if label == 'Projection':
+        num = 101
+    elif label == 'Fit':
+        num = 102
+    else:    
+        nums = [num for num in plt.get_fignums() if num < 100 or num > 102]
+        if nums:
+            num = max(nums) + 1
+        else:
+            num = 1
     thisFig = Figure( *args, **kwargs )
     canvas = NXCanvas( thisFig )
     manager = NXFigureManager( canvas, num )
@@ -47,9 +52,10 @@ def change_plotview(label):
     global plotview, plotviews
     if label in plotviews:
         plotviews[label].make_active()
-        return plotviews[label]
+        plotview = plotviews[label]
     else:
-        return NXPlotView(label)
+        plotview = NXPlotView(label)
+    return plotview
 
 
 class NXCanvas(FigureCanvas):
@@ -123,7 +129,7 @@ class NXPlotView(QtGui.QWidget):
         self.setSizePolicy(QtGui.QSizePolicy.MinimumExpanding,
                            QtGui.QSizePolicy.MinimumExpanding)
 
-        self.figuremanager = new_figure_manager()
+        self.figuremanager = new_figure_manager(label)
         self.canvas = self.figuremanager.canvas
         self.canvas.setParent(self)
         self.canvas.setFocusPolicy(QtCore.Qt.ClickFocus)
@@ -136,9 +142,7 @@ class NXPlotView(QtGui.QWidget):
 
         Gcf.set_active(self.figuremanager)
         def make_active(event):
-            global plotview
-            Gcf.set_active(self.figuremanager)
-            plotview = self
+            self.make_active()
         cid = self.canvas.mpl_connect('button_press_event', make_active)
         self.figuremanager._cidgcf = cid
         self.figure = self.canvas.figure
@@ -177,33 +181,49 @@ class NXPlotView(QtGui.QWidget):
  
         global plotview, plotviews
         plotview = self
-        plotviews[plotview.label] = plotview
+        plotviews[self.label] = plotview
         self.plotviews = plotviews
-        
+
+        if self.label not in ['Main', 'Projection', 'Fit']:
+            self.add_menu_action()
+
         self.show()
         
 #        self.grid_cb = QtGui.QCheckBox("Show &Grid")
 #        self.grid_cb.setChecked(False)
 #        self.grid_cb.stateChanged.connect(self.on_draw)
 
-    def make_active(self, startup=False):
+    def make_active(self):
         global plotview
         plotview = self
         Gcf.set_active(self.figuremanager)
-        plotview.show()
-        if not startup:
-            from nexpy.gui.consoleapp import _mainwindow
-            if self.label not in _mainwindow.active_action:
-                _mainwindow.make_active_action(self.label)
-            _mainwindow.update_active(self.label)
+        self.show()
+        if self.label == 'Main':
+            self.parent().parent().parent().raise_()
+        else:
+            self.raise_()
+        self.update_active()
 
-    def delete_active_action(self):
+    def update_active(self):
+        if self.label not in ['Projection', 'Fit']:
+            from nexpy.gui.consoleapp import _mainwindow
+            _mainwindow.update_active(self.label)
+    
+    def add_menu_action(self):
+        from nexpy.gui.consoleapp import _mainwindow
+        if self.label not in _mainwindow.active_action:
+            _mainwindow.make_active_action(self.label)
+        _mainwindow.update_active(self.label)
+
+    def remove_menu_action(self):
         from nexpy.gui.consoleapp import _mainwindow
         if self.label in _mainwindow.active_action:
             action = _mainwindow.active_action[self.label]
             _mainwindow.window_menu.removeAction(action)
             del action
-        _mainwindow.make_active('Main')
+        if self.label == _mainwindow.previous_active:
+            _mainwindow.previous_active = 'Main'
+        _mainwindow.make_active(_mainwindow.previous_active)
 
     def save_plot(self):
         """
@@ -218,8 +238,14 @@ class NXPlotView(QtGui.QWidget):
             self.canvas.print_figure(path, dpi=self.dpi)
             self.statusBar().showMessage('Saved to %s' % path, 2000)
 
+    def close_view(self):
+        self.remove_menu_action()
+        Gcf.destroy(self.number)
+        del plotviews[self.label]
+
     def closeEvent(self, event):
-        self.delete_active_action()
+        self.close_view()
+        self.deleteLater()
         event.accept()
                                     
 
@@ -1263,7 +1289,25 @@ class NXProjectionTab(QtGui.QWidget):
         for axis in axes:
             if axis not in [ydim, xdim]:
                 limits[axis] = (None, None)
+        shape = self.plotview.plot.data.nxsignal.shape
+        if len(shape) - len(limits) == shape.count(1):
+            axes, limits = self.fix_projection(shape, axes, limits)
         return axes, limits
+
+    def fix_projection(self, shape, axes, limits):
+        axis_map = {}
+        for axis in axes:
+            axis_map[axis] = limits[axis]
+        fixed_limits = []
+        for s in shape:
+            if s == 1:
+                fixed_limits.append((None, None))
+            else:
+                fixed_limits.append(limits.pop(0))
+        fixed_axes = []
+        for axis in axes:
+            fixed_axes.append(fixed_limits.index(axis_map[axis]))
+        return fixed_axes, fixed_limits
 
     def save_projection(self):
         axes, limits = self.get_projection()
@@ -1284,6 +1328,7 @@ class NXProjectionTab(QtGui.QWidget):
             self.overplot_box.setVisible(False)
             self.overplot_box.setChecked(False)
         self.plotview.make_active()
+        plotviews['Projection'].raise_()
 
     def open_panel(self):
         if not self.panel:
@@ -1395,7 +1440,7 @@ class NXProjectionPanel(QtGui.QDialog):
         layout.addLayout(buttonbox)
         
         self.setLayout(layout)
-        self.setWindowTitle('Projection Panel')
+        self.setWindowTitle('Projection Panel - '+self.plotview.label)
 
         self.set_defaults()
 
@@ -1459,7 +1504,7 @@ class NXProjectionPanel(QtGui.QDialog):
                      for axis in self.get_axes()]
     
     def update_limits(self):
-        axes = [self.xaxis, self.yaxis]
+        axes = [self.plotview.plot.xaxis.name, self.plotview.plot.yaxis.name]
         for axis in axes:
             lo, hi = self.plotview.plot.axis[axis].get_limits()
             self.minbox[axis].setValue(lo)
@@ -1483,7 +1528,25 @@ class NXProjectionPanel(QtGui.QDialog):
             y = self.get_axes().index(self.yaxis)
             axes = [y,x]
         limits = self.get_limits()
+        shape = self.plotview.plot.data.nxsignal.shape
+        if len(shape) - len(limits) == shape.count(1):
+            axes, limits = self.fix_projection(shape, axes, limits)
         return axes, limits
+
+    def fix_projection(self, shape, axes, limits):
+        axis_map = {}
+        for axis in axes:
+            axis_map[axis] = limits[axis]
+        fixed_limits = []
+        for s in shape:
+            if s == 1:
+                fixed_limits.append((None, None))
+            else:
+                fixed_limits.append(limits.pop(0))
+        fixed_axes = []
+        for axis in axes:
+            fixed_axes.append(fixed_limits.index(axis_map[axis]))
+        return fixed_axes, fixed_limits
 
     def save_projection(self):
         axes, limits = self.get_projection()
@@ -1504,6 +1567,8 @@ class NXProjectionPanel(QtGui.QDialog):
             self.overplot_box.setVisible(False)
             self.overplot_box.setChecked(False)
         self.plotview.make_active()
+        plotviews['Projection'].raise_()
+        self.raise_()
 
     def doublespinbox(self):
         doublespinbox = NXDoubleSpinBox()
@@ -1515,8 +1580,10 @@ class NXProjectionPanel(QtGui.QDialog):
         return doublespinbox
 
     def draw_rectangle(self):
-        if self.rectangle:
+        try:
             self.rectangle.remove()
+        except:
+            pass
         ax = self.plotview.figure.axes[0]
         xp = self.plotview.plot.xaxis.name
         yp = self.plotview.plot.yaxis.name
@@ -1533,6 +1600,7 @@ class NXProjectionPanel(QtGui.QDialog):
 
     def closeEvent(self, event):
         self.close()
+        self.deleteLater()
         event.accept()
 
     def close(self):
@@ -1542,7 +1610,7 @@ class NXProjectionPanel(QtGui.QDialog):
             pass
         self.plotview.canvas.draw()
         self.rectangle = None
-        QtGui.QDialog.close(self)
+        self.plotview.ptab.panel = None
 
 
 class NXNavigationToolbar(NavigationToolbar):
@@ -1550,87 +1618,13 @@ class NXNavigationToolbar(NavigationToolbar):
     def __init__(self, canvas, parent):
         super(NXNavigationToolbar, self).__init__(canvas, parent)
         self.plotview = canvas.parent()
+        self.zoom()
 
     def _init_toolbar(self):
 
-        self.basedir = os.path.join(matplotlib.rcParams[ 'datapath' ],'images')
-
-        a = self.addAction(self._icon('home.png'), 'Home', self.home)
-        a.setToolTip('Reset original view')
-        a = self.addAction(self._icon('back.png'), 'Back', self.back)
-        a.setToolTip('Back to previous view')
-        a = self.addAction(self._icon('forward.png'), 'Forward', self.forward)
-        a.setToolTip('Forward to next view')
-        self.addSeparator()
-        a = self.addAction(self._icon('move.png'), 'Pan', self.pan)
-        a.setToolTip('Pan axes with left mouse, zoom with right')
-        a = self.addAction(self._icon('zoom_to_rect.png'), 'Zoom', self.zoom)
-        a.setToolTip('Zoom to rectangle')
-        self.addSeparator()
-
-        a = self.addAction(self._icon("qt4_editor_options.png"),
-                           'Customize', self.edit_parameters)
-        a.setToolTip('Edit curves line and axes parameters')
-
-        self.addSeparator()
-
-        a = self.addAction(self._icon('filesave.png'), 'Save',
-                self.save_figure)
-        a.setToolTip('Save the figure')
-
-        a = self.addAction(self._icon('hand.png'), 'Add',
-                self.add_data)
-        a.setToolTip('Add plot data to the tree')
-
-        self.buttons = {}
-
-        # Add the x,y location widget at the right side of the toolbar
-        # The stretch factor is 1 which means any resizing of the toolbar
-        # will resize this label instead of the buttons.
-        if self.coordinates:
-            self.locLabel = QtGui.QLabel( "", self )
-            self.locLabel.setAlignment(
-                    QtCore.Qt.AlignRight | QtCore.Qt.AlignTop )
-            self.locLabel.setSizePolicy(
-                QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding,
-                                  QtGui.QSizePolicy.Ignored))
-            labelAction = self.addWidget(self.locLabel)
-            labelAction.setVisible(True)
-
-        # reference holder for subplots_adjust window
-        self.adj_window = None
-
-    if figureoptions is not None:
-        def edit_parameters(self):
-            allaxes = self.canvas.figure.get_axes()
-            if len(allaxes) == 1:
-                axes = allaxes[0]
-            else:
-                titles = []
-                for axes in allaxes:
-                    title = axes.get_title()
-                    ylabel = axes.get_ylabel()
-                    if title:
-                        fmt = "%(title)s"
-                        if ylabel:
-                            fmt += ": %(ylabel)s"
-                        fmt += " (%(axes_repr)s)"
-                    elif ylabel:
-                        fmt = "%(axes_repr)s (%(ylabel)s)"
-                    else:
-                        fmt = "%(axes_repr)s"
-                    titles.append(fmt % dict(title = title,
-                                         ylabel = ylabel,
-                                         axes_repr = repr(axes)))
-                item, ok = QtGui.QInputDialog.getItem(self, 'Customize',
-                                                      'Select axes:', titles,
-                                                      0, False)
-                if ok:
-                    axes = allaxes[titles.index(unicode(item))]
-                else:
-                    return
-
-            figureoptions.figure_edit(axes, self)
+        self.toolitems = list(self.toolitems)
+        self.toolitems.append(('Add', 'Add plot data to the tree', 'hand', 'add_data'))
+        super(NXNavigationToolbar, self)._init_toolbar()
 
     def home(self, *args):
         self.plotview.xtab.reset()

@@ -173,6 +173,7 @@ class MainWindow(QtGui.QMainWindow):
     
     def init_menu_bar(self):
         #create menu in the order they should appear in the menu bar
+        self.menu_bar = QtGui.QMenuBar()
         self.init_file_menu()
         self.init_edit_menu()
         self.init_data_menu()
@@ -180,9 +181,10 @@ class MainWindow(QtGui.QMainWindow):
         self.init_magic_menu()
         self.init_window_menu()
         self.init_help_menu()
+        self.setMenuBar(self.menu_bar)
     
     def init_file_menu(self):
-        self.file_menu = self.menuBar().addMenu("&File")
+        self.file_menu = self.menu_bar.addMenu("&File")
         
         self.file_menu.addSeparator()
 
@@ -273,7 +275,7 @@ class MainWindow(QtGui.QMainWindow):
             self.add_menu_action(self.file_menu, self.quit_action)
 
     def init_edit_menu(self):
-        self.edit_menu = self.menuBar().addMenu("&Edit")
+        self.edit_menu = self.menu_bar.addMenu("&Edit")
         
         self.undo_action = QtGui.QAction("&Undo",
             self,
@@ -335,7 +337,7 @@ class MainWindow(QtGui.QMainWindow):
         self.add_menu_action(self.edit_menu, self.select_all_action, True)
     
     def init_data_menu(self):
-        self.data_menu = self.menuBar().addMenu("Data")
+        self.data_menu = self.menu_bar.addMenu("Data")
         
         self.plot_data_action=QtGui.QAction("Plot Data",
             self,
@@ -413,7 +415,7 @@ class MainWindow(QtGui.QMainWindow):
 
         
     def init_view_menu(self):
-        self.view_menu = self.menuBar().addMenu("&View")
+        self.view_menu = self.menu_bar.addMenu("&View")
 
         if sys.platform != 'darwin':
             # disable on OSX, where there is always a menu bar
@@ -852,7 +854,7 @@ class MainWindow(QtGui.QMainWindow):
         return menu
 
     def init_magic_menu(self):
-        self.magic_menu = self.menuBar().addMenu("&Magic")
+        self.magic_menu = self.menu_bar.addMenu("&Magic")
         self.magic_menu_separator = self.magic_menu.addSeparator()
         
         self.all_magic_menu = self._get_magic_menu("AllMagics", menulabel="&All Magics...")
@@ -905,7 +907,7 @@ class MainWindow(QtGui.QMainWindow):
         self.add_menu_action(self.magic_menu, self.whos_action)
 
     def init_window_menu(self):
-        self.window_menu = self.menuBar().addMenu("&Window")
+        self.window_menu = self.menu_bar.addMenu("&Window")
         if sys.platform == 'darwin':
             # add min/maximize actions to OSX, which lacks default bindings.
             self.minimizeAct = QtGui.QAction("Mini&mize",
@@ -940,8 +942,8 @@ class MainWindow(QtGui.QMainWindow):
             checkable=True
             )
         self.add_menu_action(self.window_menu, self.active_action['Main'])
-        self.currently_active = 'Main'
-        self.make_active('Main', startup=True)
+        self.active_action['Main'].setChecked(True)
+        self.previous_active = 'Main'
 
         self.window_separator = self.window_menu.addSeparator()
 
@@ -964,27 +966,26 @@ class MainWindow(QtGui.QMainWindow):
     def new_plot_window(self):
         from nexpy.gui.plotview import NXPlotView
         plotview = NXPlotView()
-        self.make_active_action(plotview.label)
         
-    def make_active(self, name, startup=False):
-        self.previously_active = self.currently_active
-        for key in self.active_action.keys():
-            self.active_action[key].setChecked(False)
-        self.active_action[name].setChecked(True)
-        self.currently_active = name
-        self.plotviews[name].make_active(startup)
-
     def update_active(self, name):
-        self.previously_active = self.currently_active
         for key in self.active_action.keys():
-            self.active_action[key].setChecked(False)
+            if self.active_action[key].isChecked():
+                self.previous_active = key
+                self.active_action[key].setChecked(False)
         self.active_action[name].setChecked(True)
-        self.currently_active = name
     
+    def make_active(self, name):
+        self.update_active(name)
+        self.plotviews[name].make_active()
+
     def show_projection_panel(self):
         from nexpy.gui.plotview import plotview, NXProjectionPanel
-        plotview.ptab.panel = NXProjectionPanel(plotview=plotview, parent=plotview.ptab)
-        plotview.ptab.panel.show()
+        if plotview.ptab.panel:
+            plotview.ptab.panel.raise_()
+        else:
+            plotview.ptab.panel = NXProjectionPanel(plotview=plotview, parent=plotview.ptab)
+            plotview.ptab.panel.update_limits()
+            plotview.ptab.panel.show()
     
     def init_help_menu(self):
         # please keep the Help menu in Mac Os even if empty. It will
@@ -993,8 +994,7 @@ class MainWindow(QtGui.QMainWindow):
         # a QAction.MenuRole like HelpMenuRole otherwise it will lose
         # this search field functionality
 
-        self.help_menu = self.menuBar().addMenu("&Help")
-        
+        self.help_menu = self.menu_bar.addMenu("&Help")      
 
         # Help Menu
 
@@ -1029,7 +1029,7 @@ class MainWindow(QtGui.QMainWindow):
     # minimize/maximize/fullscreen actions:
 
     def toggle_menu_bar(self):
-        menu_bar = self.menuBar()
+        menu_bar = self.menu_bar
         if menu_bar.isVisible():
             menu_bar.setVisible(False)
         else:

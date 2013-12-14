@@ -502,11 +502,11 @@ class FitDialog(QtGui.QDialog):
         from nexpy.gui.consoleapp import _tree
         self.tree = _tree
 
-        from nexpy.gui.plotview import NXPlotView, plotview, change_plotview
-        self.plotview = NXPlotView(label="Fit")
+        from nexpy.gui.plotview import NXPlotView, change_plotview
+        self.plotview = change_plotview("Fit")
         self.plotview.setMinimumSize(700,300)
         self.plotview.setMaximumSize(1200,500)
-        plotview = change_plotview("Fit")
+        
         self.data.plot()
         
         self.functions = []
@@ -954,11 +954,13 @@ class FitDialog(QtGui.QDialog):
         self.write_parameters()
    
     def accept(self):
-        from nexpy.gui.plotview import change_plotview
-        change_plotview('Main')
+        self.plotview.close_view()
         QtGui.QDialog.accept(self)
         
     def reject(self):
-        from nexpy.gui.plotview import change_plotview
-        change_plotview('Main')
+        self.plotview.close_view()
         QtGui.QDialog.reject(self)
+
+    def closeEvent(self, event):
+        self.plotview.close_view()
+        event.accept()
