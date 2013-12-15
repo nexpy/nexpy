@@ -147,8 +147,9 @@ There are three ways to create an NXfield.
   danger of a name clash with an NXfield method, *e.g.*, if the NXfield is 
   called 'plot'.
   
-.. note:: To avoid name clashes with NXfield methods, dictionary assignment 
-          is the safest method to use in scripts.
+.. note:: When using the NeXpy GUI shell (see :doc:`pythongui`), it is possible 
+          to use tab completion to check for possible name clashes with NXfield 
+          methods. To avoid name clashes in scripts, use dictionary assignments.
 
 The data in an NXfield can be of type integer, float, or character. The type is
 normally inherited automatically from the data type of the Python object, 
@@ -163,7 +164,7 @@ example, a float64 array can be converted to float32 on assignment::
   dtype('float32')
   >>> b=NXfield('Some Text')
   >>> b.dtype, b.shape
-  ('char', (9,))
+  (dtype('S9'), ())
 
 .. note:: Numeric dtypes can be defined either as a string, *e.g.*, 'int16', 
           'float32', or using the numpy dtypes, *e.g.*, np.int16, np.float32.
@@ -516,10 +517,6 @@ NXfield::
  1.25
  >>> x.reshape((2,2)).sum(1)
  array([ 3.,  7.])
-
-Finally, NXfields are cast as ndarrays for operations that require them. The 
-returned value will be the same as for the equivalent ndarray operation::
-
  >>> np.sin(x)
  array([ 0.84147098,  0.90929743,  0.14112001, -0.7568025 ])
  >>> np.sqrt(x)

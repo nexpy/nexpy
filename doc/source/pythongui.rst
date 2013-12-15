@@ -177,6 +177,10 @@ Data Menu
     any field in the copy buffer is too large to be stored in memory, its data 
     is copied to an HDF5 memory-mapped file using the h5py copy module.
     
+**Paste As Link**
+    Pastes a link to the copied node in the selected group. Both the copied
+    node and the selected group must share the same root.
+    
 **Delete Data**
     Deletes the selected tree item.
 
@@ -299,7 +303,8 @@ limits and parameters.
     It contains a dropdown menu for selecting the axis to be summed over and
     two text boxes for selecting the projection limits. If you click the 'lock'
     checkbox, the projection width is fixed allowing successive images along the
-    z-axis to be plotted by clicking the text-box arrows. 
+    z-axis to be plotted by clicking the text-box arrows in increments of the
+    difference between the two limits.
 
     .. note:: Make sure that the value of both limit boxes is entered, *e.g.*, 
               by pressing return after editing their values, before clicking on 
@@ -311,11 +316,19 @@ limits and parameters.
     
     When stepping through the z-values, the 'Autoscale' checkbox determines 
     whether the plot automatically scales the signal to the maximum intensity of
-    the slice. 
+    the slice.
     
     If you use the text-box arrows or the terminal arrow keys to change the 
     z-limits, the new slice is automatically plotted. If you change the limits
     by editing the text-boxes, then click the 'Replot' button to force a replot.
+
+    .. image:: /images/z-tab.png
+       :align: left
+    
+    The z-tab also contains a toolbar for stepping through the z-values 
+    automatically, with 'forward', 'back', and 'pause' controls. The default 
+    speed is one frame per second, but after the first click on the play button,
+    subsequent clicks will reduce the frame interval by a factor two.     
 
 **Projection Tab**
 
