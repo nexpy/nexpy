@@ -322,7 +322,7 @@ limits and parameters.
     z-limits, the new slice is automatically plotted. If you change the limits
     by editing the text-boxes, then click the 'Replot' button to force a replot.
 
-    .. image:: /images/z-tab.png
+    .. image:: /images/z-toolbar.png
        :align: left
     
     The z-tab also contains a toolbar for stepping through the z-values 
