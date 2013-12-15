@@ -228,6 +228,7 @@ class NXTreeView(QtGui.QTreeView):
         self.rename_action=QtGui.QAction("Rename Data", self, triggered=self.rename_data)
         self.copy_action=QtGui.QAction("Copy Data", self, triggered=self.copy_data)
         self.paste_action=QtGui.QAction("Paste Data", self, triggered=self.paste_data)
+        self.pastelink_action=QtGui.QAction("Paste As Link", self, triggered=self.paste_link)
         self.delete_action=QtGui.QAction("Delete Data", self, triggered=self.delete_data)
         self.link_action=QtGui.QAction("Show Link", self, triggered=self.show_link)
         self.signal_action=QtGui.QAction("Set Signal", self, triggered=self.set_signal)
@@ -249,6 +250,7 @@ class NXTreeView(QtGui.QTreeView):
         self.popMenu.addAction(self.rename_action)
         self.popMenu.addAction(self.copy_action)
         self.popMenu.addAction(self.paste_action)
+        self.popMenu.addAction(self.pastelink_action)
         self.popMenu.addAction(self.delete_action)
         self.popMenu.addSeparator()
         self.popMenu.addAction(self.link_action)
@@ -306,6 +308,9 @@ class NXTreeView(QtGui.QTreeView):
 
     def paste_data(self):
         self.parent().parent().paste_data()
+
+    def paste_link(self):
+        self.parent().parent().paste_link()
 
     def delete_data(self):
         self.parent().parent().delete_data()

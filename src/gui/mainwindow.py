@@ -383,6 +383,12 @@ class MainWindow(QtGui.QMainWindow):
             )
         self.add_menu_action(self.data_menu, self.paste_action, True)  
 
+        self.pastelink_action=QtGui.QAction("Paste As Link",
+            self,
+            triggered=self.paste_link
+            )
+        self.add_menu_action(self.data_menu, self.pastelink_action, True)  
+
         self.delete_action=QtGui.QAction("Delete Data",
             self,
             triggered=self.delete_data
@@ -688,7 +694,21 @@ class MainWindow(QtGui.QMainWindow):
                 QtGui.QMessageBox.critical(self, "NeXus item cannot be pasted", 
                     "The NeXus file is opened as read-only",
                     QtGui.QMessageBox.Ok, QtGui.QMessageBox.NoButton)
-
+ 
+    def paste_link(self):
+        node = self.treeview.getnode()
+        if isinstance(node, NXgroup) and self.copied_node:
+            if node.nxfilemode != 'r':
+                try:
+                    node.makelink(self.copied_node)
+                except NeXusError, error_message:
+                    QtGui.QMessageBox.critical(
+                        self, "Error pasting link", str(error_message),
+                        QtGui.QMessageBox.Ok, QtGui.QMessageBox.NoButton)
+            else:   
+                QtGui.QMessageBox.critical(self, "NeXus item cannot be pasted", 
+                    "The NeXus file is opened as read-only",
+                    QtGui.QMessageBox.Ok, QtGui.QMessageBox.NoButton)
  
     def delete_data(self):
         node = self.treeview.getnode()
