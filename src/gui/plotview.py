@@ -828,6 +828,8 @@ class NXPlotTab(QtGui.QWidget):
             self.plotbutton =  self.pushbutton("Replot", self.replot)
             widgets.append(self.lockbox)
             widgets.append(self.scalebox)
+            self.init_toolbar()
+            widgets.append(self.toolbar)
             widgets.append(self.plotbutton)
         else:
             self.lockbox = None
@@ -1119,6 +1121,58 @@ class NXPlotTab(QtGui.QWidget):
     def get_cmap(self):
         return self.cmapcombo.currentText()
 
+    def init_toolbar(self):
+        _backward_icon = QtGui.QIcon(
+            os.path.join(os.path.abspath(os.path.dirname(__file__)), 
+                         'resources', 'backward-icon.png'))
+        _pause_icon = QtGui.QIcon(
+            os.path.join(os.path.abspath(os.path.dirname(__file__)), 
+                         'resources', 'pause-icon.png'))
+        _forward_icon = QtGui.QIcon(
+            os.path.join(os.path.abspath(os.path.dirname(__file__)), 
+                         'resources', 'forward-icon.png'))
+        self.toolbar = QtGui.QToolBar(parent=self)
+        self.toolbar.addAction(_backward_icon, '', self.playback)
+        self.toolbar.addAction(_pause_icon, '', self.playpause)
+        self.toolbar.addAction(_forward_icon, '', self.playforward)
+        self.toolbar.setIconSize(QtCore.QSize(16,16))
+        self.timer = QtCore.QTimer(self)
+        self.timer.timeout.connect(self.slideshow)
+        self.playsteps = 0
+
+    def slideshow(self):
+        self.maxbox.stepBy(self.playsteps)
+        if self.maxbox.value() >= self.maxbox.data[-1] or \
+           self.minbox.value() <= self.minbox.data[0]:
+            self.timer.stop()
+
+    def playback(self):
+        if not self.lockbox.isChecked():
+            self.lockbox.setChecked(True)
+            self.set_lock()
+        if self.playsteps == -1:
+            self.interval = self.timer.interval() / 2
+            self.timer.setInterval(self.interval)
+        else:
+            self.playsteps = -1
+            self.interval = 1000
+            self.timer.start(self.interval)
+        
+    def playpause(self):
+        self.playsteps = 0
+        self.timer.stop()
+            
+    def playforward(self):
+        if not self.lockbox.isChecked():
+            self.lockbox.setChecked(True)
+            self.set_lock()
+        if self.playsteps == 1:
+            self.interval = self.timer.interval() / 2
+            self.timer.setInterval(self.interval)
+        else:
+            self.playsteps = 1
+            self.interval = 1000
+            self.timer.start(self.interval)
 
 class NXTextBox(QtGui.QLineEdit):
 
