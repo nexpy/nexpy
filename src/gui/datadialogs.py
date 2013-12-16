@@ -1,5 +1,5 @@
 # System library imports
-from IPython.external.qt import QtGui,QtCore
+from PySide import QtGui,QtCore
 import imp, os, re, sys
 import numpy as np
 

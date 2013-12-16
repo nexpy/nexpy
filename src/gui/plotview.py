@@ -5,7 +5,7 @@ import os
 
 import numpy as np
 
-from IPython.external.qt import QtCore, QtGui
+from PySide import QtCore, QtGui
 
 import matplotlib
 from matplotlib._pylab_helpers import Gcf

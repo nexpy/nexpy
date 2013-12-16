@@ -24,7 +24,7 @@ import os
 import signal
 
 # System library imports
-from IPython.external.qt import QtCore
+from PySide import QtCore
 
 # Local imports
 from mainwindow import MainWindow

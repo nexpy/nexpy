@@ -2,7 +2,7 @@
 Base class for import dialogs
 """
 import os
-from IPython.external.qt import QtCore, QtGui
+from PySide import QtCore, QtGui
 
 from nexpy.api.nexus import *
 

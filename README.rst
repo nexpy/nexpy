@@ -36,15 +36,10 @@ numpy              http://numpy.scipy.org/
 .. note:: If you need to read HDF4 or XML files now, please clone the 
           old-master branch (https://github.com/nexpy/nexpy/tree/old-master).
 
-
 NeXpy GUI
 ---------
-The GUI is built using Qt, and should work with either PyQt, which can be 
-installed from the `PyQt website <http://www.riverbankcomputing.co.uk/>`_, or 
-`PySide <http://www.pyside.org/>`_ (although all testing has been performed 
-using PySide).
-
-The GUI includes an `iPython shell <http://ipython.org/>`_ and a `Matplotlib
+The GUI is built using the `PySide <http://www.pyside.org/>`_ variant of Qt and 
+includes an `iPython shell <http://ipython.org/>`_ and a `Matplotlib
 plotting pane <http://matplotlib.sourceforge.net>`_. The iPython shell is
 embedded in the Qt GUI using an implementation of their QtConsole.
           
@@ -82,3 +77,18 @@ lmfit              http://newville.github.io/lmfit-py/
 pyspec             http://pyspec.sourceforge.net/
 pylibtiff          http://code.google.com/p/pylibtiff/
 =================  =================================================
+
+Semantic Versioning
+-------------------
+With the release of v0.1.0, NeXpy will be using `Semantic Versioning 
+<http://semver.org/spec/v2.0.0.html>`_.
+
+Acknowledgements
+----------------
+The `NeXus format <http://www.nexusformat.org>`_ for neutron, x-ray and muon 
+data is developed by an international collaboration under the supervision of the 
+`NeXus Interational Advisory Committee <http://wiki.nexusformat.org/NIAC>`_. The 
+Python tree API used in NeXpy was originally developed by Paul Kienzle, who
+also wrote the standard Python interface to the NeXus C-API. The original 
+version of NeXpy was initially developed by Boyana Norris, Jason Sarich, and 
+Daniel Lowell, using wxPython.

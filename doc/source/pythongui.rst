@@ -323,7 +323,7 @@ limits and parameters.
     by editing the text-boxes, then click the 'Replot' button to force a replot.
 
     .. image:: /images/z-toolbar.png
-       :align: left
+       :align: right
     
     The z-tab also contains a toolbar for stepping through the z-values 
     automatically, with 'forward', 'back', and 'pause' controls. The default 
@@ -480,7 +480,7 @@ Here is an example of an import dialog::
                              import dialogs.
  """
 
- from IPython.external.qt import QtCore, QtGui
+ from PySide import QtCore, QtGui
 
  import numpy as np
  from nexpy.api.nexus import *
