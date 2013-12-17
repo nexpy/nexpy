@@ -8,7 +8,7 @@
 import os
 
 from PySide import QtCore, QtGui
-from nexpy.api.nexus import NXfield, NXgroup, NXlink, NXroot, NeXusError
+from nexpy.api.nexus import NXfield, NXgroup, NXlink, NXroot, NXentry, NeXusError
 
 
 def natural_sort(key):
@@ -75,8 +75,11 @@ class NXtree(NXgroup):
                     node.nxname = key
             if isinstance(node, NXroot):
                 self[node.nxname] = node
-            else:
+            elif isinstance(node, NXentry):
                 group = NXroot(node)
+                self[self.get_new_name()] = group
+            else:
+                group = NXroot(NXentry(node))
                 self[self.get_new_name()] = group
         else:
             raise NeXusError("Only an NXgroup can be added to the tree")

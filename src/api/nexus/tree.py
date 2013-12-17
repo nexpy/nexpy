@@ -485,7 +485,7 @@ class NXFile(object):
             self[self.nxpath].attrs['NX_class'] = group.nxclass
         self._writeattrs(group.attrs)
         if hasattr(group, '_target'):
-            links += [(path, group._target)]
+            links += [(self.nxpath, group._target)]
         for child in group.entries.values():
             if child.nxclass == 'NXfield':
                 links += self._writedata(child)
