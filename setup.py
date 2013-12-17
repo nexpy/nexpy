@@ -10,7 +10,7 @@ from distutils.core import setup
 
 verbose=1
 
-setup (name = 'NeXpy', version = '0.1.0',
+setup (name = 'NeXpy', version = '0.1.1',
        description = 'NeXpy: A Python GUI to analyze NeXus data',
        long_description = \
 """
