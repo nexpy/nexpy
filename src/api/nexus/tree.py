@@ -1,7 +1,13 @@
 #!/usr/bin/env python
-# This program is public domain 
+#-----------------------------------------------------------------------------
+# Copyright (c) 2013, NeXpy Development Team.
+#
 # Author: Paul Kienzle, Ray Osborn
-
+#
+# Distributed under the terms of the Modified BSD License.
+#
+# The full license is in the file COPYING, distributed with this software.
+#-----------------------------------------------------------------------------
 """
 The `nexus.tree` modules are designed to accomplish two goals:
 
@@ -235,7 +241,8 @@ NX_MEMORY = 2000
 
 __all__ = ['NXFile', 'NXobject', 'NXfield', 'NXgroup', 'NXattr', 'nxclasses',
            'NX_MEMORY', 'setmemory', 'load', 'save', 'tree', 'centers',
-           'NXlink', 'NXlinkfield', 'NXlinkgroup', 'SDS', 'NXlinkdata']
+           'NXlink', 'NXlinkfield', 'NXlinkgroup', 'SDS', 'NXlinkdata',
+           'NeXusError']
 
 #List of defined base classes (later added to __all__)
 nxclasses = [ 'NXroot', 'NXentry', 'NXsubentry', 'NXdata', 'NXmonitor', 'NXlog', 

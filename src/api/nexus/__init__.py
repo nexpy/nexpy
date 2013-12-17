@@ -1,4 +1,12 @@
-# This program is public domain
+#-----------------------------------------------------------------------------
+# Copyright (c) 2013, NeXpy Development Team.
+#
+# Author: Paul Kienzle, Ray Osborn
+#
+# Distributed under the terms of the Modified BSD License.
+#
+# The full license is in the file COPYING, distributed with this software.
+#-----------------------------------------------------------------------------
 """
 Python NeXus interface.
 
@@ -53,5 +61,4 @@ interface (NAPI_).
 .. _HDF:   http://www.hdfgroup.org
 """
 
-from napi import *
 from tree import *

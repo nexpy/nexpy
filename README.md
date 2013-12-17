@@ -34,9 +34,6 @@ PYTHONPATH --> must include paths to ipython,numpy,scipy,matplotlib if installed
 
 All of the above are included in the Enthought Python Distribution v7.3.
 
-PyQt4 should also work instead of PySide. NeXpy automatically checks for 
-which PyQt variant is available (PySide or PyQt4 - not PyQt).
-
 To run with the GUI
 ===================
 

@@ -1,7 +1,16 @@
+#-----------------------------------------------------------------------------
+# Copyright (c) 2013, NeXpy Development Team.
+#
+# Distributed under the terms of the Modified BSD License.
+#
+# The full license is in the file COPYING, distributed with this software.
+#-----------------------------------------------------------------------------
 """ A minimal application using the Qt console-style IPython frontend.
 
 This is not a complete console app, as subprocess will not be able to receive
 input, there is no real readline support, among other limitations.
+
+Based on IPython module of the same name.
 
 Authors:
 
@@ -171,7 +180,8 @@ class NXConsoleApp(BaseIPythonApplication, IPythonConsoleApp):
         """Initialize imports in the shell."""
         global _shell
         _shell = self.window.user_ns
-        s = ("import nexpy.api.nexus as nx\n"
+        s = ("import nexpy\n"
+             "import nexpy.api.nexus as nx\n"
              "from nexpy.api.nexus import NXgroup, NXfield, NXattr, NXlink\n"
              "from nexpy.api.nexus import NXFile")
         exec s in self.window.user_ns
