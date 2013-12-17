@@ -1,7 +1,7 @@
 Installation
 ============
 Released versions of NeXpy are available on `PyPI 
-<https://pypi.python.org/pypi>`_. If you have the `Python Setup Tools 
+<https://pypi.python.org/pypi/NeXpy/>`_. If you have the `Python Setup Tools 
 <https://pypi.python.org/pypi/setuptools>`_ installed, then you can install 
 using either::
 
@@ -62,11 +62,6 @@ iPython v1.1.0     http://ipython.org/
 matplotlib v1.1.0  http://matplotlib.sourceforge.net/
 =================  =================================================
 
-.. note:: The latest updates make NeXpy compatible with iPython 1.1.0 and 
-          removes the dependency on PyZMQ. If you require a version that is 
-          compatible with iPython 0.13, please clone the ipython-0.13 branch
-          (https://github.com/nexpy/nexpy/tree/ipython-0.13).
-
 Most of these packages are included in the `Enthought Python Distribution v7.3 
 <http://www.enthought.com>`_ or within Enthought's `Canopy Application
 <https://www.enthought.com/products/canopy/>`_.
@@ -89,17 +84,20 @@ pyspec             http://pyspec.sourceforge.net/
 pylibtiff          http://code.google.com/p/pylibtiff/
 =================  =================================================
 
+.. note:: NeXpy should still run without these additional packages, but invoking
+          the relevant menu items will trigger an exception. 
+
 Semantic Versioning
 -------------------
-With the release of v0.1.0, NeXpy will be using `Semantic Versioning 
+With the release of v0.1.0, NeXpy is using `Semantic Versioning 
 <http://semver.org/spec/v2.0.0.html>`_.
 
 Acknowledgements
 ----------------
 The `NeXus format <http://www.nexusformat.org>`_ for neutron, x-ray and muon 
 data is developed by an international collaboration under the supervision of the 
-`NeXus Interational Advisory Committee <http://wiki.nexusformat.org/NIAC>`_. The 
-Python tree API used in NeXpy was originally developed by Paul Kienzle, who
+`NeXus International Advisory Committee <http://wiki.nexusformat.org/NIAC>`_. 
+The Python tree API used in NeXpy was originally developed by Paul Kienzle, who
 also wrote the standard Python interface to the NeXus C-API. The original 
 version of NeXpy was initially developed by Boyana Norris, Jason Sarich, and 
 Daniel Lowell, and Ray Osborn using wxPython, and formed the inspiration

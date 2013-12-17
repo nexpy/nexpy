@@ -34,7 +34,7 @@ site <https://github.com/nexpy/nexpy>`_.
                      'Topic :: Scientific/Engineering :: Visualization'],
        url='http://nexpy.github.io/nexpy/',
        download_url='https://github.com/nexpy/nexpy/',
-       requires = ('numpy', 'scipy', 'h5py', 'pyside'),
+       requires = ('numpy', 'scipy', 'h5py', 'pyside', 'ipython', 'matplotlib'),
        author='NeXpy Developers',
        author_email='nexpydev@gmail.com',
        package_dir = {'nexpy': 'src'},
