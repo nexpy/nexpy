@@ -1,7 +1,18 @@
 Installation
 ============
-The NeXpy source code can be downloaded from the Git repository at 
-https://github.com/nexpy/nexpy::
+Released versions of NeXpy are available on `PyPI 
+<https://pypi.python.org/pypi>`_. If you have the `Python Setup Tools 
+<https://pypi.python.org/pypi/setuptools>`_ installed, then you can install 
+using either::
+
+    $ pip install nexpy
+
+or:: 
+
+    $ easy_install nexpy 
+
+The latest development versions of NeXpy can be downloaded from the `NeXpy Git 
+repository <https://github.com/nexpy/nexpy>`_::
 
     $ git clone http://github.com/nexpy/nexpy.git
 

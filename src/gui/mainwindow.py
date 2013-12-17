@@ -212,7 +212,7 @@ class MainWindow(QtGui.QMainWindow):
             shortcut=QtGui.QKeySequence("Ctrl+Shift+O"),
             triggered=self.open_editable_file
             )
-        self.add_menu_action(self.file_menu, self.openeditablefile_action, True)  
+        self.addAction(self.openeditablefile_action)  
 
         self.savefile_action=QtGui.QAction("&Save as...",
             self,

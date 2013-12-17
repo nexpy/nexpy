@@ -4,15 +4,34 @@ NeXpy provides a high-level python interface to NeXus data contained within a si
 
 Installing and Running
 ======================
+Released versions of NeXpy can be installed using either
 
 ```
-  python setup.py install
+    $ pip install nexpy
+```
+
+or
+
+```
+    $ easy_install nexpy 
+```
+
+The source code can be downloaded from the NeXpy Git repository:
+
+```
+    $ git clone http://github.com/nexpy/nexpy.git
+```
+
+To install in the standard Python location:
+
+```
+    $ python setup.py install
 ```
 
 To install in an alternate location:
 
 ```
-  python setup.py install --prefix=/path/to/installation/dir
+    $ python setup.py install --prefix=/path/to/installation/dir
 ```
 
 Prerequisites
@@ -30,7 +49,7 @@ more details of the nature of these dependencies in the
 * pyspec               http://pyspec.sourceforge.net (SPEC reader only)
 
 The following environment variable may need to be set
-PYTHONPATH --> must include paths to ipython,numpy,scipy,matplotlib if installed in nonstandard place
+PYTHONPATH --> paths to ipython,numpy,scipy,matplotlib if installed in a nonstandard place
 
 All of the above are included in the Enthought Python Distribution v7.3.
 
@@ -44,7 +63,7 @@ from the source directory, simply execute:
 scripts/nexpy
 ```
 
-To run from the install location, add the $prefix/bin directory to your path
+To run from the installed location, add the $prefix/bin directory to your path
 (only if you installed outside the python installation), and then run:
 
 ```

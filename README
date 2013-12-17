@@ -8,11 +8,29 @@ data structures without expert knowledge of the file format.
 Installing and Running
 ======================
 
-    python setup.py install
+Released versions of NeXpy are available on PyPI. If you have the Python Setup 
+Tools <https://pypi.python.org/pypi/setuptools> installed, then you can install 
+using either
+
+    $ pip install nexpy
+
+or:: 
+
+    $ easy_install nexpy 
+
+The latest development versions of NeXpy can be downloaded from the NeXpy Git 
+repository <https://github.com/nexpy/nexpy>.
+
+    $ git clone http://github.com/nexpy/nexpy.git
+
+To install in the standard Python location:
+
+    $ cd nexpy
+    $ python setup.py install
 
 To install in an alternate location:
 
-    python setup.py install --prefix=/path/to/installation/dir
+    $ python setup.py install --prefix=/path/to/installation/dir
 
 Prerequisites
 =============

@@ -73,12 +73,13 @@ File Menu
     Creates a new workspace in the tree.
 
 **Open**
-    Opens a new NeXus file as read only. 
+    Opens a new NeXus file as read-only. It is possible unlock the file to 
+    allow modifications to the file (see below).
 
-**Open (read/write)**
-    Opens a new NeXus file with read/write access. Note that any changes to 
-    the file tree, using shell of GUI commands, will be automatically updated 
-    in the file.
+    .. note:: It is possible to open a file in directly read/write mode using 
+              the keyboard shortcut Alt-Shift-O (Cmd-Shift-O on a Mac). Note 
+              that any changes to the file tree, using either the shell or GUI 
+              commands, will be automatically updated in the file.
 
 **Save as...**
     Saves the selected tree item to a new NeXus file. If the selected item is
@@ -108,7 +109,7 @@ File Menu
     with a padlock icon. 
 
 **Unlock file**
-    Changes the file access mode to read-write. If the root tree item has been
+    Changes the file access mode to read/write. If the root tree item has been
     saved to a file, any subsequent changes will automatically update the file,
     including deleting items. 
 

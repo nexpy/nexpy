@@ -11,7 +11,7 @@ shell::
  >>> from nexpy.api import nexus
 
 .. note:: If you are creating NeXus groups, it is often more convenient to 
-          import the data using ``from nexpy.api.nexus import \*``. Since this 
+          import the data using ``from nexpy.api.nexus import *``. Since this 
           produces a name clash with the numpy 'load' module, 'nxload' has been
           defined as an alias for the NeXus 'load' module. 
 
@@ -73,6 +73,12 @@ read/write mode::
  >>> a=nx.load('chopper.nxs', mode='rw')
 
 The default mode is 'r', *i.e.*, readonly access.
+
+.. warning:: If the file is opened in read/write mode, any changes are made 
+             automatically to the file itself. In particular, any deletions of 
+             file objects will be irreversible. Make sure you have a backup
+             if you open a mission-critical file. In the :doc:`pythongui`, this 
+             can be achieved using the 'Duplicate...' menu item.
 
 Creating NeXus Data
 ===================
@@ -756,13 +762,10 @@ NXdata.project(axes, limits):
 Saving NeXus Data
 =================
 Every NeXus object, whether it is a group or a field, has a save() method as 
-illustrated in `Creating NeXus Data`_. It has two optional arguments::
+illustrated in `Creating NeXus Data`_.::
 
- >>> root.save(filename='example.nxs', format='w5')
+ >>> root.save(filename='example.nxs')
  
-The format parameter defines the underlying NeXus format - 'w5' for HDF5, 'w4' 
-for HDF4, and 'wx' for XML. The default is 'w5'.
-
 If the NeXus object is a NXroot group, the save() method saves the whole NeXus 
 tree. The filename can only be omitted if the tree is being saved to a file that 
 was loaded with read/write access. In this case, the format argument is ignored.
