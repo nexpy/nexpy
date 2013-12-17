@@ -1,3 +1,10 @@
+#-----------------------------------------------------------------------------
+# Copyright (c) 2013, NeXpy Development Team.
+#
+# Distributed under the terms of the Modified BSD License.
+#
+# The full license is in the file COPYING, distributed with this software.
+#-----------------------------------------------------------------------------
 """
 Plotting window
 """
@@ -32,6 +39,8 @@ colors = ['b', 'g', 'r', 'c', 'm', 'y', 'k', 'w']
 def new_figure_manager( label=None, *args, **kwargs ):
     """
     Create a new figure manager instance
+    
+    Figure numbers 101 and 102 are preserved for the Projection and Fit windows.
     """
     if label == 'Projection':
         num = 101
@@ -1470,10 +1479,14 @@ class NXProjectionPanel(QtGui.QDialog):
         widgets = []  
         self.save_button = QtGui.QPushButton("Save", self)
         self.save_button.clicked.connect(self.save_projection)
+        self.save_button.setDefault(False)
+        self.save_button.setAutoDefault(False)
         widgets.append(self.save_button)
 
         self.plot_button = QtGui.QPushButton("Plot", self)
         self.plot_button.clicked.connect(self.plot_projection)
+        self.plot_button.setDefault(False)
+        self.plot_button.setAutoDefault(False)
         widgets.append(self.plot_button)
         
         self.overplot_box = QtGui.QCheckBox("Over")
@@ -1489,6 +1502,8 @@ class NXProjectionPanel(QtGui.QDialog):
 
         self.close_button = QtGui.QPushButton("Close Panel", self)
         self.close_button.clicked.connect(self.close)
+        self.close_button.setDefault(False)
+        self.close_button.setAutoDefault(False)
         buttonbox.addWidget(self.close_button)
         
         layout.addLayout(buttonbox)
@@ -1536,10 +1551,10 @@ class NXProjectionPanel(QtGui.QDialog):
             self.minbox[axis].diff = self.maxbox[axis].diff = None
             self.minbox[axis].setRange(min, max)
             self.minbox[axis].setValue(min)
-            self.minbox[axis].setSingleStep((max-min)/200)
+            self.minbox[axis].setSingleStep((max-min)/20)
             self.maxbox[axis].setRange(min, max)
             self.maxbox[axis].setValue(max)
-            self.maxbox[axis].setSingleStep((max-min)/200)
+            self.maxbox[axis].setSingleStep((max-min)/20)
 
     def set_limits(self):
         for axis in self.get_axes():
@@ -1558,8 +1573,7 @@ class NXProjectionPanel(QtGui.QDialog):
                      for axis in self.get_axes()]
     
     def update_limits(self):
-        axes = [self.plotview.plot.xaxis.name, self.plotview.plot.yaxis.name]
-        for axis in axes:
+        for axis in self.get_axes():
             lo, hi = self.plotview.plot.axis[axis].get_limits()
             self.minbox[axis].setValue(lo)
             self.maxbox[axis].setValue(hi)
@@ -1654,7 +1668,6 @@ class NXProjectionPanel(QtGui.QDialog):
 
     def closeEvent(self, event):
         self.close()
-        self.deleteLater()
         event.accept()
 
     def close(self):
@@ -1665,6 +1678,7 @@ class NXProjectionPanel(QtGui.QDialog):
         self.plotview.canvas.draw()
         self.rectangle = None
         self.plotview.ptab.panel = None
+        self.deleteLater()
 
 
 class NXNavigationToolbar(NavigationToolbar):
