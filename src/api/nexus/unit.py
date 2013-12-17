@@ -1,5 +1,12 @@
-# This program is public domain
+#-----------------------------------------------------------------------------
+# Copyright (c) 2013, NeXpy Development Team.
+#
 # Author: Paul Kienzle
+#
+# Distributed under the terms of the Modified BSD License.
+#
+# The full license is in the file COPYING, distributed with this software.
+#-----------------------------------------------------------------------------
 """
 Define unit conversion support for NeXus style units.
 

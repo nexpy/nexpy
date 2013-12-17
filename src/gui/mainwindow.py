@@ -1,9 +1,14 @@
+#-----------------------------------------------------------------------------
+# Copyright (c) 2013, NeXpy Development Team.
+#
+# Distributed under the terms of the Modified BSD License.
+#
+# The full license is in the file COPYING, distributed with this software.
+#-----------------------------------------------------------------------------
 """The Qt MainWindow for NeXpy
 
 This is an expanded version on the iPython QtConsole with the addition
 of a Matplotlib plotting pane and a tree view for displaying NeXus data.
-
-The relevant QtConsole code is in IPython/qt/console/mainwindow.py
 """
 
 #-----------------------------------------------------------------------------
