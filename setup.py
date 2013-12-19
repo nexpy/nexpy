@@ -6,7 +6,8 @@
 # The full license is in the file COPYING, distributed with this software.
 #-----------------------------------------------------------------------------
 #!/usr/bin/env python
-from distutils.core import setup
+from distutils.core import setup, Extension
+import numpy
 
 verbose=1
 
@@ -41,9 +42,12 @@ site <https://github.com/nexpy/nexpy>`_.
        packages = ['nexpy',
                    'nexpy.api', 'nexpy.api.nexus', 
                    'nexpy.api.frills', 'nexpy.api.frills.functions',
-                   'nexpy.gui', 'nexpy.readers'],
+                   'nexpy.gui', 'nexpy.readers', 'nexpy.readers.tifffile'],
        package_data = {'nexpy': ['gui/resources/icon/*.svg',
                                  'gui/resources/*.png',
                                  'examples/*.nxs']},
-       scripts = ['scripts/nexpy', 'scripts/merge-tiffs'],
+       ext_modules=[Extension('tifffile._tifffile', 
+                              ['src/readers/tifffile/tifffile.c'],
+                   include_dirs=[numpy.get_include()])],
+       scripts = ['scripts/nexpy', 'scripts/merge-tiffs']
       )

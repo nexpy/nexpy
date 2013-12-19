@@ -45,9 +45,9 @@ class ImportDialog(BaseImportDialog):
  
     def get_data(self):
         try:
-            from libtiff import TIFF
-            im = TIFF.open(self.get_filename())
-            z = NXfield(im.read_image(), name='z')
+            from nexpy.readers.tifffile import tifffile as TIFF
+            im = TIFF.imread(self.get_filename())
+            z = NXfield(im, name='z')
             y = NXfield(range(z.shape[0]), name='y')
             x = NXfield(range(z.shape[1]), name='x')
         except ImportError:

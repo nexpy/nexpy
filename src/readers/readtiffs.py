@@ -65,9 +65,8 @@ class ImportDialog(BaseImportDialog):
         filenames = self.get_filesindirectory(self.get_prefix(), 
                                               self.get_extension())
         try:
-            from libtiff import TIFF
-            im = TIFF.open(filenames[0])
-            v0 = im.read_image()
+            from nexpy.readers.tifffile import tifffile as TIFF
+            v0 = TIFF.imread(filenames[0])
             x = NXfield(range(v0.shape[1]), dtype=np.uint16, name='x')
             y = NXfield(range(v0.shape[0]), dtype=np.uint16, name='y')
             z = NXfield(range(1,len(filenames)+1), dtype=np.uint16, name='z')
@@ -75,8 +74,7 @@ class ImportDialog(BaseImportDialog):
                         dtype=v0.dtype), name='v')
             v[0] = v0
             for i in range(1,len(filenames)):
-                im = TIFF.open(filenames[i])
-                v[i] = im.read_image()
+                v[i] = TIFF.imread(filenames[i])
         except ImportError:
             im = Image.open(filenames[0])
             dtype = np.dtype(np.uint16)
