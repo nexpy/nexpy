@@ -77,10 +77,14 @@ class NXtree(NXgroup):
                 self[node.nxname] = node
             elif isinstance(node, NXentry):
                 group = NXroot(node)
-                self[self.get_new_name()] = group
+                name = self.get_new_name()
+                self[name] = group
+                print "NeXpy: '%s' added to tree in '%s'" % (node.nxname, group.nxname)
             else:
                 group = NXroot(NXentry(node))
-                self[self.get_new_name()] = group
+                name = self.get_new_name()
+                self[name] = group
+                print "NeXpy: '%s' added to tree in '%s%s'" % (node.nxname, group.nxname, node.nxgroup.nxpath)
         else:
             raise NeXusError("Only an NXgroup can be added to the tree")
 
