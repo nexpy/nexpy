@@ -146,7 +146,7 @@ class MainWindow(QtGui.QMainWindow):
         self.statusBar().showMessage('Ready')
         self.console._control.setFocus()
 
-    def close(self,current):
+    def close(self):
         """ Called when you need to try to close the console widget.
         """
 
@@ -221,8 +221,9 @@ class MainWindow(QtGui.QMainWindow):
             )
         self.add_menu_action(self.file_menu, self.savefile_action, True)  
         
-        self.duplicate_action=QtGui.QAction("Duplicate...",
+        self.duplicate_action=QtGui.QAction("&Duplicate...",
             self,
+            shortcut=QtGui.QKeySequence("Ctrl+D"),
             triggered=self.duplicate
             )
         self.add_menu_action(self.file_menu, self.duplicate_action, True)  
@@ -239,12 +240,14 @@ class MainWindow(QtGui.QMainWindow):
 
         self.lockfile_action=QtGui.QAction("&Lock File",
             self,
+            shortcut=QtGui.QKeySequence("Ctrl+L"),
             triggered=self.lock_file
             )
         self.add_menu_action(self.file_menu, self.lockfile_action, True)  
         
         self.unlockfile_action=QtGui.QAction("&Unlock File",
             self,
+            shortcut=QtGui.QKeySequence("Ctrl+U"),
             triggered=self.unlock_file
             )
         self.add_menu_action(self.file_menu, self.unlockfile_action, True)  
@@ -313,9 +316,8 @@ class MainWindow(QtGui.QMainWindow):
             )
         self.add_menu_action(self.edit_menu, self.copy_action, True)
 
-        self.copy_raw_action = QtGui.QAction("Copy (&Raw Text)",
+        self.copy_raw_action = QtGui.QAction("Copy (Raw Text)",
             self,
-            shortcut="Ctrl+Shift+C",
             triggered=self.copy_raw_console
             )
         self.add_menu_action(self.edit_menu, self.copy_raw_action, True)
@@ -378,24 +380,28 @@ class MainWindow(QtGui.QMainWindow):
 
         self.copy_action=QtGui.QAction("Copy Data",
             self,
+            shortcut=QtGui.QKeySequence("Ctrl+Shift+C"),
             triggered=self.copy_data
             )
         self.add_menu_action(self.data_menu, self.copy_action, True)  
 
         self.paste_action=QtGui.QAction("Paste Data",
             self,
+            shortcut=QtGui.QKeySequence("Ctrl+Shift+V"),
             triggered=self.paste_data
             )
         self.add_menu_action(self.data_menu, self.paste_action, True)  
 
         self.pastelink_action=QtGui.QAction("Paste As Link",
             self,
+            shortcut=QtGui.QKeySequence("Ctrl+Alt+Shift+V"),
             triggered=self.paste_link
             )
         self.add_menu_action(self.data_menu, self.pastelink_action, True)  
 
         self.delete_action=QtGui.QAction("Delete Data",
             self,
+            shortcut=QtGui.QKeySequence("Ctrl+Shift+X"),
             triggered=self.delete_data
             )
         self.add_menu_action(self.data_menu, self.delete_action, True)  
@@ -472,7 +478,6 @@ class MainWindow(QtGui.QMainWindow):
 
         self.clear_action = QtGui.QAction("&Clear Screen",
             self,
-            shortcut='Ctrl+L',
             statusTip="Clear the console",
             triggered=self.clear_magic_console)
         self.add_menu_action(self.view_menu, self.clear_action)
@@ -514,7 +519,18 @@ class MainWindow(QtGui.QMainWindow):
     def import_data(self):
         if self.import_dialog.accepted:
             workspace = self.treeview.tree.get_new_name()
-            self.treeview.tree[workspace] = self.import_dialog.get_data()
+            imported_data = self.import_dialog.get_data()
+            try:
+                if isinstance(imported_data, NXentry):
+                    self.treeview.tree[workspace] = NXroot(imported_data)
+                elif isinstance(imported_data, NXroot):
+                    self.treeview.tree[workspace] = imported_data
+                else:
+                    raise NeXusError('Imported data must be an NXroot or NXentry group')
+            except NeXusError, error_message:
+                QtGui.QMessageBox.critical(
+                    self, "Error importing file", str(error_message),
+                    QtGui.QMessageBox.Ok, QtGui.QMessageBox.NoButton)
 
     def new_workspace(self):
         default_name = self.treeview.tree.get_new_name()
