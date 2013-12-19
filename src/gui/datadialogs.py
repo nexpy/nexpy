@@ -181,7 +181,8 @@ class AddDialog(QtGui.QDialog):
             self.type_box = QtGui.QComboBox()
             from nexpy.api.nexus.tree import nxclasses
             for name in nxclasses:
-                self.type_box.addItem(name)
+                if name != 'NXroot':
+                    self.type_box.addItem(name)
             self.type_box.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToContents)
             grid.addWidget(type_label, 0, 0)
             grid.addWidget(self.type_box, 0, 1)
