@@ -545,7 +545,7 @@ class MainWindow(QtGui.QMainWindow):
     def open_file(self):
         fname, _ = QtGui.QFileDialog.getOpenFileName(self, 'Open File (Read Only)',
                          self.default_directory, 
-                         "NeXus Files (*.nxs *.nx5 *.h5 *.nx4 *.hdf *.xml)")
+                         "NeXus Files (*.nxs *.nx5 *.h5 *.hdf *.hdf5 )")
         workspace = self.treeview.tree.get_name(fname)
         self.treeview.tree[workspace] = self.user_ns[workspace] = nxload(fname)
         self.default_directory = os.path.dirname(fname)
@@ -553,7 +553,7 @@ class MainWindow(QtGui.QMainWindow):
     def open_editable_file(self):
         fname, _ = QtGui.QFileDialog.getOpenFileName(self, 'Open File (Read/Write)',
                          self.default_directory, 
-                         "NeXus Files (*.nxs *.nx5 *.h5 *.nx4 *.hdf *.xml)")
+                         "NeXus Files (*.nxs *.nx5 *.h5 *.hdf *.hdf5)")
         workspace = self.treeview.tree.get_name(fname)
         self.treeview.tree[workspace] = self.user_ns[workspace] = nxload(fname, 'rw')
         self.default_directory = os.path.dirname(fname)
@@ -581,7 +581,7 @@ class MainWindow(QtGui.QMainWindow):
                     self.treeview.tree[name] = self.user_ns[name] = nxload(fname, 'rw')
                     del self.treeview.tree[old_name]
                     self.treeview.selectnode(self.treeview.tree[name])
-                    self.treeview.update()
+                self.treeview.update()
                 self.default_directory = os.path.dirname(fname)
             except NeXusError, error_message:
                 QtGui.QMessageBox.critical(
