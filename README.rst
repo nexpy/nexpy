@@ -72,16 +72,16 @@ Additional functionality is provided by other external Python packages.
 Least-squares fitting requires Matt Newville's least-squares fitting package, 
 `lmfit-py <http://newville.github.io/lmfit-py>`_. Importers may also require 
 libraries to read the imported files in their native format, *e.g.*, `PySpec 
-<http://pyspec.sourceforge.net>`_ for reading SPEC files and `PyLibTiff
-<http://code.google.com/p/pylibtiff/>`_ for reading float*32 TIFF files (the
-standard Python Imaging Library can read conventional TIFF files).
+<http://pyspec.sourceforge.net>`_ for reading SPEC files. 
+
+From v0.1.2, a new package for reading floating point TIFF files, tifffile, 
+written by Christoph Gohlke, has been incorporated into the NeXpy distribution.
 
 =================  =================================================
 Library            URL
 =================  =================================================
 lmfit              http://newville.github.io/lmfit-py/
 pyspec             http://pyspec.sourceforge.net/
-pylibtiff          http://code.google.com/p/pylibtiff/
 =================  =================================================
 
 .. note:: NeXpy should still run without these additional packages, but invoking
