@@ -6,7 +6,7 @@
 # The full license is in the file COPYING, distributed with this software.
 #-----------------------------------------------------------------------------
 """
-Module to read in a TIFF file and convert it to NeXus.
+Module to read in data from a Globus Online catalog and convert it to NeXus.
 
 Each importer needs to layout the GUI buttons necessary for defining the imported file 
 and its attributes and a single module, get_data, which returns an NXroot or NXentry
