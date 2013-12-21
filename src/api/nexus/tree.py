@@ -315,7 +315,6 @@ class NXFile(object):
             else:
                 self._mode = 'r'                                
         self._path = ''
-        self._filename = self._file.filename
 
     def __getitem__(self, key):
         """
@@ -323,6 +322,20 @@ class NXFile(object):
 
         """
         return self._file[key]
+
+    def __delitem__(self, name):
+        """ Delete an item from a group. """
+        del self._file[name]
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        if self._file.id:
+            self.close()
+
+    def copy(self, *args, **kwds):
+        self._file.copy(*args, **kwds)
 
     def close(self):
         self._file.close()
@@ -337,7 +350,7 @@ class NXFile(object):
         self.nxpath = '/'
         root = self._readgroup()
         root._group = None
-        root._filename = self._filename
+        root._filename = self.filename
         root._mode = self._mode
         return root
 
@@ -441,13 +454,20 @@ class NXFile(object):
         """
 
         parent = '/' + self.nxpath.lstrip('/')
-        self.nxpath = self.nxpath + '/' + data.nxname
+        self.nxpath = parent + '/' + data.nxname
 
         # If the data is linked then
         if hasattr(data,'_target'):
             return [(self.nxpath, data._target)]
 
-        if data.nxfilemode:
+        if data._copydata:
+            with data._copydata.file as f:
+                f.copy(data._copydata.name, self[parent], self.nxpath)
+            data._copydata = None
+        elif data._memfile:
+            data._memfile.copy('data', self[parent], self.nxpath)
+            data._memfile = None
+        elif data.nxfilemode and data.nxfile.filename != self.filename:
             data.nxfile.copy(data.nxpath, self[parent])
         else:
             if data.nxname not in self[parent]:
@@ -461,8 +481,6 @@ class NXFile(object):
             value = data.nxdata
             if value is not None:
                 self[self.nxpath][()] = value   
-            elif data._memfile:
-                data._memfile.copy('data', self[parent], self.nxpath)
         self._writeattrs(data.attrs)
         self.nxpath = parent
         return []
@@ -476,7 +494,7 @@ class NXFile(object):
         Call writelinks on the list.
         """
         parent = '/' + self.nxpath.lstrip('/')
-        self.nxpath = self.nxpath + '/' + group.nxname
+        self.nxpath = parent + '/' + group.nxname
 
         links = []
         if group.nxname not in self[parent]:
@@ -511,11 +529,16 @@ class NXFile(object):
 
     def _setattrs(self):
         from datetime import datetime
-        self._file.attrs['file_name'] = self._file.filename
+        self._file.attrs['file_name'] = self.filename
         self._file.attrs['file_time'] = datetime.now().isoformat()
         self._file.attrs['NeXus_version'] = '4.3.0'
         self._file.attrs['HDF5_Version'] = h5.version.hdf5_version
         self._file.attrs['h5py_version'] = h5.version.version
+
+    @property
+    def filename(self):
+        """File name on disk"""
+        return self._file.filename
 
     def _getfile(self):
         return self._file
@@ -737,7 +760,7 @@ class NXobject(object):
     _filename = None
     _mode = None
     _memfile = None
-    _tmpdata = None
+    _copydata = None
     _saved = False
     _changed = True
 
@@ -891,7 +914,6 @@ class NXobject(object):
         else:
             raise NeXusError("No output file specified")
 
-
     @property
     def saved(self):
         """
@@ -969,9 +991,9 @@ class NXobject(object):
     def _getfile(self):
         _root = self.nxroot
         if self._filename:
-            return NXFile(self._filename,_root._mode)._file
+            return NXFile(self._filename,_root._mode)
         elif self.nxroot._filename:
-            return NXFile(self.nxroot._filename, _root._mode)._file
+            return NXFile(self.nxroot._filename, _root._mode)
         else:
             return None
 
@@ -1375,13 +1397,14 @@ class NXfield(NXobject):
         else:
             raise NeXusError('Cannot allocate to field before setting shape and dtype')       
 
-    def _get_tmpdata(self, tmpdata):
-        with tmpdata[0] as f:
+    def _get_copydata(self):
+        with self._copydata.file as f:
             if self.nxfilemode == 'rw':
-                f.copy(tmpdata[1], self.nxpath)
+                f.copy(self._copydata.name, self.nxpath)
             else:
                 self._get_memfile()
-                f.copy(tmpdata[1], self._memfile, 'data')
+                f.copy(self._copydata.name, self._memfile, 'data')
+        self._copydata = None
 
     def __deepcopy__(self, memo):
         if isinstance(self, NXlink):
@@ -1393,18 +1416,30 @@ class NXfield(NXobject):
         dpcpy._name = copy(obj.nxname)
         dpcpy._dtype = copy(obj.dtype)
         dpcpy._shape = copy(obj.shape)
-        dpcpy._tmpdata = None
+        dpcpy._changed = True
+        dpcpy._saved = False
+        dpcpy._memfile = None
+        dpcpy._copydata = None
         if obj._value is not None:
             dpcpy._value = copy(obj._value)
         elif obj._memfile:
             dpcpy._memfile = obj._memfile
         elif obj.nxfilemode:
-            dpcpy._tmpdata = (obj.nxfile, obj.nxpath)
+            dpcpy._copydata = obj.nxfile[obj.nxpath]
         for k, v in obj.attrs.items():
             dpcpy.attrs[k] = copy(v)
         if 'target' in dpcpy.attrs:
             del dpcpy.attrs['target']
         return dpcpy
+
+    def update(self):
+        """
+        Writes the NXfield, including attributes, to the NeXus file.
+        """
+        if self.nxfilemode == 'rw':
+            with self.nxfile as f:
+                f.nxpath = self.nxgroup.nxpath
+                f._writedata(self)
 
     def __len__(self):
         """
@@ -1584,15 +1619,6 @@ class NXfield(NXobject):
         return NXfield((self.nxdata[:-1]+self.nxdata[1:])/2,
                         name=self.nxname,attrs=self.attrs)
 
-    def write(self):
-        """
-        Writes the NXfield, including attributes, to the NeXus file.
-        """
-        if self.nxfilemode == 'rw':
-            with self.nxfile as f:
-                f.nxpath = self.nxgroup.nxpath
-                f._writedata(self)
-
     def add(self, data, offset):
         """
         Adds a slab into the data array.
@@ -1669,7 +1695,9 @@ class NXfield(NXobject):
                         self._value = f[self.nxpath][()]
                 elif self._memfile:
                     self._value = self._memfile['data'][()]
-                self._value.shape = self._shape
+                    self._memfile = None
+                if self._value is not None:
+                    self._value.shape = self._shape
             else:
                 raise NeXusError('Data size larger than NX_MEMORY=%s MB' % NX_MEMORY)
         return self._value
@@ -2128,14 +2156,11 @@ class NXgroup(NXobject):
             value._group = self
             value._name = key
             self._entries[key] = value
-            if value._tmpdata:
-                self._entries[key]._get_tmpdata(value._tmpdata) 
         elif key in self.entries:
             self._entries[key]._setdata(value)
         else:
             self._entries[key] = NXfield(value=value, name=key, group=self)
-        self.write()
-        self.set_changed()
+        self.update()
     
     def __delitem__(self, key):
         if isinstance(key, basestring): #i.e., deleting a NeXus object
@@ -2150,15 +2175,33 @@ class NXgroup(NXobject):
             obj = self.nxlink
         else:
             obj = self
-        dpcpy = obj.__class__()
+        dpcpy = obj.__class__()       
         memo[id(self)] = dpcpy
+        dpcpy._changed = True
+        dpcpy._saved = False
         for k,v in obj.items():
-            dpcpy[k] = deepcopy(v, memo)
+            dpcpy._entries[k] = deepcopy(v, memo)
+            dpcpy._entries[k]._group = dpcpy
         for k, v in obj.attrs.items():
             dpcpy.attrs[k] = copy(v)
         if 'target' in dpcpy.attrs:
             del dpcpy.attrs['target']
         return dpcpy
+
+    def update(self):
+        """
+        Updates the NXgroup, including its children, to the NeXus file.
+        """
+        if self.nxfilemode == 'rw':
+            with self.nxfile as f:
+                f.nxpath = self.nxgroup.nxpath
+                links = f._writegroup(self)
+                f._writelinks(links)
+        elif self.nxfilemode is None:
+            for node in self.walk():
+                if isinstance(node, NXfield) and node._copydata:
+                    node._get_copydata()
+        self.set_changed()
 
     def keys(self):
         """
@@ -2192,7 +2235,8 @@ class NXgroup(NXobject):
         is converted to an NXfield.
         """
         if isinstance(value, NXobject):
-            if name == 'unknown': name = value.nxname
+            if name == 'unknown': 
+                name = value.nxname
             if name in self._entries:
                 raise NeXusError("'%s' already exists in group" % name)
             self[name] = value
@@ -2212,24 +2256,13 @@ class NXgroup(NXobject):
             if self.nxroot == target.nxroot:
                 if isinstance(target, NXobject):
                     self._entries[target.nxname] = NXlink(target=target, group=self)
-                    self.write()
-                    self.set_changed()
+                    self.update()
                 else:
                     raise NeXusError("Link target must be an NXobject")
             else:
                 raise NeXusError("Cannot link an object to a group with a different root")
         else:
             raise NeXusError("The group must have a root object of class NXroot")                
-
-    def write(self):
-        """
-        Writes the NXgroup, including its children, to the NeXus file.
-        """
-        if self.nxfilemode == 'rw':
-            with self.nxfile as f:
-                f.nxpath = self.nxgroup.nxpath
-                links = f._writegroup(self)
-                f._writelinks(links)
 
     def sum(self, axis=None):
         """
