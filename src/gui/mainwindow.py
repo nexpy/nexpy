@@ -545,7 +545,7 @@ class MainWindow(QtGui.QMainWindow):
     def open_file(self):
         fname, _ = QtGui.QFileDialog.getOpenFileName(self, 'Open File (Read Only)',
                          self.default_directory, 
-                         "NeXus Files (*.nxs *.nx5 *.h5 *.hdf *.hdf5 )")
+                         "NeXus Files (*.nxs *.nx5 *.h5 *.hdf *.hdf5)")
         workspace = self.treeview.tree.get_name(fname)
         self.treeview.tree[workspace] = self.user_ns[workspace] = nxload(fname)
         self.default_directory = os.path.dirname(fname)
@@ -571,7 +571,7 @@ class MainWindow(QtGui.QMainWindow):
         default_name = os.path.join(self.default_directory,name)
         fname, _ = QtGui.QFileDialog.getSaveFileName(self, "Choose a Filename",
                          default_name, 
-                         "NeXus Files (*.nxs *.nx5 *.h5 *.nx4 *.hdf *.xml)")
+                         "NeXus Files (*.nxs *.nx5 *.h5 *.hdf *.hdf5)")
         if fname:
             try:
                 old_name = node.nxname
@@ -597,7 +597,7 @@ class MainWindow(QtGui.QMainWindow):
                 default_name = os.path.join(self.default_directory,name)
                 fname, _ = QtGui.QFileDialog.getSaveFileName(self, "Choose a Filename",
                              default_name, 
-                             "NeXus Files (*.nxs *.nx5 *.h5 *.nx4 *.hdf *.xml)")
+                             "NeXus Files (*.nxs *.nx5 *.h5 *.hdf *.hdf5)")
                 if fname:
                     try:
                         node.save(fname)
