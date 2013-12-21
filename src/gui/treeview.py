@@ -129,15 +129,18 @@ class NXTreeItem(QtGui.QStandardItem):
     A subclass of the QtGui.QStandardItem class to return the data from 
     an NXnode.
     """
-    _lock_icon = os.path.join(os.path.abspath(os.path.dirname(__file__)), 
-                              'resources', 'lock-icon.png')
     _link_icon = os.path.join(os.path.abspath(os.path.dirname(__file__)), 
                               'resources', 'link-icon.png')
+    _lock_icon = os.path.join(os.path.abspath(os.path.dirname(__file__)), 
+                              'resources', 'lock-icon.png')
+    _unlock_icon = os.path.join(os.path.abspath(os.path.dirname(__file__)), 
+                                'resources', 'unlock-icon.png')
 
     def __init__(self, node):
         self.node = node
-        self._locked = QtGui.QIcon(self._lock_icon)
         self._linked = QtGui.QIcon(self._link_icon)
+        self._locked = QtGui.QIcon(self._lock_icon)
+        self._unlocked = QtGui.QIcon(self._unlock_icon)
         super(NXTreeItem, self).__init__(self.node.nxname)
 
     def text(self):
@@ -161,6 +164,8 @@ class NXTreeItem(QtGui.QStandardItem):
         if role == QtCore.Qt.DecorationRole:
             if isinstance(self.node, NXroot) and self.node.nxfilemode == 'r':
                 return self._locked
+            elif isinstance(self.node, NXroot) and self.node.nxfilemode == 'rw':
+                return self._unlocked
             elif isinstance(self.node, NXlink):
                 return self._linked
             else:
