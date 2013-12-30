@@ -46,7 +46,7 @@ site <https://github.com/nexpy/nexpy>`_.
        package_data = {'nexpy': ['gui/resources/icon/*.svg',
                                  'gui/resources/*.png',
                                  'examples/*.nxs']},
-       ext_modules=[Extension('tifffile._tifffile', 
+       ext_modules=[Extension('nexpy.readers.tifffile._tifffile', 
                               ['src/readers/tifffile/tifffile.c'],
                    include_dirs=[numpy.get_include()])],
        scripts = ['scripts/nexpy', 'scripts/merge-tiffs']
