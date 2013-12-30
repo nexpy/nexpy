@@ -70,9 +70,11 @@ class NXtree(NXgroup):
 
     def add(self, node):
         if isinstance(node, NXgroup):
-            shell_name = self.get_shell_names(node)[0]
+            shell_names = self.get_shell_names(node)
+            if shell_names:
+                node.nxname = shell_names[0]
             if isinstance(node, NXroot):
-                self[shell_name] = node
+                self[node.nxname] = node
             elif isinstance(node, NXentry):
                 group = NXroot(node)
                 name = self.get_new_name()
