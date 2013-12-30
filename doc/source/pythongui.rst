@@ -528,3 +528,6 @@ convenience, it also imports a number of other modules that are commonly used::
 If you require a different set of imports or prefer alternative abbreviations,
 you can replace the default startup script with your own by placing the 
 required code in ~/.nexpy/config.py.
+
+The console can be configured using the `IPython configuration system 
+<http://ipython.org/ipython-doc/stable/interactive/tutorial.html#configuration>`_.

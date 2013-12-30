@@ -11,7 +11,7 @@ import numpy
 
 verbose=1
 
-setup (name = 'NeXpy', version = '0.1.2',
+setup (name = 'NeXpy', version = '0.1.3',
        description = 'NeXpy: A Python GUI to analyze NeXus data',
        long_description = \
 """
