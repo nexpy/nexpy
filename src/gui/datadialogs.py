@@ -873,8 +873,12 @@ class FitDialog(QtGui.QDialog):
             use_errors = True
         else:
             use_errors = False
-        self.fit = Fit(self.data, self.functions, use_errors)
-        self.fit.fit_data()
+        from nexpy.gui.mainwindow import report_error
+        try:
+            self.fit = Fit(self.data, self.functions, use_errors)
+            self.fit.fit_data()
+        except Exception as error:
+            report_error("Fitting Data", error)
         if self.fit.result.success:
             self.fit_label.setText('Fit Successful Chi^2 = %s' % self.fit.result.redchi)
         else:
