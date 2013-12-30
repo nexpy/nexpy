@@ -49,6 +49,7 @@ class NXtree(NXgroup):
         self.set_changed()
 
     def set_changed(self):
+        self.sync_shell_names()
         if self._model:
             if self._item.hasChildren():
                 for row in reversed(range(self._item.rowCount())):
@@ -69,22 +70,21 @@ class NXtree(NXgroup):
 
     def add(self, node):
         if isinstance(node, NXgroup):
-            from nexpy.gui.consoleapp import _shell
-            for key in _shell.keys():
-                if id(_shell[key]) == id(node):
-                    node.nxname = key
+            shell_name = self.get_shell_names(node)[0]
             if isinstance(node, NXroot):
-                self[node.nxname] = node
+                self[shell_name] = node
             elif isinstance(node, NXentry):
                 group = NXroot(node)
                 name = self.get_new_name()
                 self[name] = group
-                print "NeXpy: '%s' added to tree in '%s'" % (node.nxname, group.nxname)
+                print "NeXpy: '%s' added to tree in '%s'" % (node.nxname, 
+                                                             group.nxname)
             else:
                 group = NXroot(NXentry(node))
                 name = self.get_new_name()
                 self[name] = group
-                print "NeXpy: '%s' added to tree in '%s%s'" % (node.nxname, group.nxname, node.nxgroup.nxpath)
+                print "NeXpy: '%s' added to tree in '%s%s'" % (node.nxname, 
+                                              group.nxname, node.nxgroup.nxpath)
         else:
             raise NeXusError("Only an NXgroup can be added to the tree")
 
@@ -117,6 +117,20 @@ class NXtree(NXgroup):
         if ind == []: ind = [0]
         return 'w'+str(sorted(ind)[-1]+1)
 
+    def get_shell_names(self, node):
+        from nexpy.gui.consoleapp import _shell
+        return [obj[0] for obj in _shell.items() if id(obj[1]) == id(node) 
+                and not obj[0].startswith('_')]
+
+    def sync_shell_names(self):
+        from nexpy.gui.consoleapp import _shell
+        for key, value in self.entries.items():
+            shell_names = self.get_shell_names(value)
+            if key not in shell_names:
+                _shell[key] = value
+                if shell_names:
+                    del _shell[shell_names[0]]
+    
     def walk(self):
         for node in self.entries.values():
             for child in node.walk():
