@@ -666,8 +666,6 @@ class NXPlot(object):
                 self.ptab.set_axes()
                 self.zoom = None
             if self.ndim > 2:
-                if self.ztab.timer.isActive():
-                    self.ztab.timer.stop()
                 self.ztab.set_axis(self.zaxis)
                 self.ztab.lockbox.setChecked(False)
                 self.ztab.scalebox.setChecked(False)
@@ -883,6 +881,8 @@ class NXPlotTab(QtGui.QWidget):
             self.maxbox.setRange(0, len(self.axis.data)-1)
             self.minbox.setValue(axis.lo)
             self.maxbox.setValue(axis.hi)
+            self.timer.stop()
+            self.playsteps = 0
         else:
             if (axis.max-axis.min) < 1e-8:
                 axis.max = axis.min + 1
@@ -1164,12 +1164,11 @@ class NXPlotTab(QtGui.QWidget):
             self.set_lock()
         if self.playsteps == -1:
             self.interval = self.timer.interval() / 2
-            self.timer.setInterval(self.interval)
         else:
             self.playsteps = -1
             self.interval = 1000
-            self.timer.start(self.interval)
-        self.timer.start()
+        self.timer.setInterval(self.interval)
+        self.timer.start(self.interval)
         
     def playpause(self):
         self.playsteps = 0
@@ -1181,12 +1180,11 @@ class NXPlotTab(QtGui.QWidget):
             self.set_lock()
         if self.playsteps == 1:
             self.interval = self.timer.interval() / 2
-            self.timer.setInterval(self.interval)
         else:
             self.playsteps = 1
             self.interval = 1000
-            self.timer.start(self.interval)
-        self.timer.start()
+        self.timer.setInterval(self.interval)
+        self.timer.start(self.interval)
 
 class NXTextBox(QtGui.QLineEdit):
 
