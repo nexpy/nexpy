@@ -38,7 +38,7 @@ site <https://github.com/nexpy/nexpy>`_.
        requires = ('numpy', 'scipy', 'h5py', 'pyside', 'ipython', 'matplotlib'),
        author='NeXpy Developers',
        author_email='nexpydev@gmail.com',
-       package_dir = {'nexpy': 'src'},
+       package_dir = {'nexpy': 'src/nexpy'},
        packages = ['nexpy',
                    'nexpy.api', 'nexpy.api.nexus', 
                    'nexpy.api.frills', 'nexpy.api.frills.functions',
@@ -49,5 +49,5 @@ site <https://github.com/nexpy/nexpy>`_.
        ext_modules=[Extension('nexpy.readers.tifffile._tifffile', 
                               ['src/readers/tifffile/tifffile.c'],
                    include_dirs=[numpy.get_include()])],
-       scripts = ['src/nexpy/nexpy.py', 'src/nexpy/merge-tiffs.py']
+       scripts = ['src/nexpy.py', 'src/merge-tiffs.py']
       )

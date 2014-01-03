@@ -250,9 +250,9 @@ def _libnexus():
                 "NeXus library %s could not be loaded: %s"%(filename,sys.exc_info())
 
     # Given a list of files, try loading the first one that is available.
-    for file in files:
-        if not os.path.isfile(file): continue
-        return load_library(file)
+    for filename in files:
+        if not os.path.isfile(filename): continue
+        return load_library(filename)
 
     # Use find_library as a last resort
     libname = ctypes.util.find_library('NeXus')
