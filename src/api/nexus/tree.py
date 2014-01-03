@@ -472,18 +472,22 @@ class NXFile(object):
         else:
             if data.nxname not in self[parent]:
                 if np.prod(data.shape) > 10000:
-                    self[parent].create_dataset(data.nxname, 
-                                                dtype=data.dtype, 
-                                                shape=data.shape,
-                                                compression='lzf', 
-                                                chunks=True)
-                else:
-                    self[parent].create_dataset(data.nxname, 
-                                                dtype=data.dtype, 
-                                                shape=data.shape)
-            value = data.nxdata
-            if value is not None:
-                self[self.nxpath][()] = value   
+                    if not data._chunks:
+                        data._chunks = True
+                    if not data._compression:
+                        data._compression = 'lzf'
+                self[parent].create_dataset(data.nxname, 
+                                            dtype=data.dtype, shape=data.shape,
+                                            compression=data._compression,
+                                            chunks=data._chunks,
+                                            maxshape=data._maxshape,
+                                            fillvalue = data._fillvalue)
+            try:
+                value = data.nxdata
+                if value is not None:
+                    self[self.nxpath][()] = value 
+            except NeXusError:
+                pass  
         self._writeattrs(data.attrs)
         self.nxpath = parent
         data._saved = True
@@ -1277,13 +1281,34 @@ class NXfield(NXobject):
             except:
                 raise NeXusError("Invalid data type: %s" % dtype)
         self._shape = tuple(shape)
-        # Append extra keywords to the attribute list
         if not attrs:
             attrs = {}
-        self._attrs = AttrDict()
+        # Store h5py attributes as private variables
+        if 'maxshape' in attrs:
+            self._maxshape = attrs['maxshape']
+            del attrs['maxshape']
+        else:
+            self._maxshape = None
+        if 'compression' in attrs:
+            self._compression = attrs['compression']
+            del attrs['compression']
+        else:
+            self._compression = None
+        if 'chunks' in attrs:
+            self._chunks = attrs['chunks']
+            del attrs['chunks']
+        else:
+            self._chunks = None
+        if 'fillvalue' in attrs:
+            self._fillvalue = attrs['fillvalue']
+            del attrs['fillvalue']
+        else:
+            self._fillvalue = None
+        # Append extra keywords to the attribute list
         for key in attr.keys():
             attrs[key] = attr[key]
         # Convert NeXus attributes to python attributes
+        self._attrs = AttrDict()
         self._setattrs(attrs)
         if 'units' in attrs:
             units = attrs['units']
