@@ -1,4 +1,4 @@
-#!env python
+#!/usr/bin/env python
 #-----------------------------------------------------------------------------
 # Copyright (c) 2013, NeXpy Development Team.
 #

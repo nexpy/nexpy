@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 #-----------------------------------------------------------------------------
 # Copyright (c) 2013, NeXpy Development Team.
 #
@@ -5,25 +6,26 @@
 #
 # The full license is in the file COPYING, distributed with this software.
 #-----------------------------------------------------------------------------
-#!/usr/bin/env python
+
 from distutils.core import setup, Extension
 import numpy
+import os, sys
+
+# pull in some definitions from the package's __init__.py file
+sys.path.insert(0, os.path.join('src', ))
+import nexpy
 
 verbose=1
 
-setup (name = 'NeXpy', version = '0.1.3',
-       description = 'NeXpy: A Python GUI to analyze NeXus data',
-       long_description = \
-"""
-NeXpy provides a high-level python interface to `NeXus data 
-<http://www.nexusformat.org/>`_ contained within a simple GUI. It is designed to 
-provide an intuitive interactive toolbox allowing users both to access existing 
-NeXus files and to create new NeXus-conforming data structures without expert 
-knowledge of the file format.
-
-The latest development version is always available from `NeXpy's GitHub
-site <https://github.com/nexpy/nexpy>`_.
-""",
+setup (name =  nexpy.__package_name__,        # NeXpy
+       version = nexpy.__version__,
+       license = nexpy.__license__,
+       description = nexpy.__description__,
+       long_description = nexpy.__long_description__,
+       author=nexpy.__author_name__,
+       author_email=nexpy.__author_email__,
+       url=nexpy.__url__,
+       download_url=nexpy.__download_url__,
        classifiers= ['Development Status :: 4 - Beta',
                      'Intended Audience :: Developers',
                      'Intended Audience :: Science/Research',
@@ -33,11 +35,7 @@ site <https://github.com/nexpy/nexpy>`_.
                      'Programming Language :: Python :: 2.7',
                      'Topic :: Scientific/Engineering',
                      'Topic :: Scientific/Engineering :: Visualization'],
-       url='http://nexpy.github.io/nexpy/',
-       download_url='https://github.com/nexpy/nexpy/',
        requires = ('numpy', 'scipy', 'h5py', 'pyside', 'ipython', 'matplotlib'),
-       author='NeXpy Developers',
-       author_email='nexpydev@gmail.com',
        package_dir = {'nexpy': 'src/nexpy'},
        packages = ['nexpy',
                    'nexpy.api', 'nexpy.api.nexus', 
@@ -47,7 +45,7 @@ site <https://github.com/nexpy/nexpy>`_.
                                  'nexpy/gui/resources/*.png',
                                  'nexpy/examples/*.nxs']},
        ext_modules=[Extension('nexpy.readers.tifffile._tifffile', 
-                              ['src/readers/tifffile/tifffile.c'],
+                              ['src/nexpy/readers/tifffile/tifffile.c'],
                    include_dirs=[numpy.get_include()])],
        scripts = ['src/nexpy.py', 'src/merge-tiffs.py']
       )

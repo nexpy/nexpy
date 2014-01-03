@@ -1,4 +1,4 @@
-#!env python
+#!/usr/bin/env python
 #-----------------------------------------------------------------------------
 # Copyright (c) 2013, NeXpy Development Team.
 #
@@ -46,6 +46,7 @@ def write_data(nexus_root, filenames):
 def natural_sort(key):
     import re
     return [int(t) if t.isdigit() else t for t in re.split(r'(\d+)', key)]    
+
 
 if __name__=="__main__":
     try:

@@ -5,7 +5,7 @@ A PyQT GUI has been created to make it easier to keep track of the loaded NeXus
 files and the results of any subsequent analysis. It is invoked from the command 
 line by::
 
- > nexpy
+ > nexpy.py
 
 .. note:: This assumes that the Python 'bin' directory is in your standard shell
           path.
@@ -374,7 +374,7 @@ limits and parameters.
     plotted data to the tree pane, as an NXdata group in 'w0'.
        
 Fitting NeXus Data
--------------------
+------------------
 It is possible to fit one-dimensional data using the non-linear least-squares 
 fitting package, `lmfit-py <http://newville.github.io/lmfit-py>`_, by selecting 
 a group on the tree and choosing "Fit Data" from the Data menu or by 
