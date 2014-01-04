@@ -11,7 +11,7 @@ import matplotlib
 
 def main():
     matplotlib.use('Qt4Agg')
-    from nexpy.gui.consoleapp import NXConsoleApp
+    from gui.consoleapp import NXConsoleApp
     app = NXConsoleApp()
     app.initialize()
     app.start()

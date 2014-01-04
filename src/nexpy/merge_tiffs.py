@@ -9,8 +9,8 @@
 
 import os, getopt, glob, re, sys, timeit
 import numpy as np
-from nexpy.api.nexus import *
-from nexpy.readers.tifffile import tifffile as TIFF
+from api.nexus import *
+from readers.tifffile import tifffile as TIFF
 
 def get_prefixes(directory):
     prefixes = []
@@ -48,7 +48,7 @@ def natural_sort(key):
     return [int(t) if t.isdigit() else t for t in re.split(r'(\d+)', key)]    
 
 
-if __name__=="__main__":
+def main():
     try:
         opts, args = getopt.getopt(sys.argv[1:],"hd:e:p:",["directory=","ext=","prefix="])
     except getopt.GetoptError:
@@ -84,3 +84,7 @@ if __name__=="__main__":
         write_data(nexus_root, filenames)
         toc=timeit.default_timer()
         print toc-tic, 'seconds for', '%s.nxs' % prefix 
+
+
+if __name__=="__main__":
+    main()

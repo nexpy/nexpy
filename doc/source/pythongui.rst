@@ -5,7 +5,7 @@ A PyQT GUI has been created to make it easier to keep track of the loaded NeXus
 files and the results of any subsequent analysis. It is invoked from the command 
 line by::
 
- > nexpy.py
+ > nexpy
 
 .. note:: This assumes that the Python 'bin' directory is in your standard shell
           path.
