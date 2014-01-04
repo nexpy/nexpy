@@ -1537,6 +1537,16 @@ class NXfield(NXobject):
         else:
             return NXfield(value=self.nxdata+other, name=self.nxname,
                            attrs=self.attrs)
+ 
+    def __iadd__(self, other):
+        """
+        Returns the sum of the NXfield and another NXfield or number in-place.
+        """
+        if isinstance(other, NXfield):
+            self.nxdata += other.nxdata
+        else:
+            self.nxdata += other
+        return self
 
     def __radd__(self, other):
         """
