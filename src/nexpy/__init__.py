@@ -6,10 +6,6 @@
 # The full license is in the file COPYING, distributed with this software.
 #-----------------------------------------------------------------------------
 
-import api
-import gui
-import readers
-
 __package_name__ = u'NeXpy'
 __version__ = u'0.1.3'
 
