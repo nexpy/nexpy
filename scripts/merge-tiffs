@@ -87,7 +87,8 @@ def write_metadata(root, directory, prefix):
                 pass
     else:
         root.entry.sample.name = 'dark'
-        root.entry.title = "Dark Field"
+        root.entry.title = 'Dark Field'
+    root.entry.filename = root.nxfilename
 
 def subtract_background(root, bkgd_root):
     with bkgd_root.nxfile as f:
