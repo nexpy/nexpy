@@ -169,9 +169,7 @@ class NXConsoleApp(BaseIPythonApplication, IPythonConsoleApp):
     def init_gui(self):
         """Initialize the GUI."""
         self.app = guisupport.get_app_qt4()
-        self.window = MainWindow(self.app, self.tree,
-                                 confirm_exit=self.confirm_exit,
-                                 config=self.config)
+        self.window = MainWindow(self.app, self.tree, config=self.config)
         self.window.log = self.log
         global _mainwindow
         _mainwindow = self.window

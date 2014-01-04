@@ -66,15 +66,15 @@ class MainWindow(QtGui.QMainWindow):
     _magic_menu_dict = {}
 
 
-    def __init__(self, app, tree, confirm_exit=True, config=None):
+    def __init__(self, app, tree, config=None):
         """ Create a MainWindow for the application
         
         Parameters
         ----------
         
         app : reference to QApplication parent
-        confirm_exit : bool, optional
-            Whether we should prompt on close of tabs
+        tree : NXTree object used as the root of the NXTreeView items
+        config : IPython configuration
         """
 
         super(MainWindow, self).__init__()
@@ -82,7 +82,6 @@ class MainWindow(QtGui.QMainWindow):
         self._app = app
         self._app.setStyle("QMacStyle")
         self.config = config
-        self.confirm_exit = confirm_exit
         self.default_directory = os.path.expanduser('~')
         self.copied_node = None
 
@@ -96,7 +95,7 @@ class MainWindow(QtGui.QMainWindow):
         self.console = RichIPythonWidget(config=self.config, parent=rightpane)
         self.console.setMinimumSize(700, 200)
         self.console.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Fixed)
-        self.console._confirm_exit = self.confirm_exit
+        self.console._confirm_exit = True
         self.console.gui_completion = 'droplist'
         self.console.kernel_manager = QtInProcessKernelManager(config=self.config)
         self.console.kernel_manager.start_kernel()
@@ -157,18 +156,26 @@ class MainWindow(QtGui.QMainWindow):
         self.console._control.setFocus()
 
     def close(self):
-        """ Called when you need to try to close the console widget.
+        """ Called when you quit NeXpy or close the main window.
         """
-
         title = self.window().windowTitle()
         cancel = QtGui.QMessageBox.Cancel
         okay = QtGui.QMessageBox.Ok
-        reply = QtGui.QMessageBox.question(self, title,
-                "Are you sure you want to close this Console?"+
-                "\nThe Kernel and other Consoles will remain active.",
-                okay|cancel, defaultButton=okay)
-        if reply == okay:
-            pass
+        
+        msg = "Are you sure you want to quit NeXpy?"
+        close = QtGui.QPushButton("&Quit", self)
+        close.setShortcut('Q')
+        close.clicked.connect(QtCore.QCoreApplication.instance().quit)
+        box = QtGui.QMessageBox(QtGui.QMessageBox.Question, title, msg)
+        box.addButton(cancel)
+        box.addButton(close, QtGui.QMessageBox.YesRole)
+        box.setDefaultButton(close)
+        box.setEscapeButton(cancel)
+        pixmap = QtGui.QPixmap(self._app.icon.pixmap(QtCore.QSize(64,64)))
+        box.setIconPixmap(pixmap)
+        reply = box.exec_()
+
+        return reply
 
     # Populate the menu bar with common actions and shortcuts
     def add_menu_action(self, menu, action, defer_shortcut=False):
@@ -1254,30 +1261,16 @@ class MainWindow(QtGui.QMainWindow):
     #---------------------------------------------------------------------------
 
     def closeEvent(self, event):
-        """ Forward the close event to every tabs contained by the windows
+        """ Confirm NeXpy quit if the window is closed.
         """
-        title = self.window().windowTitle()
         cancel = QtGui.QMessageBox.Cancel
         okay = QtGui.QMessageBox.Ok
-        
-        if self.confirm_exit:
-            msg = "Close console and quit?"
-            closeall = QtGui.QPushButton("&Quit", self)
-            closeall.setShortcut('Q')
-            box = QtGui.QMessageBox(QtGui.QMessageBox.Question,
-                                    title, msg)
-            box.addButton(cancel)
-            box.addButton(closeall, QtGui.QMessageBox.YesRole)
-            box.setDefaultButton(closeall)
-            box.setEscapeButton(cancel)
-            pixmap = QtGui.QPixmap(self._app.icon.pixmap(QtCore.QSize(64,64)))
-            box.setIconPixmap(pixmap)
-            reply = box.exec_()
-        else:
-            reply = okay
+
+        reply = self.close()
         
         if reply == cancel:
             event.ignore()
             return
+
         if reply == okay:
             event.accept()
