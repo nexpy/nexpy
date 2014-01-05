@@ -548,6 +548,7 @@ class NXPlot(object):
 
         ax = self.figure.gca()
         ax.autoscale(enable=True)
+        ax.format_coord = self.format_coord
         cmap = self.get_cmap()
         extent = (self.xaxis.min,self.xaxis.max,self.yaxis.min,self.yaxis.max)
 
@@ -747,6 +748,16 @@ class NXPlot(object):
             self.ytab.set_axis(self.yaxis)
             self.ztab.set_axis(self.zaxis)
             self.vtab.set_axis(self.vaxis)
+
+    def format_coord(self, x, y):
+        if x >= self.x[0] and x <= self.x[-1] and \
+           y >= self.y[0] and y <= self.y[-1]:
+            col = (np.abs(self.x-x)).argmin()
+            row = (np.abs(self.y-y)).argmin()
+            z = self.v[row,col]
+            return 'x=%1.4f y=%1.4f\nv=%1.4f'%(x, y, z)
+        else:
+            return ''
 
 
 class NXPlotAxis(object):
