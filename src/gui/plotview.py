@@ -846,12 +846,11 @@ class NXPlotTab(QtGui.QWidget):
             self.lockbox.setChecked(False)
             self.scalebox = self.checkbox("Autoscale", self.set_autoscale)
             self.scalebox.setChecked(False)
-            self.plotbutton =  self.pushbutton("Replot", self.replot)
             widgets.append(self.lockbox)
             widgets.append(self.scalebox)
             self.init_toolbar()
             widgets.append(self.toolbar)
-            widgets.append(self.plotbutton)
+
         else:
             self.lockbox = None
             self.scalebox = None
@@ -1154,14 +1153,23 @@ class NXPlotTab(QtGui.QWidget):
         _forward_icon = QtGui.QIcon(
             os.path.join(os.path.abspath(os.path.dirname(__file__)), 
                          'resources', 'forward-icon.png'))
+        _refresh_icon = QtGui.QIcon(
+            os.path.join(os.path.abspath(os.path.dirname(__file__)), 
+                         'resources', 'refresh-icon.png'))
         self.toolbar = QtGui.QToolBar(parent=self)
-        self.toolbar.addAction(_backward_icon, '', self.playback)
-        self.toolbar.addAction(_pause_icon, '', self.playpause)
-        self.toolbar.addAction(_forward_icon, '', self.playforward)
         self.toolbar.setIconSize(QtCore.QSize(16,16))
+        self.add_action(_refresh_icon, self.replot, "Replot")
+        self.toolbar.addSeparator()
+        self.add_action(_backward_icon, self.playback, "Play Back")
+        self.add_action(_pause_icon, self.playpause, "Pause")
+        self.add_action(_forward_icon, self.playforward, "Play Forward")
         self.timer = QtCore.QTimer(self)
         self.timer.timeout.connect(self.slideshow)
         self.playsteps = 0
+
+    def add_action(self, icon, slot, tooltip):
+        action = self.toolbar.addAction(icon, '', slot)
+        action.setToolTip(tooltip)
 
     def slideshow(self):
         self.maxbox.stepBy(self.playsteps)
