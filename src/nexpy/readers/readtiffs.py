@@ -62,8 +62,13 @@ class ImportDialog(BaseImportDialog):
         return self.ext_box.text().strip()
  
     def get_data(self):
-        filenames = self.get_filesindirectory(self.get_prefix(), 
+        prefix = self.get_prefix()
+        filenames = self.get_filesindirectory(prefix, 
                                               self.get_extension())
+        if prefix:
+            self.import_file = prefix
+        else:
+            self.import_file = self.get_directory()
         try:
             from nexpy.readers.tifffile import tifffile as TIFF
             v0 = TIFF.imread(filenames[0])

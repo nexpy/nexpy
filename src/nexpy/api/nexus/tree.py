@@ -1537,7 +1537,7 @@ class NXfield(NXobject):
         else:
             return NXfield(value=self.nxdata+other, name=self.nxname,
                            attrs=self.attrs)
-
+ 
     def __radd__(self, other):
         """
         Returns the sum of the NXfield and another NXfield or number.
@@ -1734,7 +1734,6 @@ class NXfield(NXobject):
                 _getvalue(value, self._dtype, self._shape)
             self._saved = False
             self.update()
-            self.set_changed()
 
     def _getdtype(self):
         return self._dtype

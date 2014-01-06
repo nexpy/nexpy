@@ -548,6 +548,7 @@ class NXPlot(object):
 
         ax = self.figure.gca()
         ax.autoscale(enable=True)
+        ax.format_coord = self.format_coord
         cmap = self.get_cmap()
         extent = (self.xaxis.min,self.xaxis.max,self.yaxis.min,self.yaxis.max)
 
@@ -667,6 +668,7 @@ class NXPlot(object):
                 self.zoom = None
             if self.ndim > 2:
                 self.ztab.set_axis(self.zaxis)
+                self.ztab.lockbox.setChecked(False)
                 self.ztab.scalebox.setChecked(False)
                 if self.tab_widget.indexOf(self.ztab) == -1:
                     self.tab_widget.insertTab(self.tab_widget.indexOf(self.ptab),
@@ -746,6 +748,16 @@ class NXPlot(object):
             self.ytab.set_axis(self.yaxis)
             self.ztab.set_axis(self.zaxis)
             self.vtab.set_axis(self.vaxis)
+
+    def format_coord(self, x, y):
+        if x >= self.x[0] and x <= self.x[-1] and \
+           y >= self.y[0] and y <= self.y[-1]:
+            col = (np.abs(self.x-x)).argmin()
+            row = (np.abs(self.y-y)).argmin()
+            z = self.v[row,col]
+            return 'x=%1.4f y=%1.4f\nv=%1.4f'%(x, y, z)
+        else:
+            return ''
 
 
 class NXPlotAxis(object):
@@ -834,12 +846,11 @@ class NXPlotTab(QtGui.QWidget):
             self.lockbox.setChecked(False)
             self.scalebox = self.checkbox("Autoscale", self.set_autoscale)
             self.scalebox.setChecked(False)
-            self.plotbutton =  self.pushbutton("Replot", self.replot)
             widgets.append(self.lockbox)
             widgets.append(self.scalebox)
             self.init_toolbar()
             widgets.append(self.toolbar)
-            widgets.append(self.plotbutton)
+
         else:
             self.lockbox = None
             self.scalebox = None
@@ -880,6 +891,8 @@ class NXPlotTab(QtGui.QWidget):
             self.maxbox.setRange(0, len(self.axis.data)-1)
             self.minbox.setValue(axis.lo)
             self.maxbox.setValue(axis.hi)
+            self.timer.stop()
+            self.playsteps = 0
         else:
             if (axis.max-axis.min) < 1e-8:
                 axis.max = axis.min + 1
@@ -1140,14 +1153,23 @@ class NXPlotTab(QtGui.QWidget):
         _forward_icon = QtGui.QIcon(
             os.path.join(os.path.abspath(os.path.dirname(__file__)), 
                          'resources', 'forward-icon.png'))
+        _refresh_icon = QtGui.QIcon(
+            os.path.join(os.path.abspath(os.path.dirname(__file__)), 
+                         'resources', 'refresh-icon.png'))
         self.toolbar = QtGui.QToolBar(parent=self)
-        self.toolbar.addAction(_backward_icon, '', self.playback)
-        self.toolbar.addAction(_pause_icon, '', self.playpause)
-        self.toolbar.addAction(_forward_icon, '', self.playforward)
         self.toolbar.setIconSize(QtCore.QSize(16,16))
+        self.add_action(_refresh_icon, self.replot, "Replot")
+        self.toolbar.addSeparator()
+        self.add_action(_backward_icon, self.playback, "Play Back")
+        self.add_action(_pause_icon, self.playpause, "Pause")
+        self.add_action(_forward_icon, self.playforward, "Play Forward")
         self.timer = QtCore.QTimer(self)
         self.timer.timeout.connect(self.slideshow)
         self.playsteps = 0
+
+    def add_action(self, icon, slot, tooltip):
+        action = self.toolbar.addAction(icon, '', slot)
+        action.setToolTip(tooltip)
 
     def slideshow(self):
         self.maxbox.stepBy(self.playsteps)
@@ -1161,11 +1183,11 @@ class NXPlotTab(QtGui.QWidget):
             self.set_lock()
         if self.playsteps == -1:
             self.interval = self.timer.interval() / 2
-            self.timer.setInterval(self.interval)
         else:
             self.playsteps = -1
             self.interval = 1000
-            self.timer.start(self.interval)
+        self.timer.setInterval(self.interval)
+        self.timer.start(self.interval)
         
     def playpause(self):
         self.playsteps = 0
@@ -1177,11 +1199,11 @@ class NXPlotTab(QtGui.QWidget):
             self.set_lock()
         if self.playsteps == 1:
             self.interval = self.timer.interval() / 2
-            self.timer.setInterval(self.interval)
         else:
             self.playsteps = 1
             self.interval = 1000
-            self.timer.start(self.interval)
+        self.timer.setInterval(self.interval)
+        self.timer.start(self.interval)
 
 class NXTextBox(QtGui.QLineEdit):
 

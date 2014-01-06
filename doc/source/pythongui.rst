@@ -302,10 +302,17 @@ limits and parameters.
     If the data rank is three or more, the 2D plot *vs* x and y is a projection 
     along the remaining axes. The z-tab sets the limits for those projections.
     It contains a dropdown menu for selecting the axis to be summed over and
-    two text boxes for selecting the projection limits. If you click the 'lock'
-    checkbox, the projection width is fixed allowing successive images along the
-    z-axis to be plotted by clicking the text-box arrows in increments of the
-    difference between the two limits.
+    two text boxes for selecting the projection limits. When the data are first
+    plotted, only the top slice if plotted, *i.e.*, all the z-axis limits are 
+    set to their minimum value.
+    
+    When 'Lock' is checked, the difference between the limits of the selected 
+    z-axis is fixed. This allows successive images along the z-axis to be 
+    plotted by clicking the text-box arrows in increments of the difference 
+    between the two limits. If you use the text-box arrows or the terminal arrow 
+    keys to change the z-limits when they are locked together, the new plot is 
+    updated automatically. Otherwise, the data is only replotted when you force
+    a replot using the toolbar (see below).
 
     .. note:: Make sure that the value of both limit boxes is entered, *e.g.*, 
               by pressing return after editing their values, before clicking on 
@@ -317,19 +324,21 @@ limits and parameters.
     
     When stepping through the z-values, the 'Autoscale' checkbox determines 
     whether the plot automatically scales the signal to the maximum intensity of
-    the slice.
+    the slice or is set to the current signal limits.     
     
-    If you use the text-box arrows or the terminal arrow keys to change the 
-    z-limits, the new slice is automatically plotted. If you change the limits
-    by editing the text-boxes, then click the 'Replot' button to force a replot.
+    .. note:: When 'Autoscale' is checked, it is not possible to adjust the 
+              limits in the Signal Tab.
 
     .. image:: /images/z-toolbar.png
        :align: right
     
-    The z-tab also contains a toolbar for stepping through the z-values 
-    automatically, with 'forward', 'back', and 'pause' controls. The default 
-    speed is one frame per second, but after the first click on the play button,
-    subsequent clicks will reduce the frame interval by a factor two.     
+    The toolbar on the right provides further controls for replotting data as 
+    a function of z. The first button on the left forces a replot, *e.g.*, when 
+    you have changed z-axis limits or turned on auto-scaling. The other buttons 
+    are for stepping through the z-values automatically, with 'back', 'pause', 
+    and 'forward' controls. The default speed is one frame per second, but after 
+    the first click on the play button, subsequent clicks will reduce the frame 
+    interval by a factor two.     
 
 **Projection Tab**
 

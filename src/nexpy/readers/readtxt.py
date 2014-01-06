@@ -55,7 +55,8 @@ class ImportDialog(BaseImportDialog):
  
     def get_data(self):
         skiprows = int(self.skiprows.text())
-        data = np.loadtxt(self.get_filename(), skiprows=skiprows)
+        self.import_file = self.get_filename()
+        data = np.loadtxt(self.import_file, skiprows=skiprows)
         if data.shape[1] > 1:
             x = NXfield(data[:,0], name='x')
             y = NXfield(data[:,1], name='y')
