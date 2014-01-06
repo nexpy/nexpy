@@ -536,8 +536,11 @@ class MainWindow(QtGui.QMainWindow):
     def import_data(self):
         try:
             if self.import_dialog.accepted:
-                workspace = self.treeview.tree.get_new_name()
                 imported_data = self.import_dialog.get_data()
+                try:
+                    workspace = self.treeview.tree.get_name(self.import_dialog.import_file)
+                except:
+                    workspace = self.treeview.tree.get_new_name()
                 if isinstance(imported_data, NXentry):
                     self.treeview.tree[workspace] = NXroot(imported_data)
                 elif isinstance(imported_data, NXroot):

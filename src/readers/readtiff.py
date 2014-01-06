@@ -44,15 +44,16 @@ class ImportDialog(BaseImportDialog):
         self.setWindowTitle("Import "+str(filetype))
  
     def get_data(self):
+        self.import_file = self.get_filename()
         try:
             from nexpy.readers.tifffile import tifffile as TIFF
-            im = TIFF.imread(self.get_filename())
+            im = TIFF.imread(self.import_file)
             z = NXfield(im, name='z')
             y = NXfield(range(z.shape[0]), name='y')
             x = NXfield(range(z.shape[1]), name='x')
         except ImportError:
             import Image
-            im = Image.open(self.get_filename())
+            im = Image.open(self.import_file)
             dtype = np.dtype(np.uint16)
             if im.mode == "I;32" or im.mode == "I":
                 dtype=np.dtype(np.uint32)
