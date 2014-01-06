@@ -22,11 +22,11 @@ def get_prefixes(directory):
             prefixes.append(match.group(1).strip('-').strip('_'))
     return list(set(prefixes))
 
-def get_files(directory, prefix, extension):
+def get_files(directory, prefix, extension, reverse=False):
     if not extension.startswith('.'):
         extension = '.'+extension
     filenames = glob.glob(os.path.join(directory, prefix+'*'+extension))
-    return sorted(filenames,key=natural_sort)
+    return sorted(filenames, key=natural_sort, reverse=reverse)
 
 def get_metadata(metafile):
     parser = ConfigParser()
@@ -36,13 +36,15 @@ def get_metadata(metafile):
            parser.getfloat('metadata', 'exposureTime'), \
            parser.getint('metadata', 'summedExposures')
 
-def initialize_nexus_file(directory, prefix, filenames):
+def initialize_nexus_file(directory, prefix, filenames, omega, step):
     v0 = TIFF.imread(filenames[0])
     x = NXfield(range(v0.shape[1]), dtype=np.uint16, name='x_pixel')
     y = NXfield(range(v0.shape[0]), dtype=np.uint16, name='y_pixel')
     if len(filenames) > 1:
-        z = NXfield(np.arange(0.0,len(filenames)*0.1,0.1), dtype=np.float32, 
-                    name='rotation_angle', units='degree')
+        z = omega+step*np.arange(len(filenames))
+        if step < 0.0:
+            z = z[::-1]
+        z = NXfield(z, dtype=np.float32, name='rotation_angle', units='degree')
         v = NXfield(name='v',shape=(len(filenames),v0.shape[0],v0.shape[1]),
                     dtype=np.float32, maxshape=(5000,v0.shape[0],v0.shape[1]))
         data = NXdata(v, (z,y,x))
@@ -99,26 +101,30 @@ def subtract_background(root, bkgd_root):
     with root.nxfile as f:
         for i in range(root.entry.data.v.shape[0]):
             f['entry/data/v'][i] += bkgd
-    
 
 def natural_sort(key):
     import re
     return [int(t) if t.isdigit() else t for t in re.split(r'(\d+)', key)]    
 
 if __name__=="__main__":
+    help = "merge_tiffs -d <directory> -e <extension> -p <prefix> -b <background> -o <omega> -s <step> -r"
     try:
-        opts, args = getopt.getopt(sys.argv[1:],"hd:e:p:b:",["directory=","ext=",
-                                                       "prefix=","background="])
+        opts, args = getopt.getopt(sys.argv[1:],"hd:e:p:b:o:s:r",["directory=",
+                                                "ext=","prefix=","background=",
+                                                "omega=","step=","reversed"])
     except getopt.GetoptError:
-        print 'merge_tiffs -d <directory> -e <extension> -p <prefix> -b <background>'
+        print help
         sys.exit(2)
     directory = './'
     extension = 'tif'
     prefix = None
     background = bkgd_data = None
+    omega = 0.0
+    step = 0.1
+    reverse = False
     for opt, arg in opts:
         if opt == '-h':
-            print 'merge_tiffs -d <directory> -e <extension> -p <prefix> -b <background>'
+            print help
             sys.exit()
         elif opt in ('-b', '--background'):
             background = arg
@@ -128,6 +134,16 @@ if __name__=="__main__":
             directory = arg
         elif opt in ('-e', '--extension'):
             extension = arg
+        elif opt in ('-o', '--omega'):
+            omega = np.float(arg)
+        elif opt in ('-s', '--step'):
+            step = np.float(arg)
+            if step < 0.0:
+                reverse = True
+        elif opt in ('-r', '--reversed'):
+            reverse = True
+            if step > 0.0:
+                step = -step
     if prefix:
         prefixes = [prefix]
     else:
@@ -138,8 +154,8 @@ if __name__=="__main__":
         bkgd_root = nxload(os.path.join(directory,background+'.nxs'))
     for prefix in prefixes:
         tic=timeit.default_timer()
-        data_files = get_files(directory, prefix, extension)
-        root = initialize_nexus_file(directory, prefix, data_files)       
+        data_files = get_files(directory, prefix, extension, reverse)
+        root = initialize_nexus_file(directory, prefix, data_files, omega, step)       
         if prefix == background:
             write_data(root, data_files)
             bkgd_root = root
