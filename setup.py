@@ -46,7 +46,7 @@ setup (name =  nexpy.__package_name__,        # NeXpy
        entry_points={
             # create & install scripts in <python>/bin
             'console_scripts': ['merge_tiffs=nexpy.merge_tiffs:main',],
-            'gui_scripts': ['nexpy = nexpy.nexpy:main',],
+            'gui_scripts': ['nexpy = nexpy.nexpygui:main',],
        },
        classifiers= ['Development Status :: 4 - Beta',
                      'Intended Audience :: Developers',
