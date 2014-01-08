@@ -7,14 +7,14 @@
 # The full license is in the file COPYING, distributed with this software.
 #-----------------------------------------------------------------------------
 
-import matplotlib
 
 def main():
+    import matplotlib
     matplotlib.use('Qt4Agg')
-    from gui.consoleapp import NXConsoleApp
-    app = NXConsoleApp()
-    app.initialize()
-    app.start()
+    import os, sys
+    sys.path.insert(0, os.path.abspath(os.path.join('..')))
+    from nexpy.gui.consoleapp import main
+    main()
 
 
 if __name__ == '__main__':
