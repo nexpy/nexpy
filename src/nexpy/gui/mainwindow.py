@@ -90,7 +90,7 @@ class MainWindow(QtGui.QMainWindow):
         rightpane = QtGui.QWidget()
 
         self.plotview = NXPlotView(label="Main",parent=rightpane)
-        self.plotview.setMinimumSize(700, 600)
+        self.plotview.setMinimumSize(700, 450)
 
         # require minimum version of IPython for RichIPythonWidget()
         import pkg_resources
