@@ -141,8 +141,7 @@ class MainWindow(QtGui.QMainWindow):
 
         base_path = os.path.abspath(os.path.dirname(__file__))
         icon_path = os.path.join(base_path, 'resources', 'icon', 'NeXpy.svg')
-        self.import_path = os.path.join(os.path.abspath(os.path.dirname(base_path)), 
-                                        'readers')
+        self.import_path = os.path.abspath(os.path.join(base_path, '..', 'readers'))
         self._app.icon = QtGui.QIcon(icon_path)
         QtGui.QApplication.setWindowIcon(self._app.icon)
 

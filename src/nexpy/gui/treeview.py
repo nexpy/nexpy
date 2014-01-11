@@ -145,12 +145,10 @@ class NXTreeItem(QtGui.QStandardItem):
     A subclass of the QtGui.QStandardItem class to return the data from 
     an NXnode.
     """
-    _link_icon = os.path.join(os.path.abspath(os.path.dirname(__file__)), 
-                              'resources', 'link-icon.png')
-    _lock_icon = os.path.join(os.path.abspath(os.path.dirname(__file__)), 
-                              'resources', 'lock-icon.png')
-    _unlock_icon = os.path.join(os.path.abspath(os.path.dirname(__file__)), 
-                                'resources', 'unlock-icon.png')
+    path = os.path.abspath(os.path.dirname(__file__))
+    _link_icon = os.path.join(path,   'resources', 'link-icon.png')
+    _lock_icon = os.path.join(path,   'resources', 'lock-icon.png')
+    _unlock_icon = os.path.join(path, 'resources', 'unlock-icon.png')
 
     def __init__(self, node):
         self.node = node
