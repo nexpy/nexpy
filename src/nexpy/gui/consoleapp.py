@@ -273,7 +273,7 @@ class NXConsoleApp(BaseIPythonApplication, IPythonConsoleApp):
         # Qt event fires (can require mouse movement)
         # timer trick from http://stackoverflow.com/q/4938723/938949
         timer = QtCore.QTimer()
-         # Let the interpreter run each 200 ms:
+        # Let the interpreter run each 200 ms:
         timer.timeout.connect(lambda: None)
         timer.start(200)
         # hold onto ref, so the timer doesn't get cleaned up

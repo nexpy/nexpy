@@ -388,5 +388,5 @@ class NXTreeView(QtGui.QTreeView):
             self.statusmessage('')
 
     def on_context_menu(self, point):
-         self.popMenu.exec_(self.mapToGlobal(point))
+        self.popMenu.exec_(self.mapToGlobal(point))
 
