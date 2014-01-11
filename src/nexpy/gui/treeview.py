@@ -218,11 +218,11 @@ class NXSortModel(QtGui.QSortFilterProxyModel):
     
 class NXTreeView(QtGui.QTreeView):
 
-    def __init__(self, tree, parent=None):
+    def __init__(self, tree, parent=None, mainwindow=None):
         super(NXTreeView, self).__init__(parent)
 
         self.tree = tree
-        self.mainwindow = None
+        self.mainwindow = mainwindow
         self._model = QtGui.QStandardItemModel()
         self.proxymodel = NXSortModel(self)
         self.proxymodel.setSourceModel(self._model)
@@ -301,61 +301,61 @@ class NXTreeView(QtGui.QTreeView):
         self.popMenu.addAction(self.unlockfile_action)
 
     def save_file(self):
-        self.parent().parent().save_file()
+        self.mainwindow.save_file()
 
     def duplicate(self):
-        self.parent().parent().duplicate()
+        self.mainwindow.duplicate()
 
     def remove(self):
-        self.parent().parent().remove()
+        self.mainwindow.remove()
 
     def lock_file(self):
-        self.parent().parent().lock_file()
+        self.mainwindow.lock_file()
 
     def unlock_file(self):
-        self.parent().parent().unlock_file()
+        self.mainwindow.unlock_file()
 
     def plot_data(self):
-        self.parent().parent().plot_data()
+        self.mainwindow.plot_data()
 
     def plot_line(self):
-        self.parent().parent().plot_data('-')
+        self.mainwindow.plot_data('-')
 
     def overplot_data(self):
-        self.parent().parent().overplot_data()
+        self.mainwindow.overplot_data()
 
     def overplot_line(self):
-        self.parent().parent().overplot_data('-')
+        self.mainwindow.overplot_data('-')
 
     def add_data(self):
-        self.parent().parent().add_data()
+        self.mainwindow.add_data()
 
     def initialize_data(self):
-        self.parent().parent().initialize_data()
+        self.mainwindow.initialize_data()
 
     def rename_data(self):
-        self.parent().parent().rename_data()
+        self.mainwindow.rename_data()
 
     def copy_data(self):
-        self.parent().parent().copy_data()
+        self.mainwindow.copy_data()
 
     def paste_data(self):
-        self.parent().parent().paste_data()
+        self.mainwindow.paste_data()
 
     def paste_link(self):
-        self.parent().parent().paste_link()
+        self.mainwindow.paste_link()
 
     def delete_data(self):
-        self.parent().parent().delete_data()
+        self.mainwindow.delete_data()
 
     def show_link(self):
-        self.parent().parent().show_link()
+        self.mainwindow.show_link()
 
     def set_signal(self):
-        self.parent().parent().set_signal()
+        self.mainwindow.set_signal()
 
     def fit_data(self):
-        self.parent().parent().fit_data()
+        self.mainwindow.fit_data()
 
     def statusmessage(self, message):
         if isinstance(message, NXfield):
@@ -364,7 +364,7 @@ class NXTreeView(QtGui.QTreeView):
             text = message.nxclass+':'+message.nxname+' '+message._str_attrs()
         else:
             text = str(message)
-        self.parent().parent().statusBar().showMessage(text.replace('\n','; '))
+        self.mainwindow.statusBar().showMessage(text.replace('\n','; '))
 
     def getnode(self):
         item = self._model.itemFromIndex(

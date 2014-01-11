@@ -76,7 +76,7 @@ class MainWindow(QtGui.QMainWindow):
         ----------
         
         app : reference to QApplication parent
-        tree : NXTree object used as the root of the NXTreeView items
+        tree : :class:`NXTree` object used as the root of the :class:`NXTreeView` items
         config : IPython configuration
         """
 
@@ -128,7 +128,7 @@ class MainWindow(QtGui.QMainWindow):
         rightpane.setLayout(rightlayout)
         
         self.tree = tree
-        self.treeview = NXTreeView(self.tree,parent=mainwindow)
+        self.treeview = NXTreeView(self.tree, parent=mainwindow, mainwindow=self)
         self.treeview.setMinimumWidth(200)
         self.treeview.setMaximumWidth(400)
         self.treeview.setSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Expanding)
