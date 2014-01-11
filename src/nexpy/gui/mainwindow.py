@@ -92,6 +92,10 @@ class MainWindow(QtGui.QMainWindow):
         self.plotview = NXPlotView(label="Main",parent=rightpane)
         self.plotview.setMinimumSize(700, 600)
 
+        # require minimum version of IPython for RichIPythonWidget()
+        import pkg_resources
+        pkg_resources.require("IPython>="+'1.1.0')
+
         self.console = RichIPythonWidget(config=self.config, parent=rightpane)
         self.console.setMinimumSize(700, 200)
         self.console.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Fixed)
