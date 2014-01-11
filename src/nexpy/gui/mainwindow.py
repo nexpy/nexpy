@@ -118,9 +118,13 @@ class MainWindow(QtGui.QMainWindow):
         self.shell = self.console.kernel_manager.kernel.shell
         self.user_ns = self.console.kernel_manager.kernel.shell.user_ns
 
+        right_splitter = QtGui.QSplitter(rightpane)
+        right_splitter.setOrientation(QtCore.Qt.Vertical)
+        right_splitter.addWidget(self.plotview)
+        right_splitter.addWidget(self.console)
+
         rightlayout = QtGui.QVBoxLayout()        
-        rightlayout.addWidget(self.plotview)
-        rightlayout.addWidget(self.console)
+        rightlayout.addWidget(right_splitter)
         rightlayout.setContentsMargins(0, 0, 0, 0)
         rightpane.setLayout(rightlayout)
         
@@ -135,9 +139,13 @@ class MainWindow(QtGui.QMainWindow):
         self.user_ns['tree'] = self.tree
         self.user_ns['mainwindow'] = self
 
+        left_splitter = QtGui.QSplitter(mainwindow)
+        left_splitter.setOrientation(QtCore.Qt.Horizontal)
+        left_splitter.addWidget(self.treeview)
+        left_splitter.addWidget(rightpane)
+
         mainlayout = QtGui.QHBoxLayout()
-        mainlayout.addWidget(self.treeview)
-        mainlayout.addWidget(rightpane)
+        mainlayout.addWidget(left_splitter)
         mainlayout.setContentsMargins(0, 0, 0, 0)
         mainwindow.setLayout(mainlayout)
 
