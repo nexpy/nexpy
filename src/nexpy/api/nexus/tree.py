@@ -58,16 +58,16 @@ contents as a tree, and then accesses individual data items.
     >>> a.entry.run_number
     NXfield(7326)
 
-So the tree returned from load() has an entry for each group, field and
+So the tree returned from :func:`load()` has an entry for each group, field and
 attribute.  You can traverse the hierarchy using the names of the groups.  For
 example, tree.entry.instrument.detector.distance is an example of a field
 containing the distance to each pixel in the detector. Entries can also be
-referenced by NXclass name, such as tree.NXentry[0].instrument. Since there may
-be multiple entries of the same NeXus class, the NXclass attribute returns a
+referenced by NXclass name, such as ``tree.NXentry[0].instrument``. Since there may
+be multiple entries of the same NeXus class, the ``NXclass`` attribute returns a
 (possibly empty) list.
 
-The load() and save() functions are implemented using the class
-`nexus.tree.NXFile`, a subclass of `h5py.File`.
+The :func:`load()` and :func:`save()` functions are implemented using the class
+`nexus.tree.NXFile`, a subclass of :class:`h5py.File`.
 
 Example 2: Creating a NeXus file dynamically
 --------------------------------------------
@@ -79,7 +79,7 @@ file. The data are first created as Numpy arrays
     >>> X,Y=np.meshgrid(y,x)
     >>> z=np.sin(X)*np.sin(Y)
 
-Then a NeXus data groups are created and the data inserted to produce a
+Then, a NeXus data group is created and the data inserted to produce a
 NeXus-compliant structure that can be saved to a file.
 
     >>> root=nx.NXroot(NXentry())
@@ -95,7 +95,7 @@ Additional metadata can be inserted before saving the data to a file.
     >>> root.entry.sample.temperature.units = 'K'
     >>> root.save('example.nxs')
 
-NXfield objects have much of the functionality of Numpy arrays. They may be used
+:class:`NXfield` objects have much of the functionality of Numpy arrays. They may be used
 in simple arithmetic expressions with other NXfields, Numpy arrays or scalar
 values and will be cast as ndarray objects if used as arguments in Numpy
 modules.
@@ -110,7 +110,7 @@ modules.
         0.41211849, -0.54402111])
 
 If the arithmetic operation is assigned to a NeXus group attribute, it will be
-automatically cast as a valid NXfield object with the type and shape determined
+automatically cast as a valid :class:`NXfield` object with the type and shape determined
 by the Numpy array type and shape.
 
     >>> entry.data.result = np.sin(x)
@@ -125,33 +125,33 @@ NeXus Objects
 Properties of the entry in the tree are referenced by attributes that depend
 on the object type, different nx attributes may be available.
 
-Objects (class NXobject) have attributes shared by both groups and fields::
+Objects (:class:`NXobject`) have attributes shared by both groups and fields::
     * nxname   object name
     * nxclass  object class for groups, 'NXfield' for fields
     * nxgroup  group containing the entry, or None for the root
     * attrs    dictionary of NeXus attributes for the object
 
-Groups (class NXgroup) have attributes for accessing children::
+Groups (:class:`NXgroup`) have attributes for accessing children::
     * entries  dictionary of entries within the group
     * component('nxclass')  return group entries of a particular class
     * dir()    print the list of entries in the group
     * tree     return the list of entries and subentries in the group
     * plot()   plot signal and axes for the group, if available
 
-Fields (class NXfield) have attributes for accessing data:
+Fields (:class:`NXfield`) have attributes for accessing data:
     * shape    dimensions of data in the field
     * dtype    data type
     * nxdata   data in the field
 
-Linked fields or groups (class NXlink) have attributes for accessing the link::
+Linked fields or groups (:class:`NXlink`) have attributes for accessing the link::
     * nxlink   reference to the linked field or group
 
-NeXus attributes (class NXattr) have a type and a value only::
+NeXus attributes (:class:`NXattr`) have a type and a value only::
     * dtype    attribute type
     * nxdata   attribute data
 
-There is a subclass of NXgroup for each group class defined by the NeXus standard,
-so it is possible to create an NXgroup of NeXus class NXsample directly using:
+There is a subclass of :class:`NXgroup` for each group class defined by the NeXus standard,
+so it is possible to create an :class:`NXgroup` of NeXus :class:`NXsample` directly using:
 
     >>> sample = NXsample()
 
@@ -165,7 +165,7 @@ attribute name when it is assigned as a group attribute, e.g.,
 
 You can traverse the tree by component class instead of component name. Since
 there may be multiple components of the same class in one group you will need to
-specify which one to use.  For example,
+specify which one to use.  For example::
 
     tree.NXentry[0].NXinstrument[0].NXdetector[0].distance
 
@@ -189,9 +189,9 @@ See `nexus.unit` for more details on the unit formats supported.
 
 Reading and Writing Slabs
 -------------------------
-If the size of the NXfield array is too large to be loaded into memory (as 
+If the size of the :class:`NXfield` array is too large to be loaded into memory (as 
 defined by NX_MEMORY), the data values should be read or written in as a series 
-of slabs represented by NXfield slices::
+of slabs represented by :class:`NXfield` slices::
 
  >>> for i in range(Ni):
          for j in range(Nj):
@@ -201,7 +201,7 @@ of slabs represented by NXfield slices::
 
 Plotting NeXus data
 -------------------
-There is a plot() method for groups that automatically looks for 'signal' and
+There is a :meth:`plot()` method for groups that automatically looks for 'signal' and
 'axes' attributes within the group in order to determine what to plot. These are
 defined by the 'nxsignal' and 'nxaxes' properties of the group. This means that
 the method will determine whether the plot should be one- or two- dimensional.
@@ -215,23 +215,23 @@ transmit keyword arguments to the matplotlib plotting methods.
     >>> a.entry.monitor1.plot()
     >>> a.entry.monitor2.plot('r+', xmax=2600)
     
-It is possible to plot over the existing figure with the oplot() method and to
-plot with logarithmic intensity scales with the logplot() method. The x- and
-y-axes can also be rendered logarithmically using the logx and logy keywards.
+It is possible to plot over the existing figure with the :meth:`oplot()` method and to
+plot with logarithmic intensity scales with the :meth:`logplot()` method. The x- and
+y-axes can also be rendered logarithmically using the `logx` and `logy` keywords.
 
-Although the plot() method uses matplotlib by default to plot the data, you can replace
-this with your own plotter by setting nexus.NXgroup._plotter to your own plotter
+Although the :meth:`plot()` method uses matplotlib by default to plot the data, you can replace
+this with your own plotter by setting `nexus.NXgroup._plotter` to your own plotter
 class.  The plotter class has one method::
 
     plot(signal, axes, entry, title, format, **opts)
 
 where signal is the field containing the data, axes are the fields listing the
 signal sample points, entry is file/path within the file to the data group and
-title is the title of the group or the parent NXentry, if available.
+title is the title of the group or the parent :class:`NXentry`, if available.
 """
 from __future__ import with_statement
 from copy import copy, deepcopy
-import os
+import os               #@UnusedImport
 
 import numpy as np
 import h5py as h5
@@ -292,7 +292,7 @@ class NXFile(object):
     when the data set is requested, the file is reopened, the data read, and
     the file closed again.  open/close are available for when we want to
     read/write slabs without the overhead of moving the file cursor each time.
-    The NXdata objects in the returned tree hold the object values.
+    The :class:`NXdata` objects in the returned tree hold the object values.
     """
 
     def __init__(self, name, mode=None, **kwds):
@@ -535,9 +535,9 @@ class NXFile(object):
                 parent = "/".join(path.split("/")[:-1])
                 self[parent]._id.link(target,path,h5.h5g.LINK_HARD)
 
-    def copyfile(self, file):
-        for entry in file['/']:
-            file.copy(entry, self['/']) 
+    def copyfile(self, the_file):
+        for entry in the_file['/']:
+            the_file.copy(entry, self['/']) 
         self._setattrs()
 
     def _setattrs(self):
@@ -906,12 +906,12 @@ class NXobject(object):
                 root = NXroot(self)
             else:
                 root = NXroot(NXentry(self))
-            file = NXFile(filename, mode)
-            file.writefile(root)
-            root._filename = file.file.filename
-            root._setattrs(file._getattrs())
-            root._mode = file._mode
-            file.close()
+            nx_file = NXFile(filename, mode)
+            nx_file.writefile(root)
+            root._filename = nx_file.file.filename
+            root._setattrs(nx_file._getattrs())
+            root._mode = nx_file._mode
+            nx_file.close()
             for node in root.walk():
                 node._saved = True
             return root
@@ -1311,9 +1311,9 @@ class NXfield(NXobject):
         self._attrs = AttrDict()
         self._setattrs(attrs)
         if 'units' in attrs:
-            units = attrs['units']
+            units = attrs['units']  # TODO: unused variable
         else:
-            units = None
+            units = None            # TODO: unused variable
         del attrs
         self._setdata(value)
         self._saved = False
@@ -2376,7 +2376,7 @@ class NXgroup(NXobject):
                 return float(value)
             else:
                 return None 
-        slab = [slice(make_float(min), make_float(max)) for min, max in limits]
+        slab = [slice(make_float(_min), make_float(_max)) for _min, _max in limits]
         result = self[slab]
         slab_axes = list(projection_axes)
         for slab_axis in slab_axes:
@@ -3057,7 +3057,7 @@ class NXlog(NXgroup):
         parameters, specifying markers, colors, etc, can be specified using the 
         'opts' dictionary.
         """
-        axis = [self.time]
+        axis = [self.time]      # TODO: unused variable
         title = NXfield("%s Log" % self.value.nxname.upper())
         NXdata(self.value, self.time, title=title).plot(**opts)
 
@@ -3163,15 +3163,15 @@ def save(filename, group, format='w'):
         tree = NXroot(group)
     else:
         tree = NXroot(NXentry(group))
-    file = NXFile(filename, format)
-    file.writefile(tree)
-    file.close()
+    file_object = NXFile(filename, format)
+    file_object.writefile(tree)
+    file_object.close()
 
-def tree(file):
+def tree(filename):
     """
     Reads and summarize the named NeXus file.
     """
-    nxfile = load(file)
+    nxfile = load(filename)
     print nxfile.tree
 
 def demo(argv):
