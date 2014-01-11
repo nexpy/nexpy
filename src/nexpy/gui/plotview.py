@@ -14,7 +14,7 @@ import numpy as np
 
 from PySide import QtCore, QtGui
 
-import matplotlib
+import matplotlib                   #@UnusedImports
 from matplotlib._pylab_helpers import Gcf
 from matplotlib.backend_bases import FigureManagerBase
 from matplotlib.backends.backend_qt4 import FigureManagerQT as FigureManager
@@ -24,7 +24,7 @@ from matplotlib.figure import Figure
 from matplotlib.image import NonUniformImage
 from matplotlib.colors import LogNorm, Normalize
 from matplotlib.patches import Rectangle
-import matplotlib.backends.qt4_editor.figureoptions as figureoptions
+import matplotlib.backends.qt4_editor.figureoptions as figureoptions        #@UnusedImports
 import matplotlib.pyplot as plt
 
 from nexpy.api.nexus import NXfield, NXdata, NXroot
@@ -110,7 +110,7 @@ class NXFigureManager(FigureManager):
         self.canvas.figure.show = lambda *args: self.window.show()
 
         def notify_axes_change( fig ):
-           # This will be called whenever the current axes is changed
+            # This will be called whenever the current axes is changed
             if self.canvas.toolbar is not None:
                 self.canvas.toolbar.update()
         self.canvas.figure.add_axobserver( notify_axes_change )
@@ -412,7 +412,7 @@ class NXPlot(object):
                     self.axis[axis.nxname].lo = self.axis[axis.nxname].hi \
                         = axis.nxdata[0]
             else:
-                zaxis = None                  
+                self.zaxis = None
 
             self.plot2D(over, **opts)
 
@@ -456,18 +456,19 @@ class NXPlot(object):
         if over:
             self.xaxis.min = min(self.xaxis.lo, self.x.min())
             self.xaxis.max = max(self.xaxis.hi, self.x.max())
-            range = self.xaxis.max - self.xaxis.min
+            _range = self.xaxis.max - self.xaxis.min
             if self.xaxis.min < self.xaxis.lo:
-                self.xaxis.min = self.xaxis.min - 0.05*range
+                self.xaxis.min = self.xaxis.min - 0.05*_range
             if self.xaxis.max > self.xaxis.hi:
-                self.xaxis.max = self.xaxis.max + 0.05*range
+                self.xaxis.max = self.xaxis.max + 0.05*_range
+
             self.yaxis.min = min(self.yaxis.lo, self.y.min())
             self.yaxis.max = max(self.yaxis.hi, self.y.max())
-            range = self.yaxis.max - self.yaxis.min
+            _range = self.yaxis.max - self.yaxis.min
 #            if self.yaxis.min < self.yaxis.lo:
-#                self.yaxis.min = self.yaxis.min - 0.05*range
+#                self.yaxis.min = self.yaxis.min - 0.05*_range
 #            if self.yaxis.max > self.yaxis.hi:
-#                self.yaxis.max = self.yaxis.max + 0.05*range
+#                self.yaxis.max = self.yaxis.max + 0.05*_range
         else:
             xlo, xhi = ax.set_xlim(auto=True)
             ylo, yhi = ax.set_ylim(auto=True)
@@ -993,7 +994,7 @@ class NXPlotTab(QtGui.QWidget):
         lo, hi = self.minbox.value(), self.maxbox.value()
         if hi == self.maxbox.old_value:
             return
-        replot = False
+        replot = False          # TODO: unused variable
         if hi is not None and (hi >= lo or self.axis.locked): 
             self.axis.hi = hi
         else:
@@ -1015,13 +1016,13 @@ class NXPlotTab(QtGui.QWidget):
     def read_minslider(self):
         self.block_signals(True)
         self.axis.hi = self.maxbox.value()
-        range = max(self.axis.hi-self.minbox.minimum(), self.axis.min_range)
-        self.axis.lo = self.minbox.minimum() + (self.minslider.value() * range / 1000)
+        _range = max(self.axis.hi-self.minbox.minimum(), self.axis.min_range)
+        self.axis.lo = self.minbox.minimum() + (self.minslider.value() * _range / 1000)
         self.minbox.setValue(self.axis.lo)
-        range = max(self.maxbox.maximum()-self.axis.lo, self.axis.min_range)
+        _range = max(self.maxbox.maximum()-self.axis.lo, self.axis.min_range)
         try:
-            self.maxslider.setValue(1000*(self.axis.hi-self.axis.lo)/range)
-        except ZeroDivisionError, OverflowError:
+            self.maxslider.setValue(1000*(self.axis.hi-self.axis.lo)/_range)
+        except (ZeroDivisionError, OverflowError):
             self.maxslider.setValue(0)
         if self.name == 'x' or self.name == 'y':
             self.plot.replot_axes()
@@ -1032,13 +1033,13 @@ class NXPlotTab(QtGui.QWidget):
     def read_maxslider(self):
         self.block_signals(True)
         self.axis.lo = self.minbox.value()
-        range = max(self.maxbox.maximum()-self.axis.lo, self.axis.min_range)
-        self.axis.hi = self.axis.lo + (self.maxslider.value() * range / 1000)
+        _range = max(self.maxbox.maximum()-self.axis.lo, self.axis.min_range)
+        self.axis.hi = self.axis.lo + (self.maxslider.value() * _range / 1000)
         self.maxbox.setValue(self.axis.hi)
-        range = max(self.axis.hi - self.minbox.minimum(), self.axis.min_range)
+        _range = max(self.axis.hi - self.minbox.minimum(), self.axis.min_range)
         try:
-            self.minslider.setValue(1000*(self.axis.lo-self.minbox.minimum())/range)
-        except ZeroDivisionError, OverflowError:
+            self.minslider.setValue(1000*(self.axis.lo-self.minbox.minimum())/_range)
+        except (ZeroDivisionError, OverflowError):
             self.minslider.setValue(1000)
         if self.name == 'x' or self.name == 'y':
             self.plot.replot_axes()
@@ -1048,15 +1049,15 @@ class NXPlotTab(QtGui.QWidget):
 
     def set_sliders(self, lo, hi):
         self.block_signals(True)
-        range = max(hi-self.minbox.minimum(), self.axis.min_range)
+        _range = max(hi-self.minbox.minimum(), self.axis.min_range)
         try:
-            self.minslider.setValue(1000*(lo-self.minbox.minimum())/range)
-        except ZeroDivisionError, OverflowError:
+            self.minslider.setValue(1000*(lo-self.minbox.minimum())/_range)
+        except (ZeroDivisionError, OverflowError):
             self.minslider.setValue(1000)
-        range = max(self.maxbox.maximum()-lo, self.axis.min_range)
+        _range = max(self.maxbox.maximum()-lo, self.axis.min_range)
         try:
-            self.maxslider.setValue(1000*(hi-lo)/range)
-        except ZeroDivisionError, OverflowError:
+            self.maxslider.setValue(1000*(hi-lo)/_range)
+        except (ZeroDivisionError, OverflowError):
             self.maxslider.setValue(0)
         self.block_signals(False)
 
@@ -1242,8 +1243,8 @@ class NXSpinBox(QtGui.QSpinBox):
         except:
             return ''
     
-    def validate(self, input, pos):
-        return self.validator.validate(input, pos)
+    def validate(self, input_value, pos):
+        return self.validator.validate(input_value, pos)
 
     def stepBy(self, steps):
         if self.diff:
@@ -1262,8 +1263,8 @@ class NXDoubleSpinBox(QtGui.QDoubleSpinBox):
         self.old_value = None
         self.diff = None
     
-    def validate(self, input, pos):
-        return self.validator.validate(input, pos)
+    def validate(self, input_value, pos):
+        return self.validator.validate(input_value, pos)
 
     def stepBy(self, steps):
         if self.diff:
@@ -1568,15 +1569,15 @@ class NXProjectionPanel(QtGui.QDialog):
         self.xbox.setCurrentIndex(self.xbox.findText(self.plotview.plot.xaxis.name))
         self.ybox.setCurrentIndex(self.ybox.findText(self.plotview.plot.yaxis.name))
         for axis in self.get_axes():
-            min = self.plotview.plot.axis[axis].min
-            max = self.plotview.plot.axis[axis].max
+            _min = self.plotview.plot.axis[axis].min
+            _max = self.plotview.plot.axis[axis].max
             self.minbox[axis].diff = self.maxbox[axis].diff = None
-            self.minbox[axis].setRange(min, max)
-            self.minbox[axis].setValue(min)
-            self.minbox[axis].setSingleStep((max-min)/20)
-            self.maxbox[axis].setRange(min, max)
-            self.maxbox[axis].setValue(max)
-            self.maxbox[axis].setSingleStep((max-min)/20)
+            self.minbox[axis].setRange(_min, _max)
+            self.minbox[axis].setValue(_min)
+            self.minbox[axis].setSingleStep((_max-_min)/20)
+            self.maxbox[axis].setRange(_min, _max)
+            self.maxbox[axis].setValue(_max)
+            self.maxbox[axis].setSingleStep((_max-_min)/20)
 
     def set_limits(self):
         for axis in self.get_axes():
@@ -1738,7 +1739,7 @@ class NXNavigationToolbar(NavigationToolbar):
 
         for cur_xypress in self._xypress:
             x, y = event.x, event.y
-            lastx, lasty, a, ind, lim, trans = cur_xypress
+            lastx, lasty, a, ind, lim, trans = cur_xypress      # TODO: ind & trans are unused
             # ignore singular clicks - 5 pixels is a threshold
             if abs(x-lastx)<5 or abs(y-lasty)<5:
                 self._xypress = None
@@ -1864,7 +1865,7 @@ class NXNavigationToolbar(NavigationToolbar):
 def keep_data(data):
     from nexpy.gui.consoleapp import _tree
     if 'w0' not in _tree.keys():
-        scratch_space = _tree.add(NXroot(name='w0'))
+        scratch_space = _tree.add(NXroot(name='w0'))    # TODO: unused variable
     ind = []
     for key in _tree['w0'].keys():
         try:

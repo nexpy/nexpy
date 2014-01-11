@@ -8,10 +8,10 @@
 """
 Base class for import dialogs
 """
-import os
+import os                           #@UnusedImports
 from PySide import QtCore, QtGui
 
-from nexpy.api.nexus import *
+from nexpy.api.nexus import *       #@UnusedWildImports
 
 filetype = "Text File" #Defines the Import Menu label
 
@@ -79,9 +79,9 @@ class BaseImportDialog(QtGui.QDialog):
         """
         Opens a file dialog and sets the directory text box to the chosen path.
         """
-        dir = QtGui.QFileDialog.getExistingDirectory(self, 'Choose Directory',
+        dirname = QtGui.QFileDialog.getExistingDirectory(self, 'Choose Directory',
             dir=os.path.expanduser('~'))
-        self.directoryname.setText(str(dir))
+        self.directoryname.setText(str(dirname))
 
     def get_directory(self):
         """

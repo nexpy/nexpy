@@ -16,16 +16,16 @@ of a Matplotlib plotting pane and a tree view for displaying NeXus data.
 #-----------------------------------------------------------------------------
 
 # stdlib imports
-import imp
+import imp          #@UnusedImports
 import json
-import os
-import re
-import sys
+import os           #@UnusedImports
+import re           #@UnusedImports
+import sys          #@UnusedImports
 import webbrowser
 from threading import Thread
 
 # System library imports
-from PySide import QtGui,QtCore
+from PySide import QtGui, QtCore        #@UnusedImports
 
 from IPython.core.magic import magic_escapes
 
@@ -38,9 +38,9 @@ def background(f):
 # local imports
 from treeview import NXTreeView
 from plotview import NXPlotView
-from datadialogs import *
-from nexpy.api.nexus.tree import nxload, NeXusError
-from nexpy.api.nexus.tree import NXFile, NXgroup, NXfield, NXroot, NXentry, NXlink
+from datadialogs import *           #@UnusedWildImports
+from nexpy.api.nexus.tree import nxload, NeXusError, NXFile, NXlink
+#from nexpy.api.nexus.tree import NXFile, NXgroup, NXfield, NXroot, NXentry, NXlink
 
 # IPython imports
 # require minimum version of IPython for RichIPythonWidget()
@@ -170,7 +170,7 @@ class MainWindow(QtGui.QMainWindow):
         """
         title = self.window().windowTitle()
         cancel = QtGui.QMessageBox.Cancel
-        okay = QtGui.QMessageBox.Ok
+        okay = QtGui.QMessageBox.Ok         # TODO: unused
         
         msg = "Are you sure you want to quit NeXpy?"
         close = QtGui.QPushButton("&Quit", self)
@@ -516,13 +516,13 @@ class MainWindow(QtGui.QMainWindow):
         private_path = os.path.join(os.path.expanduser('~'), '.nexpy', 'readers')
         if os.path.isdir(private_path):
             sys.path.append(private_path)
-            for file in os.listdir(private_path):
-                name, ext = os.path.splitext(file)
+            for filename in os.listdir(private_path):
+                name, ext = os.path.splitext(filename)
                 if name <> '__init__' and ext.startswith('.py'):
                     self.import_names.add(name)
         sys.path.append(self.import_path)
-        for file in os.listdir(self.import_path):
-            name, ext = os.path.splitext(file)
+        for filename in os.listdir(self.import_path):
+            name, ext = os.path.splitext(filename)
             if name <> '__init__' and ext.startswith('.py'):
                 self.import_names.add(name)
         self.importer = {}
@@ -567,7 +567,7 @@ class MainWindow(QtGui.QMainWindow):
                              'Workspace Name:', text=default_name)        
             if name and ok:
                 self.treeview.tree[name] = NXroot(NXentry())
-                entry = self.treeview.tree[name].entry
+                entry = self.treeview.tree[name].entry          # TODO: unused
                 self.treeview.selectnode(self.treeview.tree[name].entry)
                 self.treeview.update()
         except Exception as error:
@@ -608,7 +608,7 @@ class MainWindow(QtGui.QMainWindow):
                 name = node.nxname
                 existing = False
             default_name = os.path.join(self.default_directory,name)
-            dialog = QtGui.QFileDialog()
+            dialog = QtGui.QFileDialog()                # TODO: unused
             fname, _ = QtGui.QFileDialog.getSaveFileName(self, 
                            "Choose a Filename", default_name, self.file_filter)
             if fname:
@@ -629,17 +629,17 @@ class MainWindow(QtGui.QMainWindow):
             node = self.treeview.getnode()
             if isinstance(node, NXroot):
                 if node.nxfilemode:
-                    mode = node.nxfilemode
+                    mode = node.nxfilemode              # TODO: unused
                     name = self.treeview.tree.get_new_name()
                     default_name = os.path.join(self.default_directory,name)
                     fname, _ = QtGui.QFileDialog.getSaveFileName(self, 
                                    "Choose a Filename", default_name, 
                                    self.file_filter)
                     if fname:
-                        file = NXFile(fname, 'w')
-                        file.copyfile(node.nxfile)
+                        nx_file = NXFile(fname, 'w')
+                        nx_file.copyfile(node.nxfile)
                         name = self.treeview.tree.get_name(fname)
-                        self.treeview.tree[name] = self.user_ns[name] = file.readfile()                       
+                        self.treeview.tree[name] = self.user_ns[name] = nx_file.readfile()                       
                         self.default_directory = os.path.dirname(fname)
                 else:
                     default_name = self.treeview.tree.get_new_name()
@@ -899,7 +899,7 @@ class MainWindow(QtGui.QMainWindow):
             Expects json data, as the result of %lsmagic
 
         """
-        for k,v in self._magic_menu_dict.items():
+        for v in self._magic_menu_dict.values():
             v.clear()
         self.all_magic_menu.clear()
         
@@ -1074,8 +1074,7 @@ class MainWindow(QtGui.QMainWindow):
         self.make_active(label)
 
     def new_plot_window(self):
-        from nexpy.gui.plotview import NXPlotView
-        plotview = NXPlotView()
+        plotview = NXPlotView()                     # TODO: unused
         
     def update_active(self, name):
         for key in self.active_action.keys():
