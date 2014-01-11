@@ -43,6 +43,9 @@ from nexpy.api.nexus.tree import nxload, NeXusError
 from nexpy.api.nexus.tree import NXFile, NXgroup, NXfield, NXroot, NXentry, NXlink
 
 # IPython imports
+# require minimum version of IPython for RichIPythonWidget()
+import pkg_resources
+pkg_resources.require("IPython>="+'1.1.0')
 from IPython.qt.console.rich_ipython_widget import RichIPythonWidget
 from IPython.qt.inprocess import QtInProcessKernelManager
 
@@ -91,10 +94,6 @@ class MainWindow(QtGui.QMainWindow):
 
         self.plotview = NXPlotView(label="Main",parent=rightpane)
         self.plotview.setMinimumSize(700, 450)
-
-        # require minimum version of IPython for RichIPythonWidget()
-        import pkg_resources
-        pkg_resources.require("IPython>="+'1.1.0')
 
         self.console = RichIPythonWidget(config=self.config, parent=rightpane)
         self.console.setMinimumSize(700, 200)
