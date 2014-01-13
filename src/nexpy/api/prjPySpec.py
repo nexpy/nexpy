@@ -20,9 +20,9 @@ to read and interpret the information.
 
 """
 
-import re
-import os
-import sys
+import re       #@UnusedImport
+import os       #@UnusedImport
+import sys      #@UnusedImport
 
 
 def specScanLine_stripKey(line):
@@ -87,7 +87,16 @@ class specDataFile:
         self.readOK = 0
         return
     
-    # TODO: create method to return a specific scan by scan number, make sure request matches scan.scanNum
+    def getScan(self, scan_number=0):
+        '''return the scan number indicated, None if not found'''
+        if scan_number < 1 or scan_number > len(self.scans):
+            return None
+        # best to check with self.scans[i].scanNum
+        # Always returns the first one if more than one scan matches
+        for scan in self.scans:
+            if scan.scanNum == scan_number:
+                return scan
+        return None
 
 
 #-------------------------------------------------------------------------------------------
@@ -166,6 +175,9 @@ class specDataFileScan:
         self.column_last = ''
         self.interpret()
         return
+    
+    def __str__(self):
+        return self.S
 
     def interpret(self):
         """interpret the supplied buffer with the spec scan data"""
@@ -280,6 +292,7 @@ def main(spec_file_name = None):
         print test.scans[-1].data[pLabel][i], test.scans[-1].data[dLabel][i]
     # test = specDataFile('07_02_sn281_8950.dat')
     print test.scans[0].L
+    print test.getScan(5)
 
 
 if __name__ == "__main__":
