@@ -24,8 +24,8 @@ Two GUI elements are provided for convenience:
 
 from IPython.external.qt import QtGui
 
-import numpy as np
-from nexpy.api.nexus import *
+import numpy as np                  #@UnusedImport
+from nexpy.api.nexus import *       #@UnusedWildImport
 from nexpy.gui.importdialog import BaseImportDialog
 
 filetype = "Text File"
@@ -57,6 +57,7 @@ class ImportDialog(BaseImportDialog):
         skiprows = int(self.skiprows.text())
         self.import_file = self.get_filename()
         data = np.loadtxt(self.import_file, skiprows=skiprows)
+        # TODO: consider presenting a dialog asking user how to interpret this data
         if data.shape[1] > 1:
             x = NXfield(data[:,0], name='x')
             y = NXfield(data[:,1], name='y')
