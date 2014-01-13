@@ -23,9 +23,9 @@ Two GUI elements are provided for convenience:
 
 from PySide import QtCore, QtGui
 
-import numpy as np
-import os
-from nexpy.api.nexus import *
+import numpy as np                  #@UnusedImport
+import os                           #@UnusedImport
+from nexpy.api.nexus import *       #@UnusedWildImport
 from nexpy.gui.importdialog import BaseImportDialog
 
 filetype = "SPEC File"
@@ -92,6 +92,8 @@ class ImportDialog(BaseImportDialog):
         """
         Opens a file dialog and sets the file text box to the chosen path
         """
+        import pkg_resources
+        pkg_resources.require("pyspec>=" + '0.2')
         from pyspec.spec import SpecDataFile
         filename, _ = QtGui.QFileDialog.getOpenFileName(self, 'Open file',
             os.path.expanduser('~'))
@@ -107,7 +109,7 @@ class ImportDialog(BaseImportDialog):
             specmin = self.spectra.index(specrange[0])
             specmax = self.spectra.index(specrange[1]) + 1
             return specmin, specmax
-        except ValueError(error_message):
+        except ValueError, error_message:
                 QtGui.QMessageBox.critical(
                     self, "Invalid spectra", str(error_message),
                     QtGui.QMessageBox.Ok, QtGui.QMessageBox.NoButton)
