@@ -23,6 +23,14 @@ class BaseImportDialog(QtGui.QDialog):
         QtGui.QDialog.__init__(self, parent)
         self.accepted = False 
 
+    def get_data(self):
+        '''
+        Must defined this module in each subclass.
+
+        :returns: :class:`NXroot` or :class:`NXentry` object
+        '''
+        raise NotImplementedError, "must override in subclass"
+    
     def filebox(self):
         """
         Creates a text box and button for selecting a file.
