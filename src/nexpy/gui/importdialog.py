@@ -21,11 +21,14 @@ class BaseImportDialog(QtGui.QDialog):
     def __init__(self, parent=None):
 
         QtGui.QDialog.__init__(self, parent)
-        self.accepted = False 
+        self.accepted = False
+        self.default_directory = os.path.abspath(os.path.expanduser('~'))
+        self.import_file = None     # must define in subclass
 
     def get_data(self):
         '''
-        Must defined this module in each subclass.
+        Must define this module in each subclass.
+        Must define self.import_file as file name
 
         :returns: :class:`NXroot` or :class:`NXentry` object
         '''
@@ -73,9 +76,13 @@ class BaseImportDialog(QtGui.QDialog):
         """
         Opens a file dialog and sets the file text box to the chosen path.
         """
+        dirname = self.get_default_directory(self.filename.text())
         filename, _ = QtGui.QFileDialog.getOpenFileName(self, 'Open File',
-            os.path.expanduser('~'))
-        self.filename.setText(str(filename))
+            dirname)
+        if os.path.exists(filename):    # avoids problems if <Cancel> was selected
+            dirname = os.path.dirname(filename)
+            self.filename.setText(str(filename))
+            self.set_default_directory(dirname)
 
     def get_filename(self):
         """
@@ -87,15 +94,35 @@ class BaseImportDialog(QtGui.QDialog):
         """
         Opens a file dialog and sets the directory text box to the chosen path.
         """
+        dirname = self.get_default_directory(self.filename.text())
         dirname = QtGui.QFileDialog.getExistingDirectory(self, 'Choose Directory',
-            dir=os.path.expanduser('~'))
-        self.directoryname.setText(str(dirname))
+            dir=dirname)
+        if os.path.exists(dirname):    # avoids problems if <Cancel> was selected
+            self.directoryname.setText(str(dirname))
+            self.set_default_directory(dirname)
 
     def get_directory(self):
         """
         Returns the selected directory
         """
         return self.directoryname.text()
+    
+    def get_default_directory(self, suggestion=None):
+        '''return the most recent default directory for open/save dialogs'''
+        if not os.path.exists(suggestion) or suggestion is None:
+            suggestion = self.default_directory
+        if os.path.exists(suggestion):
+            if not os.path.isdir(suggestion):
+                suggestion = os.path.dirname(suggestion)
+        suggestion = os.path.abspath(suggestion)
+        return suggestion
+    
+    def set_default_directory(self, suggestion):
+        '''define the default directory to use for open/save dialogs'''
+        if os.path.exists(suggestion):
+            if not os.path.isdir(suggestion):
+                suggestion = os.path.dirname(suggestion)
+            self.default_directory = suggestion
 
     def get_filesindirectory(self, prefix='', extension='.*'):
         """
