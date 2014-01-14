@@ -35,30 +35,28 @@ def specScanLine_stripKey(line):
 #-------------------------------------------------------------------------------------------
 
 
-class specDataFile:
+class SpecDataFile(object):
     """contents of a spec data file"""
 
     fileName = ''
     parts = ''
     errMsg = ''
     headers = []
-    scans = []
+    scans = {}
     readOK = -1
 
     def __init__(self, filename):
         self.fileName = filename
         self.errMsg = ''
         self.headers = []
-        self.scans = []
+        self.scans = {}
         self.readOK = -1
         self.read()
 
     def read(self):
         """Reads a spec data file"""
         try:
-            fp = open(self.fileName, 'r')
-            buf = fp.read()
-            fp.close()
+            buf = open(self.fileName, 'r').read()
         except:
             self.errMsg = "\n Could not open spec file: " + self.fileName +"\n"
             self.readOK = 1
@@ -78,10 +76,15 @@ class specDataFile:
         for part in self.parts:
             key = part[0:2]
             if (key == "#F"):
-                self.headers.append(specDataFileHeader(part))
+                self.headers.append(SpecDataFileHeader(part))
                 self.specFile = self.headers[-1].file
             elif (key == "#S"):
-                self.scans.append(specDataFileScan(self.headers[-1], part))
+                scan = SpecDataFileScan(self.headers[-1], part)
+                key = scan.scanNum
+                if key in self.scans:
+                    pass                # TODO: what if?
+                else:
+                    self.scans[key] = scan
             else:
                 self.errMsg = "unknown key: %s" % key
         self.readOK = 0
@@ -89,20 +92,27 @@ class specDataFile:
     
     def getScan(self, scan_number=0):
         '''return the scan number indicated, None if not found'''
-        if scan_number < 1 or scan_number > len(self.scans):
-            return None
-        # best to check with self.scans[i].scanNum
-        # Always returns the first one if more than one scan matches
-        for scan in self.scans:
-            if scan.scanNum == scan_number:
-                return scan
-        return None
+        if scan_number < 1:
+            # relative list index, convert to actual scan number
+            keylist = sorted(self.scans.keys())
+            key = len(keylist) + scan_number
+            if 0 <= key < len(keylist):
+                scan_number = keylist[key]
+            else:
+                return None
+        return self.scans[scan_number]
+    
+    def getMinScanNumber(self):
+        return min(self.scans.keys())
+    
+    def getMaxScanNumber(self):
+        return max(self.scans.keys())
 
 
 #-------------------------------------------------------------------------------------------
 
 
-class specDataFileHeader:
+class SpecDataFileHeader(object):
     """contents of a spec data file header (#F) section"""
 
     def __init__(self, buf):
@@ -145,7 +155,7 @@ class specDataFileHeader:
 #-------------------------------------------------------------------------------------------
 
 
-class specDataFileScan:
+class SpecDataFileScan(object):
     """contents of a spec data file scan (#S) section"""
     
     def __init__(self, header, buf):
@@ -272,26 +282,29 @@ def main(spec_file_name = None):
         os.chdir(spec_dir)
     print '-'*70
     # now open the file and read it
-    test = specDataFile(spec_file_name)
+    test = SpecDataFile(spec_file_name)
     # tell us about the test file
     print 'file', test.fileName
     print 'OK?', test.readOK
     print 'headers', len(test.headers)
     print 'scans', len(test.scans)
     #print 'positioners in first scan:'; print test.scans[0].positioner
-    for stuff in test.scans:
-        print stuff.scanNum, stuff.date, 'AR', stuff.positioner['ar'], 'eV', 1e3*stuff.float['DCM_energy']
+    for scan in test.scans.values():
+        print scan.scanNum, scan.date, 'AR', scan.positioner['ar'], 'eV', 1e3*scan.float['DCM_energy']
+    print 'first scan: ', test.getMinScanNumber()
+    print 'last scan: ', test.getMaxScanNumber()
     print 'positioners in last scan:'
-    print test.scans[0].positioner
-    pLabel = test.scans[-1].column_first
-    dLabel = test.scans[-1].column_last
-    print test.scans[-1].data[pLabel]
-    print len(test.scans[-1].data[pLabel])
+    last_scan = test.getScan(-1)
+    print last_scan.positioner
+    pLabel = last_scan.column_first
+    dLabel = last_scan.column_last
+    print last_scan.data[pLabel]
+    print len(last_scan.data[pLabel])
     print pLabel, dLabel
-    for i in range(len(test.scans[-1].data[pLabel])):
-        print test.scans[-1].data[pLabel][i], test.scans[-1].data[dLabel][i]
-    # test = specDataFile('07_02_sn281_8950.dat')
-    print test.scans[0].L
+    for i in range(len(last_scan.data[pLabel])):
+        print last_scan.data[pLabel][i], last_scan.data[dLabel][i]
+    # test = SpecDataFile('07_02_sn281_8950.dat')
+    print test.getScan(1).L
     print test.getScan(5)
 
 

@@ -71,6 +71,7 @@ class ImportDialog(BaseImportDialog):
         self.setLayout(self.layout)
   
         self.setWindowTitle("Import "+str(filetype))
+        self._support = None    # set in self.chooseFile()
  
     def scanbox(self):
         scanbox = QtGui.QHBoxLayout()
@@ -93,17 +94,35 @@ class ImportDialog(BaseImportDialog):
         Opens a file dialog and sets the file text box to the chosen path
         """
         import pkg_resources
-        pkg_resources.require("pyspec>=" + '0.2')
-        from pyspec.spec import SpecDataFile
-        filename, _ = QtGui.QFileDialog.getOpenFileName(self, 'Open file',
-            os.path.expanduser('~'))
-        self.filename.setText(str(filename))
-        self.SPECfile = SpecDataFile(self.get_filename())
-        self.spectra = self.SPECfile.findex.keys()
-        self.scanmin.setText(str(self.spectra[0]))
-        self.scanmax.setText(str(self.spectra[-1]))
-    
+        try:
+            pkg_resources.require("pyspec>=" + '0.2')
+            from pyspec.spec import SpecDataFile
+            self._support = 'pySpec'
+            self.get_data = self.get_data__pySpec
+        except pkg_resources.DistributionNotFound:
+            # fallback support
+            from nexpy.api.prjPySpec import SpecDataFile
+            self._support = 'prjPySpec'
+            self.get_data = self.get_data__prjPySpec
+        dirname = self.get_default_directory(self.filename.text())
+        filename, _ = QtGui.QFileDialog.getOpenFileName(self, 'Open file', dirname)
+        if os.path.exists(filename):
+            self.filename.setText(str(filename))
+            self.SPECfile = SpecDataFile(self.get_filename())
+            self.set_default_directory(os.path.dirname(filename))
+            if self._support == 'pySpec':
+                self.spectra = self.SPECfile.findex.keys()
+                self.scanmin.setText(str(self.spectra[0]))
+                self.scanmax.setText(str(self.spectra[-1]))
+            elif self._support == 'prjPySpec':
+                self.spectra = self.SPECfile.scans.keys()
+                self.scanmin.setText(str(self.SPECfile.getMinScanNumber()))
+                self.scanmax.setText(str(self.SPECfile.getMaxScanNumber()))
+
     def get_spectra(self):
+        '''
+        PySpec interface: reads specmin & specmax from dialog widgets
+        '''
         try:
             specrange = sorted([int(self.scanmin.text()), int(self.scanmax.text())])
             specmin = self.spectra.index(specrange[0])
@@ -114,7 +133,7 @@ class ImportDialog(BaseImportDialog):
                     self, "Invalid spectra", str(error_message),
                     QtGui.QMessageBox.Ok, QtGui.QMessageBox.NoButton)
 
-    def get_data(self):
+    def get_data__pySpec(self):
         root = NXroot()
         self.import_file = self.get_filename()
         specmin, specmax = self.get_spectra()
@@ -152,6 +171,9 @@ class ImportDialog(BaseImportDialog):
         return root
 
     def parse_scan(self, scan):
+        '''
+        PySpec interface: interprets what type of scan
+        '''
         title = scan.header.splitlines()[0]
         words = title.split()
         scan_number = 's%s' % words[1]
@@ -183,3 +205,89 @@ class ImportDialog(BaseImportDialog):
                     axis = motors[words[3]]
         finally:
             return title, scan_number, scan_type, cols, axis
+
+    def get_data__prjPySpec(self):
+        '''
+        convert scans from chosen SPEC file into NXroot object and structure
+        
+        called from mainwindow.MainWindow.import_data() after clicking <Ok> in dialog
+        
+        Each scan in the range from self.scanmin to self.scanmax (inclusive)
+        will be converted to a NXentry.  Scan data will go in a NXdata where 
+        the signal=1 is the last column and the corresponding axes= is the first column.
+        '''
+        scanmin, scanmax = self._get_min_max()
+        scanlist = [key for key in self.SPECfile.scans.keys() if scanmin <= key <= scanmax]
+        
+        root = NXroot()
+        self.import_file = self.get_filename()
+        for key in scanlist:
+            scan = self.SPECfile.getScan(key)
+            entry = NXentry()
+            entry.title = str(scan)
+            entry.date = scan.date
+            entry.command = scan.scanCmd
+            entry.comments = '\n'.join(scan.comments)
+
+            # store the scan data
+            entry.data = NXdata()
+            for column in scan.L:
+                entry.data[column] = NXfield(scan.data[column])
+            
+            entry.data.nxsignal = entry.data[scan.column_last]      # primary Y axis
+            entry.data.nxaxes = entry.data[scan.column_first]       # primary X axis
+
+            # store the positioner data
+            entry.positioners = NXnote()
+            for key, value in scan.positioner.items():
+                entry.positioners[key] = NXfield(value)
+
+            # store the "float" (H & V) UNICAT-style metadata
+            if len(scan.float) > 0:
+                entry.metadata = NXnote()
+                for key, value in scan.float.items():
+                    entry.metadata[key] = NXfield(value)
+
+            # scan.G & scan.T
+            entry.spec = NXnote()
+            entry.spec['G'] = NXfield(scan.G)
+            entry.spec['T'] = NXfield(scan.T)
+
+            root['entry_' + str(key)] = entry
+        return root
+    
+    def _get_min_max(self):
+        '''validate and return int(min) and int(max) from the dialog box'''
+        try:
+            scanmin = int(self.scanmin.text())
+        except ValueError, err:
+            QtGui.QMessageBox.critical(
+                self, "Min must be a number", 
+                str(err) + '\n Must specify a scan number in the file',
+                QtGui.QMessageBox.Ok, QtGui.QMessageBox.NoButton)
+            return None, None
+
+        try:
+            scanmax = int(self.scanmax.text())
+        except ValueError, err:
+            QtGui.QMessageBox.critical(
+                self, "Max must be a number", 
+                str(err) + '\n Must specify a scan number in the file',
+                QtGui.QMessageBox.Ok, QtGui.QMessageBox.NoButton)
+            return None, None
+        
+        if self.SPECfile.getScan(scanmin) is None:
+            QtGui.QMessageBox.critical(
+                self, "Minimum scan number not found!", 
+                self.scanmin.text() + ' is not a scan number in this file',
+                QtGui.QMessageBox.Ok, QtGui.QMessageBox.NoButton)
+            scanmin = None
+        
+        if self.SPECfile.getScan(scanmax) is None:
+            QtGui.QMessageBox.critical(
+                self, "Maximum scan number not found!", 
+                self.scanmin.text() + ' is not a scan number in this file',
+                QtGui.QMessageBox.Ok, QtGui.QMessageBox.NoButton)
+            scanmax = None
+        
+        return scanmin, scanmax

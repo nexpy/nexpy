@@ -1,7 +1,7 @@
 #F 11_03_Vinod.dat
 #E 1288809574
 #D Wed Nov 03 13:39:34 2010
-#C Vonod Saranathan feather samples  User = s15usaxs
+#C Interesting samples  User = s15usaxs
 #H0  SR_current  SR_fill  SR_status  SR_mode  SR_fb  SR_fbH  SR_fbV  SR_topUp  barometer_mbar
 #H1  SR_BPM_HP  SR_BPM_VP  SR_BPM_HA  SR_BPM_VA  ID_gap  ID_E  ID_harmonic  ID_taperGap  ID_taperE
 #H2  FE_XBPM_HP  FE_XBPM_VP  FE_XBPM_HA  FE_XBPM_VA
@@ -26,7 +26,7 @@
 #C Wed Nov 03 13:41:41 2010.  do USAXS_conf.mac.
 #C Wed Nov 03 13:41:41 2010.  do /data/macros/usaxs/usaxs_startscan.mac.
 #C Wed Nov 03 13:41:59 2010.  Ready for USAXS mode.
-#C Wed Nov 03 13:42:02 2010.  Vinod Saranathan Feathers.
+#C Wed Nov 03 13:42:02 2010.  Interesting samples.
 #C Wed Nov 03 13:42:02 2010.  tuning USAXS motor mr.
 
 #S 1  ascan  mr 15.6102 15.6052  30 0.3
