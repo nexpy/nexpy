@@ -806,7 +806,16 @@ class NXobject(object):
         names.sort()
         result = []
         for k in names:
-            result.append(u" "*indent + u"@%s = %s"%(k,self.attrs[k].nxdata)).encode('utf-8')
+            txt1, txt2, txt3 = ('', '', '') # only useful in source-level debugging
+            txt1 = u" "*indent
+            txt2 = u"@" + unicode(k)
+            try:
+                txt3 = u" = " + unicode(str(self.attrs[k].nxdata))
+            except UnicodeDecodeError, err:
+                # this is a wild assumption to read non-compliant strings from Soleil
+                txt3 = u" = " + unicode(str(self.attrs[k].nxdata), "ISO-8859-1")
+            txt = txt1 + txt2 + txt3
+            result.append(txt)
         return "\n".join(result)
 
     def _str_tree(self,indent=0,attrs=False,recursive=False):
@@ -1339,7 +1348,7 @@ class NXfield(NXobject):
         """
         Enables standard numpy ndarray attributes if not otherwise defined.
         """
-        name = name.encode('utf-8')
+        name = name
         if name.startswith(u'_'):
             return object.__getattr__(name)
         elif name in _npattrs:
