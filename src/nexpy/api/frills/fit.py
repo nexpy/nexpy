@@ -1,3 +1,6 @@
+#!/usr/bin/env python 
+# -*- coding: utf-8 -*-
+
 #-----------------------------------------------------------------------------
 # Copyright (c) 2013, NeXpy Development Team.
 #
@@ -5,6 +8,7 @@
 #
 # The full license is in the file COPYING, distributed with this software.
 #-----------------------------------------------------------------------------
+
 import numpy as np
 from lmfit import minimize, Parameters, Parameter, fit_report
 

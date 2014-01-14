@@ -1,4 +1,6 @@
-#!/usr/bin/env python
+#!/usr/bin/env python 
+# -*- coding: utf-8 -*-
+
 #-----------------------------------------------------------------------------
 # Copyright (c) 2013, NeXpy Development Team.
 #
@@ -8,6 +10,7 @@
 #
 # The full license is in the file COPYING, distributed with this software.
 #-----------------------------------------------------------------------------
+
 """
 The `nexus.tree` modules are designed to accomplish two goals:
 
@@ -229,6 +232,8 @@ where signal is the field containing the data, axes are the fields listing the
 signal sample points, entry is file/path within the file to the data group and
 title is the title of the group or the parent :class:`NXentry`, if available.
 """
+
+
 from __future__ import with_statement
 from copy import copy, deepcopy
 import os               #@UnusedImport
@@ -801,7 +806,7 @@ class NXobject(object):
         names.sort()
         result = []
         for k in names:
-            result.append(" "*indent+"@%s = %s"%(k,self.attrs[k].nxdata))
+            result.append(u" "*indent + u"@%s = %s"%(k,self.attrs[k].nxdata)).encode('utf-8')
         return "\n".join(result)
 
     def _str_tree(self,indent=0,attrs=False,recursive=False):
@@ -1334,7 +1339,8 @@ class NXfield(NXobject):
         """
         Enables standard numpy ndarray attributes if not otherwise defined.
         """
-        if name.startswith('_'):
+        name = name.encode('utf-8')
+        if name.startswith(u'_'):
             return object.__getattr__(name)
         elif name in _npattrs:
             return self.nxdata.__getattribute__(name)
@@ -2090,7 +2096,7 @@ class NXgroup(NXobject):
         """
         Provides direct access to groups via nxclass name.
         """
-        if key.startswith('NX'):
+        if key.startswith(u'NX'):
             return self.component(key)
         elif key in self._entries:
             return self._entries[key]

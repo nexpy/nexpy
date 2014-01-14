@@ -1,3 +1,6 @@
+#!/usr/bin/env python 
+# -*- coding: utf-8 -*-
+
 #-----------------------------------------------------------------------------
 # Copyright (c) 2013, NeXpy Development Team.
 #
@@ -5,6 +8,7 @@
 #
 # The full license is in the file COPYING, distributed with this software.
 #-----------------------------------------------------------------------------
+
 """
 Module to read in a folder of TIFF files and convert them to NeXus.
 

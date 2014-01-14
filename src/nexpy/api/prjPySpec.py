@@ -1,4 +1,6 @@
-#!/usr/bin/python
+#!/usr/bin/env python 
+# -*- coding: utf-8 -*-
+
 
 """
 Provides a set of classes to read the contents of a SPEC data file.
