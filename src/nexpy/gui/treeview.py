@@ -9,6 +9,7 @@
 # The full license is in the file COPYING, distributed with this software.
 #-----------------------------------------------------------------------------
 import os
+import pkg_resources
 
 from PySide import QtCore, QtGui
 from nexpy.api.nexus import NXfield, NXgroup, NXlink, NXroot, NXentry, NeXusError
@@ -148,16 +149,18 @@ class NXTreeItem(QtGui.QStandardItem):
     A subclass of the QtGui.QStandardItem class to return the data from 
     an NXnode.
     """
-    path = os.path.abspath(os.path.dirname(__file__))
-    _link_icon = os.path.join(path,   'resources', 'link-icon.png')
-    _lock_icon = os.path.join(path,   'resources', 'lock-icon.png')
-    _unlock_icon = os.path.join(path, 'resources', 'unlock-icon.png')
 
     def __init__(self, node):
         self.node = node
-        self._linked = QtGui.QIcon(self._link_icon)
-        self._locked = QtGui.QIcon(self._lock_icon)
-        self._unlocked = QtGui.QIcon(self._unlock_icon)
+        self._linked = QtGui.QIcon(
+            pkg_resources.resource_filename('nexpy.gui', 
+                                            'resources/link-icon.png'))
+        self._locked = QtGui.QIcon(
+            pkg_resources.resource_filename('nexpy.gui', 
+                                            'resources/lock-icon.png'))
+        self._unlocked = QtGui.QIcon(
+            pkg_resources.resource_filename('nexpy.gui', 
+                                            'resources/unlock-icon.png'))
         super(NXTreeItem, self).__init__(self.node.nxname)
 
     def text(self):
@@ -207,6 +210,7 @@ class NXTreeItem(QtGui.QStandardItem):
             for row in reversed(range(self.rowCount())):
                 if self.child(row).node.nxname not in self.node.entries:
                     self.removeRow(row)
+
 
 class NXSortModel(QtGui.QSortFilterProxyModel):
 
