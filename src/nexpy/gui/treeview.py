@@ -67,6 +67,7 @@ class NXtree(NXgroup):
                     node._item = NXTreeItem(node)
                 if not node._item.isChild(node.nxgroup._item):
                     node.nxgroup._item.appendRow(node._item)
+                node._item.removeDuplicateSibling()
                 if isinstance(node, NXgroup):
                     node._item.removeMissingChildren()
                 node._item.emitDataChanged()
@@ -210,6 +211,16 @@ class NXTreeItem(QtGui.QStandardItem):
             for row in reversed(range(self.rowCount())):
                 if self.child(row).node.nxname not in self.node.entries:
                     self.removeRow(row)
+
+    def removeDuplicateSibling(self):
+        try:
+            for row in range(self.parent().rowCount()):
+                if self.parent().child(row).text()==self.text():
+                    if self is not self.parent().child(row):
+                        self.parent().removeRow(row)
+                        return
+        except AttributeError:
+            pass
 
 
 class NXSortModel(QtGui.QSortFilterProxyModel):
