@@ -1,9 +1,5 @@
 .. restructured text format
 
-======
-README
-======
-
 ------------------------------
 About these example data files
 ------------------------------

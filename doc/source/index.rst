@@ -28,6 +28,7 @@ knowledge of the file format.
    pythongui
    treeapi
    importdialog
+   example_data
 
 Indices and tables
 ==================
