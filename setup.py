@@ -46,7 +46,7 @@ setup (name =  nexpy.__package_name__,        # NeXpy
                        'nexpy.gui': ['resources/icon/*.svg',
                                      'resources/*.png',
                                     ],
-                       'nexpy': ['examples/*.nxs'],
+                       'nexpy': ['examples/*'],
                        },
        ext_modules=[Extension('nexpy.readers.tifffile._tifffile', 
                               ['src/nexpy/readers/tifffile/tifffile.c'],
