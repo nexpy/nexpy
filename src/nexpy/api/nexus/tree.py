@@ -322,11 +322,12 @@ class NXFile(object):
         self._path = ''
 
     def __getitem__(self, key):
-        """
-        Returns an object from the NeXus file.
-
-        """
+        """Returns an object from the NeXus file."""
         return self._file[key]
+
+    def __setitem__(self, key, value):
+        """Sets an object value in the NeXus file."""
+        self._file[key] = value
 
     def __delitem__(self, name):
         """ Delete an item from a group. """
