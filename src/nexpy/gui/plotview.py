@@ -14,6 +14,7 @@ Plotting window
 """
 
 import os
+import pkg_resources
 
 import numpy as np
 
@@ -1151,17 +1152,17 @@ class NXPlotTab(QtGui.QWidget):
 
     def init_toolbar(self):
         _backward_icon = QtGui.QIcon(
-            os.path.join(os.path.abspath(os.path.dirname(__file__)), 
-                         'resources', 'backward-icon.png'))
+            pkg_resources.resource_filename('nexpy.gui', 
+                                            'resources/backward-icon.png'))
         _pause_icon = QtGui.QIcon(
-            os.path.join(os.path.abspath(os.path.dirname(__file__)), 
-                         'resources', 'pause-icon.png'))
+            pkg_resources.resource_filename('nexpy.gui', 
+                                            'resources/pause-icon.png'))
         _forward_icon = QtGui.QIcon(
-            os.path.join(os.path.abspath(os.path.dirname(__file__)), 
-                         'resources', 'forward-icon.png'))
+            pkg_resources.resource_filename('nexpy.gui', 
+                                            'resources/forward-icon.png'))
         _refresh_icon = QtGui.QIcon(
-            os.path.join(os.path.abspath(os.path.dirname(__file__)), 
-                         'resources', 'refresh-icon.png'))
+            pkg_resources.resource_filename('nexpy.gui', 
+                                            'resources/refresh-icon.png'))
         self.toolbar = QtGui.QToolBar(parent=self)
         self.toolbar.setIconSize(QtCore.QSize(16,16))
         self.add_action(_refresh_icon, self.replot, "Replot")

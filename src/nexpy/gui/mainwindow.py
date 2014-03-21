@@ -19,7 +19,6 @@ of a Matplotlib plotting pane and a tree view for displaying NeXus data.
 # Imports
 #-----------------------------------------------------------------------------
 
-# stdlib imports
 import imp          #@UnusedImports
 import json
 import os           #@UnusedImports
@@ -28,9 +27,7 @@ import sys          #@UnusedImports
 import webbrowser
 from threading import Thread
 
-# System library imports
-from PySide import QtGui, QtCore        #@UnusedImports
-
+from PySide import QtGui, QtCore
 from IPython.core.magic import magic_escapes
 
 def background(f):
@@ -97,10 +94,10 @@ class MainWindow(QtGui.QMainWindow):
         rightpane = QtGui.QWidget()
 
         self.plotview = NXPlotView(label="Main",parent=rightpane)
-        self.plotview.setMinimumSize(700, 450)
+        self.plotview.setMinimumSize(700, 500)
 
         self.console = RichIPythonWidget(config=self.config, parent=rightpane)
-        self.console.setMinimumSize(700, 200)
+        self.console.setMinimumSize(700, 150)
         self.console.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Fixed)
         self.console._confirm_exit = True
         self.console.gui_completion = 'droplist'
@@ -155,15 +152,12 @@ class MainWindow(QtGui.QMainWindow):
         self.setCentralWidget(mainwindow)
 
         base_path = os.path.abspath(os.path.dirname(__file__))
-        icon_path = os.path.join(base_path, 'resources', 'icon', 'NeXpy.svg')
         self.import_path = os.path.abspath(os.path.join(base_path, '..', 'readers'))
-        self._app.icon = QtGui.QIcon(icon_path)
-        QtGui.QApplication.setWindowIcon(self._app.icon)
 
         self.init_menu_bar()
 
         self.file_filter = ';;'.join((
-             "NeXus Files (*.nxs *.nx5 *.h5 *.hdf *.hdf5)",
+             "NeXus Files (*.nxs *.nx5 *.nxspe *.h5 *.hdf *.hdf5)",
 	         "Any Files (*.* *)"))
         self.setWindowTitle('NeXpy')
         self.statusBar().showMessage('Ready')
@@ -571,7 +565,6 @@ class MainWindow(QtGui.QMainWindow):
                              'Workspace Name:', text=default_name)        
             if name and ok:
                 self.treeview.tree[name] = NXroot(NXentry())
-                entry = self.treeview.tree[name].entry          # TODO: unused
                 self.treeview.selectnode(self.treeview.tree[name].entry)
                 self.treeview.update()
         except Exception as error:
@@ -746,7 +739,7 @@ class MainWindow(QtGui.QMainWindow):
             report_error("Initializing Data", error)
 
     def rename_data(self):
-        try:
+        if self is not None:
             node = self.treeview.getnode()
             if node:
                 if node.nxfilemode != 'r':
@@ -756,8 +749,8 @@ class MainWindow(QtGui.QMainWindow):
                         node.rename(name)
                 else:
                     raise NeXusError("NeXus file is locked")  
-        except Exception as error:
-            report_error("Renaming Data", error)
+#        except Exception as error:
+#            report_error("Renaming Data", error)
 
     def copy_data(self):
         try:

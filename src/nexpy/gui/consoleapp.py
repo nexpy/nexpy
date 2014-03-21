@@ -33,11 +33,12 @@ Authors:
 #-----------------------------------------------------------------------------
 
 # stdlib imports
+import pkg_resources
 import os
 import signal
 
 # System library imports
-from PySide import QtCore
+from PySide import QtCore, QtGui
 
 # Local imports
 from mainwindow import MainWindow
@@ -177,6 +178,10 @@ class NXConsoleApp(BaseIPythonApplication, IPythonConsoleApp):
         self.window.log = self.log
         global _mainwindow
         _mainwindow = self.window
+        self.app.icon = QtGui.QIcon(
+            pkg_resources.resource_filename('nexpy.gui', 
+                                            'resources/icon/NeXpy.svg'))
+        QtGui.QApplication.setWindowIcon(self.app.icon)
 
     def init_shell(self):
         """Initialize imports in the shell."""
