@@ -439,6 +439,8 @@ class NXFile(object):
         for entry in tree.entries.values():
             links += self._writegroup(entry)
         self._writelinks(links)
+        if len(tree.attrs) > 0:
+            self._writeattrs(tree.attrs)
         self._setattrs()
 
     def _writeattrs(self, attrs):

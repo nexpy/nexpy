@@ -7,19 +7,34 @@
 # The full license is in the file COPYING, distributed with this software.
 #-----------------------------------------------------------------------------
 
-#from distutils.core import setup, Extension
-from ez_setup import use_setuptools
-use_setuptools()
 from setuptools import setup, find_packages, Extension
 
-import numpy
 import os, sys
+import pkg_resources
+pkg_resources.require('numpy')
+import numpy
 
 # pull in some definitions from the package's __init__.py file
 sys.path.insert(0, os.path.join('src', ))
 import nexpy
 
 verbose=1
+
+install_requires = [
+    'numpy',
+    'scipy',
+    'h5py',
+    'pyside',
+    'ipython',
+    'matplotlib',
+]
+
+ext_tiff = Extension(name='nexpy.readers.tifffile._tifffile', 
+                     sources=['src/nexpy/readers/tifffile/tifffile.c'],
+                     include_dirs=[numpy.get_include()],
+                     #library_dirs=LD_LIBRARY_PATH,
+                     #extra_link_args=['-lm'], # for example
+                     )
 
 setup (name =  nexpy.__package_name__,        # NeXpy
        version = nexpy.__version__,
@@ -31,18 +46,16 @@ setup (name =  nexpy.__package_name__,        # NeXpy
        url=nexpy.__url__,
        download_url=nexpy.__download_url__,
        platforms='any',
-       requires = ('numpy', 'scipy', 'h5py', 'pyside', 'ipython', 'matplotlib'),
+       install_requires = install_requires,
        package_dir = {'': 'src'},
        packages = find_packages('src'),
        package_data = {
                        'nexpy.gui': ['resources/icon/*.svg',
                                      'resources/*.png',
                                     ],
-                       'nexpy': ['examples/*.nxs'],
+                       'nexpy': ['examples/*'],
                        },
-       ext_modules=[Extension('nexpy.readers.tifffile._tifffile', 
-                              ['src/nexpy/readers/tifffile/tifffile.c'],
-                   include_dirs=[numpy.get_include()])],
+       ext_modules=[ext_tiff, ],
        entry_points={
             # create & install scripts in <python>/bin
             'console_scripts': ['merge_tiffs=nexpy.merge_tiffs:main',],
