@@ -29,6 +29,13 @@ install_requires = [
     'matplotlib',
 ]
 
+ext_tiff = Extension(name='nexpy.readers.tifffile._tifffile', 
+                     sources=['src/nexpy/readers/tifffile/tifffile.c'],
+                     include_dirs=[numpy.get_include()],
+                     #library_dirs=LD_LIBRARY_PATH,
+                     #extra_link_args=['-lm'], # for example
+                     )
+
 setup (name =  nexpy.__package_name__,        # NeXpy
        version = nexpy.__version__,
        license = nexpy.__license__,
@@ -48,9 +55,7 @@ setup (name =  nexpy.__package_name__,        # NeXpy
                                     ],
                        'nexpy': ['examples/*'],
                        },
-       ext_modules=[Extension('nexpy.readers.tifffile._tifffile', 
-                              ['src/nexpy/readers/tifffile/tifffile.c'],
-                   include_dirs=[numpy.get_include()])],
+       ext_modules=[ext_tiff, ],
        entry_points={
             # create & install scripts in <python>/bin
             'console_scripts': ['merge_tiffs=nexpy.merge_tiffs:main',],
