@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #-----------------------------------------------------------------------------
-# Copyright (c) 2013, NeXpy Development Team.
+# Copyright (c) 2013-2014, NeXpy Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -11,6 +11,13 @@
 
 
 def main():
+    import requires
+    import pkg_resources
+    for item in requires.pkg_requirements:
+        pkg_resources.require(item)
+
+    import os
+    os.environ['QT_API'] = 'pyside'
     import matplotlib
     matplotlib.use('Qt4Agg')
     import os, sys
