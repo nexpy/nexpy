@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #-----------------------------------------------------------------------------
-# Copyright (c) 2013, NeXpy Development Team.
+# Copyright (c) 2013-2014, NeXpy Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -17,17 +17,9 @@ import numpy
 # pull in some definitions from the package's __init__.py file
 sys.path.insert(0, os.path.join('src', ))
 import nexpy
+import nexpy.requires
 
 verbose=1
-
-install_requires = [
-    'numpy',
-    'scipy',
-    'h5py',
-    'pyside',
-    'ipython',
-    'matplotlib',
-]
 
 ext_tiff = Extension(name='nexpy.readers.tifffile._tifffile', 
                      sources=['src/nexpy/readers/tifffile/tifffile.c'],
@@ -46,7 +38,7 @@ setup (name =  nexpy.__package_name__,        # NeXpy
        url=nexpy.__url__,
        download_url=nexpy.__download_url__,
        platforms='any',
-       install_requires = install_requires,
+       install_requires = nexpy.requires.pkg_requirements,
        package_dir = {'': 'src'},
        packages = find_packages('src'),
        package_data = {
