@@ -14,7 +14,7 @@ pkg_requirements = [
     'numpy',
     'scipy',
     'h5py',
-    'PySide>=1.2.1',
+    'PySide>=1.1.0',
     'ipython>=1.1.0',
     'matplotlib',
 ]

@@ -11,10 +11,10 @@
 
 
 def main():
-    import requires
-    import pkg_resources
-    for item in requires.pkg_requirements:
-        pkg_resources.require(item)
+    #import requires
+    #import pkg_resources
+    #for item in requires.pkg_requirements:
+    #    pkg_resources.require(item)
 
     import os
     os.environ['QT_API'] = 'pyside'
