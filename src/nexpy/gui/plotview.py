@@ -361,7 +361,7 @@ class NXPlot(object):
 
         #One-dimensional Plot
         if self.ndim == 1:
-            if data.nxerrors:
+            if data.nxerrors and data.nxerrors != data.nxsignal:
                 self.plotdata.errors = NXfield(data.errors)
                 self.plotdata.errors.shape = self.shape
             elif hasattr(data.nxsignal, 'units') and data.nxsignal.units == 'counts':
