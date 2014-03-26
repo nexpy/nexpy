@@ -210,6 +210,9 @@ class NXConsoleApp(BaseIPythonApplication, IPythonConsoleApp):
                  "from matplotlib import pylab, mlab, pyplot\n"
                  "plt = pyplot")
             exec s in self.window.user_ns
+
+        s = "NXdata(signal=NXfield([0,1], name='y'), axes=NXfield([0,1], name='x')).plot('wo', mec='w')"
+        exec s in self.window.user_ns
         
 #        base_path = os.path.abspath(os.path.dirname(__file__))
 #        sample_data = os.path.join(base_path, '../examples/chopper.nxs')
