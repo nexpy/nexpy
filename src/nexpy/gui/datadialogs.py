@@ -927,8 +927,28 @@ class FitDialog(QtGui.QDialog):
         message_box.exec_()
 
     def save_fit(self):
+        """Saves fit results to an NXentry"""
         self.read_parameters()
-        entry = self.fit.save_fit()
+        entry = NXentry()
+        entry['title'] = 'Fit Results'
+        entry['data'] = self.data
+        entry['fit'] = self.get_model()
+        for f in self.functions:
+            entry[f.name] = self.get_model(f)
+            parameters = NXparameters()
+            for p in f.parameters:
+                parameters[p.name] = NXfield(p.value, error=p.stderr, 
+                                             initial_value=p.init_value,
+                                             min=str(p.min), max=str(p.max))
+            entry[f.name].insert(parameters)
+        fit = NXparameters()
+        fit.nfev = self.fit.result.nfev
+        fit.ier = self.fit.result.ier 
+        fit.chisq = self.fit.result.chisqr
+        fit.redchi = self.fit.result.redchi
+        fit.message = self.fit.result.message
+        fit.lmdif_message = self.fit.result.lmdif_message
+        entry['statistics'] = fit
         if 'w0' not in self.tree.keys():
             scratch_space = self.tree.add(NXroot(name='w0'))
         ind = []

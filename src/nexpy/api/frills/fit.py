@@ -12,7 +12,7 @@
 import numpy as np
 from lmfit import minimize, Parameters, Parameter, fit_report
 
-from nexpy.api.nexus import NXentry, NXdata, NXparameters, NeXusError
+from nexpy.api.nexus import NXdata, NXparameters, NeXusError
 
 class Fit(object):
 
@@ -41,7 +41,8 @@ class Fit(object):
             raise TypeError("Must be an NXdata group")
 
     def get_model(self, x=None, f=None):
-        if x is None: x = self.x
+        if x is None: 
+            x = self.x
         model = np.zeros(x.shape,np.float64)
         if f:
             model = f.module.values(x, [p.value for p in f.parameters])
@@ -73,29 +74,6 @@ class Fit(object):
     def fit_report(self):
         return str(fit_report(self.parameters))
 
-    def save_fit(self):
-        """Saves fit results to an NXentry"""
-        entry = NXentry()
-        entry['title'] = 'Fit Results'
-        entry['data'] = self.data
-        entry['fit'] = self.get_model()
-        for f in self.functions:
-            entry[f.name] = self.get_model(f)
-            parameters = NXparameters()
-            for p in f.parameters:
-                parameters[p.name] = NXfield(p.value, error=p.stderr, 
-                                             initial_value=p.init_value,
-                                             min=str(p.min), max=str(p.max))
-            entry[f.name].insert(parameters)
-        fit = NXparameters()
-        fit.nfev = self.fit.result.nfev
-        fit.ier = self.fit.result.ier 
-        fit.chisq = self.fit.result.chisqr
-        fit.redchi = self.fit.result.redchi
-        fit.message = self.fit.result.message
-        fit.lmdif_message = self.fit.result.lmdif_message
-        entry['statistics'] = fit
-        return entry
 
 class Function(object):
 
