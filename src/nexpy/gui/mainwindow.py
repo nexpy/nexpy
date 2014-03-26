@@ -136,7 +136,7 @@ class MainWindow(QtGui.QMainWindow):
         self.user_ns['plotview'] = self.plotview
         self.user_ns['plotviews'] = self.plotviews = self.plotview.plotviews
         self.user_ns['treeview'] = self.treeview
-        self.user_ns['tree'] = self.tree
+        self.user_ns['tree'] = self.user_ns['_tree'] = self.tree
         self.user_ns['mainwindow'] = self
 
         left_splitter = QtGui.QSplitter(mainwindow)
