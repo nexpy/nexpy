@@ -234,9 +234,8 @@ class NXPlotView(QtGui.QWidget):
     def remove_menu_action(self):
         from nexpy.gui.consoleapp import _mainwindow
         if self.label in _mainwindow.active_action:
-            action = _mainwindow.active_action[self.label]
-            _mainwindow.window_menu.removeAction(action)
-            del action
+            _mainwindow.window_menu.removeAction(_mainwindow.active_action[self.label])
+            del _mainwindow.active_action[self.label]
         if self.label == _mainwindow.previous_active:
             _mainwindow.previous_active = 'Main'
         _mainwindow.make_active(_mainwindow.previous_active)
