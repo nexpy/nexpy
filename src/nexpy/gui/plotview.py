@@ -157,7 +157,8 @@ class NXPlotView(QtGui.QWidget):
 
         Gcf.set_active(self.figuremanager)
         def make_active(event):
-            self.make_active()
+            if label not in ['Projection', 'Fit']: 
+                self.make_active()
         cid = self.canvas.mpl_connect('button_press_event', make_active)
         self.figuremanager._cidgcf = cid
         self.figure = self.canvas.figure
@@ -227,7 +228,7 @@ class NXPlotView(QtGui.QWidget):
     def add_menu_action(self):
         from nexpy.gui.consoleapp import _mainwindow
         if self.label not in _mainwindow.active_action:
-            _mainwindow.make_active_action(self.label)
+            _mainwindow.make_active_action(self.label, self.number)
         _mainwindow.update_active(self.label)
 
     def remove_menu_action(self):

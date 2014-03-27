@@ -1045,6 +1045,7 @@ class MainWindow(QtGui.QMainWindow):
         self.active_action = {}
         self.active_action['Main']=QtGui.QAction('Main',
             self,
+            shortcut=QtGui.QKeySequence("Ctrl+1"),
             triggered=lambda: self.make_active('Main'),
             checkable=True
             )
@@ -1060,9 +1061,10 @@ class MainWindow(QtGui.QMainWindow):
             )
         self.add_menu_action(self.window_menu, self.panel_action)
 
-    def make_active_action(self, label):
+    def make_active_action(self, label, number):
         self.active_action[label]=QtGui.QAction(label,
             self,
+            shortcut=QtGui.QKeySequence("Ctrl+%s" % number),
             triggered=lambda: self.make_active(label),
             checkable=True
             )
@@ -1071,7 +1073,7 @@ class MainWindow(QtGui.QMainWindow):
         self.make_active(label)
 
     def new_plot_window(self):
-        plotview = NXPlotView()                     # TODO: unused
+        plotview = NXPlotView()
         
     def update_active(self, name):
         for key in self.active_action.keys():
