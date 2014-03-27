@@ -151,8 +151,7 @@ class MainWindow(QtGui.QMainWindow):
 
         self.setCentralWidget(mainwindow)
 
-        base_path = os.path.abspath(os.path.dirname(__file__))
-        self.import_path = os.path.abspath(os.path.join(base_path, '..', 'readers'))
+        self.import_path = pkg_resources.resource_filename('nexpy','readers')
 
         self.init_menu_bar()
 

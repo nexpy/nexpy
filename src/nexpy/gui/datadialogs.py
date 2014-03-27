@@ -11,7 +11,7 @@
 
 # System library imports
 from PySide import QtGui,QtCore
-import imp, os, re, sys
+import imp, os, pkg_resources, re, sys
 import numpy as np
 
 # NeXpy imports
@@ -643,9 +643,7 @@ class FitDialog(QtGui.QDialog):
                 name, ext = os.path.splitext(file)
                 if name <> '__init__' and ext.startswith('.py'):
                     filenames.add(name)
-        base_path = os.path.abspath(os.path.dirname(__file__))
-        functions_path = os.path.join(os.path.abspath(os.path.dirname(base_path)), 
-                                           'api', 'frills', 'functions')
+        functions_path = pkg_resources.resource_filename('nexpy.api.frills','functions')
         sys.path.append(functions_path)
         for file in os.listdir(functions_path):
             name, ext = os.path.splitext(file)

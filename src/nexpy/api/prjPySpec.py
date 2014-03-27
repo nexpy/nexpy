@@ -25,6 +25,7 @@ to read and interpret the information.
 import re       #@UnusedImport
 import os       #@UnusedImport
 import sys      #@UnusedImport
+import pkg_resources
 
 
 def specScanLine_stripKey(line):
@@ -277,8 +278,7 @@ def main(spec_file_name = None):
     :param str spec_file_name: if set, spec file name is given on command line
     """
     if spec_file_name is None:
-        path = os.path.dirname(__file__)
-        path = os.path.join(path, '..', 'examples')
+        path = pkg_resources.resource_filename('nexpy', 'examples')
         spec_dir = os.path.abspath(path)
         spec_file_name = os.path.join(spec_dir, 'APS_spec_data.dat')
         os.chdir(spec_dir)
