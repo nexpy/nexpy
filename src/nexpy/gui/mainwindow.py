@@ -94,10 +94,10 @@ class MainWindow(QtGui.QMainWindow):
         rightpane = QtGui.QWidget()
 
         self.plotview = NXPlotView(label="Main",parent=rightpane)
-        self.plotview.setMinimumSize(700, 500)
+        self.plotview.setMinimumSize(700, 550)
 
         self.console = RichIPythonWidget(config=self.config, parent=rightpane)
-        self.console.setMinimumSize(700, 150)
+        self.console.setMinimumSize(700, 100)
         self.console.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Fixed)
         self.console._confirm_exit = True
         self.console.gui_completion = 'droplist'

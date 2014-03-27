@@ -1192,9 +1192,8 @@ class NXPlotTab(QtGui.QWidget):
             self.timer.stop()
 
     def playback(self):
-        if not self.lockbox.isChecked():
-            self.lockbox.setChecked(True)
-            self.set_lock()
+        self.lockbox.setChecked(True)
+        self.set_lock()
         if self.playsteps == -1:
             self.interval = self.timer.interval() / 2
         else:
@@ -1208,9 +1207,8 @@ class NXPlotTab(QtGui.QWidget):
         self.timer.stop()
             
     def playforward(self):
-        if not self.lockbox.isChecked():
-            self.lockbox.setChecked(True)
-            self.set_lock()
+        self.lockbox.setChecked(True)
+        self.set_lock()
         if self.playsteps == 1:
             self.interval = self.timer.interval() / 2
         else:
