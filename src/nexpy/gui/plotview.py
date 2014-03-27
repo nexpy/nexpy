@@ -30,7 +30,6 @@ from matplotlib.figure import Figure
 from matplotlib.image import NonUniformImage
 from matplotlib.colors import LogNorm, Normalize
 from matplotlib.patches import Rectangle
-import matplotlib.backends.qt4_editor.figureoptions as figureoptions        #@UnusedImports
 import matplotlib.pyplot as plt
 
 from nexpy.api.nexus import NXfield, NXdata, NXroot
@@ -204,6 +203,10 @@ class NXPlotView(QtGui.QWidget):
             self.add_menu_action()
 
         self.show()
+
+        #Initialize the plotting window with a token plot
+        self.plot.plot(NXdata(signal=NXfield([0,1], name='y'), 
+                       axes=NXfield([0,1], name='x')), fmt='wo', mec='w')
         
 #        self.grid_cb = QtGui.QCheckBox("Show &Grid")
 #        self.grid_cb.setChecked(False)
