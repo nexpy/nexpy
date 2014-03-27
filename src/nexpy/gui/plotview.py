@@ -45,14 +45,18 @@ def new_figure_manager( label=None, *args, **kwargs ):
     """
     Create a new figure manager instance
     
-    Figure numbers 101 and 102 are preserved for the Projection and Fit windows.
+    Figure numbers > 100 are preserved for the Projection and Fit windows.
     """
-    if label == 'Projection':
-        num = 101
-    elif label == 'Fit':
-        num = 102
+    if label is None:
+        label = ''
+    if 'Projection' in label or 'Fit' in label:
+        nums = [num for num in plt.get_fignums() if num > 100]
+        if nums:
+            num = max(nums) + 1
+        else:
+            num = 101
     else:    
-        nums = [num for num in plt.get_fignums() if num < 100 or num > 102]
+        nums = [num for num in plt.get_fignums() if num < 100]
         if nums:
             num = max(nums) + 1
         else:
@@ -156,7 +160,7 @@ class NXPlotView(QtGui.QWidget):
 
         Gcf.set_active(self.figuremanager)
         def make_active(event):
-            if label not in ['Projection', 'Fit']: 
+            if 'Projection' not in self.label and 'Fit' not in self.label:
                 self.make_active()
         cid = self.canvas.mpl_connect('button_press_event', make_active)
         self.figuremanager._cidgcf = cid
@@ -199,7 +203,7 @@ class NXPlotView(QtGui.QWidget):
         plotviews[self.label] = plotview
         self.plotviews = plotviews
 
-        if self.label not in ['Main', 'Projection', 'Fit']:
+        if self.label not in ['Main', 'Fit'] and 'Projection' not in self.label:
             self.add_menu_action()
 
         self.show()
@@ -224,7 +228,7 @@ class NXPlotView(QtGui.QWidget):
         self.update_active()
 
     def update_active(self):
-        if self.label not in ['Projection', 'Fit']:
+        if 'Projection' not in self.label and 'Fit' not in self.label:
             from nexpy.gui.consoleapp import _mainwindow
             _mainwindow.update_active(self.label)
     
@@ -670,7 +674,7 @@ class NXPlot(object):
             self.vtab.logbox.setChecked(False)
             if self.tab_widget.indexOf(self.vtab) == -1:
                 self.tab_widget.insertTab(0,self.vtab,'signal')
-            if self.plotview.label <> "Projection":
+            if not self.plotview.label.startswith("Projection"):
                 if self.tab_widget.indexOf(self.ptab) == -1:
                     self.tab_widget.insertTab(self.tab_widget.indexOf(self.otab),
                                               self.ptab,'projections')
@@ -1410,7 +1414,7 @@ class NXProjectionTab(QtGui.QWidget):
 
     def plot_projection(self):
         axes, limits = self.get_projection()
-        projection = change_plotview("Projection")
+        projection = change_plotview("Projection - " + self.plotview.label)
         if len(axes) == 1 and self.overplot_box.isChecked():
             over = True
         else:
@@ -1423,7 +1427,7 @@ class NXProjectionTab(QtGui.QWidget):
             self.overplot_box.setVisible(False)
             self.overplot_box.setChecked(False)
         self.plotview.make_active()
-        plotviews['Projection'].raise_()
+        plotviews[projection.label].raise_()
 
     def open_panel(self):
         if not self.panel:
@@ -1541,7 +1545,7 @@ class NXProjectionPanel(QtGui.QDialog):
         layout.addLayout(buttonbox)
         
         self.setLayout(layout)
-        self.setWindowTitle('Projection Panel - '+self.plotview.label)
+        self.setWindowTitle('Projection Panel - ' + self.plotview.label)
 
         self.set_defaults()
 
@@ -1654,7 +1658,7 @@ class NXProjectionPanel(QtGui.QDialog):
 
     def plot_projection(self):
         axes, limits = self.get_projection()
-        projection = change_plotview("Projection")
+        projection = change_plotview("Projection - " + self.plotview.label)
         if len(axes) == 1 and self.overplot_box.isChecked():
             over = True
         else:
@@ -1667,7 +1671,7 @@ class NXProjectionPanel(QtGui.QDialog):
             self.overplot_box.setVisible(False)
             self.overplot_box.setChecked(False)
         self.plotview.make_active()
-        plotviews['Projection'].raise_()
+        plotviews[projection.label].raise_()
         self.raise_()
 
     def doublespinbox(self):
