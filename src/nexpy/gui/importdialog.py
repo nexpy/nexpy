@@ -99,7 +99,7 @@ class BaseImportDialog(QtGui.QDialog):
         """
         Opens a file dialog and sets the directory text box to the chosen path.
         """
-        dirname = self.get_default_directory(self.filename.text())
+        dirname = self.get_default_directory()
         dirname = QtGui.QFileDialog.getExistingDirectory(self, 'Choose Directory',
             dir=dirname)
         if os.path.exists(dirname):    # avoids problems if <Cancel> was selected
@@ -114,7 +114,7 @@ class BaseImportDialog(QtGui.QDialog):
     
     def get_default_directory(self, suggestion=None):
         '''return the most recent default directory for open/save dialogs'''
-        if not os.path.exists(suggestion) or suggestion is None:
+        if suggestion is None or not os.path.exists(suggestion):
             suggestion = self.default_directory
         if os.path.exists(suggestion):
             if not os.path.isdir(suggestion):
@@ -144,6 +144,15 @@ class BaseImportDialog(QtGui.QDialog):
         filenames = glob(prefix+'*'+extension)
         return sorted(filenames,key=natural_sort)
 
+    def update_progress(self):
+        """
+        Call the main QApplication.processEvents
+        
+        This ensures that GUI items like progress bars get updated
+        """
+        from nexpy.gui.consoleapp import _mainwindow
+        _mainwindow._app.processEvents()
+        
     def accept(self):
         """
         Completes the data import.
