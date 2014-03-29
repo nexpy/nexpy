@@ -47,14 +47,23 @@ class ImportDialog(BaseImportDialog):
         filter_layout = QtGui.QHBoxLayout()
         prefix_label = QtGui.QLabel('File Prefix')
         self.prefix_box = QtGui.QLineEdit()
-        ext_label = QtGui.QLabel('File Extension')
-        self.ext_box = QtGui.QLineEdit()
+        extension_label = QtGui.QLabel('File Extension')
+        self.extension_box = QtGui.QLineEdit()
+        self.extension_box.editingFinished.connect(self.set_extension)
         filter_layout.addWidget(prefix_label)
         filter_layout.addWidget(self.prefix_box)
-        filter_layout.addWidget(ext_label)
-        filter_layout.addWidget(self.ext_box)
+        filter_layout.addWidget(extension_label)
+        filter_layout.addWidget(self.extension_box)
         layout.addLayout(filter_layout)
 
+        extension_layout = QtGui.QHBoxLayout()
+        self.extension_combo = QtGui.QComboBox()
+        self.extension_combo.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToContents)
+        self.extension_combo.activated.connect(self.choose_extension)
+        extension_layout.addStretch()
+        extension_layout.addWidget(self.extension_combo)
+        layout.addLayout(extension_layout)
+        
         status_layout = QtGui.QHBoxLayout()
         self.progress_bar = QtGui.QProgressBar()
         status_layout.addWidget(self.progress_bar)
@@ -70,42 +79,78 @@ class ImportDialog(BaseImportDialog):
     def choose_directory(self):
         super(ImportDialog, self).choose_directory()
         files = self.get_filesindirectory()
-        extensions =  set([os.path.splitext(f)[-1] for f in files])
-        if not self.get_extension() or not self.get_extension() in extensions:
-            if '.tif' in extensions:
-                self.ext_box.setText('.tif')
-            elif '.tiff' in extensions:
-                self.ext_box.setText('.tiff')
-            elif '.cbf' in extensions:
-                self.ext_box.setText('.cbf')
-        if not self.get_prefix():
-            extension = self.get_extension()
-            files = [f for f in files if f.endswith(extension)]
+        self.get_extensions()
+        self.get_prefixes()
+
+    def get_prefixes(self):
+        files = [f for f in self.get_filesindirectory() 
+                     if f.endswith(self.get_extension())]
+        if not self.get_prefix() or not [f for f in files if f.startswith(self.get_prefix())]:
             parts = []
             for file in files:
-                parts.append([t for t in re.split(r'(\d+)', file)])
+                root, ext = os.path.splitext(file)
+                parts.append([t for t in re.split(r'(\d+)', root)])
             prefix=''
             for i in range(len(parts[0])):
-                s=set([p[i] for p in parts])
+                try:
+                    s=set([p[i] for p in parts])
+                except IndexError:
+                    break
                 if i == 0:
                     j = len(s)
                 if len(s) == j:
                     prefix += list(s)[0]
                 else:
                     break
-            self.prefix_box.setText(prefix.strip('-_'))
+            self.set_prefix(prefix.strip('-_'))
 
     def get_prefix(self):
         return self.prefix_box.text().strip()
  
+    def set_prefix(self, text):
+        self.prefix_box.setText(text)
+ 
+    def get_extensions(self):
+        files = self.get_filesindirectory()
+        extensions =  set([os.path.splitext(f)[-1] for f in files])
+        self.extension_combo.clear()
+        for extension in extensions:
+            self.extension_combo.addItem(extension)
+        if not self.get_extension() or not self.get_extension() in extensions:
+            if '.tif' in extensions:
+                self.set_extension('.tif')
+            elif '.tiff' in extensions:
+                self.set_extension('.tiff')
+            elif '.cbf' in extensions:
+                self.set_extension('.cbf')
+        self.extension_combo.setCurrentIndex(self.extension_combo.findText(self.get_extension()))
+        return extensions
+
     def get_extension(self):
-        extension = self.ext_box.text().strip()
-        if not extension.startswith('.'):
+        extension = self.extension_box.text().strip()
+        if extension and not extension.startswith('.'):
             extension = '.'+extension
         return extension
- 
-    def read_image(self, filename):
+
+    def choose_extension(self):
+        self.set_extension(self.extension_combo.currentText())
+     
+    def set_extension(self, text):
+        if not text.startswith('.'):
+            text = '.'+text
+        self.extension_box.setText(text)
+        if self.extension_combo.findText(text) >= 0:
+            self.extension_combo.setCurrentIndex(self.extension_combo.findText(text))
+        self.get_prefixes()
+
+    def get_image_type(self):
         if self.get_extension() == '.cbf':
+            return 'CBF'
+        else:
+            return 'TIFF'
+
+    def read_image(self, filename):
+        if self.get_image_type() == 'CBF':
             import pycbf
             cbf = pycbf.cbf_handle_struct()
             cbf.read_file(str(filename), pycbf.MSG_DIGEST)
@@ -119,7 +164,7 @@ class ImportDialog(BaseImportDialog):
             return TIFF.imread(filename)
 
     def read_images(self, filenames):
-        if self.get_extension() == '.cbf':
+        if self.get_image_type() == 'CBF':
             v0 = self.read_image(filenames[0])
             v = np.zeros([len(filenames), v0.shape[0], v0.shape[1]], dtype=np.int32)
             i = 0
