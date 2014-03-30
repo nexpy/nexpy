@@ -162,6 +162,9 @@ class NXPlotView(QtGui.QWidget):
         def make_active(event):
             if 'Projection' not in self.label and 'Fit' not in self.label:
                 self.make_active()
+            if event.button == 3:
+                hasattr(self, 'otab')
+                self.otab.home()
         cid = self.canvas.mpl_connect('button_press_event', make_active)
         self.figuremanager._cidgcf = cid
         self.figure = self.canvas.figure
