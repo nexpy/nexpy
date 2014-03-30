@@ -27,7 +27,8 @@ class BaseImportDialog(QtGui.QDialog):
 
         QtGui.QDialog.__init__(self, parent)
         self.accepted = False
-        self.default_directory = os.path.abspath(os.path.expanduser('~'))
+        from nexpy.gui.consoleapp import _mainwindow
+        self.default_directory = _mainwindow.default_directory
         self.import_file = None     # must define in subclass
 
     def get_data(self):
