@@ -156,7 +156,7 @@ class MainWindow(QtGui.QMainWindow):
         self.init_menu_bar()
 
         self.file_filter = ';;'.join((
-             "NeXus Files (*.nxs *.nx5 *.nxspe *.h5 *.hdf *.hdf5)",
+             "NeXus Files (*.nxs *.nx5 *.h5 *.hdf *.hdf5)",
 	         "Any Files (*.* *)"))
         self.setWindowTitle('NeXpy')
         self.statusBar().showMessage('Ready')
@@ -549,11 +549,12 @@ class MainWindow(QtGui.QMainWindow):
                 except:
                     workspace = self.treeview.tree.get_new_name()
                 if isinstance(imported_data, NXentry):
-                    self.treeview.tree[workspace] = NXroot(imported_data)
+                    self.treeview.tree[workspace] = self.user_ns[workspace] = NXroot(imported_data)
                 elif isinstance(imported_data, NXroot):
-                    self.treeview.tree[workspace] = imported_data
+                    self.treeview.tree[workspace] = self.user_ns[workspace] = imported_data
                 else:
                     raise NeXusError('Imported data must be an NXroot or NXentry group')
+                self.default_directory = os.path.dirname(self.import_dialog.import_file)
         except Exception as error:
             report_error("Importing File", error)
 
