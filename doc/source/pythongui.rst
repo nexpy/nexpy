@@ -463,6 +463,52 @@ This could be run in the shell pane and then added to the tree using::
 
  >>> tree.add(get_data('image.tif'))
 
+Existing Readers
+^^^^^^^^^^^^^^^^
+NeXpy is currently distributed with readers for the following format:
+
+**TIFF Images**
+
+This reader will import most TIFF images, including those with floating
+point pixels.
+
+**CBF Files**
+
+This reader will read files stored in the `Crystallographic Binary Format 
+<http://www.iucr.org/resources/cif/software/cbflib>`_, using the PyCBF library. 
+Header information is stored in a NXnote.
+
+**Image Stack**
+
+This reader will read a stack of images, currently either TIFF or CBF, into a
+three-dimensional NXdata group. The image stack must be stored in separate files 
+in a single directory, that are grouped with a common prefix followed by an 
+integer defining the stack sequence.
+
+**Text Files**
+
+This reader will read ASCII data stored in two or three columns, containing the
+x and y values, and, optionally, errors. One or more header lines can be skipped.
+A more flexible text importer, allowing the selection of data from multiple 
+columns, is under development.
+
+**SPEC Files**
+
+This reader will read multiple SPEC scans from a single SPEC log file, creating
+a separate NXentry for each scan. All the columns in each scan are read into 
+the NXdata group, with the default signal defined by the last column. Mesh scans
+are converted to multi-dimensional data, with axes defined by the scan command.
+It is possible to plot different columns once the scans are imported.
+
+**SPE/NXSPE Files**
+
+This will read both the ASCII and binary (HDF5) versions of the neutron 
+time-of-flight SPE intermediate format into standard-conforming NeXus files. 
+The data is stored as S(phi,E), but, if the incident energy and (Q,E) bins are 
+also defined, the data will will also be converted into S(Q,E). The current
+version does not read the ASCII PHX files used to define instrumental 
+parameters, but there are plans to add that in the future.
+
 Defining a Reader
 ^^^^^^^^^^^^^^^^^
 With a little knowledge of PyQt, it is possible to add a reader to the 
