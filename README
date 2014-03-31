@@ -61,6 +61,10 @@ To run from the install location, add the $prefix/bin directory to your path
 
     nexpy
 
-Online Help
-===========
-There is documentation on using NeXpy at http://nexpy.github.io/nexpy.
+User Support
+============
+Consult the NeXpy documentation at http://nexpy.github.io/nexpy for details 
+of both the Python command-line API and how to use the NeXpy GUI. 
+
+If you discover any bugs, please submit a Github issue to
+https://github.com/nexpy/nexpy/issues, preferably with relevant tracebacks.

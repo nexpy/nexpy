@@ -75,7 +75,3 @@ them to the
 If you discover any bugs, please submit a 
 [Github issue](https://github.com/nexpy/nexpy/issues), preferably with relevant 
 tracebacks.
-
-Online Help
-===========
-There is documentation on using NeXpy [here](http://nexpy.github.io/nexpy).
