@@ -24,8 +24,8 @@ knowledge of the file format.
    :maxdepth: 2
 
    includeme
-   pythonshell
    pythongui
+   pythonshell
    treeapi
    importdialog
    example_data
