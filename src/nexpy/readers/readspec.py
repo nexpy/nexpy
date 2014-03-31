@@ -71,7 +71,14 @@ class ImportDialog(BaseImportDialog):
         self.layout = QtGui.QVBoxLayout()
         self.layout.addLayout(self.filebox())
         self.layout.addLayout(self.scanbox())
-        self.layout.addWidget(self.buttonbox())
+        status_layout = QtGui.QHBoxLayout()
+        self.progress_bar = QtGui.QProgressBar()
+        status_layout.addWidget(self.progress_bar)
+        self.progress_bar.setVisible(False)
+        status_layout.addStretch()
+        status_layout.addWidget(self.buttonbox())
+        self.layout.addLayout(status_layout)
+
         self.setLayout(self.layout)
   
         self.setWindowTitle("Import "+str(filetype))
@@ -141,7 +148,11 @@ class ImportDialog(BaseImportDialog):
         root = NXroot()
         self.import_file = self.get_filename()
         specmin, specmax = self.get_spectra()
+        self.progress_bar.setVisible(True)
+        self.progress_bar.setRange(0, specmax)
         for i in self.spectra[0:specmax]:
+            self.progress_bar.setValue(i)
+            self.update_progress()
             scan = self.SPECfile.getScan(i)
             if i < self.spectra[specmin]:
                 continue
@@ -166,8 +177,8 @@ class ImportDialog(BaseImportDialog):
             root[entry].data.nxsignal = root[entry].data[cols[-1]]
             root[entry].data.errors = NXfield(np.sqrt(root[entry].data.nxsignal))
             if isinstance(axis,list):
-                root[entry].data[axis[0][0]] = axis[0][1]
-                root[entry].data[axis[1][0]] = axis[1][1]
+                root[entry].data[axis[0][0]] = NXfield(axis[0][1])
+                root[entry].data[axis[1][0]] = NXfield(axis[1][1])
                 root[entry].data.nxaxes = [root[entry].data[axis[1][0]],
                                            root[entry].data[axis[0][0]]]
             else:
