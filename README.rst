@@ -78,12 +78,16 @@ From v0.1.2, a new package for reading floating point TIFF files, tifffile,
 written by `Christoph Gohlke <http://www.lfd.uci.edu/~gohlke/>`_, has been 
 incorporated into the NeXpy distribution.
 
-=================  =================================================
+From v0.1.5, we now have an importer for `Crystallographic Binary Files 
+<http://www.bernstein-plus-sons.com/software/CBF/>`_, using PyCBF. 
+
+=================  ==========================================================
 Library            URL
-=================  =================================================
+=================  ==========================================================
 lmfit              http://newville.github.io/lmfit-py/
 pyspec             http://pyspec.sourceforge.net/
-=================  =================================================
+pycbf              http://sourceforge.net/projects/cbflib/files/cbflib/pycbf/
+=================  ==========================================================
 
 .. note:: NeXpy should still run without these additional packages, but invoking
           the relevant menu items will trigger an exception. 
@@ -92,6 +96,14 @@ Semantic Versioning
 -------------------
 With the release of v0.1.0, NeXpy is using `Semantic Versioning 
 <http://semver.org/spec/v2.0.0.html>`_.
+
+User Support
+------------
+If you have any general questions concerning the use of NeXpy, please address 
+them to the `NeXus Mailing List 
+<http://download.nexusformat.org/doc/html/mailinglist.html>`_. If you discover
+any bugs, please submit a `Github issue 
+<https://github.com/nexpy/nexpy/issues>`_, preferably with relevant tracebacks.
 
 Acknowledgements
 ----------------

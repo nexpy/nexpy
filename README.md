@@ -47,9 +47,11 @@ more details of the nature of these dependencies in the
 * matplotlib v1.1.0    http://matplotlib.sourceforge.net    (GUI only)
 * lmfit                http://newville.github.io/lmfit-py (Fitting only)
 * pyspec               http://pyspec.sourceforge.net (SPEC reader only)
+* pycbf                http://www.bernstein-plus-sons.com/software/CBF/ (CBF reader only)
 
 The following environment variable may need to be set
-PYTHONPATH --> paths to ipython,numpy,scipy,matplotlib if installed in a nonstandard place
+PYTHONPATH --> paths to ipython,numpy,scipy,matplotlib if installed in a 
+nonstandard place
 
 All of the above are included in the Enthought Python Distribution v7.3.
 
@@ -62,6 +64,15 @@ To run from the installed location, add the $prefix/bin directory to your path
 ```
 nexpy
 ```
+
+User Support
+============
+If you have any general questions concerning the use of NeXpy, please address 
+them to the 
+[NeXus Mailing List](http://download.nexusformat.org/doc/html/mailinglist.html). 
+If you discover any bugs, please submit a 
+[Github issue](https://github.com/nexpy/nexpy/issues), preferably with relevant 
+tracebacks.
 
 Online Help
 ===========
