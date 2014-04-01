@@ -33,18 +33,19 @@ The illustration shows the main features of the GUI:
     greater than two, a two-dimensional slice is extracted from the data. The 
     GUI allows the selection of alternative slices using one of the axis panels
     (see below). If an NXfield is selected, the axes can be chosen from other 
-    NXfields in the same group. 
+    NXfields in the same group. It is possible to open other plot windows and 
+    switch between them using the Window menu or keyboard shortcuts (see below).
 
 **3) Shell Pane**
     This is an iPython shell, with NeXpy already imported (as * so no prefixes 
     are necessary), along with Numpy (as np) and Pylab (as plt). Any assignments 
     to items in the tree pane are automatically reflected in the tree pane, and 
-    new NXroot, NXentry, or NXdata objects can be added to the tree from the 
-    iPython shell. The NeXus data plot methods from the shell to plot into the 
+    new NXroot or NXentry objects can be added to the tree from the 
+    iPython shell. NeXus data plots commands from the shell will appear in the 
     plot pane, and Matplotlib commands can be used to modify the plot 
     characteristics. The shell has enhanced features such as autocompletion of
-    NeXus attributes and tooltips of module docstrings when you open the module
-    parentheses.
+    NeXus attributes and tooltips containing module docstrings when you open the 
+    module parentheses.
     
 **4) Axis Panels**
     The tabbed panels below the plot can be used to modify the plots. The 
@@ -153,13 +154,13 @@ Data Menu
           the data.
 
 **Initialize Data**
-    Adds a NeXus field to the selected tree item. If the selected item is a group, the
-    added data can be a group or field. If the selected item is a field, the 
-    added data is an attribute. The Add Data dialog allow the name, value and 
-    data type to be specified, if adding a field, and the name and group class
-    if adding a group. The group class is specified through a dropdown menu of
-    valid NeXus group classes. The value field can be any valid Python 
-    expression, including numpy functions such as np.linspace().
+    Adds a NeXus field to the selected tree item. If the selected item is a
+    group, the added data can be a group or field. If the selected item is a
+    field, the added data is an attribute. The Add Data dialog allow the name,
+    value and data type to be specified, if adding a field, and the name and
+    group class if adding a group. The group class is specified through a
+    dropdown menu of valid NeXus group classes. The value field can be any valid
+    Python expression, including numpy functions such as np.linspace().
     
 **Rename Data**
     Renames the selected tree item.
@@ -216,12 +217,10 @@ Window Menu
 **New Plot Window**
     Opens a new NeXpy plotting window, consisting of a Matplotlib plot pane and 
     its associated axis panels. NeXpy plot commands will be directed to the 
-    currently active window. Clicking on the plot pane makes it active.
-
-    .. note:: Users familiar with pyplot can use standard pyplot commands to
-              generate Matplotlib plots in separate windows from the NeXus
-              plots, *e.g.*, 'plt.figure()' will open a new pyplot window, to 
-              which subsequent pyplot commands will be directed. 
+    currently active window. Clicking on the plot pane makes it active. All 
+    open windows are listed in the Window menu, along with their labels ('Main',
+    'Figure 1', 'Figure 2', *etc*.). These are used to switch the focus for
+    subsequent plots.
 
 **Show Projection Panel**
     Show the projection panel for the currently active plotting window. This is
@@ -248,9 +247,9 @@ If the group is not an NXroot group, the data will be wrapped automatically in
 an NXroot group and given a default name that doesn't conflict with existing 
 tree nodes, *e.g.*, w4. 
 
-.. note:: The NXroot class is still considered to be the root of the NeXus tree.
-          The NXtree group is only used by the GUI and cannot be saved to a 
-          file.
+.. note:: The NXroot class is still considered to be the root of the NeXus tree
+          in shell commands. The NXtree group is only used by the GUI and cannot 
+          be saved to a file.
 
 .. warning:: In python, an object may be accessible within the shell with more
              than one name. NeXpy searches the shell dictionary for an object
@@ -260,9 +259,9 @@ tree nodes, *e.g.*, w4.
 Plotting NeXus Data
 -------------------
 NXdata, NXmonitor, and NXlog data can be plotted by selecting a group on the 
-tree and choosing "Plot Data" from the Data menu or by right-clicking on the 
-group. Below the plot pane, a series of tabs allow manipulation of the plot
-limits and parameters.
+tree and choosing "Plot Data" from the Data menu or by double-clicking the item 
+on the tree (or right-clicking for over-plots). Below the plot pane, a series of 
+tabs allow manipulation of the plot limits and parameters.
 
 **Signal Tab**
 
