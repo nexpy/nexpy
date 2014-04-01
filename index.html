@@ -1,0 +1,181 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>NeXpy: A Python GUI to analyze NeXus data &mdash; NeXpy 0.1.6 documentation</title>
+    
+    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.1.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="NeXpy 0.1.6 documentation" href="#" />
+    <link rel="next" title="Installation" href="includeme.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="includeme.html" title="Installation"
+             accesskey="N">next</a> |</li>
+        <li><a href="#">NeXpy 0.1.6 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="#">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">NeXpy: A Python GUI to analyze NeXus data</a><ul>
+</ul>
+</li>
+<li><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
+</ul>
+
+  <h4>Next topic</h4>
+  <p class="topless"><a href="includeme.html"
+                        title="next chapter">Installation</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/index.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <img alt="_images/nexpy-logo.png" src="_images/nexpy-logo.png" />
+<div class="section" id="nexpy-a-python-gui-to-analyze-nexus-data">
+<h1>NeXpy: A Python GUI to analyze NeXus data<a class="headerlink" href="#nexpy-a-python-gui-to-analyze-nexus-data" title="Permalink to this headline">¶</a></h1>
+<p>NeXpy provides a high-level python interface to <a class="reference external" href="http://www.nexusformat.org/">NeXus data</a> contained within a simple GUI. It is designed to
+provide an intuitive interactive toolbox allowing users both to access existing
+NeXus files and to create new NeXus-conforming data structures without expert
+knowledge of the file format.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">NeXpy v0.1.6 is now available for <a class="reference external" href="https://pypi.python.org/pypi/NeXpy/">download</a>. This is a beta-release so
+please post any issues that you encounter on the <a class="reference external" href="https://github.com/nexpy/nexpy/issues">NeXpy GitHub</a>.</p>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="includeme.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="includeme.html#required-libraries">Required Libraries</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="includeme.html#python-command-line-api">Python Command-Line API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="includeme.html#nexpy-gui">NeXpy GUI</a></li>
+<li class="toctree-l2"><a class="reference internal" href="includeme.html#additional-packages">Additional Packages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="includeme.html#semantic-versioning">Semantic Versioning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="includeme.html#user-support">User Support</a></li>
+<li class="toctree-l2"><a class="reference internal" href="includeme.html#acknowledgements">Acknowledgements</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="pythongui.html">Python Graphical User Interface</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="pythongui.html#nexpy-menu-bar">NeXpy Menu Bar</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pythongui.html#adding-nexus-data-to-the-tree">Adding NeXus Data to the Tree</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pythongui.html#plotting-nexus-data">Plotting NeXus Data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pythongui.html#fitting-nexus-data">Fitting NeXus Data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pythongui.html#importing-nexus-data">Importing NeXus Data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pythongui.html#configuring-nexpy">Configuring NeXpy</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="pythonshell.html">Python Interface to NeXus</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="pythonshell.html#loading-nexus-data">Loading NeXus Data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pythonshell.html#creating-nexus-data">Creating NeXus Data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pythonshell.html#nexus-objects">NeXus Objects</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pythonshell.html#plotting-nexus-data">Plotting NeXus Data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pythonshell.html#manipulating-nexus-data">Manipulating NeXus Data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pythonshell.html#saving-nexus-data">Saving NeXus Data</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="treeapi.html">NeXus Tree API Modules</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="treeapi.html#example-1-loading-a-nexus-file">Example 1: Loading a NeXus file</a></li>
+<li class="toctree-l2"><a class="reference internal" href="treeapi.html#example-2-creating-a-nexus-file-dynamically">Example 2: Creating a NeXus file dynamically</a></li>
+<li class="toctree-l2"><a class="reference internal" href="treeapi.html#nexus-objects">NeXus Objects</a></li>
+<li class="toctree-l2"><a class="reference internal" href="treeapi.html#unit-conversion">Unit Conversion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="treeapi.html#reading-and-writing-slabs">Reading and Writing Slabs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="treeapi.html#plotting-nexus-data">Plotting NeXus data</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="importdialog.html">NeXpy BaseImportDialog Class</a></li>
+<li class="toctree-l1"><a class="reference internal" href="example_data.html">Example data</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="example_data.html#about-these-example-data-files">About these example data files</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="indices-and-tables">
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><a class="reference internal" href="genindex.html"><em>Index</em></a></li>
+<li><a class="reference internal" href="py-modindex.html"><em>Module Index</em></a></li>
+<li><a class="reference internal" href="search.html"><em>Search Page</em></a></li>
+</ul>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="includeme.html" title="Installation"
+             >next</a> |</li>
+        <li><a href="#">NeXpy 0.1.6 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013-2014, Ray Osborn.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,223 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>NeXpy BaseImportDialog Class &mdash; NeXpy 0.1.6 documentation</title>
+    
+    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.1.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="NeXpy 0.1.6 documentation" href="index.html" />
+    <link rel="next" title="Example data" href="example_data.html" />
+    <link rel="prev" title="NeXus Tree API Modules" href="treeapi.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="example_data.html" title="Example data"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="treeapi.html" title="NeXus Tree API Modules"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">NeXpy 0.1.6 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="treeapi.html"
+                        title="previous chapter">NeXus Tree API Modules</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="example_data.html"
+                        title="next chapter">Example data</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/importdialog.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-nexpy.gui.importdialog">
+<span id="nexpy-baseimportdialog-class"></span><h1>NeXpy BaseImportDialog Class<a class="headerlink" href="#module-nexpy.gui.importdialog" title="Permalink to this headline">¶</a></h1>
+<p>Base class for import dialogs</p>
+<dl class="class">
+<dt id="nexpy.gui.importdialog.BaseImportDialog">
+<em class="property">class </em><tt class="descclassname">nexpy.gui.importdialog.</tt><tt class="descname">BaseImportDialog</tt><big>(</big><em>parent=None</em><big>)</big><a class="headerlink" href="#nexpy.gui.importdialog.BaseImportDialog" title="Permalink to this definition">¶</a></dt>
+<dd><p>Base dialog class for NeXpy import dialogs</p>
+<dl class="method">
+<dt id="nexpy.gui.importdialog.BaseImportDialog.get_data">
+<tt class="descname">get_data</tt><big>(</big><big>)</big><a class="headerlink" href="#nexpy.gui.importdialog.BaseImportDialog.get_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Must define this module in each subclass.
+Must define self.import_file as file name</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><tt class="xref py py-class docutils literal"><span class="pre">NXroot</span></tt> or <tt class="xref py py-class docutils literal"><span class="pre">NXentry</span></tt> object</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="nexpy.gui.importdialog.BaseImportDialog.filebox">
+<tt class="descname">filebox</tt><big>(</big><big>)</big><a class="headerlink" href="#nexpy.gui.importdialog.BaseImportDialog.filebox" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a text box and button for selecting a file.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nexpy.gui.importdialog.BaseImportDialog.directorybox">
+<tt class="descname">directorybox</tt><big>(</big><big>)</big><a class="headerlink" href="#nexpy.gui.importdialog.BaseImportDialog.directorybox" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a text box and button for selecting a directory.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nexpy.gui.importdialog.BaseImportDialog.buttonbox">
+<tt class="descname">buttonbox</tt><big>(</big><big>)</big><a class="headerlink" href="#nexpy.gui.importdialog.BaseImportDialog.buttonbox" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a box containing the standard Cancel and OK buttons.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nexpy.gui.importdialog.BaseImportDialog.choose_file">
+<tt class="descname">choose_file</tt><big>(</big><big>)</big><a class="headerlink" href="#nexpy.gui.importdialog.BaseImportDialog.choose_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Opens a file dialog and sets the file text box to the chosen path.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nexpy.gui.importdialog.BaseImportDialog.get_filename">
+<tt class="descname">get_filename</tt><big>(</big><big>)</big><a class="headerlink" href="#nexpy.gui.importdialog.BaseImportDialog.get_filename" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the selected file.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nexpy.gui.importdialog.BaseImportDialog.choose_directory">
+<tt class="descname">choose_directory</tt><big>(</big><big>)</big><a class="headerlink" href="#nexpy.gui.importdialog.BaseImportDialog.choose_directory" title="Permalink to this definition">¶</a></dt>
+<dd><p>Opens a file dialog and sets the directory text box to the chosen path.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nexpy.gui.importdialog.BaseImportDialog.get_directory">
+<tt class="descname">get_directory</tt><big>(</big><big>)</big><a class="headerlink" href="#nexpy.gui.importdialog.BaseImportDialog.get_directory" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the selected directory</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nexpy.gui.importdialog.BaseImportDialog.get_default_directory">
+<tt class="descname">get_default_directory</tt><big>(</big><em>suggestion=None</em><big>)</big><a class="headerlink" href="#nexpy.gui.importdialog.BaseImportDialog.get_default_directory" title="Permalink to this definition">¶</a></dt>
+<dd><p>return the most recent default directory for open/save dialogs</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nexpy.gui.importdialog.BaseImportDialog.set_default_directory">
+<tt class="descname">set_default_directory</tt><big>(</big><em>suggestion</em><big>)</big><a class="headerlink" href="#nexpy.gui.importdialog.BaseImportDialog.set_default_directory" title="Permalink to this definition">¶</a></dt>
+<dd><p>define the default directory to use for open/save dialogs</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nexpy.gui.importdialog.BaseImportDialog.get_filesindirectory">
+<tt class="descname">get_filesindirectory</tt><big>(</big><em>prefix=''</em>, <em>extension='.*'</em><big>)</big><a class="headerlink" href="#nexpy.gui.importdialog.BaseImportDialog.get_filesindirectory" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a list of files in the selected directory.</p>
+<p>The files are sorted using a natural sort algorithm that preserves the
+numeric order when a file name consists of text and index so that, e.g., 
+&#8216;data2.tif&#8217; comes before &#8216;data10.tif&#8217;.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nexpy.gui.importdialog.BaseImportDialog.update_progress">
+<tt class="descname">update_progress</tt><big>(</big><big>)</big><a class="headerlink" href="#nexpy.gui.importdialog.BaseImportDialog.update_progress" title="Permalink to this definition">¶</a></dt>
+<dd><p>Call the main QApplication.processEvents</p>
+<p>This ensures that GUI items like progress bars get updated</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nexpy.gui.importdialog.BaseImportDialog.accept">
+<tt class="descname">accept</tt><big>(</big><big>)</big><a class="headerlink" href="#nexpy.gui.importdialog.BaseImportDialog.accept" title="Permalink to this definition">¶</a></dt>
+<dd><p>Completes the data import.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nexpy.gui.importdialog.BaseImportDialog.reject">
+<tt class="descname">reject</tt><big>(</big><big>)</big><a class="headerlink" href="#nexpy.gui.importdialog.BaseImportDialog.reject" title="Permalink to this definition">¶</a></dt>
+<dd><p>Cancels the data import.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="example_data.html" title="Example data"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="treeapi.html" title="NeXus Tree API Modules"
+             >previous</a> |</li>
+        <li><a href="index.html">NeXpy 0.1.6 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013-2014, Ray Osborn.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>
