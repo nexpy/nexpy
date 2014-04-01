@@ -10,7 +10,7 @@ Installing and Running
 
 Released versions of NeXpy are available on PyPI. If you have the Python Setup 
 Tools <https://pypi.python.org/pypi/setuptools> installed, then you can install 
-using either
+using either::
 
     $ pip install nexpy
 
