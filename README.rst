@@ -11,14 +11,16 @@ or::
 
     $ easy_install nexpy 
 
-The latest development versions of NeXpy can be downloaded from the `NeXpy Git 
+If you have trouble with the pip or easy_install installations, you can install
+the package from the source code either by downloading one of the 
+`Github releases <https://github.com/nexpy/nexpy/releases>`_ or by cloning the
+latest development version in the `NeXpy Git 
 repository <https://github.com/nexpy/nexpy>`_::
 
     $ git clone http://github.com/nexpy/nexpy.git
 
-To install in the standard Python location::
+You can then install NeXpy by changing to the source directory and typing::
 
-    $ cd nexpy
     $ python setup.py install
 
 To install in an alternate location::
@@ -33,7 +35,7 @@ The current version of NeXpy uses h5py to read and write NeXus files because
 of its ability to handle large data files. There is currently no dependency 
 on the `NeXus C API <http://download.nexusformat.org/doc/html/napi.html>`_. 
 This also means that the current version cannot read and write HDF4 or XML 
-NeXus files, although this functionality will be restored in a future version.
+NeXus files, although this functionality may be restored in a future version.
 If you only intend to utilize the Python API from the command-line, the only 
 other required library is `Numpy <http://numpy.scipy.org>`_.
 
