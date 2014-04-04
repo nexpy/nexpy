@@ -105,16 +105,11 @@ class ImportDialog(BaseImportDialog):
         Opens a file dialog and sets the file text box to the chosen path
         """
         import pkg_resources
-        try:
-            pkg_resources.require("pyspec>=" + '0.2')
-            from pyspec.spec import SpecDataFile
-            self._support = 'pySpec'
-            self.get_data = self.get_data__pySpec
-        except pkg_resources.DistributionNotFound:
-            # fallback support
-            from nexpy.api.prjPySpec import SpecDataFile
-            self._support = 'prjPySpec'
-            self.get_data = self.get_data__prjPySpec
+        pkg_resources.require("pyspec>=" + '0.2')
+        from pyspec.spec import SpecDataFile
+        self._support = 'pySpec'
+        self.get_data = self.get_data
+
         dirname = self.get_default_directory(self.filename.text())
         filename, _ = QtGui.QFileDialog.getOpenFileName(self, 'Open file', dirname)
         if os.path.exists(filename):
@@ -144,7 +139,7 @@ class ImportDialog(BaseImportDialog):
                     self, "Invalid spectra", str(error_message),
                     QtGui.QMessageBox.Ok, QtGui.QMessageBox.NoButton)
 
-    def get_data__pySpec(self):
+    def get_data(self):
         root = NXroot()
         self.import_file = self.get_filename()
         specmin, specmax = self.get_spectra()
@@ -221,56 +216,6 @@ class ImportDialog(BaseImportDialog):
         finally:
             return title, scan_number, scan_type, cols, axis
 
-    def get_data__prjPySpec(self):
-        '''
-        convert scans from chosen SPEC file into NXroot object and structure
-        
-        called from mainwindow.MainWindow.import_data() after clicking <Ok> in dialog
-        
-        Each scan in the range from self.scanmin to self.scanmax (inclusive)
-        will be converted to a NXentry.  Scan data will go in a NXdata where 
-        the signal=1 is the last column and the corresponding axes= is the first column.
-        '''
-        scanmin, scanmax = self._get_min_max()
-        scanlist = [key for key in self.SPECfile.scans.keys() if scanmin <= key <= scanmax]
-        
-        root = NXroot()
-        self.import_file = self.get_filename()
-        for key in scanlist:
-            scan = self.SPECfile.getScan(key)
-            entry = NXentry()
-            entry.title = str(scan)
-            entry.date = scan.date
-            entry.command = scan.scanCmd
-            entry.comments = '\n'.join(scan.comments)
-
-            # store the scan data
-            entry.data = NXdata()
-            for column in scan.L:
-                entry.data[column] = NXfield(scan.data[column])
-            
-            entry.data.nxsignal = entry.data[scan.column_last]      # primary Y axis
-            entry.data.nxaxes = entry.data[scan.column_first]       # primary X axis
-
-            # store the positioner data
-            entry.positioners = NXnote()
-            for key, value in scan.positioner.items():
-                entry.positioners[key] = NXfield(value)
-
-            # store the "float" (H & V) UNICAT-style metadata
-            if len(scan.float) > 0:
-                entry.metadata = NXnote()
-                for key, value in scan.float.items():
-                    entry.metadata[key] = NXfield(value)
-
-            # scan.G & scan.T
-            entry.spec = NXnote()
-            entry.spec['G'] = NXfield(scan.G)
-            entry.spec['T'] = NXfield(scan.T)
-
-            root['entry_' + str(key)] = entry
-        return root
-    
     def _get_min_max(self):
         '''validate and return int(min) and int(max) from the dialog box'''
         try:
