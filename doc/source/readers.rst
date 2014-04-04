@@ -24,7 +24,7 @@ add a new file format importer to NeXpy.
 Required Content
 ----------------
 
-Start with this basic code:
+Start with this basic template:
 
 .. code-block:: python
    :linenos:
@@ -46,15 +46,35 @@ Start with this basic code:
        '''Dialog to import my file format'''
     
        def __init__(self, parent=None):
-   
            super(ImportDialog, self).__init__(parent)
+
+           self.accepted = False
+           from nexpy.gui.consoleapp import _mainwindow
+           self.default_directory = _mainwindow.default_directory
+           self.import_file = None     # must set in self.get_data()
+
            # build the dialog box here
+           self.progress_bar = QtGui.QProgressBar()
+           self.progress_bar.setVisible(False)
+
+           status_layout = QtGui.QHBoxLayout()
+           status_layout.addWidget(self.progress_bar)
+           status_layout.addStretch()
+           status_layout.addWidget(self.buttonbox())
+
+           self.layout = QtGui.QVBoxLayout()
+           self.layout.addLayout(self.filebox())
+           self.layout.addLayout(status_layout)
+           self.setLayout(self.layout)
   
            self.setWindowTitle("Import "+str(filetype))
  
        def get_data(self):
-          '''read the data and return either NXroot or NXentry'''
-          self.import_file = self.get_filename()   # chosen file
+          '''read the data and return either :class:`NXroot` or :class:`NXentry`'''
+          # MUST define self.import_file as chosen file name
+          # use convenience method to get from dialog widget
+          self.import_file = self.get_filename()
+          
           x = range(0,10)     # example data
           y = range(1,11)
           return NXroot(NXentry(NXdata(y,x)))

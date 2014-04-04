@@ -82,7 +82,6 @@ class ImportDialog(BaseImportDialog):
         self.setLayout(self.layout)
   
         self.setWindowTitle("Import "+str(filetype))
-        self._support = None    # set in self.chooseFile()
  
     def scanbox(self):
         scanbox = QtGui.QHBoxLayout()
@@ -107,7 +106,6 @@ class ImportDialog(BaseImportDialog):
         import pkg_resources
         pkg_resources.require("pyspec>=" + '0.2')
         from pyspec.spec import SpecDataFile
-        self._support = 'pySpec'
         self.get_data = self.get_data
 
         dirname = self.get_default_directory(self.filename.text())
@@ -116,14 +114,9 @@ class ImportDialog(BaseImportDialog):
             self.filename.setText(str(filename))
             self.SPECfile = SpecDataFile(self.get_filename())
             self.set_default_directory(os.path.dirname(filename))
-            if self._support == 'pySpec':
-                self.spectra = self.SPECfile.findex.keys()
-                self.scanmin.setText(str(self.spectra[0]))
-                self.scanmax.setText(str(self.spectra[-1]))
-            elif self._support == 'prjPySpec':
-                self.spectra = self.SPECfile.scans.keys()
-                self.scanmin.setText(str(self.SPECfile.getMinScanNumber()))
-                self.scanmax.setText(str(self.SPECfile.getMaxScanNumber()))
+            self.spectra = self.SPECfile.findex.keys()
+            self.scanmin.setText(str(self.spectra[0]))
+            self.scanmax.setText(str(self.spectra[-1]))
 
     def get_spectra(self):
         '''
