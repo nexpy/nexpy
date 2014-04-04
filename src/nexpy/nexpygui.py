@@ -11,16 +11,14 @@
 
 
 def main():
-    #import requires
-    #import pkg_resources
-    #for item in requires.pkg_requirements:
-    #    pkg_resources.require(item)
 
-    import os
+    # MUST define the QT_API before importing matplotlib
+    import os, sys
     os.environ['QT_API'] = 'pyside'
+    
     import matplotlib
     matplotlib.use('Qt4Agg')
-    import os, sys
+
     sys.path.insert(0, os.path.abspath(os.path.join('..')))
     from nexpy.gui.consoleapp import main
     main()
