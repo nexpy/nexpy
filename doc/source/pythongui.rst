@@ -459,7 +459,7 @@ example of a module that reads the original format and returns NeXus data::
 
 This could be run in the shell pane and then added to the tree using::
 
- >>> tree.add(get_data('image.tif'))
+ >>> nxtree.add(get_data('image.tif'))
 
 Existing Readers
 ^^^^^^^^^^^^^^^^
