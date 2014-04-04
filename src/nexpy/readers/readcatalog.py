@@ -24,11 +24,11 @@ Two GUI elements are provided for convenience:
     ImportDialog.buttonbox: Contains a "Cancel" and "OK" button to close the dialog. 
                             This should be placed at the bottom of all import dialogs.
 """
-import os
+import os                           #@UnusedImport
 
 from IPython.external.qt import QtGui
 
-from nexpy.api.nexus import *
+from nexpy.api.nexus import *       #@UnusedWildImport
 from nexpy.gui.importdialog import BaseImportDialog
 
 filetype = "Catalog File"
