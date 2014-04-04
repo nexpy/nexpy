@@ -32,7 +32,7 @@ import os                           #@UnusedImport
 from nexpy.api.nexus import *       #@UnusedWildImport
 from nexpy.gui.importdialog import BaseImportDialog
 
-filetype = "SPEC File"
+filetype = "SPEC File (pyspec)"
 motors = {'tth': 'two_theta', 'th': 'theta', 'chi': 'chi', 'phi': 'phi',
           'ts1': 'top_slit1', 'bs1': 'bot_slit1'}
 
