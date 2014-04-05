@@ -1501,7 +1501,9 @@ class NXfield(NXobject):
         if max:
             idx = np.max(len(self.nxdata)-len(self.nxdata[self.nxdata>value])-1,0)
             try:
-                if abs(self.nxdata[idx+1]-value) < abs(0.001*self.nxdata[idx]):
+                diff = value - self.nxdata[idx]
+                step = self.nxdata[idx+1] - self.nxdata[idx]
+                if diff/step > 0.01:
                     idx = idx + 1
             except IndexError:
                 pass
@@ -1509,7 +1511,9 @@ class NXfield(NXobject):
         else:
             idx = len(self.nxdata[self.nxdata<value])
             try:
-                if abs(self.nxdata[idx-1]-value) < abs(0.001*self.nxdata[idx]):
+                diff = value - self.nxdata[idx-1]
+                step = self.nxdata[idx] - self.nxdata[idx-1]
+                if diff/step < 0.99:
                     idx = idx - 1
             except IndexError:
                 pass
