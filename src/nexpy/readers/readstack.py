@@ -25,7 +25,7 @@ Two GUI elements are provided for convenience:
                             This should be placed at the bottom of all import dialogs.
 """
 
-from IPython.external.qt import QtGui
+from IPython.external.qt import QtGui, QtCore
 import os, re
 
 import numpy as np
@@ -42,8 +42,10 @@ class ImportDialog(BaseImportDialog):
 
         super(ImportDialog, self).__init__(parent)
         
-        layout = QtGui.QVBoxLayout()
-        layout.addLayout(self.directorybox())
+        self.layout = QtGui.QVBoxLayout()
+
+        self.layout.addLayout(self.directorybox())
+
         filter_layout = QtGui.QHBoxLayout()
         prefix_label = QtGui.QLabel('File Prefix')
         self.prefix_box = QtGui.QLineEdit()
@@ -54,7 +56,7 @@ class ImportDialog(BaseImportDialog):
         filter_layout.addWidget(self.prefix_box)
         filter_layout.addWidget(extension_label)
         filter_layout.addWidget(self.extension_box)
-        layout.addLayout(filter_layout)
+        self.layout.addLayout(filter_layout)
 
         extension_layout = QtGui.QHBoxLayout()
         self.extension_combo = QtGui.QComboBox()
@@ -62,19 +64,42 @@ class ImportDialog(BaseImportDialog):
         self.extension_combo.activated.connect(self.choose_extension)
         extension_layout.addStretch()
         extension_layout.addWidget(self.extension_combo)
-        layout.addLayout(extension_layout)
+        self.layout.addLayout(extension_layout)
         
+        self.rangebox = self.make_rangebox()
+        self.layout.addWidget(self.rangebox)
+
         status_layout = QtGui.QHBoxLayout()
         self.progress_bar = QtGui.QProgressBar()
         status_layout.addWidget(self.progress_bar)
         self.progress_bar.setVisible(False)
         status_layout.addStretch()
         status_layout.addWidget(self.buttonbox())
-        layout.addLayout(status_layout)
+        self.layout.addLayout(status_layout)
 
-        self.setLayout(layout)
+        self.setLayout(self.layout)
   
         self.setWindowTitle("Import "+str(filetype))
+
+    def make_rangebox(self):
+        rangebox = QtGui.QWidget()
+        layout = QtGui.QHBoxLayout()
+        rangeminlabel = QtGui.QLabel("Min. index")
+        self.rangemin = QtGui.QLineEdit()
+        self.rangemin.setFixedWidth(150)
+        self.rangemin.setAlignment(QtCore.Qt.AlignRight)
+        rangemaxlabel = QtGui.QLabel("Max. index")
+        self.rangemax = QtGui.QLineEdit()
+        self.rangemax.setFixedWidth(150)
+        self.rangemax.setAlignment(QtCore.Qt.AlignRight)
+        layout.addWidget(rangeminlabel)
+        layout.addWidget(self.rangemin)
+        layout.addStretch()
+        layout.addWidget(rangemaxlabel)
+        layout.addWidget(self.rangemax)
+        rangebox.setLayout(layout)
+        rangebox.setVisible(False)
+        return rangebox
 
     def choose_directory(self):
         super(ImportDialog, self).choose_directory()
@@ -103,6 +128,13 @@ class ImportDialog(BaseImportDialog):
                 else:
                     break
             self.set_prefix(prefix.strip('-_'))
+        try:
+            min, max = self.get_index(files[0]), self.get_index(files[-1])
+            self.set_indices(min, max)
+            self.rangebox.setVisible(True)
+        except:
+            self.set_indices('', '')
+            self.rangebox.setVisible(False)
 
     def get_prefix(self):
         return self.prefix_box.text().strip()
@@ -149,6 +181,33 @@ class ImportDialog(BaseImportDialog):
         else:
             return 'TIFF'
 
+    def get_index(self, file):
+        root, ext = os.path.splitext(file)
+        return [int(t) if t.isdigit() else t for t in re.split(r'(\d+)$', root)][-2]
+
+    def get_indices(self):
+        try:
+            min, max = (int(self.rangemin.text().strip()),
+                        int(self.rangemax.text().strip()))
+            return min, max
+        except:
+            return None
+
+    def set_indices(self, min, max):
+        self.rangemin.setText(str(min))
+        self.rangemax.setText(str(max))
+
+    def get_files(self):
+        prefix = self.get_prefix()
+        filenames = self.get_filesindirectory(prefix, 
+                                              self.get_extension())
+        if self.get_indices():
+            min, max = self.get_indices()
+            return [file for file in filenames if self.get_index(file) >= min and 
+                                                  self.get_index(file) <= max]
+        else:
+            return filenames
+
     def read_image(self, filename):
         if self.get_image_type() == 'CBF':
             import pycbf
@@ -181,12 +240,11 @@ class ImportDialog(BaseImportDialog):
 
     def get_data(self):
         prefix = self.get_prefix()
-        filenames = self.get_filesindirectory(prefix, 
-                                              self.get_extension())
         if prefix:
             self.import_file = prefix
         else:
             self.import_file = self.get_directory()       
+        filenames = self.get_files()
         v0 = self.read_image(filenames[0])
         x = NXfield(range(v0.shape[1]), dtype=np.uint16, name='x')
         y = NXfield(range(v0.shape[0]), dtype=np.uint16, name='y')
