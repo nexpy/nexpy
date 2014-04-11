@@ -483,7 +483,7 @@ class NXFile(object):
                     if not data._chunks:
                         data._chunks = True
                     if not data._compression:
-                        data._compression = 'lzf'
+                        data._compression = 'gzip'
                 self[parent].create_dataset(data.nxname, 
                                             dtype=data.dtype, shape=data.shape,
                                             compression=data._compression,
@@ -1435,7 +1435,7 @@ class NXfield(NXobject):
                 self._get_memfile()
             self._memfile.create_dataset('data', shape=self._shape, 
                                          dtype=self._dtype, 
-                                         compression='lzf', chunks=True)
+                                         compression='gzip', chunks=True)
         else:
             raise NeXusError('Cannot allocate to field before setting shape and dtype')       
 
