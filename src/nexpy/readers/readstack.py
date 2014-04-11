@@ -49,6 +49,7 @@ class ImportDialog(BaseImportDialog):
         filter_layout = QtGui.QHBoxLayout()
         prefix_label = QtGui.QLabel('File Prefix')
         self.prefix_box = QtGui.QLineEdit()
+        self.prefix_box.editingFinished.connect(self.set_range)
         extension_label = QtGui.QLabel('File Extension')
         self.extension_box = QtGui.QLineEdit()
         self.extension_box.editingFinished.connect(self.set_extension)
@@ -182,8 +183,7 @@ class ImportDialog(BaseImportDialog):
             return 'TIFF'
 
     def get_index(self, file):
-        root, ext = os.path.splitext(file)
-        return [int(t) if t.isdigit() else t for t in re.split(r'(\d+)$', root)][-2]
+        return [int(t) if t.isdigit() else t for t in re.split(r'(\d+)', file)][-2]
 
     def get_indices(self):
         try:
@@ -207,6 +207,18 @@ class ImportDialog(BaseImportDialog):
                                                   self.get_index(file) <= max]
         else:
             return filenames
+
+    def set_range(self):
+        files = self.get_filesindirectory(self.get_prefix(), self.get_extension())
+        try:
+            min, max = self.get_index(files[0]), self.get_index(files[-1])
+            if min > max:
+                raise ValueError
+            self.set_indices(min, max)
+            self.rangebox.setVisible(True)
+        except:
+            self.set_indices('', '')
+            self.rangebox.setVisible(False)
 
     def read_image(self, filename):
         if self.get_image_type() == 'CBF':
