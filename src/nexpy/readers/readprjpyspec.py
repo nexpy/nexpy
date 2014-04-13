@@ -99,6 +99,8 @@ class ImportDialog(BaseImportDialog):
         scan_max = int(self.scanmax.text())
         all_scans = self.spec.getScanNumbers()
         scans = [s for s in all_scans if scan_min <= s <= scan_max]
+        self.spec.progress_bar = self.progress_bar
+        self.spec.update_progress = self.update_progress
         return Parser(self.spec).toTree(scans)
 
 
@@ -108,6 +110,8 @@ class Parser(object):
     def __init__(self, spec_data = None):
         ''':param obj spec_data: instance of :class:`spec2nexus.prjPySpec.SpecDataFile`'''
         self.SPECfile = spec_data
+        self.progress_bar = spec_data.progress_bar
+        self.update_progress = spec_data.update_progress
     
     def openFile(self, filename):
         '''open the SPEC file and get its data'''
@@ -159,8 +163,12 @@ class Parser(object):
             pass
         root.attrs['SPEC_num_headers'] = len(self.SPECfile.headers)
 
+        self.progress_bar.setVisible(True)
+        self.progress_bar.setRange(scan_list[0], scan_list[-1])
         for key in scan_list:
             scan = self.SPECfile.getScan(key)
+            self.progress_bar.setValue(key)
+            self.update_progress()
             entry = NXentry()
             entry.title = str(scan)
             entry.date = utils.iso8601(scan.date)  
@@ -216,6 +224,7 @@ class Parser(object):
             if   h_0 != h_N: axis = 'H'
             elif k_0 != k_N: axis = 'K'
             elif l_0 != l_N: axis = 'L'
+            else: axis = 'H'
             self.parser_1D_columns(nxdata, scan)
             nxdata.nxaxes = nxdata[axis]
         else:
@@ -289,7 +298,7 @@ class Parser(object):
             nxdata[label2] = NXfield(axis2)    # 1-D array
 
             # build 2-D data objects (do not build label1, label2, [or label3] as 2-D objects)
-            data_shape = [len(axis1), len(axis2)]
+            data_shape = [len(axis2), len(axis1)]
             for label in column_labels:
                 axis = np.array( scan.data.get(label) )
                 clean_name = utils.sanitize_name(nxdata, label)
@@ -298,7 +307,7 @@ class Parser(object):
 
             signal_axis_label = utils.sanitize_name(nxdata, scan.column_last)
             nxdata.nxsignal = nxdata[signal_axis_label]
-            nxdata.nxaxes = [nxdata[label1], nxdata[label2]]
+            nxdata.nxaxes = [nxdata[label2], nxdata[label1]]
 
         if '_mca_' in scan.data:    # 3-D array
             # TODO: ?merge with parser_mca_spectra()?
