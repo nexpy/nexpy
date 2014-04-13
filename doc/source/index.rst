@@ -28,6 +28,7 @@ knowledge of the file format.
    pythonshell
    treeapi
    importdialog
+   readers
    example_data
 
 Indices and tables

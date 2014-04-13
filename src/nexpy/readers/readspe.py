@@ -25,11 +25,11 @@ Two GUI elements are provided for convenience:
                             This should be placed at the bottom of all import dialogs.
 """
 
-import os
+import os                           #@UnusedImport
 from IPython.external.qt import QtGui
 
-import numpy as np
-from nexpy.api.nexus import *
+import numpy as np                  #@UnusedImport
+from nexpy.api.nexus import *       #@UnusedWildImport
 from nexpy.api.nexus.tree import convert_index, centers
 from nexpy.gui.importdialog import BaseImportDialog
 

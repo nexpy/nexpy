@@ -27,9 +27,8 @@ Two GUI elements are provided for convenience:
 
 from IPython.external.qt import QtGui, QtCore
 import os, re
-
-import numpy as np
-from nexpy.api.nexus import *
+import numpy as np                  #@UnusedImport
+from nexpy.api.nexus import *       #@UnusedWildImport
 from nexpy.gui.importdialog import BaseImportDialog
 
 filetype = "Image Stack"

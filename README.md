@@ -48,6 +48,7 @@ more details of the nature of these dependencies in the
 * lmfit                http://newville.github.io/lmfit-py (Fitting only)
 * pyspec               http://pyspec.sourceforge.net (SPEC reader only)
 * pycbf                http://www.bernstein-plus-sons.com/software/CBF/ (CBF reader only)
+* spec2nexus           http://spec2nexus.readthedocs.org (alternate SPEC reader)
 
 The following environment variable may need to be set
 PYTHONPATH --> paths to ipython,numpy,scipy,matplotlib if installed in a 

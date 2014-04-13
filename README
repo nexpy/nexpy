@@ -45,6 +45,7 @@ numpy,scipy          http://numpy.scipy.org
 matplotlib v1.1.0    http://matplotlib.sourceforge.net    (GUI plotting only)
 lmfit                http://newville.github.io/lmfit-py (Fitting only)
 pyspec               http://pyspec.sourceforge.net    (SPEC reader only)
+spec2nexus           http://spec2nexus.readthedocs.org (alternate SPEC reader)
 
 The following environment variable may need to be set
 
