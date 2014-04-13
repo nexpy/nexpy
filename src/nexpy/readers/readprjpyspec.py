@@ -216,6 +216,7 @@ class Parser(object):
             if   h_0 != h_N: axis = 'H'
             elif k_0 != k_N: axis = 'K'
             elif l_0 != l_N: axis = 'L'
+            else: axis = 'H'
             self.parser_1D_columns(nxdata, scan)
             nxdata.nxaxes = nxdata[axis]
         else:
