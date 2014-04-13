@@ -298,7 +298,7 @@ class Parser(object):
             nxdata[label2] = NXfield(axis2)    # 1-D array
 
             # build 2-D data objects (do not build label1, label2, [or label3] as 2-D objects)
-            data_shape = [len(axis1), len(axis2)]
+            data_shape = [len(axis2), len(axis1)]
             for label in column_labels:
                 axis = np.array( scan.data.get(label) )
                 clean_name = utils.sanitize_name(nxdata, label)
@@ -307,7 +307,7 @@ class Parser(object):
 
             signal_axis_label = utils.sanitize_name(nxdata, scan.column_last)
             nxdata.nxsignal = nxdata[signal_axis_label]
-            nxdata.nxaxes = [nxdata[label1], nxdata[label2]]
+            nxdata.nxaxes = [nxdata[label2], nxdata[label1]]
 
         if '_mca_' in scan.data:    # 3-D array
             # TODO: ?merge with parser_mca_spectra()?
