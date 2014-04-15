@@ -167,8 +167,6 @@ class Parser(object):
         self.progress_bar.setRange(scan_list[0], scan_list[-1])
         for key in scan_list:
             scan = self.SPECfile.getScan(key)
-            self.progress_bar.setValue(key)
-            self.update_progress()
             entry = NXentry()
             entry.title = str(scan)
             entry.date = utils.iso8601(scan.date)  
@@ -205,6 +203,10 @@ class Parser(object):
                 entry['Q'].description = 'hkl at start of scan'
 
             root['scan_' + str(key)] = entry
+
+            self.progress_bar.setValue(key)
+            self.update_progress()
+
         return root
     
     def scan_NXdata(self, scan):
