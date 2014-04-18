@@ -33,6 +33,8 @@ from nexpy.gui.importdialog import BaseImportDialog
 
 filetype = "Image Stack"
 maximum = 0.0
+prefix_pattern = re.compile('^([^.]+)(?:(?<!\d)|(?=_))')
+
 
 class ImportDialog(BaseImportDialog):
     """Dialog to import an image stack (TIFF or CBF)"""
@@ -45,26 +47,8 @@ class ImportDialog(BaseImportDialog):
 
         self.layout.addLayout(self.directorybox())
 
-        filter_layout = QtGui.QHBoxLayout()
-        prefix_label = QtGui.QLabel('File Prefix')
-        self.prefix_box = QtGui.QLineEdit()
-        self.prefix_box.editingFinished.connect(self.set_range)
-        extension_label = QtGui.QLabel('File Extension')
-        self.extension_box = QtGui.QLineEdit()
-        self.extension_box.editingFinished.connect(self.set_extension)
-        filter_layout.addWidget(prefix_label)
-        filter_layout.addWidget(self.prefix_box)
-        filter_layout.addWidget(extension_label)
-        filter_layout.addWidget(self.extension_box)
-        self.layout.addLayout(filter_layout)
-
-        extension_layout = QtGui.QHBoxLayout()
-        self.extension_combo = QtGui.QComboBox()
-        self.extension_combo.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToContents)
-        self.extension_combo.activated.connect(self.choose_extension)
-        extension_layout.addStretch()
-        extension_layout.addWidget(self.extension_combo)
-        self.layout.addLayout(extension_layout)
+        self.filter_box = self.make_filterbox()
+        self.layout.addWidget(self.filter_box)
         
         self.rangebox = self.make_rangebox()
         self.layout.addWidget(self.rangebox)
@@ -80,6 +64,32 @@ class ImportDialog(BaseImportDialog):
         self.setLayout(self.layout)
   
         self.setWindowTitle("Import "+str(filetype))
+
+    def make_filterbox(self):
+        filterbox = QtGui.QWidget()
+        layout = QtGui.QGridLayout()
+        layout.setSpacing(10)
+        prefix_label = QtGui.QLabel('File Prefix')
+        self.prefix_box = QtGui.QLineEdit()
+        self.prefix_box.editingFinished.connect(self.set_range)
+        extension_label = QtGui.QLabel('File Extension')
+        self.extension_box = QtGui.QLineEdit()
+        self.extension_box.editingFinished.connect(self.set_extension)
+        layout.addWidget(prefix_label, 0, 0)
+        layout.addWidget(self.prefix_box, 0, 1)
+        layout.addWidget(extension_label, 0, 2)
+        layout.addWidget(self.extension_box, 0, 3)
+        self.prefix_combo = QtGui.QComboBox()
+        self.prefix_combo.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToContents)
+        self.prefix_combo.activated.connect(self.choose_prefix)
+        self.extension_combo = QtGui.QComboBox()
+        self.extension_combo.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToContents)
+        self.extension_combo.activated.connect(self.choose_extension)
+        layout.addWidget(self.prefix_combo, 1, 1, alignment=QtCore.Qt.AlignHCenter)
+        layout.addWidget(self.extension_combo, 1, 3, alignment=QtCore.Qt.AlignHCenter)
+        filterbox.setLayout(layout)
+        filterbox.setVisible(False)
+        return filterbox
 
     def make_rangebox(self):
         rangebox = QtGui.QWidget()
@@ -106,41 +116,45 @@ class ImportDialog(BaseImportDialog):
         files = self.get_filesindirectory()
         self.get_extensions()
         self.get_prefixes()
+        self.filter_box.setVisible(True)
 
     def get_prefixes(self):
         files = [f for f in self.get_filesindirectory() 
                      if f.endswith(self.get_extension())]
-        if not self.get_prefix() or not [f for f in files if f.startswith(self.get_prefix())]:
-            parts = []
-            for file in files:
-                root, ext = os.path.splitext(file)
-                parts.append([t for t in re.split(r'(\d+)', root)])
-            prefix=''
-            for i in range(len(parts[0])):
-                try:
-                    s=set([p[i] for p in parts])
-                except IndexError:
-                    break
-                if i == 0:
-                    j = len(s)
-                if len(s) == j:
-                    prefix += list(s)[0]
-                else:
-                    break
-            self.set_prefix(prefix.strip('-_'))
+        self.prefix_combo.clear()        
+        prefixes = []
+        for file in files:
+            prefix = prefix_pattern.match(file)
+            if prefix:
+                prefixes.append(prefix.group(0).strip('_-'))
+        for prefix in set(prefixes):
+            if prefix != '':
+                self.prefix_combo.addItem(prefix)
+        if self.get_prefix() not in prefixes:
+            self.set_prefix(prefixes[0])
+        self.prefix_combo.setCurrentIndex(self.prefix_combo.findText(self.get_prefix()))
         try:
+            files = [f for f in files if f.startswith(self.get_prefix())]
             min, max = self.get_index(files[0]), self.get_index(files[-1])
+            if max < min:
+                raise ValueError
             self.set_indices(min, max)
             self.rangebox.setVisible(True)
-        except:
+        except Exception as error:
             self.set_indices('', '')
             self.rangebox.setVisible(False)
 
     def get_prefix(self):
         return self.prefix_box.text().strip()
  
+    def choose_prefix(self):
+        self.set_prefix(self.prefix_combo.currentText())
+     
     def set_prefix(self, text):
         self.prefix_box.setText(text)
+        if self.prefix_combo.findText(text) >= 0:
+            self.prefix_combo.setCurrentIndex(self.prefix_combo.findText(text))
+        self.get_prefixes()
  
     def get_extensions(self):
         files = self.get_filesindirectory()
@@ -182,7 +196,7 @@ class ImportDialog(BaseImportDialog):
             return 'TIFF'
 
     def get_index(self, file):
-        return [int(t) if t.isdigit() else t for t in re.split(r'(\d+)', file)][-2]
+        return int(re.match('^(.*?)([0-9]*)[.](.*)$',file).groups()[1])
 
     def get_indices(self):
         try:
