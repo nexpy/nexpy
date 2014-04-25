@@ -87,17 +87,8 @@ From v0.1.5, we now have an importer for `Crystallographic Binary Files
 Library            URL
 =================  ==========================================================
 lmfit              http://newville.github.io/lmfit-py/
-pyspec             http://pyspec.sourceforge.net/
 pycbf              http://sourceforge.net/projects/cbflib/files/cbflib/pycbf/
-=================  ==========================================================
-
-From v0.1.7, we now have an alternate importer for SPEC data files
-that imports additional metadata from each scan.
-
-=================  ==========================================================
-Library            URL
-=================  ==========================================================
-spec2nexus         http://spec2nexus.readthedocs.org
+spec2nexus         http://spec2nexus.readthedocs.org/
 =================  ==========================================================
 
 .. note:: NeXpy should still run without these additional packages, but invoking

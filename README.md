@@ -46,9 +46,8 @@ more details of the nature of these dependencies in the
 * PySide v1.1.0        http://www.pyside.org/
 * matplotlib v1.1.0    http://matplotlib.sourceforge.net    (GUI only)
 * lmfit                http://newville.github.io/lmfit-py (Fitting only)
-* pyspec               http://pyspec.sourceforge.net (SPEC reader only)
 * pycbf                http://www.bernstein-plus-sons.com/software/CBF/ (CBF reader only)
-* spec2nexus           http://spec2nexus.readthedocs.org (alternate SPEC reader)
+* spec2nexus           http://spec2nexus.readthedocs.org (SPEC reader only)
 
 The following environment variable may need to be set
 PYTHONPATH --> paths to ipython,numpy,scipy,matplotlib if installed in a 
