@@ -51,7 +51,7 @@ class PlotDialog(QtGui.QDialog):
                 plotlayout.addWidget(plotlabel[1])
                 plotlayout.addWidget(self.plotbox[1])
                 plotlayout.addWidget(plotlabel[0])
-                plot_layout.addWidget(self.axis_box[0])
+                plotlayout.addWidget(self.axis_box[0])
         else:
             plotlayout = None
 
@@ -63,7 +63,7 @@ class PlotDialog(QtGui.QDialog):
         buttonbox.rejected.connect(self.reject)
 
         layout = QtGui.QVBoxLayout()
-        if plot_layout:
+        if plotlayout:
             layout.addLayout(plotlayout)
         layout.addWidget(buttonbox) 
         self.setLayout(layout)
