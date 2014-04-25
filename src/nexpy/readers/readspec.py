@@ -18,7 +18,7 @@ import os                           #@UnusedImport
 from nexpy.api.nexus import *       #@UnusedWildImport
 from nexpy.gui.importdialog import BaseImportDialog
 
-filetype = "SPEC File (prjPySpec)"
+filetype = "SPEC File"
 
 
 class ImportDialog(BaseImportDialog):
