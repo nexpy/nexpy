@@ -79,18 +79,15 @@ Start with this basic template:
           y = range(1,11)
           return NXroot(NXentry(NXdata(y,x)))
 
-about the GUI layout
+About the GUI layout
 --------------------
 
-Each importer needs to layout the GUI buttons 
-in *class ImportDialog(BaseImportDialog)*
-necessary for defining the imported file 
-and its attributes and the single module, 
-*get_data()*, which returns either
-an *NXroot* or *NXentry* object. 
-This will be added to the NeXpy tree.
+Each importer needs to layout the GUI buttons in 
+*class ImportDialog(BaseImportDialog)* necessary for defining the imported file 
+and its attributes and the single module, *get_data()*, which returns either
+an *NXroot* or *NXentry* object. This will be added to the NeXpy tree.
 
-features from the superclass
+Features from the Superclass
 ----------------------------
 
 Two GUI convenience elements are provided from the superclass 

@@ -73,8 +73,8 @@ Additional Packages
 Additional functionality is provided by other external Python packages. 
 Least-squares fitting requires Matt Newville's least-squares fitting package, 
 `lmfit-py <http://newville.github.io/lmfit-py>`_. Importers may also require 
-libraries to read the imported files in their native format, *e.g.*, `PySpec 
-<http://pyspec.sourceforge.net>`_ for reading SPEC files. 
+libraries to read the imported files in their native format, *e.g.*, `spec2nexus 
+<http://spec2nexus.readthedocs.org/>`_ for reading SPEC files. 
 
 From v0.1.2, a new package for reading floating point TIFF files, tifffile, 
 written by `Christoph Gohlke <http://www.lfd.uci.edu/~gohlke/>`_, has been 
