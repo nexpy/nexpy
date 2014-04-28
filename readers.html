@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Adding a File Format Importer (reader) &mdash; NeXpy 0.1.7 documentation</title>
+    <title>Adding a File Importer &mdash; NeXpy 0.1.7 documentation</title>
     
     <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -54,7 +54,7 @@
         <div class="sphinxsidebarwrapper">
   <h3><a href="index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">Adding a File Format Importer (reader)</a><ul>
+<li><a class="reference internal" href="#">Adding a File Importer</a><ul>
 <li><a class="reference internal" href="#required-content">Required Content</a></li>
 <li><a class="reference internal" href="#about-the-gui-layout">About the GUI layout</a></li>
 <li><a class="reference internal" href="#features-from-the-superclass">Features from the Superclass</a></li>
@@ -94,14 +94,13 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <div class="section" id="adding-a-file-format-importer-reader">
-<h1>Adding a File Format Importer (reader)<a class="headerlink" href="#adding-a-file-format-importer-reader" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="adding-a-file-importer">
+<h1>Adding a File Importer<a class="headerlink" href="#adding-a-file-importer" title="Permalink to this headline">¶</a></h1>
 <div class="admonition caution">
 <p class="first admonition-title">Caution</p>
 <p class="last">This section is under development</p>
 </div>
-<p>These are the basic steps to
-add a new file format importer to NeXpy.</p>
+<p>These are the basic steps to add a new file format importer to NeXpy.</p>
 <ol class="arabic simple">
 <li>Create a Python source code module named <em>readabcde.py</em>
 where <em>abcde</em> is the name of the new support and does not
@@ -178,8 +177,8 @@ in the NeXpy source code tree in the <em>readers</em> subdirectory.</p>
 
 <span class="kn">from</span> <span class="nn">IPython.external.qt</span> <span class="kn">import</span> <span class="n">QtGui</span>
 
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>                  <span class="c">#@UnusedImport</span>
-<span class="kn">from</span> <span class="nn">nexpy.api.nexus</span> <span class="kn">import</span> <span class="o">*</span>       <span class="c">#@UnusedWildImport</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">nexpy.api.nexus</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="kn">from</span> <span class="nn">nexpy.gui.importdialog</span> <span class="kn">import</span> <span class="n">BaseImportDialog</span>
 
 <span class="n">filetype</span> <span class="o">=</span> <span class="s">&#39;my file format&#39;</span>   <span class="c"># these words go in the import menu</span>

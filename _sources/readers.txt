@@ -1,10 +1,9 @@
-Adding a File Format Importer (reader)
-======================================
+Adding a File Importer
+======================
 
 .. caution::  This section is under development
 
-These are the basic steps to
-add a new file format importer to NeXpy.
+These are the basic steps to add a new file format importer to NeXpy.
 
 #. Create a Python source code module named *readabcde.py*
    where *abcde* is the name of the new support and does not 
@@ -36,8 +35,8 @@ Start with this basic template:
    
    from IPython.external.qt import QtGui
    
-   import numpy as np                  #@UnusedImport
-   from nexpy.api.nexus import *       #@UnusedWildImport
+   import numpy as np
+   from nexpy.api.nexus import *
    from nexpy.gui.importdialog import BaseImportDialog
    
    filetype = 'my file format'   # these words go in the import menu
