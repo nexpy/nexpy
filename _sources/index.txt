@@ -27,8 +27,8 @@ knowledge of the file format.
    pythongui
    pythonshell
    treeapi
-   importdialog
    readers
+   importdialog
    example_data
 
 Indices and tables
