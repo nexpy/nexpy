@@ -13,14 +13,11 @@
 Plotting window
 """
 
-import os
 import pkg_resources
-
 import numpy as np
-
 from PySide import QtCore, QtGui
-
-import matplotlib                   #@UnusedImports
+import matplotlib as mpl
+import matplotlib.pyplot as plt
 from matplotlib._pylab_helpers import Gcf
 from matplotlib.backend_bases import FigureManagerBase
 from matplotlib.backends.backend_qt4 import FigureManagerQT as FigureManager
@@ -30,7 +27,6 @@ from matplotlib.figure import Figure
 from matplotlib.image import NonUniformImage
 from matplotlib.colors import LogNorm, Normalize
 from matplotlib.patches import Rectangle
-import matplotlib.pyplot as plt
 
 from nexpy.api.nexus import NXfield, NXdata, NXroot
 
@@ -41,7 +37,7 @@ cmaps = ['autumn', 'bone', 'cool', 'copper', 'flag', 'gray', 'hot',
          'spectral', 'rainbow']
 colors = ['b', 'g', 'r', 'c', 'm', 'y', 'k', 'w']
 
-def new_figure_manager( label=None, *args, **kwargs ):
+def new_figure_manager(label=None, *args, **kwargs):
     """
     Create a new figure manager instance
     
@@ -61,9 +57,9 @@ def new_figure_manager( label=None, *args, **kwargs ):
             num = max(nums) + 1
         else:
             num = 1
-    thisFig = Figure( *args, **kwargs )
-    canvas = NXCanvas( thisFig )
-    manager = NXFigureManager( canvas, num )
+    thisFig = Figure(*args, **kwargs)
+    canvas = NXCanvas(thisFig)
+    manager = NXFigureManager(canvas, num)
     return manager
 
 def change_plotview(label):
@@ -93,14 +89,14 @@ class NXCanvas(FigureCanvas):
 class NXFigureManager(FigureManager):
 
     def __init__(self, canvas, num):
-        FigureManagerBase.__init__( self, canvas, num )
+        FigureManagerBase.__init__(self, canvas, num)
         self.canvas = canvas
 
         self.window = QtGui.QWidget()
         self.window.setAttribute(QtCore.Qt.WA_DeleteOnClose)
 
-        QtCore.QObject.connect( self.window, QtCore.SIGNAL( 'destroyed()' ),
-                            self._widgetclosed )
+        QtCore.QObject.connect(self.window, QtCore.SIGNAL('destroyed()'),
+                               self._widgetclosed)
         self.window._destroying = False
 
 #        self.toolbar = NXNavigationToolbar(self.canvas, self.window)
@@ -118,11 +114,11 @@ class NXFigureManager(FigureManager):
         # attach a show method to the figure for pylab ease of use
         self.canvas.figure.show = lambda *args: self.window.show()
 
-        def notify_axes_change( fig ):
+        def notify_axes_change(fig):
             # This will be called whenever the current axes is changed
             if self.canvas.toolbar is not None:
                 self.canvas.toolbar.update()
-        self.canvas.figure.add_axobserver( notify_axes_change )
+        self.canvas.figure.add_axobserver(notify_axes_change)
 
 class NXPlotView(QtGui.QWidget):
     """
@@ -416,7 +412,7 @@ class NXPlot(object):
             if vmin: self.vaxis.lo = vmin
             if vmax: self.vaxis.hi = vmax
 
-            if log: 
+            if log:
                 self.vtab.logbox.setChecked(True)
             else:
                 self.vtab.logbox.setChecked(False)
@@ -440,7 +436,7 @@ class NXPlot(object):
 
     def plot1D(self, fmt, over=False, **opts):
 
-        plt.ioff()
+        mpl.interactive(False)
         
         if not over: 
             self.figure.clf()
@@ -520,11 +516,11 @@ class NXPlot(object):
 
         self.canvas.draw_idle()
         self.otab.push_current()
-        plt.ion()
+        mpl.interactive(True)
 
     def plot2D(self, over=False, **opts):
 
-        plt.ioff()
+        mpl.interactive(False)
         if not over: self.figure.clf()
 
         self.v = self.plotdata.nxsignal.nxdata
@@ -596,10 +592,10 @@ class NXPlot(object):
         if self.colorbar:
             try:
                 self.colorbar.update_normal(self.image)
-            except:
+            except Exception:
                 self.colorbar = self.figure.colorbar(self.image, ax=ax)
         else:
-            self.colorbar = plt.colorbar(self.image)
+            self.colorbar = self.figure.colorbar(self.image, ax=ax)
 
         ax.set_xlabel(self.xaxis.label)
         ax.set_ylabel(self.yaxis.label)
@@ -614,7 +610,7 @@ class NXPlot(object):
         
         self.canvas.draw_idle()
         self.otab.push_current()
-        plt.ion()
+        mpl.interactive(True)
 
     def data2D(self):
         axes = [self.yaxis.dim,self.xaxis.dim]
@@ -646,9 +642,8 @@ class NXPlot(object):
             ax.set_yscale('linear')
         self.canvas.draw_idle()
         
-    @staticmethod
-    def show():
-        plt.show()    
+    def show(self):
+        self.figure.show()   
 
     def _fixaxes(self, data, axes):
         """
@@ -1765,8 +1760,8 @@ class NXNavigationToolbar(NavigationToolbar):
 
             # zoom to rect
             inverse = a.transData.inverted()
-            lastx, lasty = inverse.transform_point( (lastx, lasty) )
-            x, y = inverse.transform_point( (x, y) )
+            lastx, lasty = inverse.transform_point((lastx, lasty))
+            x, y = inverse.transform_point((x, y))
             Xmin,Xmax=a.get_xlim()
             Ymin,Ymax=a.get_ylim()
 
@@ -1872,14 +1867,14 @@ class NXNavigationToolbar(NavigationToolbar):
         self.plotview.ytab.maxbox.setValue(ymax)
         self.plotview.ytab.set_sliders(ymin, ymax)
 
-#    def set_cursor( self, cursor ):
+#    def set_cursor(self, cursor):
 #        pass
 
 
 def keep_data(data):
     from nexpy.gui.consoleapp import _tree
     if 'w0' not in _tree.keys():
-        scratch_space = _tree.add(NXroot(name='w0'))    # TODO: unused variable
+        _tree.add(NXroot(name='w0'))
     ind = []
     for key in _tree['w0'].keys():
         try:
