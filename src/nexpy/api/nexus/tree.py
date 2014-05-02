@@ -2164,6 +2164,8 @@ class NXgroup(NXobject):
         real-space slicing should only be used on monotonically increasing (or
         decreasing) one-dimensional arrays.
         """
+        if isinstance(idx, NXattr):
+            idx = idx.nxdata
         if isinstance(idx, basestring): #i.e., requesting a dictionary value
             return self._entries[idx]
 
