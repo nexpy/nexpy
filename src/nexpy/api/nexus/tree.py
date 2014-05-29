@@ -465,13 +465,13 @@ class NXFile(object):
         self.nxpath = parent + '/' + data.nxname
 
         # If the data is linked then
-        if hasattr(data,'_target'):
+        if hasattr(data, '_target'):
             return [(self.nxpath, data._target)]
 
-        if data._copydata:
-            with data._copydata.file as f:
-                f.copy(data._copydata.name, self[parent], self.nxpath)
-            data._copydata = None
+        if data._uncopied_data:
+            with data._uncopied_data.file as f:
+                f.copy(data._uncopied_data.name, self[parent], self.nxpath)
+            data._uncopied_data = None
         elif data._memfile:
             data._memfile.copy('data', self[parent], self.nxpath)
             data._memfile = None
@@ -579,19 +579,40 @@ class NXFile(object):
 
 
 def _getvalue(value, dtype=None, shape=None):
+    """
+    Returns a Numpy variable, dtype and shape based on the input Python value
+    
+    If the value is a masked array, the returned value is only returned as a 
+    masked array if some of the elements are masked.
+
+    If 'dtype' and/or 'shape' are specified as input arguments, the value is 
+    converted to the given dtype and/or reshaped to the given shape. Otherwise, 
+    the dtype and shape are determined from the value.
+    """
     if isinstance(value, basestring):
         _value = np.string_(value)
-    else:
+    elif not isinstance(value, np.ndarray):
         _value = np.asarray(value)
-    if dtype:
-        if dtype == 'char':
-            dtype = np.string_
-        _value = _value.astype(dtype)
-        _dtype = dtype
     else:
-        _dtype = _value.dtype
+        if isinstance(value, np.ma.MaskedArray):
+            if value.count() < value.size:
+                _value = value
+            else:
+                _value = np.asarray(value)
+        else:
+            _value = value
+    if dtype is not None:
+        if isinstance(dtype, basestring) and dtype == 'char':
+            dtype = np.string_
+        elif isinstance(value, np.bool_) and dtype != np.bool_:
+            raise NeXusError("Cannot assign a Boolean value to a non-Boolean NXobject")
+        _value = _value.astype(dtype)
+    _dtype = _value.dtype
     if shape:
-        _value = _value.reshape(shape)
+        try:
+            _value = _value.reshape(shape)
+        except ValueError:
+            raise NeXusError("The shape of the assigned value is incompatible with the NXobject")
         _shape = tuple(shape)
     else:
         _shape = _value.shape
@@ -781,7 +802,7 @@ class NXobject(object):
     _filename = None
     _mode = None
     _memfile = None
-    _copydata = None
+    _uncopied_data = None
     _saved = False
     _changed = True
 
@@ -1332,10 +1353,11 @@ class NXfield(NXobject):
         else:
             units = None            # TODO: unused variable
         del attrs
-        self._setdata(value)
         self._saved = False
+        self._masked = False
         self._filename = None
         self._memfile = None
+        self._setdata(value)
         self.set_changed()
 
     def __repr__(self):
@@ -1367,7 +1389,7 @@ class NXfield(NXobject):
         attributes for the NXfield class.
         """
         if name.startswith('_') or name.startswith('nx') or \
-           name == 'shape' or name == 'dtype':
+           name == 'mask' or name == 'shape' or name == 'dtype':
             object.__setattr__(self, name, value)
             return
         if isinstance(value, NXattr):
@@ -1397,10 +1419,18 @@ class NXfield(NXobject):
             result = self
         elif self._value is None:
             if self.nxfilemode:
-                with self.nxfile as f:
-                    result = f[self.nxpath][idx]
+                result = self._get_filedata(idx)
             elif self._memfile:
-                result = self._memfile['data'][idx]
+                result = self._get_memdata(idx)
+                mask = self.mask
+                if not mask is None:
+                    if isinstance(mask, NXfield):
+                        mask = mask[idx].nxdata
+                    else:
+                        mask = mask[idx]
+                    if isinstance(result, np.ma.MaskedArray):
+                        result = result.data
+                    result = np.ma.array(result, mask=mask)
             else:
                 raise NeXusError('Data not available either in file or in memory')
         else:
@@ -1413,40 +1443,133 @@ class NXfield(NXobject):
         """
         if self.nxfilemode == 'r':
             raise NeXusError("File opened as readonly")
-        if self._value is not None:
-            self._value[idx] = value
-        if self.nxfilemode == 'rw':
-            with self.nxfile as f:
-                f[self.nxpath][idx] = value
+        if value is np.ma.masked:
+            self._mask_data(idx)
         else:
-            if self._memfile is None:
-                self._get_memdata()
-            self._memfile['data'][idx] = value
+            if isinstance(value, np.bool_) and self.dtype != np.bool_:
+                raise NeXusError('Cannot set a Boolean value to a non-Boolean data type')
+            if self._value is not None:
+                self._value[idx] = value
+            if self.nxfilemode == 'rw':
+                self._put_filedata(idx, value)
+            elif self._value is None:
+                self._put_memdata(idx, value)
         self.set_changed()
 
-    def _get_memfile(self):
+    def _get_filedata(self, idx=()):
+        with self.nxfile as f:
+            result = f[self.nxpath][idx]
+            if 'mask' in self.attrs:
+                try:
+                    mask = self.nxgroup[self.attrs['mask'].nxdata]
+                    result = np.ma.array(result, mask=f[mask.nxpath][idx])
+                except KeyError:
+                    pass
+        return result
+
+    def _put_filedata(self, idx, value):
+        with self.nxfile as f:
+            if isinstance(value, np.ma.MaskedArray):
+                if self.mask is None:
+                    self._create_mask()
+                f[self.nxpath][idx] = value.data
+                f[self.mask.nxpath][idx] = value.mask
+            else:
+                f[self.nxpath][idx] = value
+
+    def _get_memdata(self, idx=()):
+        result = self._memfile['data'][idx]
+        if 'mask' in self._memfile:
+            result = np.ma.array(result, mask=self._memfile['mask'][idx])
+        return result
+    
+    def _put_memdata(self, idx, value):
+        if self._memfile is None:
+            self._create_memfile()
+        if 'data' not in self._memfile:
+            self._create_memdata()
+        self._memfile['data'][idx] = value
+        if isinstance(value, np.ma.MaskedArray):
+            if 'mask' not in self._memfile:
+                self._create_memmask()
+            self._memfile['mask'][idx] = value.mask
+    
+    def _create_memfile(self):
+        """
+        Creates an HDF5 memory-mapped file to store the data
+        """
         import tempfile
         self._memfile = NXFile(tempfile.mktemp(suffix='.nxs'),
                                driver='core', backing_store=False).file
 
-    def _get_memdata(self):
+    def _create_memdata(self):
+        """
+        Creates an HDF5 memory-mapped dataset to store the data
+        """
         if self._shape is not None and self._dtype is not None:
             if self._memfile is None:
-                self._get_memfile()
+                self._create_memfile()
             self._memfile.create_dataset('data', shape=self._shape, 
                                          dtype=self._dtype, 
                                          compression='gzip', chunks=True)
         else:
             raise NeXusError('Cannot allocate to field before setting shape and dtype')       
 
-    def _get_copydata(self):
-        with self._copydata.file as f:
+    def _create_memmask(self):
+        """
+        Creates an HDF5 memory-mapped dataset to store the data mask
+        """
+        if self._shape is not None:
+            if self._memfile is None:
+                self._create_memfile()
+            self._memfile.create_dataset('mask', shape=self._shape, 
+                                         dtype=np.bool, 
+                                         compression='gzip', chunks=True)
+        else:
+            raise NeXusError('Cannot allocate mask before setting shape')       
+
+    def _create_mask(self):
+        """
+        Create a data mask field if none exists
+        """
+        if self.nxgroup:
+            if 'mask' in self.attrs:
+                mask_name = self.attrs['mask'].nxdata
+                if mask_name in self.nxgroup.entries:
+                    return mask_name
+            mask_name = '%s_mask' % self.nxname
+            self.nxgroup[mask_name] = NXfield(shape=self._shape, dtype=np.bool, 
+                                              fillvalue=False)
+            self.attrs['mask'] = mask_name
+            self.mask.update()
+            return mask_name
+        return None      
+
+    def _mask_data(self, idx=()):
+        """
+        Add a data mask covering the specified indices
+        """
+        mask_name = self._create_mask()
+        if mask_name:
+            self.nxgroup[mask_name][idx] = True
+        elif self._memfile:
+            if 'mask' not in self._memfile:
+                self._create_memmask()
+            self._memfile['mask'][idx] = True
+        if self._value is not None:
+            if not isinstance(self._value, np.ma.MaskedArray):
+                self._value = np.ma.array(self._value)
+            self._value[idx] = np.ma.masked
+        self.update()
+
+    def _get_uncopied_data(self):
+        with self._uncopied_data.file as f:
             if self.nxfilemode == 'rw':
-                f.copy(self._copydata.name, self.nxpath)
+                f.copy(self._uncopied_data.name, self.nxpath)
             else:
-                self._get_memfile()
-                f.copy(self._copydata.name, self._memfile, 'data')
-        self._copydata = None
+                self._create_memfile()
+                f.copy(self._uncopied_data.name, self._memfile, 'data')
+        self._uncopied_data = None
 
     def __deepcopy__(self, memo):
         if isinstance(self, NXlink):
@@ -1461,13 +1584,13 @@ class NXfield(NXobject):
         dpcpy._changed = True
         dpcpy._saved = False
         dpcpy._memfile = None
-        dpcpy._copydata = None
+        dpcpy._uncopied_data = None
         if obj._value is not None:
             dpcpy._value = copy(obj._value)
         elif obj._memfile:
             dpcpy._memfile = obj._memfile
         elif obj.nxfilemode:
-            dpcpy._copydata = obj.nxfile[obj.nxpath]
+            dpcpy._uncopied_data = obj.nxfile[obj.nxpath]
         for k, v in obj.attrs.items():
             dpcpy.attrs[k] = copy(v)
         if 'target' in dpcpy.attrs:
@@ -1478,10 +1601,11 @@ class NXfield(NXobject):
         """
         Writes the NXfield, including attributes, to the NeXus file.
         """
-        if self.nxfilemode == 'rw' and not self.saved:
+        if self.nxfilemode == 'rw':
             with self.nxfile as f:
                 f.nxpath = self.nxgroup.nxpath
                 f._writedata(self)
+            self._saved = True
 
     def __len__(self):
         """
@@ -1643,7 +1767,7 @@ class NXfield(NXobject):
         """
         Returns an NXfield with the specified shape.
         """
-        return NXfield(value=self.nxdata.reshape(shape), name=self.nxname,
+        return NXfield(value=self.nxdata, name=self.nxname, shape=shape,
                        attrs=self.attrs)
 
     def transpose(self):
@@ -1737,15 +1861,24 @@ class NXfield(NXobject):
         if self._value is None:
             if np.prod(self.shape) * np.dtype(self.dtype).itemsize <= NX_MEMORY*1024*1024:
                 if self.nxfilemode:
-                    with self.nxfile as f:
-                        self._value = f[self.nxpath][()]
+                    self._value = self._get_filedata()
                 elif self._memfile:
-                    self._value = self._memfile['data'][()]
+                    self._value = self._get_memdata()
                     self._memfile = None
                 if self._value is not None:
                     self._value.shape = self._shape
             else:
                 raise NeXusError('Data size larger than NX_MEMORY=%s MB' % NX_MEMORY)
+        if not self.mask is None:
+            try:
+                if isinstance(self.mask, NXfield):
+                    mask = self.mask.nxdata
+                if isinstance(self._value, np.ma.MaskedArray):
+                    self._value = np.ma.array(self._value.data, mask=mask)
+                else:
+                    self._value = np.ma.array(self._value, mask=mask)
+            except Exception:
+                pass
         return self._value
 
     def _setdata(self, value):
@@ -1756,6 +1889,43 @@ class NXfield(NXobject):
                 _getvalue(value, self._dtype, self._shape)
             self._saved = False
             self.update()
+
+    def _getmask(self):
+        """
+        Returns the NXfield's mask as an array
+
+        Only works if the NXfield is in a group and has the 'mask' attribute set
+        or if the NXfield array is defined as a masked array.
+        """
+        if 'mask' in self.attrs:
+            if self.nxgroup:
+                try:
+                    return self.nxgroup[self.attrs['mask'].nxdata]
+                except KeyError:
+                    pass
+            del self.attrs['mask']
+        if self._value is None and self._memfile:
+            if 'mask' in self._memfile:
+                return self._memfile['mask']      
+        if self._value is not None and isinstance(self._value, 
+                                                  np.ma.MaskedArray):
+            return self._value.mask
+        return None
+
+    def _setmask(self, value):
+        if 'mask' in self.attrs:
+            if self.nxgroup:
+                mask_name = self.attrs['mask'].nxdata
+                if mask_name in self.nxgroup.entries:
+                    self.nxgroup[mask_name][()] = value
+            else:
+                del self.attrs['mask']
+        elif self._value is None:
+            if self._memfile:
+                self._create_memmask()
+                self._memfile['mask'][()] = value
+        if self._value is not None:
+            self._value = np.ma.array(self._value.data, mask=value)
 
     def _getdtype(self):
         return self._dtype
@@ -1791,12 +1961,14 @@ class NXfield(NXobject):
     def _getsize(self):
         return len(self)
 
-    nxdata = property(_getdata,_setdata,doc="Property: The data values")
-    nxaxes = property(_getaxes,doc="Property: The plotting axes")
-    dtype = property(_getdtype,_setdtype,doc="Property: Data type of NeXus field")
-    shape = property(_getshape,_setshape,doc="Property: Shape of NeXus field")
-    ndim = property(_getndim,doc="Property: No. of dimensions of NeXus field")
-    size = property(_getsize,doc="Property: Size of NeXus field")
+    nxdata = property(_getdata, _setdata, doc="Property: The data values")
+    nxaxes = property(_getaxes, doc="Property: The plotting axes")
+    mask = property(_getmask, _setmask, doc="Property: The data mask")
+    dtype = property(_getdtype, _setdtype, 
+                     doc="Property: Data type of NeXus field")
+    shape = property(_getshape, _setshape, doc="Property: Shape of NeXus field")
+    ndim = property(_getndim, doc="Property: No. of dimensions of NeXus field")
+    size = property(_getsize, doc="Property: Size of NeXus field")
 
     def plot(self, fmt='', xmin=None, xmax=None, ymin=None, ymax=None,
              zmin=None, zmax=None, **opts):
@@ -1824,7 +1996,8 @@ class NXfield(NXobject):
 
         # Check there is a plottable signal
         if 'signal' in self.attrs.keys() and 'axes' in self.attrs.keys():
-            axes = [getattr(self.nxgroup,name) for name in _readaxes(self.axes)]
+            axes = [getattr(self.nxgroup, name) 
+                    for name in _readaxes(self.axes)]
             data = NXdata(self, axes, title=self.nxpath)
         else:
             raise NeXusError('No plottable signal defined')
@@ -2178,7 +2351,10 @@ class NXgroup(NXobject):
             idx = convert_index(idx, axes[0])
             axes[0] = axes[0][idx]
             result = NXdata(self.nxsignal[idx], axes)
-            if self.nxerrors: result.errors = self.errors[idx]
+            if self.nxsignal.mask:
+                result[self.nxsignal.mask.nxname] = self.nxsignal.mask
+            if self.nxerrors: 
+                result.errors = self.errors[idx]
         else:
             i = 0
             slices = []
@@ -2218,13 +2394,29 @@ class NXgroup(NXobject):
             self._entries[key]._setdata(value)
         else:
             self._entries[key] = NXfield(value=value, name=key, group=self)
+        if isinstance(self._entries[key], NXfield):
+            field = self._entries[key]
+            if not field._value is None:
+                if isinstance(field._value, np.ma.MaskedArray):
+                    mask_name = field._create_mask()
+                    self[mask_name] = field._value.mask
+            elif field._memfile is not None:
+                if 'mask' in field._memfile:
+                    mask_name = field._create_mask()
+                    self[mask_name]._create_memfile()
+                    field._memfile.copy('mask', self[mask_name]._memfile, 'data')
+                    del field._memfile['mask']
         self.update()
     
     def __delitem__(self, key):
         if isinstance(key, basestring): #i.e., deleting a NeXus object
             if self.nxfilemode == 'rw':
                 with self.nxfile as f:
+                    if 'mask' in self._entries[key].attrs:
+                        del f[self._entries[key].mask.nxpath]
                     del f[self._entries[key].nxpath]
+            if 'mask' in self._entries[key].attrs:
+                del self._entries[self._entries[key].mask.nxname]
             del self._entries[key]
             self.set_changed()
 
@@ -2257,8 +2449,8 @@ class NXgroup(NXobject):
                 f._writelinks(links)
         elif self.nxfilemode is None:
             for node in self.walk():
-                if isinstance(node, NXfield) and node._copydata:
-                    node._get_copydata()
+                if isinstance(node, NXfield) and node._uncopied_data:
+                    node._get_uncopied_data()
         self.set_changed()
 
     def keys(self):
@@ -2382,8 +2574,7 @@ class NXgroup(NXobject):
     def project(self, axes, limits):
         """
         Projects the data along a specified 1D axis or 2D axes summing over the
-        limits, which are specified as tuples for each dimension. The values are
-        assumed to be floating point.
+        limits, which are specified as tuples for each dimension.
         
         This assumes that the data is at least two-dimensional.
         """
@@ -2395,12 +2586,7 @@ class NXgroup(NXobject):
             raise NeXusError("Projections to more than two dimensions not supported")
         projection_axes =  [x for x in range(len(limits)) if x not in axes]
         projection_axes.sort(reverse=True)
-        def make_float(value):
-            if value is not None:
-                return float(value)
-            else:
-                return None 
-        slab = [slice(make_float(_min), make_float(_max)) for _min, _max in limits]
+        slab = [slice(_min, _max) for _min, _max in limits]
         result = self[slab]
         slab_axes = list(projection_axes)
         for slab_axis in slab_axes:
@@ -3118,22 +3304,30 @@ def convert_index(idx, axis):
         else:
             start = 0
         if idx.stop is not None:
-            stop = axis.index(idx.stop,max=True)+1
+            stop = axis.index(idx.stop,max=True) + 1
         else:
             stop = axis.size - 1
         if stop <= start+1:
             idx = start
         else:
             idx = slice(start, stop)
+    elif isinstance(idx, slice):
+        if idx.start is not None and idx.stop is not None:
+            if idx.stop == idx.start or idx.stop == idx.start + 1:
+                idx = idx.start
     return idx
 
 def simplify_axes(data):
     shape = list(data.nxsignal.shape)
     while 1 in shape: 
         shape.remove(1)
-    data.entries[data.nxsignal.nxname] = data.nxsignal.reshape(shape)
-    if data.nxerrors:
-        data.entries[data.nxerrors.nxname] = data.nxerrors.reshape(shape)
+    data.nxsignal._shape = shape
+    if data.nxsignal._value is not None:
+        data.nxsignal._value.shape = shape
+    if data.nxerrors is not None:
+        data.nxerrors._shape = shape
+        if data.nxerrors._value:
+            data.nxerrors._value.shape = shape
     axes = []
     for axis in data.nxaxes:
         if len(axis) > 1: axes.append(axis)
@@ -3168,7 +3362,7 @@ def load(filename, mode='r'):
 
     This is aliased to 'nxload' because of potential name clashes with Numpy
     """
-    file = NXFile(filename,mode)
+    file = NXFile(filename, mode)
     tree = file.readfile()
     file.close()
     return tree

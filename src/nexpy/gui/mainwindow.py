@@ -50,6 +50,7 @@ pkg_resources.require("IPython>="+'1.1.0')
 from IPython.qt.console.rich_ipython_widget import RichIPythonWidget
 from IPython.qt.inprocess import QtInProcessKernelManager
 
+
 def report_error(context, error):
     title = type(error).__name__ + ': ' + context
     msgBox = QtGui.QMessageBox()
@@ -555,7 +556,7 @@ class MainWindow(QtGui.QMainWindow):
                 else:
                     raise NeXusError('Imported data must be an NXroot or NXentry group')
                 self.default_directory = os.path.dirname(self.import_dialog.import_file)
-        except Exception as error:
+        except NeXusError as error:
             report_error("Importing File", error)
 
     def new_workspace(self):
@@ -567,7 +568,7 @@ class MainWindow(QtGui.QMainWindow):
                 self.treeview.tree[name] = NXroot(NXentry())
                 self.treeview.selectnode(self.treeview.tree[name].entry)
                 self.treeview.update()
-        except Exception as error:
+        except NeXusError as error:
             report_error("Creating New Workspace", error)
 
     def open_file(self):
@@ -579,7 +580,7 @@ class MainWindow(QtGui.QMainWindow):
                 workspace = self.treeview.tree.get_name(fname)
                 self.treeview.tree[workspace] = self.user_ns[workspace] = nxload(fname)
                 self.default_directory = os.path.dirname(fname)
-        except Exception as error:
+        except NeXusError as error:
             report_error("Opening File", error)
   
     def open_editable_file(self):
@@ -590,7 +591,7 @@ class MainWindow(QtGui.QMainWindow):
             workspace = self.treeview.tree.get_name(fname)
             self.treeview.tree[workspace] = self.user_ns[workspace] = nxload(fname, 'rw')
             self.default_directory = os.path.dirname(fname)
-        except Exception as error:
+        except NeXusError as error:
             report_error("Opening File (Read/Write)", error)
 
     def save_file(self):
@@ -618,7 +619,7 @@ class MainWindow(QtGui.QMainWindow):
                     self.treeview.selectnode(self.treeview.tree[name])
                 self.treeview.update()
                 self.default_directory = os.path.dirname(fname)
-        except Exception as error:
+        except NeXusError as error:
             report_error("Saving File", error)
 
     def duplicate(self):
@@ -649,7 +650,7 @@ class MainWindow(QtGui.QMainWindow):
                 self.treeview.update()
             else:
                 raise NeXusError("Only NXroot groups can be duplicated")
-        except Exception as error:
+        except NeXusError as error:
             report_error("Duplicating File", error)
 
     def remove(self):
@@ -660,7 +661,7 @@ class MainWindow(QtGui.QMainWindow):
                           "Are you sure you want to remove '%s'?" % node.nxname)
                 if ret == QtGui.QMessageBox.Ok:
                     del node.nxgroup[node.nxname]    
-        except Exception as error:
+        except NeXusError as error:
             report_error("Removing File", error)
 
     def lock_file(self):
@@ -669,7 +670,7 @@ class MainWindow(QtGui.QMainWindow):
             if isinstance(node, NXroot):
                 node.lock()
                 self.treeview.update()
-        except Exception as error:
+        except NeXusError as error:
             report_error("Locking File", error)
 
     def unlock_file(self):
@@ -682,7 +683,7 @@ class MainWindow(QtGui.QMainWindow):
                 if ret == QtGui.QMessageBox.Ok:
                     node.unlock()
                     self.treeview.update()
-        except Exception as error:
+        except NeXusError as error:
             report_error("Unlocking File", error)
 
     def plot_data(self, fmt='o'):
@@ -696,7 +697,7 @@ class MainWindow(QtGui.QMainWindow):
                     if isinstance(node, NXfield):
                         dialog = PlotDialog(node, self)
                         dialog.show()
-        except Exception as error:
+        except NeXusError as error:
             report_error("Plotting Data", error)
 
     def overplot_data(self, fmt='o'):
@@ -708,7 +709,7 @@ class MainWindow(QtGui.QMainWindow):
                     node.oplot(fmt)
                 except:
                     pass
-        except Exception as error:
+        except NeXusError as error:
             report_error("Overplotting Data", error)
 
     def add_data(self):
@@ -721,7 +722,7 @@ class MainWindow(QtGui.QMainWindow):
                 dialog.show()
             else:
                 self.new_workspace()    
-        except Exception as error:
+        except NeXusError as error:
             report_error("Adding Data", error)
 
     def initialize_data(self):
@@ -735,7 +736,7 @@ class MainWindow(QtGui.QMainWindow):
                     dialog.show()
                 else:
                     raise NeXusError("An NXfield can only be added to an NXgroup")
-        except Exception as error:
+        except NeXusError as error:
             report_error("Initializing Data", error)
 
     def rename_data(self):
@@ -749,7 +750,7 @@ class MainWindow(QtGui.QMainWindow):
                         node.rename(name)
                 else:
                     raise NeXusError("NeXus file is locked")  
-#        except Exception as error:
+#        except NeXusError as error:
 #            report_error("Renaming Data", error)
 
     def copy_data(self):
@@ -759,7 +760,7 @@ class MainWindow(QtGui.QMainWindow):
                 self.copied_node = self.treeview.getnode()
             else:
                 raise NeXusError("Use 'Duplicate File' to copy an NXroot group")
-        except Exception as error:
+        except NeXusError as error:
             report_error("Copying Data", error)
 
     def paste_data(self):
@@ -770,7 +771,7 @@ class MainWindow(QtGui.QMainWindow):
                     node.insert(self.copied_node)
                 else:   
                     raise NeXusError("NeXus file is locked")
-        except Exception as error:
+        except NeXusError as error:
             report_error("Pasting Data", error)
  
     def paste_link(self):
@@ -781,7 +782,7 @@ class MainWindow(QtGui.QMainWindow):
                     node.makelink(self.copied_node)
                 else:
                     raise NeXusError("NeXus file is locked")
-        except Exception as error:
+        except NeXusError as error:
             report_error("Pasting Data as Link", error)
  
     def delete_data(self):
@@ -793,7 +794,7 @@ class MainWindow(QtGui.QMainWindow):
                     dialog.show()
                 else:   
                     raise NeXusError("NeXus file is locked") 
-        except Exception as error:
+        except NeXusError as error:
             report_error("Deleting Data", error)
 
     def show_link(self):
@@ -802,7 +803,7 @@ class MainWindow(QtGui.QMainWindow):
             if isinstance(node, NXlink):
                 self.treeview.selectnode(node.nxlink)
                 self.treeview.update()
-        except Exception as error:
+        except NeXusError as error:
             report_error("Showing Link", error)
 
     def set_signal(self):
@@ -817,7 +818,7 @@ class MainWindow(QtGui.QMainWindow):
                         raise NeXusError("Only NeXus fields can be a plottable signal")
                 else:   
                     raise NeXusError("NeXus file is locked")
-        except Exception as error:
+        except NeXusError as error:
             report_error("Setting Signal", error)
 
     def fit_data(self):
@@ -842,7 +843,7 @@ class MainWindow(QtGui.QMainWindow):
                 dialog.show()
             else:
                 raise NeXusError("Fitting only enabled for one-dimensional data")
-        except Exception as error:
+        except NeXusError as error:
             report_error("Fitting Data", error)
 
     def confirm_action(self, query, information=None):
@@ -1091,7 +1092,8 @@ class MainWindow(QtGui.QMainWindow):
         if plotview.ptab.panel:
             plotview.ptab.panel.raise_()
         else:
-            plotview.ptab.panel = NXProjectionPanel(plotview=plotview, parent=plotview.ptab)
+            plotview.ptab.panel = NXProjectionPanel(plotview=plotview, 
+                                                    parent=plotview.ptab)
             plotview.ptab.panel.update_limits()
             plotview.ptab.panel.show()
     

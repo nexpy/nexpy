@@ -573,6 +573,7 @@ The NeXpy shell imports the NeXus classes, NXfield, NXgroup, NXentry, etc. For
 convenience, it also imports a number of other modules that are commonly used::
 
  import numpy as np
+ import numpy.ma as ma
  import scipy as sp
  import matplotlib as mpl
  from matplotlib import pylab, mlab, pyplot

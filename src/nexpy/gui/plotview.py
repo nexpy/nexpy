@@ -28,7 +28,7 @@ from matplotlib.image import NonUniformImage
 from matplotlib.colors import LogNorm, Normalize
 from matplotlib.patches import Rectangle
 
-from nexpy.api.nexus import NXfield, NXdata, NXroot
+from nexpy.api.nexus import NXfield, NXdata, NXroot, NeXusError
 
 plotview = None
 plotviews = {}
@@ -301,7 +301,7 @@ class NXPlot(object):
 
         self.colorbar = None
         self.autoscale = False   
-        self.zoom = None   
+        self.zoom = None
     
     def plot(self, data, fmt='', xmin=None, xmax=None, ymin=None, ymax=None,
              vmin=None, vmax=None, **opts):
@@ -331,47 +331,16 @@ class NXPlot(object):
         logy = opts.pop("logy",False)
         cmap = opts.pop("cmap",None)
 
-        if cmap in cmaps: self.set_cmap(cmap)
+        if cmap in cmaps: 
+            self.set_cmap(cmap)
 
         self.data = data
         self.title = data.nxtitle
 
-        self.shape, self.axes = self._fixaxes(data.nxsignal, data.nxaxes)
-        self.ndim = len(self.shape)
-        self.axis_data = centers(self.shape, self.axes)
-        i = 0
-        self.axis = {}
-        for axis in self.axes:
-            self.axis[axis.nxname] = NXPlotAxis(axis)
-            self.axis[axis.nxname].centers = self.axis_data[i]
-            self.axis[axis.nxname].dim = i
-            i = i + 1
-
-        if self.ndim > 2:
-            idx=[np.s_[0] for i in self.data.nxsignal.shape[:-2]]
-            idx.extend([np.s_[:],np.s_[:]])
-            self.plotdata = NXdata(self.data.nxsignal[tuple(idx)],
-                                   [NXfield(self.axis_data[i], 
-                                            name=self.axes[i].nxname,
-                                            attrs=self.axes[i].attrs)
-                                    for i in [-2,-1]])
-            self.shape = self.shape[-2:]
-        else:
-            self.plotdata = NXdata(self.data.nxsignal,
-                                   [NXfield(self.axis_data[i], 
-                                            name=self.axes[i].nxname,
-                                            attrs=self.axes[i].attrs)
-                                    for i in range(self.ndim)])
-            self.plotdata.nxsignal.shape = self.shape
-        self.plotdata['title'] = self.title
+        self.plotdata = self.get_plotdata()
 
         #One-dimensional Plot
         if self.ndim == 1:
-            if data.nxerrors and data.nxerrors != data.nxsignal:
-                self.plotdata.errors = NXfield(data.errors)
-                self.plotdata.errors.shape = self.shape
-            elif hasattr(data.nxsignal, 'units') and data.nxsignal.units == 'counts':
-                self.plotdata.errors = NXfield(np.sqrt(self.plotdata.nxsignal))
             if over:
                 self.num = self.num + 1
             else:
@@ -521,7 +490,8 @@ class NXPlot(object):
     def plot2D(self, over=False, **opts):
 
         mpl.interactive(False)
-        if not over: self.figure.clf()
+        if not over: 
+            self.figure.clf()
 
         self.v = self.plotdata.nxsignal.nxdata
         self.x = self.plotdata.nxaxes[1].nxdata
@@ -566,6 +536,7 @@ class NXPlot(object):
         extent = (self.xaxis.min,self.xaxis.max,self.yaxis.min,self.yaxis.max)
 
         self.image = NonUniformImage(ax, extent=extent, cmap=cmap, **opts)
+        self.image.get_cmap().set_bad('k', 1.0)
         self.image.set_data(self.x, self.y, self.v)
         
         ax.images.append(self.image)
@@ -621,7 +592,49 @@ class NXPlot(object):
             else:
                 limits.append((self.axis[axis.nxname].lo,
                                self.axis[axis.nxname].hi))
-        return self.data.project(axes, limits)
+        plotdata = self.data.project(axes, limits)
+        for axis in plotdata.nxaxes:
+            plotdata[axis.nxname] = self.plotdata[axis.nxname]
+        return plotdata
+
+    def get_plotdata(self):
+        self.shape, self.axes = self._fixaxes(self.data.nxsignal, 
+                                              self.data.nxaxes)
+        self.ndim = len(self.shape)
+        self.axis_data = centers(self.shape, self.axes)
+        i = 0
+        self.axis = {}
+        for axis in self.axes:
+            self.axis[axis.nxname] = NXPlotAxis(axis)
+            self.axis[axis.nxname].centers = self.axis_data[i]
+            self.axis[axis.nxname].dim = i
+            i = i + 1
+
+        if self.ndim > 2:
+            idx=[np.s_[0] for i in self.data.nxsignal.shape[:-2]]
+            idx.extend([np.s_[:],np.s_[:]])
+            plotdata = NXdata(self.data.nxsignal[tuple(idx)][()],
+                              [NXfield(self.axis_data[i], 
+                                       name=self.axes[i].nxname,
+                                       attrs=self.axes[i].attrs)
+                               for i in [-2,-1]])
+            self.shape = self.shape[-2:]
+        else:
+            plotdata = NXdata(self.data.nxsignal[()],
+                              [NXfield(self.axis_data[i], 
+                                       name=self.axes[i].nxname,
+                                       attrs=self.axes[i].attrs)
+                               for i in range(self.ndim)])
+            plotdata.nxsignal.shape = self.shape
+
+        if self.ndim == 1:
+            if self.data.nxerrors and self.data.nxerrors != self.data.nxsignal:
+                plotdata.errors = NXfield(self.data.errors)
+                plotdata.errors.shape = self.shape
+
+        plotdata['title'] = self.title
+        
+        return plotdata
 
     def replot_axes(self):
         ax = self.figure.gca()
@@ -694,9 +707,7 @@ class NXPlot(object):
             self.ytab.logbox.setVisible(False)
             self.ytab.axiscombo.setVisible(True)
         if self.ptab.panel:
-            self.ptab.panel.destroy(True)
-            self.ptab.panel = None
-
+            self.ptab.panel.close()
 
     def update_tabs(self):
         self.xtab.minbox.setMinimum(self.xtab.axis.min)
@@ -716,7 +727,8 @@ class NXPlot(object):
         if tab == self.xtab and axis == self.yaxis:
             self.yaxis = self.ytab.axis = self.xtab.axis
             self.xaxis = self.xtab.axis = axis
-            self.plotdata = NXdata(self.plotdata.nxsignal.T, self.plotdata.nxaxes[::-1],
+            self.plotdata = NXdata(self.plotdata.nxsignal.T, 
+                                   self.plotdata.nxaxes[::-1],
                                    title = self.title)
             self.plot2D()
             self.xtab.set_axis(self.xaxis)
@@ -725,7 +737,8 @@ class NXPlot(object):
         elif tab == self.ytab and axis == self.xaxis:
             self.xaxis = self.xtab.axis = self.ytab.axis
             self.yaxis = self.ytab.axis = axis
-            self.plotdata = NXdata(self.plotdata.nxsignal.T, self.plotdata.nxaxes[::-1],
+            self.plotdata = NXdata(self.plotdata.nxsignal.T, 
+                                   self.plotdata.nxaxes[::-1],
                                    title = self.title)
             self.plot2D()
             self.xtab.set_axis(self.xaxis)
@@ -754,12 +767,14 @@ class NXPlot(object):
                 else:
                     limits.append((self.axis[axis.nxname].lo,
                                    self.axis[axis.nxname].hi))
-            self.plotdata = self.data.project(axes,limits)
+            self.plotdata = self.data.project(axes, limits)
             self.plot2D()
             self.xtab.set_axis(self.xaxis)
             self.ytab.set_axis(self.yaxis)
             self.ztab.set_axis(self.zaxis)
             self.vtab.set_axis(self.vaxis)
+            if self.ptab.panel:
+                self.ptab.panel.update_limits()
 
     def format_coord(self, x, y):
         if x >= self.x[0] and x <= self.x[-1] and \
@@ -1234,7 +1249,14 @@ class NXSpinBox(QtGui.QSpinBox):
         self.diff = None
 
     def value(self):
-        return float(self.data[super(NXSpinBox, self).value()])
+        if self.data is not None:
+            return float(self.data[self.index])
+        else:
+            return 0.0
+
+    @property
+    def index(self):
+        return super(NXSpinBox, self).value()
 
     def setValue(self, value):
         super(NXSpinBox, self).setValue(self.valueFromText(value))
@@ -1251,7 +1273,37 @@ class NXSpinBox(QtGui.QSpinBox):
             return str(float('%.4g' % self.data[value]))
         except:
             return ''
-    
+
+    def valueFromIndex(self, idx):
+        if idx < 0:
+            return self.data[0]
+        elif idx > self.maximum():
+            return self.data[-1]
+        else:
+            return self.data[idx]
+
+    def minBoundaryValue(self, idx):
+        if idx <= 0:
+            return self.data[0] - (np.float(self.data[1]) - 
+                                   np.float(self.data[0])) / 2
+        elif idx >= len(self.data) - 1:
+            return self.data[-1] - (np.float(self.data[-1]) - 
+                                    np.float(self.data[-2])) / 2
+        else:
+            return self.data[idx] - (np.float(self.data[idx]) - 
+                                     np.float(self.data[idx-1])) / 2
+
+    def maxBoundaryValue(self, idx):
+        if idx <= 0:
+            return self.data[0] + (np.float(self.data[1]) - 
+                                   np.float(self.data[0])) / 2
+        elif idx >= len(self.data) - 1:
+            return self.data[-1] + (np.float(self.data[-1]) - 
+                                    np.float(self.data[-2])) / 2
+        else:
+            return self.data[idx] + (np.float(self.data[idx+1]) - 
+                                     np.float(self.data[idx])) / 2
+
     def validate(self, input_value, pos):
         return self.validator.validate(input_value, pos)
 
@@ -1429,7 +1481,6 @@ class NXProjectionTab(QtGui.QWidget):
         if not self.panel:
             self.panel = NXProjectionPanel(plotview=self.plotview, parent=self)        
         self.panel.show()
-        self.panel.set_defaults()
         self.panel.update_limits()
 
 
@@ -1452,7 +1503,7 @@ class NXProjectionPanel(QtGui.QDialog):
         self.xbox.activated.connect(self.set_xaxis)
         widgets.append(QtGui.QLabel('X-Axis:'))
         widgets.append(self.xbox)
-        self.set_xaxis()
+        self.xaxis = self.xbox.currentText()
 
         self.ybox = QtGui.QComboBox()
         self.ybox.setCurrentIndex(self.ybox.findText(self.plotview.plot.yaxis.name))
@@ -1461,7 +1512,7 @@ class NXProjectionPanel(QtGui.QDialog):
         self.ylabel = QtGui.QLabel('Y-Axis:')
         widgets.append(self.ylabel)
         widgets.append(self.ybox)
-        self.set_yaxis()
+        self.yaxis = self.ybox.currentText()
 
         self.set_axes()
 
@@ -1495,55 +1546,69 @@ class NXProjectionPanel(QtGui.QDialog):
         self.lockbox = {}
         for axis in self.get_axes():
             row += 1
-            self.minbox[axis] = self.doublespinbox()
-            self.maxbox[axis] = self.doublespinbox()
+            self.minbox[axis] = self.spinbox()
+            self.maxbox[axis] = self.spinbox()
             self.lockbox[axis] = QtGui.QCheckBox()
-            self.lockbox[axis].setChecked(False)
             self.lockbox[axis].stateChanged.connect(self.set_lock)
             grid.addWidget(QtGui.QLabel(axis), row, 0)
             grid.addWidget(self.minbox[axis], row, 1)
             grid.addWidget(self.maxbox[axis], row, 2)
-            grid.addWidget(self.lockbox[axis], row, 3, alignment=QtCore.Qt.AlignHCenter)
+            grid.addWidget(self.lockbox[axis], row, 3, 
+                           alignment=QtCore.Qt.AlignHCenter)
 
-        layout.addLayout(grid)
-           
-        buttonbox = QtGui.QHBoxLayout()
-        widgets = []  
+        row += 1          
         self.save_button = QtGui.QPushButton("Save", self)
         self.save_button.clicked.connect(self.save_projection)
         self.save_button.setDefault(False)
         self.save_button.setAutoDefault(False)
-        widgets.append(self.save_button)
-
+        grid.addWidget(self.save_button, row, 1)
         self.plot_button = QtGui.QPushButton("Plot", self)
         self.plot_button.clicked.connect(self.plot_projection)
         self.plot_button.setDefault(False)
         self.plot_button.setAutoDefault(False)
-        widgets.append(self.plot_button)
-        
-        self.overplot_box = QtGui.QCheckBox("Over")
+        grid.addWidget(self.plot_button, row, 2)
+        self.overplot_box = QtGui.QCheckBox()
         self.overplot_box.setChecked(False)
         self.overplot_box.setVisible(False)
-        widgets.append(self.overplot_box)
+        grid.addWidget(self.overplot_box, row, 3, 
+                       alignment=QtCore.Qt.AlignHCenter)
 
-        buttonbox.addStretch()
-        for w in widgets:
-            buttonbox.addWidget(w)
-            buttonbox.setAlignment(w, QtCore.Qt.AlignVCenter)
-        buttonbox.addStretch()
+        row += 1
+        self.mask_button = QtGui.QPushButton("Mask", self)
+        self.mask_button.clicked.connect(self.mask_data)
+        self.mask_button.setDefault(False)
+        self.mask_button.setAutoDefault(False)
+        grid.addWidget(self.mask_button, row, 1)
+        self.unmask_button = QtGui.QPushButton("Unmask", self)
+        self.unmask_button.clicked.connect(self.unmask_data)
+        self.unmask_button.setDefault(False)
+        self.unmask_button.setAutoDefault(False)
+        grid.addWidget(self.unmask_button, row, 2)
+
+        layout.addLayout(grid)
 
         self.close_button = QtGui.QPushButton("Close Panel", self)
         self.close_button.clicked.connect(self.close)
         self.close_button.setDefault(False)
         self.close_button.setAutoDefault(False)
-        buttonbox.addWidget(self.close_button)
-        
-        layout.addLayout(buttonbox)
+        layout.addWidget(self.close_button)
         
         self.setLayout(layout)
         self.setWindowTitle('Projection Panel - ' + self.plotview.label)
 
-        self.set_defaults()
+        for axis in self.get_axes():
+            self.minbox[axis].data = self.maxbox[axis].data = \
+                self.plotview.plot.axis[axis].centers
+            self.minbox[axis].setMaximum(self.minbox[axis].data.size-1)
+            self.maxbox[axis].setMaximum(self.maxbox[axis].data.size-1)
+            self.minbox[axis].diff = self.maxbox[axis].diff = None
+
+        for axis in self.get_axes():
+            self.minbox[axis].setValue(self.minbox[axis].data[0])
+            self.maxbox[axis].setValue(self.minbox[axis].data[-1])
+            self.lockbox[axis].setChecked(False)
+
+        self.rectangle = None
 
     def get_axes(self):
         return self.plotview.xtab.get_axes()
@@ -1569,24 +1634,22 @@ class NXProjectionPanel(QtGui.QDialog):
 
     def set_xaxis(self):
         self.xaxis = self.xbox.currentText()
+        if self.xaxis == self.yaxis:
+            self.ybox.setCurrentIndex(self.ybox.findText('None'))
+            self.yaxis = 'None'
 
     def set_yaxis(self):
+        yaxis = self.yaxis
         self.yaxis = self.ybox.currentText()
-
-    def set_defaults(self):
-        self.rectangle = None
-        self.xbox.setCurrentIndex(self.xbox.findText(self.plotview.plot.xaxis.name))
-        self.ybox.setCurrentIndex(self.ybox.findText(self.plotview.plot.yaxis.name))
-        for axis in self.get_axes():
-            _min = self.plotview.plot.axis[axis].min
-            _max = self.plotview.plot.axis[axis].max
-            self.minbox[axis].diff = self.maxbox[axis].diff = None
-            self.minbox[axis].setRange(_min, _max)
-            self.minbox[axis].setValue(_min)
-            self.minbox[axis].setSingleStep((_max-_min)/20)
-            self.maxbox[axis].setRange(_min, _max)
-            self.maxbox[axis].setValue(_max)
-            self.maxbox[axis].setSingleStep((_max-_min)/20)
+        if self.yaxis == self.xaxis and yaxis != 'None':
+            self.xbox.setCurrentIndex(self.xbox.findText(yaxis))
+            self.xaxis = yaxis
+        else:
+            for idx in range(self.xbox.count()):
+                if self.xbox.itemText(idx) != self.yaxis:
+                    self.xbox.setCurrentIndex(idx)
+                    self.xaxis = self.xbox.currentText()
+                    break
 
     def set_limits(self):
         for axis in self.get_axes():
@@ -1599,21 +1662,23 @@ class NXProjectionPanel(QtGui.QDialog):
 
     def get_limits(self, axis=None):
         if axis:
-            return self.minbox[axis].value(), self.maxbox[axis].value()
+            return self.minbox[axis].index, self.maxbox[axis].index+1
         else:
-            return [(self.minbox[axis].value(), self.maxbox[axis].value()) 
+            return [(self.minbox[axis].index, self.maxbox[axis].index+1) 
                      for axis in self.get_axes()]
     
     def update_limits(self):
         for axis in self.get_axes():
             lo, hi = self.plotview.plot.axis[axis].get_limits()
             self.minbox[axis].setValue(lo)
+            self.minbox[axis].stepBy(1)
             self.maxbox[axis].setValue(hi)
+            self.maxbox[axis].stepBy(-2)
 
     def set_lock(self):
         for axis in self.get_axes():
             if self.lockbox[axis].isChecked():
-                lo, hi = self.get_limits(axis)
+                lo, hi = self.minbox[axis].value(), self.maxbox[axis].value()
                 self.minbox[axis].diff = self.maxbox[axis].diff = hi - lo
                 self.minbox[axis].setDisabled(True)
             else:
@@ -1668,16 +1733,34 @@ class NXProjectionPanel(QtGui.QDialog):
             self.overplot_box.setChecked(False)
         self.plotview.make_active()
         plotviews[projection.label].raise_()
-        self.raise_()
 
-    def doublespinbox(self):
-        doublespinbox = NXDoubleSpinBox()
-        doublespinbox.setAlignment(QtCore.Qt.AlignRight)
-        doublespinbox.setFixedWidth(100)
-        doublespinbox.setKeyboardTracking(False)
-        doublespinbox.editingFinished.connect(self.set_limits)
-        doublespinbox.valueChanged[unicode].connect(self.set_limits)
-        return doublespinbox
+    def mask_data(self):
+        try:
+            limits = tuple(slice(x,y) for x,y in self.get_limits())
+            self.plotview.plot.data.nxsignal[limits] = np.ma.masked
+            self.plotview.xtab.replot()
+        except NeXusError as error:
+            from mainwindow import report_error
+            report_error("Masking Data", error)
+
+    def unmask_data(self):
+        try:
+            limits = tuple(slice(x,y) for x,y in self.get_limits())
+            self.plotview.plot.data.nxsignal.mask[limits] = np.ma.nomask
+            self.plotview.xtab.replot()
+        except NeXusError as error:
+            from mainwindow import report_error
+            report_error("Masking Data", error)
+
+    def spinbox(self):
+        spinbox = NXSpinBox()
+        spinbox.setAlignment(QtCore.Qt.AlignRight)
+        spinbox.setFixedWidth(100)
+        spinbox.setKeyboardTracking(False)
+        spinbox.setAccelerated(True)
+        spinbox.editingFinished.connect(self.set_limits)
+        spinbox.valueChanged[unicode].connect(self.set_limits)
+        return spinbox
 
     def draw_rectangle(self):
         try:
@@ -1687,12 +1770,13 @@ class NXProjectionPanel(QtGui.QDialog):
         ax = self.plotview.figure.axes[0]
         xp = self.plotview.plot.xaxis.name
         yp = self.plotview.plot.yaxis.name
-        x0 = self.minbox[xp].value()
-        x1 = self.maxbox[xp].value()
-        y0 = self.minbox[yp].value()
-        y1 = self.maxbox[yp].value()
+        x0 = self.minbox[xp].minBoundaryValue(self.minbox[xp].index)
+        x1 = self.maxbox[xp].maxBoundaryValue(self.maxbox[xp].index)
+        y0 = self.minbox[yp].minBoundaryValue(self.minbox[yp].index)
+        y1 = self.maxbox[yp].maxBoundaryValue(self.maxbox[yp].index)
         
         self.rectangle = ax.add_patch(Rectangle((x0,y0),x1-x0,y1-y0))
+        self.rectangle.set_color('white')
         self.rectangle.set_facecolor('none')
         self.rectangle.set_linestyle('dashed')
         self.rectangle.set_linewidth(2)
@@ -1899,3 +1983,19 @@ def centers(shape, axes):
             assert axis.shape[0] == dimlen
             return axis.nxdata
     return [findc(a,shape[i]) for i,a in enumerate(axes)]
+
+def boundaries(axis, dimlen):
+    """
+    Return the bin boundary of an axis given the data dimension.
+
+    This works regardless if the axis contains bin boundaries or centers.
+    """
+    if axis.shape[0] == dimlen:
+        start = axis[0] - (axis[1] - axis[0])/2
+        end = axis[-1] + (axis[-1] - axis[-2])/2
+        return np.concatenate((np.atleast_1d(start),
+                               (axis[:-1] + axis[1:])/2,
+                               np.atleast_1d(end)))
+    else:
+        assert axis.shape[0] == dimlen+1
+        return axis
