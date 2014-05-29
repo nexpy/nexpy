@@ -50,6 +50,7 @@ pkg_resources.require("IPython>="+'1.1.0')
 from IPython.qt.console.rich_ipython_widget import RichIPythonWidget
 from IPython.qt.inprocess import QtInProcessKernelManager
 
+
 def report_error(context, error):
     title = type(error).__name__ + ': ' + context
     msgBox = QtGui.QMessageBox()
@@ -1091,7 +1092,8 @@ class MainWindow(QtGui.QMainWindow):
         if plotview.ptab.panel:
             plotview.ptab.panel.raise_()
         else:
-            plotview.ptab.panel = NXProjectionPanel(plotview=plotview, parent=plotview.ptab)
+            plotview.ptab.panel = NXProjectionPanel(plotview=plotview, 
+                                                    parent=plotview.ptab)
             plotview.ptab.panel.update_limits()
             plotview.ptab.panel.show()
     
