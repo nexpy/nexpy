@@ -1711,28 +1711,39 @@ class NXProjectionPanel(QtGui.QDialog):
         fixed_axes = []
         for axis in axes:
             fixed_axes.append(fixed_limits.index(axis_map[axis]))
+        for axis in fixed_axes:
+            if fixed_limits[axis][1] <= fixed_limits[axis][0] + 1:
+                raise NeXusError('Projection axis must have a size > 1')
         return fixed_axes, fixed_limits
 
     def save_projection(self):
-        axes, limits = self.get_projection()
-        keep_data(self.plotview.plot.data.project(axes, limits))
+        try:
+            axes, limits = self.get_projection()
+            keep_data(self.plotview.plot.data.project(axes, limits))
+        except NeXusError as error:
+            from mainwindow import report_error
+            report_error("Saving Projection", error)
 
     def plot_projection(self):
-        axes, limits = self.get_projection()
-        projection = change_plotview("Projection - " + self.plotview.label)
-        if len(axes) == 1 and self.overplot_box.isChecked():
-            over = True
-        else:
-            over = False
-        projection.plot.plot(self.plotview.plot.data.project(axes, limits), 
+        try:
+            axes, limits = self.get_projection()
+            projection = change_plotview("Projection - " + self.plotview.label)
+            if len(axes) == 1 and self.overplot_box.isChecked():
+                over = True
+            else:
+                over = False
+            projection.plot.plot(self.plotview.plot.data.project(axes, limits), 
                              over=over)
-        if len(axes) == 1:
-            self.overplot_box.setVisible(True)
-        else:
-            self.overplot_box.setVisible(False)
-            self.overplot_box.setChecked(False)
-        self.plotview.make_active()
-        plotviews[projection.label].raise_()
+            if len(axes) == 1:
+                self.overplot_box.setVisible(True)
+            else:
+                self.overplot_box.setVisible(False)
+                self.overplot_box.setChecked(False)
+            self.plotview.make_active()
+            plotviews[projection.label].raise_()
+        except NeXusError as error:
+            from mainwindow import report_error
+            report_error("Plotting Projection", error)
 
     def mask_data(self):
         try:
