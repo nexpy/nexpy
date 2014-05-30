@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -8,15 +6,15 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Python Interface to NeXus &mdash; NeXpy 0.1.7 documentation</title>
+    <title>Python Interface to NeXus &mdash; NeXpy 0.2.0 documentation</title>
     
     <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '',
-        VERSION:     '0.1.7',
+        URL_ROOT:    './',
+        VERSION:     '0.2.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -27,7 +25,7 @@
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="shortcut icon" href="_static/favicon.ico"/>
-    <link rel="top" title="NeXpy 0.1.7 documentation" href="index.html" />
+    <link rel="top" title="NeXpy 0.2.0 documentation" href="index.html" />
     <link rel="next" title="NeXus Tree API Modules" href="treeapi.html" />
     <link rel="prev" title="Python Graphical User Interface" href="pythongui.html" /> 
   </head>
@@ -47,7 +45,7 @@
         <li class="right" >
           <a href="pythongui.html" title="Python Graphical User Interface"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">NeXpy 0.1.7 documentation</a> &raquo;</li> 
+        <li><a href="index.html">NeXpy 0.2.0 documentation</a> &raquo;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar">
@@ -64,6 +62,7 @@
 <li><a class="reference internal" href="#nexus-fields">NeXus Fields</a><ul>
 <li><a class="reference internal" href="#nexus-attributes">NeXus attributes</a></li>
 <li><a class="reference internal" href="#slab-input-output">Slab Input/Output</a></li>
+<li><a class="reference internal" href="#masked-arrays">Masked Arrays</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#nexus-groups">NeXus Groups</a><ul>
@@ -131,11 +130,12 @@
 <h1>Python Interface to NeXus<a class="headerlink" href="#python-interface-to-nexus" title="Permalink to this headline">¶</a></h1>
 <p>The Python interface to NeXus can be used within a standard Python or iPython
 shell:</p>
-<div class="highlight-python"><pre>$ python
+<div class="highlight-python"><div class="highlight"><pre>$ python
 Python 2.7.2 (default, Oct 11 2012, 20:14:37)
 [GCC 4.2.1 Compatible Apple Clang 4.0 (tags/Apple/clang-418.0.60)] on darwin
-Type "help", "copyright", "credits" or "license" for more information.
-&gt;&gt;&gt; from nexpy.api import nexus</pre>
+Type &quot;help&quot;, &quot;copyright&quot;, &quot;credits&quot; or &quot;license&quot; for more information.
+&gt;&gt;&gt; from nexpy.api import nexus
+</pre></div>
 </div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
@@ -365,6 +365,47 @@ floats, this will be a numpy array. If the values have not been
 loaded, &#8216;nxdata&#8217; is set to None.</p>
 </div>
 </div>
+<div class="section" id="masked-arrays">
+<h4>Masked Arrays<a class="headerlink" href="#masked-arrays" title="Permalink to this headline">¶</a></h4>
+<p>Numpy has the ability to store arrays with masks to remove missing or invalid
+data from computations of, <em>e.g.</em>, averages or maxima. Since Matplotlib is able
+to handle masked arrays and removes masked data from plots, this is a convenient
+way of preventing bad data from contaminating statistical analyses, while
+preserving all the data values, good and bad, <em>i.e.</em>, masks can be turned on and
+off.</p>
+<p>NeXpy uses the same syntax as Numpy for masking and unmasking data.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">z</span> <span class="o">=</span> <span class="n">NXfield</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">6</span><span class="p">],</span> <span class="n">name</span><span class="o">=</span><span class="s">&#39;z&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">z</span><span class="p">[</span><span class="mi">3</span><span class="p">:</span><span class="mi">5</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">z</span>
+<span class="go">NXfield([1 2 3 -- -- 6])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">z</span><span class="o">.</span><span class="n">mask</span>
+<span class="go">array([False, False, False,  True,  True, False], dtype=bool)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">z</span><span class="o">.</span><span class="n">mask</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">nomask</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">z</span>
+<span class="go">NXfield([1 2 3 4 -- 6])</span>
+</pre></div>
+</div>
+<p>If the NXfield does not have a parent group, the mask is stored within the field
+as in Numpy arrays. However, if the NXfield has a parent group, the mask is
+stored in a separate NXfield that is generated automatically by the mask
+assignment or whenever the masked NXfield is assigned to a group. The mask is
+identified by the &#8216;mask&#8217; attribute of the masked NXfield.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">NXlog</span><span class="p">(</span><span class="n">z</span><span class="p">)</span><span class="o">.</span><span class="n">tree</span>
+<span class="go">log:NXlog</span>
+<span class="go">z = [1 2 3 4 -- 6]</span>
+<span class="go"> @mask = z_mask</span>
+<span class="go">z_mask = [False False False False  True False]</span>
+</pre></div>
+</div>
+<p>The mask can then be saved to the NeXus file if required.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">In principle, the NXfield containing the mask can be modified
+manually, but it is recommended that modifications to the mask use
+the methods described above.</p>
+</div>
+<p>Masks can also be set using the Projection panel in the <a class="reference internal" href="pythongui.html"><em>Python Graphical User Interface</em></a>.</p>
+</div>
 </div>
 <div class="section" id="nexus-groups">
 <h3>NeXus Groups<a class="headerlink" href="#nexus-groups" title="Permalink to this headline">¶</a></h3>
@@ -412,7 +453,7 @@ creating nested groups with minimal typing:</p>
 <span class="go">    temperature = 40.0</span>
 </pre></div>
 </div>
-<div class="admonition-see-also admonition seealso">
+<div class="admonition seealso">
 <p class="first admonition-title">See also</p>
 <p class="last">Existing NeXus objects can also be inserted directly into groups.
 See <a class="reference internal" href="treeapi.html#nexpy.api.nexus.tree.NXgroup.insert" title="nexpy.api.nexus.tree.NXgroup.insert"><tt class="xref py py-mod docutils literal"><span class="pre">nexpy.api.nexus.tree.NXgroup.insert</span></tt></a></p>
@@ -588,7 +629,7 @@ the parent object as an argument:</p>
 <span class="go">          @units = degree</span>
 </pre></div>
 </div>
-<div class="admonition-see-also admonition seealso">
+<div class="admonition seealso">
 <p class="first admonition-title">See also</p>
 <p class="last"><a class="reference internal" href="treeapi.html#nexpy.api.nexus.tree.NXgroup.makelink" title="nexpy.api.nexus.tree.NXgroup.makelink"><tt class="xref py py-mod docutils literal"><span class="pre">nexpy.api.nexus.tree.NXgroup.makelink</span></tt></a></p>
 </div>
@@ -602,7 +643,7 @@ determines what should be plotted:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
 </pre></div>
 </div>
-<img alt="_images/simple-plot.png" class="align-center" src="_images/simple-plot.png" style="width: 80%;" />
+<a class="reference internal image-reference" href="_images/simple-plot.png"><img alt="_images/simple-plot.png" class="align-center" src="_images/simple-plot.png" style="width: 80%;" /></a>
 <p>Note that the plot method uses the NeXus attributes within the groups to
 determine automatically which NXfield is the signal, what its rank and
 dimensions are, and which NXfields define the plottable axes. The same command
@@ -977,12 +1018,12 @@ NeXus file. Children of the NeXus object will be saved.</p>
         <li class="right" >
           <a href="pythongui.html" title="Python Graphical User Interface"
              >previous</a> |</li>
-        <li><a href="index.html">NeXpy 0.1.7 documentation</a> &raquo;</li> 
+        <li><a href="index.html">NeXpy 0.2.0 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
         &copy; Copyright 2013-2014, Ray Osborn.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
   </body>
 </html>

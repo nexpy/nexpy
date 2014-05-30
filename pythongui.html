@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -8,15 +6,15 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Python Graphical User Interface &mdash; NeXpy 0.1.7 documentation</title>
+    <title>Python Graphical User Interface &mdash; NeXpy 0.2.0 documentation</title>
     
     <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '',
-        VERSION:     '0.1.7',
+        URL_ROOT:    './',
+        VERSION:     '0.2.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -27,7 +25,7 @@
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="shortcut icon" href="_static/favicon.ico"/>
-    <link rel="top" title="NeXpy 0.1.7 documentation" href="index.html" />
+    <link rel="top" title="NeXpy 0.2.0 documentation" href="index.html" />
     <link rel="next" title="Python Interface to NeXus" href="pythonshell.html" />
     <link rel="prev" title="Installation" href="includeme.html" /> 
   </head>
@@ -47,7 +45,7 @@
         <li class="right" >
           <a href="includeme.html" title="Installation"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">NeXpy 0.1.7 documentation</a> &raquo;</li> 
+        <li><a href="index.html">NeXpy 0.2.0 documentation</a> &raquo;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar">
@@ -115,14 +113,15 @@
 <p>A PyQT GUI has been created to make it easier to keep track of the loaded NeXus
 files and the results of any subsequent analysis. It is invoked from the command
 line by:</p>
-<div class="highlight-python"><pre>&gt; nexpy</pre>
+<div class="highlight-python"><div class="highlight"><pre>&gt; nexpy
+</pre></div>
 </div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">This assumes that the Python &#8216;bin&#8217; directory is in your standard shell
 path.</p>
 </div>
-<img alt="_images/nexpy-gui.png" class="align-center" src="_images/nexpy-gui.png" style="width: 90%;" />
+<a class="reference internal image-reference" href="_images/nexpy-gui.png"><img alt="_images/nexpy-gui.png" class="align-center" src="_images/nexpy-gui.png" style="width: 90%;" /></a>
 <p>The illustration shows the main features of the GUI:</p>
 <dl class="docutils">
 <dt><strong>1) Tree Pane</strong></dt>
@@ -231,7 +230,7 @@ critical data.</p>
 <dd><p class="first">Imports data from other formats. Some importers are provided with the NeXpy
 distribution, but others will be loaded from the user&#8217;s ~/.nexpy/readers
 directory.</p>
-<div class="admonition-see-also last admonition seealso">
+<div class="last admonition seealso">
 <p class="first admonition-title">See also</p>
 <p class="last"><a class="reference internal" href="#importing-nexus-data">Importing NeXus Data</a></p>
 </div>
@@ -327,7 +326,7 @@ calls.</p>
 NXdata group. The menu item triggers a dialog box, which allows functions
 to be chosen and parameters to be initialized before calling a
 non-linear least-squares fitting module.</p>
-<div class="admonition-see-also last admonition seealso">
+<div class="last admonition seealso">
 <p class="first admonition-title">See also</p>
 <p class="last">See <a class="reference internal" href="#fitting-nexus-data">Fitting NeXus Data</a>.</p>
 </div>
@@ -392,7 +391,7 @@ on the tree (or right-clicking for over-plots). Below the plot pane, a series of
 tabs allow manipulation of the plot limits and parameters.</p>
 <p><strong>Signal Tab</strong></p>
 <blockquote>
-<div><img alt="_images/signal-tab.png" class="align-center" src="_images/signal-tab.png" style="width: 75%;" />
+<div><a class="reference internal image-reference" href="_images/signal-tab.png"><img alt="_images/signal-tab.png" class="align-center" src="_images/signal-tab.png" style="width: 75%;" /></a>
 <p>The signal tab contains text boxes and sliders to adjust the intensity
 limits, a checkbox to plot the intensity on a log scale, and a dropdown menu
 to select a color palette.</p>
@@ -404,7 +403,7 @@ is adjusted using the y-tab.</p>
 </div></blockquote>
 <p><strong>X/Y Tab</strong></p>
 <blockquote>
-<div><img alt="_images/x-tab.png" class="align-center" src="_images/x-tab.png" style="width: 75%;" />
+<div><a class="reference internal image-reference" href="_images/x-tab.png"><img alt="_images/x-tab.png" class="align-center" src="_images/x-tab.png" style="width: 75%;" /></a>
 <p>The x and y-tabs contains text boxes and sliders to adjust the axis limits
 and a dropdown menu to select the axis to be plotted along x and y,
 respectively. The names correspond to the axis names in the NXdata group.</p>
@@ -418,7 +417,7 @@ increasing axes.</p>
 </div></blockquote>
 <p><strong>Z Tab</strong></p>
 <blockquote>
-<div><img alt="_images/z-tab.png" class="align-center" src="_images/z-tab.png" style="width: 75%;" />
+<div><a class="reference internal image-reference" href="_images/z-tab.png"><img alt="_images/z-tab.png" class="align-center" src="_images/z-tab.png" style="width: 75%;" /></a>
 <p>If the data rank is three or more, the 2D plot <em>vs</em> x and y is a projection
 along the remaining axes. The z-tab sets the limits for those projections.
 It contains a dropdown menu for selecting the axis to be summed over and
@@ -463,7 +462,7 @@ interval by a factor two.</p>
 </div></blockquote>
 <p><strong>Projection Tab</strong></p>
 <blockquote>
-<div><img alt="_images/projection-tab.png" class="align-center" src="_images/projection-tab.png" style="width: 75%;" />
+<div><a class="reference internal image-reference" href="_images/projection-tab.png"><img alt="_images/projection-tab.png" class="align-center" src="_images/projection-tab.png" style="width: 75%;" /></a>
 <p>The projection tab allows the data to be projected along one or two
 dimensions. The limits are set by the x, y, and z-tabs, while the projection
 axes are selected using the dropdown boxes. For a one-dimensional
@@ -471,17 +470,22 @@ projection, select &#8216;None&#8217; from the y box. The projections may be plo
 a separate window, using the &#8216;Plot&#8217; button or saved to a scratch NXdata
 group within &#8216;w0&#8217; on the tree. A checkbox allows the overplotting of
 one-dimensional projections.</p>
-<img alt="_images/projection.png" class="align-center" src="_images/projection.png" style="width: 75%;" />
+<a class="reference internal image-reference" href="_images/projection.png"><img alt="_images/projection.png" class="align-center" src="_images/projection.png" style="width: 75%;" /></a>
 <p>The projection tab also contains a button to open a separate projection
 panel that can be used instead of the tabbed interface. This interface is
 more convenient when making a systematic exploration of different
-projections limits. The x and y limits of the plot are displayed as a
-dashed rectangle.</p>
+projections limits and provides pixel accuracy in computing projections.
+The x and y limits of the plot are displayed as a dashed rectangle.</p>
 </div></blockquote>
-<img alt="_images/projection-panel.png" class="align-center" src="_images/projection-panel.png" style="width: 90%;" />
+<a class="reference internal image-reference" href="_images/projection-panel.png"><img alt="_images/projection-panel.png" class="align-center" src="_images/projection-panel.png" style="width: 90%;" /></a>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The projection panel can also be used to mask and unmask data within
+the dashed rectangle.</p>
+</div>
 <p><strong>Options Tab</strong></p>
 <blockquote>
-<div><img alt="_images/options-tab.png" class="align-center" src="_images/options-tab.png" style="width: 75%;" />
+<div><a class="reference internal image-reference" href="_images/options-tab.png"><img alt="_images/options-tab.png" class="align-center" src="_images/options-tab.png" style="width: 75%;" /></a>
 <p>The options tab provides the standard Matplotlib toolbar. The &#8216;Home&#8217; button
 restores all plotting limits to their defaults. The &#8216;arrow&#8217; buttons cycle
 through previous plots. The &#8216;zoom&#8217; button allows rectangles to be dragged
@@ -498,7 +502,7 @@ fitting package, <a class="reference external" href="http://newville.github.io/l
 a group on the tree and choosing &#8220;Fit Data&#8221; from the Data menu or by
 right-clicking on the group. This opens a dialog window that allows multiple
 functions to be combined, with the option of fixing or limiting parameters.</p>
-<img alt="_images/nexpy-fits.png" class="align-center" src="_images/nexpy-fits.png" style="width: 90%;" />
+<a class="reference internal image-reference" href="_images/nexpy-fits.png"><img alt="_images/nexpy-fits.png" class="align-center" src="_images/nexpy-fits.png" style="width: 90%;" /></a>
 <p>The fit can be plotted, along with the constituent functions, in the main
 plotting window and the fitting parameters displayed in a message window.</p>
 <p>The original data, the fitted data, constituent functions, and the parameters
@@ -657,7 +661,7 @@ directory in ~/.nexpy/readers.</p>
         <span class="k">return</span> <span class="n">NXentry</span><span class="p">(</span><span class="n">NXdata</span><span class="p">(</span><span class="n">z</span><span class="p">,(</span><span class="n">y</span><span class="p">,</span><span class="n">x</span><span class="p">)))</span>
 </pre></div>
 </div>
-<div class="admonition-see-also admonition seealso">
+<div class="admonition seealso">
 <p class="first admonition-title">See also</p>
 <p class="last">See <a class="reference internal" href="importdialog.html#nexpy.gui.importdialog.BaseImportDialog" title="nexpy.gui.importdialog.BaseImportDialog"><tt class="xref py py-class docutils literal"><span class="pre">nexpy.gui.importdialog.BaseImportDialog</span></tt></a> for other
 pre-defined import methods.</p>
@@ -666,9 +670,18 @@ pre-defined import methods.</p>
 </div>
 <div class="section" id="configuring-nexpy">
 <h2>Configuring NeXpy<a class="headerlink" href="#configuring-nexpy" title="Permalink to this headline">¶</a></h2>
-<p>The NeXpy shell imports the NeXus classes, NXfield, NXgroup, NXentry, etc. For
-convenience, it also imports a number of other modules that are commonly used:</p>
+<p>The NeXpy shell imports the NeXus classes, NXfield, NXgroup, NXentry, <em>etc</em>.:</p>
+<div class="highlight-python"><div class="highlight"><pre>import nexpy
+import nexpy.api.nexus as nx
+from nexpy.api.nexus
+import NXgroup, NXfield, NXattr, NXlink
+from nexpy.api.nexus import NXFile
+</pre></div>
+</div>
+<p>For convenience, it also imports a number of other modules that are commonly
+used:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">numpy.ma</span> <span class="kn">as</span> <span class="nn">ma</span>
 <span class="kn">import</span> <span class="nn">scipy</span> <span class="kn">as</span> <span class="nn">sp</span>
 <span class="kn">import</span> <span class="nn">matplotlib</span> <span class="kn">as</span> <span class="nn">mpl</span>
 <span class="kn">from</span> <span class="nn">matplotlib</span> <span class="kn">import</span> <span class="n">pylab</span><span class="p">,</span> <span class="n">mlab</span><span class="p">,</span> <span class="n">pyplot</span>
@@ -708,12 +721,12 @@ For example, if you don&#8217;t want a blank line between each input line, edit
         <li class="right" >
           <a href="includeme.html" title="Installation"
              >previous</a> |</li>
-        <li><a href="index.html">NeXpy 0.1.7 documentation</a> &raquo;</li> 
+        <li><a href="index.html">NeXpy 0.2.0 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
         &copy; Copyright 2013-2014, Ray Osborn.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
   </body>
 </html>

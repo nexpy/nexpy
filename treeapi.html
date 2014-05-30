@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -8,15 +6,15 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>NeXus Tree API Modules &mdash; NeXpy 0.1.7 documentation</title>
+    <title>NeXus Tree API Modules &mdash; NeXpy 0.2.0 documentation</title>
     
     <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '',
-        VERSION:     '0.1.7',
+        URL_ROOT:    './',
+        VERSION:     '0.2.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -27,8 +25,8 @@
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="shortcut icon" href="_static/favicon.ico"/>
-    <link rel="top" title="NeXpy 0.1.7 documentation" href="index.html" />
-    <link rel="next" title="Adding a File Format Importer (reader)" href="readers.html" />
+    <link rel="top" title="NeXpy 0.2.0 documentation" href="index.html" />
+    <link rel="next" title="Adding a File Importer" href="readers.html" />
     <link rel="prev" title="Python Interface to NeXus" href="pythonshell.html" /> 
   </head>
   <body>
@@ -42,12 +40,12 @@
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="readers.html" title="Adding a File Format Importer (reader)"
+          <a href="readers.html" title="Adding a File Importer"
              accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="pythonshell.html" title="Python Interface to NeXus"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">NeXpy 0.1.7 documentation</a> &raquo;</li> 
+        <li><a href="index.html">NeXpy 0.2.0 documentation</a> &raquo;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar">
@@ -70,7 +68,7 @@
                         title="previous chapter">Python Interface to NeXus</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="readers.html"
-                        title="next chapter">Adding a File Format Importer (reader)</a></p>
+                        title="next chapter">Adding a File Importer</a></p>
   <h3>This Page</h3>
   <ul class="this-page-menu">
     <li><a href="_sources/treeapi.txt"
@@ -338,12 +336,13 @@ title is the title of the group or the parent <a class="reference internal" href
 <em class="property">class </em><tt class="descclassname">nexpy.api.nexus.tree.</tt><tt class="descname">NXFile</tt><big>(</big><em>name</em>, <em>mode=None</em>, <em>**kwds</em><big>)</big><a class="headerlink" href="#nexpy.api.nexus.tree.NXFile" title="Permalink to this definition">¶</a></dt>
 <dd><p>Structure-based interface to the NeXus file API.</p>
 <p>Usage:</p>
-<div class="highlight-python"><pre>file = NXFile(filename, ['r','rw','w'])
+<div class="highlight-python"><div class="highlight"><pre>file = NXFile(filename, [&#39;r&#39;,&#39;rw&#39;,&#39;w&#39;])
   - open the NeXus file
 root = file.readfile()
   - read the structure of the NeXus file.  This returns a NeXus tree.
 file.writefile(root)
-  - write a NeXus tree to the file.</pre>
+  - write a NeXus tree to the file.
+</pre></div>
 </div>
 <p>Example:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">nx</span> <span class="o">=</span> <span class="n">NXFile</span><span class="p">(</span><span class="s">&#39;REF_L_1346.nxs&#39;</span><span class="p">,</span><span class="s">&#39;r&#39;</span><span class="p">)</span>
@@ -953,6 +952,12 @@ assuming it contains bin boundaries.</p>
 </dd></dl>
 
 <dl class="attribute">
+<dt id="nexpy.api.nexus.tree.NXfield.mask">
+<tt class="descname">mask</tt><a class="headerlink" href="#nexpy.api.nexus.tree.NXfield.mask" title="Permalink to this definition">¶</a></dt>
+<dd><p>Property: The data mask</p>
+</dd></dl>
+
+<dl class="attribute">
 <dt id="nexpy.api.nexus.tree.NXfield.dtype">
 <tt class="descname">dtype</tt><a class="headerlink" href="#nexpy.api.nexus.tree.NXfield.dtype" title="Permalink to this definition">¶</a></dt>
 <dd><p>Property: Data type of NeXus field</p>
@@ -987,10 +992,11 @@ keyword arguments accepted by matplotlib.pyplot.plot can be
 used to customize the plot.</p>
 <p>In addition to the matplotlib keyword arguments, the following
 are defined:</p>
-<div class="highlight-python"><pre>log = True     - plot the intensity on a log scale
+<div class="highlight-python"><div class="highlight"><pre>log = True     - plot the intensity on a log scale
 logy = True    - plot the y-axis on a log scale
 logx = True    - plot the x-axis on a log scale
-over = True    - plot on the current figure</pre>
+over = True    - plot on the current figure
+</pre></div>
 </div>
 <p>Raises NeXusError if the data could not be plotted.</p>
 </dd></dl>
@@ -1279,8 +1285,7 @@ order of the moment will be defined by the &#8216;order&#8217; parameter.</p>
 <dt id="nexpy.api.nexus.tree.NXgroup.project">
 <tt class="descname">project</tt><big>(</big><em>axes</em>, <em>limits</em><big>)</big><a class="headerlink" href="#nexpy.api.nexus.tree.NXgroup.project" title="Permalink to this definition">¶</a></dt>
 <dd><p>Projects the data along a specified 1D axis or 2D axes summing over the
-limits, which are specified as tuples for each dimension. The values are
-assumed to be floating point.</p>
+limits, which are specified as tuples for each dimension.</p>
 <p>This assumes that the data is at least two-dimensional.</p>
 </dd></dl>
 
@@ -1340,10 +1345,11 @@ keyword arguments accepted by matplotlib.pyplot.plot can be
 used to customize the plot.</p>
 <p>In addition to the matplotlib keyword arguments, the following
 are defined:</p>
-<div class="highlight-python"><pre>log = True     - plot the intensity on a log scale
+<div class="highlight-python"><div class="highlight"><pre>log = True     - plot the intensity on a log scale
 logy = True    - plot the y-axis on a log scale
 logx = True    - plot the x-axis on a log scale
-over = True    - plot on the current figure</pre>
+over = True    - plot on the current figure
+</pre></div>
 </div>
 <p>Raises NeXusError if the data could not be plotted.</p>
 </dd></dl>
@@ -1884,17 +1890,17 @@ parameters, specifying markers, colors, etc, can be specified using the
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="readers.html" title="Adding a File Format Importer (reader)"
+          <a href="readers.html" title="Adding a File Importer"
              >next</a> |</li>
         <li class="right" >
           <a href="pythonshell.html" title="Python Interface to NeXus"
              >previous</a> |</li>
-        <li><a href="index.html">NeXpy 0.1.7 documentation</a> &raquo;</li> 
+        <li><a href="index.html">NeXpy 0.2.0 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
         &copy; Copyright 2013-2014, Ray Osborn.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
   </body>
 </html>
