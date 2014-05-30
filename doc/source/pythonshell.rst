@@ -222,6 +222,47 @@ of slabs represented by NXfield slices::
           floats, this will be a numpy array. If the values have not been 
           loaded, 'nxdata' is set to None.
 
+Masked Arrays
+^^^^^^^^^^^^^
+Numpy has the ability to store arrays with masks to remove missing or invalid
+data from computations of, *e.g.*, averages or maxima. Since Matplotlib is able 
+to handle masked arrays and removes masked data from plots, this is a convenient 
+way of preventing bad data from contaminating statistical analyses, while 
+preserving all the data values, good and bad, *i.e.*, masks can be turned on and 
+off. 
+
+NeXpy uses the same syntax as Numpy for masking and unmasking data.
+
+ >>> z = NXfield([1,2,3,4,5,6], name='z')
+ >>> z[3:5] = np.ma.masked
+ >>> z
+ NXfield([1 2 3 -- -- 6])
+ >>> z.mask
+ array([False, False, False,  True,  True, False], dtype=bool)
+ >>> z.mask[3] = np.ma.nomask
+ >>> z
+ NXfield([1 2 3 4 -- 6])
+
+If the NXfield does not have a parent group, the mask is stored within the field
+as in Numpy arrays. However, if the NXfield has a parent group, the mask is 
+stored in a separate NXfield that is generated automatically by the mask
+assignment or whenever the masked NXfield is assigned to a group. The mask is
+identified by the 'mask' attribute of the masked NXfield.
+
+ >>> print NXlog(z).tree
+ log:NXlog
+ z = [1 2 3 4 -- 6]
+  @mask = z_mask
+ z_mask = [False False False False  True False]
+
+The mask can then be saved to the NeXus file if required.
+
+.. warning:: In principle, the NXfield containing the mask can be modified 
+             manually, but it is recommended that modifications to the mask use
+             the methods described above.
+             
+Masks can also be set using the Projection panel in the :doc:`pythongui`.
+
 NeXus Groups
 ------------
 NeXus groups are defined as subclasses of the NXgroup class, with the class name 

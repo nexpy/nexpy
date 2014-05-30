@@ -359,13 +359,16 @@ tabs allow manipulation of the plot limits and parameters.
     The projection tab also contains a button to open a separate projection 
     panel that can be used instead of the tabbed interface. This interface is
     more convenient when making a systematic exploration of different 
-    projections limits. The x and y limits of the plot are displayed as a 
-    dashed rectangle.  
+    projections limits and provides pixel accuracy in computing projections.
+    The x and y limits of the plot are displayed as a dashed rectangle.  
 
 .. image:: /images/projection-panel.png
    :align: center
    :width: 90%
 
+.. note:: The projection panel can also be used to mask and unmask data within 
+          the dashed rectangle.   
+   
 **Options Tab**
 
     .. image:: /images/options-tab.png
@@ -569,8 +572,16 @@ Here is an example of an import dialog::
 
 Configuring NeXpy
 -----------------
-The NeXpy shell imports the NeXus classes, NXfield, NXgroup, NXentry, etc. For 
-convenience, it also imports a number of other modules that are commonly used::
+The NeXpy shell imports the NeXus classes, NXfield, NXgroup, NXentry, *etc*.::
+
+ import nexpy
+ import nexpy.api.nexus as nx
+ from nexpy.api.nexus
+ import NXgroup, NXfield, NXattr, NXlink
+ from nexpy.api.nexus import NXFile
+
+For convenience, it also imports a number of other modules that are commonly 
+used::
 
  import numpy as np
  import numpy.ma as ma
