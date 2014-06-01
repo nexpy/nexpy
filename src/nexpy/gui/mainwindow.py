@@ -606,7 +606,6 @@ class MainWindow(QtGui.QMainWindow):
                 name = node.nxname
                 existing = False
             default_name = os.path.join(self.default_directory,name)
-            dialog = QtGui.QFileDialog()                # TODO: unused
             fname, _ = QtGui.QFileDialog.getSaveFileName(self, 
                            "Choose a Filename", default_name, self.file_filter)
             if fname:
@@ -740,18 +739,19 @@ class MainWindow(QtGui.QMainWindow):
             report_error("Initializing Data", error)
 
     def rename_data(self):
-        if self is not None:
-            node = self.treeview.getnode()
-            if node:
-                if node.nxfilemode != 'r':
-                    name, ok = QtGui.QInputDialog.getText(self, 'Rename Data', 
-                                   'New Name:', text=node.nxname)        
-                    if ok:
-                        node.rename(name)
-                else:
-                    raise NeXusError("NeXus file is locked")  
-#        except NeXusError as error:
-#            report_error("Renaming Data", error)
+        try:
+            if self is not None:
+                node = self.treeview.getnode()
+                if node:
+                    if node.nxfilemode != 'r' or isinstance(node, NXroot):
+                        name, ok = QtGui.QInputDialog.getText(self, 'Rename Data',
+                                       'New Name:', text=node.nxname)
+                        if ok:
+                            node.rename(name)
+                    else:
+                        raise NeXusError("NeXus file is locked")
+        except NeXusError as error:
+            report_error("Renaming Data", error)
 
     def copy_data(self):
         try:
