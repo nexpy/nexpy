@@ -266,57 +266,69 @@ class NXTreeView(QtGui.QTreeView):
         self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(self.on_context_menu)
 
-        self.plot_data_action=QtGui.QAction("Plot Data", self, 
+
+        self.plot_data_action=QtGui.QAction("Plot", self, 
                                        triggered=self.plot_data)
         self.plot_line_action=QtGui.QAction("Plot Line", self, 
                                        triggered=self.plot_line)
-        self.overplot_data_action=QtGui.QAction("Overplot Data", self, 
+        self.overplot_data_action=QtGui.QAction("Overplot", self, 
                                            triggered=self.overplot_data)
         self.overplot_line_action=QtGui.QAction("Overplot Line", self, 
                                            triggered=self.overplot_line)
-        self.add_action=QtGui.QAction("Add Data", self, triggered=self.add_data)
-        self.initialize_action=QtGui.QAction("Initialize Data", self, triggered=self.initialize_data)
-        self.rename_action=QtGui.QAction("Rename Data", self, triggered=self.rename_data)
-        self.copy_action=QtGui.QAction("Copy Data", self, triggered=self.copy_data)
-        self.paste_action=QtGui.QAction("Paste Data", self, triggered=self.paste_data)
+        self.add_action=QtGui.QAction("Add...", self, triggered=self.add_data)
+        self.initialize_action=QtGui.QAction("Initialize...", self, triggered=self.initialize_data)
+        self.rename_action=QtGui.QAction("Rename...", self, triggered=self.rename_data)
+        self.copy_action=QtGui.QAction("Copy", self, triggered=self.copy_data)
+        self.paste_action=QtGui.QAction("Paste", self, triggered=self.paste_data)
         self.pastelink_action=QtGui.QAction("Paste As Link", self, triggered=self.paste_link)
-        self.delete_action=QtGui.QAction("Delete Data", self, triggered=self.delete_data)
+        self.delete_action=QtGui.QAction("Delete...", self, triggered=self.delete_data)
         self.link_action=QtGui.QAction("Show Link", self, triggered=self.show_link)
-        self.signal_action=QtGui.QAction("Set Signal", self, triggered=self.set_signal)
-        self.fit_action=QtGui.QAction("Fit Data", self, triggered=self.fit_data)
+        self.signal_action=QtGui.QAction("Set Signal...", self, triggered=self.set_signal)
+        self.fit_action=QtGui.QAction("Fit...", self, triggered=self.fit_data)
         self.savefile_action=QtGui.QAction("Save as...", self, triggered=self.save_file)
         self.duplicate_action=QtGui.QAction("Duplicate...", self, triggered=self.duplicate)
-        self.remove_action=QtGui.QAction("Remove", self, triggered=self.remove)
-        self.lockfile_action=QtGui.QAction("Lock File", self, triggered=self.lock_file)
-        self.unlockfile_action=QtGui.QAction("Unlock File", self, triggered=self.unlock_file)
+        self.remove_action=QtGui.QAction("Remove...", self, triggered=self.remove)
+        self.lockfile_action=QtGui.QAction("Lock", self, triggered=self.lock_file)
+        self.unlockfile_action=QtGui.QAction("Unlock...", self, triggered=self.unlock_file)
 
-        self.popMenu = QtGui.QMenu(self)
-        self.popMenu.addAction(self.plot_data_action)
-        self.popMenu.addAction(self.plot_line_action)
-        self.popMenu.addAction(self.overplot_data_action)
-        self.popMenu.addAction(self.overplot_line_action)
-        self.popMenu.addSeparator()
-        self.popMenu.addAction(self.add_action)
-        self.popMenu.addAction(self.initialize_action)
-        self.popMenu.addAction(self.rename_action)
-        self.popMenu.addAction(self.copy_action)
-        self.popMenu.addAction(self.paste_action)
-        self.popMenu.addAction(self.pastelink_action)
-        self.popMenu.addAction(self.delete_action)
-        self.popMenu.addSeparator()
-        self.popMenu.addAction(self.link_action)
-        self.popMenu.addSeparator()
-        self.popMenu.addAction(self.signal_action)
-        self.popMenu.addSeparator()
-        self.popMenu.addAction(self.fit_action)
-        self.popMenu.addSeparator()
-        self.popMenu.addAction(self.savefile_action)
-        self.popMenu.addAction(self.duplicate_action)
-        self.popMenu.addSeparator()
-        self.popMenu.addAction(self.remove_action)
-        self.popMenu.addSeparator()
-        self.popMenu.addAction(self.lockfile_action)
-        self.popMenu.addAction(self.unlockfile_action)
+    def popMenu(self, node):
+        menu = QtGui.QMenu(self)
+        menu.addAction(self.plot_data_action)
+        menu.addAction(self.plot_line_action)
+        menu.addAction(self.overplot_data_action)
+        menu.addAction(self.overplot_line_action)
+        menu.addSeparator()
+        menu.addAction(self.add_action)
+        menu.addAction(self.rename_action)
+        if not isinstance(node, NXroot):
+            if isinstance(node, NXgroup):
+                menu.addAction(self.initialize_action)
+            menu.addAction(self.copy_action)
+            if isinstance(node, NXgroup):
+                menu.addAction(self.paste_action)
+                menu.addAction(self.pastelink_action)
+        if isinstance(node, NXroot) and not node.nxfilemode:
+            menu.addAction(self.delete_action)
+        elif not isinstance(node, NXroot):
+            menu.addAction(self.delete_action)
+            menu.addSeparator()
+            menu.addAction(self.link_action)
+            menu.addSeparator()
+            if isinstance(node, NXgroup):
+                menu.addAction(self.fit_action)
+            if isinstance(node, NXfield):
+                menu.addAction(self.signal_action)
+        menu.addSeparator()
+        menu.addAction(self.savefile_action)
+        if isinstance(node, NXroot) and node.nxfilemode:
+            menu.addAction(self.duplicate_action)
+            menu.addSeparator()
+            if node.nxfilemode == 'r':
+                menu.addAction(self.unlockfile_action)
+            else:
+                menu.addAction(self.lockfile_action)
+            menu.addAction(self.remove_action)
+        return menu
 
     def save_file(self):
         self.mainwindow.save_file()
@@ -406,5 +418,5 @@ class NXTreeView(QtGui.QTreeView):
             self.statusmessage('')
 
     def on_context_menu(self, point):
-        self.popMenu.exec_(self.mapToGlobal(point))
+        self.popMenu(self.getnode()).exec_(self.mapToGlobal(point))
 
