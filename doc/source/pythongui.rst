@@ -572,13 +572,11 @@ Here is an example of an import dialog::
 
 Configuring NeXpy
 -----------------
-The NeXpy shell imports the NeXus classes, NXfield, NXgroup, NXentry, *etc*.::
+The NeXpy shell imports the NeXus classes, NXfield, NXgroup, NXentry, *etc*::
 
  import nexpy
  import nexpy.api.nexus as nx
- from nexpy.api.nexus
- import NXgroup, NXfield, NXattr, NXlink
- from nexpy.api.nexus import NXFile
+ from nexpy.api.nexus import NXFile, NXgroup, NXfield, NXattr, NXlink
 
 For convenience, it also imports a number of other modules that are commonly 
 used::
@@ -601,5 +599,3 @@ For example, if you don't want a blank line between each input line, edit
 
  c.IPythonWidget.input_sep = '' 
 
-
- 
