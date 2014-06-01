@@ -259,6 +259,9 @@ class NXPlotView(QtGui.QWidget):
             self.canvas.print_figure(path, dpi=self.dpi)
             self.statusBar().showMessage('Saved to %s' % path, 2000)
 
+    def redraw(self):
+        self.canvas.draw_idle()
+
     def close_view(self):
         self.remove_menu_action()
         Gcf.destroy(self.number)
