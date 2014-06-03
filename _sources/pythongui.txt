@@ -578,11 +578,11 @@ The NeXpy shell imports the following NeXus classes::
  import nexpy.api.nexus as nx
  from nexpy.api.nexus import NXFile, NXgroup, NXfield, NXattr, NXlink
 
-All the currently defined NeXus group classes (NXentry, NXdata, NXsample, 
-*etc*) are also imported. 
+along with all the currently defined NeXus group classes (NXentry, NXdata, 
+NXsample, *etc*). 
 
-For convenience, it also imports a number of other modules that are commonly 
-used::
+For convenience, the NeXpy shell also imports a number of other modules that are 
+commonly used::
 
  import numpy as np
  import numpy.ma as ma
