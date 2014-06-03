@@ -670,12 +670,14 @@ pre-defined import methods.</p>
 </div>
 <div class="section" id="configuring-nexpy">
 <h2>Configuring NeXpy<a class="headerlink" href="#configuring-nexpy" title="Permalink to this headline">¶</a></h2>
-<p>The NeXpy shell imports the NeXus classes, NXfield, NXgroup, NXentry, <em>etc</em>:</p>
+<p>The NeXpy shell imports the following NeXus classes:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">nexpy</span>
 <span class="kn">import</span> <span class="nn">nexpy.api.nexus</span> <span class="kn">as</span> <span class="nn">nx</span>
 <span class="kn">from</span> <span class="nn">nexpy.api.nexus</span> <span class="kn">import</span> <span class="n">NXFile</span><span class="p">,</span> <span class="n">NXgroup</span><span class="p">,</span> <span class="n">NXfield</span><span class="p">,</span> <span class="n">NXattr</span><span class="p">,</span> <span class="n">NXlink</span>
 </pre></div>
 </div>
+<p>All the currently defined NeXus group classes (NXentry, NXdata, NXsample,
+<em>etc</em>) are also imported.</p>
 <p>For convenience, it also imports a number of other modules that are commonly
 used:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
