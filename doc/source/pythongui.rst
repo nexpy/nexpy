@@ -572,14 +572,17 @@ Here is an example of an import dialog::
 
 Configuring NeXpy
 -----------------
-The NeXpy shell imports the NeXus classes, NXfield, NXgroup, NXentry, *etc*::
+The NeXpy shell imports the following NeXus classes::
 
  import nexpy
  import nexpy.api.nexus as nx
  from nexpy.api.nexus import NXFile, NXgroup, NXfield, NXattr, NXlink
 
-For convenience, it also imports a number of other modules that are commonly 
-used::
+along with all the currently defined NeXus group classes (NXentry, NXdata, 
+NXsample, *etc*). 
+
+For convenience, the NeXpy shell also imports a number of other modules that are 
+commonly used::
 
  import numpy as np
  import numpy.ma as ma
