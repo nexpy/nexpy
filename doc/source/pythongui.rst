@@ -367,7 +367,8 @@ tabs allow manipulation of the plot limits and parameters.
    :width: 90%
 
 .. note:: The projection panel can also be used to mask and unmask data within 
-          the dashed rectangle.   
+          the dashed rectangle. See :doc:`pythonshell` for descriptions of
+          masked arrays.
    
 **Options Tab**
 
