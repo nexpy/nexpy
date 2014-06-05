@@ -811,16 +811,16 @@ illustrated in `Creating NeXus Data`_.::
 
  >>> root.save(filename='example.nxs')
 
-Saving NXroot Groups
---------------------
+NXroot Groups
+-------------
 If the NeXus object is a NXroot group, the save() method saves the whole NeXus 
 tree. The filename can only be omitted if the tree is being saved to a file that 
 was loaded with read/write access. In this case, the format argument is ignored.
 If the tree was loaded with readonly access, any modifications must be saved to
 a new file specified by the filename argument.
 
-Saving Other NeXus Objects
---------------------------
+Other Objects
+-------------
 If the object is not a NXroot group, a new file will be created containing the
 selected object and its children. A filename *must* be specified. Saving 
 non-NXroot data allows parts of a NeXus tree to be saved for later use, *e.g.*, 

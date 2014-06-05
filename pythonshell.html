@@ -90,8 +90,8 @@
 </ul>
 </li>
 <li><a class="reference internal" href="#saving-nexus-data">Saving NeXus Data</a><ul>
-<li><a class="reference internal" href="#saving-nxroot-groups">Saving NXroot Groups</a></li>
-<li><a class="reference internal" href="#saving-other-nexus-objects">Saving Other NeXus Objects</a></li>
+<li><a class="reference internal" href="#nxroot-groups">NXroot Groups</a></li>
+<li><a class="reference internal" href="#other-objects">Other Objects</a></li>
 </ul>
 </li>
 </ul>
@@ -983,16 +983,16 @@ illustrated in <a class="reference internal" href="#creating-nexus-data">Creatin
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">root</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="s">&#39;example.nxs&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
-<div class="section" id="saving-nxroot-groups">
-<h3>Saving NXroot Groups<a class="headerlink" href="#saving-nxroot-groups" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="nxroot-groups">
+<h3>NXroot Groups<a class="headerlink" href="#nxroot-groups" title="Permalink to this headline">¶</a></h3>
 <p>If the NeXus object is a NXroot group, the save() method saves the whole NeXus
 tree. The filename can only be omitted if the tree is being saved to a file that
 was loaded with read/write access. In this case, the format argument is ignored.
 If the tree was loaded with readonly access, any modifications must be saved to
 a new file specified by the filename argument.</p>
 </div>
-<div class="section" id="saving-other-nexus-objects">
-<h3>Saving Other NeXus Objects<a class="headerlink" href="#saving-other-nexus-objects" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="other-objects">
+<h3>Other Objects<a class="headerlink" href="#other-objects" title="Permalink to this headline">¶</a></h3>
 <p>If the object is not a NXroot group, a new file will be created containing the
 selected object and its children. A filename <em>must</em> be specified. Saving
 non-NXroot data allows parts of a NeXus tree to be saved for later use, <em>e.g.</em>,
