@@ -374,7 +374,8 @@ way of preventing bad data from contaminating statistical analyses, while
 preserving all the data values, good and bad, <em>i.e.</em>, masks can be turned on and
 off.</p>
 <p>NeXpy uses the same syntax as Numpy for masking and unmasking data.</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">z</span> <span class="o">=</span> <span class="n">NXfield</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">6</span><span class="p">],</span> <span class="n">name</span><span class="o">=</span><span class="s">&#39;z&#39;</span><span class="p">)</span>
+<blockquote>
+<div><div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">z</span> <span class="o">=</span> <span class="n">NXfield</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">6</span><span class="p">],</span> <span class="n">name</span><span class="o">=</span><span class="s">&#39;z&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">z</span><span class="p">[</span><span class="mi">3</span><span class="p">:</span><span class="mi">5</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">z</span>
 <span class="go">NXfield([1 2 3 -- -- 6])</span>
@@ -385,6 +386,13 @@ off.</p>
 <span class="go">NXfield([1 2 3 4 -- 6])</span>
 </pre></div>
 </div>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">If you perform any operations on a masked array, those operations
+are not performed on the masked values. It is not advisable
+to remove a mask if you have modified the unmasked values.</p>
+</div>
+</div></blockquote>
 <p>If the NXfield does not have a parent group, the mask is stored within the field
 as in Numpy arrays. However, if the NXfield has a parent group, the mask is
 stored in a separate NXfield that is generated automatically by the mask

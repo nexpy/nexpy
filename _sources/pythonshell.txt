@@ -242,6 +242,10 @@ NeXpy uses the same syntax as Numpy for masking and unmasking data.
  >>> z.mask[3] = np.ma.nomask
  >>> z
  NXfield([1 2 3 4 -- 6])
+ 
+ .. warning:: If you perform any operations on a masked array, those operations 
+              are not performed on the masked values. It is not advisable
+              to remove a mask if you have modified the unmasked values. 
 
 If the NXfield does not have a parent group, the mask is stored within the field
 as in Numpy arrays. However, if the NXfield has a parent group, the mask is 
