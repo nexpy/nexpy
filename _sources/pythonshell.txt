@@ -826,6 +826,5 @@ selected object and its children. A filename *must* be specified. Saving
 non-NXroot data allows parts of a NeXus tree to be saved for later use, *e.g.*, 
 to store an NXsample group that will be added to other files. The saved NeXus 
 object is wrapped in an NXroot group and an NXentry group (with name 'entry'), 
-if necessary, in order to produce a valid NeXus file. Children of the NeXus 
-object will be saved.
+if necessary, in order to produce a valid NeXus file.
      
