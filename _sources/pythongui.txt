@@ -147,11 +147,11 @@ Data Menu
     valid NeXus group classes. The value field can be any valid Python 
     expression, including numpy functions such as np.linspace().
 
-.. note:: Eventually, NeXpy will access the NXDL files that define valid NeXus
-          groups and fields, ensuring that the added data conforms to the
-          standard. At present, NeXpy ensures that the NeXus data are consistent
-          with generic NeXus browsers, which is sufficient for private use of 
-          the data.
+    .. note:: Eventually, NeXpy will access the NXDL files that define valid 
+              NeXus groups and fields, ensuring that the added data conforms to 
+              the standard. At present, NeXpy ensures that the NeXus data are 
+              consistent with generic NeXus browsers, which is sufficient for 
+              private use of the data.
 
 **Initialize Data**
     Adds a NeXus field to the selected tree item. If the selected item is a

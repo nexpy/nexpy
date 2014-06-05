@@ -250,23 +250,22 @@ user to specify axes with compatible dimensions to plot the data against.</dd>
 <dd>Overplots the selected tree item in the plotting pane. This only works on
 one-dimensional data.</dd>
 <dt><strong>Add Data</strong></dt>
-<dd>Adds data to the selected tree item. If the selected item is a group, the
+<dd><p class="first">Adds data to the selected tree item. If the selected item is a group, the
 added data can be a group or field. If the selected item is a field, the
 added data is an attribute. The Add Data dialog allow the name, value and
 data type to be specified, if adding a field, and the name and group class
 if adding a group. The group class is specified through a dropdown menu of
 valid NeXus group classes. The value field can be any valid Python
-expression, including numpy functions such as np.linspace().</dd>
-</dl>
-<div class="admonition note">
+expression, including numpy functions such as np.linspace().</p>
+<div class="last admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">Eventually, NeXpy will access the NXDL files that define valid NeXus
-groups and fields, ensuring that the added data conforms to the
-standard. At present, NeXpy ensures that the NeXus data are consistent
-with generic NeXus browsers, which is sufficient for private use of
-the data.</p>
+<p class="last">Eventually, NeXpy will access the NXDL files that define valid
+NeXus groups and fields, ensuring that the added data conforms to
+the standard. At present, NeXpy ensures that the NeXus data are
+consistent with generic NeXus browsers, which is sufficient for
+private use of the data.</p>
 </div>
-<dl class="docutils">
+</dd>
 <dt><strong>Initialize Data</strong></dt>
 <dd>Adds a NeXus field to the selected tree item. If the selected item is a
 group, the added data can be a group or field. If the selected item is a
