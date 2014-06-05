@@ -3327,7 +3327,7 @@ def simplify_axes(data):
         data.nxsignal._value.shape = shape
     if data.nxerrors is not None:
         data.nxerrors._shape = shape
-        if data.nxerrors._value:
+        if data.nxerrors._value is not None:
             data.nxerrors._value.shape = shape
     axes = []
     for axis in data.nxaxes:
