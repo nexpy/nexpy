@@ -810,25 +810,21 @@ Every NeXus object, whether it is a group or a field, has a save() method as
 illustrated in `Creating NeXus Data`_.::
 
  >>> root.save(filename='example.nxs')
- 
+
+NXroot Groups
+-------------
 If the NeXus object is a NXroot group, the save() method saves the whole NeXus 
 tree. The filename can only be omitted if the tree is being saved to a file that 
 was loaded with read/write access. In this case, the format argument is ignored.
 If the tree was loaded with readonly access, any modifications must be saved to
 a new file specified by the filename argument.
 
-.. warning:: There are restrictions on what modifications can be saved to the 
-             original file when a NeXus file is loaded with read/write access. 
-             It is possible to add new NeXus objects (groups, fields, or 
-             attributes) to the tree and modify existing field values, but it is 
-             not possible to rename NeXus objects or change a field's shape or 
-             data type if it is already in the file. Attempts to save such 
-             modifications will trigger an exception.  
-
-If the object is not a NXroot group, a new file will be created and so a
-filename must be specified. Saving non-NXroot data allows parts of a NeXus tree
-to be saved for later use, *e.g.*, to store an NXsample group that will be added
-to other files. The saved NeXus object is wrapped in an NXroot group and an
-NXentry group (with name 'entry'), if necessary, in order to produce a valid
-NeXus file. Children of the NeXus object will be saved.
+Other Objects
+-------------
+If the object is not a NXroot group, a new file will be created containing the
+selected object and its children. A filename *must* be specified. Saving 
+non-NXroot data allows parts of a NeXus tree to be saved for later use, *e.g.*, 
+to store an NXsample group that will be added to other files. The saved NeXus 
+object is wrapped in an NXroot group and an NXentry group (with name 'entry'), 
+if necessary, in order to produce a valid NeXus file.
      
