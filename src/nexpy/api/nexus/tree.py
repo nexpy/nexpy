@@ -1316,7 +1316,7 @@ class NXfield(NXobject):
                 dtype = 'S'
             try:
                 self._dtype = np.dtype(dtype)
-            except:
+            except Exception:
                 raise NeXusError("Invalid data type: %s" % dtype)
         self._shape = tuple(shape)
         # Append extra keywords to the attribute list
@@ -2750,7 +2750,7 @@ class NXgroup(NXobject):
         if self.nxclass == "NXroot":
             try:
                 data = data.NXdata[0]
-            except:
+            except Exception:
                 data = data.NXentry[0]
         if data.nxclass == "NXentry":
             if data.NXdata:
@@ -3231,7 +3231,8 @@ class NXdata(NXgroup):
         else:
             result.entries[self.nxsignal.nxname] = self.nxsignal / other
             result.entries[self.nxsignal.nxname].nxname = self.nxsignal.nxname
-            if self.nxerrors: result.errors = self.errors / other
+            if self.nxerrors: 
+                result.errors = self.errors / other
             return result
 
 
