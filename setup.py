@@ -45,6 +45,7 @@ setup (name =  nexpy.__package_name__,        # NeXpy
                        'nexpy.gui': ['resources/icon/*.svg',
                                      'resources/*.png',
                                     ],
+                       'nexpy.definitions': ['base_classes/*.xml'],
                        'nexpy': ['examples/*'],
                        },
        ext_modules=[ext_tiff, ],

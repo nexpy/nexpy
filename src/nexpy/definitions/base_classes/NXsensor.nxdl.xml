@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="nxdlformat.xsl" ?>
+<!--
+# NeXus - Neutron and X-ray Common Data Format
+# 
+# Copyright (C) 2008-2012 NeXus International Advisory Committee (NIAC)
+# 
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 3 of the License, or (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+# For further information, see http://www.nexusformat.org
+
+########### SVN repository information ###################
+# $Date$
+# $Author$
+# $Revision$
+# $HeadURL$
+# $Id$
+########### SVN repository information ###################
+-->
+<definition xmlns="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@" category="base"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@ ../nxdl.xsd"
+	name="NXsensor" 
+	version="1.0"
+    svnid="$Id$"
+	type="group" extends="NXobject">
+	<doc>
+		This class describes a sensor used to monitor an external condition 
+		- the condition itself is described in NXenvironment
+	</doc>
+	<field name="model">
+		<doc>Sensor identification code/model number</doc>
+	</field>
+	<field name="name">
+		<doc>Name for the sensor</doc>
+	</field>
+	<field name="short_name">
+		<doc>Short name of sensor used e.g. on monitor display program</doc>
+	</field>
+	<field name="attached_to">
+		<doc>where sensor is attached to ("sample" | "can")</doc>
+	</field>
+	<group name="geometry" type="NXgeometry">
+		<doc>Defines the axes for logged vector quantities if they are not the global instrument axes</doc>
+	</group>
+	<field name="measurement">
+		<doc>name for measured signal</doc>
+		<enumeration>
+			<item value="temperature" />
+			<item value="pH" />
+			<item value="magnetic_field" />
+			<item value="electric_field" />
+			<item value="conductivity" />
+			<item value="resistance" />
+			<item value="voltage" />
+			<item value="pressure" />
+			<item value="flow" />
+			<item value="stress" />
+			<item value="strain" />
+			<item value="shear" />
+			<item value="surface_pressure" />
+		</enumeration>
+	</field>
+	<field name="type">
+		<doc>
+			The type of hardware used for the measurement.  
+			Examples (suggestions but not restrictions):
+			
+			:Temperature:
+			  J | K | T | E | R | S | Pt100 | Rh/Fe
+			:pH:
+			  Hg/Hg2Cl2 | Ag/AgCl | ISFET
+			:Ion selective electrode:
+			  specify species; e.g. Ca2+
+			:Magnetic field:
+			  Hall
+			:Surface pressure:
+			  wilhelmy plate
+		</doc>
+	</field>
+	<field name="run_control" type="NX_BOOLEAN">
+		<doc>
+			Is data collection controlled or synchronised to this quantity: 
+			1=no, 0=to "value", 1=to "value_deriv1", etc.
+		</doc>
+	</field>
+	<field name="high_trip_value" type="NX_FLOAT" units="NX_ANY">
+		<doc>
+			Upper control bound of sensor reading if using run_control
+		</doc>
+	</field>
+	<field name="low_trip_value" type="NX_FLOAT" units="NX_ANY">
+		<doc>
+			Lower control bound of sensor reading if using run_control
+		</doc>
+	</field>
+	<field name="value" type="NX_FLOAT" units="NX_ANY">
+		<doc>
+			nominal setpoint or average value 
+			- need [n] as may be a vector
+		</doc>
+		<dimensions>
+			<dim index="1" value="n"/>
+		</dimensions>
+	</field>
+	<field name="value_deriv1" type="NX_FLOAT" units="NX_ANY">
+		<doc>
+			Nominal/average first derivative of value 
+			e.g. strain rate 
+			- same dimensions as "value" (may be a vector)
+		</doc>
+		<dimensions>
+			<dim index="1" ref="value"/>
+		</dimensions>
+	</field>
+	<field name="value_deriv2" type="NX_FLOAT" units="NX_ANY">
+		<doc>
+			Nominal/average second derivative of value
+			- same dimensions as "value" (may be a vector)
+		</doc>
+		<dimensions>
+			<dim index="1" ref="value"/>
+		</dimensions>
+	</field>
+	<group name="value_log" type="NXlog">
+		<doc>Time history of sensor readings</doc>
+	</group>
+	<group name="value_deriv1_log" type="NXlog">
+		<doc>Time history of first derivative of sensor readings</doc>
+	</group>
+	<group name="value_deriv2_log" type="NXlog">
+		<doc>Time history of second derivative of sensor readings</doc>
+	</group>
+	<field name="external_field_brief">
+		<enumeration>
+			<item value="along beam" />
+			<item value="across beam" />
+			<item value="transverse" />
+			<item value="solenoidal" />
+			<item value="flow shear gradient" />
+			<item value="flow vorticity" />
+		</enumeration>
+	</field>
+	<group name="external_field_full" type="NXorientation">
+		<doc>For complex external fields not satisfied by External_field_brief</doc>
+	</group>
+</definition>
+

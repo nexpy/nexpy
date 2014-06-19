@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="nxdlformat.xsl" ?>
+<!--
+# NeXus - Neutron and X-ray Common Data Format
+# 
+# Copyright (C) 2013-2014 NeXus International Advisory Committee (NIAC)
+# 
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 3 of the License, or (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+# For further information, see http://www.nexusformat.org
+
+########### SVN repository information ###################
+# $Date: $
+# $Author:  $
+# $Revision:  $
+# $HeadURL:  $
+# $Id:  $
+########### SVN repository information ###################
+-->
+<definition xmlns="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@"
+	category="base" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@ ../nxdl.xsd"
+	name="NXdetector_module" version="1.0" type="group" extends="NXobject">
+	<doc>
+		This is the description of a detector module. Many detectors consist of
+		multiple
+		smaller modules. Sometimes it is important to know the exact position of such
+		modules.
+		This is the purpose of this group. It is a child group to NXdetector.
+	</doc>
+	<field name="data_origin" type="NX_INT">
+		<doc>
+			A two value field which gives the index of the start of the
+			modules data in the
+			main area detector image in the underlying NXdetector module.
+		</doc>
+	</field>
+	<field name="data_size" type="NX_INT">
+		<doc>
+			Two values for the size of the module in pixels in each direction.
+		</doc>
+	</field>
+
+	<field name="module_offset" units="NX_LENGTH" type="NX_NUMBER">
+		<doc>
+			Offset of the module in regards to the origin of the detector in an
+			arbitrary direction.
+		</doc>
+		<attribute name="transformation_type">
+			<enumeration>
+				<item value="translation" />
+			</enumeration>
+		</attribute>
+		<attribute name="vector" type="NX_NUMBER">
+			<doc>
+				Three values that define the axis for this transformation
+			</doc>
+		</attribute>
+		<attribute name="offset" type="NX_NUMBER">
+			<doc>
+				A fixed offset applied before the transformation
+			</doc>
+		</attribute>
+		<attribute name="offset_units" type="NX_CHAR">
+			<doc>
+				Units of the offset.
+			</doc>
+		</attribute>
+		<attribute name="depends_on" type="NX_CHAR">
+			<doc>
+				Points to the path of the next element in the geometry chain.
+			</doc>
+		</attribute>
+	</field>
+	<field name="fast_pixel_direction" units="NX_LENGTH" type="NX_NUMBER">
+		<doc>
+			Values along the direction of fastest varying pixel direction.The direction
+			itself is given through the vector attribute
+		</doc>
+		<attribute name="transformation_type">
+			<enumeration>
+				<item value="translation" />
+			</enumeration>
+		</attribute>
+		<attribute name="vector" type="NX_NUMBER">
+			<doc>
+				Three values that define the axis for this transformation
+			</doc>
+		</attribute>
+		<attribute name="offset" type="NX_NUMBER">
+			<doc>
+				A fixed offset applied before the transformation
+			</doc>
+		</attribute>
+		<attribute name="offset_units" type="NX_CHAR">
+			<doc>
+				Units of the offset.
+			</doc>
+		</attribute>
+		<attribute name="depends_on" type="NX_CHAR">
+			<doc>
+				Points to the path of the next element in the geometry chain.
+			</doc>
+		</attribute>
+	</field>
+	<field name="slow_pixel_direction" type="NX_NUMBER" units="NX_LENGTH">
+		<doc>
+			Values along the direction of slow varying pixel direction. The direction
+			itself is given through the vector attribute
+		</doc>
+		<attribute name="transformation_type">
+			<enumeration>
+				<item value="translation" />
+			</enumeration>
+		</attribute>
+		<attribute name="vector" type="NX_NUMBER">
+			<doc>
+				Three values that define the axis for this transformation
+			</doc>
+		</attribute>
+		<attribute name="offset" type="NX_NUMBER">
+			<doc>
+				A fixed offset applied before the transformation
+			</doc>
+		</attribute>
+		<attribute name="offset_units" type="NX_CHAR">
+			<doc>
+				Units of the offset.
+			</doc>
+		</attribute>
+		<attribute name="depends_on" type="NX_CHAR">
+			<doc>
+				Points to the path of the next element in the geometry chain.
+			</doc>
+		</attribute>
+	</field>
+	<field name="fast_pixel_size" type="NX_NUMBER" units="NX_LENGTH">
+		<doc>
+			Values along the direction of fastest varying pixel direction.The direction
+			itself is given through the vector attribute
+		</doc>
+		<attribute name="transformation_type">
+			<enumeration>
+				<item value="translation" />
+			</enumeration>
+		</attribute>
+		<attribute name="vector" type="NX_NUMBER">
+			<doc>
+				Three values that define the axis for this transformation
+			</doc>
+		</attribute>
+		<attribute name="offset" type="NX_NUMBER">
+			<doc>
+				A fixed offset applied before the transformation
+			</doc>
+		</attribute>
+		<attribute name="offset_units" type="NX_CHAR">
+			<doc>
+				Units of the offset.
+			</doc>
+		</attribute>
+		<attribute name="depends_on" type="NX_CHAR">
+			<doc>
+				Points to the path of the next element in the geometry chain.
+			</doc>
+		</attribute>
+	</field>
+	<field name="slow_pixel_size" type="NX_NUMBER" units="NX_LENGTH">
+		<doc>
+			Values along the direction of slow varying pixel direction. The direction
+			itself is given through the vector attribute
+		</doc>
+		<attribute name="transformation_type">
+			<enumeration>
+				<item value="translation" />
+			</enumeration>
+		</attribute>
+		<attribute name="vector" type="NX_NUMBER">
+			<doc>
+				Three values that define the axis for this transformation
+			</doc>
+		</attribute>
+		<attribute name="offset" type="NX_NUMBER">
+			<doc>
+				A fixed offset applied before the transformation
+			</doc>
+		</attribute>
+		<attribute name="offset_units" type="NX_CHAR">
+			<doc>
+				Units of the offset.
+			</doc>
+		</attribute>
+		<attribute name="depends_on" type="NX_CHAR">
+			<doc>
+				Points to the path of the next element in the geometry chain.
+			</doc>
+		</attribute>
+	</field>
+</definition>

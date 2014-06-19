@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="nxdlformat.xsl" ?>
+<!--
+# NeXus - Neutron and X-ray Common Data Format
+# 
+# Copyright (C) 2008-2012 NeXus International Advisory Committee (NIAC)
+# 
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 3 of the License, or (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+# For further information, see http://www.nexusformat.org
+
+########### SVN repository information ###################
+# $Date$
+# $Author$
+# $Revision$
+# $HeadURL$
+# $Id$
+########### SVN repository information ###################
+-->
+<definition xmlns="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@" category="base"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@ ../nxdl.xsd"
+    name="NXaperture" 
+    version="1.0"
+    svnid="$Id$"
+    type="group" extends="NXobject">
+
+    <doc>Template of a beamline aperture.</doc>
+    <!-- TODO compare with "screens" in SHADOW -->
+
+    <group type="NXgeometry">
+        <doc>
+			location and shape of aperture
+			
+			.. TODO:
+			  description of terms is poor and leaves much to interpretation
+			  Describe what is meant by translation _here_ and ...
+			  Similar throughout base classes
+			  Some base classes do this much better
+			  Such as where is the gap written?
+        </doc>
+    </group>
+    <group type="NXgeometry">
+        <doc>location and shape of each blade</doc>
+    </group>
+    <field name="material"><!-- TODO Uniformity problem, "type" is used elsewhere for same context -->
+        <doc>Absorbing material of the aperture</doc>
+    </field>
+    <field name="description">
+        <doc>Description of aperture</doc>
+    </field>
+    <group type="NXnote"><doc>describe an additional information in a note*</doc></group>
+</definition>

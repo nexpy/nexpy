@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="nxdlformat.xsl" ?>
+<!--
+# NeXus - Neutron and X-ray Common Data Format
+# 
+# Copyright (C) 2008-2012 NeXus International Advisory Committee (NIAC)
+# 
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 3 of the License, or (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+# For further information, see http://www.nexusformat.org
+
+########### SVN repository information ###################
+# $Date$
+# $Author$
+# $Revision$
+# $HeadURL$
+# $Id$
+########### SVN repository information ###################
+-->
+<definition xmlns="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@" category="base"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@ ../nxdl.xsd"
+    name="NXmonochromator" 
+    version="1.0"
+    svnid="$Id$"
+	type="group" extends="NXobject">
+    <doc>
+            This is a base class for everything which
+            selects a wavelength or energy, be it a 
+            monochromator crystal, a velocity selector,
+            an undulator or whatever.
+            
+            The expected units are:
+            
+            * wavelength: angstrom
+            * energy:     eV
+            
+    </doc>
+    <field name="wavelength" type="NX_FLOAT" units="NX_WAVELENGTH">
+        <doc>wavelength selected</doc>
+    </field> 
+    <field name="wavelength_error" type="NX_FLOAT" units="NX_WAVELENGTH">
+        <doc>wavelength standard deviation</doc>
+    </field> 
+    <field name="energy" type="NX_FLOAT" units="NX_ENERGY">
+        <doc>energy selected</doc>
+    </field> 
+    <field name="energy_error" type="NX_FLOAT" units="NX_ENERGY">
+        <doc>energy standard deviation</doc>
+    </field> 
+    <group type="NXdata" name="distribution"/> 
+    <group type="NXgeometry" name="geometry"/> 
+    <group type="NXcrystal"><doc>Use as many crystals as necessary to describe</doc></group>
+    <group type="NXvelocity_selector"/> 
+</definition>
+

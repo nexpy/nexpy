@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="nxdlformat.xsl" ?>
+<!--
+# NeXus - Neutron and X-ray Common Data Format
+# 
+# Copyright (C) 2008-2012 NeXus International Advisory Committee (NIAC)
+# 
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 3 of the License, or (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+# For further information, see http://www.nexusformat.org
+
+########### SVN repository information ###################
+# $Date$
+# $Author$
+# $Revision$
+# $HeadURL$
+# $Id$
+########### SVN repository information ###################
+-->
+<definition xmlns="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@" category="base"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@ ../nxdl.xsd"
+	name="NXsource" 
+	version="1.0"
+    svnid="$Id$"
+	type="group" extends="NXobject">
+	<doc>Template of the neutron or x-ray source, insertion devices and/or moderators.</doc>
+	<field name="distance" type="NX_FLOAT" units="NX_LENGTH">
+		<doc>
+			Effective distance from sample
+			Distance as seen by radiation from sample. This number should be negative 
+			to signify that it is upstream of the sample.
+		</doc>
+	</field>
+	<field name="name">
+		<doc>Name of source</doc>
+		<attribute name="short_name">
+			<doc>short name for source, perhaps the acronym</doc>
+		</attribute>
+	</field>
+	<field name="type">
+		<doc>type of radiation source (pick one from the enumerated list and spell exactly)</doc>
+		<enumeration>
+			<item value="Spallation Neutron Source" />
+			<item value="Pulsed Reactor Neutron Source" />
+			<item value="Reactor Neutron Source" />
+			<item value="Synchrotron X-ray Source" />
+			<item value="Pulsed Muon Source" />
+			<item value="Rotating Anode X-ray" />
+			<item value="Fixed Tube X-ray" />
+			<item value="UV Laser" />
+			<item value="Free-Electron Laser" />
+			<item value="Optical Laser" />
+			<item value="Ion Source" />
+			<item value="UV Plasma Source" />
+		</enumeration>
+	</field>
+	<field name="probe">
+		<doc>type of radiation probe (pick one from the enumerated list and spell exactly)</doc>
+		<enumeration>
+			<item value="neutron" />
+			<item value="x-ray" />
+			<item value="muon" />
+			<item value="electron" />
+			<item value="ultraviolet" />
+			<item value="visible light" />
+			<item value="positron" />
+			<item value="proton" />
+		</enumeration>
+	</field>
+	<field name="power" type="NX_FLOAT" units="NX_POWER">
+		<doc>Source power</doc>
+	</field>
+	<field name="emittance_x" type="NX_FLOAT" units="NX_EMITTANCE">
+		<doc>Source emittance (nm-rad) in X (horizontal) direction.</doc>
+	</field>
+	<field name="emittance_y" type="NX_FLOAT" units="NX_EMITTANCE">
+		<doc>Source emittance (nm-rad) in Y (horizontal) direction.</doc>
+	</field>
+	<field name="sigma_x" type="NX_FLOAT" units="NX_LENGTH">
+		<doc>particle beam size in x</doc>
+	</field>
+	<field name="sigma_y" type="NX_FLOAT" units="NX_LENGTH">
+		<doc>particle beam size in y</doc>
+	</field>
+	<field name="flux" type="NX_FLOAT" units="NX_FLUX">
+		<doc>Source intensity/area (example: s-1 cm-2)</doc>
+	</field>
+	<field name="energy" type="NX_FLOAT" units="NX_ENERGY">
+		<doc>
+			Source energy.  
+			For storage rings, this would be the particle beam energy.
+			For X-ray tubes, this would be the excitation voltage.
+		</doc>
+	</field>
+	<field name="current" type="NX_FLOAT" units="NX_CURRENT">
+		<doc>Accelerator, X-ray tube, or storage ring current</doc>
+	</field>
+	<field name="voltage" type="NX_FLOAT" units="NX_VOLTAGE">
+		<doc>Accelerator voltage</doc>
+	</field>
+	<field name="frequency" type="NX_FLOAT" units="NX_FREQUENCY">
+		<doc>Frequency of pulsed source</doc>
+	</field>
+	<field name="period" type="NX_FLOAT" units="NX_PERIOD">
+		<doc>Period of pulsed source</doc>
+	</field>
+	<field name="target_material">
+		<doc>Pulsed source target material</doc>
+		<enumeration>
+			<item value="Ta" />
+			<item value="W" />
+			<item value="depleted_U" />
+			<item value="enriched_U" />
+			<item value="Hg" />
+			<item value="Pb" />
+			<item value="C" />
+		</enumeration>
+	</field>
+	<group name="notes" type="NXnote">
+		<doc>
+			any source/facility related messages/events that 
+			occurred during the experiment
+		</doc>
+	</group>
+	<group name="bunch_pattern" type="NXdata">
+		<doc>
+			For storage rings, description of the bunch pattern.  
+			This is useful to describe irregular bunch patterns.
+		</doc>
+		<field name="title"><doc>name of the bunch pattern</doc></field>
+	</group>
+	<field name="number_of_bunches" type="NX_INT">
+		<doc>For storage rings, the number of bunches in use.</doc>
+	</field>
+	<field name="bunch_length" type="NX_FLOAT" units="NX_TIME">
+		<doc>For storage rings, temporal length of the bunch</doc>
+	</field>
+	<field name="bunch_distance" type="NX_FLOAT" units="NX_TIME">
+		<doc>For storage rings, time between bunches</doc>
+	</field>
+	<field name="pulse_width" type="NX_FLOAT" units="NX_TIME">
+		<doc>temporal width of source pulse</doc><!-- pulsed sources or storage rings could use this -->
+	</field>
+	<group name="pulse_shape" type="NXdata">
+		<doc>source pulse shape</doc><!-- pulsed sources or storage rings could use this -->
+	</group>
+	<field name="mode">
+		<doc>source operating mode</doc>
+		<enumeration>
+			<item value="Single Bunch"><doc>for storage rings</doc></item>
+			<item value="Multi Bunch"><doc>for storage rings</doc></item>
+			<!-- other sources could add to this -->
+		</enumeration>
+	</field>
+	<field name="top_up" type="NX_BOOLEAN">
+		<doc>Is the synchrotron operating in top_up mode?</doc>
+	</field>
+	<field name="last_fill" type="NX_NUMBER" units="NX_CURRENT">
+		<doc>For storage rings, the current at the end of the most recent injection.</doc>
+		<attribute name="time" type="NX_DATE_TIME"><doc>date and time of the most recent injection.</doc></attribute>
+	</field>
+	<group name="geometry" type="NXgeometry">
+		<doc>"Engineering" location of source</doc>
+	</group>
+	<group type="NXdata" name="distribution">
+	  <doc>The wavelength or energy distribution of the source</doc>
+	</group>
+</definition>

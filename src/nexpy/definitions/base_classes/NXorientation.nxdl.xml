@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="nxdlformat.xsl" ?>
+<!--
+# NeXus - Neutron and X-ray Common Data Format
+# 
+# Copyright (C) 2008-2012 NeXus International Advisory Committee (NIAC)
+# 
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 3 of the License, or (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+# For further information, see http://www.nexusformat.org
+
+########### SVN repository information ###################
+# $Date$
+# $Author$
+# $Revision$
+# $HeadURL$
+# $Id$
+########### SVN repository information ###################
+-->
+<definition xmlns="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@" category="base"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@ ../nxdl.xsd"
+    name="NXorientation" 
+    version="1.0"
+    svnid="$Id$"
+	type="group" extends="NXobject">
+    <doc>
+	    This is the description for a general orientation of a component - it is used by the
+	    NXgeometry class
+    </doc>
+    <group type="NXgeometry">
+        <doc>Link to another object if we are using relative positioning, else absent</doc> 
+    </group>
+    <field name="value" type="NX_FLOAT" units="NX_UNITLESS">
+        <doc>
+			The orientation information is stored as direction cosines. The direction cosines will
+			be between the local coordinate directions and the reference directions (to origin or
+			relative NXgeometry). Calling the local unit vectors (x',y',z') and the reference unit
+			vectors (x,y,z) the six numbers will be [x' dot x, x' dot y, x' dot z, y' dot x, y' dot
+			y, y' dot z] where "dot" is the scalar dot product (cosine of the angle between the unit
+			vectors). The unit vectors in both the local and reference coordinates are right-handed
+			and orthonormal.
+			         
+			The pair of groups NXtranslation and NXorientation together
+			describe the position of a component. 
+        </doc>
+        <dimensions><!--numobj,6-->
+            <dim index="1" value="numobj"/>
+            <dim index="2" value="6"/>
+        </dimensions>
+    </field>
+</definition>
+

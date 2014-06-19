@@ -1,0 +1,270 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="nxdlformat.xsl" ?>
+<!--
+# NeXus - Neutron and X-ray Common Data Format
+# 
+# Copyright (C) 2008-2012 NeXus International Advisory Committee (NIAC)
+# 
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 3 of the License, or (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+# For further information, see http://www.nexusformat.org
+
+########### SVN repository information ###################
+# $Date$
+# $Author$
+# $Revision$
+# $HeadURL$
+# $Id$
+########### SVN repository information ###################
+-->
+<definition name="NXdata" 
+	version="1.0"
+	type="group" 
+	extends="NXobject"
+	category="base"
+	ignoreExtraFields="true"
+	ignoreExtraAttributes="true" 
+	xmlns="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@ ../nxdl.xsd"
+	svnid="$Id$">
+	
+	<!-- 
+		The ignoreExtra* attributes are used in the definition to
+		avoid warning messages that would be generated from unexpected fields or attributes.
+		Since common use of NXdata indicates field names of any value, _many_
+		instances of this class would generate a warning message during validation
+		without this attribute being set to "true".
+	-->
+
+	<symbols>
+		<doc>These symbols will be used below to coordinate datasets with the same shape.</doc>
+		<symbol name="dataRank"><doc>rank of the ``data`` field</doc></symbol>
+		<symbol name="n"><doc>length of the ``variable`` field</doc></symbol>
+		<symbol name="nx"><doc>length of the ``x`` field</doc></symbol>
+		<symbol name="ny"><doc>length of the ``y`` field</doc></symbol>
+		<symbol name="nz"><doc>length of the ``z`` field</doc></symbol>
+	</symbols>
+	
+	
+	<doc>
+		.. index:: NeXus basic motivation; default plot
+		
+		(**required**) ``NXdata`` is a template of 
+		plottable data and their dimension scales. 
+		It is mandatory  that there is at least one ``NXdata`` group 
+		in each NXentry group.  
+		Note that the ``variable`` and ``data`` 
+		can be defined with different names.  
+		The ``signal`` and ``axes`` attribute of the 
+		``data`` item define which items 
+		are plottable data and which are *dimension scales*.
+
+		* Each ``NXdata`` group will consist of only one data set
+		  containing plottable data and their standard deviations.
+		* This data set may be of arbitrary rank up to a maximum
+		  of ``NX_MAXRANK=32``.
+		* The plottable data will be identified by the attribute:
+		  ``signal=1``
+		* The plottable data will identify the *dimension scale* 
+		  specification(s) in the ``axes`` attribute.
+
+		If available, the standard deviations of the data are to be
+		stored in a data set of the same rank and dimensions, with the name ``errors``. 
+
+		* For each data dimension, there should be a one-dimensional array
+		  of the same length.
+		* These one-dimensional arrays are the *dimension scales* of the
+		  data,  *i.e*. the values of the independent variables at which the data
+		  is measured, such as scattering angle or energy transfer.
+		
+		.. index:: link
+		
+		There are two methods of linking 
+		each data dimension to its respective dimension scale.
+		
+		.. index:: axes
+		
+		The preferred (and recommended) method uses the ``axes`` 
+		attribute to specify the names of each *dimension scale*.
+		
+		The older method uses the ``axis`` attribute on each
+		*dimension scale*
+		to identify
+		with an integer the axis whose value is the number of the dimension.
+		
+		``NXdata`` is used to implement one of the basic motivations in NeXus,
+		to provide a default plot for the data of this ``NXentry``.  The actual data
+		might be stored in another group and (hard) linked to the ``NXdata`` group.
+	</doc>
+	<field name="variable" type="NX_NUMBER">
+		<doc>
+	 		Dimension scale defining an axis of the data.
+	 		Client is responsible for defining the dimensions of the data.
+	 		The name of this field may be changed to fit the circumstances.
+	 		Standard NeXus client tools will use the attributes to determine
+	 		how to use this field.
+	 	</doc>
+		<dimensions rank="1">
+			<doc>
+				A *dimension scale* must have a rank of 1 and has length ``n``.
+			</doc>
+			<dim index="1" value="n"/>
+		</dimensions>
+		<attribute name="long_name"><doc>Axis label</doc></attribute>
+		<attribute name="distribution" type="NX_BOOLEAN">
+			<doc>
+				``0|false``: single value, 
+				``1|true``: multiple values
+			</doc>
+		</attribute>
+        <attribute name="first_good" type="NX_INT"><doc>Index of first good value</doc></attribute>
+		<attribute name="last_good" type="NX_INT"><doc>Index of last good value</doc></attribute>
+		<attribute name="axis" type="NX_POSINT">
+			<doc>
+				Index (positive integer) identifying this specific set of numbers.
+				N.B. The ``axis`` attribute is the old way of designating a link.  
+				Do not use the ``axes`` attribute with the ``axis`` attribute.
+				The ``axes`` attribute is now preferred.
+			</doc>
+		</attribute>
+	</field>
+	<field name="variable_errors" type="NX_NUMBER">
+		<doc>
+			Errors (uncertainties) associated with axis ``variable``
+			Client is responsible for defining the dimensions of the data.
+			The name of this field may be changed to fit the circumstances 
+			but is matched with the *variable*
+			field with ``_errors`` appended.
+		</doc>
+		<dimensions rank="1">
+			<doc>
+				A dimension scale must have a rank of 1 and has length ``n``, 
+				same as ``variable``.
+			</doc>
+			<dim index="1" value="n"/>
+		</dimensions>
+	</field>
+	<field name="data" type="NX_NUMBER">
+		<doc>
+			.. index:: NeXus basic motivation; default plot
+		
+			This field contains the data values to be used as the 
+			NeXus *plottable data*.
+			Client is responsible for defining the dimensions of the data.
+			The name of this field may be changed to fit the circumstances.
+			Standard NeXus client tools will use the attributes to determine
+			how to use this field.
+		</doc>
+		<dimensions rank="dataRank">
+			<doc>
+				The rank (``dataRank``) of the ``data`` must satisfy
+				``1 &lt;= dataRank &lt;= NX_MAXRANK=32``.  
+				At least one ``dim`` must have length ``n``.
+			</doc>
+			<dim index="0" value="n"><!-- index="0": cannot know to which dimension this applies a priori --></dim>
+		</dimensions>
+		<attribute name="signal" type="NX_POSINT">
+			<doc>
+				.. index:: NeXus basic motivation; default plot
+		
+				Plottable (independent) axis, indicate index number.
+				Only one field in a ``NXdata`` group may have the 
+				``signal=1`` attribute.
+				Do not use the ``signal`` attribute with the ``axis`` attribute.
+			</doc>
+		</attribute>
+		<attribute name="axes">
+			<doc>
+				Defines the names of the dimension scales
+				(independent axes) for this data set
+				as a colon-delimited array.
+				NOTE: The ``axes`` attribute is the preferred 
+				method of designating a link.  
+				Do not use the ``axes`` attribute with the ``axis`` attribute.
+			</doc>
+		</attribute>
+		<attribute name="uncertainties">
+			<doc>
+				Specify the names of the errors (uncertainties) 
+				of the dependent axes as plottable data.
+				NOTE: The ``errors`` attribute uses the same syntax
+				as the ``axes`` attribute.
+			</doc>
+		</attribute>
+		<attribute name="long_name">
+			<doc>data label</doc>
+		</attribute>
+	</field>
+	<field name="errors" type="NX_NUMBER">
+		<doc>
+			Standard deviations of data values - 
+			the data array is identified by the attribute ``signal=1``. 
+			The ``errors`` array must have the same dimensions as ``data``.
+			Client is responsible for defining the dimensions of the data.
+		</doc>
+		<dimensions rank="dataRank">
+			<doc>
+				The ``errors`` must have 
+				the same rank (``dataRank``) 
+				as the ``data``.  
+				At least one ``dim`` must have length "n".
+			</doc>
+			<dim index="0" value="n"><!-- index="0": cannot know to which dimension this applies a priori --></dim>
+		</dimensions>
+	</field>
+	<field name="scaling_factor" type="NX_FLOAT">
+		<doc>
+			The elements in data are usually float values really. For
+			efficiency reasons these are usually stored as integers
+			after scaling with a scale factor. This value is the scale
+			factor. It is required to get the actual physical value,
+			when necessary.
+		</doc>
+	</field>
+	<field name="offset" type="NX_FLOAT">
+		<doc>
+			An optional offset to apply to the values in data.
+		</doc>
+	</field>
+	<field name="x" type="NX_FLOAT" units="NX_ANY">
+		<doc>
+			This is an array holding the values to use for the x-axis of
+			data.  The units must be appropriate for the measurement.
+		</doc>
+		<dimensions rank="1">
+			<dim index="1" value="nx" />
+		</dimensions>
+	</field>
+	<field name="y" type="NX_FLOAT" units="NX_ANY">
+		<doc>
+			This is an array holding the values to use for the y-axis of
+			data.  The units must be appropriate for the measurement.
+		</doc>
+		<dimensions rank="1">
+			<dim index="1" value="ny" />
+		</dimensions>
+	</field>
+	<field name="z" type="NX_FLOAT" units="NX_ANY">
+		<doc>
+			This is an array holding the values to use for the z-axis of
+			data.  The units must be appropriate for the measurement.
+		</doc>
+		<dimensions rank="1">
+			<dim index="1" value="nz" />
+		</dimensions>
+	</field>
+</definition>
+

@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="nxdlformat.xsl" ?>
+<!--
+# NeXus - Neutron and X-ray Common Data Format
+# 
+# Copyright (C) 2008-2012 NeXus International Advisory Committee (NIAC)
+# 
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 3 of the License, or (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+# For further information, see http://www.nexusformat.org
+
+########### SVN repository information ###################
+# $Date$
+# $Author$
+# $Revision$
+# $HeadURL$
+# $Id$
+########### SVN repository information ###################
+-->
+<definition name="NXsubentry" 
+	version="1.0"
+	type="group" 
+	extends="NXobject"
+	category="base"
+	xmlns="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@ ../nxdl.xsd"
+	svnid="$Id$">
+
+	<doc>
+		``NXsubentry`` is a base class virtually identical to ``NXentry``
+		and is used as the (overlay) location for application definitions.
+		Use a separate ``NXsubentry`` for each application definition. 
+		
+		To use ``NXsubentry`` with a hypothetical application definition 
+		called ``NXmyappdef``:
+		* Create a group with attribute ``NX_class="NXsubentry"``
+		* Within that group, create a field called ``definition="NXmyappdef"``.
+		* There are two optional attributes of definition: ``version`` and ``URL``
+
+		The intended use is to define application definitions for a 
+		multi-technique ``NXentry``. Previously, an application definition 
+		replaced ``NXentry`` with its own definition. 
+		With the increasing popularity of instruments combining 
+		multiple techniques for data collection (such as SAXS/WAXS instruments), 
+		it was recognized the application definitions must be entered in the NeXus
+		data file tree as children of ``NXentry``. 
+	</doc>
+	
+	<attribute name="IDF_Version">
+		<!-- as ratified at NIAC2010 -->
+		<doc>ISIS Muon IDF_Version</doc>
+	</attribute>
+
+	<field name="title">
+		<doc>Extended title for entry</doc>
+	</field>
+	<field name="experiment_identifier">
+		<doc>Unique identifier for the experiment, defined by the facility, possibly linked to the
+			proposals</doc>
+	</field>
+	<field name="experiment_description">
+		<doc>Brief summary of the experiment, including key objectives.</doc>
+	</field>
+	<group type="NXnote"  name="experiment_documentation">
+		<doc>Description of the full experiment (document in pdf, latex, …)</doc>
+	</group>
+	<field name="collection_identifier">
+		<doc>User or Data Acquisition defined group of NeXus files or NXentry</doc>
+	</field>
+	<field name="collection_description">
+		<doc>Brief summary of the collection, including grouping criteria.</doc>
+	</field>
+	<field name="entry_identifier">
+		<doc>unique identifier for the measurement, defined by the facility.</doc>
+	</field>
+	<field name="definition">
+		<doc>Official NeXus NXDL schema to which this file conforms</doc>
+		<attribute name="version"><doc>NXDL version number</doc></attribute>
+		<attribute name="URL"><doc>URL of NXDL file</doc></attribute>
+	</field>
+	<field name="definition_local">
+		<doc>
+			Local NXDL schema extended from the file
+			specified in the ``definition`` field. 
+			This contains any locally-defined,
+			additional fields in the file.
+		</doc>
+		<attribute name="version"><doc>NXDL version number</doc></attribute>
+		<attribute name="URL"><doc>URL of NXDL file</doc></attribute>
+	</field>
+	<field name="start_time" type="NX_DATE_TIME">
+		<doc>Starting time of measurement</doc>
+	</field>
+	<field name="end_time" type="NX_DATE_TIME">
+		<doc>Ending time of measurement</doc>
+	</field>
+	<field name="duration" type="NX_INT" units="NX_TIME">
+		<doc>Duration of measurement</doc>
+	</field>
+	<field name="collection_time" type="NX_FLOAT" units="NX_TIME">
+		<doc>
+			Time transpired actually collecting data i.e. taking out time when collection was
+			suspended due to e.g. temperature out of range
+		</doc>
+	</field>
+	<field name="run_cycle">
+		<doc>Such as "2007-3". Some user facilities organize their beam time into run cycles.</doc>
+	</field>
+	<field name="program_name">
+		<doc>Name of program used to generate this file</doc>
+		<attribute name="version"><doc>Program version number</doc></attribute>
+		<attribute name="configuration"><doc>configuration of the program</doc></attribute>
+	</field>
+	<field name="revision">
+		<doc>
+			Revision id of the file due to re-calibration, reprocessing, new analysis, new
+			instrument definition format, ...
+		</doc>
+		<attribute name="comment"/>
+	</field>
+	<field name="pre_sample_flightpath" type="NX_FLOAT"
+		units="NX_LENGTH">
+		<doc>
+			This is the flightpath before the sample position. This can be determined by a chopper,
+			by the moderator or the source itself. In other words: it the distance to the component
+			which gives the T0 signal to the detector electronics. If another component in the
+			NXinstrument hierarchy provides this information, this should be a link.
+		</doc>
+	</field>
+	<group name="notes" type="NXnote">
+		<doc>Notes describing entry</doc>
+	</group>
+	<group name="thumbnail" type="NXnote">
+		<doc>
+			A small image that is representative of the entry. An example of this is a 640x480
+			jpeg image automatically produced by a low resolution plot of the NXdata.
+		</doc>
+		<attribute name="mime_type">
+			<doc>The value should be an ``image/*``</doc>
+			<enumeration>
+				<!-- 
+					This is not perfect.
+					How do we set a default value for the mime_type attribute?
+				-->
+				<item value="image/*" />
+			</enumeration>
+		</attribute>
+	</group>
+	<group type="NXcharacterization" /><!-- TODO: consider using NXcollection instead, see https://github.com/nexusformat/definitions/issues/177-->
+	<group type="NXuser" />
+	<group type="NXsample" />
+	<group type="NXinstrument" />
+	<group type="NXcollection" />
+	<group type="NXmonitor" />
+	<group type="NXdata" />
+	<group type="NXparameters" />
+	<group type="NXprocess" />
+</definition>
+

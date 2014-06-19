@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="nxdlformat.xsl" ?>
+<!--
+# NeXus - Neutron and X-ray Common Data Format
+# 
+# Copyright (C) 2008-2012 NeXus International Advisory Committee (NIAC)
+# 
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 3 of the License, or (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+# For further information, see http://www.nexusformat.org
+
+########### SVN repository information ###################
+# $Date: 2010-10-21 17:47:35 +0200 (Thu, 21 Oct 2010) $
+# $Author: Mark Koennecke $
+# $Revision: 662 $
+# $HeadURL: https://svn.nexusformat.org/definitions/trunk/base_classes/NXbeam.nxdl.xml $
+# $Id: NXcapillary.nxdl.xml 662 2010-10-21 15:47:35Z Pete Jemian $
+########### SVN repository information ###################
+-->
+<definition xmlns="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@" category="base"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@ ../nxdl.xsd"
+    name="NXxraylens"
+    version="1.0"
+    svnid="$Id: NXxraylens.nxdl.xml 662 2010-10-21 15:47:35Z Pete Jemian $"
+    type="group" extends="NXobject">
+
+    <doc>
+      This is a dictionary of field names to use for 
+      describing a X-ray lens as used at 
+      synchrotron beam lines. 
+      Based on information provided by Gerd Wellenreuther.
+      </doc>
+    <field name="lens_geometry" type="NX_CHAR">
+        <doc>Geometry of the lens</doc>
+        <enumeration>
+          <item value="paraboloid"/>
+          <item value="spherical"/>
+          <item value="elliptical"/>
+          <item value="hyperbolical"/>
+        </enumeration>
+    </field>
+    <field name="symmetric" type="NX_BOOLEAN">
+      <doc>
+        Is the device symmetric? 
+      </doc>
+    </field>
+    <field name="cylindrical" type="NX_BOOLEAN">
+      <doc>
+        Is the device cylindrical? 
+      </doc>
+    </field>
+    <group name="cylinder_orientation" type="NXnote">
+      <doc>
+        Orientation of the cylinder axis.
+      </doc>
+    </group>
+    <field name="focus_type" type="NX_CHAR">
+      <doc>
+        The type of focus of the lens
+      </doc>
+        <enumeration>
+           <item value="line"/>
+           <item value="point"/>
+        </enumeration>
+    </field>
+    <field name="lens_thickness" type="NX_FLOAT" units="NX_LENGTH">
+      <doc>Thickness of the lens</doc>
+    </field>
+    <field name="lens_length" type="NX_FLOAT" units="NX_LENGTH">
+      <doc>Length of the lens</doc>
+    </field>
+    <field name="curvature" type="NX_FLOAT" units="NX_LENGTH">
+      <doc>Radius of the curvature as measured in the middle of the lens</doc>
+    </field>
+    <field name="aperture" type="NX_FLOAT" units="NX_LENGTH">
+      <doc>Diameter or radius of the lens.</doc>
+    </field>
+    <field name="number_of_lenses" type="NX_INT">
+      <doc>Number of lenses that make up the compound lens.</doc>
+    </field>
+    <field name="lens_material" type="NX_CHAR">
+      <doc>Material used to make the lens.</doc>
+    </field>
+    <field name="gas" type="NX_CHAR">
+      <doc>Gas used to fill the lens</doc>
+    </field>
+    <field name="gas_pressure" type="NX_FLOAT" units="NX_PRESSURE">
+      <doc>Gas pressure in the lens</doc>
+    </field>
+ </definition>

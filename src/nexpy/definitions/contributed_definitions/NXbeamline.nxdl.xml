@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="nxdlformat.xsl" ?>
+<!-- 
+  # NeXus - Neutron and X-ray Common Data Format
+  # 
+  # Copyright (C) 2008-2012 NeXus International Advisory Committee (NIAC)
+  # 
+  # This library is free software; you can redistribute it and/or
+  # modify it under the terms of the GNU Lesser General Public
+  # License as published by the Free Software Foundation; either
+  # version 3 of the License, or (at your option) any later version. 
+  # 
+  # This library is distributed in the hope that it will be useful,
+  # but WITHOUT ANY WARRANTY; without even the implied warranty of
+  # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  # Lesser General Public License for more details.
+  #
+  # You should have received a copy of the GNU Lesser General Public
+  # License along with this library; if not, write to the Free Software
+  # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+  #
+  # For further information, see http://www.nexusformat.org 
+  
+  ################### SVN repository information #############################
+  # $LastChangedRevision::     $
+  # $LastChangedDate::                                                  $
+  # $LastChangedBy::                   $
+  # $HeadURL$
+  # $Id$
+  ################# SVN repository information ###############################
+-->
+
+<definition type="group" name="NXbeamline" category="contributed" extends="NXobject"
+    xmlns="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@ ../nxdl.xsd"
+    version="1.0"
+    svnid="$Id$">
+	<doc>container for elements describing beamline.</doc>
+<field name="beamline" type="NX_CHAR">
+<doc>name of beamline.</doc>
+</field>
+<group name="diagnostics" type="NXcollection"
+	minOccurs="0" maxOccurs="1"/>
+  <group type="NXbending_magnet"
+	minOccurs="0" maxOccurs="unbounded"/>
+  <group type="NXquadrupole_magnet"
+	minOccurs="0" maxOccurs="unbounded"/>
+  <group type="NXsolenoid_magnet"
+	minOccurs="0" maxOccurs="unbounded"/>
+  <group type="NXseparator"
+	minOccurs="0" maxOccurs="unbounded"/>
+  <group type="NXspin_rotator"
+	minOccurs="0" maxOccurs="unbounded"/>
+  <group type="NXelectrostatic_kicker" 
+	minOccurs="0" maxOccurs="unbounded"/>
+  <group type="NXmagnetic_kicker" 
+	minOccurs="0" maxOccurs="unbounded"/>
+  <group type="NXaperture" 
+	minOccurs="0" maxOccurs="unbounded"/>
+</definition>

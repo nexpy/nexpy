@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="nxdlformat.xsl" ?>
+<!--
+# NeXus - Neutron and X-ray Common Data Format
+# 
+# Copyright (C) 2008-2012 NeXus International Advisory Committee (NIAC)
+# 
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 3 of the License, or (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+# For further information, see http://www.nexusformat.org
+
+########### SVN repository information ###################
+# $Date$
+# $Author$
+# $Revision$
+# $HeadURL$
+# $Id$
+########### SVN repository information ###################
+-->
+<definition xmlns="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@" category="base"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@ ../nxdl.xsd"
+	name="NXshape" 
+	version="1.0"
+    svnid="$Id$"
+	type="group" extends="NXobject">
+	<doc>
+		This is the description of the general shape and size of a 
+		component, which may be made up of ``numobj`` separate 
+		elements - it is used by the :ref:`NXgeometry` class
+	</doc>
+	<field name="shape">
+	    <doc>general shape of a component</doc>
+	    <enumeration>
+			<item value="nxflat"/>
+			<item value="nxcylinder"/>
+			<item value="nxbox"/>
+			<item value="nxsphere"/>
+			<item value="nxcone"/>          
+			<item value="nxelliptical"/>          
+			<item value="nxtoroidal"/>          
+			<item value="nxparabolic"/>          
+			<item value="nxpolynomial"/>          
+	    </enumeration>
+	    
+	</field>
+	<field name="size" type="NX_FLOAT" units="NX_LENGTH">
+		<doc>
+			physical extent of the object along its local axes (after NXorientation) 
+			with the center of mass at the local origin (after NXtranslation).
+			The meaning and location of these axes will vary according to the value 
+			of the "shape" variable. 
+			``nshapepar`` defines how many parameters: 
+
+			- For "nxcylinder" type the parameters are (diameter,height) and a three value orientation vector of the cylinder. 
+			- For the "nxbox" type the parameters are (length,width,height). 
+			- For the "nxsphere" type the parameters are (diameter).
+			- For nxcone cone half aperture
+			- For nxelliptical, semi-major axis, semi-minor-axis, angle of major axis and pole
+			- For nxtoroidal, major radius, minor radius
+			- For nxparabolic, parabolic parameter a
+			- For nxpolynomial, an array of polynom coefficients, the dimension of the array 
+			  encodes the degree of the polynom
+		</doc>
+		<dimensions><!--[numobj,nshapepar]-->
+		    <dim index="1" value="numobj"/>
+		    <dim index="2" value="nshapepar"/>
+		</dimensions>
+	</field>
+  <field name="direction">
+    <enumeration>
+      <item value="concave"></item>
+      <item value="convex"></item>
+    </enumeration>
+  </field>
+</definition>
+

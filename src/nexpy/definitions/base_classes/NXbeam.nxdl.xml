@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="nxdlformat.xsl" ?>
+<!--
+# NeXus - Neutron and X-ray Common Data Format
+# 
+# Copyright (C) 2008-2012 NeXus International Advisory Committee (NIAC)
+# 
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 3 of the License, or (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+# For further information, see http://www.nexusformat.org
+
+########### SVN repository information ###################
+# $Date$
+# $Author$
+# $Revision$
+# $HeadURL$
+# $Id$
+########### SVN repository information ###################
+-->
+<definition xmlns="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@" category="base"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@ ../nxdl.xsd"
+    name="NXbeam"
+    version="1.0"
+    svnid="$Id$"
+    type="group" extends="NXobject">
+
+    <doc>Template of the state of the neutron or X-ray beam at any location. It will be referenced
+        by beamline component groups within the NXinstrument group or by the NXsample group. Note
+        that variables such as the incident energy could be scalar values or arrays. This group is
+        especially valuable in storing the results of instrument simulations in which it is useful
+        to specify the beam profile, time distribution etc. at each beamline component. Otherwise,
+        its most likely use is in the NXsample group in which it defines the results of the neutron
+        scattering by the sample, e.g., energy transfer, polarizations. </doc>
+    <field name="distance" type="NX_FLOAT" units="NX_LENGTH">
+        <doc>Distance from sample</doc>
+    </field>
+    <field name="incident_energy" type="NX_FLOAT" units="NX_ENERGY">
+        <doc>Energy on entering beamline component</doc>
+        <dimensions rank="1">
+            <dim index="1" value="i"/>
+        </dimensions>
+    </field>
+    <field name="final_energy" type="NX_FLOAT" units="NX_ENERGY">
+        <doc>Energy on leaving beamline component</doc>
+        <dimensions rank="1">
+            <dim index="1" value="i"/>
+        </dimensions>
+    </field>
+    <field name="energy_transfer" type="NX_FLOAT" units="NX_ENERGY">
+        <doc>Energy change caused by beamline component</doc>
+        <dimensions rank="1">
+            <dim index="1" value="i"/>
+        </dimensions>
+    </field>
+    <field name="incident_wavelength" type="NX_FLOAT" units="NX_WAVELENGTH">
+        <doc>Wavelength on entering beamline component</doc>
+        <dimensions rank="1">
+            <dim index="1" value="i"/>
+        </dimensions>
+    </field>
+    <field name="incident_wavelength_spread" type="NX_FLOAT" units="NX_WAVELENGTH">
+        <doc>Wavelength spread FWHM on entering component</doc>
+        <dimensions rank="1">
+            <dim index="1" value="i"/>
+        </dimensions>
+    </field>
+    <field name="incident_beam_divergence" type="NX_FLOAT" units="NX_ANGLE">
+        <doc>Divergence of beam entering this component</doc>
+        <dimensions rank="2"><!-- [2,:] -->
+            <dim index="1" value="2"/>
+            <dim index="2" value="j"/>
+        </dimensions>
+    </field>
+    <field name="final_wavelength" type="NX_FLOAT" units="NX_WAVELENGTH">
+        <doc>Wavelength on leaving beamline component</doc>
+        <dimensions rank="1">
+            <dim index="1" value="i"/>
+        </dimensions>
+    </field>
+    <field name="incident_polarization" type="NX_FLOAT" units="NX_ANY">
+        <doc>Polarization vector on entering beamline component</doc>
+        <dimensions rank="2"><!-- [2,:] -->
+            <dim index="1" value="2"/>
+            <dim index="2" value="j"/>
+        </dimensions>
+    </field>
+    <field name="final_polarization" type="NX_FLOAT" units="NX_ANY">
+        <doc>Polarization vector on leaving beamline component</doc>
+        <dimensions rank="2"><!-- [2,:] -->
+            <dim index="1" value="2"/>
+            <dim index="2" value="j"/>
+        </dimensions>
+    </field>
+    <field name="final_wavelength_spread" type="NX_FLOAT" units="NX_WAVELENGTH">
+        <doc>Wavelength spread FWHM of beam leaving this component</doc>
+        <dimensions rank="1">
+            <dim index="1" value="i"/>
+        </dimensions>
+    </field>
+    <field name="final_beam_divergence" type="NX_FLOAT" units="NX_ANGLE">
+        <doc>Divergence FWHM of beam leaving this component</doc>
+        <dimensions rank="2"><!-- [2,:] -->
+            <dim index="1" value="2"/>
+            <dim index="2" value="j"/>
+        </dimensions>
+    </field>
+    <field name="flux" type="NX_FLOAT" units="NX_FLUX">
+        <doc>flux incident on beam plane area</doc>
+        <dimensions rank="1">
+            <dim index="1" value="i"/>
+        </dimensions>
+    </field>
+    <group type="NXdata">
+        <doc>Distribution of beam with respect to relevant variable e.g. wavelength. This is mainly
+            useful for simulations which need to store plottable information at each beamline
+            component.</doc>
+    </group>
+</definition>

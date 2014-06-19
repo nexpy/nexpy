@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="nxdlformat.xsl" ?>
+<!--
+# NeXus - Neutron and X-ray Common Data Format
+# 
+# Copyright (C) 2008-2012 NeXus International Advisory Committee (NIAC)
+# 
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 3 of the License, or (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+# For further information, see http://www.nexusformat.org
+
+########### SVN repository information ###################
+# $Date$
+# $Author$
+# $Revision$
+# $HeadURL$
+# $Id$
+########### SVN repository information ###################
+-->
+<definition
+	name="NXfilter" 
+	type="group"
+	extends="NXobject"
+	category="base"
+	version="1.0" xmlns="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@ ../nxdl.xsd"
+    svnid="$Id$">
+	<doc>
+		Template for specifying the state of band pass filters.
+		If uncertain whether to use ``NXfilter`` (band-pass filter)
+		or ``NXattenuator`` (reduces beam intensity), then use 
+		``NXattenuator``.
+	</doc>
+	<group type="NXgeometry">
+		<doc>Geometry of the filter</doc>
+	</group>
+	<field name="description">
+		<doc>
+			Composition of the filter.  Chemical formula can be specified separately.
+            This field was changed (2010-11-17) from an enumeration to
+            a string since common usage showed a wider variety of use
+            than a simple list.  These are the items in the list at 
+            the time of the change:
+
+            * Beryllium
+            * Pyrolytic Graphite
+            * Graphite
+            * Sapphire
+            * Silicon
+            * Supermirror
+
+		</doc>
+	</field>
+	<field name="status">
+		<doc>position with respect to in or out of the beam (choice of only "in" or "out")</doc>
+		<enumeration>
+			<item value="in"><doc>in the beam</doc></item>
+			<item value="out"><doc>out of the beam</doc></item>
+		</enumeration>
+	</field>
+	<group name="transmission" type="NXdata">
+		<doc>Wavelength transmission profile of filter</doc>
+	</group>
+	<field name="temperature" type="NX_FLOAT" units="NX_TEMPERATURE">
+		<doc>average/nominal filter temperature</doc>
+	</field>
+	<group name="temperature_log" type="NXlog">
+		<doc>Linked temperature_log for the filter</doc>
+	</group>
+	<field name="thickness" type="NX_FLOAT" units="NX_LENGTH">
+		<doc>Thickness of the filter</doc>
+	</field>
+	<field name="density" type="NX_NUMBER" units="NX_MASS_DENSITY">
+		<doc>mass density of the filter</doc>
+	</field>
+	<field name="chemical_formula">
+		<!-- copied from NXsample -->
+		<doc>
+			The chemical formula specified using CIF conventions.
+			Abbreviated version of CIF standard: 
+			
+			* Only recognized element symbols may be used.
+			* Each element symbol is followed by a 'count' number. A count of '1' may be omitted.
+			* A space or parenthesis must separate each cluster of (element symbol + count).
+			* Where a group of elements is enclosed in parentheses, the multiplier for the 
+			  group must follow the closing parentheses. That is, all element and group 
+			  multipliers are assumed to be printed as subscripted numbers.
+			* Unless the elements are ordered in a manner that corresponds to their chemical 
+			  structure, the order of the elements within any group or moiety depends on 
+			  whether or not carbon is present.
+			* If carbon is present, the order should be: 
+			
+			  - C, then H, then the other elements in alphabetical order of their symbol. 
+			  - If carbon is not present, the elements are listed purely in alphabetic order of their symbol. 
+			  
+			* This is the *Hill* system used by Chemical Abstracts.
+		</doc>
+	</field>
+	<group name="sensor_type" type="NXsensor">
+		<doc>Sensor(s)used to monitor the filter temperature</doc>
+	</group>
+	<field name="unit_cell_a" type="NX_FLOAT" units="NX_LENGTH">
+		<doc>Unit cell lattice parameter: length of side a</doc>
+	</field>
+	<field name="unit_cell_b" type="NX_FLOAT" units="NX_LENGTH">
+		<doc>Unit cell lattice parameter: length of side b</doc>
+	</field>
+	<field name="unit_cell_c" type="NX_FLOAT" units="NX_LENGTH">
+		<doc>Unit cell lattice parameter: length of side c</doc>
+	</field>
+	<field name="unit_cell_alpha" type="NX_FLOAT" units="NX_ANGLE">
+		<doc>Unit cell lattice parameter: angle alpha</doc>
+	</field>
+	<field name="unit_cell_beta" type="NX_FLOAT" units="NX_ANGLE">
+		<doc>Unit cell lattice parameter: angle beta</doc>
+	</field>
+	<field name="unit_cell_gamma" type="NX_FLOAT" units="NX_ANGLE">
+		<doc>Unit cell lattice parameter: angle gamma</doc>
+	</field>
+	<field name="unit_cell_volume" type="NX_FLOAT" units="NX_VOLUME">
+		<doc>Unit cell</doc>
+		<dimensions rank="1"><dim index="1" value="n_comp"/></dimensions>
+	</field>
+	<field name="orientation_matrix" type="NX_FLOAT">
+		<doc>Orientation matrix of single crystal filter using Busing-Levy convention</doc>
+		<dimensions rank="3"><!--n_comp,3,3-->
+			<dim index="1" value="n_comp"/><!-- TODO n_comp is number of different compositions? -->
+			<dim index="2" value="3"/>
+			<dim index="3" value="3"/>
+		</dimensions>
+	</field>
+	<field name="m_value" type="NX_FLOAT" units="NX_DIMENSIONLESS">
+		<doc>m value of supermirror filter</doc>
+	</field>
+	<field name="substrate_material">
+		<doc>substrate material of supermirror filter</doc>
+	</field>
+	<field name="substrate_thickness" type="NX_FLOAT" units="NX_LENGTH">
+		<doc>substrate thickness of supermirror filter</doc>
+	</field>
+	<field name="coating_material">
+		<doc>coating material of supermirror filter</doc>
+	</field>
+	<field name="substrate_roughness" type="NX_FLOAT" units="NX_LENGTH">
+		<doc>substrate roughness (RMS) of supermirror filter</doc>
+	</field>
+	<field name="coating_roughness" type="NX_FLOAT" units="NX_LENGTH">
+		<doc>coating roughness (RMS) of supermirror filter</doc>
+		<dimensions rank="1"><dim index="1" incr="1" value="nsurf"/></dimensions>
+	</field>
+</definition>
+

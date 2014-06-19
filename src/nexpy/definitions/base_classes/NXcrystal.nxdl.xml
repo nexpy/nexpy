@@ -1,0 +1,289 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="nxdlformat.xsl" ?>
+<!--
+# NeXus - Neutron and X-ray Common Data Format
+# 
+# Copyright (C) 2008-2012 NeXus International Advisory Committee (NIAC)
+# 
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 3 of the License, or (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+# For further information, see http://www.nexusformat.org
+
+########### SVN repository information ###################
+# $Date$
+# $Author$
+# $Revision$
+# $HeadURL$
+# $Id$
+########### SVN repository information ###################
+-->
+<definition xmlns="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@" category="base"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@ ../nxdl.xsd"
+    name="NXcrystal" 
+    version="1.0"
+    svnid="$Id$"
+    type="group" extends="NXobject">
+    
+    <symbols>
+        <doc>These symbols will be used below to coordinate dimensions with the same lengths.</doc>
+        <symbol name="n_comp"><doc>number of different unit cells to be described</doc></symbol>
+        <symbol name="i"><doc>number of wavelengths</doc></symbol>
+    </symbols>
+
+    <doc>
+        Template of a crystal monochromator or analyzer. Permits double bent
+        monochromator comprised of multiple segments with anisotropic 
+        Gaussian mosaic.
+        
+        If curvatures are set to zero or are absent, array 
+        is considered to be flat.
+        
+        Scattering vector is perpendicular to surface. Crystal is oriented
+        parallel to beam incident on crystal before rotation, and lies in
+        vertical plane.
+    </doc>
+
+    <group type="NXgeometry">
+        <doc>Position of crystal</doc>
+    </group>
+    <field name="usage" type="NX_CHAR">
+        <doc>How this crystal is used.  Choices are in the list.</doc>
+        <enumeration>
+            <item value="Bragg"><doc>reflection geometry</doc></item>
+            <item value="Laue">
+                <doc>
+                    transmission geometry, 
+                    requires "thickness" field to be defined
+                </doc>
+            </item>
+        </enumeration>
+    </field>
+    <field name="type">
+        <doc>
+            Type or material of monochromating substance.  
+            Chemical formula can be specified separately.
+            Use the "reflection" field to indicate the (hkl) orientation.
+            Use the "d_spacing" field to record the lattice plane spacing.
+            
+            This field was changed (2010-11-17) from an enumeration to
+            a string since common usage showed a wider variety of use
+            than a simple list.  These are the items in the list at 
+            the time of the change:
+            PG
+            | Ge
+            | Si
+            | Cu
+            | Fe3Si
+            | CoFe
+            | Cu2MnAl
+            | Multilayer
+            | Diamond
+
+            Note that "PG" is Highly Oriented Pyrolytic Graphite.  Also, 
+            "Cu2MnAl" had the comment "Heusler".
+        </doc>
+    </field>
+    <field name="chemical_formula">
+        <!-- copied from NXsample -->
+        <doc>
+            The chemical formula specified using CIF conventions.
+            Abbreviated version of CIF standard: 
+
+            * Only recognized element symbols may be used.
+            * Each element symbol is followed by a 'count' number. A count of '1' may be omitted.
+            * A space or parenthesis must separate each cluster of (element symbol + count).
+            * Where a group of elements is enclosed in parentheses, the multiplier for the 
+              group must follow the closing parentheses. That is, all element and group 
+              multipliers are assumed to be printed as subscripted numbers.
+            * Unless the elements are ordered in a manner that corresponds to their chemical 
+              structure, the order of the elements within any group or moiety depends on 
+              whether or not carbon is present.
+            * If carbon is present, the order should be: 
+              C, then H, then the other elements in alphabetical order of their symbol. 
+              If carbon is not present, the elements are listed purely in alphabetic 
+              order of their symbol. 
+            * This is the *Hill* system used by Chemical Abstracts.
+
+        </doc>
+    </field>
+    <field name="order_no" type="NX_INT">
+      <doc>
+          A number which describes if this is the first, second,.. 
+          :math:`n^{th}` crystal in a multi crystal monochromator
+      </doc>
+    </field>
+    <field name="cut_angle" type="NX_FLOAT" units="NX_ANGLE">
+        <doc>Cut angle of reflecting Bragg plane and plane of crystal surface</doc>
+    </field>
+    <field name="space_group">
+        <doc>Space group of crystal structure</doc>
+    </field>
+    <field name="unit_cell" type="NX_FLOAT" units="NX_LENGTH">
+        <doc>Unit cell parameters (lengths and angles)</doc>
+        <dimensions rank="2"><!--[n_comp,6]-->
+            <dim index="1" value="n_comp"/>
+            <dim index="2" value="6"/>
+        </dimensions>
+    </field>
+    <!-- NXfilter defines each unit cell parameter separately.  Let's be consistent. -->
+	<field name="unit_cell_a" type="NX_FLOAT" units="NX_LENGTH"><!-- as used in NXfilter -->
+		<doc>Unit cell lattice parameter: length of side a</doc>
+	</field>
+	<field name="unit_cell_b" type="NX_FLOAT" units="NX_LENGTH"><!-- as used in NXfilter -->
+		<doc>Unit cell lattice parameter: length of side b</doc>
+	</field>
+	<field name="unit_cell_c" type="NX_FLOAT" units="NX_LENGTH"><!-- as used in NXfilter -->
+		<doc>Unit cell lattice parameter: length of side c</doc>
+	</field>
+	<field name="unit_cell_alpha" type="NX_FLOAT" units="NX_ANGLE"><!-- as used in NXfilter -->
+		<doc>Unit cell lattice parameter: angle alpha</doc>
+	</field>
+	<field name="unit_cell_beta" type="NX_FLOAT" units="NX_ANGLE"><!-- as used in NXfilter -->
+		<doc>Unit cell lattice parameter: angle beta</doc>
+	</field>
+	<field name="unit_cell_gamma" type="NX_FLOAT" units="NX_ANGLE"><!-- as used in NXfilter -->
+		<doc>Unit cell lattice parameter: angle gamma</doc>
+	</field>
+    <field name="unit_cell_volume" type="NX_FLOAT" units="NX_VOLUME">
+        <doc>Volume of the unit cell</doc>
+    </field>
+    <field name="orientation_matrix" type="NX_FLOAT">
+        <doc>Orientation matrix of single crystal sample using Busing-Levy convention</doc>
+        <dimensions rank="2"><!--3,3-->
+            <dim index="1" value="3"/>
+            <dim index="2" value="3"/>
+        </dimensions>
+    </field>
+    <field name="wavelength" type="NX_FLOAT" units="NX_WAVELENGTH">
+        <doc>Optimum diffracted wavelength</doc>
+        <dimensions><dim index="1" value="i"/></dimensions>
+    </field>
+    <field name="d_spacing" type="NX_FLOAT" units="NX_LENGTH">
+        <doc>spacing between crystal planes of the reflection</doc>
+    </field>
+    <field name="scattering_vector" type="NX_FLOAT" units="NX_WAVENUMBER">
+        <doc>Scattering vector, Q, of nominal reflection</doc>
+    </field>
+    <field name="reflection" type="NX_INT" units="NX_UNITLESS">
+        <doc>Miller indices (hkl) values of nominal reflection</doc>
+        <dimensions><dim index="1" value="3"/></dimensions>
+    </field>
+    <field name="thickness" type="NX_FLOAT" units="NX_LENGTH">
+        <doc>Thickness of the crystal.  (Required for Laue orientations - see "usage" field)</doc>
+    </field>
+    <field name="density" type="NX_NUMBER" units="NX_MASS_DENSITY">
+        <doc>mass density of the crystal</doc>
+    </field>
+    <field name="segment_width" type="NX_FLOAT" units="NX_LENGTH">
+        <doc>Horizontal width of individual segment</doc>
+    </field>
+    <field name="segment_height" type="NX_FLOAT" units="NX_LENGTH">
+        <doc>Vertical height of individual segment</doc>
+    </field>
+    <field name="segment_thickness" type="NX_FLOAT" units="NX_LENGTH">
+        <doc>Thickness of individual segment</doc>
+    </field>
+    <field name="segment_gap" type="NX_FLOAT" units="NX_LENGTH">
+        <doc>Typical gap between adjacent segments</doc>
+    </field>
+    <field name="segment_columns" type="NX_FLOAT" units="NX_LENGTH">
+        <doc>number of segment columns in horizontal direction</doc>
+    </field>
+    <field name="segment_rows" type="NX_FLOAT" units="NX_LENGTH">
+        <doc>number of segment rows in vertical direction</doc>
+    </field>
+    <field name="mosaic_horizontal" type="NX_FLOAT" units="NX_ANGLE">
+        <doc>horizontal mosaic Full Width Half Maximum</doc>
+    </field>
+    <field name="mosaic_vertical" type="NX_FLOAT" units="NX_ANGLE">
+        <doc>vertical mosaic Full Width Half Maximum</doc>
+    </field>
+    <field name="curvature_horizontal" type="NX_FLOAT" units="NX_ANGLE">
+        <doc>Horizontal curvature of focusing crystal</doc>
+    </field>
+    <field name="curvature_vertical" type="NX_FLOAT" units="NX_ANGLE">
+        <doc>Vertical curvature of focusing crystal</doc>
+    </field>
+    <field name="is_cylindrical" type="NX_BOOLEAN">
+        <doc>Is this crystal bent cylindrically?</doc>
+    </field>
+    <field name="cylindrical_orientation_angle" type="NX_NUMBER" units="NX_ANGLE">
+        <doc>If cylindrical: cylinder orientation angle</doc>
+    </field>
+    <field name="polar_angle" type="NX_FLOAT" units="NX_ANGLE">
+        <doc>Polar (scattering) angle at which crystal assembly is positioned.  
+            Note: some instrument geometries call this term 2theta.</doc>
+        <dimensions><dim index="1" value="i"/></dimensions>
+    </field>
+    <field name="azimuthal_angle" type="NX_FLOAT" units="NX_ANGLE">
+        <doc>Azimuthal angle at which crystal assembly is positioned</doc>
+        <dimensions><dim index="1" value="i"/></dimensions>
+    </field>
+    <field name="bragg_angle" type="NX_FLOAT" units="NX_ANGLE">
+        <doc>Bragg angle of nominal reflection</doc>
+        <dimensions><dim index="1" value="i"/></dimensions>
+    </field>
+    <field name="temperature" type="NX_FLOAT" units="NX_TEMPERATURE">
+        <doc>average/nominal crystal temperature</doc>
+    </field>
+    <field name="temperature_coefficient" type="NX_FLOAT" units="NX_ANY">
+        <doc>how lattice parameter changes with temperature</doc>
+    </field>
+    <group type="NXlog" name="temperature_log">
+        <doc>log file of crystal temperature</doc>
+    </group>
+    <group type="NXdata" name="reflectivity">
+        <doc>crystal reflectivity versus wavelength</doc>
+    </group>
+    <group type="NXdata" name="transmission">
+        <doc>crystal transmission versus wavelength</doc>
+    </group>
+    <group type="NXshape" name="shape">
+      <doc>A NXshape group describing the shape of the crystal arrangement</doc>
+    </group>
+    <!-- TODO need more parameters here, such as ...
+        list from Rainer Gehrke, DESY (some items may already be present)
+
+Parameters for crystals 
++    Field indicating whether it is Bragg or Laue               see usage
++    The crystal structure (enumeration, e.g. Zincblende ..)    see space_group
++    Lattice constant                                           see unit_cell
++    Miller indices of reflection (h,k,l)                       see reflection
++    First (or only) element                                    see order_no
++    Second element (if any)                                    see order_no
++    Temperature factor (optional)                              see temperature_coefficient
++    Asymmetric angle (if applicable)                           see cut_angle
++    Mosaic angular spread (if applicable)                      see mosaic_horizontal and mosaic_vertical
++    Thickness (mandatory for Laue, else optional)              see thickness
+
+
+Figure for crystals and mirrors (to describe curved surfaces)
++ Field indicating whether concave or convex                    see curvature_horizontal and curvature_vertical
++ Field indicating whether cylindrical or not                   see is_cylindrical
++ If cylindrical: cylinder orientation angle                    see cylindrical_orientation_angle
+
+
+Now come the different surface figures with the necessary parameters:
+1. Flat
+2. Spherical (spherical radius)
+3. Elliptical and hyperbolical (semi-major axis, semi-minor axis, angle of major axis and pole)
+4. Toroidal (major radius, minor radius)
+5. Parabolical (parabolic parameter a)
+6. Conical (cone half aperture)
+7. Polynomial (degree of polynom, array with polynom coefficients)
+
+    -->
+</definition>

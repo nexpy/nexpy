@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="nxdlformat.xsl" ?>
+<!--
+# NeXus - Neutron and X-ray Common Data Format
+# 
+# Copyright (C) 2008-2012 NeXus International Advisory Committee (NIAC)
+# 
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 3 of the License, or (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+# For further information, see http://www.nexusformat.org
+
+########### SVN repository information ###################
+# $Date$
+# $Author$
+# $Revision$
+# $HeadURL$
+# $Id$
+########### SVN repository information ###################
+-->
+<definition xmlns="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@" category="base"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@ ../nxdl.xsd"
+    name="NXmonitor" 
+    version="1.0"
+    svnid="$Id$"
+    type="group" extends="NXobject">
+    <doc>Template of monitor data. It is similar to the NXdata groups containing
+        monitor data and its associated dimension scale, e.g. time_of_flight or
+        wavelength in pulsed neutron instruments. However, it may also include
+        integrals, or scalar monitor counts, which are often used in both in both
+        pulsed and steady-state instrumentation.</doc>
+    <field name="mode">
+        <doc>Count to a preset value based on either clock time (timer) or received monitor
+            counts (monitor).</doc>
+        <enumeration>
+            <item value="monitor"/>
+            <item value="timer"/>
+        </enumeration>
+    </field>
+	<field name="start_time" type="NX_DATE_TIME">
+		<doc>Starting time of measurement</doc>
+	</field>
+	<field name="end_time" type="NX_DATE_TIME">
+		<doc>Ending time of measurement</doc>
+	</field>
+    <field name="preset" type="NX_NUMBER" units="NX_ANY">
+        <doc>preset value for time or monitor</doc>
+    </field>
+    <field name="distance" type="NX_FLOAT" units="NX_LENGTH">
+        <doc>Distance of monitor from sample</doc>
+    </field>
+    <field name="range" type="NX_FLOAT" units="NX_ANY">
+        <doc>Range (X-axis, Time-of-flight, etc.) over which the integral was calculated</doc>
+        <dimensions><dim index="1" value="2"/></dimensions>
+    </field>
+    <field name="integral" type="NX_NUMBER" units="NX_ANY">
+        <doc>Total integral monitor counts</doc>
+    </field>
+    <group name="integral_log" type="NXlog">
+        <doc>Time variation of monitor counts</doc>
+    </group>
+    <field name="type">
+        <enumeration>
+            <item value="Fission Chamber"/>
+            <item value="Scintillator"/>
+        </enumeration>
+    </field>
+    <field name="time_of_flight" type="NX_FLOAT" units="NX_TIME_OF_FLIGHT">
+        <doc>Time-of-flight</doc>
+        <dimensions>
+            <dim index="1" ref="efficiency"/>
+        </dimensions>
+    </field>
+    <field name="efficiency" type="NX_NUMBER" units="NX_DIMENSIONLESS">
+        <doc>Monitor efficiency</doc>
+        <dimensions><dim index="1" ref="i"/></dimensions>
+    </field>
+    <field name="data" type="NX_NUMBER" units="NX_ANY">
+        <doc>
+			Monitor data
+			
+			The signal and axes attributes take the same definitions as in :ref:`NXdata`: 
+			
+			:signal:
+			  ``signal=1`` means this is the plottable data
+			:axes:
+			  ``axes="names"`` where names are defined as a colon-delimited string 
+			  within this attribute in the C-order of the data array
+        </doc>
+        <dimensions rank="dataRank">
+            <doc>
+                The rank (``dataRank``) of the ``data`` must satisfy
+                ``1 &lt;= dataRank &lt;= NX_MAXRANK=32``.  
+                At least one ``dim`` must have length ``n``.
+            </doc>
+            <dim index="0" value="n"><!-- index="0": cannot know to which dimension this applies a priori --></dim>
+        </dimensions>
+        <attribute name="signal" type="NX_POSINT"><doc>as defined for NXdata</doc></attribute>
+        <attribute name="axes"><doc>as defined for NXdata</doc></attribute>
+    </field>
+    <field name="sampled_fraction" type="NX_FLOAT" units="NX_DIMENSIONLESS">
+        <doc>Proportion of incident beam sampled by the monitor (0&lt;x&lt;1)</doc>
+    </field>
+    <group type="NXgeometry">
+        <doc>Geometry of the monitor</doc>
+    </group>
+    <field name="count_time" type="NX_FLOAT" units="NX_TIME">
+        <doc>Elapsed actual counting time, can be an array of size ``np`` when scanning. This is not the
+            difference of the calendar time but the time the instrument was really counting, without
+            pauses or times lost due beam unavailability</doc>
+    </field>
+</definition>

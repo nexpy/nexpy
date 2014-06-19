@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="nxdlformat.xsl" ?>
+<!--
+# NeXus - Neutron and X-ray Common Data Format
+# 
+# Copyright (C) 2008-2012 NeXus International Advisory Committee (NIAC)
+# 
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 3 of the License, or (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+# For further information, see http://www.nexusformat.org
+
+########### SVN repository information ###################
+# $Date$
+# $Author$
+# $Revision$
+# $HeadURL$
+# $Id$
+########### SVN repository information ###################
+-->
+<definition xmlns="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@" category="base"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@ ../nxdl.xsd"
+	name="NXevent_data" 
+	version="1.0"
+    svnid="$Id$"
+	type="group" extends="NXobject">
+	<doc>Time-of-flight events</doc>
+	<field name="time_of_flight" type="NX_INT" units="NX_TIME_OF_FLIGHT">
+		<doc>
+			A list of time of flight for each event as it comes in. 
+			This list is for all pulses with information to attach 
+			to a particular pulse located in events_per_pulse.
+		</doc>
+		<dimensions rank="1"><dim index="1" value="i"/></dimensions>
+	</field>
+	<field name="pixel_number" type="NX_INT" units="NX_DIMENSIONLESS">
+		<doc>
+			There will be extra information in the NXdetector to convert 
+			pixel_number to detector_number. This list is for all pulses with 
+			information to attach to a particular pulse located in events_per_pulse.
+		</doc>
+		<dimensions rank="1"><dim index="1" value="i"/></dimensions>
+	</field>
+	<field name="pulse_time" type="NX_INT" units="NX_TIME">
+		<doc>
+			The time that each pulse started with respect to the offset
+		</doc>
+		<dimensions rank="1"><dim index="1" value="j"/></dimensions>
+		<attribute name="offset" type="NX_DATE_TIME">
+			<doc>ISO8601</doc>
+		</attribute>
+	</field>
+	<field name="events_per_pulse" type="NX_INT" units="NX_DIMENSIONLESS">
+		<doc>
+			This connects the index "i" to the index "j". 
+			The jth element is the number of events in "i" 
+			that occurred during the jth pulse.
+		</doc>
+		<dimensions rank="1"><dim index="1" value="j"/></dimensions>
+	</field>
+	<field name="pulse_height" type="NX_FLOAT" units="NX_DIMENSIONLESS">
+		<doc>
+			If voltages from the ends of the detector are read out this 
+			is where they go. This list is for all events with information 
+			to attach to a particular pulse height. The information to 
+			attach to a particular pulse is located in events_per_pulse.
+		</doc>
+		<dimensions rank="2"><!--i,k?-->
+			<dim index="1" value="i"/>
+			<dim index="2" value="k"/>
+		</dimensions>
+	</field>
+</definition>
+

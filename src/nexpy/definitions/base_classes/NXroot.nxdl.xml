@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="nxdlformat.xsl" ?>
+<!--
+# NeXus - Neutron and X-ray Common Data Format
+# 
+# Copyright (C) 2008-2012 NeXus International Advisory Committee (NIAC)
+# 
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 3 of the License, or (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+# For further information, see http://www.nexusformat.org
+
+########### SVN repository information ###################
+# $Date$
+# $Author$
+# $Revision$
+# $HeadURL$
+# $Id$
+########### SVN repository information ###################
+-->
+<definition xmlns="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@" category="base"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@ ../nxdl.xsd"
+    name="NXroot" 
+    version="1.0"
+    svnid="$Id$"
+    type="group" extends="NXobject">
+    <doc>Definition of the root NeXus group.</doc>
+    <attribute name="NX_class">
+        <doc>
+            The root of any NeXus data file is an NXroot class 
+            (no other choice is allowed for a valid NeXus data file).  
+            This attribute cements that definition.
+        </doc>
+        <enumeration>
+            <item value="NXroot"></item>
+        </enumeration>
+    </attribute>
+    <attribute name="file_time">
+        <doc>Date and time file was originally created</doc>
+    </attribute>
+    <attribute name="file_name">
+        <doc>File name of original NeXus file</doc>
+    </attribute>
+    <attribute name="file_update_time">
+        <doc>Date and time of last file change at close</doc>
+    </attribute>
+    <attribute name="NeXus_version">
+        <doc>Version of NeXus API used in writing the file</doc>
+    </attribute>
+    <attribute name="HDF_version">
+        <doc>Version of NeXus API used in writing the file</doc>
+    </attribute>
+    <attribute name="HDF5_Version">
+        <doc>Version of NeXus API used in writing the file.
+            Note this attribute is spelled with uppercase "V",
+            different than other version attributes.</doc>
+    </attribute>
+    <attribute name="XML_version">
+        <doc>Version of NeXus API used in writing the file</doc>
+    </attribute>
+    <attribute name="creator">
+        <doc>facility or program where file originated</doc>
+    </attribute>
+    <group type="NXentry" minOccurs="1" >
+        <doc>entries</doc>
+    </group>
+</definition>
+

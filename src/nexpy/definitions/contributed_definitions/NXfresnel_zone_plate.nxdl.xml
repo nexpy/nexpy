@@ -1,0 +1,73 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="nxdlformat.xsl" ?>
+<!--
+# NeXus - Neutron and X-ray Common Data Format
+# 
+# Copyright (C) 2008 NeXus International Advisory Committee (NIAC)
+# 
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 2 of the License, or (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+# For further information, see http://www.nexusformat.org
+
+########### SVN repository information ###################
+# $Date$
+# $Author$
+# $Revision$
+# $HeadURL$
+# $Id$
+########### SVN repository information ###################
+-->
+<definition xmlns="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@" category="base"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@ ../nxdl.xsd"
+    name="NXfresnel_zone_plate" 
+    version="1.0"
+    svnid="$Id$"
+	type="group" extends="NXobject">
+
+	<doc>description for a fresnel zone plate</doc>
+  <field name="focus_parameters" type="NX_FLOAT">
+   <doc>list of polynomial coefficients describing the focal length of the zone plate, in increasing order.</doc>
+  </field>
+	<field name="outer_diameter" type="NX_FLOAT" units="NX_LENGTH"/>
+	<field name="outermost_zone_width" type="NX_FLOAT" units="NX_LENGTH"/>
+	<field name="central_stop_diameter" type="NX_FLOAT" units="NX_LENGTH"/>
+	
+	<field name="fabrication">
+		<doc>how zone plate was manufactured</doc>
+		<enumeration>
+			<item value="etched" />
+			<item value="plated" />
+			<item value="zone doubled" />
+		</enumeration>
+	</field>
+	<field name="zone_height" type="NX_FLOAT" units="NX_LENGTH"/>
+	<field name="zone_material">
+	    <doc>Material of the zones themselves</doc>
+  </field>
+	<field name="zone_support_material">
+	    <doc>Material present between the zones. This is usually only present for the "zone doubled" fabrication process</doc>
+  </field>
+	<field name="central_stop_material"/>
+	<field name="central_stop_thickness" type="NX_FLOAT" units="NX_LENGTH"/>
+	<field name="mask_thickness" type="NX_FLOAT" units="NX_LENGTH"/>
+	<field name="mask_material">
+	  <doc>If no mask is present, set mask_thickness to 0 and omit the mask_material field</doc>
+  </field>
+	<field name="support_membrane_material"/>
+	<field name="support_membrane_thickness" type="NX_FLOAT" units="NX_LENGTH"/>
+	
+	<group type="NXgeometry"><doc>"Engineering" position of the fresnel zone plate</doc></group>
+</definition>

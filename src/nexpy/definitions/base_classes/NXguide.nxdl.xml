@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="nxdlformat.xsl" ?>
+<!--
+# NeXus - Neutron and X-ray Common Data Format
+# 
+# Copyright (C) 2008-2012 NeXus International Advisory Committee (NIAC)
+# 
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 3 of the License, or (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+# For further information, see http://www.nexusformat.org
+
+########### SVN repository information ###################
+# $Date$
+# $Author$
+# $Revision$
+# $HeadURL$
+# $Id$
+########### SVN repository information ###################
+-->
+<definition name="NXguide" 
+    version="1.0"
+	type="group" 
+	extends="NXobject"
+	category="base"
+	xmlns="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@ ../nxdl.xsd"
+	svnid="$Id$">
+    
+    <symbols>
+        <symbol name="nsurf"><doc>number of reflecting surfaces</doc></symbol>
+        <symbol name="nwl"><doc>number of wavelengths</doc></symbol>
+    </symbols>
+
+    <doc>
+            ``NXguide`` is used by neutron instruments to describe
+            a guide consists of several mirrors building a shape through which 
+            neutrons can be guided or directed. The simplest such form is box shaped
+            although elliptical guides are gaining in popularity. 
+            The individual parts of a guide usually have common characteristics 
+            but there are cases where they are different.
+            For example,  a neutron guide might consist of 2 or 4 coated walls or
+            a supermirror bender with multiple, coated vanes.
+
+            To describe polarizing supermirrors such as used in neutron reflection,
+            it may be necessary to revise this definition of ``NXguide``
+            to include ``NXpolarizer`` and/or ``NXmirror``.
+
+            When even greater complexity exists in the definition of what
+            constitutes a *guide*,  it has been suggested that ``NXguide`` 
+            be redefined as a ``NXcollection`` of
+            ``NXmirrors`` each having their own 
+            ``NXgeometries`` describing their location(s).
+
+            For the more general case when describing mirrors, consider using 
+            ``NXmirror``.
+
+            NOTE: The NeXus International Advisory Committee welcomes 
+            comments for revision and improvement of 
+            this definition of ``NXguide``.
+
+    </doc>
+    
+    <group type="NXgeometry">
+        <doc>TODO:  Explain what this NXgeometry group means.  What is intended here?</doc>
+    </group>
+    <field name="description">
+        <doc>A description of this particular instance of ``NXguide``.</doc>
+    </field>
+    <field name="incident_angle" type="NX_FLOAT" units="NX_ANGLE">
+    	<doc>TODO: documentation needed</doc>
+    </field>
+    <group type="NXdata" name="reflectivity">
+        <doc>Reflectivity as function of reflecting surface and wavelength</doc>
+        <field name="data" type="NX_NUMBER">
+            <doc>reflectivity of each surface as a function of wavelength</doc>
+            <dimensions rank="2"><!-- was [nsurf,i] -->
+                <dim index="1" value="nsurf"/>
+                <dim index="2" value="nwl"/>
+            </dimensions>
+            <attribute name="signal" type="NX_POSINT">
+                <doc>
+					.. index:: NeXus basic motivation; default plot
+					
+					Use ``signal=1`` to indicate that this 
+					is the plottable data for NeXus.
+                </doc>
+                <enumeration>
+                    <item value="1"/>
+                </enumeration>
+            </attribute>
+            <attribute name="axes">
+                <doc>
+                    Use ``axes="surface:wavelength"`` to indicate the 
+                    dimension scales to be used when plotting this data.
+                </doc>
+                <enumeration>
+                    <item value="surface:wavelength"/>
+                </enumeration>
+            </attribute>
+        </field>
+        <field name="surface" type="NX_NUMBER" units="NX_ANY">
+            <doc>
+	            List of surfaces.  Probably best to use index 
+	            numbers but the specification is very loose.
+            </doc>
+            <dimensions rank="1">
+                <dim index="1" value="nsurf"/>
+            </dimensions>
+        </field>
+        <field name="wavelength" type="NX_NUMBER" units="NX_WAVELENGTH">
+            <doc>wavelengths at which reflectivity was measured</doc>
+            <dimensions rank="1">
+                <dim index="1" value="nwl"/>
+            </dimensions>
+        </field>
+    </group>
+    <field name="bend_angle_x" type="NX_FLOAT" units="NX_ANGLE">
+    	<doc>TODO: documentation needed</doc>
+    </field>
+    <field name="bend_angle_y" type="NX_FLOAT" units="NX_ANGLE">
+    	<doc>TODO: documentation needed</doc>
+    </field>
+    <field name="interior_atmosphere">
+    	<doc><!-- TODO --></doc>
+        <enumeration>
+            <item value="vacuum"/>
+            <item value="helium"/>
+            <item value="argon"/>
+        </enumeration>
+    </field>
+    <field name="external_material">
+        <doc>external material outside substrate</doc>
+    </field>
+    <field name="m_value" type="NX_FLOAT">
+        <doc>
+	        The ``m`` value for a supermirror, which defines the supermirror 
+	        regime in multiples of the critical angle of Nickel.
+        </doc>
+        <dimensions rank="1">
+        	<dim index="1" value="nsurf"/>
+        </dimensions>
+    </field>
+    <field name="substrate_material" type="NX_FLOAT">
+    	<doc>TODO: documentation needed</doc><!-- Why is this field a "float"? -->
+        <dimensions rank="1">
+        	<dim index="1" value="nsurf"/>
+        </dimensions>
+    </field>
+    <field name="substrate_thickness" type="NX_FLOAT" units="NX_LENGTH">
+    	<doc>TODO: documentation needed</doc>
+        <dimensions rank="1">
+        	<dim index="1" value="nsurf"/>
+        </dimensions>
+    </field>
+    <field name="coating_material" type="NX_FLOAT">
+    	<doc>TODO: documentation needed</doc><!-- Why is this field a "float"? -->
+        <dimensions rank="1">
+        	<dim index="1" value="nsurf"/>
+        </dimensions>
+    </field>
+    <field name="substrate_roughness" type="NX_FLOAT" units="NX_LENGTH">
+    	<doc>TODO: documentation needed</doc>
+        <dimensions rank="1">
+        	<dim index="1" value="nsurf"/>
+        </dimensions>
+    </field>
+    <field name="coating_roughness" type="NX_FLOAT" units="NX_LENGTH">
+    	<doc>TODO: documentation needed</doc>
+        <dimensions rank="1">
+        	<dim index="1" value="nsurf"/>
+        </dimensions>
+    </field>
+    <field name="number_sections" type="NX_INT" units="NX_UNITLESS">
+        <doc>
+	        number of substrate sections (also called ``nsurf`` as an 
+	        index in the ``NXguide`` specification)
+        </doc>
+    </field>
+</definition>
+

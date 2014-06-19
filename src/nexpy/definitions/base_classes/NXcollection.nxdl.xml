@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="nxdlformat.xsl" ?>
+<!--
+# NeXus - Neutron and X-ray Common Data Format
+# 
+# Copyright (C) 2008-2012 NeXus International Advisory Committee (NIAC)
+# 
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 3 of the License, or (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+# For further information, see http://www.nexusformat.org
+
+########### SVN repository information ###################
+# $Date$
+# $Author$
+# $Revision$
+# $HeadURL$
+# $Id$
+########### SVN repository information ###################
+-->
+<definition xmlns="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@" 
+	category="contributed"
+	name="NXcollection" 
+	version="1.0"
+	type="group" 
+	extends="NXobject"
+	ignoreExtraGroups="true"
+	ignoreExtraFields="true"
+	ignoreExtraAttributes="true"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@ ../nxdl.xsd"
+	svnid="$Id$">
+
+	<!-- 
+		The ignoreExtra* attributes are used in the definition to
+		avoid warning messages that would be generated from 
+		unexpected groups, fields, and attributes.
+		Since no groups or attributes are declared here, _every_
+		child of this class would generate a warning message without this 
+		attribute being set to "true".
+	-->
+
+	<doc>
+		Use ``NXcollection`` to gather together any set of terms.
+		The original suggestion is to use this as a container 
+		class for the description of a beamline.
+		
+		For NeXus validation, ``NXcollection`` will always generate 
+		a warning since it is always an optional group.  
+		Anything (groups, fields, or attributes) placed in
+		an ``NXcollection`` group will not be validated.
+	</doc>
+	
+	<field name="beamline"><doc>name of the beamline for this collection</doc></field>
+	<!-- any other content is purely optional -->
+	<!-- 
+	   NOTE
+	   =====
+	   
+	   NXcollection is an unvalidated class, do not add any subgroups.
+	   
+	   See: https://github.com/nexusformat/definitions/issues/259
+	 -->
+</definition>
+

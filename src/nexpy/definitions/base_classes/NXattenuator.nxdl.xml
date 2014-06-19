@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="nxdlformat.xsl" ?>
+<!--
+# NeXus - Neutron and X-ray Common Data Format
+# 
+# Copyright (C) 2008-2012 NeXus International Advisory Committee (NIAC)
+# 
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 3 of the License, or (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+# For further information, see http://www.nexusformat.org
+
+########### SVN repository information ###################
+# $Date$
+# $Author$
+# $Revision$
+# $HeadURL$
+# $Id$
+########### SVN repository information ###################
+-->
+<definition
+    name="NXattenuator" 
+    type="group"
+    extends="NXobject"
+    category="base"
+    version="1.0"
+    xmlns="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@ ../nxdl.xsd"
+    svnid="$Id$">
+
+    <doc>
+        Description of a device that reduces the intensity of a beam by attenuation.
+        If uncertain whether to use ``NXfilter`` (band-pass filter)
+        or ``NXattenuator`` (reduces beam intensity), then choose 
+        ``NXattenuator``.
+    </doc>
+    <!-- 
+        TODO compare with SHADOW definition "screen"
+        TODO  SHADOW: http://ftp.esrf.eu/pub/scisoft/shadow       or (older)   http://www.nanotech.wisc.edu/shadow  
+    -->
+
+    <field name="distance" type="NX_FLOAT" units="NX_LENGTH">
+        <doc>Distance from sample</doc>
+    </field>
+    <field name="type">
+        <doc>Type or composition of attenuator, e.g. polythene</doc>
+    </field>
+    <field name="thickness" type="NX_FLOAT" units="NX_LENGTH">
+        <doc>Thickness of attenuator along beam direction</doc>
+    </field>
+    <field name="scattering_cross_section" type="NX_FLOAT" units="NX_CROSS_SECTION">
+        <doc>Scattering cross section (coherent+incoherent)</doc>
+    </field>
+    <field name="absorption_cross_section" type="NX_FLOAT" units="NX_CROSS_SECTION">
+        <doc>Absorption cross section</doc>
+    </field>
+    <field name="attenuator_transmission" type="NX_FLOAT" units="NX_DIMENSIONLESS">
+        <doc>The nominal amount of the beam that gets through (transmitted intensity)/(incident
+            intensity)</doc>
+    </field>
+    <field name="status">
+        <doc>In or out or moving of the beam</doc>
+        <attribute name="time" type="NX_DATE_TIME">
+            <doc>time stamp for this observation</doc>
+        </attribute>
+        <enumeration>
+            <item value="in" />
+            <item value="out" />
+            <item value="moving" />
+        </enumeration>
+    </field>
+</definition>

@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="nxdlformat.xsl" ?>
+<!--
+# NeXus - Neutron and X-ray Common Data Format
+# 
+# Copyright (C) 2008-2012 NeXus International Advisory Committee (NIAC)
+# 
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 3 of the License, or (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+# For further information, see http://www.nexusformat.org
+
+########### SVN repository information ###################
+# $Date$
+# $Author$
+# $Revision$
+# $HeadURL$
+# $Id$
+########### SVN repository information ###################
+-->
+<definition xmlns="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@" category="base"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@ ../nxdl.xsd"
+	name="NXinstrument" 
+	version="1.0"
+    svnid="$Id$"
+    type="group" extends="NXobject">
+	<doc>
+		Template of instrument descriptions comprising various beamline components. 
+		Each component will also be a NeXus group defined by its distance from the 
+		sample. Negative distances represent beamline components that are before the 
+		sample while positive distances represent components that are after the sample. 
+		This device allows the unique identification of beamline components in a way 
+		that is valid for both reactor and pulsed instrumentation.
+	</doc>
+	<field name="name">
+		<doc>Name of instrument</doc>
+	    <attribute name="short_name">
+	        <doc>short name for instrument, perhaps the acronym</doc>
+	    </attribute>
+	</field>
+    <group type="NXaperture" />
+    <group type="NXattenuator" />
+    <group type="NXbeam" />
+    <group type="NXbeam_stop" />
+    <group type="NXbending_magnet" />
+    <group type="NXcollimator" />
+    <group type="NXcollection" />
+    <group type="NXcapillary" />
+    <group type="NXcrystal" />
+    <group type="NXdetector" />
+    <group type="NXdetector_group" />
+    <group type="NXdisk_chopper" />
+    <group type="NXevent_data" />
+    <group type="NXfermi_chopper" />
+    <group type="NXfilter" />
+    <group type="NXflipper" />
+    <group type="NXguide" />
+    <group type="NXinsertion_device" />
+    <group type="NXmirror" />
+    <group type="NXmoderator" />
+    <group type="NXmonochromator" />
+    <group type="NXpolarizer" />
+    <group type="NXpositioner" />
+    <group type="NXsource" />
+    <group type="NXvelocity_selector" />
+    <group type="NXxraylens" />
+</definition>

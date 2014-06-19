@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="nxdlformat.xsl" ?>
+<!--
+# NeXus - Neutron and X-ray Common Data Format
+# 
+# Copyright (C) 2008-2012 NeXus International Advisory Committee (NIAC)
+# 
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 3 of the License, or (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+# For further information, see http://www.nexusformat.org
+
+########### SVN repository information ###################
+# $Date$
+# $Author$
+# $Revision$
+# $HeadURL$
+# $Id$
+########### SVN repository information ###################
+-->
+<definition xmlns="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@" category="base"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@ ../nxdl.xsd"
+    name="NXbending_magnet" 
+    version="1.0"
+    svnid="$Id$"
+	type="group" extends="NXobject">
+
+	<doc>description for a bending magnet</doc>
+	<field name="critical_energy" type="NX_FLOAT" units="NX_ENERGY"/>
+  <field name="bending_radius" type="NX_FLOAT" units="NX_LENGTH"/>
+  <field name="magnetic_field" type="NX_FLOAT" units="NX_CURRENT">
+    <doc>strength of magnetic field of dipole magnets</doc>
+  </field>
+  <field name="accepted_photon_beam_divergence" type="NX_FLOAT" units="NX_LENGTH">
+    <doc>
+      An array of four numbers giving X+, X-, Y+ and Y- half divergence
+    </doc>
+  </field>
+  <field name="source_distance_x" type="NX_FLOAT" units="NX_LENGTH">
+    <doc>
+      Distance of source point from particle beam waist in X (horizontal) direction.
+    </doc>
+  </field>
+  <field name="source_distance_y" type="NX_FLOAT" units="NX_LENGTH">
+    <doc>
+      Distance of source point from particle beam waist in Y (vertical) direction.
+    </doc>
+  </field>
+  <field name="divergence_x_plus" type="NX_FLOAT" units="NX_ANGLE">
+    <doc>
+      Accepted photon beam divergence in X+ (horizontal outboard) direction.
+      Note that divergence_x_plus+divergence_x_minus is the total horizontal beam divergence.
+    </doc>
+  </field>
+  <field name="divergence_x_minus" type="NX_FLOAT" units="NX_ANGLE">
+    <doc>
+      Accepted photon beam divergence in X- (horizontal inboard) direction.
+      Note that divergence_x_plus+divergence_x_minus is the total horizontal beam divergence.
+    </doc>
+  </field>
+  <field name="divergence_y_plus" type="NX_FLOAT" units="NX_ANGLE">
+    <doc>
+      Accepted photon beam divergence in Y+ (vertical upward) direction.
+      Note that divergence_y_plus+divergence_y_minus is the total vertical beam divergence.
+    </doc>
+  </field>
+  <field name="divergence_y_minus" type="NX_FLOAT" units="NX_ANGLE">
+    <doc>
+      Accepted photon beam divergence in Y- (vertical downward) direction.
+      Note that divergence_y_plus+divergence_y_minus is the total vertical beam divergence.
+    </doc>
+  </field>
+	<group name="spectrum" type="NXdata"><doc>bending magnet spectrum</doc></group>
+  <group type="NXgeometry"><doc>"Engineering" position of bending magnet</doc></group>
+  
+</definition>

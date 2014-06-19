@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="nxdlformat.xsl" ?>
+<!--
+# NeXus - Neutron and X-ray Common Data Format
+# 
+# Copyright (C) 2008-2012 NeXus International Advisory Committee (NIAC)
+# 
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 3 of the License, or (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+# For further information, see http://www.nexusformat.org
+
+########### SVN repository information ###################
+# $Date$
+# $Author$
+# $Revision$
+# $HeadURL$
+# $Id$
+########### SVN repository information ###################
+-->
+<definition xmlns="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@" category="base"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@ ../nxdl.xsd"
+	name="NXdisk_chopper" 
+	version="1.0"
+    svnid="$Id$"
+	type="group" extends="NXobject">
+	
+	<doc>TODO: need documentation</doc>
+
+	<field name="type">
+		<doc>Type of the disk-chopper: only one from the enumerated list (match text exactly)</doc>
+		<enumeration>
+			<item value="Chopper type single" />
+			<item value="contra_rotating_pair" />
+			<item value="synchro_pair" />
+		</enumeration>
+	</field>
+	<field name="rotation_speed" type="NX_FLOAT" units="NX_FREQUENCY">
+		<doc>chopper rotation speed</doc>
+	</field>
+	<field name="slits" type="NX_INT">
+		<doc>Number of slits</doc>
+	</field>
+	<field name="slit_angle" type="NX_FLOAT" units="NX_ANGLE">
+		<doc>angular opening</doc>
+	</field>
+	<field name="pair_separation" type="NX_FLOAT" units="NX_LENGTH">
+		<doc>disc spacing in direction of beam</doc>
+	</field>
+	<field name="radius" type="NX_FLOAT" units="NX_LENGTH">
+		<doc>radius to centre of slit</doc>
+	</field>
+	<field name="slit_height" type="NX_FLOAT" units="NX_LENGTH">
+		<doc>total slit height</doc>
+	</field>
+	<field name="phase" type="NX_FLOAT" units="NX_ANGLE">
+		<doc>chopper phase angle</doc>
+	</field>
+	<field name="ratio" type="NX_INT">
+		<doc>pulse reduction factor of this chopper in relation to other choppers/fastest pulse in
+			the instrument</doc>
+	</field>
+	<field name="distance" type="NX_FLOAT" units="NX_LENGTH">
+		<doc>Effective distance to the origin</doc>
+	</field>
+	<field name="wavelength_range" type="NX_FLOAT" units="NX_WAVELENGTH">
+		<doc>low and high values of wavelength range transmitted</doc>
+		<dimensions><dim index="1" value="2"/></dimensions>
+	</field>
+	<group type="NXgeometry" />
+</definition>

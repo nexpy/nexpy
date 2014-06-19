@@ -1,0 +1,477 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="nxdlformat.xsl" ?>
+<!-- 
+  # NeXus - Neutron and X-ray Common Data Format
+  # 
+  # Copyright (C) 2013-2014 NeXus International Advisory Committee (NIAC)
+  # 
+  # This library is free software; you can redistribute it and/or
+  # modify it under the terms of the GNU Lesser General Public
+  # License as published by the Free Software Foundation; either
+  # version 3 of the License, or (at your option) any later version. 
+  # 
+  # This library is distributed in the hope that it will be useful,
+  # but WITHOUT ANY WARRANTY; without even the implied warranty of
+  # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  # Lesser General Public License for more details.
+  #
+  # You should have received a copy of the GNU Lesser General Public
+  # License along with this library; if not, write to the Free Software
+  # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+  #
+  # For further information, see http://www.nexusformat.org 
+  
+  ################### SVN repository information #############################
+  # $LastChangedRevision::     $
+  # $LastChangedDate::                                                  $
+  # $LastChangedBy::                   $
+  # $HeadURL$
+  # $Id$
+  ################# SVN repository information ###############################
+-->
+<definition name="NXmx" extends="NXobject" type="group"
+	version="1.2" category="application"
+	xmlns="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@ ../nxdl.xsd"
+	svnid="$Id$">
+
+	<symbols>
+		<!-- TODO define options for most fields to allow them to be either scaler 
+			np i,j np,i,j So indices can be aligned sensibly in an automated way. -->
+		<doc>These symbols will be used below to coordinate datasets with the
+			same shape.
+		</doc>
+		<symbol name="np">
+			<doc>number of scan points</doc>
+		</symbol>
+		<symbol name="i">
+			<doc>number of detector pixels in the slow direction</doc>
+		</symbol>
+		<symbol name="j">
+			<doc>number of detector pixels in the fast direction</doc>
+		</symbol>
+	</symbols>
+
+	<doc>
+		functional application definition for macromolecular crystallography
+	</doc>
+
+	<group type="NXentry">
+		<field name="title" type="NX_CHAR" minOccurs="0" />
+
+		<field name="start_time" type="NX_DATE_TIME" minOccurs="0" />
+
+		<field name="end_time" type="NX_DATE_TIME" minOccurs="0" />
+
+		<field name="definition">
+			<doc> NeXus NXDL schema to which this file conforms </doc>
+			<enumeration>
+				<item value="NXmx" />
+			</enumeration>
+		</field>
+
+		<group type="NXinstrument">
+			<group type="NXattenuator" minOccurs="0">
+				<field name="attenuator_transmission" type="NX_NUMBER" units="NX_UNITLESS"
+					minOccurs="0" />
+			</group>
+
+			<group type="NXdetector">
+				<field name="depends_on" type="NX_CHAR" /> <!-- better type for paths the need to resolve -->
+
+				<group type="NXtransformations" minOccurs="0">
+					<doc>
+						Suggested location for axes (transformations) to do with the
+						detector
+					</doc>
+				</group>
+
+				<group type="NXcollection" minOccurs="0">
+					<doc>
+						Suggested container for detailed non-standard detector
+						information like corrections applied automatically or
+						performance settings.
+					</doc>
+				</group>
+
+				<field name="data" type="NX_NUMBER">
+					<dimensions rank="3">
+						<dim index="1" value="np" />
+						<dim index="2" value="i" />
+						<dim index="3" value="j" />
+					</dimensions>
+				</field>
+
+				<field name="description" minOccurs="0">
+					<doc>
+						name/manufacturer/model/etc. information
+					</doc>
+				</field>
+
+				<field name="time_per_channel" units="NX_TIME" minOccurs="0">
+					<doc>todo: define more clearly</doc>
+				</field>
+
+				<group type="NXdetector_module" minOccurs="1" maxOccurs="unbounded">
+					<doc>
+						This is the description of a detector module. Many detectors consist
+						of multiple
+						smaller modules. Sometimes it is important to know the exact position of
+						such modules.
+						This is the purpose of this group. It is a child group to NXdetector.
+					</doc>
+					<field name="data_origin" type="NX_INT">
+						<doc>
+							A two value field which gives the index of the start of the
+							modules data in the
+							main area detector image in the underlying NXdetector module.
+						</doc>
+					</field>
+					<field name="data_size" type="NX_INT">
+						<doc>
+							Two values for the size of the module in pixels in each direction.
+						</doc>
+					</field>
+
+					<field name="module_offset" units="NX_LENGTH" type="NX_NUMBER">
+						<doc>
+							Offset of the module in regards to the origin of the detector in an
+							arbitrary direction.
+						</doc>
+						<attribute name="transformation_type">
+							<enumeration>
+								<item value="translation" />
+							</enumeration>
+						</attribute>
+						<attribute name="vector">
+						</attribute>
+						<attribute name="offset">
+						</attribute>
+						<attribute name="depends_on">
+						</attribute>
+					</field>
+					<field name="fast_pixel_direction" units="NX_LENGTH" type="NX_NUMBER">
+						<doc>
+							Values along the direction of fastest varying pixel direction.The
+							direction itself is given through the vector attribute
+						</doc>
+						<attribute name="transformation_type">
+							<enumeration>
+								<item value="translation" />
+							</enumeration>
+						</attribute>
+						<attribute name="vector">
+						</attribute>
+						<attribute name="offset">
+						</attribute>
+						<attribute name="depends_on">
+						</attribute>
+					</field>
+					<field name="slow_pixel_direction" type="NX_NUMBER" units="NX_LENGTH">
+						<doc>
+							Values along the direction of slow varying pixel direction. The
+							direction itself is given through the vector attribute
+						</doc>
+						<attribute name="transformation_type">
+							<enumeration>
+								<item value="translation" />
+							</enumeration>
+						</attribute>
+						<attribute name="vector">
+						</attribute>
+						<attribute name="offset">
+						</attribute>
+						<attribute name="depends_on">
+						</attribute>
+					</field>
+					<field name="fast_pixel_size" type="NX_NUMBER" units="NX_LENGTH">
+						<doc>
+							Values along the direction of fastest varying pixel direction.The
+							direction itself is given through the vector attribute
+						</doc>
+						<attribute name="transformation_type">
+							<enumeration>
+								<item value="translation" />
+							</enumeration>
+						</attribute>
+						<attribute name="vector">
+						</attribute>
+						<attribute name="offset">
+						</attribute>
+						<attribute name="depends_on">
+						</attribute>
+					</field>
+					<field name="slow_pixel_size" type="NX_NUMBER" units="NX_LENGTH">
+						<doc>
+							Values along the direction of slow varying pixel direction. The
+							direction itself is given through the vector attribute
+						</doc>
+						<attribute name="transformation_type">
+							<enumeration>
+								<item value="translation" />
+							</enumeration>
+						</attribute>
+						<attribute name="vector">
+						</attribute>
+						<attribute name="offset">
+						</attribute>
+						<attribute name="depends_on">
+						</attribute>
+					</field>
+				</group>
+
+				<field name="distance" type="NX_FLOAT" units="NX_LENGTH" minOccurs="0">
+					<doc>
+						Distance from the sample to the beam center.
+						This value is a
+						guidance only, the proper geometry can be
+						found following the
+						depends_on axis chain.
+					</doc>
+				</field>
+
+				<field name="dead_time" type="NX_FLOAT" units="NX_TIME"	minOccurs="0">
+					<doc>
+						Detector dead time
+					</doc>
+				</field>
+
+				<field name="count_time" type="NX_NUMBER" units="NX_TIME" minOccurs="0">
+					<doc>
+						Elapsed actual counting time
+					</doc>
+				</field>
+
+				<field name="beam_center_x" type="NX_FLOAT" units="NX_LENGTH"
+					minOccurs="0">
+					<doc>
+						This is the x position where the direct beam would hit the
+						detector. This is a length, not a pixel position, and can be
+						outside of the actual detector.
+					</doc>
+				</field>
+
+				<field name="beam_center_y" type="NX_FLOAT" units="NX_LENGTH"
+					minOccurs="0">
+					<doc>
+						This is the y position where the direct beam would hit the
+						detector. This is a length, not a pixel position, and can be
+						outside of the actual detector.
+					</doc>
+				</field>
+
+				<field name="angular_calibration_applied" type="NX_BOOLEAN"
+					minOccurs="0">
+					<doc>
+						True when the angular calibration has been applied in the
+						electronics, false otherwise.
+					</doc>
+				</field>
+
+				<field name="angular_calibration" type="NX_FLOAT" minOccurs="0">
+					<doc>Angular calibration data.</doc>
+					<dimensions rank="2">
+						<dim index="1" value="i" />
+						<dim index="2" value="j" />
+					</dimensions>
+				</field>
+
+				<field name="flatfield_applied" type="NX_BOOLEAN" minOccurs="0">
+					<doc>
+						True when the flat field correction has been applied in the
+						electronics, false otherwise.
+					</doc>
+				</field>
+
+				<field name="flatfield" type="NX_FLOAT" minOccurs="0">
+					<doc>Flat field correction data.</doc>
+					<dimensions rank="2">
+						<dim index="1" value="i" />
+						<dim index="2" value="j" />
+					</dimensions>
+				</field>
+
+				<field name="flatfield_error" type="NX_FLOAT" minOccurs="0">
+					<doc>Errors of the flat field correction data.</doc>
+					<dimensions rank="2">
+						<dim index="1" value="i" />
+						<dim index="2" value="j" />
+					</dimensions>
+				</field>
+
+				<field name="pixel_mask_applied" type="NX_BOOLEAN" minOccurs="0">
+					<doc>
+						True when the pixel mask correction has been applied in the
+						electronics, false otherwise.
+					</doc>
+				</field>
+
+				<field name="pixel_mask" type="NX_INT" minOccurs="0">
+					<doc>
+						The 32-bit pixel mask for the detector.
+						Contains a bit field
+						for each pixel to signal dead,
+						blind or high or otherwise unwanted
+						or undesirable pixels.
+						They have the following meaning:
+
+						* bit 0: gap (pixel with no sensor)
+						* bit 1: dead
+						* bit 2: under responding
+						* bit 3: over responding
+						* bit 4: noisy
+						* bit 5: -undefined-
+						* bit 6: pixel is part of a cluster of problematic pixels (bit set in addition to others)
+						* bit 7: -undefined-
+						* bit 8: user defined mask (e.g. around beamstop)
+						* bits 9-30: -undefined-
+						* bit 31: virtual pixel (corner pixel with interpolated value)
+
+						Normal data analysis software would
+						not take pixels into account
+						when a bit in (mask &amp; 0x0000FFFF) is
+						set. Tag bit in the upper
+						two bytes would indicate special pixel
+						properties that normally
+						would not be a sole reason to reject the
+						intensity value (unless
+						lower bits are set.
+					</doc>
+					<dimensions rank="2">
+						<dim index="1" value="i" />
+						<dim index="2" value="j" />
+					</dimensions>
+				</field>
+
+				<field name="countrate_correction__applied" type="NX_BOOLEAN"
+					minOccurs="0">
+					<doc>
+						True when a count-rate correction has already been applied in
+						the data recorded here, false otherwise.
+					</doc>
+				</field>
+
+				<field name="bit_depth_readout" type="NX_INT" minOccurs="0">
+					<doc>
+						How many bits the electronics record per pixel.
+					</doc>
+				</field>
+
+				<field name="detector_readout_time" type="NX_FLOAT" units="NX_TIME"
+					minOccurs="0">
+					<doc>
+						Time it takes to read the detector (typically milliseconds).
+						This is important to know for time resolved experiments.
+					</doc>
+				</field>
+
+				<field name="frame_time" type="NX_FLOAT" units="NX_TIME"
+					minOccurs="0">
+					<doc>
+						This is time for each frame. This is exposure_time + readout
+						time.
+					</doc>
+				</field>
+
+				<field name="gain_setting" type="NX_CHAR" minOccurs="0">
+					<doc>
+						The gain setting of the detector. This influences background.
+					</doc>
+				</field>
+
+				<field name="saturation_value" type="NX_INT" minOccurs="0">
+					<doc>
+						The value at which the detector goes into saturation.
+						Data
+						above this value is known to be invalid.
+					</doc>
+				</field>
+
+				<field name="sensor_material" type="NX_CHAR" minOccurs="0">
+					<doc>
+						At times, radiation is not directly sensed by the detector.
+						Rather, the detector might sense the output from some
+						converter
+						like a scintillator.
+						This is the name of this converter material.
+					</doc>
+				</field>
+
+				<field name="sensor_thickness" type="NX_FLOAT" units="NX_LENGTH"
+					minOccurs="0">
+					<doc>
+						At times, radiation is not directly sensed by the detector.
+						Rather, the detector might sense the output from some
+						converter
+						like a scintillator. This is the thickness of this
+						converter
+						material.
+					</doc>
+				</field>
+
+				<field name="threshold_energy" type="NX_FLOAT" units="NX_ENERGY"
+					minOccurs="0">
+					<doc>
+						Single photon counter detectors can be adjusted for a certain
+						energy range in which they work optimally. This is the energy
+						setting for this.
+					</doc>
+				</field>
+
+				<field name="type" minOccurs="0">
+					<doc>
+						Description of type such as scintillator,
+						ccd, pixel, image
+						plate, CMOS, ...
+					</doc>
+				</field>
+			</group>
+		</group>
+
+		<group type="NXsample">
+			<field name="name" type="NX_CHAR" minOccurs="0">
+				<doc>Descriptive name of sample</doc>
+			</field>
+
+			<field name="depends_on" type="NX_CHAR" minOccurs="0">
+				<!-- better type for paths the need to resolve -->
+				<doc>
+					This should be an absolute requirement to have for any scan
+					experiment.
+					The reason it is optional is mainly to accommodate XFEL
+					single shot exposures.
+				</doc>
+			</field>
+
+			<field name="temperature" units="NX_TEMPERATURE" minOccurs="0" />
+
+			<group type="NXbeam">
+				<field name="incident_wavelength" type="NX_NUMBER" units="NX_WAVELENGTH"
+					minOccurs="0" /> <!-- we write wavelength! -->
+
+				<group name="incident_wavelength_spectrum" type="NXdata"
+					minOccurs="0" />
+
+				<field name="flux" type="NX_FLOAT" units="NX_FLUX" minOccurs="0">
+					<doc>flux incident on beam plane area</doc>
+				</field>
+
+				<field name="incident_polarisation_stokes" minOccurs="0">
+					<dimensions rank="2">
+						<dim index="1" value="np" />
+						<dim index="2" value="4" />
+					</dimensions>
+				</field>
+			</group>
+
+			<group type="NXtransformations" minOccurs="0">
+				<doc>
+					Suggested location for sample goniometer or other axes (transformations)
+				</doc>
+			</group>
+		</group>
+
+		<group type="NXdata" />
+	</group>
+</definition>

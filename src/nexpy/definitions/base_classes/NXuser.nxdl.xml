@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="nxdlformat.xsl" ?>
+<!--
+# NeXus - Neutron and X-ray Common Data Format
+# 
+# Copyright (C) 2008-2012 NeXus International Advisory Committee (NIAC)
+# 
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 3 of the License, or (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+# For further information, see http://www.nexusformat.org
+
+########### SVN repository information ###################
+# $Date$
+# $Author$
+# $Revision$
+# $HeadURL$
+# $Id$
+########### SVN repository information ###################
+-->
+<definition xmlns="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@" category="base"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@ ../nxdl.xsd"
+	name="NXuser" 
+	version="1.0"
+    svnid="$Id$"
+	type="group" extends="NXobject">
+	<doc>
+		Template of user's contact information.  The format allows more 
+		than one user with the same affiliation and contact information, 
+		but a second NXuser group should be used if they have different 
+		affiliations, etc.
+	</doc>
+	<field name="name">
+		<doc>Name of user responsible for this entry</doc>
+	</field>
+	<field name="role">
+		<doc>
+			Role of user responsible for this entry.
+			Suggested roles are "local_contact", 
+			"principal_investigator", and "proposer"
+		</doc>
+	</field>
+	<field name="affiliation">
+		<doc>Affiliation of user</doc>
+	</field>
+	<field name="address">
+		<doc>Address of user</doc>
+	</field>
+	<field name="telephone_number">
+		<doc>Telephone number of user</doc>
+	</field>
+	<field name="fax_number">
+		<doc>Fax number of user</doc>
+	</field>
+	<field name="email">
+		<doc>Email of user</doc>
+	</field>
+	<field name="facility_user_id">
+		<doc>
+			facility based unique identifier for this person 
+			e.g. their identification code on the facility 
+			address/contact database
+		</doc>
+	</field>
+</definition>
+

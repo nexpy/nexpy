@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?xml-stylesheet type="text/xsl" href="nxdlformat.xsl" ?><!--
+# NeXus - Neutron and X-ray Common Data Format
+# 
+# Copyright (C) 2008-2012 NeXus International Advisory Committee (NIAC)
+# 
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 3 of the License, or (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+# For further information, see http://www.nexusformat.org
+
+########### SVN repository information ###################
+# $Date$
+# $Author$
+# $Revision$
+# $HeadURL$
+# $Id$
+########### SVN repository information ###################
+-->
+<definition name="NXiqproc" extends="NXobject" type="group"
+  category="application"
+    xmlns="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@ ../nxdl.xsd"
+    version="1.0b"
+    svnid="$Id$">
+    <doc>Actually this is a template from which to start an application definition.</doc>
+    <group type="NXentry">
+        <attribute name="entry">
+          <!-- TODO documentation string needed here -->
+        </attribute>
+        <field name="title"/>
+      <field name="definition">
+        <doc> Official NeXus NXDL schema to which this file conforms </doc>
+            <enumeration>
+                <item value="NXiqproc"/>
+            </enumeration>
+        </field>
+        <group type="NXinstrument" name="instrument">
+          <group type="NXsource">
+            <field name="type" />
+            <field name="name" />
+            <field name="probe">
+              <enumeration>
+                <item value="neutron" />
+                <item value="x-ray" />
+                <item value="electron" />
+              </enumeration>
+            </field>
+          </group>
+          <field name="name" type="NX_CHAR">
+            <doc>Name of the instrument from which this data was reduced. </doc></field>
+        </group>
+        <group type="NXsample">
+            <field name="name">
+                <doc>Descriptive name of sample</doc>
+            </field>
+        </group>
+         <group type="NXprocess" name="reduction">
+           <field name="program" type="NX_CHAR"></field>
+           <field name="version" type="NX_CHAR"></field>
+           <group type="NXparameters" name="input">
+             <field name="filenames" type="NX_CHAR">
+               <doc>Raw data files used to generate this I(Q)</doc></field>
+             <doc>Input parameters for the reduction program used</doc></group>
+           <group type="NXparameters" name="output">
+             <doc>Eventual output parameters from the data reduction program used</doc></group></group>
+         <group type="NXdata">
+            <field name="data" type="NX_INT" signal="1">
+              <doc>
+                This is I(Q). The client has to analyse the dimensions
+                of I(Q). Often, multiple I(Q) for various environment
+                conditions are measured; that would be the first
+                dimension. Q can be multidimensional, this accounts for
+                the further dimensions in the data
+              </doc>
+              <dimensions rank="3">
+
+                <dim index="1" value="NE" />
+                <dim index="2" value="NQX" />
+                <dim index="3" value="NQY" />
+              </dimensions>
+            </field>
+            <field name="variable" axis="1">
+              <dimensions rank="1">
+                <dim index="1" value="NE" /></dimensions>
+              <attribute name="varied_variable">
+                <doc>The real name of the varied variable in the first dim of data, temperature, P, MF etc...</doc></attribute></field>
+            <field name="qx" axis="2">
+              <doc>Values for the first dimension of Q</doc>
+              <dimensions rank="1">
+                <dim index="1" value="NQX" /></dimensions></field>
+            <field name="qy" axis="3">
+              <doc>Values for the second dimension of Q</doc>
+              <dimensions rank="1">
+                <dim index="1" value="NQY" /></dimensions></field>
+         </group>
+     </group>
+</definition>

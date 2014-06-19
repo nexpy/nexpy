@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="nxdlformat.xsl" ?>
+<!--
+# NeXus - Neutron and X-ray Common Data Format
+# 
+# Copyright (C) 2008-2012 NeXus International Advisory Committee (NIAC)
+# 
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 3 of the License, or (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+# For further information, see http://www.nexusformat.org
+
+########### SVN repository information ###################
+# $Date$
+# $Author$
+# $Revision$
+# $HeadURL$
+# $Id$
+########### SVN repository information ###################
+-->
+<definition xmlns="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@" category="base"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@ ../nxdl.xsd"
+    name="NXdetector_group" 
+    version="1.0"
+    svnid="$Id$"
+	type="group" extends="NXobject">
+	<doc>
+		This class is used to allow a logical
+		grouping of detector elements (e.g. which tube, bank or group of banks) to be
+		recorded in the file. As well as allowing you to e.g just select the "left" or
+		"east" detectors, it may also be useful for determining which elements belong to the
+		same PSD tube and hence have e.g. the same dead time.
+		
+		For example, if we had "bank1" composed
+		of "tube1", "tube2" and "tube3" then group_names would be the string "bank1,
+		bank1/tube1, bank1/tube2,bank1/tube3" group_index would be {1,2,3,4} group_parent
+		would be {-1,1,1,1}
+		
+		The mapping array is interpreted as
+		group 1 is a top level group containing groups 2, 3 and 4
+		
+		A ``group_index`` array in
+		``NXdetector`` gives the base group for a detector element.
+	</doc>
+	<field name="group_names">
+	 	<doc>Comma separated list of name</doc>
+	</field>
+	<field name="group_index" type="NX_INT">
+	 	<doc>
+	 	Unique ID for group. A group_index array
+	 	in ``NXdetector`` gives the base group for a detector element. 
+	 	</doc>
+		<dimensions><dim index="1" value="i"/></dimensions>
+	</field>
+	<field name="group_parent" type="NX_INT">
+	 	<doc>Index of group parent in the hierarchy: -1 means no parent (i.e. a top level) group</doc>
+	    <dimensions><dim index="1" ref="group_index"/></dimensions>
+	</field>
+	<field name="group_type" type="NX_INT">
+	    <doc>Code number for group type, e.g. bank=1, tube=2 etc.</doc>
+	    <dimensions><dim index="1" ref="group_index"/></dimensions>
+	</field>
+</definition>

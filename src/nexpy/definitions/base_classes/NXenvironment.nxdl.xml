@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="nxdlformat.xsl" ?>
+<!--
+# NeXus - Neutron and X-ray Common Data Format
+# 
+# Copyright (C) 2008-2012 NeXus International Advisory Committee (NIAC)
+# 
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 3 of the License, or (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+# For further information, see http://www.nexusformat.org
+
+########### SVN repository information ###################
+# $Date$
+# $Author$
+# $Revision$
+# $HeadURL$
+# $Id$
+########### SVN repository information ###################
+-->
+<definition xmlns="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@" category="base"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@ ../nxdl.xsd"
+    name="NXenvironment" 
+    version="1.0"
+    svnid="$Id$"
+	type="group" extends="NXobject">
+	<doc>This class describes an external condition applied to the sample</doc>
+    <field name="name">
+        <doc>Apparatus identification code/model number; e.g. OC100 011</doc>
+    </field>
+    <field name="short_name">
+        <doc>Alternative short name, perhaps for dashboard display like a present Seblock name</doc>
+    </field>
+    <field name="type">
+        <doc>Type of apparatus. This could be the SE codes in scheduling database; e.g. OC/100</doc>
+    </field>
+    <field name="description">
+        <doc>Description of the apparatus; e.g. 100mm bore orange cryostat with Roots pump</doc>
+    </field>
+    <field name="program">
+        <doc>Program controlling the apparatus; e.g. LabView VI name</doc>
+    </field>
+    <group name="position" type="NXgeometry">
+        <doc>The position and orientation of the apparatus</doc>
+    </group>
+    <group type="NXnote">
+        <doc>Additional information, LabView logs, digital photographs, etc</doc>
+    </group>
+    <group type="NXsensor"/>
+</definition>
+

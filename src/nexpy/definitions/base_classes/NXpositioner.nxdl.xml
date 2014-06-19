@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="nxdlformat.xsl" ?>
+<!--
+# NeXus - Neutron and X-ray Common Data Format
+# 
+# Copyright (C) 2008-2012 NeXus International Advisory Committee (NIAC)
+# 
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 3 of the License, or (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+# For further information, see http://www.nexusformat.org
+
+########### SVN repository information ###################
+# $Date$
+# $Author$
+# $Revision$
+# $HeadURL$
+# $Id$
+########### SVN repository information ###################
+-->
+<definition 
+    name="NXpositioner" 
+    version="1.0"
+	type="group" 
+	extends="NXobject" 
+	category="base"
+    xmlns="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@ ../nxdl.xsd"
+    svnid="$Id$">
+    <doc>
+        This group describes a generic positioner 
+        such as a motor or piezo-electric transducer.  It is used to document the
+        current information of a piece of beam line equipment.
+        Note: When using multiple ``NXpositioner`` groups, it is suggested to place 
+        them inside a ``NXcollection`` group.  In such cases, when
+        ``NXpositioner`` is used in another class,
+        ``NXcollection/NXpositioner`` 
+        is then constructed.
+    </doc>
+    <field name="name">
+        <doc>symbolic or mnemonic name (one word)</doc>
+    </field>
+    <field name="description">
+        <doc>description of positioner</doc>
+    </field>
+    <field name="value" type="NX_NUMBER" units="NX_ANY">
+        <doc>best known value of positioner - need [n] as may be scanned</doc>
+        <dimensions rank="1"><dim index="1" value="n"/></dimensions>
+    </field>
+    <field name="raw_value" type="NX_NUMBER" units="NX_ANY">
+        <doc>raw value of positioner - need [n] as may be scanned</doc>
+        <dimensions rank="1"><dim index="1" value="n"/></dimensions>
+    </field>
+    <field name="target_value" type="NX_NUMBER" units="NX_ANY">
+        <doc>targeted (commanded) value of positioner - need [n] as may be scanned</doc>
+        <dimensions rank="1"><dim index="1" value="n"/></dimensions>
+    </field>
+    <field name="tolerance" type="NX_NUMBER" units="NX_ANY">
+        <doc>maximum allowable difference between target_value and value</doc>
+        <dimensions rank="1"><dim index="1" value="n"/></dimensions>
+    </field>
+    <field name="soft_limit_min" type="NX_NUMBER" units="NX_ANY">
+        <doc>minimum allowed limit to set value</doc>
+    </field>
+    <field name="soft_limit_max" type="NX_NUMBER" units="NX_ANY">
+        <doc>maximum allowed limit to set value</doc>
+    </field>
+    <field name="velocity" type="NX_NUMBER" units="NX_ANY">
+        <doc>velocity of the positioner (distance moved per unit time)</doc>
+    </field>
+    <field name="acceleration_time" type="NX_NUMBER" units="NX_ANY">
+        <doc>time to ramp the velocity up to full speed</doc>
+    </field>
+    <!-- TODO other parameters: settling time, backlash, link to readback channel -->
+    <field name="controller_record">
+        <doc>Hardware device record, e.g. EPICS process variable, taco/tango ...</doc>
+    </field>
+</definition>
+

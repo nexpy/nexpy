@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="nxdlformat.xsl" ?>
+<!--
+# NeXus - Neutron and X-ray Common Data Format
+# 
+# Copyright (C) 2008-2012 NeXus International Advisory Committee (NIAC)
+# 
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 3 of the License, or (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+# For further information, see http://www.nexusformat.org
+
+########### SVN repository information ###################
+# $Date$
+# $Author$
+# $Revision$
+# $HeadURL$
+# $Id$
+########### SVN repository information ###################
+-->
+<definition xmlns="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@" category="base"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@ ../nxdl.xsd"
+	name="NXcharacterization" 
+	version="1.0"
+    svnid="$Id$"
+	type="group" extends="NXobject">
+
+	<doc>
+		note: This base class may be removed in future releases of NXDL.
+		If you have a use for this base class, please provide a description
+		of your intended use to the NIAC (nexus-committee@nexusformat.org).
+		
+		.. TODO: NXcharacterization needs proper documentation
+			<!-- see https://github.com/nexusformat/definitions/issues/177 -->
+			<!-- 
+				NOTE
+				====
+				
+				The status of this class has been questioned.  
+				If you have a use for it, please provide
+				a definition of your intended use to  
+				NIAC <nexus-committee@nexusformat.org> 
+				so this class may be documented properly.
+				So far, it is referenced by these other classes:
+				* NXentry
+				* NXsubentry
+				* NXdetector
+			-->
+	</doc>
+  <!--
+	<attribute name="name">
+		<enumeration>
+			<item value="empty_environment" />
+			<item value="empty_environment_background" />
+			<item value="empty_container" />
+			<item value="empty_container_background" />
+			<item value="isotropic_scatterer" />
+			<item value="isotropic_scatterer_background" />
+			<item value="flood_image" />
+			<item value="dark_image" />
+			<item value="spatial_calibration_image" />
+		</enumeration>
+	</attribute>
+-->
+	<attribute name="source">
+		<doc>If missing, the source file is the current file</doc>
+	</attribute>
+	<attribute name="location"/>
+	<attribute name="mime_type">
+		<doc>If missing, the source file is NAPI readable</doc>
+	</attribute>
+	<field name="definition">
+		<attribute name="version"/>
+		<attribute name="URL"/>
+	</field>
+</definition>
