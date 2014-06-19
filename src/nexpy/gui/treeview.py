@@ -299,18 +299,21 @@ class NXTreeView(QtGui.QTreeView):
         menu.addAction(self.overplot_line_action)
         menu.addSeparator()
         menu.addAction(self.add_action)
-        menu.addAction(self.rename_action)
         if not isinstance(node, NXroot):
             if isinstance(node, NXgroup):
                 menu.addAction(self.initialize_action)
-            menu.addAction(self.copy_action)
-            if isinstance(node, NXgroup):
-                menu.addAction(self.paste_action)
-                menu.addAction(self.pastelink_action)
+        menu.addAction(self.rename_action)
         if isinstance(node, NXroot) and not node.nxfilemode:
             menu.addAction(self.delete_action)
         elif not isinstance(node, NXroot):
             menu.addAction(self.delete_action)
+        menu.addSeparator()
+        if not isinstance(node, NXroot):
+            menu.addAction(self.copy_action)
+            if isinstance(node, NXgroup):
+                menu.addAction(self.paste_action)
+                menu.addAction(self.pastelink_action)
+        if not isinstance(node, NXroot):
             menu.addSeparator()
             menu.addAction(self.link_action)
             menu.addSeparator()
