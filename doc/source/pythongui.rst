@@ -141,29 +141,35 @@ Data Menu
 **Add Data**
     Adds data to the selected tree item. If the selected item is a group, the
     added data can be a group or field. If the selected item is a field, the 
-    added data is an attribute. The Add Data dialog allow the name, value and 
-    data type to be specified, if adding a field, and the name and group class
-    if adding a group. The group class is specified through a dropdown menu of
-    valid NeXus group classes. The value field can be any valid Python 
-    expression, including numpy functions such as np.linspace().
+    added data must be a field attribute. 
+    
+    When adding a field, the Add Data dialog allows the name, value and data 
+    type to be specified. A dropdown menu can be used to enter field names 
+    that are defined by the NeXus standard, but the user is free to enter 
+    alternative names. The value field can be any valid Python expression, 
+    including numpy functions such as np.linspace().
+    
+    When adding a group, the Add Data dialog allows the name and class of the
+    group to be specified. A dropdown menu display can be used to enter one of 
+    the defined NeXus classes. Those above the dashed line are valid in the 
+    context of the selected tree item, but any of the other classes can also be 
+    selected.
 
-    .. note:: Eventually, NeXpy will access the NXDL files that define valid 
-              NeXus groups and fields, ensuring that the added data conforms to 
-              the standard. At present, NeXpy ensures that the NeXus data are 
-              consistent with generic NeXus browsers, which is sufficient for 
-              private use of the data.
+    .. note:: If you click on the dropdown menus and hover over any item, a 
+              tooltip gives a description of its use.
 
 **Initialize Data**
-    Adds a NeXus field to the selected tree item. If the selected item is a
-    group, the added data can be a group or field. If the selected item is a
-    field, the added data is an attribute. The Add Data dialog allow the name,
-    value and data type to be specified, if adding a field, and the name and
-    group class if adding a group. The group class is specified through a
-    dropdown menu of valid NeXus group classes. The value field can be any valid
-    Python expression, including numpy functions such as np.linspace().
+    Adds a NeXus field to the selected tree item with the specified shape and
+    data type, but without a predefined value. This is useful when creating 
+    large arrays that have to be entered as slabs. The shape box must contain
+    a single integer, for a one-dimensional array, or a tuple (or list) of
+    integers, for a multidimensional array. As with the 'Add Data' dialog, 
+    dropdown menus show the field names defined by the NeXus standard.
     
 **Rename Data**
-    Renames the selected tree item.
+    Renames the selected tree item. If the item is a group, its class can also
+    be changed. Dropdown menus provide a list of valid group classes or field
+    names defined by the NeXus standard.
 
     .. warning:: This action will be automatically saved to the NeXus file if
                  it has been opened as read/write. 
