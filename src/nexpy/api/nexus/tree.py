@@ -997,11 +997,13 @@ class NXobject(object):
         return self._class
 
     def _setclass(self, class_):
+        if isinstance(class_, basestring):
+            class_ = globals()[class_]
         if issubclass(class_, NXobject):
             self.__class__ = class_
             self._class = self.__class__.__name__
-        self.set_changed()
-        self.update()                   
+            self.set_changed()
+            self.update()                   
 
     def _getname(self):
         return self._name
