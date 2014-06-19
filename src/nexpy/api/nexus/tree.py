@@ -236,7 +236,6 @@ title is the title of the group or the parent :class:`NXentry`, if available.
 
 from __future__ import with_statement
 from copy import copy, deepcopy
-import os               #@UnusedImport
 
 import numpy as np
 import h5py as h5
@@ -863,6 +862,9 @@ class NXobject(object):
                     result.append(entries[k]._str_name(indent=indent+2))
         return "\n".join(result)
 
+    def update(self):
+        pass
+
     def walk(self):
         if False: yield
 
@@ -994,6 +996,13 @@ class NXobject(object):
     def _getclass(self):
         return self._class
 
+    def _setclass(self, class_):
+        if issubclass(class_, NXobject):
+            self.__class__ = class_
+            self._class = self.__class__.__name__
+        self.set_changed()
+        self.update()                   
+
     def _getname(self):
         return self._name
 
@@ -1048,7 +1057,7 @@ class NXobject(object):
     def _getattrs(self):
         return self._attrs
 
-    nxclass = property(_getclass, doc="Property: Class of NeXus object")
+    nxclass = property(_getclass, _setclass, doc="Property: Class of NeXus object")
     nxname = property(_getname, _setname, doc="Property: Name of NeXus object")
     nxgroup = property(_getgroup, doc="Property: Parent group of NeXus object")
     nxpath = property(_getpath, doc="Property: Path to NeXus object")
