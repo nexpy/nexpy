@@ -41,7 +41,7 @@ def background(f):
 # local imports
 from treeview import NXTreeView
 from plotview import NXPlotView
-from datadialogs import *           #@UnusedWildImports
+from datadialogs import *
 from nexpy.api.nexus.tree import nxload, NeXusError, NXFile, NXlink
 #from nexpy.api.nexus.tree import NXFile, NXgroup, NXfield, NXroot, NXentry, NXlink
 
@@ -747,10 +747,8 @@ class MainWindow(QtGui.QMainWindow):
                 node = self.treeview.getnode()
                 if node:
                     if node.nxfilemode != 'r' or isinstance(node, NXroot):
-                        name, ok = QtGui.QInputDialog.getText(self, 'Rename Data',
-                                       'New Name:', text=node.nxname)
-                        if ok:
-                            node.rename(name)
+                        dialog = RenameDialog(node, self)
+                        dialog.show()
                     else:
                         raise NeXusError("NeXus file is locked")
         except NeXusError as error:

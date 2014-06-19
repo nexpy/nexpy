@@ -209,20 +209,18 @@ class AddDialog(QtGui.QDialog):
             standard_groups = sorted(list(set([g for g in 
                               _mainwindow.nxclasses[self.node.nxclass][2]])))
             for name in standard_groups:
-                if name != 'NXroot':
-                    self.combo_box.addItem(name)
-                    self.combo_box.setItemData(self.combo_box.count()-1, 
-                        wrap(_mainwindow.nxclasses[name][0], 40),
-                        QtCore.Qt.ToolTipRole)
+                self.combo_box.addItem(name)
+                self.combo_box.setItemData(self.combo_box.count()-1, 
+                    wrap(_mainwindow.nxclasses[name][0], 40),
+                    QtCore.Qt.ToolTipRole)
             self.combo_box.insertSeparator(self.combo_box.count())
             other_groups = sorted([g for g in _mainwindow.nxclasses if g not in
                                    standard_groups])
             for name in other_groups:
-                if name != 'NXroot':
-                    self.combo_box.addItem(name)
-                    self.combo_box.setItemData(self.combo_box.count()-1, 
-                        wrap(_mainwindow.nxclasses[name][0], 40),
-                        QtCore.Qt.ToolTipRole)
+                self.combo_box.addItem(name)
+                self.combo_box.setItemData(self.combo_box.count()-1, 
+                    wrap(_mainwindow.nxclasses[name][0], 40),
+                    QtCore.Qt.ToolTipRole)
             self.combo_box.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToContents)
             grid.addWidget(combo_label, 0, 0)
             grid.addWidget(self.combo_box, 0, 1)
@@ -450,6 +448,111 @@ class InitializeDialog(QtGui.QDialog):
                 dtype = np.float64
             shape = self.get_shape()
             self.node[name] = NXfield(dtype=dtype, shape=shape)
+        QtGui.QDialog.accept(self)
+        
+    def reject(self):
+        QtGui.QDialog.reject(self)
+
+    
+class RenameDialog(QtGui.QDialog):
+    """Dialog to rename a NeXus node"""
+
+    def __init__(self, node, parent=None):
+
+        QtGui.QDialog.__init__(self, parent)
+
+        self.node = node
+
+        self.setWindowTitle("Rename NeXus data")
+
+        buttonbox = QtGui.QDialogButtonBox(self)
+        buttonbox.setOrientation(QtCore.Qt.Horizontal)
+        buttonbox.setStandardButtons(QtGui.QDialogButtonBox.Cancel |
+                                     QtGui.QDialogButtonBox.Ok)
+        buttonbox.accepted.connect(self.accept)
+        buttonbox.rejected.connect(self.reject)
+
+        self.layout = QtGui.QVBoxLayout()
+        self.layout.addLayout(self.define_grid())
+        self.layout.addWidget(buttonbox) 
+        self.setLayout(self.layout)
+
+    def define_grid(self):
+        grid = QtGui.QGridLayout()
+        grid.setSpacing(10)
+        name_label = QtGui.QLabel()
+        name_label.setAlignment(QtCore.Qt.AlignLeft)
+        name_label.setText("New Name:")
+        self.name_box = QtGui.QLineEdit(self.node.nxname)
+        self.name_box.setAlignment(QtCore.Qt.AlignLeft)
+        grid.addWidget(name_label, 0, 0)
+        grid.addWidget(self.name_box, 0, 1)
+        self.combo_box = None
+        if isinstance(self.node, NXgroup) and self.node.nxclass != 'NXroot':
+            combo_label = QtGui.QLabel()
+            combo_label.setAlignment(QtCore.Qt.AlignLeft)
+            combo_label.setText("New Class:")
+            self.combo_box = QtGui.QComboBox()
+            from nexpy.gui.consoleapp import _mainwindow
+            parent_class = self.node.nxgroup.nxclass
+            standard_groups = sorted(list(set([g for g in 
+                          _mainwindow.nxclasses[parent_class][2]])))
+            for name in standard_groups:
+                self.combo_box.addItem(name)
+                self.combo_box.setItemData(self.combo_box.count()-1, 
+                    wrap(_mainwindow.nxclasses[name][0], 40),
+                    QtCore.Qt.ToolTipRole)
+            self.combo_box.insertSeparator(self.combo_box.count())
+            other_groups = sorted([g for g in _mainwindow.nxclasses 
+                                   if g not in standard_groups])
+            for name in other_groups:
+                self.combo_box.addItem(name)
+                self.combo_box.setItemData(self.combo_box.count()-1, 
+                    wrap(_mainwindow.nxclasses[name][0], 40),
+                    QtCore.Qt.ToolTipRole)
+            self.combo_box.insertSeparator(self.combo_box.count())
+            self.combo_box.addItem('NXgroup')
+            self.combo_box.setCurrentIndex(self.combo_box.findText(self.node.nxclass))
+            self.combo_box.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToContents)
+            grid.addWidget(combo_label, 1, 0)
+            grid.addWidget(self.combo_box, 1, 1)
+        else:
+            parent_class = self.node.nxgroup.nxclass
+            if parent_class != 'NXroot' or parent_class != 'NXtree':
+                combo_label = QtGui.QLabel()
+                combo_label.setAlignment(QtCore.Qt.AlignLeft)
+                combo_label.setText("Valid Fields:")
+                self.combo_box = QtGui.QComboBox()
+                self.combo_box.currentIndexChanged.connect(self.set_name)
+                from nexpy.gui.consoleapp import _mainwindow
+                fields = sorted(list(set([g for g in 
+                            _mainwindow.nxclasses[parent_class][1]])))
+                for name in fields:
+                    self.combo_box.addItem(name)
+                    self.combo_box.setItemData(self.combo_box.count()-1, 
+                        wrap(_mainwindow.nxclasses[parent_class][1][name][2], 40),
+                        QtCore.Qt.ToolTipRole)
+                self.combo_box.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToContents)
+                grid.addWidget(self.combo_box, 0, 2)
+        grid.setColumnMinimumWidth(1, 200)
+        return grid
+
+    def get_name(self):
+        return self.name_box.text()
+
+    def set_name(self):
+        self.name_box.setText(self.combo_box.currentText())
+
+    def get_class(self):
+        return self.combo_box.currentText()
+
+    def accept(self):
+        name = self.get_name()
+        if name:
+            self.node.rename(name)
+        if isinstance(self.node, NXgroup):
+            if self.combo_box:
+                self.node.nxclass = self.get_class()
         QtGui.QDialog.accept(self)
         
     def reject(self):
