@@ -1000,6 +1000,7 @@ class NXPlotTab(QtGui.QWidget):
         button.clicked.connect(slot)
         return button
 
+    @QtCore.Slot()
     def read_minbox(self):
         if not self.minbox.isEnabled():
             return
@@ -1019,11 +1020,11 @@ class NXPlotTab(QtGui.QWidget):
         self.minbox.old_value = self.minbox.value()
         self.maxbox.old_value = self.maxbox.value()
 
+    @QtCore.Slot()
     def read_maxbox(self):
         lo, hi = self.minbox.value(), self.maxbox.value()
         if hi == self.maxbox.old_value:
             return
-        replot = False          # TODO: unused variable
         if hi is not None and (hi >= lo or self.axis.locked): 
             self.axis.hi = hi
         else:
@@ -1315,6 +1316,7 @@ class NXSpinBox(QtGui.QSpinBox):
             self.setValue(self.value() + steps * self.diff)
         else:
             super(NXSpinBox, self).stepBy(steps)
+        self.valueChanged.emit(u'1')
 
 
 class NXDoubleSpinBox(QtGui.QDoubleSpinBox):
@@ -1335,6 +1337,7 @@ class NXDoubleSpinBox(QtGui.QDoubleSpinBox):
             self.setValue(self.value() + steps * self.diff)
         else:
             super(NXDoubleSpinBox, self).stepBy(steps)
+        self.valueChanged.emit(u'1')
 
 
 class NXProjectionTab(QtGui.QWidget):
