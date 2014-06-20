@@ -50,22 +50,19 @@ class PlotDialog(QtGui.QDialog):
         self.dims = len(self.node.shape)
         
         if isinstance(node, NXfield):
-            plotlayout = QtGui.QHBoxLayout()
-            if self.dims == 1:
-                plotlabel = [QtGui.QLabel("Choose x-axis: ")]
-                self.plotbox = [self.axis_box(0)]
-                plotlayout.addWidget(plotlabel[0])
-                plotlayout.addWidget(self.plotbox[0])
-            else:
-                plotlabel = [QtGui.QLabel("Choose x-axis: "),
-                             QtGui.QLabel("Choose y-axis: ")]
-                self.plotbox = [self.axis_box(0), self.axis_box(1)]
-                plotlayout.addWidget(plotlabel[1])
-                plotlayout.addWidget(self.plotbox[1])
-                plotlayout.addWidget(plotlabel[0])
-                plotlayout.addWidget(self.axis_box[0])
+            axis_layout = [QtGui.QHBoxLayout()]
+            axis_label = [QtGui.QLabel("Choose Axis 0: ")]
+            self.axis_boxes = [self.axis_box(0)]
+            axis_layout[0].addWidget(axis_label[0])
+            axis_layout[0].addWidget(self.axis_boxes[0])
+            for axis in range(1, self.dims):
+                axis_layout.append(QtGui.QHBoxLayout())
+                axis_label.append(QtGui.QLabel("Choose Axis %s: " % axis))
+                self.axis_boxes.append(self.axis_box(axis))
+                axis_layout[axis].addWidget(axis_label[axis])
+                axis_layout[axis].addWidget(self.axis_boxes[axis])
         else:
-            plotlayout = None
+            raise NeXusError('Item not plottable')
 
         buttonbox = QtGui.QDialogButtonBox(self)
         buttonbox.setOrientation(QtCore.Qt.Horizontal)
@@ -75,20 +72,21 @@ class PlotDialog(QtGui.QDialog):
         buttonbox.rejected.connect(self.reject)
 
         layout = QtGui.QVBoxLayout()
-        if plotlayout:
-            layout.addLayout(plotlayout)
+        for axis in range(self.dims):
+            layout.addLayout(axis_layout[axis])
         layout.addWidget(buttonbox) 
         self.setLayout(layout)
 
         self.setWindowTitle("Plot NeXus Field")
 
     def axis_box(self, axis):
-        plotbox = QtGui.QComboBox()
+        box = QtGui.QComboBox()
         for node in self.node.nxgroup.entries.values():
             if node is not self.node and self.check_axis(node, axis):
-                plotbox.addItem(node.nxname)
-        plotbox.insertSeparator(0)
-        plotbox.insertItem(0,'NXfield index')
+                box.addItem(node.nxname)
+        if box.count() > 0:
+            box.insertSeparator(0)
+        box.insertItem(0,'NXfield index')
         if 'axes' in self.node.attrs:
             from nexpy.api.nexus.tree import _readaxes
             default_axis = _readaxes(self.node.axes)[axis]
@@ -98,10 +96,12 @@ class PlotDialog(QtGui.QDialog):
             default_axis = None
         if default_axis:
             try:
-                plotbox.setCurrentIndex(plotbox.findText(default_axis))
+                box.setCurrentIndex(box.findText(default_axis))
             except Exception:
                 pass
-        return plotbox
+        else:
+            box.setCurrentIndex(box.findText('NXfield index'))
+        return box
 
     def check_axis(self, node, axis):
         if len(node.shape) > 1:
@@ -115,17 +115,15 @@ class PlotDialog(QtGui.QDialog):
         return False
 
     def get_axis(self, axis):
-        axis_name = self.plotbox[axis].currentText()
+        axis_name = self.axis_boxes[axis].currentText()
         if axis_name == 'NXfield index':
-            return NXfield(range(1, self.node.size+1), name='index')
+            return NXfield(range(self.node.shape[axis]), 
+                           name='index_%s' % axis)
         else:
             return self.node.nxgroup.entries[axis_name]
 
     def get_axes(self):
-        if self.dims == 1:
-            return [self.get_axis(0)]
-        else:
-            return [self.get_axis(0), self.get_axis(1)]
+        return [self.get_axis(axis) for axis in range(self.dims)]
 
     def accept(self):
         data = NXdata(self.node, self.get_axes())
