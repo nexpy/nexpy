@@ -589,6 +589,8 @@ def _getvalue(value, dtype=None, shape=None):
     the dtype and shape are determined from the value.
     """
     if isinstance(value, basestring):
+        if value == '':
+            value = ' '
         _value = np.string_(value)
     elif not isinstance(value, np.ndarray):
         _value = np.asarray(value)
