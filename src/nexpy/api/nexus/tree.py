@@ -2764,7 +2764,10 @@ class NXgroup(NXobject):
             try:
                 data = data.NXdata[0]
             except Exception:
-                data = data.NXentry[0]
+                if data.NXentry:
+                    data = data.NXentry[0]
+                else:
+                    raise NeXusError('No NXdata group found')
         if data.nxclass == "NXentry":
             if data.NXdata:
                 data = data.NXdata[0]
