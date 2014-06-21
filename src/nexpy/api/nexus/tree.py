@@ -1846,11 +1846,15 @@ class NXfield(NXobject):
 
     def _str_tree(self,indent=0,attrs=False,recursive=False):
         dims = 'x'.join([str(n) for n in self.shape])
-        s = str(self)
+        s = unicode(str(self), 'utf-8')
         if '\n' in s or s == "":
             s = "%s(%s)"%(self.dtype, dims)
-        v=[" "*indent + "%s = %s"%(self.nxname, s)]
-        if attrs and self.attrs: v.append(self._str_attrs(indent=indent+2))
+        try:
+            v=[" "*indent + "%s = %s"%(self.nxname, s)]
+        except Exception:
+            v=[" "*indent + self.nxname]
+        if attrs and self.attrs:
+            v.append(self._str_attrs(indent=indent+2))
         return "\n".join(v)
 
     def walk(self):
