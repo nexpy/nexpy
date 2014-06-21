@@ -217,59 +217,8 @@ class NXConsoleApp(BaseIPythonApplication, IPythonConsoleApp):
         # Note: This will be dramatically simplified when colors
         # are removed from the backend.
 
-        # parse the colors arg down to current known labels
-        try:
-            colors = self.config.ZMQInteractiveShell.colors
-        except AttributeError:
-            colors = None
-        try:
-            style = self.config.IPythonWidget.syntax_style
-        except AttributeError:
-            style = None
-
-        # find the value for colors:
-        if colors:
-            colors=colors.lower()
-            if colors in ('lightbg', 'light'):
-                colors='lightbg'
-            elif colors in ('dark', 'linux'):
-                colors='linux'
-            else:
-                colors='nocolor'
-        elif style:
-            if style=='bw':
-                colors='nocolor'
-            elif styles.dark_style(style):
-                colors='linux'
-            else:
-                colors='lightbg'
-        else:
-            colors=None
-
         # Configure the style.
-        widget = self.window.console
-        if style:
-            widget.style_sheet = styles.sheet_from_template(style, colors)
-            widget.syntax_style = style
-            widget._syntax_style_changed()
-            widget._style_sheet_changed()
-        elif colors:
-            # use a default style
-            widget.set_default_style(colors=colors)
-        else:
-            # this is redundant for now, but allows the widget's
-            # defaults to change
-            widget.set_default_style()
-
-        if self.stylesheet:
-            # we got an expicit stylesheet
-            if os.path.isfile(self.stylesheet):
-                with open(self.stylesheet) as f:
-                    sheet = f.read()
-                widget.style_sheet = sheet
-                widget._style_sheet_changed()
-            else:
-                raise IOError("Stylesheet %r not found."%self.stylesheet)
+        self.window.console.set_default_style()
 
     def init_signal(self):
         """allow clean shutdown on sigint"""
