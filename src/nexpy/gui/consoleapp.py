@@ -96,7 +96,7 @@ flags.update(qt_flags)
 aliases = dict(aliases)
 qt_aliases = dict(
     style = 'IPythonWidget.syntax_style',
-    stylesheet = 'NXConsoleApp.stylesheet',
+    stylesheet = 'IPythonQtConsoleApp.stylesheet',
     colors = 'ZMQInteractiveShell.colors',
 
     editor = 'IPythonWidget.editor',
