@@ -643,8 +643,8 @@ class NXPlot(object):
         ax = self.figure.gca()
         ax.set_xlim(self.xaxis.get_limits())
         ax.set_ylim(self.yaxis.get_limits())
-        self.canvas.draw_idle()
         self.otab.push_current()
+        self.canvas.draw_idle()
 
     def replot_logs(self):
         ax = self.figure.gca()
@@ -833,6 +833,7 @@ class NXPlotAxis(object):
     def max_range(self):
         return self.max - self.min
 
+
 class NXReplotSignal(QtCore.QObject):
     
     replot = QtCore.Signal() 
@@ -913,6 +914,7 @@ class NXPlotTab(QtGui.QWidget):
         self.plotview = plotview
 
     def set_axis(self, axis):
+        self.block_signals(True)
         self.plot = self.plotview.plot
         self.axis = axis
         if self.zaxis:
@@ -936,13 +938,12 @@ class NXPlotTab(QtGui.QWidget):
         self.maxbox.old_value = self.maxbox.value()
         self.minbox.block_replot = self.maxbox.block_replot = False
         if not self.zaxis:
-            self.block_signals(True)
             self.set_sliders(self.minbox.minimum(), self.maxbox.maximum())
-            self.block_signals(False)
         if self.axiscombo:
             self.axiscombo.clear()
             self.axiscombo.addItems(self.get_axes())
             self.axiscombo.setCurrentIndex(self.axiscombo.findText(axis.name))
+        self.block_signals(False)
 
     def combobox(self, slot):
         combobox = QtGui.QComboBox()
@@ -1106,7 +1107,7 @@ class NXPlotTab(QtGui.QWidget):
     def set_lock(self):
         if self.lockbox.isChecked():
             self.axis.locked = True
-            lo, hi = self.axis.get_limits()
+            lo, hi = self.get_limits()
             self.axis.diff = self.maxbox.diff = self.minbox.diff = hi - lo
             self.minbox.setDisabled(True)
         else:
@@ -1128,15 +1129,9 @@ class NXPlotTab(QtGui.QWidget):
         self.block_signals(False)
 
     def reset(self):
-        self.axis.min = np.nanmin(self.axis.data)
-        self.axis.max = np.nanmax(self.axis.data)
         self.minbox.setRange(self.axis.min, self.axis.max)
         self.maxbox.setRange(self.axis.min, self.axis.max)
         self.set_limits(self.axis.min, self.axis.max)
-        if self.name == 'x' or self.name == 'y':
-            self.plot.replot_axes()
-        elif self.name == 'v':
-            self.plot.plot2D()
 
     def get_limits(self):
         return self.minbox.value(), self.maxbox.value()
@@ -1827,13 +1822,6 @@ class NXNavigationToolbar(NavigationToolbar):
         self.toolitems.append(('Add', 'Add plot data to the tree', 'hand', 'add_data'))
         super(NXNavigationToolbar, self)._init_toolbar()
 
-    def home(self, *args):
-        self.plotview.xtab.reset()
-        self.plotview.ytab.reset()
-        self.plotview.vtab.reset()
-        if self.plotview.ptab.panel:
-            self.plotview.ptab.panel.update_limits()            
-
     def add_data(self):
         keep_data(self.plotview.plot.plotdata)
 
@@ -1941,7 +1929,6 @@ class NXNavigationToolbar(NavigationToolbar):
 
         self._zoom_mode = None
 
-        self.push_current()
         self.release(event)
 
     def release_pan(self, event):
@@ -1959,14 +1946,18 @@ class NXNavigationToolbar(NavigationToolbar):
         lims = self._views()
         if lims is None: return
         xmin, xmax, ymin, ymax = lims[0]
+        self.plotview.xtab.block_signals(True)
         self.plotview.xtab.axis.set_limits(xmin, xmax)
         self.plotview.xtab.minbox.setValue(xmin)
         self.plotview.xtab.maxbox.setValue(xmax)
         self.plotview.xtab.set_sliders(xmin, xmax)
+        self.plotview.xtab.block_signals(False)
+        self.plotview.ytab.block_signals(True)
         self.plotview.ytab.axis.set_limits(ymin, ymax)
         self.plotview.ytab.minbox.setValue(ymin)
         self.plotview.ytab.maxbox.setValue(ymax)
         self.plotview.ytab.set_sliders(ymin, ymax)
+        self.plotview.ytab.block_signals(False)
 
 #    def set_cursor(self, cursor):
 #        pass
