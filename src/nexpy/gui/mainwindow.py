@@ -170,9 +170,7 @@ class MainWindow(QtGui.QMainWindow):
         """ Called when you quit NeXpy or close the main window.
         """
         title = self.window().windowTitle()
-        cancel = QtGui.QMessageBox.Cancel
-        okay = QtGui.QMessageBox.Ok         # TODO: unused
-        
+        cancel = QtGui.QMessageBox.Cancel        
         msg = "Are you sure you want to quit NeXpy?"
         close = QtGui.QPushButton("&Quit", self)
         close.setShortcut('Q')
@@ -406,19 +404,19 @@ class MainWindow(QtGui.QMainWindow):
             )
         self.add_menu_action(self.data_menu, self.rename_action, True)  
 
-        self.copy_action=QtGui.QAction("Copy Data",
+        self.copydata_action=QtGui.QAction("Copy Data",
             self,
             shortcut=QtGui.QKeySequence("Ctrl+Shift+C"),
             triggered=self.copy_data
             )
-        self.add_menu_action(self.data_menu, self.copy_action, True)  
+        self.add_menu_action(self.data_menu, self.copydata_action, True)  
 
-        self.paste_action=QtGui.QAction("Paste Data",
+        self.pastedata_action=QtGui.QAction("Paste Data",
             self,
             shortcut=QtGui.QKeySequence("Ctrl+Shift+V"),
             triggered=self.paste_data
             )
-        self.add_menu_action(self.data_menu, self.paste_action, True)  
+        self.add_menu_action(self.data_menu, self.pastedata_action, True)  
 
         self.pastelink_action=QtGui.QAction("Paste As Link",
             self,
@@ -794,7 +792,7 @@ class MainWindow(QtGui.QMainWindow):
                     dialog = DeleteDialog(node, self)
                     dialog.show()
                 else:   
-                    raise NeXusError("NeXus file is locked") 
+                    raise NeXusError("NeXus file is locked")
         except NeXusError as error:
             report_error("Deleting Data", error)
 
