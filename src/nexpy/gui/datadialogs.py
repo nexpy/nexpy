@@ -134,6 +134,78 @@ class PlotDialog(QtGui.QDialog):
         QtGui.QDialog.reject(self)
 
     
+class LimitDialog(QtGui.QDialog):
+    """Dialog to set plot window limits
+    
+    This is useful when it is desired to set the limits outside the data limits. 
+    """
+ 
+    def __init__(self, parent=None):
+
+        QtGui.QDialog.__init__(self, parent)
+ 
+        from nexpy.gui.plotview import plotview
+
+        self.plotview = plotview
+        
+        layout = QtGui.QVBoxLayout()
+        xmin_layout = QtGui.QHBoxLayout()
+        xmin_layout.addWidget(QtGui.QLabel('xmin'))
+        self.xmin_box = self.textbox()
+        self.xmin_box.setValue(plotview.plot.xaxis.min)
+        xmin_layout.addWidget(self.xmin_box)
+        layout.addLayout(xmin_layout)
+
+        xmax_layout = QtGui.QHBoxLayout()
+        xmax_layout.addWidget(QtGui.QLabel('xmax'))
+        self.xmax_box = self.textbox()
+        self.xmax_box.setValue(plotview.plot.xaxis.max)
+        xmax_layout.addWidget(self.xmax_box)
+        layout.addLayout(xmax_layout)
+
+        ymin_layout = QtGui.QHBoxLayout()
+        ymin_layout.addWidget(QtGui.QLabel('ymin'))
+        self.ymin_box = self.textbox()
+        self.ymin_box.setValue(plotview.plot.yaxis.min)
+        ymin_layout.addWidget(self.ymin_box)
+        layout.addLayout(ymin_layout)
+
+        ymax_layout = QtGui.QHBoxLayout()
+        ymax_layout.addWidget(QtGui.QLabel('ymax'))
+        self.ymax_box = self.textbox()
+        self.ymax_box.setValue(plotview.plot.yaxis.max)
+        ymax_layout.addWidget(self.ymax_box)
+        layout.addLayout(ymax_layout)
+
+        buttonbox = QtGui.QDialogButtonBox(self)
+        buttonbox.setOrientation(QtCore.Qt.Horizontal)
+        buttonbox.setStandardButtons(QtGui.QDialogButtonBox.Cancel |
+                                     QtGui.QDialogButtonBox.Ok)
+        buttonbox.accepted.connect(self.accept)
+        buttonbox.rejected.connect(self.reject)
+
+        layout.addWidget(buttonbox) 
+        self.setLayout(layout)
+
+        self.setWindowTitle("Limit axes")
+
+    def textbox(self):
+        from nexpy.gui.plotview import NXTextBox
+        textbox = NXTextBox()
+        textbox.setAlignment(QtCore.Qt.AlignRight)
+        textbox.setFixedWidth(75)
+        return textbox
+
+    def accept(self):
+        xmin, xmax = self.xmin_box.value(), self.xmax_box.value() 
+        ymin, ymax = self.ymin_box.value(), self.ymax_box.value() 
+        self.plotview.set_limits(xmin, xmax, ymin, ymax)
+        QtGui.QDialog.accept(self)
+        
+    def reject(self):
+        QtGui.QDialog.reject(self)
+
+    
 class AddDialog(QtGui.QDialog):
     """Dialog to add a NeXus node"""
 

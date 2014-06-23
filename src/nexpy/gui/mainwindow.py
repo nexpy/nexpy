@@ -1104,6 +1104,18 @@ class MainWindow(QtGui.QMainWindow):
 
         self.window_separator = self.window_menu.addSeparator()
 
+        self.limit_action=QtGui.QAction("Change Plot Limits",
+            self,
+            triggered=self.limit_axes
+            )
+        self.add_menu_action(self.window_menu, self.limit_action)
+
+        self.reset_limit_action=QtGui.QAction("Reset Plot Limits",
+            self,
+            triggered=self.reset_axes
+            )
+        self.add_menu_action(self.window_menu, self.reset_limit_action)
+
         self.panel_action=QtGui.QAction("Show Projection Panel",
             self,
             triggered=self.show_projection_panel
@@ -1144,6 +1156,21 @@ class MainWindow(QtGui.QMainWindow):
                                                     parent=plotview.ptab)
             plotview.ptab.panel.update_limits()
             plotview.ptab.panel.show()
+    
+    def limit_axes(self):
+        try:
+            from nexpy.gui.plotview import plotview
+            dialog = LimitDialog(self)
+            dialog.exec_()
+        except NeXusError as error:
+            report_error("Changing Plot Limits", error)
+    
+    def reset_axes(self):
+        try:
+            from nexpy.gui.plotview import plotview
+            plotview.reset_limits()
+        except NeXusError as error:
+            report_error("Resetting Plot Limits", error)
     
     def init_help_menu(self):
         # please keep the Help menu in Mac Os even if empty. It will

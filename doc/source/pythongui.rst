@@ -138,6 +138,11 @@ Data Menu
     Overplots the selected tree item in the plotting pane. This only works on 
     one-dimensional data.
 
+    .. note:: The new plot is overlaid on the original plot using the same axis
+              limits. If some of the new data lies outside the original plotting 
+              limits, the slider limits are increased to cover the expanded 
+              range. 
+
 **Add Data**
     Adds data to the selected tree item. If the selected item is a group, the
     added data can be a group or field. If the selected item is a field, the 
@@ -227,6 +232,17 @@ Window Menu
     open windows are listed in the Window menu, along with their labels ('Main',
     'Figure 1', 'Figure 2', *etc*.). These are used to switch the focus for
     subsequent plots.
+
+**Change Plot Limits**
+    This gives a dialog box that allows the axis limits to be changed. This is
+    useful if you want to expand the limits beyond the data values or if you 
+    want to narrow the limits to improve the sensitivity of the sliders.
+
+**Reset Plot Limits**
+    This restores the limits to the original values. 
+
+    .. note:: Right-clicking on the plot will also restore the original axis 
+              limits.
 
 **Show Projection Panel**
     Show the projection panel for the currently active plotting window. This is

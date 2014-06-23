@@ -210,7 +210,7 @@ class NXPlotView(QtGui.QWidget):
         #Initialize the plotting window with a token plot
         self.plot.plot(NXdata(signal=NXfield([0,1], name='y'), 
                        axes=NXfield([0,1], name='x')), fmt='wo', mec='w')
-        
+
 #        self.grid_cb = QtGui.QCheckBox("Show &Grid")
 #        self.grid_cb.setChecked(False)
 #        self.grid_cb.stateChanged.connect(self.on_draw)
@@ -261,6 +261,24 @@ class NXPlotView(QtGui.QWidget):
 
     def redraw(self):
         self.canvas.draw_idle()
+
+    def set_limits(self, xmin=None, xmax=None, ymin=None, ymax=None):
+        if xmin:
+            self.plot.xaxis.min = xmin
+        if xmax:
+            self.plot.xaxis.max = xmax
+        if ymin:
+            self.plot.yaxis.min = ymin
+        if ymax:
+            self.plot.yaxis.max = ymax
+        self.plot.update_tabs()
+
+    def reset_limits(self):
+        self.plot.xaxis.min = self.plot.xaxis.orig_min
+        self.plot.xaxis.max = self.plot.xaxis.orig_max
+        self.plot.yaxis.min = self.plot.yaxis.orig_min
+        self.plot.yaxis.max = self.plot.yaxis.orig_max
+        self.plot.update_tabs()
 
     def close_view(self):
         self.remove_menu_action()
@@ -405,6 +423,11 @@ class NXPlot(object):
             self.update_tabs()
         else:
             self.init_tabs()
+
+        self.xaxis.orig_min = self.xaxis.min
+        self.xaxis.orig_max = self.xaxis.max
+        self.yaxis.orig_min = self.yaxis.min
+        self.yaxis.orig_max = self.yaxis.max
 
     def plot1D(self, fmt, over=False, **opts):
 
@@ -1221,6 +1244,15 @@ class NXPlotTab(QtGui.QWidget):
         self.timer.start(self.interval)
 
 
+class NXTextBox(QtGui.QLineEdit):
+
+    def value(self):
+        return float(unicode(self.text()))
+
+    def setValue(self, value):
+        self.setText(str(float('%.4g' % value)))
+
+
 class NXSpinBox(QtGui.QSpinBox):
 
     def __init__(self, data=None):
@@ -1803,6 +1835,10 @@ class NXNavigationToolbar(NavigationToolbar):
         self.toolitems = list(self.toolitems)
         self.toolitems.append(('Add', 'Add plot data to the tree', 'hand', 'add_data'))
         super(NXNavigationToolbar, self)._init_toolbar()
+
+    def home(self, *args):
+        self.plotview.reset_limits()
+        super(NXNavigationToolbar, self).home()        
 
     def add_data(self):
         keep_data(self.plotview.plot.plotdata)
