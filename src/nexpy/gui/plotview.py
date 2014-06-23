@@ -952,20 +952,12 @@ class NXPlotTab(QtGui.QWidget):
         combobox.activated.connect(slot)
         return combobox
 
-    def textbox(self, slot):
-        textbox = NXTextBox()
-        textbox.setAlignment(QtCore.Qt.AlignRight)
-        textbox.setFixedWidth(75)
-        textbox.editingFinished.connect(slot)
-        return textbox
-
     def spinbox(self, slot):
         spinbox = NXSpinBox()
         spinbox.setAlignment(QtCore.Qt.AlignRight)
         spinbox.setFixedWidth(100)
         spinbox.setKeyboardTracking(False)
         spinbox.setAccelerated(False)
-        spinbox.editingFinished.connect(slot)
         spinbox.valueChanged[unicode].connect(slot)
         return spinbox
 
@@ -974,7 +966,6 @@ class NXPlotTab(QtGui.QWidget):
         doublespinbox.setAlignment(QtCore.Qt.AlignRight)
         doublespinbox.setFixedWidth(100)
         doublespinbox.setKeyboardTracking(False)
-        doublespinbox.editingFinished.connect(slot)
         doublespinbox.valueChanged[unicode].connect(slot)
         return doublespinbox
 
@@ -1228,14 +1219,6 @@ class NXPlotTab(QtGui.QWidget):
             self.interval = 1000
         self.timer.setInterval(self.interval)
         self.timer.start(self.interval)
-
-class NXTextBox(QtGui.QLineEdit):
-
-    def value(self):
-        return float(unicode(self.text()))
-
-    def setValue(self, value):
-        self.setText(str(float('%.4g' % value)))
 
 
 class NXSpinBox(QtGui.QSpinBox):
@@ -1770,7 +1753,6 @@ class NXProjectionPanel(QtGui.QDialog):
         spinbox.setFixedWidth(100)
         spinbox.setKeyboardTracking(False)
         spinbox.setAccelerated(True)
-        spinbox.editingFinished.connect(self.set_limits)
         spinbox.valueChanged[unicode].connect(self.set_limits)
         return spinbox
 
