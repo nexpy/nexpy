@@ -234,9 +234,10 @@ Window Menu
     subsequent plots.
 
 **Change Plot Limits**
-    This gives a dialog box that allows the axis limits to be changed. This is
-    useful if you want to expand the limits beyond the data values or if you 
-    want to narrow the limits to improve the sensitivity of the sliders.
+    This gives a dialog box that allows the axis limits of the currently active
+    plot to be changed. This is useful if you want to expand the limits beyond 
+    the data values or if you want to narrow the limits to improve the 
+    sensitivity of the sliders.
 
 **Reset Plot Limits**
     This restores the limits to the original values. 
