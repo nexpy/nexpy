@@ -158,7 +158,10 @@ class NXPlotView(QtGui.QWidget):
         def make_active(event):
             if 'Projection' not in self.label and 'Fit' not in self.label:
                 self.make_active()
-            if event.button == 3:
+            if event.button == 1:
+                self.xdata = event.xdata
+                self.ydata = event.ydata
+            elif event.button == 3:
                 hasattr(self, 'otab')
                 self.otab.home()
         cid = self.canvas.mpl_connect('button_press_event', make_active)
@@ -1831,7 +1834,18 @@ class NXNavigationToolbar(NavigationToolbar):
         self.zoom()
 
     def _init_toolbar(self):
-
+        if not hasattr(self, 'toolitems'):
+            self.toolitems = (
+                ('Home', 'Reset original view', 'home', 'home'),
+                ('Back', 'Back to  previous view', 'back', 'back'),
+                ('Forward', 'Forward to next view', 'forward', 'forward'),
+                (None, None, None, None),
+                ('Pan', 'Pan axes with left mouse, zoom with right', 'move', 'pan'),
+                ('Zoom', 'Zoom to rectangle', 'zoom_to_rect', 'zoom'),
+                (None, None, None, None),
+                ('Subplots', 'Configure subplots', 'subplots', 'configure_subplots'),
+                ('Save', 'Save the figure', 'filesave', 'save_figure'),
+                )
         self.toolitems = list(self.toolitems)
         self.toolitems.append(('Add', 'Add plot data to the tree', 'hand', 'add_data'))
         super(NXNavigationToolbar, self)._init_toolbar()
