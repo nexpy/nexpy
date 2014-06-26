@@ -588,7 +588,7 @@ class RenameDialog(QtGui.QDialog):
             grid.addWidget(self.combo_box, 1, 1)
         else:
             parent_class = self.node.nxgroup.nxclass
-            if parent_class != 'NXroot' or parent_class != 'NXtree':
+            if parent_class != 'NXroot' and parent_class != 'NXtree':
                 combo_label = QtGui.QLabel()
                 combo_label.setAlignment(QtCore.Qt.AlignLeft)
                 combo_label.setText("Valid Fields:")
