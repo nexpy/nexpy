@@ -581,7 +581,7 @@ class MainWindow(QtGui.QMainWindow):
                 workspace = self.treeview.tree.get_name(fname)
                 self.treeview.tree[workspace] = self.user_ns[workspace] = nxload(fname)
                 self.default_directory = os.path.dirname(fname)
-        except NeXusError as error:
+        except (NeXusError, IOError) as error:
             report_error("Opening File", error)
   
     def open_editable_file(self):
@@ -592,7 +592,7 @@ class MainWindow(QtGui.QMainWindow):
             workspace = self.treeview.tree.get_name(fname)
             self.treeview.tree[workspace] = self.user_ns[workspace] = nxload(fname, 'rw')
             self.default_directory = os.path.dirname(fname)
-        except NeXusError as error:
+        except (NeXusError, IOError) as error:
             report_error("Opening File (Read/Write)", error)
 
     def save_file(self):
