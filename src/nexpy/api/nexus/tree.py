@@ -807,6 +807,19 @@ class NXobject(object):
     _saved = False
     _changed = True
 
+    def __getstate__(self):
+        result = self.__dict__.copy()
+        hidden_keys = [key for key in result.keys() if key.startswith('_')]
+        needed_keys = ['_class', '_name', '_group', '_entries', '_attrs', 
+                       '_filename', '_mode', '_dtype', '_shape', '_value']
+        for key in hidden_keys:
+            if key not in needed_keys:
+                del result[key]
+        return result
+
+    def __setstate__(self, dict):
+        self.__dict__ = dict
+
     def __str__(self):
         return "%s:%s"%(self.nxclass,self.nxname)
 
@@ -3412,8 +3425,8 @@ def tree(filename):
     """
     Reads and summarize the named NeXus file.
     """
-    nxfile = load(filename)
-    print nxfile.tree
+    root = load(filename)
+    print root.tree
 
 def demo(argv):
     """
