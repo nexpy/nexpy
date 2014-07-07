@@ -1851,8 +1851,12 @@ class NXNavigationToolbar(NavigationToolbar):
         super(NXNavigationToolbar, self)._init_toolbar()
 
     def home(self, *args):
-        self.plotview.reset_limits()
         super(NXNavigationToolbar, self).home()        
+        self.plotview.reset_limits()
+        xmin, xmax = self.plotview.plot.xaxis.min, plotview.plot.xaxis.max
+        plotview.xtab.set_limits(xmin, xmax)
+        ymin, ymax = self.plotview.plot.yaxis.min, plotview.plot.yaxis.max
+        plotview.ytab.set_limits(ymin, ymax)
 
     def add_data(self):
         keep_data(self.plotview.plot.plotdata)
