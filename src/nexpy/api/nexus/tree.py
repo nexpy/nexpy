@@ -2370,7 +2370,19 @@ class NXgroup(NXobject):
         if isinstance(idx, NXattr):
             idx = idx.nxdata
         if isinstance(idx, basestring): #i.e., requesting a dictionary value
-            return self._entries[idx]
+            if '/' in idx:
+                if idx.startswith('/'):
+                    return self.nxroot[idx[1:]]
+                names = [name for name in idx.split('/') if name]
+                node = self
+                for name in names:
+                    if name in node.keys():
+                        node = node[name]
+                    else:
+                        raise NeXusError('Invalid path')
+                return node
+            else:
+                return self._entries[idx]
 
         if not self.nxsignal:
             raise NeXusError("No plottable signal")
