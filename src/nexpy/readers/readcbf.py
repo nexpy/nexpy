@@ -27,8 +27,7 @@ Two GUI elements are provided for convenience:
 
 from IPython.external.qt import QtGui
 
-import numpy as np                  #@UnusedImport
-from nexpy.api.nexus import *       #@UnusedWildImport
+from nexpy.api.nexus import *
 from nexpy.gui.importdialog import BaseImportDialog
 
 filetype = "CBF File"
