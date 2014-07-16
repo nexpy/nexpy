@@ -154,7 +154,6 @@ class MainWindow(QtGui.QMainWindow):
 
         self.setCentralWidget(mainwindow)
 
-        self.import_path = pkg_resources.resource_filename('nexpy','readers')
         self.input_base_classes()
 
         self.init_menu_bar()
@@ -208,6 +207,7 @@ class MainWindow(QtGui.QMainWindow):
         self.init_file_menu()
         self.init_edit_menu()
         self.init_data_menu()
+        self.init_plugin_menus()
         self.init_view_menu()
         self.init_magic_menu()
         self.init_window_menu()
@@ -457,6 +457,31 @@ class MainWindow(QtGui.QMainWindow):
         self.add_menu_action(self.data_menu, self.fit_action, True)
 
         
+    def init_plugin_menus(self):
+        """Add an menu item for every module in the plugin menus"""
+        self.plugin_names = set()
+        private_path = os.path.join(os.path.expanduser('~'), '.nexpy', 'plugins')
+        if os.path.isdir(private_path):
+            for name in os.listdir(private_path):
+                if os.path.isdir(os.path.join(private_path, name)):
+                    self.plugin_names.add(name)
+        public_path = pkg_resources.resource_filename('nexpy','plugins')
+        for name in os.listdir(public_path):
+            if os.path.isdir(os.path.join(public_path, name)):
+                self.plugin_names.add(name)
+        self.plugin = {}
+        plugin_paths = [private_path, public_path]
+        for plugin_name in sorted(self.plugin_names):
+            fp, pathname, description = imp.find_module(plugin_name, plugin_paths)
+            try:
+                plugin_module = imp.load_module(plugin_name, fp, pathname, description)
+                self.menu_bar.addMenu(plugin_module.plugin_menu(self))
+            except AttributeError as error:
+                print error
+            finally:
+                if fp:
+                    fp.close()
+ 
     def init_view_menu(self):
         self.view_menu = self.menu_bar.addMenu("&View")
 
@@ -509,33 +534,33 @@ class MainWindow(QtGui.QMainWindow):
         self.add_menu_action(self.view_menu, self.clear_action)
 
     def init_import_menu(self):
-        """Add an import menu item for every module in self.import_path"""
+        """Add an import menu item for every module in the readers directory"""
         self.import_names = set()
         self.import_menu = self.file_menu.addMenu("Import")
         private_path = os.path.join(os.path.expanduser('~'), '.nexpy', 'readers')
         if os.path.isdir(private_path):
-            sys.path.append(private_path)
-            for filename in os.listdir(private_path):
+             for filename in os.listdir(private_path):
                 name, ext = os.path.splitext(filename)
-                if name <> '__init__' and ext.startswith('.py'):
+                if name != '__init__' and ext.startswith('.py'):
                     self.import_names.add(name)
-        sys.path.append(self.import_path)
-        for filename in os.listdir(self.import_path):
+        public_path = pkg_resources.resource_filename('nexpy','readers')
+        for filename in os.listdir(public_path):
             name, ext = os.path.splitext(filename)
-            if name <> '__init__' and ext.startswith('.py'):
+            if name != '__init__' and ext.startswith('.py'):
                 self.import_names.add(name)
         self.importer = {}
+        import_paths = [private_path, public_path]
         for import_name in sorted(self.import_names):
-            fp, pathname, description = imp.find_module(import_name)
+            fp, pathname, description = imp.find_module(import_name, import_paths)
             try:
                 import_module = imp.load_module(import_name, fp, pathname, description)
+                import_action = QtGui.QAction("Import "+import_module.filetype, self,
+                                              triggered=self.show_import_dialog)
+                self.add_menu_action(self.import_menu, import_action, self)
+                self.importer[import_action] = import_module
             finally:
                 if fp:
                     fp.close()
-            import_action = QtGui.QAction("Import "+import_module.filetype, self,
-                                          triggered=self.show_import_dialog)
-            self.add_menu_action(self.import_menu, import_action, self)
-            self.importer[import_action] = import_module
 
     def show_import_dialog(self):
         import_module = self.importer[self.sender()]
@@ -597,7 +622,7 @@ class MainWindow(QtGui.QMainWindow):
 
     def save_file(self):
         try:
-            node = self.treeview.getnode()
+            node = self.treeview.get_node()
             if node is None:
                 return
             if node.nxfilemode:
@@ -624,7 +649,7 @@ class MainWindow(QtGui.QMainWindow):
 
     def duplicate(self):
         try:
-            node = self.treeview.getnode()
+            node = self.treeview.get_node()
             if isinstance(node, NXroot):
                 if node.nxfilemode:
                     mode = node.nxfilemode              # TODO: unused
@@ -655,7 +680,7 @@ class MainWindow(QtGui.QMainWindow):
 
     def remove(self):
         try:
-            node = self.treeview.getnode()
+            node = self.treeview.get_node()
             if isinstance(node, NXroot):
                 ret = self.confirm_action(
                           "Are you sure you want to remove '%s'?" % node.nxname)
@@ -666,7 +691,7 @@ class MainWindow(QtGui.QMainWindow):
 
     def lock_file(self):
         try:
-            node = self.treeview.getnode()
+            node = self.treeview.get_node()
             if isinstance(node, NXroot):
                 node.lock()
                 self.treeview.update()
@@ -675,7 +700,7 @@ class MainWindow(QtGui.QMainWindow):
 
     def unlock_file(self):
         try:
-            node = self.treeview.getnode()
+            node = self.treeview.get_node()
             if isinstance(node, NXroot):
                 ret = self.confirm_action(
                           "Are you sure you want to unlock the file?",
@@ -688,9 +713,9 @@ class MainWindow(QtGui.QMainWindow):
 
     def plot_data(self, fmt='o'):
         try:
-            node = self.treeview.getnode()
+            node = self.treeview.get_node()
             if node:        
-                self.treeview.statusmessage(node)
+                self.treeview.status_message(node)
                 try:
                     node.plot(fmt)
                 except (KeyError, NeXusError):
@@ -702,9 +727,9 @@ class MainWindow(QtGui.QMainWindow):
 
     def overplot_data(self, fmt='o'):
         try:
-            node = self.treeview.getnode()
+            node = self.treeview.get_node()
             if node:        
-                self.treeview.statusmessage(node)
+                self.treeview.status_message(node)
                 try:
                     node.oplot(fmt)
                 except:
@@ -714,7 +739,7 @@ class MainWindow(QtGui.QMainWindow):
 
     def add_data(self):
         try:
-            node = self.treeview.getnode()  
+            node = self.treeview.get_node()  
             if node:
                 if node.nxfilemode == 'r':
                     raise NeXusError("NeXus file is locked")    
@@ -727,7 +752,7 @@ class MainWindow(QtGui.QMainWindow):
 
     def initialize_data(self):
         try:
-            node = self.treeview.getnode()      
+            node = self.treeview.get_node()      
             if node:
                 if node.nxfilemode == 'r':
                     raise NeXusError("NeXus file is locked")    
@@ -742,7 +767,7 @@ class MainWindow(QtGui.QMainWindow):
     def rename_data(self):
         try:
             if self is not None:
-                node = self.treeview.getnode()
+                node = self.treeview.get_node()
                 if node:
                     if node.nxfilemode != 'r' or isinstance(node, NXroot):
                         dialog = RenameDialog(node, self)
@@ -754,9 +779,9 @@ class MainWindow(QtGui.QMainWindow):
 
     def copy_data(self):
         try:
-            node = self.treeview.getnode()
+            node = self.treeview.get_node()
             if not isinstance(node, NXroot):
-                self.copied_node = self.treeview.getnode()
+                self.copied_node = self.treeview.get_node()
             else:
                 raise NeXusError("Use 'Duplicate File' to copy an NXroot group")
         except NeXusError as error:
@@ -764,7 +789,7 @@ class MainWindow(QtGui.QMainWindow):
 
     def paste_data(self):
         try:
-            node = self.treeview.getnode()
+            node = self.treeview.get_node()
             if isinstance(node, NXgroup) and self.copied_node:
                 if node.nxfilemode != 'r':
                     node.insert(self.copied_node)
@@ -775,7 +800,7 @@ class MainWindow(QtGui.QMainWindow):
  
     def paste_link(self):
         try:
-            node = self.treeview.getnode()
+            node = self.treeview.get_node()
             if isinstance(node, NXgroup) and self.copied_node:
                 if node.nxfilemode != 'r':
                     node.makelink(self.copied_node)
@@ -786,7 +811,7 @@ class MainWindow(QtGui.QMainWindow):
  
     def delete_data(self):
         try:
-            node = self.treeview.getnode()
+            node = self.treeview.get_node()
             if node:
                 if node.nxfilemode != 'r':
                     dialog = DeleteDialog(node, self)
@@ -798,7 +823,7 @@ class MainWindow(QtGui.QMainWindow):
 
     def show_link(self):
         try:
-            node = self.treeview.getnode()
+            node = self.treeview.get_node()
             if isinstance(node, NXlink):
                 self.treeview.selectnode(node.nxlink)
                 self.treeview.update()
@@ -807,7 +832,7 @@ class MainWindow(QtGui.QMainWindow):
 
     def set_signal(self):
         try:
-            node = self.treeview.getnode()
+            node = self.treeview.get_node()
             if node:
                 if node.nxfilemode != 'r':
                     if isinstance(node, NXfield) and node.nxgroup:
@@ -822,7 +847,7 @@ class MainWindow(QtGui.QMainWindow):
 
     def fit_data(self):
         try:
-            node = self.treeview.getnode()
+            node = self.treeview.get_node()
             if node is None:
                 return
             try:
@@ -1188,6 +1213,13 @@ class MainWindow(QtGui.QMainWindow):
             triggered=self._open_nexpy_online_help)
         self.add_menu_action(self.help_menu, self.nexpyHelpAct)
 
+        self.nexusHelpAct = QtGui.QAction("Open NeXus Base Class Definitions Online",
+            self,
+            triggered=self._open_nexus_online_help)
+        self.add_menu_action(self.help_menu, self.nexusHelpAct)
+
+        self.help_menu.addSeparator()
+
         self.ipythonHelpAct = QtGui.QAction("Open iPython Help Online",
             self,
             triggered=self._open_ipython_online_help)
@@ -1211,6 +1243,18 @@ class MainWindow(QtGui.QMainWindow):
             )
         self.add_menu_action(self.help_menu, self.guiref_console_action)
 
+    def _open_nexpy_online_help(self):
+        filename = "http://nexpy.github.io/nexpy/"
+        webbrowser.open(filename, new=1, autoraise=True)
+
+    def _open_nexus_online_help(self):
+        filename = "http://download.nexusformat.org/doc/html/classes/base_classes/"
+        webbrowser.open(filename, new=1, autoraise=True)
+
+    def _open_ipython_online_help(self):
+        filename = "http://ipython.org/ipython-doc/stable/index.html"
+        webbrowser.open(filename, new=1, autoraise=True)
+
     # minimize/maximize/fullscreen actions:
 
     def toggle_menu_bar(self):
@@ -1225,14 +1269,6 @@ class MainWindow(QtGui.QMainWindow):
             self.showMinimized()
         else:
             self.showNormal()
-
-    def _open_nexpy_online_help(self):
-        filename="http://nexpy.github.io/nexpy/"
-        webbrowser.open(filename, new=1, autoraise=True)
-
-    def _open_ipython_online_help(self):
-        filename="http://ipython.org/ipython-doc/stable/index.html"
-        webbrowser.open(filename, new=1, autoraise=True)
 
     def toggleMaximized(self):
         if not self.isMaximized():
