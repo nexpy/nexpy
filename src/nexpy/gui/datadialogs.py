@@ -39,12 +39,80 @@ def wrap(text, length):
     return '\n'.join(lines)
 
 
-class PlotDialog(QtGui.QDialog):
+class BaseDialog(QtGui.QDialog):
+    """Base dialog class for NeXpy dialogs"""
+ 
+    def __init__(self, parent=None):
+
+        super(BaseDialog, self).__init__(parent)
+        self.accepted = False
+        from nexpy.gui.consoleapp import _mainwindow
+        self.mainwindow = _mainwindow
+        self.treeview = self.mainwindow.treeview
+        self.default_directory = _mainwindow.default_directory
+        self.import_file = None     # must define in subclass
+
+    def buttonbox(self, save=False):
+        """
+        Creates a box containing the standard Cancel and OK buttons.
+        """
+        buttonbox = QtGui.QDialogButtonBox(self)
+        buttonbox.setOrientation(QtCore.Qt.Horizontal)
+        if save:
+            buttonbox.setStandardButtons(QtGui.QDialogButtonBox.Cancel|
+                                         QtGui.QDialogButtonBox.Save)
+        else:
+            buttonbox.setStandardButtons(QtGui.QDialogButtonBox.Cancel|
+                                         QtGui.QDialogButtonBox.Ok)
+        buttonbox.accepted.connect(self.accept)
+        buttonbox.rejected.connect(self.reject)
+        return buttonbox
+
+    def accept(self):
+        """
+        Accepts the result.
+        
+        This usually needs to be subclassed in each dialog.
+        """
+        self.accepted = True
+        QtGui.QDialog.accept(self)
+        
+    def reject(self):
+        """
+        Cancels the dialog without saving the result.
+        """
+        self.accepted = False
+        QtGui.QDialog.reject(self)
+
+    def update_progress(self):
+        """
+        Call the main QApplication.processEvents
+        
+        This ensures that GUI items like progress bars get updated
+        """
+        self.mainwindow._app.processEvents()
+
+    def progress_layout(self, save=False):
+        layout = QtGui.QHBoxLayout()
+        self.progress_bar = QtGui.QProgressBar()
+        layout.addWidget(self.progress_bar)
+        layout.addStretch()
+        layout.addWidget(self.buttonbox(save))
+        return layout
+
+    def get_node(self):
+        """
+        Return the node currently selected in the treeview
+        """
+        return self.treeview.get_node()
+
+
+class PlotDialog(BaseDialog):
     """Dialog to plot arbitrary NeXus data in one or two dimensions"""
  
     def __init__(self, node, parent=None):
 
-        QtGui.QDialog.__init__(self, parent)
+        super(PlotDialog, self).__init__(parent)
  
         self.node = node
         self.dims = len(self.node.shape)
@@ -64,17 +132,10 @@ class PlotDialog(QtGui.QDialog):
         else:
             raise NeXusError('Item not plottable')
 
-        buttonbox = QtGui.QDialogButtonBox(self)
-        buttonbox.setOrientation(QtCore.Qt.Horizontal)
-        buttonbox.setStandardButtons(QtGui.QDialogButtonBox.Cancel |
-                                     QtGui.QDialogButtonBox.Ok)
-        buttonbox.accepted.connect(self.accept)
-        buttonbox.rejected.connect(self.reject)
-
         layout = QtGui.QVBoxLayout()
         for axis in range(self.dims):
             layout.addLayout(axis_layout[axis])
-        layout.addWidget(buttonbox) 
+        layout.addWidget(self.buttonbox()) 
         self.setLayout(layout)
 
         self.setWindowTitle("Plot NeXus Field")
@@ -128,13 +189,10 @@ class PlotDialog(QtGui.QDialog):
     def accept(self):
         data = NXdata(self.node, self.get_axes())
         data.plot()
-        QtGui.QDialog.accept(self)
-        
-    def reject(self):
-        QtGui.QDialog.reject(self)
+        super(PlotDialog, self).accept()
 
     
-class LimitDialog(QtGui.QDialog):
+class LimitDialog(BaseDialog):
     """Dialog to set plot window limits
     
     This is useful when it is desired to set the limits outside the data limits. 
@@ -142,7 +200,7 @@ class LimitDialog(QtGui.QDialog):
  
     def __init__(self, parent=None):
 
-        QtGui.QDialog.__init__(self, parent)
+        super(LimitDialog, self).__init__(parent)
  
         from nexpy.gui.plotview import plotview
 
@@ -177,14 +235,7 @@ class LimitDialog(QtGui.QDialog):
         ymax_layout.addWidget(self.ymax_box)
         layout.addLayout(ymax_layout)
 
-        buttonbox = QtGui.QDialogButtonBox(self)
-        buttonbox.setOrientation(QtCore.Qt.Horizontal)
-        buttonbox.setStandardButtons(QtGui.QDialogButtonBox.Cancel |
-                                     QtGui.QDialogButtonBox.Ok)
-        buttonbox.accepted.connect(self.accept)
-        buttonbox.rejected.connect(self.reject)
-
-        layout.addWidget(buttonbox) 
+        layout.addWidget(self.buttonbox()) 
         self.setLayout(layout)
 
         self.setWindowTitle("Limit axes")
@@ -200,13 +251,10 @@ class LimitDialog(QtGui.QDialog):
         xmin, xmax = self.xmin_box.value(), self.xmax_box.value() 
         ymin, ymax = self.ymin_box.value(), self.ymax_box.value() 
         self.plotview.set_limits(xmin, xmax, ymin, ymax)
-        QtGui.QDialog.accept(self)
-        
-    def reject(self):
-        QtGui.QDialog.reject(self)
+        super(LimitDialog, self).accept()
 
     
-class AddDialog(QtGui.QDialog):
+class AddDialog(BaseDialog):
     """Dialog to add a NeXus node"""
 
     data_types = ['char', 'float32', 'float64', 'int8', 'uint8', 'int16', 
@@ -214,7 +262,7 @@ class AddDialog(QtGui.QDialog):
  
     def __init__(self, node, parent=None):
 
-        QtGui.QDialog.__init__(self, parent)
+        super(AddDialog, self).__init__(parent)
 
         self.node = node
 
@@ -237,16 +285,9 @@ class AddDialog(QtGui.QDialog):
         else:
             self.setWindowTitle("Add NeXus Data")
 
-        buttonbox = QtGui.QDialogButtonBox(self)
-        buttonbox.setOrientation(QtCore.Qt.Horizontal)
-        buttonbox.setStandardButtons(QtGui.QDialogButtonBox.Cancel |
-                                     QtGui.QDialogButtonBox.Ok)
-        buttonbox.accepted.connect(self.accept)
-        buttonbox.rejected.connect(self.reject)
-
         self.layout = QtGui.QVBoxLayout()
         self.layout.addLayout(class_layout)
-        self.layout.addWidget(buttonbox) 
+        self.layout.addWidget(self.buttonbox()) 
         self.setLayout(self.layout)
 
     def select_class(self):
@@ -409,10 +450,7 @@ class AddDialog(QtGui.QDialog):
                     self.node[name] = NXfield(value, dtype=dtype)
                 else:
                     self.node.attrs[name] = NXattr(value, dtype=dtype)
-        QtGui.QDialog.accept(self)
-        
-    def reject(self):
-        QtGui.QDialog.reject(self)
+        super(AddDialog, self).accept()
 
     
 class InitializeDialog(QtGui.QDialog):
@@ -423,7 +461,7 @@ class InitializeDialog(QtGui.QDialog):
  
     def __init__(self, node, parent=None):
 
-        QtGui.QDialog.__init__(self, parent)
+        super(InitializeDialog, self).__init__(parent)
  
         self.node = node
 
@@ -470,16 +508,9 @@ class InitializeDialog(QtGui.QDialog):
         grid.addWidget(self.shape_box, 3, 1)
         grid.setColumnMinimumWidth(1, 200)
 
-        buttonbox = QtGui.QDialogButtonBox(self)
-        buttonbox.setOrientation(QtCore.Qt.Horizontal)
-        buttonbox.setStandardButtons(QtGui.QDialogButtonBox.Cancel |
-                                     QtGui.QDialogButtonBox.Ok)
-        buttonbox.accepted.connect(self.accept)
-        buttonbox.rejected.connect(self.reject)
-
         self.layout = QtGui.QVBoxLayout()
         self.layout.addLayout(grid)
-        self.layout.addWidget(buttonbox) 
+        self.layout.addWidget(self.buttonbox()) 
         self.setLayout(self.layout)
 
     def select_combo(self):
@@ -518,10 +549,7 @@ class InitializeDialog(QtGui.QDialog):
                 dtype = np.float64
             shape = self.get_shape()
             self.node[name] = NXfield(dtype=dtype, shape=shape)
-        QtGui.QDialog.accept(self)
-        
-    def reject(self):
-        QtGui.QDialog.reject(self)
+        super(InitializeDialog, self).accept()
 
     
 class RenameDialog(QtGui.QDialog):
@@ -529,22 +557,15 @@ class RenameDialog(QtGui.QDialog):
 
     def __init__(self, node, parent=None):
 
-        QtGui.QDialog.__init__(self, parent)
+        super(RenameDialog, self).__init__(parent)
 
         self.node = node
 
         self.setWindowTitle("Rename NeXus data")
 
-        buttonbox = QtGui.QDialogButtonBox(self)
-        buttonbox.setOrientation(QtCore.Qt.Horizontal)
-        buttonbox.setStandardButtons(QtGui.QDialogButtonBox.Cancel |
-                                     QtGui.QDialogButtonBox.Ok)
-        buttonbox.accepted.connect(self.accept)
-        buttonbox.rejected.connect(self.reject)
-
         self.layout = QtGui.QVBoxLayout()
         self.layout.addLayout(self.define_grid())
-        self.layout.addWidget(buttonbox) 
+        self.layout.addWidget(self.buttonbox()) 
         self.setLayout(self.layout)
 
     def define_grid(self):
@@ -623,82 +644,59 @@ class RenameDialog(QtGui.QDialog):
         if isinstance(self.node, NXgroup):
             if self.combo_box:
                 self.node.nxclass = self.get_class()
-        QtGui.QDialog.accept(self)
-        
-    def reject(self):
-        QtGui.QDialog.reject(self)
+        super(RenameDialog, self).accept()
 
     
-class RemoveDialog(QtGui.QDialog):
+class RemoveDialog(BaseDialog):
     """Dialog to remove a NeXus node from the tree"""
  
     def __init__(self, node, parent=None):
 
-        QtGui.QDialog.__init__(self, parent)
+        super(RemoveDialog, self).__init__(parent)
  
         self.node = node
  
-        buttonbox = QtGui.QDialogButtonBox(self)
-        buttonbox.setOrientation(QtCore.Qt.Horizontal)
-        buttonbox.setStandardButtons(QtGui.QDialogButtonBox.Cancel |
-                                     QtGui.QDialogButtonBox.Ok)
-        buttonbox.accepted.connect(self.accept)
-        buttonbox.rejected.connect(self.reject)
-
         layout = QtGui.QVBoxLayout()
         layout.addWidget(QtGui.QLabel('Are you sure you want to remove "%s"?' 
                                       % node.nxname))
-        layout.addWidget(buttonbox) 
+        layout.addWidget(self.buttonbox()) 
         self.setLayout(layout)
 
         self.setWindowTitle("Remove NeXus File")
 
     def accept(self):
         del self.node.nxgroup[self.node.nxname]
-        QtGui.QDialog.accept(self)
-        
-    def reject(self):
-        QtGui.QDialog.reject(self)
+        super(RemoveDialog, self).accept()
 
     
-class DeleteDialog(QtGui.QDialog):
+class DeleteDialog(BaseDialog):
     """Dialog to delete a NeXus node"""
  
     def __init__(self, node, parent=None):
 
-        QtGui.QDialog.__init__(self, parent)
+        super(DeleteDialog, self).__init__(parent)
  
         self.node = node
  
-        buttonbox = QtGui.QDialogButtonBox(self)
-        buttonbox.setOrientation(QtCore.Qt.Horizontal)
-        buttonbox.setStandardButtons(QtGui.QDialogButtonBox.Cancel |
-                                     QtGui.QDialogButtonBox.Ok)
-        buttonbox.accepted.connect(self.accept)
-        buttonbox.rejected.connect(self.reject)
-
         layout = QtGui.QVBoxLayout()
         layout.addWidget(QtGui.QLabel('Are you sure you want to delete "%s"?' 
                                       % node.nxname))
-        layout.addWidget(buttonbox) 
+        layout.addWidget(self.buttonbox()) 
         self.setLayout(layout)
 
         self.setWindowTitle("Delete NeXus Data")
 
     def accept(self):
         del self.node.nxgroup[self.node.nxname]
-        QtGui.QDialog.accept(self)
-        
-    def reject(self):
-        QtGui.QDialog.reject(self)
+        super(DeleteDialog, self).accept()
 
     
-class SignalDialog(QtGui.QDialog):
+class SignalDialog(BaseDialog):
     """Dialog to set the signal of NXdata"""
  
     def __init__(self, node, parent=None):
 
-        QtGui.QDialog.__init__(self, parent)
+        super(SignalDialog, self).__init__(parent)
  
         self.node = node
         self.dims = len(self.node.shape)
@@ -721,18 +719,11 @@ class SignalDialog(QtGui.QDialog):
             axis_layout[axis].addWidget(axis_label[axis])
             axis_layout[axis].addWidget(self.axis_boxes[axis])
  
-        buttonbox = QtGui.QDialogButtonBox(self)
-        buttonbox.setOrientation(QtCore.Qt.Horizontal)
-        buttonbox.setStandardButtons(QtGui.QDialogButtonBox.Cancel |
-                                     QtGui.QDialogButtonBox.Ok)
-        buttonbox.accepted.connect(self.accept)
-        buttonbox.rejected.connect(self.reject)
-
         layout = QtGui.QVBoxLayout()
         layout.addLayout(signal_layout)
         for axis in range(self.dims):
             layout.addLayout(axis_layout[axis])
-        layout.addWidget(buttonbox) 
+        layout.addWidget(self.buttonbox()) 
         self.setLayout(layout)
 
         self.setWindowTitle("Set %s as Signal" % self.node.nxname)
@@ -778,18 +769,15 @@ class SignalDialog(QtGui.QDialog):
         else:
             self.node.attrs["signal"] = signal
         self.node.axes = ":".join(self.get_axes())
-        QtGui.QDialog.accept(self)
-        
-    def reject(self):
-        QtGui.QDialog.reject(self)
+        super(SignalDialog, self).accept()
 
     
-class FitDialog(QtGui.QDialog):
+class FitDialog(BaseDialog):
     """Dialog to fit one-dimensional NeXus data"""
  
     def __init__(self, entry, parent=None):
 
-        QtGui.QDialog.__init__(self, parent)
+        super(FitDialog, self).__init__(parent)
  
         self.data = entry.data
 
@@ -886,13 +874,6 @@ class FitDialog(QtGui.QDialog):
         self.action_layout.addStretch()
         self.action_layout.addWidget(self.save_button)
 
-        button_box = QtGui.QDialogButtonBox(self)
-        button_box.setOrientation(QtCore.Qt.Horizontal)
-        button_box.setStandardButtons(QtGui.QDialogButtonBox.Cancel |
-                                      QtGui.QDialogButtonBox.Ok)
-        button_box.accepted.connect(self.accept)
-        button_box.rejected.connect(self.reject)
-
         scroll_area = QtGui.QScrollArea()
         scroll_area.setWidgetResizable(True)
         self.scroll_widget = QtGui.QWidget()
@@ -902,7 +883,7 @@ class FitDialog(QtGui.QDialog):
                                          QtGui.QSizePolicy.Expanding)
         self.layout = QtGui.QVBoxLayout()
         self.layout.addLayout(function_layout)
-        self.layout.addWidget(button_box)
+        self.layout.addWidget(self.buttonbox())
         self.scroll_widget.setLayout(self.layout)
         scroll_area.setWidget(self.scroll_widget)
         layout = QtGui.QVBoxLayout()
@@ -1253,11 +1234,11 @@ class FitDialog(QtGui.QDialog):
    
     def accept(self):
         self.plotview.close_view()
-        QtGui.QDialog.accept(self)
+        super(FitDialog, self).accept()
         
     def reject(self):
         self.plotview.close_view()
-        QtGui.QDialog.reject(self)
+        super(FitDialog, self).reject()
 
     def closeEvent(self, event):
         self.plotview.close_view()
