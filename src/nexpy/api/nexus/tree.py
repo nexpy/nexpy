@@ -894,7 +894,7 @@ class NXobject(object):
 
     def rename(self, name):
         if self.nxfilemode == 'r':
-            raise NeXusError("NeXus file is readonly")
+            raise NeXusError('NeXus file opened as readonly')
         path = self.nxpath
         self.nxname = name           
         if self.nxfilemode == 'rw':
@@ -1405,6 +1405,8 @@ class NXfield(NXobject):
            name == 'mask' or name == 'shape' or name == 'dtype':
             object.__setattr__(self, name, value)
             return
+        if self.nxfilemode == 'r':
+            raise NeXusError('NeXus file opened as readonly')
         if isinstance(value, NXattr):
             self._attrs[name] = value
         else:
@@ -1455,7 +1457,7 @@ class NXfield(NXobject):
         Assigns a slice to the NXfield.
         """
         if self.nxfilemode == 'r':
-            raise NeXusError("File opened as readonly")
+            raise NeXusError('NeXus file opened as readonly')
         if value is np.ma.masked:
             self._mask_data(idx)
         else:
@@ -2330,6 +2332,8 @@ class NXgroup(NXobject):
         if name.startswith('_') or name.startswith('nx'):
             object.__setattr__(self, name, value)
         elif isinstance(value, NXattr):
+            if self.nxfilemode == 'r':
+                raise NeXusError('NeXus file opened as readonly')
             self._attrs[name] = value
             self.set_changed()
             if self.nxfilemode == 'rw':
@@ -2357,7 +2361,19 @@ class NXgroup(NXobject):
         if isinstance(idx, NXattr):
             idx = idx.nxdata
         if isinstance(idx, basestring): #i.e., requesting a dictionary value
-            return self._entries[idx]
+            if '/' in idx:
+                if idx.startswith('/'):
+                    return self.nxroot[idx[1:]]
+                names = [name for name in idx.split('/') if name]
+                node = self
+                for name in names:
+                    if name in node.keys():
+                        node = node[name]
+                    else:
+                        raise NeXusError('Invalid path')
+                return node
+            else:
+                return self._entries[idx]
 
         if not self.nxsignal:
             raise NeXusError("No plottable signal")
@@ -2394,7 +2410,7 @@ class NXgroup(NXobject):
         Adds or modifies an item in the NeXus group.
         """
         if self.nxfilemode == 'r':
-            raise NeXusError("NeXus file is readonly")
+            raise NeXusError('NeXus file opened as readonly')
         elif key in self.entries and isinstance(self._entries[key], NXlink):
             raise NeXusError("Cannot assign values to an NXlink object")
         if isinstance(value, NXroot):
