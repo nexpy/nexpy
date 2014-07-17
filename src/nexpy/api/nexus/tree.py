@@ -386,15 +386,18 @@ class NXFile(object):
         data._saved = data._changed = True
         return data
 
+    def _readnxclass(self, obj):        # see issue #33
+        nxclass = obj.attrs.get('NX_class', None)
+        if isinstance(nxclass, np.ndarray):     # attribute reported as DATATYPE SIMPLE
+            nxclass = nxclass[0]                # convert as if DATATYPE SCALAR
+        return obj
+
     def _readchildren(self):
         children = {}
         for name, value in self[self.nxpath].items():
             self.nxpath = value.name
-            if 'NX_class' in value.attrs:
-                nxclass = value.attrs['NX_class']
-            else:
-                nxclass = None
-            if isinstance(value, h5._hl.group.Group):
+            nxclass = self._readnxclass(value)  # TODO: where is this used?
+            if isinstance(value, h5.Group):
                 children[name] = self._readgroup()
             else:
                 children[name] = self._readdata(name)
@@ -407,8 +410,8 @@ class NXFile(object):
         path = self[self.nxpath].name
         name = path.rsplit('/',1)[1]
         attrs = dict(self[self.nxpath].attrs)
-        if 'NX_class' in attrs:
-            nxclass = attrs['NX_class']
+        nxclass = self._readnxclass(self[self.nxpath])
+        if nxclass is not None:
             del attrs['NX_class']
         elif self.nxpath == '/':
             nxclass = 'NXroot'
