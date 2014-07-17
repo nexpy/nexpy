@@ -390,7 +390,7 @@ class NXFile(object):
         nxclass = obj.attrs.get('NX_class', None)
         if isinstance(nxclass, np.ndarray):     # attribute reported as DATATYPE SIMPLE
             nxclass = nxclass[0]                # convert as if DATATYPE SCALAR
-        return obj
+        return nxclass
 
     def _readchildren(self):
         children = {}
