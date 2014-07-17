@@ -1188,6 +1188,13 @@ class MainWindow(QtGui.QMainWindow):
             triggered=self._open_nexpy_online_help)
         self.add_menu_action(self.help_menu, self.nexpyHelpAct)
 
+        self.nexusHelpAct = QtGui.QAction("Open NeXus Base Class Definitions Online",
+            self,
+            triggered=self._open_nexus_online_help)
+        self.add_menu_action(self.help_menu, self.nexusHelpAct)
+
+        self.help_menu.addSeparator()
+
         self.ipythonHelpAct = QtGui.QAction("Open iPython Help Online",
             self,
             triggered=self._open_ipython_online_help)
@@ -1211,6 +1218,18 @@ class MainWindow(QtGui.QMainWindow):
             )
         self.add_menu_action(self.help_menu, self.guiref_console_action)
 
+    def _open_nexpy_online_help(self):
+        filename = "http://nexpy.github.io/nexpy/"
+        webbrowser.open(filename, new=1, autoraise=True)
+
+    def _open_nexus_online_help(self):
+        filename = "http://download.nexusformat.org/doc/html/classes/base_classes/"
+        webbrowser.open(filename, new=1, autoraise=True)
+
+    def _open_ipython_online_help(self):
+        filename = "http://ipython.org/ipython-doc/stable/index.html"
+        webbrowser.open(filename, new=1, autoraise=True)
+
     # minimize/maximize/fullscreen actions:
 
     def toggle_menu_bar(self):
@@ -1225,14 +1244,6 @@ class MainWindow(QtGui.QMainWindow):
             self.showMinimized()
         else:
             self.showNormal()
-
-    def _open_nexpy_online_help(self):
-        filename="http://nexpy.github.io/nexpy/"
-        webbrowser.open(filename, new=1, autoraise=True)
-
-    def _open_ipython_online_help(self):
-        filename="http://ipython.org/ipython-doc/stable/index.html"
-        webbrowser.open(filename, new=1, autoraise=True)
 
     def toggleMaximized(self):
         if not self.isMaximized():
