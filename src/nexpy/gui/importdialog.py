@@ -13,20 +13,20 @@
 Base class for import dialogs
 """
 
-import os                           #@UnusedImports
+import os
 from PySide import QtCore, QtGui
 
-from nexpy.api.nexus import *       #@UnusedWildImports
+from nexpy.api.nexus import *
+from nexpy.gui.datadialogs import BaseDialog
 
 filetype = "Text File" #Defines the Import Menu label
 
-class BaseImportDialog(QtGui.QDialog):
+class BaseImportDialog(BaseDialog):
     """Base dialog class for NeXpy import dialogs"""
  
     def __init__(self, parent=None):
 
-        QtGui.QDialog.__init__(self, parent)
-        self.accepted = False
+        super(BaseImportDialog, self).__init__(parent)
         from nexpy.gui.consoleapp import _mainwindow
         self.default_directory = _mainwindow.default_directory
         self.import_file = None     # must define in subclass
@@ -65,18 +65,6 @@ class BaseImportDialog(QtGui.QDialog):
         directorybox.addWidget(self.directorybutton)
         directorybox.addWidget(self.directoryname)
         return directorybox
-
-    def buttonbox(self):
-        """
-        Creates a box containing the standard Cancel and OK buttons.
-        """
-        buttonbox = QtGui.QDialogButtonBox(self)
-        buttonbox.setOrientation(QtCore.Qt.Horizontal)
-        buttonbox.setStandardButtons(QtGui.QDialogButtonBox.Cancel|
-                                          QtGui.QDialogButtonBox.Ok)
-        buttonbox.accepted.connect(self.accept)
-        buttonbox.rejected.connect(self.reject)
-        return buttonbox
 
     def choose_file(self):
         """
@@ -145,30 +133,14 @@ class BaseImportDialog(QtGui.QDialog):
         filenames = glob(prefix+'*'+extension)
         return sorted(filenames,key=natural_sort)
 
-    def update_progress(self):
-        """
-        Call the main QApplication.processEvents
-        
-        This ensures that GUI items like progress bars get updated
-        """
-        from nexpy.gui.consoleapp import _mainwindow
-        _mainwindow._app.processEvents()
-        
     def accept(self):
         """
         Completes the data import.
         """
-        self.accepted = True
         from nexpy.gui.consoleapp import _mainwindow
         _mainwindow.import_data()
-        QtGui.QDialog.accept(self)
+        super(BaseImportDialog, self).accept()
         
-    def reject(self):
-        """
-        Cancels the data import.
-        """
-        self.accepted = False
-        QtGui.QDialog.reject(self)
 
 def natural_sort(key):
     import re

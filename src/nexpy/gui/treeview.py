@@ -390,7 +390,7 @@ class NXTreeView(QtGui.QTreeView):
     def fit_data(self):
         self.mainwindow.fit_data()
 
-    def statusmessage(self, message):
+    def status_message(self, message):
         if isinstance(message, NXfield):
             text = message.tree
         elif isinstance(message, NXgroup):
@@ -399,7 +399,7 @@ class NXTreeView(QtGui.QTreeView):
             text = str(message)
         self.mainwindow.statusBar().showMessage(text.replace('\n','; '))
 
-    def getnode(self):
+    def get_node(self):
         item = self._model.itemFromIndex(
                    self.proxymodel.mapToSource(self.currentIndex()))
         if item:
@@ -407,19 +407,19 @@ class NXTreeView(QtGui.QTreeView):
         else:
             return None
 
-    def getindex(self, node):
+    def get_index(self, node):
         return self.proxymodel.mapFromSource(node._item.index())
 
-    def selectnode(self, node):
-        self.setCurrentIndex(self.getindex(node))
+    def select_node(self, node):
+        self.setCurrentIndex(self.get_index(node))
         
     def selectionChanged(self, new, old):
         if new.indexes():
-            node = self.getnode()
-            self.statusmessage(node)
+            node = self.get_node()
+            self.status_message(node)
         else:
-            self.statusmessage('')
+            self.status_message('')
 
     def on_context_menu(self, point):
-        self.popMenu(self.getnode()).exec_(self.mapToGlobal(point))
+        self.popMenu(self.get_node()).exec_(self.mapToGlobal(point))
 
