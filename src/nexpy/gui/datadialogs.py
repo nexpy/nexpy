@@ -44,13 +44,16 @@ class BaseDialog(QtGui.QDialog):
  
     def __init__(self, parent=None):
 
-        super(BaseDialog, self).__init__(parent)
+
         self.accepted = False
         from nexpy.gui.consoleapp import _mainwindow
         self.mainwindow = _mainwindow
         self.treeview = self.mainwindow.treeview
         self.default_directory = _mainwindow.default_directory
         self.import_file = None     # must define in subclass
+        if parent is None:
+            parent = self.mainwindow
+        super(BaseDialog, self).__init__(parent)
 
     def buttonbox(self, save=False):
         """
@@ -453,7 +456,7 @@ class AddDialog(BaseDialog):
         super(AddDialog, self).accept()
 
     
-class InitializeDialog(QtGui.QDialog):
+class InitializeDialog(BaseDialog):
     """Dialog to initialize a NeXus field node"""
 
     data_types = ['char', 'float32', 'float64', 'int8', 'uint8', 'int16', 
@@ -552,7 +555,7 @@ class InitializeDialog(QtGui.QDialog):
         super(InitializeDialog, self).accept()
 
     
-class RenameDialog(QtGui.QDialog):
+class RenameDialog(BaseDialog):
     """Dialog to rename a NeXus node"""
 
     def __init__(self, node, parent=None):

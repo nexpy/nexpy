@@ -592,7 +592,7 @@ class MainWindow(QtGui.QMainWindow):
                              'Workspace Name:', text=default_name)        
             if name and ok:
                 self.treeview.tree[name] = NXroot(NXentry())
-                self.treeview.selectnode(self.treeview.tree[name].entry)
+                self.treeview.select_node(self.treeview.tree[name].entry)
                 self.treeview.update()
         except NeXusError as error:
             report_error("Creating New Workspace", error)
@@ -641,7 +641,7 @@ class MainWindow(QtGui.QMainWindow):
                     name = self.treeview.tree.get_name(fname)
                     self.treeview.tree[name] = self.user_ns[name] = nxload(fname, 'rw')
                     del self.treeview.tree[old_name]
-                    self.treeview.selectnode(self.treeview.tree[name])
+                    self.treeview.select_node(self.treeview.tree[name])
                 self.treeview.update()
                 self.default_directory = os.path.dirname(fname)
         except NeXusError as error:
@@ -671,7 +671,7 @@ class MainWindow(QtGui.QMainWindow):
                                    text=default_name)        
                     if name and ok:
                         self.treeview.tree[name] = node
-                self.treeview.selectnode(self.treeview.tree[name])
+                self.treeview.select_node(self.treeview.tree[name])
                 self.treeview.update()
             else:
                 raise NeXusError("Only NXroot groups can be duplicated")
@@ -825,7 +825,7 @@ class MainWindow(QtGui.QMainWindow):
         try:
             node = self.treeview.get_node()
             if isinstance(node, NXlink):
-                self.treeview.selectnode(node.nxlink)
+                self.treeview.select_node(node.nxlink)
                 self.treeview.update()
         except NeXusError as error:
             report_error("Showing Link", error)
