@@ -685,7 +685,7 @@ class MainWindow(QtGui.QMainWindow):
                 ret = self.confirm_action(
                           "Are you sure you want to remove '%s'?" % node.nxname)
                 if ret == QtGui.QMessageBox.Ok:
-                    del node.nxgroup[node.nxname]    
+                    del self.treeview.tree[node.nxname]
         except NeXusError as error:
             report_error("Removing File", error)
 
