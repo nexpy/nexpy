@@ -2326,7 +2326,7 @@ class NXgroup(NXobject):
             return self._entries[key]
         elif key in self.attrs:
             return self.attrs[key].nxdata
-        raise KeyError(key+" not in "+self.nxclass+":"+self.nxname)
+        raise NeXusError(key+" not in "+self.nxclass+":"+self.nxname)
 
     def __setattr__(self, name, value):
         """
@@ -2480,6 +2480,8 @@ class NXgroup(NXobject):
                         group = group[name]
                     else:
                         raise NeXusError('Invalid path')
+            if key not in group._entries:
+                raise NeXusError(key+" not in "+group.nxpath)
             if group.nxfilemode == 'rw':
                 with group.nxfile as f:
                     if 'mask' in group._entries[key].attrs:
