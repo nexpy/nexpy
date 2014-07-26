@@ -51,6 +51,10 @@ class BaseDialog(QtGui.QDialog):
         self.treeview = self.mainwindow.treeview
         self.default_directory = _mainwindow.default_directory
         self.import_file = None     # must define in subclass
+        self.nexus_filter = ';;'.join((
+             "NeXus Files (*.nxs *.nx5 *.h5 *.hdf *.hdf5)",
+	         "Any Files (*.* *)"))
+
         if parent is None:
             parent = self.mainwindow
         super(BaseDialog, self).__init__(parent)
@@ -70,6 +74,99 @@ class BaseDialog(QtGui.QDialog):
         buttonbox.accepted.connect(self.accept)
         buttonbox.rejected.connect(self.reject)
         return buttonbox
+
+    def filebox(self):
+        """
+        Creates a text box and button for selecting a file.
+        """
+        self.filebutton =  QtGui.QPushButton("Choose File")
+        self.filebutton.clicked.connect(self.choose_file)
+        self.filename = QtGui.QLineEdit(self)
+        self.filename.setMinimumWidth(300)
+        filebox = QtGui.QHBoxLayout()
+        filebox.addWidget(self.filebutton)
+        filebox.addWidget(self.filename)
+        return filebox
+ 
+    def directorybox(self):
+        """
+        Creates a text box and button for selecting a directory.
+        """
+        self.directorybutton =  QtGui.QPushButton("Choose Directory")
+        self.directorybutton.clicked.connect(self.choose_directory)
+        self.directoryname = QtGui.QLineEdit(self)
+        self.directoryname.setMinimumWidth(300)
+        directorybox = QtGui.QHBoxLayout()
+        directorybox.addWidget(self.directorybutton)
+        directorybox.addWidget(self.directoryname)
+        return directorybox
+
+    def choose_file(self):
+        """
+        Opens a file dialog and sets the file text box to the chosen path.
+        """
+        dirname = self.get_default_directory(self.filename.text())
+        filename, _ = QtGui.QFileDialog.getOpenFileName(self, 'Open File',
+            dirname)
+        if os.path.exists(filename):    # avoids problems if <Cancel> was selected
+            dirname = os.path.dirname(filename)
+            self.filename.setText(str(filename))
+            self.set_default_directory(dirname)
+
+    def get_filename(self):
+        """
+        Returns the selected file.
+        """
+        return self.filename.text()
+
+    def choose_directory(self):
+        """
+        Opens a file dialog and sets the directory text box to the chosen path.
+        """
+        dirname = self.get_default_directory()
+        dirname = QtGui.QFileDialog.getExistingDirectory(self, 'Choose Directory',
+            dir=dirname)
+        if os.path.exists(dirname):    # avoids problems if <Cancel> was selected
+            self.directoryname.setText(str(dirname))
+            self.set_default_directory(dirname)
+
+    def get_directory(self):
+        """
+        Returns the selected directory
+        """
+        return self.directoryname.text()
+    
+    def get_default_directory(self, suggestion=None):
+        '''return the most recent default directory for open/save dialogs'''
+        if suggestion is None or not os.path.exists(suggestion):
+            suggestion = self.default_directory
+        if os.path.exists(suggestion):
+            if not os.path.isdir(suggestion):
+                suggestion = os.path.dirname(suggestion)
+        suggestion = os.path.abspath(suggestion)
+        return suggestion
+    
+    def set_default_directory(self, suggestion):
+        '''define the default directory to use for open/save dialogs'''
+        if os.path.exists(suggestion):
+            if not os.path.isdir(suggestion):
+                suggestion = os.path.dirname(suggestion)
+            self.default_directory = suggestion
+
+    def get_filesindirectory(self, prefix='', extension='.*'):
+        """
+        Returns a list of files in the selected directory.
+        
+        The files are sorted using a natural sort algorithm that preserves the
+        numeric order when a file name consists of text and index so that, e.g., 
+        'data2.tif' comes before 'data10.tif'.
+        """
+        os.chdir(self.get_directory())
+        if not extension.startswith('.'):
+            extension = '.'+extension
+        from glob import glob
+        filenames = glob(prefix+'*'+extension)
+        return sorted(filenames,key=natural_sort)
 
     def accept(self):
         """
