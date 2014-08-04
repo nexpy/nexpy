@@ -38,6 +38,10 @@ def wrap(text, length):
         if w is words[-1]: lines.append(line)
     return '\n'.join(lines)
 
+def natural_sort(key):
+    import re
+    return [int(t) if t.isdigit() else t for t in re.split(r'(\d+)', key)]    
+
 
 class BaseDialog(QtGui.QDialog):
     """Base dialog class for NeXpy dialogs"""
@@ -1343,3 +1347,4 @@ class FitDialog(BaseDialog):
     def closeEvent(self, event):
         self.plotview.close_view()
         event.accept()
+
