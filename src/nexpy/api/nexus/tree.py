@@ -2494,6 +2494,30 @@ class NXgroup(NXobject):
             del group._entries[key]
             group.set_changed()
 
+    def __contains__(self, x):
+        """
+        Implements 'k in d' test
+        """
+        return x in self._entries
+
+    def __iter__(self):
+        """
+        Implements key iteration
+        """
+        return self._entries.__iter__()
+
+    def __len__(self):
+        """
+        Returns the number of entries in the group
+        """
+        return len(self._entries)
+
+    def __eq__(self, other):
+        """
+        Compares the _entries dictionaries
+        """
+        return self._entries == other._entries
+
     def __deepcopy__(self, memo):
         if isinstance(self, NXlink):
             obj = self.nxlink
@@ -2527,11 +2551,26 @@ class NXgroup(NXobject):
                     node._get_uncopied_data()
         self.set_changed()
 
+    def get(self, name, default=None):
+        """
+        Retrieves the group entry, or return default if it doesn't exist
+        """
+        try:
+            return self._entries[name]
+        except KeyError:
+            return default
+            
     def keys(self):
         """
         Returns the names of NeXus objects in the group.
         """
         return self._entries.keys()
+
+    def iterkeys(self):
+        """ 
+        Get an iterator over group object names
+        """
+        return iter(self._entries)
 
     def values(self):
         """
@@ -2539,11 +2578,25 @@ class NXgroup(NXobject):
         """
         return self._entries.values()
 
+    def itervalues(self):
+        """
+        Get an iterator over group objects
+        """
+        for x in self._entries:
+            yield self._entries.get(x)
+
     def items(self):
         """
         Returns a list of the NeXus objects in the group as (key,value) pairs.
         """
         return self._entries.items()
+
+    def iteritems(self):
+        """
+        Get an iterator over (name, object) pairs
+        """
+        for x in self._entries:
+            yield (x, self._entries.get(x))
 
     def has_key(self, name):
         """
