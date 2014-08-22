@@ -605,6 +605,8 @@ class MainWindow(QtGui.QMainWindow):
             if fname:
                 workspace = self.treeview.tree.get_name(fname)
                 self.treeview.tree[workspace] = self.user_ns[workspace] = nxload(fname)
+                self.treeview.select_node(self.treeview.tree[workspace])
+                self.treeview.setFocus()
                 self.default_directory = os.path.dirname(fname)
         except (NeXusError, IOError) as error:
             report_error("Opening File", error)
@@ -614,9 +616,12 @@ class MainWindow(QtGui.QMainWindow):
             fname, _ = QtGui.QFileDialog.getOpenFileName(self, 
                            'Open File (Read/Write)',
                            self.default_directory, self.file_filter)
-            workspace = self.treeview.tree.get_name(fname)
-            self.treeview.tree[workspace] = self.user_ns[workspace] = nxload(fname, 'rw')
-            self.default_directory = os.path.dirname(fname)
+            if fname:
+                workspace = self.treeview.tree.get_name(fname)
+                self.treeview.tree[workspace] = self.user_ns[workspace] = nxload(fname, 'rw')
+                self.treeview.select_node(self.treeview.tree[workspace])
+                self.treeview.setFocus()
+                self.default_directory = os.path.dirname(fname)
         except (NeXusError, IOError) as error:
             report_error("Opening File (Read/Write)", error)
 
