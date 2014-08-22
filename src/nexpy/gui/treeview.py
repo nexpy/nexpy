@@ -55,24 +55,31 @@ class NXtree(NXgroup):
     def set_changed(self):
         self.sync_shell_names()
         if self._model:
-            if self._item.hasChildren():
-                for row in reversed(range(self._item.rowCount())):
-                    if self._item.child(row).node.nxname not in self.entries:
-                        self._item.removeRow(row)
-            for node in self.walk():
-                if hasattr(node, "_item"):
-                    if isinstance(node, NXlink) and node._item is node.nxlink._item:
-                        node._item = NXTreeItem(node)
-                else:
-                    node._item = NXTreeItem(node)
-                if not node._item.isChild(node.nxgroup._item):
-                    node.nxgroup._item.appendRow(node._item)
-                node._item.removeDuplicateSibling()
-                if isinstance(node, NXgroup):
-                    node._item.removeMissingChildren()
-                node._item.emitDataChanged()
-                node.set_unchanged()
+            self.sync_children(self._item)
+            for row in range(self._item.rowCount()):
+                for item in self._item.child(row).walk():
+                    self.sync_children(item)
+            self._view.update()
 
+    def sync_children(self, item):
+        if isinstance(item.node, NXgroup):
+            children = []
+            if item.hasChildren():
+                for row in range(item.rowCount()):
+                    children.append(item.child(row))
+            names = [child.text() for child in children]
+            for name in item.node:
+                if name not in names:
+                    item.appendRow(NXTreeItem(item.node[name]))
+            for child in children:
+                name = child.node.nxname
+                if name not in item.node:
+                    item.removeRow(child.row())
+                elif child.node is not item.node[name]:
+                    item.removeRow(child.row())
+                    item.appendRow(NXTreeItem(item.node[name]))
+        item.node.set_unchanged()
+    
     def add(self, node):
         if isinstance(node, NXgroup):
             shell_names = self.get_shell_names(node)
@@ -131,17 +138,12 @@ class NXtree(NXgroup):
 
     def sync_shell_names(self):
         from nexpy.gui.consoleapp import _shell
-        for key, value in self.entries.items():
+        for key, value in self.items():
             shell_names = self.get_shell_names(value)
             if key not in shell_names:
                 _shell[key] = value
                 if shell_names:
                     del _shell[shell_names[0]]
-    
-    def walk(self):
-        for node in self.entries.values():
-            for child in node.walk():
-                yield child
 
 
 class NXTreeItem(QtGui.QStandardItem):
@@ -151,38 +153,36 @@ class NXTreeItem(QtGui.QStandardItem):
     an NXnode.
     """
 
-    def __init__(self, node):
+    def __init__(self, node=None):
         self.node = node
-        self._linked = QtGui.QIcon(
-            pkg_resources.resource_filename('nexpy.gui', 
-                                            'resources/link-icon.png'))
-        self._locked = QtGui.QIcon(
-            pkg_resources.resource_filename('nexpy.gui', 
-                                            'resources/lock-icon.png'))
-        self._unlocked = QtGui.QIcon(
-            pkg_resources.resource_filename('nexpy.gui', 
-                                            'resources/unlock-icon.png'))
+        if isinstance(self.node, NXlink):
+            self._linked = QtGui.QIcon(
+                pkg_resources.resource_filename('nexpy.gui',
+                                                'resources/link-icon.png'))
+        elif isinstance(self.node, NXroot):
+            self._locked = QtGui.QIcon(
+                pkg_resources.resource_filename('nexpy.gui',
+                                                'resources/lock-icon.png'))
+            self._unlocked = QtGui.QIcon(
+                pkg_resources.resource_filename('nexpy.gui',
+                                                'resources/unlock-icon.png'))
         super(NXTreeItem, self).__init__(self.node.nxname)
 
     def text(self):
         return self.node.nxname
 
-    def setText(self, text):
-        self.node.rename(text)
-        self.setData(self.node)
-    
     def data(self, role=QtCore.Qt.DisplayRole):
         """
         Returns the data to be displayed in the tree.
         """        
         if role == QtCore.Qt.DisplayRole or role == QtCore.Qt.EditRole:
             return self.node.nxname
-        if role == QtCore.Qt.ToolTipRole:
+        elif role == QtCore.Qt.ToolTipRole:
             if self.node.tree.count('\n') > 50:
                 return '\n'.join(self.node.tree.split('\n')[0:50])+'\n...'
             else:
                 return self.node.tree
-        if role == QtCore.Qt.DecorationRole:
+        elif role == QtCore.Qt.DecorationRole:
             if isinstance(self.node, NXroot) and self.node.nxfilemode == 'r':
                 return self._locked
             elif isinstance(self.node, NXroot) and self.node.nxfilemode == 'rw':
@@ -192,35 +192,18 @@ class NXTreeItem(QtGui.QStandardItem):
             else:
                 return None
 
-    def setData(self, value, role=QtCore.Qt.EditRole):
-        if role == QtCore.Qt.EditRole:
-            self.node.rename(value)
-            self.emitDataChanged()
-            return True           
-        return False
-
-    def isChild(self, item):
-        if item.hasChildren():
-            for row in range(item.rowCount()):
-                if item.child(row) is self:
-                    return True
-        return False
-
-    def removeMissingChildren(self):
+    def children(self):
+        items = []
         if self.hasChildren():
-            for row in reversed(range(self.rowCount())):
-                if self.child(row).node.nxname not in self.node.entries:
-                    self.removeRow(row)
+            for row in range(self.rowCount()):
+                items.append(self.child(row))
+        return items
 
-    def removeDuplicateSibling(self):
-        try:
-            for row in range(self.parent().rowCount()):
-                if self.parent().child(row).text()==self.text():
-                    if self is not self.parent().child(row):
-                        self.parent().removeRow(row)
-                        return
-        except AttributeError:
-            pass
+    def walk(self):
+        yield self
+        for child in self.children():
+            for item in child.walk():
+                yield item
 
 
 class NXSortModel(QtGui.QSortFilterProxyModel):
@@ -255,6 +238,7 @@ class NXTreeView(QtGui.QTreeView):
         self.sortByColumn(0, QtCore.Qt.AscendingOrder)
 
         self.tree._item = self._model.invisibleRootItem()
+        self.tree._item.node = self.tree
         self.tree._model = self._model
         self.tree._view = self
 
@@ -408,10 +392,16 @@ class NXTreeView(QtGui.QTreeView):
             return None
 
     def get_index(self, node):
-        return self.proxymodel.mapFromSource(node._item.index())
+        items = self._model.findItems(node.nxname, QtCore.Qt.MatchRecursive)
+        for item in items:
+            if node is item.node:
+                return self.proxymodel.mapFromSource(item.index())
+        return None
 
     def select_node(self, node):
-        self.setCurrentIndex(self.get_index(node))
+        idx = self.get_index(node)
+        if idx:
+            self.setCurrentIndex(idx)
         
     def selectionChanged(self, new, old):
         if new.indexes():
