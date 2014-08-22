@@ -383,7 +383,7 @@ class NXFile(object):
             else:
                 value = None
             data = NXfield(value=value,name=name,dtype=dtype,shape=shape,attrs=attrs)
-        data._saved = data._changed = True
+        data._changed = True
         return data
 
     def _readnxclass(self, obj):        # see issue #33
@@ -426,7 +426,7 @@ class NXFile(object):
             # Build chain back structure
             for obj in children.values():
                 obj._group = group
-        group._saved = group._changed = True
+        group._changed = True
         return group
 
     def writefile(self, tree):
@@ -500,7 +500,6 @@ class NXFile(object):
                 pass  
         self._writeattrs(data.attrs)
         self.nxpath = parent
-        data._saved = True
         return []
 
     def _writegroup(self, group):
@@ -807,7 +806,6 @@ class NXobject(object):
     _mode = None
     _memfile = None
     _uncopied_data = None
-    _saved = False
     _changed = True
 
     def __getstate__(self):
@@ -828,6 +826,9 @@ class NXobject(object):
 
     def __repr__(self):
         return "NXobject('%s','%s')"%(self.nxclass,self.nxname)
+
+    def __contains__(self):
+        return None
 
     def _setattrs(self, attrs):
         for k,v in attrs.items():
@@ -884,7 +885,8 @@ class NXobject(object):
         pass
 
     def walk(self):
-        if False: yield
+        if False: 
+            yield
 
     def dir(self,attrs=False,recursive=False):
         """
@@ -917,7 +919,6 @@ class NXobject(object):
             with self.nxfile as f:
                 f[self.nxpath] = f[path]
                 del f[path]
-            self._saved = True
 
     def save(self, filename=None, mode='w'):
         """
@@ -970,18 +971,9 @@ class NXobject(object):
             root._setattrs(nx_file._getattrs())
             root._mode = nx_file._mode
             nx_file.close()
-            for node in root.walk():
-                node._saved = True
             return root
         else:
             raise NeXusError("No output file specified")
-
-    @property
-    def saved(self):
-        """
-        Property: Returns True if the object has been saved to a file.
-        """
-        return self._saved
 
     @property
     def changed(self):
@@ -1031,7 +1023,6 @@ class NXobject(object):
             self.nxgroup._entries[value] = self.nxgroup._entries[self._name]
             del self.nxgroup._entries[self._name]
         self._name = str(value)
-        self._saved = False
         self.set_changed()                       
 
     def _getgroup(self):
@@ -1382,7 +1373,6 @@ class NXfield(NXobject):
         else:
             units = None            # TODO: unused variable
         del attrs
-        self._saved = False
         self._masked = False
         self._filename = None
         self._memfile = None
@@ -1613,7 +1603,6 @@ class NXfield(NXobject):
         dpcpy._dtype = copy(obj.dtype)
         dpcpy._shape = copy(obj.shape)
         dpcpy._changed = True
-        dpcpy._saved = False
         dpcpy._memfile = None
         dpcpy._uncopied_data = None
         if obj._value is not None:
@@ -1636,7 +1625,6 @@ class NXfield(NXobject):
             with self.nxfile as f:
                 f.nxpath = self.nxgroup.nxpath
                 f._writedata(self)
-            self._saved = True
 
     def __len__(self):
         """
@@ -1922,7 +1910,6 @@ class NXfield(NXobject):
         if value is not None:
             self._value, self._dtype, self._shape = \
                 _getvalue(value, self._dtype, self._shape)
-            self._saved = False
             self.update()
 
     def _getmask(self):
@@ -1971,7 +1958,6 @@ class NXfield(NXobject):
         self._dtype = np.dtype(value)
         if self._value is not None:
             self._value = np.asarray(self._value, dtype=self._dtype)
-        self._saved = False
         self.update()
         self.set_changed()
 
@@ -1986,7 +1972,6 @@ class NXfield(NXobject):
                 raise ValueError('Total size of new array must be unchanged')
             self._value.shape = tuple(value)
         self._shape = tuple(value)
-        self._saved = False
         self.update()
         self.set_changed()
 
@@ -2312,7 +2297,7 @@ class NXgroup(NXobject):
 
     def walk(self):
         yield self
-        for node in self.entries.values():
+        for node in self.values():
             for child in node.walk():
                 yield child
 
@@ -2359,8 +2344,20 @@ class NXgroup(NXobject):
         else:
             self[name] = value
 
-    def __getitem__(self, idx):
+    def __delattr__(self, name):
+        if name in self._entries:
+            if self.nxfilemode == 'r':
+                raise NeXusError('NeXus file opened as readonly')
+            self.__delitem__(name)
+        else:
+            object.__delattr__(self, name)
+
+    def __getitem__(self, key):
         """
+        Returns an entry in the group if the key is a string.
+        
+        or
+        
         Returns a slice from the NXgroup nxsignal attribute (if it exists) as
         a new NXdata group, if the index is a slice object.
 
@@ -2374,27 +2371,29 @@ class NXgroup(NXobject):
         real-space slicing should only be used on monotonically increasing (or
         decreasing) one-dimensional arrays.
         """
-        if idx is None:
+        if key is None:
             raise NeXusError('Group item not specified')
-        if isinstance(idx, NXattr):
-            idx = idx.nxdata
-        if isinstance(idx, basestring): #i.e., requesting a dictionary value
-            if '/' in idx:
-                if idx.startswith('/'):
-                    return self.nxroot[idx[1:]]
-                names = [name for name in idx.split('/') if name]
+        elif isinstance(key, NXattr):
+            key = key.nxdata
+        if isinstance(key, basestring): #i.e., requesting a dictionary value
+            if '/' in key:
+                if key.startswith('/'):
+                    return self.nxroot[key[1:]]
+                names = [name for name in key.split('/') if name]
                 node = self
                 for name in names:
-                    if name in node.keys():
+                    if name in node:
                         node = node[name]
                     else:
                         raise NeXusError('Invalid path')
                 return node
             else:
-                return self._entries[idx]
+                return self._entries[key]
 
-        if not self.nxsignal:
-            raise NeXusError("No plottable signal")
+        if self.nxsignal:
+            idx = key
+        else:
+            raise NeXusError("Invalid index")
         if not hasattr(self,"nxclass"):
             raise NeXusError("Indexing not allowed for groups of unknown class")
         if isinstance(idx, int) or isinstance(idx, slice):
@@ -2434,11 +2433,11 @@ class NXgroup(NXobject):
             names = [name for name in key.split('/') if name]
             key = names.pop()
             for name in names:
-                if name in group.keys():
+                if name in group:
                     group = group[name]
                 else:
                     raise NeXusError('Invalid path')        
-        if key in group.entries and isinstance(group._entries[key], NXlink):
+        if key in group and isinstance(group._entries[key], NXlink):
             raise NeXusError("Cannot assign values to an NXlink object")
         if isinstance(value, NXroot):
             raise NeXusError("Cannot assign an NXroot group to another group")
@@ -2478,11 +2477,11 @@ class NXgroup(NXobject):
                 names = [name for name in key.split('/') if name]
                 key = names.pop()
                 for name in names:
-                    if name in group.keys():
+                    if name in group:
                         group = group[name]
                     else:
                         raise NeXusError('Invalid path')
-            if key not in group._entries:
+            if key not in group:
                 raise NeXusError(key+" not in "+group.nxpath)
             if group.nxfilemode == 'rw':
                 with group.nxfile as f:
@@ -2492,13 +2491,13 @@ class NXgroup(NXobject):
             if 'mask' in group._entries[key].attrs:
                 del group._entries[group._entries[key].mask.nxname]
             del group._entries[key]
-            group.set_changed()
+            group.update()
 
-    def __contains__(self, x):
+    def __contains__(self, key):
         """
         Implements 'k in d' test
         """
-        return x in self._entries
+        return key in self._entries
 
     def __iter__(self):
         """
@@ -2526,7 +2525,6 @@ class NXgroup(NXobject):
         dpcpy = obj.__class__()       
         memo[id(self)] = dpcpy
         dpcpy._changed = True
-        dpcpy._saved = False
         for k,v in obj.items():
             dpcpy._entries[k] = deepcopy(v, memo)
             dpcpy._entries[k]._group = dpcpy
@@ -2582,8 +2580,8 @@ class NXgroup(NXobject):
         """
         Get an iterator over group objects
         """
-        for x in self._entries:
-            yield self._entries.get(x)
+        for key in self._entries:
+            yield self._entries.get(key)
 
     def items(self):
         """
@@ -2595,8 +2593,8 @@ class NXgroup(NXobject):
         """
         Get an iterator over (name, object) pairs
         """
-        for x in self._entries:
-            yield (x, self._entries.get(x))
+        for key in self._entries:
+            yield (key, self._entries.get(key))
 
     def has_key(self, name):
         """
