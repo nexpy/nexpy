@@ -581,6 +581,8 @@ class MainWindow(QtGui.QMainWindow):
                     self.treeview.tree[workspace] = self.user_ns[workspace] = imported_data
                 else:
                     raise NeXusError('Imported data must be an NXroot or NXentry group')
+                self.treeview.select_node(self.treeview.tree[workspace])
+                self.treeview.setFocus()
                 self.default_directory = os.path.dirname(self.import_dialog.import_file)
         except NeXusError as error:
             report_error("Importing File", error)
