@@ -44,6 +44,7 @@ class BaseImportDialog(BaseDialog):
         """
         Completes the data import.
         """
+        self.accepted = True
         from nexpy.gui.consoleapp import _mainwindow
         _mainwindow.import_data()
         super(BaseImportDialog, self).accept()
