@@ -459,8 +459,9 @@ class MainWindow(QtGui.QMainWindow):
         
     def init_plugin_menus(self):
         """Add an menu item for every module in the plugin menus"""
+        from nexpy.gui.consoleapp import _nexpy_dir
         self.plugin_names = set()
-        private_path = os.path.join(os.path.expanduser('~'), '.nexpy', 'plugins')
+        private_path = os.path.join(_nexpy_dir, 'plugins')
         if os.path.isdir(private_path):
             for name in os.listdir(private_path):
                 if os.path.isdir(os.path.join(private_path, name)):
@@ -535,9 +536,10 @@ class MainWindow(QtGui.QMainWindow):
 
     def init_import_menu(self):
         """Add an import menu item for every module in the readers directory"""
+        from nexpy.gui.consoleapp import _nexpy_dir
         self.import_names = set()
         self.import_menu = self.file_menu.addMenu("Import")
-        private_path = os.path.join(os.path.expanduser('~'), '.nexpy', 'readers')
+        private_path = os.path.join(_nexpy_dir, 'readers')
         if os.path.isdir(private_path):
              for filename in os.listdir(private_path):
                 name, ext = os.path.splitext(filename)
@@ -1154,6 +1156,14 @@ class MainWindow(QtGui.QMainWindow):
             )
         self.add_menu_action(self.window_menu, self.panel_action)
 
+        self.window_separator = self.window_menu.addSeparator()
+
+        self.log_action=QtGui.QAction("Show Log File",
+            self,
+            triggered=self.show_log
+            )
+        self.add_menu_action(self.window_menu, self.log_action)
+
     def make_active_action(self, label, number):
         self.active_action[label]=QtGui.QAction(label,
             self,
@@ -1203,6 +1213,29 @@ class MainWindow(QtGui.QMainWindow):
             plotview.reset_limits()
         except NeXusError as error:
             report_error("Resetting Plot Limits", error)
+
+    def show_log(self):
+        try:
+            from nexpy.gui.consoleapp import _nexpy_dir
+            f = open(os.path.join(_nexpy_dir, 'nexpy.log'), 'r')
+            text = f.read()
+            f.close()
+            self.log_window = QtGui.QDialog(self)
+            layout = QtGui.QVBoxLayout()
+            text_box = QtGui.QPlainTextEdit(text)
+            text_box.setMinimumWidth(700)
+            text_box.setMinimumHeight(600)
+            layout.addWidget(text_box)
+            buttonbox = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Close)
+            buttonbox.rejected.connect(self.close_log)
+            layout.addWidget(buttonbox)
+            self.log_window.setLayout(layout)
+            self.log_window.exec_()
+        except NeXusError as error:
+            report_error("Showing Log File", error)
+
+    def close_log(self):
+        self.log_window.close()
     
     def init_help_menu(self):
         # please keep the Help menu in Mac Os even if empty. It will

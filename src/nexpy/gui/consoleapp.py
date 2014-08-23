@@ -33,9 +33,11 @@ Authors:
 #-----------------------------------------------------------------------------
 
 # stdlib imports
+import logging
 import pkg_resources
 import os
 import signal
+import tempfile
 
 # System library imports
 from PySide import QtCore, QtGui
@@ -165,6 +167,27 @@ class NXConsoleApp(BaseIPythonApplication, IPythonConsoleApp):
         super(NXConsoleApp, self).parse_command_line(argv)
         self.build_kernel_argv(argv)
 
+    def init_dir(self):
+        """Initialize NeXpy home directory"""
+        home_dir = os.path.realpath(os.path.expanduser('~'))
+        nexpy_dir = os.path.join(home_dir, '.nexpy')
+        def writeable(path):
+            return os.path.isdir(path) and os.access(path, os.W_OK)
+        if not os.path.exists(nexpy_dir):
+            parent = os.path.dirname(nexpy_dir)
+            if not writeable(nexpy_dir):
+                nexpy_dir = tempfile.mkdtemp()
+            os.mkdir(nexpy_dir)
+        global _nexpy_dir
+        _nexpy_dir = nexpy_dir
+
+    def init_log(self):
+        log_file = os.path.join(_nexpy_dir, 'nexpy.log')
+        logging.basicConfig(filename=log_file, filemode='w',
+            format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+            level=logging.DEBUG)
+        logging.info('NeXpy Logger initialized')
+
     def init_tree(self):
         """Initialize the NeXus tree used in the tree view."""
         global _tree
@@ -236,6 +259,8 @@ class NXConsoleApp(BaseIPythonApplication, IPythonConsoleApp):
     @catch_config_error
     def initialize(self, argv=None):
         super(NXConsoleApp, self).initialize(argv)
+        self.init_dir()
+        self.init_log()
         self.init_tree()
         self.init_gui()
         self.init_shell()
