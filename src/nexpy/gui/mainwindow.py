@@ -22,6 +22,7 @@ of a Matplotlib plotting pane and a tree view for displaying NeXus data.
 import glob
 import imp
 import json
+import logging
 import os
 import re
 import sys
@@ -564,31 +565,6 @@ class MainWindow(QtGui.QMainWindow):
                 if fp:
                     fp.close()
 
-    def show_import_dialog(self):
-        import_module = self.importer[self.sender()]
-        self.import_dialog = import_module.ImportDialog()
-        self.import_dialog.show()
-
-    def import_data(self):
-        try:
-            if self.import_dialog.accepted:
-                imported_data = self.import_dialog.get_data()
-                try:
-                    workspace = self.treeview.tree.get_name(self.import_dialog.import_file)
-                except:
-                    workspace = self.treeview.tree.get_new_name()
-                if isinstance(imported_data, NXentry):
-                    self.treeview.tree[workspace] = self.user_ns[workspace] = NXroot(imported_data)
-                elif isinstance(imported_data, NXroot):
-                    self.treeview.tree[workspace] = self.user_ns[workspace] = imported_data
-                else:
-                    raise NeXusError('Imported data must be an NXroot or NXentry group')
-                self.treeview.select_node(self.treeview.tree[workspace])
-                self.treeview.setFocus()
-                self.default_directory = os.path.dirname(self.import_dialog.import_file)
-        except NeXusError as error:
-            report_error("Importing File", error)
-
     def new_workspace(self):
         try:
             default_name = self.treeview.tree.get_new_name()
@@ -598,6 +574,7 @@ class MainWindow(QtGui.QMainWindow):
                 self.treeview.tree[name] = NXroot(NXentry())
                 self.treeview.select_node(self.treeview.tree[name].entry)
                 self.treeview.update()
+                logging.info("New workspace '%s' created" % name)
         except NeXusError as error:
             report_error("Creating New Workspace", error)
 
@@ -607,11 +584,13 @@ class MainWindow(QtGui.QMainWindow):
                            'Open File (Read Only)', self.default_directory, 
                            self.file_filter)
             if fname:
-                workspace = self.treeview.tree.get_name(fname)
-                self.treeview.tree[workspace] = self.user_ns[workspace] = nxload(fname)
-                self.treeview.select_node(self.treeview.tree[workspace])
+                name = self.treeview.tree.get_name(fname)
+                self.treeview.tree[name] = self.user_ns[name] = nxload(fname)
+                self.treeview.select_node(self.treeview.tree[name])
                 self.treeview.setFocus()
                 self.default_directory = os.path.dirname(fname)
+                logging.info("NeXus file '%s' opened as workspace '%s'" 
+                             % (fname, name))
         except (NeXusError, IOError) as error:
             report_error("Opening File", error)
   
@@ -621,11 +600,13 @@ class MainWindow(QtGui.QMainWindow):
                            'Open File (Read/Write)',
                            self.default_directory, self.file_filter)
             if fname:
-                workspace = self.treeview.tree.get_name(fname)
-                self.treeview.tree[workspace] = self.user_ns[workspace] = nxload(fname, 'rw')
-                self.treeview.select_node(self.treeview.tree[workspace])
+                name = self.treeview.tree.get_name(fname)
+                self.treeview.tree[name] = self.user_ns[name] = nxload(fname, 'rw')
+                self.treeview.select_node(self.treeview.tree[name])
                 self.treeview.setFocus()
                 self.default_directory = os.path.dirname(fname)
+                logging.info("NeXus file '%s' opened as workspace '%s'" 
+                             % (fname, name))
         except (NeXusError, IOError) as error:
             report_error("Opening File (Read/Write)", error)
 
@@ -653,6 +634,8 @@ class MainWindow(QtGui.QMainWindow):
                     self.treeview.select_node(self.treeview.tree[name])
                 self.treeview.update()
                 self.default_directory = os.path.dirname(fname)
+                logging.info("NeXus workspace '%s' saved as '%s'" 
+                             % (old_name, fname))
         except NeXusError as error:
             report_error("Saving File", error)
 
@@ -661,7 +644,6 @@ class MainWindow(QtGui.QMainWindow):
             node = self.treeview.get_node()
             if isinstance(node, NXroot):
                 if node.nxfilemode:
-                    mode = node.nxfilemode              # TODO: unused
                     name = self.treeview.tree.get_new_name()
                     default_name = os.path.join(self.default_directory,name)
                     fname, _ = QtGui.QFileDialog.getSaveFileName(self, 
@@ -673,6 +655,8 @@ class MainWindow(QtGui.QMainWindow):
                         name = self.treeview.tree.get_name(fname)
                         self.treeview.tree[name] = self.user_ns[name] = nx_file.readfile()                       
                         self.default_directory = os.path.dirname(fname)
+                        logging.info("Workspace '%s' duplicated in '%s'" 
+                                     % (node.nxname, fname))
                 else:
                     default_name = self.treeview.tree.get_new_name()
                     name, ok = QtGui.QInputDialog.getText(self, 
@@ -680,8 +664,11 @@ class MainWindow(QtGui.QMainWindow):
                                    text=default_name)        
                     if name and ok:
                         self.treeview.tree[name] = node
-                self.treeview.select_node(self.treeview.tree[name])
-                self.treeview.update()
+                        logging.info("Workspace '%s' duplicated as workspace '%s'" 
+                                     % (node.nxname, name))
+                if name in self.treeview.tree:
+                    self.treeview.select_node(self.treeview.tree[name])
+                    self.treeview.update()
             else:
                 raise NeXusError("Only NXroot groups can be duplicated")
         except NeXusError as error:
@@ -690,11 +677,13 @@ class MainWindow(QtGui.QMainWindow):
     def remove(self):
         try:
             node = self.treeview.get_node()
+            name = node.nxname
             if isinstance(node, NXroot):
                 ret = self.confirm_action(
-                          "Are you sure you want to remove '%s'?" % node.nxname)
+                          "Are you sure you want to remove '%s'?" % name)
                 if ret == QtGui.QMessageBox.Ok:
-                    del self.treeview.tree[node.nxname]
+                    del self.treeview.tree[name]
+                    logging.info("Workspace '%s' removed" % name)
         except NeXusError as error:
             report_error("Removing File", error)
 
@@ -704,6 +693,7 @@ class MainWindow(QtGui.QMainWindow):
             if isinstance(node, NXroot):
                 node.lock()
                 self.treeview.update()
+                logging.info("Workspace '%s' locked" % node.nxname)
         except NeXusError as error:
             report_error("Locking File", error)
 
@@ -717,8 +707,35 @@ class MainWindow(QtGui.QMainWindow):
                 if ret == QtGui.QMessageBox.Ok:
                     node.unlock()
                     self.treeview.update()
+                    logging.info("Workspace '%s' unlocked" % node.nxname)
         except NeXusError as error:
             report_error("Unlocking File", error)
+
+    def show_import_dialog(self):
+        import_module = self.importer[self.sender()]
+        self.import_dialog = import_module.ImportDialog()
+        self.import_dialog.show()
+
+    def import_data(self):
+        try:
+            if self.import_dialog.accepted:
+                imported_data = self.import_dialog.get_data()
+                try:
+                    name = self.treeview.tree.get_name(self.import_dialog.import_file)
+                except:
+                    name = self.treeview.tree.get_new_name()
+                if isinstance(imported_data, NXentry):
+                    self.treeview.tree[name] = self.user_ns[name] = NXroot(imported_data)
+                elif isinstance(imported_data, NXroot):
+                    self.treeview.tree[name] = self.user_ns[name] = imported_data
+                else:
+                    raise NeXusError('Imported data must be an NXroot or NXentry group')
+                self.treeview.select_node(self.treeview.tree[name])
+                self.treeview.setFocus()
+                self.default_directory = os.path.dirname(self.import_dialog.import_file)
+                logging.info("Workspace '%s' imported" % name)               
+        except NeXusError as error:
+            report_error("Importing File", error)
 
     def plot_data(self, fmt='o'):
         try:
@@ -1437,4 +1454,5 @@ class MainWindow(QtGui.QMainWindow):
             return
 
         if reply == okay:
+            logging.info('NeXpy closed')
             event.accept()

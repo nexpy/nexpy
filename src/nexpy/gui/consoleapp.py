@@ -183,10 +183,10 @@ class NXConsoleApp(BaseIPythonApplication, IPythonConsoleApp):
 
     def init_log(self):
         log_file = os.path.join(_nexpy_dir, 'nexpy.log')
-        logging.basicConfig(filename=log_file, filemode='w',
+        logging.basicConfig(filename=log_file, filemode='a',
             format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-            level=logging.DEBUG)
-        logging.info('NeXpy Logger initialized')
+            level=logging.INFO)
+        logging.info('NeXpy launched')
 
     def init_tree(self):
         """Initialize the NeXus tree used in the tree view."""
