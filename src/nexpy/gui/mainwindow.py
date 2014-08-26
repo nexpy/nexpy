@@ -32,6 +32,7 @@ from threading import Thread
 
 from PySide import QtGui, QtCore
 from IPython.core.magic import magic_escapes
+from IPython.nbconvert.filters.ansi import ansi2html
 
 
 def background(f):
@@ -54,6 +55,7 @@ pkg_resources.require("IPython>="+'1.1.0')
 from IPython.qt.console.rich_ipython_widget import RichIPythonWidget
 from IPython.qt.inprocess import QtInProcessKernelManager
 
+ansi_re = re.compile('\x1b' + r'\[([\dA-Fa-f;]*?)m')
 
 def report_error(context, error):
     title = type(error).__name__ + ': ' + context
@@ -610,27 +612,13 @@ class MainWindow(QtGui.QMainWindow):
             self.add_menu_action(self.window_menu, self.maximizeAct)
             self.window_menu.addSeparator()
         
-        self.newplot_action=QtGui.QAction("New Plot Window",
+        self.log_action=QtGui.QAction("Show Log File",
             self,
-            shortcut=QtGui.QKeySequence("Ctrl+Shift+N"),
-            triggered=self.new_plot_window
+            triggered=self.show_log
             )
-        self.add_menu_action(self.window_menu, self.newplot_action, True)
+        self.add_menu_action(self.window_menu, self.log_action)
 
         self.window_menu.addSeparator()
-
-        self.active_action = {}
-        self.active_action['Main']=QtGui.QAction('Main',
-            self,
-            shortcut=QtGui.QKeySequence("Ctrl+1"),
-            triggered=lambda: self.make_active('Main'),
-            checkable=True
-            )
-        self.add_menu_action(self.window_menu, self.active_action['Main'])
-        self.active_action['Main'].setChecked(True)
-        self.previous_active = 'Main'
-
-        self.window_separator = self.window_menu.addSeparator()
 
         self.limit_action=QtGui.QAction("Change Plot Limits",
             self,
@@ -652,11 +640,30 @@ class MainWindow(QtGui.QMainWindow):
 
         self.window_separator = self.window_menu.addSeparator()
 
-        self.log_action=QtGui.QAction("Show Log File",
+        self.window_menu.addSeparator()
+
+        self.newplot_action=QtGui.QAction("New Plot Window",
             self,
-            triggered=self.show_log
+            shortcut=QtGui.QKeySequence("Ctrl+Shift+N"),
+            triggered=self.new_plot_window
             )
-        self.add_menu_action(self.window_menu, self.log_action)
+        self.add_menu_action(self.window_menu, self.newplot_action, True)
+
+        self.window_menu.addSeparator()
+
+        self.active_action = {}
+
+        self.active_action['Main']=QtGui.QAction('Main',
+            self,
+            shortcut=QtGui.QKeySequence("Ctrl+1"),
+            triggered=lambda: self.make_active('Main'),
+            checkable=True
+            )
+        self.add_menu_action(self.window_menu, self.active_action['Main'])
+        self.active_action['Main'].setChecked(True)
+        self.previous_active = 'Main'
+
+        self.window_separator = self.window_menu.addSeparator()
 
     def init_script_menu(self):
         self.script_menu = self.menu_bar.addMenu("&Script")
@@ -1320,7 +1327,7 @@ class MainWindow(QtGui.QMainWindow):
         try:
             from consoleapp import _nexpy_dir
             f = open(os.path.join(_nexpy_dir, 'nexpy.log'), 'r')
-            text = f.read()
+            text = ansi_re.sub('', f.read())
             f.close()
             self.log_window = QtGui.QDialog(self)
             layout = QtGui.QVBoxLayout()
