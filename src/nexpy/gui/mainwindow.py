@@ -33,6 +33,7 @@ from threading import Thread
 from PySide import QtGui, QtCore
 from IPython.core.magic import magic_escapes
 
+
 def background(f):
     """call a function in a simple thread, to prevent blocking"""
     t = Thread(target=f)
@@ -43,8 +44,8 @@ def background(f):
 from treeview import NXTreeView
 from plotview import NXPlotView
 from datadialogs import *
-from nexpy.api.nexus.tree import nxload, NeXusError, NXFile, NXlink
-#from nexpy.api.nexus.tree import NXFile, NXgroup, NXfield, NXroot, NXentry, NXlink
+from scripteditor import ScriptDialog
+from nexpy.api.nexus.tree import nxload, NeXusError, NXFile, NXlink, NXobject
 
 # IPython imports
 # require minimum version of IPython for RichIPythonWidget()
@@ -212,6 +213,7 @@ class MainWindow(QtGui.QMainWindow):
         self.init_view_menu()
         self.init_magic_menu()
         self.init_window_menu()
+        self.init_script_menu()
         self.init_help_menu()
         self.setMenuBar(self.menu_bar)
     
@@ -460,7 +462,7 @@ class MainWindow(QtGui.QMainWindow):
         
     def init_plugin_menus(self):
         """Add an menu item for every module in the plugin menus"""
-        from nexpy.gui.consoleapp import _nexpy_dir
+        from consoleapp import _nexpy_dir
         self.plugin_names = set()
         private_path = os.path.join(_nexpy_dir, 'plugins')
         if os.path.isdir(private_path):
@@ -535,9 +537,200 @@ class MainWindow(QtGui.QMainWindow):
             triggered=self.clear_magic_console)
         self.add_menu_action(self.view_menu, self.clear_action)
 
+    def init_magic_menu(self):
+        self.magic_menu = self.menu_bar.addMenu("&Magic")
+        self.magic_menu_separator = self.magic_menu.addSeparator()
+        
+        self.all_magic_menu = self._get_magic_menu("AllMagics", menulabel="&All Magics...")
+
+        # This action should usually not appear as it will be cleared when menu
+        # is updated at first kernel response. Though, it is necessary when
+        # connecting through X-forwarding, as in this case, the menu is not
+        # auto updated, SO DO NOT DELETE.
+        self.pop = QtGui.QAction("&Update All Magic Menu ",
+            self, triggered=self.update_all_magic_menu)
+        self.add_menu_action(self.all_magic_menu, self.pop)
+        # we need to populate the 'Magic Menu' once the kernel has answer at
+        # least once let's do it immediately, but it's assured to works
+        self.pop.trigger()
+
+        self.reset_action = QtGui.QAction("&Reset",
+            self,
+            statusTip="Clear all variables from workspace",
+            triggered=self.reset_magic_console)
+        self.add_menu_action(self.magic_menu, self.reset_action)
+
+        self.history_action = QtGui.QAction("&History",
+            self,
+            statusTip="show command history",
+            triggered=self.history_magic_console)
+        self.add_menu_action(self.magic_menu, self.history_action)
+
+        self.save_action = QtGui.QAction("E&xport History ",
+            self,
+            statusTip="Export History as Python File",
+            triggered=self.save_magic_console)
+        self.add_menu_action(self.magic_menu, self.save_action)
+
+        self.who_action = QtGui.QAction("&Who",
+            self,
+            statusTip="List interactive variables",
+            triggered=self.who_magic_console)
+        self.add_menu_action(self.magic_menu, self.who_action)
+
+        self.who_ls_action = QtGui.QAction("Wh&o ls",
+            self,
+            statusTip="Return a list of interactive variables",
+            triggered=self.who_ls_magic_console)
+        self.add_menu_action(self.magic_menu, self.who_ls_action)
+
+        self.whos_action = QtGui.QAction("Who&s",
+            self,
+            statusTip="List interactive variables with details",
+            triggered=self.whos_magic_console)
+        self.add_menu_action(self.magic_menu, self.whos_action)
+
+    def init_window_menu(self):
+        self.window_menu = self.menu_bar.addMenu("&Window")
+        if sys.platform == 'darwin':
+            # add min/maximize actions to OSX, which lacks default bindings.
+            self.minimizeAct = QtGui.QAction("Mini&mize",
+                self,
+                shortcut="Ctrl+m",
+                statusTip="Minimize the window/Restore Normal Size",
+                triggered=self.toggleMinimized)
+            # maximize is called 'Zoom' on OSX for some reason
+            self.maximizeAct = QtGui.QAction("&Zoom",
+                self,
+                shortcut="Ctrl+Shift+M",
+                statusTip="Maximize the window/Restore Normal Size",
+                triggered=self.toggleMaximized)
+
+            self.add_menu_action(self.window_menu, self.minimizeAct)
+            self.add_menu_action(self.window_menu, self.maximizeAct)
+            self.window_menu.addSeparator()
+        
+        self.newplot_action=QtGui.QAction("New Plot Window",
+            self,
+            shortcut=QtGui.QKeySequence("Ctrl+Shift+N"),
+            triggered=self.new_plot_window
+            )
+        self.add_menu_action(self.window_menu, self.newplot_action, True)
+
+        self.window_menu.addSeparator()
+
+        self.active_action = {}
+        self.active_action['Main']=QtGui.QAction('Main',
+            self,
+            shortcut=QtGui.QKeySequence("Ctrl+1"),
+            triggered=lambda: self.make_active('Main'),
+            checkable=True
+            )
+        self.add_menu_action(self.window_menu, self.active_action['Main'])
+        self.active_action['Main'].setChecked(True)
+        self.previous_active = 'Main'
+
+        self.window_separator = self.window_menu.addSeparator()
+
+        self.limit_action=QtGui.QAction("Change Plot Limits",
+            self,
+            triggered=self.limit_axes
+            )
+        self.add_menu_action(self.window_menu, self.limit_action)
+
+        self.reset_limit_action=QtGui.QAction("Reset Plot Limits",
+            self,
+            triggered=self.reset_axes
+            )
+        self.add_menu_action(self.window_menu, self.reset_limit_action)
+
+        self.panel_action=QtGui.QAction("Show Projection Panel",
+            self,
+            triggered=self.show_projection_panel
+            )
+        self.add_menu_action(self.window_menu, self.panel_action)
+
+        self.window_separator = self.window_menu.addSeparator()
+
+        self.log_action=QtGui.QAction("Show Log File",
+            self,
+            triggered=self.show_log
+            )
+        self.add_menu_action(self.window_menu, self.log_action)
+
+    def init_script_menu(self):
+        self.script_menu = self.menu_bar.addMenu("&Script")
+        self.new_script_action=QtGui.QAction("New Script...",
+            self,
+            triggered=self.new_script
+            )
+        self.add_menu_action(self.script_menu, self.new_script_action)
+        self.open_script_action=QtGui.QAction("Open Script...",
+            self,
+            triggered=self.open_script
+            )
+        self.add_menu_action(self.script_menu, self.open_script_action)
+
+        self.script_menu.addSeparator()
+
+        self.scripts = {}
+        from consoleapp import _nexpy_dir
+        script_dir = os.path.join(_nexpy_dir, 'scripts')
+        if os.path.exists(script_dir):
+            files = os.listdir(script_dir)
+            for file_name in files:
+                if file_name.endswith('.py'):
+                    self.add_script_action(os.path.join(script_dir, file_name))
+
+    def init_help_menu(self):
+        # please keep the Help menu in Mac Os even if empty. It will
+        # automatically contain a search field to search inside menus and
+        # please keep it spelled in English, as long as Qt Doesn't support
+        # a QAction.MenuRole like HelpMenuRole otherwise it will lose
+        # this search field functionality
+
+        self.help_menu = self.menu_bar.addMenu("&Help")      
+
+        # Help Menu
+
+        self.nexpyHelpAct = QtGui.QAction("Open NeXpy &Help Online",
+            self,
+            triggered=self._open_nexpy_online_help)
+        self.add_menu_action(self.help_menu, self.nexpyHelpAct)
+
+        self.nexusHelpAct = QtGui.QAction("Open NeXus Base Class Definitions Online",
+            self,
+            triggered=self._open_nexus_online_help)
+        self.add_menu_action(self.help_menu, self.nexusHelpAct)
+
+        self.help_menu.addSeparator()
+
+        self.ipythonHelpAct = QtGui.QAction("Open iPython Help Online",
+            self,
+            triggered=self._open_ipython_online_help)
+        self.add_menu_action(self.help_menu, self.ipythonHelpAct)
+
+        self.intro_console_action = QtGui.QAction("&Intro to IPython",
+            self,
+            triggered=self.intro_console
+            )
+        self.add_menu_action(self.help_menu, self.intro_console_action)
+
+        self.quickref_console_action = QtGui.QAction("IPython &Cheat Sheet",
+            self,
+            triggered=self.quickref_console
+            )
+        self.add_menu_action(self.help_menu, self.quickref_console_action)
+
+        self.guiref_console_action = QtGui.QAction("&Qt Console",
+            self,
+            triggered=self.guiref_console
+            )
+        self.add_menu_action(self.help_menu, self.guiref_console_action)
+
     def init_import_menu(self):
         """Add an import menu item for every module in the readers directory"""
-        from nexpy.gui.consoleapp import _nexpy_dir
+        from consoleapp import _nexpy_dir
         self.import_names = set()
         self.import_menu = self.file_menu.addMenu("Import")
         private_path = os.path.join(_nexpy_dir, 'readers')
@@ -605,7 +798,7 @@ class MainWindow(QtGui.QMainWindow):
                 self.treeview.select_node(self.treeview.tree[name])
                 self.treeview.setFocus()
                 self.default_directory = os.path.dirname(fname)
-                logging.info("NeXus file '%s' opened as workspace '%s'" 
+                logging.info("NeXus file '%s' opened (unlocked) as workspace '%s'" 
                              % (fname, name))
         except (NeXusError, IOError) as error:
             report_error("Opening File (Read/Write)", error)
@@ -621,7 +814,7 @@ class MainWindow(QtGui.QMainWindow):
             else:
                 name = node.nxname
                 existing = False
-            default_name = os.path.join(self.default_directory,name)
+            default_name = os.path.join(self.default_directory, name)
             fname, _ = QtGui.QFileDialog.getSaveFileName(self, 
                            "Choose a Filename", default_name, self.file_filter)
             if fname:
@@ -712,6 +905,7 @@ class MainWindow(QtGui.QMainWindow):
             report_error("Unlocking File", error)
 
     def show_import_dialog(self):
+        sender = self.sender()
         import_module = self.importer[self.sender()]
         self.import_dialog = import_module.ImportDialog()
         self.import_dialog.show()
@@ -770,7 +964,7 @@ class MainWindow(QtGui.QMainWindow):
                 if node.nxfilemode == 'r':
                     raise NeXusError("NeXus file is locked")    
                 dialog = AddDialog(node, self)
-                dialog.show()
+                dialog.exec_()
             else:
                 self.new_workspace()    
         except NeXusError as error:
@@ -784,7 +978,7 @@ class MainWindow(QtGui.QMainWindow):
                     raise NeXusError("NeXus file is locked")    
                 if isinstance(node, NXgroup):
                     dialog = InitializeDialog(node, self)
-                    dialog.show()
+                    dialog.exec_()
                 else:
                     raise NeXusError("An NXfield can only be added to an NXgroup")
         except NeXusError as error:
@@ -796,8 +990,11 @@ class MainWindow(QtGui.QMainWindow):
                 node = self.treeview.get_node()
                 if node:
                     if node.nxfilemode != 'r' or isinstance(node, NXroot):
+                        path = node.nxpath
                         dialog = RenameDialog(node, self)
-                        dialog.show()
+                        dialog.exec_()
+                        logging.info("'%s' renamed as '%s'" 
+                                     % (path, node.nxpath)) 
                     else:
                         raise NeXusError("NeXus file is locked")
         except NeXusError as error:
@@ -808,6 +1005,7 @@ class MainWindow(QtGui.QMainWindow):
             node = self.treeview.get_node()
             if not isinstance(node, NXroot):
                 self.copied_node = self.treeview.get_node()
+                logging.info("'%s' copied" % self.copied_node.nxpath) 
             else:
                 raise NeXusError("Use 'Duplicate File' to copy an NXroot group")
         except NeXusError as error:
@@ -819,6 +1017,8 @@ class MainWindow(QtGui.QMainWindow):
             if isinstance(node, NXgroup) and self.copied_node:
                 if node.nxfilemode != 'r':
                     node.insert(self.copied_node)
+                    logging.info("'%s' pasted to '%s'" 
+                                 % (self.copied_node.nxpath, node.nxpath))
                 else:   
                     raise NeXusError("NeXus file is locked")
         except NeXusError as error:
@@ -830,6 +1030,8 @@ class MainWindow(QtGui.QMainWindow):
             if isinstance(node, NXgroup) and self.copied_node:
                 if node.nxfilemode != 'r':
                     node.makelink(self.copied_node)
+                    logging.info("'%s' pasted as link to '%s'" 
+                                 % (self.copied_node.nxpath, node.nxpath))
                 else:
                     raise NeXusError("NeXus file is locked")
         except NeXusError as error:
@@ -840,8 +1042,10 @@ class MainWindow(QtGui.QMainWindow):
             node = self.treeview.get_node()
             if node:
                 if node.nxfilemode != 'r':
+                    path = node.nxpath
                     dialog = DeleteDialog(node, self)
                     dialog.show()
+                    logging.info("'%s' deleted" % path) 
                 else:   
                     raise NeXusError("NeXus file is locked")
         except NeXusError as error:
@@ -859,11 +1063,12 @@ class MainWindow(QtGui.QMainWindow):
     def set_signal(self):
         try:
             node = self.treeview.get_node()
-            if node:
+            if isinstance(node, NXobject):
                 if node.nxfilemode != 'r':
                     if isinstance(node, NXfield) and node.nxgroup:
                         dialog = SignalDialog(node, self)
                         dialog.show()
+                        logging.info("'%s' set as signal" % node.nxpath) 
                     else:
                         raise NeXusError("Only NeXus fields can be a plottable signal")
                 else:   
@@ -891,6 +1096,7 @@ class MainWindow(QtGui.QMainWindow):
             if len(entry.data.nxsignal.shape) == 1:
                 dialog = FitDialog(entry, parent=self)
                 dialog.show()
+                logging.info("Fitting invoked on'%s'" % node.nxpath) 
             else:
                 raise NeXusError("Fitting only enabled for one-dimensional data")
         except NeXusError as error:
@@ -1060,127 +1266,6 @@ class MainWindow(QtGui.QMainWindow):
             self.magic_menu.insertMenu(self.magic_menu_separator,menu)
         return menu
 
-    def init_magic_menu(self):
-        self.magic_menu = self.menu_bar.addMenu("&Magic")
-        self.magic_menu_separator = self.magic_menu.addSeparator()
-        
-        self.all_magic_menu = self._get_magic_menu("AllMagics", menulabel="&All Magics...")
-
-        # This action should usually not appear as it will be cleared when menu
-        # is updated at first kernel response. Though, it is necessary when
-        # connecting through X-forwarding, as in this case, the menu is not
-        # auto updated, SO DO NOT DELETE.
-        self.pop = QtGui.QAction("&Update All Magic Menu ",
-            self, triggered=self.update_all_magic_menu)
-        self.add_menu_action(self.all_magic_menu, self.pop)
-        # we need to populate the 'Magic Menu' once the kernel has answer at
-        # least once let's do it immediately, but it's assured to works
-        self.pop.trigger()
-
-        self.reset_action = QtGui.QAction("&Reset",
-            self,
-            statusTip="Clear all variables from workspace",
-            triggered=self.reset_magic_console)
-        self.add_menu_action(self.magic_menu, self.reset_action)
-
-        self.history_action = QtGui.QAction("&History",
-            self,
-            statusTip="show command history",
-            triggered=self.history_magic_console)
-        self.add_menu_action(self.magic_menu, self.history_action)
-
-        self.save_action = QtGui.QAction("E&xport History ",
-            self,
-            statusTip="Export History as Python File",
-            triggered=self.save_magic_console)
-        self.add_menu_action(self.magic_menu, self.save_action)
-
-        self.who_action = QtGui.QAction("&Who",
-            self,
-            statusTip="List interactive variables",
-            triggered=self.who_magic_console)
-        self.add_menu_action(self.magic_menu, self.who_action)
-
-        self.who_ls_action = QtGui.QAction("Wh&o ls",
-            self,
-            statusTip="Return a list of interactive variables",
-            triggered=self.who_ls_magic_console)
-        self.add_menu_action(self.magic_menu, self.who_ls_action)
-
-        self.whos_action = QtGui.QAction("Who&s",
-            self,
-            statusTip="List interactive variables with details",
-            triggered=self.whos_magic_console)
-        self.add_menu_action(self.magic_menu, self.whos_action)
-
-    def init_window_menu(self):
-        self.window_menu = self.menu_bar.addMenu("&Window")
-        if sys.platform == 'darwin':
-            # add min/maximize actions to OSX, which lacks default bindings.
-            self.minimizeAct = QtGui.QAction("Mini&mize",
-                self,
-                shortcut="Ctrl+m",
-                statusTip="Minimize the window/Restore Normal Size",
-                triggered=self.toggleMinimized)
-            # maximize is called 'Zoom' on OSX for some reason
-            self.maximizeAct = QtGui.QAction("&Zoom",
-                self,
-                shortcut="Ctrl+Shift+M",
-                statusTip="Maximize the window/Restore Normal Size",
-                triggered=self.toggleMaximized)
-
-            self.add_menu_action(self.window_menu, self.minimizeAct)
-            self.add_menu_action(self.window_menu, self.maximizeAct)
-            self.window_menu.addSeparator()
-        
-        self.newplot_action=QtGui.QAction("New Plot Window",
-            self,
-            shortcut=QtGui.QKeySequence("Ctrl+Shift+N"),
-            triggered=self.new_plot_window
-            )
-        self.add_menu_action(self.window_menu, self.newplot_action, True)
-
-        self.window_menu.addSeparator()
-
-        self.active_action = {}
-        self.active_action['Main']=QtGui.QAction('Main',
-            self,
-            shortcut=QtGui.QKeySequence("Ctrl+1"),
-            triggered=lambda: self.make_active('Main'),
-            checkable=True
-            )
-        self.add_menu_action(self.window_menu, self.active_action['Main'])
-        self.active_action['Main'].setChecked(True)
-        self.previous_active = 'Main'
-
-        self.window_separator = self.window_menu.addSeparator()
-
-        self.limit_action=QtGui.QAction("Change Plot Limits",
-            self,
-            triggered=self.limit_axes
-            )
-        self.add_menu_action(self.window_menu, self.limit_action)
-
-        self.reset_limit_action=QtGui.QAction("Reset Plot Limits",
-            self,
-            triggered=self.reset_axes
-            )
-        self.add_menu_action(self.window_menu, self.reset_limit_action)
-
-        self.panel_action=QtGui.QAction("Show Projection Panel",
-            self,
-            triggered=self.show_projection_panel
-            )
-        self.add_menu_action(self.window_menu, self.panel_action)
-
-        self.window_separator = self.window_menu.addSeparator()
-
-        self.log_action=QtGui.QAction("Show Log File",
-            self,
-            triggered=self.show_log
-            )
-        self.add_menu_action(self.window_menu, self.log_action)
-
     def make_active_action(self, label, number):
         self.active_action[label]=QtGui.QAction(label,
             self,
@@ -1233,7 +1318,7 @@ class MainWindow(QtGui.QMainWindow):
 
     def show_log(self):
         try:
-            from nexpy.gui.consoleapp import _nexpy_dir
+            from consoleapp import _nexpy_dir
             f = open(os.path.join(_nexpy_dir, 'nexpy.log'), 'r')
             text = f.read()
             f.close()
@@ -1254,51 +1339,50 @@ class MainWindow(QtGui.QMainWindow):
     def close_log(self):
         self.log_window.close()
     
-    def init_help_menu(self):
-        # please keep the Help menu in Mac Os even if empty. It will
-        # automatically contain a search field to search inside menus and
-        # please keep it spelled in English, as long as Qt Doesn't support
-        # a QAction.MenuRole like HelpMenuRole otherwise it will lose
-        # this search field functionality
+    def new_script(self):
+        try:
+            file_name = None
+            dialog = ScriptDialog(file_name, self)
+            dialog.show()
+            logging.info("Creating new script")
+        except NeXusError as error:
+            report_error("Editing New Script", error)
 
-        self.help_menu = self.menu_bar.addMenu("&Help")      
+    def open_script(self):
+        try:
+            from consoleapp import _nexpy_dir
+            script_dir = os.path.join(_nexpy_dir, 'scripts')
+            file_filter = ';;'.join(("Python Files (*.py)",
+                                         "Any Files (*.* *)"))
+            file_name, _ = QtGui.QFileDialog.getOpenFileName(self, 
+                           "Open Script", script_dir, file_filter)
+            if file_name:
+                dialog = ScriptDialog(file_name, self)
+                dialog.show()
+                logging.info("NeXus script '%s' opened" % file_name)
+        except NeXusError as error:
+            report_error("Editing Script", error)
 
-        # Help Menu
+    def open_script_file(self):
+        try:
+            file_name = self.scripts[self.sender()]
+            dialog = ScriptDialog(file_name, self)
+            dialog.show()
+            logging.info("NeXus script '%s' opened" % file_name)
+        except NeXusError as error:
+            report_error("Opening Script", error)
+            
+    def add_script_action(self, file_name):
+        name = os.path.basename(file_name)
+        script_action = QtGui.QAction("Open "+name, self, 
+                               triggered=self.open_script_file)
+        self.add_menu_action(self.script_menu, script_action, self)
+        self.scripts[script_action] = file_name
 
-        self.nexpyHelpAct = QtGui.QAction("Open NeXpy &Help Online",
-            self,
-            triggered=self._open_nexpy_online_help)
-        self.add_menu_action(self.help_menu, self.nexpyHelpAct)
-
-        self.nexusHelpAct = QtGui.QAction("Open NeXus Base Class Definitions Online",
-            self,
-            triggered=self._open_nexus_online_help)
-        self.add_menu_action(self.help_menu, self.nexusHelpAct)
-
-        self.help_menu.addSeparator()
-
-        self.ipythonHelpAct = QtGui.QAction("Open iPython Help Online",
-            self,
-            triggered=self._open_ipython_online_help)
-        self.add_menu_action(self.help_menu, self.ipythonHelpAct)
-
-        self.intro_console_action = QtGui.QAction("&Intro to IPython",
-            self,
-            triggered=self.intro_console
-            )
-        self.add_menu_action(self.help_menu, self.intro_console_action)
-
-        self.quickref_console_action = QtGui.QAction("IPython &Cheat Sheet",
-            self,
-            triggered=self.quickref_console
-            )
-        self.add_menu_action(self.help_menu, self.quickref_console_action)
-
-        self.guiref_console_action = QtGui.QAction("&Qt Console",
-            self,
-            triggered=self.guiref_console
-            )
-        self.add_menu_action(self.help_menu, self.guiref_console_action)
+    def remove_script_action(self, file_name):
+        for action, name in self.scripts.iteritems():
+            if name == file_name:
+                self.script_menu.removeAction(action)
 
     def _open_nexpy_online_help(self):
         filename = "http://nexpy.github.io/nexpy/"
