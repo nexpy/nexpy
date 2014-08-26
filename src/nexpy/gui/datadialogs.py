@@ -10,6 +10,7 @@
 #-----------------------------------------------------------------------------
 
 import imp
+import logging
 import os
 import re
 import sys
@@ -209,6 +210,15 @@ class BaseDialog(QtGui.QDialog):
         Return the node currently selected in the treeview
         """
         return self.treeview.get_node()
+
+    def confirm_action(self, query, information=None):
+        msgBox = QtGui.QMessageBox()
+        msgBox.setText(query)
+        if information:
+            msgBox.setInformativeText(information)
+        msgBox.setStandardButtons(QtGui.QMessageBox.Ok | QtGui.QMessageBox.Cancel)
+        msgBox.setDefaultButton(QtGui.QMessageBox.Ok)
+        return msgBox.exec_()
 
 
 class PlotDialog(BaseDialog):
@@ -546,14 +556,20 @@ class AddDialog(BaseDialog):
                 self.node[name] = NXgroup(nxclass=nxclass)
             else:
                 self.node.insert(NXgroup(nxclass=nxclass))
+            logging.info("'%s' added to '%s'" 
+                         % (self.node[name], self.node.nxpath)) 
         elif name:
             value = self.get_value()
             dtype = self.get_type()
             if value is not None:
                 if self.class_name == "NXfield":
                     self.node[name] = NXfield(value, dtype=dtype)
+                    logging.info("'%s' added to '%s'" 
+                                 % (name, self.node.nxpath)) 
                 else:
                     self.node.attrs[name] = NXattr(value, dtype=dtype)
+                    logging.info("Attribute '%s' added to '%s'" 
+                         % (name, self.node.nxpath)) 
         super(AddDialog, self).accept()
 
     
@@ -653,6 +669,8 @@ class InitializeDialog(BaseDialog):
                 dtype = np.float64
             shape = self.get_shape()
             self.node[name] = NXfield(dtype=dtype, shape=shape)
+            logging.info("'%s' initialized in '%s'" 
+                         % (self.node[name], self.node.nxpath)) 
         super(InitializeDialog, self).accept()
 
     
@@ -727,6 +745,10 @@ class RenameDialog(BaseDialog):
                     self.combo_box.setItemData(self.combo_box.count()-1, 
                         wrap(_mainwindow.nxclasses[parent_class][1][name][2], 40),
                         QtCore.Qt.ToolTipRole)
+                if self.node.nxname in fields:
+                    self.combo_box.setCurrentIndex(self.combo_box.findText(self.node.nxname))
+                else:
+                    self.name_box.setText(self.node.nxname)
                 self.combo_box.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToContents)
                 grid.addWidget(self.combo_box, 0, 2)
         grid.setColumnMinimumWidth(1, 200)
