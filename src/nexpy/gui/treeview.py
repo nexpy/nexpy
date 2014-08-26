@@ -294,9 +294,9 @@ class NXTreeView(QtGui.QTreeView):
         menu.addSeparator()
         if not isinstance(node, NXroot):
             menu.addAction(self.copy_action)
-            if isinstance(node, NXgroup) and self.mainwindow.copied_node:
-                menu.addAction(self.paste_action)
-                menu.addAction(self.pastelink_action)
+        if isinstance(node, NXgroup) and self.mainwindow.copied_node:
+            menu.addAction(self.paste_action)
+            menu.addAction(self.pastelink_action)
         if isinstance(node, NXlink):
             menu.addSeparator()
             menu.addAction(self.link_action)
