@@ -541,8 +541,9 @@ class NXFile(object):
         for path,target in links:
             if path != target:
                 # ignore self-links
-                parent = "/".join(path.split("/")[:-1])
-                self[parent]._id.link(target,path,h5.h5g.LINK_HARD)
+                if path not in self['/']:
+                    parent = "/".join(path.split("/")[:-1])
+                    self[parent]._id.link(target,path,h5.h5g.LINK_HARD)
 
     def copyfile(self, the_file):
         for entry in the_file['/']:
