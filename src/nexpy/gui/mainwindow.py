@@ -967,7 +967,7 @@ class MainWindow(QtGui.QMainWindow):
     def add_data(self):
         try:
             node = self.treeview.get_node()  
-            if node:
+            if node is not None:
                 if node.nxfilemode == 'r':
                     raise NeXusError("NeXus file is locked")    
                 dialog = AddDialog(node, self)
