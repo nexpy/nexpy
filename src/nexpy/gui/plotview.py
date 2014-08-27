@@ -45,7 +45,7 @@ def new_figure_manager(label=None, *args, **kwargs):
     """
     if label is None:
         label = ''
-    if 'Projection' in label or 'Fit' in label:
+    if 'Projection' in label:
         nums = [num for num in plt.get_fignums() if num > 100]
         if nums:
             num = max(nums) + 1
@@ -156,7 +156,7 @@ class NXPlotView(QtGui.QWidget):
 
         Gcf.set_active(self.figuremanager)
         def make_active(event):
-            if 'Projection' not in self.label and 'Fit' not in self.label:
+            if 'Projection' not in self.label:
                 self.make_active()
             if event.button == 1:
                 self.xdata = event.xdata
@@ -205,7 +205,7 @@ class NXPlotView(QtGui.QWidget):
         plotviews[self.label] = plotview
         self.plotviews = plotviews
 
-        if self.label not in ['Main', 'Fit'] and 'Projection' not in self.label:
+        if self.label != "Main":
             self.add_menu_action()
 
         self.show()
@@ -230,7 +230,7 @@ class NXPlotView(QtGui.QWidget):
         self.update_active()
 
     def update_active(self):
-        if 'Projection' not in self.label and 'Fit' not in self.label:
+        if 'Projection' not in self.label:
             from nexpy.gui.consoleapp import _mainwindow
             _mainwindow.update_active(self.label)
     
@@ -1385,7 +1385,8 @@ class NXProjectionTab(QtGui.QWidget):
         
         self.overplot_box = QtGui.QCheckBox("Over")
         self.overplot_box.setChecked(False)
-        self.overplot_box.setVisible(False)
+        if 'Projection' not in plotviews:
+            self.overplot_box.setVisible(False)
         widgets.append(self.overplot_box)
 
         self.panel_button = QtGui.QPushButton("Open Panel", self)
@@ -1481,7 +1482,7 @@ class NXProjectionTab(QtGui.QWidget):
 
     def plot_projection(self):
         axes, limits = self.get_projection()
-        projection = change_plotview("Projection - " + self.plotview.label)
+        projection = change_plotview("Projection")
         if len(axes) == 1 and self.overplot_box.isChecked():
             over = True
         else:
@@ -1588,7 +1589,8 @@ class NXProjectionPanel(QtGui.QDialog):
         grid.addWidget(self.plot_button, row, 2)
         self.overplot_box = QtGui.QCheckBox()
         self.overplot_box.setChecked(False)
-        self.overplot_box.setVisible(False)
+        if 'Projection' not in plotviews:
+            self.overplot_box.setVisible(False)
         grid.addWidget(self.overplot_box, row, 3, 
                        alignment=QtCore.Qt.AlignHCenter)
 
@@ -1746,7 +1748,7 @@ class NXProjectionPanel(QtGui.QDialog):
     def plot_projection(self):
         try:
             axes, limits = self.get_projection()
-            projection = change_plotview("Projection - " + self.plotview.label)
+            projection = change_plotview("Projection")
             if len(axes) == 1 and self.overplot_box.isChecked():
                 over = True
             else:

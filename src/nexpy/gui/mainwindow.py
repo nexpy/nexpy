@@ -638,8 +638,6 @@ class MainWindow(QtGui.QMainWindow):
             )
         self.add_menu_action(self.window_menu, self.panel_action)
 
-        self.window_separator = self.window_menu.addSeparator()
-
         self.window_menu.addSeparator()
 
         self.newplot_action=QtGui.QAction("New Plot Window",
@@ -1274,14 +1272,20 @@ class MainWindow(QtGui.QMainWindow):
         return menu
 
     def make_active_action(self, label, number):
-        self.active_action[label]=QtGui.QAction(label,
-            self,
-            shortcut=QtGui.QKeySequence("Ctrl+%s" % number),
-            triggered=lambda: self.make_active(label),
-            checkable=True
-            )
-        self.window_menu.insertAction(self.window_separator, 
-                                      self.active_action[label])
+        if label == 'Projection':
+            self.active_action[label] = QtGui.QAction(label,
+                self,
+                triggered=lambda: self.make_active(label),
+                checkable=True)
+            self.window_menu.addAction(self.active_action[label])
+        else:
+            self.active_action[label] = QtGui.QAction(label,
+                self,
+                shortcut=QtGui.QKeySequence("Ctrl+%s" % number),
+                triggered=lambda: self.make_active(label),
+                checkable=True)
+            self.window_menu.insertAction(self.window_separator,
+                                          self.active_action[label])
         self.make_active(label)
 
     def new_plot_window(self):
