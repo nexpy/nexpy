@@ -171,13 +171,12 @@ class NXConsoleApp(BaseIPythonApplication, IPythonConsoleApp):
         """Initialize NeXpy home directory"""
         home_dir = os.path.realpath(os.path.expanduser('~'))
         nexpy_dir = os.path.join(home_dir, '.nexpy')
-        def writeable(path):
-            return os.path.isdir(path) and os.access(path, os.W_OK)
         if not os.path.exists(nexpy_dir):
             parent = os.path.dirname(nexpy_dir)
-            if not writeable(nexpy_dir):
+            if not os.access(parent, os.W_OK):
                 nexpy_dir = tempfile.mkdtemp()
-            os.mkdir(nexpy_dir)
+            else:
+                os.mkdir(nexpy_dir)
         for subdirectory in ['functions', 'plugins', 'readers', 'scripts']:
             directory = os.path.join(nexpy_dir, subdirectory)
             if not os.path.exists(directory):
