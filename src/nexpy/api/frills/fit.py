@@ -80,8 +80,26 @@ class Function(object):
     def __init__(self, name=None, module=None, parameters=None, function_index=0):
         self.name = name
         self.module = module
-        self.parameters = parameters
+        self._parameters = parameters
         self.function_index = function_index
 
     def __lt__(self, other):
          return self.function_index < other.function_index
+
+    @property
+    def parameters(self):
+        if self._parameters is None:
+            self._parameters = [Parameter(name) 
+                                for name in self.module.parameters]
+        return self._parameters
+
+    def guess_parameters(self, x, y):
+        map(lambda p,g: p.__setattr__('value', g), self.parameters, 
+                        self.module.guess(x, y))
+
+    @property
+    def parameter_values(self):
+        return [p.value for p in self.parameters]
+
+    def function_values(self, x):         
+        return self.module.values(x, self.parameter_values)
