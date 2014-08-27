@@ -384,6 +384,10 @@ class NXTreeView(QtGui.QTreeView):
             text = str(message)
         self.mainwindow.statusBar().showMessage(text.replace('\n','; '))
 
+    @property
+    def node(self):
+        return self.get_node()
+
     def get_node(self):
         item = self._model.itemFromIndex(
                    self.proxymodel.mapToSource(self.currentIndex()))
