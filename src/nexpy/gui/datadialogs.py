@@ -906,7 +906,7 @@ class FitDialog(BaseDialog):
         super(FitDialog, self).__init__(parent)
         self.setMinimumWidth(1000)        
  
-        self.data = entry.data
+        self.data = self.initialize_data(entry.data)
 
         from nexpy.gui.consoleapp import _tree
         self.tree = _tree
@@ -978,12 +978,13 @@ class FitDialog(BaseDialog):
         fit_button = QtGui.QPushButton("Fit")
         fit_button.clicked.connect(self.fit_data)
         self.fit_label = QtGui.QLabel()
-        self.fit_checkbox = QtGui.QCheckBox('Use Errors')
         if self.data.nxerrors:
+            self.fit_checkbox = QtGui.QCheckBox('Use Errors')
             self.fit_checkbox.setCheckState(QtCore.Qt.Checked)
         else:
+            self.fit_checkbox = QtGui.QCheckBox('Use Poisson Errors')
             self.fit_checkbox.setCheckState(QtCore.Qt.Unchecked)
-            self.fit_checkbox.setVisible(False)
+            self.fit_checkbox.stateChanged.connect(self.define_errors)
         self.report_button = QtGui.QPushButton("Show Fit Report")
         self.report_button.clicked.connect(self.report_fit)
         self.save_button = QtGui.QPushButton("Save Parameters")
@@ -991,9 +992,9 @@ class FitDialog(BaseDialog):
         self.restore_button = QtGui.QPushButton("Restore Parameters")
         self.restore_button.clicked.connect(self.restore_parameters)
         self.action_layout.addWidget(fit_button)
-        self.action_layout.addWidget(self.fit_checkbox)
         self.action_layout.addWidget(self.fit_label)
         self.action_layout.addStretch()
+        self.action_layout.addWidget(self.fit_checkbox)
         self.action_layout.addWidget(self.save_button)
 
         self.layout = QtGui.QVBoxLayout()
@@ -1005,6 +1006,17 @@ class FitDialog(BaseDialog):
         self.setWindowTitle("Fit NeXus Data")
 
         self.load_entry(entry)
+
+    def initialize_data(self, data):
+        if isinstance(data, NXdata):
+            if len(data.nxsignal.shape) > 1:
+                raise NeXusError("Fitting only possible on one-dimensional arrays")
+            fit_data = NXdata(data.nxsignal, data.nxaxes, title=data.nxtitle)
+            if data.nxerrors:
+                fit_data.errors = data.nxerrors
+            return fit_data
+        else:
+            raise NeXusError("Must be an NXdata group")
 
     def initialize_functions(self):
 
@@ -1255,6 +1267,10 @@ class FitDialog(BaseDialog):
             f = filter(lambda x: x.name == name, self.functions)[0]
             self.get_model(f).oplot('--')
 
+    def define_errors(self):
+        if self.fit_checkbox.isChecked():
+            self.data.errors = np.sqrt(self.data.nxsignal)
+
     def fit_data(self):
         self.read_parameters()
         if self.fit_checkbox.isChecked():
@@ -1314,9 +1330,7 @@ class FitDialog(BaseDialog):
         """Saves fit results to an NXentry"""
         self.read_parameters()
         entry = NXentry()
-        entry['title'] = 'Fit Results'
         entry['data'] = self.data
-        entry['fit'] = self.get_model()
         for f in self.functions:
             entry[f.name] = self.get_model(f)
             parameters = NXparameters()
@@ -1325,14 +1339,20 @@ class FitDialog(BaseDialog):
                                              initial_value=p.init_value,
                                              min=str(p.min), max=str(p.max))
             entry[f.name].insert(parameters)
-        fit = NXparameters()
-        fit.nfev = self.fit.result.nfev
-        fit.ier = self.fit.result.ier 
-        fit.chisq = self.fit.result.chisqr
-        fit.redchi = self.fit.result.redchi
-        fit.message = self.fit.result.message
-        fit.lmdif_message = self.fit.result.lmdif_message
-        entry['statistics'] = fit
+        if self.fit is not None:
+            entry['title'] = 'Fit Results'
+            entry['fit'] = self.get_model()
+            fit = NXparameters()
+            fit.nfev = self.fit.result.nfev
+            fit.ier = self.fit.result.ier 
+            fit.chisq = self.fit.result.chisqr
+            fit.redchi = self.fit.result.redchi
+            fit.message = self.fit.result.message
+            fit.lmdif_message = self.fit.result.lmdif_message
+            entry['statistics'] = fit
+        else:
+            entry['title'] = 'Fit Model'
+            entry['model'] = self.get_model()
         if 'w0' not in self.tree.keys():
             self.tree.add(NXroot(name='w0'))
         ind = []
