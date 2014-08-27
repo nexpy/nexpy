@@ -904,19 +904,15 @@ class FitDialog(BaseDialog):
     def __init__(self, entry, parent=None):
 
         super(FitDialog, self).__init__(parent)
+        self.setMinimumWidth(1000)        
  
         self.data = entry.data
 
         from nexpy.gui.consoleapp import _tree
         self.tree = _tree
 
-        from nexpy.gui.plotview import change_plotview
-        self.plotview = change_plotview("Fit")
-        self.plotview.setMinimumSize(700, 300)
-        self.plotview.setMaximumSize(1200, 500)
-        
-        self.data.plot()
-        
+        from nexpy.gui.plotview import plotview
+        self.plotview = plotview
         self.functions = []
         self.parameters = []
 
@@ -941,7 +937,7 @@ class FitDialog(BaseDialog):
         self.header_font = QtGui.QFont()
         self.header_font.setBold(True)
 
-        self.parameter_grid = self.initialize_parameter_grid()
+        self.parameter_layout = self.initialize_parameter_grid()
 
         self.remove_layout = QtGui.QHBoxLayout()
         remove_button = QtGui.QPushButton("Remove Function")
@@ -1000,22 +996,11 @@ class FitDialog(BaseDialog):
         self.action_layout.addStretch()
         self.action_layout.addWidget(self.save_button)
 
-        scroll_area = QtGui.QScrollArea()
-        scroll_area.setWidgetResizable(True)
-        self.scroll_widget = QtGui.QWidget()
-        self.scroll_widget.setMinimumWidth(800)
-        self.scroll_widget.setMaximumHeight(800)
-        self.scroll_widget.setSizePolicy(QtGui.QSizePolicy.Expanding, 
-                                         QtGui.QSizePolicy.Expanding)
         self.layout = QtGui.QVBoxLayout()
         self.layout.addLayout(function_layout)
         self.layout.addWidget(self.buttonbox())
-        self.scroll_widget.setLayout(self.layout)
-        scroll_area.setWidget(self.scroll_widget)
-        layout = QtGui.QVBoxLayout()
-        layout.addWidget(self.plotview)
-        layout.addWidget(scroll_area)
-        self.setLayout(layout)
+
+        self.setLayout(self.layout)
 
         self.setWindowTitle("Fit NeXus Data")
 
@@ -1050,8 +1035,13 @@ class FitDialog(BaseDialog):
                 self.function_module[function_module.function_name] = function_module
 
     def initialize_parameter_grid(self):
-        grid = QtGui.QGridLayout()
-        grid.setSpacing(10)
+        grid_layout = QtGui.QVBoxLayout()
+        scroll_area = QtGui.QScrollArea()
+        scroll_area.setWidgetResizable(True)
+        scroll_widget = QtGui.QWidget()
+
+        self.parameter_grid = QtGui.QGridLayout()
+        self.parameter_grid.setSpacing(10)
         headers = ['Function', 'Np', 'Name', 'Value', '', 'Min', 'Max', 'Fixed', 'Bound']
         width = [100, 50, 100, 100, 100, 100, 100, 50, 100]
         column = 0
@@ -1060,10 +1050,17 @@ class FitDialog(BaseDialog):
             label.setFont(self.header_font)
             label.setAlignment(QtCore.Qt.AlignHCenter)
             label.setText(header)
-            grid.addWidget(label, 0, column)
-            grid.setColumnMinimumWidth(column, width[column])
+            self.parameter_grid.addWidget(label, 0, column)
+            self.parameter_grid.setColumnMinimumWidth(column, width[column])
             column += 1
-        return grid
+
+        scroll_widget.setLayout(self.parameter_grid)
+        scroll_area.setWidget(scroll_widget)
+        scroll_area.setMinimumHeight(200)
+        
+        grid_layout.addWidget(scroll_area)
+
+        return grid_layout
 
     def compressed_name(self, name):
         return re.sub(r'([a-zA-Z]*) # (\d*)', r'\1\2', name)
@@ -1107,7 +1104,6 @@ class FitDialog(BaseDialog):
         self.guess_parameters()
         self.add_function_rows(f)
         self.write_parameters()
-        self.scroll_widget.adjustSize()
  
     def index_parameters(self):
         np = 0
@@ -1119,7 +1115,7 @@ class FitDialog(BaseDialog):
     def add_function_rows(self, f):
         self.add_parameter_rows(f)
         if self.first_time:
-            self.layout.insertLayout(1, self.parameter_grid)
+            self.layout.insertLayout(1, self.parameter_layout)
             self.layout.insertLayout(2, self.remove_layout)
             self.layout.insertLayout(3, self.plot_layout)
             self.layout.insertLayout(4, self.action_layout)
@@ -1196,6 +1192,7 @@ class FitDialog(BaseDialog):
             self.parameter_grid.addWidget(p.bound_box, row, 8)
             f.rows.append(row)
             row += 1
+        self.parameter_grid.setRowStretch(self.parameter_grid.rowCount(),10)
 
     def read_parameters(self):
         def make_float(value):
@@ -1359,14 +1356,11 @@ class FitDialog(BaseDialog):
         self.write_parameters()
    
     def accept(self):
-        self.plotview.close_view()
         super(FitDialog, self).accept()
         
     def reject(self):
-        self.plotview.close_view()
         super(FitDialog, self).reject()
 
     def closeEvent(self, event):
-        self.plotview.close_view()
         event.accept()
 
