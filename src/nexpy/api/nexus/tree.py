@@ -3451,23 +3451,27 @@ def convert_index(idx, axis):
     if len(axis) == 1:
         idx = 0
     elif isinstance(idx, slice) and \
-        (isinstance(idx.start, float) or isinstance(idx.stop, float)):
-        if idx.start is not None:
-            start = axis.index(idx.start)
-        else:
-            start = 0
-        if idx.stop is not None:
-            stop = axis.index(idx.stop,max=True) + 1
-        else:
-            stop = axis.size - 1
-        if stop <= start+1:
-            idx = start
-        else:
-            idx = slice(start, stop)
-    elif isinstance(idx, slice):
+         isinstance(idx.start, int) and isinstance(idx.stop, int):
         if idx.start is not None and idx.stop is not None:
             if idx.stop == idx.start or idx.stop == idx.start + 1:
                 idx = idx.start
+    elif isinstance(idx, slice):
+        if isinstance(idx.start, NXfield) and isinstance(idx.stop, NXfield):
+            idx = slice(idx.start.nxdata, idx.stop.nxdata)
+        if idx.start is None:
+            start = None
+        else:
+            start = axis.index(idx.start)
+        if idx.stop is None:
+            stop = None
+        else:
+            stop = axis.index(idx.stop,max=True) + 1
+        if start is None or stop is None:
+            idx = slice(start, stop)
+        elif stop <= start+1:
+            idx = start
+        else:
+            idx = slice(start, stop)
     return idx
 
 def simplify_axes(data):
