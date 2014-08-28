@@ -2677,6 +2677,8 @@ class NXgroup(NXobject):
         if axis is None:
             return self.nxsignal.sum()
         else:
+            if isinstance(axis, int):
+                axis = [axis]
             axis = tuple(axis)
             signal = NXfield(self.nxsignal.sum(axis), name=self.nxsignal.nxname,
                              attrs=self.nxsignal.attrs)
