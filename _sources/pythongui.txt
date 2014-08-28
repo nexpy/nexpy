@@ -225,13 +225,9 @@ Data Menu
 
 Window Menu
 ^^^^^^^^^^^
-**New Plot Window**
-    Opens a new NeXpy plotting window, consisting of a Matplotlib plot pane and 
-    its associated axis panels. NeXpy plot commands will be directed to the 
-    currently active window. Clicking on the plot pane makes it active. All 
-    open windows are listed in the Window menu, along with their labels ('Main',
-    'Figure 1', 'Figure 2', *etc*.). These are used to switch the focus for
-    subsequent plots.
+**Show Log File**
+    Opens a text window containing the NeXpy log file. This currently records 
+    operations on the tree items, as well as console errors.
 
 **Change Plot Limits**
     This gives a dialog box that allows the axis limits of the currently active
@@ -249,6 +245,46 @@ Window Menu
     Show the projection panel for the currently active plotting window. This is
     equivalent to clicking on 'Show Panel' in the projection tab (see below).
 
+**New Plot Window**
+    Opens a new NeXpy plotting window, consisting of a Matplotlib plot pane and 
+    its associated axis panels. NeXpy plot commands will be directed to the 
+    currently active window. Clicking on the plot pane makes it active. All 
+    open windows are listed in the Window menu, along with their labels ('Main',
+    'Figure 1', 'Figure 2', *etc*.). These are used to switch the focus for
+    subsequent plots.
+
+**Main, Figure 1, Figure 2...**
+    These menu items set the selected plotting window to be active. As
+    new windows are created, they are dynamically added to this list. 
+
+Script Menu
+^^^^^^^^^^^
+**New Script**
+    Opens a new script in an editable text window with syntax coloring. The 
+    Python code can be run within the IPython console at any time using the 
+    console namespace. That means that all the items on the NeXpy tree are also 
+    accessible without further imports. 
+    
+    The scripts can be saved for future use from within NeXpy or from the 
+    terminal command line. They can therefore be formatted as a Python 
+    standalone script to be either run as ``python script.py`` or run in the 
+    console (similar to the IPython 'run magic', *i.e.*, ``%run -i script.py``). 
+    Script arguments can be entered in a separate text window at the bottom of 
+    the window and accessed within the script in the 'sys.argv' list.
+
+    .. note:: Script arguments are just text strings, so if the argument is a
+              node on the tree, it must be referenced as a tree dictionary item,
+              *e.g.*, ``nxtree[sys.argv[1]]``
+
+    Scripts are saved, by default, in ``~/.nexpy/scripts``, and are 
+    automatically added to the bottom of the Script Menu.
+
+**Open Script**
+    Opens an existing Python script file in an editable text window.
+
+.. note:: The currently selected node in the NeXpy tree can be referenced in 
+          the script as ``treeview.node``.
+
 Other Menus
 ^^^^^^^^^^^
 The Edit, View, Magic, and Help Menus currently consist of menu items 
@@ -263,7 +299,7 @@ iPython shell, it can be added to the tree pane using the tree's add method::
 
  >>> a=NXroot()
  >>> a.entry = NXentry()
- >>> tree.add(a)
+ >>> nxtree.add(a)
 
 If the group is an NXroot group, it will have the name used in the shell.
 If the group is not an NXroot group, the data will be wrapped automatically in 
@@ -432,7 +468,7 @@ saved fit.
 Defining a function
 ^^^^^^^^^^^^^^^^^^^
 User-defined functions can be added to their private functions directory in 
-~/.nexpy/functions. The file must define the name of the function, a list of 
+``~/.nexpy/functions``. The file must define the name of the function, a list of 
 parameter names, and provide two modules to return the function values and 
 starting parameters, respectively. 
 
@@ -539,7 +575,7 @@ Defining a Reader
 With a little knowledge of PyQt, it is possible to add a reader to the 
 File:Import menu using the existing samples as a guide in the nexpy.readers
 directory. User-defined import dialogs can be added to their private readers 
-directory in ~/.nexpy/readers.
+directory in ``~/.nexpy/readers``.
 
 Here is an example of an import dialog::
 
@@ -591,9 +627,159 @@ Here is an example of an import dialog::
          x = NXfield(range(z.shape[1]), name='x')
          return NXentry(NXdata(z,(y,x)))
 
-.. seealso:: See :class:`nexpy.gui.importdialog.BaseImportDialog` for other
-             pre-defined import methods.
+.. seealso:: See :class:`nexpy.gui.importdialog.BaseImportDialog` and its parent
+             :class:`nexpy.gui.importdialog.BaseDialog` for other
+             pre-defined methods.
 
+NeXpy Plugins
+-------------
+It is possible to customize NeXpy by adding new menus to the main menu bar 
+with sub-menus that open dialog boxes for operations that are specific to a 
+particular domain. These will be automatically loaded from either the 
+``nexpy.plugins`` directory within the installed NeXpy distribution or from the
+users' ``~/.nexpy/plugins`` directory.
+
+The new menu should be defined as a Python package, *i.e.*, by creating a 
+sub-directory within the plugins directory that contains ``__init__.py`` to 
+define the menu actions.
+
+There is an example package, ``chopper``, in the ``nexpy.examples`` directory,
+to show how plugins can work. It adds a top-level menu item, ``chopper``, that
+has a couple of menu items to perform data analysis on the example file, 
+``chopper.nxs``, which is distributed with NeXpy.
+
+Here is the ``__init__.py`` file::
+
+ from PySide import QtGui
+ import get_ei, convert_qe
+
+ def plugin_menu(parent):
+     menu = QtGui.QMenu('Chopper')
+     menu.addAction(QtGui.QAction('Get Incident Energy', parent, 
+                    triggered=get_ei.show_dialog))
+     menu.addAction(QtGui.QAction('Convert to Q-E', parent, 
+                    triggered=convert_qe.show_dialog))
+     return menu
+
+The QAction calls define the menu text and the function that gets called when it
+is selected. In the example, they are contained within the package as two files,
+``get_ei.py`` and ``convert_qe.py``, but they could also be in a separately 
+installed package in the Python path.
+
+These files should open a dialog box and perform the required operations, after
+which the results can either be saved to a new NeXus file or saved as 
+modifications to an existing tree item. 
+
+For example, ``get_ei.py`` reads the monitor spectra contained within the 
+currently selected node on the tree, which should have been previously loaded. 
+It then calculates the difference between the peak positions of the two spectra,
+calculates the incident energy, which is updated in both the dialog box and, if
+the ``Save`` button is pressed, in the loaded NeXus tree, ready for subsequent
+analysis.
+
+Obviously, some knowledge of PySide is necessary, although the example below 
+shows all the essential elements required in most cases: a grid to define a set 
+of parameters, functions to read those parameters from the PySide text boxes
+(here, they are decorated with ``@property``, which means that the function can
+be called without an argument), a couple of buttons to activate different parts 
+of the analysis, and finally the functions themselves. 
+
+.. seealso:: See :class:`nexpy.gui.importdialog.BaseDialog` for a list of
+             pre-defined dialog methods if the dialog uses it as the parent
+             class. In the example below, BaseDialog defines the function, 
+             ``get_node``, which returns the node currently selected in the
+             tree.
+
+Here is the code::
+
+ from PySide import QtGui
+ import numpy as np
+ from nexpy.gui.datadialogs import BaseDialog
+ from nexpy.gui.mainwindow import report_error
+ from nexpy.api.nexus import NeXusError
+
+
+ def show_dialog(parent=None):
+    try:
+        dialog = EnergyDialog(parent)
+        dialog.show()
+    except NeXusError as error:
+        report_error("Getting Incident Energy", error)
+        
+
+ class EnergyDialog(BaseDialog):
+
+    def __init__(self, parent=None):
+        super(EnergyDialog, self).__init__(parent)
+        node = self.get_node()
+        self.root = node.nxroot
+        if self.root.nxfilemode == 'r':
+            raise NeXusError('NeXus file opened as readonly')
+        layout = QtGui.QVBoxLayout()
+        grid = QtGui.QGridLayout()
+        grid.setSpacing(10)
+        self.m1_box = QtGui.QLineEdit()
+        self.m2_box = QtGui.QLineEdit()
+        self.ei_box = QtGui.QLineEdit()
+        self.mod_box = QtGui.QLineEdit()
+        grid.addWidget(QtGui.QLabel('Monitor 1 Distance:'), 0, 0)
+        grid.addWidget(QtGui.QLabel('Monitor 2 Distance:'), 1, 0)
+        grid.addWidget(QtGui.QLabel('Incident Energy:'), 2, 0)
+        grid.addWidget(QtGui.QLabel('Moderator Distance:'), 3, 0)
+        grid.addWidget(self.m1_box, 0, 1)
+        grid.addWidget(self.m2_box, 1, 1)
+        grid.addWidget(self.ei_box, 2, 1)
+        grid.addWidget(self.mod_box, 3, 1)
+        layout.addLayout(grid)
+        get_button = QtGui.QPushButton('Get Ei')
+        get_button.clicked.connect(self.get_ei)
+        layout.addWidget(get_button)
+        layout.addWidget(self.buttonbox(save=True))
+        self.setLayout(layout)
+        self.setWindowTitle('Get Incident Energy')
+
+        self.m1 = self.root['entry/monitor1']
+        self.m2 = self.root['entry/monitor2'] 
+        self.m1_box.setText(str(self.read_parameter(self.root,
+                            'entry/monitor1/distance')))
+        self.m2_box.setText(str(self.read_parameter(self.root,
+                            'entry/monitor2/distance')))
+        self.ei_box.setText(str(self.read_parameter(self.root,
+                            'entry/instrument/monochromator/energy')))
+        self.mod_box.setText(str(self.read_parameter(self.root,
+                             'entry/instrument/source/distance')))
+
+    @property
+    def m1_distance(self):
+        return np.float32(self.m1_box.text()) - self.moderator_distance
+
+    @property
+    def m2_distance(self):
+        return np.float32(self.m2_box.text()) - self.moderator_distance
+
+    @property
+    def Ei(self):
+        return np.float32(self.ei_box.text())
+
+    @property
+    def moderator_distance(self):
+        return np.float32(self.mod_box.text())
+
+    def get_ei(self):
+        t = 2286.26 * self.m1_distance / np.sqrt(self.Ei)
+        m1_time = self.m1[t-200.0:t+200.0].moment()
+        t = 2286.26 * self.m2_distance / np.sqrt(self.Ei)
+        m2_time = self.m2[t-200.0:t+200.0].moment()
+        self.ei_box.setText(str((2286.26 * (self.m2_distance - self.m1_distance) /
+                                   (m2_time - m1_time))**2))
+
+    def accept(self):
+        try:
+            self.root['entry/instrument/monochromator/energy'] = self.Ei
+        except NeXusError as error:
+            report_error("Getting Incident Energy", error)
+        super(EnergyDialog, self).accept()
+ 
 Configuring NeXpy
 -----------------
 The NeXpy shell imports the following NeXus classes::
@@ -608,6 +794,8 @@ NXsample, *etc*).
 For convenience, the NeXpy shell also imports a number of other modules that are 
 commonly used::
 
+ import sys
+ import os
  import numpy as np
  import numpy.ma as ma
  import scipy as sp

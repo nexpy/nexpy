@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>NeXus Tree API Modules &mdash; NeXpy 0.3.0 documentation</title>
+    <title>NeXus Tree API Modules &mdash; NeXpy 0.4.0 documentation</title>
     
     <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.3.0',
+        VERSION:     '0.4.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -25,7 +25,7 @@
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="shortcut icon" href="_static/favicon.ico"/>
-    <link rel="top" title="NeXpy 0.3.0 documentation" href="index.html" />
+    <link rel="top" title="NeXpy 0.4.0 documentation" href="index.html" />
     <link rel="next" title="Adding a File Importer" href="readers.html" />
     <link rel="prev" title="Python Interface to NeXus" href="pythonshell.html" /> 
   </head>
@@ -45,7 +45,7 @@
         <li class="right" >
           <a href="pythonshell.html" title="Python Interface to NeXus"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">NeXpy 0.3.0 documentation</a> &raquo;</li> 
+        <li><a href="index.html">NeXpy 0.4.0 documentation</a> &raquo;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar">
@@ -558,12 +558,6 @@ to store an NXsample group to be added to another file at a later time.</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">root</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
 </pre></div>
 </div>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="nexpy.api.nexus.tree.NXobject.saved">
-<tt class="descname">saved</tt><a class="headerlink" href="#nexpy.api.nexus.tree.NXobject.saved" title="Permalink to this definition">¶</a></dt>
-<dd><p>Property: Returns True if the object has been saved to a file.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -1222,9 +1216,21 @@ the above examples become:</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="nexpy.api.nexus.tree.NXgroup.get">
+<tt class="descname">get</tt><big>(</big><em>name</em>, <em>default=None</em><big>)</big><a class="headerlink" href="#nexpy.api.nexus.tree.NXgroup.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves the group entry, or return default if it doesn&#8217;t exist</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="nexpy.api.nexus.tree.NXgroup.keys">
 <tt class="descname">keys</tt><big>(</big><big>)</big><a class="headerlink" href="#nexpy.api.nexus.tree.NXgroup.keys" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the names of NeXus objects in the group.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nexpy.api.nexus.tree.NXgroup.iterkeys">
+<tt class="descname">iterkeys</tt><big>(</big><big>)</big><a class="headerlink" href="#nexpy.api.nexus.tree.NXgroup.iterkeys" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get an iterator over group object names</p>
 </dd></dl>
 
 <dl class="method">
@@ -1234,9 +1240,21 @@ the above examples become:</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="nexpy.api.nexus.tree.NXgroup.itervalues">
+<tt class="descname">itervalues</tt><big>(</big><big>)</big><a class="headerlink" href="#nexpy.api.nexus.tree.NXgroup.itervalues" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get an iterator over group objects</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="nexpy.api.nexus.tree.NXgroup.items">
 <tt class="descname">items</tt><big>(</big><big>)</big><a class="headerlink" href="#nexpy.api.nexus.tree.NXgroup.items" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a list of the NeXus objects in the group as (key,value) pairs.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nexpy.api.nexus.tree.NXgroup.iteritems">
+<tt class="descname">iteritems</tt><big>(</big><big>)</big><a class="headerlink" href="#nexpy.api.nexus.tree.NXgroup.iteritems" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get an iterator over (name, object) pairs</p>
 </dd></dl>
 
 <dl class="method">
@@ -1895,7 +1913,7 @@ parameters, specifying markers, colors, etc, can be specified using the
         <li class="right" >
           <a href="pythonshell.html" title="Python Interface to NeXus"
              >previous</a> |</li>
-        <li><a href="index.html">NeXpy 0.3.0 documentation</a> &raquo;</li> 
+        <li><a href="index.html">NeXpy 0.4.0 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">

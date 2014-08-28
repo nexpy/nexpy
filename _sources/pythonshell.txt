@@ -299,6 +299,9 @@ dictionary items::
  >>> sample["temperature"] = 40.0
  >>> sample.keys()
  ['temperature']
+ 
+.. note:: It is also possible to reference objects by their complete paths with
+          respect to the root object, *e.g.*, root['/entry/sample/temperature'].
 
 If a group is not created as another group attribute, its internal name defaults
 to the class name without the 'NX' prefix. This can be useful in automatically

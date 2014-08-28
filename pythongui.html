@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Python Graphical User Interface &mdash; NeXpy 0.3.0 documentation</title>
+    <title>Python Graphical User Interface &mdash; NeXpy 0.4.0 documentation</title>
     
     <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.3.0',
+        VERSION:     '0.4.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -25,7 +25,7 @@
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="shortcut icon" href="_static/favicon.ico"/>
-    <link rel="top" title="NeXpy 0.3.0 documentation" href="index.html" />
+    <link rel="top" title="NeXpy 0.4.0 documentation" href="index.html" />
     <link rel="next" title="Python Interface to NeXus" href="pythonshell.html" />
     <link rel="prev" title="Installation" href="includeme.html" /> 
   </head>
@@ -45,7 +45,7 @@
         <li class="right" >
           <a href="includeme.html" title="Installation"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">NeXpy 0.3.0 documentation</a> &raquo;</li> 
+        <li><a href="index.html">NeXpy 0.4.0 documentation</a> &raquo;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar">
@@ -57,6 +57,7 @@
 <li><a class="reference internal" href="#file-menu">File Menu</a></li>
 <li><a class="reference internal" href="#data-menu">Data Menu</a></li>
 <li><a class="reference internal" href="#window-menu">Window Menu</a></li>
+<li><a class="reference internal" href="#script-menu">Script Menu</a></li>
 <li><a class="reference internal" href="#other-menus">Other Menus</a></li>
 </ul>
 </li>
@@ -71,6 +72,7 @@
 <li><a class="reference internal" href="#defining-a-reader">Defining a Reader</a></li>
 </ul>
 </li>
+<li><a class="reference internal" href="#nexpy-plugins">NeXpy Plugins</a></li>
 <li><a class="reference internal" href="#configuring-nexpy">Configuring NeXpy</a></li>
 </ul>
 </li>
@@ -347,13 +349,9 @@ non-linear least-squares fitting module.</p>
 <div class="section" id="window-menu">
 <h3>Window Menu<a class="headerlink" href="#window-menu" title="Permalink to this headline">¶</a></h3>
 <dl class="docutils">
-<dt><strong>New Plot Window</strong></dt>
-<dd>Opens a new NeXpy plotting window, consisting of a Matplotlib plot pane and
-its associated axis panels. NeXpy plot commands will be directed to the
-currently active window. Clicking on the plot pane makes it active. All
-open windows are listed in the Window menu, along with their labels (&#8216;Main&#8217;,
-&#8216;Figure 1&#8217;, &#8216;Figure 2&#8217;, <em>etc</em>.). These are used to switch the focus for
-subsequent plots.</dd>
+<dt><strong>Show Log File</strong></dt>
+<dd>Opens a text window containing the NeXpy log file. This currently records
+operations on the tree items, as well as console errors.</dd>
 <dt><strong>Change Plot Limits</strong></dt>
 <dd>This gives a dialog box that allows the axis limits of the currently active
 plot to be changed. This is useful if you want to expand the limits beyond
@@ -370,7 +368,49 @@ limits.</p>
 <dt><strong>Show Projection Panel</strong></dt>
 <dd>Show the projection panel for the currently active plotting window. This is
 equivalent to clicking on &#8216;Show Panel&#8217; in the projection tab (see below).</dd>
+<dt><strong>New Plot Window</strong></dt>
+<dd>Opens a new NeXpy plotting window, consisting of a Matplotlib plot pane and
+its associated axis panels. NeXpy plot commands will be directed to the
+currently active window. Clicking on the plot pane makes it active. All
+open windows are listed in the Window menu, along with their labels (&#8216;Main&#8217;,
+&#8216;Figure 1&#8217;, &#8216;Figure 2&#8217;, <em>etc</em>.). These are used to switch the focus for
+subsequent plots.</dd>
+<dt><strong>Main, Figure 1, Figure 2...</strong></dt>
+<dd>These menu items set the selected plotting window to be active. As
+new windows are created, they are dynamically added to this list.</dd>
 </dl>
+</div>
+<div class="section" id="script-menu">
+<h3>Script Menu<a class="headerlink" href="#script-menu" title="Permalink to this headline">¶</a></h3>
+<dl class="docutils">
+<dt><strong>New Script</strong></dt>
+<dd><p class="first">Opens a new script in an editable text window with syntax coloring. The
+Python code can be run within the IPython console at any time using the
+console namespace. That means that all the items on the NeXpy tree are also
+accessible without further imports.</p>
+<p>The scripts can be saved for future use from within NeXpy or from the
+terminal command line. They can therefore be formatted as a Python
+standalone script to be either run as <tt class="docutils literal"><span class="pre">python</span> <span class="pre">script.py</span></tt> or run in the
+console (similar to the IPython &#8216;run magic&#8217;, <em>i.e.</em>, <tt class="docutils literal"><span class="pre">%run</span> <span class="pre">-i</span> <span class="pre">script.py</span></tt>).
+Script arguments can be entered in a separate text window at the bottom of
+the window and accessed within the script in the &#8216;sys.argv&#8217; list.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Script arguments are just text strings, so if the argument is a
+node on the tree, it must be referenced as a tree dictionary item,
+<em>e.g.</em>, <tt class="docutils literal"><span class="pre">nxtree[sys.argv[1]]</span></tt></p>
+</div>
+<p class="last">Scripts are saved, by default, in <tt class="docutils literal"><span class="pre">~/.nexpy/scripts</span></tt>, and are
+automatically added to the bottom of the Script Menu.</p>
+</dd>
+<dt><strong>Open Script</strong></dt>
+<dd>Opens an existing Python script file in an editable text window.</dd>
+</dl>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The currently selected node in the NeXpy tree can be referenced in
+the script as <tt class="docutils literal"><span class="pre">treeview.node</span></tt>.</p>
+</div>
 </div>
 <div class="section" id="other-menus">
 <h3>Other Menus<a class="headerlink" href="#other-menus" title="Permalink to this headline">¶</a></h3>
@@ -386,7 +426,7 @@ of class NXtree, known as &#8216;tree&#8217;. If you create a NeXus group dynami
 iPython shell, it can be added to the tree pane using the tree&#8217;s add method:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">=</span><span class="n">NXroot</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">entry</span> <span class="o">=</span> <span class="n">NXentry</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">tree</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nxtree</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>If the group is an NXroot group, it will have the name used in the shell.
@@ -539,7 +579,7 @@ saved fit.</p>
 <div class="section" id="defining-a-function">
 <h3>Defining a function<a class="headerlink" href="#defining-a-function" title="Permalink to this headline">¶</a></h3>
 <p>User-defined functions can be added to their private functions directory in
-~/.nexpy/functions. The file must define the name of the function, a list of
+<tt class="docutils literal"><span class="pre">~/.nexpy/functions</span></tt>. The file must define the name of the function, a list of
 parameter names, and provide two modules to return the function values and
 starting parameters, respectively.</p>
 <p>As an example, here is the complete Gaussian function:</p>
@@ -635,7 +675,7 @@ parameters, but there are plans to add that in the future.</p>
 <p>With a little knowledge of PyQt, it is possible to add a reader to the
 <a class="reference external" href="File:Import">File:Import</a> menu using the existing samples as a guide in the nexpy.readers
 directory. User-defined import dialogs can be added to their private readers
-directory in ~/.nexpy/readers.</p>
+directory in <tt class="docutils literal"><span class="pre">~/.nexpy/readers</span></tt>.</p>
 <p>Here is an example of an import dialog:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Module to read in a TIFF file and convert it to NeXus.</span>
@@ -688,9 +728,155 @@ directory in ~/.nexpy/readers.</p>
 </div>
 <div class="admonition seealso">
 <p class="first admonition-title">See also</p>
-<p class="last">See <a class="reference internal" href="importdialog.html#nexpy.gui.importdialog.BaseImportDialog" title="nexpy.gui.importdialog.BaseImportDialog"><tt class="xref py py-class docutils literal"><span class="pre">nexpy.gui.importdialog.BaseImportDialog</span></tt></a> for other
-pre-defined import methods.</p>
+<p class="last">See <a class="reference internal" href="importdialog.html#nexpy.gui.importdialog.BaseImportDialog" title="nexpy.gui.importdialog.BaseImportDialog"><tt class="xref py py-class docutils literal"><span class="pre">nexpy.gui.importdialog.BaseImportDialog</span></tt></a> and its parent
+<tt class="xref py py-class docutils literal"><span class="pre">nexpy.gui.importdialog.BaseDialog</span></tt> for other
+pre-defined methods.</p>
 </div>
+</div>
+</div>
+<div class="section" id="nexpy-plugins">
+<h2>NeXpy Plugins<a class="headerlink" href="#nexpy-plugins" title="Permalink to this headline">¶</a></h2>
+<p>It is possible to customize NeXpy by adding new menus to the main menu bar
+with sub-menus that open dialog boxes for operations that are specific to a
+particular domain. These will be automatically loaded from either the
+<tt class="docutils literal"><span class="pre">nexpy.plugins</span></tt> directory within the installed NeXpy distribution or from the
+users&#8217; <tt class="docutils literal"><span class="pre">~/.nexpy/plugins</span></tt> directory.</p>
+<p>The new menu should be defined as a Python package, <em>i.e.</em>, by creating a
+sub-directory within the plugins directory that contains <tt class="docutils literal"><span class="pre">__init__.py</span></tt> to
+define the menu actions.</p>
+<p>There is an example package, <tt class="docutils literal"><span class="pre">chopper</span></tt>, in the <tt class="docutils literal"><span class="pre">nexpy.examples</span></tt> directory,
+to show how plugins can work. It adds a top-level menu item, <tt class="docutils literal"><span class="pre">chopper</span></tt>, that
+has a couple of menu items to perform data analysis on the example file,
+<tt class="docutils literal"><span class="pre">chopper.nxs</span></tt>, which is distributed with NeXpy.</p>
+<p>Here is the <tt class="docutils literal"><span class="pre">__init__.py</span></tt> file:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">PySide</span> <span class="kn">import</span> <span class="n">QtGui</span>
+<span class="kn">import</span> <span class="nn">get_ei</span><span class="o">,</span> <span class="nn">convert_qe</span>
+
+<span class="k">def</span> <span class="nf">plugin_menu</span><span class="p">(</span><span class="n">parent</span><span class="p">):</span>
+    <span class="n">menu</span> <span class="o">=</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QMenu</span><span class="p">(</span><span class="s">&#39;Chopper&#39;</span><span class="p">)</span>
+    <span class="n">menu</span><span class="o">.</span><span class="n">addAction</span><span class="p">(</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QAction</span><span class="p">(</span><span class="s">&#39;Get Incident Energy&#39;</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span>
+                   <span class="n">triggered</span><span class="o">=</span><span class="n">get_ei</span><span class="o">.</span><span class="n">show_dialog</span><span class="p">))</span>
+    <span class="n">menu</span><span class="o">.</span><span class="n">addAction</span><span class="p">(</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QAction</span><span class="p">(</span><span class="s">&#39;Convert to Q-E&#39;</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span>
+                   <span class="n">triggered</span><span class="o">=</span><span class="n">convert_qe</span><span class="o">.</span><span class="n">show_dialog</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">menu</span>
+</pre></div>
+</div>
+<p>The QAction calls define the menu text and the function that gets called when it
+is selected. In the example, they are contained within the package as two files,
+<tt class="docutils literal"><span class="pre">get_ei.py</span></tt> and <tt class="docutils literal"><span class="pre">convert_qe.py</span></tt>, but they could also be in a separately
+installed package in the Python path.</p>
+<p>These files should open a dialog box and perform the required operations, after
+which the results can either be saved to a new NeXus file or saved as
+modifications to an existing tree item.</p>
+<p>For example, <tt class="docutils literal"><span class="pre">get_ei.py</span></tt> reads the monitor spectra contained within the
+currently selected node on the tree, which should have been previously loaded.
+It then calculates the difference between the peak positions of the two spectra,
+calculates the incident energy, which is updated in both the dialog box and, if
+the <tt class="docutils literal"><span class="pre">Save</span></tt> button is pressed, in the loaded NeXus tree, ready for subsequent
+analysis.</p>
+<p>Obviously, some knowledge of PySide is necessary, although the example below
+shows all the essential elements required in most cases: a grid to define a set
+of parameters, functions to read those parameters from the PySide text boxes
+(here, they are decorated with <tt class="docutils literal"><span class="pre">&#64;property</span></tt>, which means that the function can
+be called without an argument), a couple of buttons to activate different parts
+of the analysis, and finally the functions themselves.</p>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last">See <tt class="xref py py-class docutils literal"><span class="pre">nexpy.gui.importdialog.BaseDialog</span></tt> for a list of
+pre-defined dialog methods if the dialog uses it as the parent
+class. In the example below, BaseDialog defines the function,
+<tt class="docutils literal"><span class="pre">get_node</span></tt>, which returns the node currently selected in the
+tree.</p>
+</div>
+<p>Here is the code:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">PySide</span> <span class="kn">import</span> <span class="n">QtGui</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">nexpy.gui.datadialogs</span> <span class="kn">import</span> <span class="n">BaseDialog</span>
+<span class="kn">from</span> <span class="nn">nexpy.gui.mainwindow</span> <span class="kn">import</span> <span class="n">report_error</span>
+<span class="kn">from</span> <span class="nn">nexpy.api.nexus</span> <span class="kn">import</span> <span class="n">NeXusError</span>
+
+
+<span class="k">def</span> <span class="nf">show_dialog</span><span class="p">(</span><span class="n">parent</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+   <span class="k">try</span><span class="p">:</span>
+       <span class="n">dialog</span> <span class="o">=</span> <span class="n">EnergyDialog</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
+       <span class="n">dialog</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+   <span class="k">except</span> <span class="n">NeXusError</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
+       <span class="n">report_error</span><span class="p">(</span><span class="s">&quot;Getting Incident Energy&quot;</span><span class="p">,</span> <span class="n">error</span><span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">EnergyDialog</span><span class="p">(</span><span class="n">BaseDialog</span><span class="p">):</span>
+
+   <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+       <span class="nb">super</span><span class="p">(</span><span class="n">EnergyDialog</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
+       <span class="n">node</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_node</span><span class="p">()</span>
+       <span class="bp">self</span><span class="o">.</span><span class="n">root</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">nxroot</span>
+       <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">nxfilemode</span> <span class="o">==</span> <span class="s">&#39;r&#39;</span><span class="p">:</span>
+           <span class="k">raise</span> <span class="n">NeXusError</span><span class="p">(</span><span class="s">&#39;NeXus file opened as readonly&#39;</span><span class="p">)</span>
+       <span class="n">layout</span> <span class="o">=</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QVBoxLayout</span><span class="p">()</span>
+       <span class="n">grid</span> <span class="o">=</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QGridLayout</span><span class="p">()</span>
+       <span class="n">grid</span><span class="o">.</span><span class="n">setSpacing</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+       <span class="bp">self</span><span class="o">.</span><span class="n">m1_box</span> <span class="o">=</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QLineEdit</span><span class="p">()</span>
+       <span class="bp">self</span><span class="o">.</span><span class="n">m2_box</span> <span class="o">=</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QLineEdit</span><span class="p">()</span>
+       <span class="bp">self</span><span class="o">.</span><span class="n">ei_box</span> <span class="o">=</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QLineEdit</span><span class="p">()</span>
+       <span class="bp">self</span><span class="o">.</span><span class="n">mod_box</span> <span class="o">=</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QLineEdit</span><span class="p">()</span>
+       <span class="n">grid</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QLabel</span><span class="p">(</span><span class="s">&#39;Monitor 1 Distance:&#39;</span><span class="p">),</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+       <span class="n">grid</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QLabel</span><span class="p">(</span><span class="s">&#39;Monitor 2 Distance:&#39;</span><span class="p">),</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+       <span class="n">grid</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QLabel</span><span class="p">(</span><span class="s">&#39;Incident Energy:&#39;</span><span class="p">),</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+       <span class="n">grid</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QLabel</span><span class="p">(</span><span class="s">&#39;Moderator Distance:&#39;</span><span class="p">),</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+       <span class="n">grid</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">m1_box</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+       <span class="n">grid</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">m2_box</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+       <span class="n">grid</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ei_box</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+       <span class="n">grid</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mod_box</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+       <span class="n">layout</span><span class="o">.</span><span class="n">addLayout</span><span class="p">(</span><span class="n">grid</span><span class="p">)</span>
+       <span class="n">get_button</span> <span class="o">=</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QPushButton</span><span class="p">(</span><span class="s">&#39;Get Ei&#39;</span><span class="p">)</span>
+       <span class="n">get_button</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_ei</span><span class="p">)</span>
+       <span class="n">layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">get_button</span><span class="p">)</span>
+       <span class="n">layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">buttonbox</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+       <span class="bp">self</span><span class="o">.</span><span class="n">setLayout</span><span class="p">(</span><span class="n">layout</span><span class="p">)</span>
+       <span class="bp">self</span><span class="o">.</span><span class="n">setWindowTitle</span><span class="p">(</span><span class="s">&#39;Get Incident Energy&#39;</span><span class="p">)</span>
+
+       <span class="bp">self</span><span class="o">.</span><span class="n">m1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="p">[</span><span class="s">&#39;entry/monitor1&#39;</span><span class="p">]</span>
+       <span class="bp">self</span><span class="o">.</span><span class="n">m2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="p">[</span><span class="s">&#39;entry/monitor2&#39;</span><span class="p">]</span>
+       <span class="bp">self</span><span class="o">.</span><span class="n">m1_box</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">read_parameter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="p">,</span>
+                           <span class="s">&#39;entry/monitor1/distance&#39;</span><span class="p">)))</span>
+       <span class="bp">self</span><span class="o">.</span><span class="n">m2_box</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">read_parameter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="p">,</span>
+                           <span class="s">&#39;entry/monitor2/distance&#39;</span><span class="p">)))</span>
+       <span class="bp">self</span><span class="o">.</span><span class="n">ei_box</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">read_parameter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="p">,</span>
+                           <span class="s">&#39;entry/instrument/monochromator/energy&#39;</span><span class="p">)))</span>
+       <span class="bp">self</span><span class="o">.</span><span class="n">mod_box</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">read_parameter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="p">,</span>
+                            <span class="s">&#39;entry/instrument/source/distance&#39;</span><span class="p">)))</span>
+
+   <span class="nd">@property</span>
+   <span class="k">def</span> <span class="nf">m1_distance</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+       <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">m1_box</span><span class="o">.</span><span class="n">text</span><span class="p">())</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">moderator_distance</span>
+
+   <span class="nd">@property</span>
+   <span class="k">def</span> <span class="nf">m2_distance</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+       <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">m2_box</span><span class="o">.</span><span class="n">text</span><span class="p">())</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">moderator_distance</span>
+
+   <span class="nd">@property</span>
+   <span class="k">def</span> <span class="nf">Ei</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+       <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ei_box</span><span class="o">.</span><span class="n">text</span><span class="p">())</span>
+
+   <span class="nd">@property</span>
+   <span class="k">def</span> <span class="nf">moderator_distance</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+       <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mod_box</span><span class="o">.</span><span class="n">text</span><span class="p">())</span>
+
+   <span class="k">def</span> <span class="nf">get_ei</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+       <span class="n">t</span> <span class="o">=</span> <span class="mf">2286.26</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">m1_distance</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Ei</span><span class="p">)</span>
+       <span class="n">m1_time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">m1</span><span class="p">[</span><span class="n">t</span><span class="o">-</span><span class="mf">200.0</span><span class="p">:</span><span class="n">t</span><span class="o">+</span><span class="mf">200.0</span><span class="p">]</span><span class="o">.</span><span class="n">moment</span><span class="p">()</span>
+       <span class="n">t</span> <span class="o">=</span> <span class="mf">2286.26</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">m2_distance</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Ei</span><span class="p">)</span>
+       <span class="n">m2_time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">m2</span><span class="p">[</span><span class="n">t</span><span class="o">-</span><span class="mf">200.0</span><span class="p">:</span><span class="n">t</span><span class="o">+</span><span class="mf">200.0</span><span class="p">]</span><span class="o">.</span><span class="n">moment</span><span class="p">()</span>
+       <span class="bp">self</span><span class="o">.</span><span class="n">ei_box</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="nb">str</span><span class="p">((</span><span class="mf">2286.26</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">m2_distance</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">m1_distance</span><span class="p">)</span> <span class="o">/</span>
+                                  <span class="p">(</span><span class="n">m2_time</span> <span class="o">-</span> <span class="n">m1_time</span><span class="p">))</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span>
+
+   <span class="k">def</span> <span class="nf">accept</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+       <span class="k">try</span><span class="p">:</span>
+           <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="p">[</span><span class="s">&#39;entry/instrument/monochromator/energy&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Ei</span>
+       <span class="k">except</span> <span class="n">NeXusError</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
+           <span class="n">report_error</span><span class="p">(</span><span class="s">&quot;Getting Incident Energy&quot;</span><span class="p">,</span> <span class="n">error</span><span class="p">)</span>
+       <span class="nb">super</span><span class="p">(</span><span class="n">EnergyDialog</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">accept</span><span class="p">()</span>
+</pre></div>
 </div>
 </div>
 <div class="section" id="configuring-nexpy">
@@ -705,7 +891,9 @@ pre-defined import methods.</p>
 NXsample, <em>etc</em>).</p>
 <p>For convenience, the NeXpy shell also imports a number of other modules that are
 commonly used:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">numpy.ma</span> <span class="kn">as</span> <span class="nn">ma</span>
 <span class="kn">import</span> <span class="nn">scipy</span> <span class="kn">as</span> <span class="nn">sp</span>
 <span class="kn">import</span> <span class="nn">matplotlib</span> <span class="kn">as</span> <span class="nn">mpl</span>
@@ -746,7 +934,7 @@ For example, if you don&#8217;t want a blank line between each input line, edit
         <li class="right" >
           <a href="includeme.html" title="Installation"
              >previous</a> |</li>
-        <li><a href="index.html">NeXpy 0.3.0 documentation</a> &raquo;</li> 
+        <li><a href="index.html">NeXpy 0.4.0 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
