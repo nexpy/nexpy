@@ -31,6 +31,7 @@ knowledge of the file format.
    importdialog
    example_data
    example_scripts
+   example_plugins
 
 Indices and tables
 ==================
