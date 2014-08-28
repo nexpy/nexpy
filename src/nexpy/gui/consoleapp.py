@@ -231,7 +231,9 @@ class NXConsoleApp(BaseIPythonApplication, IPythonConsoleApp):
             s = ''.join(f.readlines())
             exec s in self.window.user_ns
         except:
-            s = ("import numpy as np\n"
+            s = ("import sys\n"
+                 "import os\n"
+                 "import numpy as np\n"
                  "import numpy.ma as ma\n"
                  "import scipy as sp\n"
                  "import matplotlib as mpl\n"
