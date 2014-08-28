@@ -225,13 +225,9 @@ Data Menu
 
 Window Menu
 ^^^^^^^^^^^
-**New Plot Window**
-    Opens a new NeXpy plotting window, consisting of a Matplotlib plot pane and 
-    its associated axis panels. NeXpy plot commands will be directed to the 
-    currently active window. Clicking on the plot pane makes it active. All 
-    open windows are listed in the Window menu, along with their labels ('Main',
-    'Figure 1', 'Figure 2', *etc*.). These are used to switch the focus for
-    subsequent plots.
+**Show Log File**
+    Opens a text window containing the NeXpy log file. This currently records 
+    operations on the tree items, as well as console errors.
 
 **Change Plot Limits**
     This gives a dialog box that allows the axis limits of the currently active
@@ -249,6 +245,43 @@ Window Menu
     Show the projection panel for the currently active plotting window. This is
     equivalent to clicking on 'Show Panel' in the projection tab (see below).
 
+**New Plot Window**
+    Opens a new NeXpy plotting window, consisting of a Matplotlib plot pane and 
+    its associated axis panels. NeXpy plot commands will be directed to the 
+    currently active window. Clicking on the plot pane makes it active. All 
+    open windows are listed in the Window menu, along with their labels ('Main',
+    'Figure 1', 'Figure 2', *etc*.). These are used to switch the focus for
+    subsequent plots.
+
+**Main, Figure 1, Figure 2...**
+    These menu items set the selected plotting window to be active. As
+    new windows are created, they are dynamically added to this list. 
+
+Script Menu
+^^^^^^^^^^^
+**New Script**
+    Opens a new script in an editable text window with syntax coloring. The 
+    Python code can be run within the IPython console at any time using the 
+    console namespace. That means that all the items on the NeXpy tree are also 
+    accessible without further imports. 
+    
+    The scripts can be saved for future use from within NeXpy or from the 
+    terminal command line. They can therefore be formatted as a Python 
+    standalone script to be either run as ``python script.py`` or run in the 
+    console (similar to the IPython 'run magic', *i.e.*, ``%run -i script.py``). 
+    Script arguments can be entered in a separate text window at the bottom of 
+    the window and accessed within the script in the 'sys.argv' list.
+
+    .. note:: Script arguments are just text strings, so if the argument is a
+              node on the tree, it must be referenced as a tree dictionary item,
+              *e.g.*, ``nxtree[sys.argv[1]]``
+
+    Scripts are saved, by default, in ~/.nexpy/scripts, and are automatically
+    added to the bottom of the Script Menu.
+
+**Open Script**
+    Opens an existing Python script file in an editable text window.
+
 Other Menus
 ^^^^^^^^^^^
 The Edit, View, Magic, and Help Menus currently consist of menu items 
@@ -263,7 +296,7 @@ iPython shell, it can be added to the tree pane using the tree's add method::
 
  >>> a=NXroot()
  >>> a.entry = NXentry()
- >>> tree.add(a)
+ >>> nxtree.add(a)
 
 If the group is an NXroot group, it will have the name used in the shell.
 If the group is not an NXroot group, the data will be wrapped automatically in 
