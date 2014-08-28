@@ -173,6 +173,21 @@ class BaseDialog(QtGui.QDialog):
         filenames = glob(prefix+'*'+extension)
         return sorted(filenames,key=natural_sort)
 
+    def read_parameter(self, root, path):
+        """
+        Read the value from the NeXus path.
+        
+        It will return 'None' if the path is not valid.
+        """
+        try:
+            value = root[path].nxdata
+            if isinstance(value, np.ndarray) and value.size == 1:
+                return np.float32(value)
+            else:
+                return value
+        except NeXusError:
+            return None 
+
     def accept(self):
         """
         Accepts the result.
