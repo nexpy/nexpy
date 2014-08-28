@@ -608,6 +608,8 @@ NXsample, *etc*).
 For convenience, the NeXpy shell also imports a number of other modules that are 
 commonly used::
 
+ import sys
+ import os
  import numpy as np
  import numpy.ma as ma
  import scipy as sp
