@@ -50,6 +50,8 @@ class ConvertDialog(BaseDialog):
 
         self.ei_box.setText(str(self.read_parameter(self.root,
                             'entry/instrument/monochromator/energy')))
+        self.dq_box.setText('0.5') #Currently hard-coded, but should be based on
+        self.de_box.setText('2.0') #the angular range and incident energy.
 
     @property
     def Ei(self):
@@ -68,7 +70,7 @@ class ConvertDialog(BaseDialog):
         self.L2 = np.mean(self.root['entry/instrument/detector/distance'])
         self.m1 = self.root['entry/monitor1']
         self.t_m1 = self.m1.moment()
-        self.d_m1 = - self.read_parameter(self.root, 'entry/monitor1/distance')
+        self.d_m1 = self.read_parameter(self.root, 'entry/monitor1/distance')
 
     def convert_tof(self, tof):
         ki = np.sqrt(self.Ei / 2.0721)
@@ -90,7 +92,7 @@ class ConvertDialog(BaseDialog):
         pol, tof = centers(entry.data.nxsignal, entry.data.nxaxes)
         en = self.convert_tof(tof)
 
-        idx_max = np.int(np.where(np.abs(en-0.75*self.Ei)<0.1)[0])
+        idx_max = min(np.where(np.abs(en-0.75*Ei)<0.1)[0])
 
         en = en[:idx_max]
 
