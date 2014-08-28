@@ -30,6 +30,7 @@ knowledge of the file format.
    readers
    importdialog
    example_data
+   example_scripts
 
 Indices and tables
 ==================
