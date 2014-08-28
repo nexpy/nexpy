@@ -90,6 +90,7 @@ class ScriptDialog(BaseDialog):
  
         layout = QtGui.QVBoxLayout()
         self.text_box = QtGui.QPlainTextEdit()
+        self.text_box.setFont(QtGui.QFont('Courier'))
         self.file_name = file_name
         from consoleapp import _nexpy_dir
         self.default_directory = os.path.join(_nexpy_dir, 'scripts')
