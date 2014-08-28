@@ -2429,46 +2429,67 @@ class NXgroup(NXobject):
         """
         if self.nxfilemode == 'r':
             raise NeXusError('NeXus file opened as readonly')
-        group = self
-        if '/' in key:
-            names = [name for name in key.split('/') if name]
-            key = names.pop()
-            for name in names:
-                if name in group:
-                    group = group[name]
-                else:
-                    raise NeXusError('Invalid path')        
-        if key in group and isinstance(group._entries[key], NXlink):
-            raise NeXusError("Cannot assign values to an NXlink object")
-        if isinstance(value, NXroot):
-            raise NeXusError("Cannot assign an NXroot group to another group")
-        elif isinstance(value, NXlink) and group.nxroot == value.nxroot:
-            group._entries[key] = copy(value)
-        elif isinstance(value, NXobject):
-            if value.nxgroup:
-                memo = {}
-                value = deepcopy(value, memo)
-            value._group = group
-            value._name = key
-            group._entries[key] = value
-        elif key in group.entries:
-            group._entries[key]._setdata(value)
+        if isinstance(key, basestring):
+            group = self
+            if '/' in key:
+                names = [name for name in key.split('/') if name]
+                key = names.pop()
+                for name in names:
+                    if name in group:
+                        group = group[name]
+                    else:
+                        raise NeXusError('Invalid path')
+            if key in group and isinstance(group._entries[key], NXlink):
+                raise NeXusError("Cannot assign values to an NXlink object")
+            if isinstance(value, NXroot):
+                raise NeXusError("Cannot assign an NXroot group to another group")
+            elif isinstance(value, NXlink) and group.nxroot == value.nxroot:
+                group._entries[key] = copy(value)
+            elif isinstance(value, NXobject):
+                if value.nxgroup:
+                    memo = {}
+                    value = deepcopy(value, memo)
+                value._group = group
+                value._name = key
+                group._entries[key] = value
+            elif key in group.entries:
+                group._entries[key]._setdata(value)
+            else:
+                group._entries[key] = NXfield(value=value, name=key, group=group)
+            if isinstance(group._entries[key], NXfield):
+                field = group._entries[key]
+                if not field._value is None:
+                    if isinstance(field._value, np.ma.MaskedArray):
+                        mask_name = field._create_mask()
+                        group[mask_name] = field._value.mask
+                elif field._memfile is not None:
+                    if 'mask' in field._memfile:
+                        mask_name = field._create_mask()
+                        group[mask_name]._create_memfile()
+                        field._memfile.copy('mask', group[mask_name]._memfile, 'data')
+                        del field._memfile['mask']
+            group.update()
+        elif self.nxsignal:
+            idx = key
+            if isinstance(value, NXdata):
+                value = value.nxsignal
+            if isinstance(idx, int) or isinstance(idx, slice):
+                axes = self.nxaxes
+                idx = convert_index(idx, axes[0])
+                self.nxsignal[idx] = value
+            else:
+                i = 0
+                slices = []
+                axes = self.nxaxes
+                for ind in idx:
+                    ind = convert_index(ind, axes[i])
+                    axes[i] = axes[i][ind]
+                    slices.append(ind)
+                    i = i + 1
+                self.nxsignal[tuple(slices)] = value
         else:
-            group._entries[key] = NXfield(value=value, name=key, group=group)
-        if isinstance(group._entries[key], NXfield):
-            field = group._entries[key]
-            if not field._value is None:
-                if isinstance(field._value, np.ma.MaskedArray):
-                    mask_name = field._create_mask()
-                    group[mask_name] = field._value.mask
-            elif field._memfile is not None:
-                if 'mask' in field._memfile:
-                    mask_name = field._create_mask()
-                    group[mask_name]._create_memfile()
-                    field._memfile.copy('mask', group[mask_name]._memfile, 'data')
-                    del field._memfile['mask']
-        group.update()
-    
+            raise NeXusError('Invalid index')
+
     def __delitem__(self, key):
         if self.nxfilemode == 'r':
             raise NeXusError('NeXus file opened as readonly')
