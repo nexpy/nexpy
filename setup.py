@@ -42,13 +42,19 @@ setup (name =  nexpy.__package_name__,        # NeXpy
        extras_require = nexpy.requires.extra_requirements,
        package_dir = {'': 'src'},
        packages = find_packages('src'),
+       include_package_data = True,
        package_data = {
+                       # wild card expressions after the last "/" must match files, not directories
                        'nexpy.gui': ['resources/icon/*.svg',
                                      'resources/*.png',
                                     ],
                        'nexpy.definitions': ['base_classes/*.xml'],
-                       'nexpy': ['examples/*'],
-                       },
+                       'nexpy': [
+                           'examples/*.*',
+                           'examples/*/*.*',
+                           'examples/*/*/*.*',
+                       ],
+                   },
        ext_modules=[ext_tiff, ],
        entry_points={
             # create & install scripts in <python>/bin
