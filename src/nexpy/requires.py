@@ -17,5 +17,8 @@ pkg_requirements = [
     'PySide>=1.1.0',
     'ipython>=1.1.0',
     'matplotlib',
-    'spec2nexus>=2014.0320.6',
 ]
+extra_requirements = {
+    'spec': ['spec2nexus>=2014.0320.6',],
+}
+
