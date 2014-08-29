@@ -73,8 +73,6 @@ class ImportDialog(BaseImportDialog):
         '''
         Opens file dialog, set file text box to the chosen path
         '''
-        import pkg_resources
-        pkg_resources.require("spec2nexus>=2014.0320.6")
         from spec2nexus.prjPySpec import SpecDataFile
 
         dirname = self.get_default_directory(self.filename.text())
