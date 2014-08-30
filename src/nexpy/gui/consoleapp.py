@@ -34,6 +34,7 @@ Authors:
 
 # stdlib imports
 import logging
+import logging.handlers
 import pkg_resources
 import os
 import signal
@@ -186,9 +187,13 @@ class NXConsoleApp(BaseIPythonApplication, IPythonConsoleApp):
 
     def init_log(self):
         log_file = os.path.join(_nexpy_dir, 'nexpy.log')
-        logging.basicConfig(filename=log_file, filemode='a',
-            format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-            level=logging.INFO)
+        hdlr = logging.handlers.RotatingFileHandler(log_file, maxBytes=10000, 
+                                                    backupCount=5)
+        fmt = logging.Formatter(
+            "%(asctime)s - %(name)s - %(levelname)s - %(message)s", None)
+        hdlr.setFormatter(fmt)
+        logging.root.addHandler(hdlr)
+        logging.root.setLevel(logging.INFO)
         logging.info('NeXpy launched')
 
     def init_tree(self):

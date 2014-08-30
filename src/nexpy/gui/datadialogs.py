@@ -19,7 +19,8 @@ from PySide import QtGui, QtCore
 import pkg_resources
 import numpy as np
 
-from nexpy.api.nexus import NXfield, NXgroup, NXattr, NXroot, NXentry, NXdata, NXparameters
+from nexpy.api.nexus import (NXgroup, NXattr, NXroot, NXentry, NXdata, 
+                             NXparameters)
 
 
 try:
@@ -158,7 +159,7 @@ class BaseDialog(QtGui.QDialog):
                 suggestion = os.path.dirname(suggestion)
             self.default_directory = suggestion
 
-    def get_filesindirectory(self, prefix='', extension='.*'):
+    def get_filesindirectory(self, prefix='', extension='.*', directory=None):
         """
         Returns a list of files in the selected directory.
         
@@ -166,7 +167,10 @@ class BaseDialog(QtGui.QDialog):
         numeric order when a file name consists of text and index so that, e.g., 
         'data2.tif' comes before 'data10.tif'.
         """
-        os.chdir(self.get_directory())
+        if directory:
+            os.chdir(directory)
+        else:
+            os.chdir(self.get_directory())
         if not extension.startswith('.'):
             extension = '.'+extension
         from glob import glob
@@ -1398,4 +1402,53 @@ class FitDialog(BaseDialog):
 
     def closeEvent(self, event):
         event.accept()
+
+class LogDialog(BaseDialog):
+    """Dialog to display a NeXpy log filt"""
+ 
+    def __init__(self, parent=None):
+
+        super(LogDialog, self).__init__(parent)
+ 
+        from consoleapp import _nexpy_dir
+        self.log_directory = _nexpy_dir
+
+        self.ansi_re = re.compile('\x1b' + r'\[([\dA-Fa-f;]*?)m')
+ 
+        layout = QtGui.QVBoxLayout()
+        self.text_box = QtGui.QPlainTextEdit()
+        self.text_box.setMinimumWidth(700)
+        self.text_box.setMinimumHeight(600)
+        layout.addWidget(self.text_box)
+        footer_layout = QtGui.QHBoxLayout()
+        self.file_combo = QtGui.QComboBox()
+        for file_name in self.get_filesindirectory('nexpy', extension='.log*',
+                                                   directory=self.log_directory):
+            self.file_combo.addItem(file_name)
+        self.file_combo.setCurrentIndex(self.file_combo.findText('nexpy.log'))
+        self.file_combo.currentIndexChanged.connect(self.show_log)
+        close_box = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Close)
+        close_box.rejected.connect(self.reject)
+        footer_layout.addStretch()
+        footer_layout.addWidget(self.file_combo)
+        footer_layout.addWidget(close_box)
+        layout.addLayout(footer_layout)
+        self.setLayout(layout)
+
+        self.show_log()
+
+    @property
+    def file_name(self):
+        return os.path.join(self.log_directory, self.file_combo.currentText())
+
+    def show_log(self):
+        f = open(self.file_name, 'r')
+        text = self.ansi_re.sub('', f.read())
+        f.close()
+        self.text_box.setPlainText(text)
+        self.text_box.verticalScrollBar().setValue(
+            self.text_box.verticalScrollBar().maximum())
+        self.setWindowTitle("Log File: %s" % self.file_name)
+
+
 

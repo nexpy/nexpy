@@ -55,7 +55,6 @@ pkg_resources.require("IPython>="+'1.1.0')
 from IPython.qt.console.rich_ipython_widget import RichIPythonWidget
 from IPython.qt.inprocess import QtInProcessKernelManager
 
-ansi_re = re.compile('\x1b' + r'\[([\dA-Fa-f;]*?)m')
 
 def report_error(context, error):
     title = type(error).__name__ + ': ' + context
@@ -1329,27 +1328,11 @@ class MainWindow(QtGui.QMainWindow):
 
     def show_log(self):
         try:
-            from consoleapp import _nexpy_dir
-            f = open(os.path.join(_nexpy_dir, 'nexpy.log'), 'r')
-            text = ansi_re.sub('', f.read())
-            f.close()
-            self.log_window = QtGui.QDialog(self)
-            layout = QtGui.QVBoxLayout()
-            text_box = QtGui.QPlainTextEdit(text)
-            text_box.setMinimumWidth(700)
-            text_box.setMinimumHeight(600)
-            layout.addWidget(text_box)
-            buttonbox = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Close)
-            buttonbox.rejected.connect(self.close_log)
-            layout.addWidget(buttonbox)
-            self.log_window.setLayout(layout)
-            self.log_window.exec_()
+            dialog = LogDialog(self)
+            dialog.show()
         except NeXusError as error:
             report_error("Showing Log File", error)
 
-    def close_log(self):
-        self.log_window.close()
-    
     def new_script(self):
         try:
             file_name = None
