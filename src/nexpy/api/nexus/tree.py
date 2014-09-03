@@ -2415,9 +2415,9 @@ class NXgroup(NXobject):
                 axes[i] = axes[i][ind]
                 slices.append(ind)
                 i = i + 1
-            result = NXdata(self.nxsignal.__getitem__(tuple(slices)), axes)
+            result = NXdata(self.nxsignal[tuple(slices)], axes)
             if self.nxerrors: 
-                result.errors = self.errors.__getitem__(tuple(slices))
+                result.errors = self.errors[tuple(slices)]
         if self.nxtitle:
             result.title = self.nxtitle
         result = simplify_axes(result)
