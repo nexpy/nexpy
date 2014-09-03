@@ -550,7 +550,12 @@ class NXPlot(object):
                 if np.issubdtype(self.v[0,0],int):
                     vmin = 0.1
                 else:
-                    vmin = np.nanmax(self.v)*1e-6
+                    vmax = np.nanmax(self.v)
+                    if vmax > 0.0:
+                        vmin = vmax*1e-6
+                    else:
+                        vmax = 0.1
+                        vmin = 0.1
                 self.v = self.v.clip(vmin)
             else:
                 vmin = self.vaxis.lo
@@ -569,6 +574,7 @@ class NXPlot(object):
         self.image.set_data(self.x, self.y, self.v)
         
         ax.images.append(self.image)
+        self.colorbar = self.figure.colorbar(self.image, ax=ax)
 
         xlo, xhi = ax.set_xlim(self.xaxis.min,self.xaxis.max)
         ylo, yhi = ax.set_ylim(self.yaxis.min,self.yaxis.max)
@@ -589,14 +595,6 @@ class NXPlot(object):
         else:
             self.yaxis.hi = yhi        
       
-        if self.colorbar:
-            try:
-                self.colorbar.update_normal(self.image)
-            except Exception:
-                self.colorbar = self.figure.colorbar(self.image, ax=ax)
-        else:
-            self.colorbar = self.figure.colorbar(self.image, ax=ax)
-
         ax.set_xlabel(self.xaxis.label)
         ax.set_ylabel(self.yaxis.label)
         ax.set_title(self.title)
@@ -672,6 +670,22 @@ class NXPlot(object):
         self.otab.push_current()
         self.canvas.draw_idle()
 
+    def replot_image(self):
+        if self.vtab.logbox.isChecked() and self.vaxis.lo <= 0:
+            vmax = self.vaxis.hi
+            if np.issubdtype(self.v[0,0], int):
+                vmin = 0.1
+            else:
+                if vmax > 0.0:
+                    vmin = vmax * 1e-6
+                else:
+                    vmin = 0.1
+        else:
+            vmin, vmax = self.vaxis.lo, self.vaxis.hi
+        self.colorbar.set_clim(vmin, vmax)
+        self.colorbar.draw_all()
+        self.canvas.draw_idle()
+
     def replot_logs(self):
         ax = self.figure.gca()
         if self.xtab.logbox.isChecked():
@@ -729,6 +743,7 @@ class NXPlot(object):
                                               self.ztab,'z')
             else:
                 self.tab_widget.removeTab(self.tab_widget.indexOf(self.ztab))
+                self.autoscale = False
             self.xtab.logbox.setChecked(False)
             self.xtab.logbox.setVisible(False)
             self.xtab.axiscombo.setVisible(True)
@@ -775,7 +790,9 @@ class NXPlot(object):
             self.vtab.set_axis(self.vaxis)
         elif tab == self.ztab:
             self.zaxis = self.ztab.axis = axis
-            self.ztab.set_axis(self.zaxis)  
+            self.ztab.set_axis(self.zaxis)
+            self.zaxis.locked = False
+            self.ztab.lockbox.setChecked(False)
         else:
             if tab == self.xtab:
                 self.zaxis = self.ztab.axis = self.xaxis
@@ -785,6 +802,8 @@ class NXPlot(object):
                 self.zaxis = self.ztab.axis = self.yaxis
                 self.yaxis = self.ytab.axis = axis
                 self.yaxis.locked = False
+            self.zaxis.locked = False
+            self.ztab.lockbox.setChecked(False)
             self.xaxis.set_limits(self.xaxis.min, self.xaxis.max)
             self.yaxis.set_limits(self.yaxis.min, self.yaxis.max)
             self.zaxis.set_limits(self.zaxis.min, self.zaxis.min)
@@ -833,6 +852,8 @@ class NXPlotAxis(object):
         else:
             self.min = None
             self.max = None
+        self.orig_min = self.min
+        self.orig_max = self.max
         self.centers = self.data
         self.lo = None
         self.hi = None
@@ -1034,7 +1055,7 @@ class NXPlotTab(QtGui.QWidget):
             self.plot.replot_axes()
         elif self.name == 'v':
             self.set_sliders(self.axis.lo, hi)
-            self.plot.plot2D()
+            self.plot.replot_image()
         self.minbox.old_value = self.minbox.value()
         self.maxbox.old_value = self.maxbox.value()
 
@@ -1057,7 +1078,7 @@ class NXPlotTab(QtGui.QWidget):
                 self.replotSignal.replot.emit()
         elif self.name == 'v':
             self.set_sliders(lo, self.axis.hi)
-            self.plot.plot2D()
+            self.plot.replot_image()
         self.minbox.old_value = self.minbox.value()
         self.maxbox.old_value = self.maxbox.value()
     
@@ -1075,7 +1096,7 @@ class NXPlotTab(QtGui.QWidget):
         if self.name == 'x' or self.name == 'y':
             self.plot.replot_axes()
         else:
-            self.plot.plot2D()
+            self.plot.replot_image()
         self.block_signals(False)
 
     def read_maxslider(self):
@@ -1092,7 +1113,7 @@ class NXPlotTab(QtGui.QWidget):
         if self.name == 'x' or self.name == 'y':
             self.plot.replot_axes()
         else:
-            self.plot.plot2D()
+            self.plot.replot_image()
         self.block_signals(False)
 
     def set_sliders(self, lo, hi):
@@ -1164,10 +1185,7 @@ class NXPlotTab(QtGui.QWidget):
         axis = self.plot.axis[self.axiscombo.currentText()]
         self.plot.change_axis(self, axis)
         if self.lockbox:
-            if self.axis.locked:
-                self.lockbox.setCheckState(QtCore.Qt.Checked)
-            else:
-                self.lockbox.setCheckState(QtCore.Qt.Unchecked)
+            self.lockbox.setCheckState(QtCore.Qt.Unchecked)
 
     def get_axes(self):
         if self.zaxis:
