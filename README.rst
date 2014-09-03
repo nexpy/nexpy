@@ -94,11 +94,6 @@ spec2nexus         http://spec2nexus.readthedocs.org/
 .. note:: NeXpy should still run without these additional packages, but invoking
           the relevant menu items will trigger an exception.
 
-.. warning:: The current version of NeXpy (0.4.0) has spec2nexus as a 
-             requirement. This will be corrected in a future release. In the 
-             meantime, please install it using ``pip install spec2nexus`` or
-             ``easy_install spec2nexus``.
-
 Semantic Versioning
 -------------------
 With the release of v0.1.0, NeXpy is using `Semantic Versioning 
