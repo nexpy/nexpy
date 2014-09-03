@@ -19,8 +19,8 @@ from PySide import QtGui, QtCore
 import pkg_resources
 import numpy as np
 
-from nexpy.api.nexus import (NXgroup, NXattr, NXroot, NXentry, NXdata, 
-                             NXparameters)
+from nexpy.api.nexus import (NeXusError, NXgroup, NXfield, NXattr,
+                             NXroot, NXentry, NXdata, NXparameters)
 
 
 try:
