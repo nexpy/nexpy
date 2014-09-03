@@ -46,7 +46,9 @@ from treeview import NXTreeView
 from plotview import NXPlotView
 from datadialogs import *
 from scripteditor import ScriptDialog
-from nexpy.api.nexus.tree import nxload, NeXusError, NXFile, NXlink, NXobject
+from nexpy.api.nexus.tree import (nxload, NeXusError, NXFile, 
+                                  NXobject, NXfield, NXgroup, NXlink,
+                                  NXroot, NXentry)
 
 # IPython imports
 # require minimum version of IPython for RichIPythonWidget()
@@ -99,7 +101,7 @@ class MainWindow(QtGui.QMainWindow):
 
         rightpane = QtGui.QWidget()
 
-        self.plotview = NXPlotView(label="Main",parent=rightpane)
+        self.plotview = NXPlotView(label="Main", parent=rightpane)
         self.plotview.setMinimumSize(700, 550)
 
         self.console = RichIPythonWidget(config=self.config, parent=rightpane)
@@ -162,8 +164,8 @@ class MainWindow(QtGui.QMainWindow):
         self.init_menu_bar()
 
         self.file_filter = ';;'.join((
-             "NeXus Files (*.nxs *.nx5 *.h5 *.hdf *.hdf5)",
-	         "Any Files (*.* *)"))
+            "NeXus Files (*.nxs *.nx5 *.h5 *.hdf *.hdf5)",
+            "Any Files (*.* *)"))
         self.setWindowTitle('NeXpy')
         self.statusBar().showMessage('Ready')
         self.console._control.setFocus()
@@ -909,7 +911,6 @@ class MainWindow(QtGui.QMainWindow):
             report_error("Unlocking File", error)
 
     def show_import_dialog(self):
-        sender = self.sender()
         import_module = self.importer[self.sender()]
         self.import_dialog = import_module.ImportDialog()
         self.import_dialog.show()
