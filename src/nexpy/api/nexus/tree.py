@@ -382,21 +382,22 @@ class NXFile(object):
                     value = None
             else:
                 value = None
-            data = NXfield(value=value,name=name,dtype=dtype,shape=shape,attrs=attrs)
+            data = NXfield(value=value, name=name, dtype=dtype, shape=shape,
+                           attrs=attrs)
         data._changed = True
         return data
 
     def _readnxclass(self, obj):        # see issue #33
         nxclass = obj.attrs.get('NX_class', None)
-        if isinstance(nxclass, np.ndarray):     # attribute reported as DATATYPE SIMPLE
-            nxclass = nxclass[0]                # convert as if DATATYPE SCALAR
+        if isinstance(nxclass, np.ndarray): # attribute reported as DATATYPE SIMPLE
+            nxclass = nxclass[0]            # convert as if DATATYPE SCALAR
         return nxclass
 
     def _readchildren(self):
         children = {}
-        for name, value in self[self.nxpath].items():
-            self.nxpath = value.name
-            nxclass = self._readnxclass(value)  # TODO: where is this used?
+        parent_path = self.nxpath
+        for name, value in self[parent_path].items():
+            self.nxpath = parent_path + '/' + name
             if isinstance(value, h5.Group):
                 children[name] = self._readgroup()
             else:
@@ -628,6 +629,7 @@ def _readaxes(axes):
 
     The delimiter separating each axis can be white space, a comma, or a colon.
     """
+    axes = str(axes)
     import re
     sep=re.compile('[\[]*(\s*,*:*)+[\]]*')
     return filter(lambda x: len(x)>0, sep.split(axes))
@@ -638,6 +640,9 @@ class AttrDict(dict):
     """
     A dictionary class to assign all attributes to the NXattr class.
     """
+
+    def __getitem__(self, key):
+        return super(AttrDict, self).__getitem__(key).nxdata
 
     def __setitem__(self, key, value):
         if isinstance(value, NXattr):
@@ -853,10 +858,10 @@ class NXobject(object):
             txt1 = u" "*indent
             txt2 = u"@" + unicode(k)
             try:
-                txt3 = u" = " + unicode(str(self.attrs[k].nxdata))
+                txt3 = u" = " + unicode(str(self.attrs[k]))
             except UnicodeDecodeError, err:
                 # this is a wild assumption to read non-compliant strings from Soleil
-                txt3 = u" = " + unicode(str(self.attrs[k].nxdata), "ISO-8859-1")
+                txt3 = u" = " + unicode(str(self.attrs[k]), "ISO-8859-1")
             txt = txt1 + txt2 + txt3
             result.append(txt)
         return "\n".join(result)
@@ -1399,7 +1404,7 @@ class NXfield(NXobject):
         elif name in _npattrs:
             return self.nxdata.__getattribute__(name)
         elif name in self.attrs:
-            return self.attrs[name].nxdata
+            return self.attrs[name]
         raise KeyError(name+" not in "+self.nxname)
 
     def __setattr__(self, name, value):
@@ -1414,10 +1419,7 @@ class NXfield(NXobject):
             return
         if self.nxfilemode == 'r':
             raise NeXusError('NeXus file opened as readonly')
-        if isinstance(value, NXattr):
-            self._attrs[name] = value
-        else:
-            self._attrs[name] = NXattr(value)
+        self._attrs[name] = value
         if self.nxfilemode == 'rw':
             with self.nxfile as f:
                 f.nxpath = self.nxpath
@@ -1483,7 +1485,7 @@ class NXfield(NXobject):
             result = f[self.nxpath][idx]
             if 'mask' in self.attrs:
                 try:
-                    mask = self.nxgroup[self.attrs['mask'].nxdata]
+                    mask = self.nxgroup[self.attrs['mask']]
                     result = np.ma.array(result, mask=f[mask.nxpath][idx])
                 except KeyError:
                     pass
@@ -1556,7 +1558,7 @@ class NXfield(NXobject):
         """
         if self.nxgroup:
             if 'mask' in self.attrs:
-                mask_name = self.attrs['mask'].nxdata
+                mask_name = self.attrs['mask']
                 if mask_name in self.nxgroup.entries:
                     return mask_name
             mask_name = '%s_mask' % self.nxname
@@ -1923,7 +1925,7 @@ class NXfield(NXobject):
         if 'mask' in self.attrs:
             if self.nxgroup:
                 try:
-                    return self.nxgroup[self.attrs['mask'].nxdata]
+                    return self.nxgroup[self.attrs['mask']]
                 except KeyError:
                     pass
             del self.attrs['mask']
@@ -1938,7 +1940,7 @@ class NXfield(NXobject):
     def _setmask(self, value):
         if 'mask' in self.attrs:
             if self.nxgroup:
-                mask_name = self.attrs['mask'].nxdata
+                mask_name = self.attrs['mask']
                 if mask_name in self.nxgroup.entries:
                     self.nxgroup[mask_name][()] = value
             else:
@@ -2311,7 +2313,7 @@ class NXgroup(NXobject):
         elif key in self._entries:
             return self._entries[key]
         elif key in self.attrs:
-            return self.attrs[key].nxdata
+            return self.attrs[key]
         raise NeXusError(key+" not in "+self.nxclass+":"+self.nxname)
 
     def __setattr__(self, name, value):
@@ -2770,13 +2772,16 @@ class NXgroup(NXobject):
         signals = {}
         for obj in self.entries.values():
             if 'signal' in obj.attrs:
-                signals[obj.attrs['signal'].nxdata] = obj
+                signals[obj.attrs['signal']] = obj
         return signals
 
     def _signal(self):
         """
         Returns the NXfield containing the signal data.
         """
+        if 'signal' in self.attrs:
+            if self.attrs['signal'] in self.entries:
+                return self[self.attrs['signal']]
         for obj in self.entries.values():
             if 'signal' in obj.attrs and str(obj.signal) == '1':
                 if isinstance(self[obj.nxname],NXlink):
@@ -2793,11 +2798,14 @@ class NXgroup(NXobject):
         """
         current_signal = self._signal()
         if current_signal:
-            current_signal.signal = NXattr(2)
-            if 'axes' not in signal.attrs and 'axes' in current_signal.attrs:
-                signal.axes = current_signal.axes
-        self.entries[signal.nxname] = signal
-        self.entries[signal.nxname].signal = NXattr(1)
+            current_signal.attrs['signal'] = 2
+            if 'axes' in self.attrs and 'axes' not in current_signal.attrs:
+                current_signal.attrs['axes'] = self.attrs['axes']
+            if 'axes' not in self.attrs and 'axes' in current_signal.attrs:
+                self.attrs['signal'] = current_signal.attrs['axes']
+        self.attrs['signal'] = signal.nxname
+        if signal.nxname not in self:
+            self.entries[signal.nxname] = signal
         return self.entries[signal.nxname]
 
     def _axes(self):
@@ -2805,7 +2813,11 @@ class NXgroup(NXobject):
         Returns a list of NXfields containing the axes.
         """
         try:
-            return [getattr(self,name) for name in _readaxes(self.nxsignal.axes)]
+            if 'axes' in self.attrs:
+                axes = _readaxes(self.attrs['axes'])
+            elif 'axes' in self.nxsignal.attrs:
+                axes = _readaxes(self.nxsignal.attrs['axes'])
+            return [getattr(self, name) for name in axes]
         except (KeyError, AttributeError):
             axes = {}
             for entry in self._entries:
@@ -2827,7 +2839,11 @@ class NXgroup(NXobject):
         for axis in axes:
             if axis.nxname not in self.keys():
                 self.insert(axis)
-        self.nxsignal.axes = NXattr(":".join([axis.nxname for axis in axes]))
+        axes_attr = ":".join([axis.nxname for axis in axes])
+        if 'signal' in self.attrs:
+            self.attrs['axes'] = axes_attr
+        else:
+            self.nxsignal.attrs['axes'] = axes_attr
 
     def _errors(self):
         """
