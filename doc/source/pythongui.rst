@@ -796,6 +796,7 @@ commonly used::
 
  import sys
  import os
+ import h5py as h5
  import numpy as np
  import numpy.ma as ma
  import scipy as sp

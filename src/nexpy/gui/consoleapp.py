@@ -238,6 +238,7 @@ class NXConsoleApp(BaseIPythonApplication, IPythonConsoleApp):
         except:
             s = ("import sys\n"
                  "import os\n"
+                 "import h5py as h5\n"
                  "import numpy as np\n"
                  "import numpy.ma as ma\n"
                  "import scipy as sp\n"
