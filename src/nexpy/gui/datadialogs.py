@@ -1403,6 +1403,7 @@ class FitDialog(BaseDialog):
     def closeEvent(self, event):
         event.accept()
 
+
 class LogDialog(BaseDialog):
     """Dialog to display a NeXpy log filt"""
  
@@ -1443,12 +1444,14 @@ class LogDialog(BaseDialog):
 
     def show_log(self):
         f = open(self.file_name, 'r')
-        text = self.ansi_re.sub('', f.read())
+        try:
+            from ansi2html import Ansi2HTMLConverter
+            conv = Ansi2HTMLConverter(dark_bg=False, inline=True)
+            text = conv.convert(''.join(f.readlines()))
+            self.text_box.appendHtml(text)
+        except ImportError:
+            self.text_box.setPlainText(self.ansi_re.sub('', f.read()))
         f.close()
-        self.text_box.setPlainText(text)
         self.text_box.verticalScrollBar().setValue(
             self.text_box.verticalScrollBar().maximum())
         self.setWindowTitle("Log File: %s" % self.file_name)
-
-
-
