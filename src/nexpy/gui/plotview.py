@@ -265,6 +265,42 @@ class NXPlotView(QtGui.QWidget):
     def redraw(self):
         self.canvas.draw_idle()
 
+    def vline(self, x, **opts):
+        ymin, ymax = self.plot.yaxis.get_limits()
+        ax = self.figure.axes[0]
+        line = ax.vlines(x, ymin, ymax, **opts)
+        self.canvas.draw()
+        return line
+
+    def hline(self, y, **opts):
+        xmin, xmax = self.plot.xaxis.get_limits()
+        ax = self.figure.axes[0]
+        line = ax.hlines(y, xmin, xmax, **opts)
+        self.canvas.draw()
+        return line
+
+    def crosshairs(self, x, y, **opts):
+        crosshairs = []
+        crosshairs.append(self.vline(x, **opts))
+        crosshairs.append(self.hline(y, **opts))
+        return crosshairs        
+
+    def rectangle(self, x, y, dx, dy, **opts):
+        ax = self.figure.axes[0]
+        rectangle = ax.add_patch(Rectangle((x,y), dx, dy, **opts))
+        if 'facecolor' not in opts:
+            rectangle.set_facecolor('none')
+        self.canvas.draw()
+        return rectangle
+
+    def circle(self, x, y, radius, **opts):
+        ax = self.figure.axes[0]
+        circle = ax.add_patch(Circle((x,y), radius))
+        if 'facecolor' not in opts:
+            circle.set_facecolor('none')
+        self.canvas.draw()
+        return circle
+
     def set_limits(self, xmin=None, xmax=None, ymin=None, ymax=None):
         if xmin:
             self.plot.xaxis.min = xmin
@@ -725,7 +761,6 @@ class NXPlot(object):
             self.tab_widget.removeTab(self.tab_widget.indexOf(self.ptab))
         elif self.ndim >= 2:
             self.vtab.set_axis(self.vaxis)
-            self.vtab.logbox.setChecked(False)
             if self.tab_widget.indexOf(self.vtab) == -1:
                 self.tab_widget.insertTab(0,self.vtab,'signal')
             if not self.plotview.label.startswith("Projection"):
@@ -744,10 +779,8 @@ class NXPlot(object):
             else:
                 self.tab_widget.removeTab(self.tab_widget.indexOf(self.ztab))
                 self.autoscale = False
-            self.xtab.logbox.setChecked(False)
             self.xtab.logbox.setVisible(False)
             self.xtab.axiscombo.setVisible(True)
-            self.ytab.logbox.setChecked(False)
             self.ytab.logbox.setVisible(False)
             self.ytab.axiscombo.setVisible(True)
         if self.ptab.panel:
