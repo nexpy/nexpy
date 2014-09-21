@@ -1668,6 +1668,12 @@ class NXfield(NXobject):
         """
         return self.nxdata
 
+    def __array_wrap__(self, value):
+        """
+        Transforms the array resulting from a ufunc to an NXfield
+        """
+        return NXfield(value, name=self.nxname)
+
     def __int__(self):
         """
         Casts a scalar field as an integer
