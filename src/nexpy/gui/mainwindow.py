@@ -652,15 +652,15 @@ class MainWindow(QtGui.QMainWindow):
 
         self.active_action = {}
 
-        self.active_action['Main']=QtGui.QAction('Main',
+        self.active_action[1]=QtGui.QAction('Main',
             self,
             shortcut=QtGui.QKeySequence("Ctrl+1"),
-            triggered=lambda: self.make_active('Main'),
+            triggered=lambda: self.make_active(1),
             checkable=True
             )
-        self.add_menu_action(self.window_menu, self.active_action['Main'])
-        self.active_action['Main'].setChecked(True)
-        self.previous_active = 'Main'
+        self.add_menu_action(self.window_menu, self.active_action[1])
+        self.active_action[1].setChecked(True)
+        self.previous_active = 1
 
         self.window_separator = self.window_menu.addSeparator()
 
@@ -1271,36 +1271,44 @@ class MainWindow(QtGui.QMainWindow):
             self.magic_menu.insertMenu(self.magic_menu_separator,menu)
         return menu
 
-    def make_active_action(self, label, number):
+    def make_active_action(self, number, label):
         if label == 'Projection':
-            self.active_action[label] = QtGui.QAction(label,
+            self.active_action[number] = QtGui.QAction(label,
                 self,
-                triggered=lambda: self.make_active(label),
+                triggered=lambda: self.make_active(number),
                 checkable=True)
-            self.window_menu.addAction(self.active_action[label])
+            self.window_menu.addAction(self.active_action[number])
         else:
-            self.active_action[label] = QtGui.QAction(label,
+            numbers = sorted(self.active_action.keys())
+            if number > numbers[-1]:
+                before_action = self.window_separator
+            else:
+                for num in numbers:
+                    if num > number:
+                        break
+                before_action = self.active_action[num]
+            self.active_action[number] = QtGui.QAction(label,
                 self,
                 shortcut=QtGui.QKeySequence("Ctrl+%s" % number),
-                triggered=lambda: self.make_active(label),
+                triggered=lambda: self.make_active(number),
                 checkable=True)
-            self.window_menu.insertAction(self.window_separator,
-                                          self.active_action[label])
-        self.make_active(label)
+            self.window_menu.insertAction(before_action,
+                                          self.active_action[number])
+        self.make_active(number)
 
     def new_plot_window(self):
         plotview = NXPlotView()
         
-    def update_active(self, name):
-        for key in self.active_action.keys():
-            if self.active_action[key].isChecked():
-                self.previous_active = key
-                self.active_action[key].setChecked(False)
-        self.active_action[name].setChecked(True)
+    def update_active(self, number):
+        for num in self.active_action:
+            if self.active_action[num].isChecked():
+                self.previous_active = num
+                self.active_action[num].setChecked(False)
+        self.active_action[number].setChecked(True)
     
-    def make_active(self, name):
-        self.update_active(name)
-        self.plotviews[name].make_active()
+    def make_active(self, number):
+        self.update_active(number)
+        self.plotviews[self.active_action[number].text()].make_active()
 
     def show_projection_panel(self):
         from nexpy.gui.plotview import plotview, NXProjectionPanel

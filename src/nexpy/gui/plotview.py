@@ -45,7 +45,7 @@ def new_figure_manager(label=None, *args, **kwargs):
     """
     if label is None:
         label = ''
-    if 'Projection' in label:
+    if label == 'Projection':
         nums = [num for num in plt.get_fignums() if num > 100]
         if nums:
             num = max(nums) + 1
@@ -54,13 +54,18 @@ def new_figure_manager(label=None, *args, **kwargs):
     else:    
         nums = [num for num in plt.get_fignums() if num < 100]
         if nums:
-            num = max(nums) + 1
+            missing_nums = sorted(set(range(nums[0], nums[-1]+1)).difference(nums))
+            if missing_nums:
+                num = missing_nums[0]
+            else:
+                num = max(nums) + 1
         else:
             num = 1
     thisFig = Figure(*args, **kwargs)
     canvas = NXCanvas(thisFig)
     manager = NXFigureManager(canvas, num)
     return manager
+
 
 def change_plotview(label):
     global plotview, plotviews
@@ -143,6 +148,10 @@ class NXPlotView(QtGui.QWidget):
         self.setSizePolicy(QtGui.QSizePolicy.MinimumExpanding,
                            QtGui.QSizePolicy.MinimumExpanding)
 
+        global plotview, plotviews
+        if label in plotviews:
+            plotviews[label].close()
+
         self.figuremanager = new_figure_manager(label)
         self.canvas = self.figuremanager.canvas
         self.canvas.setParent(self)
@@ -200,9 +209,8 @@ class NXPlotView(QtGui.QWidget):
         
         self.window().setWindowTitle(self.label)
  
-        global plotview, plotviews
         plotview = self
-        plotviews[self.label] = plotview
+        plotviews[self.label] = self
         self.plotviews = plotviews
 
         if self.label != "Main":
@@ -232,21 +240,21 @@ class NXPlotView(QtGui.QWidget):
     def update_active(self):
         if 'Projection' not in self.label:
             from nexpy.gui.consoleapp import _mainwindow
-            _mainwindow.update_active(self.label)
+            _mainwindow.update_active(self.number)
     
     def add_menu_action(self):
         from nexpy.gui.consoleapp import _mainwindow
         if self.label not in _mainwindow.active_action:
-            _mainwindow.make_active_action(self.label, self.number)
-        _mainwindow.update_active(self.label)
+            _mainwindow.make_active_action(self.number, self.label)
+        _mainwindow.update_active(self.number)
 
     def remove_menu_action(self):
         from nexpy.gui.consoleapp import _mainwindow
-        if self.label in _mainwindow.active_action:
-            _mainwindow.window_menu.removeAction(_mainwindow.active_action[self.label])
-            del _mainwindow.active_action[self.label]
-        if self.label == _mainwindow.previous_active:
-            _mainwindow.previous_active = 'Main'
+        if self.number in _mainwindow.active_action:
+            _mainwindow.window_menu.removeAction(_mainwindow.active_action[self.number])
+            del _mainwindow.active_action[self.number]
+        if self.number == _mainwindow.previous_active:
+            _mainwindow.previous_active = 1
         _mainwindow.make_active(_mainwindow.previous_active)
 
     def save_plot(self):
@@ -268,26 +276,26 @@ class NXPlotView(QtGui.QWidget):
     def vline(self, x, **opts):
         ymin, ymax = self.plot.yaxis.get_limits()
         ax = self.figure.axes[0]
-        line = ax.vlines(x, ymin, ymax, **opts)
+        line = ax.vlines(float(x), ymin, ymax, **opts)
         self.canvas.draw()
         return line
 
     def hline(self, y, **opts):
         xmin, xmax = self.plot.xaxis.get_limits()
         ax = self.figure.axes[0]
-        line = ax.hlines(y, xmin, xmax, **opts)
+        line = ax.hlines(float(y), xmin, xmax, **opts)
         self.canvas.draw()
         return line
 
     def crosshairs(self, x, y, **opts):
         crosshairs = []
-        crosshairs.append(self.vline(x, **opts))
-        crosshairs.append(self.hline(y, **opts))
+        crosshairs.append(self.vline(float(x), **opts))
+        crosshairs.append(self.hline(float(y), **opts))
         return crosshairs        
 
     def rectangle(self, x, y, dx, dy, **opts):
         ax = self.figure.axes[0]
-        rectangle = ax.add_patch(Rectangle((x,y), dx, dy, **opts))
+        rectangle = ax.add_patch(Rectangle((float(x),float(y)), float(dx), float(dy), **opts))
         if 'facecolor' not in opts:
             rectangle.set_facecolor('none')
         self.canvas.draw()
@@ -295,7 +303,7 @@ class NXPlotView(QtGui.QWidget):
 
     def circle(self, x, y, radius, **opts):
         ax = self.figure.axes[0]
-        circle = ax.add_patch(Circle((x,y), radius))
+        circle = ax.add_patch(Circle((float(x),float(y)), radius))
         if 'facecolor' not in opts:
             circle.set_facecolor('none')
         self.canvas.draw()
@@ -992,6 +1000,7 @@ class NXPlotTab(QtGui.QWidget):
         self.replotSignal.replot.connect(self.replot)       
 
         self.plotview = plotview
+        self.plot = None
 
     def set_axis(self, axis):
         self.block_signals(True)
@@ -1170,10 +1179,13 @@ class NXPlotTab(QtGui.QWidget):
         if self.maxslider: self.maxslider.blockSignals(block)
 
     def set_log(self):
-        if self.name == 'v':
-            self.plot.plot2D()
-        else:
-            self.plot.replot_logs()
+        try:
+            if self.name == 'v':
+                self.plot.plot2D()
+            else:
+                self.plot.replot_logs()
+        except AttributeError:
+            pass
 
     def set_lock(self):
         if self.lockbox.isChecked():
