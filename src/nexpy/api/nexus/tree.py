@@ -233,8 +233,8 @@ signal sample points, entry is file/path within the file to the data group and
 title is the title of the group or the parent :class:`NXentry`, if available.
 """
 
-
 from __future__ import with_statement
+import os
 from copy import copy, deepcopy
 
 import numpy as np
@@ -339,6 +339,9 @@ class NXFile(object):
         if self._file.id:
             self.close()
 
+    def get(self, *args, **kwds):
+        return self._file.get(*args, **kwds)
+
     def copy(self, *args, **kwds):
         self._file.copy(*args, **kwds)
 
@@ -353,7 +356,7 @@ class NXFile(object):
         Large datasets are not read until they are needed.
         """
         self.nxpath = '/'
-        root = self._readgroup()
+        root = self._readgroup('/')
         root._group = None
         root._filename = self.filename
         root._mode = self._mode
@@ -399,17 +402,15 @@ class NXFile(object):
         for name, value in self[parent_path].items():
             self.nxpath = parent_path + '/' + name
             if isinstance(value, h5.Group):
-                children[name] = self._readgroup()
+                children[name] = self._readgroup(name)
             else:
                 children[name] = self._readdata(name)
         return children
 
-    def _readgroup(self):
+    def _readgroup(self, name):
         """
         Reads the group with the current path and returns it as an NXgroup.
         """
-        path = self[self.nxpath].name
-        name = path.rsplit('/',1)[1]
         attrs = dict(self[self.nxpath].attrs)
         nxclass = self._readnxclass(self[self.nxpath])
         if nxclass is not None:
@@ -571,10 +572,10 @@ class NXFile(object):
         return dict(self[self.nxpath].attrs)
 
     def _getpath(self):
-        return self._path
+        return self._path.replace('//','/')
 
     def _setpath(self, value):
-        self._path = value
+        self._path = value.replace('//','/')
 
     file = property(_getfile, doc="Property: File object of NeXus file")
     attrs = property(_getattrs, doc="Property: File object attributes")
@@ -1374,10 +1375,6 @@ class NXfield(NXobject):
         # Convert NeXus attributes to python attributes
         self._attrs = AttrDict()
         self._setattrs(attrs)
-        if 'units' in attrs:
-            units = attrs['units']  # TODO: unused variable
-        else:
-            units = None            # TODO: unused variable
         del attrs
         self._masked = False
         self._filename = None
@@ -1400,9 +1397,9 @@ class NXfield(NXobject):
         """
         name = name
         if name.startswith(u'_'):
-            return object.__getattr__(name)
+            return object.__getattribute__(self, name)
         elif name in _npattrs:
-            return self.nxdata.__getattribute__(name)
+            return object.__getattribute__(self.nxdata, name)
         elif name in self.attrs:
             return self.attrs[name]
         raise KeyError(name+" not in "+self.nxname)
@@ -1671,6 +1668,42 @@ class NXfield(NXobject):
         """
         return self.nxdata
 
+    def __int__(self):
+        """
+        Casts a scalar field as an integer
+        """
+        return int(self.nxdata)
+
+    def __long__(self):
+        """
+        Casts a scalar field as a long integer
+        """
+        return long(self.nxdata)
+
+    def __float__(self):
+        """
+        Casts a scalar field as floating point number
+        """
+        return float(self.nxdata)
+
+    def __complex__(self):
+        """
+        Casts a scalar field as a complex number
+        """
+        return complex(self.nxdata)
+
+    def __neg__(self):
+        """
+        Returns the negative value of a scalar field
+        """
+        return -self.nxdata
+
+    def __abs__(self):
+        """
+        Returns the absolute value of a scalar field
+        """
+        return abs(self.nxdata)
+
     def __eq__(self, other):
         """
         Returns true if the values of the NXfield are the same.
@@ -1694,6 +1727,42 @@ class NXfield(NXobject):
                 return self.nxdata != other.nxdata
         else:
             return True
+
+    def __lt__(self, other):
+        """
+        Returns true if self.nxdata < other[.nxdata]
+        """
+        if isinstance(other, NXfield):
+            return self.nxdata < other.nxdata
+        else:
+            return self.nxdata < other
+
+    def __le__(self, other):
+        """
+        Returns true if self.nxdata <= other[.nxdata]
+        """
+        if isinstance(other, NXfield):
+            return self.nxdata <= other.nxdata
+        else:
+            return self.nxdata <= other
+
+    def __gt__(self, other):
+        """
+        Returns true if self.nxdata > other[.nxdata]
+        """
+        if isinstance(other, NXfield):
+            return self.nxdata > other.nxdata
+        else:
+            return self.nxdata > other
+
+    def __ge__(self, other):
+        """
+        Returns true if self.nxdata >= other[.nxdata]
+        """
+        if isinstance(other, NXfield):
+            return self.nxdata >= other.nxdata
+        else:
+            return self.nxdata >= other
 
     def __add__(self, other):
         """
@@ -2021,7 +2090,7 @@ class NXfield(NXobject):
         if 'signal' in self.attrs.keys() and 'axes' in self.attrs.keys():
             axes = [getattr(self.nxgroup, name) 
                     for name in _readaxes(self.axes)]
-            data = NXdata(self, axes, title=self.nxpath)
+            data = NXdata(self, axes, title=self.nxtitle)
         else:
             raise NeXusError('No plottable signal defined')
 
@@ -2445,8 +2514,10 @@ class NXgroup(NXobject):
                 raise NeXusError("Cannot assign values to an NXlink object")
             if isinstance(value, NXroot):
                 raise NeXusError("Cannot assign an NXroot group to another group")
-            elif isinstance(value, NXlink) and group.nxroot == value.nxroot:
+            elif isinstance(value, NXlink) and group.nxroot is value.nxroot:
                 group._entries[key] = copy(value)
+            elif isinstance(value, NXlink) and key != value.nxname:
+                raise NeXusError("Cannot change the name of a linked object")
             elif isinstance(value, NXobject):
                 if value.nxgroup:
                     memo = {}
@@ -2875,7 +2946,10 @@ class NXgroup(NXobject):
         elif self.nxgroup and 'title' in self.nxgroup.entries:
             return str(self.nxgroup.title)
         else:
-            return self.nxpath
+            if self.nxroot.nxname != '':
+                return (self.nxroot.nxname + '/' + self.nxpath.lstrip('/')).rstrip('/')
+            else:
+                return self.nxpath
 
     def _getentries(self):
         return self._entries
@@ -2961,8 +3035,7 @@ class NXlink(NXobject):
 
     _class = "NXlink"
 
-    def __init__(self, target=None, name='link', group=None):
-        self._group = group
+    def __init__(self, target=None, name=None, **opts):
         self._class = "NXlink"
         if isinstance(target, NXobject):
             self._name = target.nxname
@@ -2974,7 +3047,10 @@ class NXlink(NXobject):
             else:
                 self.__class__ = NXlinkgroup
         else:
-            self._name = name
+            if name:
+                self._name = name
+            else:
+                self._name = target.rsplit('/', 1)[1]
             self._target = target
 
     def __getattr__(self, key):
@@ -2993,7 +3069,7 @@ class NXlink(NXobject):
             self.nxlink.__setattr__(name, value)
 
     def __repr__(self):
-        return "NXlink('%s')"%(self._target)
+        return "NXlink('%s')" % (self._target)
 
     def __str__(self):
         return str(self.nxlink)
@@ -3018,6 +3094,12 @@ class NXlink(NXobject):
 
     def _getattrs(self):
         return self.nxlink.attrs
+
+    def _str_tree(self, indent=0, attrs=False, recursive=False):
+        if self.nxlink:
+            return self.nxlink._str_tree(indent, attrs, recursive)
+        else:
+            return " "*indent+self.nxname+' -> '+self._target
 
     nxlink = property(_getlink, "Linked object")
     attrs = property(_getattrs,doc="NeXus attributes for object")
@@ -3488,6 +3570,8 @@ def convert_index(idx, axis):
             idx = start
         else:
             idx = slice(start, stop)
+    elif isinstance(idx, float):
+        idx = axis.index(idx)
     return idx
 
 def simplify_axes(data):
