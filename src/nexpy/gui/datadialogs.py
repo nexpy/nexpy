@@ -177,7 +177,40 @@ class BaseDialog(QtGui.QDialog):
         filenames = glob(prefix+'*'+extension)
         return sorted(filenames,key=natural_sort)
 
-    def read_parameter(self, root, path):
+    def parameter_grid(self, parameters):
+        """
+        Returns a Qt grid layout with one row for each parameter.
+        
+        'parameters' should be a list of parameters, each one of which is a 
+        tuple containing the parameter label and its default value. If the 
+        default value is a list or tuple, a QComboBox will be used instead of
+        a QLineEdit to select the parameter.
+        """
+        grid = QtGui.QGridLayout()
+        grid.setSpacing(10)
+        self.grid_row = {}
+        row = 0
+        for parameter in parameters:
+            label, value = parameter
+            self.grid_row[label].label = QtGui.QLabel(label)
+            if isinstance(value, list) or isinstance(value, tuple):
+                self.grid_row[label].box = QtGui.QComboBox()
+                self.grid_row[label].box.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToContents)
+                for v in value:
+                    self.grid_row[label].box.addItem(str(v))
+            else:
+                self.grid_row[label].box = QtGui.QLineEdit()
+                if value is not None:
+                    self.grid_row[label].box.setText(str(value))
+            grid.addWidget(self.grid_row[label].label, row, 0)
+            grid.addWidget(self.grid_row[label].box, row, 1)
+            row += 1
+        return grid 
+
+     def get_parameter(self, label):
+         return self.grid_row[label].box.text()
+ 
+     def read_parameter(self, root, path):
         """
         Read the value from the NeXus path.
         
