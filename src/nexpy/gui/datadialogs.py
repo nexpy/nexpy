@@ -207,10 +207,10 @@ class BaseDialog(QtGui.QDialog):
             row += 1
         return grid 
 
-     def get_parameter(self, label):
-         return self.grid_row[label].box.text()
+    def get_parameter(self, label):
+        return self.grid_row[label].box.text()
  
-     def read_parameter(self, root, path):
+    def read_parameter(self, root, path):
         """
         Read the value from the NeXus path.
         
