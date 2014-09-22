@@ -920,12 +920,25 @@ class NXobject(object):
     def rename(self, name):
         if self.nxfilemode == 'r':
             raise NeXusError('NeXus file opened as readonly')
+        if self.nxgroup is not None:
+            axes = self.nxgroup.nxaxes
         path = self.nxpath
-        self.nxname = name           
+        self.nxname = name
+        group_changed = False
+        if self.nxgroup is not None:
+            if self is self.nxgroup.nxsignal:
+                self.nxgroup.nxsignal = self
+                group_changed = True
+            elif self in axes:
+                self.nxgroup.nxaxes = axes
+                group_changed = True
         if self.nxfilemode == 'rw':
             with self.nxfile as f:
                 f[self.nxpath] = f[path]
                 del f[path]
+                if group_changed:
+                    f.nxpath = self.nxgroup.nxpath
+                    f._writeattrs(self.nxgroup.attrs)
 
     def save(self, filename=None, mode='w'):
         """
@@ -2874,7 +2887,7 @@ class NXgroup(NXobject):
         The argument should be a valid NXfield within the group.
         """
         current_signal = self._signal()
-        if current_signal:
+        if current_signal is not signal:
             current_signal.attrs['signal'] = 2
             if 'axes' in self.attrs and 'axes' not in current_signal.attrs:
                 current_signal.attrs['axes'] = self.attrs['axes']
@@ -2882,8 +2895,8 @@ class NXgroup(NXobject):
                 self.attrs['signal'] = current_signal.attrs['axes']
         self.attrs['signal'] = signal.nxname
         if signal.nxname not in self:
-            self.entries[signal.nxname] = signal
-        return self.entries[signal.nxname]
+            self[signal.nxname] = signal
+        return self[signal.nxname]
 
     def _axes(self):
         """
@@ -2919,8 +2932,7 @@ class NXgroup(NXobject):
         axes_attr = ":".join([axis.nxname for axis in axes])
         if 'signal' in self.attrs:
             self.attrs['axes'] = axes_attr
-        else:
-            self.nxsignal.attrs['axes'] = axes_attr
+        self.nxsignal.attrs['axes'] = axes_attr
 
     def _errors(self):
         """
@@ -3323,35 +3335,42 @@ class NXdata(NXgroup):
              @signal = 1
     """
 
-    def __init__(self, signal=None, axes=None, *items, **opts):
+    def __init__(self, signal=None, axes=None, errors=None, *items, **opts):
         self._class = "NXdata"
         NXgroup.__init__(self, *items, **opts)
+        if axes is not None:
+            if not isinstance(axes, tuple) and not isinstance(axes, list):
+                axes = [axes]
+            axis_names = {}
+            i = 0
+            for axis in axes:
+                i += 1
+                if isinstance(axis, NXfield):
+                    if axis._name == "unknown": 
+                        axis._name = "axis%s" % i
+                    self[axis.nxname] = axis
+                    axis_names[i] = axis.nxname
+                else:
+                    axis_name = "axis%s" % i
+                    self[axis_name] = axis
+                    axis_names[i] = axis_name
+            self.attrs["axes"] = ":".join(axis_names.values())
         if signal is not None:
-            if isinstance(signal,NXfield):
-                if signal.nxname == "unknown": signal.nxname = "signal"
+            if isinstance(signal, NXfield):
+                if signal.nxname == "unknown" or signal.nxname in self:
+                    signal.nxname = "signal"
                 self[signal.nxname] = signal
                 self[signal.nxname].signal = 1
-                signalname = signal.nxname
+                signal_name = signal.nxname
             else:
                 self["signal"] = signal
                 self["signal"].signal = 1
-                signalname = "signal"
+                signal_name = "signal"
+            self.attrs["signal"] = signal_name
             if axes is not None:
-                if not isinstance(axes,tuple) and not isinstance(axes,list):
-                    axes = [axes]
-                axisnames = {}
-                i = 0
-                for axis in axes:
-                    i = i + 1
-                    if isinstance(axis,NXfield):
-                        if axis._name == "unknown": axis._name = "axis%s" % i
-                        self[axis.nxname] = axis
-                        axisnames[i] = axis.nxname
-                    else:
-                        axisname = "axis%s" % i
-                        self[axisname] = axis
-                        axisnames[i] = axisname
-                self[signalname].axes = ":".join(axisnames.values())
+                self[signal.nxname].axes = ":".join(axis_names.values())
+        if errors is not None:
+            self["errors"] = errors
 
     def __add__(self, other):
         """
@@ -3368,18 +3387,17 @@ class NXdata(NXgroup):
         result = NXdata(entries=self.entries, attrs=self.attrs)
         if isinstance(other, NXdata):
             if self.nxsignal and self.nxsignal.shape == other.nxsignal.shape:
-                result.entries[self.nxsignal.nxname] = self.nxsignal + other.nxsignal
+                result[self.nxsignal.nxname] = self.nxsignal + other.nxsignal
                 if self.nxerrors:
                     if other.nxerrors:
-                        result.errors = np.sqrt(self.errors.nxdata**2+other.errors.nxdata**2)
+                        result.errors = np.sqrt(self.errors**2 + other.errors**2)
                     else:
                         result.errors = self.errors
                 return result
         elif isinstance(other, NXgroup):
             raise NeXusError("Cannot add two arbitrary groups")
         else:
-            result.entries[self.nxsignal.nxname] = self.nxsignal + other
-            result.entries[self.nxsignal.nxname].nxname = self.nxsignal.nxname
+            result[self.nxsignal.nxname] = self.nxsignal + other
             return result
 
     def __sub__(self, other):
@@ -3397,18 +3415,17 @@ class NXdata(NXgroup):
         result = NXdata(entries=self.entries, attrs=self.attrs)
         if isinstance(other, NXdata):
             if self.nxsignal and self.nxsignal.shape == other.nxsignal.shape:
-                result.entries[self.nxsignal.nxname] = self.nxsignal - other.nxsignal
+                result[self.nxsignal.nxname] = self.nxsignal - other.nxsignal
                 if self.nxerrors:
                     if other.nxerrors:
-                        result.errors = np.sqrt(self.errors.nxdata**2+other.errors.nxdata**2)
+                        result.errors = np.sqrt(self.errors**2 + other.errors**2)
                     else:
                         result.errors = self.errors
                 return result
         elif isinstance(other, NXgroup):
             raise NeXusError("Cannot subtract two arbitrary groups")
         else:
-            result.entries[self.nxsignal.nxname] = self.nxsignal - other
-            result.entries[self.nxsignal.nxname].nxname = self.nxsignal.nxname
+            result[self.nxsignal.nxname] = self.nxsignal - other
             return result
 
     def __mul__(self, other):
@@ -3429,19 +3446,19 @@ class NXdata(NXgroup):
             # error here signal not defined in this scope
             #if self.nxsignal and signal.shape == other.nxsignal.shape:
             if self.nxsignal and self.nxsignal.shape == other.nxsignal.shape:
-                result.entries[self.nxsignal.nxname] = self.nxsignal * other.nxsignal
+                result[self.nxsignal.nxname] = self.nxsignal * other.nxsignal
                 if self.nxerrors:
                     if other.nxerrors:
-                        result.errors = np.sqrt((self.errors.nxdata*other.nxsignal.nxdata)**2+
-                                                (other.errors.nxdata*self.nxsignal.nxdata)**2)
+                        result.errors = np.sqrt(
+                            (self.errors * other.nxsignal)**2 +
+                            (other.errors * self.nxsignal)**2)
                     else:
                         result.errors = self.errors
                 return result
         elif isinstance(other, NXgroup):
             raise NeXusError("Cannot multiply two arbitrary groups")
         else:
-            result.entries[self.nxsignal.nxname] = self.nxsignal * other
-            result.entries[self.nxsignal.nxname].nxname = self.nxsignal.nxname
+            result[self.nxsignal.nxname] = self.nxsignal * other
             if self.nxerrors:
                 result.errors = self.errors * other
             return result
@@ -3469,14 +3486,11 @@ class NXdata(NXgroup):
         result = NXdata(entries=self.entries, attrs=self.attrs)
         if isinstance(other, NXdata):
             if self.nxsignal and self.nxsignal.shape == other.nxsignal.shape:
-                # error here, signal and othersignal not defined here
-                #result.entries[self.nxsignal.nxname] = signal / othersignal
-                result.entries[self.nxsignal.nxname] = self.nxsignal / other.nxsignal
-                resultvalues = result.entries[self.nxsignal.nxname].nxdata
+                result[self.nxsignal.nxname] = self.nxsignal / other.nxsignal
                 if self.nxerrors:
                     if other.nxerrors:
-                        result.errors = (np.sqrt(self.errors.nxdata**2 +
-                                         (resultvalues*other.errors.nxdata)**2)
+                        result.errors = (np.sqrt(self.errors**2 +
+                            (result[self.nxsignal.nxname] * other.errors)**2)
                                          / other.nxsignal)
                     else:
                         result.errors = self.errors
@@ -3484,8 +3498,7 @@ class NXdata(NXgroup):
         elif isinstance(other, NXgroup):
             raise NeXusError("Cannot divide two arbitrary groups")
         else:
-            result.entries[self.nxsignal.nxname] = self.nxsignal / other
-            result.entries[self.nxsignal.nxname].nxname = self.nxsignal.nxname
+            result[self.nxsignal.nxname] = self.nxsignal / other
             if self.nxerrors: 
                 result.errors = self.errors / other
             return result
