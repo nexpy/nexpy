@@ -3608,7 +3608,7 @@ def simplify_axes(data):
     for axis in data.nxaxes:
         if len(axis) > 1: 
             axes.append(axis)
-    data.nxsignal.axes = ":".join([axis.nxname for axis in axes])
+    data.nxaxes = axes
     return data
 
 def centers(signal, axes):
