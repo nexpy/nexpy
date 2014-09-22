@@ -81,7 +81,10 @@ written by `Christoph Gohlke <http://www.lfd.uci.edu/~gohlke/>`_, has been
 incorporated into the NeXpy distribution.
 
 From v0.1.5, we now have an importer for `Crystallographic Binary Files 
-<http://www.bernstein-plus-sons.com/software/CBF/>`_, using PyCBF. 
+<http://www.bernstein-plus-sons.com/software/CBF/>`_, using PyCBF.
+
+From v0.4.3, the log window is colorized if `ansi2html 
+<https://pypi.python.org/pypi/ansi2html/>`_ is installed.
 
 =================  ==========================================================
 Library            URL
@@ -89,10 +92,11 @@ Library            URL
 lmfit              http://newville.github.io/lmfit-py/
 pycbf              http://sourceforge.net/projects/cbflib/files/cbflib/pycbf/
 spec2nexus         http://spec2nexus.readthedocs.org/
+ansi2html          https://pypi.python.org/pypi/ansi2html/
 =================  ==========================================================
 
 .. note:: NeXpy should still run without these additional packages, but invoking
-          the relevant menu items will trigger an exception.
+          the relevant menu items may trigger an exception.
 
 Semantic Versioning
 -------------------
