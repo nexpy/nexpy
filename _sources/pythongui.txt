@@ -226,8 +226,15 @@ Data Menu
 Window Menu
 ^^^^^^^^^^^
 **Show Log File**
-    Opens a text window containing the NeXpy log file. This currently records 
-    operations on the tree items, as well as console errors.
+    Opens a text window displaying the NeXpy log file(s). These files, which are
+    stored in ``~/.nexpy/nexpy.log``, ``~/.nexpy/nexpy.log.1``, *etc*., 
+    currently record operations on the tree items, as well as errors in the
+    IPython shell.
+
+    .. note:: If `ansi2html <https://github.com/ralphbean/ansi2html>`_ is 
+              installed, tracebacks will be rendered in color. The log files
+              contain ANSI markup, which is rendered in the terminal using 
+              ``less -r``.
 
 **Change Plot Limits**
     This gives a dialog box that allows the axis limits of the currently active
@@ -796,6 +803,7 @@ commonly used::
 
  import sys
  import os
+ import h5py as h5
  import numpy as np
  import numpy.ma as ma
  import scipy as sp

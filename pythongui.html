@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Python Graphical User Interface &mdash; NeXpy 0.4.2 documentation</title>
+    <title>Python Graphical User Interface &mdash; NeXpy 0.4.3 documentation</title>
     
     <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.4.2',
+        VERSION:     '0.4.3',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -25,7 +25,7 @@
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="shortcut icon" href="_static/favicon.ico"/>
-    <link rel="top" title="NeXpy 0.4.2 documentation" href="index.html" />
+    <link rel="top" title="NeXpy 0.4.3 documentation" href="index.html" />
     <link rel="next" title="Python Interface to NeXus" href="pythonshell.html" />
     <link rel="prev" title="Installation" href="includeme.html" /> 
   </head>
@@ -45,7 +45,7 @@
         <li class="right" >
           <a href="includeme.html" title="Installation"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">NeXpy 0.4.2 documentation</a> &raquo;</li> 
+        <li><a href="index.html">NeXpy 0.4.3 documentation</a> &raquo;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar">
@@ -350,8 +350,18 @@ non-linear least-squares fitting module.</p>
 <h3>Window Menu<a class="headerlink" href="#window-menu" title="Permalink to this headline">¶</a></h3>
 <dl class="docutils">
 <dt><strong>Show Log File</strong></dt>
-<dd>Opens a text window containing the NeXpy log file. This currently records
-operations on the tree items, as well as console errors.</dd>
+<dd><p class="first">Opens a text window displaying the NeXpy log file(s). These files, which are
+stored in <tt class="docutils literal"><span class="pre">~/.nexpy/nexpy.log</span></tt>, <tt class="docutils literal"><span class="pre">~/.nexpy/nexpy.log.1</span></tt>, <em>etc</em>.,
+currently record operations on the tree items, as well as errors in the
+IPython shell.</p>
+<div class="last admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If <a class="reference external" href="https://github.com/ralphbean/ansi2html">ansi2html</a> is
+installed, tracebacks will be rendered in color. The log files
+contain ANSI markup, which is rendered in the terminal using
+<tt class="docutils literal"><span class="pre">less</span> <span class="pre">-r</span></tt>.</p>
+</div>
+</dd>
 <dt><strong>Change Plot Limits</strong></dt>
 <dd>This gives a dialog box that allows the axis limits of the currently active
 plot to be changed. This is useful if you want to expand the limits beyond
@@ -893,6 +903,7 @@ NXsample, <em>etc</em>).</p>
 commonly used:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">h5py</span> <span class="kn">as</span> <span class="nn">h5</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">numpy.ma</span> <span class="kn">as</span> <span class="nn">ma</span>
 <span class="kn">import</span> <span class="nn">scipy</span> <span class="kn">as</span> <span class="nn">sp</span>
@@ -934,7 +945,7 @@ For example, if you don&#8217;t want a blank line between each input line, edit
         <li class="right" >
           <a href="includeme.html" title="Installation"
              >previous</a> |</li>
-        <li><a href="index.html">NeXpy 0.4.2 documentation</a> &raquo;</li> 
+        <li><a href="index.html">NeXpy 0.4.3 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">

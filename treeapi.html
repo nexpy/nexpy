@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>NeXus Tree API Modules &mdash; NeXpy 0.4.2 documentation</title>
+    <title>NeXus Tree API Modules &mdash; NeXpy 0.4.3 documentation</title>
     
     <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.4.2',
+        VERSION:     '0.4.3',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -25,7 +25,7 @@
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="shortcut icon" href="_static/favicon.ico"/>
-    <link rel="top" title="NeXpy 0.4.2 documentation" href="index.html" />
+    <link rel="top" title="NeXpy 0.4.3 documentation" href="index.html" />
     <link rel="next" title="Adding a File Importer" href="readers.html" />
     <link rel="prev" title="Python Interface to NeXus" href="pythonshell.html" /> 
   </head>
@@ -45,7 +45,7 @@
         <li class="right" >
           <a href="pythonshell.html" title="Python Interface to NeXus"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">NeXpy 0.4.2 documentation</a> &raquo;</li> 
+        <li><a href="index.html">NeXpy 0.4.3 documentation</a> &raquo;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar">
@@ -1388,7 +1388,7 @@ over = True    - plot on the current figure
 
 <dl class="class">
 <dt id="nexpy.api.nexus.tree.NXlink">
-<em class="property">class </em><tt class="descclassname">nexpy.api.nexus.tree.</tt><tt class="descname">NXlink</tt><big>(</big><em>target=None</em>, <em>name='link'</em>, <em>group=None</em><big>)</big><a class="headerlink" href="#nexpy.api.nexus.tree.NXlink" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">nexpy.api.nexus.tree.</tt><tt class="descname">NXlink</tt><big>(</big><em>target=None</em>, <em>name=None</em>, <em>**opts</em><big>)</big><a class="headerlink" href="#nexpy.api.nexus.tree.NXlink" title="Permalink to this definition">¶</a></dt>
 <dd><p>Class for NeXus linked objects.</p>
 <p>The real object will be accessible by following the link attribute.</p>
 <dl class="attribute">
@@ -1401,7 +1401,7 @@ over = True    - plot on the current figure
 
 <dl class="class">
 <dt id="nexpy.api.nexus.tree.NXlinkfield">
-<em class="property">class </em><tt class="descclassname">nexpy.api.nexus.tree.</tt><tt class="descname">NXlinkfield</tt><big>(</big><em>target=None</em>, <em>name='link'</em>, <em>group=None</em><big>)</big><a class="headerlink" href="#nexpy.api.nexus.tree.NXlinkfield" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">nexpy.api.nexus.tree.</tt><tt class="descname">NXlinkfield</tt><big>(</big><em>target=None</em>, <em>name=None</em>, <em>**opts</em><big>)</big><a class="headerlink" href="#nexpy.api.nexus.tree.NXlinkfield" title="Permalink to this definition">¶</a></dt>
 <dd><p>Class for a NeXus linked field.</p>
 <p>The real field will be accessible by following the link attribute.</p>
 </dd></dl>
@@ -1414,7 +1414,7 @@ over = True    - plot on the current figure
 
 <dl class="class">
 <dt id="nexpy.api.nexus.tree.NXlinkgroup">
-<em class="property">class </em><tt class="descclassname">nexpy.api.nexus.tree.</tt><tt class="descname">NXlinkgroup</tt><big>(</big><em>target=None</em>, <em>name='link'</em>, <em>group=None</em><big>)</big><a class="headerlink" href="#nexpy.api.nexus.tree.NXlinkgroup" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">nexpy.api.nexus.tree.</tt><tt class="descname">NXlinkgroup</tt><big>(</big><em>target=None</em>, <em>name=None</em>, <em>**opts</em><big>)</big><a class="headerlink" href="#nexpy.api.nexus.tree.NXlinkgroup" title="Permalink to this definition">¶</a></dt>
 <dd><p>Class for a NeXus linked group.</p>
 <p>The real group will be accessible by following the link attribute.</p>
 <dl class="attribute">
@@ -1474,7 +1474,7 @@ as the run duration, are not currently added together.</p>
 
 <dl class="class">
 <dt id="nexpy.api.nexus.tree.NXdata">
-<em class="property">class </em><tt class="descclassname">nexpy.api.nexus.tree.</tt><tt class="descname">NXdata</tt><big>(</big><em>signal=None</em>, <em>axes=None</em>, <em>*items</em>, <em>**opts</em><big>)</big><a class="headerlink" href="#nexpy.api.nexus.tree.NXdata" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">nexpy.api.nexus.tree.</tt><tt class="descname">NXdata</tt><big>(</big><em>signal=None</em>, <em>axes=None</em>, <em>errors=None</em>, <em>*items</em>, <em>**opts</em><big>)</big><a class="headerlink" href="#nexpy.api.nexus.tree.NXdata" title="Permalink to this definition">¶</a></dt>
 <dd><p>NXdata group. This is a subclass of the NXgroup class.</p>
 <p>The constructor assumes that the first argument contains the signal and
 the second contains either the axis, for one-dimensional data, or a list
@@ -1913,7 +1913,7 @@ parameters, specifying markers, colors, etc, can be specified using the
         <li class="right" >
           <a href="pythonshell.html" title="Python Interface to NeXus"
              >previous</a> |</li>
-        <li><a href="index.html">NeXpy 0.4.2 documentation</a> &raquo;</li> 
+        <li><a href="index.html">NeXpy 0.4.3 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
