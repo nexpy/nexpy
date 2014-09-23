@@ -2044,7 +2044,7 @@ class NXfield(NXobject):
                 self._create_memmask()
                 self._memfile['mask'][()] = value
         if self._value is not None:
-            self._value = np.ma.array(self._value.data, mask=value)
+            self._value = np.ma.array(self._value, mask=value)
 
     def _getdtype(self):
         return self._dtype
