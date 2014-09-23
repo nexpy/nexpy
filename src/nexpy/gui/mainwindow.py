@@ -46,6 +46,7 @@ from treeview import NXTreeView
 from plotview import NXPlotView
 from datadialogs import *
 from scripteditor import ScriptDialog
+import nexpy
 from nexpy.api.nexus.tree import (nxload, NeXusError, NXFile, 
                                   NXobject, NXfield, NXgroup, NXlink,
                                   NXroot, NXentry)
@@ -166,7 +167,7 @@ class MainWindow(QtGui.QMainWindow):
         self.file_filter = ';;'.join((
             "NeXus Files (*.nxs *.nx5 *.h5 *.hdf *.hdf5)",
             "Any Files (*.* *)"))
-        self.setWindowTitle('NeXpy')
+        self.setWindowTitle('NeXpy v'+nexpy.__version__)
         self.statusBar().showMessage('Ready')
         self.console._control.setFocus()
 
