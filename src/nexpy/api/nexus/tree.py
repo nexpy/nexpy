@@ -698,11 +698,15 @@ class NXattr(object):
 
     def __init__(self, value=None, dtype=None):
         if isinstance(value, NXattr):
-            self = value
-        elif isinstance(value, NXobject):
-            raise NeXusError("A data attribute cannot be a NXfield or NXgroup")
-        else:
-            self._value, self._dtype, _ = _getvalue(value, dtype)
+            value = value.nxdata
+        elif isinstance(value, NXfield):
+            if value.shape == ():
+                value = value.nxdata
+            else:
+                raise NeXusError("A data attribute cannot be a NXfield or NXgroup")
+        elif isinstance(value, NXgroup):
+            raise NeXusError("A data attribute cannot be a NXgroup")
+        self._value, self._dtype, _ = _getvalue(value, dtype)
 
     def __str__(self):
         return str(self.nxdata)
@@ -1425,6 +1429,8 @@ class NXfield(NXobject):
         """
         if name.startswith('_') or name.startswith('nx') or \
            name == 'mask' or name == 'shape' or name == 'dtype':
+            if isinstance(value, NXfield):
+                value = value.nxdata
             object.__setattr__(self, name, value)
             return
         if self.nxfilemode == 'r':
