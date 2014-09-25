@@ -2914,7 +2914,7 @@ class NXgroup(NXobject):
             elif 'axes' in self.nxsignal.attrs:
                 axes = _readaxes(self.nxsignal.attrs['axes'])
             return [getattr(self, name) for name in axes]
-        except (KeyError, AttributeError):
+        except (KeyError, AttributeError, UnboundLocalError):
             axes = {}
             for entry in self._entries:
                 if 'axis' in self[entry].attrs:
