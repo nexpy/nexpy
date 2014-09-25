@@ -2893,12 +2893,13 @@ class NXgroup(NXobject):
         The argument should be a valid NXfield within the group.
         """
         current_signal = self._signal()
-        if current_signal is not signal:
-            current_signal.attrs['signal'] = 2
-            if 'axes' in self.attrs and 'axes' not in current_signal.attrs:
-                current_signal.attrs['axes'] = self.attrs['axes']
-            if 'axes' not in self.attrs and 'axes' in current_signal.attrs:
-                self.attrs['signal'] = current_signal.attrs['axes']
+        if current_signal is not None:
+            if current_signal is not signal:
+                current_signal.attrs['signal'] = 2
+                if 'axes' in self.attrs and 'axes' not in current_signal.attrs:
+                    current_signal.attrs['axes'] = self.attrs['axes']
+                if 'axes' not in self.attrs and 'axes' in current_signal.attrs:
+                    self.attrs['signal'] = current_signal.attrs['axes']
         self.attrs['signal'] = signal.nxname
         if signal.nxname not in self:
             self[signal.nxname] = signal
