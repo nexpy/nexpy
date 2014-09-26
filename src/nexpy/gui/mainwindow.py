@@ -1098,7 +1098,7 @@ class MainWindow(QtGui.QMainWindow):
                 except KeyError:
                     raise NeXusError("NeXus item not plottable")
                 from nexpy.gui.plotview import plotview            
-                entry = NXentry(data=plotview.plot.plotdata)
+                entry = NXentry(data=plotview.plotdata)
             if len(entry.data.nxsignal.shape) == 1:
                 dialog = FitDialog(entry, parent=self)
                 dialog.show()
@@ -1280,7 +1280,7 @@ class MainWindow(QtGui.QMainWindow):
                 checkable=True)
             self.window_menu.addAction(self.active_action[number])
         else:
-            numbers = sorted(self.active_action.keys())
+            numbers = [num for num in sorted(self.active_action.keys()) if num < 100]
             if number > numbers[-1]:
                 before_action = self.window_separator
             else:

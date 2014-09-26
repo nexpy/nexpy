@@ -2120,7 +2120,7 @@ class NXfield(NXobject):
             raise NeXusError('No plottable signal defined')
 
         # Plot with the available plotter
-        plotview.plot.plot(data, fmt, xmin, xmax, ymin, ymax, zmin, zmax, **opts)
+        plotview.plot(data, fmt, xmin, xmax, ymin, ymax, zmin, zmax, **opts)
     
     def oplot(self, fmt='', **opts):
         """
@@ -2912,7 +2912,7 @@ class NXgroup(NXobject):
         try:
             if 'axes' in self.attrs:
                 axes = _readaxes(self.attrs['axes'])
-            elif 'axes' in self.nxsignal.attrs:
+            elif self.nxsignal is not None and 'axes' in self.nxsignal.attrs:
                 axes = _readaxes(self.nxsignal.attrs['axes'])
             return [getattr(self, name) for name in axes]
         except (KeyError, AttributeError, UnboundLocalError):
@@ -2992,7 +2992,7 @@ class NXgroup(NXobject):
 
         The format argument is used to set the color and type of the
         markers or lines for one-dimensional plots, using the standard 
-        Mtplotlib syntax. The default is set to blue circles. All 
+        Matplotlib syntax. The default is set to blue circles. All 
         keyword arguments accepted by matplotlib.pyplot.plot can be
         used to customize the plot.
         
@@ -3029,11 +3029,13 @@ class NXgroup(NXobject):
                 raise NeXusError('No NXdata group found')
 
         # Check there is a plottable signal
-        if not data.nxsignal:
-            raise NeXusError('No plottable signal defined')
+        if data.nxsignal is None:
+            raise NeXusError('No plotting signal defined')
+        elif data.nxaxes is None:
+            raise NeXusError('No plotting axes defined')
 
         # Plot with the available plotter
-        plotview.plot.plot(data, fmt, xmin, xmax, ymin, ymax, zmin, zmax, **opts)
+        plotview.plot(data, fmt, xmin, xmax, ymin, ymax, zmin, zmax, **opts)
     
     def oplot(self, fmt='', **opts):
         """
