@@ -187,7 +187,7 @@ class NXConsoleApp(BaseIPythonApplication, IPythonConsoleApp):
 
     def init_log(self):
         log_file = os.path.join(_nexpy_dir, 'nexpy.log')
-        hdlr = logging.handlers.RotatingFileHandler(log_file, maxBytes=10000, 
+        hdlr = logging.handlers.RotatingFileHandler(log_file, maxBytes=50000, 
                                                     backupCount=5)
         fmt = logging.Formatter(
             "%(asctime)s - %(name)s - %(levelname)s - %(message)s", None)
