@@ -3377,7 +3377,7 @@ class NXdata(NXgroup):
                 signal_name = "signal"
             self.attrs["signal"] = signal_name
             if axes is not None:
-                self[signal.nxname].axes = ":".join(axis_names.values())
+                self[signal_name].axes = ":".join(axis_names.values())
         if errors is not None:
             self["errors"] = errors
 
