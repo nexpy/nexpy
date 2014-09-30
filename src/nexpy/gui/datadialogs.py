@@ -376,28 +376,28 @@ class LimitDialog(BaseDialog):
         xmin_layout = QtGui.QHBoxLayout()
         xmin_layout.addWidget(QtGui.QLabel('xmin'))
         self.xmin_box = self.textbox()
-        self.xmin_box.setValue(plotview.plot.xaxis.min)
+        self.xmin_box.setValue(plotview.xaxis.min)
         xmin_layout.addWidget(self.xmin_box)
         layout.addLayout(xmin_layout)
 
         xmax_layout = QtGui.QHBoxLayout()
         xmax_layout.addWidget(QtGui.QLabel('xmax'))
         self.xmax_box = self.textbox()
-        self.xmax_box.setValue(plotview.plot.xaxis.max)
+        self.xmax_box.setValue(plotview.xaxis.max)
         xmax_layout.addWidget(self.xmax_box)
         layout.addLayout(xmax_layout)
 
         ymin_layout = QtGui.QHBoxLayout()
         ymin_layout.addWidget(QtGui.QLabel('ymin'))
         self.ymin_box = self.textbox()
-        self.ymin_box.setValue(plotview.plot.yaxis.min)
+        self.ymin_box.setValue(plotview.yaxis.min)
         ymin_layout.addWidget(self.ymin_box)
         layout.addLayout(ymin_layout)
 
         ymax_layout = QtGui.QHBoxLayout()
         ymax_layout.addWidget(QtGui.QLabel('ymax'))
         self.ymax_box = self.textbox()
-        self.ymax_box.setValue(plotview.plot.yaxis.max)
+        self.ymax_box.setValue(plotview.yaxis.max)
         ymax_layout.addWidget(self.ymax_box)
         layout.addLayout(ymax_layout)
 
@@ -956,7 +956,7 @@ class FitDialog(BaseDialog):
     def __init__(self, entry, parent=None):
 
         super(FitDialog, self).__init__(parent)
-        self.setMinimumWidth(1000)        
+        self.setMinimumWidth(850)        
  
         self.data = self.initialize_data(entry.data)
 
@@ -1106,7 +1106,7 @@ class FitDialog(BaseDialog):
 
         self.parameter_grid = QtGui.QGridLayout()
         self.parameter_grid.setSpacing(10)
-        headers = ['Function', 'Np', 'Name', 'Value', '', 'Min', 'Max', 'Fixed', 'Bound']
+        headers = ['Function', 'Np', 'Name', 'Value', '', 'Min', 'Max', 'Fixed']
         width = [100, 50, 100, 100, 100, 100, 100, 50, 100]
         column = 0
         for header in headers:
@@ -1243,7 +1243,7 @@ class FitDialog(BaseDialog):
             p.max_box = QtGui.QLineEdit('inf')
             p.max_box.setAlignment(QtCore.Qt.AlignRight)
             p.fixed_box = QtGui.QCheckBox()
-            p.bound_box = QtGui.QLineEdit()
+#            p.bound_box = QtGui.QLineEdit()
             self.parameter_grid.addWidget(p.parameter_box, row, 1,
                                           alignment=QtCore.Qt.AlignHCenter)
             self.parameter_grid.addWidget(QtGui.QLabel(p.name), row, 2)
@@ -1253,7 +1253,7 @@ class FitDialog(BaseDialog):
             self.parameter_grid.addWidget(p.max_box, row, 6)
             self.parameter_grid.addWidget(p.fixed_box, row, 7,
                                           alignment=QtCore.Qt.AlignHCenter)
-            self.parameter_grid.addWidget(p.bound_box, row, 8)
+#            self.parameter_grid.addWidget(p.bound_box, row, 8)
             f.rows.append(row)
             row += 1
         self.parameter_grid.setRowStretch(self.parameter_grid.rowCount(),10)
