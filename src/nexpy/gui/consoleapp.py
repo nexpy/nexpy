@@ -38,6 +38,7 @@ import logging.handlers
 import pkg_resources
 import os
 import signal
+import sys
 import tempfile
 
 # System library imports
@@ -46,7 +47,7 @@ from PySide import QtCore, QtGui
 # Local imports
 from mainwindow import MainWindow
 from treeview import NXtree
-from nexpy.api.nexus import nxclasses
+from nexpy.api.nexus import nxclasses, nxload
 
 # IPython imports
 from IPython.config.application import catch_config_error
@@ -246,6 +247,14 @@ class NXConsoleApp(BaseIPythonApplication, IPythonConsoleApp):
                  "from matplotlib import pylab, mlab, pyplot\n"
                  "plt = pyplot")
             exec s in self.window.user_ns
+        try:
+            print sys.argv[1]
+            fname = os.path.expanduser(sys.argv[1])
+            name = _mainwindow.treeview.tree.get_name(fname)
+            _mainwindow.treeview.tree[name] = self.window.user_ns[name] = nxload(fname)
+            self.window.user_ns[name].plot()
+        except:
+            pass
 
     def init_colors(self):
         """Configure the coloring of the widget"""
