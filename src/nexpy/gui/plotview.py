@@ -641,19 +641,49 @@ class NXPlotView(QtGui.QWidget):
     def redraw(self):
         self.canvas.draw_idle()
 
-    def vline(self, x, **opts):
-        ymin, ymax = self.yaxis.get_limits()
+    def vline(self, x, ymin=None, ymax=None, **opts):
+        ylo, yhi = self.yaxis.get_limits()
+        if ymin is None:
+            ymin = ylo
+        if ymax is None:
+            ymax = yhi
         ax = self.figure.axes[0]
         line = ax.vlines(float(x), ymin, ymax, **opts)
         self.canvas.draw()
         return line
 
-    def hline(self, y, **opts):
-        xmin, xmax = self.xaxis.get_limits()
+    def hline(self, y, xmin=None, xmax=None, **opts):
+        xlo, xhi = self.xaxis.get_limits()
+        if xmin is None:
+            xmin = xlo
+        if xmax is None:
+            xmax = xhi
         ax = self.figure.axes[0]
         line = ax.hlines(float(y), xmin, xmax, **opts)
         self.canvas.draw()
         return line
+
+    def vlines(self, x, ymin=None, ymax=None, **opts):
+        ylo, yhi = self.yaxis.get_limits()
+        if ymin is None:
+            ymin = ylo
+        if ymax is None:
+            ymax = yhi
+        ax = self.figure.axes[0]
+        lines = ax.vlines(x, ymin, ymax, **opts)
+        self.canvas.draw()
+        return lines
+
+    def hlines(self, y, xmin=None, xmax=None, **opts):
+        xlo, xhi = self.xaxis.get_limits()
+        if xmin is None:
+            xmin = xlo
+        if xmax is None:
+            xmax = xhi
+        ax = self.figure.axes[0]
+        lines = ax.hlines(y, xmin, xmax, **opts)
+        self.canvas.draw()
+        return lines
 
     def crosshairs(self, x, y, **opts):
         crosshairs = []
