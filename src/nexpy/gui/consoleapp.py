@@ -252,6 +252,9 @@ class NXConsoleApp(BaseIPythonApplication, IPythonConsoleApp):
             fname = os.path.expanduser(sys.argv[1])
             name = _mainwindow.treeview.tree.get_name(fname)
             _mainwindow.treeview.tree[name] = self.window.user_ns[name] = nxload(fname)
+            _mainwindow.treeview.select_node(_mainwindow.treeview.tree[name])
+            logging.info("NeXus file '%s' opened as workspace '%s'" 
+                          % (fname, name))
             self.window.user_ns[name].plot()
         except:
             pass
