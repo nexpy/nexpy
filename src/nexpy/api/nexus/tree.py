@@ -1951,7 +1951,9 @@ class NXfield(NXobject):
         dims = 'x'.join([str(n) for n in self.shape])
         s = unicode(str(self), 'utf-8')
         if '\n' in s or s == "":
-            s = "%s(%s)"%(self.dtype, dims)
+            s = "%s(%s)" % (self.dtype, dims)
+        elif len(s) > 80:
+            s = s[0:77]+'...'
         try:
             v=[" "*indent + "%s = %s"%(self.nxname, s)]
         except Exception:
@@ -2642,7 +2644,8 @@ class NXgroup(NXobject):
             obj = self.nxlink
         else:
             obj = self
-        dpcpy = obj.__class__()       
+        dpcpy = obj.__class__()
+        dpcpy._name = obj._name
         memo[id(self)] = dpcpy
         dpcpy._changed = True
         for k,v in obj.items():
