@@ -14,7 +14,7 @@ provide an intuitive interactive toolbox allowing users both to access existing
 NeXus files and to create new NeXus-conforming data structures without expert 
 knowledge of the file format.
 
-.. note:: NeXpy v0.4.4 is now available for `download 
+.. note:: NeXpy v0.4.5 is now available for `download 
           <https://pypi.python.org/pypi/NeXpy/>`_. This is a beta-release so 
           please post any issues that you encounter on the `NeXpy GitHub 
           <https://github.com/nexpy/nexpy/issues>`_. 
