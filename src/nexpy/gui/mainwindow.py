@@ -47,9 +47,8 @@ from plotview import NXPlotView
 from datadialogs import *
 from scripteditor import ScriptDialog
 import nexpy
-from nexpy.api.nexus.tree import (nxload, NeXusError, NXFile, 
-                                  NXobject, NXfield, NXgroup, NXlink,
-                                  NXroot, NXentry)
+from nexpy.api.nexus import (nxload, NeXusError, NXFile, NXobject, 
+                             NXfield, NXgroup, NXlink, NXroot, NXentry)
 
 # IPython imports
 # require minimum version of IPython for RichIPythonWidget()
@@ -143,7 +142,6 @@ class MainWindow(QtGui.QMainWindow):
         self.treeview.setMaximumWidth(400)
         self.treeview.setSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Expanding)
         self.user_ns['plotview'] = self.plotview
-        self.user_ns['pv'] = self.plotview
         self.user_ns['plotviews'] = self.plotviews = self.plotview.plotviews
         self.user_ns['treeview'] = self.treeview
         self.user_ns['nxtree'] = self.user_ns['_tree'] = self.tree
@@ -1047,7 +1045,7 @@ class MainWindow(QtGui.QMainWindow):
     def delete_data(self):
         try:
             node = self.treeview.get_node()
-            if isinstance(node, NXgroup) or isinstance(node, NXfield):
+            if node:
                 if node.nxfilemode != 'r':
                     path = node.nxpath
                     dialog = DeleteDialog(node, self)
@@ -1055,8 +1053,6 @@ class MainWindow(QtGui.QMainWindow):
                     logging.info("'%s' deleted" % path) 
                 else:   
                     raise NeXusError("NeXus file is locked")
-            else:
-                raise NeXusError("Invalid NeXus object")
         except NeXusError as error:
             report_error("Deleting Data", error)
 
@@ -1066,8 +1062,6 @@ class MainWindow(QtGui.QMainWindow):
             if isinstance(node, NXlink):
                 self.treeview.select_node(node.nxlink)
                 self.treeview.update()
-            else:
-                raise NeXusError("Not a NeXus link")
         except NeXusError as error:
             report_error("Showing Link", error)
 
@@ -1285,7 +1279,7 @@ class MainWindow(QtGui.QMainWindow):
                 checkable=True)
             self.window_menu.addAction(self.active_action[number])
         else:
-            numbers = [num for num in sorted(self.active_action.keys()) if num < 100]
+            numbers = sorted(self.active_action.keys())
             if number > numbers[-1]:
                 before_action = self.window_separator
             else:
