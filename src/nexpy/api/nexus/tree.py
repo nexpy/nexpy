@@ -933,7 +933,7 @@ class NXobject(object):
             if self is self.nxgroup.nxsignal:
                 self.nxgroup.nxsignal = self
                 group_changed = True
-            elif self in axes:
+            elif [x for x in axes if x is self]:
                 self.nxgroup.nxaxes = axes
                 group_changed = True
         if self.nxfilemode == 'rw':
@@ -2753,7 +2753,7 @@ class NXgroup(NXobject):
         if isinstance(self.nxroot, NXroot):
             if self.nxroot == target.nxroot:
                 if isinstance(target, NXobject):
-                    self._entries[target.nxname] = NXlink(target=target, group=self)
+                    self[target.nxname] = NXlink(target=target)
                     self.update()
                 else:
                     raise NeXusError("Link target must be an NXobject")
@@ -3069,7 +3069,7 @@ class NXlink(NXobject):
         self._class = "NXlink"
         if isinstance(target, NXobject):
             self._name = target.nxname
-            self._target = self.nxlink.attrs["target"] = target.nxpath
+            self._target = target.attrs["target"] = target.nxpath
             if target.nxclass == "NXlink":
                 raise NeXusError("Cannot link to another NXlink object")
             elif target.nxclass == "NXfield":
