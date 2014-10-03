@@ -942,7 +942,7 @@ class MainWindow(QtGui.QMainWindow):
             if node:        
                 self.treeview.status_message(node)
                 try:
-                    node.plot(fmt)
+                    node.plot(fmt=fmt)
                 except (KeyError, NeXusError):
                     if isinstance(node, NXfield):
                         dialog = PlotDialog(node, self)
