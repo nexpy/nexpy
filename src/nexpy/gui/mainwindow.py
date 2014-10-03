@@ -947,6 +947,8 @@ class MainWindow(QtGui.QMainWindow):
                     if isinstance(node, NXfield):
                         dialog = PlotDialog(node, self)
                         dialog.show()
+                    else:
+                        raise NeXusError("Group not configured correctly for plotting - try plotting a field")
         except NeXusError as error:
             report_error("Plotting Data", error)
 

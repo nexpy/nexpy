@@ -317,10 +317,12 @@ class PlotDialog(BaseDialog):
         if 'axes' in self.node.attrs:
             from nexpy.api.nexus.tree import _readaxes
             default_axis = _readaxes(self.node.axes)[axis]
-        elif self.node.nxgroup.nxaxes:
-            default_axis = self.node.nxgroup.nxaxes[axis].nxname
         else:
-            default_axis = None
+            axes = self.node.nxgroup.nxaxes
+            if axes is not None:
+                default_axis = self.node.nxgroup.nxaxes[axis].nxname
+            else:
+                default_axis = None
         if default_axis:
             try:
                 box.setCurrentIndex(box.findText(default_axis))

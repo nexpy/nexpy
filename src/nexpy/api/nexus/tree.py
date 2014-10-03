@@ -2922,9 +2922,13 @@ class NXgroup(NXobject):
             return [getattr(self, name) for name in axes]
         except (KeyError, AttributeError, UnboundLocalError):
             axes = {}
-            for entry in self._entries:
+            for entry in self:
                 if 'axis' in self[entry].attrs:
-                    axes[self[entry].axis] = self[entry]
+                    axis = self[entry].axis
+                    if axis not in axes:
+                        axes[axis] = self[entry]
+                    else:
+                        return None
             if axes:
                 return [axes[key] for key in sorted(axes.keys())]
             else:
