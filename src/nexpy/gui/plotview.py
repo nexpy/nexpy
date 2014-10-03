@@ -716,13 +716,13 @@ class NXPlotView(QtGui.QWidget):
         return circle
 
     def set_limits(self, xmin=None, xmax=None, ymin=None, ymax=None):
-        if xmin:
+        if xmin is not None:
             self.xaxis.min = xmin
-        if xmax:
+        if xmax is not None:
             self.xaxis.max = xmax
-        if ymin:
+        if ymin is not None:
             self.yaxis.min = ymin
-        if ymax:
+        if ymax is not None:
             self.yaxis.max = ymax
         self.update_tabs()
 
