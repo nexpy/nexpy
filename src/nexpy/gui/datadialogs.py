@@ -347,7 +347,7 @@ class PlotDialog(BaseDialog):
             return NXfield(range(self.node.shape[axis]), 
                            name='index_%s' % axis)
         else:
-            return self.node.nxgroup.entries[axis_name]
+            return self.node.nxgroup[axis_name]
 
     def get_axes(self):
         return [self.get_axis(axis) for axis in range(self.dims)]
@@ -936,17 +936,21 @@ class SignalDialog(BaseDialog):
             pass
         return False
 
+    def get_axis(self, axis):
+        return self.node.nxgroup[self.axis_boxes[axis].currentText()]
+
     def get_axes(self):
-        return [str(self.axis_boxes[axis].currentText()) 
-                for axis in range(self.dims)]
+        return [self.get_axis(axis) for axis in range(self.dims)]
 
     def accept(self):
         signal = int(self.signal_box.text())
+        axes = self.get_axes()
         if signal == 1:
             self.node.nxgroup.nxsignal = self.node
+            self.node.nxgroup.nxaxes = axes
         else:
             self.node.attrs["signal"] = signal
-        self.node.axes = ":".join(self.get_axes())
+            self.node.attrs["axes"] = ":".join([axis.nxname for axis in axes])
         super(SignalDialog, self).accept()
 
     

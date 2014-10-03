@@ -933,9 +933,10 @@ class NXobject(object):
             if self is self.nxgroup.nxsignal:
                 self.nxgroup.nxsignal = self
                 group_changed = True
-            elif [x for x in axes if x is self]:
-                self.nxgroup.nxaxes = axes
-                group_changed = True
+            elif axes is not None:
+                if [x for x in axes if x is self]:
+                    self.nxgroup.nxaxes = axes
+                    group_changed = True
         if self.nxfilemode == 'rw':
             with self.nxfile as f:
                 f[self.nxpath] = f[path]
@@ -2906,6 +2907,7 @@ class NXgroup(NXobject):
         self.attrs['signal'] = signal.nxname
         if signal.nxname not in self:
             self[signal.nxname] = signal
+        self[signal.nxname].attrs['signal'] = 1
         return self[signal.nxname]
 
     def _axes(self):
