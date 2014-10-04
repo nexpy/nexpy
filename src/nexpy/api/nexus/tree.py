@@ -3555,8 +3555,9 @@ class NXlog(NXgroup):
         parameters, specifying markers, colors, etc, can be specified using the 
         'opts' dictionary.
         """
-        axis = [self.time]      # TODO: unused variable
-        title = NXfield("%s Log" % self.value.nxname.upper())
+        title = NXfield("%s Log" % self.nxname)
+        if 'start' in self.time.attrs:
+            title = title + ' - starting at ' + self.time.attrs['start']
         NXdata(self.value, self.time, title=title).plot(**opts)
 
 
