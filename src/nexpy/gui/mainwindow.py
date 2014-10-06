@@ -944,11 +944,8 @@ class MainWindow(QtGui.QMainWindow):
                 try:
                     node.plot(fmt=fmt)
                 except (KeyError, NeXusError):
-                    if isinstance(node, NXfield):
-                        dialog = PlotDialog(node, self)
-                        dialog.show()
-                    else:
-                        raise NeXusError("Group not configured correctly for plotting - try plotting a field")
+                    dialog = PlotDialog(node, self)
+                    dialog.show()
         except NeXusError as error:
             report_error("Plotting Data", error)
 
@@ -996,6 +993,8 @@ class MainWindow(QtGui.QMainWindow):
             if self is not None:
                 node = self.treeview.get_node()
                 if node:
+                    if isinstance(node, NXlink):
+                        raise NeXusError("Cannot rename a linked object")
                     if node.nxfilemode != 'r' or isinstance(node, NXroot):
                         path = node.nxpath
                         dialog = RenameDialog(node, self)
@@ -1072,12 +1071,9 @@ class MainWindow(QtGui.QMainWindow):
             node = self.treeview.get_node()
             if isinstance(node, NXobject):
                 if node.nxfilemode != 'r':
-                    if isinstance(node, NXfield) and node.nxgroup:
-                        dialog = SignalDialog(node, self)
-                        dialog.show()
-                        logging.info("'%s' set as signal" % node.nxpath) 
-                    else:
-                        raise NeXusError("Only NeXus fields can be a plottable signal")
+                    dialog = SignalDialog(node, self)
+                    dialog.show()
+                    logging.info("Signal set for '%s'" % node.nxgroup.nxpath) 
                 else:   
                     raise NeXusError("NeXus file is locked")
         except NeXusError as error:
@@ -1306,11 +1302,13 @@ class MainWindow(QtGui.QMainWindow):
             if self.active_action[num].isChecked():
                 self.previous_active = num
                 self.active_action[num].setChecked(False)
-        self.active_action[number].setChecked(True)
+        if number in self.active_action:
+            self.active_action[number].setChecked(True)
     
     def make_active(self, number):
-        self.update_active(number)
-        self.plotviews[self.active_action[number].text()].make_active()
+        if number in self.active_action:
+            self.update_active(number)
+            self.plotviews[self.active_action[number].text()].make_active()
 
     def show_projection_panel(self):
         from nexpy.gui.plotview import plotview, NXProjectionPanel

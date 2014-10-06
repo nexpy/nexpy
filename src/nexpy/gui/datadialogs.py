@@ -280,47 +280,73 @@ class PlotDialog(BaseDialog):
 
         super(PlotDialog, self).__init__(parent)
  
-        self.node = node
-        self.dims = len(self.node.shape)
-        
         if isinstance(node, NXfield):
-            axis_layout = [QtGui.QHBoxLayout()]
-            axis_label = [QtGui.QLabel("Choose Axis 0: ")]
-            self.axis_boxes = [self.axis_box(0)]
-            axis_layout[0].addWidget(axis_label[0])
-            axis_layout[0].addWidget(self.axis_boxes[0])
-            for axis in range(1, self.dims):
-                axis_layout.append(QtGui.QHBoxLayout())
-                axis_label.append(QtGui.QLabel("Choose Axis %s: " % axis))
-                self.axis_boxes.append(self.axis_box(axis))
-                axis_layout[axis].addWidget(axis_label[axis])
-                axis_layout[axis].addWidget(self.axis_boxes[axis])
+            self.group = node.nxgroup
+            signal_name = node.nxname
         else:
-            raise NeXusError('Item not plottable')
+            self.group = node
+            signal_name = None
 
-        layout = QtGui.QVBoxLayout()
+        self.signal_combo =  QtGui.QComboBox() 
+        for node in self.group.values():
+            if isinstance(node, NXfield) and node.shape != ():
+                self.signal_combo.addItem(node.nxname)
+        if self.signal_combo.count() == 0:
+            raise NeXusError("No plottable field in group")
+        self.signal_combo.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToContents)
+        if signal_name:
+            self.signal_combo.setCurrentIndex(
+                self.signal_combo.findText(signal_name))
+        self.signal_combo.currentIndexChanged.connect(self.choose_signal)
+ 
+        self.grid = QtGui.QGridLayout()
+        self.grid.setSpacing(10)
+        self.grid.addWidget(QtGui.QLabel('Signal :'), 0, 0)
+        self.grid.addWidget(self.signal_combo, 0, 1)
+        self.choose_signal()
+
+        self.layout = QtGui.QVBoxLayout()
+        self.layout.addLayout(self.grid)
+        self.layout.addWidget(self.buttonbox())
+        self.setLayout(self.layout)
+
+        self.setWindowTitle("Plot NeXus Data")
+
+    @property
+    def signal(self):
+        return self.group[self.signal_combo.currentText()]
+
+    @property
+    def dims(self):
+        return len(self.signal.shape)
+
+    def choose_signal(self):
+        row = 0
+        self.axis_boxes = {}
         for axis in range(self.dims):
-            layout.addLayout(axis_layout[axis])
-        layout.addWidget(self.buttonbox()) 
-        self.setLayout(layout)
-
-        self.setWindowTitle("Plot NeXus Field")
+            row += 1
+            self.grid.addWidget(QtGui.QLabel("Axis %s: " % axis), row, 0)
+            self.axis_boxes[axis] = self.axis_box(axis)
+            self.grid.addWidget(self.axis_boxes[axis], row, 1)
+        while row < self.grid.rowCount() - 1:
+            self.remove_axis(row)
+            row += 1   
 
     def axis_box(self, axis):
         box = QtGui.QComboBox()
-        for node in self.node.nxgroup.entries.values():
-            if node is not self.node and self.check_axis(node, axis):
+        for node in self.group.values():
+            if node is not self.signal and self.check_axis(node, axis):
                 box.addItem(node.nxname)
         if box.count() > 0:
             box.insertSeparator(0)
         box.insertItem(0,'NXfield index')
-        if 'axes' in self.node.attrs:
+        if 'axes' in self.signal.attrs:
             from nexpy.api.nexus.tree import _readaxes
-            default_axis = _readaxes(self.node.axes)[axis]
+            default_axis = _readaxes(self.signal.axes)[axis]
         else:
-            axes = self.node.nxgroup.nxaxes
+            axes = self.group.nxaxes
             if axes is not None:
-                default_axis = self.node.nxgroup.nxaxes[axis].nxname
+                default_axis = self.group.nxaxes[axis].nxname
             else:
                 default_axis = None
         if default_axis:
@@ -332,11 +358,22 @@ class PlotDialog(BaseDialog):
             box.setCurrentIndex(box.findText('NXfield index'))
         return box
 
+    def remove_axis(self, axis):
+        row = axis + 1
+        for column in range(2):
+            item = self.grid.itemAtPosition(row, column)
+            if item is not None:
+                widget = item.widget()
+                if widget is not None:
+                    widget.setVisible(False)
+                    self.grid.removeWidget(widget)
+                    widget.deleteLater()           
+
     def check_axis(self, node, axis):
         if len(node.shape) > 1:
             return False
         try:
-            node_len, axis_len = self.node.shape[axis], node.shape[0]
+            node_len, axis_len = self.signal.shape[axis], node.shape[0]
             if axis_len == node_len or axis_len == node_len+1:
                 return True
         except Exception:
@@ -346,16 +383,16 @@ class PlotDialog(BaseDialog):
     def get_axis(self, axis):
         axis_name = self.axis_boxes[axis].currentText()
         if axis_name == 'NXfield index':
-            return NXfield(range(self.node.shape[axis]), 
+            return NXfield(range(self.signal.shape[axis]), 
                            name='index_%s' % axis)
         else:
-            return self.node.nxgroup[axis_name]
+            return self.group[axis_name]
 
     def get_axes(self):
         return [self.get_axis(axis) for axis in range(self.dims)]
 
     def accept(self):
-        data = NXdata(self.node, self.get_axes())
+        data = NXdata(self.signal, self.get_axes())
         data.plot()
         super(PlotDialog, self).accept()
 
@@ -878,60 +915,108 @@ class SignalDialog(BaseDialog):
 
         super(SignalDialog, self).__init__(parent)
  
-        self.node = node
-        self.dims = len(self.node.shape)
-        
-        signal_layout = QtGui.QHBoxLayout()
-        signal_label = QtGui.QLabel("Signal Attribute")
+        if isinstance(node, NXfield):
+            self.group = node.nxgroup
+            signal_name = node.nxname
+        else:
+            self.group = node
+            if self.group.nxsignal:
+                signal_name = self.group.nxsignal.nxname
+            else:
+                signal_name = None
+
+        self.signal_combo =  QtGui.QComboBox() 
+        for node in self.group.values():
+            if isinstance(node, NXfield) and node.shape != ():
+                self.signal_combo.addItem(node.nxname)
+        if self.signal_combo.count() == 0:
+            raise NeXusError("No plottable field in group")
+        self.signal_combo.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToContents)
+        if signal_name:
+            self.signal_combo.setCurrentIndex(
+                self.signal_combo.findText(signal_name))
+        else:
+            self.signal_combo.setCurrentIndex(0)
+        self.signal_combo.currentIndexChanged.connect(self.choose_signal)
         self.signal_box = QtGui.QLineEdit("1")
-        signal_layout.addWidget(signal_label)
-        signal_layout.addWidget(self.signal_box)
 
-        axis_layout = [QtGui.QHBoxLayout()]
-        axis_label = [QtGui.QLabel("Choose Axis 0: ")]
-        self.axis_boxes = [self.axis_box(0)]
-        axis_layout[0].addWidget(axis_label[0])
-        axis_layout[0].addWidget(self.axis_boxes[0])
-        for axis in range(1, self.dims):
-            axis_layout.append(QtGui.QHBoxLayout())
-            axis_label.append(QtGui.QLabel("Choose Axis %s: " % axis))
-            self.axis_boxes.append(self.axis_box(axis))
-            axis_layout[axis].addWidget(axis_label[axis])
-            axis_layout[axis].addWidget(self.axis_boxes[axis])
- 
-        layout = QtGui.QVBoxLayout()
-        layout.addLayout(signal_layout)
+        self.grid = QtGui.QGridLayout()
+        self.grid.setSpacing(10)
+        self.grid.addWidget(QtGui.QLabel('Signal :'), 0, 0)
+        self.grid.addWidget(self.signal_combo, 0, 1)
+        self.grid.addWidget(QtGui.QLabel('Signal Attribute:'), 1, 0)
+        self.grid.addWidget(self.signal_box, 1, 1)
+        self.choose_signal()
+
+        self.layout = QtGui.QVBoxLayout()
+        self.layout.addLayout(self.grid)
+        self.layout.addWidget(self.buttonbox())
+        self.setLayout(self.layout)
+
+        self.setWindowTitle("Set signal for %s" % self.group.nxname)
+
+    @property
+    def signal(self):
+        return self.group[self.signal_combo.currentText()]
+
+    @property
+    def dims(self):
+        return len(self.signal.shape)
+
+    def choose_signal(self):
+        row = 1
+        self.axis_boxes = {}
         for axis in range(self.dims):
-            layout.addLayout(axis_layout[axis])
-        layout.addWidget(self.buttonbox()) 
-        self.setLayout(layout)
-
-        self.setWindowTitle("Set %s as Signal" % self.node.nxname)
+            self.axis_boxes[axis] = self.axis_box(axis)
+            if self.axis_boxes[axis] is not None:
+                row += 1
+                self.grid.addWidget(QtGui.QLabel("Axis %s: " % axis), row, 0)
+                self.grid.addWidget(self.axis_boxes[axis], row, 1)
+        while row < self.grid.rowCount() - 1:
+            self.remove_axis(row)
+            row += 1   
 
     def axis_box(self, axis=0):
-        axisbox = QtGui.QComboBox()
-        for node in self.node.nxgroup.entries.values():
-            if node is not self.node and self.check_axis(node, axis):
-                axisbox.addItem(node.nxname)
-        if 'axes' in self.node.attrs:
+        box = QtGui.QComboBox()
+        for node in self.group.values():
+            if node is not self.signal and self.check_axis(node, axis):
+                box.addItem(node.nxname)
+        if box.count() == 0:
+            return None
+        if 'axes' in self.signal.attrs:
             from nexpy.api.nexus.tree import _readaxes
-            default_axis = _readaxes(self.node.axes)[axis]
-        elif self.node.nxgroup.nxaxes:
-            default_axis = self.node.nxgroup.nxaxes[axis].nxname
+            default_axis = _readaxes(self.signal.axes)[axis]
         else:
-            default_axis = None
+            axes = self.group.nxaxes
+            if axes is not None:
+                default_axis = self.group.nxaxes[axis].nxname
+            else:
+                default_axis = None
         if default_axis:
             try:
-                axisbox.setCurrentIndex(axisbox.findText(default_axis))
+                box.setCurrentIndex(box.findText(default_axis))
             except Exception:
                 pass
-        return axisbox
+        else:
+            box.setCurrentIndex(0)
+        return box
+
+    def remove_axis(self, axis):
+        row = axis + 1
+        for column in range(2):
+            item = self.grid.itemAtPosition(row, column)
+            if item is not None:
+                widget = item.widget()
+                if widget is not None:
+                    widget.setVisible(False)
+                    self.grid.removeWidget(widget)
+                    widget.deleteLater()           
 
     def check_axis(self, node, axis):
         if len(node.shape) > 1:
             return False
         try:
-            node_len, axis_len = self.node.shape[axis], node.shape[0]
+            node_len, axis_len = self.signal.shape[axis], node.shape[0]
             if axis_len == node_len or axis_len == node_len+1:
                 return True
         except Exception:
@@ -939,7 +1024,7 @@ class SignalDialog(BaseDialog):
         return False
 
     def get_axis(self, axis):
-        return self.node.nxgroup[self.axis_boxes[axis].currentText()]
+        return self.group[self.axis_boxes[axis].currentText()]
 
     def get_axes(self):
         return [self.get_axis(axis) for axis in range(self.dims)]
@@ -947,13 +1032,19 @@ class SignalDialog(BaseDialog):
     def accept(self):
         signal = int(self.signal_box.text())
         axes = self.get_axes()
-        if signal == 1:
-            self.node.nxgroup.nxsignal = self.node
-            self.node.nxgroup.nxaxes = axes
-        else:
-            self.node.attrs["signal"] = signal
-            self.node.attrs["axes"] = ":".join([axis.nxname for axis in axes])
-        super(SignalDialog, self).accept()
+        try:
+            if len(set(axes)) < len(axes):
+                raise NeXusError("Cannot have duplicate axes")
+            if signal == 1:
+                self.group.nxsignal = self.signal
+                self.group.nxaxes = axes
+            else:
+                self.signal.attrs["signal"] = signal
+                self.signal.attrs["axes"] = ":".join([axis.nxname for axis in axes])
+            super(SignalDialog, self).accept()
+        except NeXusError as error:
+            from nexpy.gui.mainwindow import report_error 
+            report_error("Setting signal", error)
 
     
 class FitDialog(BaseDialog):
@@ -1200,7 +1291,7 @@ class FitDialog(BaseDialog):
         name = self.compressed_name(expanded_name)
         f = filter(lambda x: x.name == name, self.functions)[0]
         for row in f.rows:
-            for column in range(9):
+            for column in range(8):
                 item = self.parameter_grid.itemAtPosition(row, column)
                 if item is not None:
                     widget = item.widget()
