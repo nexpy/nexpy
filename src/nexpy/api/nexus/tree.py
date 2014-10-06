@@ -440,7 +440,7 @@ class NXFile(object):
         """
         links = []
         self.nxpath = ""
-        for entry in tree.entries.values():
+        for entry in tree.values():
             links += self._writegroup(entry)
         self._writelinks(links)
         if len(tree.attrs) > 0:
@@ -523,7 +523,7 @@ class NXFile(object):
         self._writeattrs(group.attrs)
         if hasattr(group, '_target'):
             links += [(self.nxpath, group._target)]
-        for child in group.entries.values():
+        for child in group.values():
             if child.nxclass == 'NXfield':
                 links += self._writedata(child)
             elif hasattr(child,'_target'):
@@ -879,7 +879,7 @@ class NXobject(object):
         if attrs and self.attrs:
             result.append(self._str_attrs(indent=indent+2))
         # Print children
-        entries = self.entries
+        entries = self._entries
         if entries:
             names = entries.keys()
             names.sort()
@@ -1576,7 +1576,7 @@ class NXfield(NXobject):
         if self.nxgroup:
             if 'mask' in self.attrs:
                 mask_name = self.attrs['mask']
-                if mask_name in self.nxgroup.entries:
+                if mask_name in self.nxgroup:
                     return mask_name
             mask_name = '%s_mask' % self.nxname
             self.nxgroup[mask_name] = NXfield(shape=self._shape, dtype=np.bool, 
@@ -2038,7 +2038,7 @@ class NXfield(NXobject):
         if 'mask' in self.attrs:
             if self.nxgroup:
                 mask_name = self.attrs['mask']
-                if mask_name in self.nxgroup.entries:
+                if mask_name in self.nxgroup:
                     self.nxgroup[mask_name][()] = value
             else:
                 del self.attrs['mask']
@@ -2387,7 +2387,7 @@ class NXgroup(NXobject):
 #            return cmp(self.nxname, other.nxname)
 
     def __dir__(self):
-        return sorted(dir(super(self.__class__, self))+self.entries.keys())
+        return sorted(dir(super(self.__class__, self))+self.keys())
 
     def __repr__(self):
         return "%s('%s')" % (self.__class__.__name__,self.nxname)
@@ -2483,7 +2483,7 @@ class NXgroup(NXobject):
                 node = self
                 for name in names:
                     if name in node:
-                        node = node[name]
+                        node = node._entries[name]
                     else:
                         raise NeXusError('Invalid path')
                 return node
@@ -2553,7 +2553,7 @@ class NXgroup(NXobject):
                 value._group = group
                 value._name = key
                 group._entries[key] = value
-            elif key in group.entries:
+            elif key in group:
                 group._entries[key]._setdata(value)
             else:
                 group._entries[key] = NXfield(value=value, name=key, group=group)
@@ -2754,6 +2754,8 @@ class NXgroup(NXobject):
         if isinstance(self.nxroot, NXroot):
             if self.nxroot == target.nxroot:
                 if isinstance(target, NXobject):
+                    if target.nxname in self:
+                        raise NeXusError("Object with the same name already exists in '%s'" % self.nxpath)
                     self[target.nxname] = NXlink(target=target)
                     self.update()
                 else:
@@ -2861,7 +2863,7 @@ class NXgroup(NXobject):
         """
         Finds all child objects that have a particular class.
         """
-        return [E for _name,E in self.entries.items() if E.nxclass==nxclass]
+        return [E for _name,E in self.items() if E.nxclass==nxclass]
 
     def signals(self):
         """
@@ -2870,7 +2872,7 @@ class NXgroup(NXobject):
         The key is the value of the signal attribute.
         """
         signals = {}
-        for obj in self.entries.values():
+        for obj in self.values():
             if 'signal' in obj.attrs:
                 signals[obj.attrs['signal']] = obj
         return signals
@@ -2880,9 +2882,9 @@ class NXgroup(NXobject):
         Returns the NXfield containing the signal data.
         """
         if 'signal' in self.attrs:
-            if self.attrs['signal'] in self.entries:
+            if self.attrs['signal'] in self:
                 return self[self.attrs['signal']]
-        for obj in self.entries.values():
+        for obj in self.values():
             if 'signal' in obj.attrs and str(obj.signal) == '1':
                 if isinstance(self[obj.nxname],NXlink):
                     return self[obj.nxname].nxlink
@@ -2955,7 +2957,7 @@ class NXgroup(NXobject):
         Returns the NXfield containing the signal errors.
         """
         try:
-            return self.entries['errors']
+            return self['errors']
         except KeyError:
             return None
 
@@ -2965,8 +2967,8 @@ class NXgroup(NXobject):
         
         The argument should be a valid NXfield.
         """
-        self.entries['errors'] = errors
-        return self.entries['errors']
+        self._entries['errors'] = errors
+        return self._entries['errors']
 
     def _title(self):
         """
@@ -2975,9 +2977,9 @@ class NXgroup(NXobject):
         If there is no title attribute in the string, the parent
         NXentry group in the group's path is searched.
         """
-        if 'title' in self.entries:
+        if 'title' in self:
             return str(self.title)
-        elif self.nxgroup and 'title' in self.nxgroup.entries:
+        elif self.nxgroup and 'title' in self.nxgroup:
             return str(self.nxgroup.title)
         else:
             if self.nxroot.nxname != '':
@@ -3121,7 +3123,7 @@ class NXlink(NXobject):
         if link:
             try:
                 for level in self._target[1:].split('/'):
-                    link = link.entries[level]
+                    link = link._entries[level]
                 return link
             except AttributeError:
                 return None
@@ -3136,6 +3138,9 @@ class NXlink(NXobject):
             return self.nxlink._str_tree(indent, attrs, recursive)
         else:
             return " "*indent+self.nxname+' -> '+self._target
+
+    def rename(self, name):
+        raise NeXusError("Cannot rename a linked object")
 
     nxlink = property(_getlink, "Linked object")
     attrs = property(_getattrs,doc="NeXus attributes for object")
@@ -3161,7 +3166,7 @@ class NXlinkgroup(NXlink, NXgroup):
     """
 
     def _getentries(self):
-        return self.nxlink.entries
+        return self.nxlink._entries
 
     entries = property(_getentries,doc="Dictionary of NeXus objects within group")
 
@@ -3217,18 +3222,18 @@ class NXentry(NXgroup):
         """
         Adds two NXentry objects
         """
-        result = NXentry(entries=self.entries, attrs=self.attrs)
+        result = NXentry(entries=self._entries, attrs=self.attrs)
         try:
             names = [group.nxname for group in self.component("NXdata")]
             for name in names:
-                if isinstance(other.entries[name], NXdata):
-                    result.entries[name] = self.entries[name] + other.entries[name]
+                if isinstance(other[name], NXdata):
+                    result[name] = self[name] + other[name]
                 else:
                     raise KeyError
             names = [group.nxname for group in self.component("NXmonitor")]
             for name in names:
-                if isinstance(other.entries[name], NXmonitor):
-                    result.entries[name] = self.entries[name] + other.entries[name]
+                if isinstance(other[name], NXmonitor):
+                    result[name] = self[name] + other[name]
                 else:
                     raise KeyError
             return result
@@ -3243,14 +3248,14 @@ class NXentry(NXgroup):
         try:
             names = [group.nxname for group in self.component("NXdata")]
             for name in names:
-                if isinstance(other.entries[name], NXdata):
-                    result.entries[name] = self.entries[name] - other.entries[name]
+                if isinstance(other[name], NXdata):
+                    result[name] = self[name] - other[name]
                 else:
                     raise KeyError
             names = [group.nxname for group in self.component("NXmonitor")]
             for name in names:
-                if isinstance(other.entries[name], NXmonitor):
-                    result.entries[name] = self.entries[name] - other.entries[name]
+                if isinstance(other[name], NXmonitor):
+                    result[name] = self[name] - other[name]
                 else:
                     raise KeyError
             return result
