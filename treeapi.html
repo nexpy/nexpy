@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>NeXus Tree API Modules &mdash; NeXpy 0.4.5 documentation</title>
+    <title>NeXus Tree API Modules &mdash; NeXpy 0.4.6 documentation</title>
     
     <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.4.5',
+        VERSION:     '0.4.6',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -25,7 +25,7 @@
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="shortcut icon" href="_static/favicon.ico"/>
-    <link rel="top" title="NeXpy 0.4.5 documentation" href="index.html" />
+    <link rel="top" title="NeXpy 0.4.6 documentation" href="index.html" />
     <link rel="next" title="Adding a File Importer" href="readers.html" />
     <link rel="prev" title="Python Interface to NeXus" href="pythonshell.html" /> 
   </head>
@@ -45,7 +45,7 @@
         <li class="right" >
           <a href="pythonshell.html" title="Python Interface to NeXus"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">NeXpy 0.4.5 documentation</a> &raquo;</li> 
+        <li><a href="index.html">NeXpy 0.4.6 documentation</a> &raquo;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar">
@@ -946,6 +946,14 @@ assuming it contains bin boundaries.</p>
 </dd></dl>
 
 <dl class="attribute">
+<dt id="nexpy.api.nexus.tree.NXfield.nxtitle">
+<tt class="descname">nxtitle</tt><a class="headerlink" href="#nexpy.api.nexus.tree.NXfield.nxtitle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the title as a string.</p>
+<p>If there is no title attribute in the parent group, the group&#8217;s path is 
+returned.</p>
+</dd></dl>
+
+<dl class="attribute">
 <dt id="nexpy.api.nexus.tree.NXfield.mask">
 <tt class="descname">mask</tt><a class="headerlink" href="#nexpy.api.nexus.tree.NXfield.mask" title="Permalink to this definition">¶</a></dt>
 <dd><p>Property: The data mask</p>
@@ -1342,8 +1350,8 @@ limits, which are specified as tuples for each dimension.</p>
 <dt id="nexpy.api.nexus.tree.NXgroup.nxtitle">
 <tt class="descname">nxtitle</tt><a class="headerlink" href="#nexpy.api.nexus.tree.NXgroup.nxtitle" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the title as a string.</p>
-<p>If there is no title attribute in the string, the parent
-NXentry group in the group&#8217;s path is searched.</p>
+<p>If there is no title field in the group or its parent group, the group&#8217;s
+path is retured.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -1913,7 +1921,7 @@ parameters, specifying markers, colors, etc, can be specified using the
         <li class="right" >
           <a href="pythonshell.html" title="Python Interface to NeXus"
              >previous</a> |</li>
-        <li><a href="index.html">NeXpy 0.4.5 documentation</a> &raquo;</li> 
+        <li><a href="index.html">NeXpy 0.4.6 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
