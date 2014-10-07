@@ -2012,6 +2012,21 @@ class NXfield(NXobject):
                 _getvalue(value, self._dtype, self._shape)
             self.update()
 
+    def _title(self):
+        """
+        Returns the title as a string.
+
+        If there is no title attribute in the parent group, the group's path is 
+        returned.
+        """
+        if self.nxgroup and 'title' in self.nxgroup:
+            return str(self.nxgroup.title)
+        else:
+            if self.nxroot.nxname != '':
+                return (self.nxroot.nxname + '/' + self.nxpath.lstrip('/')).rstrip('/')
+            else:
+                return self.nxpath
+
     def _getmask(self):
         """
         Returns the NXfield's mask as an array
@@ -2083,6 +2098,7 @@ class NXfield(NXobject):
 
     nxdata = property(_getdata, _setdata, doc="Property: The data values")
     nxaxes = property(_getaxes, doc="Property: The plotting axes")
+    nxtitle = property(_title, "Property: Title for group plot")
     mask = property(_getmask, _setmask, doc="Property: The data mask")
     dtype = property(_getdtype, _setdtype, 
                      doc="Property: Data type of NeXus field")
@@ -2974,8 +2990,8 @@ class NXgroup(NXobject):
         """
         Returns the title as a string.
 
-        If there is no title attribute in the string, the parent
-        NXentry group in the group's path is searched.
+        If there is no title field in the group or its parent group, the group's
+        path is retured.
         """
         if 'title' in self:
             return str(self.title)
