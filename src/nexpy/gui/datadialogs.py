@@ -296,8 +296,11 @@ class PlotDialog(BaseDialog):
             raise NeXusError("No plottable field in group")
         self.signal_combo.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToContents)
         if signal_name:
-            self.signal_combo.setCurrentIndex(
-                self.signal_combo.findText(signal_name))
+            idx =  self.signal_combo.findText(signal_name)
+            if idx >= 0:
+                self.signal_combo.setCurrentIndex(idx)
+            else:
+                signal_name = None
         self.signal_combo.currentIndexChanged.connect(self.choose_signal)
  
         self.grid = QtGui.QGridLayout()
@@ -352,10 +355,11 @@ class PlotDialog(BaseDialog):
             else:
                 default_axis = None
         if default_axis:
-            try:
-                box.setCurrentIndex(box.findText(default_axis))
-            except Exception:
-                pass
+            idx =  box.findText(default_axis)
+            if idx >= 0:
+                box.setCurrentIndex(idx)
+            else:
+                box.setCurrentIndex(box.findText('NXfield index'))
         else:
             box.setCurrentIndex(box.findText('NXfield index'))
         return box
@@ -937,8 +941,11 @@ class SignalDialog(BaseDialog):
             raise NeXusError("No plottable field in group")
         self.signal_combo.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToContents)
         if signal_name:
-            self.signal_combo.setCurrentIndex(
-                self.signal_combo.findText(signal_name))
+            idx =  self.signal_combo.findText(signal_name)
+            if idx >= 0:
+                self.signal_combo.setCurrentIndex(idx)
+            else:
+                self.signal_combo.setCurrentIndex(0)
         else:
             self.signal_combo.setCurrentIndex(0)
         self.signal_combo.currentIndexChanged.connect(self.choose_signal)
@@ -1028,15 +1035,20 @@ class SignalDialog(BaseDialog):
         return False
 
     def get_axis(self, axis):
-        return self.group[self.axis_boxes[axis].currentText()]
+        try:
+            return self.group[self.axis_boxes[axis].currentText()]
+        except Exception:
+            return None
 
     def get_axes(self):
         return [self.get_axis(axis) for axis in range(self.dims)]
 
     def accept(self):
         signal = int(self.signal_box.text())
-        axes = self.get_axes()
         try:
+            axes = self.get_axes()
+            if None in axes:
+                raise NeXusError("Unable to set axes")
             if len(set(axes)) < len(axes):
                 raise NeXusError("Cannot have duplicate axes")
             if signal == 1:
