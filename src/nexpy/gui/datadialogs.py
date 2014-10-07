@@ -372,6 +372,8 @@ class PlotDialog(BaseDialog):
                     widget.deleteLater()           
 
     def check_axis(self, node, axis):
+        if isinstance(node, NXgroup):
+            return False
         if len(node.shape) > 1:
             return False
         try:
