@@ -208,8 +208,9 @@ Data Menu
     an NXlink object, *i.e.*, shown with a link icon.
  
 **Set Signal**
-    Sets the selected tree item to the plottable signal. A dialog box allows the 
-    user to specify axes with compatible dimensions to plot the data against.
+    Sets the plottable signal either to the selected field or to any field 
+    within the selected group. A dialog box allows the user to specify axes with 
+    compatible dimensions to plot the data against.
 
     .. note:: The use of the 'Add Data' and 'Set Signal' menu items allows, in 
               principle, an entire NeXus data tree to be constructed using menu 
