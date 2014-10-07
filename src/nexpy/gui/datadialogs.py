@@ -289,8 +289,9 @@ class PlotDialog(BaseDialog):
 
         self.signal_combo =  QtGui.QComboBox() 
         for node in self.group.values():
-            if isinstance(node, NXfield) and node.shape != ():
-                self.signal_combo.addItem(node.nxname)
+            if isinstance(node, NXfield):
+                if node.shape != ():
+                    self.signal_combo.addItem(node.nxname)
         if self.signal_combo.count() == 0:
             raise NeXusError("No plottable field in group")
         self.signal_combo.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToContents)
@@ -335,8 +336,9 @@ class PlotDialog(BaseDialog):
     def axis_box(self, axis):
         box = QtGui.QComboBox()
         for node in self.group.values():
-            if node is not self.signal and self.check_axis(node, axis):
-                box.addItem(node.nxname)
+            if isinstance(node, NXfield) and node is not self.signal:
+                if self.check_axis(node, axis):
+                    box.addItem(node.nxname)
         if box.count() > 0:
             box.insertSeparator(0)
         box.insertItem(0,'NXfield index')
