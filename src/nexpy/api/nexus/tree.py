@@ -379,6 +379,10 @@ class NXFile(object):
             if np.prod(shape) < 1000:# i.e., less than 1k dims
                 try:
                     value = self[self.nxpath][()]
+                    #Sometimes, strings are returned from h5py with dtype 'O'
+                    if isinstance(value, basestring) and dtype == np.dtype('object'):
+                        value = np.string_(value)
+                        dtype = value.dtype
                     if shape == ():
                         value = np.asscalar(value)
                 except ValueError:
