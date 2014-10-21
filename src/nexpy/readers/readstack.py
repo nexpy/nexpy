@@ -65,6 +65,10 @@ class ImportDialog(BaseImportDialog):
   
         self.setWindowTitle("Import "+str(filetype))
 
+    @property
+    def suffix(self):
+        return self.suffix_box.text()
+
     def make_filterbox(self):
         filterbox = QtGui.QWidget()
         layout = QtGui.QGridLayout()
@@ -72,13 +76,18 @@ class ImportDialog(BaseImportDialog):
         prefix_label = QtGui.QLabel('File Prefix')
         self.prefix_box = QtGui.QLineEdit()
         self.prefix_box.editingFinished.connect(self.set_range)
+        suffix_label = QtGui.QLabel('File Suffix')
+        self.suffix_box = QtGui.QLineEdit('')
+        self.suffix_box.editingFinished.connect(self.get_prefixes)
         extension_label = QtGui.QLabel('File Extension')
         self.extension_box = QtGui.QLineEdit()
         self.extension_box.editingFinished.connect(self.set_extension)
         layout.addWidget(prefix_label, 0, 0)
         layout.addWidget(self.prefix_box, 0, 1)
-        layout.addWidget(extension_label, 0, 2)
-        layout.addWidget(self.extension_box, 0, 3)
+        layout.addWidget(suffix_label, 0, 2)
+        layout.addWidget(self.suffix_box, 0, 3)
+        layout.addWidget(extension_label, 0, 4)
+        layout.addWidget(self.extension_box, 0, 5)
         self.prefix_combo = QtGui.QComboBox()
         self.prefix_combo.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToContents)
         self.prefix_combo.activated.connect(self.choose_prefix)
@@ -86,7 +95,7 @@ class ImportDialog(BaseImportDialog):
         self.extension_combo.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToContents)
         self.extension_combo.activated.connect(self.choose_extension)
         layout.addWidget(self.prefix_combo, 1, 1, alignment=QtCore.Qt.AlignHCenter)
-        layout.addWidget(self.extension_combo, 1, 3, alignment=QtCore.Qt.AlignHCenter)
+        layout.addWidget(self.extension_combo, 1, 5, alignment=QtCore.Qt.AlignHCenter)
         filterbox.setLayout(layout)
         filterbox.setVisible(False)
         return filterbox
@@ -196,7 +205,7 @@ class ImportDialog(BaseImportDialog):
             return 'TIFF'
 
     def get_index(self, file):
-        return int(re.match('^(.*?)([0-9]*)[.](.*)$',file).groups()[1])
+        return int(re.match('^(.*?)([0-9]*)%s[.](.*)$' % self.suffix, file).groups()[1])
 
     def get_indices(self):
         try:
