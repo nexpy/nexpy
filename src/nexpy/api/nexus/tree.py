@@ -379,8 +379,8 @@ class NXFile(object):
             if np.prod(shape) < 1000:# i.e., less than 1k dims
                 try:
                     value = self[self.nxpath][()]
-                    #Sometimes, strings are returned from h5py with dtype 'O'
-                    if isinstance(value, basestring) and dtype == np.dtype('object'):
+                    #Variable length strings are returned from h5py with dtype 'O'
+                    if h5.check_dtype(vlen=self[self.nxpath].dtype) in (str, unicode):
                         value = np.string_(value)
                         dtype = value.dtype
                     if shape == ():
@@ -516,14 +516,17 @@ class NXFile(object):
         this routine returns the set of links that need to be written.
         Call writelinks on the list.
         """
-        parent = '/' + self.nxpath.lstrip('/')
-        self.nxpath = parent + '/' + group.nxname
+        if group.nxpath != '' and group.nxpath != '/':
+            parent = '/' + self.nxpath.lstrip('/')
+            self.nxpath = parent + '/' + group.nxname
+            if group.nxname not in self[parent]:
+                self[parent].create_group(group.nxname)
+            if group.nxclass and group.nxclass != 'NXgroup':
+                self[self.nxpath].attrs['NX_class'] = group.nxclass
+        else:
+            parent = self.nxpath = '/'
 
         links = []
-        if group.nxname not in self[parent]:
-            self[parent].create_group(group.nxname)
-        if group.nxclass and group.nxclass != 'NXgroup':
-            self[self.nxpath].attrs['NX_class'] = group.nxclass
         self._writeattrs(group.attrs)
         if hasattr(group, '_target'):
             links += [(self.nxpath, group._target)]
