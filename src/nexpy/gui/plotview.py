@@ -74,8 +74,13 @@ def change_plotview(label):
         plotview = plotviews[label]
     else:
         plotview = NXPlotView(label)
+    
     return plotview
 
+
+def get_plotview():
+    global plotview
+    return plotview
 
 class NXCanvas(FigureCanvas):
 
@@ -228,6 +233,8 @@ class NXPlotView(QtGui.QWidget):
         else:
             self.raise_()
         self.update_active()
+        from nexpy.gui.consoleapp import _shell
+        _shell['plotview'] = self
 
     def update_active(self):
         if 'Projection' not in self.label:
