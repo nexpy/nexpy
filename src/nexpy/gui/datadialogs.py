@@ -1601,3 +1601,123 @@ class LogDialog(BaseDialog):
         self.text_box.verticalScrollBar().setValue(
             self.text_box.verticalScrollBar().maximum())
         self.setWindowTitle("Log File: %s" % self.file_name)
+
+
+class RemoteDialog(BaseDialog):
+    """Dialog to open a remote file.
+    """ 
+    def __init__(self, parent=None):
+
+        super(RemoteDialog, self).__init__(parent)
+ 
+        from globusonline.catalog.client.examples.catalog_wrapper import CatalogWrapper
+        token_file = os.path.join(os.path.expanduser('~'),'.nexpy',
+                                  'globusonline', 'gotoken.txt')
+        self.wrap = CatalogWrapper(token='file', token_file=token_file)
+        _,self.catalogs = self.wrap.catalogClient.get_catalogs()
+        catalog_layout = QtGui.QHBoxLayout()
+        self.catalog_box = QtGui.QComboBox()
+        for catalog in self.catalogs:
+            try:
+                self.catalog_box.addItem(catalog['config']['name'])
+            except:
+                pass
+        self.catalog_box.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToContents)
+        catalog_button = QtGui.QPushButton("Choose Catalog")
+        catalog_button.clicked.connect(self.get_catalog)
+        catalog_layout.addWidget(self.catalog_box)
+        catalog_layout.addStretch()
+        catalog_layout.addWidget(catalog_button)
+        self.layout = QtGui.QVBoxLayout()
+        self.layout.addLayout(catalog_layout)
+        self.layout.addWidget(self.buttonbox(save=True))
+        self.setLayout(self.layout)
+        self.dataset_box = None
+        self.member_box = None
+        self.uri_box = None
+  
+        self.setWindowTitle("Open Remote File")
+
+    def get_catalog(self):
+        self.catalog_id = self.get_catalog_id(self.catalog_box.currentText())
+        _,self.datasets = self.wrap.catalogClient.get_datasets(self.catalog_id)
+        if self.dataset_box is None:
+            dataset_layout = QtGui.QHBoxLayout()
+            self.dataset_box = QtGui.QComboBox()
+            self.dataset_box.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToContents)
+            dataset_button = QtGui.QPushButton("Choose Dataset")
+            dataset_button.clicked.connect(self.get_dataset)
+            dataset_layout.addWidget(self.dataset_box)
+            dataset_layout.addStretch()
+            dataset_layout.addWidget(dataset_button)
+            self.layout.insertLayout(1, dataset_layout)       
+        else:
+            self.dataset_box.clear()
+            self.member_box.clear()
+        for dataset in self.datasets:
+            try:
+                self.dataset_box.addItem(dataset['name'])
+            except:
+                pass
+
+    def get_catalog_id(self, name):
+        for catalog in self.catalogs:
+            if catalog['config']['name']==name:
+                return catalog['id']
+ 
+    def get_dataset(self):
+        self.dataset_id = self.get_dataset_id(self.dataset_box.currentText())
+        _,self.members = self.wrap.catalogClient.get_members(self.catalog_id,
+                                                             self.dataset_id)
+        if self.member_box is None:
+            member_layout = QtGui.QHBoxLayout()
+            self.member_box = QtGui.QComboBox()
+            self.member_box.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToContents)
+            member_button = QtGui.QPushButton("Choose Member")
+            member_button.clicked.connect(self.get_member)
+            member_layout.addWidget(self.member_box)
+            member_layout.addWidget(member_button)            
+            self.layout.insertLayout(2, member_layout) 
+        else:
+            self.member_box.clear()           
+        for member in self.members:
+            try:
+                self.member_box.addItem(member['data_uri'])
+            except:
+                pass
+
+    def get_dataset_id(self, name):
+        for dataset in self.datasets:
+            if dataset['name']==name:
+                return dataset['id']
+
+    def get_member(self):
+        self.member_uri = self.member_box.currentText()
+        if self.uri_box is None:
+            uri_layout = QtGui.QHBoxLayout()
+            uri_label = QtGui.QLabel('URI')
+            self.uri_box = QtGui.QLineEdit('PYRO:rosborn@localhost:8801')
+            self.uri_box.setMinimumWidth(200)        
+            uri_layout.addStretch()
+            uri_layout.addWidget(uri_label)
+            uri_layout.addWidget(self.uri_box)
+            uri_layout.addStretch()
+            self.layout.insertLayout(3, uri_layout)
+
+    def accept(self):
+        if self.uri_box is not None and len(self.member_uri) > 0:
+            uri = self.uri_box.text()
+            file_name = self.member_uri
+            try:
+                from nexpy.gui.consoleapp import _mainwindow, _shell
+                from nexpyro.pyro.nxfileremote import nxloadremote
+                name = _mainwindow.treeview.tree.get_name(file_name)
+                _mainwindow.treeview.tree[name] = _shell[name] = nxloadremote(file_name, uri)
+                logging.info("Remote NeXus file '%s' on '%s' opened  as workspace '%s'" 
+                             % (file_name, uri, name))
+                super(RemoteDialog, self).accept()
+            except NeXusError:
+                super(RemoteDialog, self).reject()
+        else:        
+            super(RemoteDialog, self).reject()
+

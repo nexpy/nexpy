@@ -246,6 +246,16 @@ class MainWindow(QtGui.QMainWindow):
             )
         self.addAction(self.openeditablefile_action)  
 
+        try:
+            import globusonline.catalog.client.examples.catalog_wrapper
+            self.openremotefile_action=QtGui.QAction("Open Remote...",
+                self,
+                triggered=self.open_remote_file
+                )
+            self.add_menu_action(self.file_menu, self.openremotefile_action)
+        except ImportError:
+            pass
+
         self.savefile_action=QtGui.QAction("&Save as...",
             self,
             shortcut=QtGui.QKeySequence.Save,
@@ -809,6 +819,13 @@ class MainWindow(QtGui.QMainWindow):
         except (NeXusError, IOError) as error:
             report_error("Opening File (Read/Write)", error)
 
+    def open_remote_file(self):
+        try:
+            dialog = RemoteDialog(self)
+            dialog.show()
+        except NeXusError as error:
+            report_error("Opening Remote File", error)
+
     def save_file(self):
         try:
             node = self.treeview.get_node()
@@ -931,7 +948,10 @@ class MainWindow(QtGui.QMainWindow):
                     raise NeXusError('Imported data must be an NXroot or NXentry group')
                 self.treeview.select_node(self.treeview.tree[name])
                 self.treeview.setFocus()
-                self.default_directory = os.path.dirname(self.import_dialog.import_file)
+                try:
+                    self.default_directory = os.path.dirname(self.import_dialog.import_file)
+                except Exception:
+                    pass
                 logging.info("Workspace '%s' imported" % name)               
         except NeXusError as error:
             report_error("Importing File", error)
@@ -1277,7 +1297,7 @@ class MainWindow(QtGui.QMainWindow):
                 checkable=True)
             self.window_menu.addAction(self.active_action[number])
         else:
-            numbers = sorted(self.active_action.keys())
+            numbers = [num for num in sorted(self.active_action.keys()) if num < 100]
             if number > numbers[-1]:
                 before_action = self.window_separator
             else:
