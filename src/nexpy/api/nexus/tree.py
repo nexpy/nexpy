@@ -1483,10 +1483,6 @@ class NXfield(NXobject):
         if self.nxfilemode == 'r':
             raise NeXusError('NeXus file opened as readonly')
         self._attrs[name] = value
-        if self.nxfilemode == 'rw':
-            with self.nxfile as f:
-                f.nxpath = self.nxpath
-                f._writeattrs(self.attrs)
         self.set_changed()
 
     def __delattr__(self, name):
