@@ -1193,6 +1193,8 @@ class NXPlotTab(QtGui.QWidget):
                 self.plotview.plot2D()
             else:
                 self.plotview.replot_logs()
+            if self.plotview.otab.aspect_equal:
+                self.plotview.set_aspect('equal')
         except AttributeError:
             pass
 
@@ -1908,21 +1910,24 @@ class NXNavigationToolbar(NavigationToolbar):
         self.zoom()
 
     def _init_toolbar(self):
-        if not hasattr(self, 'toolitems'):
-            self.toolitems = (
+        self.toolitems = (
                 ('Home', 'Reset original view', 'home', 'home'),
                 ('Back', 'Back to  previous view', 'back', 'back'),
                 ('Forward', 'Forward to next view', 'forward', 'forward'),
                 (None, None, None, None),
                 ('Pan', 'Pan axes with left mouse, zoom with right', 'move', 'pan'),
                 ('Zoom', 'Zoom to rectangle', 'zoom_to_rect', 'zoom'),
+                ('Aspect', 'Set aspect ratio to equal', 'hand', 'set_aspect'),
                 (None, None, None, None),
                 ('Subplots', 'Configure subplots', 'subplots', 'configure_subplots'),
                 ('Save', 'Save the figure', 'filesave', 'save_figure'),
+                ('Add', 'Add plot data to tree', 'hand', 'add_data')
                 )
-        self.toolitems = list(self.toolitems)
-        self.toolitems.append(('Add', 'Add plot data to the tree', 'hand', 'add_data'))
         super(NXNavigationToolbar, self)._init_toolbar()
+        self._actions['set_aspect'].setIcon(QtGui.QIcon(
+                pkg_resources.resource_filename('nexpy.gui',
+                                                'resources/equal.png')))
+        self._actions['set_aspect'].setCheckable(True)
 
     def home(self, *args):
         super(NXNavigationToolbar, self).home()        
@@ -2069,8 +2074,18 @@ class NXNavigationToolbar(NavigationToolbar):
         self.plotview.ytab.set_sliders(ymin, ymax)
         self.plotview.ytab.block_signals(False)
 
-#    def set_cursor(self, cursor):
-#        pass
+    def set_aspect(self):
+        if self._actions['set_aspect'].isChecked():
+            self.plotview.set_aspect('equal')
+        else:
+            self.plotview.set_aspect('auto')
+
+    @property
+    def aspect_equal(self):
+        if self._actions['set_aspect'].isChecked():
+            return True
+        else:
+            return False
 
 
 def keep_data(data):
