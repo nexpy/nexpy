@@ -1351,7 +1351,7 @@ class MainWindow(QtGui.QMainWindow):
     def reset_axes(self):
         try:
             from nexpy.gui.plotview import plotview
-            plotview.reset_limits()
+            plotview.reset_plot_limits()
         except NeXusError as error:
             report_error("Resetting Plot Limits", error)
 

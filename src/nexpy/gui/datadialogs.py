@@ -420,6 +420,7 @@ class LimitDialog(BaseDialog):
         self.plotview = plotview
         
         layout = QtGui.QVBoxLayout()
+
         xmin_layout = QtGui.QHBoxLayout()
         xmin_layout.addWidget(QtGui.QLabel('xmin'))
         self.xmin_box = self.textbox()
@@ -448,6 +449,21 @@ class LimitDialog(BaseDialog):
         ymax_layout.addWidget(self.ymax_box)
         layout.addLayout(ymax_layout)
 
+        if plotview.ndim > 1:
+            vmin_layout = QtGui.QHBoxLayout()
+            vmin_layout.addWidget(QtGui.QLabel('vmin'))
+            self.vmin_box = self.textbox()
+            self.vmin_box.setValue(plotview.vaxis.min)
+            vmin_layout.addWidget(self.vmin_box)
+            layout.addLayout(vmin_layout)
+
+            vmax_layout = QtGui.QHBoxLayout()
+            vmax_layout.addWidget(QtGui.QLabel('vmax'))
+            self.vmax_box = self.textbox()
+            self.vmax_box.setValue(plotview.vaxis.max)
+            vmax_layout.addWidget(self.vmax_box)
+            layout.addLayout(vmax_layout)
+
         layout.addWidget(self.buttonbox()) 
         self.setLayout(layout)
 
@@ -462,8 +478,13 @@ class LimitDialog(BaseDialog):
 
     def accept(self):
         xmin, xmax = self.xmin_box.value(), self.xmax_box.value() 
-        ymin, ymax = self.ymin_box.value(), self.ymax_box.value() 
-        self.plotview.set_limits(xmin, xmax, ymin, ymax)
+        ymin, ymax = self.ymin_box.value(), self.ymax_box.value()
+        if self.plotview.ndim > 1:
+            vmin, vmax = self.vmin_box.value(), self.vmax_box.value()
+            self.plotview.autoscale = False
+            self.plotview.set_plot_limits(xmin, xmax, ymin, ymax, vmin, vmax)
+        else:
+            self.plotview.set_plot_limits(xmin, xmax, ymin, ymax)
         super(LimitDialog, self).accept()
 
     
