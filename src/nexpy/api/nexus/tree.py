@@ -1135,6 +1135,14 @@ class NXobject(object):
         else:
             return self._group._getroot()
 
+    def _getentry(self):
+        if self.nxgroup is None or isinstance(self, NXentry):
+            return self
+        elif isinstance(self._group, NXentry):
+            return self._group
+        else:
+            return self._group._getentry()
+
     def _getfile(self):
         if self._file:
             return self._file.open()
@@ -1163,6 +1171,7 @@ class NXobject(object):
     nxfilename = property(_getfilename, doc="Property: Filename of NeXus object")
     nxfilemode = property(_getfilemode, doc="Property: File mode of root object")
     nxroot = property(_getroot, doc="Property: Root group of NeXus object's tree")
+    nxentry = property(_getentry, doc="Property: Parent NXentry of NeXus object")
     attrs = property(_getattrs, doc="Property: NeXus attributes for an object")
 
 
@@ -2168,7 +2177,7 @@ class NXfield(NXobject):
     def plot(self, fmt='', xmin=None, xmax=None, ymin=None, ymax=None,
              zmin=None, zmax=None, **opts):
         """
-        Plot data if the signal and axes attributes are defined.
+        Plot data if the signal attribute is defined.
 
         The format argument is used to set the color and type of the
         markers or lines for one-dimensional plots, using the standard 
@@ -2190,10 +2199,13 @@ class NXfield(NXobject):
         from nexpy.gui.plotview import plotview
 
         # Check there is a plottable signal
-        if 'signal' in self.attrs.keys() and 'axes' in self.attrs.keys():
-            axes = [getattr(self.nxgroup, name) 
-                    for name in _readaxes(self.axes)]
-            data = NXdata(self, axes, title=self.nxtitle)
+        if 'signal' in self.attrs.keys():
+            if 'axes' in self.attrs.keys():
+                axes = [getattr(self.nxgroup, name) 
+                        for name in _readaxes(self.axes)]
+                data = NXdata(self, axes, title=self.nxtitle)
+            else:
+                data = NXdata(self, title=self.nxtitle)
         else:
             raise NeXusError('No plottable signal defined')
 
@@ -2214,7 +2226,6 @@ class NXfield(NXobject):
         self.plot(fmt=fmt, log=True,
                   xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax,
                   zmin=zmin, zmax=zmax, **opts)
-
 
 SDS = NXfield # For backward compatibility
 
@@ -3109,8 +3120,6 @@ class NXgroup(NXobject):
         # Check there is a plottable signal
         if data.nxsignal is None:
             raise NeXusError('No plotting signal defined')
-        elif data.nxaxes is None:
-            raise NeXusError('No plotting axes defined')
 
         # Plot with the available plotter
         plotview.plot(data, fmt, xmin, xmax, ymin, ymax, zmin, zmax, **opts)
@@ -3650,7 +3659,8 @@ def convert_index(idx, axis):
     if len(axis) == 1:
         idx = 0
     elif isinstance(idx, slice) and \
-         isinstance(idx.start, int) and isinstance(idx.stop, int):
+            (idx.start is None or isinstance(idx.start, int)) and \
+            (idx.stop is None or isinstance(idx.stop, int)):
         if idx.start is not None and idx.stop is not None:
             if idx.stop == idx.start or idx.stop == idx.start + 1:
                 idx = idx.start
