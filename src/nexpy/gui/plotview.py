@@ -400,7 +400,7 @@ class NXPlotView(QtGui.QWidget):
             self.figure.clf()
         ax = self.figure.gca()
         
-        self.x = self.axis[self.plotdata.nxaxes[0].nxname].centers
+        self.x = self.xaxis.centers
         self.y = self.plotdata.nxsignal.nxdata
         if self.plotdata.nxerrors:
             self.e = self.plotdata.nxerrors.nxdata
@@ -483,8 +483,7 @@ class NXPlotView(QtGui.QWidget):
             self.figure.clf()
 
         self.x, self.y, self.v = self.data_view(
-            self.axis[self.plotdata.nxaxes[1].nxname].boundaries,
-            self.axis[self.plotdata.nxaxes[0].nxname].boundaries,
+            self.xaxis.boundaries, self.yaxis.boundaries, 
             self.plotdata.nxsignal.nxdata)
 
         self.set_data_limits()
@@ -510,7 +509,7 @@ class NXPlotView(QtGui.QWidget):
             self.image = ax.imshow(self.v, extent=extent, cmap=self.cmap, **opts)
         elif 'interpolation' in opts:
             self.image = NonUniformImage(ax, extent=extent, cmap=self.cmap, **opts)
-            self.image.set_data(self.x, self.y, self.v)
+            self.image.set_data(self.xaxis.centers, self.yaxis.centers, self.v)
             ax.images.append(self.image)
         else:
             self.image = ax.pcolormesh(self.x, self.y, self.v, cmap=self.cmap, **opts)
@@ -716,18 +715,33 @@ class NXPlotView(QtGui.QWidget):
         self.yaxis.min = self.yaxis.lo = ymin
         self.yaxis.max = self.yaxis.hi = ymax
         self.ytab.set_axis(self.yaxis)
-        if self.ndim > 1:
+        if self.ndim == 1:
+            self.replot_axes()
+        else:
             self.vaxis.min = self.vaxis.lo = np.nanmin(self.v)
             self.vaxis.max = self.vaxis.hi = np.nanmax(self.v)
             self.vtab.set_axis(self.vaxis)
             self.replot_image()
         self.update_tabs()
+
+    def _aspect(self):
+        return self._aspect_value
         
-    def set_aspect(self, aspect, adjustable=None, anchor=None):
-        ax = self.figure.axes[0]
-        ax.set_aspect(aspect, adjustable, anchor)
-        self.canvas.draw()
-        self.aspect = aspect
+    def _set_aspect(self, aspect):
+        if aspect == 'auto':
+            self._aspect_value = 'auto'
+            self.otab._actions['set_aspect'].setChecked(False)
+        else:
+            self._aspect_value = aspect
+            self.otab._actions['set_aspect'].setChecked(True)
+        try:
+            ax = self.figure.axes[0]
+            ax.set_aspect(aspect)
+            self.canvas.draw()
+        except:
+            pass
+
+    aspect = property(_aspect, _set_aspect, "Property: Aspect ratio value")
 
     def _autoscale(self):
         if self.ztab.scalebox.isChecked():
@@ -936,7 +950,7 @@ class NXPlotView(QtGui.QWidget):
             row = np.searchsorted(plotview.yaxis.boundaries-y, 0.0) - 1
             z = self.v[row,col]
             return 'x=%1.4f y=%1.4f\nv=%1.4f'%(x, y, z)
-        except IndexError:
+        except IndexError, TypeError:
             return ''
 
     def close_view(self):
@@ -1982,10 +1996,6 @@ class NXNavigationToolbar(NavigationToolbar):
     def home(self, *args):
         super(NXNavigationToolbar, self).home()        
         self.plotview.reset_plot_limits()
-        xmin, xmax = self.plotview.xaxis.min, plotview.xaxis.max
-        plotview.xtab.set_limits(xmin, xmax)
-        ymin, ymax = self.plotview.yaxis.min, plotview.yaxis.max
-        plotview.ytab.set_limits(ymin, ymax)
 
     def add_data(self):
         keep_data(self.plotview.plotdata)
@@ -2126,16 +2136,9 @@ class NXNavigationToolbar(NavigationToolbar):
 
     def set_aspect(self):
         if self._actions['set_aspect'].isChecked():
-            self.plotview.set_aspect('equal')
+            self.plotview.aspect = 'equal'
         else:
-            self.plotview.set_aspect('auto')
-
-    @property
-    def aspect_equal(self):
-        if self._actions['set_aspect'].isChecked():
-            return True
-        else:
-            return False
+            self.plotview.aspect = 'auto'
 
 
 def keep_data(data):
