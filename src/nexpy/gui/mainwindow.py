@@ -974,10 +974,7 @@ class MainWindow(QtGui.QMainWindow):
             node = self.treeview.get_node()
             if node:        
                 self.treeview.status_message(node)
-                try:
-                    node.oplot(fmt)
-                except:
-                    pass
+                node.oplot(fmt)
         except NeXusError as error:
             report_error("Overplotting Data", error)
 
