@@ -2931,9 +2931,9 @@ class NXgroup(NXobject):
         if projection_axes:
             result = result.sum(projection_axes)
         if len(axes) > 1 and axes[0] > axes[1]:
-            result.nxsignal = result.nxsignal.transpose()
+            result[result.nxsignal.nxname] = result.nxsignal.transpose()
             if result.nxerrors:
-                result["errors"] = result["errors"].transpose()            
+                result[result.nxerrors.nxname] = result.nxerrors.transpose()
             result.nxaxes = result.nxaxes[::-1]            
         return result        
 
