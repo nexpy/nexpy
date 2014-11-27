@@ -308,7 +308,7 @@ class NXPlotView(QtGui.QWidget):
         if self.data.nxsignal is None:
             raise NeXusError('No plotting signal defined')
 
-        self.plotdata = self.get_plotdata()
+        self.plotdata = self.get_plotdata(over)
 
         #One-dimensional Plot
         if self.ndim == 1:
@@ -366,7 +366,7 @@ class NXPlotView(QtGui.QWidget):
         self.limits = (self.xaxis.min, self.xaxis.max, 
                        self.yaxis.min, self.yaxis.max)
 
-    def get_plotdata(self):
+    def get_plotdata(self, over=False):
         """Return an NXdata group containing the plottable data
         
         This function removes size 1 arrays, creates axes if none are specified
@@ -397,18 +397,22 @@ class NXPlotView(QtGui.QWidget):
         self.axes = [NXfield(axes[i], name=axes[i].nxname,
                              attrs=axes[i].attrs) for i in range(self.ndim)]
 
-        i = 0
-        self.axis = {}
-        for axis in self.axes:
-            self.axis[axis.nxname] = NXPlotAxis(self.axes[i], self.shape[i])
-            self.axis[axis.nxname].dim = i
-            i += 1
+        if over:
+            self.axis['signal'].set_data(self.signal)
+        else:
+            self.axis = {}
+            self.axis['signal'] = NXPlotAxis(self.signal)
 
-        self.axis[self.signal.nxname] = NXPlotAxis(self.signal)
+        for i in range(len(self.axes)):
+            if over:
+                self.axis[i].set_data(self.axes[i], self.shape[i])
+            else:
+                self.axis[i] = NXPlotAxis(self.axes[i], self.shape[i])
+                self.axis[i].dim = i
 
         if self.ndim == 1:
-            self.xaxis = self.axis[self.axes[0].nxname]
-            self.yaxis = self.axis[self.signal.nxname]
+            self.xaxis = self.axis[0]
+            self.yaxis = self.axis['signal']
             if self.data.nxerrors and self.data.nxerrors != self.data.nxsignal:
                 self.errors = self.data.nxerrors
             else:
@@ -419,17 +423,17 @@ class NXPlotView(QtGui.QWidget):
                     self.errors = self.errors[::-1][()]
             plotdata = NXdata(self.signal, self.axes[0], self.errors)
         else:
-            self.xaxis = self.axis[self.axes[-1].nxname]
-            self.yaxis = self.axis[self.axes[-2].nxname]
+            self.xaxis = self.axis[len(self.axes)-1]
+            self.yaxis = self.axis[len(self.axes)-2]
             if self.ndim > 2:
-                self.zaxis = self.axis[self.axes[-3].nxname]
+                self.zaxis = self.axis[len(self.axes)-3]
                 self.zaxis.lo = self.zaxis.hi = self.zaxis.min
-                for axis in self.axes[:-3]:
-                    self.axis[axis.nxname].lo = self.axis[axis.nxname].hi \
-                        = axis.nxdata[0]
+                for i in range(len(self.axes)-3):
+                    self.axis[i].lo = self.axis[i].hi \
+                        = self.axis[i].data.min()
             else:
                 self.zaxis = None
-            self.vaxis = self.axis[self.signal.nxname]
+            self.vaxis = self.axis['signal']
             plotdata = NXdata(self.signal, [self.axes[i] for i in [-2,-1]])
 
         plotdata['title'] = self.title
@@ -625,12 +629,12 @@ class NXPlotView(QtGui.QWidget):
     def replot_data(self):
         axes = [self.yaxis.dim, self.xaxis.dim]
         limits = []
-        for axis in self.axes:
-            if self.axis[axis.nxname].dim in axes: 
+        for i in range(len(self.axes)):
+            if i in axes: 
                 limits.append((None,None))
             else:
-                limits.append((self.axis[axis.nxname].lo,
-                               self.axis[axis.nxname].hi))
+                limits.append((self.axis[i].lo,
+                               self.axis[i].hi))
         self.plotdata = self.data.project(axes, limits)
         self.x, self.y, self.v = self.get_image()
         if self.equally_spaced:
@@ -962,7 +966,7 @@ class NXPlotView(QtGui.QWidget):
 
 class NXPlotAxis(object):
 
-    def __init__(self, axis, dimlen=None):
+    def __init__(self, axis, dimlen=None, over=False):
         self.name = axis.nxname
         self.data = axis.nxdata
         self.flipped = False
@@ -1001,6 +1005,22 @@ class NXPlotAxis(object):
             self.label = "%s (%s)" % (axis.nxname, axis.units)
         else:
             self.label = axis.nxname
+
+    def __repr__(self):
+        return 'NXPlotAxis("%s")' % self.name
+
+    def set_data(self, data, dimlen=None):
+        self.data = data
+        if data[0] > self.data[-1]:
+            self.data = self.data[::-1]
+            self.flipped = True
+        if dimlen is not None:
+            _spacing = self.data[1:] - self.data[:-1]
+            _range = self.data.max() - self.data.min()
+            if max(_spacing) - min(_spacing) > _range/1000:
+                self.equally_spaced = False
+            self.centers = centers(self.data, dimlen)
+            self.boundaries = boundaries(self.data, dimlen)
 
     def set_limits(self, lo, hi):
         self.lo, self.hi = lo, hi
@@ -1095,6 +1115,9 @@ class NXPlotTab(QtGui.QWidget):
 
         self.replotSignal = NXReplotSignal()
         self.replotSignal.replot.connect(self.plotview.replot_data)       
+
+    def __repr__(self):
+        return 'NXPlotTab("%s")' % self.name
 
     def set_axis(self, axis):
         self.block_signals(True)
@@ -1309,8 +1332,10 @@ class NXPlotTab(QtGui.QWidget):
             self.set_sliders(lo, hi)
 
     def change_axis(self):
-        axis = self.plotview.axis[self.axiscombo.currentText()]
-        self.plotview.change_axis(self, axis)
+        name = self.axiscombo.currentText()
+        names = [self.plotview.axis[key].name for key in self.plotview.axis if self.plotview.axis[key].dim is not None]
+        idx = names.index(name)
+        self.plotview.change_axis(self, self.plotview.axis[idx])
         if self.lockbox:
             self.lockbox.setCheckState(QtCore.Qt.Checked)
 
