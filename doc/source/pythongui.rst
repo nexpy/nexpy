@@ -441,22 +441,23 @@ tabs allow manipulation of the plot limits and parameters.
 
     .. image:: /images/options-tab.png
        :align: center
-       :width: 75%
+       :width: 90%
 
     The options tab provides the standard Matplotlib toolbar. You can view with the addition
     of one extra button. From left to right, the buttons are:
-    * **Home** - restores all plotting limits to their defaults. 
+    
+    * **Home** - restores all plotting limits to their original values. 
     * **Arrows** - cycles through the limits of previous plots.
     * **Pan** - enables panning mode (disabling zoom mode).
     * **Zoom** - enables zoom mode (disabling pan mode).
     * **Aspect** - toggles between setting the aspect ratio automatically 
-    to fill the available space or setting the x and y scales to be equal. This
-    is only useful if the units of the x and y axes are identical.
+      to fill the available space or setting the x and y scales to be equal. 
+      This is only valid if the units of the x and y axes are identical.
     * **Subplot** - configures the spacing around the plot. 
     * **Save** - saves plot to PNG file.
     * **Add** - adds plotted data to the tree pane as an NXdata group within the
-    scratch workspace 'w0'.
-	* **Edit** - allows marker and line formatting to be modified.
+      scratch workspace 'w0'.
+    * **Edit** - allows marker and line formatting to be modified.
 
     On the far right of the toolbar, the data and axis values are dynamically 
     updated to the values under the current mouse location.
@@ -470,8 +471,8 @@ tabs allow manipulation of the plot limits and parameters.
     .. note:: The aspect ratio of a plot can also be set from the IPython shell
               with the command ``plotview <aspect>``, where ``<aspect>`` can be
               any of the values allowed by the `Matplotlib set_aspect 
-              <http://matplotlib.org/api/axes_api.html?highlight=set_aspect>`_
-              function, *i.e.*, 'equal', 'auto', or `num`, the numerical value 
+              <http://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes.set_aspect>`_
+              function, *i.e.*, 'auto', 'equal', or `num`, the numerical value 
               of the ratio between the height and the width (if the units are 
               identical). The 'Aspect' button toggles between 'auto' and 
               'equal'.
