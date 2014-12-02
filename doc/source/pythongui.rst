@@ -458,6 +458,9 @@ tabs allow manipulation of the plot limits and parameters.
     scratch workspace 'w0'.
 	* **Edit** - allows marker and line formatting to be modified.
 
+    On the far right of the toolbar, the data and axis values are dynamically 
+    updated to the values under the current mouse location.
+
     .. seealso:: See the `Matplotlib documentation  
                  <http://matplotlib.org/users/navigation_toolbar.html>`_ for
                  more detailed descriptions of the standard toolbar, including 
