@@ -621,7 +621,7 @@ class NXPlotView(QtGui.QWidget):
                 self.vaxis.lo, self.vaxis.hi = (0.01, 0.1)
         self.vtab.set_axis(self.vaxis)
 
-    def replot_data(self):
+    def replot_data(self, draw=True):
         axes = [self.yaxis.dim, self.xaxis.dim]
         limits = []
         for i in range(self.ndim):
@@ -638,22 +638,24 @@ class NXPlotView(QtGui.QWidget):
                                    self.yaxis.min,self.yaxis.max))
         else:
             self.image.set_array(self.v.ravel())
-        self.replot_image()
+        self.replot_image(draw=draw)
 
-    def replot_axes(self):
+    def replot_axes(self, draw=True):
         ax = self.figure.gca()
         ax.set_xlim(self.xaxis.get_limits())
         ax.set_ylim(self.yaxis.get_limits())
         ax.set_xlabel(self.xaxis.label)
         ax.set_ylabel(self.yaxis.label)
         self.otab.push_current()
-        self.draw()
+        if draw:
+            self.draw()
 
-    def replot_image(self):
+    def replot_image(self, draw=True):
         try:
             self.set_data_limits()
             self.image.set_clim(self.vaxis.lo, self.vaxis.hi)
-            self.canvas.draw()
+            if draw:
+                self.canvas.draw()
         except:
             pass
 
@@ -894,6 +896,7 @@ class NXPlotView(QtGui.QWidget):
             self.vtab.set_sliders(self.vaxis.lo, self.vaxis.hi)
 
     def change_axis(self, tab, axis):
+        """Replace the axis in a plot tab"""
         if tab == self.xtab and axis == self.yaxis:
             self.yaxis = self.ytab.axis = self.xtab.axis
             self.xaxis = self.xtab.axis = axis
@@ -937,10 +940,13 @@ class NXPlotView(QtGui.QWidget):
             self.ztab.set_axis(self.zaxis)
             self.vtab.set_axis(self.vaxis)
             self.ztab.locked = True
-            self.replot_data()
+            self.replot_data(draw=False)
             self.replot_axes()
             if self.ptab.panel:
                 self.ptab.panel.update_limits()
+        self.limits = (self.xaxis.min, self.xaxis.max, 
+                       self.yaxis.min, self.yaxis.max)
+        self.otab.update()
 
     def format_coord(self, x, y):
         try:
@@ -2197,7 +2203,8 @@ class NXNavigationToolbar(NavigationToolbar):
     def _update_view(self):
         super(NXNavigationToolbar, self)._update_view()
         lims = self._views()
-        if lims is None: return
+        if lims is None: 
+            return
         xmin, xmax, ymin, ymax = lims[0]
         self.plotview.xtab.block_signals(True)
         self.plotview.xtab.axis.set_limits(xmin, xmax)
