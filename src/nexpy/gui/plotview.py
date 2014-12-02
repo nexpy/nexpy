@@ -2066,6 +2066,7 @@ class NXNavigationToolbar(NavigationToolbar):
                 (None, None, None, None),
                 ('Pan', 'Pan axes with left mouse, zoom with right', 'move', 'pan'),
                 ('Zoom', 'Zoom to rectangle', 'zoom_to_rect', 'zoom'),
+                (None, None, None, None),
                 ('Aspect', 'Set aspect ratio to equal', 'hand', 'set_aspect'),
                 (None, None, None, None),
                 ('Subplots', 'Configure subplots', 'subplots', 'configure_subplots'),

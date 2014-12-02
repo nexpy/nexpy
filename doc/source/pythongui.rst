@@ -443,13 +443,35 @@ tabs allow manipulation of the plot limits and parameters.
        :align: center
        :width: 75%
 
-    The options tab provides the standard Matplotlib toolbar. The 'Home' button
-    restores all plotting limits to their defaults. The 'arrow' buttons cycle
-    through previous plots. The 'zoom' button allows rectangles to be dragged 
-    over the plot to define new plotting limits. The 'options' button allows the 
-    Matplotlib plotting parameters (markers, colors, *etc*.) to be changed. The 
-    'Save' button saves the figure to a PNG file. The final button adds the 
-    plotted data to the tree pane, as an NXdata group in 'w0'.
+    The options tab provides the standard Matplotlib toolbar. You can view with the addition
+    of one extra button. From left to right, the buttons are:
+    * **Home** - restores all plotting limits to their defaults. 
+    * **Arrows** - cycles through the limits of previous plots.
+    * **Pan** - enables panning mode (disabling zoom mode).
+    * **Zoom** - enables zoom mode (disabling pan mode).
+    * **Aspect** - toggles between setting the aspect ratio automatically 
+    to fill the available space or setting the x and y scales to be equal. This
+    is only useful if the units of the x and y axes are identical.
+    * **Subplot** - configures the spacing around the plot. 
+    * **Save** - saves plot to PNG file.
+    * **Add** - adds plotted data to the tree pane as an NXdata group within the
+    scratch workspace 'w0'.
+	* **Edit** - allows marker and line formatting to be modified.
+
+    .. seealso:: See the `Matplotlib documentation  
+                 <http://matplotlib.org/users/navigation_toolbar.html>`_ for
+                 more detailed descriptions of the standard toolbar, including 
+                 keyboard shortcuts. The 'Aspect' and 'Add' buttons are unique
+                 to NeXpy.
+
+    .. note:: The aspect ratio of a plot can also be set from the IPython shell
+              with the command ``plotview <aspect>``, where ``<aspect>`` can be
+              any of the values allowed by the `Matplotlib set_aspect 
+              <http://matplotlib.org/api/axes_api.html?highlight=set_aspect>`_
+              function, *i.e.*, 'equal', 'auto', or `num`, the numerical value 
+              of the ratio between the height and the width (if the units are 
+              identical). The 'Aspect' button toggles between 'auto' and 
+              'equal'.
        
 Fitting NeXus Data
 ------------------
