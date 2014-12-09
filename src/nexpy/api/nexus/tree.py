@@ -3357,6 +3357,7 @@ class NXlinkexternal(NXlink, NXfield):
     def update(self):
         if self.nxroot.nxfile and self.nxroot.nxfilename != self.nxfilename:
             with self.nxroot.nxfile as f:
+                f.nxpath = self.nxpath
                 f.linkexternal(self)
         self.set_changed()
 
