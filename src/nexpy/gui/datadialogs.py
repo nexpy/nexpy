@@ -595,6 +595,13 @@ class AddDialog(BaseDialog):
             self.value_box.setAlignment(QtCore.Qt.AlignLeft)
             grid.addWidget(value_label, 1, 0)
             grid.addWidget(self.value_box, 1, 1)
+            units_label = QtGui.QLabel()
+            units_label.setAlignment(QtCore.Qt.AlignLeft)
+            units_label.setText("Units:")
+            self.units_box = QtGui.QLineEdit()
+            self.units_box.setAlignment(QtCore.Qt.AlignLeft)
+            grid.addWidget(units_label, 2, 0)
+            grid.addWidget(self.units_box, 2, 1)
             type_label = QtGui.QLabel()
             type_label.setAlignment(QtCore.Qt.AlignLeft)
             type_label.setText("Datatype:")
@@ -605,8 +612,8 @@ class AddDialog(BaseDialog):
             self.type_box.insertItem(0, 'auto')
             self.type_box.setCurrentIndex(0)
             self.type_box.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToContents)
-            grid.addWidget(type_label, 2, 0)
-            grid.addWidget(self.type_box, 2, 1)
+            grid.addWidget(type_label, 3, 0)
+            grid.addWidget(self.type_box, 3, 1)
         else:
             grid.addWidget(name_label, 0, 0)
             grid.addWidget(self.name_box, 0, 1)
@@ -658,6 +665,9 @@ class AddDialog(BaseDialog):
         else:
             return None
 
+    def get_units(self):
+        return self.units_box.text()
+
     def get_type(self):
         if self.class_name == 'NXgroup':
             return self.combo_box.currentText()
@@ -686,6 +696,9 @@ class AddDialog(BaseDialog):
                     self.node[name] = NXfield(value, dtype=dtype)
                     logging.info("'%s' added to '%s'" 
                                  % (name, self.node.nxpath)) 
+                    units = self.get_units()
+                    if units:
+                        self.node[name].attrs['units'] = units
                 else:
                     self.node.attrs[name] = NXattr(value, dtype=dtype)
                     logging.info("Attribute '%s' added to '%s'" 
