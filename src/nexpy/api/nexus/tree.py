@@ -477,8 +477,8 @@ class NXFile(object):
         self.nxpath = parent + '/' + data.nxname
 
         # If the data is linked then
-        if hasattr(data, '_target'):
-            if hasattr(data, '_filename'):
+        if data._target is not None:
+            if data._filename is not None:
                 self.linkexternal(data)
                 return []
             else:
