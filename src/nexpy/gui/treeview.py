@@ -145,6 +145,10 @@ class NXtree(NXgroup):
                 if shell_names:
                     del _shell[shell_names[0]]
 
+    def node_from_file(self, fname):
+        return [name for name in self.keys() if 
+            os.path.abspath(fname)==os.path.abspath(self[name].nxfilename)][0]
+
 
 class NXTreeItem(QtGui.QStandardItem):
 
