@@ -384,8 +384,7 @@ class NXPlotView(QtGui.QWidget):
             self.signal = self.data.nxsignal[tuple(idx)][()]
         else:
             self.signal = self.data.nxsignal[()]
-
-        self.signal.shape = shape
+            self.signal.shape = shape
 
         if self.data.nxaxes is not None:
             axes = []
