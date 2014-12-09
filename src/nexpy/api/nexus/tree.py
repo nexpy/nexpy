@@ -537,12 +537,12 @@ class NXFile(object):
 
         links = []
         self._writeattrs(group.attrs)
-        if hasattr(group, '_target'):
+        if group._target is not None:
             links += [(self.nxpath, group._target)]
         for child in group.values():
             if child.nxclass == 'NXfield':
                 links += self._writedata(child)
-            elif hasattr(child, '_target'):
+            elif child._target is not None:
                 links += [(self.nxpath+"/"+child.nxname, child._target)]
             else:
                 links += self._writegroup(child)
@@ -2622,7 +2622,7 @@ class NXgroup(NXobject):
             idx = key
         else:
             raise NeXusError("Invalid index")
-        if not hasattr(self,"nxclass"):
+        if not hasattr(self, "nxclass"):
             raise NeXusError("Indexing not allowed for groups of unknown class")
         if isinstance(idx, int) or isinstance(idx, slice):
             axes = self.nxaxes
