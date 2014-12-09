@@ -385,6 +385,8 @@ class NXPlotView(QtGui.QWidget):
         else:
             self.signal = self.data.nxsignal[()]
 
+        self.signal.shape = shape
+
         if self.data.nxaxes is not None:
             axes = []
             for axis in self.data.nxaxes:
@@ -733,7 +735,7 @@ class NXPlotView(QtGui.QWidget):
     aspect = property(_aspect, _set_aspect, "Property: Aspect ratio value")
 
     def _autoscale(self):
-        if self.ndim <= 2 or self.ztab.scalebox.isChecked():
+        if self.ndim > 2 and self.ztab.scalebox.isChecked():
             return True
         else:
             return False
