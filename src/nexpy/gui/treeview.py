@@ -282,11 +282,14 @@ class NXTreeView(QtGui.QTreeView):
     def popMenu(self, node):
         menu = QtGui.QMenu(self)
         menu.addAction(self.plot_data_action)
-        if ((isinstance(node, NXgroup) and node.nxsignal and node.nxsignal.ndim == 1) or
-            (isinstance(node, NXfield) and node.ndim == 1)):
-            menu.addAction(self.plot_line_action)
-            menu.addAction(self.overplot_data_action)
-            menu.addAction(self.overplot_line_action)
+        try:
+            if ((isinstance(node, NXgroup) and node.nxsignal and node.nxsignal.ndim == 1) or
+                (isinstance(node, NXfield) and node.ndim == 1)):
+                menu.addAction(self.plot_line_action)
+                menu.addAction(self.overplot_data_action)
+                menu.addAction(self.overplot_line_action)
+        except NeXusError:
+            pass
         menu.addSeparator()
         menu.addAction(self.add_action)
         if not isinstance(node, NXroot):
