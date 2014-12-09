@@ -1064,7 +1064,7 @@ class MainWindow(QtGui.QMainWindow):
         try:
             node = self.treeview.get_node()
             if node:
-                if node.nxfilemode != 'r':
+                if node.nxroot.nxfilemode != 'r':
                     path = node.nxpath
                     dialog = DeleteDialog(node, self)
                     dialog.show()
