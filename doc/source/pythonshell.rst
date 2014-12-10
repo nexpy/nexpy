@@ -398,7 +398,8 @@ NeXus Links
 -----------
 NeXus allows groups and fields to be assigned to multiple locations through the
 use of links. These objects have the class NXlink and contain the attribute 
-'target', which identifies the parent object.
+'target', which identifies the parent object. It is also possible to link to
+fields in another NeXus file (see 'External Links' below).
 
 For example, the polar angle and time-of-flight arrays may logically be stored 
 with the detector information in a NXdetector group that is one of the 
@@ -457,8 +458,8 @@ using the 'nxlink' attribute::
 
 Creating a Link
 ^^^^^^^^^^^^^^^
-New links can be created within a group using the makelink method, which takes 
-the parent object as an argument::
+Links can be created using the target object as the argument assigned
+to another group::
 
  >>> print root.tree
  root:NXroot
@@ -467,7 +468,13 @@ the parent object as an argument::
      instrument:NXinstrument
        detector:NXdetector
          polar_angle = float64(192)
-           @units = degree
+           @units = radian
+ >>> root.entry.data.polar_angle=NXlink(root.entry.instrument.detector.polar_angle)
+
+However, since the link must have the same name as the parent object, it is 
+safer to create links using the makelink method, which takes the parent object 
+as an argument::
+
  >>> root.entry.data.makelink(root.entry.instrument.detector.polar_angle)
  >>> print root.tree
  root:NXroot
@@ -475,14 +482,40 @@ the parent object as an argument::
      data:NXdata
        polar_angle = float64(192)
          @target = /entry/instrument/detector/polar_angle
-         @units = degree
+         @units = radian
      instrument:NXinstrument
        detector:NXdetector
          polar_angle = float64(192)
            @target = /entry/instrument/detector/polar_angle
-           @units = degree
+           @units = radian
+
+.. note:: After creating the link, both the parent and target objects have an 
+          additional attribute, 'target', showing the absolute path of the 
+          parent.
 
 .. seealso:: :mod:`nexpy.api.nexus.tree.NXgroup.makelink`
+
+External Links
+^^^^^^^^^^^^^^
+It is also possible to link to a NeXus field that is stored in another file.
+This is accomplished using a similar syntax to internal links.
+
+ >>> root.entry.data.data = NXlink('/counts', 'external_counts.nxs')
+ 
+In the case of external links, the first argument is the absolute path of the 
+linked object within the external file, while the second argument is the 
+absolute or relative file path of the external file.
+
+.. note:: Only fields (*i.e.*, not groups) can currently be linked. This means
+          that the external file does not have to be a NeXus-compliant file, 
+          just a valid HDF5 file.
+
+.. note:: Since the objects are stored in separate files, the names of the 
+          parent and link objects can be different. 
+
+.. warning:: The file containing the external link is referenced using the 
+             file path to the parent file. If the files are moved without 
+             preserving their relative file paths, the link will be broken.
 
 Plotting NeXus Data
 ===================

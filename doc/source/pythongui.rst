@@ -190,9 +190,17 @@ Data Menu
     is copied to an HDF5 memory-mapped file using the h5py copy module.
     
 **Paste As Link**
-    Pastes a link to the copied node in the selected group. Both the copied
-    node and the selected group must share the same root.
+    Pastes a link to the copied node in the selected group. If the copied
+    node and the selected group have different roots, the copied node is added
+    to the group as an external link.
     
+    .. note:: External links can only be modified through the parent file, which
+              can be opened using the 'Show Link' menu item (see below).
+
+    .. warning:: The file containing the external link is referenced using the 
+                 file path to the parent file. If the files are moved without 
+                 preserving their relative file paths, the link will be broken.
+
 **Delete Data**
     Deletes the selected tree item.
 
@@ -205,7 +213,8 @@ Data Menu
 
 **Show Link**
     Selects the field or group to which the selected item is linked, if it is
-    an NXlink object, *i.e.*, shown with a link icon.
+    an NXlink object, *i.e.*, shown with a link icon. If the link is external,
+    the linked file is automatically opened and the linked object is selected.
  
 **Set Signal**
     Sets the plottable signal either to the selected field or to any field 
