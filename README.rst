@@ -64,9 +64,14 @@ iPython v1.1.0     http://ipython.org/
 matplotlib v1.1.0  http://matplotlib.sourceforge.net/
 =================  =================================================
 
-Most of these packages are included in the `Enthought Python Distribution v7.3 
+Most of these packages are included in the `Enthought Python Distribution
 <http://www.enthought.com>`_ or within Enthought's `Canopy Application
 <https://www.enthought.com/products/canopy/>`_.
+
+.. seealso:: If you are having problems linking to the PySide library, you may
+             need to run the PySide post-installation script after installing
+             PySide, *i.e.*, ``python pyside_postinstall.py -install``. See 
+             `this issue <https://github.com/nexpy/nexpy/issues/29>`_.
 
 Additional Packages
 -------------------
