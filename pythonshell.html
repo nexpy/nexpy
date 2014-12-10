@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Python Interface to NeXus &mdash; NeXpy 0.4.7 documentation</title>
+    <title>Python Interface to NeXus &mdash; NeXpy 0.5.0 documentation</title>
     
     <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.4.7',
+        VERSION:     '0.5.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -25,7 +25,7 @@
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="shortcut icon" href="_static/favicon.ico"/>
-    <link rel="top" title="NeXpy 0.4.7 documentation" href="index.html" />
+    <link rel="top" title="NeXpy 0.5.0 documentation" href="index.html" />
     <link rel="next" title="NeXus Tree API Modules" href="treeapi.html" />
     <link rel="prev" title="Python Graphical User Interface" href="pythongui.html" /> 
   </head>
@@ -45,7 +45,7 @@
         <li class="right" >
           <a href="pythongui.html" title="Python Graphical User Interface"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">NeXpy 0.4.7 documentation</a> &raquo;</li> 
+        <li><a href="index.html">NeXpy 0.5.0 documentation</a> &raquo;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar">
@@ -71,6 +71,7 @@
 </li>
 <li><a class="reference internal" href="#nexus-links">NeXus Links</a><ul>
 <li><a class="reference internal" href="#creating-a-link">Creating a Link</a></li>
+<li><a class="reference internal" href="#external-links">External Links</a></li>
 </ul>
 </li>
 </ul>
@@ -559,7 +560,8 @@ would also have been acceptable just to call NXdata(data, phi),
 <h3>NeXus Links<a class="headerlink" href="#nexus-links" title="Permalink to this headline">¶</a></h3>
 <p>NeXus allows groups and fields to be assigned to multiple locations through the
 use of links. These objects have the class NXlink and contain the attribute
-&#8216;target&#8217;, which identifies the parent object.</p>
+&#8216;target&#8217;, which identifies the parent object. It is also possible to link to
+fields in another NeXus file (see &#8216;External Links&#8217; below).</p>
 <p>For example, the polar angle and time-of-flight arrays may logically be stored
 with the detector information in a NXdetector group that is one of the
 NXinstrument subgroups:</p>
@@ -619,8 +621,8 @@ NeXus tree is given by the nxpath property:</p>
 </div>
 <div class="section" id="creating-a-link">
 <h4>Creating a Link<a class="headerlink" href="#creating-a-link" title="Permalink to this headline">¶</a></h4>
-<p>New links can be created within a group using the makelink method, which takes
-the parent object as an argument:</p>
+<p>Links can be created using the target object as the argument assigned
+to another group:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">root</span><span class="o">.</span><span class="n">tree</span>
 <span class="go">root:NXroot</span>
 <span class="go">  entry:NXentry</span>
@@ -628,25 +630,65 @@ the parent object as an argument:</p>
 <span class="go">    instrument:NXinstrument</span>
 <span class="go">      detector:NXdetector</span>
 <span class="go">        polar_angle = float64(192)</span>
-<span class="go">          @units = degree</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">root</span><span class="o">.</span><span class="n">entry</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">makelink</span><span class="p">(</span><span class="n">root</span><span class="o">.</span><span class="n">entry</span><span class="o">.</span><span class="n">instrument</span><span class="o">.</span><span class="n">detector</span><span class="o">.</span><span class="n">polar_angle</span><span class="p">)</span>
+<span class="go">          @units = radian</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">root</span><span class="o">.</span><span class="n">entry</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">polar_angle</span><span class="o">=</span><span class="n">NXlink</span><span class="p">(</span><span class="n">root</span><span class="o">.</span><span class="n">entry</span><span class="o">.</span><span class="n">instrument</span><span class="o">.</span><span class="n">detector</span><span class="o">.</span><span class="n">polar_angle</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>However, since the link must have the same name as the parent object, it is
+safer to create links using the makelink method, which takes the parent object
+as an argument:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">root</span><span class="o">.</span><span class="n">entry</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">makelink</span><span class="p">(</span><span class="n">root</span><span class="o">.</span><span class="n">entry</span><span class="o">.</span><span class="n">instrument</span><span class="o">.</span><span class="n">detector</span><span class="o">.</span><span class="n">polar_angle</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">root</span><span class="o">.</span><span class="n">tree</span>
 <span class="go">root:NXroot</span>
 <span class="go">  entry:NXentry</span>
 <span class="go">    data:NXdata</span>
 <span class="go">      polar_angle = float64(192)</span>
 <span class="go">        @target = /entry/instrument/detector/polar_angle</span>
-<span class="go">        @units = degree</span>
+<span class="go">        @units = radian</span>
 <span class="go">    instrument:NXinstrument</span>
 <span class="go">      detector:NXdetector</span>
 <span class="go">        polar_angle = float64(192)</span>
 <span class="go">          @target = /entry/instrument/detector/polar_angle</span>
-<span class="go">          @units = degree</span>
+<span class="go">          @units = radian</span>
 </pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">After creating the link, both the parent and target objects have an
+additional attribute, &#8216;target&#8217;, showing the absolute path of the
+parent.</p>
 </div>
 <div class="admonition seealso">
 <p class="first admonition-title">See also</p>
 <p class="last"><a class="reference internal" href="treeapi.html#nexpy.api.nexus.tree.NXgroup.makelink" title="nexpy.api.nexus.tree.NXgroup.makelink"><tt class="xref py py-mod docutils literal"><span class="pre">nexpy.api.nexus.tree.NXgroup.makelink</span></tt></a></p>
+</div>
+</div>
+<div class="section" id="external-links">
+<h4>External Links<a class="headerlink" href="#external-links" title="Permalink to this headline">¶</a></h4>
+<p>It is also possible to link to a NeXus field that is stored in another file.
+This is accomplished using a similar syntax to internal links.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">root</span><span class="o">.</span><span class="n">entry</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">NXlink</span><span class="p">(</span><span class="s">&#39;/counts&#39;</span><span class="p">,</span> <span class="s">&#39;external_counts.nxs&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>In the case of external links, the first argument is the absolute path of the
+linked object within the external file, while the second argument is the
+absolute or relative file path of the external file.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Only fields (<em>i.e.</em>, not groups) can currently be linked. This means
+that the external file does not have to be a NeXus-compliant file,
+just a valid HDF5 file.</p>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Since the objects are stored in separate files, the names of the
+parent and link objects can be different.</p>
+</div>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">The file containing the external link is referenced using the
+file path to the parent file. If the files are moved without
+preserving their relative file paths, the link will be broken.</p>
 </div>
 </div>
 </div>
@@ -1029,7 +1071,7 @@ if necessary, in order to produce a valid NeXus file.</p>
         <li class="right" >
           <a href="pythongui.html" title="Python Graphical User Interface"
              >previous</a> |</li>
-        <li><a href="index.html">NeXpy 0.4.7 documentation</a> &raquo;</li> 
+        <li><a href="index.html">NeXpy 0.5.0 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">

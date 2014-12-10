@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Python Graphical User Interface &mdash; NeXpy 0.4.7 documentation</title>
+    <title>Python Graphical User Interface &mdash; NeXpy 0.5.0 documentation</title>
     
     <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.4.7',
+        VERSION:     '0.5.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -25,7 +25,7 @@
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="shortcut icon" href="_static/favicon.ico"/>
-    <link rel="top" title="NeXpy 0.4.7 documentation" href="index.html" />
+    <link rel="top" title="NeXpy 0.5.0 documentation" href="index.html" />
     <link rel="next" title="Python Interface to NeXus" href="pythonshell.html" />
     <link rel="prev" title="Installation" href="includeme.html" /> 
   </head>
@@ -45,7 +45,7 @@
         <li class="right" >
           <a href="includeme.html" title="Installation"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">NeXpy 0.4.7 documentation</a> &raquo;</li> 
+        <li><a href="index.html">NeXpy 0.5.0 documentation</a> &raquo;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar">
@@ -305,8 +305,21 @@ to the file. If the selected group is not currently stored in a file and
 any field in the copy buffer is too large to be stored in memory, its data
 is copied to an HDF5 memory-mapped file using the h5py copy module.</dd>
 <dt><strong>Paste As Link</strong></dt>
-<dd>Pastes a link to the copied node in the selected group. Both the copied
-node and the selected group must share the same root.</dd>
+<dd><p class="first">Pastes a link to the copied node in the selected group. If the copied
+node and the selected group have different roots, the copied node is added
+to the group as an external link.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">External links can only be modified through the parent file, which
+can be opened using the &#8216;Show Link&#8217; menu item (see below).</p>
+</div>
+<div class="last admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">The file containing the external link is referenced using the
+file path to the parent file. If the files are moved without
+preserving their relative file paths, the link will be broken.</p>
+</div>
+</dd>
 <dt><strong>Delete Data</strong></dt>
 <dd><p class="first">Deletes the selected tree item.</p>
 <div class="admonition note">
@@ -323,7 +336,8 @@ This action is irreversible, so ensure you have a backup.</p>
 </dd>
 <dt><strong>Show Link</strong></dt>
 <dd>Selects the field or group to which the selected item is linked, if it is
-an NXlink object, <em>i.e.</em>, shown with a link icon.</dd>
+an NXlink object, <em>i.e.</em>, shown with a link icon. If the link is external,
+the linked file is automatically opened and the linked object is selected.</dd>
 <dt><strong>Set Signal</strong></dt>
 <dd><p class="first">Sets the plottable signal either to the selected field or to any field
 within the selected group. A dialog box allows the user to specify axes with
@@ -561,14 +575,42 @@ masked arrays.</p>
 </div>
 <p><strong>Options Tab</strong></p>
 <blockquote>
-<div><a class="reference internal image-reference" href="_images/options-tab.png"><img alt="_images/options-tab.png" class="align-center" src="_images/options-tab.png" style="width: 75%;" /></a>
-<p>The options tab provides the standard Matplotlib toolbar. The &#8216;Home&#8217; button
-restores all plotting limits to their defaults. The &#8216;arrow&#8217; buttons cycle
-through previous plots. The &#8216;zoom&#8217; button allows rectangles to be dragged
-over the plot to define new plotting limits. The &#8216;options&#8217; button allows the
-Matplotlib plotting parameters (markers, colors, <em>etc</em>.) to be changed. The
-&#8216;Save&#8217; button saves the figure to a PNG file. The final button adds the
-plotted data to the tree pane, as an NXdata group in &#8216;w0&#8217;.</p>
+<div><a class="reference internal image-reference" href="_images/options-tab.png"><img alt="_images/options-tab.png" class="align-center" src="_images/options-tab.png" style="width: 90%;" /></a>
+<p>The options tab provides the standard Matplotlib toolbar. You can view with the addition
+of one extra button. From left to right, the buttons are:</p>
+<ul class="simple">
+<li><strong>Home</strong> - restores all plotting limits to their original values.</li>
+<li><strong>Arrows</strong> - cycles through the limits of previous plots.</li>
+<li><strong>Pan</strong> - enables panning mode (disabling zoom mode).</li>
+<li><strong>Zoom</strong> - enables zoom mode (disabling pan mode).</li>
+<li><strong>Aspect</strong> - toggles between setting the aspect ratio automatically
+to fill the available space or setting the x and y scales to be equal.
+This is only valid if the units of the x and y axes are identical.</li>
+<li><strong>Subplot</strong> - configures the spacing around the plot.</li>
+<li><strong>Save</strong> - saves plot to PNG file.</li>
+<li><strong>Add</strong> - adds plotted data to the tree pane as an NXdata group within the
+scratch workspace &#8216;w0&#8217;.</li>
+<li><strong>Edit</strong> - allows marker and line formatting to be modified.</li>
+</ul>
+<p>On the far right of the toolbar, the data and axis values are dynamically
+updated to the values under the current mouse location.</p>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last">See the <a class="reference external" href="http://matplotlib.org/users/navigation_toolbar.html">Matplotlib documentation</a> for
+more detailed descriptions of the standard toolbar, including
+keyboard shortcuts. The &#8216;Aspect&#8217; and &#8216;Add&#8217; buttons are unique
+to NeXpy.</p>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The aspect ratio of a plot can also be set from the IPython shell
+with the command <tt class="docutils literal"><span class="pre">plotview</span> <span class="pre">&lt;aspect&gt;</span></tt>, where <tt class="docutils literal"><span class="pre">&lt;aspect&gt;</span></tt> can be
+any of the values allowed by the <a class="reference external" href="http://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes.set_aspect">Matplotlib set_aspect</a>
+function, <em>i.e.</em>, &#8216;auto&#8217;, &#8216;equal&#8217;, or <cite>num</cite>, the numerical value
+of the ratio between the height and the width (if the units are
+identical). The &#8216;Aspect&#8217; button toggles between &#8216;auto&#8217; and
+&#8216;equal&#8217;.</p>
+</div>
 </div></blockquote>
 </div>
 <div class="section" id="fitting-nexus-data">
@@ -946,7 +988,7 @@ For example, if you don&#8217;t want a blank line between each input line, edit
         <li class="right" >
           <a href="includeme.html" title="Installation"
              >previous</a> |</li>
-        <li><a href="index.html">NeXpy 0.4.7 documentation</a> &raquo;</li> 
+        <li><a href="index.html">NeXpy 0.5.0 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">

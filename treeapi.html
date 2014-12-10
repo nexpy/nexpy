@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>NeXus Tree API Modules &mdash; NeXpy 0.4.7 documentation</title>
+    <title>NeXus Tree API Modules &mdash; NeXpy 0.5.0 documentation</title>
     
     <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.4.7',
+        VERSION:     '0.5.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -25,7 +25,7 @@
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="shortcut icon" href="_static/favicon.ico"/>
-    <link rel="top" title="NeXpy 0.4.7 documentation" href="index.html" />
+    <link rel="top" title="NeXpy 0.5.0 documentation" href="index.html" />
     <link rel="next" title="Adding a File Importer" href="readers.html" />
     <link rel="prev" title="Python Interface to NeXus" href="pythonshell.html" /> 
   </head>
@@ -45,7 +45,7 @@
         <li class="right" >
           <a href="pythonshell.html" title="Python Interface to NeXus"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">NeXpy 0.4.7 documentation</a> &raquo;</li> 
+        <li><a href="index.html">NeXpy 0.5.0 documentation</a> &raquo;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar">
@@ -629,6 +629,18 @@ which NeXus objects have been changed.</p>
 </dd></dl>
 
 <dl class="attribute">
+<dt id="nexpy.api.nexus.tree.NXobject.nxentry">
+<tt class="descname">nxentry</tt><a class="headerlink" href="#nexpy.api.nexus.tree.NXobject.nxentry" title="Permalink to this definition">¶</a></dt>
+<dd><p>Property: Parent NXentry of NeXus object</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="nexpy.api.nexus.tree.NXobject.nxtarget">
+<tt class="descname">nxtarget</tt><a class="headerlink" href="#nexpy.api.nexus.tree.NXobject.nxtarget" title="Permalink to this definition">¶</a></dt>
+<dd><p>Property: Target of NeXus object</p>
+</dd></dl>
+
+<dl class="attribute">
 <dt id="nexpy.api.nexus.tree.NXobject.attrs">
 <tt class="descname">attrs</tt><a class="headerlink" href="#nexpy.api.nexus.tree.NXobject.attrs" title="Permalink to this definition">¶</a></dt>
 <dd><p>Property: NeXus attributes for an object</p>
@@ -875,12 +887,6 @@ with default names. This is equivalent to</p>
 </pre></div>
 </div>
 <dl class="method">
-<dt id="nexpy.api.nexus.tree.NXfield.update">
-<tt class="descname">update</tt><big>(</big><big>)</big><a class="headerlink" href="#nexpy.api.nexus.tree.NXfield.update" title="Permalink to this definition">¶</a></dt>
-<dd><p>Writes the NXfield, including attributes, to the NeXus file.</p>
-</dd></dl>
-
-<dl class="method">
 <dt id="nexpy.api.nexus.tree.NXfield.index">
 <tt class="descname">index</tt><big>(</big><em>value</em>, <em>max=False</em><big>)</big><a class="headerlink" href="#nexpy.api.nexus.tree.NXfield.index" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the index of the NXfield array that is greater than or equal to 
@@ -986,7 +992,7 @@ returned.</p>
 <dl class="method">
 <dt id="nexpy.api.nexus.tree.NXfield.plot">
 <tt class="descname">plot</tt><big>(</big><em>fmt=''</em>, <em>xmin=None</em>, <em>xmax=None</em>, <em>ymin=None</em>, <em>ymax=None</em>, <em>zmin=None</em>, <em>zmax=None</em>, <em>**opts</em><big>)</big><a class="headerlink" href="#nexpy.api.nexus.tree.NXfield.plot" title="Permalink to this definition">¶</a></dt>
-<dd><p>Plot data if the signal and axes attributes are defined.</p>
+<dd><p>Plot data if the signal attribute is defined.</p>
 <p>The format argument is used to set the color and type of the
 markers or lines for one-dimensional plots, using the standard 
 Mtplotlib syntax. The default is set to blue circles. All 
@@ -1351,7 +1357,7 @@ limits, which are specified as tuples for each dimension.</p>
 <tt class="descname">nxtitle</tt><a class="headerlink" href="#nexpy.api.nexus.tree.NXgroup.nxtitle" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the title as a string.</p>
 <p>If there is no title field in the group or its parent group, the group&#8217;s
-path is retured.</p>
+path is returned.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -1396,7 +1402,7 @@ over = True    - plot on the current figure
 
 <dl class="class">
 <dt id="nexpy.api.nexus.tree.NXlink">
-<em class="property">class </em><tt class="descclassname">nexpy.api.nexus.tree.</tt><tt class="descname">NXlink</tt><big>(</big><em>target=None</em>, <em>name=None</em>, <em>**opts</em><big>)</big><a class="headerlink" href="#nexpy.api.nexus.tree.NXlink" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">nexpy.api.nexus.tree.</tt><tt class="descname">NXlink</tt><big>(</big><em>target=None</em>, <em>name=None</em>, <em>file=None</em>, <em>**opts</em><big>)</big><a class="headerlink" href="#nexpy.api.nexus.tree.NXlink" title="Permalink to this definition">¶</a></dt>
 <dd><p>Class for NeXus linked objects.</p>
 <p>The real object will be accessible by following the link attribute.</p>
 <dl class="attribute">
@@ -1409,7 +1415,7 @@ over = True    - plot on the current figure
 
 <dl class="class">
 <dt id="nexpy.api.nexus.tree.NXlinkfield">
-<em class="property">class </em><tt class="descclassname">nexpy.api.nexus.tree.</tt><tt class="descname">NXlinkfield</tt><big>(</big><em>target=None</em>, <em>name=None</em>, <em>**opts</em><big>)</big><a class="headerlink" href="#nexpy.api.nexus.tree.NXlinkfield" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">nexpy.api.nexus.tree.</tt><tt class="descname">NXlinkfield</tt><big>(</big><em>target=None</em>, <em>name=None</em>, <em>file=None</em>, <em>**opts</em><big>)</big><a class="headerlink" href="#nexpy.api.nexus.tree.NXlinkfield" title="Permalink to this definition">¶</a></dt>
 <dd><p>Class for a NeXus linked field.</p>
 <p>The real field will be accessible by following the link attribute.</p>
 </dd></dl>
@@ -1422,13 +1428,71 @@ over = True    - plot on the current figure
 
 <dl class="class">
 <dt id="nexpy.api.nexus.tree.NXlinkgroup">
-<em class="property">class </em><tt class="descclassname">nexpy.api.nexus.tree.</tt><tt class="descname">NXlinkgroup</tt><big>(</big><em>target=None</em>, <em>name=None</em>, <em>**opts</em><big>)</big><a class="headerlink" href="#nexpy.api.nexus.tree.NXlinkgroup" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">nexpy.api.nexus.tree.</tt><tt class="descname">NXlinkgroup</tt><big>(</big><em>target=None</em>, <em>name=None</em>, <em>file=None</em>, <em>**opts</em><big>)</big><a class="headerlink" href="#nexpy.api.nexus.tree.NXlinkgroup" title="Permalink to this definition">¶</a></dt>
 <dd><p>Class for a NeXus linked group.</p>
 <p>The real group will be accessible by following the link attribute.</p>
 <dl class="attribute">
 <dt id="nexpy.api.nexus.tree.NXlinkgroup.entries">
 <tt class="descname">entries</tt><a class="headerlink" href="#nexpy.api.nexus.tree.NXlinkgroup.entries" title="Permalink to this definition">¶</a></dt>
 <dd><p>Dictionary of NeXus objects within group</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="nexpy.api.nexus.tree.NXlinkexternal">
+<em class="property">class </em><tt class="descclassname">nexpy.api.nexus.tree.</tt><tt class="descname">NXlinkexternal</tt><big>(</big><em>name=None</em>, <em>target=None</em>, <em>file=None</em>, <em>**opts</em><big>)</big><a class="headerlink" href="#nexpy.api.nexus.tree.NXlinkexternal" title="Permalink to this definition">¶</a></dt>
+<dd><p>Class for a link to a field in an external file.</p>
+<p>Since the field is stored in another file, the field names don&#8217;t have to be 
+the same. There is no need to redirect requests for linked attributes, since 
+they are handled automatically by h5py. Currently, external fields are 
+read-only.</p>
+<dl class="attribute">
+<dt id="nexpy.api.nexus.tree.NXlinkexternal.nxlink">
+<tt class="descname">nxlink</tt><a class="headerlink" href="#nexpy.api.nexus.tree.NXlinkexternal.nxlink" title="Permalink to this definition">¶</a></dt>
+<dd><p>Linked object</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="nexpy.api.nexus.tree.NXlinkexternal.nxdata">
+<tt class="descname">nxdata</tt><a class="headerlink" href="#nexpy.api.nexus.tree.NXlinkexternal.nxdata" title="Permalink to this definition">¶</a></dt>
+<dd><p>Property: The data values</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="nexpy.api.nexus.tree.NXlinkexternal.dtype">
+<tt class="descname">dtype</tt><a class="headerlink" href="#nexpy.api.nexus.tree.NXlinkexternal.dtype" title="Permalink to this definition">¶</a></dt>
+<dd><p>Property: Data type of NeXus field</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="nexpy.api.nexus.tree.NXlinkexternal.shape">
+<tt class="descname">shape</tt><a class="headerlink" href="#nexpy.api.nexus.tree.NXlinkexternal.shape" title="Permalink to this definition">¶</a></dt>
+<dd><p>Property: Shape of NeXus field</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="nexpy.api.nexus.tree.NXlinkexternal.attrs">
+<tt class="descname">attrs</tt><a class="headerlink" href="#nexpy.api.nexus.tree.NXlinkexternal.attrs" title="Permalink to this definition">¶</a></dt>
+<dd><p>NeXus attributes for object</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="nexpy.api.nexus.tree.NXlinkexternal.nxfile">
+<tt class="descname">nxfile</tt><a class="headerlink" href="#nexpy.api.nexus.tree.NXlinkexternal.nxfile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Property: File handle of NeXus link</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="nexpy.api.nexus.tree.NXlinkexternal.nxfilename">
+<tt class="descname">nxfilename</tt><a class="headerlink" href="#nexpy.api.nexus.tree.NXlinkexternal.nxfilename" title="Permalink to this definition">¶</a></dt>
+<dd><p>Property: Filename of external link</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="nexpy.api.nexus.tree.NXlinkexternal.nxfilemode">
+<tt class="descname">nxfilemode</tt><a class="headerlink" href="#nexpy.api.nexus.tree.NXlinkexternal.nxfilemode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Property: File mode of external link</p>
 </dd></dl>
 
 </dd></dl>
@@ -1887,7 +1951,7 @@ parameters, specifying markers, colors, etc, can be specified using the
 
 <dl class="function">
 <dt id="nexpy.api.nexus.tree.save">
-<tt class="descclassname">nexpy.api.nexus.tree.</tt><tt class="descname">save</tt><big>(</big><em>filename</em>, <em>group</em>, <em>format='w'</em><big>)</big><a class="headerlink" href="#nexpy.api.nexus.tree.save" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">nexpy.api.nexus.tree.</tt><tt class="descname">save</tt><big>(</big><em>filename</em>, <em>group</em>, <em>mode='w'</em><big>)</big><a class="headerlink" href="#nexpy.api.nexus.tree.save" title="Permalink to this definition">¶</a></dt>
 <dd><p>Writes a NeXus file from a tree of objects.</p>
 </dd></dl>
 
@@ -1921,7 +1985,7 @@ parameters, specifying markers, colors, etc, can be specified using the
         <li class="right" >
           <a href="pythonshell.html" title="Python Interface to NeXus"
              >previous</a> |</li>
-        <li><a href="index.html">NeXpy 0.4.7 documentation</a> &raquo;</li> 
+        <li><a href="index.html">NeXpy 0.5.0 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">

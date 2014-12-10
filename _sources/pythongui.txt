@@ -190,9 +190,17 @@ Data Menu
     is copied to an HDF5 memory-mapped file using the h5py copy module.
     
 **Paste As Link**
-    Pastes a link to the copied node in the selected group. Both the copied
-    node and the selected group must share the same root.
+    Pastes a link to the copied node in the selected group. If the copied
+    node and the selected group have different roots, the copied node is added
+    to the group as an external link.
     
+    .. note:: External links can only be modified through the parent file, which
+              can be opened using the 'Show Link' menu item (see below).
+
+    .. warning:: The file containing the external link is referenced using the 
+                 file path to the parent file. If the files are moved without 
+                 preserving their relative file paths, the link will be broken.
+
 **Delete Data**
     Deletes the selected tree item.
 
@@ -205,7 +213,8 @@ Data Menu
 
 **Show Link**
     Selects the field or group to which the selected item is linked, if it is
-    an NXlink object, *i.e.*, shown with a link icon.
+    an NXlink object, *i.e.*, shown with a link icon. If the link is external,
+    the linked file is automatically opened and the linked object is selected.
  
 **Set Signal**
     Sets the plottable signal either to the selected field or to any field 
@@ -441,15 +450,41 @@ tabs allow manipulation of the plot limits and parameters.
 
     .. image:: /images/options-tab.png
        :align: center
-       :width: 75%
+       :width: 90%
 
-    The options tab provides the standard Matplotlib toolbar. The 'Home' button
-    restores all plotting limits to their defaults. The 'arrow' buttons cycle
-    through previous plots. The 'zoom' button allows rectangles to be dragged 
-    over the plot to define new plotting limits. The 'options' button allows the 
-    Matplotlib plotting parameters (markers, colors, *etc*.) to be changed. The 
-    'Save' button saves the figure to a PNG file. The final button adds the 
-    plotted data to the tree pane, as an NXdata group in 'w0'.
+    The options tab provides the standard Matplotlib toolbar. You can view with the addition
+    of one extra button. From left to right, the buttons are:
+    
+    * **Home** - restores all plotting limits to their original values. 
+    * **Arrows** - cycles through the limits of previous plots.
+    * **Pan** - enables panning mode (disabling zoom mode).
+    * **Zoom** - enables zoom mode (disabling pan mode).
+    * **Aspect** - toggles between setting the aspect ratio automatically 
+      to fill the available space or setting the x and y scales to be equal. 
+      This is only valid if the units of the x and y axes are identical.
+    * **Subplot** - configures the spacing around the plot. 
+    * **Save** - saves plot to PNG file.
+    * **Add** - adds plotted data to the tree pane as an NXdata group within the
+      scratch workspace 'w0'.
+    * **Edit** - allows marker and line formatting to be modified.
+
+    On the far right of the toolbar, the data and axis values are dynamically 
+    updated to the values under the current mouse location.
+
+    .. seealso:: See the `Matplotlib documentation  
+                 <http://matplotlib.org/users/navigation_toolbar.html>`_ for
+                 more detailed descriptions of the standard toolbar, including 
+                 keyboard shortcuts. The 'Aspect' and 'Add' buttons are unique
+                 to NeXpy.
+
+    .. note:: The aspect ratio of a plot can also be set from the IPython shell
+              with the command ``plotview <aspect>``, where ``<aspect>`` can be
+              any of the values allowed by the `Matplotlib set_aspect 
+              <http://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes.set_aspect>`_
+              function, *i.e.*, 'auto', 'equal', or `num`, the numerical value 
+              of the ratio between the height and the width (if the units are 
+              identical). The 'Aspect' button toggles between 'auto' and 
+              'equal'.
        
 Fitting NeXus Data
 ------------------
