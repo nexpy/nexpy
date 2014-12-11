@@ -1014,10 +1014,10 @@ class NXPlotAxis(object):
     def __repr__(self):
         return 'NXPlotAxis("%s")' % self.name
 
-    def set_data(self, data, dimlen=None):
-        self.data = data
+    def set_data(self, axis, dimlen=None):
+        self.data = axis.nxdata
         if dimlen is not None:
-            if data[0] > self.data[-1]:
+            if self.data[0] > self.data[-1]:
                 self.data = self.data[::-1]
                 self.flipped = True
             _spacing = self.data[1:] - self.data[:-1]
