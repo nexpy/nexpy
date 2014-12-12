@@ -276,7 +276,7 @@ class BaseDialog(QtGui.QDialog):
 class PlotDialog(BaseDialog):
     """Dialog to plot arbitrary NeXus data in one or two dimensions"""
  
-    def __init__(self, node, parent=None):
+    def __init__(self, node, parent=None, fmt='o'):
 
         super(PlotDialog, self).__init__(parent)
  
@@ -286,6 +286,8 @@ class PlotDialog(BaseDialog):
         else:
             self.group = node
             signal_name = None
+
+        self.fmt = fmt
 
         self.signal_combo =  QtGui.QComboBox() 
         for node in self.group.values():
@@ -401,7 +403,7 @@ class PlotDialog(BaseDialog):
 
     def accept(self):
         data = NXdata(self.signal, self.get_axes())
-        data.plot()
+        data.plot(fmt=self.fmt)
         super(PlotDialog, self).accept()
 
     
