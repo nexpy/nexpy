@@ -961,11 +961,17 @@ class MainWindow(QtGui.QMainWindow):
             node = self.treeview.get_node()
             if node:        
                 self.treeview.status_message(node)
-                try:
-                    node.plot(fmt=fmt)
-                except (KeyError, NeXusError):
-                    dialog = PlotDialog(node, self)
+                if isinstance(node, NXgroup):
+                    try:
+                        node.plot(fmt=fmt)
+                        return
+                    except (KeyError, NeXusError):
+                        pass
+                if node.is_plottable():
+                    dialog = PlotDialog(node, self, fmt=fmt)
                     dialog.show()
+                else:
+                    raise NeXusError("Data not plottable")
         except NeXusError as error:
             report_error("Plotting Data", error)
 

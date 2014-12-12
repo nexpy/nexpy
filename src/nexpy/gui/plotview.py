@@ -389,7 +389,7 @@ class NXPlotView(QtGui.QWidget):
             axes = [NXfield(np.arange(self.shape[i]), name='Axis%s'%i)
                             for i in range(self.ndim)]
 
-        self.axes = [NXfield(axes[i], name=axes[i].nxname,
+        self.axes = [NXfield(axes[i].nxdata, name=axes[i].nxname,
                              attrs=axes[i].attrs) for i in range(self.ndim)]
 
         if over:
