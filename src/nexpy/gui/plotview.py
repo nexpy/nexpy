@@ -372,19 +372,13 @@ class NXPlotView(QtGui.QWidget):
         This function removes size 1 arrays, creates axes if none are specified
         and initializes the NXPlotAxis instances.
         """
-        shape = list(self.data.nxsignal.shape)
-        while 1 in shape:
-            shape.remove(1)
-        self.shape = shape
-        self.ndim = len(self.shape)
-
         if self.ndim > 2:
-            idx=[np.s_[0] for s in shape[:-2] if s > 1]
+            idx=[np.s_[0] for s in self.shape[:-2] if s > 1]
             idx.extend([np.s_[:], np.s_[:]])
             self.signal = self.data.nxsignal[tuple(idx)][()]
         else:
             self.signal = self.data.nxsignal[()]
-            self.signal.shape = shape
+            self.signal.shape = self.shape
 
         if self.data.nxaxes is not None:
             axes = []
@@ -392,7 +386,7 @@ class NXPlotView(QtGui.QWidget):
                 if axis.size > 1:
                     axes.append(axis)
         else:
-            axes = [NXfield(np.arange(shape[i]), name='Axis%s'%i)
+            axes = [NXfield(np.arange(self.shape[i]), name='Axis%s'%i)
                             for i in range(self.ndim)]
 
         self.axes = [NXfield(axes[i], name=axes[i].nxname,
@@ -609,6 +603,17 @@ class NXPlotView(QtGui.QWidget):
         self.draw()
         self.otab.push_current()
         mpl.interactive(True)
+
+    @property
+    def shape(self):
+        _shape = list(self.data.nxsignal.shape)
+        while 1 in _shape:
+            _shape.remove(1)
+        return tuple(_shape)
+
+    @property
+    def ndim(self):
+        return len(self.shape)
 
     def set_data_limits(self):
         if self.vaxis.lo is None or self.autoscale: 
@@ -1683,7 +1688,7 @@ class NXProjectionTab(QtGui.QWidget):
         for axis in axes:
             if axis not in [ydim, xdim]:
                 limits[axis] = (None, None)
-        shape = self.plotview.data.nxsignal.shape
+        shape = self.plotview.shape
         if len(shape) - len(limits) == shape.count(1):
             axes, limits = self.fix_projection(shape, axes, limits)
         return axes, limits
@@ -1942,7 +1947,7 @@ class NXProjectionPanel(QtGui.QDialog):
             y = self.get_axes().index(self.yaxis)
             axes = [y,x]
         limits = self.get_limits()
-        shape = self.plotview.data.nxsignal.shape
+        shape = self.plotview.shape
         if len(shape) - len(limits) == shape.count(1):
             axes, limits = self.fix_projection(shape, axes, limits)
         return axes, limits
