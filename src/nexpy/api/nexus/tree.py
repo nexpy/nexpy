@@ -2100,7 +2100,9 @@ class NXfield(NXobject):
             if np.prod(self.shape) * np.dtype(self.dtype).itemsize <= NX_MEMORY*1024*1024:
                 if self.nxfilemode:
                     self._value = self._get_filedata()
-                elif self._memfile:
+                elif self._uncopied_data:
+                    self._get_uncopied_data()
+                if self._memfile:
                     self._value = self._get_memdata()
                     self._memfile = None
                 if self._value is not None:
@@ -2221,6 +2223,23 @@ class NXfield(NXobject):
     ndim = property(_getndim, doc="Property: No. of dimensions of NeXus field")
     size = property(_getsize, doc="Property: Size of NeXus field")
 
+    @property
+    def plot_shape(self):     
+        _shape = list(self.shape)
+        while 1 in _shape:
+            _shape.remove(1)
+        return _shape
+
+    @property
+    def plot_rank(self):
+        return len(self.plot_shape)
+
+    def is_plottable(self):
+        if self.plot_rank > 0:
+            return True
+        else:
+            return False
+
     def plot(self, fmt='', xmin=None, xmax=None, ymin=None, ymax=None,
              zmin=None, zmax=None, **opts):
         """
@@ -2245,19 +2264,16 @@ class NXfield(NXobject):
 
         from nexpy.gui.plotview import plotview
 
-        # Check there is a plottable signal
-        if 'signal' in self.attrs.keys():
+        if self.is_plottable():
             if 'axes' in self.attrs.keys():
                 axes = [getattr(self.nxgroup, name) 
                         for name in _readaxes(self.axes)]
                 data = NXdata(self, axes, title=self.nxtitle)
             else:
                 data = NXdata(self, title=self.nxtitle)
+            plotview.plot(data, fmt, xmin, xmax, ymin, ymax, zmin, zmax, **opts)
         else:
-            raise NeXusError('No plottable signal defined')
-
-        # Plot with the available plotter
-        plotview.plot(data, fmt, xmin, xmax, ymin, ymax, zmin, zmax, **opts)
+            raise NeXusError('NXfield not plottable')
     
     def oplot(self, fmt='', **opts):
         """
@@ -2574,9 +2590,7 @@ class NXgroup(NXobject):
 
     def __delattr__(self, name):
         if name in self._entries:
-            if self.nxfilemode == 'r':
-                raise NeXusError('NeXus file opened as readonly')
-            self.__delitem__(name)
+            raise NeXusError('Members can only be deleted using the group dictionary')
         else:
             object.__delattr__(self, name)
 
@@ -3124,6 +3138,13 @@ class NXgroup(NXobject):
     nxerrors = property(_errors, _set_errors, "Property: Errors NXfield within group")
     nxtitle = property(_title, "Property: Title for group plot")
     entries = property(_getentries,doc="Property: NeXus objects within group")
+
+    def is_plottable(self):
+        plottable = False
+        for entry in self:
+            if self[entry].is_plottable():
+                plottable = True
+        return plottable        
 
     def plot(self, fmt='', xmin=None, xmax=None, ymin=None, ymax=None,
              zmin=None, zmax=None, **opts):
