@@ -1728,7 +1728,7 @@ class RemoteDialog(BaseDialog):
             file_name = self.member_uri
             try:
                 from nexpy.gui.consoleapp import _mainwindow, _shell
-                from nexpyro.pyro.nxfileremote import nxloadremote
+                from nexusformat.pyro.nxfileremote import nxloadremote
                 name = _mainwindow.treeview.tree.get_name(file_name)
                 _mainwindow.treeview.tree[name] = _shell[name] = nxloadremote(file_name, uri)
                 logging.info("Remote NeXus file '%s' on '%s' opened  as workspace '%s'" 

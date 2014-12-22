@@ -17,7 +17,7 @@ the package from the source code either by downloading one of the
 latest development version in the `NeXpy Git 
 repository <https://github.com/nexpy/nexpy>`_::
 
-    $ git clone http://github.com/nexpy/nexpy.git
+    $ git clone https://github.com/nexpy/nexpy.git
 
 You can then install NeXpy by changing to the source directory and typing::
 
