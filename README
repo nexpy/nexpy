@@ -42,9 +42,9 @@ PySide v1.1.0        http://www.pyside.org/
 iPython v1.1.0       http://ipython.org/
 h5py                 http://www.h5py.org/
 numpy,scipy          http://numpy.scipy.org
-matplotlib v1.1.0    http://matplotlib.sourceforge.net    (GUI plotting only)
+matplotlib v1.2.0    http://matplotlib.sourceforge.net  (GUI plotting only)
 lmfit                http://newville.github.io/lmfit-py (Fitting only)
-spec2nexus           http://spec2nexus.readthedocs.org (SPEC reader only)
+spec2nexus           http://spec2nexus.readthedocs.org  (SPEC reader only)
 
 The following environment variable may need to be set
 

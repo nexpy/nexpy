@@ -49,7 +49,7 @@ more details of the nature of these dependencies in the
 * numpy,scipy          http://numpy.scipy.org
 * iPython v1.1.0       http://ipython.org/
 * PySide v1.1.0        http://www.pyside.org/
-* matplotlib v1.1.0    http://matplotlib.sourceforge.net    (GUI only)
+* matplotlib v1.2.0    http://matplotlib.sourceforge.net    (GUI only)
 * lmfit                http://newville.github.io/lmfit-py (Fitting only)
 * pycbf                http://www.bernstein-plus-sons.com/software/CBF/ (CBF reader only)
 * spec2nexus           http://spec2nexus.readthedocs.org (SPEC reader only)

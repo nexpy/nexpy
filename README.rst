@@ -61,7 +61,7 @@ Library            URL
 =================  =================================================
 PySide v1.1.0      http://www.pyside.org/
 iPython v1.1.0     http://ipython.org/
-matplotlib v1.1.0  http://matplotlib.sourceforge.net/
+matplotlib v1.2.0  http://matplotlib.sourceforge.net/
 =================  =================================================
 
 Most of these packages are included in the `Enthought Python Distribution
