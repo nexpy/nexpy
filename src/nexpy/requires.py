@@ -19,6 +19,6 @@ pkg_requirements = [
     'matplotlib',
 ]
 extra_requirements = {
-    'spec': ['spec2nexus>=2014.0320.6',],
+    'spec': ['spec2nexus>=2014.1228.0',],
 }
 
