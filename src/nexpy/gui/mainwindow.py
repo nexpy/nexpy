@@ -247,14 +247,15 @@ class MainWindow(QtGui.QMainWindow):
         self.addAction(self.openeditablefile_action)  
 
         try:
-            import globusonline.catalog.client.examples.catalog_wrapper
+            import globusonline.catalog.client.examples.catalog_wrapper # @UnusedImport
             self.openremotefile_action=QtGui.QAction("Open Remote...",
                 self,
                 triggered=self.open_remote_file
                 )
             self.add_menu_action(self.file_menu, self.openremotefile_action)
         except ImportError:
-            pass
+            logging.info("Did not find Globus Catalog API")
+            logging.info(e)
 
         self.savefile_action=QtGui.QAction("&Save as...",
             self,
