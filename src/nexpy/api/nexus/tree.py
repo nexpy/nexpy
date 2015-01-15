@@ -3403,6 +3403,9 @@ class NXlinkexternal(NXlink, NXfield):
     def _getattrs(self):
         return self._attrs
 
+    def _getpath(self):
+        return self._target
+
     def _getfile(self):
         return NXFile(self.nxfilename, self.nxfilemode).open()
 
@@ -3424,6 +3427,7 @@ class NXlinkexternal(NXlink, NXfield):
     dtype = property(_getdtype, doc="Property: Data type of NeXus field")
     shape = property(_getshape, doc="Property: Shape of NeXus field")
     attrs = property(_getattrs,doc="NeXus attributes for object")
+    nxpath = property(_getpath, doc="Property: Path to NeXus object")
     nxfile = property(_getfile, doc="Property: File handle of NeXus link")
     nxfilename = property(_getfilename, _setfilename, doc="Property: Filename of external link")
     nxfilemode = property(_getfilemode, doc="Property: File mode of external link")
