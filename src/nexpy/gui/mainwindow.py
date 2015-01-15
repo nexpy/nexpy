@@ -253,7 +253,7 @@ class MainWindow(QtGui.QMainWindow):
                 triggered=self.open_remote_file
                 )
             self.add_menu_action(self.file_menu, self.openremotefile_action)
-        except ImportError:
+        except ImportError as e:
             logging.info("Did not find Globus Catalog API")
             logging.info(e)
 
