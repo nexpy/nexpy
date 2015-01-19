@@ -658,6 +658,13 @@ class MainWindow(QtGui.QMainWindow):
             )
         self.add_menu_action(self.window_menu, self.newplot_action, True)
 
+        self.closewindow_action=QtGui.QAction("Close Plot Window",
+            self,
+            shortcut=QtGui.QKeySequence("Ctrl+Shift+W"),
+            triggered=self.close_window
+            )
+        self.add_menu_action(self.window_menu, self.closewindow_action, True)
+
         self.window_menu.addSeparator()
 
         self.active_action = {}
@@ -1332,6 +1339,11 @@ class MainWindow(QtGui.QMainWindow):
 
     def new_plot_window(self):
         plotview = NXPlotView()
+
+    def close_window(self):
+        from nexpy.gui.plotview import plotview
+        if plotview.number != 1:
+            plotview.close_view()
         
     def update_active(self, number):
         for num in self.active_action:
