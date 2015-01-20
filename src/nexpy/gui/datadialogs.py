@@ -1710,16 +1710,30 @@ class RemoteDialog(BaseDialog):
             if dataset['name']==name:
                 return dataset['id']
 
+    ssh = None
+
     def get_member(self):
         self.member_uri = self.member_box.currentText()
         if self.uri_box is None:
             uri_layout = QtGui.QHBoxLayout()
             uri_label = QtGui.QLabel('URI')
             self.uri_box = QtGui.QLineEdit('PYRO:rosborn@localhost:8801')
-            self.uri_box.setMinimumWidth(200)        
+            self.uri_box.setMinimumWidth(200)
+            self.ssh_start_button = QtGui.QPushButton("Start SSH")
+            self.ssh_stop_button = QtGui.QPushButton("Stop SSH")
+            self.ssh_stop_button.setEnabled(False)
+            QtCore.QObject.connect(self.ssh_start_button,
+                                   QtCore.SIGNAL('clicked()'),
+                                   self.ssh_start)
+            QtCore.QObject.connect(self.ssh_stop_button,
+                                   QtCore.SIGNAL('clicked()'),
+                                   self.ssh_stop)
+
             uri_layout.addStretch()
             uri_layout.addWidget(uri_label)
             uri_layout.addWidget(self.uri_box)
+            uri_layout.addWidget(self.ssh_start_button)
+            uri_layout.addWidget(self.ssh_stop_button)
             uri_layout.addStretch()
             self.layout.insertLayout(3, uri_layout)
 
@@ -1748,3 +1762,12 @@ class RemoteDialog(BaseDialog):
         else:        
             super(RemoteDialog, self).reject()
 
+    def ssh_start(self):
+        logging.info("")
+        self.ssh_stop_button.setEnabled(True)
+        self.ssh_start_button.setEnabled(False)
+
+    def ssh_stop(self):
+        logging.info("")
+        self.ssh_start_button.setEnabled(True)
+        self.ssh_stop_button.setEnabled(False)
