@@ -16,6 +16,7 @@ import re
 import sys
 
 from PySide import QtGui, QtCore
+from PySide.QtGui import QMessageBox
 import pkg_resources
 import numpy as np
 
@@ -1729,11 +1730,19 @@ class RemoteDialog(BaseDialog):
             try:
                 from nexpy.gui.consoleapp import _mainwindow, _shell
                 from nexusformat.pyro.nxfileremote import nxloadremote
+                from Pyro4.errors import CommunicationError
                 name = _mainwindow.treeview.tree.get_name(file_name)
-                _mainwindow.treeview.tree[name] = _shell[name] = nxloadremote(file_name, uri)
-                logging.info("Remote NeXus file '%s' on '%s' opened  as workspace '%s'" 
+                logging.info("Opening remote NeXus file '%s' on '%s' as workspace '%s'"
                              % (file_name, uri, name))
+                _mainwindow.treeview.tree[name] = _shell[name] = nxloadremote(file_name, uri)
                 super(RemoteDialog, self).accept()
+            except CommunicationError as e:
+                msgBox = QMessageBox()
+                msgBox.setText("Could not connect to: " + uri)
+                msgBox.setIcon(QMessageBox.Critical)
+                logging.debug("Connection failed to: " + uri +
+                              "\n\n" + str(e))
+                msgBox.exec_()
             except NeXusError:
                 super(RemoteDialog, self).reject()
         else:        
