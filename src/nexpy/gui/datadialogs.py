@@ -1715,10 +1715,13 @@ class RemoteDialog(BaseDialog):
     def get_member(self):
         self.member_uri = self.member_box.currentText()
         if self.uri_box is None:
-            uri_layout = QtGui.QHBoxLayout()
-            uri_label = QtGui.QLabel('URI')
-            self.uri_box = QtGui.QLineEdit('PYRO:rosborn@localhost:8801')
-            self.uri_box.setMinimumWidth(200)
+            pyro_layout = QtGui.QHBoxLayout()
+            user_label = QtGui.QLabel('Remote user:')
+            self.user_box = QtGui.QLineEdit(os.getenv('USER'))
+            self.user_box.setMinimumWidth(100)
+            port_label = QtGui.QLabel('Local port:')
+            self.port_box = QtGui.QLineEdit('8801')
+            self.port_box.setMinimumWidth(100)
             self.ssh_start_button = QtGui.QPushButton("Start SSH")
             self.ssh_stop_button = QtGui.QPushButton("Stop SSH")
             self.ssh_stop_button.setEnabled(False)
@@ -1729,13 +1732,15 @@ class RemoteDialog(BaseDialog):
                                    QtCore.SIGNAL('clicked()'),
                                    self.ssh_stop)
 
-            uri_layout.addStretch()
-            uri_layout.addWidget(uri_label)
-            uri_layout.addWidget(self.uri_box)
-            uri_layout.addWidget(self.ssh_start_button)
-            uri_layout.addWidget(self.ssh_stop_button)
-            uri_layout.addStretch()
-            self.layout.insertLayout(3, uri_layout)
+            pyro_layout.addStretch()
+            pyro_layout.addWidget(user_label)
+            pyro_layout.addWidget(self.user_box)
+            pyro_layout.addWidget(port_label)
+            pyro_layout.addWidget(self.port_box)
+            pyro_layout.addWidget(self.ssh_start_button)
+            pyro_layout.addWidget(self.ssh_stop_button)
+            pyro_layout.addStretch()
+            self.layout.insertLayout(3, pyro_layout)
 
     def accept(self):
         if self.uri_box is not None and len(self.member_uri) > 0:
@@ -1764,9 +1769,9 @@ class RemoteDialog(BaseDialog):
 
     def ssh_start(self):
         logging.info("")
-        user = os.getenv('USER')
+        user = self.user_box.text()
         hostname = 'nxrs.msd.anl.gov'
-        localPort = 9091
+        localPort = int(self.port_box.text())
         from nexusformat.pyro.session import NeXPyroSession
         self.ssh = NeXPyroSession(user, hostname, localPort)
         self.ssh.run()
