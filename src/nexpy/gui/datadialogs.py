@@ -1764,10 +1764,18 @@ class RemoteDialog(BaseDialog):
 
     def ssh_start(self):
         logging.info("")
+        user = os.getenv('USER')
+        hostname = 'nxrs.msd.anl.gov'
+        localPort = 9091
+        from nexusformat.pyro.session import NeXPyroSession
+        self.ssh = NeXPyroSession(user, hostname, localPort)
+        self.ssh.run()
         self.ssh_stop_button.setEnabled(True)
         self.ssh_start_button.setEnabled(False)
 
     def ssh_stop(self):
         logging.info("")
+        assert(self.ssh != None)
+        self.ssh.terminate()
         self.ssh_start_button.setEnabled(True)
         self.ssh_stop_button.setEnabled(False)
