@@ -708,10 +708,13 @@ def _readaxes(axes):
 
     The delimiter separating each axis can be white space, a comma, or a colon.
     """
-    axes = str(axes)
-    import re
-    sep=re.compile('[\[]*(\s*,*:*)+[\]]*')
-    return filter(lambda x: len(x)>0, sep.split(axes))
+    if axes.shape == ():
+        axes = str(axes)
+        import re
+        sep=re.compile('[\[]*(\s*,*:*)+[\]]*')
+        return filter(lambda x: len(x)>0, sep.split(axes))
+    else:
+        return list(axes)
 
 
 class AttrDict(dict):
@@ -997,7 +1000,7 @@ class NXobject(object):
         if False: 
             yield
 
-    def dir(self,attrs=False,recursive=False):
+    def dir(self, attrs=False, recursive=False):
         """
         Prints the object directory.
 
@@ -1006,7 +1009,7 @@ class NXobject(object):
         displayed. If 'recursive' is True, the contents of child groups are
         also displayed.
         """
-        print self._str_tree(attrs=attrs,recursive=recursive)
+        print self._str_tree(attrs=attrs, recursive=recursive)
 
     @property
     def tree(self):
@@ -1017,7 +1020,7 @@ class NXobject(object):
         It invokes the 'dir' method with both 'attrs' and 'recursive' set
         to True.
         """
-        return self._str_tree(attrs=True,recursive=True)
+        return self._str_tree(attrs=True, recursive=True)
 
     def rename(self, name):
         if self.nxfilemode == 'r':
@@ -2088,7 +2091,8 @@ class NXfield(NXobject):
         Only works if the NXfield has the 'axes' attribute
         """
         try:
-            return [getattr(self.nxgroup,name) for name in _readaxes(self.axes)]
+            return [getattr(self.nxgroup,name) 
+                    for name in _readaxes(self.attrs['axes'])]
         except KeyError:
             return None
 
@@ -2267,7 +2271,7 @@ class NXfield(NXobject):
         if self.is_plottable():
             if 'axes' in self.attrs.keys():
                 axes = [getattr(self.nxgroup, name) 
-                        for name in _readaxes(self.axes)]
+                        for name in _readaxes(self.attrs['axes'])]
                 data = NXdata(self, axes, title=self.nxtitle)
             else:
                 data = NXdata(self, title=self.nxtitle)
@@ -2596,28 +2600,9 @@ class NXgroup(NXobject):
 
     def __getitem__(self, key):
         """
-        Returns an entry in the group if the key is a string.
-        
-        or
-        
-        Returns a slice from the NXgroup nxsignal attribute (if it exists) as
-        a new NXdata group, if the index is a slice object.
-
-        In most cases, the slice values are applied to the NXfield nxdata array
-        and returned within an NXfield object with the same metadata. However,
-        if the array is one-dimensional and the index start and stop values
-        are real, the nxdata array is returned with values between the limits
-        set by those axis values.
-
-        This is to allow axis arrays to be limited by their actual value. This
-        real-space slicing should only be used on monotonically increasing (or
-        decreasing) one-dimensional arrays.
+        Returns an entry in the group.
         """
-        if key is None:
-            raise NeXusError('Group item not specified')
-        elif isinstance(key, NXattr):
-            key = key.nxdata
-        if isinstance(key, basestring): #i.e., requesting a dictionary value
+        if isinstance(key, basestring):
             if '/' in key:
                 if key.startswith('/'):
                     return self.nxroot[key[1:]]
@@ -2631,38 +2616,8 @@ class NXgroup(NXobject):
                 return node
             else:
                 return self._entries[key]
-
-        if self.nxsignal:
-            idx = key
         else:
             raise NeXusError("Invalid index")
-        if not hasattr(self, "nxclass"):
-            raise NeXusError("Indexing not allowed for groups of unknown class")
-        if isinstance(idx, int) or isinstance(idx, slice):
-            axes = self.nxaxes
-            idx = convert_index(idx, axes[0])
-            axes[0] = axes[0][idx]
-            result = NXdata(self.nxsignal[idx], axes)
-            if self.nxsignal.mask:
-                result[self.nxsignal.mask.nxname] = self.nxsignal.mask
-            if self.nxerrors: 
-                result.errors = self.errors[idx]
-        else:
-            i = 0
-            slices = []
-            axes = self.nxaxes
-            for ind in idx:
-                ind = convert_index(ind, axes[i])
-                axes[i] = axes[i][ind]
-                slices.append(ind)
-                i = i + 1
-            result = NXdata(self.nxsignal[tuple(slices)], axes)
-            if self.nxerrors: 
-                result.errors = self.errors[tuple(slices)]
-        if self.nxtitle:
-            result.title = self.nxtitle
-        result = simplify_axes(result)
-        return result
 
     def __setitem__(self, key, value):
         """
@@ -2716,26 +2671,8 @@ class NXgroup(NXobject):
                         field._memfile.copy('mask', group[mask_name]._memfile, 'data')
                         del field._memfile['mask']
             group._entries[key].update()
-        elif self.nxsignal:
-            idx = key
-            if isinstance(value, NXdata):
-                value = value.nxsignal
-            if isinstance(idx, int) or isinstance(idx, slice):
-                axes = self.nxaxes
-                idx = convert_index(idx, axes[0])
-                self.nxsignal[idx] = value
-            else:
-                i = 0
-                slices = []
-                axes = self.nxaxes
-                for ind in idx:
-                    ind = convert_index(ind, axes[i])
-                    axes[i] = axes[i][ind]
-                    slices.append(ind)
-                    i = i + 1
-                self.nxsignal[tuple(slices)] = value
         else:
-            raise NeXusError('Invalid index')
+            raise NeXusError('Invalid key')
 
     def __delitem__(self, key):
         if self.nxfilemode == 'r':
@@ -3002,6 +2939,56 @@ class NXgroup(NXobject):
             result.nxaxes = result.nxaxes[::-1]            
         return result        
 
+    def is_plottable(self):
+        plottable = False
+        for entry in self:
+            if self[entry].is_plottable():
+                plottable = True
+        return plottable        
+
+    @property
+    def plottable_data(self):
+        """
+        Returns the first NXdata group within the group's tree.
+        """
+        data = self
+        if self.nxclass == "NXroot":
+            try:
+                data = data.NXdata[0]
+            except Exception:
+                if data.NXentry:
+                    data = data.NXentry[0]
+                else:
+                    raise NeXusError('No NXdata group found')
+        if data.nxclass == "NXentry":
+            if data.NXdata:
+                data = data.NXdata[0]
+            elif data.NXmonitor:
+                data = data.NXmonitor[0]
+            elif data.NXlog:
+                data = data.NXlog[0]
+            else:
+                raise NeXusError('No NXdata group found')
+        return data
+
+    def plot(self, **opts):
+        """
+        Plot data contained within the group.
+        """
+        self.plottable_data.plot(**opts)
+    
+    def oplot(self, **opts):
+        """
+        Plots the data contained within the group over the current figure.
+        """
+        self.plottable_data.oplot(**opts)
+
+    def logplot(self, **opts):
+        """
+        Plots the data intensity contained within the group on a log scale.
+        """
+        self.plottable_data.logplot(**opts)
+
     def component(self, nxclass):
         """
         Finds all child objects that have a particular class.
@@ -3019,99 +3006,6 @@ class NXgroup(NXobject):
             if 'signal' in obj.attrs:
                 signals[obj.attrs['signal']] = obj
         return signals
-
-    def _signal(self):
-        """
-        Returns the NXfield containing the signal data.
-        """
-        if 'signal' in self.attrs:
-            if self.attrs['signal'] in self:
-                return self[self.attrs['signal']]
-        for obj in self.values():
-            if 'signal' in obj.attrs and str(obj.signal) == '1':
-                if isinstance(self[obj.nxname],NXlink):
-                    return self[obj.nxname].nxlink
-                else:
-                    return self[obj.nxname]
-        return None
-    
-    def _set_signal(self, signal):
-        """
-        Setter for the signal attribute.
-        
-        The argument should be a valid NXfield within the group.
-        """
-        current_signal = self._signal()
-        if current_signal is not None:
-            if current_signal is not signal:
-                current_signal.attrs['signal'] = 2
-                if 'axes' in self.attrs and 'axes' not in current_signal.attrs:
-                    current_signal.attrs['axes'] = self.attrs['axes']
-                if 'axes' not in self.attrs and 'axes' in current_signal.attrs:
-                    self.attrs['signal'] = current_signal.attrs['axes']
-        self.attrs['signal'] = signal.nxname
-        if signal.nxname not in self:
-            self[signal.nxname] = signal
-        self[signal.nxname].attrs['signal'] = 1
-        return self[signal.nxname]
-
-    def _axes(self):
-        """
-        Returns a list of NXfields containing the axes.
-        """
-        try:
-            if 'axes' in self.attrs:
-                axes = _readaxes(self.attrs['axes'])
-            elif self.nxsignal is not None and 'axes' in self.nxsignal.attrs:
-                axes = _readaxes(self.nxsignal.attrs['axes'])
-            return [getattr(self, name) for name in axes]
-        except (KeyError, AttributeError, UnboundLocalError):
-            axes = {}
-            for entry in self:
-                if 'axis' in self[entry].attrs:
-                    axis = self[entry].axis
-                    if axis not in axes:
-                        axes[axis] = self[entry]
-                    else:
-                        return None
-            if axes:
-                return [axes[key] for key in sorted(axes.keys())]
-            else:
-                return None
-
-    def _set_axes(self, axes):
-        """
-        Setter for the signal attribute.
-        
-        The argument should be a list of valid NXfields within the group.
-        """
-        if not isinstance(axes, list):
-            axes = [axes]
-        for axis in axes:
-            if axis.nxname not in self.keys():
-                self.insert(axis)
-        axes_attr = ":".join([axis.nxname for axis in axes])
-        if 'signal' in self.attrs:
-            self.attrs['axes'] = axes_attr
-        self.nxsignal.attrs['axes'] = axes_attr
-
-    def _errors(self):
-        """
-        Returns the NXfield containing the signal errors.
-        """
-        try:
-            return self['errors']
-        except KeyError:
-            return None
-
-    def _set_errors(self, errors):
-        """
-        Setter for the errors.
-        
-        The argument should be a valid NXfield.
-        """
-        self._entries['errors'] = errors
-        return self._entries['errors']
 
     def _title(self):
         """
@@ -3133,83 +3027,11 @@ class NXgroup(NXobject):
     def _getentries(self):
         return self._entries
 
-    nxsignal = property(_signal, _set_signal, "Property: Signal NXfield within group")
-    nxaxes = property(_axes, _set_axes, "Property: List of axes within group")
-    nxerrors = property(_errors, _set_errors, "Property: Errors NXfield within group")
-    nxtitle = property(_title, "Property: Title for group plot")
+    nxsignal = None
+    nxaxes = None
+    nxerrors = None
+    nxtitle = property(_title, "Property: Group title")
     entries = property(_getentries,doc="Property: NeXus objects within group")
-
-    def is_plottable(self):
-        plottable = False
-        for entry in self:
-            if self[entry].is_plottable():
-                plottable = True
-        return plottable        
-
-    def plot(self, fmt='', xmin=None, xmax=None, ymin=None, ymax=None,
-             zmin=None, zmax=None, **opts):
-        """
-        Plot data contained within the group.
-
-        The format argument is used to set the color and type of the
-        markers or lines for one-dimensional plots, using the standard 
-        Matplotlib syntax. The default is set to blue circles. All 
-        keyword arguments accepted by matplotlib.pyplot.plot can be
-        used to customize the plot.
-        
-        In addition to the matplotlib keyword arguments, the following
-        are defined::
-        
-            log = True     - plot the intensity on a log scale
-            logy = True    - plot the y-axis on a log scale
-            logx = True    - plot the x-axis on a log scale
-            over = True    - plot on the current figure
-
-        Raises NeXusError if the data could not be plotted.
-        """
-
-        from nexpy.gui.plotview import plotview
-
-        data = self
-        if self.nxclass == "NXroot":
-            try:
-                data = data.NXdata[0]
-            except Exception:
-                if data.NXentry:
-                    data = data.NXentry[0]
-                else:
-                    raise NeXusError('No NXdata group found')
-        if data.nxclass == "NXentry":
-            if data.NXdata:
-                data = data.NXdata[0]
-            elif data.NXmonitor:
-                data = data.NXmonitor[0]
-            elif data.NXlog:
-                data = data.NXlog[0]
-            else:
-                raise NeXusError('No NXdata group found')
-
-        # Check there is a plottable signal
-        if data.nxsignal is None:
-            raise NeXusError('No plotting signal defined')
-
-        # Plot with the available plotter
-        plotview.plot(data, fmt, xmin, xmax, ymin, ymax, zmin, zmax, **opts)
-    
-    def oplot(self, fmt='', **opts):
-        """
-        Plots the data contained within the group over the current figure.
-        """
-        self.plot(fmt=fmt, over=True, **opts)
-
-    def logplot(self, fmt='', xmin=None, xmax=None, ymin=None, ymax=None,
-                zmin=None, zmax=None, **opts):
-        """
-        Plots the data intensity contained within the group on a log scale.
-        """
-        self.plot(fmt=fmt, log=True,
-                  xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax,
-                  zmin=zmin, zmax=zmax, **opts)
 
 class NXlink(NXobject):
 
@@ -3654,6 +3476,78 @@ class NXdata(NXgroup):
         if errors is not None:
             self["errors"] = errors
 
+    def __getitem__(self, key):
+        """
+        Returns an entry in the group if the key is a string.
+        
+        or
+        
+        Returns a slice from the NXgroup nxsignal attribute (if it exists) as
+        a new NXdata group, if the index is a slice object.
+
+        In most cases, the slice values are applied to the NXfield nxdata array
+        and returned within an NXfield object with the same metadata. However,
+        if the array is one-dimensional and the index start and stop values
+        are real, the nxdata array is returned with values between the limits
+        set by those axis values.
+
+        This is to allow axis arrays to be limited by their actual value. This
+        real-space slicing should only be used on monotonically increasing (or
+        decreasing) one-dimensional arrays.
+        """
+        if isinstance(key, basestring): #i.e., requesting a dictionary value
+            return NXgroup.__getitem__(self, key)
+        elif self.nxsignal:
+            idx = key
+            if isinstance(idx, int) or isinstance(idx, slice):
+                axes = self.nxaxes
+                idx = convert_index(idx, axes[0])
+                axes[0] = axes[0][idx]
+                result = NXdata(self.nxsignal[idx], axes)
+                if self.nxsignal.mask:
+                    result[self.nxsignal.mask.nxname] = self.nxsignal.mask
+                if self.nxerrors: 
+                    result.errors = self.errors[idx]
+            else:
+                i = 0
+                slices = []
+                axes = self.nxaxes
+                for ind in idx:
+                    ind = convert_index(ind, axes[i])
+                    axes[i] = axes[i][ind]
+                    slices.append(ind)
+                    i = i + 1
+                result = NXdata(self.nxsignal[tuple(slices)], axes)
+                if self.nxerrors: 
+                    result.errors = self.errors[tuple(slices)]
+            if self.nxtitle:
+                result.title = self.nxtitle
+            result = simplify_axes(result)
+            return result
+        else:
+            raise NeXusError("No signal specified")
+
+    def __setitem__(self, idx, value):
+        if isinstance(idx, basestring):
+            NXgroup.__setitem__(self, idx, value)
+        elif self.nxsignal:
+            if isinstance(idx, int) or isinstance(idx, slice):
+                axes = self.nxaxes
+                idx = convert_index(idx, axes[0])
+                self.nxsignal[idx] = value
+            else:
+                i = 0
+                slices = []
+                axes = self.nxaxes
+                for ind in idx:
+                    ind = convert_index(ind, axes[i])
+                    axes[i] = axes[i][ind]
+                    slices.append(ind)
+                    i = i + 1
+                self.nxsignal[tuple(slices)] = value
+        else:
+            raise NeXusError('Invalid index')
+
     def __add__(self, other):
         """
         Adds the NXdata group to another NXdata group or to a number. Only the 
@@ -3784,6 +3678,149 @@ class NXdata(NXgroup):
             if self.nxerrors: 
                 result.errors = self.errors / other
             return result
+
+    def plot(self, fmt='', xmin=None, xmax=None, ymin=None, ymax=None,
+             zmin=None, zmax=None, **opts):
+        """
+        Plot data contained within the group.
+
+        The format argument is used to set the color and type of the
+        markers or lines for one-dimensional plots, using the standard 
+        Matplotlib syntax. The default is set to blue circles. All 
+        keyword arguments accepted by matplotlib.pyplot.plot can be
+        used to customize the plot.
+        
+        In addition to the matplotlib keyword arguments, the following
+        are defined::
+        
+            log = True     - plot the intensity on a log scale
+            logy = True    - plot the y-axis on a log scale
+            logx = True    - plot the x-axis on a log scale
+            over = True    - plot on the current figure
+
+        Raises NeXusError if the data could not be plotted.
+        """
+
+        try:
+            from nexpy.gui.plotview import plotview
+            if plotview is None:
+                raise ImportError
+        except ImportError:
+            from nexusformat.nexus.plot import plotview
+            
+        # Check there is a plottable signal
+        if self.nxsignal is None:
+            raise NeXusError('No plotting signal defined')
+
+        # Plot with the available plotter
+        plotview.plot(self, fmt, xmin, xmax, ymin, ymax, zmin, zmax, **opts)
+    
+    def oplot(self, fmt='', **opts):
+        """
+        Plots the data contained within the group over the current figure.
+        """
+        self.plot(fmt=fmt, over=True, **opts)
+
+    def logplot(self, fmt='', xmin=None, xmax=None, ymin=None, ymax=None,
+                zmin=None, zmax=None, **opts):
+        """
+        Plots the data intensity contained within the group on a log scale.
+        """
+        self.plot(fmt=fmt, log=True,
+                  xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax,
+                  zmin=zmin, zmax=zmax, **opts)
+
+    def _signal(self):
+        """
+        Returns the NXfield containing the signal data.
+        """
+        if 'signal' in self.attrs:
+            if self.attrs['signal'] in self:
+                return self[self.attrs['signal']]
+        for obj in self.values():
+            if 'signal' in obj.attrs and str(obj.signal) == '1':
+                if isinstance(self[obj.nxname],NXlink):
+                    return self[obj.nxname].nxlink
+                else:
+                    return self[obj.nxname]
+        return None
+    
+    def _set_signal(self, signal):
+        """
+        Setter for the signal attribute.
+        
+        The argument should be a valid NXfield within the group.
+        """
+        current_signal = self._signal()
+        if current_signal is not None and current_signal is not signal:
+            if 'signal' in current_signal.attrs:
+                del current_signal.attrs['signal']
+        self.attrs['signal'] = signal.nxname
+        if signal.nxname not in self:
+            self[signal.nxname] = signal
+        return self[signal.nxname]
+
+    def _axes(self):
+        """
+        Returns a list of NXfields containing the axes.
+        """
+        try:
+            if 'axes' in self.attrs:
+                axes = _readaxes(self.attrs['axes'])
+            elif self.nxsignal is not None and 'axes' in self.nxsignal.attrs:
+                axes = _readaxes(self.nxsignal.attrs['axes'])
+            return [getattr(self, name) for name in axes]
+        except (KeyError, AttributeError, UnboundLocalError):
+            axes = {}
+            for entry in self:
+                if 'axis' in self[entry].attrs:
+                    axis = self[entry].axis
+                    if axis not in axes:
+                        axes[axis] = self[entry]
+                    else:
+                        return None
+            if axes:
+                return [axes[key] for key in sorted(axes.keys())]
+            else:
+                return None
+
+    def _set_axes(self, axes):
+        """
+        Setter for the signal attribute.
+        
+        The argument should be a list of valid NXfields within the group.
+        """
+        if not isinstance(axes, list):
+            axes = [axes]
+        for axis in axes:
+            if axis.nxname not in self.keys():
+                self.insert(axis)
+        axes_attr = ":".join([axis.nxname for axis in axes])
+        if 'signal' in self.attrs:
+            self.attrs['axes'] = axes_attr
+        self.nxsignal.attrs['axes'] = axes_attr
+
+    def _errors(self):
+        """
+        Returns the NXfield containing the signal errors.
+        """
+        try:
+            return self['errors']
+        except KeyError:
+            return None
+
+    def _set_errors(self, errors):
+        """
+        Setter for the errors.
+        
+        The argument should be a valid NXfield.
+        """
+        self._entries['errors'] = errors
+        return self._entries['errors']
+
+    nxsignal = property(_signal, _set_signal, "Property: Signal field within group")
+    nxaxes = property(_axes, _set_axes, "Property: List of axes within group")
+    nxerrors = property(_errors, _set_errors, "Property: Errors field within group")
 
 
 class NXmonitor(NXdata):
