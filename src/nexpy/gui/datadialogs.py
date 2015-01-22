@@ -1671,7 +1671,8 @@ class RemoteDialog(BaseDialog):
             self.layout.insertLayout(1, dataset_layout)       
         else:
             self.dataset_box.clear()
-            self.member_box.clear()
+            if self.member_box:
+                self.member_box.clear()
         for dataset in self.datasets:
             try:
                 self.dataset_box.addItem(dataset['name'])
