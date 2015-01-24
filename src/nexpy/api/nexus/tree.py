@@ -616,7 +616,6 @@ class NXFile(object):
         from datetime import datetime
         self._file.attrs['file_name'] = self.filename
         self._file.attrs['file_time'] = datetime.now().isoformat()
-        self._file.attrs['NeXus_version'] = '4.3.0'
         self._file.attrs['HDF5_Version'] = h5.version.hdf5_version
         self._file.attrs['h5py_version'] = h5.version.version
 
@@ -701,6 +700,7 @@ def _getvalue(value, dtype=None, shape=None):
     else:
         _shape = _value.shape
     return _value, _dtype, _shape
+
 
 def _readaxes(axes):
     """
@@ -2923,7 +2923,8 @@ class NXgroup(NXobject):
         result = self[slab]
         slab_axes = list(projection_axes)
         for slab_axis in slab_axes:
-            slab[slab_axis] = convert_index(slab[slab_axis],self.nxaxes[slab_axis])
+            slab[slab_axis] = convert_index(slab[slab_axis], 
+                                            self.nxaxes[slab_axis])
             if isinstance(slab[slab_axis], int):
                 slab.pop(slab_axis)
                 projection_axes.pop(projection_axes.index(slab_axis))
@@ -3499,8 +3500,8 @@ class NXdata(NXgroup):
             return NXgroup.__getitem__(self, key)
         elif self.nxsignal:
             idx = key
+            axes = self.nxaxes
             if isinstance(idx, int) or isinstance(idx, slice):
-                axes = self.nxaxes
                 idx = convert_index(idx, axes[0])
                 axes[0] = axes[0][idx]
                 result = NXdata(self.nxsignal[idx], axes)
@@ -3511,7 +3512,6 @@ class NXdata(NXgroup):
             else:
                 i = 0
                 slices = []
-                axes = self.nxaxes
                 for ind in idx:
                     ind = convert_index(ind, axes[i])
                     axes[i] = axes[i][ind]
@@ -3782,7 +3782,8 @@ class NXdata(NXgroup):
             if axes:
                 return [axes[key] for key in sorted(axes.keys())]
             else:
-                return None
+                return [NXfield(np.arange(self.nxsignal.shape[i]), 
+                        name='Axis%s'%i) for i in range(self.nxsignal.ndim)]
 
     def _set_axes(self, axes):
         """
