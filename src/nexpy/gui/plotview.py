@@ -960,13 +960,14 @@ class NXPlotView(QtGui.QWidget):
             row = np.searchsorted(plotview.yaxis.boundaries-y, 0.0) - 1
             z = self.v[row,col]
             return 'x=%1.4f y=%1.4f\nv=%1.4f'%(x, y, z)
-        except IndexError, TypeError:
+        except:
             return ''
 
     def close_view(self):
         self.remove_menu_action()
         Gcf.destroy(self.number)
-        del plotviews[self.label]
+        if self.label in plotviews:
+            del plotviews[self.label]
 
     def closeEvent(self, event):
         self.close_view()

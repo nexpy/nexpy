@@ -1343,7 +1343,7 @@ class MainWindow(QtGui.QMainWindow):
     def close_window(self):
         from nexpy.gui.plotview import plotview
         if plotview.number != 1:
-            plotview.close_view()
+            plotview.close()
         
     def update_active(self, number):
         for num in self.active_action:
