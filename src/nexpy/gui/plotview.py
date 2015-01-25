@@ -1705,6 +1705,8 @@ class NXProjectionTab(QtGui.QWidget):
         shape = self.plotview.shape
         if len(shape) - len(limits) == shape.count(1):
             axes, limits = self.fix_projection(shape, axes, limits)
+        if self.plotview.rgb_image:
+            limits.append((None, None))
         return axes, limits
 
     def fix_projection(self, shape, axes, limits):
@@ -1965,6 +1967,8 @@ class NXProjectionPanel(QtGui.QDialog):
         shape = self.plotview.shape
         if len(shape) - len(limits) == shape.count(1):
             axes, limits = self.fix_projection(shape, axes, limits)
+        if self.plotview.rgb_image:
+            limits.append((None, None))
         return axes, limits
 
     def fix_projection(self, shape, axes, limits):
