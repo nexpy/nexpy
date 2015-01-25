@@ -364,7 +364,7 @@ class NXPlotView(QtGui.QWidget):
  
             self.plot_image(over, **opts)
 
-        if image:
+        if self.rgb_image:
             self.aspect = 'equal'
         else:
             self.aspect = 'auto'
@@ -410,7 +410,7 @@ class NXPlotView(QtGui.QWidget):
 
         for i in range(self.ndim):
             if over:
-                self.axis[i].set_data(self.axes[i], shape[i])
+                self.axis[i].set_data(self.axes[i], self.shape[i])
             else:
                 self.axis[i] = NXPlotAxis(self.axes[i], i, self.shape[i])
                 self.axis[i].dim = i
@@ -536,7 +536,7 @@ class NXPlotView(QtGui.QWidget):
             v = self.plotdata.nxsignal.nxdata
         return x, y, v
 
-    def plot_image(self, over=False, image=False, **opts):
+    def plot_image(self, over=False, **opts):
 
         mpl.interactive(False)
         if not over: 
@@ -559,7 +559,7 @@ class NXPlotView(QtGui.QWidget):
         if 'aspect' in opts:
             self.aspect = opts['aspect']
             del opts['aspect']
-        if image or self.equally_spaced:
+        if self.rgb_image or self.equally_spaced:
             if 'interpolation' not in opts:
                 opts['interpolation'] = 'nearest'
             if 'origin' not in opts:
@@ -893,6 +893,8 @@ class NXPlotView(QtGui.QWidget):
             self.xtab.axiscombo.setVisible(True)
             self.ytab.logbox.setVisible(False)
             self.ytab.axiscombo.setVisible(True)
+            if self.rgb_image:
+                self.tab_widget.removeTab(self.tab_widget.indexOf(self.vtab))
         if self.ptab.panel:
             self.ptab.panel.close()
 
@@ -1169,7 +1171,10 @@ class NXPlotTab(QtGui.QWidget):
             self.set_sliders(axis.lo, axis.hi)
         if self.axiscombo:
             self.axiscombo.clear()
-            self.axiscombo.addItems(self.get_axes())
+            if self.plotview.rgb_image:
+                self.axiscombo.addItem(axis.name)
+            else:
+                self.axiscombo.addItems(self.get_axes())
             self.axiscombo.setCurrentIndex(self.axiscombo.findText(axis.name))
         self.block_signals(False)
 
