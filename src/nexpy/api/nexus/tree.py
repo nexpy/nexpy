@@ -1470,7 +1470,7 @@ class NXfield(NXobject):
                  attrs=None, **attr):
         self._class = 'NXfield'
         self._value = value
-        self._name = name.replace(' ','_')
+        self._name = name
         self._group = group
         self._dtype = dtype
         if dtype:
