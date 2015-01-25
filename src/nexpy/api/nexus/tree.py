@@ -2972,7 +2972,7 @@ class NXgroup(NXobject):
                 if data.NXentry:
                     data = data.NXentry[0]
                 else:
-                    raise NeXusError('No NXdata group found')
+                    return None
         if data.nxclass == "NXentry":
             if data.NXdata:
                 data = data.NXdata[0]
@@ -2981,7 +2981,7 @@ class NXgroup(NXobject):
             elif data.NXlog:
                 data = data.NXlog[0]
             else:
-                raise NeXusError('No NXdata group found')
+                return None
         return data
 
     def plot(self, **opts):

@@ -295,8 +295,9 @@ class NXTreeView(QtGui.QTreeView):
                         menu.addAction(self.overplot_line_action)
             except NeXusError:
                 pass
-            if ((isinstance(node, NXgroup) and 
-                node.nxsignal and node.nxsignal.plot_rank > 2) or
+            if ((isinstance(node, NXgroup) and node.plottable_data and 
+                 node.plottable_data.nxsignal and 
+                 node.plottable_data.nxsignal.plot_rank > 2) or
                 (isinstance(node, NXfield) and node.plot_rank > 2)):
                 menu.addAction(self.plot_image_action)
             menu.addSeparator()
