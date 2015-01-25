@@ -562,7 +562,7 @@ class NXPlotView(QtGui.QWidget):
         if self.rgb_image or self.equally_spaced:
             if 'interpolation' not in opts:
                 opts['interpolation'] = 'nearest'
-            if 'origin' not in opts:
+            if 'origin' not in opts and not self.rgb_image:
                 opts['origin'] = 'lower'
             self.image = ax.imshow(self.v, extent=extent, cmap=self.cmap, **opts)
         elif 'interpolation' in opts:
