@@ -297,6 +297,7 @@ class NXPlotView(QtGui.QWidget):
         """
 
         over = opts.pop("over", False)
+        image = opts.pop("image", False)
         log = opts.pop("log", False)
         logx = opts.pop("logx", False)
         logy = opts.pop("logy", False)
@@ -307,6 +308,11 @@ class NXPlotView(QtGui.QWidget):
 
         if self.data.nxsignal is None:
             raise NeXusError('No plotting signal defined')
+
+        if image:
+            self.rgb_image = True
+        else:
+            self.rgb_image = False
 
         self.plotdata = self.get_plotdata(over)
 
@@ -358,6 +364,11 @@ class NXPlotView(QtGui.QWidget):
  
             self.plot_image(over, **opts)
 
+        if image:
+            self.aspect = 'equal'
+        else:
+            self.aspect = 'auto'
+            
         if over:
             self.update_tabs()
         else:
@@ -378,11 +389,10 @@ class NXPlotView(QtGui.QWidget):
             self.signal = self.data.nxsignal[tuple(idx)][()]
         else:
             self.signal = self.data.nxsignal[()]
-            self.signal.shape = self.shape
 
         if self.data.nxaxes is not None:
             axes = []
-            for axis in self.data.nxaxes:
+            for axis in self.data.nxaxes[:self.ndim]:
                 if axis.size > 1:
                     axes.append(axis)
         else:
@@ -400,7 +410,7 @@ class NXPlotView(QtGui.QWidget):
 
         for i in range(self.ndim):
             if over:
-                self.axis[i].set_data(self.axes[i], self.shape[i])
+                self.axis[i].set_data(self.axes[i], shape[i])
             else:
                 self.axis[i] = NXPlotAxis(self.axes[i], i, self.shape[i])
                 self.axis[i].dim = i
@@ -526,7 +536,7 @@ class NXPlotView(QtGui.QWidget):
             v = self.plotdata.nxsignal.nxdata
         return x, y, v
 
-    def plot_image(self, over=False, **opts):
+    def plot_image(self, over=False, image=False, **opts):
 
         mpl.interactive(False)
         if not over: 
@@ -549,7 +559,7 @@ class NXPlotView(QtGui.QWidget):
         if 'aspect' in opts:
             self.aspect = opts['aspect']
             del opts['aspect']
-        if self.equally_spaced:
+        if image or self.equally_spaced:
             if 'interpolation' not in opts:
                 opts['interpolation'] = 'nearest'
             if 'origin' not in opts:
@@ -564,7 +574,8 @@ class NXPlotView(QtGui.QWidget):
         self.image.get_cmap().set_bad('k', 1.0)
         ax.set_aspect(self.aspect)
         
-        self.colorbar = self.figure.colorbar(self.image, ax=ax)
+        if not self.rgb_image:
+            self.colorbar = self.figure.colorbar(self.image, ax=ax)
 
         xlo, xhi = ax.set_xlim(self.xaxis.min, self.xaxis.max)
         ylo, yhi = ax.set_ylim(self.yaxis.min, self.yaxis.max)
@@ -609,6 +620,8 @@ class NXPlotView(QtGui.QWidget):
         _shape = list(self.data.nxsignal.shape)
         while 1 in _shape:
             _shape.remove(1)
+        if self.rgb_image:
+            _shape = _shape[:-1]
         return tuple(_shape)
 
     @property

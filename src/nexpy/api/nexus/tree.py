@@ -2294,6 +2294,18 @@ class NXfield(NXobject):
                   xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax,
                   zmin=zmin, zmax=zmax, **opts)
 
+    def implot(self, fmt='', xmin=None, xmax=None, ymin=None, ymax=None,
+                zmin=None, zmax=None, **opts):
+        """
+        Plots the data intensity as an RGB(A) image.
+        """
+        if self.plot_rank > 2 and (self.shape[-1] == 3 or self.shape[-1] == 4):
+            self.plot(fmt=fmt, image=True,
+                      xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax,
+                      zmin=zmin, zmax=zmax, **opts)
+        else:
+            raise NeXusError('Invalid shape for RGB(A) image')
+
 SDS = NXfield # For backward compatibility
 
 
@@ -2989,6 +3001,12 @@ class NXgroup(NXobject):
         Plots the data intensity contained within the group on a log scale.
         """
         self.plottable_data.logplot(**opts)
+
+    def implot(self, **opts):
+        """
+        Plots the data intensity as an RGB(A) image.
+        """
+        self.plottable_data.implot(**opts)
 
     def component(self, nxclass):
         """
@@ -3729,6 +3747,19 @@ class NXdata(NXgroup):
         self.plot(fmt=fmt, log=True,
                   xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax,
                   zmin=zmin, zmax=zmax, **opts)
+
+    def implot(self, fmt='', xmin=None, xmax=None, ymin=None, ymax=None,
+                zmin=None, zmax=None, **opts):
+        """
+        Plots the data intensity as an image.
+        """
+        if (self.nxsignal.plot_rank > 2 and 
+            (self.nxsignal.shape[-1] == 3 or self.nxsignal.shape[-1] == 4)):
+            self.plot(fmt=fmt, image=True,
+                      xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax,
+                      zmin=zmin, zmax=zmax, **opts)
+        else:
+            raise NeXusError('Invalid shape for RGB(A) image')
 
     def _signal(self):
         """

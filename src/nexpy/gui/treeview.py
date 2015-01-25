@@ -263,6 +263,8 @@ class NXTreeView(QtGui.QTreeView):
                                            triggered=self.overplot_data)
         self.overplot_line_action=QtGui.QAction("Overplot Line", self, 
                                            triggered=self.overplot_line)
+        self.plot_image_action=QtGui.QAction("Plot RGB(A) Image", self, 
+                                           triggered=self.plot_image)
         self.add_action=QtGui.QAction("Add...", self, triggered=self.add_data)
         self.initialize_action=QtGui.QAction("Initialize...", self, triggered=self.initialize_data)
         self.rename_action=QtGui.QAction("Rename...", self, triggered=self.rename_data)
@@ -293,6 +295,10 @@ class NXTreeView(QtGui.QTreeView):
                         menu.addAction(self.overplot_line_action)
             except NeXusError:
                 pass
+            if ((isinstance(node, NXgroup) and 
+                node.nxsignal and node.nxsignal.plot_rank > 2) or
+                (isinstance(node, NXfield) and node.plot_rank > 2)):
+                menu.addAction(self.plot_image_action)
             menu.addSeparator()
         menu.addAction(self.add_action)
         if not isinstance(node, NXroot):
@@ -357,6 +363,9 @@ class NXTreeView(QtGui.QTreeView):
 
     def overplot_line(self):
         self.mainwindow.overplot_data('-')
+
+    def plot_image(self):
+        self.mainwindow.plot_image()
 
     def add_data(self):
         self.mainwindow.add_data()
