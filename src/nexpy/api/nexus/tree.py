@@ -2511,7 +2511,7 @@ class NXgroup(NXobject):
 
     def __init__(self, *items, **opts):
         if "name" in opts.keys():
-            self._name = opts["name"].replace(' ','_')
+            self._name = opts["name"]
             del opts["name"]
         self._entries = {}
         if "entries" in opts.keys():
