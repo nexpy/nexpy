@@ -34,7 +34,7 @@ class ImportDialog(BaseImportDialog):
         self.import_file = None     # must set in self.get_data()
         self.spec = None
 
-        # TODO: how is this updated?
+        # progress bar is updated via calls to pdate_progress()
         self.progress_bar = QtGui.QProgressBar()
         self.progress_bar.setVisible(False)
 
@@ -165,6 +165,7 @@ class Parser(object):
         self.progress_bar.setRange(scan_list[0], scan_list[-1])
         for key in scan_list:
             scan = self.SPECfile.getScan(key)
+            scan.interpret()
             entry = NXentry()
             entry.title = str(scan)
             entry.date = utils.iso8601(scan.date)  
@@ -174,7 +175,7 @@ class Parser(object):
             entry.data = self.scan_NXdata(scan)            # store the scan data
             entry.positioners = self.metadata_NXlog(scan.positioner, 
                                                     'SPEC positioners (#P & #O lines)')
-            if len(scan.metadata) > 0:
+            if hasattr(scan, 'metadata') and len(scan.metadata) > 0:
                 entry.metadata = self.metadata_NXlog(scan.metadata, 
                                                      'SPEC metadata (UNICAT-style #H & #V lines)')
 
@@ -212,6 +213,16 @@ class Parser(object):
         return the scan data in an NXdata object
         '''
         nxdata = NXdata()
+        if len(scan.data) == 0:       # what if no data?
+            # since no data available, provide trivial, fake data
+            # this keeps the NXdata base class compliant with the NeXus standard
+            nxdata.attrs['description'] = 'SPEC scan has no data'
+            nxdata['noSpecData_y'] = NXfield([0, 0])   # primary Y axis
+            nxdata['noSpecData_x'] = NXfield([0, 0])   # primary X axis
+            nxdata.nxsignal = nxdata['noSpecData_y']
+            nxdata.nxaxes   = [nxdata['noSpecData_x'], ]
+            return nxdata
+
         nxdata.attrs['description'] = 'SPEC scan data'
         
         scan_type = scan.scanCmd.split()[0]
@@ -233,16 +244,16 @@ class Parser(object):
         # these locations suggested to NIAC, easier to parse than attached to dataset!
         nxdata.attrs['signal'] = nxdata.nxsignal.nxname         
         nxdata.attrs['axes'] = ':'.join([obj.nxname for obj in nxdata.nxaxes])
-        
         return nxdata
     
     def parser_1D_columns(self, nxdata, scan):
         '''generic data parser for 1-D column data'''
         from spec2nexus import utils
         for column in scan.L:
-            clean_name = utils.sanitize_name(nxdata, column)
-            nxdata[clean_name] = NXfield(scan.data[column])
-            nxdata[clean_name].original_name = column
+            if column in scan.data:
+                clean_name = utils.sanitize_name(nxdata, column)
+                nxdata[clean_name] = NXfield(scan.data[column])
+                nxdata[clean_name].original_name = column
 
         signal = utils.sanitize_name(nxdata, scan.column_last)      # primary Y axis
         axis = utils.sanitize_name(nxdata, scan.column_first)       # primary X axis
@@ -312,7 +323,7 @@ class Parser(object):
 
         if '_mca_' in scan.data:    # 3-D array
             # TODO: ?merge with parser_mca_spectra()?
-            num_spectra = len(scan.data['_mca_'])
+            _num_spectra = len(scan.data['_mca_'])
             spectra_lengths = map(len, scan.data['_mca_'])
             num_channels = max(spectra_lengths)
             if num_channels != min(spectra_lengths):
