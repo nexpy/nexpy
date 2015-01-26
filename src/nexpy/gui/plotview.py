@@ -1713,14 +1713,15 @@ class NXProjectionTab(QtGui.QWidget):
         keep_data(self.plotview.data.project(axes, limits))
 
     def plot_projection(self):
+        if 'Projection' not in plotviews:
+            self.overplot_box.setChecked(False)
         axes, limits = self.get_projection()
         projection = change_plotview("Projection")
         if len(axes) == 1 and self.overplot_box.isChecked():
             over = True
         else:
             over = False
-        projection.plot(self.plotview.data.project(axes, limits),
-                             over=over)
+        projection.plot(self.plotview.data.project(axes, limits), over=over)
         if len(axes) == 1:
             self.overplot_box.setVisible(True)
         else:
@@ -1979,6 +1980,8 @@ class NXProjectionPanel(QtGui.QDialog):
 
     def plot_projection(self):
         try:
+            if 'Projection' not in plotviews:
+                self.overplot_box.setChecked(False)
             axes, limits = self.get_projection()
             projection = change_plotview("Projection")
             if len(axes) == 1 and self.overplot_box.isChecked():

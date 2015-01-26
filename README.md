@@ -1,6 +1,11 @@
 Introduction
 ============
-NeXpy provides a high-level python interface to NeXus data contained within a simple GUI. It is designed to provide an intuitive interactive toolbox allowing users both to access existing NeXus files and to create new NeXus-conforming data structures without expert knowledge of the file format.
+NeXpy provides a high-level python interface to NeXus data contained within a 
+simple GUI. It is designed to provide an intuitive interactive toolbox allowing 
+users both to access existing NeXus files and to create new NeXus-conforming 
+data structures without expert knowledge of the file format.
+
+See the [NeXpy documentation](http://nexpy.github.io/nexpy) for more details.
 
 Installing and Running
 ======================
@@ -19,7 +24,7 @@ or
 The source code can be downloaded from the NeXpy Git repository:
 
 ```
-    $ git clone http://github.com/nexpy/nexpy.git
+    $ git clone https://github.com/nexpy/nexpy.git
 ```
 
 To install in the standard Python location:
@@ -44,7 +49,7 @@ more details of the nature of these dependencies in the
 * numpy,scipy          http://numpy.scipy.org
 * iPython v1.1.0       http://ipython.org/
 * PySide v1.1.0        http://www.pyside.org/
-* matplotlib v1.1.0    http://matplotlib.sourceforge.net    (GUI only)
+* matplotlib v1.2.0    http://matplotlib.sourceforge.net    (GUI only)
 * lmfit                http://newville.github.io/lmfit-py (Fitting only)
 * pycbf                http://www.bernstein-plus-sons.com/software/CBF/ (CBF reader only)
 * spec2nexus           http://spec2nexus.readthedocs.org (SPEC reader only)
