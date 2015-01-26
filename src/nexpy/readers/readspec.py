@@ -213,6 +213,7 @@ class Parser(object):
         return the scan data in an NXdata object
         '''
         nxdata = NXdata()
+
         if len(scan.data) == 0:       # what if no data?
             # since no data available, provide trivial, fake data
             # this keeps the NXdata base class compliant with the NeXus standard
