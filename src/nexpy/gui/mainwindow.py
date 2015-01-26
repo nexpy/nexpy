@@ -482,7 +482,7 @@ class MainWindow(QtGui.QMainWindow):
             for name in os.listdir(private_path):
                 if os.path.isdir(os.path.join(private_path, name)):
                     self.plugin_names.add(name)
-        public_path = pkg_resources.resource_filename('nexpy','plugins')
+        public_path = pkg_resources.resource_filename('nexpy','plugins')  #@UndefinedVariable
         for name in os.listdir(public_path):
             if os.path.isdir(os.path.join(public_path, name)):
                 self.plugin_names.add(name)
