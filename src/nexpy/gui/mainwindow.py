@@ -755,7 +755,7 @@ class MainWindow(QtGui.QMainWindow):
                 name, ext = os.path.splitext(filename)
                 if name != '__init__' and ext.startswith('.py'):
                     self.import_names.add(name)
-        public_path = pkg_resources.resource_filename('nexpy','readers')
+        public_path = pkg_resources.resource_filename('nexpy','readers')  #@UndefinedVariable
         for filename in os.listdir(public_path):
             name, ext = os.path.splitext(filename)
             if name != '__init__' and ext.startswith('.py'):
@@ -1151,7 +1151,7 @@ class MainWindow(QtGui.QMainWindow):
         return msgBox.exec_()
 
     def input_base_classes(self):
-        base_class_path = pkg_resources.resource_filename(
+        base_class_path = pkg_resources.resource_filename(      #@UndefinedVariable
                               'nexpy','definitions/base_classes')
         nxdl_files = map(os.path.basename, 
             glob.glob(os.path.join(base_class_path,'*.nxdl.xml')))
