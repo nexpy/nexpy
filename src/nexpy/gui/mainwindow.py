@@ -400,6 +400,12 @@ class MainWindow(QtGui.QMainWindow):
             )
         self.add_menu_action(self.data_menu, self.overplot_data_action, True)  
 
+        self.plot_image_action=QtGui.QAction("Plot RGB(A) Image",
+            self,
+            triggered=self.plot_image
+            )
+        self.add_menu_action(self.data_menu, self.plot_image_action, True)
+
         self.data_menu.addSeparator()
 
         self.add_action=QtGui.QAction("Add Data",
@@ -990,6 +996,15 @@ class MainWindow(QtGui.QMainWindow):
                 node.oplot(fmt)
         except NeXusError as error:
             report_error("Overplotting Data", error)
+
+    def plot_image(self):
+        try:
+            node = self.treeview.get_node()
+            if node:        
+                self.treeview.status_message(node)
+                node.implot()
+        except NeXusError as error:
+            report_error("Plotting RGB(A) Image Data", error)
 
     def add_data(self):
         try:

@@ -297,6 +297,7 @@ class NXPlotView(QtGui.QWidget):
         """
 
         over = opts.pop("over", False)
+        image = opts.pop("image", False)
         log = opts.pop("log", False)
         logx = opts.pop("logx", False)
         logy = opts.pop("logy", False)
@@ -307,6 +308,11 @@ class NXPlotView(QtGui.QWidget):
 
         if self.data.nxsignal is None:
             raise NeXusError('No plotting signal defined')
+
+        if image:
+            self.rgb_image = True
+        else:
+            self.rgb_image = False
 
         self.plotdata = self.get_plotdata(over)
 
@@ -358,6 +364,11 @@ class NXPlotView(QtGui.QWidget):
  
             self.plot_image(over, **opts)
 
+        if self.rgb_image:
+            self.aspect = 'equal'
+        else:
+            self.aspect = 'auto'
+            
         if over:
             self.update_tabs()
         else:
@@ -378,11 +389,10 @@ class NXPlotView(QtGui.QWidget):
             self.signal = self.data.nxsignal[tuple(idx)][()]
         else:
             self.signal = self.data.nxsignal[()]
-            self.signal.shape = self.shape
 
         if self.data.nxaxes is not None:
             axes = []
-            for axis in self.data.nxaxes:
+            for axis in self.data.nxaxes[:self.ndim]:
                 if axis.size > 1:
                     axes.append(axis)
         else:
@@ -549,10 +559,10 @@ class NXPlotView(QtGui.QWidget):
         if 'aspect' in opts:
             self.aspect = opts['aspect']
             del opts['aspect']
-        if self.equally_spaced:
+        if self.rgb_image or self.equally_spaced:
             if 'interpolation' not in opts:
                 opts['interpolation'] = 'nearest'
-            if 'origin' not in opts:
+            if 'origin' not in opts and not self.rgb_image:
                 opts['origin'] = 'lower'
             self.image = ax.imshow(self.v, extent=extent, cmap=self.cmap, **opts)
         elif 'interpolation' in opts:
@@ -564,7 +574,8 @@ class NXPlotView(QtGui.QWidget):
         self.image.get_cmap().set_bad('k', 1.0)
         ax.set_aspect(self.aspect)
         
-        self.colorbar = self.figure.colorbar(self.image, ax=ax)
+        if not self.rgb_image:
+            self.colorbar = self.figure.colorbar(self.image, ax=ax)
 
         xlo, xhi = ax.set_xlim(self.xaxis.min, self.xaxis.max)
         ylo, yhi = ax.set_ylim(self.yaxis.min, self.yaxis.max)
@@ -609,6 +620,8 @@ class NXPlotView(QtGui.QWidget):
         _shape = list(self.data.nxsignal.shape)
         while 1 in _shape:
             _shape.remove(1)
+        if self.rgb_image:
+            _shape = _shape[:-1]
         return tuple(_shape)
 
     @property
@@ -880,6 +893,8 @@ class NXPlotView(QtGui.QWidget):
             self.xtab.axiscombo.setVisible(True)
             self.ytab.logbox.setVisible(False)
             self.ytab.axiscombo.setVisible(True)
+            if self.rgb_image:
+                self.tab_widget.removeTab(self.tab_widget.indexOf(self.vtab))
         if self.ptab.panel:
             self.ptab.panel.close()
 
@@ -1156,7 +1171,10 @@ class NXPlotTab(QtGui.QWidget):
             self.set_sliders(axis.lo, axis.hi)
         if self.axiscombo:
             self.axiscombo.clear()
-            self.axiscombo.addItems(self.get_axes())
+            if self.plotview.rgb_image:
+                self.axiscombo.addItem(axis.name)
+            else:
+                self.axiscombo.addItems(self.get_axes())
             self.axiscombo.setCurrentIndex(self.axiscombo.findText(axis.name))
         self.block_signals(False)
 
@@ -1692,6 +1710,8 @@ class NXProjectionTab(QtGui.QWidget):
         shape = self.plotview.shape
         if len(shape) - len(limits) == shape.count(1):
             axes, limits = self.fix_projection(shape, axes, limits)
+        if self.plotview.rgb_image:
+            limits.append((None, None))
         return axes, limits
 
     def fix_projection(self, shape, axes, limits):
@@ -1952,6 +1972,8 @@ class NXProjectionPanel(QtGui.QDialog):
         shape = self.plotview.shape
         if len(shape) - len(limits) == shape.count(1):
             axes, limits = self.fix_projection(shape, axes, limits)
+        if self.plotview.rgb_image:
+            limits.append((None, None))
         return axes, limits
 
     def fix_projection(self, shape, axes, limits):
