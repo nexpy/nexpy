@@ -384,7 +384,7 @@ class PlotDialog(BaseDialog):
         return [self.get_axis(axis) for axis in range(self.ndim)]
 
     def accept(self):
-        data = NXdata(self.signal, self.get_axes())
+        data = NXdata(self.signal, self.get_axes(), title=self.signal.nxtitle)
         data.plot(fmt=self.fmt)
         super(PlotDialog, self).accept()
 

@@ -370,7 +370,7 @@ class NXFile(object):
         Large datasets are not read until they are needed.
         """
         self.nxpath = '/'
-        root = self._readgroup('/')
+        root = self._readgroup('root')
         root._group = None
         root._file = self
         root._filename = self.filename
@@ -2140,13 +2140,16 @@ class NXfield(NXobject):
         If there is no title attribute in the parent group, the group's path is 
         returned.
         """
-        if self.nxgroup and 'title' in self.nxgroup:
-            return str(self.nxgroup.title)
+        parent = self.nxgroup
+        if parent and 'title' in parent:
+            return str(parent.title)
+        elif parent.nxgroup and 'title' in parent.nxgroup:
+            return str(parent.nxgroup.title)        
         else:
-            if self.nxroot.nxname != '':
+            if self.nxroot.nxname != '' and self.nxroot.nxname != 'root':
                 return (self.nxroot.nxname + '/' + self.nxpath.lstrip('/')).rstrip('/')
             else:
-                return self.nxpath
+                return self.nxfilename + ':' + self.nxpath
 
     def _getmask(self):
         """
@@ -2262,6 +2265,7 @@ class NXfield(NXobject):
             logy = True    - plot the y-axis on a log scale
             logx = True    - plot the x-axis on a log scale
             over = True    - plot on the current figure
+            image = True   - plot as an RGB(A) image
 
         Raises NeXusError if the data could not be plotted.
         """
@@ -2935,7 +2939,7 @@ class NXgroup(NXobject):
         result = self[slab]
         slab_axes = list(projection_axes)
         for slab_axis in slab_axes:
-            slab[slab_axis] = convert_index(slab[slab_axis], 
+            slab[slab_axis] = convert_index(slab[slab_axis],
                                             self.nxaxes[slab_axis])
             if isinstance(slab[slab_axis], int):
                 slab.pop(slab_axis)
@@ -2988,25 +2992,29 @@ class NXgroup(NXobject):
         """
         Plot data contained within the group.
         """
-        self.plottable_data.plot(**opts)
+        if self.plottable_data:
+            self.plottable_data.plot(**opts)
     
     def oplot(self, **opts):
         """
         Plots the data contained within the group over the current figure.
         """
-        self.plottable_data.oplot(**opts)
+        if self.plottable_data:
+            self.plottable_data.oplot(**opts)
 
     def logplot(self, **opts):
         """
         Plots the data intensity contained within the group on a log scale.
         """
-        self.plottable_data.logplot(**opts)
+        if self.plottable_data:
+            self.plottable_data.logplot(**opts)
 
     def implot(self, **opts):
         """
         Plots the data intensity as an RGB(A) image.
         """
-        self.plottable_data.implot(**opts)
+        if self.plottable_data:
+            self.plottable_data.implot(**opts)
 
     def component(self, nxclass):
         """
@@ -3038,10 +3046,10 @@ class NXgroup(NXobject):
         elif self.nxgroup and 'title' in self.nxgroup:
             return str(self.nxgroup.title)
         else:
-            if self.nxroot.nxname != '':
+            if self.nxroot.nxname != '' and self.nxroot.nxname != 'root':
                 return (self.nxroot.nxname + '/' + self.nxpath.lstrip('/')).rstrip('/')
             else:
-                return self.nxpath
+                return self.nxfilename + ':' + self.nxpath
 
     def _getentries(self):
         return self._entries
@@ -3715,6 +3723,7 @@ class NXdata(NXgroup):
             logy = True    - plot the y-axis on a log scale
             logx = True    - plot the x-axis on a log scale
             over = True    - plot on the current figure
+            image = True   - plot as an RGB(A) image
 
         Raises NeXusError if the data could not be plotted.
         """
