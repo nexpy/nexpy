@@ -2272,12 +2272,34 @@ class NXNavigationToolbar(NavigationToolbar):
         if lims is None: 
             return
         xmin, xmax, ymin, ymax = lims[0]
+        if xmin > xmax:
+            if self.plotview.xaxis.reversed:
+                self.plotview.xtab.flipped = False
+            else:
+                self.plotview.xtab.flipped = True
+            xmin, xmax = xmax, xmin
+        else:
+            if self.plotview.xaxis.reversed:
+                self.plotview.xtab.flipped = True
+            else:
+                self.plotview.xtab.flipped = False
         self.plotview.xtab.block_signals(True)
         self.plotview.xtab.axis.set_limits(xmin, xmax)
         self.plotview.xtab.minbox.setValue(xmin)
         self.plotview.xtab.maxbox.setValue(xmax)
         self.plotview.xtab.set_sliders(xmin, xmax)
         self.plotview.xtab.block_signals(False)
+        if ymin > ymax:
+            if self.plotview.yaxis.reversed:
+                self.plotview.ytab.flipped = False
+            else:
+                self.plotview.ytab.flipped = True
+            ymin, ymax = ymax, ymin
+        else:
+            if self.plotview.yaxis.reversed:
+                self.plotview.ytab.flipped = True
+            else:
+                self.plotview.ytab.flipped = False
         self.plotview.ytab.block_signals(True)
         self.plotview.ytab.axis.set_limits(ymin, ymax)
         self.plotview.ytab.minbox.setValue(ymin)
