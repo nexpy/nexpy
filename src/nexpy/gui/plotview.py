@@ -840,7 +840,8 @@ class NXPlotView(QtGui.QWidget):
 
     def rectangle(self, x, y, dx, dy, **opts):
         ax = self.figure.axes[0]
-        rectangle = ax.add_patch(Rectangle((float(x),float(y)), float(dx), float(dy), **opts))
+        rectangle = ax.add_patch(Rectangle((float(x),float(y)), 
+                                            float(dx), float(dy), **opts))
         if 'facecolor' not in opts:
             rectangle.set_facecolor('none')
         self.canvas.draw()
@@ -848,7 +849,8 @@ class NXPlotView(QtGui.QWidget):
 
     def ellipse(self, x, y, dx, dy, **opts):
         ax = self.figure.axes[0]
-        ellipse = ax.add_patch(Ellipse((float(x),float(y)), float(dx), float(dy), **opts))
+        ellipse = ax.add_patch(Ellipse((float(x),float(y)), 
+                                        float(dx), float(dy), **opts))
         if 'facecolor' not in opts:
             ellipse.set_facecolor('none')
         self.canvas.draw()
@@ -1902,6 +1904,8 @@ class NXProjectionPanel(QtGui.QDialog):
         self.setLayout(layout)
         self.setWindowTitle('Projection Panel - ' + self.plotview.label)
 
+        self.rectangle = None
+
         for axis in range(self.plotview.ndim):
             self.minbox[axis].data = self.maxbox[axis].data = \
                 self.plotview.axis[axis].centers
@@ -1916,8 +1920,6 @@ class NXProjectionPanel(QtGui.QDialog):
             self.minbox[axis].setValue(self.minbox[axis].data[0])
             self.maxbox[axis].setValue(self.minbox[axis].data[-1])
             self.lockbox[axis].setChecked(False)
-
-        self.rectangle = None
 
     def get_axes(self):
         return self.plotview.xtab.get_axes()
@@ -2082,10 +2084,6 @@ class NXProjectionPanel(QtGui.QDialog):
         return spinbox
 
     def draw_rectangle(self):
-        try:
-            self.rectangle.remove()
-        except:
-            pass
         ax = self.plotview.figure.axes[0]
         xp = self.plotview.xaxis.dim
         yp = self.plotview.yaxis.dim
@@ -2093,8 +2091,11 @@ class NXProjectionPanel(QtGui.QDialog):
         x1 = self.maxbox[xp].maxBoundaryValue(self.maxbox[xp].index)
         y0 = self.minbox[yp].minBoundaryValue(self.minbox[yp].index)
         y1 = self.maxbox[yp].maxBoundaryValue(self.maxbox[yp].index)
-        
-        self.rectangle = ax.add_patch(Rectangle((x0,y0),x1-x0,y1-y0))
+
+        if self.rectangle:
+            self.rectangle.set_bounds(x0, y0, x1-x0, y1-y0)
+        else:      
+            self.rectangle = ax.add_patch(Rectangle((x0,y0),x1-x0,y1-y0))
         self.rectangle.set_color('white')
         self.rectangle.set_facecolor('none')
         self.rectangle.set_linestyle('dashed')
