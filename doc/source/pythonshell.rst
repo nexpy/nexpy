@@ -531,8 +531,9 @@ determines what should be plotted::
 Note that the plot method uses the NeXus attributes within the groups to
 determine automatically which NXfield is the signal, what its rank and
 dimensions are, and which NXfields define the plottable axes. The same command
-will work for one-dimensional or two-dimensional data. Using the GUI (see next
-section), you can plot higher-dimensional data as well.
+will work for one-dimensional or two-dimensional data. If you plot
+higher-dimensional data, the top two-dimensional slice is plotted. Alternative
+two-dimensional slices can be specified using slice indices on the NXdata group.
 
 If the data is one-dimensional, it is possible to overplot more than one data
 set using 'over=True'. By default, each plot has a new color, but conventional
@@ -540,7 +541,29 @@ Matplotlib keywords can be used to change markers and colors::
 
  >>> data.plot(log=True)
  >>> data.plot('r-')
- >>> data.plot(over=True, log=True, color='r') 
+ >>> data.plot(over=True, log=True, color='r')
+
+If the NXdata group contains RGB(A) image data, *i.e.*, the signal is a 
+three-dimensional array, in which the fastest varying dimension, which should be 
+of size 3 or 4, contains the RGB(A) values for each two-dimensional pixel, then
+the image can be plotted using the 'image=True'.
+
+ >>> data.plot(image=True)
+
+By convention, the first pixel of an image is in the upper-left corner, rather 
+than the lower-left used in other two-dimensional plots. 
+ 
+Additional Plot Methods
+-----------------------
+As a convenience, additional plot methods can be used instead of adding extra
+keywords.
+
+ >>> data.oplot()
+ >>> data.logplot()
+ >>> data.implot()
+ 
+These are equivalent to setting the 'over', 'log', and 'image' keywords to True
+when invoking the plot method.
 
 Manipulating NeXus Data
 =======================

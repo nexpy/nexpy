@@ -143,6 +143,12 @@ Data Menu
               limits, the slider limits are increased to cover the expanded 
               range. 
 
+**Plot RGB(A) Image**
+    Plots the selected tree item as an RGB(A) image. In such images, the
+    fastest varying dimension, which should be of size 3 or 4, contains the 
+    RGB(A) values for each pixel. By convention, the first pixel is in the 
+    upper-left corner, rather than the lower-left. 
+
 **Add Data**
     Adds data to the selected tree item. If the selected item is a group, the
     added data can be a group or field. If the selected item is a field, the 
@@ -350,7 +356,8 @@ tabs allow manipulation of the plot limits and parameters.
     to select a color palette.
     
     .. note:: For a one-dimensional plot, there is no signal tab. The intensity
-              is adjusted using the y-tab.
+              is adjusted using the y-tab. There is also no signal tab for an 
+              RGB(A) image, since the colors are defined by the RGB(A) values.
 
 **X/Y Tab**
 
@@ -360,12 +367,11 @@ tabs allow manipulation of the plot limits and parameters.
 
     The x and y-tabs contains text boxes and sliders to adjust the axis limits 
     and a dropdown menu to select the axis to be plotted along x and y, 
-    respectively. The names correspond to the axis names in the NXdata group.
+    respectively. The names correspond to the axis names in the NXdata group. 
+    A checkbox allows the direction of the axes to be flipped.
     
-    .. note:: If the x-axis values (and/or y-axis values in two-dimensional 
-              plots) are monotonically decreasing, the axis is flipped before 
-              plotting. Currently, the sliders only work for monotonically 
-              increasing axes. 
+    .. warning:: Flipping the axis directions does not flip the direction of the 
+                 sliders.
 
 **Z Tab**
 
@@ -392,10 +398,6 @@ tabs allow manipulation of the plot limits and parameters.
               by pressing return after editing their values, before clicking on 
               the 'lock' checkbox. 
         
-    .. warning:: There may be a bug in PySide, which causes multiple steps to 
-                 occur for each arrow click. You can avoid this by selecting the 
-                 'maximum' text-box and using the terminal arrow keys.
-    
     When stepping through the z-values, the 'Autoscale' checkbox determines 
     whether the plot automatically scales the signal to the maximum intensity of
     the slice or is set to the current signal limits.     
