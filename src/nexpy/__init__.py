@@ -10,7 +10,7 @@
 #-----------------------------------------------------------------------------
 
 __package_name__ = u'NeXpy'
-__version__ = u'0.5.2'
+__version__ = u'0.5.3'
 
 __documentation_author__ = u'Ray Osborn'
 __documentation_copyright__ = u'2013-2015, Ray Osborn'
