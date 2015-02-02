@@ -79,6 +79,7 @@ ipython qtconsole --pylab=inline  # start with pylab in inline plotting mode
 _tree = None
 _shell = None
 _mainwindow = None
+_nexpy_dir = None
 
 #-----------------------------------------------------------------------------
 # Aliases and Flags
@@ -211,7 +212,7 @@ class NXConsoleApp(BaseIPythonApplication, IPythonConsoleApp):
         global _mainwindow
         _mainwindow = self.window
         self.app.icon = QtGui.QIcon(
-            pkg_resources.resource_filename('nexpy.gui', 
+            pkg_resources.resource_filename('nexpy.gui',     #@UndefinedVariable
                                             'resources/icon/NeXpy.svg'))
         QtGui.QApplication.setWindowIcon(self.app.icon)
 

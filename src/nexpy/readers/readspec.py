@@ -34,7 +34,7 @@ class ImportDialog(BaseImportDialog):
         self.import_file = None     # must set in self.get_data()
         self.spec = None
 
-        # TODO: how is this updated?
+        # progress bar is updated via calls to pdate_progress()
         self.progress_bar = QtGui.QProgressBar()
         self.progress_bar.setVisible(False)
 
@@ -73,7 +73,7 @@ class ImportDialog(BaseImportDialog):
         '''
         Opens file dialog, set file text box to the chosen path
         '''
-        from spec2nexus.prjPySpec import SpecDataFile
+        from spec2nexus.spec import SpecDataFile
 
         dirname = self.get_default_directory(self.filename.text())
         filename, _ = QtGui.QFileDialog.getOpenFileName(self, 'Open file', dirname)
@@ -147,7 +147,7 @@ class Parser(object):
         
         root = NXroot()
 
-        root.attrs['prjPySpec_version'] = spec2nexus.__version__
+        root.attrs['spec2nexus'] = str(spec2nexus.__version__)
         header0 = self.SPECfile.headers[0]
         root.attrs['SPEC_file'] = self.SPECfile.fileName
         root.attrs['SPEC_epoch'] = header0.epoch
@@ -165,6 +165,7 @@ class Parser(object):
         self.progress_bar.setRange(scan_list[0], scan_list[-1])
         for key in scan_list:
             scan = self.SPECfile.getScan(key)
+            scan.interpret()
             entry = NXentry()
             entry.title = str(scan)
             entry.date = utils.iso8601(scan.date)  
@@ -174,7 +175,7 @@ class Parser(object):
             entry.data = self.scan_NXdata(scan)            # store the scan data
             entry.positioners = self.metadata_NXlog(scan.positioner, 
                                                     'SPEC positioners (#P & #O lines)')
-            if len(scan.metadata) > 0:
+            if hasattr(scan, 'metadata') and len(scan.metadata) > 0:
                 entry.metadata = self.metadata_NXlog(scan.metadata, 
                                                      'SPEC metadata (UNICAT-style #H & #V lines)')
 
@@ -197,7 +198,7 @@ class Parser(object):
                 entry['M'].units = 'counts'
                 entry['M'].description = 'SPEC scan with constant monitor count'
             if scan.Q != '':
-                entry['Q'] = NXfield(map(float,scan.Q.split()))
+                entry['Q'] = NXfield(map(float,scan.Q))
                 entry['Q'].description = 'hkl at start of scan'
 
             root['scan_' + str(key)] = entry
@@ -212,6 +213,17 @@ class Parser(object):
         return the scan data in an NXdata object
         '''
         nxdata = NXdata()
+
+        if len(scan.data) == 0:       # what if no data?
+            # since no data available, provide trivial, fake data
+            # this keeps the NXdata base class compliant with the NeXus standard
+            nxdata.attrs['description'] = 'SPEC scan has no data'
+            nxdata['noSpecData_y'] = NXfield([0, 0])   # primary Y axis
+            nxdata['noSpecData_x'] = NXfield([0, 0])   # primary X axis
+            nxdata.nxsignal = nxdata['noSpecData_y']
+            nxdata.nxaxes   = [nxdata['noSpecData_x'], ]
+            return nxdata
+
         nxdata.attrs['description'] = 'SPEC scan data'
         
         scan_type = scan.scanCmd.split()[0]
@@ -233,16 +245,16 @@ class Parser(object):
         # these locations suggested to NIAC, easier to parse than attached to dataset!
         nxdata.attrs['signal'] = nxdata.nxsignal.nxname         
         nxdata.attrs['axes'] = ':'.join([obj.nxname for obj in nxdata.nxaxes])
-        
         return nxdata
     
     def parser_1D_columns(self, nxdata, scan):
         '''generic data parser for 1-D column data'''
         from spec2nexus import utils
         for column in scan.L:
-            clean_name = utils.sanitize_name(nxdata, column)
-            nxdata[clean_name] = NXfield(scan.data[column])
-            nxdata[clean_name].original_name = column
+            if column in scan.data:
+                clean_name = utils.sanitize_name(nxdata, column)
+                nxdata[clean_name] = NXfield(scan.data[column])
+                nxdata[clean_name].original_name = column
 
         signal = utils.sanitize_name(nxdata, scan.column_last)      # primary Y axis
         axis = utils.sanitize_name(nxdata, scan.column_first)       # primary X axis
@@ -263,11 +275,11 @@ class Parser(object):
     def parser_mesh(self, nxdata, scan):
         '''data parser for 2-D mesh and hklmesh'''
         # 2-D parser: http://www.certif.com/spec_help/mesh.html
-        # mesh motor1 start1 end1 intervals1 motor2 start2 end2 intervals2 time
+        #  mesh motor1 start1 end1 intervals1 motor2 start2 end2 intervals2 time
         # 2-D parser: http://www.certif.com/spec_help/hklmesh.html
         #  hklmesh Q1 start1 end1 intervals1 Q2 start2 end2 intervals2 time
-        # mesh:    nexpy/examples/33id_spec.dat  scan 22
-        # hklmesh: nexpy/examples/33bm_spec.dat  scan 17
+        # mesh:    nexpy/examples/33id_spec.dat  scan 22  (also has MCA, thus 3-D data)
+        # hklmesh: nexpy/examples/33bm_spec.dat  scan 17  (no MCA data)
         from spec2nexus import utils
         label1, start1, end1, intervals1, label2, start2, end2, intervals2, time = scan.scanCmd.split()[1:]
         if label1 not in scan.data:
@@ -280,6 +292,7 @@ class Parser(object):
         start1, end1, start2, end2, time = map(float, (start1, end1, start2, end2, time))
         if len(axis1) < intervals1:     # stopped scan before second row started
             self.parser_1D_columns(nxdata, scan)        # fallback support
+            # TODO: what about the MCA data in this case?
         else:
             axis1 = axis1[0:intervals1+1]
             axis2 = [axis2[row] for row in range(len(axis2)) if row % (intervals1+1) == 0]
@@ -311,11 +324,26 @@ class Parser(object):
 
         if '_mca_' in scan.data:    # 3-D array
             # TODO: ?merge with parser_mca_spectra()?
-            num_channels = len(scan.data['_mca_'][0])
-            data_shape.append(num_channels)
+            _num_spectra = len(scan.data['_mca_'])
+            spectra_lengths = map(len, scan.data['_mca_'])
+            num_channels = max(spectra_lengths)
+            if num_channels != min(spectra_lengths):
+                msg = 'MCA spectra have different lengths'
+                msg += ' in scan #' + str(scan.scanNum)
+                msg += ' in file ' + str(scan.specFile)
+                raise ValueError(msg)
+            data_shape += [num_channels, ]
             mca = np.array(scan.data['_mca_'])
             nxdata.mca__spectrum_ = NXfield(utils.reshape_data(mca, data_shape))
-            nxdata.mca__spectrum_channel = NXfield(range(1, num_channels+1))
+            try:
+                # use MCA channel numbers as known at time of scan
+                chan1 = scan.MCA['first_saved']
+                chanN = scan.MCA['last_saved']
+                channel_range = range(chan1, chanN+1)
+            except:
+                # basic indices
+                channel_range = range(1, num_channels+1)
+            nxdata.mca__spectrum_channel = NXfield(channel_range)
             nxdata.mca__spectrum_channel.units = 'channel'
             axes = (label1, label2, 'mca__spectrum_channel')
             nxdata.mca__spectrum_.axes = ':'.join( axes )
