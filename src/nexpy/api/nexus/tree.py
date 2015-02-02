@@ -2141,10 +2141,11 @@ class NXfield(NXobject):
         returned.
         """
         parent = self.nxgroup
-        if parent and 'title' in parent:
-            return str(parent.title)
-        elif parent.nxgroup and 'title' in parent.nxgroup:
-            return str(parent.nxgroup.title)        
+        if parent:
+            if 'title' in parent:
+                return str(parent.title)
+            elif parent.nxgroup and 'title' in parent.nxgroup:
+                return str(parent.nxgroup.title)        
         else:
             if self.nxroot.nxname != '' and self.nxroot.nxname != 'root':
                 return (self.nxroot.nxname + '/' + self.nxpath.lstrip('/')).rstrip('/')
