@@ -212,7 +212,7 @@ class NXConsoleApp(BaseIPythonApplication, IPythonConsoleApp):
         global _mainwindow
         _mainwindow = self.window
         self.app.icon = QtGui.QIcon(
-            pkg_resources.resource_filename('nexpy.gui',     #@UndefinedVariable
+            pkg_resources.resource_filename('nexpy.gui',
                                             'resources/icon/NeXpy.svg'))
         QtGui.QApplication.setWindowIcon(self.app.icon)
 
