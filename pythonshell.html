@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Python Interface to NeXus &mdash; NeXpy 0.5.1 documentation</title>
+    <title>Python Interface to NeXus &mdash; NeXpy 0.5.2 documentation</title>
     
     <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.5.1',
+        VERSION:     '0.5.2',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -25,7 +25,7 @@
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="shortcut icon" href="_static/favicon.ico"/>
-    <link rel="top" title="NeXpy 0.5.1 documentation" href="index.html" />
+    <link rel="top" title="NeXpy 0.5.2 documentation" href="index.html" />
     <link rel="next" title="NeXus Tree API Modules" href="treeapi.html" />
     <link rel="prev" title="Python Graphical User Interface" href="pythongui.html" /> 
   </head>
@@ -37,12 +37,15 @@
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
           <a href="treeapi.html" title="NeXus Tree API Modules"
              accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="pythongui.html" title="Python Graphical User Interface"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">NeXpy 0.5.1 documentation</a> &raquo;</li> 
+        <li><a href="index.html">NeXpy 0.5.2 documentation</a> &raquo;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar">
@@ -73,7 +76,10 @@
 </li>
 </ul>
 </li>
-<li><a class="reference internal" href="#plotting-nexus-data">Plotting NeXus Data</a></li>
+<li><a class="reference internal" href="#plotting-nexus-data">Plotting NeXus Data</a><ul>
+<li><a class="reference internal" href="#additional-plot-methods">Additional Plot Methods</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#manipulating-nexus-data">Manipulating NeXus Data</a><ul>
 <li><a class="reference internal" href="#arithmetic-operations">Arithmetic Operations</a><ul>
 <li><a class="reference internal" href="#nxfield">NXfield</a></li>
@@ -469,7 +475,7 @@ creating nested groups with minimal typing:</p>
 <div class="admonition seealso">
 <p class="first admonition-title">See also</p>
 <p class="last">Existing NeXus objects can also be inserted directly into groups.
-See <tt class="xref py py-mod docutils literal"><span class="pre">nexpy.api.nexus.tree.NXgroup.insert</span></tt></p>
+See <a class="reference internal" href="treeapi.html#nexpy.api.nexus.tree.NXgroup.insert" title="nexpy.api.nexus.tree.NXgroup.insert"><tt class="xref py py-mod docutils literal"><span class="pre">nexpy.api.nexus.tree.NXgroup.insert</span></tt></a></p>
 </div>
 <div class="section" id="nxdata-groups">
 <h4>NXdata Groups<a class="headerlink" href="#nxdata-groups" title="Permalink to this headline">¶</a></h4>
@@ -657,7 +663,7 @@ parent.</p>
 </div>
 <div class="admonition seealso">
 <p class="first admonition-title">See also</p>
-<p class="last"><tt class="xref py py-mod docutils literal"><span class="pre">nexpy.api.nexus.tree.NXgroup.makelink</span></tt></p>
+<p class="last"><a class="reference internal" href="treeapi.html#nexpy.api.nexus.tree.NXgroup.makelink" title="nexpy.api.nexus.tree.NXgroup.makelink"><tt class="xref py py-mod docutils literal"><span class="pre">nexpy.api.nexus.tree.NXgroup.makelink</span></tt></a></p>
 </div>
 </div>
 <div class="section" id="external-links">
@@ -701,8 +707,9 @@ determines what should be plotted:</p>
 <p>Note that the plot method uses the NeXus attributes within the groups to
 determine automatically which NXfield is the signal, what its rank and
 dimensions are, and which NXfields define the plottable axes. The same command
-will work for one-dimensional or two-dimensional data. Using the GUI (see next
-section), you can plot higher-dimensional data as well.</p>
+will work for one-dimensional or two-dimensional data. If you plot
+higher-dimensional data, the top two-dimensional slice is plotted. Alternative
+two-dimensional slices can be specified using slice indices on the NXdata group.</p>
 <p>If the data is one-dimensional, it is possible to overplot more than one data
 set using &#8216;over=True&#8217;. By default, each plot has a new color, but conventional
 Matplotlib keywords can be used to change markers and colors:</p>
@@ -710,6 +717,27 @@ Matplotlib keywords can be used to change markers and colors:</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="s">&#39;r-&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">over</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">log</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s">&#39;r&#39;</span><span class="p">)</span>
 </pre></div>
+</div>
+<p>If the NXdata group contains RGB(A) image data, <em>i.e.</em>, the signal is a
+three-dimensional array, in which the fastest varying dimension, which should be
+of size 3 or 4, contains the RGB(A) values for each two-dimensional pixel, then
+the image can be plotted using the &#8216;image=True&#8217;.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">image</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>By convention, the first pixel of an image is in the upper-left corner, rather
+than the lower-left used in other two-dimensional plots.</p>
+<div class="section" id="additional-plot-methods">
+<h3>Additional Plot Methods<a class="headerlink" href="#additional-plot-methods" title="Permalink to this headline">¶</a></h3>
+<p>As a convenience, additional plot methods can be used instead of adding extra
+keywords.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="o">.</span><span class="n">oplot</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="o">.</span><span class="n">logplot</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="o">.</span><span class="n">implot</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>These are equivalent to setting the &#8216;over&#8217;, &#8216;log&#8217;, and &#8216;image&#8217; keywords to True
+when invoking the plot method.</p>
 </div>
 </div>
 <div class="section" id="manipulating-nexus-data">
@@ -1060,16 +1088,19 @@ if necessary, in order to produce a valid NeXus file.</p>
           <a href="genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
           <a href="treeapi.html" title="NeXus Tree API Modules"
              >next</a> |</li>
         <li class="right" >
           <a href="pythongui.html" title="Python Graphical User Interface"
              >previous</a> |</li>
-        <li><a href="index.html">NeXpy 0.5.1 documentation</a> &raquo;</li> 
+        <li><a href="index.html">NeXpy 0.5.2 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
-        &copy; Copyright 2013-2014, Ray Osborn.
+        &copy; Copyright 2013-2015, Ray Osborn.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
     </div>
   </body>

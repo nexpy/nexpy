@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>NeXpy BaseImportDialog Class &mdash; NeXpy 0.5.1 documentation</title>
+    <title>NeXpy BaseImportDialog Class &mdash; NeXpy 0.5.2 documentation</title>
     
     <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.5.1',
+        VERSION:     '0.5.2',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -25,7 +25,7 @@
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="shortcut icon" href="_static/favicon.ico"/>
-    <link rel="top" title="NeXpy 0.5.1 documentation" href="index.html" />
+    <link rel="top" title="NeXpy 0.5.2 documentation" href="index.html" />
     <link rel="next" title="Example data" href="example_data.html" />
     <link rel="prev" title="Adding a File Importer" href="readers.html" /> 
   </head>
@@ -37,12 +37,15 @@
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
           <a href="example_data.html" title="Example data"
              accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="readers.html" title="Adding a File Importer"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">NeXpy 0.5.1 documentation</a> &raquo;</li> 
+        <li><a href="index.html">NeXpy 0.5.2 documentation</a> &raquo;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar">
@@ -79,8 +82,36 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <div class="section" id="nexpy-baseimportdialog-class">
-<h1>NeXpy BaseImportDialog Class<a class="headerlink" href="#nexpy-baseimportdialog-class" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="module-nexpy.gui.importdialog">
+<span id="nexpy-baseimportdialog-class"></span><h1>NeXpy BaseImportDialog Class<a class="headerlink" href="#module-nexpy.gui.importdialog" title="Permalink to this headline">¶</a></h1>
+<p>Base class for import dialogs</p>
+<dl class="class">
+<dt id="nexpy.gui.importdialog.BaseImportDialog">
+<em class="property">class </em><tt class="descclassname">nexpy.gui.importdialog.</tt><tt class="descname">BaseImportDialog</tt><big>(</big><em>parent=None</em><big>)</big><a class="headerlink" href="#nexpy.gui.importdialog.BaseImportDialog" title="Permalink to this definition">¶</a></dt>
+<dd><p>Base dialog class for NeXpy import dialogs</p>
+<dl class="method">
+<dt id="nexpy.gui.importdialog.BaseImportDialog.get_data">
+<tt class="descname">get_data</tt><big>(</big><big>)</big><a class="headerlink" href="#nexpy.gui.importdialog.BaseImportDialog.get_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Must define this module in each subclass.
+Must define self.import_file as file name</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><tt class="xref py py-class docutils literal"><span class="pre">NXroot</span></tt> or <tt class="xref py py-class docutils literal"><span class="pre">NXentry</span></tt> object</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="nexpy.gui.importdialog.BaseImportDialog.accept">
+<tt class="descname">accept</tt><big>(</big><big>)</big><a class="headerlink" href="#nexpy.gui.importdialog.BaseImportDialog.accept" title="Permalink to this definition">¶</a></dt>
+<dd><p>Completes the data import.</p>
+</dd></dl>
+
+</dd></dl>
+
 </div>
 
 
@@ -96,16 +127,19 @@
           <a href="genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
           <a href="example_data.html" title="Example data"
              >next</a> |</li>
         <li class="right" >
           <a href="readers.html" title="Adding a File Importer"
              >previous</a> |</li>
-        <li><a href="index.html">NeXpy 0.5.1 documentation</a> &raquo;</li> 
+        <li><a href="index.html">NeXpy 0.5.2 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
-        &copy; Copyright 2013-2014, Ray Osborn.
+        &copy; Copyright 2013-2015, Ray Osborn.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
     </div>
   </body>

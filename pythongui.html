@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Python Graphical User Interface &mdash; NeXpy 0.5.1 documentation</title>
+    <title>Python Graphical User Interface &mdash; NeXpy 0.5.2 documentation</title>
     
     <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.5.1',
+        VERSION:     '0.5.2',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -25,7 +25,7 @@
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="shortcut icon" href="_static/favicon.ico"/>
-    <link rel="top" title="NeXpy 0.5.1 documentation" href="index.html" />
+    <link rel="top" title="NeXpy 0.5.2 documentation" href="index.html" />
     <link rel="next" title="Python Interface to NeXus" href="pythonshell.html" />
     <link rel="prev" title="Installation" href="includeme.html" /> 
   </head>
@@ -37,12 +37,15 @@
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
           <a href="pythonshell.html" title="Python Interface to NeXus"
              accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="includeme.html" title="Installation"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">NeXpy 0.5.1 documentation</a> &raquo;</li> 
+        <li><a href="index.html">NeXpy 0.5.2 documentation</a> &raquo;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar">
@@ -256,6 +259,11 @@ limits, the slider limits are increased to cover the expanded
 range.</p>
 </div>
 </dd>
+<dt><strong>Plot RGB(A) Image</strong></dt>
+<dd>Plots the selected tree item as an RGB(A) image. In such images, the
+fastest varying dimension, which should be of size 3 or 4, contains the
+RGB(A) values for each pixel. By convention, the first pixel is in the
+upper-left corner, rather than the lower-left.</dd>
 <dt><strong>Add Data</strong></dt>
 <dd><p class="first">Adds data to the selected tree item. If the selected item is a group, the
 added data can be a group or field. If the selected item is a field, the
@@ -484,7 +492,8 @@ to select a color palette.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">For a one-dimensional plot, there is no signal tab. The intensity
-is adjusted using the y-tab.</p>
+is adjusted using the y-tab. There is also no signal tab for an
+RGB(A) image, since the colors are defined by the RGB(A) values.</p>
 </div>
 </div></blockquote>
 <p><strong>X/Y Tab</strong></p>
@@ -492,13 +501,12 @@ is adjusted using the y-tab.</p>
 <div><a class="reference internal image-reference" href="_images/x-tab.png"><img alt="_images/x-tab.png" class="align-center" src="_images/x-tab.png" style="width: 75%;" /></a>
 <p>The x and y-tabs contains text boxes and sliders to adjust the axis limits
 and a dropdown menu to select the axis to be plotted along x and y,
-respectively. The names correspond to the axis names in the NXdata group.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">If the x-axis values (and/or y-axis values in two-dimensional
-plots) are monotonically decreasing, the axis is flipped before
-plotting. Currently, the sliders only work for monotonically
-increasing axes.</p>
+respectively. The names correspond to the axis names in the NXdata group.
+A checkbox allows the direction of the axes to be flipped.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Flipping the axis directions does not flip the direction of the
+sliders.</p>
 </div>
 </div></blockquote>
 <p><strong>Z Tab</strong></p>
@@ -522,12 +530,6 @@ a replot using the toolbar (see below).</p>
 <p class="last">Make sure that the value of both limit boxes is entered, <em>e.g.</em>,
 by pressing return after editing their values, before clicking on
 the &#8216;lock&#8217; checkbox.</p>
-</div>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">There may be a bug in PySide, which causes multiple steps to
-occur for each arrow click. You can avoid this by selecting the
-&#8216;maximum&#8217; text-box and using the terminal arrow keys.</p>
 </div>
 <p>When stepping through the z-values, the &#8216;Autoscale&#8217; checkbox determines
 whether the plot automatically scales the signal to the maximum intensity of
@@ -778,7 +780,7 @@ directory in <tt class="docutils literal"><span class="pre">~/.nexpy/readers</sp
 </div>
 <div class="admonition seealso">
 <p class="first admonition-title">See also</p>
-<p class="last">See <tt class="xref py py-class docutils literal"><span class="pre">nexpy.gui.importdialog.BaseImportDialog</span></tt> and its parent
+<p class="last">See <a class="reference internal" href="importdialog.html#nexpy.gui.importdialog.BaseImportDialog" title="nexpy.gui.importdialog.BaseImportDialog"><tt class="xref py py-class docutils literal"><span class="pre">nexpy.gui.importdialog.BaseImportDialog</span></tt></a> and its parent
 <tt class="xref py py-class docutils literal"><span class="pre">nexpy.gui.importdialog.BaseDialog</span></tt> for other
 pre-defined methods.</p>
 </div>
@@ -977,16 +979,19 @@ For example, if you don&#8217;t want a blank line between each input line, edit
           <a href="genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
           <a href="pythonshell.html" title="Python Interface to NeXus"
              >next</a> |</li>
         <li class="right" >
           <a href="includeme.html" title="Installation"
              >previous</a> |</li>
-        <li><a href="index.html">NeXpy 0.5.1 documentation</a> &raquo;</li> 
+        <li><a href="index.html">NeXpy 0.5.2 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
-        &copy; Copyright 2013-2014, Ray Osborn.
+        &copy; Copyright 2013-2015, Ray Osborn.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
     </div>
   </body>
