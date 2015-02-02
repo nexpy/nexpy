@@ -32,7 +32,6 @@ from threading import Thread
 
 from PySide import QtGui, QtCore
 from IPython.core.magic import magic_escapes
-from IPython.nbconvert.filters.ansi import ansi2html
 
 
 def background(f):
@@ -60,13 +59,13 @@ from IPython.qt.inprocess import QtInProcessKernelManager
 
 def report_error(context, error):
     title = type(error).__name__ + ': ' + context
-    msgBox = QtGui.QMessageBox()
-    msgBox.setText(title)
-    msgBox.setInformativeText(str(error))
-    msgBox.setStandardButtons(QtGui.QMessageBox.Ok)
-    msgBox.setDefaultButton(QtGui.QMessageBox.Ok)
-    msgBox.setIcon(QtGui.QMessageBox.Warning)
-    return msgBox.exec_()
+    message_box = QtGui.QMessageBox()
+    message_box.setText(title)
+    message_box.setInformativeText(str(error))
+    message_box.setStandardButtons(QtGui.QMessageBox.Ok)
+    message_box.setDefaultButton(QtGui.QMessageBox.Ok)
+    message_box.setIcon(QtGui.QMessageBox.Warning)
+    return message_box.exec_()
 
 
 class MainWindow(QtGui.QMainWindow):
@@ -951,7 +950,7 @@ class MainWindow(QtGui.QMainWindow):
                 imported_data = self.import_dialog.get_data()
                 try:
                     name = self.treeview.tree.get_name(self.import_dialog.import_file)
-                except:
+                except Exception:
                     name = self.treeview.tree.get_new_name()
                 if isinstance(imported_data, NXentry):
                     self.treeview.tree[name] = self.user_ns[name] = NXroot(imported_data)
@@ -1164,13 +1163,13 @@ class MainWindow(QtGui.QMainWindow):
             report_error("Fitting Data", error)
 
     def confirm_action(self, query, information=None):
-        msgBox = QtGui.QMessageBox()
-        msgBox.setText(query)
+        message_box = QtGui.QMessageBox()
+        message_box.setText(query)
         if information:
-            msgBox.setInformativeText(information)
-        msgBox.setStandardButtons(QtGui.QMessageBox.Ok | QtGui.QMessageBox.Cancel)
-        msgBox.setDefaultButton(QtGui.QMessageBox.Ok)
-        return msgBox.exec_()
+            message_box.setInformativeText(information)
+        message_box.setStandardButtons(QtGui.QMessageBox.Ok | QtGui.QMessageBox.Cancel)
+        message_box.setDefaultButton(QtGui.QMessageBox.Ok)
+        return message_box.exec_()
 
     def input_base_classes(self):
         base_class_path = pkg_resources.resource_filename(      #@UndefinedVariable
