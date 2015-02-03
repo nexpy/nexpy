@@ -1052,6 +1052,7 @@ class NXPlotAxis(object):
         if dimlen is not None:
             if self.data[0] > self.data[-1]:
                 self.reversed = True
+            _spacing = self.data[1:] - self.data[:-1]
             _range = self.data.max() - self.data.min()
             if max(_spacing) - min(_spacing) > _range/1000:
                 self.equally_spaced = False
