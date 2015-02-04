@@ -16,7 +16,7 @@ Base class for import dialogs
 import os
 from PySide import QtCore, QtGui
 
-from nexpy.api.nexus import *
+from nexusformat.nexus import *
 from nexpy.gui.datadialogs import BaseDialog
 
 filetype = "Text File" #Defines the Import Menu label

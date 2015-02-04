@@ -2,8 +2,8 @@ from PySide import QtGui
 import numpy as np
 from nexpy.gui.datadialogs import BaseDialog
 from nexpy.gui.mainwindow import report_error
-from nexpy.api.nexus import NXfield, NXdata, NeXusError
-from nexpy.api.nexus.tree import centers
+from nexusformat.nexus import NXfield, NXdata, NeXusError
+from nexusformat.nexus.tree import centers
 
 
 def show_dialog(parent=None):

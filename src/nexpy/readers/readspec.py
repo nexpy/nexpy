@@ -11,11 +11,11 @@
 
 '''Module to read in a SPEC file and convert it to NeXus.'''
 
-from PySide import QtCore, QtGui    #@UnusedImport
+from PySide import QtCore, QtGui
 
-import numpy as np                  #@UnusedImport
-import os                           #@UnusedImport
-from nexpy.api.nexus import *       #@UnusedWildImport
+import numpy as np
+import os
+from nexusformat.nexus import *
 from nexpy.gui.importdialog import BaseImportDialog
 
 filetype = "SPEC File"

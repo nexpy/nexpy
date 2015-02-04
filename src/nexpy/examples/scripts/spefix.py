@@ -2,7 +2,7 @@ import numpy as np
 
 from nexpy.api.frills.fit import Fit, Function, Parameter
 from nexpy.api.frills.functions import gaussian, linear
-from nexpy.api.nexus import NXentry, NXdata
+from nexusformat.nexus import NXentry, NXdata
 
 def fix_spe(spe_file):
 

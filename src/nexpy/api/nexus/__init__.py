@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #-----------------------------------------------------------------------------
-# Copyright (c) 2013, NeXpy Development Team.
+# Copyright (c) 2015, NeXpy Development Team.
 #
 # Author: Paul Kienzle, Ray Osborn
 #
@@ -51,18 +51,5 @@ We can create a copy of the file using write::
 For a complete description of the features available in this tree view
 of the NeXus data file, see `nexus.tree`.
 
-NeXus API
-=========
-
-When converting code to python from other languages you do not
-necessarily want to rewrite the file handling code using the
-tree view.  The `nexus.napi` module provides an interface which
-more closely follows the NeXus application programming
-interface (NAPI_).
-
-.. _Nexus: http://www.nexusformat.org/Introduction
-.. _NAPI:  http://www.nexusformat.org/Application_Program_Interface
-.. _HDF:   http://www.hdfgroup.org
 """
-
-from tree import *
+from nexusformat.nexus.tree import *

@@ -46,8 +46,8 @@ from plotview import NXPlotView
 from datadialogs import *
 from scripteditor import ScriptDialog
 import nexpy
-from nexpy.api.nexus import (nxload, NeXusError, NXFile, NXobject, 
-                             NXfield, NXgroup, NXlink, NXroot, NXentry)
+from nexusformat.nexus import (nxload, NeXusError, NXFile, NXobject, 
+                               NXfield, NXgroup, NXlink, NXroot, NXentry)
 
 # IPython imports
 # require minimum version of IPython for RichIPythonWidget()

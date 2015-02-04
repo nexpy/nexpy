@@ -19,8 +19,8 @@ from PySide import QtGui, QtCore
 import pkg_resources
 import numpy as np
 
-from nexpy.api.nexus import (NeXusError, NXgroup, NXfield, NXattr,
-                             NXroot, NXentry, NXdata, NXparameters)
+from nexusformat.nexus import (NeXusError, NXgroup, NXfield, NXattr,
+                               NXroot, NXentry, NXdata, NXparameters)
 
 
 try:
@@ -1013,7 +1013,7 @@ class SignalDialog(BaseDialog):
         if box.count() == 0:
             return None
         if 'axes' in self.signal.attrs:
-            from nexpy.api.nexus.tree import _readaxes
+            from nexusformat.nexus.tree import _readaxes
             default_axis = _readaxes(self.signal.axes)[axis]
         else:
             axes = self.group.nxaxes

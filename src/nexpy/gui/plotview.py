@@ -29,7 +29,7 @@ from matplotlib.colors import LogNorm, Normalize
 from matplotlib.cm import get_cmap
 from matplotlib.patches import Circle, Ellipse, Rectangle
 
-from nexpy.api.nexus import NXfield, NXdata, NXroot, NeXusError
+from nexusformat.nexus import NXfield, NXdata, NXroot, NeXusError
 
 
 plotview = None
@@ -376,6 +376,8 @@ class NXPlotView(QtGui.QWidget):
             self.aspect = 'equal'
             self.ytab.flipped = True
             self.replot_axes(draw=False)
+        elif self.xaxis.reversed or self.yaxis.reversed:
+            self.replot_axes(draw=False)
         else:
             self.aspect = 'auto'
 
@@ -643,17 +645,17 @@ class NXPlotView(QtGui.QWidget):
             if i in axes: 
                 limits.append((None,None))
             else:
-                limits.append((self.axis[i].lo,
-                               self.axis[i].hi))
+                limits.append((self.axis[i].lo, self.axis[i].hi))
         self.plotdata = self.data.project(axes, limits)
-        self.x, self.y, self.v = self.get_image()
+        self.plotdata.title = self.title
         if self.equally_spaced:
+            self.x, self.y, self.v = self.get_image()
             self.image.set_data(self.v)
             self.image.set_extent((self.xaxis.min, self.xaxis.max,
                                    self.yaxis.min,self.yaxis.max))
+            self.replot_image()
         else:
-            self.image.set_array(self.v.ravel())
-        self.replot_image(draw=draw)
+            self.plot_image()
 
     def replot_axes(self, draw=True):
         ax = self.figure.gca()
@@ -932,25 +934,19 @@ class NXPlotView(QtGui.QWidget):
         if tab == self.xtab and axis == self.yaxis:
             self.yaxis = self.ytab.axis = self.xtab.axis
             self.xaxis = self.xtab.axis = axis
-            self.plotdata = NXdata(self.plotdata.nxsignal.T, 
-                                   self.plotdata.nxaxes[::-1],
-                                   title = self.title)
-            self.replot_data()
-            self.replot_axes()
             self.xtab.set_axis(self.xaxis)
             self.ytab.set_axis(self.yaxis)
             self.vtab.set_axis(self.vaxis)
+            self.replot_data(draw=False)
+            self.replot_axes()
         elif tab == self.ytab and axis == self.xaxis:
             self.xaxis = self.xtab.axis = self.ytab.axis
             self.yaxis = self.ytab.axis = axis
-            self.plotdata = NXdata(self.plotdata.nxsignal.T, 
-                                   self.plotdata.nxaxes[::-1],
-                                   title = self.title)
-            self.replot_data()
-            self.replot_axes()
             self.xtab.set_axis(self.xaxis)
             self.ytab.set_axis(self.yaxis)
             self.vtab.set_axis(self.vaxis)
+            self.replot_data(draw=False)
+            self.replot_axes()
         elif tab == self.ztab:
             self.zaxis = self.ztab.axis = axis
             self.ztab.set_axis(self.zaxis)
@@ -1053,6 +1049,7 @@ class NXPlotAxis(object):
             if self.data[0] > self.data[-1]:
                 self.reversed = True
             _range = self.data.max() - self.data.min()
+            _spacing = self.data[1:] - self.data[:-1]
             if max(_spacing) - min(_spacing) > _range/1000:
                 self.equally_spaced = False
             self.centers = centers(self.data, dimlen)

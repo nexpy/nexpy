@@ -47,7 +47,7 @@ from PySide import QtCore, QtGui
 # Local imports
 from mainwindow import MainWindow
 from treeview import NXtree
-from nexpy.api.nexus import nxclasses, nxload
+from nexusformat.nexus import nxclasses, nxload
 
 # IPython imports
 from IPython.config.application import catch_config_error
@@ -220,10 +220,10 @@ class NXConsoleApp(BaseIPythonApplication, IPythonConsoleApp):
         """Initialize imports in the shell."""
         global _shell
         _shell = self.window.user_ns
-        s = ("import nexpy\n"
-             "import nexpy.api.nexus as nx\n"
-             "from nexpy.api.nexus import NXgroup, NXfield, NXattr, NXlink\n"
-             "from nexpy.api.nexus import NXFile\n"
+        s = ("import nexusformat.nexus as nx\n"
+             "from nexusformat.nexus import NXgroup, NXfield, NXattr, NXlink\n"
+             "from nexusformat.nexus import NXFile\n"
+             "import nexpy\n"
              "from nexpy.gui.plotview import NXPlotView")
         exec s in self.window.user_ns
         

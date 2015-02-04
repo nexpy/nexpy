@@ -12,7 +12,7 @@ import os
 import pkg_resources
 
 from PySide import QtCore, QtGui
-from nexpy.api.nexus import NXfield, NXgroup, NXlink, NXroot, NXentry, NeXusError
+from nexusformat.nexus import NXfield, NXgroup, NXlink, NXroot, NXentry, NeXusError
 
 
 def natural_sort(key):
