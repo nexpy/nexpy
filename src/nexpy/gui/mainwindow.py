@@ -215,6 +215,7 @@ class MainWindow(QtGui.QMainWindow):
         self.init_plugin_menus()
         self.init_view_menu()
         self.init_magic_menu()
+        self.init_exec_menu()
         self.init_window_menu()
         self.init_script_menu()
         self.init_help_menu()
@@ -603,6 +604,19 @@ class MainWindow(QtGui.QMainWindow):
             statusTip="List interactive variables with details",
             triggered=self.whos_magic_console)
         self.add_menu_action(self.magic_menu, self.whos_action)
+
+    def init_exec_menu(self):
+        self.window_menu = self.menu_bar.addMenu("&Execution")
+        self.cctw_action=QtGui.QAction("CCTW",
+            self,
+            triggered=self.exec_cctw
+            )
+        self.add_menu_action(self.window_menu, self.cctw_action)
+
+    def exec_cctw(self):
+        print "Running CCTW!"
+        print self.treeview.get_node()
+        print self.treeview.get_node().__class__
 
     def init_window_menu(self):
         self.window_menu = self.menu_bar.addMenu("&Window")
