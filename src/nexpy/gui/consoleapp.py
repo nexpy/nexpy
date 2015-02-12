@@ -207,7 +207,7 @@ class NXConsoleApp(BaseIPythonApplication, IPythonConsoleApp):
         hdlr.setFormatter(fmtr)
         logging.root.addHandler(hdlr)
         logging.info('NeXpy launched')
-        logging.debug('Log level is: ' + value)
+        logging.debug('Log level is: ' + str(value))
 
     def init_tree(self):
         """Initialize the NeXus tree used in the tree view."""
