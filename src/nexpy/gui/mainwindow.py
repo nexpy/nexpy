@@ -67,7 +67,7 @@ def report_error(context, error):
     msgBox.setDefaultButton(QtGui.QMessageBox.Ok)
     msgBox.setIcon(QtGui.QMessageBox.Warning)
     return msgBox.exec_()
-
+# logging.basicConfig(level=logging.DEBUG)
 
 class MainWindow(QtGui.QMainWindow):
 
