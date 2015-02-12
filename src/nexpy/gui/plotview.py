@@ -1979,9 +1979,7 @@ class NXProjectionPanel(QtGui.QDialog):
         for axis in range(self.plotview.ndim):
             lo, hi = self.plotview.axis[axis].get_limits()
             self.minbox[axis].setValue(lo)
-            self.minbox[axis].stepBy(1)
             self.maxbox[axis].setValue(hi)
-            self.maxbox[axis].stepBy(-2)
 
     def set_lock(self):
         for axis in range(self.plotview.ndim):
