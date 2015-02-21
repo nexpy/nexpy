@@ -8,18 +8,17 @@ shell::
  Python 2.7.2 (default, Oct 11 2012, 20:14:37) 
  [GCC 4.2.1 Compatible Apple Clang 4.0 (tags/Apple/clang-418.0.60)] on darwin
  Type "help", "copyright", "credits" or "license" for more information.
- >>> from nexpy.api import nexus
+ >>> from nexusformat.nexus import *
 
-.. note:: If you are creating NeXus groups, it is often more convenient to 
-          import the data using ``from nexpy.api.nexus import *``. Since this 
-          produces a name clash with the numpy 'load' module, 'nxload' has been
-          defined as an alias for the NeXus 'load' module. 
+.. note:: Although wildcard imports are usually discouraged in Python, there
+          should not be any name clashes using it here because all the 
+          imported functions and variables start with 'nx' or 'NX'. 
 
 Loading NeXus Data
 ==================
 The entire tree structure of a NeXus file can be loaded by a single command::
 
- >>> a=nexus.load('sns/data/ARCS_7326_tof.nxs')
+ >>> a=nxload('sns/data/ARCS_7326_tof.nxs')
 
 The assigned variable now contains the entire tree structure of the file, which 
 can be displayed by printing the 'tree' property::
@@ -32,9 +31,9 @@ can be displayed by printing the 'tree' property::
   @file_time = 2010-05-05T01:59:25-05:00
   entry:NXentry
     data:NXdata
+      @axes = rotation_angle:tilt_angle:sample_angle:time_of_flight
+      @signal = data
       data = float32(631x461x4x825)
-        @axes = rotation_angle:tilt_angle:sample_angle:time_of_flight
-        @signal = 1
       rotation_angle = float32(632)
         @units = degree
       sample_angle = [ 210.  215.  220.  225.  230.]
@@ -70,7 +69,7 @@ There is a second optional argument to the load module that defines the access
 mode for the existing data. For example, the following opens the file in 
 read/write mode::
 
- >>> a=nx.load('chopper.nxs', mode='rw')
+ >>> a=nxload('chopper.nxs', mode='rw')
 
 The default mode is 'r', *i.e.*, readonly access.
 
@@ -95,7 +94,7 @@ then saved to a file::
 
 This file can then be loaded again::
 
- >>> b=nx.load('function.nxs')
+ >>> b=nxload('function.nxs')
  >>> print b.tree
  root:NXroot
   @HDF5_Version = 1.8.2
@@ -104,11 +103,11 @@ This file can then be loaded again::
   @file_time = 2010-05-10T17:01:13+01:00
   entry:NXentry
     data:NXdata
+      @axes = axis1:axis2
+      @signal = signal
       axis1 = float64(101)
       axis2 = float64(101)
       signal = float64(101x101)
-        @axes = axis1:axis2
-        @signal = 1
 
 .. note:: The save() method automatically wraps any valid NeXus data in an 
           NXentry group, in order to produce a standard-compliant file. See
@@ -341,15 +340,15 @@ NXfield so default names were assigned::
 
  >>> print a.tree
  data:NXdata
+   @axes = axis1:axis2
+   @signal = signal
    axis1 = float64(101)
    axis2 = float64(101)
    signal = float64(101x101)
-     @axes = axis1:axis2
-     @signal = 1
 
-.. note:: The plottable signal is identified by the NXfield with the 'signal'
-          attribute set to 1. The 'signal' NXfield has an attribute, 'axes', 
-          which defines the axes as a string of NXfield names delimited here by 
+.. note:: The plottable signal and axes are identified by the 'signal'
+          and 'axes' attributes of the NXdata group. The 'axes' attribute 
+          defines the axes as a string of NXfield names delimited here by 
           a colon. White space or commas can also be used as delimiters. The
           NXdata constructor sets these attributes automatically.
 
@@ -368,9 +367,9 @@ attribute::
  >>> a=NXdata(data,(phi))
  >>> print a.tree
  data:NXdata
+   @axes = polar_angle
+   @signal = intensity
    intensity = float64(101)
-     @axes = polar_angle
-     @signal = 1
    polar_angle = float64(101)
 
 .. note:: In the above example, the x-axis, 'phi', was defined as a tuple in the
@@ -388,9 +387,9 @@ It is also possible to define the plottable signal and/or axes using the
  >>> a.nxaxes=NXfield(phi, name='polar_angle')
  >>> print a.tree
  data:NXdata
+   @axes = polar_angle
+   @signal = intensity
    intensity = float64(101)
-     @axes = polar_angle
-     @signal = 1
    polar_angle = float64(101)
 
 
@@ -420,9 +419,9 @@ However, they may also be needed as plotting axes in a NXdata group::
 
  >>> print entry.data.tree
  data:NXdata
+   @axes = polar_angle:time_of_flight
+   @signal = data
    data = uint32(128x8251)
-     @signal = 1
-     @axes = polar_angle:time_of_flight
    polar_angle = float32(128)
      @target = /entry/instrument/detector/polar_angle
      @units = radian
@@ -633,9 +632,9 @@ NXfield::
  array([ 1.        ,  1.41421356,  1.73205081,  2.        ])
  >>> print NXdata(np.sin(x), (x)).tree
  data:NXdata
+   @axes = x
+   @signal = signal
    signal = [ 0.84147098  0.90929743  0.14112001 -0.7568025 ]
-     @axes = x
-     @signal = 1
    x = [ 1.  2.  3.  4.]
 
 NXdata
@@ -650,58 +649,58 @@ must match (although the names could be different)::
  >>> a=NXdata(y,x)
  >>> print a.tree
  data:NXdata
+   @axes = x
+   @signal = y
    x = [ 1.5  2.5  3.5]
    y = [ 0.99749499  0.59847214 -0.35078323]
-     @axes = x
-     @signal = 1
  >>> print (a+1).tree
  data:NXdata
-  x = [ 1.5  2.5  3.5]
-  y = [ 1.99749499  1.59847214  0.64921677]
-    @axes = x
-    @signal = 1
+   @axes = x
+   @signal = y
+   x = [ 1.5  2.5  3.5]
+   y = [ 1.99749499  1.59847214  0.64921677]
  >>> print (2*a).tree
  data:NXdata
+   @axes = x
+   @signal = y
    x = [ 1.5  2.5  3.5]
    y = [ 1.99498997  1.19694429 -0.70156646]
-     @axes = x
-     @signal = 1
  >>> print (a+a).tree
  data:NXdata
+   @axes = x
+   @signal = y
    x = [ 1.5  2.5  3.5]
    y = [ 1.99498997  1.19694429 -0.70156646]
-     @axes = x
-     @signal = 1
  >>> print (a-a).tree
  data:NXdata
+   @axes = x
+   @signal = y
    x = [ 1.5  2.5  3.5]
    y = [ 0.  0.  0.]
-     @axes = x
-     @signal = 1
  >>> print (a/2).tree
  data:NXdata
+   @axes = x
+   @signal = y
    x = [ 1.5  2.5  3.5]
    y = [ 0.49874749  0.29923607 -0.17539161]
-     @axes = x
-     @signal = 1
 
 If data errors are included in the NXdata group (with an additional array named 
 'errors'), then the errors are propagated according to the operand::
 
  >>> print a.tree
  data:NXdata
+   @axes = x
+   @signal = y
    errors = [ 0.99874671  0.77360981  0.59226956]
    x = [ 1.5  2.5  3.5]
    y = [ 0.99749499  0.59847214  0.35078323]
-     @axes = x
-     @signal = 1
  >>> print (a+a).tree
  data:NXdata
+   @axes = x
+   @signal = y
    errors = [ 1.41244114  1.09404949  0.83759564]
    x = [ 1.5  2.5  3.5]
    y = [ 1.99498997  1.19694429  0.70156646]
-     @axes = x
-     @signal = 1
 
 Some statistical operations can be performed on the NXdata group.
 
@@ -717,11 +716,11 @@ NXdata.sum(axis=None):
      >>> a=NXdata(X*Y,(y,x))
      >>> print a.tree
      data:NXdata
+       @axes = axis1:axis2
+       @signal = signal
        axis1 = [ 0.  1.  2.  3.]
        axis2 = [ 0.  1.  2.]
        signal = float64(3x4)
-         @axes = axis1:axis2
-         @signal = 1
      >>> a.nxsignal
      NXfield([[ 0.  0.  0.  0.]
       [ 0.  1.  2.  3.]
@@ -782,18 +781,18 @@ by one, the data can be summed along that axis using the sum() method::
  >>> a=NXdata(np.sin(X)*np.sin(Y), (y,x))
  >>> print a.tree
  data:NXdata
+   @axes = axis1:axis2
+   @signal = signal
    axis1 = float64(41)
    axis2 = float64(41)
    signal = float64(41x41)
-     @axes = axis1:axis2
-     @signal = 1
  >>> print a.sum(0).tree
  data:NXdata
+   @axes = axis2
+   @signal = signal
    axis2 = float64(41)
    signal = float64(41)
-     @axes = axis2
      @long_name = Integral from 0.0 to 6.28318530718 
-     @signal = 1
 
 It is also possible to slice whole NXdata groups. In this case, the slicing
 works on the multidimensional NXfield, but the full NXdata group is returned
@@ -815,18 +814,18 @@ employs the numpy array sum() method::
  >>> a=NXdata(np.sin(X)*np.sin(Y), (y,x))
  >>> print a.tree
  data:NXdata
+   @axes = axis1:axis2
+   @signal = signal
    axis1 = float64(41)
    axis2 = float64(41)
    signal = float64(41x41)
-     @axes = axis1:axis2
-     @signal = 1
  >>> print a.sum(0).tree
  data:NXdata
+   @axes = axis2
+   @signal = signal
    axis2 = float64(41)
    signal = float64(41)
-     @axes = axis2
      @long_name = Integral from 0.0 to 6.28318530718 
-     @signal = 1
 
 NXdata.project(axes, limits):
     The project() method projects the data along a specified 1D axis or 2D axes 
@@ -841,24 +840,24 @@ NXdata.project(axes, limits):
     >>> a=NXdata(X*Y,(y,x))
     >>> print a.tree
     data:NXdata
+      @axes = axis1:axis2
+      @signal = signal
       axis1 = [ 0.  1.  2.]
       axis2 = [ 0.  1.  2.  3.]
       signal = float64(3x4)
-        @axes = axis1:axis2
-        @signal = 1
     >>> print a.signal
     [[ 0.  0.  0.  0.]
      [ 0.  1.  2.  3.]
      [ 0.  2.  4.  6.]]
     >>> print a.project([0],[(None,None),(0.5,2.5)]).tree
     data:NXdata
+      @axes = axis1
+      @signal = signal
       axis1 = [ 0.  1.  2.]
       axis2 = 1.5
         @maximum = 2.0
         @minimum = 1.0
       signal = [ 0.  3.  6.]
-        @axes = axis1
-        @signal = 1
 
     The :doc:`pythongui` provides a menu-based approach to simplify the plotting 
     of data projections.
