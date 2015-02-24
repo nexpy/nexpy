@@ -607,16 +607,31 @@ class MainWindow(QtGui.QMainWindow):
 
     def init_exec_menu(self):
         self.window_menu = self.menu_bar.addMenu("&Execution")
+        
+        self.exec_list_action=QtGui.QAction("Execution listing",
+            self,
+            triggered=self.show_exec_list
+            )
+        self.add_menu_action(self.window_menu, self.exec_list_action)
+
         self.cctw_action=QtGui.QAction("CCTW",
             self,
             triggered=self.exec_cctw
             )
         self.add_menu_action(self.window_menu, self.cctw_action)
 
+    def show_exec_list(self):
+        pass
+
     def exec_cctw(self):
         print "Running CCTW!"
+        if self.treeview.get_node() == None:
+            QMessageBox.critical(self, "NeXpy", \
+                                 "No data is selected!")
+            return
         print self.treeview.get_node()
         print self.treeview.get_node().__class__
+        print self.treeview.get_node().nxfile
 
     def init_window_menu(self):
         self.window_menu = self.menu_bar.addMenu("&Window")
