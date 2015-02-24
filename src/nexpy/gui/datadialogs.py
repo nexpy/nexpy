@@ -20,8 +20,8 @@ from PySide.QtGui import QMessageBox
 import pkg_resources
 import numpy as np
 
-from nexpy.api.nexus import (NeXusError, NXgroup, NXfield, NXattr,
-                             NXroot, NXentry, NXdata, NXparameters)
+from nexusformat.nexus import (NeXusError, NXgroup, NXfield, NXattr,
+                               NXroot, NXentry, NXdata, NXparameters)
 
 
 try:
@@ -385,7 +385,7 @@ class PlotDialog(BaseDialog):
         return [self.get_axis(axis) for axis in range(self.ndim)]
 
     def accept(self):
-        data = NXdata(self.signal, self.get_axes())
+        data = NXdata(self.signal, self.get_axes(), title=self.signal.nxtitle)
         data.plot(fmt=self.fmt)
         super(PlotDialog, self).accept()
 
@@ -1014,7 +1014,7 @@ class SignalDialog(BaseDialog):
         if box.count() == 0:
             return None
         if 'axes' in self.signal.attrs:
-            from nexpy.api.nexus.tree import _readaxes
+            from nexusformat.nexus.tree import _readaxes
             default_axis = _readaxes(self.signal.axes)[axis]
         else:
             axes = self.group.nxaxes
@@ -1672,7 +1672,8 @@ class RemoteDialog(BaseDialog):
             self.layout.insertLayout(1, dataset_layout)       
         else:
             self.dataset_box.clear()
-            self.member_box.clear()
+            if self.member_box:
+                self.member_box.clear()
         for dataset in self.datasets:
             try:
                 self.dataset_box.addItem(dataset['name'])

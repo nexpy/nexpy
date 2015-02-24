@@ -12,7 +12,7 @@
 import numpy as np
 from lmfit import minimize, Parameters, Parameter, fit_report
 
-from nexpy.api.nexus import NXdata, NXparameters, NeXusError
+from nexusformat.nexus import NXdata, NXparameters, NeXusError
 
 class Fit(object):
 

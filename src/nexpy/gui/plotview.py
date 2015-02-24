@@ -29,7 +29,7 @@ from matplotlib.colors import LogNorm, Normalize
 from matplotlib.cm import get_cmap
 from matplotlib.patches import Circle, Ellipse, Rectangle
 
-from nexpy.api.nexus import NXfield, NXdata, NXroot, NeXusError
+from nexusformat.nexus import NXfield, NXdata, NXroot, NeXusError
 
 
 plotview = None
@@ -297,6 +297,7 @@ class NXPlotView(QtGui.QWidget):
         """
 
         over = opts.pop("over", False)
+        image = opts.pop("image", False)
         log = opts.pop("log", False)
         logx = opts.pop("logx", False)
         logy = opts.pop("logy", False)
@@ -307,6 +308,11 @@ class NXPlotView(QtGui.QWidget):
 
         if self.data.nxsignal is None:
             raise NeXusError('No plotting signal defined')
+
+        if image:
+            self.rgb_image = True
+        else:
+            self.rgb_image = False
 
         self.plotdata = self.get_plotdata(over)
 
@@ -358,13 +364,26 @@ class NXPlotView(QtGui.QWidget):
  
             self.plot_image(over, **opts)
 
+        self.limits = (self.xaxis.min, self.xaxis.max,
+                       self.yaxis.min, self.yaxis.max)
+
         if over:
             self.update_tabs()
         else:
             self.init_tabs()
 
-        self.limits = (self.xaxis.min, self.xaxis.max, 
-                       self.yaxis.min, self.yaxis.max)
+        if self.rgb_image:
+            self.aspect = 'equal'
+            self.ytab.flipped = True
+            self.replot_axes(draw=False)
+        elif self.xaxis.reversed or self.yaxis.reversed:
+            self.replot_axes(draw=False)
+        else:
+            self.aspect = 'auto'
+
+        self.draw()
+        self.otab.push_current()
+        mpl.interactive(True)
 
     def get_plotdata(self, over=False):
         """Return an NXdata group containing the plottable data
@@ -378,11 +397,10 @@ class NXPlotView(QtGui.QWidget):
             self.signal = self.data.nxsignal[tuple(idx)][()]
         else:
             self.signal = self.data.nxsignal[()]
-            self.signal.shape = self.shape
 
         if self.data.nxaxes is not None:
             axes = []
-            for axis in self.data.nxaxes:
+            for axis in self.data.nxaxes[:self.ndim]:
                 if axis.size > 1:
                     axes.append(axis)
         else:
@@ -412,10 +430,6 @@ class NXPlotView(QtGui.QWidget):
                 self.errors = self.data.nxerrors
             else:
                 self.errors = None
-            if self.xaxis.flipped:
-                self.yaxis.data = self.yaxis.data[::-1]
-                if self.errors:
-                    self.errors = self.errors[::-1][()]
             plotdata = NXdata(self.signal, self.axes[0], self.errors)
         else:
             self.xaxis = self.axis[self.ndim-1]
@@ -508,22 +522,12 @@ class NXPlotView(QtGui.QWidget):
             self.xaxis.lo, self.xaxis.hi = self.xaxis.min, self.xaxis.max
             self.yaxis.lo, self.yaxis.hi = self.yaxis.min, self.yaxis.max
 
-        self.draw()
-        self.otab.push_current()
         self.colorbar = None
-        mpl.interactive(True)
 
     def get_image(self):
         x = self.xaxis.boundaries
         y = self.yaxis.boundaries
-        if self.xaxis.flipped and self.yaxis.flipped:
-            v = self.plotdata.nxsignal.nxdata[::-1,::-1]
-        elif self.xaxis.flipped:
-            v = self.plotdata.nxsignal.nxdata[:,::-1]
-        elif self.yaxis.flipped:
-            v = self.plotdata.nxsignal.nxdata[::-1,:]
-        else:
-            v = self.plotdata.nxsignal.nxdata
+        v = self.plotdata.nxsignal.nxdata
         return x, y, v
 
     def plot_image(self, over=False, **opts):
@@ -544,16 +548,24 @@ class NXPlotView(QtGui.QWidget):
         ax = self.figure.gca()
         ax.autoscale(enable=True)
         ax.format_coord = self.format_coord
-        extent = (self.xaxis.min,self.xaxis.max,self.yaxis.min,self.yaxis.max)
+
+        if self.xaxis.reversed:
+            left, right = self.xaxis.max, self.xaxis.min
+        else:
+            left, right = self.xaxis.min, self.xaxis.max
+        if self.yaxis.reversed:
+            bottom, top = self.yaxis.max, self.yaxis.min
+        else:
+            bottom, top = self.yaxis.min, self.yaxis.max
+        extent = (left, right, bottom, top)
 
         if 'aspect' in opts:
             self.aspect = opts['aspect']
             del opts['aspect']
-        if self.equally_spaced:
+        if self.rgb_image or self.equally_spaced:
+            opts['origin'] = 'lower'
             if 'interpolation' not in opts:
                 opts['interpolation'] = 'nearest'
-            if 'origin' not in opts:
-                opts['origin'] = 'lower'
             self.image = ax.imshow(self.v, extent=extent, cmap=self.cmap, **opts)
         elif 'interpolation' in opts:
             self.image = NonUniformImage(ax, extent=extent, cmap=self.cmap, **opts)
@@ -564,7 +576,8 @@ class NXPlotView(QtGui.QWidget):
         self.image.get_cmap().set_bad('k', 1.0)
         ax.set_aspect(self.aspect)
         
-        self.colorbar = self.figure.colorbar(self.image, ax=ax)
+        if not self.rgb_image:
+            self.colorbar = self.figure.colorbar(self.image, ax=ax)
 
         xlo, xhi = ax.set_xlim(self.xaxis.min, self.xaxis.max)
         ylo, yhi = ax.set_ylim(self.yaxis.min, self.yaxis.max)
@@ -583,7 +596,7 @@ class NXPlotView(QtGui.QWidget):
         if self.yaxis.hi: 
             ax.set_ylim(ymax=self.yaxis.hi)        
         else:
-            self.yaxis.hi = yhi        
+            self.yaxis.hi = yhi
       
         ax.set_xlabel(self.xaxis.label)
         ax.set_ylabel(self.yaxis.label)
@@ -599,16 +612,14 @@ class NXPlotView(QtGui.QWidget):
             self.vaxis.max = vmax
         
         self.vtab.set_axis(self.vaxis)
-        
-        self.draw()
-        self.otab.push_current()
-        mpl.interactive(True)
 
     @property
     def shape(self):
         _shape = list(self.data.nxsignal.shape)
         while 1 in _shape:
             _shape.remove(1)
+        if self.rgb_image:
+            _shape = _shape[:-1]
         return tuple(_shape)
 
     @property
@@ -634,22 +645,32 @@ class NXPlotView(QtGui.QWidget):
             if i in axes: 
                 limits.append((None,None))
             else:
-                limits.append((self.axis[i].lo,
-                               self.axis[i].hi))
+                limits.append((self.axis[i].lo, self.axis[i].hi))
         self.plotdata = self.data.project(axes, limits)
-        self.x, self.y, self.v = self.get_image()
+        self.plotdata.title = self.title
         if self.equally_spaced:
+            self.x, self.y, self.v = self.get_image()
             self.image.set_data(self.v)
             self.image.set_extent((self.xaxis.min, self.xaxis.max,
                                    self.yaxis.min,self.yaxis.max))
+            self.replot_image()
         else:
-            self.image.set_array(self.v.ravel())
-        self.replot_image(draw=draw)
+            self.plot_image()
 
     def replot_axes(self, draw=True):
         ax = self.figure.gca()
-        ax.set_xlim(self.xaxis.get_limits())
-        ax.set_ylim(self.yaxis.get_limits())
+        xmin, xmax = self.xaxis.get_limits()
+        if ((self.xaxis.reversed and not self.xtab.flipped) or
+            (not self.xaxis.reversed and self.xtab.flipped)):
+            ax.set_xlim(xmax, xmin)
+        else:
+            ax.set_xlim(xmin, xmax)
+        ymin, ymax = self.yaxis.get_limits()
+        if ((self.yaxis.reversed and not self.ytab.flipped) or
+            (not self.yaxis.reversed and self.ytab.flipped)):
+            ax.set_ylim(ymax, ymin)
+        else:
+            ax.set_ylim(ymin, ymax)
         ax.set_xlabel(self.xaxis.label)
         ax.set_ylabel(self.yaxis.label)
         self.otab.push_current()
@@ -706,10 +727,8 @@ class NXPlotView(QtGui.QWidget):
         xmin, xmax, ymin, ymax = self.limits
         self.xaxis.min = self.xaxis.lo = xmin
         self.xaxis.max = self.xaxis.hi = xmax
-        self.xtab.set_axis(self.xaxis)
         self.yaxis.min = self.yaxis.lo = ymin
         self.yaxis.max = self.yaxis.hi = ymax
-        self.ytab.set_axis(self.yaxis)
         if self.ndim == 1:
             self.replot_axes()
         else:
@@ -823,7 +842,8 @@ class NXPlotView(QtGui.QWidget):
 
     def rectangle(self, x, y, dx, dy, **opts):
         ax = self.figure.axes[0]
-        rectangle = ax.add_patch(Rectangle((float(x),float(y)), float(dx), float(dy), **opts))
+        rectangle = ax.add_patch(Rectangle((float(x),float(y)), 
+                                            float(dx), float(dy), **opts))
         if 'facecolor' not in opts:
             rectangle.set_facecolor('none')
         self.canvas.draw()
@@ -831,7 +851,8 @@ class NXPlotView(QtGui.QWidget):
 
     def ellipse(self, x, y, dx, dy, **opts):
         ax = self.figure.axes[0]
-        ellipse = ax.add_patch(Ellipse((float(x),float(y)), float(dx), float(dy), **opts))
+        ellipse = ax.add_patch(Ellipse((float(x),float(y)), 
+                                        float(dx), float(dy), **opts))
         if 'facecolor' not in opts:
             ellipse.set_facecolor('none')
         self.canvas.draw()
@@ -853,6 +874,7 @@ class NXPlotView(QtGui.QWidget):
             self.xtab.axiscombo.setVisible(False)
             self.ytab.logbox.setVisible(True)
             self.ytab.axiscombo.setVisible(False)
+            self.ytab.flipbox.setVisible(False)
             self.tab_widget.removeTab(self.tab_widget.indexOf(self.vtab))
             self.tab_widget.removeTab(self.tab_widget.indexOf(self.ztab))
             self.tab_widget.removeTab(self.tab_widget.indexOf(self.ptab))
@@ -878,8 +900,14 @@ class NXPlotView(QtGui.QWidget):
                 self.tab_widget.removeTab(self.tab_widget.indexOf(self.ztab))
             self.xtab.logbox.setVisible(False)
             self.xtab.axiscombo.setVisible(True)
+            self.xtab.flipbox.setVisible(True)
             self.ytab.logbox.setVisible(False)
             self.ytab.axiscombo.setVisible(True)
+            self.ytab.flipbox.setVisible(True)
+            if self.rgb_image:
+                self.tab_widget.removeTab(self.tab_widget.indexOf(self.vtab))
+            else:
+                self.vtab.flipbox.setVisible(False)
         if self.ptab.panel:
             self.ptab.panel.close()
 
@@ -906,25 +934,19 @@ class NXPlotView(QtGui.QWidget):
         if tab == self.xtab and axis == self.yaxis:
             self.yaxis = self.ytab.axis = self.xtab.axis
             self.xaxis = self.xtab.axis = axis
-            self.plotdata = NXdata(self.plotdata.nxsignal.T, 
-                                   self.plotdata.nxaxes[::-1],
-                                   title = self.title)
-            self.replot_data()
-            self.replot_axes()
             self.xtab.set_axis(self.xaxis)
             self.ytab.set_axis(self.yaxis)
             self.vtab.set_axis(self.vaxis)
+            self.replot_data(draw=False)
+            self.replot_axes()
         elif tab == self.ytab and axis == self.xaxis:
             self.xaxis = self.xtab.axis = self.ytab.axis
             self.yaxis = self.ytab.axis = axis
-            self.plotdata = NXdata(self.plotdata.nxsignal.T, 
-                                   self.plotdata.nxaxes[::-1],
-                                   title = self.title)
-            self.replot_data()
-            self.replot_axes()
             self.xtab.set_axis(self.xaxis)
             self.ytab.set_axis(self.yaxis)
             self.vtab.set_axis(self.vaxis)
+            self.replot_data(draw=False)
+            self.replot_axes()
         elif tab == self.ztab:
             self.zaxis = self.ztab.axis = axis
             self.ztab.set_axis(self.zaxis)
@@ -960,13 +982,14 @@ class NXPlotView(QtGui.QWidget):
             row = np.searchsorted(plotview.yaxis.boundaries-y, 0.0) - 1
             z = self.v[row,col]
             return 'x=%1.4f y=%1.4f\nv=%1.4f'%(x, y, z)
-        except IndexError, TypeError:
+        except:
             return ''
 
     def close_view(self):
         self.remove_menu_action()
         Gcf.destroy(self.number)
-        del plotviews[self.label]
+        if self.label in plotviews:
+            del plotviews[self.label]
 
     def closeEvent(self, event):
         self.close_view()
@@ -980,6 +1003,7 @@ class NXPlotAxis(object):
         self.name = axis.nxname
         self.data = axis.nxdata
         self.dim = dim
+        self.reversed = False
         self.flipped = False
         self.equally_spaced = True
         if self.data is not None:
@@ -990,8 +1014,7 @@ class NXPlotAxis(object):
                 self.max = np.nanmax(self.data)
             else:
                 if self.data[0] > self.data[-1]:
-                    self.data = self.data[::-1]
-                    self.flipped = True
+                    self.reversed = True
                 _spacing = self.data[1:] - self.data[:-1]
                 _range = self.data.max() - self.data.min()
                 if max(_spacing) - min(_spacing) > _range/1000:
@@ -1021,18 +1044,20 @@ class NXPlotAxis(object):
 
     def set_data(self, axis, dimlen=None):
         self.data = axis.nxdata
+        self.reversed = False
         if dimlen is not None:
             if self.data[0] > self.data[-1]:
-                self.data = self.data[::-1]
-                self.flipped = True
-            _spacing = self.data[1:] - self.data[:-1]
+                self.reversed = True
             _range = self.data.max() - self.data.min()
+            _spacing = self.data[1:] - self.data[:-1]
             if max(_spacing) - min(_spacing) > _range/1000:
                 self.equally_spaced = False
             self.centers = centers(self.data, dimlen)
             self.boundaries = boundaries(self.data, dimlen)
 
     def set_limits(self, lo, hi):
+        if lo > hi:
+            lo, hi = hi, lo
         self.lo, self.hi = lo, hi
         self.diff = hi - lo
 
@@ -1075,36 +1100,36 @@ class NXPlotTab(QtGui.QWidget):
             self.zaxis = True
             self.minbox = self.spinbox(self.read_minbox)
             self.maxbox = self.spinbox(self.read_maxbox)
+            self.lockbox = self.checkbox("Lock", self.change_lock)
+            self.lockbox.setChecked(True)
+            self.scalebox = self.checkbox("Autoscale", self.plotview.replot_image)
+            self.scalebox.setChecked(True)
+            self.init_toolbar()
             widgets.append(self.minbox)
             widgets.append(self.maxbox)
-            self.minslider = self.maxslider = None
+            widgets.append(self.lockbox)
+            widgets.append(self.scalebox)
+            widgets.append(self.toolbar)
+            self.minslider = self.maxslider = self.flipbox = self.logbox = None
         else:
             self.zaxis = False
             self.minbox = self.doublespinbox(self.read_minbox)
             self.minslider = self.slider(self.read_minslider)
             self.maxslider = self.slider(self.read_maxslider)
             self.maxbox = self.doublespinbox(self.read_maxbox)
+            if log: 
+                self.logbox = self.checkbox("Log", self.set_log)
+                self.logbox.setChecked(False)
+            else:
+                self.logbox = None
+            self.flipbox = self.checkbox("Flip", self.flip_axis)
             widgets.append(self.minbox)
             widgets.extend([self.minslider, self.maxslider])
             widgets.append(self.maxbox)
-        if zaxis:
-            self.lockbox = self.checkbox("Lock", self.change_lock)
-            self.lockbox.setChecked(True)
-            self.scalebox = self.checkbox("Autoscale", self.plotview.replot_image)
-            self.scalebox.setChecked(True)
-            widgets.append(self.lockbox)
-            widgets.append(self.scalebox)
-            self.init_toolbar()
-            widgets.append(self.toolbar)
-        else:
-            self.lockbox = None
-            self.scalebox = None
-        if log: 
-            self.logbox = self.checkbox("Log", self.set_log)
-            self.logbox.setChecked(False)
-            widgets.append(self.logbox)
-        else:
-            self.logbox = None
+            if log: 
+                widgets.append(self.logbox)
+            widgets.append(self.flipbox)
+            self.lockbox = self.scalebox = None
         
         if cmap: 
             self.cmapcombo = self.combobox(self.change_cmap)
@@ -1152,10 +1177,14 @@ class NXPlotTab(QtGui.QWidget):
         self.maxbox.old_value = axis.hi
         if not self.zaxis:
             self.axis.locked = False
+            self.flipbox.setChecked(False)
             self.set_sliders(axis.lo, axis.hi)
         if self.axiscombo:
             self.axiscombo.clear()
-            self.axiscombo.addItems(self.get_axes())
+            if self.plotview.rgb_image:
+                self.axiscombo.addItem(axis.name)
+            else:
+                self.axiscombo.addItems(self.get_axes())
             self.axiscombo.setCurrentIndex(self.axiscombo.findText(axis.name))
         self.block_signals(False)
 
@@ -1198,7 +1227,7 @@ class NXPlotTab(QtGui.QWidget):
     def checkbox(self, label, slot):
         checkbox = QtGui.QCheckBox(label)
         checkbox.setChecked(False)
-        checkbox.stateChanged.connect(slot)
+        checkbox.clicked.connect(slot)
         return checkbox
 
     def pushbutton(self, label, slot):
@@ -1344,6 +1373,26 @@ class NXPlotTab(QtGui.QWidget):
     def change_lock(self):
         self._set_locked(self.locked)
 
+    def _flipped(self):
+        try:
+            return self.flipbox.isChecked()
+        except:
+            return False
+
+    def _set_flipped(self, value):
+        try:
+            self.flipbox.setChecked(value)
+        except:
+            pass
+
+    flipped = property(_flipped, _set_flipped, "Property: Axis flip")
+    
+    def flip_axis(self):
+        try:
+            self.plotview.replot_axes()
+        except:
+            pass
+
     @QtCore.Slot()
     def reset(self):
         self.minbox.setRange(self.axis.min, self.axis.max)
@@ -1354,6 +1403,8 @@ class NXPlotTab(QtGui.QWidget):
         return self.minbox.value(), self.maxbox.value()
 
     def set_limits(self, lo, hi):
+        if lo > hi:
+            lo, hi = hi, lo
         self.axis.set_limits(lo, hi)
         self.minbox.setValue(lo)
         self.maxbox.setValue(hi)
@@ -1691,6 +1742,8 @@ class NXProjectionTab(QtGui.QWidget):
         shape = self.plotview.shape
         if len(shape) - len(limits) == shape.count(1):
             axes, limits = self.fix_projection(shape, axes, limits)
+        if self.plotview.rgb_image:
+            limits.append((None, None))
         return axes, limits
 
     def fix_projection(self, shape, axes, limits):
@@ -1848,6 +1901,8 @@ class NXProjectionPanel(QtGui.QDialog):
         self.setLayout(layout)
         self.setWindowTitle('Projection Panel - ' + self.plotview.label)
 
+        self.rectangle = None
+
         for axis in range(self.plotview.ndim):
             self.minbox[axis].data = self.maxbox[axis].data = \
                 self.plotview.axis[axis].centers
@@ -1862,8 +1917,6 @@ class NXProjectionPanel(QtGui.QDialog):
             self.minbox[axis].setValue(self.minbox[axis].data[0])
             self.maxbox[axis].setValue(self.minbox[axis].data[-1])
             self.lockbox[axis].setChecked(False)
-
-        self.rectangle = None
 
     def get_axes(self):
         return self.plotview.xtab.get_axes()
@@ -1926,9 +1979,7 @@ class NXProjectionPanel(QtGui.QDialog):
         for axis in range(self.plotview.ndim):
             lo, hi = self.plotview.axis[axis].get_limits()
             self.minbox[axis].setValue(lo)
-            self.minbox[axis].stepBy(1)
             self.maxbox[axis].setValue(hi)
-            self.maxbox[axis].stepBy(-2)
 
     def set_lock(self):
         for axis in range(self.plotview.ndim):
@@ -1951,6 +2002,8 @@ class NXProjectionPanel(QtGui.QDialog):
         shape = self.plotview.shape
         if len(shape) - len(limits) == shape.count(1):
             axes, limits = self.fix_projection(shape, axes, limits)
+        if self.plotview.rgb_image:
+            limits.append((None, None))
         return axes, limits
 
     def fix_projection(self, shape, axes, limits):
@@ -2026,10 +2079,6 @@ class NXProjectionPanel(QtGui.QDialog):
         return spinbox
 
     def draw_rectangle(self):
-        try:
-            self.rectangle.remove()
-        except:
-            pass
         ax = self.plotview.figure.axes[0]
         xp = self.plotview.xaxis.dim
         yp = self.plotview.yaxis.dim
@@ -2037,8 +2086,11 @@ class NXProjectionPanel(QtGui.QDialog):
         x1 = self.maxbox[xp].maxBoundaryValue(self.maxbox[xp].index)
         y0 = self.minbox[yp].minBoundaryValue(self.minbox[yp].index)
         y1 = self.maxbox[yp].maxBoundaryValue(self.maxbox[yp].index)
-        
-        self.rectangle = ax.add_patch(Rectangle((x0,y0),x1-x0,y1-y0))
+
+        if self.rectangle:
+            self.rectangle.set_bounds(x0, y0, x1-x0, y1-y0)
+        else:      
+            self.rectangle = ax.add_patch(Rectangle((x0,y0),x1-x0,y1-y0))
         self.rectangle.set_color('white')
         self.rectangle.set_facecolor('none')
         self.rectangle.set_linestyle('dashed')
@@ -2121,8 +2173,8 @@ class NXNavigationToolbar(NavigationToolbar):
             inverse = a.transData.inverted()
             lastx, lasty = inverse.transform_point((lastx, lasty))
             x, y = inverse.transform_point((x, y))
-            Xmin,Xmax=a.get_xlim()
-            Ymin,Ymax=a.get_ylim()
+            Xmin, Xmax = a.get_xlim()
+            Ymin, Ymax = a.get_ylim()
 
             # detect twinx,y axes and avoid double zooming
             twinx, twiny = False, False
@@ -2216,12 +2268,34 @@ class NXNavigationToolbar(NavigationToolbar):
         if lims is None: 
             return
         xmin, xmax, ymin, ymax = lims[0]
+        if xmin > xmax:
+            if self.plotview.xaxis.reversed:
+                self.plotview.xtab.flipped = False
+            else:
+                self.plotview.xtab.flipped = True
+            xmin, xmax = xmax, xmin
+        else:
+            if self.plotview.xaxis.reversed:
+                self.plotview.xtab.flipped = True
+            else:
+                self.plotview.xtab.flipped = False
         self.plotview.xtab.block_signals(True)
         self.plotview.xtab.axis.set_limits(xmin, xmax)
         self.plotview.xtab.minbox.setValue(xmin)
         self.plotview.xtab.maxbox.setValue(xmax)
         self.plotview.xtab.set_sliders(xmin, xmax)
         self.plotview.xtab.block_signals(False)
+        if ymin > ymax:
+            if self.plotview.yaxis.reversed:
+                self.plotview.ytab.flipped = False
+            else:
+                self.plotview.ytab.flipped = True
+            ymin, ymax = ymax, ymin
+        else:
+            if self.plotview.yaxis.reversed:
+                self.plotview.ytab.flipped = True
+            else:
+                self.plotview.ytab.flipped = False
         self.plotview.ytab.block_signals(True)
         self.plotview.ytab.axis.set_limits(ymin, ymax)
         self.plotview.ytab.minbox.setValue(ymin)
