@@ -32,7 +32,6 @@ from threading import Thread
 
 from PySide import QtGui, QtCore
 from IPython.core.magic import magic_escapes
-from IPython.nbconvert.filters.ansi import ansi2html
 
 
 def background(f):
@@ -47,8 +46,8 @@ from plotview import NXPlotView
 from datadialogs import *
 from scripteditor import ScriptDialog
 import nexpy
-from nexpy.api.nexus import (nxload, NeXusError, NXFile, NXobject, 
-                             NXfield, NXgroup, NXlink, NXroot, NXentry)
+from nexusformat.nexus import (nxload, NeXusError, NXFile, NXobject, 
+                               NXfield, NXgroup, NXlink, NXroot, NXentry)
 
 # IPython imports
 # require minimum version of IPython for RichIPythonWidget()
@@ -60,13 +59,13 @@ from IPython.qt.inprocess import QtInProcessKernelManager
 
 def report_error(context, error):
     title = type(error).__name__ + ': ' + context
-    msgBox = QtGui.QMessageBox()
-    msgBox.setText(title)
-    msgBox.setInformativeText(str(error))
-    msgBox.setStandardButtons(QtGui.QMessageBox.Ok)
-    msgBox.setDefaultButton(QtGui.QMessageBox.Ok)
-    msgBox.setIcon(QtGui.QMessageBox.Warning)
-    return msgBox.exec_()
+    message_box = QtGui.QMessageBox()
+    message_box.setText(title)
+    message_box.setInformativeText(str(error))
+    message_box.setStandardButtons(QtGui.QMessageBox.Ok)
+    message_box.setDefaultButton(QtGui.QMessageBox.Ok)
+    message_box.setIcon(QtGui.QMessageBox.Warning)
+    return message_box.exec_()
 # logging.basicConfig(level=logging.DEBUG)
 
 task_id_unique = 0
@@ -444,6 +443,12 @@ class MainWindow(QtGui.QMainWindow):
             )
         self.add_menu_action(self.data_menu, self.overplot_data_action, True)  
 
+        self.plot_image_action=QtGui.QAction("Plot RGB(A) Image",
+            self,
+            triggered=self.plot_image
+            )
+        self.add_menu_action(self.data_menu, self.plot_image_action, True)
+
         self.data_menu.addSeparator()
 
         self.add_action=QtGui.QAction("Add Data",
@@ -526,7 +531,7 @@ class MainWindow(QtGui.QMainWindow):
             for name in os.listdir(private_path):
                 if os.path.isdir(os.path.join(private_path, name)):
                     self.plugin_names.add(name)
-        public_path = pkg_resources.resource_filename('nexpy','plugins')
+        public_path = pkg_resources.resource_filename('nexpy', 'plugins')
         for name in os.listdir(public_path):
             if os.path.isdir(os.path.join(public_path, name)):
                 self.plugin_names.add(name)
@@ -754,6 +759,13 @@ class MainWindow(QtGui.QMainWindow):
             )
         self.add_menu_action(self.window_menu, self.newplot_action, True)
 
+        self.closewindow_action=QtGui.QAction("Close Plot Window",
+            self,
+            shortcut=QtGui.QKeySequence("Ctrl+Shift+W"),
+            triggered=self.close_window
+            )
+        self.add_menu_action(self.window_menu, self.closewindow_action, True)
+
         self.window_menu.addSeparator()
 
         self.active_action = {}
@@ -851,7 +863,7 @@ class MainWindow(QtGui.QMainWindow):
                 name, ext = os.path.splitext(filename)
                 if name != '__init__' and ext.startswith('.py'):
                     self.import_names.add(name)
-        public_path = pkg_resources.resource_filename('nexpy','readers')
+        public_path = pkg_resources.resource_filename('nexpy', 'readers')
         for filename in os.listdir(public_path):
             name, ext = os.path.splitext(filename)
             if name != '__init__' and ext.startswith('.py'):
@@ -1034,7 +1046,7 @@ class MainWindow(QtGui.QMainWindow):
                 imported_data = self.import_dialog.get_data()
                 try:
                     name = self.treeview.tree.get_name(self.import_dialog.import_file)
-                except:
+                except Exception:
                     name = self.treeview.tree.get_new_name()
                 if isinstance(imported_data, NXentry):
                     self.treeview.tree[name] = self.user_ns[name] = NXroot(imported_data)
@@ -1079,6 +1091,15 @@ class MainWindow(QtGui.QMainWindow):
                 node.oplot(fmt)
         except NeXusError as error:
             report_error("Overplotting Data", error)
+
+    def plot_image(self):
+        try:
+            node = self.treeview.get_node()
+            if node:        
+                self.treeview.status_message(node)
+                node.implot()
+        except NeXusError as error:
+            report_error("Plotting RGB(A) Image Data", error)
 
     def add_data(self):
         try:
@@ -1238,17 +1259,17 @@ class MainWindow(QtGui.QMainWindow):
             report_error("Fitting Data", error)
 
     def confirm_action(self, query, information=None):
-        msgBox = QtGui.QMessageBox()
-        msgBox.setText(query)
+        message_box = QtGui.QMessageBox()
+        message_box.setText(query)
         if information:
-            msgBox.setInformativeText(information)
-        msgBox.setStandardButtons(QtGui.QMessageBox.Ok | QtGui.QMessageBox.Cancel)
-        msgBox.setDefaultButton(QtGui.QMessageBox.Ok)
-        return msgBox.exec_()
+            message_box.setInformativeText(information)
+        message_box.setStandardButtons(QtGui.QMessageBox.Ok | QtGui.QMessageBox.Cancel)
+        message_box.setDefaultButton(QtGui.QMessageBox.Ok)
+        return message_box.exec_()
 
     def input_base_classes(self):
         base_class_path = pkg_resources.resource_filename(
-                              'nexpy','definitions/base_classes')
+                              'nexpy', 'definitions/base_classes')
         nxdl_files = map(os.path.basename, 
             glob.glob(os.path.join(base_class_path,'*.nxdl.xml')))
         pattern = re.compile(r'[\t\n ]+')
@@ -1428,6 +1449,11 @@ class MainWindow(QtGui.QMainWindow):
 
     def new_plot_window(self):
         plotview = NXPlotView()
+
+    def close_window(self):
+        from nexpy.gui.plotview import plotview
+        if plotview.number != 1:
+            plotview.close()
         
     def update_active(self, number):
         for num in self.active_action:
