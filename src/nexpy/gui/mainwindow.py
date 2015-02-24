@@ -69,6 +69,48 @@ def report_error(context, error):
     return msgBox.exec_()
 # logging.basicConfig(level=logging.DEBUG)
 
+task_id_unique = 0
+exec_tasks = {}
+
+class ExecTask:
+    def __init__(self, hostname, command):
+        global task_id_unique
+        task_id_unique += 1
+        self.task_id = task_id_unique
+        self.hostname = hostname
+        self.command = command
+        self.status = "PROTO"
+
+def onClick(widget, function):
+    QtCore.QObject.connect(widget,
+                           QtCore.SIGNAL('clicked()'),
+                           function)
+
+class ExecList(QtGui.QMainWindow):
+ 
+    def __init__(self):
+        super(ExecList, self).__init__()
+        print "INIT"
+        self.label = QtGui.QLabel(self)
+        self.label.setText("Tasks:")
+        self.label.move(25,20)
+        self.menu = QtGui.QComboBox(self)
+        self.menu.move(25,50)
+        self.menu.addItem("job 1")
+        self.killer = QtGui.QPushButton('&Kill', self)
+        self.killer.move(25,75)
+        onClick(self.killer, self.kill_task)
+        layout = QtGui.QVBoxLayout()
+        layout.addWidget(self.label)
+        layout.addWidget(self.menu)
+        layout.addWidget(self.killer)
+        self.setLayout(layout)
+        self.setWindowTitle("Execution list")    
+        self.setGeometry(100, 100, 400, 150)
+    
+    def kill_task(self):
+        print "KILL"
+
 class MainWindow(QtGui.QMainWindow):
 
     #---------------------------------------------------------------------------
@@ -614,6 +656,12 @@ class MainWindow(QtGui.QMainWindow):
             )
         self.add_menu_action(self.window_menu, self.exec_list_action)
 
+        self.sleep_action=QtGui.QAction("Sleep",
+            self,
+            triggered=self.exec_sleep
+            )
+        self.add_menu_action(self.window_menu, self.sleep_action)
+
         self.cctw_action=QtGui.QAction("CCTW",
             self,
             triggered=self.exec_cctw
@@ -621,8 +669,26 @@ class MainWindow(QtGui.QMainWindow):
         self.add_menu_action(self.window_menu, self.cctw_action)
 
     def show_exec_list(self):
-        pass
+        print "ExecList"
+        self.exec_list = ExecList()
+        self.exec_list.show()
 
+    def textQ(self, message, default=""):
+        return QtGui.QInputDialog.getText(self, "NeXpy",
+                                          message, text=default)
+
+    sleepHostnamePrevious = ""
+
+    def exec_sleep(self):
+        hostname, result = self.textQ("Enter hostname:")
+        if not result: return
+        sleep_time, result = self.textQ("Enter sleep time:")
+        if not result: return
+        task = ExecTask(hostname, "sleep " + sleep_time)
+        exec_tasks[task.task_id] = task
+        
+        
+   
     def exec_cctw(self):
         print "Running CCTW!"
         if self.treeview.get_node() == None:
