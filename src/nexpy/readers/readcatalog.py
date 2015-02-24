@@ -26,9 +26,10 @@ Two GUI elements are provided for convenience:
 """
 import os                           #@UnusedImport
 
-from IPython.external.qt import QtGui
+from IPython.external.qt import QtCore, QtGui
 
-from nexpy.api.nexus import *       #@UnusedWildImport
+import numpy as np
+from nexusformat.nexus import *
 from nexpy.gui.importdialog import BaseImportDialog
 
 filetype = "Catalog File"

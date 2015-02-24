@@ -28,8 +28,8 @@ Two GUI elements are provided for convenience:
 
 from IPython.external.qt import QtGui
 
-import numpy as np                  #@UnusedImport
-from nexpy.api.nexus import *       #@UnusedWildImport
+import numpy as np
+from nexusformat.nexus import *
 from nexpy.gui.importdialog import BaseImportDialog
 
 filetype = "Text File"

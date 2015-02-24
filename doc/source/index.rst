@@ -12,9 +12,11 @@ NeXpy provides a high-level python interface to `NeXus data
 <http://www.nexusformat.org/>`_ contained within a simple GUI. It is designed to 
 provide an intuitive interactive toolbox allowing users both to access existing 
 NeXus files and to create new NeXus-conforming data structures without expert 
-knowledge of the file format.
+knowledge of the file format. The underlying Python API for reading and writing
+NeXus files is provided by the `nexusformat 
+<https://github.com/nexpy/nexusformat>`_ package, which is also described here.
 
-.. note:: NeXpy v0.5.1 is now available for `download 
+.. note:: NeXpy v0.6.0 is now available for `download 
           <https://pypi.python.org/pypi/NeXpy/>`_. This is a beta-release so 
           please post any issues that you encounter on the `NeXpy GitHub 
           <https://github.com/nexpy/nexpy/issues>`_. 
@@ -24,8 +26,8 @@ knowledge of the file format.
    :maxdepth: 2
 
    includeme
-   pythongui
    pythonshell
+   pythongui
    treeapi
    readers
    importdialog

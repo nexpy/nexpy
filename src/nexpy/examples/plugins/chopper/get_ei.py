@@ -2,7 +2,7 @@ from PySide import QtGui
 import numpy as np
 from nexpy.gui.datadialogs import BaseDialog
 from nexpy.gui.mainwindow import report_error
-from nexpy.api.nexus import NeXusError
+from nexusformat.nexus import NeXusError
 
 
 def show_dialog(parent=None):
