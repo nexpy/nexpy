@@ -2738,6 +2738,7 @@ class NXgroup(NXobject):
         """
         Compares the _entries dictionaries
         """
+        if other == None: return False
         return self._entries == other._entries
 
     def __deepcopy__(self, memo):
