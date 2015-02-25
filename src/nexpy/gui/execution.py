@@ -24,6 +24,12 @@ class ExecManager:
         task = ExecTask(self.exec_task_id_unique, host, command)
         self.exec_tasks[self.exec_task_id_unique] = task 
         task.run()
+        
+    def terminate(self, task_id):
+        task = self.exec_tasks[task_id]
+        print "KILLING", task
+        task.terminate()
+        del self.exec_tasks[task_id]
 
 class ExecTask:
     """
@@ -53,7 +59,6 @@ class ExecWindow(QtGui.QMainWindow):
     def __init__(self, mgr):
         super(ExecWindow, self).__init__()
         self.mgr = mgr
-        print "INIT"
         self.label = QtGui.QLabel(self)
         self.label.move(25,20)
         self.menu = QtGui.QComboBox(self)
@@ -75,7 +80,6 @@ class ExecWindow(QtGui.QMainWindow):
         self.refresh()
     
     def refresh(self):
-        print "REFRESH"
         tasks = self.mgr.exec_tasks
         count = len(tasks)
         self.label.setText("Tasks (%i):"%count)
@@ -95,9 +99,8 @@ class ExecWindow(QtGui.QMainWindow):
         idx = self.menu.currentIndex()
         if idx < 0: return
         task_id = self.menuMap[idx]
-        task = self.mgr.exec_tasks[task_id]
-        print "KILLING", task
-        task.terminate()
+        self.mgr.terminate(task_id)
+        self.refresh()
         
-        
+
         
