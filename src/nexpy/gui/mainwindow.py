@@ -622,7 +622,7 @@ class MainWindow(QtGui.QMainWindow):
         
         self.exec_list_action=QtGui.QAction("Execution listing",
             self,
-            triggered=self.show_exec_list
+            triggered=self.show_execwindow
             )
         self.add_menu_action(self.exec_menu, self.exec_list_action)
 
@@ -640,7 +640,7 @@ class MainWindow(QtGui.QMainWindow):
             )
         self.add_menu_action(self.exec_menu, self.cctw_action)
 
-    def show_exec_list(self):
+    def show_execwindow(self):
         print "ExecWindow"
         if self.execwindow == None:
             self.execwindow = ExecWindow(self.exec_mgr)
@@ -657,6 +657,7 @@ class MainWindow(QtGui.QMainWindow):
         sleep_time, result = self.textQ("Enter sleep time:")
         if not result: return
         self.exec_mgr.newTask(hostname, "sleep " + sleep_time)
+        self.show_execwindow()
    
     def exec_cctw(self):
         print "Running CCTW!"

@@ -94,6 +94,7 @@ class ExecWindow(QtGui.QMainWindow):
             i += 1
         self.combobox.adjustSize()
         self.show()
+        self.raise_()
             
     def kill_task(self):
         idx = self.combobox.currentIndex()
