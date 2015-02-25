@@ -14,22 +14,22 @@ class ExecManager:
     We use mgr=Manager
     """ 
     def __init__(self):
-        self.exec_task_id_unique = 0    
-        self.exec_tasks = {}
+        self.task_id_unique = 0
+        self.tasks = {}
         self.exec_hosts_recent = []
         self.exec_cmds_recent = []
      
     def newTask(self, host, command):
-        self.exec_task_id_unique += 1
-        task = ExecTask(self.exec_task_id_unique, host, command)
-        self.exec_tasks[self.exec_task_id_unique] = task 
+        self.task_id_unique += 1
+        task = ExecTask(self.task_id_unique, host, command)
+        self.tasks[self.task_id_unique] = task
         task.run()
         
     def terminate(self, task_id):
-        task = self.exec_tasks[task_id]
+        task = self.tasks[task_id]
         print "KILLING", task
         task.terminate()
-        del self.exec_tasks[task_id]
+        del self.tasks[task_id]
 
 class ExecTask:
     """
@@ -61,8 +61,8 @@ class ExecWindow(QtGui.QMainWindow):
         self.mgr = mgr
         self.label = QtGui.QLabel(self)
         self.label.move(25,20)
-        self.menu = QtGui.QComboBox(self)
-        self.menu.move(25,50)
+        self.combobox = QtGui.QComboBox(self)
+        self.combobox.move(25,50)
 
         self.refresher = QtGui.QPushButton('&Refresh', self)
         self.refresher.move(25,75)
@@ -72,7 +72,7 @@ class ExecWindow(QtGui.QMainWindow):
         onClick(self.killer, self.kill_task)
         layout = QtGui.QVBoxLayout()
         layout.addWidget(self.label)
-        layout.addWidget(self.menu)
+        layout.addWidget(self.combobox)
         layout.addWidget(self.killer)
         self.setLayout(layout)
         self.setWindowTitle("Execution list")    
@@ -80,27 +80,24 @@ class ExecWindow(QtGui.QMainWindow):
         self.refresh()
     
     def refresh(self):
-        tasks = self.mgr.exec_tasks
+        tasks = self.mgr.tasks
         count = len(tasks)
         self.label.setText("Tasks (%i):"%count)
-        # Map menu indices to task IDs
-        self.menuMap = {}
-        self.menu.clear()
+        # Map combobox indices to task IDs
+        self.comboboxMap = {}
+        self.combobox.clear()
         i = 0 
         for task_id in tasks:
             task = tasks[task_id]
-            self.menu.addItem(repr(task))
-            self.menuMap[i] = task_id
+            self.combobox.addItem(repr(task))
+            self.comboboxMap[i] = task_id
             i += 1
-        self.menu.adjustSize()
+        self.combobox.adjustSize()
         self.show()
             
     def kill_task(self):
-        idx = self.menu.currentIndex()
-        if idx < 0: return
-        task_id = self.menuMap[idx]
+        idx = self.combobox.currentIndex()
+        if idx < 0: return # combobox is empty
+        task_id = self.comboboxMap[idx]
         self.mgr.terminate(task_id)
         self.refresh()
-        
-
-        

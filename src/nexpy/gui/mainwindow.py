@@ -167,7 +167,7 @@ class MainWindow(QtGui.QMainWindow):
 
         self.exec_mgr = ExecManager()
         # This is initialized on menu selection
-        self.exec_list = None
+        self.execwindow = None
 
         self.file_filter = ';;'.join((
             "NeXus Files (*.nxs *.nx5 *.h5 *.hdf *.hdf5)",
@@ -618,32 +618,34 @@ class MainWindow(QtGui.QMainWindow):
         self.add_menu_action(self.magic_menu, self.whos_action)
 
     def init_exec_menu(self):
-        self.window_menu = self.menu_bar.addMenu("&Execution")
+        self.exec_menu = self.menu_bar.addMenu("&Execution")
         
         self.exec_list_action=QtGui.QAction("Execution listing",
             self,
             triggered=self.show_exec_list
             )
-        self.add_menu_action(self.window_menu, self.exec_list_action)
+        self.add_menu_action(self.exec_menu, self.exec_list_action)
+
+        self.exec_menu.addSeparator()
 
         self.sleep_action=QtGui.QAction("Sleep",
             self,
             triggered=self.exec_sleep
             )
-        self.add_menu_action(self.window_menu, self.sleep_action)
+        self.add_menu_action(self.exec_menu, self.sleep_action)
 
         self.cctw_action=QtGui.QAction("CCTW",
             self,
             triggered=self.exec_cctw
             )
-        self.add_menu_action(self.window_menu, self.cctw_action)
+        self.add_menu_action(self.exec_menu, self.cctw_action)
 
     def show_exec_list(self):
         print "ExecWindow"
-        if self.exec_list == None:
-            self.exec_list = ExecWindow(self.exec_mgr)
+        if self.execwindow == None:
+            self.execwindow = ExecWindow(self.exec_mgr)
         else:
-            self.exec_list.refresh()
+            self.execwindow.refresh()
 
     def textQ(self, message, default=""):
         return QtGui.QInputDialog.getText(self, "NeXpy",
