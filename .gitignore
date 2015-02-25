@@ -49,3 +49,6 @@ Icon?
 .settings
 .project
 .pydevproject
+
+# emacs
+*~
