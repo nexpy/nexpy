@@ -63,6 +63,8 @@ class ExecWindow(QtGui.QMainWindow):
         self.label.move(25,20)
         self.combobox = QtGui.QComboBox(self)
         self.combobox.move(25,50)
+        self.combobox.SizeAdjustPolicy = \
+            QtGui.QComboBox.AdjustToContents
 
         self.refresher = QtGui.QPushButton('&Refresh', self)
         self.refresher.move(25,75)
@@ -76,7 +78,7 @@ class ExecWindow(QtGui.QMainWindow):
         layout.addWidget(self.killer)
         self.setLayout(layout)
         self.setWindowTitle("Execution list")    
-        self.setGeometry(100, 100, 400, 150)
+        self.setGeometry(100, 100, 1000, 150)
         self.refresh()
     
     def refresh(self):
@@ -86,10 +88,14 @@ class ExecWindow(QtGui.QMainWindow):
         # Map combobox indices to task IDs
         self.comboboxMap = {}
         self.combobox.clear()
-        i = 0 
+        i = 0
         for task_id in tasks:
             task = tasks[task_id]
-            self.combobox.addItem(repr(task))
+            done,exitcode = task.ssh.isDone()
+            prefix = ""
+            if done: prefix = "(exit:%i) "%exitcode
+            text = prefix + repr(task)
+            self.combobox.addItem(text)
             self.comboboxMap[i] = task_id
             i += 1
         self.combobox.adjustSize()
