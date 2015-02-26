@@ -1761,7 +1761,7 @@ class RemoteDialog(BaseDialog):
         annotations_present = result[0]['annotations_present']
         return annotations_present
 
-    def get_member_path(self):
+    def get_member_annotation(self, tag):
         member_id = self.get_member_id(self.member_uri)
         logging.debug("member_id: " + str(member_id))
         catalog = self.wrap.catalogClient
@@ -1773,9 +1773,9 @@ class RemoteDialog(BaseDialog):
                                            member_id,
                                            annotations)
         record = results[0]
-        path = record['path'][0]
-        logging.debug("path: " + str(path))
-        return path
+        result = record[tag][0]
+        logging.debug(tag + ": " + str(result))
+        return result
 
     def accept(self):
         if len(self.member_uri) > 0:
@@ -1783,7 +1783,7 @@ class RemoteDialog(BaseDialog):
             localPort = int(self.port_box.text())
             uri = "PYRO:%s@localhost:%i" % (user, localPort)
             logging.info("Pyro URI: " + uri)
-            remote_path = self.get_member_path()
+            remote_path = self.get_member_annotation("path")
             logging.info("Pyro file name: " + remote_path)
             try:
                 from nexpy.gui.consoleapp import _mainwindow, _shell
@@ -1792,7 +1792,9 @@ class RemoteDialog(BaseDialog):
                 name = _mainwindow.treeview.tree.get_name(remote_path)
                 logging.info("Opening remote NeXus file '%s' on '%s' as workspace '%s'"
                              % (remote_path, uri, name))
-                _mainwindow.treeview.tree[name] = _shell[name] = nxloadremote(remote_path, uri)
+                hostname = self.get_member_annotation("host")
+                _mainwindow.treeview.tree[name] = _shell[name] = \
+                    nxloadremote(remote_path, uri, hostname=hostname)
                 super(RemoteDialog, self).accept()
             except CommunicationError as e:
                 msgBox = QMessageBox()
@@ -1810,7 +1812,9 @@ class RemoteDialog(BaseDialog):
     def ssh_start(self):
         logging.info("")
         user = self.user_box.text()
-        hostname = 'nxrs.msd.anl.gov'
+        hostname = self.get_member_annotation("host")
+        # hostname = 'nxrs.msd.anl.gov'
+        print "Got HOST", hostname
         localPort = int(self.port_box.text())
         from nexusformat.pyro.session import NeXPyroSession
         self.ssh_session = NeXPyroSession(user, hostname, localPort)

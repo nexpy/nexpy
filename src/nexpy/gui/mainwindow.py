@@ -669,9 +669,11 @@ class MainWindow(QtGui.QMainWindow):
             QMessageBox.critical(self, "NeXpy", \
                                  "No data is selected!")
             return
-        print self.treeview.get_node()
-        print self.treeview.get_node().__class__
-        print self.treeview.get_node().nxfile
+        hostname = self.treeview.get_node().nxfile.hostname
+        filename = self.treeview.get_node().nxfile._filename
+        self.exec_mgr.newTask(hostname,
+                              "/home/wozniak/cctw.sh " +
+                              filename)
 
     def init_window_menu(self):
         self.window_menu = self.menu_bar.addMenu("&Window")
