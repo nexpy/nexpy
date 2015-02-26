@@ -828,7 +828,7 @@ class MainWindow(QtGui.QMainWindow):
         self.import_menu = self.file_menu.addMenu("Import")
         private_path = os.path.join(_nexpy_dir, 'readers')
         if os.path.isdir(private_path):
-             for filename in os.listdir(private_path):
+            for filename in os.listdir(private_path):
                 name, ext = os.path.splitext(filename)
                 if name != '__init__' and ext.startswith('.py'):
                     self.import_names.add(name)
