@@ -1825,3 +1825,7 @@ class RemoteDialog(BaseDialog):
         self.ssh_session = None
         self.ssh_start_button.setEnabled(True)
         self.ssh_stop_button.setEnabled(False)
+
+    def finalize(self):
+        if self.ssh_session != None:
+            self.ssh_session.terminate()

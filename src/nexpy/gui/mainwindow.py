@@ -165,6 +165,8 @@ class MainWindow(QtGui.QMainWindow):
 
         self.init_menu_bar()
 
+        self.remote_dialog = None
+
         self.exec_mgr = ExecManager()
         # This is initialized on menu selection
         self.execwindow = None
@@ -193,6 +195,8 @@ class MainWindow(QtGui.QMainWindow):
         pixmap = QtGui.QPixmap(self._app.icon.pixmap(QtCore.QSize(64,64)))
         box.setIconPixmap(pixmap)
         reply = box.exec_()
+        if self.remote_dialog != None:
+            self.remote_dialog.finalize()
 
         return reply
 
@@ -894,8 +898,8 @@ class MainWindow(QtGui.QMainWindow):
 
     def open_remote_file(self):
         try:
-            dialog = RemoteDialog(self)
-            dialog.show()
+            self.remote_dialog = RemoteDialog(self)
+            self.remote_dialog.show()
         except NeXusError as error:
             report_error("Opening Remote File", error)
 
