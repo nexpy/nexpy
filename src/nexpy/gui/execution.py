@@ -31,6 +31,10 @@ class ExecManager:
         task.terminate()
         del self.tasks[task_id]
 
+    def finalize(self):
+        for task_id in self.tasks:
+            self.tasks[task_id].terminate()
+
 class ExecTask:
     """
     A remote task tracked by the manager
@@ -50,7 +54,7 @@ class ExecTask:
     def run(self):
         self.ssh = NeXPyroSSH(self.user, self.hostname,
                               command=self.command)
-    
+
     def terminate(self):
         self.ssh.terminate()
 
@@ -59,6 +63,9 @@ class ExecWindow(QtGui.QMainWindow):
     def __init__(self, mgr):
         super(ExecWindow, self).__init__()
         self.mgr = mgr
+
+        self.outputViews = {}
+
         self.label = QtGui.QLabel(self)
         self.label.move(25,20)
         self.combobox = QtGui.QComboBox(self)
@@ -69,8 +76,11 @@ class ExecWindow(QtGui.QMainWindow):
         self.refresher = QtGui.QPushButton('&Refresh', self)
         self.refresher.move(25,75)
         onClick(self.refresher, self.refresh)
+        self.outviewer = QtGui.QPushButton('Show &Output', self)
+        self.outviewer.move(125,75)
+        onClick(self.outviewer, self.outview)
         self.killer = QtGui.QPushButton('&Kill', self)
-        self.killer.move(125,75)
+        self.killer.move(225,75)
         onClick(self.killer, self.kill_task)
         layout = QtGui.QVBoxLayout()
         layout.addWidget(self.label)
@@ -88,7 +98,7 @@ class ExecWindow(QtGui.QMainWindow):
         # Map combobox indices to task IDs
         self.comboboxMap = {}
         self.combobox.clear()
-        i = 0
+        idx = 0
         for task_id in tasks:
             task = tasks[task_id]
             done,exitcode = task.ssh.isDone()
@@ -96,15 +106,55 @@ class ExecWindow(QtGui.QMainWindow):
             if done: prefix = "(exit:%i) "%exitcode
             text = prefix + repr(task)
             self.combobox.addItem(text)
-            self.comboboxMap[i] = task_id
-            i += 1
+            self.comboboxMap[idx] = task_id
+            idx += 1
         self.combobox.adjustSize()
         self.show()
         self.raise_()
             
+    def outview(self):
+        idx = self.combobox.currentIndex()
+        if idx < 0: return # combobox is empty
+        task_id = self.comboboxMap[idx]
+        if task_id in self.outputViews:
+            outputView = self.outputViews[task_id]
+        else:
+            task = self.mgr.tasks[task_id]
+            outputView = ExecOutput(task_id, task)
+            self.outputViews[task_id] = outputView
+        outputView.refresh()
+
     def kill_task(self):
         idx = self.combobox.currentIndex()
         if idx < 0: return # combobox is empty
         task_id = self.comboboxMap[idx]
         self.mgr.terminate(task_id)
         self.refresh()
+
+class ExecOutput(QtGui.QMainWindow):
+    def __init__(self, task_id, task):
+        super(ExecOutput, self).__init__()
+        self.task = task
+        self.setWindowTitle("NeXpy: Output: (%i)"%task_id)
+        self.setGeometry(100, 100, 800, 600)
+        labelHost = QtGui.QLabel(self)
+        labelHost.move(25,25)
+        labelHost.setText("hostname: " + task.ssh.host)
+        labelCmd = QtGui.QLabel(self)
+        labelCmd.setText("command: " + task.ssh.command)
+        labelCmd.move(25,50)
+        self.editor = QtGui.QTextEdit(self)
+        self.editor.move(25,75)
+        self.editor.setFixedWidth(750)
+        self.editor.setFixedHeight(550)
+        layout = QtGui.QVBoxLayout()
+        layout.addWidget(labelHost)
+        layout.addWidget(labelCmd)
+        layout.addWidget(self.editor)
+        self.setLayout(layout)
+
+    def refresh(self):
+        text = self.task.ssh.getOutput()
+        self.editor.setText(text)
+        self.show()
+        self.raise_()

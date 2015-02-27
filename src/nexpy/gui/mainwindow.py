@@ -197,6 +197,7 @@ class MainWindow(QtGui.QMainWindow):
         reply = box.exec_()
         if self.remote_dialog != None:
             self.remote_dialog.finalize()
+        self.exec_mgr.finalize()
 
         return reply
 
@@ -656,9 +657,11 @@ class MainWindow(QtGui.QMainWindow):
                                           message, text=default)
 
     def exec_sleep(self):
-        hostname, result = self.textQ("Enter hostname:")
+        hostname, result = self.textQ("Enter hostname:",
+                                      default="nxrs.msd.anl.gov")
         if not result: return
-        sleep_time, result = self.textQ("Enter sleep time:")
+        sleep_time, result = self.textQ("Enter sleep time:",
+                                        default="100")
         if not result: return
         self.exec_mgr.newTask(hostname, "sleep " + sleep_time)
         self.show_execwindow()
