@@ -1649,7 +1649,7 @@ class RemoteDialog(BaseDialog):
         catalog_layout.addWidget(catalog_button)
         self.layout = QtGui.QVBoxLayout()
         self.layout.addLayout(catalog_layout)
-        self.layout.addWidget(self.buttonbox(save=True))
+        self.layout.addWidget(self.buttonbox())
         self.setLayout(self.layout)
         self.dataset_box = None
         self.member_box = None
