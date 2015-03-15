@@ -1272,8 +1272,14 @@ class MainWindow(QtGui.QMainWindow):
         if display_data['status'] != 'ok':
             self.log.warn("%%lsmagic user-expression failed: %s" % display_data)
             return
-        
-        mdict = json.loads(display_data['data'].get('application/json', {}))
+
+        data = display_data['data'].get('application/json', {})
+        if isinstance(data, dict):
+            mdict = data
+        elif isinstance(data, basestring):
+            mdict = json.loads(data)
+        else:
+            return
         
         for mtype in sorted(mdict):
             subdict = mdict[mtype]
