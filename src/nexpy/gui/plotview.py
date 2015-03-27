@@ -699,11 +699,11 @@ class NXPlotView(QtGui.QWidget):
     def set_log_axis(self):
         ax = self.figure.gca()
         if self.xtab.logbox.isChecked():
-            ax.set_xscale('symlog')
+            ax.set_xscale('log')
         else:
             ax.set_xscale('linear')
         if self.ytab.logbox.isChecked():
-            ax.set_yscale('symlog')
+            ax.set_yscale('log')
         else:
             ax.set_yscale('linear')
         self.draw()
@@ -2000,7 +2000,7 @@ class NXProjectionPanel(QtGui.QDialog):
             axes = [y,x]
         limits = self.get_limits()
         shape = self.plotview.shape
-        if len(shape) - len(limits) == shape.count(1):
+        if len(shape) - len(limits) > 0 and len(shape) - len(limits) == shape.count(1):
             axes, limits = self.fix_projection(shape, axes, limits)
         if self.plotview.rgb_image:
             limits.append((None, None))
