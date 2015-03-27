@@ -182,34 +182,45 @@ class BaseDialog(QtGui.QDialog):
         Returns a Qt grid layout with one row for each parameter.
         
         'parameters' should be a list of parameters, each one of which is a 
-        tuple containing the parameter label and its default value. If the 
-        default value is a list or tuple, a QComboBox will be used instead of
-        a QLineEdit to select the parameter.
+        tuple containing the parameter label, its default value, and a checkbox
+        default value. If the default value is a list or tuple, a QComboBox will 
+        be used instead of a QLineEdit to select the parameter. If the checkbox
+        value is None, no checkbox will be added.
         """
         grid = QtGui.QGridLayout()
         grid.setSpacing(10)
-        self.grid_row = {}
+        self.grid_value = {}
+        self.grid_checkbox = {}
         row = 0
         for parameter in parameters:
-            label, value = parameter
-            self.grid_row[label].label = QtGui.QLabel(label)
+            label, value, checkbox = parameter
+            self.grid_value[label] = QtGui.QLabel(label)
             if isinstance(value, list) or isinstance(value, tuple):
-                self.grid_row[label].box = QtGui.QComboBox()
-                self.grid_row[label].box.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToContents)
+                self.grid_value[label] = QtGui.QComboBox()
+                self.grid_value[label].setSizeAdjustPolicy(QtGui.QComboBox.AdjustToContents)
                 for v in value:
-                    self.grid_row[label].box.addItem(str(v))
+                    self.grid_value[label].addItem(str(v))
             else:
-                self.grid_row[label].box = QtGui.QLineEdit()
+                self.grid_value[label] = QtGui.QLineEdit()
                 if value is not None:
-                    self.grid_row[label].box.setText(str(value))
-            grid.addWidget(self.grid_row[label].label, row, 0)
-            grid.addWidget(self.grid_row[label].box, row, 1)
+                    self.grid_value[label].box.setText(str(value))
+            grid.addWidget(label, row, 0)
+            grid.addWidget(self.grid_value[label], row, 1)
+            if checkbox is not None:
+                self.grid_checkbox[label] = QtGui.QCheckBox()
+                self.grid_checkbox[label].setCheckState(checkbox)
             row += 1
         return grid 
 
-    def get_parameter(self, label):
-        return self.grid_row[label].box.text()
+    def get_parameter_value(self, label):
+        if isinstance(self.grid_value[label], QtGui.QComboBox):
+            return self.grid_value[label].currentText()
+        else:
+            return self.grid_value[label].text()
  
+    def is_parameter_checked(self, label):
+        return self.grid_checkbox[label].isChecked()
+
     def read_parameter(self, root, path):
         """
         Read the value from the NeXus path.
