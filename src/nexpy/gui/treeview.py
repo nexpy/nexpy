@@ -283,24 +283,24 @@ class NXTreeView(QtGui.QTreeView):
 
     def popMenu(self, node):
         menu = QtGui.QMenu(self)
-        if node.is_plottable():
-            menu.addAction(self.plot_data_action)
-            try:
-                if ((isinstance(node, NXgroup) and 
-                     node.nxsignal and node.nxsignal.plot_rank == 1) or
+        try:
+            if node.is_plottable():
+                menu.addAction(self.plot_data_action)
+                if ((isinstance(node, NXgroup) and
+                    node.nxsignal and node.nxsignal.plot_rank == 1) or
                     (isinstance(node, NXfield) and node.plot_rank == 1)):
                     menu.addAction(self.plot_line_action)
                     if self.mainwindow.plotview.ndim == 1:
                         menu.addAction(self.overplot_data_action)
                         menu.addAction(self.overplot_line_action)
-            except NeXusError:
-                pass
-            if ((isinstance(node, NXgroup) and node.plottable_data and 
-                 node.plottable_data.nxsignal and 
-                 node.plottable_data.nxsignal.plot_rank > 2) or
-                (isinstance(node, NXfield) and node.plot_rank > 2)):
-                menu.addAction(self.plot_image_action)
-            menu.addSeparator()
+                if ((isinstance(node, NXgroup) and node.plottable_data and
+                     node.plottable_data.nxsignal and
+                     node.plottable_data.nxsignal.plot_rank > 2) or
+                    (isinstance(node, NXfield) and node.plot_rank > 2)):
+                    menu.addAction(self.plot_image_action)
+                menu.addSeparator()
+        except Exception:
+            pass
         menu.addAction(self.add_action)
         if not isinstance(node, NXroot):
             if isinstance(node, NXgroup):

@@ -234,7 +234,7 @@ class NXConsoleApp(BaseIPythonApplication, IPythonConsoleApp):
         _shell = self.window.user_ns
         s = ("import nexusformat.nexus as nx\n"
              "from nexusformat.nexus import NXgroup, NXfield, NXattr, NXlink\n"
-             "from nexusformat.nexus import NXFile\n"
+             "from nexusformat.nexus import *\n"
              "import nexpy\n"
              "from nexpy.gui.plotview import NXPlotView")
         exec s in self.window.user_ns
