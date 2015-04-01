@@ -381,6 +381,8 @@ class NXPlotView(QtGui.QWidget):
         else:
             self.aspect = 'auto'
 
+        self.ax.ticklabel_format(useOffset=False)
+
         self.draw()
         self.otab.push_current()
         mpl.interactive(True)
