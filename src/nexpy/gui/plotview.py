@@ -398,11 +398,11 @@ class NXPlotView(QtGui.QWidget):
             idx.extend([np.s_[:], np.s_[:]])
             self.signal = self.data.nxsignal[tuple(idx)][()]
         else:
-            self.signal = self.data.nxsignal[()]
+            self.signal = self.data.nxsignal[()].reshape(self.shape)
 
         if self.data.nxaxes is not None:
             axes = []
-            for axis in self.data.nxaxes[:self.ndim]:
+            for axis in self.data.nxaxes:
                 if axis.size > 1:
                     axes.append(axis)
         else:
