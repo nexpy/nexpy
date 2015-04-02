@@ -28,6 +28,7 @@ from matplotlib.image import NonUniformImage
 from matplotlib.colors import LogNorm, Normalize
 from matplotlib.cm import get_cmap
 from matplotlib.patches import Circle, Ellipse, Rectangle
+from matplotlib.transforms import nonsingular
 
 from nexusformat.nexus import NXfield, NXdata, NXroot, NeXusError
 
@@ -914,21 +915,15 @@ class NXPlotView(QtGui.QWidget):
             self.ptab.panel.close()
 
     def update_tabs(self):
-        self.xtab.minbox.setRange(self.xaxis.min, self.xaxis.max)
-        self.xtab.maxbox.setRange(self.xaxis.min, self.xaxis.max)
-        self.xtab.minbox.setValue(self.xaxis.lo)
-        self.xtab.maxbox.setValue(self.xaxis.hi)
+        self.xtab.set_range()
+        self.xtab.set_limits(self.xaxis.lo, self.xaxis.hi)
         self.xtab.set_sliders(self.xaxis.lo, self.xaxis.hi)
-        self.ytab.minbox.setRange(self.yaxis.min, self.yaxis.max)
-        self.ytab.maxbox.setRange(self.yaxis.min, self.yaxis.max)
-        self.ytab.minbox.setValue(self.yaxis.lo)
-        self.ytab.maxbox.setValue(self.yaxis.hi)
+        self.ytab.set_range()
+        self.ytab.set_limits(self.yaxis.lo, self.yaxis.hi)
         self.ytab.set_sliders(self.yaxis.lo, self.yaxis.hi)
         if self.ndim > 1:
-            self.vtab.minbox.setRange(self.vaxis.min, self.vaxis.max)
-            self.vtab.maxbox.setRange(self.vaxis.min, self.vaxis.max)
-            self.vtab.minbox.setValue(self.vaxis.lo)
-            self.vtab.maxbox.setValue(self.vaxis.hi)
+            self.vtab.set_range()
+            self.vtab.set_limits(self.vaxis.lo, self.vaxis.hi)
             self.vtab.set_sliders(self.vaxis.lo, self.vaxis.hi)
 
     def change_axis(self, tab, axis):
@@ -1169,12 +1164,8 @@ class NXPlotTab(QtGui.QWidget):
             self.minbox.diff = self.maxbox.diff = axis.hi - axis.lo
             self.pause()
         else:
-            self.minbox.setRange(axis.min, axis.max)
-            self.maxbox.setRange(axis.min, axis.max)
-            self.minbox.setValue(axis.lo)
-            self.maxbox.setValue(axis.hi)
-            self.minbox.setSingleStep((axis.max-axis.min)/200)
-            self.maxbox.setSingleStep((axis.max-axis.min)/200)
+            self.set_range()
+            self.set_limits(axis.lo, axis.hi)
         self.minbox.old_value = axis.lo
         self.maxbox.old_value = axis.hi
         if not self.zaxis:
@@ -1397,9 +1388,20 @@ class NXPlotTab(QtGui.QWidget):
 
     @QtCore.Slot()
     def reset(self):
+        self.set_range()
+        self.set_limits(self.axis.min, self.axis.max)
+
+    def set_range(self):
+        if np.isclose(self.axis.min, self.axis.max):
+            self.axis.min, self.axis.max = nonsingular(self.axis.min, self.axis.max)
         self.minbox.setRange(self.axis.min, self.axis.max)
         self.maxbox.setRange(self.axis.min, self.axis.max)
-        self.set_limits(self.axis.min, self.axis.max)
+        range = self.axis.max - self.axis.min
+        decimals = int(max(0, 2-np.rint(np.log10(range))))
+        self.minbox.setSingleStep((range)/100)
+        self.maxbox.setSingleStep((range)/100)
+        self.minbox.setDecimals(decimals)
+        self.maxbox.setDecimals(decimals)
 
     def get_limits(self):
         return self.minbox.value(), self.maxbox.value()
