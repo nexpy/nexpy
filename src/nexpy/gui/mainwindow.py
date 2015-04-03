@@ -44,6 +44,7 @@ def background(f):
 from treeview import NXTreeView
 from plotview import NXPlotView
 from datadialogs import *
+from execution import ExecManager,  ExecWindow
 from scripteditor import ScriptDialog
 import nexpy
 from nexusformat.nexus import (nxload, NeXusError, NXFile, NXobject, 
@@ -66,6 +67,8 @@ def report_error(context, error):
     message_box.setDefaultButton(QtGui.QMessageBox.Ok)
     message_box.setIcon(QtGui.QMessageBox.Warning)
     return message_box.exec_()
+# logging.basicConfig(level=logging.DEBUG)
+
 
 
 class MainWindow(QtGui.QMainWindow):
@@ -162,6 +165,12 @@ class MainWindow(QtGui.QMainWindow):
 
         self.init_menu_bar()
 
+        self.remote_dialog = None
+
+        self.exec_mgr = ExecManager()
+        # This is initialized on menu selection
+        self.execwindow = None
+
         self.file_filter = ';;'.join((
             "NeXus Files (*.nxs *.nx5 *.h5 *.hdf *.hdf5)",
             "Any Files (*.* *)"))
@@ -186,6 +195,9 @@ class MainWindow(QtGui.QMainWindow):
         pixmap = QtGui.QPixmap(self._app.icon.pixmap(QtCore.QSize(64,64)))
         box.setIconPixmap(pixmap)
         reply = box.exec_()
+        if self.remote_dialog != None:
+            self.remote_dialog.finalize()
+        self.exec_mgr.finalize()
 
         return reply
 
@@ -214,6 +226,7 @@ class MainWindow(QtGui.QMainWindow):
         self.init_plugin_menus()
         self.init_view_menu()
         self.init_magic_menu()
+        self.init_exec_menu()
         self.init_window_menu()
         self.init_script_menu()
         self.init_help_menu()
@@ -246,14 +259,15 @@ class MainWindow(QtGui.QMainWindow):
         self.addAction(self.openeditablefile_action)  
 
         try:
-            import globusonline.catalog.client.examples.catalog_wrapper
+            import globusonline.catalog.client.examples.catalog_wrapper # @UnusedImport
             self.openremotefile_action=QtGui.QAction("Open Remote...",
                 self,
                 triggered=self.open_remote_file
                 )
             self.add_menu_action(self.file_menu, self.openremotefile_action)
-        except ImportError:
-            pass
+        except ImportError as e:
+            logging.info("Did not find Globus Catalog API")
+            logging.info(e)
 
         self.savefile_action=QtGui.QAction("&Save as...",
             self,
@@ -608,6 +622,62 @@ class MainWindow(QtGui.QMainWindow):
             triggered=self.whos_magic_console)
         self.add_menu_action(self.magic_menu, self.whos_action)
 
+    def init_exec_menu(self):
+        self.exec_menu = self.menu_bar.addMenu("&Execution")
+        
+        self.exec_list_action=QtGui.QAction("Execution listing",
+            self,
+            triggered=self.show_execwindow
+            )
+        self.add_menu_action(self.exec_menu, self.exec_list_action)
+
+        self.exec_menu.addSeparator()
+
+        self.sleep_action=QtGui.QAction("Sleep",
+            self,
+            triggered=self.exec_sleep
+            )
+        self.add_menu_action(self.exec_menu, self.sleep_action)
+
+        self.cctw_action=QtGui.QAction("CCTW",
+            self,
+            triggered=self.exec_cctw
+            )
+        self.add_menu_action(self.exec_menu, self.cctw_action)
+
+    def show_execwindow(self):
+        print "ExecWindow"
+        if self.execwindow == None:
+            self.execwindow = ExecWindow(self.exec_mgr)
+        else:
+            self.execwindow.refresh()
+
+    def textQ(self, message, default=""):
+        return QtGui.QInputDialog.getText(self, "NeXpy",
+                                          message, text=default)
+
+    def exec_sleep(self):
+        hostname, result = self.textQ("Enter hostname:",
+                                      default="nxrs.msd.anl.gov")
+        if not result: return
+        sleep_time, result = self.textQ("Enter sleep time:",
+                                        default="100")
+        if not result: return
+        self.exec_mgr.newTask(hostname, "sleep " + sleep_time)
+        self.show_execwindow()
+   
+    def exec_cctw(self):
+        print "Running CCTW!"
+        if self.treeview.get_node() == None:
+            QMessageBox.critical(self, "NeXpy", \
+                                 "No data is selected!")
+            return
+        hostname = self.treeview.get_node().nxfile.hostname
+        filename = self.treeview.get_node().nxfile._filename
+        self.exec_mgr.newTask(hostname,
+                              "/home/wozniak/cctw.sh " +
+                              filename)
+
     def init_window_menu(self):
         self.window_menu = self.menu_bar.addMenu("&Window")
         if sys.platform == 'darwin':
@@ -763,7 +833,7 @@ class MainWindow(QtGui.QMainWindow):
         self.import_menu = self.file_menu.addMenu("Import")
         private_path = os.path.join(_nexpy_dir, 'readers')
         if os.path.isdir(private_path):
-             for filename in os.listdir(private_path):
+            for filename in os.listdir(private_path):
                 name, ext = os.path.splitext(filename)
                 if name != '__init__' and ext.startswith('.py'):
                     self.import_names.add(name)
@@ -833,8 +903,8 @@ class MainWindow(QtGui.QMainWindow):
 
     def open_remote_file(self):
         try:
-            dialog = RemoteDialog(self)
-            dialog.show()
+            self.remote_dialog = RemoteDialog(self)
+            self.remote_dialog.show()
         except NeXusError as error:
             report_error("Opening Remote File", error)
 

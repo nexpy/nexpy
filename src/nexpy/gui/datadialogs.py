@@ -16,6 +16,7 @@ import re
 import sys
 
 from PySide import QtGui, QtCore
+from PySide.QtGui import QMessageBox
 import pkg_resources
 import numpy as np
 
@@ -1659,11 +1660,11 @@ class RemoteDialog(BaseDialog):
         catalog_layout.addWidget(catalog_button)
         self.layout = QtGui.QVBoxLayout()
         self.layout.addLayout(catalog_layout)
-        self.layout.addWidget(self.buttonbox(save=True))
+        self.layout.addWidget(self.buttonbox())
         self.setLayout(self.layout)
         self.dataset_box = None
         self.member_box = None
-        self.uri_box = None
+        self.ssh_controls = False # SSH controls not yet constructed
   
         self.setWindowTitle("Open Remote File")
 
@@ -1721,33 +1722,125 @@ class RemoteDialog(BaseDialog):
             if dataset['name']==name:
                 return dataset['id']
 
+    ssh_session = None
+
     def get_member(self):
         self.member_uri = self.member_box.currentText()
-        if self.uri_box is None:
-            uri_layout = QtGui.QHBoxLayout()
-            uri_label = QtGui.QLabel('URI')
-            self.uri_box = QtGui.QLineEdit('PYRO:rosborn@localhost:8801')
-            self.uri_box.setMinimumWidth(200)        
-            uri_layout.addStretch()
-            uri_layout.addWidget(uri_label)
-            uri_layout.addWidget(self.uri_box)
-            uri_layout.addStretch()
-            self.layout.insertLayout(3, uri_layout)
+        if not self.ssh_controls:
+            pyro_layout = QtGui.QHBoxLayout()
+            user_label = QtGui.QLabel('Remote user:')
+            self.user_box = QtGui.QLineEdit(os.getenv('USER'))
+            self.user_box.setMinimumWidth(100)
+            port_label = QtGui.QLabel('Local port:')
+            self.port_box = QtGui.QLineEdit('8801')
+            self.port_box.setMinimumWidth(100)
+            self.ssh_start_button = QtGui.QPushButton("Start SSH")
+            self.ssh_stop_button = QtGui.QPushButton("Stop SSH")
+            self.ssh_stop_button.setEnabled(False)
+            QtCore.QObject.connect(self.ssh_start_button,
+                                   QtCore.SIGNAL('clicked()'),
+                                   self.ssh_start)
+            QtCore.QObject.connect(self.ssh_stop_button,
+                                   QtCore.SIGNAL('clicked()'),
+                                   self.ssh_stop)
+
+            pyro_layout.addStretch()
+            pyro_layout.addWidget(user_label)
+            pyro_layout.addWidget(self.user_box)
+            pyro_layout.addWidget(port_label)
+            pyro_layout.addWidget(self.port_box)
+            pyro_layout.addWidget(self.ssh_start_button)
+            pyro_layout.addWidget(self.ssh_stop_button)
+            pyro_layout.addStretch()
+            self.layout.insertLayout(3, pyro_layout)
+            self.ssh_controls = True
+
+    def get_member_id(self, name):
+        for member in self.members:
+            if member['data_uri']==name:
+                return member['id']
+
+    def get_annotations_present(self, member_id):
+        # Retrieve a list of annotations present on the given member
+        request_string = "/catalog/id=%s/dataset/id=%s/member/id=%s/annotation/annotations_present" % \
+                    (self.catalog_id, self.dataset_id, member_id)
+        catalog = self.wrap.catalogClient
+        _,result = catalog._request('GET', request_string)
+        if len(result) == 0:
+            print "No annotations!"
+            return None
+        annotations_present = result[0]['annotations_present']
+        return annotations_present
+
+    def get_member_annotation(self, tag):
+        member_id = self.get_member_id(self.member_uri)
+        logging.debug("member_id: " + str(member_id))
+        catalog = self.wrap.catalogClient
+        annotations = self.get_annotations_present(member_id)
+        assert annotations != None
+        _,results = \
+            catalog.get_member_annotations(self.catalog_id,
+                                           self.dataset_id,
+                                           member_id,
+                                           annotations)
+        record = results[0]
+        result = record[tag][0]
+        logging.debug(tag + ": " + str(result))
+        return result
 
     def accept(self):
-        if self.uri_box is not None and len(self.member_uri) > 0:
-            uri = self.uri_box.text()
-            file_name = self.member_uri
+        if len(self.member_uri) > 0:
+            user = self.user_box.text()
+            localPort = int(self.port_box.text())
+            uri = "PYRO:%s@localhost:%i" % (user, localPort)
+            logging.info("Pyro URI: " + uri)
+            remote_path = self.get_member_annotation("path")
+            logging.info("Pyro file name: " + remote_path)
             try:
                 from nexpy.gui.consoleapp import _mainwindow, _shell
                 from nexusformat.pyro.nxfileremote import nxloadremote
-                name = _mainwindow.treeview.tree.get_name(file_name)
-                _mainwindow.treeview.tree[name] = _shell[name] = nxloadremote(file_name, uri)
-                logging.info("Remote NeXus file '%s' on '%s' opened  as workspace '%s'" 
-                             % (file_name, uri, name))
+                from Pyro4.errors import CommunicationError
+                name = _mainwindow.treeview.tree.get_name(remote_path)
+                logging.info("Opening remote NeXus file '%s' on '%s' as workspace '%s'"
+                             % (remote_path, uri, name))
+                hostname = self.get_member_annotation("host")
+                _mainwindow.treeview.tree[name] = _shell[name] = \
+                    nxloadremote(remote_path, uri, hostname=hostname)
                 super(RemoteDialog, self).accept()
+            except CommunicationError as e:
+                msgBox = QMessageBox()
+                msgBox.setText("Could not connect to: " + uri)
+                msgBox.setIcon(QMessageBox.Critical)
+                logging.debug("Connection failed to: " + uri +
+                              "\n\n" + str(e))
+                msgBox.exec_()
             except NeXusError:
                 super(RemoteDialog, self).reject()
-        else:        
+        else:
+            logging.info("rejecting!")
             super(RemoteDialog, self).reject()
 
+    def ssh_start(self):
+        logging.info("")
+        user = self.user_box.text()
+        hostname = self.get_member_annotation("host")
+        # hostname = 'nxrs.msd.anl.gov'
+        print "Got HOST", hostname
+        localPort = int(self.port_box.text())
+        from nexusformat.pyro.session import NeXPyroSession
+        self.ssh_session = NeXPyroSession(user, hostname, localPort)
+        self.ssh_session.run()
+        self.ssh_stop_button.setEnabled(True)
+        self.ssh_start_button.setEnabled(False)
+
+    def ssh_stop(self):
+        logging.info("")
+        assert(self.ssh_session != None)
+        self.ssh_session.terminate()
+        self.ssh_session = None
+        self.ssh_start_button.setEnabled(True)
+        self.ssh_stop_button.setEnabled(False)
+
+    def finalize(self):
+        if self.ssh_session != None:
+            self.ssh_session.terminate()
