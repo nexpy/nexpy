@@ -382,7 +382,7 @@ class NXPlotView(QtGui.QWidget):
         else:
             self.aspect = 'auto'
 
-        self.ax.ticklabel_format(useOffset=False)
+        self.offsets = False
 
         self.draw()
         self.otab.push_current()
@@ -781,6 +781,16 @@ class NXPlotView(QtGui.QWidget):
             raise NeXusError(str(error))
 
     cmap = property(_cmap, _set_cmap, "Property: color map")
+
+    def _offsets(self):
+        return self._axis_offsets
+
+    def _set_offsets(self, value):
+        self._axis_offsets = value
+        self.ax.ticklabel_format(useOffset=self._axis_offsets)
+        self.draw()
+
+    offsets = property(_offsets, _set_offsets, "Property: Axis offsets property")
 
     @property
     def equally_spaced(self):
