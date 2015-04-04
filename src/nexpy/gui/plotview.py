@@ -513,9 +513,9 @@ class NXPlotView(QtGui.QWidget):
             else:
                 self.yaxis.hi = yhi     
             if self.xtab.logbox.isChecked():
-                ax.set_xscale('symlog')
+                ax.set_xscale('log')
             if self.ytab.logbox.isChecked():
-                ax.set_yscale('symlog')
+                ax.set_yscale('log')
             ax.set_xlabel(self.xaxis.label)
             ax.set_ylabel(self.yaxis.label)
             ax.set_title(self.title)
