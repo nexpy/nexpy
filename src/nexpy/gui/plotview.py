@@ -631,9 +631,9 @@ class NXPlotView(QtGui.QWidget):
 
     def set_data_limits(self):
         if self.vaxis.lo is None or self.autoscale: 
-            self.vaxis.lo = self.vaxis.min = np.nanmin(self.v)
+            self.vaxis.lo = self.vaxis.min = np.nanmin(self.v[self.v>-np.inf])
         if self.vaxis.hi is None or self.autoscale:
-            self.vaxis.hi = self.vaxis.max = np.nanmax(self.v)
+            self.vaxis.hi = self.vaxis.max = np.nanmax(self.v[self.v<np.inf])
         if self.vtab.logbox.isChecked():
             try:
                 self.vaxis.lo = max(self.vaxis.lo, self.v[self.v>0.0].min())
@@ -735,8 +735,8 @@ class NXPlotView(QtGui.QWidget):
         if self.ndim == 1:
             self.replot_axes()
         else:
-            self.vaxis.min = self.vaxis.lo = np.nanmin(self.v)
-            self.vaxis.max = self.vaxis.hi = np.nanmax(self.v)
+            self.vaxis.min = self.vaxis.lo = np.nanmin(self.v[self.v>-np.inf])
+            self.vaxis.max = self.vaxis.hi = np.nanmax(self.v[self.v<np.inf])
             self.vtab.set_axis(self.vaxis)
             self.replot_image()
         self.update_tabs()
@@ -1017,8 +1017,8 @@ class NXPlotAxis(object):
             if dimlen is None:
                 self.centers = None
                 self.boundaries = None
-                self.min = np.nanmin(self.data)
-                self.max = np.nanmax(self.data)
+                self.min = np.nanmin(self.data[self.data>-np.inf])
+                self.max = np.nanmax(self.data[self.data<np.inf])
             else:
                 if self.data[0] > self.data[-1]:
                     self.reversed = True
@@ -1028,8 +1028,8 @@ class NXPlotAxis(object):
                     self.equally_spaced = False
                 self.centers = centers(self.data, dimlen)
                 self.boundaries = boundaries(self.data, dimlen)
-                self.min = np.nanmin(self.boundaries)
-                self.max = np.nanmax(self.boundaries)
+                self.min = np.nanmin(self.boundaries[self.boundaries>-np.inf])
+                self.max = np.nanmax(self.boundaries[self.boundaries<np.inf])
         else:
             self.centers = None
             self.boundaries = None
