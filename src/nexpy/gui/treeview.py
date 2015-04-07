@@ -12,7 +12,7 @@ import os
 import pkg_resources
 
 from PySide import QtCore, QtGui
-from nexusformat.nexus import NXfield, NXgroup, NXlink, NXroot, NXentry, NeXusError
+from nexusformat.nexus import *
 
 
 def natural_sort(key):
@@ -101,6 +101,10 @@ class NXtree(NXgroup):
                                               group.nxname, node.nxgroup.nxpath)
         else:
             raise NeXusError("Only an NXgroup can be added to the tree")
+
+    def load(self, filename):
+        name = self.get_name(filename)
+        self[name] = nxload(filename)
 
     def get_name(self, filename):
         from nexpy.gui.consoleapp import _shell
