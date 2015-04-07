@@ -486,43 +486,43 @@ tabs allow manipulation of the plot limits and parameters.
 
     It is possible to modify some of the plotting features from the IPython 
     shell. The current plotting pane, the default Matplotlib axis instance, and
-    the current image are exposed as ``plotview``, ``plotview.ax'', and
-    ``plotview.image'', respectively. 
+    the current image are exposed as ``plotview``, ``plotview.ax``, and
+    ``plotview.image``, respectively. 
     
     .. note:: Before making any changes, make sure that you have selected the
               right plotting pane, either by selecting it in the Window menu or
               using one of the keyboard shortcuts, which are displayed in the 
-              menu, *e.g.*, <Ctrl>+2 (⌘-2 on a Mac) to select Figure 2.
+              menu, *e.g.*, <Ctrl>+2 (⌘+2 on a Mac) to select Figure 2.
 
 * Set Aspect Ratio::
 
     >>> plotview.aspect = <aspect>
 
-    ``<aspect>`` can be any of the values allowed by the `Matplotlib set_aspect 
-    <http://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes.set_aspect>`_
-    function, *i.e.*, 'auto', 'equal', or the numerical value of the 
-    ratio between the height and the width (if the units are identical). The 
-    'Aspect' button (see above) toggles between 'auto' and 'equal'.
+  ``<aspect>`` can be any of the values allowed by the `Matplotlib set_aspect 
+  <http://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes.set_aspect>`_
+  function, *i.e.*, 'auto', 'equal', or the numerical value of the 
+  ratio between the height and the width (if the units are identical). The 
+  'Aspect' button (see above) toggles between 'auto' and 'equal'.
 
 * Set Offsets::
 
     >>> plotview.offsets = <True|False>
 
-    If the range of an axis is much smaller than the absolute values, the axis
-    labels can overlap. Setting this option will determine whether Matplotlib 
-    converts the axis labels to differences from a fixed offset value or not. 
-    The default is ``False''.
+  If the range of an axis is much smaller than the absolute values, the axis
+  labels can overlap. Setting this option will determine whether Matplotlib 
+  converts the axis labels to differences from a fixed offset value or not. 
+  The default is ``False``.
 
 * Select Color Map::
 
     >>> plotview.cmap = <cmap>
 
-    This allows the color map of the currently displayed image to be changed.
-    This can be useful if the map is not available in the Signal Tab. See the
-    `Matplotlib documentation 
-    <http://matplotlib.org/api/pyplot_api.html#matplotlib.pyplot.set_cmap>`_
-    for more details.    
-    
+  This allows the color map of the currently displayed image to be changed.
+  This can be useful if the map is not available in the Signal Tab. See the
+  `Matplotlib documentation 
+  <http://matplotlib.org/api/pyplot_api.html#matplotlib.pyplot.set_cmap>`_
+  for more details.    
+
 * Draw Shapes::
 
     >>> plotview.vline(<x>, <ymin>, <ymax>)
@@ -534,21 +534,21 @@ tabs allow manipulation of the plot limits and parameters.
     >>> plotview.circle(<x>, <y>, <radius>)
     >>> plotview.ellipse(<x>, <y>, <dx>, <dy>)
 
-    These functions draw graphical primitives on the plot using the axis 
-    coordinates. In the case of the lines, the complete range of the plot will
-    be used if the minimum and maximum values are omitted. The rectangle 
-    coordinates represent the lower left-hand corner but the circle and ellipse
-    coordinates represent the shape center.
+  These functions draw graphical primitives on the plot using the axis 
+  coordinates. In the case of the lines, the complete range of the plot will
+  be used if the minimum and maximum values are omitted. The rectangle 
+  coordinates represent the lower left-hand corner but the circle and ellipse
+  coordinates represent the shape center.
 
-    .. note:: Since the arguments are in the units of the axes, the circle will
-              only be truly circular if the x and y units are the same, and the
-              aspect ratio of the plot is equal.
+  .. note:: Since the arguments are in the units of the axes, the circle will
+            only be truly circular if the x and y units are the same, and the
+            aspect ratio of the plot is equal.
 
-    All of the functions will accept additional keyword arguments used in 
-    drawing Matplotlib shapes, *e.g.*, to change the edge and fill colors, line 
-    properties, *etc*. See the `Matplotlib documentation 
-    <http://matplotlib.org/api/patches_api.html#matplotlib.patches.Polygon>`_
-    for more details.
+  All of the functions will accept additional keyword arguments used in 
+  drawing Matplotlib shapes, *e.g.*, to change the edge and fill colors, line 
+  properties, *etc*. See the `Matplotlib documentation 
+  <http://matplotlib.org/api/patches_api.html#matplotlib.patches.Polygon>`_
+  for more details.
 
 Fitting NeXus Data
 ------------------
