@@ -1407,7 +1407,7 @@ class NXPlotTab(QtGui.QWidget):
         self.minbox.setRange(self.axis.min, self.axis.max)
         self.maxbox.setRange(self.axis.min, self.axis.max)
         range = self.axis.max - self.axis.min
-        decimals = int(max(0, 2-np.rint(np.log10(range))))
+        decimals = int(max(0, 2-np.rint(np.log10(range)))) + 1
         self.minbox.setSingleStep((range)/100)
         self.maxbox.setSingleStep((range)/100)
         self.minbox.setDecimals(decimals)
