@@ -52,7 +52,6 @@ class BaseDialog(QtGui.QDialog):
  
     def __init__(self, parent=None):
 
-
         self.accepted = False
         from nexpy.gui.consoleapp import _mainwindow
         self.mainwindow = _mainwindow
@@ -67,7 +66,19 @@ class BaseDialog(QtGui.QDialog):
             parent = self.mainwindow
         super(BaseDialog, self).__init__(parent)
 
-    def buttonbox(self, save=False):
+    def set_layout(self, *items):
+        layout = QtGui.QVBoxLayout()
+        for item in items:
+            if isinstance(item, QtGui.QLayout):
+                layout.addLayout(item)
+            elif isinstance(item, QtGui.QWidget):
+                layout.addWidget(item)
+        self.setLayout(layout)
+
+    def set_title(self, title):
+        self.setWindowTitle(title)
+
+    def close_buttons(self, save=False):
         """
         Creates a box containing the standard Cancel and OK buttons.
         """
@@ -83,7 +94,7 @@ class BaseDialog(QtGui.QDialog):
         buttonbox.rejected.connect(self.reject)
         return buttonbox
 
-    def buttonrow(self, *items):
+    def action_buttons(self, *items):
         layout = QtGui.QHBoxLayout()
         layout.addStretch()
         for label, action in items:
