@@ -17,9 +17,9 @@ from Pyro4.errors import CommunicationError
 
 from nexusformat.nexus import (NeXusError, NXgroup, NXfield, NXattr,
                                NXroot, NXentry, NXdata, NXparameters)
+from nexpy.gui.datadialogs import BaseDialog
 from nexusformat.pyro.globus import GlobusCatalog
 from nexusformat.pyro.ssh import NeXPyroSSH
-from nexpy.gui.datadialogs import BaseDialog
 
 
 class RemoteDialog(BaseDialog):
@@ -47,7 +47,7 @@ class RemoteDialog(BaseDialog):
         catalog_layout.addStretch()
         self.layout = QtGui.QVBoxLayout()
         self.layout.addLayout(catalog_layout)
-        self.layout.addWidget(self.buttonbox())
+        self.layout.addWidget(self.close_buttons())
         self.setLayout(self.layout)
         self.dataset_combo = None
         self.member_combo = None
