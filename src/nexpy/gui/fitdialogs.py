@@ -127,7 +127,7 @@ class FitDialog(BaseDialog):
 
         self.layout = QtGui.QVBoxLayout()
         self.layout.addLayout(function_layout)
-        self.layout.addWidget(self.buttonbox())
+        self.layout.addWidget(self.close_buttons())
 
         self.setLayout(self.layout)
 

@@ -244,7 +244,7 @@ class BaseDialog(QtGui.QDialog):
         self.progress_bar = QtGui.QProgressBar()
         layout.addWidget(self.progress_bar)
         layout.addStretch()
-        layout.addWidget(self.buttonbox(save))
+        layout.addWidget(self.close_buttons(save))
         return layout
 
     def get_node(self):
@@ -514,7 +514,7 @@ class PlotDialog(BaseDialog):
 
         self.layout = QtGui.QVBoxLayout()
         self.layout.addLayout(self.grid)
-        self.layout.addWidget(self.buttonbox())
+        self.layout.addWidget(self.close_buttons())
         self.setLayout(self.layout)
 
         self.setWindowTitle("Plot NeXus Data")
@@ -650,7 +650,7 @@ class LimitDialog(BaseDialog):
             vmax_layout.addWidget(self.vmax_box)
             layout.addLayout(vmax_layout)
 
-        layout.addWidget(self.buttonbox()) 
+        layout.addWidget(self.close_buttons()) 
         self.setLayout(layout)
 
         self.setWindowTitle("Limit axes")
@@ -707,7 +707,7 @@ class AddDialog(BaseDialog):
 
         self.layout = QtGui.QVBoxLayout()
         self.layout.addLayout(class_layout)
-        self.layout.addWidget(self.buttonbox()) 
+        self.layout.addWidget(self.close_buttons()) 
         self.setLayout(self.layout)
 
     def select_class(self):
@@ -949,7 +949,7 @@ class InitializeDialog(BaseDialog):
 
         self.layout = QtGui.QVBoxLayout()
         self.layout.addLayout(grid)
-        self.layout.addWidget(self.buttonbox()) 
+        self.layout.addWidget(self.close_buttons()) 
         self.setLayout(self.layout)
 
     def select_combo(self):
@@ -1006,7 +1006,7 @@ class RenameDialog(BaseDialog):
 
         self.layout = QtGui.QVBoxLayout()
         self.layout.addLayout(self.define_grid())
-        self.layout.addWidget(self.buttonbox()) 
+        self.layout.addWidget(self.close_buttons()) 
         self.setLayout(self.layout)
 
     def define_grid(self):
@@ -1104,7 +1104,7 @@ class RemoveDialog(BaseDialog):
         layout = QtGui.QVBoxLayout()
         layout.addWidget(QtGui.QLabel('Are you sure you want to remove "%s"?' 
                                       % node.nxname))
-        layout.addWidget(self.buttonbox()) 
+        layout.addWidget(self.close_buttons()) 
         self.setLayout(layout)
 
         self.setWindowTitle("Remove NeXus File")
@@ -1126,7 +1126,7 @@ class DeleteDialog(BaseDialog):
         layout = QtGui.QVBoxLayout()
         layout.addWidget(QtGui.QLabel('Are you sure you want to delete "%s"?' 
                                       % node.nxname))
-        layout.addWidget(self.buttonbox()) 
+        layout.addWidget(self.close_buttons()) 
         self.setLayout(layout)
 
         self.setWindowTitle("Delete NeXus Data")
@@ -1181,7 +1181,7 @@ class SignalDialog(BaseDialog):
 
         self.layout = QtGui.QVBoxLayout()
         self.layout.addLayout(self.grid)
-        self.layout.addWidget(self.buttonbox())
+        self.layout.addWidget(self.close_buttons())
         self.setLayout(self.layout)
 
         self.setWindowTitle("Set signal for %s" % self.group.nxname)
