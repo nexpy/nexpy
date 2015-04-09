@@ -193,7 +193,6 @@ class MainWindow(QtGui.QMainWindow):
         reply = box.exec_()
         if self.remote_dialog != None:
             self.remote_dialog.finalize()
-        self.exec_mgr.finalize()
 
         return reply
 
