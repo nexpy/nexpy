@@ -1212,7 +1212,7 @@ class NXPlotTab(QtGui.QWidget):
         doublespinbox.setAlignment(QtCore.Qt.AlignRight)
         doublespinbox.setFixedWidth(100)
         doublespinbox.setKeyboardTracking(False)
-        doublespinbox.valueChanged[unicode].connect(slot)
+        doublespinbox.editingFinished.connect(slot)
         return doublespinbox
 
     def slider(self, slot):
@@ -1240,45 +1240,65 @@ class NXPlotTab(QtGui.QWidget):
 
     @QtCore.Slot()
     def read_minbox(self):
-        if not self.minbox.isEnabled():
+        lo = self.minbox.value()
+        if not self.minbox.isEnabled() or self.axis.locked or \
+            np.isclose(lo, self.minbox.old_value):
             return
-        lo, hi = self.minbox.value(), self.maxbox.value()
-        if np.isclose(lo, self.minbox.old_value) or self.axis.locked:
-            return
-        if lo is not None and (lo <= hi or self.axis.locked): 
-            self.axis.lo = lo
+        if self.name == 'x' or self.name == 'y' or self.name == 'v':
+            if lo < self.axis.hi:
+                self.axis.lo = lo
+            else:
+                self.minbox.setValue(self.minbox.old_value)
+                return
+            self.axis.min = self.axis.lo
+            self.set_range()
+            self.set_sliders(self.axis.lo, self.axis.hi)
+            if self.name == 'v':
+                self.plotview.autoscale = False
+                self.plotview.replot_image()
+            else:
+                self.plotview.replot_axes()
         else:
-            self.minbox.setValue(self.axis.lo)
-        if self.name == 'x' or self.name == 'y':
-            self.set_sliders(self.axis.lo, hi)
-            self.plotview.replot_axes()
-        elif self.name == 'v':
-            self.set_sliders(self.axis.lo, hi)
-            self.plotview.replot_image()
+            if lo <= self.axis.hi:
+                self.axis.lo = lo
+            else:
+                self.minbox.setValue(self.minbox.old_value)
+                return
         self.minbox.old_value = self.axis.lo
-        self.maxbox.old_value = self.axis.hi
 
     @QtCore.Slot()
     def read_maxbox(self):
-        lo, hi = self.minbox.value(), self.maxbox.value()
+        hi = self.maxbox.value()
         if np.isclose(hi, self.maxbox.old_value):
             return
-        if hi is not None and (hi >= lo or self.axis.locked): 
-            self.axis.hi = hi
+        if self.name == 'x' or self.name == 'y' or self.name == 'v':
+            if hi > self.axis.lo:
+                self.axis.hi = hi
+            else:
+                self.maxbox.setValue(self.maxbox.old_value)
+                return
+            self.axis.max = self.axis.hi
+            self.set_range()
+            self.set_sliders(self.axis.lo, self.axis.hi)
+            if self.name == 'v':
+                self.plotview.autoscale = False
+                self.plotview.replot_image()
+            else:
+                self.plotview.replot_axes()
         else:
-            self.maxbox.setValue(self.axis.hi)
-        if self.name == 'x' or self.name == 'y':
-            self.set_sliders(lo, self.axis.hi)
-            self.plotview.replot_axes()
-        if self.name == 'z' and self.axis.locked:
-            self.axis.lo = self.axis.hi - self.axis.diff
-            if not np.isclose(self.axis.lo, self.minbox.old_value):
-                self.minbox.setValue(self.axis.lo)
+            if self.axis.locked:
+                self.axis.hi = hi
+                self.axis.lo = self.axis.hi - self.axis.diff
+                if not np.isclose(self.axis.lo, self.minbox.old_value):
+                    self.minbox.setValue(self.axis.lo)
+                    self.minbox.old_value = self.axis.lo
                 self.replotSignal.replot.emit()
-        elif self.name == 'v':
-            self.set_sliders(lo, self.axis.hi)
-            self.plotview.replot_image()
-        self.minbox.old_value = self.axis.lo
+            else:
+                if hi >= self.axis.lo:
+                    self.axis.hi = hi
+                else:
+                    self.maxbox.setValue(self.maxbox.old_value)
+                    return
         self.maxbox.old_value = self.axis.hi
 
     def read_minslider(self):
@@ -1295,6 +1315,7 @@ class NXPlotTab(QtGui.QWidget):
         if self.name == 'x' or self.name == 'y':
             self.plotview.replot_axes()
         else:
+            self.plotview.autoscale = False
             self.plotview.replot_image()
         self.block_signals(False)
 
@@ -1312,6 +1333,7 @@ class NXPlotTab(QtGui.QWidget):
         if self.name == 'x' or self.name == 'y':
             self.plotview.replot_axes()
         else:
+            self.plotview.autoscale = False
             self.plotview.replot_image()
         self.block_signals(False)
 
@@ -1633,7 +1655,15 @@ class NXDoubleSpinBox(QtGui.QDoubleSpinBox):
             self.setValue(self.value() + steps * self.diff)
         else:
             super(NXDoubleSpinBox, self).stepBy(steps)
-        self.valueChanged.emit(u'1')
+        self.editingFinished.emit()
+
+    def valueFromText(self, text):
+        value = np.float32(text)
+        if value > self.maximum():
+            self.setMaximum(value)
+        elif value < self.minimum():
+            self.setMinimum(value)
+        return value
 
 
 class NXProjectionTab(QtGui.QWidget):
