@@ -117,11 +117,11 @@ class BaseDialog(QtGui.QDialog):
         filebox.addWidget(self.filename)
         return filebox
  
-    def directorybox(self):
+    def directorybox(self, text="Choose Directory"):
         """
         Creates a text box and button for selecting a directory.
         """
-        self.directorybutton =  QtGui.QPushButton("Choose Directory")
+        self.directorybutton =  QtGui.QPushButton(text)
         self.directorybutton.clicked.connect(self.choose_directory)
         self.directoryname = QtGui.QLineEdit(self)
         self.directoryname.setMinimumWidth(300)
@@ -296,20 +296,25 @@ class GridParameters(OrderedDict):
         self.__setitem__(name, GridParameter(value=value, name=name, label=label,
                                              vary=vary, slot=slot))
 
-    def grid(self):
+    def grid(self, header=True, title=None):
         grid = QtGui.QGridLayout()
         grid.setSpacing(10)
         header_font = QtGui.QFont()
         header_font.setBold(True)
-        parameter_label = QtGui.QLabel('Parameter')
-        parameter_label.setFont(header_font)
-        parameter_label.setAlignment(QtCore.Qt.AlignHCenter)
-        grid.addWidget(parameter_label, 0, 0)
-        value_label = QtGui.QLabel('Value')
-        value_label.setFont(header_font)
-        value_label.setAlignment(QtCore.Qt.AlignHCenter)
-        grid.addWidget(value_label, 0, 1)
-        row = 1
+        row = 0
+        if title:
+            grid.addWidget(QtGui.QLabel(title), row, 0, columnSpan=2)
+            row += 1
+        if header:
+            parameter_label = QtGui.QLabel('Parameter')
+            parameter_label.setFont(header_font)
+            parameter_label.setAlignment(QtCore.Qt.AlignHCenter)
+            grid.addWidget(parameter_label, 0, 0)
+            value_label = QtGui.QLabel('Value')
+            value_label.setFont(header_font)
+            value_label.setAlignment(QtCore.Qt.AlignHCenter)
+            grid.addWidget(value_label, row, 1)
+            row += 1
         vary = False
         for p in self.values():
             label, value, checkbox = p.label, p.value, p.vary
