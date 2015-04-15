@@ -94,6 +94,8 @@ class BaseDialog(QtGui.QDialog):
         buttonbox.rejected.connect(self.reject)
         return buttonbox
 
+    buttonbox = close_buttons #For backward compatibility
+
     def action_buttons(self, *items):
         layout = QtGui.QHBoxLayout()
         layout.addStretch()
@@ -380,7 +382,10 @@ class GridParameters(OrderedDict):
         header_font.setBold(True)
         row = 0
         if title:
-            grid.addWidget(QtGui.QLabel(title), row, 0, columnSpan=2)
+            title_label = QtGui.QLabel(title)
+            title_label.setFont(header_font)
+            title_label.setAlignment(QtCore.Qt.AlignHCenter)
+            grid.addWidget(title_label, row, 0, columnSpan=2)
             row += 1
         if header:
             parameter_label = QtGui.QLabel('Parameter')
@@ -539,7 +544,10 @@ class GridParameter(object):
             else:
                 if isinstance(value, NXfield):
                     value = value.nxdata
-                self.box.setText('%.6g' % value)
+                if isinstance(value, basestring):
+                    self.box.setText(value)
+                else:
+                    self.box.setText('%.6g' % value)
 
     @property
     def vary(self):

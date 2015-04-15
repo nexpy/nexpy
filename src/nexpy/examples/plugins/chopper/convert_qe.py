@@ -44,7 +44,7 @@ class ConvertDialog(BaseDialog):
         button_layout.addWidget(self.plot_button)
         button_layout.addWidget(self.save_button)
         layout.addLayout(button_layout)
-        layout.addWidget(self.buttonbox())
+        layout.addWidget(self.close_buttons())
         self.setLayout(layout)
         self.setWindowTitle('Converting to (Q,E)')
 

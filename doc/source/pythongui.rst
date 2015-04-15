@@ -699,9 +699,9 @@ Here is an example of an import dialog::
                            can be used to set the path to the imported file. 
                            This can be retrieved as a string using 
                            self.get_filename().
-     ImportDialog.buttonbox: Contains a "Cancel" and "OK" button to close the 
-                             dialog. This should be placed at the bottom of all 
-                             import dialogs.
+     ImportDialog.close_buttons: Contains a "Cancel" and "OK" button to close 
+                                 the dialog. This should be placed at the bottom 
+                                 of all import dialogs.
  """
 
  from PySide import QtCore, QtGui
@@ -721,7 +721,7 @@ Here is an example of an import dialog::
         
          layout = QtGui.QVBoxLayout()
          layout.addLayout(self.filebox())
-         layout.addWidget(self.buttonbox())
+         layout.addWidget(self.close_buttons())
          self.setLayout(layout)
   
          self.setWindowTitle("Import "+str(filetype))
@@ -841,7 +841,7 @@ Here is the code::
         get_button = QtGui.QPushButton('Get Ei')
         get_button.clicked.connect(self.get_ei)
         layout.addWidget(get_button)
-        layout.addWidget(self.buttonbox(save=True))
+        layout.addWidget(self.close_buttons(save=True))
         self.setLayout(layout)
         self.setWindowTitle('Get Incident Energy')
 

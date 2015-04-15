@@ -40,7 +40,7 @@ class EnergyDialog(BaseDialog):
         get_button = QtGui.QPushButton('Get Ei')
         get_button.clicked.connect(self.get_ei)
         layout.addWidget(get_button)
-        layout.addWidget(self.buttonbox(save=True))
+        layout.addWidget(self.close_buttons(save=True))
         self.setLayout(layout)
         self.setWindowTitle('Get Incident Energy')
 

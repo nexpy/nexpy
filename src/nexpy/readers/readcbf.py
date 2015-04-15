@@ -15,14 +15,6 @@ Module to read in a CBF file and convert it to NeXus.
 Each importer needs to layout the GUI buttons necessary for defining the imported file 
 and its attributes and a single module, get_data, which returns an NXroot or NXentry
 object. This will be added to the NeXpy tree.
-
-Two GUI elements are provided for convenience:
-
-    ImportDialog.filebox: Contains a "Choose File" button and a text box. Both can be 
-                          used to set the path to the imported file. This can be 
-                          retrieved as a string using self.get_filename().
-    ImportDialog.buttonbox: Contains a "Cancel" and "OK" button to close the dialog. 
-                            This should be placed at the bottom of all import dialogs.
 """
 
 from PySide import QtGui
@@ -42,7 +34,7 @@ class ImportDialog(BaseImportDialog):
         
         layout = QtGui.QVBoxLayout()
         layout.addLayout(self.filebox())
-        layout.addWidget(self.buttonbox())
+        layout.addWidget(self.close_buttons())
         self.setLayout(layout)
   
         self.setWindowTitle("Import "+str(filetype))

@@ -59,7 +59,7 @@ Start with this basic template:
            status_layout = QtGui.QHBoxLayout()
            status_layout.addWidget(self.progress_bar)
            status_layout.addStretch()
-           status_layout.addWidget(self.buttonbox())
+           status_layout.addWidget(self.close_buttons())
 
            self.layout = QtGui.QVBoxLayout()
            self.layout.addLayout(self.filebox())
@@ -97,7 +97,7 @@ Contains a "Choose File" button and a text box. Both can be
 used to set the path to the imported file. This can be 
 retrieved as a string using *self.get_filename()*.
 
-*ImportDialog.buttonbox*: 
+*ImportDialog.close_buttons*: 
 Contains a "Cancel" and "OK" button to close the dialog. 
 This should be placed at the bottom of all import dialogs.
    

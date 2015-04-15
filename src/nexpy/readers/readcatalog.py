@@ -18,11 +18,12 @@ object. This will be added to the NeXpy tree.
 
 Two GUI elements are provided for convenience:
 
-    ImportDialog.filebox: Contains a "Choose File" button and a text box. Both can be 
-                          used to set the path to the imported file. This can be 
-                          retrieved as a string using self.get_filename().
-    ImportDialog.buttonbox: Contains a "Cancel" and "OK" button to close the dialog. 
-                            This should be placed at the bottom of all import dialogs.
+    ImportDialog.filebox: Contains a "Choose File" button and a text box. Both 
+                          can be used to set the path to the imported file. This 
+                          can be retrieved as a string using self.get_filename().
+    ImportDialog.close_buttons: Contains a "Cancel" and "OK" button to close the 
+                                dialog. This should be placed at the bottom of 
+                                all import dialogs.
 """
 import os                           #@UnusedImport
 
@@ -60,7 +61,7 @@ class ImportDialog(BaseImportDialog):
         catalog_layout.addWidget(catalog_button)
         self.layout = QtGui.QVBoxLayout()
         self.layout.addLayout(catalog_layout)
-        self.layout.addWidget(self.buttonbox())
+        self.layout.addWidget(self.close_buttons())
         self.setLayout(self.layout)
   
         self.setWindowTitle("Import "+str(filetype))

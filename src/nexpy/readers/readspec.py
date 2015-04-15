@@ -41,7 +41,7 @@ class ImportDialog(BaseImportDialog):
         status_layout = QtGui.QHBoxLayout()
         status_layout.addWidget(self.progress_bar)
         status_layout.addStretch()
-        status_layout.addWidget(self.buttonbox())
+        status_layout.addWidget(self.close_buttons())
 
         self.layout = QtGui.QVBoxLayout()
         self.layout.addLayout(self.filebox())
