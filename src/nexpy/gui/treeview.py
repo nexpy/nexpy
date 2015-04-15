@@ -106,6 +106,15 @@ class NXtree(NXgroup):
         name = self.get_name(filename)
         self[name] = nxload(filename)
 
+    def reload(self, name):
+        if name in self:
+            root = nxload(self[name].nxfilename)
+            if isinstance(root, NXroot):
+                del self[name]
+                self[name] = root
+        else:
+            raise NeXusError('%s not in the tree')
+
     def get_name(self, filename):
         from nexpy.gui.consoleapp import _shell
         name = os.path.splitext(os.path.basename(filename))[0].replace(' ','_')
