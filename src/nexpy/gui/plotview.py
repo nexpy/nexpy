@@ -657,17 +657,12 @@ class NXPlotView(QtGui.QWidget):
             self.image.set_extent((self.xaxis.min, self.xaxis.max,
                                    self.yaxis.min,self.yaxis.max))
             self.replot_image()
-<<<<<<< HEAD
         elif newaxis:
             self.plot_image()
         else:
             self.x, self.y, self.v = self.get_image()
             self.image.set_array(self.v.ravel())
             self.replot_image()
-=======
-        else:
-            self.plot_image()
->>>>>>> nexusformat
 
     def replot_axes(self, draw=True):
         ax = self.figure.gca()
@@ -953,11 +948,7 @@ class NXPlotView(QtGui.QWidget):
             self.xtab.set_axis(self.xaxis)
             self.ytab.set_axis(self.yaxis)
             self.vtab.set_axis(self.vaxis)
-<<<<<<< HEAD
             self.replot_data(draw=False, newaxis=True)
-=======
-            self.replot_data(draw=False)
->>>>>>> nexusformat
             self.replot_axes()
         elif tab == self.ytab and axis == self.xaxis:
             self.xaxis = self.xtab.axis = self.ytab.axis
@@ -965,11 +956,7 @@ class NXPlotView(QtGui.QWidget):
             self.xtab.set_axis(self.xaxis)
             self.ytab.set_axis(self.yaxis)
             self.vtab.set_axis(self.vaxis)
-<<<<<<< HEAD
             self.replot_data(draw=False, newaxis=True)
-=======
-            self.replot_data(draw=False)
->>>>>>> nexusformat
             self.replot_axes()
         elif tab == self.ztab:
             self.zaxis = self.ztab.axis = axis
