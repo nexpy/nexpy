@@ -494,6 +494,7 @@ class MainWindow(QtGui.QMainWindow):
             
             self.openremotefile_action=QtGui.QAction("Open Remote...",
                 self,
+                shortcut=QtGui.QKeySequence("Ctrl+Alt+O"),
                 triggered=self.open_remote_file
                 )
             self.add_menu_action(self.remote_menu, self.openremotefile_action)
@@ -1282,7 +1283,7 @@ class MainWindow(QtGui.QMainWindow):
 
     def show_execwindow(self):
         from remotedialogs import ExecWindow
-        if self.execwindow == None:
+        if self.execwindow is None:
             self.execwindow = ExecWindow(self.exec_mgr)
             self.execwindow.show()
         else:
