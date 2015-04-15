@@ -290,6 +290,7 @@ class NXTreeView(QtGui.QTreeView):
         self.fit_action=QtGui.QAction("Fit...", self, triggered=self.fit_data)
         self.savefile_action=QtGui.QAction("Save as...", self, triggered=self.save_file)
         self.duplicate_action=QtGui.QAction("Duplicate...", self, triggered=self.duplicate)
+        self.reload_action=QtGui.QAction("Reload...", self, triggered=self.reload)
         self.remove_action=QtGui.QAction("Remove...", self, triggered=self.remove)
         self.lockfile_action=QtGui.QAction("Lock", self, triggered=self.lock_file)
         self.unlockfile_action=QtGui.QAction("Unlock...", self, triggered=self.unlock_file)
@@ -348,6 +349,8 @@ class NXTreeView(QtGui.QTreeView):
                 menu.addAction(self.unlockfile_action)
             else:
                 menu.addAction(self.lockfile_action)
+            menu.addSeparator()
+            menu.addAction(self.reload_action)
             menu.addAction(self.remove_action)
         return menu
 
@@ -356,6 +359,9 @@ class NXTreeView(QtGui.QTreeView):
 
     def duplicate(self):
         self.mainwindow.duplicate()
+
+    def reload(self):
+        self.mainwindow.reload()
 
     def remove(self):
         self.mainwindow.remove()
