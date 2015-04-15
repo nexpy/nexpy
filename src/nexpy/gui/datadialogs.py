@@ -127,6 +127,9 @@ class BaseDialog(QtGui.QDialog):
         self.directorybutton.clicked.connect(self.choose_directory)
         self.directoryname = QtGui.QLineEdit(self)
         self.directoryname.setMinimumWidth(300)
+        default = self.get_default_directory()
+        if default:
+            self.directoryname.setText(default)
         directorybox = QtGui.QHBoxLayout()
         directorybox.addWidget(self.directorybutton)
         directorybox.addWidget(self.directoryname)

@@ -306,8 +306,6 @@ class ExecWindow(BaseDialog):
             self.combobox.addItem(text)
             self.comboboxMap[idx] = task_id
             idx += 1
-        self.combobox.adjustSize()
-        self.show()
         self.raise_()
             
     def outview(self):
