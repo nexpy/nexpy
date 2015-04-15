@@ -28,7 +28,7 @@ Two GUI elements are provided for convenience:
 from IPython.external.qt import QtGui
 
 import numpy as np
-from nexpy.api.nexus import *
+from nexusformat.nexus import *
 from nexpy.gui.importdialog import BaseImportDialog
 
 filetype = "TIFF Image"

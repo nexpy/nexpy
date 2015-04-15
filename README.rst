@@ -27,21 +27,44 @@ To install in an alternate location::
 
     $ python setup.py install --prefix=/path/to/installation/dir
 
+As of v0.6.0, the Python API for reading and writing NeXus files is in a 
+separate package, `nexusformat <https://github.com/nexpy/nexusformat>`_, which 
+is also available on `PyPI <https://pypi.python.org/pypi/nexusformat/>`_ and 
+will be automatically installed as a NeXpy dependency if you use pip. 
+
+If the NeXpy GUI is not required, the package may be used in a regular Python
+shell. It may be installed using:: 
+
+    $ pip install nexusformat
+
+or:: 
+
+    $ easy_install nexusformat 
+
+The package can also be installed from the source code using the setup commands
+described above. The source code is available either by downloading one of the 
+`Github releases <https://github.com/nexpy/nexusformat/releases>`_ or by cloning 
+the latest development version in the `NeXpy Git repository 
+<https://github.com/nexpy/nexusformat>`_::
+
+    $ git clone https://github.com/nexpy/nexusformat.git
+
 Required Libraries
 ==================
 Python Command-Line API
 -----------------------
 The current version of NeXpy uses h5py to read and write NeXus files because
-of its ability to handle large data files. There is currently no dependency 
+of its ability to handle large data files. There is therefore no dependency 
 on the `NeXus C API <http://download.nexusformat.org/doc/html/napi.html>`_. 
 This also means that the current version cannot read and write HDF4 or XML 
-NeXus files, although this functionality may be restored in a future version.
+NeXus files.
 If you only intend to utilize the Python API from the command-line, the only 
 other required library is `Numpy <http://numpy.scipy.org>`_.
 
 =================  =================================================
 Library            URL
 =================  =================================================
+nexusformat        https://github.com/nexpy/nexusformat
 h5py               http://www.h5py.org
 numpy              http://numpy.scipy.org/
 =================  =================================================

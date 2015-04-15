@@ -28,7 +28,7 @@ Two GUI elements are provided for convenience:
 from PySide import QtGui
 import numpy as np
 
-from nexpy.api.nexus import *
+from nexusformat.nexus import *
 from nexpy.gui.importdialog import BaseImportDialog
 
 filetype = "CBF File"

@@ -29,7 +29,7 @@ import os                           #@UnusedImport
 from IPython.external.qt import QtCore, QtGui
 
 import numpy as np
-from nexpy.api.nexus import *
+from nexusformat.nexus import *
 from nexpy.gui.importdialog import BaseImportDialog
 
 filetype = "Catalog File"

@@ -47,7 +47,7 @@ from PySide import QtCore, QtGui
 # Local imports
 from mainwindow import MainWindow
 from treeview import NXtree
-from nexpy.api.nexus import nxclasses, nxload
+from nexusformat.nexus import nxclasses, nxload
 
 # IPython imports
 from IPython.config.application import catch_config_error
@@ -188,15 +188,27 @@ class NXConsoleApp(BaseIPythonApplication, IPythonConsoleApp):
         _nexpy_dir = nexpy_dir
 
     def init_log(self):
-        log_file = os.path.join(_nexpy_dir, 'nexpy.log')
-        hdlr = logging.handlers.RotatingFileHandler(log_file, maxBytes=50000, 
-                                                    backupCount=5)
-        fmt = logging.Formatter(
-            "%(asctime)s - %(name)s - %(levelname)s - %(message)s", None)
-        hdlr.setFormatter(fmt)
+        value = os.getenv("NEXPY_LOG")
+        if value == None:
+            log_file = os.path.join(_nexpy_dir, 'nexpy.log')
+            hdlr = logging.handlers.RotatingFileHandler(log_file, maxBytes=50000,
+                                                        backupCount=5)
+            fmt = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+            fmtr = logging.Formatter(fmt, None)
+            logging.root.setLevel(logging.INFO)
+        else:
+            hdlr = logging.StreamHandler(stream=sys.stdout)
+            fmt = '%(levelname)s %(module)s.%(funcName)s() %(message)s'
+            fmtr = logging.Formatter(fmt)
+            try:
+                logging.root.setLevel(logging.__dict__[value])
+            except KeyError:
+                print 'Invalid log level:', value
+                sys.exit(1)
+        hdlr.setFormatter(fmtr)
         logging.root.addHandler(hdlr)
-        logging.root.setLevel(logging.INFO)
         logging.info('NeXpy launched')
+        logging.debug('Log level is: ' + str(value))
 
     def init_tree(self):
         """Initialize the NeXus tree used in the tree view."""
@@ -220,10 +232,10 @@ class NXConsoleApp(BaseIPythonApplication, IPythonConsoleApp):
         """Initialize imports in the shell."""
         global _shell
         _shell = self.window.user_ns
-        s = ("import nexpy\n"
-             "import nexpy.api.nexus as nx\n"
-             "from nexpy.api.nexus import NXgroup, NXfield, NXattr, NXlink\n"
-             "from nexpy.api.nexus import NXFile\n"
+        s = ("import nexusformat.nexus as nx\n"
+             "from nexusformat.nexus import NXgroup, NXfield, NXattr, NXlink\n"
+             "from nexusformat.nexus import *\n"
+             "import nexpy\n"
              "from nexpy.gui.plotview import NXPlotView")
         exec s in self.window.user_ns
         

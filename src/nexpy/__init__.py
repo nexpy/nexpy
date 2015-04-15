@@ -10,7 +10,11 @@
 #-----------------------------------------------------------------------------
 
 __package_name__ = u'NeXpy'
+<<<<<<< HEAD
 __version__ = u'0.5.4'
+=======
+__version__ = u'0.6.0'
+>>>>>>> nexusformat
 
 __documentation_author__ = u'Ray Osborn'
 __documentation_copyright__ = u'2013-2015, Ray Osborn'

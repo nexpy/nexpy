@@ -12,7 +12,7 @@ import os
 import pkg_resources
 
 from PySide import QtCore, QtGui
-from nexpy.api.nexus import NXfield, NXgroup, NXlink, NXroot, NXentry, NeXusError
+from nexusformat.nexus import *
 
 
 def natural_sort(key):
@@ -101,6 +101,19 @@ class NXtree(NXgroup):
                                               group.nxname, node.nxgroup.nxpath)
         else:
             raise NeXusError("Only an NXgroup can be added to the tree")
+
+    def load(self, filename):
+        name = self.get_name(filename)
+        self[name] = nxload(filename)
+
+    def reload(self, name):
+        if name in self:
+            root = nxload(self[name].nxfilename)
+            if isinstance(root, NXroot):
+                del self[name]
+                self[name] = root
+        else:
+            raise NeXusError('%s not in the tree')
 
     def get_name(self, filename):
         from nexpy.gui.consoleapp import _shell
@@ -283,24 +296,24 @@ class NXTreeView(QtGui.QTreeView):
 
     def popMenu(self, node):
         menu = QtGui.QMenu(self)
-        if node.is_plottable():
-            menu.addAction(self.plot_data_action)
-            try:
-                if ((isinstance(node, NXgroup) and 
-                     node.nxsignal and node.nxsignal.plot_rank == 1) or
+        try:
+            if node.is_plottable():
+                menu.addAction(self.plot_data_action)
+                if ((isinstance(node, NXgroup) and
+                    node.nxsignal and node.nxsignal.plot_rank == 1) or
                     (isinstance(node, NXfield) and node.plot_rank == 1)):
                     menu.addAction(self.plot_line_action)
                     if self.mainwindow.plotview.ndim == 1:
                         menu.addAction(self.overplot_data_action)
                         menu.addAction(self.overplot_line_action)
-            except NeXusError:
-                pass
-            if ((isinstance(node, NXgroup) and node.plottable_data and 
-                 node.plottable_data.nxsignal and 
-                 node.plottable_data.nxsignal.plot_rank > 2) or
-                (isinstance(node, NXfield) and node.plot_rank > 2)):
-                menu.addAction(self.plot_image_action)
-            menu.addSeparator()
+                if ((isinstance(node, NXgroup) and node.plottable_data and
+                     node.plottable_data.nxsignal and
+                     node.plottable_data.nxsignal.plot_rank > 2) or
+                    (isinstance(node, NXfield) and node.plot_rank > 2)):
+                    menu.addAction(self.plot_image_action)
+                menu.addSeparator()
+        except Exception:
+            pass
         menu.addAction(self.add_action)
         if not isinstance(node, NXroot):
             if isinstance(node, NXgroup):
