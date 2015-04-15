@@ -230,16 +230,19 @@ class ExecManager:
         for task_id in self.tasks:
             self.tasks[task_id].terminate()
 
-class ExecTask:
+class ExecTask(object):
     """
     A remote task tracked by the manager
     """
-    def __init__(self, task_id, hostname, command):
+    def __init__(self, task_id, hostname, command, user=None):
         self.task_id = task_id
         self.hostname = hostname
         self.command = command
         self.status = "PROTO"
-        self.user = "wozniak"
+        if user:
+            self.user = user
+        else:
+            self.user = os.getenv('USER')
         self.ssh = None
     
     def __repr__(self):
@@ -252,37 +255,38 @@ class ExecTask:
     def terminate(self):
         self.ssh.terminate()
 
-class ExecWindow(QtGui.QMainWindow):
+class ExecWindow(BaseDialog):
  
     def __init__(self, mgr):
         super(ExecWindow, self).__init__()
+
         self.mgr = mgr
 
         self.outputViews = {}
 
-        self.label = QtGui.QLabel(self)
-        self.label.move(25,20)
-        self.combobox = QtGui.QComboBox(self)
-        self.combobox.move(25,50)
+        self.label = QtGui.QLabel()
+        self.combobox = QtGui.QComboBox()
         self.combobox.SizeAdjustPolicy = \
             QtGui.QComboBox.AdjustToContents
 
-        self.refresher = QtGui.QPushButton('&Refresh', self)
-        self.refresher.move(25,75)
+        button_layout = QtGui.QHBoxLayout()
+        self.refresher = QtGui.QPushButton('Refresh')
         self.refresher.clicked.connect(self.refresh)
-        self.outviewer = QtGui.QPushButton('Show &Output', self)
-        self.outviewer.move(125,75)
+        self.outviewer = QtGui.QPushButton('Show Output')
         self.outviewer.clicked.connect(self.outview)
-        self.killer = QtGui.QPushButton('&Kill', self)
-        self.killer.move(225,75)
+        self.killer = QtGui.QPushButton('Kill')
         self.killer.clicked.connect(self.kill_task)
+        button_layout.addWidget(self.refresher)
+        button_layout.addWidget(self.outviewer)
+        button_layout.addWidget(self.killer)
+        button_layout.addStretch()
+
         layout = QtGui.QVBoxLayout()
         layout.addWidget(self.label)
         layout.addWidget(self.combobox)
-        layout.addWidget(self.killer)
+        layout.addLayout(button_layout)
         self.setLayout(layout)
         self.setWindowTitle("Execution list")    
-        self.setGeometry(100, 100, 1000, 150)
         self.refresh()
     
     def refresh(self):
@@ -325,26 +329,24 @@ class ExecWindow(QtGui.QMainWindow):
         self.mgr.terminate(task_id)
         self.refresh()
 
-class ExecOutput(QtGui.QMainWindow):
+class ExecOutput(BaseDialog):
+
     def __init__(self, task_id, task):
         super(ExecOutput, self).__init__()
         self.task = task
         self.setWindowTitle("NeXpy: Output: (%i)"%task_id)
-        self.setGeometry(100, 100, 800, 600)
-        labelHost = QtGui.QLabel(self)
-        # labelHost.move(25,25)
-        labelHost.setGeometry(25,25,300,25)
+        
+        labelHost = QtGui.QLabel()
         labelHost.setText("hostname: " + task.ssh.host)
         self.editor = QtGui.QTextEdit(self)
-        self.editor.move(25,50)
         self.editor.setFixedWidth(750)
         self.editor.setFixedHeight(500)
-        self.refresher = QtGui.QPushButton('&Refresh', self)
-        self.refresher.move(25,560)
+        self.refresher = QtGui.QPushButton('Refresh')
         self.refresher.clicked.connect(self.refresh)
         layout = QtGui.QVBoxLayout()
         layout.addWidget(labelHost)
         layout.addWidget(self.editor)
+        layout.addWidget(self.refresher)
         self.setLayout(layout)
 
     def refresh(self):
@@ -354,3 +356,55 @@ class ExecOutput(QtGui.QMainWindow):
         self.editor.append(text)
         self.show()
         self.raise_()
+
+def exec_actions(parent, menu):
+
+    menu.addAction(QtGui.QAction("Sleep", parent, triggered=exec_sleep))
+    menu.addAction(QtGui.QAction("CCTW", parent, triggered=exec_cctw))
+
+def textQ(parent, message, default=""):
+    return QtGui.QInputDialog.getText(parent, "NeXpy", message, text=default)
+
+def exec_sleep(parent=None):
+    try:
+        dialog = SleepDialog(parent)
+        dialog.show()
+    except NeXusError as error:
+        report_error("Exec Sleep", error)
+
+class SleepDialog(BaseDialog):
+
+    def __init__(self, parent=None):
+        super(SleepDialog, self).__init__(parent)
+
+        hostname, result = textQ(self, "Enter hostname:",  default="nxrs.msd.anl.gov")
+        if not result: 
+            return
+        sleep_time, result = textQ(self, "Enter sleep time:", default="100")
+        if not result: 
+            return
+        self.mainwindow.exec_mgr.newTask(hostname, "sleep " + sleep_time)
+        self.mainwindow.show_execwindow()
+   
+def exec_cctw(self):
+    try:
+        dialog = CCTWDialog(parent)
+        dialog.show()
+    except NeXusError as error:
+        report_error("Running CCTW", error)
+
+class CCTWDialog(BaseDialog):
+
+    def __init__(self, parent=None):
+        super(CCTWDialog, self).__init__(parent)
+
+        if self.treeview.get_node() == None:
+            QtGui.QMessageBox.critical(self, "NeXpy", \
+                                 "No data is selected!")
+            return
+        hostname = self.treeview.get_node().nxfile.hostname
+        filename = self.treeview.get_node().nxfile._filename
+        self.mainwindow.exec_mgr.newTask(hostname,
+                                         "/home/wozniak/cctw.sh "+filename)
+
+

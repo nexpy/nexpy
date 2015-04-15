@@ -86,7 +86,7 @@ class MainWindow(QtGui.QMainWindow):
         ----------
         
         app : reference to QApplication parent
-        tree : :class:`NXTree` object used as the root of the :class:`NXTreeView` items
+        tree : :class:`NXTree` object used as the rootr of the :class:`NXTreeView` items
         config : IPython configuration
         """
 
@@ -218,6 +218,7 @@ class MainWindow(QtGui.QMainWindow):
         self.init_file_menu()
         self.init_edit_menu()
         self.init_data_menu()
+        self.init_remote_menus()
         self.init_plugin_menus()
         self.init_view_menu()
         self.init_magic_menu()
@@ -252,17 +253,6 @@ class MainWindow(QtGui.QMainWindow):
             )
         self.addAction(self.openeditablefile_action)  
 
-        try:
-            from remotedialogs import RemoteDialog
-            self.openremotefile_action=QtGui.QAction("Open Remote...",
-                self,
-                triggered=self.open_remote_file
-                )
-            self.add_menu_action(self.file_menu, self.openremotefile_action)
-        except ImportError as e:
-            logging.info("Could not import Globus Catalog")
-            logging.info(e)
-
         self.savefile_action=QtGui.QAction("&Save as...",
             self,
             shortcut=QtGui.QKeySequence.Save,
@@ -278,6 +268,12 @@ class MainWindow(QtGui.QMainWindow):
         self.add_menu_action(self.file_menu, self.duplicate_action, True)  
 
         self.file_menu.addSeparator()
+
+        self.reload_action=QtGui.QAction("&Reload",
+            self,
+            triggered=self.reload
+            )
+        self.add_menu_action(self.file_menu, self.reload_action, True)  
 
         self.remove_action=QtGui.QAction("Remove",
             self,
@@ -488,6 +484,38 @@ class MainWindow(QtGui.QMainWindow):
             self.add_menu_action(self.data_menu, self.fit_action, True)
         except ImportError:
             self.fit_action = None
+
+    def init_remote_menus(self):
+        try:
+            from remotedialogs import RemoteDialog, ExecManager, ExecWindow, \
+                                      exec_actions
+
+            self.remote_menu = self.menu_bar.addMenu("Remote")       
+            
+            self.openremotefile_action=QtGui.QAction("Open Remote...",
+                self,
+                triggered=self.open_remote_file
+                )
+            self.add_menu_action(self.remote_menu, self.openremotefile_action)
+
+            self.remote_menu.addSeparator()
+
+            self.exec_mgr = ExecManager()
+            self.execwindow = None
+
+            self.exec_list_action=QtGui.QAction("Execution listing",
+                self,
+                triggered=self.show_execwindow
+                )
+            self.add_menu_action(self.remote_menu, self.exec_list_action)
+
+            self.remote_menu.addSeparator()
+            
+            exec_actions(self, self.remote_menu)
+
+        except ImportError as e:
+            logging.info("Could not add remote menu items")
+            logging.info(e)
 
         
     def init_plugin_menus(self):
@@ -820,7 +848,6 @@ class MainWindow(QtGui.QMainWindow):
                 name = self.treeview.tree.get_name(fname)
                 self.treeview.tree[name] = self.user_ns[name] = nxload(fname)
                 self.treeview.select_node(self.treeview.tree[name])
-                self.treeview.setFocus()
                 self.default_directory = os.path.dirname(fname)
                 logging.info("NeXus file '%s' opened as workspace '%s'" 
                              % (fname, name))
@@ -836,7 +863,6 @@ class MainWindow(QtGui.QMainWindow):
                 name = self.treeview.tree.get_name(fname)
                 self.treeview.tree[name] = self.user_ns[name] = nxload(fname, 'rw')
                 self.treeview.select_node(self.treeview.tree[name])
-                self.treeview.setFocus()
                 self.default_directory = os.path.dirname(fname)
                 logging.info("NeXus file '%s' opened (unlocked) as workspace '%s'" 
                              % (fname, name))
@@ -914,6 +940,24 @@ class MainWindow(QtGui.QMainWindow):
                 raise NeXusError("Only NXroot groups can be duplicated")
         except NeXusError as error:
             report_error("Duplicating File", error)
+
+    def reload(self):
+        try:
+            node = self.treeview.get_node()
+            path = node.nxpath
+            root = node.nxroot
+            name = root.nxname
+            ret = self.confirm_action(
+                  "Are you sure you want to reload '%s'?" % name)
+            if ret == QtGui.QMessageBox.Ok:
+                self.treeview.tree.reload(name)
+                logging.info("Workspace '%s' reloaded" % name)
+                try:
+                    self.treeview.select_node(self.treeview.tree[name][path])
+                except Exception:
+                    pass
+        except NeXusError as error:
+            report_error("Removing File", error)
 
     def remove(self):
         try:
@@ -1235,6 +1279,14 @@ class MainWindow(QtGui.QMainWindow):
                                 pass
                     class_groups[dtype] = (name, doc)
             self.nxclasses[class_name] = (class_doc, class_fields, class_groups)
+
+    def show_execwindow(self):
+        from remotedialogs import ExecWindow
+        if self.execwindow == None:
+            self.execwindow = ExecWindow(self.exec_mgr)
+            self.execwindow.show()
+        else:
+            self.execwindow.refresh()
 
     def _make_dynamic_magic(self,magic):
         """Return a function `fun` that will execute `magic` on the console.
