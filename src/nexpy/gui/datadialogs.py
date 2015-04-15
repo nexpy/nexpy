@@ -67,13 +67,13 @@ class BaseDialog(QtGui.QDialog):
         super(BaseDialog, self).__init__(parent)
 
     def set_layout(self, *items):
-        layout = QtGui.QVBoxLayout()
+        self.layout = QtGui.QVBoxLayout()
         for item in items:
             if isinstance(item, QtGui.QLayout):
-                layout.addLayout(item)
+                self.layout.addLayout(item)
             elif isinstance(item, QtGui.QWidget):
-                layout.addWidget(item)
-        self.setLayout(layout)
+                self.layout.addWidget(item)
+        self.setLayout(self.layout)
 
     def set_title(self, title):
         self.setWindowTitle(title)
@@ -199,6 +199,83 @@ class BaseDialog(QtGui.QDialog):
         from glob import glob
         filenames = glob(prefix+'*'+extension)
         return sorted(filenames,key=natural_sort)
+
+    def select_root(self, slot=None, text='Select Root :', other=False):
+        layout = QtGui.QHBoxLayout()
+        box = QtGui.QComboBox()
+        box.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToContents)
+        roots = []
+        for root in self.treeview.tree.NXroot:
+            roots.append(root.nxname)
+        for root in sorted(roots):
+            box.addItem(root)
+        if not other:
+            try:
+                node = self.treeview.get_node()
+                idx = box.findText(node.nxroot.nxname)
+                if idx >= 0:
+                    box.setCurrentIndex(idx)
+            except Exception:
+                box.setCurrentIndex(0)
+        if slot:
+            box.currentIndexChanged.connect(slot)
+        layout.addWidget(QtGui.QLabel(text))
+        layout.addWidget(box)
+        layout.addStretch()
+        if not other:
+            self.root_box = box
+            self.root_layout = layout
+        else:
+            self.other_root_box = box
+            self.other_root_layout = layout
+        return layout
+
+    @property
+    def root(self):
+        return self.treeview.tree[self.root_box.currentText()]
+
+    @property
+    def other_root(self):
+        return self.treeview.tree[self.other_root_box.currentText()]
+
+    def select_entry(self, slot=None, text='Select Entry :', other=False):
+        layout = QtGui.QHBoxLayout()
+        box = QtGui.QComboBox()
+        box.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToContents)
+        entries = []
+        for root in self.treeview.tree.NXroot:
+            for entry in root.NXentry:
+                entries.append(root.nxname+'/'+entry.nxname)
+        for entry in sorted(entries):
+            box.addItem(entry)
+        if not other:
+            try:
+                node = self.treeview.get_node()
+                idx = box.findText(node.nxroot.nxname+'/'+node.nxentry.nxname)
+                if idx >= 0:
+                    box.setCurrentIndex(idx)
+            except Exception:
+                box.setCurrentIndex(0)
+        if slot:
+            box.currentIndexChanged.connect(slot)
+        layout.addWidget(QtGui.QLabel(text))
+        layout.addWidget(box)
+        layout.addStretch()
+        if not other:
+            self.entry_box = box
+            self.entry_layout = layout
+        else:
+            self.other_entry_box = box
+            self.other_entry_layout = layout
+        return layout
+
+    @property
+    def entry(self):
+        return self.treeview.tree[self.entry_box.currentText()]
+
+    @property
+    def other_entry(self):
+        return self.treeview.tree[self.other_entry_box.currentText()]
 
     def read_parameter(self, root, path):
         """
@@ -444,7 +521,7 @@ class GridParameter(object):
         else:
             _value = self.box.text()
             try:
-                return np.array(_value).astype(self.field.dtype)
+                return np.asscalar(np.array(_value).astype(self.field.dtype))
             except AttributeError:
                 try:
                     return np.float32(_value)
@@ -462,7 +539,7 @@ class GridParameter(object):
             else:
                 if isinstance(value, NXfield):
                     value = value.nxdata
-                self.box.setText(str(value))
+                self.box.setText('%.6g' % value)
 
     @property
     def vary(self):
