@@ -102,13 +102,13 @@ class NXtree(NXgroup):
         else:
             raise NeXusError("Only an NXgroup can be added to the tree")
 
-    def load(self, filename):
+    def load(self, filename, mode='r'):
         name = self.get_name(filename)
-        self[name] = nxload(filename)
+        self[name] = nxload(filename, mode)
 
     def reload(self, name):
         if name in self:
-            root = nxload(self[name].nxfilename)
+            root = nxload(self[name].nxfilename, self[name].nxfilemode)
             if isinstance(root, NXroot):
                 del self[name]
                 self[name] = root
