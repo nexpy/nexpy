@@ -182,6 +182,9 @@ class RemoteDialog(BaseDialog):
         except Exception:
             return None
 
+    def finalize(self):
+        self.globus.finalize()
+
     def accept(self):
         try:
             root = self.globus.load(self.user, self.port)
