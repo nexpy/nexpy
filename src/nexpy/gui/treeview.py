@@ -350,8 +350,9 @@ class NXTreeView(QtGui.QTreeView):
             else:
                 menu.addAction(self.lockfile_action)
             menu.addSeparator()
-            menu.addAction(self.reload_action)
             menu.addAction(self.remove_action)
+        if node.nxfilemode:
+            menu.addAction(self.reload_action)
         return menu
 
     def save_file(self):
