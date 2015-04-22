@@ -110,29 +110,37 @@ class RemoteDialog(BaseDialog):
     def get_member(self):
         self.globus.get_member(self.member)
         if not self.ssh_controls:
-            pyro_layout = QtGui.QHBoxLayout()
-            user_label = QtGui.QLabel('Remote user:')
-            self.user_box = QtGui.QLineEdit(os.getenv('USER'))
-            self.user_box.setMinimumWidth(100)
-            port_label = QtGui.QLabel('Local port:')
-            self.port_box = QtGui.QLineEdit('8801')
-            self.port_box.setMinimumWidth(100)
-            self.ssh_start_button = QtGui.QPushButton("Start SSH")
-            self.ssh_stop_button = QtGui.QPushButton("Stop SSH")
-            self.ssh_stop_button.setEnabled(False)
-            self.ssh_start_button.clicked.connect(self.ssh_start)
-            self.ssh_stop_button.clicked.connect(self.ssh_stop)
-
-            pyro_layout.addStretch()
-            pyro_layout.addWidget(user_label)
-            pyro_layout.addWidget(self.user_box)
-            pyro_layout.addWidget(port_label)
-            pyro_layout.addWidget(self.port_box)
-            pyro_layout.addWidget(self.ssh_start_button)
-            pyro_layout.addWidget(self.ssh_stop_button)
-            pyro_layout.addStretch()
-            self.layout.insertLayout(3, pyro_layout)
+            self.layout.insertLayout(3, self.ssh_box())
             self.ssh_controls = True
+
+    def ssh_box(self):
+        pyro_layout = QtGui.QHBoxLayout()
+        user_label = QtGui.QLabel('Remote user:')
+        self.user_box = QtGui.QLineEdit(os.getenv('USER'))
+        self.user_box.setMinimumWidth(100)
+        port_label = QtGui.QLabel('Local port:')
+        self.port_box = QtGui.QLineEdit('8801')
+        self.port_box.setMinimumWidth(100)
+        self.ssh_start_button = QtGui.QPushButton("Start SSH")
+        self.ssh_stop_button = QtGui.QPushButton("Stop SSH")
+        if self.globus.ssh_session is not None:
+            self.ssh_start_button.setEnabled(False)
+            self.ssh_stop_button.setEnabled(True)
+        else:
+            self.ssh_start_button.setEnabled(True)
+            self.ssh_stop_button.setEnabled(False)
+        self.ssh_start_button.clicked.connect(self.ssh_start)
+        self.ssh_stop_button.clicked.connect(self.ssh_stop)
+
+        pyro_layout.addStretch()
+        pyro_layout.addWidget(user_label)
+        pyro_layout.addWidget(self.user_box)
+        pyro_layout.addWidget(port_label)
+        pyro_layout.addWidget(self.port_box)
+        pyro_layout.addWidget(self.ssh_start_button)
+        pyro_layout.addWidget(self.ssh_stop_button)
+        pyro_layout.addStretch()
+        return pyro_layout
 
     def ssh_start(self):
         logging.info("")
@@ -142,7 +150,7 @@ class RemoteDialog(BaseDialog):
 
     def ssh_stop(self):
         logging.info("")
-        assert(self.ssh_session != None)
+        assert(self.globus.ssh_session != None)
         self.globus.ssh_stop()
         self.ssh_start_button.setEnabled(True)
         self.ssh_stop_button.setEnabled(False)
@@ -387,7 +395,7 @@ class SleepDialog(BaseDialog):
         self.mainwindow.exec_mgr.newTask(hostname, "sleep " + sleep_time)
         self.mainwindow.show_execwindow()
    
-def exec_cctw(self):
+def exec_cctw(parent=None):
     try:
         dialog = CCTWDialog(parent)
         dialog.show()
