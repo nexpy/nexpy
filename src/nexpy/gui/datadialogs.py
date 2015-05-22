@@ -1262,14 +1262,11 @@ class SignalDialog(BaseDialog):
         else:
             self.signal_combo.setCurrentIndex(0)
         self.signal_combo.currentIndexChanged.connect(self.choose_signal)
-        self.signal_box = QtGui.QLineEdit("1")
 
         self.grid = QtGui.QGridLayout()
         self.grid.setSpacing(10)
         self.grid.addWidget(QtGui.QLabel('Signal :'), 0, 0)
         self.grid.addWidget(self.signal_combo, 0, 1)
-        self.grid.addWidget(QtGui.QLabel('Signal Attribute:'), 1, 0)
-        self.grid.addWidget(self.signal_box, 1, 1)
         self.choose_signal()
 
         self.layout = QtGui.QVBoxLayout()
@@ -1357,19 +1354,14 @@ class SignalDialog(BaseDialog):
         return [self.get_axis(axis) for axis in range(self.ndim)]
 
     def accept(self):
-        signal = int(self.signal_box.text())
         try:
             axes = self.get_axes()
             if None in axes:
                 raise NeXusError("Unable to set axes")
             if len(set(axes)) < len(axes):
                 raise NeXusError("Cannot have duplicate axes")
-            if signal == 1:
-                self.group.nxsignal = self.signal
-                self.group.nxaxes = axes
-            else:
-                self.signal.attrs["signal"] = signal
-                self.signal.attrs["axes"] = ":".join([axis.nxname for axis in axes])
+            self.group.nxsignal = self.signal
+            self.group.nxaxes = axes
             super(SignalDialog, self).accept()
         except NeXusError as error:
             from nexpy.gui.mainwindow import report_error 
