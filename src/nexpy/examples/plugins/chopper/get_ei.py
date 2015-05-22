@@ -1,4 +1,4 @@
-from PySide import QtGui
+from matplotlib.backends.qt_compat import QtGui
 import numpy as np
 from nexpy.gui.datadialogs import BaseDialog
 from nexpy.gui.mainwindow import report_error

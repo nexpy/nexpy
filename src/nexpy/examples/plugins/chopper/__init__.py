@@ -1,4 +1,4 @@
-from PySide import QtGui
+from matplotlib.backends.qt_compat import QtGui
 import get_ei, convert_qe
 
 def plugin_menu(parent):

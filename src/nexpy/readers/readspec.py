@@ -11,7 +11,7 @@
 
 '''Module to read in a SPEC file and convert it to NeXus.'''
 
-from PySide import QtCore, QtGui
+from matplotlib.backends.qt_compat import QtCore, QtGui
 
 import numpy as np
 import os

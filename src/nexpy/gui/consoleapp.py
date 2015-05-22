@@ -42,7 +42,7 @@ import sys
 import tempfile
 
 # System library imports
-from PySide import QtCore, QtGui
+from matplotlib.backends.qt_compat import QtCore, QtGui
 
 # Local imports
 from mainwindow import MainWindow

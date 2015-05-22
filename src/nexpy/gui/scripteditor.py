@@ -12,7 +12,7 @@
 import os
 import tempfile
 
-from PySide import QtGui
+from matplotlib.backends.qt_compat import QtGui
 import pygments
 from pygments.formatter import Formatter
 

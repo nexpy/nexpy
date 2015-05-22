@@ -12,7 +12,7 @@
 import logging
 import os
 
-from PySide import QtGui, QtCore
+from matplotlib.backends.qt_compat import QtGui, QtCore
 from Pyro4.errors import CommunicationError
 
 from nexusformat.nexus import (NeXusError, NXgroup, NXfield, NXattr,

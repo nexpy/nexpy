@@ -15,7 +15,7 @@ import os
 import re
 import sys
 
-from PySide import QtGui, QtCore
+from matplotlib.backends.qt_compat import QtGui, QtCore
 import pkg_resources
 import numpy as np
 

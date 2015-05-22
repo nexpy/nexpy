@@ -30,7 +30,7 @@ import webbrowser
 import xml.etree.ElementTree as ET
 from threading import Thread
 
-from PySide import QtGui, QtCore
+from matplotlib.backends.qt_compat import QtGui, QtCore
 from IPython.core.magic import magic_escapes
 
 

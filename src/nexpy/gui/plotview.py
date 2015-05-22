@@ -15,7 +15,7 @@ Plotting window
 
 import pkg_resources
 import numpy as np
-from PySide import QtCore, QtGui
+from matplotlib.backends.qt_compat import QtCore, QtGui
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 from matplotlib._pylab_helpers import Gcf
