@@ -60,6 +60,19 @@ nonstandard place
 
 All of the above are included in the Enthought Python Distribution v7.3.
 
+PySide 1.1.0 on rpm systems
+---------------------------
+
+python-pyside v1.1.0 rpm has a bug in it where it does not supply the egg-info
+that dist-utils looks for. There is a workaround mentioned in
+https://github.com/nvbn/everpad/issues/401#issuecomment-35834335 which is to
+spoof the system with a fake file in
+`/usr/lib/python2.7/dist-packages/PySide-1.1.0-py2.7.egg-info`
+or
+`/usr/lib/python2.7/site-packages/PySide-1.1.0-py2.7.egg-info`
+depending on which install location exists. It appears that v1.2.0 contains
+the missing file.
+
 To run with the GUI
 ===================
 
