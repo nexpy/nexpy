@@ -8,6 +8,10 @@
 #
 # The full license is in the file COPYING, distributed with this software.
 #-----------------------------------------------------------------------------
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+import six
+
 import os
 import pkg_resources
 
@@ -91,14 +95,14 @@ class NXtree(NXgroup):
                 group = NXroot(node)
                 name = self.get_new_name()
                 self[name] = group
-                print "NeXpy: '%s' added to tree in '%s'" % (node.nxname, 
-                                                             group.nxname)
+                print("NeXpy: '%s' added to tree in '%s'" % (node.nxname,
+                                                             group.nxname))
             else:
                 group = NXroot(NXentry(node))
                 name = self.get_new_name()
                 self[name] = group
-                print "NeXpy: '%s' added to tree in '%s%s'" % (node.nxname, 
-                                              group.nxname, node.nxgroup.nxpath)
+                print("NeXpy: '%s' added to tree in '%s%s'" % (node.nxname,
+                                              group.nxname, node.nxgroup.nxpath))
         else:
             raise NeXusError("Only an NXgroup can be added to the tree")
 
