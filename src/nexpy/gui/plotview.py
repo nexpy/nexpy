@@ -992,7 +992,7 @@ class NXPlotView(QtGui.QWidget):
             col = np.searchsorted(plotview.xaxis.boundaries-x, 0.0) - 1
             row = np.searchsorted(plotview.yaxis.boundaries-y, 0.0) - 1
             z = self.v[row,col]
-            return 'x=%1.4f y=%1.4f\nv=%1.4f'%(x, y, z)
+            return 'x=%1.4f y=%1.4f\nv=%1.4g'%(x, y, z)
         except:
             return ''
 
