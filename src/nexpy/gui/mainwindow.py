@@ -1029,7 +1029,7 @@ class MainWindow(QtGui.QMainWindow):
     def plot_data(self, fmt='o'):
         try:
             node = self.treeview.get_node()
-            if node:        
+            if node is not None:        
                 self.treeview.status_message(node)
                 if isinstance(node, NXgroup):
                     try:
@@ -1048,7 +1048,7 @@ class MainWindow(QtGui.QMainWindow):
     def overplot_data(self, fmt='o'):
         try:
             node = self.treeview.get_node()
-            if node:        
+            if node is not None:        
                 self.treeview.status_message(node)
                 node.oplot(fmt)
         except NeXusError as error:
@@ -1057,7 +1057,7 @@ class MainWindow(QtGui.QMainWindow):
     def plot_image(self):
         try:
             node = self.treeview.get_node()
-            if node:        
+            if node is not None:        
                 self.treeview.status_message(node)
                 node.implot()
         except NeXusError as error:
@@ -1079,7 +1079,7 @@ class MainWindow(QtGui.QMainWindow):
     def initialize_data(self):
         try:
             node = self.treeview.get_node()      
-            if node:
+            if node is not None:
                 if node.nxfilemode == 'r':
                     raise NeXusError("NeXus file is locked")    
                 if isinstance(node, NXgroup):
@@ -1094,7 +1094,7 @@ class MainWindow(QtGui.QMainWindow):
         try:
             if self is not None:
                 node = self.treeview.get_node()
-                if node:
+                if node is not None:
                     if isinstance(node, NXlink):
                         raise NeXusError("Cannot rename a linked object")
                     if node.nxfilemode != 'r' or isinstance(node, NXroot):
@@ -1148,7 +1148,7 @@ class MainWindow(QtGui.QMainWindow):
     def delete_data(self):
         try:
             node = self.treeview.get_node()
-            if node:
+            if node is not None:
                 if node.nxroot.nxfilemode != 'r':
                     path = node.nxpath
                     dialog = DeleteDialog(node, self)
