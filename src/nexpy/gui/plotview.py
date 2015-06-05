@@ -395,23 +395,22 @@ class NXPlotView(QtGui.QWidget):
         and initializes the NXPlotAxis instances.
         """
         if self.ndim > 2:
-            idx=[np.s_[0] for s in self.shape[:-2] if s > 1]
-            idx.extend([np.s_[:], np.s_[:]])
+            idx=[np.s_[0] if s==1 else np.s_[:] for s in self.data.nxsignal.shape]
+            for i in range(len(idx)):
+                if idx.count(slice(None,None,None)) > 2:
+                    idx[i] = 0
             self.signal = self.data.nxsignal[tuple(idx)][()]
         else:
             self.signal = self.data.nxsignal[()].reshape(self.shape)
 
-        if self.data.nxaxes is not None:
-            axes = []
-            for axis in self.data.nxaxes:
-                if axis.size > 1:
-                    axes.append(axis)
+        if self.data.plot_axes is not None:
+            axes = self.data.plot_axes
         else:
             axes = [NXfield(np.arange(self.shape[i]), name='Axis%s'%i)
                             for i in range(self.ndim)]
 
         self.axes = [NXfield(axes[i].nxdata, name=axes[i].nxname,
-                             attrs=axes[i].attrs) for i in range(self.ndim)]
+                             attrs=axes[i].safe_attrs) for i in range(self.ndim)]
 
         if over:
             self.axis['signal'].set_data(self.signal)
@@ -649,13 +648,22 @@ class NXPlotView(QtGui.QWidget):
                 limits.append((None,None))
             else:
                 limits.append((self.axis[i].lo, self.axis[i].hi))
+        if self.data.nxsignal.shape != self.data.plot_shape:
+            axes, limits = fix_projection(self.data.nxsignal.shape, axes, limits)
         self.plotdata = self.data.project(axes, limits)
         self.plotdata.title = self.title
         if self.equally_spaced:
             self.x, self.y, self.v = self.get_image()
             self.image.set_data(self.v)
-            self.image.set_extent((self.xaxis.min, self.xaxis.max,
-                                   self.yaxis.min,self.yaxis.max))
+            if self.xaxis.reversed:
+                xmin, xmax = self.xaxis.max, self.xaxis.min
+            else:
+                xmin, xmax = self.xaxis.min, self.xaxis.max
+            if self.yaxis.reversed:
+                ymin, ymax = self.yaxis.max, self.yaxis.min
+            else:
+                ymin, ymax = self.yaxis.min, self.yaxis.max
+            self.image.set_extent((xmin, xmax, ymin, ymax))
             self.replot_image()
         elif newaxis:
             self.plot_image()
@@ -1578,6 +1586,13 @@ class NXSpinBox(QtGui.QSpinBox):
     def index(self):
         return super(NXSpinBox, self).value()
 
+    @property
+    def reversed(self):
+        if self.data[-1] < self.data[0]:
+            return True
+        else:
+            return False
+
     def setValue(self, value):
         super(NXSpinBox, self).setValue(self.valueFromText(value))
 
@@ -1788,27 +1803,12 @@ class NXProjectionTab(QtGui.QWidget):
         for axis in axes:
             if axis not in [ydim, xdim]:
                 limits[axis] = (None, None)
-        shape = self.plotview.shape
-        if len(shape) - len(limits) == shape.count(1):
-            axes, limits = self.fix_projection(shape, axes, limits)
+        shape = self.plotview.data.nxsignal.shape
+        if len(shape)-len(limits) > 0 and len(shape)-len(limits) == shape.count(1):
+            axes, limits = fix_projection(shape, axes, limits)
         if self.plotview.rgb_image:
             limits.append((None, None))
         return axes, limits
-
-    def fix_projection(self, shape, axes, limits):
-        axis_map = {}
-        for axis in axes:
-            axis_map[axis] = limits[axis]
-        fixed_limits = []
-        for s in shape:
-            if s == 1:
-                fixed_limits.append((None, None))
-            else:
-                fixed_limits.append(limits.pop(0))
-        fixed_axes = []
-        for axis in axes:
-            fixed_axes.append(fixed_limits.index(axis_map[axis]))
-        return fixed_axes, fixed_limits
 
     def save_projection(self):
         axes, limits = self.get_projection()
@@ -1846,6 +1846,7 @@ class NXProjectionPanel(QtGui.QDialog):
         QtGui.QDialog.__init__(self, parent)
  
         self.plotview = plotview
+        self.ndim = self.plotview.ndim
 
         layout = QtGui.QVBoxLayout()
 
@@ -1854,7 +1855,6 @@ class NXProjectionPanel(QtGui.QDialog):
 
         self.xbox = QtGui.QComboBox()
         self.xbox.currentIndexChanged.connect(self.set_xaxis)
-        self.xbox.setCurrentIndex(self.xbox.findText(self.plotview.xaxis.name))
         self.xbox.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToContents)
         widgets.append(QtGui.QLabel('X-Axis:'))
         widgets.append(self.xbox)
@@ -1897,12 +1897,13 @@ class NXProjectionPanel(QtGui.QDialog):
         self.minbox = {}
         self.maxbox = {}
         self.lockbox = {}
-        for axis in range(self.plotview.ndim):
+        for axis in range(self.ndim):
             row += 1
             self.minbox[axis] = self.spinbox()
             self.maxbox[axis] = self.spinbox()
             self.lockbox[axis] = QtGui.QCheckBox()
             self.lockbox[axis].stateChanged.connect(self.set_lock)
+            self.lockbox[axis].setChecked(False)
             grid.addWidget(QtGui.QLabel(self.plotview.axis[axis].name), row, 0)
             grid.addWidget(self.minbox[axis], row, 1)
             grid.addWidget(self.maxbox[axis], row, 2)
@@ -1952,7 +1953,7 @@ class NXProjectionPanel(QtGui.QDialog):
 
         self.rectangle = None
 
-        for axis in range(self.plotview.ndim):
+        for axis in range(self.ndim):
             self.minbox[axis].data = self.maxbox[axis].data = \
                 self.plotview.axis[axis].centers
             self.minbox[axis].boundaries = self.maxbox[axis].boundaries = \
@@ -1962,10 +1963,7 @@ class NXProjectionPanel(QtGui.QDialog):
             self.maxbox[axis].setMaximum(self.maxbox[axis].data.size-1)
             self.minbox[axis].diff = self.maxbox[axis].diff = None
 
-        for axis in range(self.plotview.ndim):
-            self.minbox[axis].setValue(self.minbox[axis].data[0])
-            self.maxbox[axis].setValue(self.minbox[axis].data[-1])
-            self.lockbox[axis].setChecked(False)
+        self.update_limits()
 
     def get_axes(self):
         return self.plotview.xtab.get_axes()
@@ -1975,7 +1973,7 @@ class NXProjectionPanel(QtGui.QDialog):
         self.xbox.clear()
         self.xbox.addItems(axes)
         self.xbox.setCurrentIndex(self.xbox.findText(self.plotview.xaxis.name))
-        if self.plotview.ndim <= 2:
+        if self.ndim <= 2:
             self.ylabel.setVisible(False)
             self.ybox.setVisible(False)
         else:
@@ -1996,7 +1994,7 @@ class NXProjectionPanel(QtGui.QDialog):
 
     @property
     def yaxis(self):
-        if self.plotview.ndim <= 2:
+        if self.ndim <= 2:
             return 'None'
         else:
             return self.ybox.currentText()
@@ -2009,7 +2007,7 @@ class NXProjectionPanel(QtGui.QDialog):
                     break
 
     def set_limits(self):
-        for axis in range(self.plotview.ndim):
+        for axis in range(self.ndim):
             if self.lockbox[axis].isChecked():
                 min_value = self.maxbox[axis].value() - self.maxbox[axis].diff
                 self.minbox[axis].setValue(min_value)
@@ -2019,19 +2017,25 @@ class NXProjectionPanel(QtGui.QDialog):
 
     def get_limits(self, axis=None):
         if axis:
-            return self.minbox[axis].index, self.maxbox[axis].index+1
+            _min, _max = self.minbox[axis].index, self.maxbox[axis].index+1
+            if _min < _max:
+                return _min, _max
+            else:
+                return _max, _min
         else:
-            return [(self.minbox[axis].index, self.maxbox[axis].index+1) 
-                     for axis in range(self.plotview.ndim)]
+            _limits = [(self.minbox[axis].index, self.maxbox[axis].index)
+                       for axis in range(self.ndim)]
+            return [(_min, _max+1) if _min <= _max else (_max, _min+1)
+                    for _min, _max in _limits]
     
     def update_limits(self):
-        for axis in range(self.plotview.ndim):
+        for axis in range(self.ndim):
             lo, hi = self.plotview.axis[axis].get_limits()
             self.minbox[axis].setValue(lo)
             self.maxbox[axis].setValue(hi)
 
     def set_lock(self):
-        for axis in range(self.plotview.ndim):
+        for axis in range(self.ndim):
             if self.lockbox[axis].isChecked():
                 lo, hi = self.minbox[axis].value(), self.maxbox[axis].value()
                 self.minbox[axis].diff = self.maxbox[axis].diff = max(hi - lo, 0.0)
@@ -2048,30 +2052,12 @@ class NXProjectionPanel(QtGui.QDialog):
             y = self.get_axes().index(self.yaxis)
             axes = [y,x]
         limits = self.get_limits()
-        shape = self.plotview.shape
-        if len(shape) - len(limits) > 0 and len(shape) - len(limits) == shape.count(1):
-            axes, limits = self.fix_projection(shape, axes, limits)
+        shape = self.plotview.data.nxsignal.shape
+        if len(shape)-len(limits) > 0 and len(shape)-len(limits) == shape.count(1):
+            axes, limits = fix_projection(shape, axes, limits)
         if self.plotview.rgb_image:
             limits.append((None, None))
         return axes, limits
-
-    def fix_projection(self, shape, axes, limits):
-        axis_map = {}
-        for axis in axes:
-            axis_map[axis] = limits[axis]
-        fixed_limits = []
-        for s in shape:
-            if s == 1:
-                fixed_limits.append((None, None))
-            else:
-                fixed_limits.append(limits.pop(0))
-        fixed_axes = []
-        for axis in axes:
-            fixed_axes.append(fixed_limits.index(axis_map[axis]))
-        for axis in fixed_axes:
-            if fixed_limits[axis][1] <= fixed_limits[axis][0] + 1:
-                raise NeXusError('Projection axis must have a size > 1')
-        return fixed_axes, fixed_limits
 
     def save_projection(self):
         try:
@@ -2127,14 +2113,27 @@ class NXProjectionPanel(QtGui.QDialog):
         spinbox.valueChanged[unicode].connect(self.set_limits)
         return spinbox
 
+    def block_signals(self, block=True):
+        for axis in range(self.ndim):
+            self.minbox[axis].blockSignals(block)
+            self.maxbox[axis].blockSignals(block)
+
     def draw_rectangle(self):
         ax = self.plotview.figure.axes[0]
         xp = self.plotview.xaxis.dim
         yp = self.plotview.yaxis.dim
-        x0 = self.minbox[xp].minBoundaryValue(self.minbox[xp].index)
-        x1 = self.maxbox[xp].maxBoundaryValue(self.maxbox[xp].index)
-        y0 = self.minbox[yp].minBoundaryValue(self.minbox[yp].index)
-        y1 = self.maxbox[yp].maxBoundaryValue(self.maxbox[yp].index)
+        if self.minbox[xp].reversed:
+            x0 = self.minbox[xp].maxBoundaryValue(self.minbox[xp].index)
+            x1 = self.maxbox[xp].minBoundaryValue(self.maxbox[xp].index)
+        else:
+            x0 = self.minbox[xp].minBoundaryValue(self.minbox[xp].index)
+            x1 = self.maxbox[xp].maxBoundaryValue(self.maxbox[xp].index)
+        if self.minbox[yp].reversed:
+            y0 = self.minbox[yp].maxBoundaryValue(self.minbox[yp].index)
+            y1 = self.maxbox[yp].minBoundaryValue(self.maxbox[yp].index)
+        else:
+            y0 = self.minbox[yp].minBoundaryValue(self.minbox[yp].index)
+            y1 = self.maxbox[yp].maxBoundaryValue(self.maxbox[yp].index)
 
         if self.rectangle:
             self.rectangle.set_bounds(x0, y0, x1-x0, y1-y0)
@@ -2403,3 +2402,17 @@ def boundaries(axis, dimlen):
     else:
         assert ax.shape[0] == dimlen + 1
         return ax
+
+def fix_projection(shape, axes, limits):
+    fixed_limits = []
+    fixed_axes = axes
+    for s in shape:
+        if s == 1:
+            fixed_limits.append((0,0))
+        else:
+            fixed_limits.append(limits.pop(0))    
+    for (i,s) in enumerate(shape):
+        if s==1:
+            fixed_axes=[a+1 if a>=i else a for a in fixed_axes]
+    return fixed_axes, fixed_limits
+

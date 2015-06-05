@@ -1454,7 +1454,6 @@ class MainWindow(QtGui.QMainWindow):
         else:
             plotview.ptab.panel = NXProjectionPanel(plotview=plotview, 
                                                     parent=plotview.ptab)
-            plotview.ptab.panel.update_limits()
             plotview.ptab.panel.show()
     
     def limit_axes(self):
