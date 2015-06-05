@@ -629,10 +629,16 @@ class NXPlotView(QtGui.QWidget):
         return len(self.shape)
 
     def set_data_limits(self):
-        if self.vaxis.lo is None or self.autoscale: 
-            self.vaxis.lo = self.vaxis.min = np.nanmin(self.v[self.v>-np.inf])
+        if self.vaxis.lo is None or self.autoscale:
+            try:
+                self.vaxis.lo = self.vaxis.min = np.nanmin(self.v[self.v>-np.inf])
+            except:
+                self.vaxis.lo = self.vaxis.min = 0.0
         if self.vaxis.hi is None or self.autoscale:
-            self.vaxis.hi = self.vaxis.max = np.nanmax(self.v[self.v<np.inf])
+            try:
+                self.vaxis.hi = self.vaxis.max = np.nanmax(self.v[self.v<np.inf])
+            except:
+                self.vaxis.hi = self.vaxis.max = 0.0
         if self.vtab.logbox.isChecked():
             try:
                 self.vaxis.lo = max(self.vaxis.lo, self.v[self.v>0.0].min())
@@ -747,8 +753,12 @@ class NXPlotView(QtGui.QWidget):
         if self.ndim == 1:
             self.replot_axes()
         else:
-            self.vaxis.min = self.vaxis.lo = np.nanmin(self.v[self.v>-np.inf])
-            self.vaxis.max = self.vaxis.hi = np.nanmax(self.v[self.v<np.inf])
+            try:
+                self.vaxis.min = self.vaxis.lo = np.nanmin(self.v[self.v>-np.inf])
+                self.vaxis.max = self.vaxis.hi = np.nanmax(self.v[self.v<np.inf])
+            except:
+                self.vaxis.min = self.vaxis.lo = 0.0
+                self.vaxis.max = self.vaxis.hi = 0.0
             self.vtab.set_axis(self.vaxis)
             self.replot_image()
         self.update_tabs()
@@ -1035,8 +1045,11 @@ class NXPlotAxis(object):
             if dimlen is None:
                 self.centers = None
                 self.boundaries = None
-                self.min = np.nanmin(self.data[self.data>-np.inf])
-                self.max = np.nanmax(self.data[self.data<np.inf])
+                try:
+                    self.min = np.nanmin(self.data[self.data>-np.inf])
+                    self.max = np.nanmax(self.data[self.data<np.inf])
+                except:
+                    self.min = self.max = 0.0
             else:
                 if self.data[0] > self.data[-1]:
                     self.reversed = True
