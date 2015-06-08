@@ -650,10 +650,7 @@ class NXPlotView(QtGui.QWidget):
         axes = [self.yaxis.dim, self.xaxis.dim]
         limits = []
         for i in range(self.ndim):
-            if i in axes: 
-                limits.append((None,None))
-            else:
-                limits.append((self.axis[i].lo, self.axis[i].hi))
+            limits.append((self.axis[i].lo, self.axis[i].hi))
         if self.data.nxsignal.shape != self.data.plot_shape:
             axes, limits = fix_projection(self.data.nxsignal.shape, axes, limits)
         self.plotdata = self.data.project(axes, limits)
@@ -1419,7 +1416,7 @@ class NXPlotTab(QtGui.QWidget):
                 self.minbox.setDisabled(True)
             else:
                 self.axis.locked = False
-                self.axis.diff = self.maxbox.diff = self.minbox.diff = None
+                self.axis.diff = self.maxbox.diff = self.minbox.diff = 0.0
                 self.minbox.setDisabled(False)
             self.lockbox.setChecked(value)
         except:
