@@ -17,7 +17,7 @@ and its attributes and a single module, get_data, which returns an NXroot or NXe
 object. This will be added to the NeXpy tree.
 """
 
-from matplotlib.backends.qt_compat import QtGui
+from nexpy.gui.pyqt import QtGui
 import numpy as np
 
 from nexusformat.nexus import *

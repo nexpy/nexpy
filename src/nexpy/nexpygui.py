@@ -11,11 +11,9 @@
 
 
 def main():
-    # MUST define the QT_API before importing matplotlib
     import os, sys
 
     import matplotlib
-    matplotlib.rcParams['backend.qt4'] = 'PyQt4v2'
     matplotlib.use('Qt4Agg')
 
     sys.path.insert(0, os.path.abspath(os.path.join('..')))

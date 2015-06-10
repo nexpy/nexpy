@@ -25,7 +25,7 @@ Two GUI elements are provided for convenience:
                             This should be placed at the bottom of all import dialogs.
 """
 
-from IPython.external.qt import QtGui, QtCore
+from nexpy.gui.pyqt import QtGui, QtCore
 import os, re
 import numpy as np
 from nexusformat.nexus import NXfield, NXentry, NXdata
@@ -260,10 +260,8 @@ class ImportDialog(BaseImportDialog):
         if self.get_image_type() == 'CBF':
             v0 = self.read_image(filenames[0])
             v = np.zeros([len(filenames), v0.shape[0], v0.shape[1]], dtype=np.int32)
-            i = 0
-            for filename in filenames:
+            for i,filename in enumerate(filenames):
                 v[i] = self.read_image(filename)
-                i += 1
         else:
             from nexpy.readers.tifffile import tifffile as TIFF
             v = TIFF.TiffSequence(filenames).asarray()        

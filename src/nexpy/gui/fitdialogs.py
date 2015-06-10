@@ -15,7 +15,7 @@ import os
 import re
 import sys
 
-from matplotlib.backends.qt_compat import QtGui, QtCore
+from nexpy.gui.pyqt import QtGui, QtCore
 import pkg_resources
 import numpy as np
 

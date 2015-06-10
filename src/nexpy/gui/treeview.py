@@ -11,7 +11,7 @@
 import os
 import pkg_resources
 
-from matplotlib.backends.qt_compat import QtCore, QtGui
+from nexpy.gui.pyqt import QtCore, QtGui
 from nexusformat.nexus import *
 
 

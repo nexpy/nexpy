@@ -15,7 +15,7 @@ Plotting window
 
 import pkg_resources
 import numpy as np
-from matplotlib.backends.qt_compat import QtCore, QtGui
+from nexpy.gui.pyqt import QtCore, QtGui
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 from matplotlib._pylab_helpers import Gcf
@@ -1187,7 +1187,7 @@ class NXPlotTab(QtGui.QWidget):
             self.axis.locked = False
             self.flipbox.setChecked(False)
             self.set_sliders(axis.lo, axis.hi)
-        if self.axiscombo:
+        if self.axiscombo is not None:
             self.axiscombo.clear()
             if self.plotview.rgb_image:
                 self.axiscombo.addItem(axis.name)
@@ -1364,7 +1364,7 @@ class NXPlotTab(QtGui.QWidget):
 
     @property
     def log(self):
-        if self.logbox:
+        if self.logbox is not None:
             return self.logbox.isChecked()
 
     def set_log(self):
