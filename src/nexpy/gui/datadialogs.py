@@ -15,7 +15,7 @@ import os
 import re
 import sys
 
-from PySide import QtGui, QtCore
+from nexpy.gui.pyqt import QtGui, QtCore, getOpenFileName
 import pkg_resources
 import numpy as np
 from scipy.optimize import minimize
@@ -140,8 +140,7 @@ class BaseDialog(QtGui.QDialog):
         Opens a file dialog and sets the file text box to the chosen path.
         """
         dirname = self.get_default_directory(self.filename.text())
-        filename, _ = QtGui.QFileDialog.getOpenFileName(self, 'Open File',
-            dirname)
+        filename = getOpenFileName(self, 'Open File', dirname)
         if os.path.exists(filename):    # avoids problems if <Cancel> was selected
             dirname = os.path.dirname(filename)
             self.filename.setText(str(filename))
@@ -158,8 +157,8 @@ class BaseDialog(QtGui.QDialog):
         Opens a file dialog and sets the directory text box to the chosen path.
         """
         dirname = self.get_default_directory()
-        dirname = QtGui.QFileDialog.getExistingDirectory(self, 'Choose Directory',
-            dir=dirname)
+        dirname = QtGui.QFileDialog.getExistingDirectory(self, 
+                      'Choose Directory', dir=dirname)
         if os.path.exists(dirname):    # avoids problems if <Cancel> was selected
             self.directoryname.setText(str(dirname))
             self.set_default_directory(dirname)
@@ -1180,7 +1179,7 @@ class RenameDialog(BaseDialog):
         if name:
             self.node.rename(name)
         if isinstance(self.node, NXgroup):
-            if self.combo_box:
+            if self.combo_box is not None:
                 self.node.nxclass = self.get_class()
         super(RenameDialog, self).accept()
 

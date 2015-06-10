@@ -11,7 +11,7 @@
 
 '''Module to read in a SPEC file and convert it to NeXus.'''
 
-from PySide import QtCore, QtGui
+from nexpy.gui.pyqt import QtCore, QtGui, getOpenFileName
 
 import numpy as np
 import os
@@ -76,7 +76,7 @@ class ImportDialog(BaseImportDialog):
         from spec2nexus.spec import SpecDataFile
 
         dirname = self.get_default_directory(self.filename.text())
-        filename, _ = QtGui.QFileDialog.getOpenFileName(self, 'Open file', dirname)
+        filename = getOpenFileName(self, 'Open file', dirname)
         if os.path.exists(filename):
             self.filename.setText(str(filename))
             self.spec = SpecDataFile(self.get_filename())

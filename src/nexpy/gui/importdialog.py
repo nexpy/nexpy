@@ -14,7 +14,7 @@ Base class for import dialogs
 """
 
 import os
-from PySide import QtCore, QtGui
+from nexpy.gui.pyqt import QtCore, QtGui
 
 from nexusformat.nexus import *
 from nexpy.gui.datadialogs import BaseDialog

@@ -18,7 +18,7 @@ object. This will be added to the NeXpy tree.
 """
 
 import os
-from IPython.external.qt import QtGui
+from nexpy.gui.pyqt import QtGui
 
 import numpy as np
 from nexusformat.nexus import *
@@ -84,8 +84,7 @@ class ImportDialog(BaseImportDialog):
         Opens a file dialog and sets the file text box to the chosen path.
         """
         dirname = self.get_default_directory(self.filename.text())
-        filename, _ = QtGui.QFileDialog.getOpenFileName(self, 'Open File',
-            dirname)
+        filename = getOpenFileName(self, 'Open File', dirname)
         if os.path.exists(filename):    # avoids problems if <Cancel> was selected
             dirname = os.path.dirname(filename)
             self.filename.setText(str(filename))

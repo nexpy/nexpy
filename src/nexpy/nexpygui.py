@@ -1,4 +1,4 @@
-#!/usr/bin/env python 
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 #-----------------------------------------------------------------------------
@@ -11,11 +11,8 @@
 
 
 def main():
-
-    # MUST define the QT_API before importing matplotlib
     import os, sys
-    os.environ['QT_API'] = 'pyside'
-    
+
     import matplotlib
     matplotlib.use('Qt4Agg')
 

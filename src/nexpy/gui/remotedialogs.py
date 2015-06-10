@@ -12,7 +12,7 @@
 import logging
 import os
 
-from PySide import QtGui, QtCore
+from nexpy.gui.pyqt import QtGui, QtCore
 from Pyro4.errors import CommunicationError
 
 from nexusformat.nexus import (NeXusError, NXgroup, NXfield, NXattr,
@@ -25,9 +25,9 @@ from nexusformat.pyro.ssh import NeXPyroSSH
 class RemoteDialog(BaseDialog):
     """Dialog to open a remote file.
     """ 
-    def __init__(self, parent=None, defaults=(None, None)):
+    def __init__(self, defaults=(None, None)):
 
-        super(RemoteDialog, self).__init__(parent)
+        super(RemoteDialog, self).__init__()
  
         token_file = os.path.join(os.path.expanduser('~'),'.nexpy',
                                   'globusonline', 'gotoken.txt')
@@ -81,7 +81,7 @@ class RemoteDialog(BaseDialog):
             self.layout.insertLayout(1, dataset_layout)       
         else:
             self.dataset_combo.clear()
-            if self.member_combo:
+            if self.member_combo is not None:
                 self.member_combo.clear()
         for dataset in self.globus.get_datasets(self.catalog):
             try:

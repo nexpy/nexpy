@@ -30,7 +30,7 @@ import webbrowser
 import xml.etree.ElementTree as ET
 from threading import Thread
 
-from PySide import QtGui, QtCore
+from nexpy.gui.pyqt import QtGui, QtCore, getOpenFileName
 from IPython.core.magic import magic_escapes
 
 
@@ -538,7 +538,11 @@ class MainWindow(QtGui.QMainWindow):
             fp, pathname, description = imp.find_module(plugin_name, plugin_paths)
             try:
                 plugin_module = imp.load_module(plugin_name, fp, pathname, description)
-                self.menu_bar.addMenu(plugin_module.plugin_menu(self))
+                name, actions = plugin_module.plugin_menu()
+                plugin_menu = self.menu_bar.addMenu(name)
+                for action in actions:
+                    self.add_menu_action(plugin_menu, QtGui.QAction(
+                        action[0], self, triggered=action[1]))
             except AttributeError as error:
                 print error
             finally:
@@ -842,9 +846,8 @@ class MainWindow(QtGui.QMainWindow):
 
     def open_file(self):
         try:
-            fname, _ = QtGui.QFileDialog.getOpenFileName(self, 
-                           'Open File (Read Only)', self.default_directory, 
-                           self.file_filter)
+            fname = getOpenFileName(self, 'Open File (Read Only)', 
+                                    self.default_directory,  self.file_filter)
             if fname:
                 name = self.treeview.tree.get_name(fname)
                 self.treeview.tree[name] = self.user_ns[name] = nxload(fname)
@@ -857,9 +860,8 @@ class MainWindow(QtGui.QMainWindow):
   
     def open_editable_file(self):
         try:
-            fname, _ = QtGui.QFileDialog.getOpenFileName(self, 
-                           'Open File (Read/Write)',
-                           self.default_directory, self.file_filter)
+            fname = getOpenFileName(self, 'Open File (Read/Write)',
+                                    self.default_directory, self.file_filter)
             if fname:
                 name = self.treeview.tree.get_name(fname)
                 self.treeview.tree[name] = self.user_ns[name] = nxload(fname, 'rw')
@@ -873,7 +875,7 @@ class MainWindow(QtGui.QMainWindow):
     def open_remote_file(self):
         try:
             from remotedialogs import RemoteDialog
-            self.remote_dialog = RemoteDialog(parent=self, defaults=self.remote_defaults)
+            self.remote_dialog = RemoteDialog(defaults=self.remote_defaults)
             self.remote_dialog.show()
         except NeXusError as error:
             report_error("Opening Remote File", error)
@@ -1026,31 +1028,31 @@ class MainWindow(QtGui.QMainWindow):
         except NeXusError as error:
             report_error("Importing File", error)
 
-    def plot_data(self, fmt='o'):
+    def plot_data(self):
         try:
             node = self.treeview.get_node()
             if node is not None:        
                 self.treeview.status_message(node)
                 if isinstance(node, NXgroup):
                     try:
-                        node.plot(fmt=fmt)
+                        node.plot(fmt='o')
                         return
                     except (KeyError, NeXusError):
                         pass
                 if node.is_plottable():
-                    dialog = PlotDialog(node, self, fmt=fmt)
+                    dialog = PlotDialog(node, self, fmt='o')
                     dialog.show()
                 else:
                     raise NeXusError("Data not plottable")
         except NeXusError as error:
             report_error("Plotting Data", error)
 
-    def overplot_data(self, fmt='o'):
+    def overplot_data(self):
         try:
             node = self.treeview.get_node()
             if node is not None:        
                 self.treeview.status_message(node)
-                node.oplot(fmt)
+                node.oplot(fmt='o')
         except NeXusError as error:
             report_error("Overplotting Data", error)
 
@@ -1493,8 +1495,8 @@ class MainWindow(QtGui.QMainWindow):
             script_dir = os.path.join(_nexpy_dir, 'scripts')
             file_filter = ';;'.join(("Python Files (*.py)",
                                          "Any Files (*.* *)"))
-            file_name, _ = QtGui.QFileDialog.getOpenFileName(self, 
-                           "Open Script", script_dir, file_filter)
+            file_name = getOpenFileName(self, 'Open Script', script_dir, 
+                                        file_filter)
             if file_name:
                 dialog = ScriptDialog(file_name, self)
                 dialog.show()
