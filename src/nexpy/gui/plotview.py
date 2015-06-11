@@ -638,7 +638,7 @@ class NXPlotView(QtGui.QWidget):
             try:
                 self.vaxis.hi = self.vaxis.max = np.nanmax(self.v[self.v<np.inf])
             except:
-                self.vaxis.hi = self.vaxis.max = 0.0
+                self.vaxis.hi = self.vaxis.max = 0.1
         if self.vtab.logbox.isChecked():
             try:
                 self.vaxis.lo = max(self.vaxis.lo, self.v[self.v>0.0].min())
@@ -755,7 +755,7 @@ class NXPlotView(QtGui.QWidget):
                 self.vaxis.max = self.vaxis.hi = np.nanmax(self.v[self.v<np.inf])
             except:
                 self.vaxis.min = self.vaxis.lo = 0.0
-                self.vaxis.max = self.vaxis.hi = 0.0
+                self.vaxis.max = self.vaxis.hi = 0.1
             self.vtab.set_axis(self.vaxis)
             self.replot_image()
         self.update_tabs()
@@ -1046,7 +1046,8 @@ class NXPlotAxis(object):
                     self.min = np.nanmin(self.data[self.data>-np.inf])
                     self.max = np.nanmax(self.data[self.data<np.inf])
                 except:
-                    self.min = self.max = 0.0
+                    self.min = 0.0
+                    self.max = 0.1
             else:
                 if self.data[0] > self.data[-1]:
                     self.reversed = True
@@ -1056,8 +1057,12 @@ class NXPlotAxis(object):
                     self.equally_spaced = False
                 self.centers = centers(self.data, dimlen)
                 self.boundaries = boundaries(self.data, dimlen)
-                self.min = np.nanmin(self.boundaries[self.boundaries>-np.inf])
-                self.max = np.nanmax(self.boundaries[self.boundaries<np.inf])
+                try:
+                    self.min = np.nanmin(self.boundaries[self.boundaries>-np.inf])
+                    self.max = np.nanmax(self.boundaries[self.boundaries<np.inf])
+                except:
+                    self.min = 0.0
+                    self.max = 0.1
         else:
             self.centers = None
             self.boundaries = None
@@ -1678,7 +1683,7 @@ class NXDoubleSpinBox(QtGui.QDoubleSpinBox):
     def __init__(self, data=None):
         super(NXDoubleSpinBox, self).__init__()
         self.validator = QtGui.QDoubleValidator()
-        self.validator.setRange(-np.inf,np.inf)
+        self.validator.setRange(-np.inf, np.inf)
         self.validator.setDecimals(1000)
         self.old_value = None
         self.diff = None
