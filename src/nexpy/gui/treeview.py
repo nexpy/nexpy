@@ -377,13 +377,13 @@ class NXTreeView(QtGui.QTreeView):
         self.mainwindow.plot_data()
 
     def plot_line(self):
-        self.mainwindow.plot_data('-')
+        self.mainwindow.plot_line()
 
     def overplot_data(self):
         self.mainwindow.overplot_data()
 
     def overplot_line(self):
-        self.mainwindow.overplot_data('-')
+        self.mainwindow.overplot_line()
 
     def plot_image(self):
         self.mainwindow.plot_image()

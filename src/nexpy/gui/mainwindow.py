@@ -1056,6 +1056,34 @@ class MainWindow(QtGui.QMainWindow):
         except NeXusError as error:
             report_error("Overplotting Data", error)
 
+    def plot_line(self):
+        try:
+            node = self.treeview.get_node()
+            if node is not None:        
+                self.treeview.status_message(node)
+                if isinstance(node, NXgroup):
+                    try:
+                        node.plot(fmt='-')
+                        return
+                    except (KeyError, NeXusError):
+                        pass
+                if node.is_plottable():
+                    dialog = PlotDialog(node, self, fmt='-')
+                    dialog.show()
+                else:
+                    raise NeXusError("Data not plottable")
+        except NeXusError as error:
+            report_error("Plotting Data", error)
+
+    def overplot_line(self):
+        try:
+            node = self.treeview.get_node()
+            if node is not None:        
+                self.treeview.status_message(node)
+                node.oplot(fmt='-')
+        except NeXusError as error:
+            report_error("Overplotting Data", error)
+
     def plot_image(self):
         try:
             node = self.treeview.get_node()
