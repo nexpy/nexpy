@@ -84,9 +84,9 @@ class ConvertDialog(BaseDialog):
 
         for i in range(0,len(pol)):
             p = pol[i]
-            Q[i,:] = np.sqrt((2*Ei - en - 2*np.sqrt(Ei*(Ei-en))
-                                * np.cos(p*np.pi/180.0))/2.0721)
-            E[i,:] = en
+            Q[i,:] = np.array(np.sqrt((2*Ei - en - 2*np.sqrt(Ei*(Ei-en))
+                               * np.cos(p*np.pi/180.0))/2.0721))
+            E[i,:] = np.array(en)
 
         s = Q.shape
         Qin = Q.reshape(s[0]*s[1])
@@ -117,7 +117,7 @@ class ConvertDialog(BaseDialog):
         Eb = NXfield(Eb[:-1]+dE/2., name='E')
 
         result = NXdata(I, (Eb, Qb))
-        if entry.data.nxerrors:
+        if self.entry.data.nxerrors:
             result.errors = NXfield(err)
         return result
 
