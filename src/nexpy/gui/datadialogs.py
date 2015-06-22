@@ -1240,7 +1240,7 @@ class SignalDialog(BaseDialog):
             signal_name = node.nxname
         else:
             self.group = node
-            if self.group.nxsignal:
+            if self.group.nxsignal is not None:
                 signal_name = self.group.nxsignal.nxname
             else:
                 signal_name = None
