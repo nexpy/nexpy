@@ -538,7 +538,7 @@ class MainWindow(QtGui.QMainWindow):
             fp, pathname, description = imp.find_module(plugin_name, plugin_paths)
             try:
                 plugin_module = imp.load_module(plugin_name, fp, pathname, description)
-                name, actions = plugin_module.plugin_menu(self)
+                name, actions = plugin_module.plugin_menu()
                 plugin_menu = self.menu_bar.addMenu(name)
                 for action in actions:
                     self.add_menu_action(plugin_menu, QtGui.QAction(
