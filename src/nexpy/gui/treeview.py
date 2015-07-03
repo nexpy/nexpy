@@ -319,8 +319,7 @@ class NXTreeView(QtGui.QTreeView):
         if not isinstance(node, NXroot):
             if isinstance(node, NXgroup):
                 menu.addAction(self.initialize_action)
-        if not isinstance(node, NXlink):
-            menu.addAction(self.rename_action)
+        menu.addAction(self.rename_action)
         if isinstance(node, NXroot) and not node.nxfilemode:
             menu.addAction(self.delete_action)
         elif not isinstance(node, NXroot):

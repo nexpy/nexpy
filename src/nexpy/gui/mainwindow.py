@@ -1125,8 +1125,6 @@ class MainWindow(QtGui.QMainWindow):
             if self is not None:
                 node = self.treeview.get_node()
                 if node is not None:
-                    if isinstance(node, NXlink):
-                        raise NeXusError("Cannot rename a linked object")
                     if node.nxfilemode != 'r' or isinstance(node, NXroot):
                         path = node.nxpath
                         dialog = RenameDialog(node, self)
