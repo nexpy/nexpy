@@ -230,16 +230,16 @@ class NXPlotView(QtGui.QWidget):
 #        self.grid_cb.stateChanged.connect(self.on_draw)
 
     def make_active(self):
+        from nexpy.gui.consoleapp import _mainwindow, _shell
         global plotview
         plotview = self
         Gcf.set_active(self.figuremanager)
         self.show()
         if self.label == 'Main':
-            self.parent().parent().parent().raise_()
+            _mainwindow.raise_()
         else:
             self.raise_()
         self.update_active()
-        from nexpy.gui.consoleapp import _shell
         _shell['plotview'] = self
 
     def update_active(self):
