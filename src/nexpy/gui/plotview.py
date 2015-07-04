@@ -400,6 +400,8 @@ class NXPlotView(QtGui.QWidget):
                 if idx.count(slice(None,None,None)) > 2:
                     idx[i] = 0
             self.signal = self.data.nxsignal[tuple(idx)][()]
+        elif self.rgb_image:
+            self.signal = self.data.nxsignal[()]
         else:
             self.signal = self.data.nxsignal[()].reshape(self.shape)
 
