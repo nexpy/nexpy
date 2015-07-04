@@ -646,11 +646,14 @@ class NXPlotView(QtGui.QWidget):
                 self.vaxis.lo, self.vaxis.hi = (0.01, 0.1)
         self.vtab.set_axis(self.vaxis)
 
-    def replot_data(self, draw=True, newaxis=False):
+    def replot_data(self, newaxis=False):
         axes = [self.yaxis.dim, self.xaxis.dim]
         limits = []
         for i in range(self.ndim):
-            limits.append((self.axis[i].lo, self.axis[i].hi))
+            if i in axes:
+                limits.append((self.axis[i].min, self.axis[i].max))
+            else:
+                limits.append((self.axis[i].lo, self.axis[i].hi))
         if self.data.nxsignal.shape != self.data.plot_shape:
             axes, limits = fix_projection(self.data.nxsignal.shape, axes, limits)
         self.plotdata = self.data.project(axes, limits)
@@ -675,6 +678,14 @@ class NXPlotView(QtGui.QWidget):
             self.image.set_array(self.v.ravel())
             self.replot_image()
 
+    def replot_image(self):
+        try:
+            self.set_data_limits()
+            self.image.set_clim(self.vaxis.lo, self.vaxis.hi)
+            self.replot_axes()
+        except:
+            pass
+
     def replot_axes(self, draw=True):
         ax = self.figure.gca()
         xmin, xmax = self.xaxis.get_limits()
@@ -694,15 +705,6 @@ class NXPlotView(QtGui.QWidget):
         self.otab.push_current()
         if draw:
             self.draw()
-
-    def replot_image(self, draw=True):
-        try:
-            self.set_data_limits()
-            self.image.set_clim(self.vaxis.lo, self.vaxis.hi)
-            if draw:
-                self.canvas.draw()
-        except:
-            pass
 
     def set_log_image(self):
         if self.vtab.logbox.isChecked():
@@ -963,16 +965,14 @@ class NXPlotView(QtGui.QWidget):
             self.xtab.set_axis(self.xaxis)
             self.ytab.set_axis(self.yaxis)
             self.vtab.set_axis(self.vaxis)
-            self.replot_data(draw=False, newaxis=True)
-            self.replot_axes()
+            self.replot_data(newaxis=True)
         elif tab == self.ytab and axis == self.xaxis:
             self.xaxis = self.xtab.axis = self.ytab.axis
             self.yaxis = self.ytab.axis = axis
             self.xtab.set_axis(self.xaxis)
             self.ytab.set_axis(self.yaxis)
             self.vtab.set_axis(self.vaxis)
-            self.replot_data(draw=False, newaxis=True)
-            self.replot_axes()
+            self.replot_data(newaxis=True)
         elif tab == self.ztab:
             self.zaxis = self.ztab.axis = axis
             self.ztab.set_axis(self.zaxis)
@@ -994,8 +994,7 @@ class NXPlotView(QtGui.QWidget):
             self.ztab.set_axis(self.zaxis)
             self.vtab.set_axis(self.vaxis)
             self.ztab.locked = True
-            self.replot_data(draw=False, newaxis=True)
-            self.replot_axes()
+            self.replot_data(newaxis=True)
             if self.ptab.panel:
                 self.ptab.panel.update_limits()
         self.limits = (self.xaxis.min, self.xaxis.max, 
