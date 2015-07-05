@@ -42,7 +42,7 @@ def background(f):
 
 # local imports
 from treeview import NXTreeView
-from plotview import NXPlotView
+from plotview import NXPlotView, NXProjectionPanels
 from datadialogs import *
 from scripteditor import ScriptDialog
 import nexpy
@@ -104,6 +104,8 @@ class MainWindow(QtGui.QMainWindow):
 
         self.plotview = NXPlotView(label="Main", parent=rightpane)
         self.plotview.setMinimumSize(700, 550)
+        self.panels = NXProjectionPanels()
+        self.panels.setVisible(False)
 
         self.console = RichIPythonWidget(config=self.config, parent=rightpane)
         self.console.setMinimumSize(700, 100)
@@ -695,6 +697,7 @@ class MainWindow(QtGui.QMainWindow):
 
         self.panel_action=QtGui.QAction("Show Projection Panel",
             self,
+            shortcut=QtGui.QKeySequence("Ctrl+Shift+P"),
             triggered=self.show_projection_panel
             )
         self.add_menu_action(self.window_menu, self.panel_action)
@@ -1433,6 +1436,7 @@ class MainWindow(QtGui.QMainWindow):
         if label == 'Projection':
             self.active_action[number] = QtGui.QAction(label,
                 self,
+                shortcut=QtGui.QKeySequence("Ctrl+Shift+Alt+P"),
                 triggered=lambda: self.make_active(number),
                 checkable=True)
             self.window_menu.addAction(self.active_action[number])
@@ -1476,13 +1480,11 @@ class MainWindow(QtGui.QMainWindow):
             self.plotviews[self.active_action[number].text()].make_active()
 
     def show_projection_panel(self):
-        from nexpy.gui.plotview import plotview, NXProjectionPanel
-        if plotview.ptab.panel:
-            plotview.ptab.panel.raise_()
-        else:
-            plotview.ptab.panel = NXProjectionPanel(plotview=plotview, 
-                                                    parent=plotview.ptab)
-            plotview.ptab.panel.show()
+        from nexpy.gui.plotview import plotview
+        if plotview.label != 'Projection' and plotview.ndim > 1:
+            plotview.ptab.open_panel()
+        elif self.panels.count() != 0:
+            self.panels.raise_()
     
     def limit_axes(self):
         try:

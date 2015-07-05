@@ -82,14 +82,14 @@ def change_plotview(label):
         plotviews[label].make_active()
         plotview = plotviews[label]
     else:
-        plotview = NXPlotView(label)
-    
+        plotview = NXPlotView(label)   
     return plotview
 
 
 def get_plotview():
     global plotview
     return plotview
+
 
 class NXCanvas(FigureCanvas):
 
@@ -117,6 +117,7 @@ class NXFigureManager(FigureManager):
             if self.canvas.toolbar is not None:
                 self.canvas.toolbar.update()
         self.canvas.figure.add_axobserver(notify_axes_change)
+
 
 class NXPlotView(QtGui.QWidget):
     """
@@ -170,7 +171,7 @@ class NXPlotView(QtGui.QWidget):
         self.canvas.figure.show = lambda *args: self.show()
         self.figuremanager._cidgcf = cid
         self.figuremanager.window = self
-        self._destroying=False
+        self._destroying = False
         self.figure = self.canvas.figure
         self.number = self.figuremanager.num
         if label:
@@ -216,6 +217,8 @@ class NXPlotView(QtGui.QWidget):
         plotviews[self.label] = self
         self.plotviews = plotviews
 
+        self.panel = None
+
         if self.label != "Main":
             self.add_menu_action()
 
@@ -229,12 +232,15 @@ class NXPlotView(QtGui.QWidget):
 #        self.grid_cb.setChecked(False)
 #        self.grid_cb.stateChanged.connect(self.on_draw)
 
+    def __repr__(self):
+        return 'NXPlotView("%s")' % self.label
+
     def make_active(self):
-        from nexpy.gui.consoleapp import _mainwindow, _shell
         global plotview
         plotview = self
         Gcf.set_active(self.figuremanager)
         self.show()
+        from nexpy.gui.consoleapp import _mainwindow, _shell
         if self.label == 'Main':
             _mainwindow.raise_()
         else:
@@ -256,7 +262,8 @@ class NXPlotView(QtGui.QWidget):
     def remove_menu_action(self):
         from nexpy.gui.consoleapp import _mainwindow
         if self.number in _mainwindow.active_action:
-            _mainwindow.window_menu.removeAction(_mainwindow.active_action[self.number])
+            _mainwindow.window_menu.removeAction(
+                _mainwindow.active_action[self.number])
             del _mainwindow.active_action[self.number]
         if self.number == _mainwindow.previous_active:
             _mainwindow.previous_active = 1
@@ -944,8 +951,8 @@ class NXPlotView(QtGui.QWidget):
                 self.tab_widget.removeTab(self.tab_widget.indexOf(self.vtab))
             else:
                 self.vtab.flipbox.setVisible(False)
-        if self.ptab.panel:
-            self.ptab.panel.close()
+        if self.panel:
+            self.panel.close()
 
     def update_tabs(self):
         self.xtab.set_range()
@@ -997,8 +1004,8 @@ class NXPlotView(QtGui.QWidget):
             self.vtab.set_axis(self.vaxis)
             self.ztab.locked = True
             self.replot_data(newaxis=True)
-            if self.ptab.panel:
-                self.ptab.panel.update_limits()
+            if self.panel:
+                self.panel.update_limits()
         self.limits = (self.xaxis.min, self.xaxis.max, 
                        self.yaxis.min, self.yaxis.max)
         self.otab.update()
@@ -1023,6 +1030,11 @@ class NXPlotView(QtGui.QWidget):
         Gcf.destroy(self.number)
         if self.label in plotviews:
             del plotviews[self.label]
+        if self.panel:
+            self.panel.close()
+        from nexpy.gui.consoleapp import _mainwindow
+        if _mainwindow.panels.count() == 0:
+            _mainwindow.panels.setVisible(False)
 
     def closeEvent(self, event):
         self.close_view()
@@ -1756,8 +1768,10 @@ class NXProjectionTab(QtGui.QWidget):
         
         self.setLayout(hbox)
 
-        self.panel = None
         self.plotview = plotview
+
+    def __repr__(self):
+        return 'NXProjectionTab("%s")' % self.plotview.label
 
     def get_axes(self):
         return  [self.plotview.axis[axis].name 
@@ -1853,22 +1867,62 @@ class NXProjectionTab(QtGui.QWidget):
             self.overplot_box.setChecked(False)
         self.plotview.make_active()
         plotviews[projection.label].raise_()
+        from nexpy.gui.consoleapp import _mainwindow
+        _mainwindow.panels.update()
 
     def open_panel(self):
-        if not self.panel:
-            self.panel = NXProjectionPanel(plotview=self.plotview, parent=self)        
-        self.panel.show()
-        self.panel.update_limits()
+        if not self.plotview.panel:
+            self.plotview.panel = NXProjectionPanel(plotview=self.plotview)
+            self.plotview.panel.update_limits()
+        self.plotview.panel.parent.setVisible(True)
+        self.plotview.panel.parent.setCurrentWidget(self.plotview.panel)
+        self.plotview.panel.parent.update()
+        self.plotview.panel.parent.raise_()
 
 
-class NXProjectionPanel(QtGui.QDialog):
+class NXProjectionPanels(QtGui.QTabWidget):
 
-    def __init__(self, plotview=None, parent=None):
+    def __init__(self, parent=None):
+        QtGui.QTabWidget.__init__(self, parent=parent)
+        self.setWindowTitle('Projection Panel')
+        self.currentChanged.connect(self.update)
 
-        QtGui.QDialog.__init__(self, parent)
- 
+    def __repr__(self):
+        return 'NXProjectionPanels()'
+
+    @property
+    def panels(self):
+        return [self.widget(idx) for idx in range(self.count())]
+
+    def update(self):
+        for panel in self.panels:
+            panel.adjustSize()
+            if 'Projection' in plotviews and plotviews['Projection'].ndim == 1:
+                panel.overplot_box.setVisible(True)
+            else:
+                panel.overplot_box.setVisible(False)
+
+    def closeEvent(self, event):
+        self.close()
+        event.accept()
+        
+    def close(self):
+        for panel in self.panels:
+            panel.close()
+        self.setVisible(False)
+
+
+class NXProjectionPanel(QtGui.QWidget):
+
+    def __init__(self, plotview=None):
+
         self.plotview = plotview
         self.ndim = self.plotview.ndim
+
+        from nexpy.gui.consoleapp import _mainwindow
+        self.parent = _mainwindow.panels
+
+        QtGui.QWidget.__init__(self, parent=self.parent)
 
         layout = QtGui.QVBoxLayout()
 
@@ -1964,14 +2018,24 @@ class NXProjectionPanel(QtGui.QDialog):
 
         layout.addLayout(grid)
 
+        button_layout = QtGui.QHBoxLayout()
+        self.rectangle_button = QtGui.QPushButton("Hide Rectangle", self)
+        self.rectangle_button.clicked.connect(self.show_rectangle)
         self.close_button = QtGui.QPushButton("Close Panel", self)
         self.close_button.clicked.connect(self.close)
         self.close_button.setDefault(False)
         self.close_button.setAutoDefault(False)
-        layout.addWidget(self.close_button)
+        button_layout.addStretch()
+        button_layout.addWidget(self.rectangle_button)
+        button_layout.addWidget(self.close_button)
+        button_layout.addStretch()
+        layout.addLayout(button_layout)
+        layout.addStretch()
         
         self.setLayout(layout)
-        self.setWindowTitle('Projection Panel - ' + self.plotview.label)
+        self.parent.insertTab(self.plotview.number-1, self, self.plotview.label)
+        self.parent.adjustSize()
+        self.parent.setCurrentWidget(self)
 
         self.rectangle = None
 
@@ -1986,6 +2050,9 @@ class NXProjectionPanel(QtGui.QDialog):
             self.minbox[axis].diff = self.maxbox[axis].diff = None
 
         self.update_limits()
+
+    def __repr__(self):
+        return 'NXProjectionPanel("%s")' % self.plotview.label
 
     def get_axes(self):
         return self.plotview.xtab.get_axes()
@@ -2107,6 +2174,7 @@ class NXProjectionPanel(QtGui.QDialog):
                 self.overplot_box.setChecked(False)
             self.plotview.make_active()
             plotviews[projection.label].raise_()
+            self.parent.update()
         except NeXusError as error:
             report_error("Plotting Projection", error)
 
@@ -2139,6 +2207,17 @@ class NXProjectionPanel(QtGui.QDialog):
         for axis in range(self.ndim):
             self.minbox[axis].blockSignals(block)
             self.maxbox[axis].blockSignals(block)
+
+    def show_rectangle(self):
+        if self.rectangle is None:
+            self.draw_rectangle()
+            self.rectangle_button.setText("Hide Rectangle")
+        else:
+            self.rectangle.remove()
+            self.rectangle = None
+            self.rectangle_button.setText("Show Rectangle")
+        self.plotview.canvas.draw()
+        self.parent.update()
 
     def draw_rectangle(self):
         ax = self.plotview.figure.axes[0]
@@ -2178,8 +2257,10 @@ class NXProjectionPanel(QtGui.QDialog):
             pass
         self.plotview.canvas.draw()
         self.rectangle = None
-        self.plotview.ptab.panel = None
+        self.parent.removeTab(self.parent.indexOf(self))
+        self.plotview.panel = None
         self.deleteLater()
+        self.parent.update()
 
 
 class NXNavigationToolbar(NavigationToolbar):
@@ -2188,6 +2269,9 @@ class NXNavigationToolbar(NavigationToolbar):
         super(NXNavigationToolbar, self).__init__(canvas, parent)
         self.plotview = canvas.parent()
         self.zoom()
+
+    def __repr__(self):
+        return 'NXNavigationToolbar("%s")' % self.plotview.label
 
     def _init_toolbar(self):
         self.toolitems = (
@@ -2312,8 +2396,8 @@ class NXNavigationToolbar(NavigationToolbar):
                                           'y': (ydim, y0, y1)}
                 if self.plotview.label != "Projection":
                     self.plotview.tab_widget.setCurrentWidget(self.plotview.ptab)
-            if self.plotview.ptab.panel:
-                self.plotview.ptab.panel.update_limits()
+            if self.plotview.panel:
+                self.plotview.panel.update_limits()
 
         self.draw()
         self._xypress = None
@@ -2329,8 +2413,8 @@ class NXNavigationToolbar(NavigationToolbar):
         ymin, ymax = self.plotview.ax.get_ylim()
         self.plotview.xtab.set_limits(xmin, xmax)
         self.plotview.ytab.set_limits(ymin, ymax)
-        if self.plotview.ptab.panel:
-            self.plotview.ptab.panel.update_limits()            
+        if self.plotview.panel:
+            self.plotview.panel.update_limits()            
 
     def _update_view(self):
         super(NXNavigationToolbar, self)._update_view()
