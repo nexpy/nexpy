@@ -658,9 +658,13 @@ class NXPlotView(QtGui.QWidget):
     def replot_data(self, newaxis=False):
         axes = [self.yaxis.dim, self.xaxis.dim]
         limits = []
+        xmin, xmax, ymin, ymax = self.limits
         for i in range(self.ndim):
             if i in axes:
-                limits.append((self.axis[i].min, self.axis[i].max))
+                if i == self.xaxis.dim:
+                    limits.append((xmin, xmax))
+                else:
+                    limits.append((ymin, ymax))
             else:
                 limits.append((self.axis[i].lo, self.axis[i].hi))
         if self.data.nxsignal.shape != self.data.plot_shape:
@@ -671,13 +675,9 @@ class NXPlotView(QtGui.QWidget):
             self.x, self.y, self.v = self.get_image()
             self.image.set_data(self.v)
             if self.xaxis.reversed:
-                xmin, xmax = self.xaxis.max, self.xaxis.min
-            else:
-                xmin, xmax = self.xaxis.min, self.xaxis.max
+                xmin, xmax = xmax, xmin
             if self.yaxis.reversed:
-                ymin, ymax = self.yaxis.max, self.yaxis.min
-            else:
-                ymin, ymax = self.yaxis.min, self.yaxis.max
+                ymin, ymax = ymax, ymin
             self.image.set_extent((xmin, xmax, ymin, ymax))
             self.replot_image()
         elif newaxis:
@@ -754,10 +754,10 @@ class NXPlotView(QtGui.QWidget):
 
     def reset_plot_limits(self):
         xmin, xmax, ymin, ymax = self.limits
-        self.xaxis.min = self.xaxis.lo = xmin
-        self.xaxis.max = self.xaxis.hi = xmax
-        self.yaxis.min = self.yaxis.lo = ymin
-        self.yaxis.max = self.yaxis.hi = ymax
+        self.xaxis.min = self.xaxis.lo = self.xtab.minbox.old_value = xmin
+        self.xaxis.max = self.xaxis.hi = self.xtab.maxbox.old_value = xmax
+        self.yaxis.min = self.yaxis.lo = self.ytab.minbox.old_value = ymin
+        self.yaxis.max = self.yaxis.hi = self.ytab.maxbox.old_value = ymax
         if self.ndim == 1:
             self.replot_axes()
         else:
@@ -968,12 +968,14 @@ class NXPlotView(QtGui.QWidget):
 
     def change_axis(self, tab, axis):
         """Replace the axis in a plot tab"""
+        xmin, xmax, ymin, ymax = self.limits
         if tab == self.xtab and axis == self.yaxis:
             self.yaxis = self.ytab.axis = self.xtab.axis
             self.xaxis = self.xtab.axis = axis
             self.xtab.set_axis(self.xaxis)
             self.ytab.set_axis(self.yaxis)
             self.vtab.set_axis(self.vaxis)
+            self.limits = (ymin, ymax, xmin, xmax)
             self.replot_data(newaxis=True)
         elif tab == self.ytab and axis == self.xaxis:
             self.xaxis = self.xtab.axis = self.ytab.axis
@@ -981,6 +983,7 @@ class NXPlotView(QtGui.QWidget):
             self.xtab.set_axis(self.xaxis)
             self.ytab.set_axis(self.yaxis)
             self.vtab.set_axis(self.vaxis)
+            self.limits = (ymin, ymax, xmin, xmax)
             self.replot_data(newaxis=True)
         elif tab == self.ztab:
             self.zaxis = self.ztab.axis = axis
@@ -992,11 +995,13 @@ class NXPlotView(QtGui.QWidget):
                 self.xaxis = self.xtab.axis = axis
                 self.xaxis.set_limits(self.xaxis.min, self.xaxis.max)
                 self.xaxis.locked = False
+                self.limits = (self.xaxis.min, self.xaxis.max, ymin, ymax)
             elif tab == self.ytab:
                 self.zaxis = self.ztab.axis = self.yaxis
                 self.yaxis = self.ytab.axis = axis
                 self.yaxis.set_limits(self.yaxis.min, self.yaxis.max)
                 self.yaxis.locked = False
+                self.limits = (xmin, xmax, self.yaxis.min, self.yaxis.max)
             self.zaxis.set_limits(self.zaxis.min, self.zaxis.min)
             self.xtab.set_axis(self.xaxis)
             self.ytab.set_axis(self.yaxis)
@@ -1006,8 +1011,6 @@ class NXPlotView(QtGui.QWidget):
             self.replot_data(newaxis=True)
             if self.panel:
                 self.panel.update_limits()
-        self.limits = (self.xaxis.min, self.xaxis.max, 
-                       self.yaxis.min, self.yaxis.max)
         self.otab.update()
 
     def format_coord(self, x, y):
@@ -2245,6 +2248,7 @@ class NXProjectionPanel(QtGui.QWidget):
         self.rectangle.set_linestyle('dashed')
         self.rectangle.set_linewidth(2)
         self.plotview.canvas.draw()
+        self.rectangle_button.setText("Hide Rectangle")
 
     def closeEvent(self, event):
         self.close()
