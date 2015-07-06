@@ -225,8 +225,7 @@ class NXPlotView(QtGui.QDialog):
 
         if self.label != "Main":
             self.add_menu_action()
-
-        self.show()
+            self.show()
 
         #Initialize the plotting window with a token plot
         self.plot(NXdata(signal=NXfield([0,1], name='y'), 
@@ -1258,7 +1257,7 @@ class NXPlotTab(QtGui.QWidget):
         spinbox.setFixedWidth(100)
         spinbox.setKeyboardTracking(False)
         spinbox.setAccelerated(False)
-        spinbox.valueChanged[unicode].connect(slot)
+        spinbox.valueChanged.connect(slot)
         return spinbox
 
     def doublespinbox(self, slot):
@@ -1686,16 +1685,11 @@ class NXSpinBox(QtGui.QSpinBox):
             if (value <= self.data[-1] + self.tolerance) and \
                (value - self.diff >= self.data[0] - self.tolerance):
                 self.setValue(value)
-            else:
-                return False
         else:
             if self.index + steps <= self.maximum() and \
                self.index + steps >= 0:
                 super(NXSpinBox, self).stepBy(steps)
-            else:
-                return False
-        self.valueChanged.emit(u'1')
-        return True
+        self.valueChanged.emit(1)
 
 
 class NXDoubleSpinBox(QtGui.QDoubleSpinBox):
@@ -1912,6 +1906,8 @@ class NXProjectionPanels(QtGui.QDialog):
                 panel.overplot_box.setVisible(True)
             else:
                 panel.overplot_box.setVisible(False)
+        if self.tabs.count() == 0:
+            self.setVisible(False)
 
     def closeEvent(self, event):
         self.close()
@@ -2212,7 +2208,7 @@ class NXProjectionPanel(QtGui.QWidget):
         spinbox.setFixedWidth(100)
         spinbox.setKeyboardTracking(False)
         spinbox.setAccelerated(True)
-        spinbox.valueChanged[unicode].connect(self.set_limits)
+        spinbox.valueChanged.connect(self.set_limits)
         return spinbox
 
     def block_signals(self, block=True):
