@@ -104,7 +104,7 @@ class MainWindow(QtGui.QMainWindow):
 
         self.plotview = NXPlotView(label="Main", parent=rightpane)
         self.plotview.setMinimumSize(700, 550)
-        self.panels = NXProjectionPanels()
+        self.panels = NXProjectionPanels(self)
         self.panels.setVisible(False)
 
         self.console = RichIPythonWidget(config=self.config, parent=rightpane)
@@ -1483,7 +1483,7 @@ class MainWindow(QtGui.QMainWindow):
         from nexpy.gui.plotview import plotview
         if plotview.label != 'Projection' and plotview.ndim > 1:
             plotview.ptab.open_panel()
-        elif self.panels.count() != 0:
+        elif self.panels.tabs.count() != 0:
             self.panels.raise_()
     
     def limit_axes(self):

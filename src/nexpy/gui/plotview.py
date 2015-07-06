@@ -119,7 +119,7 @@ class NXFigureManager(FigureManager):
         self.canvas.figure.add_axobserver(notify_axes_change)
 
 
-class NXPlotView(QtGui.QWidget):
+class NXPlotView(QtGui.QDialog):
     """
     PyQT widget containing a NeXpy plot.
     
@@ -137,6 +137,10 @@ class NXPlotView(QtGui.QWidget):
     """
     def __init__(self, label=None, parent=None):
         
+        if parent is None:
+            from nexpy.gui.consoleapp import _mainwindow
+            parent = _mainwindow
+
         super(NXPlotView, self).__init__(parent)
 
         self.setSizePolicy(QtGui.QSizePolicy.MinimumExpanding,
@@ -211,7 +215,7 @@ class NXPlotView(QtGui.QWidget):
         self.zoom = None
         self.aspect = 'auto'
         
-        self.window().setWindowTitle(self.label)
+        self.setWindowTitle(self.label)
 
         plotview = self
         plotviews[self.label] = self
@@ -1036,7 +1040,7 @@ class NXPlotView(QtGui.QWidget):
         if self.panel:
             self.panel.close()
         from nexpy.gui.consoleapp import _mainwindow
-        if _mainwindow.panels.count() == 0:
+        if _mainwindow.panels.tabs.count() == 0:
             _mainwindow.panels.setVisible(False)
 
     def closeEvent(self, event):
@@ -1877,25 +1881,29 @@ class NXProjectionTab(QtGui.QWidget):
         if not self.plotview.panel:
             self.plotview.panel = NXProjectionPanel(plotview=self.plotview)
             self.plotview.panel.update_limits()
-        self.plotview.panel.parent.setVisible(True)
-        self.plotview.panel.parent.setCurrentWidget(self.plotview.panel)
-        self.plotview.panel.parent.update()
-        self.plotview.panel.parent.raise_()
+        self.plotview.panel.window.setVisible(True)
+        self.plotview.panel.window.tabs.setCurrentWidget(self.plotview.panel)
+        self.plotview.panel.window.update()
+        self.plotview.panel.window.raise_()
 
 
-class NXProjectionPanels(QtGui.QTabWidget):
+class NXProjectionPanels(QtGui.QDialog):
 
     def __init__(self, parent=None):
-        QtGui.QTabWidget.__init__(self, parent=parent)
+        super(NXProjectionPanels, self).__init__(parent)
+        layout = QtGui.QVBoxLayout()
+        self.tabs = QtGui.QTabWidget(self)
+        layout.addWidget(self.tabs)
+        self.setLayout(layout)
         self.setWindowTitle('Projection Panel')
-        self.currentChanged.connect(self.update)
+        self.tabs.currentChanged.connect(self.update)
 
     def __repr__(self):
         return 'NXProjectionPanels()'
 
     @property
     def panels(self):
-        return [self.widget(idx) for idx in range(self.count())]
+        return [self.tabs.widget(idx) for idx in range(self.tabs.count())]
 
     def update(self):
         for panel in self.panels:
@@ -1923,9 +1931,9 @@ class NXProjectionPanel(QtGui.QWidget):
         self.ndim = self.plotview.ndim
 
         from nexpy.gui.consoleapp import _mainwindow
-        self.parent = _mainwindow.panels
+        self.window = _mainwindow.panels
 
-        QtGui.QWidget.__init__(self, parent=self.parent)
+        QtGui.QWidget.__init__(self, parent=self.window.tabs)
 
         layout = QtGui.QVBoxLayout()
 
@@ -2036,9 +2044,10 @@ class NXProjectionPanel(QtGui.QWidget):
         layout.addStretch()
         
         self.setLayout(layout)
-        self.parent.insertTab(self.plotview.number-1, self, self.plotview.label)
-        self.parent.adjustSize()
-        self.parent.setCurrentWidget(self)
+        self.window.tabs.insertTab(self.plotview.number-1, self, 
+                                   self.plotview.label)
+        self.window.tabs.adjustSize()
+        self.window.tabs.setCurrentWidget(self)
 
         self.rectangle = None
 
@@ -2177,7 +2186,7 @@ class NXProjectionPanel(QtGui.QWidget):
                 self.overplot_box.setChecked(False)
             self.plotview.make_active()
             plotviews[projection.label].raise_()
-            self.parent.update()
+            self.window.update()
         except NeXusError as error:
             report_error("Plotting Projection", error)
 
@@ -2220,7 +2229,7 @@ class NXProjectionPanel(QtGui.QWidget):
             self.rectangle = None
             self.rectangle_button.setText("Show Rectangle")
         self.plotview.canvas.draw()
-        self.parent.update()
+        self.window.update()
 
     def draw_rectangle(self):
         ax = self.plotview.figure.axes[0]
@@ -2261,10 +2270,10 @@ class NXProjectionPanel(QtGui.QWidget):
             pass
         self.plotview.canvas.draw()
         self.rectangle = None
-        self.parent.removeTab(self.parent.indexOf(self))
+        self.window.tabs.removeTab(self.window.tabs.indexOf(self))
         self.plotview.panel = None
         self.deleteLater()
-        self.parent.update()
+        self.window.update()
 
 
 class NXNavigationToolbar(NavigationToolbar):
