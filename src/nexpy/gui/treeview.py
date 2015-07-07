@@ -196,7 +196,7 @@ class NXTreeItem(QtGui.QStandardItem):
             return self.node.nxname
         elif role == QtCore.Qt.ToolTipRole:
             if self.node.tree.count('\n') > 50:
-                return '\n'.join(self.node.tree.split('\n')[0:50])+'\n...'
+                return '\n'.join(self.node.short_tree.split('\n')[0:50])+'\n...'
             else:
                 return self.node.tree
         elif role == QtCore.Qt.DecorationRole:
