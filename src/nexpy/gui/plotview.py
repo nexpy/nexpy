@@ -1560,7 +1560,8 @@ class NXPlotTab(QtGui.QWidget):
         return action
 
     def slideshow(self):
-        if not self.maxbox.stepBy(self.playsteps):
+        self.maxbox.stepBy(self.playsteps)
+        if self.maxbox.pause:
             self.pause()
 
     def playback(self):
@@ -1613,6 +1614,7 @@ class NXSpinBox(QtGui.QSpinBox):
         self.validator = QtGui.QDoubleValidator()
         self.old_value = None
         self.diff = None
+        self.pause = False
 
     def value(self):
         if self.data is not None:
@@ -1678,15 +1680,20 @@ class NXSpinBox(QtGui.QSpinBox):
         return self.diff / 100.0
 
     def stepBy(self, steps):
+        self.pause = False
         if self.diff:
             value = self.value() + steps * self.diff
             if (value <= self.data[-1] + self.tolerance) and \
                (value - self.diff >= self.data[0] - self.tolerance):
                 self.setValue(value)
+            else:
+                self.pause = True
         else:
             if self.index + steps <= self.maximum() and \
                self.index + steps >= 0:
                 super(NXSpinBox, self).stepBy(steps)
+            else:
+                self.pause = True
         self.valueChanged.emit(1)
 
 
