@@ -58,6 +58,7 @@ of its ability to handle large data files. There is therefore no dependency
 on the `NeXus C API <http://download.nexusformat.org/doc/html/napi.html>`_. 
 This also means that the current version cannot read and write HDF4 or XML 
 NeXus files.
+
 If you only intend to utilize the Python API from the command-line, the only 
 other required library is `Numpy <http://numpy.scipy.org>`_.
 
@@ -74,22 +75,25 @@ numpy              http://numpy.scipy.org/
 
 NeXpy GUI
 ---------
-The GUI is built using the `PySide <http://www.pyside.org/>`_ variant of Qt and 
-includes an `iPython shell <http://ipython.org/>`_ and a `Matplotlib
+The GUI is built using the PyQt. The latest version supports either 
+PyQt4/5 or PySide, and should load whichever library it finds. Neither are 
+listed as a dependency but one or other must be installed. PyQt4 is included
+in the 
+`Anaconda default distribution <https://store.continuum.io/cshop/anaconda/>`_ 
+while PySide is included in the `Enthought Python Distribution
+<http://www.enthought.com>`_ or within Enthought's `Canopy Application
+<https://www.enthought.com/products/canopy/>`_.
+
+The GUI includes an `iPython shell <http://ipython.org/>`_ and a `Matplotlib
 plotting pane <http://matplotlib.sourceforge.net>`_. The iPython shell is
 embedded in the Qt GUI using an implementation of their QtConsole.
           
 =================  =================================================
 Library            URL
 =================  =================================================
-PySide v1.1.0      http://www.pyside.org/
 iPython v1.1.0     http://ipython.org/
 matplotlib v1.2.0  http://matplotlib.sourceforge.net/
 =================  =================================================
-
-Most of these packages are included in the `Enthought Python Distribution
-<http://www.enthought.com>`_ or within Enthought's `Canopy Application
-<https://www.enthought.com/products/canopy/>`_.
 
 .. seealso:: If you are having problems linking to the PySide library, you may
              need to run the PySide post-installation script after installing

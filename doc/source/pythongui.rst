@@ -258,10 +258,13 @@ Window Menu
     the data values or if you want to narrow the limits to improve the 
     sensitivity of the sliders.
 
-**Reset Plot Limits**
-    This restores the limits to the original values. 
+    .. note:: This is equivalent to editing the values in the axis text boxes.
 
-    .. note:: Right-clicking on the plot will also restore the original axis 
+**Reset Plot Limits**
+    This restores the axis limits to the original values. 
+
+    .. note:: Clicking on the Home button in the Options Tab (see below) or 
+              right-clicking within the plot will also restore the original axis 
               limits.
 
 **Show Projection Panel**
@@ -343,7 +346,13 @@ Plotting NeXus Data
 NXdata, NXmonitor, and NXlog data can be plotted by selecting a group on the 
 tree and choosing "Plot Data" from the Data menu or by double-clicking the item 
 on the tree (or right-clicking for over-plots). Below the plot pane, a series of 
-tabs allow manipulation of the plot limits and parameters.
+tabs allow manipulation of the plot limits and parameters using text boxes
+and sliders.
+
+.. note:: The slider ranges are initially set by the data limits. You can 
+          redefine the slider ranges by editing their respective minimum and/or
+          maximum text boxes. The original range can be restored by clicking on 
+          the Home button in the Options Tab or right-clicking within the plot.
 
 **Signal Tab**
 
@@ -435,11 +444,11 @@ tabs allow manipulation of the plot limits and parameters.
        :width: 75%
 
     The projection tab also contains a button to open a separate projection 
-    panel that can be used instead of the tabbed interface. This interface is
-    more convenient when making a systematic exploration of different 
-    projections limits and provides pixel accuracy in computing projections.
-    The x and y limits of the plot are displayed as a dashed rectangle.  
-
+    panel. The panel is more convenient when making a systematic exploration of 
+    different projections limits and provides pixel accuracy in computing 
+    projections. The x and y limits of the plot are displayed as a dashed 
+    rectangle, which can be hidden if preferred.
+  
 .. image:: /images/projection-panel.png
    :align: center
    :width: 90%
@@ -447,7 +456,10 @@ tabs allow manipulation of the plot limits and parameters.
 .. note:: The projection panel can also be used to mask and unmask data within 
           the dashed rectangle. See :doc:`pythonshell` for descriptions of
           masked arrays.
-   
+
+.. note:: Each plotting window can have a separate projection panel in a tabbed
+          interface. 
+  
 **Options Tab**
 
     .. image:: /images/options-tab.png
@@ -757,18 +769,16 @@ has a couple of menu items to perform data analysis on the example file,
 
 Here is the ``__init__.py`` file::
 
- from PySide import QtGui
- import get_ei, convert_qe
+  import get_ei, convert_qe
 
- def plugin_menu(parent):
-     menu = QtGui.QMenu('Chopper')
-     menu.addAction(QtGui.QAction('Get Incident Energy', parent, 
-                    triggered=get_ei.show_dialog))
-     menu.addAction(QtGui.QAction('Convert to Q-E', parent, 
-                    triggered=convert_qe.show_dialog))
-     return menu
+  def plugin_menu():
+      menu = 'Chopper'
+      actions = []
+      actions.append(('Get Incident Energy', get_ei.show_dialog))
+      actions.append(('Convert to Q-E', convert_qe.show_dialog))
+      return menu, actions
 
-The QAction calls define the menu text and the function that gets called when it
+The actions define the menu text and the function that gets called when it
 is selected. In the example, they are contained within the package as two files,
 ``get_ei.py`` and ``convert_qe.py``, but they could also be in a separately 
 installed package in the Python path.
@@ -784,108 +794,89 @@ calculates the incident energy, which is updated in both the dialog box and, if
 the ``Save`` button is pressed, in the loaded NeXus tree, ready for subsequent
 analysis.
 
-Obviously, some knowledge of PySide is necessary, although the example below 
-shows all the essential elements required in most cases: a grid to define a set 
-of parameters, functions to read those parameters from the PySide text boxes
-(here, they are decorated with ``@property``, which means that the function can
-be called without an argument), a couple of buttons to activate different parts 
-of the analysis, and finally the functions themselves. 
+In the simplest cases, no knowledge of PyQt is required. In the example below, 
+a grid defines a set of parameters, functions to read those parameters from
+the PySide text boxes (here, they are decorated with ``@property``, which
+means that the function can be called without an argument), a couple of
+buttons to activate different parts of the analysis, and finally the
+functions themselves.
 
-.. seealso:: See :class:`nexpy.gui.importdialog.BaseDialog` for a list of
+.. seealso:: See :class:`nexpy.gui.datadialogs.BaseDialog` for a list of
              pre-defined dialog methods if the dialog uses it as the parent
-             class. In the example below, BaseDialog defines the function, 
-             ``get_node``, which returns the node currently selected in the
-             tree.
+             class.
 
 Here is the code::
 
- from PySide import QtGui
- import numpy as np
- from nexpy.gui.datadialogs import BaseDialog
- from nexpy.gui.mainwindow import report_error
- from nexpy.api.nexus import NeXusError
+  from nexpy.gui.pyqt import QtGui
+  import numpy as np
+  from nexpy.gui.datadialogs import BaseDialog, GridParameters
+  from nexpy.gui.mainwindow import report_error
+  from nexusformat.nexus import NeXusError
 
 
- def show_dialog(parent=None):
-    try:
-        dialog = EnergyDialog(parent)
-        dialog.show()
-    except NeXusError as error:
-        report_error("Getting Incident Energy", error)
+  def show_dialog(parent=None):
+      try:
+          dialog = EnergyDialog()
+          dialog.show()
+      except NeXusError as error:
+          report_error("Getting Incident Energy", error)
         
 
- class EnergyDialog(BaseDialog):
+  class EnergyDialog(BaseDialog):
 
-    def __init__(self, parent=None):
-        super(EnergyDialog, self).__init__(parent)
-        node = self.get_node()
-        self.root = node.nxroot
-        if self.root.nxfilemode == 'r':
-            raise NeXusError('NeXus file opened as readonly')
-        layout = QtGui.QVBoxLayout()
-        grid = QtGui.QGridLayout()
-        grid.setSpacing(10)
-        self.m1_box = QtGui.QLineEdit()
-        self.m2_box = QtGui.QLineEdit()
-        self.ei_box = QtGui.QLineEdit()
-        self.mod_box = QtGui.QLineEdit()
-        grid.addWidget(QtGui.QLabel('Monitor 1 Distance:'), 0, 0)
-        grid.addWidget(QtGui.QLabel('Monitor 2 Distance:'), 1, 0)
-        grid.addWidget(QtGui.QLabel('Incident Energy:'), 2, 0)
-        grid.addWidget(QtGui.QLabel('Moderator Distance:'), 3, 0)
-        grid.addWidget(self.m1_box, 0, 1)
-        grid.addWidget(self.m2_box, 1, 1)
-        grid.addWidget(self.ei_box, 2, 1)
-        grid.addWidget(self.mod_box, 3, 1)
-        layout.addLayout(grid)
-        get_button = QtGui.QPushButton('Get Ei')
-        get_button.clicked.connect(self.get_ei)
-        layout.addWidget(get_button)
-        layout.addWidget(self.close_buttons(save=True))
-        self.setLayout(layout)
-        self.setWindowTitle('Get Incident Energy')
+      def __init__(self, parent=None):
 
-        self.m1 = self.root['entry/monitor1']
-        self.m2 = self.root['entry/monitor2'] 
-        self.m1_box.setText(str(self.read_parameter(self.root,
-                            'entry/monitor1/distance')))
-        self.m2_box.setText(str(self.read_parameter(self.root,
-                            'entry/monitor2/distance')))
-        self.ei_box.setText(str(self.read_parameter(self.root,
-                            'entry/instrument/monochromator/energy')))
-        self.mod_box.setText(str(self.read_parameter(self.root,
-                             'entry/instrument/source/distance')))
+          super(EnergyDialog, self).__init__(parent)
 
-    @property
-    def m1_distance(self):
-        return np.float32(self.m1_box.text()) - self.moderator_distance
+          self.select_entry()
+          self.parameters = GridParameters()
+          self.parameters.add('m1', self.entry['monitor1/distance'], 
+                              'Monitor 1 Distance')
+          self.parameters.add('m2', self.entry['monitor2/distance'], 
+                              'Monitor 2 Distance')
+          self.parameters.add('Ei', self.entry['instrument/monochromator/energy'], 
+                              'Incident Energy')
+          self.parameters.add('mod', self.entry['instrument/source/distance'], 
+                              'Moderator Distance')
+          action_buttons = self.action_buttons(('Get Ei', self.get_ei))
+          self.set_layout(self.entry_layout, self.parameters.grid(), 
+                          action_buttons, self.close_buttons(save=True))
+          self.set_title('Get Incident Energy')
 
-    @property
-    def m2_distance(self):
-        return np.float32(self.m2_box.text()) - self.moderator_distance
+          self.m1 = self.entry['monitor1']
+          self.m2 = self.entry['monitor2'] 
 
-    @property
-    def Ei(self):
-        return np.float32(self.ei_box.text())
+      @property
+      def m1_distance(self):
+          return self.parameters['m1'].value - self.moderator_distance
 
-    @property
-    def moderator_distance(self):
-        return np.float32(self.mod_box.text())
+      @property
+      def m2_distance(self):
+          return self.parameters['m2'].value - self.moderator_distance
 
-    def get_ei(self):
-        t = 2286.26 * self.m1_distance / np.sqrt(self.Ei)
-        m1_time = self.m1[t-200.0:t+200.0].moment()
-        t = 2286.26 * self.m2_distance / np.sqrt(self.Ei)
-        m2_time = self.m2[t-200.0:t+200.0].moment()
-        self.ei_box.setText(str((2286.26 * (self.m2_distance - self.m1_distance) /
-                                   (m2_time - m1_time))**2))
+      @property
+      def Ei(self):
+          return self.parameters['Ei'].value
 
-    def accept(self):
-        try:
-            self.root['entry/instrument/monochromator/energy'] = self.Ei
-        except NeXusError as error:
-            report_error("Getting Incident Energy", error)
-        super(EnergyDialog, self).accept()
+      @property
+      def moderator_distance(self):
+          return self.parameters['mod'].value
+
+      def get_ei(self):
+          t = 2286.26 * self.m1_distance / np.sqrt(self.Ei)
+          m1_time = self.m1[t-200.0:t+200.0].moment()
+          t = 2286.26 * self.m2_distance / np.sqrt(self.Ei)
+          m2_time = self.m2[t-200.0:t+200.0].moment()
+          self.parameters['Ei'].value = (2286.26 * (self.m2_distance - self.m1_distance) /
+                                         (m2_time - m1_time))**2
+
+      def accept(self):
+          try:
+              self.parameters['Ei'].save()
+          except NeXusError as error:
+              report_error("Getting Incident Energy", error)
+          super(EnergyDialog, self).accept()
+
  
 Configuring NeXpy
 -----------------

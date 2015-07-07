@@ -430,8 +430,11 @@ However, they may also be needed as plotting axes in a NXdata group::
      @units = microsecond
  
 Links allow the same data to be used in different contexts without using more
-memory or disk space.  
-     
+memory or disk space.
+
+.. note:: In earlier verions, links were required to have the same name as their
+          parents, but this restriction has now been lifted. 
+        
 In the Python API, the user who is only interested in accessing the data does
 not need to worry if the object is parent or child. The data values and NeXus 
 attributes of the parent to the NXlink object can be accessed directly through
@@ -470,9 +473,8 @@ to another group::
            @units = radian
  >>> root.entry.data.polar_angle=NXlink(root.entry.instrument.detector.polar_angle)
 
-However, since the link must have the same name as the parent object, it is 
-safer to create links using the makelink method, which takes the parent object 
-as an argument::
+It is also possible to create links using the makelink method, which takes the 
+parent object and, optionally, a new name as arguments::
 
  >>> root.entry.data.makelink(root.entry.instrument.detector.polar_angle)
  >>> print root.tree
@@ -508,9 +510,6 @@ absolute or relative file path of the external file.
 .. note:: Only fields (*i.e.*, not groups) can currently be linked. This means
           that the external file does not have to be a NeXus-compliant file, 
           just a valid HDF5 file.
-
-.. note:: Since the objects are stored in separate files, the names of the 
-          parent and link objects can be different. 
 
 .. warning:: The file containing the external link is referenced using the 
              file path to the parent file. If the files are moved without 
