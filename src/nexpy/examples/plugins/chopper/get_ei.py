@@ -18,8 +18,6 @@ class EnergyDialog(BaseDialog):
     def __init__(self, parent=None):
         super(EnergyDialog, self).__init__(parent)
 
-        layout = QtGui.QVBoxLayout()
-
         self.select_entry()
         self.parameters = GridParameters()
         self.parameters.add('m1', self.entry['monitor1/distance'], 
@@ -30,12 +28,10 @@ class EnergyDialog(BaseDialog):
                             'Incident Energy')
         self.parameters.add('mod', self.entry['instrument/source/distance'], 
                             'Moderator Distance')
-        layout.addLayout(self.entry_layout)
-        layout.addLayout(self.parameters.grid())
-        layout.addLayout(self.action_buttons(('Get Ei', self.get_ei)))
-        layout.addWidget(self.close_buttons(save=True))
-        self.setLayout(layout)
-        self.setWindowTitle('Get Incident Energy')
+        action_buttons = self.action_buttons(('Get Ei', self.get_ei))
+        self.set_layout(self.entry_layout, self.parameters.grid(), 
+                        action_buttons, self.close_buttons(save=True))
+        self.set_title('Get Incident Energy')
 
         self.m1 = self.entry['monitor1']
         self.m2 = self.entry['monitor2'] 
