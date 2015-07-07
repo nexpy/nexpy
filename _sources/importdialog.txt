@@ -1,3 +1,9 @@
+NeXpy BaseDialog Class
+============================
+
+.. automodule:: nexpy.gui.datadialogs
+   :members:
+
 NeXpy BaseImportDialog Class
 ============================
 
