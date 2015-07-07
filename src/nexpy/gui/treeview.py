@@ -449,6 +449,8 @@ class NXTreeView(QtGui.QTreeView):
         idx = self.get_index(node)
         if idx:
             self.setCurrentIndex(idx)
+        self.selectionModel().select(self.currentIndex(),
+                                     QtGui.QItemSelectionModel.Select)
         
     def selectionChanged(self, new, old):
         if new.indexes():

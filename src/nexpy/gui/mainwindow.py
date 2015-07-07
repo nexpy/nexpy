@@ -30,7 +30,7 @@ import webbrowser
 import xml.etree.ElementTree as ET
 from threading import Thread
 
-from nexpy.gui.pyqt import QtGui, QtCore, getOpenFileName
+from nexpy.gui.pyqt import QtGui, QtCore, getOpenFileName, getSaveFileName
 from IPython.core.magic import magic_escapes
 
 
@@ -895,8 +895,8 @@ class MainWindow(QtGui.QMainWindow):
                 name = node.nxname
                 existing = False
             default_name = os.path.join(self.default_directory, name)
-            fname, _ = QtGui.QFileDialog.getSaveFileName(self, 
-                           "Choose a Filename", default_name, self.file_filter)
+            fname = getSaveFileName(self, "Choose a Filename", default_name, 
+                                    self.file_filter)
             if fname:
                 old_name = node.nxname
                 node.save(fname)
@@ -919,9 +919,8 @@ class MainWindow(QtGui.QMainWindow):
                 if node.nxfilemode:
                     name = self.treeview.tree.get_new_name()
                     default_name = os.path.join(self.default_directory,name)
-                    fname, _ = QtGui.QFileDialog.getSaveFileName(self, 
-                                   "Choose a Filename", default_name, 
-                                   self.file_filter)
+                    fname = getSaveFileName(self, "Choose a Filename", 
+                                            default_name, self.file_filter)
                     if fname:
                         nx_file = NXFile(fname, 'w')
                         nx_file.copyfile(node.nxfile)

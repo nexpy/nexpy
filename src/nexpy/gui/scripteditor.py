@@ -12,7 +12,7 @@
 import os
 import tempfile
 
-from nexpy.gui.pyqt import QtGui
+from nexpy.gui.pyqt import QtGui, getSaveFileName
 import pygments
 from pygments.formatter import Formatter
 
@@ -156,9 +156,8 @@ class ScriptDialog(BaseDialog):
 
     def save_script_as(self):
         file_filter = ';;'.join(("Python Files (*.py)", "Any Files (*.* *)"))
-        file_name, _ = QtGui.QFileDialog().getSaveFileName(self,
-                            "Choose a Filename", dir=self.default_directory,
-                            filter=file_filter)
+        file_name = getSaveFileName(self, "Choose a Filename", 
+                                    self.default_directory, filter=file_filter)
         if file_name:
             with open(file_name, 'w') as f:
                 f.write(self.get_text())

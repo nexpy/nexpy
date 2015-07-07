@@ -6,3 +6,9 @@ def getOpenFileName(*args, **kwargs):
         fname = fname[0]
     return fname
 
+def getSaveFileName(*args, **kwargs):
+    fname = QtGui.QFileDialog.getSaveFileName(*args, **kwargs)
+    if isinstance(fname, tuple):
+        fname = fname[0]
+    return fname
+
