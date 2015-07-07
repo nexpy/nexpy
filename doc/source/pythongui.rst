@@ -95,6 +95,11 @@ File Menu
     data is stored in an HDF5 memory-mapped file until the tree is saved to a 
     file. 
 
+**Reload**
+    Reloads the NeXus file. This is useful if another application has modified
+    the data since originally opening the file. This is not currently detected
+    by NeXpy.
+
 **Remove**
     Removes the root item from the tree.
 
