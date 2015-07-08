@@ -888,8 +888,8 @@ Configuring NeXpy
 The NeXpy shell imports the following NeXus classes::
 
  import nexpy
- import nexpy.api.nexus as nx
- from nexpy.api.nexus import NXFile, NXgroup, NXfield, NXattr, NXlink
+ import nexusformat.nexus as nx
+ from nexusformat.nexus import NXFile, NXgroup, NXfield, NXattr, NXlink
 
 along with all the currently defined NeXus group classes (NXentry, NXdata, 
 NXsample, *etc*). 
