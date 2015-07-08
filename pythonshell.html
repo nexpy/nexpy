@@ -675,7 +675,7 @@ parent.</p>
 <h4>External Links<a class="headerlink" href="#external-links" title="Permalink to this headline">¶</a></h4>
 <p>It is also possible to link to a NeXus field that is stored in another file.
 This is accomplished using a similar syntax to internal links.</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">root</span><span class="o">.</span><span class="n">entry</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">NXlink</span><span class="p">(</span><span class="s">&#39;/counts&#39;</span><span class="p">,</span> <span class="s">&#39;external_counts.nxs&#39;</span><span class="p">)</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">root</span><span class="o">.</span><span class="n">entry</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">NXlink</span><span class="p">(</span><span class="s">&#39;/counts&#39;</span><span class="p">,</span> <span class="nb">file</span><span class="o">=</span><span class="s">&#39;external_counts.nxs&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>In the case of external links, the first argument is the absolute path of the

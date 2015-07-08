@@ -501,7 +501,7 @@ External Links
 It is also possible to link to a NeXus field that is stored in another file.
 This is accomplished using a similar syntax to internal links.
 
- >>> root.entry.data.data = NXlink('/counts', 'external_counts.nxs')
+ >>> root.entry.data.data = NXlink('/counts', file='external_counts.nxs')
  
 In the case of external links, the first argument is the absolute path of the 
 linked object within the external file, while the second argument is the 
