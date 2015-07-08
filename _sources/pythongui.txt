@@ -724,7 +724,7 @@ Here is an example of an import dialog::
  from PySide import QtCore, QtGui
 
  import numpy as np
- from nexpy.api.nexus import *
+ from nexusformat.nexus import *
  from nexpy.gui.importdialog import BaseImportDialog
 
  filetype = "TIFF Image" #Defines the Import Menu label

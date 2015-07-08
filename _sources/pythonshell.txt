@@ -316,7 +316,7 @@ creating nested groups with minimal typing::
      temperature = 40.0
 
 .. seealso:: Existing NeXus objects can also be inserted directly into groups.
-             See :mod:`nexpy.api.nexus.tree.NXgroup.insert`
+             See :mod:`nexusformat.nexus.tree.NXgroup.insert`
 
 NXdata Groups
 ^^^^^^^^^^^^^
@@ -494,7 +494,7 @@ parent object and, optionally, a new name as arguments::
           additional attribute, 'target', showing the absolute path of the 
           parent.
 
-.. seealso:: :mod:`nexpy.api.nexus.tree.NXgroup.makelink`
+.. seealso:: :mod:`nexusformat.nexus.tree.NXgroup.makelink`
 
 External Links
 ^^^^^^^^^^^^^^
