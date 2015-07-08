@@ -387,7 +387,7 @@ class GridParameters(OrderedDict):
             title_label = QtGui.QLabel(title)
             title_label.setFont(header_font)
             title_label.setAlignment(QtCore.Qt.AlignHCenter)
-            grid.addWidget(title_label, row, 0, columnSpan=2)
+            grid.addWidget(title_label, row, 0, 1, 2)
             row += 1
         if header:
             parameter_label = QtGui.QLabel('Parameter')
