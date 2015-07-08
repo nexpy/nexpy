@@ -316,7 +316,7 @@ creating nested groups with minimal typing::
      temperature = 40.0
 
 .. seealso:: Existing NeXus objects can also be inserted directly into groups.
-             See :mod:`nexpy.api.nexus.tree.NXgroup.insert`
+             See :mod:`nexusformat.nexus.tree.NXgroup.insert`
 
 NXdata Groups
 ^^^^^^^^^^^^^
@@ -494,14 +494,14 @@ parent object and, optionally, a new name as arguments::
           additional attribute, 'target', showing the absolute path of the 
           parent.
 
-.. seealso:: :mod:`nexpy.api.nexus.tree.NXgroup.makelink`
+.. seealso:: :mod:`nexusformat.nexus.tree.NXgroup.makelink`
 
 External Links
 ^^^^^^^^^^^^^^
 It is also possible to link to a NeXus field that is stored in another file.
 This is accomplished using a similar syntax to internal links.
 
- >>> root.entry.data.data = NXlink('/counts', 'external_counts.nxs')
+ >>> root.entry.data.data = NXlink('/counts', file='external_counts.nxs')
  
 In the case of external links, the first argument is the absolute path of the 
 linked object within the external file, while the second argument is the 
