@@ -158,7 +158,8 @@ class BaseDialog(QtGui.QDialog):
         """
         dirname = self.get_default_directory()
         dirname = QtGui.QFileDialog.getExistingDirectory(self, 
-                      'Choose Directory', dir=dirname)
+                                                         'Choose Directory', 
+                                                         dirname)
         if os.path.exists(dirname):    # avoids problems if <Cancel> was selected
             self.directoryname.setText(str(dirname))
             self.set_default_directory(dirname)
