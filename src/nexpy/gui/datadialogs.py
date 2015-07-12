@@ -417,9 +417,10 @@ class GridParameters(OrderedDict):
 
     def set_parameters(self):
         self.parameters = []
-        for p in [p for p in self.values() if p.vary]:
+        for p in self.values():
             p.init_value = p.value
-            self.parameters.append({p.name:p.value})
+            if p.vary:
+                self.parameters.append({p.name:p.value})
 
     def get_parameters(self, p):
         i = 0
@@ -435,7 +436,7 @@ class GridParameters(OrderedDict):
         self.get_parameters(result.x)
 
     def restore_parameters(self):
-        for p in [p for p in self.values() if p.vary]:
+        for p in self.values():
             p.value = p.init_value
 
     def save(self):
