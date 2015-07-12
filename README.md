@@ -48,11 +48,19 @@ more details of the nature of these dependencies in the
 * h5py                 http://www.h5py.org
 * numpy,scipy          http://numpy.scipy.org
 * iPython v1.1.0       http://ipython.org/
-* PySide v1.1.0        http://www.pyside.org/
 * matplotlib v1.2.0    http://matplotlib.sourceforge.net    (GUI only)
 * lmfit                http://newville.github.io/lmfit-py (Fitting only)
 * pycbf                http://www.bernstein-plus-sons.com/software/CBF/ (CBF reader only)
 * spec2nexus           http://spec2nexus.readthedocs.org (SPEC reader only)
+
+The GUI is built using the PyQt. The latest version supports either 
+PyQt4/5 or PySide, and should load whichever library it finds. Neither are 
+listed as a dependency but one or other must be installed. PyQt4 is included
+in the 
+[Anaconda default distribution](https://store.continuum.io/cshop/anaconda/) 
+while PySide is included in the 
+[Enthought Python Distribution](http://www.enthought.com>) or within Enthought's 
+[Canopy Application](https://www.enthought.com/products/canopy/>).
 
 The following environment variable may need to be set
 PYTHONPATH --> paths to ipython,numpy,scipy,matplotlib if installed in a 
