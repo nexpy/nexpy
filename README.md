@@ -66,8 +66,6 @@ The following environment variable may need to be set
 PYTHONPATH --> paths to ipython,numpy,scipy,matplotlib if installed in a 
 nonstandard place
 
-All of the above are included in the Enthought Python Distribution v7.3.
-
 PySide 1.1.0 on rpm systems
 ---------------------------
 
