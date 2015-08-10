@@ -81,12 +81,51 @@ class Highlighter(QtGui.QSyntaxHighlighter):
             except IndexError:
                 pass
 
-class ScriptDialog(BaseDialog):
+
+class NXScriptWindow(QtGui.QDialog):
+
+    def __init__(self, parent=None):
+        super(NXScriptWindow, self).__init__(parent)
+        layout = QtGui.QVBoxLayout()
+        self.tabs = QtGui.QTabWidget(self)
+        layout.addWidget(self.tabs)
+        self.setLayout(layout)
+        self.setWindowTitle('Script Editor')
+        self.tabs.currentChanged.connect(self.update)
+
+    def __repr__(self):
+        return 'NXScriptWindow()'
+
+    @property
+    def editors(self):
+        return [self.tabs.widget(idx) for idx in range(self.tabs.count())]
+
+    def update(self):
+        for editor in self.editors:
+            editor.adjustSize()
+        if self.tabs.count() == 0:
+            self.setVisible(False)
+
+    def closeEvent(self, event):
+        self.close()
+        event.accept()
+        
+    def close(self):
+        for editor in self.editors:
+            editor.close()
+        self.setVisible(False)
+
+
+
+class NXScriptEditor(QtGui.QWidget):
     """Dialog to plot arbitrary NeXus data in one or two dimensions"""
  
     def __init__(self, file_name=None, parent=None):
 
-        super(ScriptDialog, self).__init__(parent)
+        from nexpy.gui.consoleapp import _mainwindow
+        self.window = _mainwindow.editors
+
+        QtGui.QWidget.__init__(self, parent=self.window.tabs)
  
         layout = QtGui.QVBoxLayout()
         self.text_box = QtGui.QPlainTextEdit()
@@ -100,6 +139,7 @@ class ScriptDialog(BaseDialog):
         
         run_button = QtGui.QPushButton('Run Script')
         run_button.clicked.connect(self.run_script)
+        run_button.setAutoDefault(False)
         self.argument_box = QtGui.QLineEdit()
         self.argument_box.setMinimumWidth(200)
         save_button = QtGui.QPushButton('Save')
@@ -108,8 +148,8 @@ class ScriptDialog(BaseDialog):
         save_as_button.clicked.connect(self.save_script_as)
         self.delete_button = QtGui.QPushButton('Delete')
         self.delete_button.clicked.connect(self.delete_script)
-        close_button = QtGui.QPushButton('Close Window')
-        close_button.clicked.connect(self.accept)
+        close_button = QtGui.QPushButton('Close Tab')
+        close_button.clicked.connect(self.close)
         button_layout = QtGui.QHBoxLayout()
         button_layout.addWidget(run_button)
         button_layout.addWidget(self.argument_box)
@@ -125,10 +165,16 @@ class ScriptDialog(BaseDialog):
             with open(self.file_name, 'r') as f:
                 text = f.read()
             self.text_box.setPlainText(text)
-            self.setWindowTitle("Script Editor: "+self.file_name)
+            self.window.tabs.addTab(self, os.path.basename(self.file_name))
         else:
             self.delete_button.setVisible(False)
-            self.setWindowTitle("Script Editor")
+            self.window.tabs.addTab(self, 
+                                    'Untitled %s' % (self.window.tabs.count()+1))
+        self.index = self.window.tabs.indexOf(self)
+
+        self.window.tabs.adjustSize()
+        self.window.tabs.setCurrentWidget(self)
+
         self.hl = Highlighter(self.text_box.document())
         
     def get_text(self):
@@ -162,7 +208,7 @@ class ScriptDialog(BaseDialog):
             with open(file_name, 'w') as f:
                 f.write(self.get_text())
             self.file_name = file_name
-            self.setWindowTitle("Script Editor: "+self.file_name)
+            self.window.tabs.setTabText(self.index, os.path.basename(self.file_name))
             from consoleapp import _mainwindow
             _mainwindow.add_script_action(self.file_name)
             self.delete_button.setVisible(True)
@@ -176,7 +222,19 @@ class ScriptDialog(BaseDialog):
                 os.remove(self.file_name)
                 from consoleapp import _mainwindow
                 _mainwindow.remove_script_action(self.file_name)
-                self.accept()
+                self.close()
 
-    def accept(self):    
-        super(ScriptDialog, self).accept()
+    def confirm_action(self, query, information=None):
+        message_box = QtGui.QMessageBox()
+        message_box.setText(query)
+        if information:
+            message_box.setInformativeText(information)
+        message_box.setStandardButtons(QtGui.QMessageBox.Ok | 
+                                       QtGui.QMessageBox.Cancel)
+        message_box.setDefaultButton(QtGui.QMessageBox.Ok)
+        return message_box.exec_()
+
+    def close(self):
+        self.window.tabs.removeTab(self.index)
+        self.deleteLater()
+        self.window.update()

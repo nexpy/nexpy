@@ -44,7 +44,7 @@ def background(f):
 from treeview import NXTreeView
 from plotview import NXPlotView, NXProjectionPanels
 from datadialogs import *
-from scripteditor import ScriptDialog
+from scripteditor import NXScriptWindow, NXScriptEditor
 import nexpy
 from nexusformat.nexus import (nxload, NeXusError, NXFile, NXobject, 
                                NXfield, NXgroup, NXlink, NXroot, NXentry)
@@ -106,6 +106,8 @@ class MainWindow(QtGui.QMainWindow):
         self.plotview.setMinimumSize(700, 550)
         self.panels = NXProjectionPanels(self)
         self.panels.setVisible(False)
+        self.editors = NXScriptWindow(self)
+        self.editors.setVisible(False)
 
         self.console = RichIPythonWidget(config=self.config, parent=rightpane)
         self.console.setMinimumSize(700, 100)
@@ -681,6 +683,20 @@ class MainWindow(QtGui.QMainWindow):
             )
         self.add_menu_action(self.window_menu, self.log_action)
 
+        self.panel_action=QtGui.QAction("Show Projection Panel",
+            self,
+            shortcut=QtGui.QKeySequence("Ctrl+Shift+P"),
+            triggered=self.show_projection_panel
+            )
+        self.add_menu_action(self.window_menu, self.panel_action)
+
+        self.script_window_action=QtGui.QAction("Show Script Window",
+            self,
+            shortcut=QtGui.QKeySequence("Ctrl+Shift+S"),
+            triggered=self.show_script_window
+            )
+        self.add_menu_action(self.window_menu, self.script_window_action)
+
         self.window_menu.addSeparator()
 
         self.limit_action=QtGui.QAction("Change Plot Limits",
@@ -694,13 +710,6 @@ class MainWindow(QtGui.QMainWindow):
             triggered=self.reset_axes
             )
         self.add_menu_action(self.window_menu, self.reset_limit_action)
-
-        self.panel_action=QtGui.QAction("Show Projection Panel",
-            self,
-            shortcut=QtGui.QKeySequence("Ctrl+Shift+P"),
-            triggered=self.show_projection_panel
-            )
-        self.add_menu_action(self.window_menu, self.panel_action)
 
         self.window_menu.addSeparator()
 
@@ -1478,13 +1487,6 @@ class MainWindow(QtGui.QMainWindow):
             self.update_active(number)
             self.plotviews[self.active_action[number].text()].make_active()
 
-    def show_projection_panel(self):
-        from nexpy.gui.plotview import plotview
-        if plotview.label != 'Projection' and plotview.ndim > 1:
-            plotview.ptab.open_panel()
-        elif self.panels.tabs.count() != 0:
-            self.panels.raise_()
-    
     def limit_axes(self):
         try:
             from nexpy.gui.plotview import plotview
@@ -1507,11 +1509,26 @@ class MainWindow(QtGui.QMainWindow):
         except NeXusError as error:
             report_error("Showing Log File", error)
 
+    def show_projection_panel(self):
+        from nexpy.gui.plotview import plotview
+        if plotview.label != 'Projection' and plotview.ndim > 1:
+            plotview.ptab.open_panel()
+        elif self.panels.tabs.count() != 0:
+            self.panels.raise_()
+    
+    def show_script_window(self):
+        if self.editors.tabs.count() == 0:
+            self.new_script()
+        else:
+            self.editors.setVisible(True)
+            self.editors.raise_()
+    
     def new_script(self):
         try:
             file_name = None
-            dialog = ScriptDialog(file_name, self)
-            dialog.show()
+            editor = NXScriptEditor(file_name, self)
+            self.editors.setVisible(True)
+            self.editors.raise_()
             logging.info("Creating new script")
         except NeXusError as error:
             report_error("Editing New Script", error)
@@ -1525,8 +1542,9 @@ class MainWindow(QtGui.QMainWindow):
             file_name = getOpenFileName(self, 'Open Script', script_dir, 
                                         file_filter)
             if file_name:
-                dialog = ScriptDialog(file_name, self)
-                dialog.show()
+                editor = NXScriptEditor(file_name, self)
+                self.editors.setVisible(True)
+                self.editors.raise_()
                 logging.info("NeXus script '%s' opened" % file_name)
         except NeXusError as error:
             report_error("Editing Script", error)
@@ -1534,7 +1552,7 @@ class MainWindow(QtGui.QMainWindow):
     def open_script_file(self):
         try:
             file_name = self.scripts[self.sender()]
-            dialog = ScriptDialog(file_name, self)
+            dialog = NXScriptEditor(file_name, self)
             dialog.show()
             logging.info("NeXus script '%s' opened" % file_name)
         except NeXusError as error:
