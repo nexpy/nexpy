@@ -672,7 +672,10 @@ class NXPlotView(QtGui.QDialog):
             axes, limits = fix_projection(self.data.nxsignal.shape, axes, limits)
         self.plotdata = self.data.project(axes, limits)
         self.plotdata.title = self.title
-        if self.equally_spaced:
+        if newaxis:
+            self.plot_image()
+            self.draw()
+        elif self.equally_spaced:
             self.x, self.y, self.v = self.get_image()
             self.image.set_data(self.v)
             if self.xaxis.reversed:
@@ -681,8 +684,6 @@ class NXPlotView(QtGui.QDialog):
                 ymin, ymax = ymax, ymin
             self.image.set_extent((xmin, xmax, ymin, ymax))
             self.replot_image()
-        elif newaxis:
-            self.plot_image()
         else:
             self.x, self.y, self.v = self.get_image()
             self.image.set_array(self.v.ravel())
