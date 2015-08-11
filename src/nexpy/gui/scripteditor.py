@@ -90,6 +90,7 @@ class NXPlainTextEdit(QtGui.QPlainTextEdit):
         self.setFont(QtGui.QFont('Courier'))
         self.setMinimumWidth(700)
         self.setMinimumHeight(600)
+        self.setWordWrapMode(QtGui.QTextOption.NoWrap)
         self.parent = parent
         self.blockCountChanged.connect(self.parent.update_line_numbers)
 
@@ -234,7 +235,11 @@ class NXScriptEditor(QtGui.QWidget):
         self.number_box.setText('\n'.join([str(i) for i in 
                                            range(first_line, 
                                                  first_line+lines)]))
-    
+        if first_line > 1:
+            self.number_box.setStyleSheet("QLabel {padding: 0}")
+        else:
+            self.number_box.setStyleSheet("QLabel {padding: 1px 0}")
+
     def run_script(self):
         from consoleapp import _mainwindow
         text = self.get_text()
