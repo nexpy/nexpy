@@ -679,6 +679,7 @@ class MainWindow(QtGui.QMainWindow):
         
         self.log_action=QtGui.QAction("Show Log File",
             self,
+            shortcut=QtGui.QKeySequence("Ctrl+Shift+L"),
             triggered=self.show_log
             )
         self.add_menu_action(self.window_menu, self.log_action)
