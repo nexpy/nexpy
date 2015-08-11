@@ -691,7 +691,7 @@ class MainWindow(QtGui.QMainWindow):
             )
         self.add_menu_action(self.window_menu, self.panel_action)
 
-        self.script_window_action=QtGui.QAction("Show Script Window",
+        self.script_window_action=QtGui.QAction("Show Script Editor",
             self,
             shortcut=QtGui.QKeySequence("Ctrl+Shift+S"),
             triggered=self.show_script_window
