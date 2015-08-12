@@ -257,6 +257,16 @@ Window Menu
               contain ANSI markup, which is rendered in the terminal using 
               ``less -r``.
 
+**Show Projection Panel**
+    Show the projection panel for the currently active plotting window. This is
+    equivalent to clicking on 'Show Panel' in the projection tab (see below). 
+    All the open projection panels are displayed as tabs in a single window.
+
+**Show Script Editor**
+    Show the script editor. If multiple scripts are open, they are displayed as
+    tabs in a single window. If no scripts are open, this will open a new 
+    script.
+
 **Change Plot Limits**
     This gives a dialog box that allows the axis limits of the currently active
     plot to be changed. This is useful if you want to expand the limits beyond 
@@ -271,10 +281,6 @@ Window Menu
     .. note:: Clicking on the Home button in the Options Tab (see below) or 
               right-clicking within the plot will also restore the original axis 
               limits.
-
-**Show Projection Panel**
-    Show the projection panel for the currently active plotting window. This is
-    equivalent to clicking on 'Show Panel' in the projection tab (see below).
 
 **New Plot Window**
     Opens a new NeXpy plotting window, consisting of a Matplotlib plot pane and 
