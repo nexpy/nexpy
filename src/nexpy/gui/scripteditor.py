@@ -108,7 +108,7 @@ class NXPlainTextEdit(QtGui.QPlainTextEdit):
 
     @property
     def line_height(self):
-        return self.blockBoundingGeometry(self.firstVisibleBlock()).height()
+        return self.fontMetrics().height()
 
     @property
     def lines(self):
@@ -207,21 +207,25 @@ class NXScriptEditor(QtGui.QWidget):
         self.setLayout(layout)
 
         if self.file_name:
+            self.label = os.path.basename(self.file_name)
             with open(self.file_name, 'r') as f:
                 text = f.read()
             self.text_box.setPlainText(text)
-            self.window.tabs.addTab(self, os.path.basename(self.file_name))
+            self.window.tabs.addTab(self, self.label)
             self.update_line_numbers(self.text_box.count)
         else:
+            self.label = 'Untitled %s' % (self.window.tabs.count()+1)
             self.delete_button.setVisible(False)
-            self.window.tabs.addTab(self, 
-                                    'Untitled %s' % (self.window.tabs.count()+1))
+            self.window.tabs.addTab(self, self.label)
         self.index = self.window.tabs.indexOf(self)
 
         self.window.tabs.adjustSize()
         self.window.tabs.setCurrentWidget(self)
 
         self.hl = Highlighter(self.text_box.document())
+
+    def __repr__(self):
+        return 'NXScriptEditor(%s)' % self.label
         
     def get_text(self):
         return self.text_box.document().toPlainText()+'\n'

@@ -1554,6 +1554,8 @@ class MainWindow(QtGui.QMainWindow):
             file_name = self.scripts[self.sender()]
             dialog = NXScriptEditor(file_name, self)
             dialog.show()
+            self.editors.setVisible(True)
+            self.editors.raise_()
             logging.info("NeXus script '%s' opened" % file_name)
         except NeXusError as error:
             report_error("Opening Script", error)
