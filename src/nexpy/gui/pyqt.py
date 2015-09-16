@@ -1,4 +1,4 @@
-from IPython.external.qt import QtCore, QtGui, QtSvg, QT_API
+from qtconsole.qt import QtCore, QtGui, QtSvg, QT_API
 
 def getOpenFileName(*args, **kwargs):
     fname = QtGui.QFileDialog.getOpenFileName(*args, **kwargs)

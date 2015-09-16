@@ -11,7 +11,7 @@
 
 """The Qt MainWindow for NeXpy
 
-This is an expanded version on the iPython QtConsole with the addition
+This is an expanded version on the Jupyter QtConsole with the addition
 of a Matplotlib plotting pane and a tree view for displaying NeXus data.
 """
 
@@ -49,12 +49,8 @@ import nexpy
 from nexusformat.nexus import (nxload, NeXusError, NXFile, NXobject, 
                                NXfield, NXgroup, NXlink, NXroot, NXentry)
 
-# IPython imports
-# require minimum version of IPython for RichIPythonWidget()
-import pkg_resources
-pkg_resources.require("IPython>="+'1.1.0')
-from IPython.qt.console.rich_ipython_widget import RichIPythonWidget
-from IPython.qt.inprocess import QtInProcessKernelManager
+from qtconsole.rich_jupyter_widget import RichJupyterWidget
+from qtconsole.inprocess import QtInProcessKernelManager
 
 
 def report_error(context, error):
@@ -87,7 +83,7 @@ class MainWindow(QtGui.QMainWindow):
         
         app : reference to QApplication parent
         tree : :class:`NXTree` object used as the rootr of the :class:`NXTreeView` items
-        config : IPython configuration
+        config : Jupyter configuration
         """
 
         super(MainWindow, self).__init__()
@@ -109,7 +105,7 @@ class MainWindow(QtGui.QMainWindow):
         self.editors = NXScriptWindow(self)
         self.editors.setVisible(False)
 
-        self.console = RichIPythonWidget(config=self.config, parent=rightpane)
+        self.console = RichJupyterWidget(config=self.config, parent=rightpane)
         self.console.setMinimumSize(700, 100)
         self.console.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Fixed)
         self.console._confirm_exit = True
@@ -127,6 +123,9 @@ class MainWindow(QtGui.QMainWindow):
 
         self.console.exit_requested.connect(stop)
         self.console.show()
+
+        self.console.input_sep = ''        
+        self.console.execute_on_complete_input = False
 
         self.shell = self.console.kernel_manager.kernel.shell
         self.user_ns = self.console.kernel_manager.kernel.shell.user_ns

@@ -2,30 +2,14 @@
 # -*- coding: utf-8 -*-
 
 #-----------------------------------------------------------------------------
-# Copyright (c) 2013, NeXpy Development Team.
+# Copyright (c) 2013-2015, NeXpy Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file COPYING, distributed with this software.
 #-----------------------------------------------------------------------------
 
-""" A minimal application using the Qt console-style IPython frontend.
-
-This is not a complete console app, as subprocess will not be able to receive
-input, there is no real readline support, among other limitations.
-
-Based on IPython module of the same name.
-
-Authors:
-
-* Evan Patterson
-* Min RK
-* Erik Tollerud
-* Fernando Perez
-* Bussonnier Matthias
-* Thomas Kluyver
-* Paul Ivanov
-
+""" A minimal application using the Qt console-style Jupyter frontend.
 """
 
 #-----------------------------------------------------------------------------
@@ -41,70 +25,70 @@ import signal
 import sys
 import tempfile
 
-# System library imports
 from nexpy.gui.pyqt import QtCore, QtGui
 
-# Local imports
 from mainwindow import MainWindow
 from treeview import NXtree
 from nexusformat.nexus import nxclasses, nxload
 
-# IPython imports
-from IPython.config.application import catch_config_error
-from IPython.core.application import BaseIPythonApplication
-from IPython.lib import guisupport
-from IPython.qt.console.ipython_widget import IPythonWidget
-from IPython.qt.console.rich_ipython_widget import RichIPythonWidget
-from IPython.qt.console import styles
-from IPython.utils.traitlets import (
+from traitlets.config.application import boolean_flag
+from traitlets.config.application import catch_config_error
+from qtconsole.jupyter_widget import JupyterWidget
+from qtconsole.rich_jupyter_widget import RichJupyterWidget
+from qtconsole import styles, __version__
+from qtconsole.client import QtKernelClient
+from qtconsole.manager import QtKernelManager
+from traitlets import (
     Dict, Unicode, CBool, Any
 )
 
-from IPython.consoleapp import (
-        IPythonConsoleApp, app_aliases, app_flags, flags, aliases
+from jupyter_core.application import JupyterApp, base_flags, base_aliases
+from jupyter_client.consoleapp import (
+        JupyterConsoleApp, app_aliases, app_flags,
     )
 
-#-----------------------------------------------------------------------------
-# Network Constants
-#-----------------------------------------------------------------------------
+
+from jupyter_client.localinterfaces import is_local_ip
 
 #-----------------------------------------------------------------------------
 # Globals
 #-----------------------------------------------------------------------------
 
-_examples = """
-ipython qtconsole                 # start the qtconsole
-ipython qtconsole --pylab=inline  # start with pylab in inline plotting mode
-"""
 _tree = None
 _shell = None
 _mainwindow = None
 _nexpy_dir = None
+_examples = """
+nexpy                      # start the GUI application
+"""
 
 #-----------------------------------------------------------------------------
 # Aliases and Flags
 #-----------------------------------------------------------------------------
 
-# start with copy of flags
-flags = dict(flags)
+flags = dict(base_flags)
 qt_flags = {
     'plain' : ({'NXConsoleApp' : {'plain' : True}},
             "Disable rich text support."),
 }
+qt_flags.update(boolean_flag(
+    'banner', 'NXConsoleApp.display_banner',
+    "Display a banner upon starting the QtConsole.",
+    "Don't display a banner upon starting the QtConsole."
+))
 
 # and app_flags from the Console Mixin
 qt_flags.update(app_flags)
 # add frontend flags to the full set
 flags.update(qt_flags)
 
-# start with copy of front&backend aliases list
-aliases = dict(aliases)
+# start with copy of base jupyter aliases
+aliases = dict(base_aliases)
 qt_aliases = dict(
-    style = 'IPythonWidget.syntax_style',
-    stylesheet = 'IPythonQtConsoleApp.stylesheet',
-    colors = 'ZMQInteractiveShell.colors',
+    style = 'JupyterWidget.syntax_style',
+    stylesheet = 'NXConsoleApp.stylesheet',
 
-    editor = 'IPythonWidget.editor',
+    editor = 'JupyterWidget.editor',
     paging = 'ConsoleWidget.paging',
 )
 # and app_aliases from the Console Mixin
@@ -116,20 +100,15 @@ aliases.update(qt_aliases)
 # get flags&aliases into sets, and remove a couple that
 # shouldn't be scrubbed from backend flags:
 qt_aliases = set(qt_aliases.keys())
-qt_aliases.remove('colors')
 qt_flags = set(qt_flags.keys())
-
-#-----------------------------------------------------------------------------
-# Classes
-#-----------------------------------------------------------------------------
 
 #-----------------------------------------------------------------------------
 # NXConsoleApp
 #-----------------------------------------------------------------------------
 
-class NXConsoleApp(BaseIPythonApplication, IPythonConsoleApp):
-    name = 'ipython-qtconsole'
-
+class NXConsoleApp(JupyterApp, JupyterConsoleApp):
+    name = 'nexpy-console'
+    version = __version__
     description = """
         The NeXpy Console.
         
@@ -137,34 +116,44 @@ class NXConsoleApp(BaseIPythonApplication, IPythonConsoleApp):
         
         The console is embedded in a GUI that contains a tree view of
         all NXroot groups and a matplotlib plotting pane. It also has all
-        the added benefits of an IPython Qt Console with multiline editing,
+        the added benefits of a Jupyter Qt Console with multiline editing,
         autocompletion, tooltips, command line histories and the ability to 
         save your session as HTML or print the output.
         
     """
+    examples = _examples
 
-    classes = [IPythonWidget] + IPythonConsoleApp.classes
+    classes = [JupyterWidget] + JupyterConsoleApp.classes
     flags = Dict(flags)
     aliases = Dict(aliases)
     frontend_flags = Any(qt_flags)
     frontend_aliases = Any(qt_aliases)
+    kernel_client_class = QtKernelClient
+    kernel_manager_class = QtKernelManager
 
     stylesheet = Unicode('', config=True,
         help="path to a custom CSS stylesheet")
 
+    hide_menubar = CBool(False, config=True,
+        help="Start the console window with the menu bar hidden.")
+
     plain = CBool(False, config=True,
         help="Use a plaintext widget instead of rich text (plain can't print/save).")
+
+    display_banner = CBool(True, config=True,
+        help="Whether to display a banner upon starting the QtConsole."
+    )
 
     def _plain_changed(self, name, old, new):
         kind = 'plain' if new else 'rich'
         self.config.ConsoleWidget.kind = kind
         if new:
-            self.widget_factory = IPythonWidget
+            self.widget_factory = JupyterWidget
         else:
-            self.widget_factory = RichIPythonWidget
+            self.widget_factory = RichJupyterWidget
 
     # the factory for creating a widget
-    widget_factory = Any(RichIPythonWidget)
+    widget_factory = Any(RichJupyterWidget)
 
     def parse_command_line(self, argv=None):
         super(NXConsoleApp, self).parse_command_line(argv)
@@ -218,7 +207,8 @@ class NXConsoleApp(BaseIPythonApplication, IPythonConsoleApp):
         
     def init_gui(self):
         """Initialize the GUI."""
-        self.app = guisupport.get_app_qt4()
+        self.app = QtGui.QApplication(['nexpy'])
+        self.app.setApplicationName('nexpy')
         self.window = MainWindow(self.app, self.tree, config=self.config)
         self.window.log = self.log
         global _mainwindow
@@ -310,14 +300,14 @@ class NXConsoleApp(BaseIPythonApplication, IPythonConsoleApp):
         self.init_signal()
 
     def start(self):
+        super(NXConsoleApp, self).start()
 
         # draw the window
         self.window.show()
         self.window.raise_()
 
         # Start the application main loop.
-        guisupport.start_event_loop_qt4(self.app)
-#       self.app.exec_()
+        self.app.exec_()
 
 #-----------------------------------------------------------------------------
 # Main entry point
