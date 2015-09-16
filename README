@@ -39,7 +39,8 @@ more details of the nature of these dependencies in the NeXpy documentation
 (http://nexpy.github.io/nexpy).
 
 PySide v1.1.0        http://www.pyside.org/
-iPython v1.1.0       http://ipython.org/
+jupyter              http://jupyter.org
+IPython v1.1.0       http://ipython.org/
 h5py                 http://www.h5py.org/
 numpy,scipy          http://numpy.scipy.org
 matplotlib v1.2.0    http://matplotlib.sourceforge.net  (GUI plotting only)

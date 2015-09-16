@@ -47,7 +47,8 @@ more details of the nature of these dependencies in the
 
 * h5py                 http://www.h5py.org
 * numpy,scipy          http://numpy.scipy.org
-* iPython v1.1.0       http://ipython.org/
+* jupyter              http://jupyter.org
+* IPython v1.1.0       http://ipython.org
 * matplotlib v1.2.0    http://matplotlib.sourceforge.net    (GUI only)
 * lmfit                http://newville.github.io/lmfit-py (Fitting only)
 * pycbf                http://www.bernstein-plus-sons.com/software/CBF/ (CBF reader only)

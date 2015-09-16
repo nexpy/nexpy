@@ -84,14 +84,16 @@ while PySide is included in the `Enthought Python Distribution
 <http://www.enthought.com>`_ or within Enthought's `Canopy Application
 <https://www.enthought.com/products/canopy/>`_.
 
-The GUI includes an `iPython shell <http://ipython.org/>`_ and a `Matplotlib
-plotting pane <http://matplotlib.sourceforge.net>`_. The iPython shell is
-embedded in the Qt GUI using an implementation of their QtConsole.
+The GUI includes an `IPython shell <http://ipython.org/>`_ and a `Matplotlib
+plotting pane <http://matplotlib.sourceforge.net>`_. The IPython shell is
+embedded in the Qt GUI using an implementation based on the newly-released
+Jupyter QtConsole, which has replaced the old IPython QtConsole.
           
 =================  =================================================
 Library            URL
 =================  =================================================
-iPython v1.1.0     http://ipython.org/
+jupyter            http://jupyter.org/
+IPython v1.1.0     http://ipython.org/
 matplotlib v1.2.0  http://matplotlib.sourceforge.net/
 =================  =================================================
 
