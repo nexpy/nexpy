@@ -325,14 +325,14 @@ Script Menu
 Other Menus
 ^^^^^^^^^^^
 The Edit, View, Magic, and Help Menus currently consist of menu items 
-provided by the iPython shell for their Qt Console. All the operations act on 
-the shell text.
+provided by the IPython shell in the Jupyter Qt Console. All the operations 
+act on the shell text.
 
 Adding NeXus Data to the Tree
 -----------------------------
 NXroot groups that are displayed in the tree pane are all children of a group
 of class NXtree, known as 'tree'. If you create a NeXus group dynamically in the 
-iPython shell, it can be added to the tree pane using the tree's add method::
+IPython shell, it can be added to the tree pane using the tree's add method::
 
  >>> a=NXroot()
  >>> a.entry = NXentry()
@@ -916,11 +916,4 @@ commonly used::
 If you require a different set of imports or prefer alternative abbreviations,
 you can replace the default startup script with your own by placing the 
 required code in ~/.nexpy/config.py.
-
-The console can be configured using the `IPython configuration system 
-<http://ipython.org/ipython-doc/stable/interactive/tutorial.html#configuration>`_.
-For example, if you don't want a blank line between each input line, edit 
-~/.ipython/profile_default/ipython_qtconsole_config.py and set::
-
- c.IPythonWidget.input_sep = '' 
 
