@@ -27,7 +27,7 @@ Two GUI elements are provided for convenience:
 """
 import os                           #@UnusedImport
 
-from IPython.external.qt import QtCore, QtGui
+from nexpy.gui.pyqt import QtCore, QtGui
 
 import numpy as np
 from nexusformat.nexus import *
