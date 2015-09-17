@@ -38,6 +38,10 @@ plotviews = {}
 cmaps = ['autumn', 'bone', 'cool', 'copper', 'flag', 'gray', 'hot', 
          'hsv', 'jet', 'pink', 'prism', 'spring', 'summer', 'winter', 
          'spectral', 'rainbow']
+interpolations = ['nearest', 'bilinear', 'bicubic', 'spline16', 'spline36', 
+                  'hanning', 'hamming', 'hermite', 'kaiser', 'quadric', 
+                  'catrom', 'gaussian', 'bessel', 'mitchell', 'sinc', 'lanczos']
+
 colors = ['b', 'g', 'r', 'c', 'm', 'y', 'k', 'w']
 
 
@@ -190,7 +194,7 @@ class NXPlotView(QtGui.QDialog):
         self.tab_widget = QtGui.QTabWidget()
         self.tab_widget.setFixedHeight(80)
 
-        self.vtab = NXPlotTab('v', axis=False, cmap=True, plotview=self)
+        self.vtab = NXPlotTab('v', axis=False, image=True, plotview=self)
         self.xtab = NXPlotTab('x', plotview=self)
         self.ytab = NXPlotTab('y', plotview=self)
         self.ztab = NXPlotTab('z', log=False, zaxis=True, plotview=self)
@@ -579,12 +583,10 @@ class NXPlotView(QtGui.QDialog):
             if 'interpolation' not in opts:
                 opts['interpolation'] = 'nearest'
             self.image = ax.imshow(self.v, extent=extent, cmap=self.cmap, **opts)
-        elif 'interpolation' in opts:
+        else:
             self.image = NonUniformImage(ax, extent=extent, cmap=self.cmap, **opts)
             self.image.set_data(self.xaxis.centers, self.yaxis.centers, self.v)
             ax.images.append(self.image)
-        else:
-            self.image = ax.pcolormesh(self.x, self.y, self.v, cmap=self.cmap, **opts)
         self.image.get_cmap().set_bad('k', 1.0)
         ax.set_aspect(self.aspect)
         
@@ -809,10 +811,24 @@ class NXPlotView(QtGui.QDialog):
     def _set_cmap(self, cmap):
         try:
             self.vtab.set_cmap(get_cmap(cmap).name)
+            self.vtab.change_cmap()
         except ValueError as error:
             raise NeXusError(str(error))
 
     cmap = property(_cmap, _set_cmap, "Property: color map")
+
+    def _interpolation(self):
+        return self.vtab.interpolation
+
+    def _set_interpolation(self, interpolation):
+        try:
+            self.vtab.set_interpolation(interpolation)
+            self.vtab.change_interpolation()
+        except ValueError as error:
+            raise NeXusError(str(error))
+
+    interpolation = property(_interpolation, _set_interpolation, 
+                             "Property: interpolation method")
 
     def _offsets(self):
         return self._axis_offsets
@@ -1139,7 +1155,7 @@ class NXReplotSignal(QtCore.QObject):
 
 class NXPlotTab(QtGui.QWidget):
 
-    def __init__(self, name=None, axis=True, log=True, zaxis=False, cmap=False,
+    def __init__(self, name=None, axis=True, log=True, zaxis=False, image=False,
                  plotview=None):
 
         super(NXPlotTab, self).__init__()
@@ -1190,13 +1206,19 @@ class NXPlotTab(QtGui.QWidget):
             widgets.append(self.flipbox)
             self.lockbox = self.scalebox = None
         
-        if cmap: 
+        if image:
             self.cmapcombo = self.combobox(self.change_cmap)
-            widgets.append(self.cmapcombo)
             self.cmapcombo.addItems(cmaps)
-            self.cmapcombo.setCurrentIndex(self.cmapcombo.findText('jet')) 
+            self.cmapcombo.setCurrentIndex(self.cmapcombo.findText('jet'))
+            widgets.append(self.cmapcombo)
+            self.interpolations = interpolations
+            self.interpcombo = self.combobox(self.change_interpolation)
+            self.interpcombo.addItems(self.interpolations)
+            self.set_interpolation('nearest')
+            widgets.append(self.interpcombo)
         else:
             self.cmapcombo = None
+            self.interpcombo = None
 
         if zaxis: 
             hbox.addStretch()
@@ -1241,6 +1263,20 @@ class NXPlotTab(QtGui.QWidget):
             else:
                 self.axiscombo.addItems(self.get_axes())
             self.axiscombo.setCurrentIndex(self.axiscombo.findText(axis.name))
+        if self.name == 'v':
+            interpolation = self.interpolation
+            self.interpcombo.clear()
+            if self.plotview.equally_spaced:
+                self.interpolations = interpolations
+            else:
+                self.interpolations = interpolations[:2]
+                if interpolation != 'nearest':
+                    interpolation = 'bilinear'
+                else:
+                    interpolation = 'nearest'
+            self.interpcombo.addItems(self.interpolations)
+            self.set_interpolation(interpolation)
+            self.change_interpolation()         
         self.block_signals(False)
 
     def combobox(self, slot):
@@ -1513,8 +1549,11 @@ class NXPlotTab(QtGui.QWidget):
             return [axis.nxname for axis in self.plotview.axes]
 
     def change_cmap(self):
-        self.plotview.image.set_cmap(self.cmap)
-        self.plotview.draw()
+        try:
+            self.plotview.image.set_cmap(self.cmap)
+            self.plotview.draw()
+        except Exception:
+            pass
 
     def set_cmap(self, cmap):
         self.cmapcombo.setCurrentIndex(self.cmapcombo.findText(cmap))
@@ -1522,6 +1561,24 @@ class NXPlotTab(QtGui.QWidget):
     @property
     def cmap(self):
         return self.cmapcombo.currentText()
+
+    def change_interpolation(self):
+        try:
+            self.plotview.image.set_interpolation(self.interpolation)
+            self.plotview.draw()
+        except Exception:
+            pass
+
+    def set_interpolation(self, interpolation):
+        if interpolation in self.interpolations:
+            self.interpcombo.setCurrentIndex(
+                self.interpcombo.findText(interpolation))
+        else:
+            raise NeXusError('Invalid interpolation method')
+
+    @property
+    def interpolation(self):
+        return self.interpcombo.currentText()
 
     def init_toolbar(self):
         _backward_icon = QtGui.QIcon(
