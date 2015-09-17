@@ -115,13 +115,6 @@ class NXPlainTextEdit(QtGui.QPlainTextEdit):
         return int(self.viewport().size().height() /
                    self.line_height)
 
-    def line_numbers(self):
-        first_block = self.firstVisibleBlock()
-        first_line = first_block.blockNumber() + 1
-        last_line = min(first_line + self.lines, self.count)
-        self.number_box.setText('\n'.join(
-            [str(i) for i in range(first_line, last_line+1)]))
-
        
 class NXScriptWindow(QtGui.QDialog):
 
@@ -173,12 +166,14 @@ class NXScriptEditor(QtGui.QWidget):
 
         layout = QtGui.QVBoxLayout()
         self.text_layout = QtGui.QHBoxLayout()
-        self.number_box = QtGui.QLabel('1')
-        self.number_box.setFont(QtGui.QFont('Courier'))
-        self.number_box.setAlignment(QtCore.Qt.AlignTop | QtCore.Qt.AlignRight)
-        self.number_box.setStyleSheet("QLabel {padding: 1px 0}")
+        if sys.platform == 'darwin':
+            self.number_box = QtGui.QLabel('1')
+            self.number_box.setFont(QtGui.QFont('Courier'))
+            self.number_box.setAlignment(QtCore.Qt.AlignTop | 
+                                         QtCore.Qt.AlignRight)
+            self.number_box.setStyleSheet("QLabel {padding: 1px 0}")
+            self.text_layout.addWidget(self.number_box)
         self.text_box = NXPlainTextEdit(self)
-        self.text_layout.addWidget(self.number_box)
         self.text_layout.addWidget(self.text_box)
         layout.addLayout(self.text_layout)
         
@@ -231,6 +226,8 @@ class NXScriptEditor(QtGui.QWidget):
         return self.text_box.document().toPlainText()+'\n'
 
     def update_line_numbers(self, count):
+        if sys.platform != 'darwin':
+            return
         first_block = self.text_box.firstVisibleBlock()
         first_line = first_block.blockNumber() + 1
         lines = min(count - first_line + 1, 
