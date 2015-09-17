@@ -93,8 +93,8 @@ Jupyter QtConsole, which has replaced the old IPython QtConsole.
 Library            URL
 =================  =================================================
 jupyter            http://jupyter.org/
-IPython v1.1.0     http://ipython.org/
-matplotlib v1.2.0  http://matplotlib.sourceforge.net/
+IPython v4.0.0     http://ipython.org/
+matplotlib v1.4.0  http://matplotlib.sourceforge.net/
 =================  =================================================
 
 .. seealso:: If you are having problems linking to the PySide library, you may

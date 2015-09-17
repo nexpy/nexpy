@@ -207,7 +207,9 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
         
     def init_gui(self):
         """Initialize the GUI."""
-        self.app = QtGui.QApplication(['nexpy'])
+        self.app = QtGui.QApplication.instance()
+        if self.app is None:
+            self.app = QtGui.QApplication(['nexpy'])
         self.app.setApplicationName('nexpy')
         self.window = MainWindow(self.app, self.tree, config=self.config)
         self.window.log = self.log

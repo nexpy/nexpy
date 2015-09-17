@@ -16,7 +16,7 @@ pkg_requirements = [
     'scipy',
     'h5py',
     'jupyter',
-    'ipython>=1.1.0',
+    'ipython>=4.0.0',
     'matplotlib>=1.4.0',
 ]
 extra_requirements = {
