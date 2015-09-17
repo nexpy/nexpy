@@ -10,6 +10,7 @@
 #-----------------------------------------------------------------------------
 
 import os
+import sys
 import tempfile
 
 from nexpy.gui.pyqt import QtCore, QtGui, getSaveFileName
