@@ -2347,18 +2347,18 @@ class NXNavigationToolbar(NavigationToolbar):
 
     def _init_toolbar(self):
         self.toolitems = (
-                ('Home', 'Reset original view', 'home', 'home'),
-                ('Back', 'Back to  previous view', 'back', 'back'),
-                ('Forward', 'Forward to next view', 'forward', 'forward'),
-                (None, None, None, None),
-                ('Pan', 'Pan axes with left mouse, zoom with right', 'move', 'pan'),
-                ('Zoom', 'Zoom to rectangle', 'zoom_to_rect', 'zoom'),
-                (None, None, None, None),
-                ('Aspect', 'Set aspect ratio to equal', 'hand', 'set_aspect'),
-                (None, None, None, None),
-                ('Subplots', 'Configure subplots', 'subplots', 'configure_subplots'),
-                ('Save', 'Save the figure', 'filesave', 'save_figure'),
-                ('Add', 'Add plot data to tree', 'hand', 'add_data')
+            ('Home', 'Reset original view', 'home', 'home'),
+            ('Back', 'Back to  previous view', 'back', 'back'),
+            ('Forward', 'Forward to next view', 'forward', 'forward'),
+            (None, None, None, None),
+            ('Pan', 'Pan axes with left mouse, zoom with right', 'move', 'pan'),
+            ('Zoom', 'Zoom to rectangle', 'zoom_to_rect', 'zoom'),
+            (None, None, None, None),
+            ('Aspect', 'Set aspect ratio to equal', 'hand', 'set_aspect'),
+            (None, None, None, None),
+            ('Subplots', 'Configure subplots', 'subplots', 'configure_subplots'),
+            ('Save', 'Save the figure', 'filesave', 'save_figure'),
+            ('Add', 'Add plot data to tree', 'hand', 'add_data')
                 )
         super(NXNavigationToolbar, self)._init_toolbar()
         self._actions['set_aspect'].setIcon(QtGui.QIcon(

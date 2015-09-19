@@ -156,4 +156,4 @@ The Python tree API used in NeXpy was originally developed by Paul Kienzle, who
 also wrote the standard Python interface to the NeXus C-API. The original 
 version of NeXpy was initially developed by Boyana Norris, Jason Sarich, and 
 Daniel Lowell, and Ray Osborn using wxPython, and formed the inspiration
-for the current PySide version.
+for the current PyQt version.
