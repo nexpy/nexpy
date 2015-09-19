@@ -173,7 +173,7 @@ class MainWindow(QtGui.QMainWindow):
         self.file_filter = ';;'.join((
             "NeXus Files (*.nxs *.nx5 *.h5 *.hdf *.hdf5)",
             "Any Files (*.* *)"))
-        self.max_recent_files = 10
+        self.max_recent_files = 20
 
         self.setWindowTitle('NeXpy v'+nexpy.__version__)
         self.statusBar().showMessage('Ready')
