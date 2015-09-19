@@ -173,6 +173,8 @@ class MainWindow(QtGui.QMainWindow):
         self.file_filter = ';;'.join((
             "NeXus Files (*.nxs *.nx5 *.h5 *.hdf *.hdf5)",
             "Any Files (*.* *)"))
+        self.max_recent_files = 10
+
         self.setWindowTitle('NeXpy v'+nexpy.__version__)
         self.statusBar().showMessage('Ready')
         self.console._control.setFocus()
@@ -256,6 +258,8 @@ class MainWindow(QtGui.QMainWindow):
             )
         self.addAction(self.openeditablefile_action)  
 
+        self.init_recent_menu() 
+        
         self.savefile_action=QtGui.QAction("&Save as...",
             self,
             shortcut=QtGui.QKeySequence.Save,
@@ -607,7 +611,8 @@ class MainWindow(QtGui.QMainWindow):
         self.magic_menu = self.menu_bar.addMenu("&Magic")
         self.magic_menu_separator = self.magic_menu.addSeparator()
         
-        self.all_magic_menu = self._get_magic_menu("AllMagics", menulabel="&All Magics...")
+        self.all_magic_menu = self._get_magic_menu("AllMagics", 
+                                                   menulabel="&All Magics...")
 
         # This action should usually not appear as it will be cleared when menu
         # is updated at first kernel response. Though, it is necessary when
@@ -813,6 +818,26 @@ class MainWindow(QtGui.QMainWindow):
             )
         self.add_menu_action(self.help_menu, self.guiref_console_action)
 
+    def init_recent_menu(self):
+        """Add recent files menu item for recently opened files"""
+        from consoleapp import _nexpy_dir
+        self.settings = QtCore.QSettings(
+            os.path.join(_nexpy_dir, "settings.ini"), QtCore.QSettings.IniFormat)
+        recent_files = self.settings.value("recent/recentFiles")
+        self.recent_menu = self.file_menu.addMenu("Open Recent")
+        self.recent_menu.hovered.connect(self.hover_recent_menu)
+        self.recent_file_actions = {}
+        if recent_files is None:
+            recent_files = []
+        elif isinstance(recent_files, basestring):
+            recent_files = [recent_files]
+        for i, recent_file in enumerate(recent_files):
+            action = QtGui.QAction(os.path.basename(recent_file), self,
+                                   triggered=self.open_recent_file)
+            action.setToolTip(recent_file)
+            self.add_menu_action(self.recent_menu, action, self)
+            self.recent_file_actions[action] = (i, recent_file)
+
     def init_import_menu(self):
         """Add an import menu item for every module in the readers directory"""
         from consoleapp import _nexpy_dir
@@ -867,6 +892,7 @@ class MainWindow(QtGui.QMainWindow):
                 self.default_directory = os.path.dirname(fname)
                 logging.info("NeXus file '%s' opened as workspace '%s'" 
                              % (fname, name))
+                self.update_recent_files(fname)
         except (NeXusError, IOError) as error:
             report_error("Opening File", error)
   
@@ -881,8 +907,56 @@ class MainWindow(QtGui.QMainWindow):
                 self.default_directory = os.path.dirname(fname)
                 logging.info("NeXus file '%s' opened (unlocked) as workspace '%s'" 
                              % (fname, name))
+                self.update_recent_files(fname)
         except (NeXusError, IOError) as error:
             report_error("Opening File (Read/Write)", error)
+
+    def open_recent_file(self):
+        try:
+            fname = self.recent_file_actions[self.sender()][1]
+            name = self.treeview.tree.get_name(fname)
+            self.treeview.tree[name] = self.user_ns[name] = nxload(fname)
+            self.treeview.select_node(self.treeview.tree[name])
+            self.default_directory = os.path.dirname(fname)
+            logging.info("NeXus file '%s' opened as workspace '%s'" 
+                         % (fname, name))
+            self.update_recent_files(fname)
+        except (NeXusError, IOError) as error:
+            report_error("Opening Recent File", error)
+
+    def hover_recent_menu(self, action):
+        QtGui.QToolTip.showText(
+            QtGui.QCursor.pos(), self.recent_file_actions[action][1],
+            self.recent_menu, self.recent_menu.actionGeometry(action))
+            
+    def update_recent_files(self, recent_file):
+        from consoleapp import _nexpy_dir
+        self.settings = QtCore.QSettings(
+            os.path.join(_nexpy_dir, "settings.ini"), QtCore.QSettings.IniFormat)
+        recent_files = self.settings.value("recent/recentFiles")
+        if recent_files is None:
+            recent_files = []
+        elif isinstance(recent_files, basestring):
+            recent_files = [recent_files]
+        try:
+            recent_files.remove(recent_file)
+        except ValueError:
+            pass
+        recent_files.insert(0, recent_file)
+        recent_files = recent_files[:self.max_recent_files]
+        for i, recent_file in enumerate(recent_files):
+            try:
+                action = [k for k, v in self.recent_file_actions.iteritems() 
+                          if v[0] == i][0]
+                action.setText(os.path.basename(recent_file))
+                action.setToolTip(recent_file)
+            except IndexError:
+                action = QtGui.QAction(os.path.basename(recent_file), self,
+                                          triggered=self.open_recent_file)
+                action.setToolTip(recent_file)
+                self.add_menu_action(self.recent_menu, action, self)
+            self.recent_file_actions[action] = (i, recent_file)
+        self.settings.setValue("recent/recentFiles", recent_files)
 
     def open_remote_file(self):
         try:
@@ -1419,7 +1493,7 @@ class MainWindow(QtGui.QMainWindow):
         self.console._silent_exec_callback('get_ipython().magic("lsmagic")',
                 self.populate_all_magic_menu)
 
-    def _get_magic_menu(self,menuidentifier, menulabel=None):
+    def _get_magic_menu(self, menuidentifier, menulabel=None):
         """return a submagic menu by name, and create it if needed
        
         parameters:
@@ -1434,8 +1508,9 @@ class MainWindow(QtGui.QMainWindow):
         menu = self._magic_menu_dict.get(menuidentifier,None)
         if not menu :
             if not menulabel:
-                menulabel = re.sub("([a-zA-Z]+)([A-Z][a-z])","\g<1> \g<2>",menuidentifier)
-            menu = QtGui.QMenu(menulabel,self.magic_menu)
+                menulabel = re.sub("([a-zA-Z]+)([A-Z][a-z])","\g<1> \g<2>",
+                                   menuidentifier)
+            menu = QtGui.QMenu(menulabel, self.magic_menu)
             self._magic_menu_dict[menuidentifier]=menu
             self.magic_menu.insertMenu(self.magic_menu_separator,menu)
         return menu
