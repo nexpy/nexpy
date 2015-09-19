@@ -925,8 +925,10 @@ class MainWindow(QtGui.QMainWindow):
             report_error("Opening Recent File", error)
 
     def hover_recent_menu(self, action):
+        position = QtGui.QCursor.pos()
+        position.setX(position.x() + 80)
         QtGui.QToolTip.showText(
-            QtGui.QCursor.pos(), self.recent_file_actions[action][1],
+            position, self.recent_file_actions[action][1],
             self.recent_menu, self.recent_menu.actionGeometry(action))
             
     def update_recent_files(self, recent_file):
