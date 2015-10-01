@@ -1,3 +1,7 @@
+import sip
+for api in ['QString', 'QVariant']:
+    sip.setapi(api, 2)
+
 from qtconsole.qt import QtCore, QtGui, QtSvg, QT_API
 
 def getOpenFileName(*args, **kwargs):
