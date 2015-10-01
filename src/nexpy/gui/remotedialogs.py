@@ -206,9 +206,9 @@ class RemoteDialog(BaseDialog):
             super(RemoteDialog, self).accept()
         except CommunicationError as e:
             msgBox = QtGui.QMessageBox()
-            msgBox.setText("Could not connect to: " + uri)
+            msgBox.setText("Could not connect to: " + self.globus.uri)
             msgBox.setIcon(QtGui.QMessageBox.Critical)
-            logging.debug("Connection failed to: " + uri + "\n\n" + str(e))
+            logging.debug("Connection failed to: "+self.globus.uri+"\n\n"+str(e))
             msgBox.exec_()
         except NeXusError:
             super(RemoteDialog, self).reject()
