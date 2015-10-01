@@ -55,7 +55,7 @@ more details of the nature of these dependencies in the
 * spec2nexus           http://spec2nexus.readthedocs.org (SPEC reader only)
 
 The GUI is built using the PyQt. The latest version supports either 
-PyQt4/5 or PySide, and should load whichever library it finds. Neither are 
+PyQt4 or PySide, and should load whichever library it finds. Neither are 
 listed as a dependency but one or other must be installed. PyQt4 is included
 in the 
 [Anaconda default distribution](https://store.continuum.io/cshop/anaconda/) 

@@ -76,7 +76,7 @@ numpy              http://numpy.scipy.org/
 NeXpy GUI
 ---------
 The GUI is built using the PyQt. The latest version supports either 
-PyQt4/5 or PySide, and should load whichever library it finds. Neither are 
+PyQt4 or PySide, and should load whichever library it finds. Neither are 
 listed as a dependency but one or other must be installed. PyQt4 is included
 in the 
 `Anaconda default distribution <https://store.continuum.io/cshop/anaconda/>`_ 
@@ -95,6 +95,7 @@ Library            URL
 jupyter            http://jupyter.org/
 IPython v4.0.0     http://ipython.org/
 matplotlib v1.4.0  http://matplotlib.sourceforge.net/
+sip                https://riverbankcomputing.com/software/sip/
 =================  =================================================
 
 .. seealso:: If you are having problems linking to the PySide library, you may
