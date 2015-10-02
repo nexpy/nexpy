@@ -123,25 +123,6 @@ class NXFigureManager(FigureManager):
         self.canvas.figure.add_axobserver(notify_axes_change)
 
 
-class NXNonUniformImage(NonUniformImage):
-
-    def set_array(self, A):
-        super(NXNonUniformImage, self).set_data(self._Ax, self._Ay, 
-                                        A.reshape(self._Ay.size, self._Ax.size))
-
-    def set_norm(self, norm):
-        A = self._A
-        self._A = None
-        super(NXNonUniformImage, self).set_norm(norm)
-        self.set_data(self._Ax, self._Ay, A)
-
-    def set_cmap(self, cmap):
-        A = self._A
-        self._A = None
-        super(NXNonUniformImage, self).set_cmap(cmap)
-        self.set_data(self._Ax, self._Ay, A)
-
-
 class NXPlotView(QtGui.QDialog):
     """
     PyQT widget containing a NeXpy plot.
@@ -601,11 +582,11 @@ class NXPlotView(QtGui.QDialog):
             opts['origin'] = 'lower'
             if 'interpolation' not in opts:
                 opts['interpolation'] = 'nearest'
-            self.image = ax.imshow(self.v, extent=extent, cmap=self.cmap, **opts)
+            self.image = ax.imshow(self.v, extent=extent, cmap=self.cmap, 
+                                   **opts)
         else:
-            self.image = NXNonUniformImage(ax, extent=extent, cmap=self.cmap, **opts)
-            self.image.set_data(self.xaxis.centers, self.yaxis.centers, self.v)
-            ax.images.append(self.image)
+            self.image = ax.pcolormesh(self.x, self.y, self.v, cmap=self.cmap, 
+                                       **opts)
         self.image.get_cmap().set_bad('k', 1.0)
         ax.set_aspect(self.aspect)
         
@@ -837,7 +818,10 @@ class NXPlotView(QtGui.QDialog):
     cmap = property(_cmap, _set_cmap, "Property: color map")
 
     def _interpolation(self):
-        return self.vtab.interpolation
+        if not self.equally_spaced:
+            return 'nearest'
+        else:
+            return self.vtab.interpolation
 
     def _set_interpolation(self, interpolation):
         try:
@@ -1283,19 +1267,12 @@ class NXPlotTab(QtGui.QWidget):
                 self.axiscombo.addItems(self.get_axes())
             self.axiscombo.setCurrentIndex(self.axiscombo.findText(axis.name))
         if self.name == 'v':
-            interpolation = self.interpolation
-            self.interpcombo.clear()
             if self.plotview.equally_spaced:
-                self.interpolations = interpolations
+                self.interpcombo.setVisible(True)
+                self.set_interpolation(self._cached_interpolation)
+                self.change_interpolation()         
             else:
-                self.interpolations = interpolations[:2]
-                if interpolation != 'nearest':
-                    interpolation = 'bilinear'
-                else:
-                    interpolation = 'nearest'
-            self.interpcombo.addItems(self.interpolations)
-            self.set_interpolation(interpolation)
-            self.change_interpolation()         
+                self.interpcombo.setVisible(False)
         self.block_signals(False)
 
     def combobox(self, slot):
@@ -1585,6 +1562,7 @@ class NXPlotTab(QtGui.QWidget):
         try:
             self.plotview.image.set_interpolation(self.interpolation)
             self.plotview.draw()
+            self._cached_interpolation = self.interpolation
         except Exception:
             pass
 
@@ -1592,6 +1570,7 @@ class NXPlotTab(QtGui.QWidget):
         if interpolation in self.interpolations:
             self.interpcombo.setCurrentIndex(
                 self.interpcombo.findText(interpolation))
+            self._cached_interpolation = interpolation
         else:
             raise NeXusError('Invalid interpolation method')
 
