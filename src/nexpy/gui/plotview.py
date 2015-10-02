@@ -123,6 +123,25 @@ class NXFigureManager(FigureManager):
         self.canvas.figure.add_axobserver(notify_axes_change)
 
 
+class NXNonUniformImage(NonUniformImage):
+
+    def set_array(self, A):
+        super(NXNonUniformImage, self).set_data(self._Ax, self._Ay, 
+                                        A.reshape(self._Ay.size, self._Ax.size))
+
+    def set_norm(self, norm):
+        A = self._A
+        self._A = None
+        super(NXNonUniformImage, self).set_norm(norm)
+        self.set_data(self._Ax, self._Ay, A)
+
+    def set_cmap(self, cmap):
+        A = self._A
+        self._A = None
+        super(NXNonUniformImage, self).set_cmap(cmap)
+        self.set_data(self._Ax, self._Ay, A)
+
+
 class NXPlotView(QtGui.QDialog):
     """
     PyQT widget containing a NeXpy plot.
@@ -584,7 +603,7 @@ class NXPlotView(QtGui.QDialog):
                 opts['interpolation'] = 'nearest'
             self.image = ax.imshow(self.v, extent=extent, cmap=self.cmap, **opts)
         else:
-            self.image = NonUniformImage(ax, extent=extent, cmap=self.cmap, **opts)
+            self.image = NXNonUniformImage(ax, extent=extent, cmap=self.cmap, **opts)
             self.image.set_data(self.xaxis.centers, self.yaxis.centers, self.v)
             ax.images.append(self.image)
         self.image.get_cmap().set_bad('k', 1.0)
