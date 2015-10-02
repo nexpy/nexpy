@@ -95,7 +95,6 @@ Library            URL
 jupyter            http://jupyter.org/
 IPython v4.0.0     http://ipython.org/
 matplotlib v1.4.0  http://matplotlib.sourceforge.net/
-sip                https://riverbankcomputing.com/software/sip/
 =================  =================================================
 
 .. seealso:: If you are having problems linking to the PySide library, you may
