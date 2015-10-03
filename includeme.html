@@ -100,14 +100,25 @@
             
   <div class="section" id="installation">
 <h1>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h1>
-<p>Released versions of NeXpy are available on <a class="reference external" href="https://pypi.python.org/pypi/NeXpy/">PyPI</a>. If you have the <a class="reference external" href="https://pypi.python.org/pypi/setuptools">Python Setup Tools</a> installed, then you can install
-using either:</p>
+<p>Released versions of NeXpy are available on <a class="reference external" href="https://pypi.python.org/pypi/NeXpy/">PyPI</a> and as a <a class="reference external" href="https://anaconda.org/nexpy">Conda installation</a>.</p>
+<p>If you have the <a class="reference external" href="https://pypi.python.org/pypi/setuptools">Python Setup Tools</a>
+installed, then you can install using either:</p>
 <div class="highlight-python"><div class="highlight"><pre>$ pip install nexpy
 </pre></div>
 </div>
 <p>or:</p>
 <div class="highlight-python"><div class="highlight"><pre>$ easy_install nexpy
 </pre></div>
+</div>
+<p>If you have an Anaconda installation, use:</p>
+<div class="highlight-python"><div class="highlight"><pre>$ conda install -c https://conda.anaconda.org/nexpy
+</pre></div>
+</div>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">The Conda build has not yet been extensively tested, so please post
+an issue on <a class="reference external" href="https://github.com/nexpy/nexpy/issues">Github issue page</a> if you encounter a
+problem.</p>
 </div>
 <p>If you have trouble with the pip or easy_install installations, you can install
 the package from the source code either by downloading one of the
@@ -136,6 +147,10 @@ shell. It may be installed using:</p>
 </div>
 <p>or:</p>
 <div class="highlight-python"><div class="highlight"><pre>$ easy_install nexusformat
+</pre></div>
+</div>
+<p>or:</p>
+<div class="highlight-python"><div class="highlight"><pre>$ conda install -c https://conda.anaconda.org/nexusformat
 </pre></div>
 </div>
 <p>The package can also be installed from the source code using the setup commands
