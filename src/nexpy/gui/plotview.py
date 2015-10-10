@@ -1166,6 +1166,7 @@ class NXPlotTab(QtGui.QWidget):
         self.name = name
         self.plotview = plotview
 
+        self.setMinimumHeight(51)
         hbox = QtGui.QHBoxLayout()
         widgets = []
 
