@@ -1,15 +1,26 @@
 Installation
 ============
 Released versions of NeXpy are available on `PyPI 
-<https://pypi.python.org/pypi/NeXpy/>`_. If you have the `Python Setup Tools 
-<https://pypi.python.org/pypi/setuptools>`_ installed, then you can install 
-using either::
+<https://pypi.python.org/pypi/NeXpy/>`_ and as a `Conda installation 
+<https://anaconda.org/nexpy>`_. 
+
+If you have the `Python Setup Tools <https://pypi.python.org/pypi/setuptools>`_ 
+installed, then you can install using either::
 
     $ pip install nexpy
 
 or:: 
 
     $ easy_install nexpy 
+
+If you have an Anaconda installation, use::
+
+    $ conda install -c https://conda.anaconda.org/nexpy nexpy
+
+.. warning:: The Conda build has not yet been extensively tested, so please post 
+             an issue on `Github issue page 
+             <https://github.com/nexpy/nexpy/issues>`_ if you encounter a 
+             problem.
 
 If you have trouble with the pip or easy_install installations, you can install
 the package from the source code either by downloading one of the 
@@ -40,6 +51,10 @@ shell. It may be installed using::
 or:: 
 
     $ easy_install nexusformat 
+
+or::
+
+    $ conda install -c https://conda.anaconda.org/nexpy nexusformat
 
 The package can also be installed from the source code using the setup commands
 described above. The source code is available either by downloading one of the 
