@@ -963,7 +963,8 @@ class MainWindow(QtGui.QMainWindow):
     def open_remote_file(self):
         try:
             from remotedialogs import RemoteDialog
-            self.remote_dialog = RemoteDialog(defaults=self.remote_defaults)
+            if self.remote_dialog is None:
+                self.remote_dialog = RemoteDialog(defaults=self.remote_defaults)
             self.remote_dialog.show()
         except NeXusError as error:
             report_error("Opening Remote File", error)
@@ -1397,12 +1398,15 @@ class MainWindow(QtGui.QMainWindow):
             self.nxclasses[class_name] = (class_doc, class_fields, class_groups)
 
     def show_execwindow(self):
-        from remotedialogs import ExecWindow
-        if self.execwindow is None:
-            self.execwindow = ExecWindow(self.exec_mgr)
-            self.execwindow.show()
-        else:
-            self.execwindow.refresh()
+        try:
+            from remotedialogs import ExecWindow
+            if self.execwindow is None:
+                self.execwindow = ExecWindow(self.exec_mgr)
+                self.execwindow.show()
+            else:
+                self.execwindow.refresh()
+        except NeXusError as error:
+            report_error("Remote Dialogs unavailable", error)
 
     def _make_dynamic_magic(self,magic):
         """Return a function `fun` that will execute `magic` on the console.

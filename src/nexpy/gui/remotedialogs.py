@@ -203,7 +203,7 @@ class RemoteDialog(BaseDialog):
             logging.info(
                 "Opening remote NeXus file '%s' on '%s' as workspace '%s'"
                 % (root.nxfilename, root._file, name))
-            super(RemoteDialog, self).accept()
+            self.setVisible(False)
         except CommunicationError as e:
             msgBox = QtGui.QMessageBox()
             msgBox.setText("Could not connect to: " + self.globus.uri)
