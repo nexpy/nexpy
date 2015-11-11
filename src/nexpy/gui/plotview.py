@@ -29,6 +29,8 @@ from matplotlib.colors import LogNorm, Normalize
 from matplotlib.cm import get_cmap
 from matplotlib.patches import Circle, Ellipse, Rectangle
 from matplotlib.transforms import nonsingular
+from mpl_toolkits.axisartist.grid_helper_curvelinear import GridHelperCurveLinear
+from mpl_toolkits.axisartist import Subplot
 
 from nexusformat.nexus import NXfield, NXdata, NXroot, NeXusError
 
@@ -99,9 +101,6 @@ class NXCanvas(FigureCanvas):
 
     def __init__(self, figure):
 
-        self.axes = figure.add_subplot(111)
-        self.axes.hold(False)
-
         FigureCanvas.__init__(self, figure)
 
         FigureCanvas.setSizePolicy(self,
@@ -114,7 +113,6 @@ class NXFigureManager(FigureManager):
 
     def __init__(self, canvas, num):
         FigureManagerBase.__init__(self, canvas, num)
-        self.canvas = canvas
 
         def notify_axes_change(fig):
             # This will be called whenever the current axes is changed
@@ -187,6 +185,10 @@ class NXPlotView(QtGui.QDialog):
             self.figure.set_label(self.label)
         else:
             self.label = "Figure %d" % self.number
+
+        self._skew_angle = None
+        self.grid_helper = GridHelperCurveLinear((self.transform, 
+                                                  self.inverse_transform))
         
         vbox = QtGui.QVBoxLayout()
         vbox.addWidget(self.canvas)
@@ -549,8 +551,6 @@ class NXPlotView(QtGui.QDialog):
     def plot_image(self, over=False, **opts):
 
         mpl.interactive(False)
-        if not over: 
-            self.figure.clf()
 
         self.x, self.y, self.v = self.get_image()
 
@@ -561,7 +561,9 @@ class NXPlotView(QtGui.QDialog):
         else:
             opts["norm"] = Normalize(self.vaxis.lo, self.vaxis.hi)
 
-        ax = self.figure.gca()
+        self.figure.clf()
+        subplot = Subplot(self.figure, 1, 1, 1, grid_helper=self.grid_helper)
+        ax = self.figure.add_subplot(subplot)
         ax.autoscale(enable=True)
         ax.format_coord = self.format_coord
 
@@ -578,15 +580,17 @@ class NXPlotView(QtGui.QDialog):
         if 'aspect' in opts:
             self.aspect = opts['aspect']
             del opts['aspect']
-        if self.rgb_image or self.equally_spaced:
+        if (self.rgb_image or self.equally_spaced) and self.skew is None:
             opts['origin'] = 'lower'
             if 'interpolation' not in opts:
                 opts['interpolation'] = 'nearest'
             self.image = ax.imshow(self.v, extent=extent, cmap=self.cmap, 
                                    **opts)
         else:
-            self.image = ax.pcolormesh(self.x, self.y, self.v, cmap=self.cmap, 
-                                       **opts)
+            if self.skew is not None:
+                yy, xx = np.meshgrid(self.y, self.x)
+                x, y = self.transform(xx, yy)
+            self.image = ax.pcolormesh(x, y, self.v, cmap=self.cmap, **opts)
         self.image.get_cmap().set_bad('k', 1.0)
         ax.set_aspect(self.aspect)
         
@@ -719,6 +723,22 @@ class NXPlotView(QtGui.QDialog):
         if draw:
             self.draw()
 
+    def transform(self, x, y):
+        if self.skew is None:
+            return x, y
+        else:    
+            x, y = np.asarray(x), np.asarray(y)
+            angle = np.radians(self.skew)
+            return 1.*x+np.cos(angle)*y,  np.sin(angle)*y
+
+    def inverse_transform(self, x, y):
+        if self.skew is None:
+            return x, y
+        else:
+            x, y = np.asarray(x), np.asarray(y)
+            angle = np.radians(self.skew)
+            return 1.*x-y/np.tan(angle),  y/np.sin(angle)
+
     def set_log_image(self):
         if self.vtab.logbox.isChecked():
             self.set_data_limits()
@@ -793,6 +813,21 @@ class NXPlotView(QtGui.QDialog):
             pass
 
     aspect = property(_aspect, _set_aspect, "Property: Aspect ratio value")
+
+    def _skew(self):
+        return self._skew_angle
+        
+    def _set_skew(self, skew_angle):
+        if skew_angle is None or (np.isclose(skew_angle, 0.0) or 
+                                  np.isclose(skew_angle, 90.0)):
+            self._skew_angle = None
+        else:
+            self._skew_angle = skew_angle
+        self.aspect = "equal"
+        self.grid_helper = GridHelperCurveLinear((self.transform, 
+                                                  self.inverse_transform))
+
+    skew = property(_skew, _set_skew, "Property: Axis skew angle")
 
     def _autoscale(self):
         if self.ndim > 2 and self.ztab.scalebox.isChecked():
