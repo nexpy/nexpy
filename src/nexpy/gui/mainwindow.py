@@ -65,6 +65,17 @@ def report_error(context, error):
 # logging.basicConfig(level=logging.DEBUG)
 
 
+class NXRichJupyterWidget(RichJupyterWidget):
+
+    def _is_complete(self, source, interactive=True):
+        shell = self.kernel_manager.kernel.shell
+        status, indent_spaces = shell.input_transformer_manager.check_complete(source)
+        if indent_spaces is None:
+            indent = ''
+        else:
+            indent = ' ' * indent_spaces
+        return status != 'incomplete', indent
+ 
 
 class MainWindow(QtGui.QMainWindow):
 
@@ -105,7 +116,7 @@ class MainWindow(QtGui.QMainWindow):
         self.editors = NXScriptWindow(self)
         self.editors.setVisible(False)
 
-        self.console = RichJupyterWidget(config=self.config, parent=rightpane)
+        self.console = NXRichJupyterWidget(config=self.config, parent=rightpane)
         self.console.setMinimumSize(700, 100)
         self.console.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Fixed)
         self.console._confirm_exit = True
@@ -125,7 +136,6 @@ class MainWindow(QtGui.QMainWindow):
         self.console.show()
 
         self.console.input_sep = ''        
-        self.console.execute_on_complete_input = False
 
         self.shell = self.console.kernel_manager.kernel.shell
         self.user_ns = self.console.kernel_manager.kernel.shell.user_ns
