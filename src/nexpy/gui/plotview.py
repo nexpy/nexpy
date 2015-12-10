@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #-----------------------------------------------------------------------------
-# Copyright (c) 2013, NeXpy Development Team.
+# Copyright (c) 2013-2015, NeXpy Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -26,7 +26,7 @@ from matplotlib.backends.backend_qt4agg import NavigationToolbar2QT as Navigatio
 from matplotlib.figure import Figure
 from matplotlib.image import NonUniformImage
 from matplotlib.colors import LogNorm, Normalize
-from matplotlib.cm import get_cmap
+from matplotlib.cm import cmap_d, get_cmap
 from matplotlib.patches import Circle, Ellipse, Rectangle
 from matplotlib.transforms import nonsingular
 
@@ -35,9 +35,14 @@ from nexusformat.nexus import NXfield, NXdata, NXroot, NeXusError
 
 plotview = None
 plotviews = {}
-cmaps = ['autumn', 'bone', 'cool', 'copper', 'flag', 'gray', 'hot', 
-         'hsv', 'jet', 'pink', 'prism', 'spring', 'summer', 'winter', 
-         'spectral', 'rainbow']
+cmaps = ['viridis', 'inferno', 'magma', 'plasma', 'spring', 'summer', 'autumn', 
+         'winter', 'cool', 'hot', 'bone', 'copper', 'gray', 'pink', 'jet', 
+         'spectral', 'rainbow', 'hsv', 'flag', 'prism']
+cmaps = [cm for cm in cmaps if cm in cmap_d]
+if 'viridis' in cmaps:
+    default_cmap = 'viridis'
+else:
+    default_cmap = 'jet'
 interpolations = ['nearest', 'bilinear', 'bicubic', 'spline16', 'spline36', 
                   'hanning', 'hamming', 'hermite', 'kaiser', 'quadric', 
                   'catrom', 'gaussian', 'bessel', 'mitchell', 'sinc', 'lanczos']
@@ -1213,7 +1218,7 @@ class NXPlotTab(QtGui.QWidget):
         if image:
             self.cmapcombo = self.combobox(self.change_cmap)
             self.cmapcombo.addItems(cmaps)
-            self.cmapcombo.setCurrentIndex(self.cmapcombo.findText('jet'))
+            self.cmapcombo.setCurrentIndex(self.cmapcombo.findText(default_cmap))
             widgets.append(self.cmapcombo)
             self.interpolations = interpolations
             self.interpcombo = self.combobox(self.change_interpolation)
@@ -1547,7 +1552,9 @@ class NXPlotTab(QtGui.QWidget):
 
     def change_cmap(self):
         try:
-            self.plotview.image.set_cmap(self.cmap)
+            cm = get_cmap(self.cmap)
+            cm.set_bad('k', 1)
+            self.plotview.image.set_cmap(cm)
             self.plotview.draw()
         except Exception:
             pass
@@ -2374,109 +2381,20 @@ class NXNavigationToolbar(NavigationToolbar):
 
     def release_zoom(self, event):
         'the release mouse button callback in zoom to rect mode'
-        for zoom_id in self._ids_zoom:
-            self.canvas.mpl_disconnect(zoom_id)
-        self._ids_zoom = []
-
-        if not self._xypress: return
-
-        last_a = []
-
-        for cur_xypress in self._xypress:
-            x, y = event.x, event.y
-            lastx, lasty, a, ind, lim, trans = cur_xypress      # TODO: ind & trans are unused
-            # ignore singular clicks - 5 pixels is a threshold
-            if abs(x-lastx)<5 or abs(y-lasty)<5:
-                self._xypress = None
-                self.release(event)
-                self.draw()
-                return
-
-            x0, y0, x1, y1 = lim.extents
-
-            # zoom to rect
-            inverse = a.transData.inverted()
-            lastx, lasty = inverse.transform_point((lastx, lasty))
-            x, y = inverse.transform_point((x, y))
-            Xmin, Xmax = a.get_xlim()
-            Ymin, Ymax = a.get_ylim()
-
-            # detect twinx,y axes and avoid double zooming
-            twinx, twiny = False, False
-            if last_a:
-                for la in last_a:
-                    if a.get_shared_x_axes().joined(a,la): twinx=True
-                    if a.get_shared_y_axes().joined(a,la): twiny=True
-            last_a.append(a)
-
-            if twinx:
-                x0, x1 = Xmin, Xmax
-            else:
-                if Xmin < Xmax:
-                    if x<lastx:  x0, x1 = x, lastx
-                    else: x0, x1 = lastx, x
-                    if x0 < Xmin: x0=Xmin
-                    if x1 > Xmax: x1=Xmax
-                else:
-                    if x>lastx:  x0, x1 = x, lastx
-                    else: x0, x1 = lastx, x
-                    if x0 > Xmin: x0=Xmin
-                    if x1 < Xmax: x1=Xmax
-
-            if twiny:
-                y0, y1 = Ymin, Ymax
-            else:
-                if Ymin < Ymax:
-                    if y<lasty:  y0, y1 = y, lasty
-                    else: y0, y1 = lasty, y
-                    if y0 < Ymin: y0=Ymin
-                    if y1 > Ymax: y1=Ymax
-                else:
-                    if y>lasty:  y0, y1 = y, lasty
-                    else: y0, y1 = lasty, y
-                    if y0 > Ymin: y0=Ymin
-                    if y1 < Ymax: y1=Ymax
-
-            if self._button_pressed == 1:
-                if self._zoom_mode == "x":
-                    a.set_xlim((x0, x1))
-                    self.plotview.xtab.set_limits(x0, x1)
-                elif self._zoom_mode == "y":
-                    a.set_ylim((y0, y1))
-                    self.plotview.ytab.set_limits(y0, y1)
-                else:
-                    a.set_xlim((x0, x1))
-                    a.set_ylim((y0, y1))
-                    self.plotview.xtab.set_limits(x0, x1)
-                    self.plotview.ytab.set_limits(y0, y1)
-                    xdim = self.plotview.xtab.axis.dim
-                    ydim = self.plotview.ytab.axis.dim
-                    self.plotview.zoom = {'x': (xdim, x0, x1), 
-                                          'y': (ydim, y0, y1)}
-                if self.plotview.label != "Projection":
-                    self.plotview.tab_widget.setCurrentWidget(self.plotview.ptab)
-            elif self._button_pressed == 3:
-                if self._zoom_mode == "x":
-                    self.plotview.xtab.set_limits(x0, x1)
-                elif self._zoom_mode == "y":
-                    self.plotview.ytab.set_limits(y0, y1)
-                else:
-                    xdim = self.plotview.xaxis.dim
-                    ydim = self.plotview.yaxis.dim
-                    self.plotview.zoom = {'x': (xdim, x0, x1), 
-                                          'y': (ydim, y0, y1)}
-                if self.plotview.label != "Projection":
-                    self.plotview.tab_widget.setCurrentWidget(self.plotview.ptab)
+        super(NXNavigationToolbar, self).release_zoom(event)
+        xdim = self.plotview.xtab.axis.dim
+        ydim = self.plotview.ytab.axis.dim
+        xmin, xmax = self.plotview.ax.get_xlim()
+        ymin, ymax = self.plotview.ax.get_ylim()
+        self.plotview.xtab.set_limits(xmin, xmax)
+        self.plotview.ytab.set_limits(ymin, ymax)
+        if event.button == 1:
+            self.plotview.zoom = {'x': (xdim, xmin, xmax), 
+                                  'y': (ydim, ymin, ymax)}
             if self.plotview.panel:
                 self.plotview.panel.update_limits()
-
-        self.draw()
-        self._xypress = None
-        self._button_pressed = None
-
-        self._zoom_mode = None
-
-        self.release(event)
+            elif self.plotview.label != "Projection":
+                self.plotview.tab_widget.setCurrentWidget(self.plotview.ptab)
 
     def release_pan(self, event):
         super(NXNavigationToolbar, self).release_pan(event)
