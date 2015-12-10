@@ -817,10 +817,6 @@ class NXPlotView(QtGui.QDialog):
         try:
             self.vtab.set_cmap(get_cmap(cmap).name)
             self.vtab.change_cmap()
-            try:
-                self.image.get_cmap().set_bad('k', 1.0)
-            except Exception:
-                pass
         except ValueError as error:
             raise NeXusError(str(error))
 
