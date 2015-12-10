@@ -26,7 +26,7 @@ from matplotlib.backends.backend_qt4agg import NavigationToolbar2QT as Navigatio
 from matplotlib.figure import Figure
 from matplotlib.image import NonUniformImage
 from matplotlib.colors import LogNorm, Normalize
-from matplotlib.cm import get_cmap
+from matplotlib.cm import cmap_d, get_cmap
 from matplotlib.patches import Circle, Ellipse, Rectangle
 from matplotlib.transforms import nonsingular
 
@@ -35,9 +35,14 @@ from nexusformat.nexus import NXfield, NXdata, NXroot, NeXusError
 
 plotview = None
 plotviews = {}
-cmaps = ['autumn', 'bone', 'cool', 'copper', 'flag', 'gray', 'hot', 
-         'hsv', 'jet', 'pink', 'prism', 'spring', 'summer', 'winter', 
-         'spectral', 'rainbow']
+cmaps = ['viridis', 'inferno', 'magma', 'plasma', 'spring', 'summer', 'autumn', 
+         'winter', 'cool', 'hot', 'bone', 'copper', 'gray', 'pink', 'jet', 
+         'spectral', 'rainbow', 'hsv', 'flag', 'prism']
+cmaps = [cm for cm in cmaps if cm in cmap_d]
+if 'viridis' in cmaps:
+    default_cmap = 'viridis'
+else:
+    default_cmap = 'jet'
 interpolations = ['nearest', 'bilinear', 'bicubic', 'spline16', 'spline36', 
                   'hanning', 'hamming', 'hermite', 'kaiser', 'quadric', 
                   'catrom', 'gaussian', 'bessel', 'mitchell', 'sinc', 'lanczos']
@@ -812,6 +817,10 @@ class NXPlotView(QtGui.QDialog):
         try:
             self.vtab.set_cmap(get_cmap(cmap).name)
             self.vtab.change_cmap()
+            try:
+                self.image.get_cmap().set_bad('k', 1.0)
+            except Exception:
+                pass
         except ValueError as error:
             raise NeXusError(str(error))
 
@@ -1213,7 +1222,7 @@ class NXPlotTab(QtGui.QWidget):
         if image:
             self.cmapcombo = self.combobox(self.change_cmap)
             self.cmapcombo.addItems(cmaps)
-            self.cmapcombo.setCurrentIndex(self.cmapcombo.findText('jet'))
+            self.cmapcombo.setCurrentIndex(self.cmapcombo.findText(default_cmap))
             widgets.append(self.cmapcombo)
             self.interpolations = interpolations
             self.interpcombo = self.combobox(self.change_interpolation)
@@ -1547,7 +1556,9 @@ class NXPlotTab(QtGui.QWidget):
 
     def change_cmap(self):
         try:
-            self.plotview.image.set_cmap(self.cmap)
+            cm = get_cmap(self.cmap)
+            cm.set_bad('k', 1)
+            self.plotview.image.set_cmap(cm)
             self.plotview.draw()
         except Exception:
             pass
