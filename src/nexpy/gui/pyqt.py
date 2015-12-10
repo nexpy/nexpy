@@ -3,7 +3,7 @@ import sip
 for api in ['QString', 'QVariant']:
     sip.setapi(api, 2)
 
-matplotlib.use('Qt4Agg')
+matplotlib.use('Qt4Agg', warn=False)
 from matplotlib.backends.qt_compat import QtCore, QtGui
 
 def getOpenFileName(*args, **kwargs):
