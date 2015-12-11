@@ -276,11 +276,11 @@ Window Menu
     .. note:: This is equivalent to editing the values in the axis text boxes.
 
 **Reset Plot Limits**
-    This restores the axis limits to the original values. 
+    This restores the axis and signal limits to the original values.
 
-    .. note:: Clicking on the Home button in the Options Tab (see below) or 
-              right-clicking within the plot will also restore the original axis 
-              limits.
+    .. note:: This is equivalent to clicking on the Home button in the Options 
+              Tab (see below). Right-clicking within the plot restores the 
+              axis limits but does not reset the signal limits.
 
 **New Plot Window**
     Opens a new NeXpy plotting window, consisting of a Matplotlib plot pane and 

@@ -179,7 +179,7 @@ class NXPlotView(QtGui.QDialog):
                 self.ydata = event.ydata
             elif event.button == 3:
                 hasattr(self, 'otab')
-                self.otab.home()
+                self.otab.home(autoscale=False)
         cid = self.canvas.mpl_connect('button_press_event', make_active)
         self.canvas.figure.show = lambda *args: self.show()
         self.figuremanager._cidgcf = cid
@@ -761,7 +761,7 @@ class NXPlotView(QtGui.QDialog):
             self.vaxis.max = vmax        
         self.update_tabs()
 
-    def reset_plot_limits(self):
+    def reset_plot_limits(self, autoscale=True):
         xmin, xmax, ymin, ymax = self.limits
         self.xaxis.min = self.xaxis.lo = self.xtab.minbox.old_value = xmin
         self.xaxis.max = self.xaxis.hi = self.xtab.maxbox.old_value = xmax
@@ -769,7 +769,7 @@ class NXPlotView(QtGui.QDialog):
         self.yaxis.max = self.yaxis.hi = self.ytab.maxbox.old_value = ymax
         if self.ndim == 1:
             self.replot_axes()
-        else:
+        elif autoscale:
             try:
                 self.vaxis.min = self.vaxis.lo = np.nanmin(self.v[self.v>-np.inf])
                 self.vaxis.max = self.vaxis.hi = np.nanmax(self.v[self.v<np.inf])
@@ -2372,9 +2372,9 @@ class NXNavigationToolbar(NavigationToolbar):
                                                 'resources/equal.png')))
         self._actions['set_aspect'].setCheckable(True)
 
-    def home(self, *args):
+    def home(self, autoscale=True):
         super(NXNavigationToolbar, self).home()        
-        self.plotview.reset_plot_limits()
+        self.plotview.reset_plot_limits(autoscale)
 
     def add_data(self):
         keep_data(self.plotview.plotdata)
