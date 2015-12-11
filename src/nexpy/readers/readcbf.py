@@ -11,16 +11,12 @@
 
 """
 Module to read in a CBF file and convert it to NeXus.
-
-Each importer needs to layout the GUI buttons necessary for defining the imported file 
-and its attributes and a single module, get_data, which returns an NXroot or NXentry
-object. This will be added to the NeXpy tree.
 """
-
-from nexpy.gui.pyqt import QtGui
 import numpy as np
+import pycbf
 
 from nexusformat.nexus import *
+from nexpy.gui.pyqt import QtGui
 from nexpy.gui.importdialog import BaseImportDialog
 
 filetype = "CBF File"
@@ -41,10 +37,6 @@ class ImportDialog(BaseImportDialog):
  
     def get_data(self):
         self.import_file = self.get_filename()
-        try:
-            import pycbf
-        except ImportError:
-            raise NeXusError("PyCBF library not imported")
         cbf = pycbf.cbf_handle_struct()
         cbf.read_file(str(self.import_file), pycbf.MSG_DIGEST)
         cbf.select_datablock(0)

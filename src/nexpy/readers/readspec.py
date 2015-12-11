@@ -8,14 +8,15 @@
 #
 # The full license is in the file COPYING, distributed with this software.
 #-----------------------------------------------------------------------------
-
-'''Module to read in a SPEC file and convert it to NeXus.'''
-
-from nexpy.gui.pyqt import QtCore, QtGui, getOpenFileName
-
-import numpy as np
+"""
+Module to read in a SPEC file and convert it to NeXus.
+"""
 import os
+import numpy as np
+from spec2nexus.spec import SpecDataFile
+
 from nexusformat.nexus import *
+from nexpy.gui.pyqt import QtCore, QtGui, getOpenFileName
 from nexpy.gui.importdialog import BaseImportDialog
 
 filetype = "SPEC File"
@@ -73,8 +74,6 @@ class ImportDialog(BaseImportDialog):
         '''
         Opens file dialog, set file text box to the chosen path
         '''
-        from spec2nexus.spec import SpecDataFile
-
         dirname = self.get_default_directory(self.filename.text())
         filename = getOpenFileName(self, 'Open file', dirname)
         if os.path.exists(filename):

@@ -11,26 +11,13 @@
 
 """
 Module to read in data from a Globus Online catalog and convert it to NeXus.
-
-Each importer needs to layout the GUI buttons necessary for defining the imported file 
-and its attributes and a single module, get_data, which returns an NXroot or NXentry
-object. This will be added to the NeXpy tree.
-
-Two GUI elements are provided for convenience:
-
-    ImportDialog.filebox: Contains a "Choose File" button and a text box. Both 
-                          can be used to set the path to the imported file. This 
-                          can be retrieved as a string using self.get_filename().
-    ImportDialog.close_buttons: Contains a "Cancel" and "OK" button to close the 
-                                dialog. This should be placed at the bottom of 
-                                all import dialogs.
 """
-import os                           #@UnusedImport
-
-from nexpy.gui.pyqt import QtCore, QtGui
-
+import os
 import numpy as np
+from globusonline.catalog.client.examples.catalog_wrapper import CatalogWrapper
+
 from nexusformat.nexus import *
+from nexpy.gui.pyqt import QtCore, QtGui
 from nexpy.gui.importdialog import BaseImportDialog
 
 filetype = "Catalog File"
@@ -42,7 +29,6 @@ class ImportDialog(BaseImportDialog):
 
         super(ImportDialog, self).__init__(parent)
         
-        from globusonline.catalog.client.examples.catalog_wrapper import CatalogWrapper
         token_file = os.path.join(os.path.expanduser('~'),'.nexpy',
                                   'globusonline', 'gotoken.txt')
         self.wrap = CatalogWrapper(token='file', token_file=token_file)
