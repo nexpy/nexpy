@@ -874,6 +874,8 @@ class MainWindow(QtGui.QMainWindow):
                                               triggered=self.show_import_dialog)
                 self.add_menu_action(self.import_menu, import_action, self)
                 self.importer[import_action] = import_module
+            except ImportError:
+                pass
             finally:
                 if fp:
                     fp.close()
