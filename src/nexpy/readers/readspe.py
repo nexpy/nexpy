@@ -11,18 +11,13 @@
 
 """
 Module to read in a SPE or NXSPE file and convert it to NeXus.
-
-Each importer needs to layout the GUI buttons necessary for defining the imported file 
-and its attributes and a single module, get_data, which returns an NXroot or NXentry
-object. This will be added to the NeXpy tree.
 """
-
 import os
-from nexpy.gui.pyqt import QtGui
-
 import numpy as np
+
 from nexusformat.nexus import *
 from nexusformat.nexus.tree import convert_index, centers
+from nexpy.gui.pyqt import QtGui
 from nexpy.gui.importdialog import BaseImportDialog
 
 filetype = "SPE/NXSPE File"

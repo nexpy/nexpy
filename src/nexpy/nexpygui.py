@@ -13,9 +13,6 @@
 def main():
     import os, sys
 
-    import matplotlib
-    matplotlib.use('Qt4Agg')
-
     sys.path.insert(0, os.path.abspath(os.path.join('..')))
     from nexpy.gui.consoleapp import main
     main()

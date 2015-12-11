@@ -531,9 +531,9 @@ class MainWindow(QtGui.QMainWindow):
             
             exec_actions(self, self.remote_menu)
 
-        except ImportError as e:
-            logging.info("Could not add remote menu items")
-            logging.info(e)
+        except ImportError as error:
+            logging.info('Could not add "Remote" menu\n%s%s' 
+                         % (40*' ', error))
 
         
     def init_plugin_menus(self):
@@ -560,8 +560,10 @@ class MainWindow(QtGui.QMainWindow):
                 for action in actions:
                     self.add_menu_action(plugin_menu, QtGui.QAction(
                         action[0], self, triggered=action[1]))
-            except AttributeError as error:
-                print error
+            except Exception as error:
+                logging.info(
+                'The "%s" plugin could not be added to the main menu\n%s%s'
+                % (plugin_name, 40*' ', error))
             finally:
                 if fp:
                     fp.close()
@@ -874,6 +876,10 @@ class MainWindow(QtGui.QMainWindow):
                                               triggered=self.show_import_dialog)
                 self.add_menu_action(self.import_menu, import_action, self)
                 self.importer[import_action] = import_module
+            except ImportError as error:
+                logging.info(
+                'The "%s" importer could not be added to the Import menu\n%s%s'
+                % (import_name, 40*' ', error))
             finally:
                 if fp:
                     fp.close()
