@@ -13,6 +13,7 @@ import os, sys
 import pkg_resources
 pkg_resources.require('numpy')
 import numpy
+import versioneer
 
 # pull in some definitions from the package's __init__.py file
 sys.path.insert(0, os.path.join('src', ))
@@ -40,6 +41,8 @@ setup (name =  nexpy.__package_name__,        # NeXpy
        platforms='any',
        install_requires = nexpy.requires.pkg_requirements,
        extras_require = nexpy.requires.extra_requirements,
+       version=versioneer.get_version(),
+       cmdclass=versioneer.get_cmdclass(),
        package_dir = {'': 'src'},
        packages = find_packages('src'),
        include_package_data = True,
