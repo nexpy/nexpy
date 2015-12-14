@@ -30,7 +30,8 @@ ext_tiff = Extension(name='nexpy.readers.tifffile._tifffile',
                      )
 
 setup (name =  nexpy.__package_name__,        # NeXpy
-       version = nexpy.__version__,
+       version=versioneer.get_version(),
+       cmdclass=versioneer.get_cmdclass(),
        license = nexpy.__license__,
        description = nexpy.__description__,
        long_description = nexpy.__long_description__,
@@ -41,8 +42,6 @@ setup (name =  nexpy.__package_name__,        # NeXpy
        platforms='any',
        install_requires = nexpy.requires.pkg_requirements,
        extras_require = nexpy.requires.extra_requirements,
-       version=versioneer.get_version(),
-       cmdclass=versioneer.get_cmdclass(),
        package_dir = {'': 'src'},
        packages = find_packages('src'),
        include_package_data = True,
