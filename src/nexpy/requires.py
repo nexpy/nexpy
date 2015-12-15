@@ -18,7 +18,6 @@ pkg_requirements = [
     'jupyter',
     'ipython>=4.0.0',
     'matplotlib>=1.4.0',
-    'versioneer',
 ]
 extra_requirements = {
     'spec': ['spec2nexus>=2014.1228.0',],
