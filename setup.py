@@ -13,6 +13,7 @@ import os, sys
 import pkg_resources
 pkg_resources.require('numpy')
 import numpy
+import versioneer
 
 # pull in some definitions from the package's __init__.py file
 sys.path.insert(0, os.path.join('src', ))
@@ -29,7 +30,8 @@ ext_tiff = Extension(name='nexpy.readers.tifffile._tifffile',
                      )
 
 setup (name =  nexpy.__package_name__,        # NeXpy
-       version = nexpy.__version__,
+       version=versioneer.get_version(),
+       cmdclass=versioneer.get_cmdclass(),
        license = nexpy.__license__,
        description = nexpy.__description__,
        long_description = nexpy.__long_description__,
