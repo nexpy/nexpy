@@ -174,12 +174,13 @@ class NXPlotView(QtGui.QDialog):
         def make_active(event):
             if 'Projection' not in self.label:
                 self.make_active()
-            if event.button == 1:
-                self.xdata = event.xdata
-                self.ydata = event.ydata
-            elif event.button == 3:
-                if hasattr(self, 'otab'):
+            self.xdata = event.xdata
+            self.ydata = event.ydata
+            if event.button == 3:
+                try:
                     self.otab.home(autoscale=False)
+                except Exception:
+                    pass
         cid = self.canvas.mpl_connect('button_press_event', make_active)
         self.canvas.figure.show = lambda *args: self.show()
         self.figuremanager._cidgcf = cid
