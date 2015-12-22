@@ -178,8 +178,8 @@ class NXPlotView(QtGui.QDialog):
                 self.xdata = event.xdata
                 self.ydata = event.ydata
             elif event.button == 3:
-                hasattr(self, 'otab')
-                self.otab.home(autoscale=False)
+                if hasattr(self, 'otab'):
+                    self.otab.home(autoscale=False)
         cid = self.canvas.mpl_connect('button_press_event', make_active)
         self.canvas.figure.show = lambda *args: self.show()
         self.figuremanager._cidgcf = cid
