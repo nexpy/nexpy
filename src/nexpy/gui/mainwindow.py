@@ -181,7 +181,7 @@ class MainWindow(QtGui.QMainWindow):
         self.remote_defaults = (None, None)
 
         self.file_filter = ';;'.join((
-            "NeXus Files (*.nxs *.nx5 *.h5 *.hdf *.hdf5)",
+            "NeXus Files (*.nxs *.nx5 *.h5 *.hdf *.hdf5 *.cxi)",
             "Any Files (*.* *)"))
         self.max_recent_files = 20
 
