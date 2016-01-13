@@ -596,6 +596,8 @@ class NXPlotView(QtGui.QDialog):
             if self.skew is not None:
                 yy, xx = np.meshgrid(self.y, self.x)
                 x, y = self.transform(xx, yy)
+            else:
+                x, y = self.x, self.y
             self.image = ax.pcolormesh(x, y, self.v, cmap=self.cmap, **opts)
         self.image.get_cmap().set_bad('k', 1.0)
         ax.set_aspect(self.aspect)
