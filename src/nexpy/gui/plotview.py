@@ -897,6 +897,12 @@ class NXPlotView(QtGui.QDialog):
     def draw(self):
         self.canvas.draw_idle()
 
+    def grid(self, display=True, **opts):
+        if 'color' not in opts:
+            opts['color'] = 'w'
+        self.ax.grid(display, **opts)
+        self.draw()
+
     def vline(self, x, ymin=None, ymax=None, **opts):
         ylo, yhi = self.yaxis.get_limits()
         if ymin is None:
