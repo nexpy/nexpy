@@ -27,7 +27,8 @@ from matplotlib.figure import Figure
 from matplotlib.image import NonUniformImage
 from matplotlib.colors import LogNorm, Normalize
 from matplotlib.cm import cmap_d, get_cmap
-from matplotlib.patches import Circle, Ellipse, Rectangle
+from matplotlib.lines import Line2D
+from matplotlib.patches import Circle, Ellipse, Rectangle, Polygon
 from matplotlib.transforms import nonsingular
 from mpl_toolkits.axisartist.grid_helper_curvelinear import GridHelperCurveLinear
 from mpl_toolkits.axisartist import Subplot
@@ -172,8 +173,8 @@ class NXPlotView(QtGui.QDialog):
         def make_active(event):
             if 'Projection' not in self.label:
                 self.make_active()
-            self.xdata = event.xdata
-            self.ydata = event.ydata
+            self.xdata, self.ydata = self.inverse_transform(event.xdata, 
+                                                            event.ydata)
             if event.button == 3:
                 try:
                     self.otab.home(autoscale=False)
@@ -368,12 +369,20 @@ class NXPlotView(QtGui.QDialog):
         else:
             if xmin: 
                 self.xaxis.lo = xmin
+            else:
+                self.xaxis.lo = self.xaxis.min
             if xmax: 
                 self.xaxis.hi = xmax
+            else:
+                self.xaxis.hi = self.xaxis.max
             if ymin: 
                 self.yaxis.lo = ymin
+            else:
+                self.yaxis.lo = self.yaxis.min
             if ymax: 
                 self.yaxis.hi = ymax
+            else:
+                self.yaxis.hi = self.yaxis.max
             if vmin: 
                 self.vaxis.lo = vmin
             if vmax: 
@@ -594,7 +603,7 @@ class NXPlotView(QtGui.QDialog):
                                    **opts)
         else:
             if self.skew is not None:
-                yy, xx = np.meshgrid(self.y, self.x)
+                xx, yy = np.meshgrid(self.x, self.y)
                 x, y = self.transform(xx, yy)
             else:
                 x, y = self.x, self.y
@@ -605,31 +614,15 @@ class NXPlotView(QtGui.QDialog):
         if not self.rgb_image:
             self.colorbar = self.figure.colorbar(self.image, ax=ax)
 
-        xlo, xhi = ax.set_xlim(self.xaxis.min, self.xaxis.max)
-        ylo, yhi = ax.set_ylim(self.yaxis.min, self.yaxis.max)
-        if self.xaxis.lo: 
-            ax.set_xlim(xmin=self.xaxis.lo)
-        else:
-            self.xaxis.lo = xlo        
-        if self.xaxis.hi: 
-            ax.set_xlim(xmax=self.xaxis.hi)        
-        else:
-            self.xaxis.hi = xhi        
-        if self.yaxis.lo: 
-            ax.set_ylim(ymin=self.yaxis.lo)        
-        else:
-            self.yaxis.lo = ylo        
-        if self.yaxis.hi: 
-            ax.set_ylim(ymax=self.yaxis.hi)        
-        else:
-            self.yaxis.hi = yhi
+        xlo, ylo = self.transform(self.xaxis.lo, self.yaxis.lo)
+        xhi, yhi = self.transform(self.xaxis.hi, self.yaxis.hi)
+
+        ax.set_xlim(xlo, xhi)
+        ax.set_ylim(ylo, yhi)
       
         ax.set_xlabel(self.xaxis.label)
         ax.set_ylabel(self.yaxis.label)
         ax.set_title(self.title)
-
-        self.xaxis.min, self.xaxis.max = self.x.min(), self.x.max()
-        self.yaxis.min, self.yaxis.max = self.y.min(), self.y.max()
         
         vmin, vmax = self.image.get_clim()
         if self.vaxis.min > vmin:
@@ -689,7 +682,7 @@ class NXPlotView(QtGui.QDialog):
         if newaxis:
             self.plot_image()
             self.draw()
-        elif self.equally_spaced:
+        elif self.equally_spaced and self.skew is None:
             self.x, self.y, self.v = self.get_image()
             self.image.set_data(self.v)
             if self.xaxis.reversed:
@@ -714,12 +707,14 @@ class NXPlotView(QtGui.QDialog):
     def replot_axes(self, draw=True):
         ax = self.figure.gca()
         xmin, xmax = self.xaxis.get_limits()
+        ymin, ymax = self.yaxis.get_limits()
+        xmin, ymin = self.transform(xmin, ymin)
+        xmax, ymax = self.transform(xmax, ymax)
         if ((self.xaxis.reversed and not self.xtab.flipped) or
             (not self.xaxis.reversed and self.xtab.flipped)):
             ax.set_xlim(xmax, xmin)
         else:
             ax.set_xlim(xmin, xmax)
-        ymin, ymax = self.yaxis.get_limits()
         if ((self.yaxis.reversed and not self.ytab.flipped) or
             (not self.yaxis.reversed and self.ytab.flipped)):
             ax.set_ylim(ymax, ymin)
@@ -732,7 +727,7 @@ class NXPlotView(QtGui.QDialog):
             self.draw()
 
     def transform(self, x, y):
-        if self.skew is None:
+        if x is None or y is None or self.skew is None:
             return x, y
         else:    
             x, y = np.asarray(x), np.asarray(y)
@@ -740,7 +735,7 @@ class NXPlotView(QtGui.QDialog):
             return 1.*x+np.cos(angle)*y,  np.sin(angle)*y
 
     def inverse_transform(self, x, y):
-        if self.skew is None:
+        if x is None or y is None or self.skew is None:
             return x, y
         else:
             x, y = np.asarray(x), np.asarray(y)
@@ -831,7 +826,8 @@ class NXPlotView(QtGui.QDialog):
             self._skew_angle = None
         else:
             self._skew_angle = skew_angle
-        self.aspect = "equal"
+        if self.aspect == "auto":
+            self.aspect = "equal"
         self.grid_helper = GridHelperCurveLinear((self.transform, 
                                                   self.inverse_transform))
 
@@ -1085,6 +1081,7 @@ class NXPlotView(QtGui.QDialog):
 
     def format_coord(self, x, y):
         try:
+            x, y = plotview.inverse_transform(x, y)
             if plotview.xaxis.reversed:
                 col = np.searchsorted(x-plotview.xaxis.boundaries, 0.0) - 1
             else:
@@ -2430,6 +2427,8 @@ class NXNavigationToolbar(NavigationToolbar):
         ydim = self.plotview.ytab.axis.dim
         xmin, xmax = self.plotview.ax.get_xlim()
         ymin, ymax = self.plotview.ax.get_ylim()
+        xmin, ymin = self.plotview.inverse_transform(xmin, ymin)
+        xmax, ymax = self.plotview.inverse_transform(xmax, ymax)
         self.plotview.xtab.set_limits(xmin, xmax)
         self.plotview.ytab.set_limits(ymin, ymax)
         if event.button == 1:
