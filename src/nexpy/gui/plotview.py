@@ -224,6 +224,7 @@ class NXPlotView(QtGui.QDialog):
         self.xaxis = self.yaxis = self.zaxis = None
         self.xmin = self.xmax = self.ymin = self.ymax = self.vmin = self.vmax = None
 
+        self.image = None
         self.colorbar = None
         self.zoom = None
         self.aspect = 'auto'
@@ -555,6 +556,7 @@ class NXPlotView(QtGui.QDialog):
             self.xaxis.lo, self.xaxis.hi = self.xaxis.min, self.xaxis.max
             self.yaxis.lo, self.yaxis.hi = self.yaxis.min, self.yaxis.max
 
+        self.image = None
         self.colorbar = None
 
     def get_image(self):
@@ -830,6 +832,8 @@ class NXPlotView(QtGui.QDialog):
             self.aspect = "equal"
         self.grid_helper = GridHelperCurveLinear((self.transform, 
                                                   self.inverse_transform))
+        if self.image is not None:
+            self.replot_data(newaxis=True)
 
     skew = property(_skew, _set_skew, "Property: Axis skew angle")
 
