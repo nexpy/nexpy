@@ -900,76 +900,103 @@ class NXPlotView(QtGui.QDialog):
         self.draw()
 
     def vline(self, x, ymin=None, ymax=None, **opts):
-        ylo, yhi = self.yaxis.get_limits()
         if ymin is None:
-            ymin = ylo
+            ymin = plotview.ax.get_ylim()[0]
         if ymax is None:
-            ymax = yhi
-        ax = self.figure.axes[0]
-        line = ax.vlines(float(x), ymin, ymax, **opts)
+            ymax = plotview.ax.get_ylim()[1]
+        line = plotview.ax.vlines(float(x), ymin, ymax, **opts)
         self.canvas.draw()
         return line
 
     def hline(self, y, xmin=None, xmax=None, **opts):
-        xlo, xhi = self.xaxis.get_limits()
         if xmin is None:
-            xmin = xlo
+            xmin = plotview.ax.get_xlim()[0]
         if xmax is None:
-            xmax = xhi
-        ax = self.figure.axes[0]
-        line = ax.hlines(float(y), xmin, xmax, **opts)
+            xmax = plotview.ax.get_xlim()[1]
+        line = plotview.ax.hlines(float(y), xmin, xmax, **opts)
         self.canvas.draw()
         return line
 
     def vlines(self, x, ymin=None, ymax=None, **opts):
-        ylo, yhi = self.yaxis.get_limits()
         if ymin is None:
-            ymin = ylo
+            ymin = plotview.ax.get_ylim()[0]
         if ymax is None:
-            ymax = yhi
-        ax = self.figure.axes[0]
-        lines = ax.vlines(x, ymin, ymax, **opts)
+            ymax = plotview.ax.get_ylim()[1]
+        lines = plotview.ax.vlines(x, ymin, ymax, **opts)
         self.canvas.draw()
         return lines
 
     def hlines(self, y, xmin=None, xmax=None, **opts):
-        xlo, xhi = self.xaxis.get_limits()
         if xmin is None:
-            xmin = xlo
+            xmin = plotview.ax.get_xlim()[0]
         if xmax is None:
-            xmax = xhi
-        ax = self.figure.axes[0]
-        lines = ax.hlines(y, xmin, xmax, **opts)
+            xmax = plotview.ax.get_xlim()[1]
+        lines = plotivew.ax.hlines(y, xmin, xmax, **opts)
         self.canvas.draw()
         return lines
 
     def crosshairs(self, x, y, **opts):
+        if self.skew is not None:
+            x, y = self.transform(x, y)
         crosshairs = []
         crosshairs.append(self.vline(float(x), **opts))
         crosshairs.append(self.hline(float(y), **opts))
         return crosshairs        
 
+    def xline(self, x, **opts):
+        if self.skew is None:
+            return self.vline(x, ymin, ymax, **opts)
+        else:
+            ymin, ymax = self.yaxis.get_limits()
+            x0, _ = self.transform(float(x), ymin)
+            x1, _ = self.transform(float(x), ymax)
+            y0, y1 = plotview.ax.get_ylim()
+            line = Line2D([x0,x1], [y0,y1], **opts)
+            plotview.ax.add_line(line)
+            self.canvas.draw()
+            return line
+
+    def yline(self, y, **opts):
+        if self.skew is None:
+            return self.hline(y, xmin, xmax, **opts)
+        else:
+            xmin, xmax = self.xaxis.get_limits()
+            _, y0 = self.transform(xmin, float(y))
+            _, y1 = self.transform(xmax, float(y))
+            x0, x1 = plotview.ax.get_xlim()
+            line = Line2D([x0,x1], [y0,y1], **opts)
+            plotview.ax.add_line(line)
+            self.canvas.draw()
+            return line
+
     def rectangle(self, x, y, dx, dy, **opts):
-        ax = self.figure.axes[0]
-        rectangle = ax.add_patch(Rectangle((float(x),float(y)), 
-                                            float(dx), float(dy), **opts))
+        if self.skew is None:
+            rectangle = plotview.ax.add_patch(Rectangle((float(x),float(y)), 
+                                              float(dx), float(dy), **opts))
+        else:
+            xc, yc = [x, x, x+dx, x+dx], [y, y+dy, y+dy, y]
+            xy = [self.transform(_x, _y) for _x,_y in zip(xc,yc)]
+            rectangle = plotview.ax.add_patch(Polygon(xy, True, **opts))            
         if 'facecolor' not in opts:
             rectangle.set_facecolor('none')
         self.canvas.draw()
         return rectangle
 
     def ellipse(self, x, y, dx, dy, **opts):
-        ax = self.figure.axes[0]
-        ellipse = ax.add_patch(Ellipse((float(x),float(y)), 
-                                        float(dx), float(dy), **opts))
+        if self.skew is not None:
+            x, y = self.transform(x, y)
+        ellipse = plotview.ax.add_patch(Ellipse((float(x),float(y)), 
+                                                float(dx), float(dy), **opts))
         if 'facecolor' not in opts:
             ellipse.set_facecolor('none')
         self.canvas.draw()
         return ellipse
 
     def circle(self, x, y, radius, **opts):
-        ax = self.figure.axes[0]
-        circle = ax.add_patch(Circle((float(x),float(y)), radius, **opts))
+        if self.skew is not None:
+            x, y = self.transform(x, y)
+        circle = plotview.ax.add_patch(Circle((float(x),float(y)), radius, 
+                                              **opts))
         if 'facecolor' not in opts:
             circle.set_facecolor('none')
         self.canvas.draw()
@@ -2355,9 +2382,8 @@ class NXProjectionPanel(QtGui.QWidget):
             y1 = self.maxbox[yp].maxBoundaryValue(self.maxbox[yp].index)
 
         if self.rectangle:
-            self.rectangle.set_bounds(x0, y0, x1-x0, y1-y0)
-        else:      
-            self.rectangle = ax.add_patch(Rectangle((x0,y0),x1-x0,y1-y0))
+            self.rectangle.remove()
+        self.rectangle = self.plotview.rectangle(x0, y0, x1-x0, y1-y0)
         self.rectangle.set_color('white')
         self.rectangle.set_facecolor('none')
         self.rectangle.set_linestyle('dashed')
