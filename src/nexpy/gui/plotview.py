@@ -13,9 +13,11 @@
 Plotting window
 """
 
+from .pyqt import QtCore, QtGui
+
 import pkg_resources
 import numpy as np
-from nexpy.gui.pyqt import QtCore, QtGui
+
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 from matplotlib._pylab_helpers import Gcf
@@ -38,6 +40,7 @@ from nexusformat.nexus import NXfield, NXdata, NXroot, NeXusError
 
 plotview = None
 plotviews = {}
+colors = ['b', 'g', 'r', 'c', 'm', 'y', 'k', 'w']
 cmaps = ['viridis', 'inferno', 'magma', 'plasma', 'spring', 'summer', 'autumn', 
          'winter', 'cool', 'hot', 'bone', 'copper', 'gray', 'pink', 'jet', 
          'spectral', 'rainbow', 'hsv', 'flag', 'prism']
@@ -49,8 +52,6 @@ else:
 interpolations = ['nearest', 'bilinear', 'bicubic', 'spline16', 'spline36', 
                   'hanning', 'hamming', 'hermite', 'kaiser', 'quadric', 
                   'catrom', 'gaussian', 'bessel', 'mitchell', 'sinc', 'lanczos']
-
-colors = ['b', 'g', 'r', 'c', 'm', 'y', 'k', 'w']
 
 
 def report_error(context, error):
@@ -807,12 +808,17 @@ class NXPlotView(QtGui.QDialog):
         if aspect == 'auto':
             self._aspect_value = 'auto'
             self.otab._actions['set_aspect'].setChecked(False)
-        else:
-            self._aspect_value = aspect
+        elif aspect == 'equal':
+            self._aspect_value = 'equal'
             self.otab._actions['set_aspect'].setChecked(True)
+        else:
+            try:
+                self._aspect_value = float(aspect)
+                self.otab._actions['set_aspect'].setChecked(True)
+            except ValueError:
+                return
         try:
-            ax = self.figure.axes[0]
-            ax.set_aspect(aspect)
+            plotview.ax.set_aspect(self._aspect_value)
             self.canvas.draw()
         except:
             pass
@@ -823,13 +829,13 @@ class NXPlotView(QtGui.QDialog):
         return self._skew_angle
         
     def _set_skew(self, skew_angle):
-        if skew_angle is None or (np.isclose(skew_angle, 0.0) or 
-                                  np.isclose(skew_angle, 90.0)):
+        if (skew_angle is None or skew_angle == '' or skew_angle == 'None' or
+            np.isclose(skew_angle, 0.0) or np.isclose(skew_angle, 90.0)):
             self._skew_angle = None
         else:
             self._skew_angle = skew_angle
-        if self.aspect == "auto":
-            self.aspect = "equal"
+        if self.skew is not None and self.aspect == 'auto':
+            self.aspect = 'equal'
         self.grid_helper = GridHelperCurveLinear((self.transform, 
                                                   self.inverse_transform))
         if self.image is not None:
@@ -903,20 +909,24 @@ class NXPlotView(QtGui.QDialog):
         self.ax.grid(display, **opts)
         self.draw()
 
-    def vline(self, x, ymin=None, ymax=None, **opts):
+    def vline(self, x, y=None, ymin=None, ymax=None, **opts):
         if ymin is None:
             ymin = plotview.ax.get_ylim()[0]
         if ymax is None:
             ymax = plotview.ax.get_ylim()[1]
+        if self.skew is not None and y is not None:
+            x, _ = self.transform(x, y)
         line = plotview.ax.vlines(float(x), ymin, ymax, **opts)
         self.canvas.draw()
         return line
 
-    def hline(self, y, xmin=None, xmax=None, **opts):
+    def hline(self, y, x=None, xmin=None, xmax=None, **opts):
         if xmin is None:
             xmin = plotview.ax.get_xlim()[0]
         if xmax is None:
             xmax = plotview.ax.get_xlim()[1]
+        if self.skew is not None and x is not None:
+            _, y = self.transform(x, y)
         line = plotview.ax.hlines(float(y), xmin, xmax, **opts)
         self.canvas.draw()
         return line
