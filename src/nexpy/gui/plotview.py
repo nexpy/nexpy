@@ -30,6 +30,7 @@ from matplotlib.image import NonUniformImage
 from matplotlib.colors import LogNorm, Normalize
 from matplotlib.cm import cmap_d, get_cmap
 from matplotlib.lines import Line2D
+from matplotlib import markers 
 from matplotlib.patches import Circle, Ellipse, Rectangle, Polygon
 from matplotlib.transforms import nonsingular
 from mpl_toolkits.axisartist.grid_helper_curvelinear import GridHelperCurveLinear
@@ -37,6 +38,7 @@ from mpl_toolkits.axisartist import Subplot
 
 from nexusformat.nexus import NXfield, NXdata, NXroot, NeXusError
 
+from .datadialogs import BaseDialog, GridParameters
 
 plotview = None
 plotviews = {}
@@ -52,6 +54,9 @@ else:
 interpolations = ['nearest', 'bilinear', 'bicubic', 'spline16', 'spline36', 
                   'hanning', 'hamming', 'hermite', 'kaiser', 'quadric', 
                   'catrom', 'gaussian', 'bessel', 'mitchell', 'sinc', 'lanczos']
+linestyles = {'-': 'Solid', '--': 'Dashed', '-.': 'DashDot', ':': 'Dotted',
+              'none': 'None', 'None': 'None'}
+markers = markers.MarkerStyle.markers
 
 
 def report_error(context, error):
@@ -229,6 +234,7 @@ class NXPlotView(QtGui.QDialog):
         self.colorbar = None
         self.zoom = None
         self.aspect = 'auto'
+        self._grid = False
         
         self.setWindowTitle(self.label)
 
@@ -903,10 +909,14 @@ class NXPlotView(QtGui.QDialog):
     def draw(self):
         self.canvas.draw_idle()
 
-    def grid(self, display=True, **opts):
+    def grid(self, display=None, **opts):
+        if display is True or display is False:
+            self._grid = display
+        else:
+            self._grid = not self._grid
         if 'color' not in opts:
             opts['color'] = 'w'
-        self.ax.grid(display, **opts)
+        self.ax.grid(self._grid, **opts)
         self.draw()
 
     def vline(self, x, y=None, ymin=None, ymax=None, **opts):
@@ -2452,10 +2462,17 @@ class NXNavigationToolbar(NavigationToolbar):
                 pkg_resources.resource_filename('nexpy.gui',
                                                 'resources/equal.png')))
         self._actions['set_aspect'].setCheckable(True)
+        for action in self.findChildren(QtGui.QAction):
+            if action.text() == 'Customize':
+                action.setToolTip('Customize plot')
 
     def home(self, autoscale=True):
         super(NXNavigationToolbar, self).home()        
         self.plotview.reset_plot_limits(autoscale)
+
+    def edit_parameters(self):
+        self.plotview.customize_dialog = CustomizeDialog(self.plotview, parent=self)
+        self.plotview.customize_dialog.show()
 
     def add_data(self):
         keep_data(self.plotview.plotdata)
@@ -2534,6 +2551,120 @@ class NXNavigationToolbar(NavigationToolbar):
             self.plotview.aspect = 'equal'
         else:
             self.plotview.aspect = 'auto'
+
+class CustomizeDialog(BaseDialog):
+
+    def __init__(self, plotview, parent=None):
+        super(CustomizeDialog, self).__init__(parent)
+
+        self.plotview = plotview
+
+        self.parameters = {}
+        pp = self.parameters['plot'] = GridParameters()
+        pp.add('title', plotview.title, 'Title')
+        pp['title'].box.setMinimumWidth(200)
+        pp.add('xlabel', plotview.xaxis.label, 'X-Axis Label')
+        pp['xlabel'].box.setMinimumWidth(200)
+        pp.add('ylabel', plotview.yaxis.label, 'Y-Axis Label')
+        pp['ylabel'].box.setMinimumWidth(200)
+        if self.plotview.image is not None:          
+            pp.add('aspect', plotview.aspect, 'Aspect Ratio')
+            pp.add('skew', plotview.skew, 'Skew Angle')
+            if plotview.skew is None:
+                pp['skew'].value = 90.0
+            pp.add('grid', ['On', 'Off'], 'Grid')
+            if self.plotview._grid:
+                pp['grid'].value = 'On'
+            else:
+                pp['grid'].value = 'Off'
+            self.set_layout(pp.grid(title='Plot Parameters', header=False),
+                            self.action_buttons(('Apply', self.apply)),
+                            self.close_buttons(save=True))
+        else:
+            lines = self.plotview.ax.get_lines()
+            labels = [line.get_label() for line in lines]
+            self.curves = dict(zip(labels, lines))
+            curve_grids = QtGui.QWidget(parent=self)
+            curve_layout = QtGui.QVBoxLayout()
+            curve_layout.setContentsMargins(0, 20, 0, 0)
+            self.curve_box = self.select_box(list(self.curves), 
+                                             slot=self.select_curve)
+            curve_layout.addStretch()
+            curve_layout.addWidget(self.curve_box)
+            for curve in self.curves:
+                pc = self.parameters[curve] = self.curve_parameters(curve)
+                self.set_curve_parameters(curve)
+                pc.widget = QtGui.QWidget(parent=curve_grids)
+                pc.widget.setLayout(pc.grid(header=False))
+                pc.widget.setVisible(False)
+                curve_layout.addWidget(pc.widget)
+                if curve == self.curve:
+                    pc.widget.setVisible(True)
+                else:
+                    pc.widget.setVisible(False)
+            curve_grids.setLayout(curve_layout)
+            self.set_layout(pp.grid(title='Plot Parameters', header=False),
+                            curve_grids,
+                            self.action_buttons(('Apply', self.apply)),
+                            self.close_buttons(save=True))
+        self.set_title('Customize Plot')
+
+    @property
+    def curve(self):
+        return self.curve_box.currentText()
+
+    def curve_parameters(self, curve):
+        parameters = GridParameters()
+        parameters.add('linestyle', list(linestyles.values()), 'Line Style')
+        parameters.add('linewidth', 1.0, 'Line Width')
+        parameters.add('marker', list(markers.values()), 'Marker Style')
+        parameters.add('markersize', 1.0, 'Marker Size')
+        parameters.grid(header=False)
+        return parameters
+
+    def set_curve_parameters(self, curve):    
+        c, p = self.curves[curve], self.parameters[curve]
+        p['linestyle'].value = linestyles[c.get_linestyle()]
+        p['linewidth'].value = c.get_linewidth()
+        p['marker'].value = markers[c.get_marker()]
+        p['markersize'].value = c.get_markersize()
+
+    def select_curve(self):
+        for curve in self.curves:
+            self.parameters[curve].widget.setVisible(False)
+        self.parameters[self.curve].widget.setVisible(True)
+
+    def apply(self):
+        pp = self.parameters['plot']
+        if self.plotview.image is not None:
+            self.plotview.aspect = pp['aspect'].value
+            self.plotview.skew = pp['skew'].value
+            if pp['grid'].value == 'On':
+                self.plotview.grid(display=True)
+            else:
+                self.plotview.grid(display=False)
+        else:
+            for curve in self.curves:
+                c, pc = self.curves[curve], self.parameters[curve]
+                linestyle = [k for k, v in linestyles.items() 
+                             if v == pc['linestyle'].value][0]
+                c.set_linestyle(linestyle)
+                c.set_linewidth(pc['linewidth'].value)
+                marker = [k for k, v in markers.items() 
+                          if v == pc['marker'].value][0]
+                c.set_marker(marker)
+                c.set_markersize(pc['markersize'].value)
+        self.plotview.title = pp['title'].value
+        self.plotview.ax.set_title(self.plotview.title)
+        self.plotview.xaxis.label = pp['xlabel'].value
+        self.plotview.ax.set_xlabel(self.plotview.xaxis.label)
+        self.plotview.yaxis.label = pp['ylabel'].value
+        self.plotview.ax.set_ylabel(self.plotview.yaxis.label)
+        self.plotview.draw()
+
+    def accept(self):
+        self.apply()
+        super(CustomizeDialog, self).accept()
 
 
 def keep_data(data):

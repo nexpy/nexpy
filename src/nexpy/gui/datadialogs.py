@@ -15,7 +15,7 @@ import os
 import re
 import sys
 
-from nexpy.gui.pyqt import QtGui, QtCore, getOpenFileName
+from .pyqt import QtGui, QtCore, getOpenFileName
 import pkg_resources
 import numpy as np
 from scipy.optimize import minimize
@@ -204,6 +204,20 @@ class BaseDialog(QtGui.QDialog):
         from glob import glob
         filenames = glob(prefix+'*'+extension)
         return sorted(filenames,key=natural_sort)
+
+    def select_box(self, choices, default=None, slot=None):
+        box = QtGui.QComboBox()
+        box.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToContents)
+        for choice in choices:
+            box.addItem(choice)
+        if default in choices:
+            idx = box.findText(default)
+            box.setCurrentIndex(idx)
+        else:
+            box.setCurrentIndex(0)
+        if slot:
+            box.currentIndexChanged.connect(slot)
+        return box
 
     def select_root(self, slot=None, text='Select Root :', other=False):
         layout = QtGui.QHBoxLayout()
