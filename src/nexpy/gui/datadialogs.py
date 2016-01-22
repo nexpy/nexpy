@@ -427,6 +427,7 @@ class GridParameters(OrderedDict):
             fit_label = QtGui.QLabel('Fit?')
             fit_label.setFont(header_font)
             grid.addWidget(fit_label, 0, 2, QtCore.Qt.AlignHCenter)
+        self.grid_layout = grid
         return grid
 
     def set_parameters(self):

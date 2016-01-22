@@ -25,9 +25,10 @@ from matplotlib.backend_bases import FigureManagerBase
 from matplotlib.backends.backend_qt4 import FigureManagerQT as FigureManager
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt4agg import NavigationToolbar2QT as NavigationToolbar
+from matplotlib.backends.qt_editor.formlayout import ColorButton, to_qcolor
 from matplotlib.figure import Figure
 from matplotlib.image import NonUniformImage
-from matplotlib.colors import LogNorm, Normalize
+from matplotlib.colors import LogNorm, Normalize, colorConverter, rgb2hex
 from matplotlib.cm import cmap_d, get_cmap
 from matplotlib.lines import Line2D
 from matplotlib import markers 
@@ -912,6 +913,8 @@ class NXPlotView(QtGui.QDialog):
     def grid(self, display=None, **opts):
         if display is True or display is False:
             self._grid = display
+        elif opts:
+            self._grid = True
         else:
             self._grid = not self._grid
         if 'color' not in opts:
@@ -2560,24 +2563,19 @@ class CustomizeDialog(BaseDialog):
         self.plotview = plotview
 
         self.parameters = {}
-        pp = self.parameters['plot'] = GridParameters()
-        pp.add('title', plotview.title, 'Title')
-        pp['title'].box.setMinimumWidth(200)
-        pp.add('xlabel', plotview.xaxis.label, 'X-Axis Label')
-        pp['xlabel'].box.setMinimumWidth(200)
-        pp.add('ylabel', plotview.yaxis.label, 'Y-Axis Label')
-        pp['ylabel'].box.setMinimumWidth(200)
-        if self.plotview.image is not None:          
-            pp.add('aspect', plotview.aspect, 'Aspect Ratio')
-            pp.add('skew', plotview.skew, 'Skew Angle')
-            if plotview.skew is None:
-                pp['skew'].value = 90.0
-            pp.add('grid', ['On', 'Off'], 'Grid')
-            if self.plotview._grid:
-                pp['grid'].value = 'On'
-            else:
-                pp['grid'].value = 'Off'
-            self.set_layout(pp.grid(title='Plot Parameters', header=False),
+        pl = self.parameters['labels'] = GridParameters()
+        pl.add('title', plotview.title, 'Title')
+        pl['title'].box.setMinimumWidth(200)
+        pl.add('xlabel', plotview.xaxis.label, 'X-Axis Label')
+        pl['xlabel'].box.setMinimumWidth(200)
+        pl.add('ylabel', plotview.yaxis.label, 'Y-Axis Label')
+        pl['ylabel'].box.setMinimumWidth(200)
+        if self.plotview.image is not None:
+            image_grid = QtGui.QVBoxLayout()
+            self.parameters['image'] = self.image_parameters()      
+            image_grid.addLayout(self.parameters['image'].grid_layout)
+            self.set_layout(pl.grid(header=False),
+                            image_grid,
                             self.action_buttons(('Apply', self.apply)),
                             self.close_buttons(save=True))
         else:
@@ -2589,7 +2587,6 @@ class CustomizeDialog(BaseDialog):
             curve_layout.setContentsMargins(0, 20, 0, 0)
             self.curve_box = self.select_box(list(self.curves), 
                                              slot=self.select_curve)
-            curve_layout.addStretch()
             curve_layout.addWidget(self.curve_box)
             for curve in self.curves:
                 pc = self.parameters[curve] = self.curve_parameters(curve)
@@ -2603,11 +2600,43 @@ class CustomizeDialog(BaseDialog):
                 else:
                     pc.widget.setVisible(False)
             curve_grids.setLayout(curve_layout)
-            self.set_layout(pp.grid(title='Plot Parameters', header=False),
+            self.set_layout(pl.grid(title='Plot Parameters', header=False),
                             curve_grids,
                             self.action_buttons(('Apply', self.apply)),
                             self.close_buttons(save=True))
+            self.add_color_buttons()
         self.set_title('Customize Plot')
+
+    def image_parameters(self):
+        parameters = GridParameters()
+        parameters.add('aspect', plotview.aspect, 'Aspect Ratio')
+        parameters.add('skew', plotview.skew, 'Skew Angle')
+        if plotview.skew is None:
+            parameters['skew'].value = 90.0
+        parameters.add('grid', ['On', 'Off'], 'Grid')
+        if self.plotview._grid:
+            parameters['grid'].value = 'On'
+        else:
+            parameters['grid'].value = 'Off'
+        parameters.grid(title='Image Parameters', header=False)
+        return parameters
+
+    def set_image_parameters(self):
+        p = self.parameters['image']
+        p['gridstyle'].value = linestyles[c.get_linestyle()]
+        p['linewidth'].value = c.get_linewidth()
+        p['linecolor'].value = rgb2hex(colorConverter.to_rgb(c.get_color()))
+        p['linecolor'].color_button = NXColorButton(p['linecolor'])
+        p['linecolor'].color_button.set_color(to_qcolor(c.get_color()))
+        p['marker'].value = markers[c.get_marker()]
+        p['markersize'].value = c.get_markersize()
+        p['facecolor'].value = rgb2hex(colorConverter.to_rgb(c.get_markerfacecolor()))
+        p['facecolor'].color_button = NXColorButton(p['facecolor'])
+        p['facecolor'].color_button.set_color(to_qcolor(c.get_markerfacecolor()))
+        p['edgecolor'].value = rgb2hex(colorConverter.to_rgb(c.get_markeredgecolor()))
+        p['edgecolor'].color_button = NXColorButton(p['edgecolor'])
+        p['edgecolor'].color_button.set_color(to_qcolor(c.get_markeredgecolor()))
+
 
     @property
     def curve(self):
@@ -2617,17 +2646,39 @@ class CustomizeDialog(BaseDialog):
         parameters = GridParameters()
         parameters.add('linestyle', list(linestyles.values()), 'Line Style')
         parameters.add('linewidth', 1.0, 'Line Width')
+        parameters.add('linecolor', '#000000', 'Line Color')
         parameters.add('marker', list(markers.values()), 'Marker Style')
         parameters.add('markersize', 1.0, 'Marker Size')
-        parameters.grid(header=False)
+        parameters.add('facecolor', '#000000', 'Face Color')
+        parameters.add('edgecolor', '#000000', 'Edge Color')
+        parameters.grid(title='Curve Parameters', header=False)
         return parameters
 
     def set_curve_parameters(self, curve):    
         c, p = self.curves[curve], self.parameters[curve]
         p['linestyle'].value = linestyles[c.get_linestyle()]
         p['linewidth'].value = c.get_linewidth()
+        p['linecolor'].value = rgb2hex(colorConverter.to_rgb(c.get_color()))
+        p['linecolor'].color_button = NXColorButton(p['linecolor'])
+        p['linecolor'].color_button.set_color(to_qcolor(c.get_color()))
         p['marker'].value = markers[c.get_marker()]
         p['markersize'].value = c.get_markersize()
+        p['facecolor'].value = rgb2hex(colorConverter.to_rgb(c.get_markerfacecolor()))
+        p['facecolor'].color_button = NXColorButton(p['facecolor'])
+        p['facecolor'].color_button.set_color(to_qcolor(c.get_markerfacecolor()))
+        p['edgecolor'].value = rgb2hex(colorConverter.to_rgb(c.get_markeredgecolor()))
+        p['edgecolor'].color_button = NXColorButton(p['edgecolor'])
+        p['edgecolor'].color_button.set_color(to_qcolor(c.get_markeredgecolor()))
+
+    def add_color_buttons(self):
+        if self.plotview.image is not None:
+            pass
+        else:
+            for curve in self.curves:
+                p = self.parameters[curve]
+                p.grid_layout.addWidget(p['linecolor'].color_button, 2, 2)
+                p.grid_layout.addWidget(p['facecolor'].color_button, 5, 2)
+                p.grid_layout.addWidget(p['edgecolor'].color_button, 6, 2)
 
     def select_curve(self):
         for curve in self.curves:
@@ -2635,11 +2686,11 @@ class CustomizeDialog(BaseDialog):
         self.parameters[self.curve].widget.setVisible(True)
 
     def apply(self):
-        pp = self.parameters['plot']
         if self.plotview.image is not None:
-            self.plotview.aspect = pp['aspect'].value
-            self.plotview.skew = pp['skew'].value
-            if pp['grid'].value == 'On':
+            pi = self.parameters['image']
+            self.plotview.aspect = pi['aspect'].value
+            self.plotview.skew = pi['skew'].value
+            if pi['grid'].value == 'On':
                 self.plotview.grid(display=True)
             else:
                 self.plotview.grid(display=False)
@@ -2650,21 +2701,45 @@ class CustomizeDialog(BaseDialog):
                              if v == pc['linestyle'].value][0]
                 c.set_linestyle(linestyle)
                 c.set_linewidth(pc['linewidth'].value)
+                c.set_color(pc['linecolor'].value)
                 marker = [k for k, v in markers.items() 
                           if v == pc['marker'].value][0]
                 c.set_marker(marker)
                 c.set_markersize(pc['markersize'].value)
-        self.plotview.title = pp['title'].value
+                c.set_markerfacecolor(pc['facecolor'].value)
+                c.set_markeredgecolor(pc['edgecolor'].value)
+        pl = self.parameters['labels']
+        self.plotview.title = pl['title'].value
         self.plotview.ax.set_title(self.plotview.title)
-        self.plotview.xaxis.label = pp['xlabel'].value
+        self.plotview.xaxis.label = pl['xlabel'].value
         self.plotview.ax.set_xlabel(self.plotview.xaxis.label)
-        self.plotview.yaxis.label = pp['ylabel'].value
+        self.plotview.yaxis.label = pl['ylabel'].value
         self.plotview.ax.set_ylabel(self.plotview.yaxis.label)
         self.plotview.draw()
 
     def accept(self):
         self.apply()
         super(CustomizeDialog, self).accept()
+
+
+class NXColorButton(ColorButton):
+
+    def __init__(self, parameter):
+        super(NXColorButton, self).__init__()
+        self.parameter = parameter
+        self.parameter.box.editingFinished.connect(self.update_color)
+        self.colorChanged.connect(self.update_text)
+
+    def update_color(self):
+        color = self.text()
+        qcolor = to_qcolor(color)
+        self.color = qcolor  # defaults to black if not qcolor.isValid()
+
+    def update_text(self, color):
+        self.parameter.value = color.name()
+
+    def text(self):
+        return self.parameter.value
 
 
 def keep_data(data):
