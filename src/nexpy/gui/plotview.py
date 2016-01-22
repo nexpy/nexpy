@@ -239,6 +239,7 @@ class NXPlotView(QtGui.QDialog):
         self.colorbar = None
         self.zoom = None
         self.aspect = 'auto'
+        self.skew = None
         self._grid = False
         
         self.setWindowTitle(self.label)
@@ -247,7 +248,8 @@ class NXPlotView(QtGui.QDialog):
         plotviews[self.label] = self
         self.plotviews = plotviews
 
-        self.panel = None
+        self.projection_panel = None
+        self.customize_panel = None
 
         if self.label != "Main":
             self.add_menu_action()
@@ -423,6 +425,7 @@ class NXPlotView(QtGui.QDialog):
             self.replot_axes(draw=False)
         else:
             self.aspect = 'auto'
+        self.skew = None
 
         self.offsets = False
 
@@ -1077,8 +1080,10 @@ class NXPlotView(QtGui.QDialog):
                 self.tab_widget.removeTab(self.tab_widget.indexOf(self.vtab))
             else:
                 self.vtab.flipbox.setVisible(False)
-        if self.panel:
-            self.panel.close()
+        if self.projection_panel:
+            self.projection_panel.close()
+        if self.customize_panel:
+            self.customize_panel.close()
 
     def update_tabs(self):
         self.xtab.set_range()
@@ -1135,8 +1140,8 @@ class NXPlotView(QtGui.QDialog):
             self.vtab.set_axis(self.vaxis)
             self.ztab.locked = True
             self.replot_data(newaxis=True)
-            if self.panel:
-                self.panel.update_limits()
+            if self.projection_panel:
+                self.projection_panel.update_limits()
         self.otab.update()
 
     def format_coord(self, x, y):
@@ -1160,8 +1165,10 @@ class NXPlotView(QtGui.QDialog):
         Gcf.destroy(self.number)
         if self.label in plotviews:
             del plotviews[self.label]
-        if self.panel:
-            self.panel.close()
+        if self.projection_panel:
+            self.projection_panel.close()
+        if self.customize_panel:
+            self.customize_panel.close()
         from nexpy.gui.consoleapp import _mainwindow
         if _mainwindow.panels.tabs.count() == 0:
             _mainwindow.panels.setVisible(False)
@@ -2042,13 +2049,15 @@ class NXProjectionTab(QtGui.QWidget):
         _mainwindow.panels.update()
 
     def open_panel(self):
-        if not self.plotview.panel:
-            self.plotview.panel = NXProjectionPanel(plotview=self.plotview)
-            self.plotview.panel.update_limits()
-        self.plotview.panel.window.setVisible(True)
-        self.plotview.panel.window.tabs.setCurrentWidget(self.plotview.panel)
-        self.plotview.panel.window.update()
-        self.plotview.panel.window.raise_()
+        if not self.plotview.projection_panel:
+            self.plotview.projection_panel = NXProjectionPanel(
+                                                 plotview=self.plotview)
+            self.plotview.projection_panel.update_limits()
+        self.plotview.projection_panel.window.setVisible(True)
+        self.plotview.projection_panel.window.tabs.setCurrentWidget(
+                                                 self.plotview.projection_panel)
+        self.plotview.projection_panel.window.update()
+        self.plotview.projection_panel.window.raise_()
 
 
 class NXProjectionPanels(QtGui.QDialog):
@@ -2436,7 +2445,7 @@ class NXProjectionPanel(QtGui.QWidget):
         self.plotview.canvas.draw()
         self.rectangle = None
         self.window.tabs.removeTab(self.window.tabs.indexOf(self))
-        self.plotview.panel = None
+        self.plotview.projection_panel = None
         self.deleteLater()
         self.window.update()
 
@@ -2480,8 +2489,8 @@ class NXNavigationToolbar(NavigationToolbar):
         self.plotview.reset_plot_limits(autoscale)
 
     def edit_parameters(self):
-        self.plotview.customize_dialog = CustomizeDialog(self.plotview, parent=self)
-        self.plotview.customize_dialog.show()
+        self.plotview.customize_panel = CustomizeDialog(self.plotview, parent=self)
+        self.plotview.customize_panel.show()
 
     def add_data(self):
         keep_data(self.plotview.plotdata)
@@ -2500,8 +2509,8 @@ class NXNavigationToolbar(NavigationToolbar):
         if event.button == 1:
             self.plotview.zoom = {'x': (xdim, xmin, xmax), 
                                   'y': (ydim, ymin, ymax)}
-            if self.plotview.panel:
-                self.plotview.panel.update_limits()
+            if self.plotview.projection_panel:
+                self.plotview.projection_panel.update_limits()
             elif self.plotview.label != "Projection":
                 self.plotview.tab_widget.setCurrentWidget(self.plotview.ptab)
 
@@ -2511,8 +2520,8 @@ class NXNavigationToolbar(NavigationToolbar):
         ymin, ymax = self.plotview.ax.get_ylim()
         self.plotview.xtab.set_limits(xmin, xmax)
         self.plotview.ytab.set_limits(ymin, ymax)
-        if self.plotview.panel:
-            self.plotview.panel.update_limits()            
+        if self.plotview.projection_panel:
+            self.plotview.projection_panel.update_limits()            
 
     def _update_view(self):
         super(NXNavigationToolbar, self)._update_view()
@@ -2606,12 +2615,12 @@ class CustomizeDialog(BaseDialog):
                 else:
                     pc.widget.setVisible(False)
             curve_grids.setLayout(curve_layout)
-            self.set_layout(pl.grid(title='Plot Parameters', header=False),
+            self.set_layout(pl.grid(header=False),
                             curve_grids,
                             self.action_buttons(('Apply', self.apply)),
                             self.close_buttons(save=True))
             self.add_color_buttons()
-        self.set_title('Customize Plot')
+        self.set_title('Customize %s' % self.plotview.label)
 
     def image_parameters(self):
         parameters = GridParameters()
@@ -2696,6 +2705,8 @@ class CustomizeDialog(BaseDialog):
             pi = self.parameters['image']
             self.plotview.aspect = pi['aspect'].value
             self.plotview.skew = pi['skew'].value
+            #reset in case plotview.aspect changed by plotview.skew
+            pi['aspect'].value = self.plotview.aspect
             if pi['grid'].value == 'On':
                 self.plotview.grid(display=True)
             else:
