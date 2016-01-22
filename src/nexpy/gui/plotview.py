@@ -36,6 +36,7 @@ from matplotlib.patches import Circle, Ellipse, Rectangle, Polygon
 from matplotlib.transforms import nonsingular
 from mpl_toolkits.axisartist.grid_helper_curvelinear import GridHelperCurveLinear
 from mpl_toolkits.axisartist import Subplot
+from mpl_toolkits.axisartist.grid_finder import MaxNLocator
 
 from nexusformat.nexus import NXfield, NXdata, NXroot, NeXusError
 
@@ -58,6 +59,7 @@ interpolations = ['nearest', 'bilinear', 'bicubic', 'spline16', 'spline36',
 linestyles = {'-': 'Solid', '--': 'Dashed', '-.': 'DashDot', ':': 'Dotted',
               'none': 'None', 'None': 'None'}
 markers = markers.MarkerStyle.markers
+locator = MaxNLocator(nbins=9, steps=[1, 2, 5, 10], integer=True)
 
 
 def report_error(context, error):
@@ -202,7 +204,9 @@ class NXPlotView(QtGui.QDialog):
 
         self._skew_angle = None
         self.grid_helper = GridHelperCurveLinear((self.transform, 
-                                                  self.inverse_transform))
+                                                  self.inverse_transform),
+                                                  grid_locator1=locator,
+                                                  grid_locator2=locator)
         
         vbox = QtGui.QVBoxLayout()
         vbox.addWidget(self.canvas)
@@ -844,7 +848,9 @@ class NXPlotView(QtGui.QDialog):
         if self.skew is not None and self.aspect == 'auto':
             self.aspect = 'equal'
         self.grid_helper = GridHelperCurveLinear((self.transform, 
-                                                  self.inverse_transform))
+                                                  self.inverse_transform),
+                                                  grid_locator1=locator,
+                                                  grid_locator2=locator)
         if self.image is not None:
             self.replot_data(newaxis=True)
 
