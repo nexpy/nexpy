@@ -1092,6 +1092,8 @@ class NXPlotView(QtGui.QDialog):
             self.vtab.set_range()
             self.vtab.set_limits(self.vaxis.lo, self.vaxis.hi)
             self.vtab.set_sliders(self.vaxis.lo, self.vaxis.hi)
+        if self.customize_panel:
+            self.customize_panel.update()
 
     def change_axis(self, tab, axis):
         """Replace the axis in a plot tab"""
@@ -1145,7 +1147,7 @@ class NXPlotView(QtGui.QDialog):
             if self.projection_panel:
                 self.projection_panel.update_limits()
         if self.customize_panel:
-            self.customize_panel.close()
+            self.customize_panel.update()
         self.otab.update()
 
     def format_coord(self, x, y):
@@ -2593,35 +2595,27 @@ class CustomizeDialog(BaseDialog):
         pl['ylabel'].box.setMinimumWidth(200)
         if self.plotview.image is not None:
             image_grid = QtGui.QVBoxLayout()
-            self.parameters['image'] = self.image_parameters()      
+            self.parameters['image'] = self.image_parameters()  
+            self.update_image_parameters()    
             image_grid.addLayout(self.parameters['image'].grid_layout)
             self.set_layout(pl.grid(header=False),
                             image_grid,
                             self.close_buttons())
         else:
-            lines = self.plotview.ax.get_lines()
-            labels = [line.get_label() for line in lines]
-            self.curves = dict(zip(labels, lines))
-            curve_grids = QtGui.QWidget(parent=self)
-            curve_layout = QtGui.QVBoxLayout()
-            curve_layout.setContentsMargins(0, 20, 0, 0)
+            self.curves = self.get_curves()
+            self.curve_grids = QtGui.QWidget(parent=self)
+            self.curve_layout = QtGui.QVBoxLayout()
+            self.curve_layout.setContentsMargins(0, 20, 0, 0)
             self.curve_box = self.select_box(list(self.curves), 
                                              slot=self.select_curve)
-            curve_layout.addWidget(self.curve_box)
+            self.curve_layout.addWidget(self.curve_box)
             for curve in self.curves:
-                pc = self.parameters[curve] = self.curve_parameters(curve)
-                self.set_curve_parameters(curve)
-                pc.widget = QtGui.QWidget(parent=curve_grids)
-                pc.widget.setLayout(pc.grid(header=False))
-                pc.widget.setVisible(False)
-                curve_layout.addWidget(pc.widget)
-                if curve == self.curve:
-                    pc.widget.setVisible(True)
-                else:
-                    pc.widget.setVisible(False)
-            curve_grids.setLayout(curve_layout)
+                self.parameters[curve] = self.curve_parameters(curve)
+                self.update_curve_parameters(curve)
+                self.initialize_curve(curve)
+            self.curve_grids.setLayout(self.curve_layout)
             self.set_layout(pl.grid(header=False),
-                            curve_grids,
+                            self.curve_grids,
                             self.close_buttons())
             self.add_color_buttons()
         self.set_title('Customize %s' % self.plotview.label)
@@ -2638,40 +2632,70 @@ class CustomizeDialog(BaseDialog):
         buttonbox.button(QtGui.QDialogButtonBox.Apply).setDefault(True)
         return buttonbox
 
+    def update(self):
+        self.update_labels()
+        if self.plotview.image is not None:
+            self.update_image_parameters()
+        else:
+            self.update_curves()
+            for curve in self.curves:
+                self.update_curve_parameters(curve)
+            self.add_color_buttons()
+
+    def update_labels(self):
+        pl = self.parameters['labels']
+        pl['title'].value = plotview.title
+        pl['xlabel'].value = plotview.xaxis.label
+        pl['ylabel'].value = plotview.yaxis.label
+
     def image_parameters(self):
         parameters = GridParameters()
-        parameters.add('aspect', plotview.aspect, 'Aspect Ratio')
-        parameters.add('skew', plotview.skew, 'Skew Angle')
-        if plotview.skew is None:
-            parameters['skew'].value = 90.0
+        parameters.add('aspect', 'auto', 'Aspect Ratio')
+        parameters.add('skew', 90.0, 'Skew Angle')
         parameters.add('grid', ['On', 'Off'], 'Grid')
-        if self.plotview._grid:
-            parameters['grid'].value = 'On'
-        else:
-            parameters['grid'].value = 'Off'
         parameters.grid(title='Image Parameters', header=False)
         return parameters
 
-    def set_image_parameters(self):
+    def update_image_parameters(self):
         p = self.parameters['image']
-        p['gridstyle'].value = linestyles[c.get_linestyle()]
-        p['linewidth'].value = c.get_linewidth()
-        p['linecolor'].value = rgb2hex(colorConverter.to_rgb(c.get_color()))
-        p['linecolor'].color_button = NXColorButton(p['linecolor'])
-        p['linecolor'].color_button.set_color(to_qcolor(c.get_color()))
-        p['marker'].value = markers[c.get_marker()]
-        p['markersize'].value = c.get_markersize()
-        p['facecolor'].value = rgb2hex(colorConverter.to_rgb(c.get_markerfacecolor()))
-        p['facecolor'].color_button = NXColorButton(p['facecolor'])
-        p['facecolor'].color_button.set_color(to_qcolor(c.get_markerfacecolor()))
-        p['edgecolor'].value = rgb2hex(colorConverter.to_rgb(c.get_markeredgecolor()))
-        p['edgecolor'].color_button = NXColorButton(p['edgecolor'])
-        p['edgecolor'].color_button.set_color(to_qcolor(c.get_markeredgecolor()))
-
+        p['aspect'].value = self.plotview.aspect
+        p['skew'].value = self.plotview.skew
+        if self.plotview.skew is None:
+            p['skew'].value = 90.0
+        if self.plotview._grid:
+            p['grid'].value = 'On'
+        else:
+            p['grid'].value = 'Off'
 
     @property
     def curve(self):
         return self.curve_box.currentText()
+
+    def get_curves(self):
+        lines = self.plotview.ax.get_lines()
+        labels = [line.get_label() for line in lines]
+        return dict(zip(labels, lines))
+        
+    def update_curves(self):
+        curves = self.get_curves()
+        new_curves = list(set(curves.keys()) - set(self.curves.keys()))
+        for curve in new_curves:
+            self.curves[curve] = curves[curve]
+            self.parameters[curve] = self.curve_parameters(curve)
+            self.update_curve_parameters(curve)
+            self.initialize_curve(curve)
+            self.curve_box.addItem(curve)
+
+    def initialize_curve(self, curve):
+        pc = self.parameters[curve]
+        pc.widget = QtGui.QWidget(parent=self.curve_grids)
+        pc.widget.setLayout(pc.grid(header=False))
+        pc.widget.setVisible(False)
+        self.curve_layout.addWidget(pc.widget)
+        if curve == self.curve:
+            pc.widget.setVisible(True)
+        else:
+            pc.widget.setVisible(False)
 
     def curve_parameters(self, curve):
         parameters = GridParameters()
@@ -2685,7 +2709,7 @@ class CustomizeDialog(BaseDialog):
         parameters.grid(title='Curve Parameters', header=False)
         return parameters
 
-    def set_curve_parameters(self, curve):    
+    def update_curve_parameters(self, curve):    
         c, p = self.curves[curve], self.parameters[curve]
         p['linestyle'].value = linestyles[c.get_linestyle()]
         p['linewidth'].value = c.get_linewidth()
