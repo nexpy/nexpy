@@ -333,12 +333,16 @@ class NXPlotView(QtGui.QDialog):
             This dictionary can contain any valid matplotlib options.
         """
 
+        mpl.interactive(False)
+
         over = opts.pop("over", False)
         image = opts.pop("image", False)
         log = opts.pop("log", False)
         logx = opts.pop("logx", False)
         logy = opts.pop("logy", False)
         cmap = opts.pop("cmap", None)
+        self._aspect = opts.pop("aspect", "auto")
+        self._skew_angle = opts.pop("skew", None)
 
         self.data = data
         self.title = data.nxtitle
@@ -406,7 +410,7 @@ class NXPlotView(QtGui.QDialog):
                 self.vtab.logbox.setChecked(True)
             else:
                 self.vtab.logbox.setChecked(False)
- 
+
             self.plot_image(over, **opts)
 
         self.limits = (self.xaxis.min, self.xaxis.max,
@@ -418,14 +422,12 @@ class NXPlotView(QtGui.QDialog):
             self.init_tabs()
 
         if self.rgb_image:
-            self.aspect = 'equal'
             self.ytab.flipped = True
             self.replot_axes(draw=False)
+            if self.aspect == 'auto':
+                self.aspect = 'equal'
         elif self.xaxis.reversed or self.yaxis.reversed:
             self.replot_axes(draw=False)
-        else:
-            self.aspect = 'auto'
-        self.skew = None
 
         self.offsets = False
 
@@ -509,8 +511,6 @@ class NXPlotView(QtGui.QDialog):
     
     def plot_points(self, fmt, over=False, **opts):
 
-        mpl.interactive(False)
-        
         if not over: 
             self.figure.clf()
         ax = self.figure.gca()
@@ -582,8 +582,6 @@ class NXPlotView(QtGui.QDialog):
 
     def plot_image(self, over=False, **opts):
 
-        mpl.interactive(False)
-
         self.x, self.y, self.v = self.get_image()
 
         self.set_data_limits()
@@ -609,9 +607,6 @@ class NXPlotView(QtGui.QDialog):
             bottom, top = self.yaxis.min, self.yaxis.max
         extent = (left, right, bottom, top)
 
-        if 'aspect' in opts:
-            self.aspect = opts['aspect']
-            del opts['aspect']
         if (self.rgb_image or self.equally_spaced) and self.skew is None:
             opts['origin'] = 'lower'
             if 'interpolation' not in opts:
@@ -712,6 +707,7 @@ class NXPlotView(QtGui.QDialog):
             self.x, self.y, self.v = self.get_image()
             self.image.set_array(self.v.ravel())
             self.replot_image()
+        self.grid(display=self._grid)
 
     def replot_image(self):
         try:
@@ -816,23 +812,23 @@ class NXPlotView(QtGui.QDialog):
         self.update_tabs()
 
     def _aspect(self):
-        return self._aspect_value
+        return self._aspect
         
     def _set_aspect(self, aspect):
         if aspect == 'auto':
-            self._aspect_value = 'auto'
+            self._aspect = 'auto'
             self.otab._actions['set_aspect'].setChecked(False)
         elif aspect == 'equal':
-            self._aspect_value = 'equal'
+            self._aspect = 'equal'
             self.otab._actions['set_aspect'].setChecked(True)
         else:
             try:
-                self._aspect_value = float(aspect)
+                self._aspect = float(aspect)
                 self.otab._actions['set_aspect'].setChecked(True)
             except ValueError:
                 return
         try:
-            plotview.ax.set_aspect(self._aspect_value)
+            plotview.ax.set_aspect(self._aspect)
             self.canvas.draw()
         except:
             pass
@@ -1107,6 +1103,8 @@ class NXPlotView(QtGui.QDialog):
             self.ytab.set_axis(self.yaxis)
             self.vtab.set_axis(self.vaxis)
             self.limits = (ymin, ymax, xmin, xmax)
+            if self.aspect is not 'auto' and self.aspect is not 'equal':
+                self.aspect = 1.0 / self.aspect
             self.replot_data(newaxis=True)
         elif tab == self.ytab and axis == self.xaxis:
             self.xaxis = self.xtab.axis = self.ytab.axis
@@ -1115,6 +1113,8 @@ class NXPlotView(QtGui.QDialog):
             self.ytab.set_axis(self.yaxis)
             self.vtab.set_axis(self.vaxis)
             self.limits = (ymin, ymax, xmin, xmax)
+            if self.aspect is not 'auto' and self.aspect is not 'equal':
+                self.aspect = 1.0 / self.aspect
             self.replot_data(newaxis=True)
         elif tab == self.ztab:
             self.zaxis = self.ztab.axis = axis
@@ -1139,9 +1139,13 @@ class NXPlotView(QtGui.QDialog):
             self.ztab.set_axis(self.zaxis)
             self.vtab.set_axis(self.vaxis)
             self.ztab.locked = True
+            self.aspect = 'auto'
+            self.skew = None
             self.replot_data(newaxis=True)
             if self.projection_panel:
                 self.projection_panel.update_limits()
+        if self.customize_panel:
+            self.customize_panel.close()
         self.otab.update()
 
     def format_coord(self, x, y):
@@ -2207,6 +2211,8 @@ class NXProjectionPanel(QtGui.QWidget):
         button_layout = QtGui.QHBoxLayout()
         self.rectangle_button = QtGui.QPushButton("Hide Rectangle", self)
         self.rectangle_button.clicked.connect(self.show_rectangle)
+        self.rectangle_button.setDefault(False)
+        self.rectangle_button.setAutoDefault(False)
         self.close_button = QtGui.QPushButton("Close Panel", self)
         self.close_button.clicked.connect(self.close)
         self.close_button.setDefault(False)
@@ -2591,8 +2597,7 @@ class CustomizeDialog(BaseDialog):
             image_grid.addLayout(self.parameters['image'].grid_layout)
             self.set_layout(pl.grid(header=False),
                             image_grid,
-                            self.action_buttons(('Apply', self.apply)),
-                            self.close_buttons(save=True))
+                            self.close_buttons())
         else:
             lines = self.plotview.ax.get_lines()
             labels = [line.get_label() for line in lines]
@@ -2617,10 +2622,21 @@ class CustomizeDialog(BaseDialog):
             curve_grids.setLayout(curve_layout)
             self.set_layout(pl.grid(header=False),
                             curve_grids,
-                            self.action_buttons(('Apply', self.apply)),
-                            self.close_buttons(save=True))
+                            self.close_buttons())
             self.add_color_buttons()
         self.set_title('Customize %s' % self.plotview.label)
+
+    def close_buttons(self):
+        buttonbox = QtGui.QDialogButtonBox(self)
+        buttonbox.setOrientation(QtCore.Qt.Horizontal)
+        buttonbox.setStandardButtons(QtGui.QDialogButtonBox.Apply|
+                                     QtGui.QDialogButtonBox.Cancel|
+                                     QtGui.QDialogButtonBox.Save)
+        buttonbox.accepted.connect(self.accept)
+        buttonbox.rejected.connect(self.reject)
+        buttonbox.button(QtGui.QDialogButtonBox.Apply).clicked.connect(self.apply)
+        buttonbox.button(QtGui.QDialogButtonBox.Apply).setDefault(True)
+        return buttonbox
 
     def image_parameters(self):
         parameters = GridParameters()
