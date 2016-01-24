@@ -491,7 +491,10 @@ and sliders.
     * **Save** - saves plot to PNG file.
     * **Add** - adds plotted data to the tree pane as an NXdata group within the
       scratch workspace 'w0'.
-    * **Edit** - allows marker and line formatting to be modified.
+    * **Edit** - opens dialog to customize both image and point plots. Use this
+      to change the title and axis labels, modify the image aspect ratio and 
+      skew angles, turn axis grids on or off, or modify the point plot markers 
+      and lines.
 
     On the far right of the toolbar, the data and axis values are dynamically 
     updated to the values under the current mouse location.
@@ -526,6 +529,16 @@ and sliders.
   function, *i.e.*, 'auto', 'equal', or the numerical value of the 
   ratio between the height and the width (if the units are identical). The 
   'Aspect' button (see above) toggles between 'auto' and 'equal'.
+
+* Set Skew Angle::
+
+    >>> plotview.skew = <angle>
+
+  This sets the angle between the x and y-axes in degrees. If set to ``None``,
+  the axes are plotted as orthogonal. If ``plotview.aspect`` is currently set to 
+  'auto', this command will automatically set it to 1.0 (equivalent to 'equal'),
+  *i.e.*, assuming the units of the x and y-axes are the same. If they are not, 
+  ``plotview.aspect`` should be set to the ratio of their units.
 
 * Set Offsets::
 
@@ -572,6 +585,15 @@ and sliders.
   properties, *etc*. See the `Matplotlib documentation 
   <http://matplotlib.org/api/patches_api.html#matplotlib.patches.Polygon>`_
   for more details.
+
+* Draw Grid:
+
+    >>> plotview.grid(True|False)
+
+  Draws grid lines at the major tick values. Additional keyword arguments can be
+  given to modify the color, linestyle, *etc*, using the standard `Matplotlib 
+  conventions 
+  <http://matplotlib.org/api/axes_api.html?highlight=grid#matplotlib.axes.Axes.grid>`_.
 
 Fitting NeXus Data
 ------------------
