@@ -10,7 +10,7 @@
 #-----------------------------------------------------------------------------
 
 import numpy as np
-from lmfit import minimize, Parameters, Parameter, fit_report
+from lmfit import minimize, Parameters, Parameter, fit_report, __version__
 
 from nexusformat.nexus import NXdata, NXparameters, NeXusError
 
@@ -69,6 +69,9 @@ class Fit(object):
         self.result = minimize(self.residuals, self.parameters)
         for f in self.functions:
             for p in f.parameters:
+                if __version__ > '0.8.3':
+                    p.init_value = p.value
+                    p.value = self.result.params[p.name].value
                 p.name = p.original_name
 
     def fit_report(self):
