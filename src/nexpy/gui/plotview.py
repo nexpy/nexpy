@@ -626,7 +626,9 @@ class NXPlotView(QtGui.QDialog):
 
         ax.set_xlim(xlo, xhi)
         ax.set_ylim(ylo, yhi)
-      
+
+        ax.grid(self._grid, color='w')
+
         ax.set_xlabel(self.xaxis.label)
         ax.set_ylabel(self.yaxis.label)
         ax.set_title(self.title)
