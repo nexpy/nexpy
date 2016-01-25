@@ -202,12 +202,6 @@ class NXPlotView(QtGui.QDialog):
         else:
             self.label = "Figure %d" % self.number
 
-        self._skew_angle = None
-        self.grid_helper = GridHelperCurveLinear((self.transform, 
-                                                  self.inverse_transform),
-                                                  grid_locator1=locator,
-                                                  grid_locator2=locator)
-        
         vbox = QtGui.QVBoxLayout()
         vbox.addWidget(self.canvas)
 
@@ -230,6 +224,8 @@ class NXPlotView(QtGui.QDialog):
         vbox.addWidget(self.tab_widget)
         self.setLayout(vbox)
 
+        self.setWindowTitle(self.label)
+
         self.num = 0
         self.axis = {}
         self.xaxis = self.yaxis = self.zaxis = None
@@ -238,12 +234,15 @@ class NXPlotView(QtGui.QDialog):
         self.image = None
         self.colorbar = None
         self.zoom = None
-        self.aspect = 'auto'
-        self.skew = None
+        self._aspect = 'auto'
+        self._skew_angle = None
         self._grid = False
-        
-        self.setWindowTitle(self.label)
 
+        self.grid_helper = GridHelperCurveLinear((self.transform, 
+                                                  self.inverse_transform),
+                                                  grid_locator1=locator,
+                                                  grid_locator2=locator)
+                
         plotview = self
         plotviews[self.label] = self
         self.plotviews = plotviews
@@ -258,10 +257,6 @@ class NXPlotView(QtGui.QDialog):
         #Initialize the plotting window with a token plot
         self.plot(NXdata(signal=NXfield([0,1], name='y'), 
                   axes=NXfield([0,1], name='x')), fmt='wo', mec='w')
-
-#        self.grid_cb = QtGui.QCheckBox("Show &Grid")
-#        self.grid_cb.setChecked(False)
-#        self.grid_cb.stateChanged.connect(self.on_draw)
 
     def __repr__(self):
         return 'NXPlotView("%s")' % self.label
@@ -832,6 +827,8 @@ class NXPlotView(QtGui.QDialog):
             self.canvas.draw()
         except:
             pass
+        self.update_customize_panel()
+
 
     aspect = property(_aspect, _set_aspect, "Property: Aspect ratio value")
 
@@ -852,6 +849,7 @@ class NXPlotView(QtGui.QDialog):
                                                   grid_locator2=locator)
         if self.image is not None:
             self.replot_data(newaxis=True)
+            self.update_customize_panel()
 
     skew = property(_skew, _set_skew, "Property: Axis skew angle")
 
@@ -926,6 +924,7 @@ class NXPlotView(QtGui.QDialog):
             opts['color'] = 'w'
         self.ax.grid(self._grid, **opts)
         self.draw()
+        self.update_customize_panel()
 
     def vline(self, x, y=None, ymin=None, ymax=None, **opts):
         if ymin is None:
@@ -1092,8 +1091,7 @@ class NXPlotView(QtGui.QDialog):
             self.vtab.set_range()
             self.vtab.set_limits(self.vaxis.lo, self.vaxis.hi)
             self.vtab.set_sliders(self.vaxis.lo, self.vaxis.hi)
-        if self.customize_panel:
-            self.customize_panel.update()
+        self.update_customize_panel()
 
     def change_axis(self, tab, axis):
         """Replace the axis in a plot tab"""
@@ -1146,9 +1144,12 @@ class NXPlotView(QtGui.QDialog):
             self.replot_data(newaxis=True)
             if self.projection_panel:
                 self.projection_panel.update_limits()
+        self.update_customize_panel()
+        self.otab.update()
+
+    def update_customize_panel(self):
         if self.customize_panel:
             self.customize_panel.update()
-        self.otab.update()
 
     def format_coord(self, x, y):
         try:
@@ -2617,7 +2618,7 @@ class CustomizeDialog(BaseDialog):
             self.set_layout(pl.grid(header=False),
                             self.curve_grids,
                             self.close_buttons())
-            self.add_color_buttons()
+            self.update_colors()
         self.set_title('Customize %s' % self.plotview.label)
 
     def close_buttons(self):
@@ -2640,7 +2641,7 @@ class CustomizeDialog(BaseDialog):
             self.update_curves()
             for curve in self.curves:
                 self.update_curve_parameters(curve)
-            self.add_color_buttons()
+            self.update_colors()
 
     def update_labels(self):
         pl = self.parameters['labels']
@@ -2658,9 +2659,9 @@ class CustomizeDialog(BaseDialog):
 
     def update_image_parameters(self):
         p = self.parameters['image']
-        p['aspect'].value = self.plotview.aspect
-        p['skew'].value = self.plotview.skew
-        if self.plotview.skew is None:
+        p['aspect'].value = self.plotview._aspect
+        p['skew'].value = self.plotview._skew_angle
+        if self.plotview._skew_angle is None:
             p['skew'].value = 90.0
         if self.plotview._grid:
             p['grid'].value = 'On'
@@ -2725,7 +2726,7 @@ class CustomizeDialog(BaseDialog):
         p['edgecolor'].color_button = NXColorButton(p['edgecolor'])
         p['edgecolor'].color_button.set_color(to_qcolor(c.get_markeredgecolor()))
 
-    def add_color_buttons(self):
+    def update_colors(self):
         if self.plotview.image is not None:
             pass
         else:
@@ -2743,14 +2744,16 @@ class CustomizeDialog(BaseDialog):
     def apply(self):
         if self.plotview.image is not None:
             pi = self.parameters['image']
-            self.plotview.aspect = pi['aspect'].value
-            self.plotview.skew = pi['skew'].value
-            #reset in case plotview.aspect changed by plotview.skew
-            pi['aspect'].value = self.plotview.aspect
+            self.plotview._aspect = pi['aspect'].value
+            self.plotview._skew_angle = pi['skew'].value
             if pi['grid'].value == 'On':
-                self.plotview.grid(display=True)
+                self.plotview._grid =True
             else:
-                self.plotview.grid(display=False)
+                self.plotview._grid =False
+            #reset in case plotview.aspect changed by plotview.skew
+            self.plotview.grid(self.plotview._grid)
+            self.plotview.skew = self.plotview._skew_angle
+            self.plotview.aspect = self.plotview._aspect
         else:
             for curve in self.curves:
                 c, pc = self.curves[curve], self.parameters[curve]
