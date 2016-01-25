@@ -626,7 +626,9 @@ class NXPlotView(QtGui.QDialog):
 
         ax.set_xlim(xlo, xhi)
         ax.set_ylim(ylo, yhi)
-      
+
+        ax.grid(self._grid, color='w')
+
         ax.set_xlabel(self.xaxis.label)
         ax.set_ylabel(self.yaxis.label)
         ax.set_title(self.title)
@@ -795,14 +797,15 @@ class NXPlotView(QtGui.QDialog):
         self.yaxis.max = self.yaxis.hi = self.ytab.maxbox.old_value = ymax
         if self.ndim == 1:
             self.replot_axes()
-        elif autoscale:
-            try:
-                self.vaxis.min = self.vaxis.lo = np.nanmin(self.v[self.v>-np.inf])
-                self.vaxis.max = self.vaxis.hi = np.nanmax(self.v[self.v<np.inf])
-            except:
-                self.vaxis.min = self.vaxis.lo = 0.0
-                self.vaxis.max = self.vaxis.hi = 0.1
-            self.vtab.set_axis(self.vaxis)
+        else:
+            if autoscale:
+                try:
+                    self.vaxis.min = self.vaxis.lo = np.nanmin(self.v[self.v>-np.inf])
+                    self.vaxis.max = self.vaxis.hi = np.nanmax(self.v[self.v<np.inf])
+                except:
+                    self.vaxis.min = self.vaxis.lo = 0.0
+                    self.vaxis.max = self.vaxis.hi = 0.1
+                self.vtab.set_axis(self.vaxis)
             self.replot_image()
         self.update_tabs()
 
@@ -828,7 +831,6 @@ class NXPlotView(QtGui.QDialog):
         except:
             pass
         self.update_customize_panel()
-
 
     aspect = property(_aspect, _set_aspect, "Property: Aspect ratio value")
 
@@ -2779,7 +2781,20 @@ class CustomizeDialog(BaseDialog):
 
     def accept(self):
         self.apply()
+        self.plotview.customize_panel = None
         super(CustomizeDialog, self).accept()
+
+    def reject(self):
+        self.plotview.customize_panel = None
+        super(CustomizeDialog, self).reject()
+
+    def closeEvent(self, event):
+        self.close()
+
+    def close(self):
+        self.plotview.customize_panel = None
+        super(CustomizeDialog, self).close()
+        self.deleteLater()
 
 
 class NXColorButton(ColorButton):
