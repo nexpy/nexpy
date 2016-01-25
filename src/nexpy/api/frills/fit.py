@@ -69,10 +69,12 @@ class Fit(object):
                 self.parameters[f.name+p.name] = p
                 if p.value is None:
                     p.value = 1.0
+                p.init_value = p.value
         self.result = minimize(self.residuals, self.parameters)
         if __version__ > '0.8.3':
             for parameter in self.parameters:
-                self.parameters[parameter].value = self.result.params[parameter].value
+                self.parameters[parameter].value = \
+                    self.result.params[parameter].value
         for f in self.functions:
             for p in f.parameters:
                 p.name = p.original_name
