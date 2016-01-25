@@ -829,7 +829,6 @@ class NXPlotView(QtGui.QDialog):
             pass
         self.update_customize_panel()
 
-
     aspect = property(_aspect, _set_aspect, "Property: Aspect ratio value")
 
     def _skew(self):
@@ -2779,7 +2778,20 @@ class CustomizeDialog(BaseDialog):
 
     def accept(self):
         self.apply()
+        self.plotview.customize_panel = None
         super(CustomizeDialog, self).accept()
+
+    def reject(self):
+        self.plotview.customize_panel = None
+        super(CustomizeDialog, self).reject()
+
+    def closeEvent(self, event):
+        self.close()
+
+    def close(self):
+        self.plotview.customize_panel = None
+        super(CustomizeDialog, self).close()
+        self.deleteLater()
 
 
 class NXColorButton(ColorButton):
