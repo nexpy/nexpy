@@ -10,7 +10,7 @@
 #-----------------------------------------------------------------------------
 
 import numpy as np
-from lmfit import minimize, Parameters, Parameter, fit_report
+from lmfit import minimize, Parameters, Parameter, fit_report, __version__
 
 from nexusformat.nexus import NXdata, NXparameters, NeXusError
 
@@ -52,6 +52,9 @@ class Fit(object):
         return model
 
     def residuals(self, parameters):
+        if __version__ > '0.8.3':
+            for parameter in parameters:
+                self.parameters[parameter].value = parameters[parameter].value
         if self.e is not None:
              return (self.y - self.get_model()) / self.e
         else:
@@ -66,7 +69,12 @@ class Fit(object):
                 self.parameters[f.name+p.name] = p
                 if p.value is None:
                     p.value = 1.0
+                p.init_value = p.value
         self.result = minimize(self.residuals, self.parameters)
+        if __version__ > '0.8.3':
+            for parameter in self.parameters:
+                self.parameters[parameter].value = \
+                    self.result.params[parameter].value
         for f in self.functions:
             for p in f.parameters:
                 p.name = p.original_name
