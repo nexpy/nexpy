@@ -797,14 +797,15 @@ class NXPlotView(QtGui.QDialog):
         self.yaxis.max = self.yaxis.hi = self.ytab.maxbox.old_value = ymax
         if self.ndim == 1:
             self.replot_axes()
-        elif autoscale:
-            try:
-                self.vaxis.min = self.vaxis.lo = np.nanmin(self.v[self.v>-np.inf])
-                self.vaxis.max = self.vaxis.hi = np.nanmax(self.v[self.v<np.inf])
-            except:
-                self.vaxis.min = self.vaxis.lo = 0.0
-                self.vaxis.max = self.vaxis.hi = 0.1
-            self.vtab.set_axis(self.vaxis)
+        else:
+            if autoscale:
+                try:
+                    self.vaxis.min = self.vaxis.lo = np.nanmin(self.v[self.v>-np.inf])
+                    self.vaxis.max = self.vaxis.hi = np.nanmax(self.v[self.v<np.inf])
+                except:
+                    self.vaxis.min = self.vaxis.lo = 0.0
+                    self.vaxis.max = self.vaxis.hi = 0.1
+                self.vtab.set_axis(self.vaxis)
             self.replot_image()
         self.update_tabs()
 
