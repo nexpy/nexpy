@@ -52,6 +52,9 @@ class Fit(object):
         return model
 
     def residuals(self, parameters):
+        if __version__ > '0.8.3':
+            for parameter in parameters:
+                self.parameters[parameter].value = parameters[parameter].value
         if self.e is not None:
              return (self.y - self.get_model()) / self.e
         else:
@@ -67,11 +70,11 @@ class Fit(object):
                 if p.value is None:
                     p.value = 1.0
         self.result = minimize(self.residuals, self.parameters)
+        if __version__ > '0.8.3':
+            for parameter in self.parameters:
+                self.parameters[parameter].value = self.result.params[parameter].value
         for f in self.functions:
             for p in f.parameters:
-                if __version__ > '0.8.3':
-                    p.init_value = p.value
-                    p.value = self.result.params[p.name].value
                 p.name = p.original_name
 
     def fit_report(self):
