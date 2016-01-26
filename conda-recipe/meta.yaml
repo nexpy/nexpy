@@ -3,8 +3,8 @@ package:
   version: "0.7.0"
 
 source:
-  git_url: https://github.com/rayosborn/nexpy.git
-  git_tag: conda-installation
+  git_url: https://github.com/nexpy/nexpy.git
+  git_tag: v0.7.0
 
 build:
   entry_points:
