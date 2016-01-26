@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>NeXpy BaseDialog Class &mdash; NeXpy 0.6.5 documentation</title>
+    <title>NeXpy BaseDialog Class &mdash; NeXpy 0.7.0+0.gd3a78e4.dirty documentation</title>
     
     <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.6.5',
+        VERSION:     '0.7.0+0.gd3a78e4.dirty',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -25,7 +25,7 @@
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="shortcut icon" href="_static/favicon.ico"/>
-    <link rel="top" title="NeXpy 0.6.5 documentation" href="index.html" />
+    <link rel="top" title="NeXpy 0.7.0+0.gd3a78e4.dirty documentation" href="index.html" />
     <link rel="next" title="Example data" href="example_data.html" />
     <link rel="prev" title="Adding a File Importer" href="readers.html" /> 
   </head>
@@ -45,7 +45,7 @@
         <li class="right" >
           <a href="readers.html" title="Adding a File Importer"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.6.5 documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.7.0+0.gd3a78e4.dirty documentation</a> &raquo;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -53,7 +53,7 @@
   <h3><a href="index.html">Table Of Contents</a></h3>
   <ul>
 <li><a class="reference internal" href="#">NeXpy BaseDialog Class</a></li>
-<li><a class="reference internal" href="#module-nexpy.gui.importdialog">NeXpy BaseImportDialog Class</a></li>
+<li><a class="reference internal" href="#nexpy-baseimportdialog-class">NeXpy BaseImportDialog Class</a></li>
 </ul>
 
   <h4>Previous topic</h4>
@@ -90,238 +90,11 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <div class="section" id="module-nexpy.gui.datadialogs">
-<span id="nexpy-basedialog-class"></span><h1>NeXpy BaseDialog Class<a class="headerlink" href="#module-nexpy.gui.datadialogs" title="Permalink to this headline">¶</a></h1>
-<dl class="class">
-<dt id="nexpy.gui.datadialogs.BaseDialog">
-<em class="property">class </em><code class="descclassname">nexpy.gui.datadialogs.</code><code class="descname">BaseDialog</code><span class="sig-paren">(</span><em>parent=None</em><span class="sig-paren">)</span><a class="headerlink" href="#nexpy.gui.datadialogs.BaseDialog" title="Permalink to this definition">¶</a></dt>
-<dd><p>Base dialog class for NeXpy dialogs</p>
-<dl class="method">
-<dt id="nexpy.gui.datadialogs.BaseDialog.close_buttons">
-<code class="descname">close_buttons</code><span class="sig-paren">(</span><em>save=False</em><span class="sig-paren">)</span><a class="headerlink" href="#nexpy.gui.datadialogs.BaseDialog.close_buttons" title="Permalink to this definition">¶</a></dt>
-<dd><p>Creates a box containing the standard Cancel and OK buttons.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="nexpy.gui.datadialogs.BaseDialog.buttonbox">
-<code class="descname">buttonbox</code><span class="sig-paren">(</span><em>save=False</em><span class="sig-paren">)</span><a class="headerlink" href="#nexpy.gui.datadialogs.BaseDialog.buttonbox" title="Permalink to this definition">¶</a></dt>
-<dd><p>Creates a box containing the standard Cancel and OK buttons.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="nexpy.gui.datadialogs.BaseDialog.filebox">
-<code class="descname">filebox</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nexpy.gui.datadialogs.BaseDialog.filebox" title="Permalink to this definition">¶</a></dt>
-<dd><p>Creates a text box and button for selecting a file.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="nexpy.gui.datadialogs.BaseDialog.directorybox">
-<code class="descname">directorybox</code><span class="sig-paren">(</span><em>text='Choose Directory'</em><span class="sig-paren">)</span><a class="headerlink" href="#nexpy.gui.datadialogs.BaseDialog.directorybox" title="Permalink to this definition">¶</a></dt>
-<dd><p>Creates a text box and button for selecting a directory.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="nexpy.gui.datadialogs.BaseDialog.choose_file">
-<code class="descname">choose_file</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nexpy.gui.datadialogs.BaseDialog.choose_file" title="Permalink to this definition">¶</a></dt>
-<dd><p>Opens a file dialog and sets the file text box to the chosen path.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="nexpy.gui.datadialogs.BaseDialog.get_filename">
-<code class="descname">get_filename</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nexpy.gui.datadialogs.BaseDialog.get_filename" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the selected file.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="nexpy.gui.datadialogs.BaseDialog.choose_directory">
-<code class="descname">choose_directory</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nexpy.gui.datadialogs.BaseDialog.choose_directory" title="Permalink to this definition">¶</a></dt>
-<dd><p>Opens a file dialog and sets the directory text box to the chosen path.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="nexpy.gui.datadialogs.BaseDialog.get_directory">
-<code class="descname">get_directory</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nexpy.gui.datadialogs.BaseDialog.get_directory" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the selected directory</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="nexpy.gui.datadialogs.BaseDialog.get_default_directory">
-<code class="descname">get_default_directory</code><span class="sig-paren">(</span><em>suggestion=None</em><span class="sig-paren">)</span><a class="headerlink" href="#nexpy.gui.datadialogs.BaseDialog.get_default_directory" title="Permalink to this definition">¶</a></dt>
-<dd><p>return the most recent default directory for open/save dialogs</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="nexpy.gui.datadialogs.BaseDialog.set_default_directory">
-<code class="descname">set_default_directory</code><span class="sig-paren">(</span><em>suggestion</em><span class="sig-paren">)</span><a class="headerlink" href="#nexpy.gui.datadialogs.BaseDialog.set_default_directory" title="Permalink to this definition">¶</a></dt>
-<dd><p>define the default directory to use for open/save dialogs</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="nexpy.gui.datadialogs.BaseDialog.get_filesindirectory">
-<code class="descname">get_filesindirectory</code><span class="sig-paren">(</span><em>prefix=''</em>, <em>extension='.*'</em>, <em>directory=None</em><span class="sig-paren">)</span><a class="headerlink" href="#nexpy.gui.datadialogs.BaseDialog.get_filesindirectory" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns a list of files in the selected directory.</p>
-<p>The files are sorted using a natural sort algorithm that preserves the
-numeric order when a file name consists of text and index so that, e.g., 
-&#8216;data2.tif&#8217; comes before &#8216;data10.tif&#8217;.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="nexpy.gui.datadialogs.BaseDialog.read_parameter">
-<code class="descname">read_parameter</code><span class="sig-paren">(</span><em>root</em>, <em>path</em><span class="sig-paren">)</span><a class="headerlink" href="#nexpy.gui.datadialogs.BaseDialog.read_parameter" title="Permalink to this definition">¶</a></dt>
-<dd><p>Read the value from the NeXus path.</p>
-<p>It will return &#8216;None&#8217; if the path is not valid.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="nexpy.gui.datadialogs.BaseDialog.accept">
-<code class="descname">accept</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nexpy.gui.datadialogs.BaseDialog.accept" title="Permalink to this definition">¶</a></dt>
-<dd><p>Accepts the result.</p>
-<p>This usually needs to be subclassed in each dialog.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="nexpy.gui.datadialogs.BaseDialog.reject">
-<code class="descname">reject</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nexpy.gui.datadialogs.BaseDialog.reject" title="Permalink to this definition">¶</a></dt>
-<dd><p>Cancels the dialog without saving the result.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="nexpy.gui.datadialogs.BaseDialog.update_progress">
-<code class="descname">update_progress</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nexpy.gui.datadialogs.BaseDialog.update_progress" title="Permalink to this definition">¶</a></dt>
-<dd><p>Call the main QApplication.processEvents</p>
-<p>This ensures that GUI items like progress bars get updated</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="nexpy.gui.datadialogs.BaseDialog.get_node">
-<code class="descname">get_node</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nexpy.gui.datadialogs.BaseDialog.get_node" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return the node currently selected in the treeview</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="nexpy.gui.datadialogs.GridParameters">
-<em class="property">class </em><code class="descclassname">nexpy.gui.datadialogs.</code><code class="descname">GridParameters</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#nexpy.gui.datadialogs.GridParameters" title="Permalink to this definition">¶</a></dt>
-<dd><p>A dictionary of parameters to be entered in a dialog box grid.</p>
-<p>All keys must be strings, and valid Python symbol names, and all values
-must be of class GridParameter.</p>
-<dl class="method">
-<dt id="nexpy.gui.datadialogs.GridParameters.add">
-<code class="descname">add</code><span class="sig-paren">(</span><em>name</em>, <em>value=None</em>, <em>label=None</em>, <em>vary=None</em>, <em>slot=None</em>, <em>field=None</em><span class="sig-paren">)</span><a class="headerlink" href="#nexpy.gui.datadialogs.GridParameters.add" title="Permalink to this definition">¶</a></dt>
-<dd><p>Convenience function for adding a Parameter:</p>
-<p>p = Parameters()
-p.add(name, value=XX, ...)</p>
-<p>is equivalent to:
-p[name] = Parameter(name=name, value=XX, ....</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="nexpy.gui.datadialogs.GridParameter">
-<em class="property">class </em><code class="descclassname">nexpy.gui.datadialogs.</code><code class="descname">GridParameter</code><span class="sig-paren">(</span><em>name=None</em>, <em>value=None</em>, <em>label=None</em>, <em>vary=None</em>, <em>slot=None</em><span class="sig-paren">)</span><a class="headerlink" href="#nexpy.gui.datadialogs.GridParameter" title="Permalink to this definition">¶</a></dt>
-<dd><p>A Parameter is an object to be set in a dialog box grid.</p>
-<dl class="method">
-<dt id="nexpy.gui.datadialogs.GridParameter.set">
-<code class="descname">set</code><span class="sig-paren">(</span><em>value=None</em>, <em>vary=None</em><span class="sig-paren">)</span><a class="headerlink" href="#nexpy.gui.datadialogs.GridParameter.set" title="Permalink to this definition">¶</a></dt>
-<dd><p>Set or update Parameter attributes.</p>
-<dl class="docutils">
-<dt>value <span class="classifier-delimiter">:</span> <span class="classifier">float, optional</span></dt>
-<dd>Numerical Parameter value.</dd>
-<dt>vary <span class="classifier-delimiter">:</span> <span class="classifier">bool, optional</span></dt>
-<dd>Whether the Parameter is fixed during a fit.</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="nexpy.gui.datadialogs.PlotDialog">
-<em class="property">class </em><code class="descclassname">nexpy.gui.datadialogs.</code><code class="descname">PlotDialog</code><span class="sig-paren">(</span><em>node</em>, <em>parent=None</em>, <em>fmt='o'</em><span class="sig-paren">)</span><a class="headerlink" href="#nexpy.gui.datadialogs.PlotDialog" title="Permalink to this definition">¶</a></dt>
-<dd><p>Dialog to plot arbitrary NeXus data in one or two dimensions</p>
-</dd></dl>
-
-<dl class="class">
-<dt id="nexpy.gui.datadialogs.LimitDialog">
-<em class="property">class </em><code class="descclassname">nexpy.gui.datadialogs.</code><code class="descname">LimitDialog</code><span class="sig-paren">(</span><em>parent=None</em><span class="sig-paren">)</span><a class="headerlink" href="#nexpy.gui.datadialogs.LimitDialog" title="Permalink to this definition">¶</a></dt>
-<dd><p>Dialog to set plot window limits</p>
-<p>This is useful when it is desired to set the limits outside the data limits.</p>
-</dd></dl>
-
-<dl class="class">
-<dt id="nexpy.gui.datadialogs.AddDialog">
-<em class="property">class </em><code class="descclassname">nexpy.gui.datadialogs.</code><code class="descname">AddDialog</code><span class="sig-paren">(</span><em>node</em>, <em>parent=None</em><span class="sig-paren">)</span><a class="headerlink" href="#nexpy.gui.datadialogs.AddDialog" title="Permalink to this definition">¶</a></dt>
-<dd><p>Dialog to add a NeXus node</p>
-</dd></dl>
-
-<dl class="class">
-<dt id="nexpy.gui.datadialogs.InitializeDialog">
-<em class="property">class </em><code class="descclassname">nexpy.gui.datadialogs.</code><code class="descname">InitializeDialog</code><span class="sig-paren">(</span><em>node</em>, <em>parent=None</em><span class="sig-paren">)</span><a class="headerlink" href="#nexpy.gui.datadialogs.InitializeDialog" title="Permalink to this definition">¶</a></dt>
-<dd><p>Dialog to initialize a NeXus field node</p>
-</dd></dl>
-
-<dl class="class">
-<dt id="nexpy.gui.datadialogs.RenameDialog">
-<em class="property">class </em><code class="descclassname">nexpy.gui.datadialogs.</code><code class="descname">RenameDialog</code><span class="sig-paren">(</span><em>node</em>, <em>parent=None</em><span class="sig-paren">)</span><a class="headerlink" href="#nexpy.gui.datadialogs.RenameDialog" title="Permalink to this definition">¶</a></dt>
-<dd><p>Dialog to rename a NeXus node</p>
-</dd></dl>
-
-<dl class="class">
-<dt id="nexpy.gui.datadialogs.RemoveDialog">
-<em class="property">class </em><code class="descclassname">nexpy.gui.datadialogs.</code><code class="descname">RemoveDialog</code><span class="sig-paren">(</span><em>node</em>, <em>parent=None</em><span class="sig-paren">)</span><a class="headerlink" href="#nexpy.gui.datadialogs.RemoveDialog" title="Permalink to this definition">¶</a></dt>
-<dd><p>Dialog to remove a NeXus node from the tree</p>
-</dd></dl>
-
-<dl class="class">
-<dt id="nexpy.gui.datadialogs.DeleteDialog">
-<em class="property">class </em><code class="descclassname">nexpy.gui.datadialogs.</code><code class="descname">DeleteDialog</code><span class="sig-paren">(</span><em>node</em>, <em>parent=None</em><span class="sig-paren">)</span><a class="headerlink" href="#nexpy.gui.datadialogs.DeleteDialog" title="Permalink to this definition">¶</a></dt>
-<dd><p>Dialog to delete a NeXus node</p>
-</dd></dl>
-
-<dl class="class">
-<dt id="nexpy.gui.datadialogs.SignalDialog">
-<em class="property">class </em><code class="descclassname">nexpy.gui.datadialogs.</code><code class="descname">SignalDialog</code><span class="sig-paren">(</span><em>node</em>, <em>parent=None</em><span class="sig-paren">)</span><a class="headerlink" href="#nexpy.gui.datadialogs.SignalDialog" title="Permalink to this definition">¶</a></dt>
-<dd><p>Dialog to set the signal of NXdata</p>
-</dd></dl>
-
-<dl class="class">
-<dt id="nexpy.gui.datadialogs.LogDialog">
-<em class="property">class </em><code class="descclassname">nexpy.gui.datadialogs.</code><code class="descname">LogDialog</code><span class="sig-paren">(</span><em>parent=None</em><span class="sig-paren">)</span><a class="headerlink" href="#nexpy.gui.datadialogs.LogDialog" title="Permalink to this definition">¶</a></dt>
-<dd><p>Dialog to display a NeXpy log filt</p>
-</dd></dl>
-
+  <div class="section" id="nexpy-basedialog-class">
+<h1>NeXpy BaseDialog Class<a class="headerlink" href="#nexpy-basedialog-class" title="Permalink to this headline">¶</a></h1>
 </div>
-<div class="section" id="module-nexpy.gui.importdialog">
-<span id="nexpy-baseimportdialog-class"></span><h1>NeXpy BaseImportDialog Class<a class="headerlink" href="#module-nexpy.gui.importdialog" title="Permalink to this headline">¶</a></h1>
-<p>Base class for import dialogs</p>
-<dl class="class">
-<dt id="nexpy.gui.importdialog.BaseImportDialog">
-<em class="property">class </em><code class="descclassname">nexpy.gui.importdialog.</code><code class="descname">BaseImportDialog</code><span class="sig-paren">(</span><em>parent=None</em><span class="sig-paren">)</span><a class="headerlink" href="#nexpy.gui.importdialog.BaseImportDialog" title="Permalink to this definition">¶</a></dt>
-<dd><p>Base dialog class for NeXpy import dialogs</p>
-<dl class="method">
-<dt id="nexpy.gui.importdialog.BaseImportDialog.get_data">
-<code class="descname">get_data</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nexpy.gui.importdialog.BaseImportDialog.get_data" title="Permalink to this definition">¶</a></dt>
-<dd><p>Must define this module in each subclass.
-Must define self.import_file as file name</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><code class="xref py py-class docutils literal"><span class="pre">NXroot</span></code> or <code class="xref py py-class docutils literal"><span class="pre">NXentry</span></code> object</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="nexpy.gui.importdialog.BaseImportDialog.accept">
-<code class="descname">accept</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nexpy.gui.importdialog.BaseImportDialog.accept" title="Permalink to this definition">¶</a></dt>
-<dd><p>Completes the data import.</p>
-</dd></dl>
-
-</dd></dl>
-
+<div class="section" id="nexpy-baseimportdialog-class">
+<h1>NeXpy BaseImportDialog Class<a class="headerlink" href="#nexpy-baseimportdialog-class" title="Permalink to this headline">¶</a></h1>
 </div>
 
 
@@ -345,7 +118,7 @@ Must define self.import_file as file name</p>
         <li class="right" >
           <a href="readers.html" title="Adding a File Importer"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.6.5 documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.7.0+0.gd3a78e4.dirty documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">

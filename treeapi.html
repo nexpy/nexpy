@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>NeXus Tree API Modules &mdash; NeXpy 0.6.5 documentation</title>
+    <title>NeXus Tree API Modules &mdash; NeXpy 0.7.0+0.gd3a78e4.dirty documentation</title>
     
     <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.6.5',
+        VERSION:     '0.7.0+0.gd3a78e4.dirty',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -25,7 +25,7 @@
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="shortcut icon" href="_static/favicon.ico"/>
-    <link rel="top" title="NeXpy 0.6.5 documentation" href="index.html" />
+    <link rel="top" title="NeXpy 0.7.0+0.gd3a78e4.dirty documentation" href="index.html" />
     <link rel="next" title="Adding a File Importer" href="readers.html" />
     <link rel="prev" title="Python Graphical User Interface" href="pythongui.html" /> 
   </head>
@@ -45,11 +45,24 @@
         <li class="right" >
           <a href="pythongui.html" title="Python Graphical User Interface"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.6.5 documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.7.0+0.gd3a78e4.dirty documentation</a> &raquo;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">NeXus Tree API Modules</a><ul>
+<li><a class="reference internal" href="#example-1-loading-a-nexus-file">Example 1: Loading a NeXus file</a></li>
+<li><a class="reference internal" href="#example-2-creating-a-nexus-file-dynamically">Example 2: Creating a NeXus file dynamically</a></li>
+<li><a class="reference internal" href="#nexus-objects">NeXus Objects</a></li>
+<li><a class="reference internal" href="#unit-conversion">Unit Conversion</a></li>
+<li><a class="reference internal" href="#reading-and-writing-slabs">Reading and Writing Slabs</a></li>
+<li><a class="reference internal" href="#plotting-nexus-data">Plotting NeXus data</a></li>
+</ul>
+</li>
+</ul>
+
   <h4>Previous topic</h4>
   <p class="topless"><a href="pythongui.html"
                         title="previous chapter">Python Graphical User Interface</a></p>
@@ -84,8 +97,1967 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <div class="section" id="nexus-tree-api-modules">
-<h1>NeXus Tree API Modules<a class="headerlink" href="#nexus-tree-api-modules" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="module-nexusformat.nexus.tree">
+<span id="nexus-tree-api-modules"></span><h1>NeXus Tree API Modules<a class="headerlink" href="#module-nexusformat.nexus.tree" title="Permalink to this headline">¶</a></h1>
+<p>The <cite>nexus.tree</cite> modules are designed to accomplish two goals:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li>To provide convenient access to existing data contained in NeXus files.</li>
+<li>To enable new NeXus data to be created and manipulated interactively.</li>
+</ol>
+</div></blockquote>
+<p>These goals are achieved by mapping hierarchical NeXus data structures directly
+into python objects, which either represent NeXus groups or NeXus fields.
+Entries in a group are referenced much like fields in a class are referenced in
+python. The entire data hierarchy can be referenced at any time, whether the
+NeXus data has been loaded in from an existing NeXus file or created dynamically
+within the python session. This provides a natural scripting interface to NeXus 
+data.</p>
+<div class="section" id="example-1-loading-a-nexus-file">
+<h2>Example 1: Loading a NeXus file<a class="headerlink" href="#example-1-loading-a-nexus-file" title="Permalink to this headline">¶</a></h2>
+<p>The following commands loads NeXus data from a file, displays (some of) the
+contents as a tree, and then accesses individual data items.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">nexpy.api</span> <span class="kn">import</span> <span class="n">nexus</span> <span class="k">as</span> <span class="n">nx</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">=</span><span class="n">nx</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s">&#39;sns/data/ARCS_7326.nxs&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">a</span><span class="o">.</span><span class="n">tree</span>
+<span class="go">root:NXroot</span>
+<span class="go">  @HDF5_Version = 1.8.2</span>
+<span class="go">  @NeXus_version = 4.2.1</span>
+<span class="go">  @file_name = ARCS_7326.nxs</span>
+<span class="go">  @file_time = 2010-05-05T01:59:25-05:00</span>
+<span class="go">  entry:NXentry</span>
+<span class="go">    data:NXdata</span>
+<span class="go">      data = float32(631x461x4x825)</span>
+<span class="go">        @axes = rotation_angle:tilt_angle:sample_angle:time_of_flight</span>
+<span class="go">        @signal = 1</span>
+<span class="go">      rotation_angle = float32(632)</span>
+<span class="go">        @units = degree</span>
+<span class="go">      sample_angle = [ 210.  215.  220.  225.  230.]</span>
+<span class="go">        @units = degree</span>
+<span class="go">      tilt_angle = float32(462)</span>
+<span class="go">        @units = degree</span>
+<span class="go">      time_of_flight = float32(826)</span>
+<span class="go">        @units = microsecond</span>
+<span class="go">    run_number = 7326</span>
+<span class="go">    sample:NXsample</span>
+<span class="go">      pulse_time = 2854.94747365</span>
+<span class="go">        @units = microsecond</span>
+<span class="go">.</span>
+<span class="go">.</span>
+<span class="go">.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">entry</span><span class="o">.</span><span class="n">run_number</span>
+<span class="go">NXfield(7326)</span>
+</pre></div>
+</div>
+<p>So the tree returned from <code class="xref py py-func docutils literal"><span class="pre">load()</span></code> has an entry for each group, field and
+attribute.  You can traverse the hierarchy using the names of the groups.  For
+example, tree.entry.instrument.detector.distance is an example of a field
+containing the distance to each pixel in the detector. Entries can also be
+referenced by NXclass name, such as <code class="docutils literal"><span class="pre">tree.NXentry[0].instrument</span></code>. Since there may
+be multiple entries of the same NeXus class, the <code class="docutils literal"><span class="pre">NXclass</span></code> attribute returns a
+(possibly empty) list.</p>
+<p>The <code class="xref py py-func docutils literal"><span class="pre">load()</span></code> and <code class="xref py py-func docutils literal"><span class="pre">save()</span></code> functions are implemented using the class
+<cite>nexus.tree.NXFile</cite>, a subclass of <code class="xref py py-class docutils literal"><span class="pre">h5py.File</span></code>.</p>
+</div>
+<div class="section" id="example-2-creating-a-nexus-file-dynamically">
+<h2>Example 2: Creating a NeXus file dynamically<a class="headerlink" href="#example-2-creating-a-nexus-file-dynamically" title="Permalink to this headline">¶</a></h2>
+<p>The second example shows how to create NeXus data dynamically and saves it to a
+file. The data are first created as Numpy arrays</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">=</span><span class="n">y</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span><span class="mi">101</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">X</span><span class="p">,</span><span class="n">Y</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">y</span><span class="p">,</span><span class="n">x</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">z</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">X</span><span class="p">)</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">Y</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Then, a NeXus data group is created and the data inserted to produce a
+NeXus-compliant structure that can be saved to a file.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">root</span><span class="o">=</span><span class="n">nx</span><span class="o">.</span><span class="n">NXroot</span><span class="p">(</span><span class="n">NXentry</span><span class="p">())</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">root</span><span class="o">.</span><span class="n">tree</span>
+<span class="go">root:NXroot</span>
+<span class="go">  entry:NXentry</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">root</span><span class="o">.</span><span class="n">entry</span><span class="o">.</span><span class="n">data</span><span class="o">=</span><span class="n">nx</span><span class="o">.</span><span class="n">NXdata</span><span class="p">(</span><span class="n">z</span><span class="p">,[</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>Additional metadata can be inserted before saving the data to a file.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">root</span><span class="o">.</span><span class="n">entry</span><span class="o">.</span><span class="n">sample</span><span class="o">=</span><span class="n">nx</span><span class="o">.</span><span class="n">NXsample</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">root</span><span class="o">.</span><span class="n">entry</span><span class="o">.</span><span class="n">sample</span><span class="o">.</span><span class="n">temperature</span> <span class="o">=</span> <span class="mf">40.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">root</span><span class="o">.</span><span class="n">entry</span><span class="o">.</span><span class="n">sample</span><span class="o">.</span><span class="n">temperature</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="s">&#39;K&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">root</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s">&#39;example.nxs&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><a class="reference internal" href="#nexusformat.nexus.tree.NXfield" title="nexusformat.nexus.tree.NXfield"><code class="xref py py-class docutils literal"><span class="pre">NXfield</span></code></a> objects have much of the functionality of Numpy arrays. They may be used
+in simple arithmetic expressions with other NXfields, Numpy arrays or scalar
+values and will be cast as ndarray objects if used as arguments in Numpy
+modules.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">=</span><span class="n">nx</span><span class="o">.</span><span class="n">NXfield</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mf">10.0</span><span class="p">,</span><span class="mi">11</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span>
+<span class="go">NXfield([  0.   1.   2. ...,   8.   9.  10.])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">+</span> <span class="mi">10</span>
+<span class="go">NXfield([ 10.  11.  12. ...,  18.  19.  20.])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="go">array([ 0.        ,  0.84147098,  0.90929743, ...,  0.98935825,</span>
+<span class="go">    0.41211849, -0.54402111])</span>
+</pre></div>
+</div>
+<p>If the arithmetic operation is assigned to a NeXus group attribute, it will be
+automatically cast as a valid <a class="reference internal" href="#nexusformat.nexus.tree.NXfield" title="nexusformat.nexus.tree.NXfield"><code class="xref py py-class docutils literal"><span class="pre">NXfield</span></code></a> object with the type and shape determined
+by the Numpy array type and shape.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">entry</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">result</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">entry</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">result</span>
+<span class="go">NXfield([ 0.          0.84147098  0.90929743 ...,  0.98935825  0.41211849</span>
+<span class="go"> -0.54402111])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">entry</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">result</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">entry</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">result</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(dtype(&#39;float64&#39;), (11,))</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="nexus-objects">
+<h2>NeXus Objects<a class="headerlink" href="#nexus-objects" title="Permalink to this headline">¶</a></h2>
+<p>Properties of the entry in the tree are referenced by attributes that depend
+on the object type, different nx attributes may be available.</p>
+<dl class="docutils">
+<dt>Objects (<a class="reference internal" href="#nexusformat.nexus.tree.NXobject" title="nexusformat.nexus.tree.NXobject"><code class="xref py py-class docutils literal"><span class="pre">NXobject</span></code></a>) have attributes shared by both groups and fields::</dt>
+<dd><ul class="first last simple">
+<li>nxname   object name</li>
+<li>nxclass  object class for groups, &#8216;NXfield&#8217; for fields</li>
+<li>nxgroup  group containing the entry, or None for the root</li>
+<li>attrs    dictionary of NeXus attributes for the object</li>
+</ul>
+</dd>
+<dt>Groups (<a class="reference internal" href="#nexusformat.nexus.tree.NXgroup" title="nexusformat.nexus.tree.NXgroup"><code class="xref py py-class docutils literal"><span class="pre">NXgroup</span></code></a>) have attributes for accessing children::</dt>
+<dd><ul class="first last simple">
+<li>entries  dictionary of entries within the group</li>
+<li>component(&#8216;nxclass&#8217;)  return group entries of a particular class</li>
+<li>dir()    print the list of entries in the group</li>
+<li>tree     return the list of entries and subentries in the group</li>
+<li>plot()   plot signal and axes for the group, if available</li>
+</ul>
+</dd>
+<dt>Fields (<a class="reference internal" href="#nexusformat.nexus.tree.NXfield" title="nexusformat.nexus.tree.NXfield"><code class="xref py py-class docutils literal"><span class="pre">NXfield</span></code></a>) have attributes for accessing data:</dt>
+<dd><ul class="first last simple">
+<li>shape    dimensions of data in the field</li>
+<li>dtype    data type</li>
+<li>nxdata   data in the field</li>
+</ul>
+</dd>
+<dt>Linked fields or groups (<a class="reference internal" href="#nexusformat.nexus.tree.NXlink" title="nexusformat.nexus.tree.NXlink"><code class="xref py py-class docutils literal"><span class="pre">NXlink</span></code></a>) have attributes for accessing the link::</dt>
+<dd><ul class="first last simple">
+<li>nxlink   reference to the linked field or group</li>
+</ul>
+</dd>
+<dt>NeXus attributes (<a class="reference internal" href="#nexusformat.nexus.tree.NXattr" title="nexusformat.nexus.tree.NXattr"><code class="xref py py-class docutils literal"><span class="pre">NXattr</span></code></a>) have a type and a value only::</dt>
+<dd><ul class="first last simple">
+<li>dtype    attribute type</li>
+<li>nxdata   attribute data</li>
+</ul>
+</dd>
+</dl>
+<p>There is a subclass of <a class="reference internal" href="#nexusformat.nexus.tree.NXgroup" title="nexusformat.nexus.tree.NXgroup"><code class="xref py py-class docutils literal"><span class="pre">NXgroup</span></code></a> for each group class defined by the NeXus standard,
+so it is possible to create an <a class="reference internal" href="#nexusformat.nexus.tree.NXgroup" title="nexusformat.nexus.tree.NXgroup"><code class="xref py py-class docutils literal"><span class="pre">NXgroup</span></code></a> of NeXus <a class="reference internal" href="#nexusformat.nexus.tree.NXsample" title="nexusformat.nexus.tree.NXsample"><code class="xref py py-class docutils literal"><span class="pre">NXsample</span></code></a> directly using:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">sample</span> <span class="o">=</span> <span class="n">NXsample</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>The default group name will be the class name following the &#8216;NX&#8217;, so the above
+group will have an nxname of &#8216;sample&#8217;. However, this is overridden by the
+attribute name when it is assigned as a group attribute, e.g.,</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">entry</span><span class="o">.</span><span class="n">sample1</span> <span class="o">=</span> <span class="n">NXsample</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">entry</span><span class="o">.</span><span class="n">sample1</span><span class="o">.</span><span class="n">nxname</span>
+<span class="go">sample1</span>
+</pre></div>
+</div>
+<p>You can traverse the tree by component class instead of component name. Since
+there may be multiple components of the same class in one group you will need to
+specify which one to use.  For example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">tree</span><span class="o">.</span><span class="n">NXentry</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">NXinstrument</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">NXdetector</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">distance</span>
+</pre></div>
+</div>
+<p>references the first detector of the first instrument of the first entry.
+Unfortunately, there is no guarantee regarding the order of the entries, and it
+may vary from call to call, so this is mainly useful in iterative searches.</p>
+</div>
+<div class="section" id="unit-conversion">
+<h2>Unit Conversion<a class="headerlink" href="#unit-conversion" title="Permalink to this headline">¶</a></h2>
+<p>Data can be stored in the NeXus file in a variety of units, depending on which
+facility is storing the file.  This makes life difficult for reduction and
+analysis programs which must know the units they are working with.  Our solution
+to this problem is to allow the reader to retrieve data from the file in
+particular units.  For example, if detector distance is stored in the file using
+millimeters you can retrieve them in meters using:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">entry</span><span class="o">.</span><span class="n">instrument</span><span class="o">.</span><span class="n">detector</span><span class="o">.</span><span class="n">distance</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="s">&#39;m&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>See <cite>nexus.unit</cite> for more details on the unit formats supported.</p>
+</div>
+<div class="section" id="reading-and-writing-slabs">
+<h2>Reading and Writing Slabs<a class="headerlink" href="#reading-and-writing-slabs" title="Permalink to this headline">¶</a></h2>
+<p>If the size of the <a class="reference internal" href="#nexusformat.nexus.tree.NXfield" title="nexusformat.nexus.tree.NXfield"><code class="xref py py-class docutils literal"><span class="pre">NXfield</span></code></a> array is too large to be loaded into memory (as 
+defined by NX_MEMORY), the data values should be read or written in as a series 
+of slabs represented by <a class="reference internal" href="#nexusformat.nexus.tree.NXfield" title="nexusformat.nexus.tree.NXfield"><code class="xref py py-class docutils literal"><span class="pre">NXfield</span></code></a> slices:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">Ni</span><span class="p">):</span>
+<span class="go">        for j in range(Nj):</span>
+<span class="go">            value = root.NXentry[0].data.data[i,j,:]</span>
+<span class="go">            ...</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="plotting-nexus-data">
+<h2>Plotting NeXus data<a class="headerlink" href="#plotting-nexus-data" title="Permalink to this headline">¶</a></h2>
+<p>There is a <code class="xref py py-meth docutils literal"><span class="pre">plot()</span></code> method for groups that automatically looks for &#8216;signal&#8217; and
+&#8216;axes&#8217; attributes within the group in order to determine what to plot. These are
+defined by the &#8216;nxsignal&#8217; and &#8216;nxaxes&#8217; properties of the group. This means that
+the method will determine whether the plot should be one- or two- dimensional.
+For higher than two dimensions, only the top slice is plotted by default.</p>
+<p>The plot method accepts as arguments the standard matplotlib.pyplot.plot format 
+strings to customize one-dimensional plots, axis and scale limits, and will
+transmit keyword arguments to the matplotlib plotting methods.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">=</span><span class="n">nx</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s">&#39;chopper.nxs&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">entry</span><span class="o">.</span><span class="n">monitor1</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">entry</span><span class="o">.</span><span class="n">monitor2</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="s">&#39;r+&#39;</span><span class="p">,</span> <span class="n">xmax</span><span class="o">=</span><span class="mi">2600</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>It is possible to plot over the existing figure with the <code class="xref py py-meth docutils literal"><span class="pre">oplot()</span></code> method and to
+plot with logarithmic intensity scales with the <code class="xref py py-meth docutils literal"><span class="pre">logplot()</span></code> method. The x- and
+y-axes can also be rendered logarithmically using the <cite>logx</cite> and <cite>logy</cite> keywords.</p>
+<p>Although the <code class="xref py py-meth docutils literal"><span class="pre">plot()</span></code> method uses matplotlib by default to plot the data, you can replace
+this with your own plotter by setting <cite>nexus.NXgroup._plotter</cite> to your own plotter
+class.  The plotter class has one method:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">plot</span><span class="p">(</span><span class="n">signal</span><span class="p">,</span> <span class="n">axes</span><span class="p">,</span> <span class="n">entry</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">format</span><span class="p">,</span> <span class="o">**</span><span class="n">opts</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>where signal is the field containing the data, axes are the fields listing the
+signal sample points, entry is file/path within the file to the data group and
+title is the title of the group or the parent <a class="reference internal" href="#nexusformat.nexus.tree.NXentry" title="nexusformat.nexus.tree.NXentry"><code class="xref py py-class docutils literal"><span class="pre">NXentry</span></code></a>, if available.</p>
+<dl class="class">
+<dt id="nexusformat.nexus.tree.NXFile">
+<em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXFile</code><span class="sig-paren">(</span><em>name</em>, <em>mode=None</em>, <em>**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Structure-based interface to the NeXus file API.</p>
+<p>Usage:</p>
+<div class="highlight-python"><div class="highlight"><pre>file = NXFile(filename, [&#39;r&#39;,&#39;rw&#39;,&#39;w&#39;])
+  - open the NeXus file
+root = file.readfile()
+  - read the structure of the NeXus file.  This returns a NeXus tree.
+file.writefile(root)
+  - write a NeXus tree to the file.
+</pre></div>
+</div>
+<p>Example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">nx</span> <span class="o">=</span> <span class="n">NXFile</span><span class="p">(</span><span class="s">&#39;REF_L_1346.nxs&#39;</span><span class="p">,</span><span class="s">&#39;r&#39;</span><span class="p">)</span>
+<span class="n">tree</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">readfile</span><span class="p">()</span>
+<span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">tree</span><span class="o">.</span><span class="n">NXentry</span><span class="p">:</span>
+    <span class="n">process</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span>
+<span class="n">copy</span> <span class="o">=</span> <span class="n">NXFile</span><span class="p">(</span><span class="s">&#39;modified.nxs&#39;</span><span class="p">,</span><span class="s">&#39;w&#39;</span><span class="p">)</span>
+<span class="n">copy</span><span class="o">.</span><span class="n">writefile</span><span class="p">(</span><span class="n">tree</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Note that the large datasets are not loaded immediately.  Instead, the
+when the data set is requested, the file is reopened, the data read, and
+the file closed again.  open/close are available for when we want to
+read/write slabs without the overhead of moving the file cursor each time.
+The <a class="reference internal" href="#nexusformat.nexus.tree.NXdata" title="nexusformat.nexus.tree.NXdata"><code class="xref py py-class docutils literal"><span class="pre">NXdata</span></code></a> objects in the returned tree hold the object values.</p>
+<dl class="attribute">
+<dt id="nexusformat.nexus.tree.NXFile.attrs">
+<code class="descname">attrs</code><a class="headerlink" href="#nexusformat.nexus.tree.NXFile.attrs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Property: File object attributes</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="nexusformat.nexus.tree.NXFile.file">
+<code class="descname">file</code><a class="headerlink" href="#nexusformat.nexus.tree.NXFile.file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Property: File object of NeXus file</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="nexusformat.nexus.tree.NXFile.filename">
+<code class="descname">filename</code><a class="headerlink" href="#nexusformat.nexus.tree.NXFile.filename" title="Permalink to this definition">¶</a></dt>
+<dd><p>File name on disk</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="nexusformat.nexus.tree.NXFile.mode">
+<code class="descname">mode</code><a class="headerlink" href="#nexusformat.nexus.tree.NXFile.mode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Property: Read/write mode of file</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="nexusformat.nexus.tree.NXFile.nxpath">
+<code class="descname">nxpath</code><a class="headerlink" href="#nexusformat.nexus.tree.NXFile.nxpath" title="Permalink to this definition">¶</a></dt>
+<dd><p>Property: Path to NeXus object</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nexusformat.nexus.tree.NXFile.readfile">
+<code class="descname">readfile</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXFile.readfile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reads the NeXus file structure from the file and returns a tree of 
+NXobjects.</p>
+<p>Large datasets are not read until they are needed.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nexusformat.nexus.tree.NXFile.writefile">
+<code class="descname">writefile</code><span class="sig-paren">(</span><em>tree</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXFile.writefile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes the NeXus file structure to a file.</p>
+<p>The file is assumed to start empty. Updating individual objects can be
+done using the h5py interface.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="nexusformat.nexus.tree.NXobject">
+<em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXobject</code><a class="headerlink" href="#nexusformat.nexus.tree.NXobject" title="Permalink to this definition">¶</a></dt>
+<dd><p>Abstract base class for elements in NeXus files.</p>
+<p>The object has a subclass of NXfield, NXgroup, or one of the NXgroup
+subclasses. Child nodes should be accessible directly as object attributes.
+Constructors for NXobject objects are defined by either the NXfield or
+NXgroup classes.</p>
+<p><strong>Python Attributes</strong></p>
+<dl class="docutils">
+<dt>nxclass <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
+<dd>The class of the NXobject. NXobjects can have class NXfield, NXgroup, or
+be one of the NXgroup subclasses.</dd>
+<dt>nxname <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
+<dd>The name of the NXobject. Since it is possible to reference the same
+Python object multiple times, this is not necessarily the same as the
+object name. However, if the object is part of a NeXus tree, this will
+be the attribute name within the tree.</dd>
+<dt>nxgroup <span class="classifier-delimiter">:</span> <span class="classifier">NXgroup</span></dt>
+<dd>The parent group containing this object within a NeXus tree. If the
+object is not part of any NeXus tree, it will be set to None.</dd>
+<dt>nxpath <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
+<dd>The path to this object with respect to the root of the NeXus tree. For
+NeXus data read from a file, this will be a group of class NXroot, but
+if the NeXus tree was defined interactively, it can be any valid
+NXgroup.</dd>
+<dt>nxroot <span class="classifier-delimiter">:</span> <span class="classifier">NXgroup</span></dt>
+<dd>The root object of the NeXus tree containing this object. For
+NeXus data read from a file, this will be a group of class NXroot, but
+if the NeXus tree was defined interactively, it can be any valid
+NXgroup.</dd>
+<dt>nxfile <span class="classifier-delimiter">:</span> <span class="classifier">NXFile</span></dt>
+<dd>The file handle of the root object of the NeXus tree containing this
+object.</dd>
+<dt>nxfilename <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
+<dd>The file name of NeXus object&#8217;s tree file handle.</dd>
+<dt>attrs <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd>A dictionary of the NeXus object&#8217;s attributes.</dd>
+</dl>
+<p><strong>Methods</strong></p>
+<dl class="docutils">
+<dt>dir(self, attrs=False, recursive=False):</dt>
+<dd><p class="first">Print the group directory.</p>
+<p class="last">The directory is a list of NeXus objects within this group, either NeXus
+groups or NXfield data. If &#8216;attrs&#8217; is True, NXfield attributes are
+displayed. If &#8216;recursive&#8217; is True, the contents of child groups are also
+displayed.</p>
+</dd>
+<dt>tree:</dt>
+<dd><p class="first">Return the object&#8217;s tree as a string.</p>
+<p class="last">It invokes the &#8216;dir&#8217; method with both &#8216;attrs&#8217; and &#8216;recursive&#8217;
+set to True. Note that this is defined as a property attribute and
+does not require parentheses.</p>
+</dd>
+<dt>save(self, filename, format=&#8217;w&#8217;)</dt>
+<dd><p class="first">Save the NeXus group into a file</p>
+<p class="last">The object is wrapped in an NXroot group (with name &#8216;root&#8217;) and an
+NXentry group (with name &#8216;entry&#8217;), if necessary, in order to produce
+a valid NeXus file.</p>
+</dd>
+</dl>
+<dl class="attribute">
+<dt id="nexusformat.nexus.tree.NXobject.attrs">
+<code class="descname">attrs</code><a class="headerlink" href="#nexusformat.nexus.tree.NXobject.attrs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Property: NeXus attributes for an object</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="nexusformat.nexus.tree.NXobject.changed">
+<code class="descname">changed</code><a class="headerlink" href="#nexusformat.nexus.tree.NXobject.changed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Property: Returns True if the object has been changed.</p>
+<p>This property is for use by external scripts that need to track
+which NeXus objects have been changed.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nexusformat.nexus.tree.NXobject.dir">
+<code class="descname">dir</code><span class="sig-paren">(</span><em>attrs=False</em>, <em>recursive=False</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXobject.dir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prints the object directory.</p>
+<p>The directory is a list of NeXus objects within this object, either
+NeXus groups or NXfields. If &#8216;attrs&#8217; is True, NXfield attributes are
+displayed. If &#8216;recursive&#8217; is True, the contents of child groups are
+also displayed.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="nexusformat.nexus.tree.NXobject.nxclass">
+<code class="descname">nxclass</code><a class="headerlink" href="#nexusformat.nexus.tree.NXobject.nxclass" title="Permalink to this definition">¶</a></dt>
+<dd><p>Property: Class of NeXus object</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="nexusformat.nexus.tree.NXobject.nxentry">
+<code class="descname">nxentry</code><a class="headerlink" href="#nexusformat.nexus.tree.NXobject.nxentry" title="Permalink to this definition">¶</a></dt>
+<dd><p>Property: Parent NXentry of NeXus object</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="nexusformat.nexus.tree.NXobject.nxfile">
+<code class="descname">nxfile</code><a class="headerlink" href="#nexusformat.nexus.tree.NXobject.nxfile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Property: File handle of NeXus object&#8217;s tree</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="nexusformat.nexus.tree.NXobject.nxfilemode">
+<code class="descname">nxfilemode</code><a class="headerlink" href="#nexusformat.nexus.tree.NXobject.nxfilemode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Property: File mode of root object</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="nexusformat.nexus.tree.NXobject.nxfilename">
+<code class="descname">nxfilename</code><a class="headerlink" href="#nexusformat.nexus.tree.NXobject.nxfilename" title="Permalink to this definition">¶</a></dt>
+<dd><p>Property: Filename of NeXus object</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="nexusformat.nexus.tree.NXobject.nxgroup">
+<code class="descname">nxgroup</code><a class="headerlink" href="#nexusformat.nexus.tree.NXobject.nxgroup" title="Permalink to this definition">¶</a></dt>
+<dd><p>Property: Parent group of NeXus object</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="nexusformat.nexus.tree.NXobject.nxname">
+<code class="descname">nxname</code><a class="headerlink" href="#nexusformat.nexus.tree.NXobject.nxname" title="Permalink to this definition">¶</a></dt>
+<dd><p>Property: Name of NeXus object</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="nexusformat.nexus.tree.NXobject.nxpath">
+<code class="descname">nxpath</code><a class="headerlink" href="#nexusformat.nexus.tree.NXobject.nxpath" title="Permalink to this definition">¶</a></dt>
+<dd><p>Property: Path to NeXus object</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="nexusformat.nexus.tree.NXobject.nxroot">
+<code class="descname">nxroot</code><a class="headerlink" href="#nexusformat.nexus.tree.NXobject.nxroot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Property: Root group of NeXus object&#8217;s tree</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="nexusformat.nexus.tree.NXobject.nxtarget">
+<code class="descname">nxtarget</code><a class="headerlink" href="#nexusformat.nexus.tree.NXobject.nxtarget" title="Permalink to this definition">¶</a></dt>
+<dd><p>Property: Target of NeXus object</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nexusformat.nexus.tree.NXobject.save">
+<code class="descname">save</code><span class="sig-paren">(</span><em>filename=None</em>, <em>mode='w'</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXobject.save" title="Permalink to this definition">¶</a></dt>
+<dd><p>Saves the NeXus object to a data file.</p>
+<p>If the object is an NXroot group, this can be used to save the whole
+NeXus tree. If the tree was read from a file and the file was opened as
+read only, then a file name must be specified. Otherwise, the tree is
+saved to the original file.</p>
+<p>An error is raised if the object is an NXroot group from an external 
+file that has been opened as readonly and no file name is specified.</p>
+<p>If the object is not an NXroot, group, a filename must be specified. The
+saved NeXus object is wrapped in an NXroot group (with name &#8216;root&#8217;) and 
+an NXentry group (with name &#8216;entry&#8217;), if necessary, in order to produce 
+a valid NeXus file. Only the children of the object will be saved. This 
+capability allows parts of a NeXus tree to be saved for later use, e.g., 
+to store an NXsample group to be added to another file at a later time.</p>
+<p><strong>Example</strong></p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="n">NXdata</span><span class="p">(</span><span class="n">sin</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">x</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s">&#39;file.nxs&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">data</span><span class="o">.</span><span class="n">nxroot</span><span class="o">.</span><span class="n">tree</span>
+<span class="go">root:NXroot</span>
+<span class="go">  @HDF5_Version = 1.8.2</span>
+<span class="go">  @NeXus_version = 4.2.1</span>
+<span class="go">  @file_name = file.nxs</span>
+<span class="go">  @file_time = 2012-01-20T13:14:49-06:00</span>
+<span class="go">  entry:NXentry</span>
+<span class="go">    data:NXdata</span>
+<span class="go">      axis1 = float64(101)</span>
+<span class="go">      signal = float64(101)</span>
+<span class="go">        @axes = axis1</span>
+<span class="go">        @signal = 1              </span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">root</span><span class="o">.</span><span class="n">entry</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">axis1</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="s">&#39;meV&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">root</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="nexusformat.nexus.tree.NXobject.set_changed">
+<code class="descname">set_changed</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXobject.set_changed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets an object&#8217;s change status to changed.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nexusformat.nexus.tree.NXobject.set_unchanged">
+<code class="descname">set_unchanged</code><span class="sig-paren">(</span><em>recursive=False</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXobject.set_unchanged" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets an object&#8217;s change status to unchanged.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="nexusformat.nexus.tree.NXobject.short_tree">
+<code class="descname">short_tree</code><a class="headerlink" href="#nexusformat.nexus.tree.NXobject.short_tree" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the directory tree as a string.</p>
+<p>The tree contains all child objects of this object and their children.
+It invokes the &#8216;dir&#8217; method with &#8216;attrs&#8217; set to False and &#8216;recursive&#8217;
+set to True.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="nexusformat.nexus.tree.NXobject.tree">
+<code class="descname">tree</code><a class="headerlink" href="#nexusformat.nexus.tree.NXobject.tree" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the directory tree as a string.</p>
+<p>The tree contains all child objects of this object and their children.
+It invokes the &#8216;dir&#8217; method with &#8216;attrs&#8217; set to False and &#8216;recursive&#8217;
+set to True.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="nexusformat.nexus.tree.NXfield">
+<em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXfield</code><span class="sig-paren">(</span><em>value=None</em>, <em>name='field'</em>, <em>dtype=None</em>, <em>shape=()</em>, <em>group=None</em>, <em>attrs=None</em>, <em>**attr</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXfield" title="Permalink to this definition">¶</a></dt>
+<dd><p>A NeXus data field.</p>
+<p>This is a subclass of NXobject that contains scalar, array, or string data
+and associated NeXus attributes.</p>
+<p><strong>Input Parameters</strong></p>
+<dl class="docutils">
+<dt>value <span class="classifier-delimiter">:</span> <span class="classifier">scalar value, Numpy array, or string</span></dt>
+<dd>The numerical or string value of the NXfield, which is directly
+accessible as the NXfield attribute &#8216;nxdata&#8217;.</dd>
+<dt>name <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
+<dd>The name of the NXfield, which is directly accessible as the NXfield
+attribute &#8216;name&#8217;. If the NXfield is initialized as the attribute of a
+parent object, the name is automatically set to the name of this
+attribute.</dd>
+<dt>dtype <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
+<dd>The data type of the NXfield value, which is directly accessible as the
+NXfield attribute &#8216;dtype&#8217;. Valid input types correspond to standard
+Numpy data types, using names defined by the NeXus API, i.e.,
+&#8216;float32&#8217; &#8216;float64&#8217;
+&#8216;int8&#8217; &#8216;int16&#8217; &#8216;int32&#8217; &#8216;int64&#8217;
+&#8216;uint8&#8217; &#8216;uint16&#8217; &#8216;uint32&#8217; &#8216;uint64&#8217;
+&#8216;char&#8217;
+If the data type is not specified, then it is determined automatically
+by the data type of the &#8216;value&#8217; parameter.</dd>
+<dt>shape <span class="classifier-delimiter">:</span> <span class="classifier">list of ints</span></dt>
+<dd>The dimensions of the NXfield data, which is accessible as the NXfield
+attribute &#8216;shape&#8217;. This corresponds to the shape of the Numpy array.
+Scalars (numeric or string) are stored as Numpy zero-rank arrays,
+for which shape=[].</dd>
+<dt>attrs <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd>A dictionary containing NXfield attributes. The dictionary values should
+all have class NXattr.</dd>
+<dt>file <span class="classifier-delimiter">:</span> <span class="classifier">filename</span></dt>
+<dd>The file from which the NXfield has been read.</dd>
+<dt>path <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
+<dd>The path to this object with respect to the root of the NeXus tree,
+using the convention for unix file paths.</dd>
+<dt>group <span class="classifier-delimiter">:</span> <span class="classifier">NXgroup or subclass of NXgroup</span></dt>
+<dd>The parent NeXus object. If the NXfield is initialized as the attribute
+of a parent group, this attribute is automatically set to the parent group.</dd>
+</dl>
+<p><strong>Python Attributes</strong></p>
+<dl class="docutils">
+<dt>nxclass <span class="classifier-delimiter">:</span> <span class="classifier">&#8216;NXfield&#8217;</span></dt>
+<dd>The class of the NXobject.</dd>
+<dt>nxname <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
+<dd>The name of the NXfield. Since it is possible to reference the same
+Python object multiple times, this is not necessarily the same as the
+object name. However, if the field is part of a NeXus tree, this will
+be the attribute name within the tree.</dd>
+<dt>nxgroup <span class="classifier-delimiter">:</span> <span class="classifier">NXgroup</span></dt>
+<dd>The parent group containing this field within a NeXus tree. If the
+field is not part of any NeXus tree, it will be set to None.</dd>
+<dt>dtype <span class="classifier-delimiter">:</span> <span class="classifier">string or Numpy dtype</span></dt>
+<dd>The data type of the NXfield value. If the NXfield has been initialized
+but the data values have not been read in or defined, this is a string.
+Otherwise, it is set to the equivalent Numpy dtype.</dd>
+<dt>shape <span class="classifier-delimiter">:</span> <span class="classifier">list or tuple of ints</span></dt>
+<dd>The dimensions of the NXfield data. If the NXfield has been initialized
+but the data values have not been read in or defined, this is a list of
+ints. Otherwise, it is set to the equivalent Numpy shape, which is a
+tuple. Scalars (numeric or string) are stored as Numpy zero-rank arrays,
+for which shape=().</dd>
+<dt>attrs <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd>A dictionary of all the NeXus attributes associated with the field.
+These are objects with class NXattr.</dd>
+<dt>nxdata <span class="classifier-delimiter">:</span> <span class="classifier">scalar, Numpy array or string</span></dt>
+<dd>The data value of the NXfield. This is normally initialized using the
+&#8216;value&#8217; parameter (see above). If the NeXus data is contained
+in a file and the size of the NXfield array is too large to be stored
+in memory, the value is not read in until this attribute is directly
+accessed. Even then, if there is insufficient memory, a value of None
+will be returned. In this case, the NXfield array should be read as a
+series of smaller slabs using &#8216;get&#8217;.</dd>
+<dt>nxdata_as(&#8216;units&#8217;) <span class="classifier-delimiter">:</span> <span class="classifier">scalar value or Numpy array</span></dt>
+<dd>If the NXfield &#8216;units&#8217; attribute has been set, the data values, stored
+in &#8216;nxdata&#8217;, are returned after conversion to the specified units.</dd>
+<dt>nxpath <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
+<dd>The path to this object with respect to the root of the NeXus tree. For
+NeXus data read from a file, this will be a group of class NXroot, but
+if the NeXus tree was defined interactively, it can be any valid
+NXgroup.</dd>
+<dt>nxroot <span class="classifier-delimiter">:</span> <span class="classifier">NXgroup</span></dt>
+<dd>The root object of the NeXus tree containing this object. For
+NeXus data read from a file, this will be a group of class NXroot, but
+if the NeXus tree was defined interactively, it can be any valid
+NXgroup.</dd>
+</dl>
+<p><strong>NeXus Attributes</strong></p>
+<p>NeXus attributes are stored in the &#8216;attrs&#8217; dictionary of the NXfield, but
+can usually be assigned or referenced as if they are Python attributes, as
+long as the attribute name is not the same as one of those listed above.
+This is to simplify typing in an interactive session and should not cause
+any problems because there is no name clash with attributes so far defined
+within the NeXus standard. When writing modules, it is recommended that the
+attributes always be referenced using the &#8216;attrs&#8217; dictionary if there is
+any doubt.</p>
+<ol class="arabic">
+<li><p class="first">Assigning a NeXus attribute</p>
+<p>In the example below, after assigning the NXfield, the following three
+NeXus attribute assignments are all equivalent:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">entry</span><span class="o">.</span><span class="n">sample</span><span class="o">.</span><span class="n">temperature</span> <span class="o">=</span> <span class="n">NXfield</span><span class="p">(</span><span class="mf">40.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">entry</span><span class="o">.</span><span class="n">sample</span><span class="o">.</span><span class="n">temperature</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s">&#39;units&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;K&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">entry</span><span class="o">.</span><span class="n">sample</span><span class="o">.</span><span class="n">temperature</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="n">NXattr</span><span class="p">(</span><span class="s">&#39;K&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">entry</span><span class="o">.</span><span class="n">sample</span><span class="o">.</span><span class="n">temperature</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="s">&#39;K&#39;</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">Referencing a NeXus attribute</p>
+<p>If the name of the NeXus attribute is not the same as any of the Python
+attributes listed above, or one of the methods listed below, or any of the
+attributes defined for Numpy arrays, they can be referenced as if they were
+a Python attribute of the NXfield. However, it is only possible to reference
+attributes with one of the proscribed names using the &#8216;attrs&#8217; dictionary.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">entry</span><span class="o">.</span><span class="n">sample</span><span class="o">.</span><span class="n">temperature</span><span class="o">.</span><span class="n">tree</span> <span class="o">=</span> <span class="mf">10.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">entry</span><span class="o">.</span><span class="n">sample</span><span class="o">.</span><span class="n">temperature</span><span class="o">.</span><span class="n">tree</span>
+<span class="go">temperature = 40.0</span>
+<span class="go">  @tree = 10.0</span>
+<span class="go">  @units = K</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">entry</span><span class="o">.</span><span class="n">sample</span><span class="o">.</span><span class="n">temperature</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s">&#39;tree&#39;</span><span class="p">]</span>
+<span class="go">NXattr(10.0)</span>
+</pre></div>
+</div>
+</li>
+</ol>
+<p><strong>Numerical Operations on NXfields</strong></p>
+<p>NXfields usually consist of arrays of numeric data with associated
+meta-data, the NeXus attributes. The exception is when they contain
+character strings. This makes them similar to Numpy arrays, and this module
+allows the use of NXfields in numerical operations in the same way as Numpy
+ndarrays. NXfields are technically not a sub-class of the ndarray class, but
+most Numpy operations work on NXfields, returning either another NXfield or,
+in some cases, an ndarray that can easily be converted to an NXfield.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">NXfield</span><span class="p">((</span><span class="mf">1.0</span><span class="p">,</span><span class="mf">2.0</span><span class="p">,</span><span class="mf">3.0</span><span class="p">,</span><span class="mf">4.0</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">x</span><span class="o">+</span><span class="mi">1</span>
+<span class="go">[ 2.  3.  4.  5.]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="mi">2</span><span class="o">*</span><span class="n">x</span>
+<span class="go">[ 2.  4.  6.  8.]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">x</span><span class="o">/</span><span class="mi">2</span>
+<span class="go">[ 0.5  1.   1.5  2. ]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">x</span><span class="o">**</span><span class="mi">2</span>
+<span class="go">[  1.   4.   9.  16.]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">x</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
+<span class="go">[[ 1.  2.]</span>
+<span class="go"> [ 3.  4.]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">y</span> <span class="o">=</span> <span class="n">NXfield</span><span class="p">((</span><span class="mf">0.5</span><span class="p">,</span><span class="mf">1.5</span><span class="p">,</span><span class="mf">2.5</span><span class="p">,</span><span class="mf">3.5</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">+</span><span class="n">y</span>
+<span class="go">NXfield(name=x,value=[ 1.5  3.5  5.5  7.5])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">*</span><span class="n">y</span>
+<span class="go">NXfield(name=x,value=[  0.5   3.    7.5  14. ])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">(</span><span class="n">x</span><span class="o">+</span><span class="n">y</span><span class="p">)</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(4,)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">(</span><span class="n">x</span><span class="o">+</span><span class="n">y</span><span class="p">)</span><span class="o">.</span><span class="n">dtype</span>
+<span class="go">dtype(&#39;float64&#39;)</span>
+</pre></div>
+</div>
+<p>All these operations return valid NXfield objects containing the same
+attributes as the first NXobject in the expression. The &#8216;reshape&#8217; and
+&#8216;transpose&#8217; methods also return NXfield objects.</p>
+<p>It is possible to use the standard slice syntax.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">=</span><span class="n">NXfield</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">11</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span>
+<span class="go">NXfield([  0.   1.   2. ...,   8.   9.  10.])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="mi">5</span><span class="p">]</span>
+<span class="go">NXfield([ 2.  3.  4.])</span>
+</pre></div>
+</div>
+<p>In addition, it is possible to use floating point numbers as the slice
+indices. If one of the indices is not integer, both indices are used to
+extract elements in the array with values between the two index values.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">=</span><span class="n">NXfield</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mf">100.</span><span class="p">,</span><span class="mi">11</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span>
+<span class="go">NXfield([   0.   10.   20. ...,   80.   90.  100.])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="p">[</span><span class="mf">20.</span><span class="p">:</span><span class="mf">50.</span><span class="p">]</span>
+<span class="go">NXfield([ 20.  30.  40.  50.])</span>
+</pre></div>
+</div>
+<p>The standard Numpy ndarray attributes and methods will also work with
+NXfields, but will return scalars or Numpy arrays.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">.</span><span class="n">size</span>
+<span class="go">4</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+<span class="go">10.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+<span class="go">4.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+<span class="go">2.5</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">.</span><span class="n">var</span><span class="p">()</span>
+<span class="go">1.25</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="go">array([ 3.,  7.])</span>
+</pre></div>
+</div>
+<p>Finally, NXfields are cast as ndarrays for operations that require them.
+The returned value will be the same as for the equivalent ndarray
+operation, e.g.,</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="go">array([ 0.84147098,  0.90929743,  0.14112001, -0.7568025 ])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="go">array([ 1.        ,  1.41421356,  1.73205081,  2.        ])</span>
+</pre></div>
+</div>
+<p><strong>Methods</strong></p>
+<dl class="docutils">
+<dt>dir(self, attrs=False):</dt>
+<dd><p class="first">Print the NXfield specification.</p>
+<p class="last">This outputs the name, dimensions and data type of the NXfield.
+If &#8216;attrs&#8217; is True, NXfield attributes are displayed.</p>
+</dd>
+<dt>tree:</dt>
+<dd><p class="first">Returns the NXfield&#8217;s tree.</p>
+<p class="last">It invokes the &#8216;dir&#8217; method with both &#8216;attrs&#8217; and &#8216;recursive&#8217;
+set to True. Note that this is defined as a property attribute and
+does not require parentheses.</p>
+</dd>
+<dt>save(self, filename, format=&#8217;w5&#8217;)</dt>
+<dd><p class="first">Save the NXfield into a file wrapped in a NXroot group and NXentry group
+with default names. This is equivalent to</p>
+<div class="last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">NXroot</span><span class="p">(</span><span class="n">NXentry</span><span class="p">(</span><span class="n">NXfield</span><span class="p">(</span><span class="o">...</span><span class="p">)))</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+<p><strong>Examples</strong></p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">NXfield</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span><span class="mi">101</span><span class="p">),</span> <span class="n">units</span><span class="o">=</span><span class="s">&#39;degree&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">phi</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">nxdata_as</span><span class="p">(</span><span class="n">units</span><span class="o">=</span><span class="s">&#39;radian&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">y</span> <span class="o">=</span> <span class="n">NXfield</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">phi</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># Read a Ni x Nj x Nk array one vector at a time</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">root</span><span class="o">.</span><span class="n">NXentry</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">data</span> <span class="k">as</span> <span class="n">slab</span><span class="p">:</span>
+<span class="go">        Ni,Nj,Nk = slab.shape</span>
+<span class="go">        size = [1,1,Nk]</span>
+<span class="go">        for i in range(Ni):</span>
+<span class="go">            for j in range(Nj):</span>
+<span class="go">                value = slab.get([i,j,0],size)</span>
+</pre></div>
+</div>
+<dl class="method">
+<dt id="nexusformat.nexus.tree.NXfield.add">
+<code class="descname">add</code><span class="sig-paren">(</span><em>data</em>, <em>offset</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXfield.add" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds a slab into the data array.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nexusformat.nexus.tree.NXfield.boundaries">
+<code class="descname">boundaries</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXfield.boundaries" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns an NXfield with the boundaries of a single axis
+assuming it contains bin centers.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nexusformat.nexus.tree.NXfield.centers">
+<code class="descname">centers</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXfield.centers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns an NXfield with the centers of a single axis
+assuming it contains bin boundaries.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nexusformat.nexus.tree.NXfield.convert">
+<code class="descname">convert</code><span class="sig-paren">(</span><em>units=''</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXfield.convert" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the data in the requested units.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="nexusformat.nexus.tree.NXfield.dtype">
+<code class="descname">dtype</code><a class="headerlink" href="#nexusformat.nexus.tree.NXfield.dtype" title="Permalink to this definition">¶</a></dt>
+<dd><p>Property: Data type of NeXus field</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nexusformat.nexus.tree.NXfield.implot">
+<code class="descname">implot</code><span class="sig-paren">(</span><em>fmt=''</em>, <em>xmin=None</em>, <em>xmax=None</em>, <em>ymin=None</em>, <em>ymax=None</em>, <em>zmin=None</em>, <em>zmax=None</em>, <em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXfield.implot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plots the data intensity as an RGB(A) image.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nexusformat.nexus.tree.NXfield.index">
+<code class="descname">index</code><span class="sig-paren">(</span><em>value</em>, <em>max=False</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXfield.index" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the index of a one-dimensional NXfield element that is less
+than (greater than) or equal to the given value for a monotonically 
+increasing (decreasing) array.</p>
+<p>If max=True, then it returns the index that is greater than (less than) 
+or equal to the value for a monotonically increasing (decreasing) array.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">field</span>
+<span class="go">NXfield([ 0.   0.1  0.2 ...,  0.8  0.9  1. ])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">field</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="mf">0.1</span><span class="p">)</span>
+<span class="go">1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">field</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="mf">0.11</span><span class="p">)</span>
+<span class="go">1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">field</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="mf">0.11</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="go">2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">reverse_field</span>
+<span class="go">NXfield([ 1.   0.9  0.8 ...,  0.2  0.1  0. ])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">reverse_field</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="mf">0.89</span><span class="p">)</span>
+<span class="go">1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">reverse_field</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="mf">0.89</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="go">2</span>
+</pre></div>
+</div>
+<p>The value is considered to be equal to an NXfield element&#8217;s value if it
+differs by less than 1% of the step size to the neighboring element.</p>
+<p>This raises a NeXusError if the array is not one-dimensional.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nexusformat.nexus.tree.NXfield.logplot">
+<code class="descname">logplot</code><span class="sig-paren">(</span><em>fmt=''</em>, <em>xmin=None</em>, <em>xmax=None</em>, <em>ymin=None</em>, <em>ymax=None</em>, <em>zmin=None</em>, <em>zmax=None</em>, <em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXfield.logplot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plots the data intensity contained within the group on a log scale.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="nexusformat.nexus.tree.NXfield.mask">
+<code class="descname">mask</code><a class="headerlink" href="#nexusformat.nexus.tree.NXfield.mask" title="Permalink to this definition">¶</a></dt>
+<dd><p>Property: The data mask</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nexusformat.nexus.tree.NXfield.max">
+<code class="descname">max</code><span class="sig-paren">(</span><em>axis=None</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXfield.max" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the maximum value of the array ignoring NaNs</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nexusformat.nexus.tree.NXfield.min">
+<code class="descname">min</code><span class="sig-paren">(</span><em>axis=None</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXfield.min" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the minimum value of the array ignoring NaNs</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="nexusformat.nexus.tree.NXfield.ndim">
+<code class="descname">ndim</code><a class="headerlink" href="#nexusformat.nexus.tree.NXfield.ndim" title="Permalink to this definition">¶</a></dt>
+<dd><p>Property: No. of dimensions of NeXus field</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="nexusformat.nexus.tree.NXfield.nxaxes">
+<code class="descname">nxaxes</code><a class="headerlink" href="#nexusformat.nexus.tree.NXfield.nxaxes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Property: The plotting axes</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="nexusformat.nexus.tree.NXfield.nxdata">
+<code class="descname">nxdata</code><a class="headerlink" href="#nexusformat.nexus.tree.NXfield.nxdata" title="Permalink to this definition">¶</a></dt>
+<dd><p>Property: The data values</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="nexusformat.nexus.tree.NXfield.nxtitle">
+<code class="descname">nxtitle</code><a class="headerlink" href="#nexusformat.nexus.tree.NXfield.nxtitle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the title as a string.</p>
+<p>If there is no title attribute in the parent group, the group&#8217;s path is 
+returned.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nexusformat.nexus.tree.NXfield.oplot">
+<code class="descname">oplot</code><span class="sig-paren">(</span><em>fmt=''</em>, <em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXfield.oplot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plots the data contained within the group over the current figure.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nexusformat.nexus.tree.NXfield.plot">
+<code class="descname">plot</code><span class="sig-paren">(</span><em>fmt=''</em>, <em>xmin=None</em>, <em>xmax=None</em>, <em>ymin=None</em>, <em>ymax=None</em>, <em>zmin=None</em>, <em>zmax=None</em>, <em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXfield.plot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot data if the signal attribute is defined.</p>
+<p>The format argument is used to set the color and type of the
+markers or lines for one-dimensional plots, using the standard 
+Mtplotlib syntax. The default is set to blue circles. All 
+keyword arguments accepted by matplotlib.pyplot.plot can be
+used to customize the plot.</p>
+<p>In addition to the matplotlib keyword arguments, the following
+are defined:</p>
+<div class="highlight-python"><div class="highlight"><pre>log = True     - plot the intensity on a log scale
+logy = True    - plot the y-axis on a log scale
+logx = True    - plot the x-axis on a log scale
+over = True    - plot on the current figure
+image = True   - plot as an RGB(A) image
+</pre></div>
+</div>
+<p>Raises NeXusError if the data could not be plotted.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nexusformat.nexus.tree.NXfield.reshape">
+<code class="descname">reshape</code><span class="sig-paren">(</span><em>shape</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXfield.reshape" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns an NXfield with the specified shape.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="nexusformat.nexus.tree.NXfield.shape">
+<code class="descname">shape</code><a class="headerlink" href="#nexusformat.nexus.tree.NXfield.shape" title="Permalink to this definition">¶</a></dt>
+<dd><p>Property: Shape of NeXus field</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="nexusformat.nexus.tree.NXfield.size">
+<code class="descname">size</code><a class="headerlink" href="#nexusformat.nexus.tree.NXfield.size" title="Permalink to this definition">¶</a></dt>
+<dd><p>Property: Size of NeXus field</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nexusformat.nexus.tree.NXfield.transpose">
+<code class="descname">transpose</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXfield.transpose" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns an NXfield containing the transpose of the data array.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="nexusformat.nexus.tree.NXgroup">
+<em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXgroup</code><span class="sig-paren">(</span><em>*items</em>, <em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXgroup" title="Permalink to this definition">¶</a></dt>
+<dd><p>A NeXus group object.</p>
+<p>This is a subclass of NXobject and is the base class for the specific
+NeXus group classes, e.g., NXentry, NXsample, NXdata.</p>
+<p><strong>Parameters</strong></p>
+<p>The NXgroup parameters consist of a list of positional and/or keyword
+arguments.</p>
+<dl class="docutils">
+<dt>Positional Arguments: </dt>
+<dd>These must be valid NeXus objects, either an NXfield or a NeXus group. 
+These are added without modification as children of this group.</dd>
+<dt>Keyword Arguments: </dt>
+<dd>Apart from a list of special keywords shown below, keyword arguments are
+used to add children to the group using the keywords as attribute names. 
+The values can either be valid NXfields or NXgroups, in which case the 
+&#8216;name&#8217; attribute is changed to the keyword, or they can be numerical or 
+string data, which are converted to NXfield objects.</dd>
+</dl>
+<p>Special Keyword Arguments:</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>name <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
+<dd>The name of the NXgroup, which is directly accessible as the NXgroup
+attribute &#8216;name&#8217;. If the NXgroup is initialized as the attribute of
+a parent group, the name is automatically set to the name of this
+attribute. If &#8216;nxclass&#8217; is specified and has the usual prefix &#8216;NX&#8217;,
+the default name is the class name without this prefix.</dd>
+<dt>nxclass <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
+<dd>The class of the NXgroup.</dd>
+<dt>entries <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd>A dictionary containing a list of group entries. This is an
+alternative way of adding group entries to the use of keyword
+arguments.</dd>
+<dt>file <span class="classifier-delimiter">:</span> <span class="classifier">filename</span></dt>
+<dd>The file from which the NXfield has been read.</dd>
+<dt>path <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
+<dd>The path to this object with respect to the root of the NeXus tree,
+using the convention for unix file paths.</dd>
+<dt>group <span class="classifier-delimiter">:</span> <span class="classifier">NXobject (NXgroup or subclass of NXgroup)</span></dt>
+<dd>The parent NeXus group, which is accessible as the group attribute
+&#8216;group&#8217;. If the group is initialized as the attribute of
+a parent group, this is set to the parent group.</dd>
+</dl>
+</div></blockquote>
+<p><strong>Python Attributes</strong></p>
+<dl class="docutils">
+<dt>nxclass <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
+<dd>The class of the NXobject.</dd>
+<dt>nxname <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
+<dd>The name of the NXfield.</dd>
+<dt>entries <span class="classifier-delimiter">:</span> <span class="classifier">dictionary</span></dt>
+<dd>A dictionary of all the NeXus objects contained within an NXgroup.</dd>
+<dt>attrs <span class="classifier-delimiter">:</span> <span class="classifier">dictionary</span></dt>
+<dd>A dictionary of all the NeXus attributes, i.e., attribute with class NXattr.</dd>
+<dt>entries <span class="classifier-delimiter">:</span> <span class="classifier">dictionary</span></dt>
+<dd>A dictionary of all the NeXus objects contained within the group.</dd>
+<dt>attrs <span class="classifier-delimiter">:</span> <span class="classifier">dictionary</span></dt>
+<dd>A dictionary of all the group&#8217;s NeXus attributes, which all have the
+class NXattr.</dd>
+<dt>nxpath <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
+<dd>The path to this object with respect to the root of the NeXus tree. For
+NeXus data read from a file, this will be a group of class NXroot, but
+if the NeXus tree was defined interactively, it can be any valid
+NXgroup.</dd>
+<dt>nxroot <span class="classifier-delimiter">:</span> <span class="classifier">NXgroup</span></dt>
+<dd>The root object of the NeXus tree containing this object. For
+NeXus data read from a file, this will be a group of class NXroot, but
+if the NeXus tree was defined interactively, it can be any valid
+NXgroup.</dd>
+</dl>
+<p><strong>NeXus Group Entries</strong></p>
+<p>Just as in a NeXus file, NeXus groups can contain either data or other
+groups, represented by NXfield and NXgroup objects respectively. To
+distinguish them from regular Python attributes, all NeXus objects are
+stored in the &#8216;entries&#8217; dictionary of the NXgroup. However, they can usually
+be assigned or referenced as if they are Python attributes, i.e., using the
+dictionary name directly as the group attribute name, as long as this name
+is not the same as one of the Python attributes defined above or as one of
+the NXfield Python attributes.</p>
+<ol class="arabic">
+<li><p class="first">Assigning a NeXus object to a NeXus group</p>
+<blockquote>
+<div><p>In the example below, after assigning the NXgroup, the following three
+NeXus object assignments to entry.sample are all equivalent:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">entry</span><span class="o">.</span><span class="n">sample</span> <span class="o">=</span> <span class="n">NXsample</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">entry</span><span class="o">.</span><span class="n">sample</span><span class="p">[</span><span class="s">&#39;temperature&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">NXfield</span><span class="p">(</span><span class="mf">40.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">entry</span><span class="o">.</span><span class="n">sample</span><span class="o">.</span><span class="n">temperature</span> <span class="o">=</span> <span class="n">NXfield</span><span class="p">(</span><span class="mf">40.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">entry</span><span class="o">.</span><span class="n">sample</span><span class="o">.</span><span class="n">temperature</span> <span class="o">=</span> <span class="mf">40.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">entry</span><span class="o">.</span><span class="n">sample</span><span class="o">.</span><span class="n">temperature</span>
+<span class="go">NXfield(40.0)</span>
+</pre></div>
+</div>
+<p>If the assigned value is not a valid NXobject, then it is cast as an NXfield
+with a type determined from the Python data type.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">entry</span><span class="o">.</span><span class="n">sample</span><span class="o">.</span><span class="n">temperature</span> <span class="o">=</span> <span class="mf">40.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">entry</span><span class="o">.</span><span class="n">sample</span><span class="o">.</span><span class="n">temperature</span>
+<span class="go">NXfield(40.0)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">entry</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">x</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">11</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s">&#39;float32&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">entry</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">x</span>
+<span class="go">NXfield([  0.   1.   2. ...,   8.   9.  10.])</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">Referencing a NeXus object in a NeXus group</p>
+<blockquote>
+<div><p>If the name of the NeXus object is not the same as any of the Python
+attributes listed above, or the methods listed below, they can be referenced
+as if they were a Python attribute of the NXgroup. However, it is only possible
+to reference attributes with one of the proscribed names using the group
+dictionary, i.e.,</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">entry</span><span class="o">.</span><span class="n">sample</span><span class="o">.</span><span class="n">tree</span> <span class="o">=</span> <span class="mf">100.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">entry</span><span class="o">.</span><span class="n">sample</span><span class="o">.</span><span class="n">tree</span>
+<span class="go">sample:NXsample</span>
+<span class="go">  tree = 100.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">entry</span><span class="o">.</span><span class="n">sample</span><span class="p">[</span><span class="s">&#39;tree&#39;</span><span class="p">]</span>
+<span class="go">NXfield(100.0)</span>
+</pre></div>
+</div>
+<p>For this reason, it is recommended to use the group dictionary to reference
+all group objects within Python scripts.</p>
+</div></blockquote>
+</li>
+</ol>
+<p><strong>NeXus Attributes</strong></p>
+<p>NeXus attributes are not currently used much with NXgroups, except for the
+root group, which has a number of global attributes to store the file name,
+file creation time, and NeXus and HDF version numbers. However, the
+mechanism described for NXfields works here as well. All NeXus attributes
+are stored in the &#8216;attrs&#8217; dictionary of the NXgroup, but can be referenced
+as if they are Python attributes as long as there is no name clash.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">entry</span><span class="o">.</span><span class="n">sample</span><span class="o">.</span><span class="n">temperature</span> <span class="o">=</span> <span class="mf">40.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">entry</span><span class="o">.</span><span class="n">sample</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s">&#39;tree&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">10.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">entry</span><span class="o">.</span><span class="n">sample</span><span class="o">.</span><span class="n">tree</span>
+<span class="go">sample:NXsample</span>
+<span class="go">  @tree = 10.0</span>
+<span class="go">  temperature = 40.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">entry</span><span class="o">.</span><span class="n">sample</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s">&#39;tree&#39;</span><span class="p">]</span>
+<span class="go">NXattr(10.0)</span>
+</pre></div>
+</div>
+<p><strong>Methods</strong></p>
+<dl class="docutils">
+<dt>insert(self, NXobject, name=&#8217;unknown&#8217;):</dt>
+<dd><p class="first">Insert a valid NXobject (NXfield or NXgroup) into the group.</p>
+<p class="last">If NXobject has a &#8216;name&#8217; attribute and the &#8216;name&#8217; keyword is not given,
+then the object is inserted with the NXobject name.</p>
+</dd>
+<dt>makelink(self, NXobject):</dt>
+<dd>Add the NXobject to the group entries as a link (NXlink).</dd>
+<dt>dir(self, attrs=False, recursive=False):</dt>
+<dd><p class="first">Print the group directory.</p>
+<p class="last">The directory is a list of NeXus objects within this group, either NeXus
+groups or NXfield data. If &#8216;attrs&#8217; is True, NXfield attributes are
+displayed. If &#8216;recursive&#8217; is True, the contents of child groups are also
+displayed.</p>
+</dd>
+<dt>tree:</dt>
+<dd><p class="first">Returns the group tree.</p>
+<p class="last">It invokes the &#8216;dir&#8217; method with both &#8216;attrs&#8217; and &#8216;recursive&#8217;
+set to True.</p>
+</dd>
+<dt>save(self, filename, format=&#8217;w5&#8217;)</dt>
+<dd><p class="first">Save the NeXus group into a file</p>
+<p class="last">The object is wrapped in an NXroot group (with name &#8216;root&#8217;) and an
+NXentry group (with name &#8216;entry&#8217;), if necessary, in order to produce
+a valid NeXus file.</p>
+</dd>
+</dl>
+<p><strong>Examples</strong></p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">NXfield</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span><span class="mi">101</span><span class="p">),</span> <span class="n">units</span><span class="o">=</span><span class="s">&#39;degree&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">entry</span> <span class="o">=</span> <span class="n">NXgroup</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">&#39;entry&#39;</span><span class="p">,</span> <span class="n">nxclass</span><span class="o">=</span><span class="s">&#39;NXentry&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">entry</span><span class="o">.</span><span class="n">sample</span> <span class="o">=</span> <span class="n">NXgroup</span><span class="p">(</span><span class="n">temperature</span><span class="o">=</span><span class="n">NXfield</span><span class="p">(</span><span class="mf">40.0</span><span class="p">,</span><span class="n">units</span><span class="o">=</span><span class="s">&#39;K&#39;</span><span class="p">),</span>
+<span class="go">                           nxclass=&#39;NXsample&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">entry</span><span class="o">.</span><span class="n">sample</span><span class="o">.</span><span class="n">tree</span>
+<span class="go">sample:NXsample</span>
+<span class="go">  temperature = 40.0</span>
+<span class="go">    @units = K</span>
+</pre></div>
+</div>
+<p>Note: All the currently defined NeXus classes are defined as subclasses of 
+the NXgroup class. It is recommended that these are used directly, so that 
+the above examples become:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">entry</span> <span class="o">=</span> <span class="n">NXentry</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">entry</span><span class="o">.</span><span class="n">sample</span> <span class="o">=</span> <span class="n">NXsample</span><span class="p">(</span><span class="n">temperature</span><span class="o">=</span><span class="n">NXfield</span><span class="p">(</span><span class="mf">40.0</span><span class="p">,</span><span class="n">units</span><span class="o">=</span><span class="s">&#39;K&#39;</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>or</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">entry</span><span class="o">.</span><span class="n">sample</span><span class="o">.</span><span class="n">temperature</span> <span class="o">=</span> <span class="mf">40.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">entry</span><span class="o">.</span><span class="n">sample</span><span class="o">.</span><span class="n">temperature</span><span class="o">.</span><span class="n">units</span><span class="o">=</span><span class="s">&#39;K&#39;</span>
+</pre></div>
+</div>
+<dl class="method">
+<dt id="nexusformat.nexus.tree.NXgroup.component">
+<code class="descname">component</code><span class="sig-paren">(</span><em>nxclass</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXgroup.component" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finds all child objects that have a particular class.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="nexusformat.nexus.tree.NXgroup.entries">
+<code class="descname">entries</code><a class="headerlink" href="#nexusformat.nexus.tree.NXgroup.entries" title="Permalink to this definition">¶</a></dt>
+<dd><p>Property: NeXus objects within group</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nexusformat.nexus.tree.NXgroup.get">
+<code class="descname">get</code><span class="sig-paren">(</span><em>name</em>, <em>default=None</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXgroup.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves the group entry, or return default if it doesn&#8217;t exist</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nexusformat.nexus.tree.NXgroup.has_key">
+<code class="descname">has_key</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXgroup.has_key" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns true if the NeXus object with the specified name is in the group.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nexusformat.nexus.tree.NXgroup.implot">
+<code class="descname">implot</code><span class="sig-paren">(</span><em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXgroup.implot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plots the data intensity as an RGB(A) image.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nexusformat.nexus.tree.NXgroup.insert">
+<code class="descname">insert</code><span class="sig-paren">(</span><em>value</em>, <em>name='unknown'</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXgroup.insert" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds an attribute to the group.</p>
+<p>If it is not a valid NeXus object (NXfield or NXgroup), the attribute
+is converted to an NXfield.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nexusformat.nexus.tree.NXgroup.items">
+<code class="descname">items</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXgroup.items" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a list of the NeXus objects in the group as (key,value) pairs.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nexusformat.nexus.tree.NXgroup.iteritems">
+<code class="descname">iteritems</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXgroup.iteritems" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get an iterator over (name, object) pairs</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nexusformat.nexus.tree.NXgroup.iterkeys">
+<code class="descname">iterkeys</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXgroup.iterkeys" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get an iterator over group object names</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nexusformat.nexus.tree.NXgroup.itervalues">
+<code class="descname">itervalues</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXgroup.itervalues" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get an iterator over group objects</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nexusformat.nexus.tree.NXgroup.keys">
+<code class="descname">keys</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXgroup.keys" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the names of NeXus objects in the group.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nexusformat.nexus.tree.NXgroup.logplot">
+<code class="descname">logplot</code><span class="sig-paren">(</span><em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXgroup.logplot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plots the data intensity contained within the group on a log scale.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nexusformat.nexus.tree.NXgroup.makelink">
+<code class="descname">makelink</code><span class="sig-paren">(</span><em>target</em>, <em>name=None</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXgroup.makelink" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a linked NXobject within the group.</p>
+<p>The argument is the parent object. All attributes are inherited from the 
+parent object including the name.</p>
+<p>The root of the target and child&#8217;s group must be the same.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nexusformat.nexus.tree.NXgroup.moment">
+<code class="descname">moment</code><span class="sig-paren">(</span><em>order=1</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXgroup.moment" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns an NXfield containing the moments of the NXdata group
+assuming the signal is one-dimensional.</p>
+<p>Currently, only the first moment has been defined. Eventually, the
+order of the moment will be defined by the &#8216;order&#8217; parameter.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="nexusformat.nexus.tree.NXgroup.nxtitle">
+<code class="descname">nxtitle</code><a class="headerlink" href="#nexusformat.nexus.tree.NXgroup.nxtitle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the title as a string.</p>
+<p>If there is no title field in the group or its parent group, the group&#8217;s
+path is returned.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nexusformat.nexus.tree.NXgroup.oplot">
+<code class="descname">oplot</code><span class="sig-paren">(</span><em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXgroup.oplot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plots the data contained within the group over the current figure.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nexusformat.nexus.tree.NXgroup.plot">
+<code class="descname">plot</code><span class="sig-paren">(</span><em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXgroup.plot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot data contained within the group.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="nexusformat.nexus.tree.NXgroup.plottable_data">
+<code class="descname">plottable_data</code><a class="headerlink" href="#nexusformat.nexus.tree.NXgroup.plottable_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the first NXdata group within the group&#8217;s tree.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nexusformat.nexus.tree.NXgroup.signals">
+<code class="descname">signals</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXgroup.signals" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a dictionary of NXfield&#8217;s containing signal data.</p>
+<p>The key is the value of the signal attribute.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nexusformat.nexus.tree.NXgroup.sum">
+<code class="descname">sum</code><span class="sig-paren">(</span><em>axis=None</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXgroup.sum" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the sum of the NXdata group using the Numpy sum method
+on the NXdata signal. The sum is over a single axis or a tuple of axes
+using the Numpy sum method.</p>
+<p>The result contains a copy of all the metadata contained in
+the NXdata group.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nexusformat.nexus.tree.NXgroup.update">
+<code class="descname">update</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXgroup.update" title="Permalink to this definition">¶</a></dt>
+<dd><p>Updates the NXgroup, including its children, to the NeXus file.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nexusformat.nexus.tree.NXgroup.values">
+<code class="descname">values</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXgroup.values" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the values of NeXus objects in the group.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="nexusformat.nexus.tree.NXattr">
+<em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXattr</code><span class="sig-paren">(</span><em>value=None</em>, <em>dtype=None</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXattr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Class for NeXus attributes of a NXfield or NXgroup object.</p>
+<p>This class is only used for NeXus attributes that are stored in a
+NeXus file and helps to distinguish them from Python attributes.
+There are two Python attributes for each NeXus attribute.</p>
+<p><strong>Python Attributes</strong></p>
+<dl class="docutils">
+<dt>nxdata <span class="classifier-delimiter">:</span> <span class="classifier">string, Numpy scalar, or Numpy ndarray</span></dt>
+<dd>The value of the NeXus attribute.</dd>
+<dt>dtype <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
+<dd>The data type of the NeXus attribute. This is set to &#8216;char&#8217; for
+a string attribute or the string of the corresponding Numpy data type
+for a numeric attribute.</dd>
+</dl>
+<p><strong>NeXus Attributes</strong></p>
+<p>NeXus attributes are stored in the &#8216;attrs&#8217; dictionary of the parent object,
+NXfield or NXgroup, but can often be referenced or assigned using the
+attribute name as if it were an object attribute.</p>
+<p>For example, after assigning the NXfield, the following three attribute
+assignments are all equivalent:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">entry</span><span class="o">.</span><span class="n">sample</span><span class="o">.</span><span class="n">temperature</span> <span class="o">=</span> <span class="n">NXfield</span><span class="p">(</span><span class="mf">40.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">entry</span><span class="o">.</span><span class="n">sample</span><span class="o">.</span><span class="n">temperature</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s">&#39;units&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;K&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">entry</span><span class="o">.</span><span class="n">sample</span><span class="o">.</span><span class="n">temperature</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="n">NXattr</span><span class="p">(</span><span class="s">&#39;K&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">entry</span><span class="o">.</span><span class="n">sample</span><span class="o">.</span><span class="n">temperature</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="s">&#39;K&#39;</span>
+</pre></div>
+</div>
+<p>The fourth version above is only allowed for NXfield attributes and is
+not allowed if the attribute has the same name as one of the following
+internally defined attributes, i.e.,</p>
+<p>[&#8216;entries&#8217;, &#8216;attrs&#8217;, &#8216;dtype&#8217;,&#8217;shape&#8217;]</p>
+<p>or if the attribute name begins with &#8216;nx&#8217; or &#8216;_&#8217;. It is only possible to
+reference attributes with one of the proscribed names using the &#8216;attrs&#8217;
+dictionary.</p>
+<dl class="attribute">
+<dt id="nexusformat.nexus.tree.NXattr.nxdata">
+<code class="descname">nxdata</code><a class="headerlink" href="#nexusformat.nexus.tree.NXattr.nxdata" title="Permalink to this definition">¶</a></dt>
+<dd><p>Property: The attribute values</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="nexusformat.nexus.tree.NXlink">
+<em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXlink</code><span class="sig-paren">(</span><em>target=None</em>, <em>name=None</em>, <em>file=None</em>, <em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXlink" title="Permalink to this definition">¶</a></dt>
+<dd><p>Class for NeXus linked objects.</p>
+<p>The real object will be accessible by following the link attribute.</p>
+<dl class="attribute">
+<dt id="nexusformat.nexus.tree.NXlink.attrs">
+<code class="descname">attrs</code><a class="headerlink" href="#nexusformat.nexus.tree.NXlink.attrs" title="Permalink to this definition">¶</a></dt>
+<dd><p>NeXus attributes for object</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="nexusformat.nexus.tree.NXlinkfield">
+<em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXlinkfield</code><span class="sig-paren">(</span><em>target=None</em>, <em>name=None</em>, <em>file=None</em>, <em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXlinkfield" title="Permalink to this definition">¶</a></dt>
+<dd><p>Class for a NeXus linked field.</p>
+<p>The real field will be accessible by following the link attribute.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="nexusformat.nexus.tree.NXlinkgroup">
+<em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXlinkgroup</code><span class="sig-paren">(</span><em>target=None</em>, <em>name=None</em>, <em>file=None</em>, <em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXlinkgroup" title="Permalink to this definition">¶</a></dt>
+<dd><p>Class for a NeXus linked group.</p>
+<p>The real group will be accessible by following the link attribute.</p>
+<dl class="attribute">
+<dt id="nexusformat.nexus.tree.NXlinkgroup.entries">
+<code class="descname">entries</code><a class="headerlink" href="#nexusformat.nexus.tree.NXlinkgroup.entries" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dictionary of NeXus objects within group</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="attribute">
+<dt id="nexusformat.nexus.tree.NXlinkdata">
+<code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXlinkdata</code><a class="headerlink" href="#nexusformat.nexus.tree.NXlinkdata" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="#nexusformat.nexus.tree.NXlinkfield" title="nexusformat.nexus.tree.NXlinkfield"><code class="xref py py-class docutils literal"><span class="pre">NXlinkfield</span></code></a></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="nexusformat.nexus.tree.NXlinkexternal">
+<em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXlinkexternal</code><span class="sig-paren">(</span><em>name=None</em>, <em>target=None</em>, <em>file=None</em>, <em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXlinkexternal" title="Permalink to this definition">¶</a></dt>
+<dd><p>Class for a link to a field in an external file.</p>
+<p>Since the field is stored in another file, the field names don&#8217;t have to be 
+the same. There is no need to redirect requests for linked attributes, since 
+they are handled automatically by h5py. Currently, external fields are 
+read-only.</p>
+<dl class="attribute">
+<dt id="nexusformat.nexus.tree.NXlinkexternal.attrs">
+<code class="descname">attrs</code><a class="headerlink" href="#nexusformat.nexus.tree.NXlinkexternal.attrs" title="Permalink to this definition">¶</a></dt>
+<dd><p>NeXus attributes for object</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="nexusformat.nexus.tree.NXlinkexternal.dtype">
+<code class="descname">dtype</code><a class="headerlink" href="#nexusformat.nexus.tree.NXlinkexternal.dtype" title="Permalink to this definition">¶</a></dt>
+<dd><p>Property: Data type of NeXus field</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="nexusformat.nexus.tree.NXlinkexternal.nxdata">
+<code class="descname">nxdata</code><a class="headerlink" href="#nexusformat.nexus.tree.NXlinkexternal.nxdata" title="Permalink to this definition">¶</a></dt>
+<dd><p>Property: The data values</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="nexusformat.nexus.tree.NXlinkexternal.nxfile">
+<code class="descname">nxfile</code><a class="headerlink" href="#nexusformat.nexus.tree.NXlinkexternal.nxfile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Property: File handle of external link</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="nexusformat.nexus.tree.NXlinkexternal.nxfilemode">
+<code class="descname">nxfilemode</code><a class="headerlink" href="#nexusformat.nexus.tree.NXlinkexternal.nxfilemode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Property: File mode of external link</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="nexusformat.nexus.tree.NXlinkexternal.nxfilename">
+<code class="descname">nxfilename</code><a class="headerlink" href="#nexusformat.nexus.tree.NXlinkexternal.nxfilename" title="Permalink to this definition">¶</a></dt>
+<dd><p>Property: Filename of external link</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="nexusformat.nexus.tree.NXlinkexternal.nxlink">
+<code class="descname">nxlink</code><a class="headerlink" href="#nexusformat.nexus.tree.NXlinkexternal.nxlink" title="Permalink to this definition">¶</a></dt>
+<dd><p>Linked object</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="nexusformat.nexus.tree.NXlinkexternal.nxpath">
+<code class="descname">nxpath</code><a class="headerlink" href="#nexusformat.nexus.tree.NXlinkexternal.nxpath" title="Permalink to this definition">¶</a></dt>
+<dd><p>Property: Path of external link</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="nexusformat.nexus.tree.NXlinkexternal.shape">
+<code class="descname">shape</code><a class="headerlink" href="#nexusformat.nexus.tree.NXlinkexternal.shape" title="Permalink to this definition">¶</a></dt>
+<dd><p>Property: Shape of NeXus field</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="nexusformat.nexus.tree.NeXusError">
+<em class="property">exception </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NeXusError</code><a class="headerlink" href="#nexusformat.nexus.tree.NeXusError" title="Permalink to this definition">¶</a></dt>
+<dd><p>NeXus Error</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="nexusformat.nexus.tree.nxsetmemory">
+<code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">nxsetmemory</code><span class="sig-paren">(</span><em>value</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.nxsetmemory" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the memory limit for data arrays (in MB).</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="nexusformat.nexus.tree.nxsetcompression">
+<code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">nxsetcompression</code><span class="sig-paren">(</span><em>value</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.nxsetcompression" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets default compression filter.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="nexusformat.nexus.tree.nxsetencoding">
+<code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">nxsetencoding</code><span class="sig-paren">(</span><em>value</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.nxsetencoding" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the default encoding for input strings (usually &#8216;utf-8&#8217;).</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="nexusformat.nexus.tree.nxload">
+<code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">nxload</code><span class="sig-paren">(</span><em>filename</em>, <em>mode='r'</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.nxload" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reads a NeXus file returning a tree of objects.</p>
+<p>This is aliased to &#8216;nxload&#8217; because of potential name clashes with Numpy</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="nexusformat.nexus.tree.nxsave">
+<code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">nxsave</code><span class="sig-paren">(</span><em>filename</em>, <em>group</em>, <em>mode='w'</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.nxsave" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes a NeXus file from a tree of objects.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="nexusformat.nexus.tree.nxdir">
+<code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">nxdir</code><span class="sig-paren">(</span><em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.nxdir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Outputs contents of the named NeXus file.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="nexusformat.nexus.tree.nxdemo">
+<code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">nxdemo</code><span class="sig-paren">(</span><em>argv</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.nxdemo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Processes a list of command line commands.</p>
+<p>&#8216;argv&#8217; should contain program name, command, arguments, where command is one
+of the following:</p>
+<blockquote>
+<div>copy fromfile.nxs tofile.nxs
+ls f1.nxs f2.nxs ...</div></blockquote>
+</dd></dl>
+
+<dl class="class">
+<dt id="nexusformat.nexus.tree.NXroot">
+<em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXroot</code><span class="sig-paren">(</span><em>*items</em>, <em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXroot" title="Permalink to this definition">¶</a></dt>
+<dd><p>NXroot group. This is a subclass of the NXgroup class.</p>
+<p>This group has additional methods to lock or unlock the tree.</p>
+<p>See the NXgroup documentation for more details.</p>
+<dl class="method">
+<dt id="nexusformat.nexus.tree.NXroot.lock">
+<code class="descname">lock</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXroot.lock" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make the tree readonly</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nexusformat.nexus.tree.NXroot.unlock">
+<code class="descname">unlock</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXroot.unlock" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make the tree modifiable</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="nexusformat.nexus.tree.NXentry">
+<em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXentry</code><span class="sig-paren">(</span><em>*items</em>, <em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXentry" title="Permalink to this definition">¶</a></dt>
+<dd><p>NXentry group. This is a subclass of the NXgroup class.</p>
+<p>Each NXdata and NXmonitor object of the same name will be added
+together, raising an NeXusError if any of the groups do not exist
+in both NXentry groups or if any of the NXdata additions fail.
+The resulting NXentry group contains a copy of all the other metadata
+contained in the first group. Note that other extensible data, such
+as the run duration, are not currently added together.</p>
+<p>See the NXgroup documentation for more details.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="nexusformat.nexus.tree.NXsubentry">
+<em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXsubentry</code><span class="sig-paren">(</span><em>*items</em>, <em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXsubentry" title="Permalink to this definition">¶</a></dt>
+<dd><p>NXsubentry group. This is a subclass of the NXsubentry class.</p>
+<p>See the NXgroup documentation for more details.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="nexusformat.nexus.tree.NXdata">
+<em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXdata</code><span class="sig-paren">(</span><em>signal=None</em>, <em>axes=None</em>, <em>errors=None</em>, <em>*items</em>, <em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXdata" title="Permalink to this definition">¶</a></dt>
+<dd><p>NXdata group. This is a subclass of the NXgroup class.</p>
+<p>The constructor assumes that the first argument contains the signal and
+the second contains either the axis, for one-dimensional data, or a list
+of axes, for multidimensional data. These arguments can either be NXfield
+objects or Numpy arrays, which are converted to NXfield objects with default
+names. Alternatively, the signal and axes NXfields can be defined using the
+&#8216;nxsignal&#8217; and &#8216;nxaxes&#8217; properties. See the examples below.</p>
+<p>Various arithmetic operations (addition, subtraction, multiplication,
+and division) have been defined for combining NXdata groups with other
+NXdata groups, Numpy arrays, or constants, raising a NeXusError if the
+shapes don&#8217;t match. Data errors are propagated in quadrature if
+they are defined, i.e., if the &#8216;nexerrors&#8217; attribute is not None,</p>
+<p><strong>Python Attributes</strong></p>
+<dl class="docutils">
+<dt>nxsignal <span class="classifier-delimiter">:</span> <span class="classifier">property</span></dt>
+<dd>The NXfield containing the attribute &#8216;signal&#8217; with value 1</dd>
+<dt>nxaxes <span class="classifier-delimiter">:</span> <span class="classifier">property</span></dt>
+<dd>A list of NXfields containing the signal axes</dd>
+<dt>nxerrors <span class="classifier-delimiter">:</span> <span class="classifier">property</span></dt>
+<dd>The NXfield containing the errors</dd>
+</dl>
+<p><strong>Examples</strong></p>
+<p>There are three methods of creating valid NXdata groups with the
+signal and axes NXfields defined according to the NeXus standard.</p>
+<ol class="arabic">
+<li><p class="first">Create the NXdata group with Numpy arrays that will be assigned
+default names.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="mi">101</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">line</span> <span class="o">=</span> <span class="n">NXdata</span><span class="p">(</span><span class="n">sin</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">x</span><span class="p">)</span>
+<span class="go">data:NXdata</span>
+<span class="go">  signal = float64(101)</span>
+<span class="go">    @axes = x</span>
+<span class="go">    @signal = 1</span>
+<span class="go">  axis1 = float64(101)</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">Create the NXdata group with NXfields that have their internal
+names already assigned.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">NXfield</span><span class="p">(</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="o">*</span><span class="n">pi</span><span class="p">,</span><span class="mi">101</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="s">&#39;x&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">y</span> <span class="o">=</span> <span class="n">NXfield</span><span class="p">(</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="o">*</span><span class="n">pi</span><span class="p">,</span><span class="mi">101</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="s">&#39;y&#39;</span><span class="p">)</span>    
+<span class="gp">&gt;&gt;&gt; </span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">z</span> <span class="o">=</span> <span class="n">NXfield</span><span class="p">(</span><span class="n">sin</span><span class="p">(</span><span class="n">X</span><span class="p">)</span> <span class="o">*</span> <span class="n">sin</span><span class="p">(</span><span class="n">Y</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="s">&#39;z&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">entry</span> <span class="o">=</span> <span class="n">NXentry</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">entry</span><span class="o">.</span><span class="n">grid</span> <span class="o">=</span> <span class="n">NXdata</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">grid</span><span class="o">.</span><span class="n">tree</span><span class="p">()</span>
+<span class="go">entry:NXentry</span>
+<span class="go">  grid:NXdata</span>
+<span class="go">    x = float64(101)</span>
+<span class="go">    y = float64(101)</span>
+<span class="go">    z = float64(101x101)</span>
+<span class="go">      @axes = x:y</span>
+<span class="go">      @signal = 1</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">Create the NXdata group with keyword arguments defining the names 
+and set the signal and axes using the nxsignal and nxaxes properties.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="o">*</span><span class="n">pi</span><span class="p">,</span><span class="mi">101</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">y</span> <span class="o">=</span> <span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="o">*</span><span class="n">pi</span><span class="p">,</span><span class="mi">101</span><span class="p">)</span>  
+<span class="gp">&gt;&gt;&gt; </span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">z</span> <span class="o">=</span> <span class="n">sin</span><span class="p">(</span><span class="n">X</span><span class="p">)</span> <span class="o">*</span> <span class="n">sin</span><span class="p">(</span><span class="n">Y</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">entry</span> <span class="o">=</span> <span class="n">NXentry</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">entry</span><span class="o">.</span><span class="n">grid</span> <span class="o">=</span> <span class="n">NXdata</span><span class="p">(</span><span class="n">z</span><span class="o">=</span><span class="n">sin</span><span class="p">(</span><span class="n">X</span><span class="p">)</span><span class="o">*</span><span class="n">sin</span><span class="p">(</span><span class="n">Y</span><span class="p">),</span> <span class="n">x</span><span class="o">=</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">y</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">entry</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">nxsignal</span> <span class="o">=</span> <span class="n">entry</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">z</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">entry</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">nxaxes</span> <span class="o">=</span> <span class="p">[</span><span class="n">entry</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">x</span><span class="p">,</span><span class="n">entry</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">y</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">grid</span><span class="o">.</span><span class="n">tree</span><span class="p">()</span>
+<span class="go">entry:NXentry</span>
+<span class="go">  grid:NXdata</span>
+<span class="go">    x = float64(101)</span>
+<span class="go">    y = float64(101)</span>
+<span class="go">    z = float64(101x101)</span>
+<span class="go">      @axes = x:y</span>
+<span class="go">      @signal = 1</span>
+</pre></div>
+</div>
+</li>
+</ol>
+<dl class="method">
+<dt id="nexusformat.nexus.tree.NXdata.implot">
+<code class="descname">implot</code><span class="sig-paren">(</span><em>fmt=''</em>, <em>xmin=None</em>, <em>xmax=None</em>, <em>ymin=None</em>, <em>ymax=None</em>, <em>zmin=None</em>, <em>zmax=None</em>, <em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXdata.implot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plots the data intensity as an image.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nexusformat.nexus.tree.NXdata.logplot">
+<code class="descname">logplot</code><span class="sig-paren">(</span><em>fmt=''</em>, <em>xmin=None</em>, <em>xmax=None</em>, <em>ymin=None</em>, <em>ymax=None</em>, <em>zmin=None</em>, <em>zmax=None</em>, <em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXdata.logplot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plots the data intensity contained within the group on a log scale.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="nexusformat.nexus.tree.NXdata.nxaxes">
+<code class="descname">nxaxes</code><a class="headerlink" href="#nexusformat.nexus.tree.NXdata.nxaxes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a list of NXfields containing the axes.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="nexusformat.nexus.tree.NXdata.nxerrors">
+<code class="descname">nxerrors</code><a class="headerlink" href="#nexusformat.nexus.tree.NXdata.nxerrors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the NXfield containing the signal errors.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="nexusformat.nexus.tree.NXdata.nxsignal">
+<code class="descname">nxsignal</code><a class="headerlink" href="#nexusformat.nexus.tree.NXdata.nxsignal" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the NXfield containing the signal data.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nexusformat.nexus.tree.NXdata.oplot">
+<code class="descname">oplot</code><span class="sig-paren">(</span><em>fmt=''</em>, <em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXdata.oplot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plots the data contained within the group over the current figure.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nexusformat.nexus.tree.NXdata.plot">
+<code class="descname">plot</code><span class="sig-paren">(</span><em>fmt=''</em>, <em>xmin=None</em>, <em>xmax=None</em>, <em>ymin=None</em>, <em>ymax=None</em>, <em>zmin=None</em>, <em>zmax=None</em>, <em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXdata.plot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot data contained within the group.</p>
+<p>The format argument is used to set the color and type of the
+markers or lines for one-dimensional plots, using the standard 
+Matplotlib syntax. The default is set to blue circles. All 
+keyword arguments accepted by matplotlib.pyplot.plot can be
+used to customize the plot.</p>
+<p>In addition to the matplotlib keyword arguments, the following
+are defined:</p>
+<div class="highlight-python"><div class="highlight"><pre>log = True     - plot the intensity on a log scale
+logy = True    - plot the y-axis on a log scale
+logx = True    - plot the x-axis on a log scale
+over = True    - plot on the current figure
+image = True   - plot as an RGB(A) image
+</pre></div>
+</div>
+<p>Raises NeXusError if the data could not be plotted.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nexusformat.nexus.tree.NXdata.project">
+<code class="descname">project</code><span class="sig-paren">(</span><em>axes</em>, <em>limits</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXdata.project" title="Permalink to this definition">¶</a></dt>
+<dd><p>Projects the data along a specified 1D axis or 2D axes summing over the
+limits, which are specified as tuples for each dimension.</p>
+<p>This assumes that the data is at least two-dimensional.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="nexusformat.nexus.tree.NXmonitor">
+<em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXmonitor</code><span class="sig-paren">(</span><em>signal=None</em>, <em>axes=()</em>, <em>*items</em>, <em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXmonitor" title="Permalink to this definition">¶</a></dt>
+<dd><p>NXmonitor group. This is a subclass of the NXdata class.</p>
+<p>See the NXdata and NXgroup documentation for more details.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="nexusformat.nexus.tree.NXlog">
+<em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXlog</code><span class="sig-paren">(</span><em>*items</em>, <em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXlog" title="Permalink to this definition">¶</a></dt>
+<dd><p>NXlog group. This is a subclass of the NXgroup class.</p>
+<p>See the NXgroup documentation for more details.</p>
+<dl class="method">
+<dt id="nexusformat.nexus.tree.NXlog.plot">
+<code class="descname">plot</code><span class="sig-paren">(</span><em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXlog.plot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plots the logged values against the elapsed time. Valid Matplotlib 
+parameters, specifying markers, colors, etc, can be specified using the 
+&#8216;opts&#8217; dictionary.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="nexusformat.nexus.tree.NXsample">
+<em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXsample</code><span class="sig-paren">(</span><em>*items</em>, <em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXsample" title="Permalink to this definition">¶</a></dt>
+<dd><p>NXsample group. This is a subclass of the NXgroup class.</p>
+<p>See the NXgroup documentation for more details.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="nexusformat.nexus.tree.NXinstrument">
+<em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXinstrument</code><span class="sig-paren">(</span><em>*items</em>, <em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXinstrument" title="Permalink to this definition">¶</a></dt>
+<dd><p>NXinstrument group. This is a subclass of the NXgroup class.</p>
+<p>See the NXgroup documentation for more details.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="nexusformat.nexus.tree.NXaperture">
+<em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXaperture</code><span class="sig-paren">(</span><em>*items</em>, <em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXaperture" title="Permalink to this definition">¶</a></dt>
+<dd><p>NXaperture group. This is a subclass of the NXgroup class.</p>
+<p>See the NXgroup documentation for more details.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="nexusformat.nexus.tree.NXattenuator">
+<em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXattenuator</code><span class="sig-paren">(</span><em>*items</em>, <em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXattenuator" title="Permalink to this definition">¶</a></dt>
+<dd><p>NXattenuator group. This is a subclass of the NXgroup class.</p>
+<p>See the NXgroup documentation for more details.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="nexusformat.nexus.tree.NXbeam">
+<em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXbeam</code><span class="sig-paren">(</span><em>*items</em>, <em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXbeam" title="Permalink to this definition">¶</a></dt>
+<dd><p>NXbeam group. This is a subclass of the NXgroup class.</p>
+<p>See the NXgroup documentation for more details.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="nexusformat.nexus.tree.NXbeam_stop">
+<em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXbeam_stop</code><span class="sig-paren">(</span><em>*items</em>, <em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXbeam_stop" title="Permalink to this definition">¶</a></dt>
+<dd><p>NXbeam_stop group. This is a subclass of the NXgroup class.</p>
+<p>See the NXgroup documentation for more details.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="nexusformat.nexus.tree.NXbending_magnet">
+<em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXbending_magnet</code><span class="sig-paren">(</span><em>*items</em>, <em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXbending_magnet" title="Permalink to this definition">¶</a></dt>
+<dd><p>NXbending_magnet group. This is a subclass of the NXgroup class.</p>
+<p>See the NXgroup documentation for more details.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="nexusformat.nexus.tree.NXcapillary">
+<em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXcapillary</code><span class="sig-paren">(</span><em>*items</em>, <em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXcapillary" title="Permalink to this definition">¶</a></dt>
+<dd><p>NXcapillary group. This is a subclass of the NXgroup class.</p>
+<p>See the NXgroup documentation for more details.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="nexusformat.nexus.tree.NXcharacterization">
+<em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXcharacterization</code><span class="sig-paren">(</span><em>*items</em>, <em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXcharacterization" title="Permalink to this definition">¶</a></dt>
+<dd><p>NXcharacterization group. This is a subclass of the NXgroup class.</p>
+<p>See the NXgroup documentation for more details.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="nexusformat.nexus.tree.NXcollection">
+<em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXcollection</code><span class="sig-paren">(</span><em>*items</em>, <em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXcollection" title="Permalink to this definition">¶</a></dt>
+<dd><p>NXcollection group. This is a subclass of the NXgroup class.</p>
+<p>See the NXgroup documentation for more details.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="nexusformat.nexus.tree.NXcollimator">
+<em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXcollimator</code><span class="sig-paren">(</span><em>*items</em>, <em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXcollimator" title="Permalink to this definition">¶</a></dt>
+<dd><p>NXcollimator group. This is a subclass of the NXgroup class.</p>
+<p>See the NXgroup documentation for more details.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="nexusformat.nexus.tree.NXcrystal">
+<em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXcrystal</code><span class="sig-paren">(</span><em>*items</em>, <em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXcrystal" title="Permalink to this definition">¶</a></dt>
+<dd><p>NXcrystal group. This is a subclass of the NXgroup class.</p>
+<p>See the NXgroup documentation for more details.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="nexusformat.nexus.tree.NXdetector">
+<em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXdetector</code><span class="sig-paren">(</span><em>*items</em>, <em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXdetector" title="Permalink to this definition">¶</a></dt>
+<dd><p>NXdetector group. This is a subclass of the NXgroup class.</p>
+<p>See the NXgroup documentation for more details.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="nexusformat.nexus.tree.NXdetector_group">
+<em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXdetector_group</code><span class="sig-paren">(</span><em>*items</em>, <em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXdetector_group" title="Permalink to this definition">¶</a></dt>
+<dd><p>NXdetector_group group. This is a subclass of the NXgroup class.</p>
+<p>See the NXgroup documentation for more details.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="nexusformat.nexus.tree.NXdisk_chopper">
+<em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXdisk_chopper</code><span class="sig-paren">(</span><em>*items</em>, <em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXdisk_chopper" title="Permalink to this definition">¶</a></dt>
+<dd><p>NXdisk_chopper group. This is a subclass of the NXgroup class.</p>
+<p>See the NXgroup documentation for more details.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="nexusformat.nexus.tree.NXenvironment">
+<em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXenvironment</code><span class="sig-paren">(</span><em>*items</em>, <em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXenvironment" title="Permalink to this definition">¶</a></dt>
+<dd><p>NXenvironment group. This is a subclass of the NXgroup class.</p>
+<p>See the NXgroup documentation for more details.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="nexusformat.nexus.tree.NXevent_data">
+<em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXevent_data</code><span class="sig-paren">(</span><em>*items</em>, <em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXevent_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>NXevent_data group. This is a subclass of the NXgroup class.</p>
+<p>See the NXgroup documentation for more details.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="nexusformat.nexus.tree.NXfermi_chopper">
+<em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXfermi_chopper</code><span class="sig-paren">(</span><em>*items</em>, <em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXfermi_chopper" title="Permalink to this definition">¶</a></dt>
+<dd><p>NXfermi_chopper group. This is a subclass of the NXgroup class.</p>
+<p>See the NXgroup documentation for more details.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="nexusformat.nexus.tree.NXfilter">
+<em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXfilter</code><span class="sig-paren">(</span><em>*items</em>, <em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXfilter" title="Permalink to this definition">¶</a></dt>
+<dd><p>NXfilter group. This is a subclass of the NXgroup class.</p>
+<p>See the NXgroup documentation for more details.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="nexusformat.nexus.tree.NXflipper">
+<em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXflipper</code><span class="sig-paren">(</span><em>*items</em>, <em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXflipper" title="Permalink to this definition">¶</a></dt>
+<dd><p>NXflipper group. This is a subclass of the NXgroup class.</p>
+<p>See the NXgroup documentation for more details.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="nexusformat.nexus.tree.NXgeometry">
+<em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXgeometry</code><span class="sig-paren">(</span><em>*items</em>, <em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXgeometry" title="Permalink to this definition">¶</a></dt>
+<dd><p>NXgeometry group. This is a subclass of the NXgroup class.</p>
+<p>See the NXgroup documentation for more details.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="nexusformat.nexus.tree.NXguide">
+<em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXguide</code><span class="sig-paren">(</span><em>*items</em>, <em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXguide" title="Permalink to this definition">¶</a></dt>
+<dd><p>NXguide group. This is a subclass of the NXgroup class.</p>
+<p>See the NXgroup documentation for more details.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="nexusformat.nexus.tree.NXinsertion_device">
+<em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXinsertion_device</code><span class="sig-paren">(</span><em>*items</em>, <em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXinsertion_device" title="Permalink to this definition">¶</a></dt>
+<dd><p>NXinsertion_device group. This is a subclass of the NXgroup class.</p>
+<p>See the NXgroup documentation for more details.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="nexusformat.nexus.tree.NXmirror">
+<em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXmirror</code><span class="sig-paren">(</span><em>*items</em>, <em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXmirror" title="Permalink to this definition">¶</a></dt>
+<dd><p>NXmirror group. This is a subclass of the NXgroup class.</p>
+<p>See the NXgroup documentation for more details.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="nexusformat.nexus.tree.NXmoderator">
+<em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXmoderator</code><span class="sig-paren">(</span><em>*items</em>, <em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXmoderator" title="Permalink to this definition">¶</a></dt>
+<dd><p>NXmoderator group. This is a subclass of the NXgroup class.</p>
+<p>See the NXgroup documentation for more details.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="nexusformat.nexus.tree.NXmonochromator">
+<em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXmonochromator</code><span class="sig-paren">(</span><em>*items</em>, <em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXmonochromator" title="Permalink to this definition">¶</a></dt>
+<dd><p>NXmonochromator group. This is a subclass of the NXgroup class.</p>
+<p>See the NXgroup documentation for more details.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="nexusformat.nexus.tree.NXnote">
+<em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXnote</code><span class="sig-paren">(</span><em>*items</em>, <em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXnote" title="Permalink to this definition">¶</a></dt>
+<dd><p>NXnote group. This is a subclass of the NXgroup class.</p>
+<p>See the NXgroup documentation for more details.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="nexusformat.nexus.tree.NXorientation">
+<em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXorientation</code><span class="sig-paren">(</span><em>*items</em>, <em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXorientation" title="Permalink to this definition">¶</a></dt>
+<dd><p>NXorientation group. This is a subclass of the NXgroup class.</p>
+<p>See the NXgroup documentation for more details.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="nexusformat.nexus.tree.NXparameters">
+<em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXparameters</code><span class="sig-paren">(</span><em>*items</em>, <em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXparameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>NXparameters group. This is a subclass of the NXgroup class.</p>
+<p>See the NXgroup documentation for more details.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="nexusformat.nexus.tree.NXpolarizer">
+<em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXpolarizer</code><span class="sig-paren">(</span><em>*items</em>, <em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXpolarizer" title="Permalink to this definition">¶</a></dt>
+<dd><p>NXpolarizer group. This is a subclass of the NXgroup class.</p>
+<p>See the NXgroup documentation for more details.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="nexusformat.nexus.tree.NXpositioner">
+<em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXpositioner</code><span class="sig-paren">(</span><em>*items</em>, <em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXpositioner" title="Permalink to this definition">¶</a></dt>
+<dd><p>NXpositioner group. This is a subclass of the NXgroup class.</p>
+<p>See the NXgroup documentation for more details.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="nexusformat.nexus.tree.NXprocess">
+<em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXprocess</code><span class="sig-paren">(</span><em>*items</em>, <em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXprocess" title="Permalink to this definition">¶</a></dt>
+<dd><p>NXprocess group. This is a subclass of the NXgroup class.</p>
+<p>See the NXgroup documentation for more details.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="nexusformat.nexus.tree.NXsensor">
+<em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXsensor</code><span class="sig-paren">(</span><em>*items</em>, <em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXsensor" title="Permalink to this definition">¶</a></dt>
+<dd><p>NXsensor group. This is a subclass of the NXgroup class.</p>
+<p>See the NXgroup documentation for more details.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="nexusformat.nexus.tree.NXshape">
+<em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXshape</code><span class="sig-paren">(</span><em>*items</em>, <em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXshape" title="Permalink to this definition">¶</a></dt>
+<dd><p>NXshape group. This is a subclass of the NXgroup class.</p>
+<p>See the NXgroup documentation for more details.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="nexusformat.nexus.tree.NXsource">
+<em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXsource</code><span class="sig-paren">(</span><em>*items</em>, <em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXsource" title="Permalink to this definition">¶</a></dt>
+<dd><p>NXsource group. This is a subclass of the NXgroup class.</p>
+<p>See the NXgroup documentation for more details.</p>
+</dd></dl>
+
+<dl class="class">
+<dt>
+<em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXsubentry</code><span class="sig-paren">(</span><em>*items</em>, <em>**opts</em><span class="sig-paren">)</span></dt>
+<dd><p>NXsubentry group. This is a subclass of the NXsubentry class.</p>
+<p>See the NXgroup documentation for more details.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="nexusformat.nexus.tree.NXtranslation">
+<em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXtranslation</code><span class="sig-paren">(</span><em>*items</em>, <em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXtranslation" title="Permalink to this definition">¶</a></dt>
+<dd><p>NXtranslation group. This is a subclass of the NXgroup class.</p>
+<p>See the NXgroup documentation for more details.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="nexusformat.nexus.tree.NXuser">
+<em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXuser</code><span class="sig-paren">(</span><em>*items</em>, <em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXuser" title="Permalink to this definition">¶</a></dt>
+<dd><p>NXuser group. This is a subclass of the NXgroup class.</p>
+<p>See the NXgroup documentation for more details.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="nexusformat.nexus.tree.NXvelocity_selector">
+<em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXvelocity_selector</code><span class="sig-paren">(</span><em>*items</em>, <em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXvelocity_selector" title="Permalink to this definition">¶</a></dt>
+<dd><p>NXvelocity_selector group. This is a subclass of the NXgroup class.</p>
+<p>See the NXgroup documentation for more details.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="nexusformat.nexus.tree.NXxraylens">
+<em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXxraylens</code><span class="sig-paren">(</span><em>*items</em>, <em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXxraylens" title="Permalink to this definition">¶</a></dt>
+<dd><p>NXxraylens group. This is a subclass of the NXgroup class.</p>
+<p>See the NXgroup documentation for more details.</p>
+</dd></dl>
+
+</div>
 </div>
 
 
@@ -109,7 +2081,7 @@
         <li class="right" >
           <a href="pythongui.html" title="Python Graphical User Interface"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.6.5 documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.7.0+0.gd3a78e4.dirty documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
