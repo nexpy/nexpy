@@ -22,13 +22,6 @@ import nexpy.requires
 
 verbose=1
 
-ext_tiff = Extension(name='nexpy.readers.tifffile._tifffile', 
-                     sources=['src/nexpy/readers/tifffile/tifffile.c'],
-                     include_dirs=[numpy.get_include()],
-                     #library_dirs=LD_LIBRARY_PATH,
-                     #extra_link_args=['-lm'], # for example
-                     )
-
 setup (name =  nexpy.__package_name__,        # NeXpy
        version=versioneer.get_version(),
        cmdclass=versioneer.get_cmdclass(),
@@ -46,8 +39,8 @@ setup (name =  nexpy.__package_name__,        # NeXpy
        packages = find_packages('src'),
        include_package_data = True,
        package_data = {
-                       # wild card expressions after the last "/" must match files, not directories
                        'nexpy.gui': ['resources/icon/*.svg',
+                                     'resources/icon/*.png',
                                      'resources/*.png',
                                     ],
                        'nexpy.definitions': ['base_classes/*.xml'],
@@ -57,7 +50,6 @@ setup (name =  nexpy.__package_name__,        # NeXpy
                            'examples/*/*/*.*',
                        ],
                    },
-       ext_modules=[ext_tiff, ],
        entry_points={
             # create & install scripts in <python>/bin
             'gui_scripts': ['nexpy = nexpy.nexpygui:main',],

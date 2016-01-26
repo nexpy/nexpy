@@ -242,18 +242,14 @@ class ImportDialog(BaseImportDialog):
             imsize = cbf.get_image_size(0)
             return np.fromstring(cbf.get_integerarray_as_string(),np.int32).reshape(imsize)
         else:
-            from nexpy.readers.tifffile import tifffile as TIFF
+            import tifffile as TIFF
             return TIFF.imread(filename)
 
     def read_images(self, filenames):
-        if self.get_image_type() == 'CBF':
-            v0 = self.read_image(filenames[0])
-            v = np.zeros([len(filenames), v0.shape[0], v0.shape[1]], dtype=np.int32)
-            for i,filename in enumerate(filenames):
-                v[i] = self.read_image(filename)
-        else:
-            from nexpy.readers.tifffile import tifffile as TIFF
-            v = TIFF.TiffSequence(filenames).asarray()        
+        v0 = self.read_image(filenames[0])
+        v = np.zeros([len(filenames), v0.shape[0], v0.shape[1]], dtype=np.int32)
+        for i,filename in enumerate(filenames):
+            v[i] = self.read_image(filename)
         global maximum
         if v.max() > maximum:
             maximum = v.max()

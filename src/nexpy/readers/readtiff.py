@@ -37,7 +37,7 @@ class ImportDialog(BaseImportDialog):
     def get_data(self):
         self.import_file = self.get_filename()
         try:
-            from nexpy.readers.tifffile import tifffile as TIFF
+            import tifffile as TIFF
             im = TIFF.imread(self.import_file)
             z = NXfield(im, name='z')
             y = NXfield(range(z.shape[0]), name='y')
