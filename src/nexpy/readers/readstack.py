@@ -16,7 +16,7 @@ import os
 import re
 import numpy as np
 
-from nexusformat.nexus import NXfield, NXentry, NXdata
+from nexusformat.nexus import NXfield, NXentry, NXdata, NeXusError
 from nexpy.gui.pyqt import QtGui, QtCore
 from nexpy.gui.importdialog import BaseImportDialog
 
@@ -233,7 +233,10 @@ class ImportDialog(BaseImportDialog):
 
     def read_image(self, filename):
         if self.get_image_type() == 'CBF':
-            import pycbf
+            try:
+                import pybcbf
+            except ImportError:
+                raise NeXusError("You need to install the 'pycbf' module")
             cbf = pycbf.cbf_handle_struct()
             cbf.read_file(str(filename), pycbf.MSG_DIGEST)
             cbf.select_datablock(0)
@@ -242,7 +245,10 @@ class ImportDialog(BaseImportDialog):
             imsize = cbf.get_image_size(0)
             return np.fromstring(cbf.get_integerarray_as_string(),np.int32).reshape(imsize)
         else:
-            import tifffile as TIFF
+            try:
+                import tifffile as TIFF
+            except ImportError:
+                raise NeXusError("You need to install the 'tifffile' module")
             return TIFF.imread(filename)
 
     def read_images(self, filenames):
