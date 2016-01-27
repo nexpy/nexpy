@@ -1100,9 +1100,12 @@ class MainWindow(QtGui.QMainWindow):
             report_error("Unlocking File", error)
 
     def show_import_dialog(self):
-        import_module = self.importer[self.sender()]
-        self.import_dialog = import_module.ImportDialog()
-        self.import_dialog.show()
+        try:
+            import_module = self.importer[self.sender()]
+            self.import_dialog = import_module.ImportDialog()
+            self.import_dialog.show()
+        except NeXusError as error:
+            report_error("Importing File", error)
 
     def import_data(self):
         try:
