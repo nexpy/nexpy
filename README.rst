@@ -125,12 +125,13 @@ Least-squares fitting requires Matt Newville's least-squares fitting package,
 libraries to read the imported files in their native format, *e.g.*, `spec2nexus 
 <http://spec2nexus.readthedocs.org/>`_ for reading SPEC files. 
 
-From v0.1.2, a new package for reading floating point TIFF files, tifffile, 
-written by `Christoph Gohlke <http://www.lfd.uci.edu/~gohlke/>`_, has been 
-incorporated into the NeXpy distribution.
+.. warning:: As of v0.7.1, NeXpy no longer includes the `tifffile module 
+             <https://pypi.python.org/pypi/tifffile>`_. This can now be 
+             installed with ``pip install tifffile``.
 
 From v0.1.5, we now have an importer for `Crystallographic Binary Files 
-<http://www.bernstein-plus-sons.com/software/CBF/>`_, using PyCBF.
+<http://www.bernstein-plus-sons.com/software/CBF/>`_, using PyCBF, which must
+be separately installed.
 
 From v0.4.3, the log window is colorized if `ansi2html 
 <https://pypi.python.org/pypi/ansi2html/>`_ is installed.
@@ -139,6 +140,7 @@ From v0.4.3, the log window is colorized if `ansi2html
 Library            URL
 =================  ==========================================================
 lmfit              http://newville.github.io/lmfit-py/
+tifffile           https://pypi.python.org/pypi/tifffile
 pycbf              http://sourceforge.net/projects/cbflib/files/cbflib/pycbf/
 spec2nexus         http://spec2nexus.readthedocs.org/
 ansi2html          https://pypi.python.org/pypi/ansi2html/

@@ -215,15 +215,18 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
         self.window.log = self.log
         global _mainwindow
         _mainwindow = self.window
-        if 'svg' in QtGui.QImageReader.supportedImageFormats():
-            self.app.icon = QtGui.QIcon(
-                pkg_resources.resource_filename('nexpy.gui',
-                                                'resources/icon/NeXpy.svg'))
-        else:
-            self.app.icon = QtGui.QIcon(
-                pkg_resources.resource_filename('nexpy.gui',
-                                                'resources/icon/NeXpy.png'))
-        QtGui.QApplication.setWindowIcon(self.app.icon)
+        try:
+            if 'svg' in QtGui.QImageReader.supportedImageFormats():
+                self.app.icon = QtGui.QIcon(
+                    pkg_resources.resource_filename('nexpy.gui',
+                                                    'resources/icon/NeXpy.svg'))
+            else:
+                self.app.icon = QtGui.QIcon(
+                    pkg_resources.resource_filename('nexpy.gui',
+                                                    'resources/icon/NeXpy.png'))
+            QtGui.QApplication.setWindowIcon(self.app.icon)
+        except Exception:
+            pass
 
     def init_shell(self):
         """Initialize imports in the shell."""

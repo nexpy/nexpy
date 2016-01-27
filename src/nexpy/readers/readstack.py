@@ -16,7 +16,7 @@ import os
 import re
 import numpy as np
 
-from nexusformat.nexus import NXfield, NXentry, NXdata
+from nexusformat.nexus import NXfield, NXentry, NXdata, NeXusError
 from nexpy.gui.pyqt import QtGui, QtCore
 from nexpy.gui.importdialog import BaseImportDialog
 
@@ -233,7 +233,10 @@ class ImportDialog(BaseImportDialog):
 
     def read_image(self, filename):
         if self.get_image_type() == 'CBF':
-            import pycbf
+            try:
+                import pybcbf
+            except ImportError:
+                raise NeXusError("Please install the 'pycbf' module")
             cbf = pycbf.cbf_handle_struct()
             cbf.read_file(str(filename), pycbf.MSG_DIGEST)
             cbf.select_datablock(0)
@@ -242,18 +245,17 @@ class ImportDialog(BaseImportDialog):
             imsize = cbf.get_image_size(0)
             return np.fromstring(cbf.get_integerarray_as_string(),np.int32).reshape(imsize)
         else:
-            from nexpy.readers.tifffile import tifffile as TIFF
+            try:
+                import tifffile as TIFF
+            except ImportError:
+                raise NeXusError("Please install the 'tifffile' module")
             return TIFF.imread(filename)
 
     def read_images(self, filenames):
-        if self.get_image_type() == 'CBF':
-            v0 = self.read_image(filenames[0])
-            v = np.zeros([len(filenames), v0.shape[0], v0.shape[1]], dtype=np.int32)
-            for i,filename in enumerate(filenames):
-                v[i] = self.read_image(filename)
-        else:
-            from nexpy.readers.tifffile import tifffile as TIFF
-            v = TIFF.TiffSequence(filenames).asarray()        
+        v0 = self.read_image(filenames[0])
+        v = np.zeros([len(filenames), v0.shape[0], v0.shape[1]], dtype=np.int32)
+        for i,filename in enumerate(filenames):
+            v[i] = self.read_image(filename)
         global maximum
         if v.max() > maximum:
             maximum = v.max()

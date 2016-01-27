@@ -37,20 +37,12 @@ class ImportDialog(BaseImportDialog):
     def get_data(self):
         self.import_file = self.get_filename()
         try:
-            from nexpy.readers.tifffile import tifffile as TIFF
-            im = TIFF.imread(self.import_file)
-            z = NXfield(im, name='z')
-            y = NXfield(range(z.shape[0]), name='y')
-            x = NXfield(range(z.shape[1]), name='x')
+            import tifffile as TIFF
         except ImportError:
-            import Image
-            im = Image.open(self.import_file)
-            dtype = np.dtype(np.uint16)
-            if im.mode == "I;32" or im.mode == "I":
-                dtype=np.dtype(np.uint32)
-            z = NXfield(np.array(im.getdata(),dtype=dtype),
-                        name='z')
-            y = NXfield(range(im.size[1]), name='y')
-            x = NXfield(range(im.size[0]), name='x')
+            raise NeXusError("Please install the 'tifffile' module")
+        im = TIFF.imread(self.import_file)
+        z = NXfield(im, name='z')
+        y = NXfield(range(z.shape[0]), name='y')
+        x = NXfield(range(z.shape[1]), name='x')
         
         return NXentry(NXdata(z,(y,x)))

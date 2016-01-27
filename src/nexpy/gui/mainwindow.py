@@ -492,15 +492,11 @@ class MainWindow(QtGui.QMainWindow):
 
         self.data_menu.addSeparator()
 
-        try:
-            from fitdialogs import FitDialog
-            self.fit_action=QtGui.QAction("Fit Data",
-                self,
-                triggered=self.fit_data
-                )
-            self.add_menu_action(self.data_menu, self.fit_action, True)
-        except ImportError:
-            self.fit_action = None
+        self.fit_action=QtGui.QAction("Fit Data",
+            self,
+            triggered=self.fit_data
+            )
+        self.add_menu_action(self.data_menu, self.fit_action, True)
 
     def init_remote_menus(self):
         try:
@@ -1104,9 +1100,12 @@ class MainWindow(QtGui.QMainWindow):
             report_error("Unlocking File", error)
 
     def show_import_dialog(self):
-        import_module = self.importer[self.sender()]
-        self.import_dialog = import_module.ImportDialog()
-        self.import_dialog.show()
+        try:
+            import_module = self.importer[self.sender()]
+            self.import_dialog = import_module.ImportDialog()
+            self.import_dialog.show()
+        except NeXusError as error:
+            report_error("Importing File", error)
 
     def import_data(self):
         try:
@@ -1328,9 +1327,11 @@ class MainWindow(QtGui.QMainWindow):
 
     def fit_data(self):
         try:
-            if self.fit_action is None:
-                raise NeXusError('Unable to import lmfit module')
-            from fitdialogs import FitDialog
+            try:
+                from fitdialogs import FitDialog
+            except ImportError:
+                logging.info("The lmfit module is not installed") 
+                raise NeXusError("Please install the lmfit module")
             node = self.treeview.get_node()
             if node is None:
                 return
