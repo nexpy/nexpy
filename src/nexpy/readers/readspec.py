@@ -13,7 +13,6 @@ Module to read in a SPEC file and convert it to NeXus.
 """
 import os
 import numpy as np
-from spec2nexus.spec import SpecDataFile
 
 from nexusformat.nexus import *
 from nexpy.gui.pyqt import QtCore, QtGui, getOpenFileName
@@ -28,6 +27,11 @@ class ImportDialog(BaseImportDialog):
     def __init__(self, parent=None):
 
         super(ImportDialog, self).__init__(parent)
+
+        try:
+            import spec2nexus
+        except ImportError:
+            raise NeXusError("Please install the 'spec2nexus' module")
 
         self.accepted = False
         from nexpy.gui.consoleapp import _mainwindow
@@ -70,19 +74,24 @@ class ImportDialog(BaseImportDialog):
         scanbox.addWidget(self.scanmax)
         return scanbox
 
+    def get_scan_numbers(self):
+        return sorted([int(s) for s in self.spec.getScanNumbers()])
+
     def choose_file(self):
         '''
         Opens file dialog, set file text box to the chosen path
         '''
+        from spec2nexus.spec import SpecDataFile
         dirname = self.get_default_directory(self.filename.text())
         filename = getOpenFileName(self, 'Open file', dirname)
         if os.path.exists(filename):
             self.filename.setText(str(filename))
             self.spec = SpecDataFile(self.get_filename())
             self.set_default_directory(os.path.dirname(filename))
-            scan_min = self.spec.getMinScanNumber()
+            all_scans = self.get_scan_numbers()
+            scan_min = all_scans[0]
             self.scanmin.setText(str(scan_min))
-            scan_max = self.spec.getMaxScanNumber()
+            scan_max = all_scans[-1]
             self.scanmax.setText(str(scan_max))
 
     def get_data(self):
@@ -94,7 +103,7 @@ class ImportDialog(BaseImportDialog):
             return None
         scan_min = int(self.scanmin.text())
         scan_max = int(self.scanmax.text())
-        all_scans = self.spec.getScanNumbers()
+        all_scans = self.get_scan_numbers()
         scans = [s for s in all_scans if scan_min <= s <= scan_max]
         self.spec.progress_bar = self.progress_bar
         self.spec.update_progress = self.update_progress
@@ -139,7 +148,7 @@ class Parser(object):
             return None
 
         complete_scan_list = self.SPECfile.scans.keys()
-        for key in scan_list:
+        for key in [str(s) for s in scan_list]:
             if key not in complete_scan_list:
                 msg = 'scan ' + str(key) + ' was not found'
                 raise ValueError, msg
@@ -162,7 +171,7 @@ class Parser(object):
 
         self.progress_bar.setVisible(True)
         self.progress_bar.setRange(scan_list[0], scan_list[-1])
-        for key in scan_list:
+        for key in [str(s) for s in scan_list]:
             scan = self.SPECfile.getScan(key)
             scan.interpret()
             entry = NXentry()
@@ -202,7 +211,7 @@ class Parser(object):
 
             root['scan_' + str(key)] = entry
 
-            self.progress_bar.setValue(key)
+            self.progress_bar.setValue(int(key))
             self.update_progress()
 
         return root
