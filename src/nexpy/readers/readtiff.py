@@ -39,7 +39,7 @@ class ImportDialog(BaseImportDialog):
         try:
             import tifffile as TIFF
         except ImportError:
-            raise NeXusError("You need to install the 'tifffile' module")
+            raise NeXusError("Please install the 'tifffile' module")
         im = TIFF.imread(self.import_file)
         z = NXfield(im, name='z')
         y = NXfield(range(z.shape[0]), name='y')

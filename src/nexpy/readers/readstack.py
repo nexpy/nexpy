@@ -236,7 +236,7 @@ class ImportDialog(BaseImportDialog):
             try:
                 import pybcbf
             except ImportError:
-                raise NeXusError("You need to install the 'pycbf' module")
+                raise NeXusError("Please install the 'pycbf' module")
             cbf = pycbf.cbf_handle_struct()
             cbf.read_file(str(filename), pycbf.MSG_DIGEST)
             cbf.select_datablock(0)
@@ -248,7 +248,7 @@ class ImportDialog(BaseImportDialog):
             try:
                 import tifffile as TIFF
             except ImportError:
-                raise NeXusError("You need to install the 'tifffile' module")
+                raise NeXusError("Please install the 'tifffile' module")
             return TIFF.imread(filename)
 
     def read_images(self, filenames):
