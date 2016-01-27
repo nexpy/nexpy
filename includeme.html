@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Installation &mdash; NeXpy 0.7.0+0.gd3a78e4.dirty documentation</title>
+    <title>Installation &mdash; NeXpy 0.7.1 documentation</title>
     
     <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.7.0+0.gd3a78e4.dirty',
+        VERSION:     '0.7.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -25,7 +25,7 @@
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="shortcut icon" href="_static/favicon.ico"/>
-    <link rel="top" title="NeXpy 0.7.0+0.gd3a78e4.dirty documentation" href="index.html" />
+    <link rel="top" title="NeXpy 0.7.1 documentation" href="index.html" />
     <link rel="next" title="Python Interface to NeXus" href="pythonshell.html" />
     <link rel="prev" title="NeXpy: A Python GUI to analyze NeXus data" href="index.html" /> 
   </head>
@@ -45,7 +45,7 @@
         <li class="right" >
           <a href="index.html" title="NeXpy: A Python GUI to analyze NeXus data"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.7.0+0.gd3a78e4.dirty documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.7.1 documentation</a> &raquo;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -248,10 +248,13 @@ PySide, <em>i.e.</em>, <code class="docutils literal"><span class="pre">python</
 Least-squares fitting requires Matt Newville&#8217;s least-squares fitting package,
 <a class="reference external" href="http://newville.github.io/lmfit-py">lmfit-py</a>. Importers may also require
 libraries to read the imported files in their native format, <em>e.g.</em>, <a class="reference external" href="http://spec2nexus.readthedocs.org/">spec2nexus</a> for reading SPEC files.</p>
-<p>From v0.1.2, a new package for reading floating point TIFF files, tifffile,
-written by <a class="reference external" href="http://www.lfd.uci.edu/~gohlke/">Christoph Gohlke</a>, has been
-incorporated into the NeXpy distribution.</p>
-<p>From v0.1.5, we now have an importer for <a class="reference external" href="http://www.bernstein-plus-sons.com/software/CBF/">Crystallographic Binary Files</a>, using PyCBF.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">As of v0.7.1, NeXpy no longer includes the <a class="reference external" href="https://pypi.python.org/pypi/tifffile">tifffile module</a>. This can now be
+installed with <code class="docutils literal"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">tifffile</span></code>.</p>
+</div>
+<p>From v0.1.5, we now have an importer for <a class="reference external" href="http://www.bernstein-plus-sons.com/software/CBF/">Crystallographic Binary Files</a>, using PyCBF, which must
+be separately installed.</p>
 <p>From v0.4.3, the log window is colorized if <a class="reference external" href="https://pypi.python.org/pypi/ansi2html/">ansi2html</a> is installed.</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -267,13 +270,16 @@ incorporated into the NeXpy distribution.</p>
 <tr class="row-even"><td>lmfit</td>
 <td><a class="reference external" href="http://newville.github.io/lmfit-py/">http://newville.github.io/lmfit-py/</a></td>
 </tr>
-<tr class="row-odd"><td>pycbf</td>
+<tr class="row-odd"><td>tifffile</td>
+<td><a class="reference external" href="https://pypi.python.org/pypi/tifffile">https://pypi.python.org/pypi/tifffile</a></td>
+</tr>
+<tr class="row-even"><td>pycbf</td>
 <td><a class="reference external" href="http://sourceforge.net/projects/cbflib/files/cbflib/pycbf/">http://sourceforge.net/projects/cbflib/files/cbflib/pycbf/</a></td>
 </tr>
-<tr class="row-even"><td>spec2nexus</td>
+<tr class="row-odd"><td>spec2nexus</td>
 <td><a class="reference external" href="http://spec2nexus.readthedocs.org/">http://spec2nexus.readthedocs.org/</a></td>
 </tr>
-<tr class="row-odd"><td>ansi2html</td>
+<tr class="row-even"><td>ansi2html</td>
 <td><a class="reference external" href="https://pypi.python.org/pypi/ansi2html/">https://pypi.python.org/pypi/ansi2html/</a></td>
 </tr>
 </tbody>
@@ -330,7 +336,7 @@ for the current PyQt version.</p>
         <li class="right" >
           <a href="index.html" title="NeXpy: A Python GUI to analyze NeXus data"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.7.0+0.gd3a78e4.dirty documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.7.1 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
