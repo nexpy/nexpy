@@ -1327,7 +1327,8 @@ class MainWindow(QtGui.QMainWindow):
             try:
                 from fitdialogs import FitDialog
             except ImportError:
-                raise NeXusError('Please install the lmfit module')
+                logging.info("The lmfit module is not installed") 
+                raise NeXusError("Please install the lmfit module")
             node = self.treeview.get_node()
             if node is None:
                 return
