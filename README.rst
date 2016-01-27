@@ -125,9 +125,9 @@ Least-squares fitting requires Matt Newville's least-squares fitting package,
 libraries to read the imported files in their native format, *e.g.*, `spec2nexus 
 <http://spec2nexus.readthedocs.org/>`_ for reading SPEC files. 
 
-.. note:: NeXpy no longer includes the `tifffile module 
-          <https://pypi.python.org/pypi/tifffile>`_. This can now be installed 
-          with ``pip install tifffile``.
+.. warning:: As of v0.7.1, NeXpy no longer includes the `tifffile module 
+             <https://pypi.python.org/pypi/tifffile>`_. This can now be 
+             installed with ``pip install tifffile``.
 
 From v0.1.5, we now have an importer for `Crystallographic Binary Files 
 <http://www.bernstein-plus-sons.com/software/CBF/>`_, using PyCBF, which must
