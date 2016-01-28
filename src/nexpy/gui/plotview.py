@@ -340,7 +340,8 @@ class NXPlotView(QtGui.QDialog):
         self._skew_angle = opts.pop("skew", None)
 
         self.data = data
-        self.title = data.nxtitle
+        if not over:
+            self.title = data.nxtitle
 
         if self.data.nxsignal is None:
             raise NeXusError('No plotting signal defined')
@@ -491,7 +492,7 @@ class NXPlotView(QtGui.QDialog):
             self.vaxis = self.axis['signal']
             plotdata = NXdata(self.signal, [self.axes[i] for i in [-2,-1]])
 
-        plotdata['title'] = self.title
+        plotdata['title'] = self.data.nxtitle
        
         return plotdata
 
@@ -2744,6 +2745,13 @@ class CustomizeDialog(BaseDialog):
         self.parameters[self.curve].widget.setVisible(True)
 
     def apply(self):
+        pl = self.parameters['labels']
+        self.plotview.title = pl['title'].value
+        self.plotview.ax.set_title(self.plotview.title)
+        self.plotview.xaxis.label = pl['xlabel'].value
+        self.plotview.ax.set_xlabel(self.plotview.xaxis.label)
+        self.plotview.yaxis.label = pl['ylabel'].value
+        self.plotview.ax.set_ylabel(self.plotview.yaxis.label)
         if self.plotview.image is not None:
             pi = self.parameters['image']
             self.plotview._aspect = pi['aspect'].value
@@ -2770,13 +2778,6 @@ class CustomizeDialog(BaseDialog):
                 c.set_markersize(pc['markersize'].value)
                 c.set_markerfacecolor(pc['facecolor'].value)
                 c.set_markeredgecolor(pc['edgecolor'].value)
-        pl = self.parameters['labels']
-        self.plotview.title = pl['title'].value
-        self.plotview.ax.set_title(self.plotview.title)
-        self.plotview.xaxis.label = pl['xlabel'].value
-        self.plotview.ax.set_xlabel(self.plotview.xaxis.label)
-        self.plotview.yaxis.label = pl['ylabel'].value
-        self.plotview.ax.set_ylabel(self.plotview.yaxis.label)
         self.plotview.draw()
 
     def accept(self):
