@@ -528,7 +528,8 @@ and sliders.
   <http://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes.set_aspect>`_
   function, *i.e.*, 'auto', 'equal', or the numerical value of the 
   ratio between the height and the width (if the units are identical). The 
-  'Aspect' button (see above) toggles between 'auto' and 'equal'.
+  'Aspect' button (see above) toggles between 'auto' and 'equal'. This can also
+  be set using the 'Edit Parameters' button on the Options tab.
 
 * Set Skew Angle::
 
@@ -538,7 +539,12 @@ and sliders.
   the axes are plotted as orthogonal. If ``plotview.aspect`` is currently set to 
   'auto', this command will automatically set it to 1.0 (equivalent to 'equal'),
   *i.e.*, assuming the units of the x and y-axes are the same. If they are not, 
-  ``plotview.aspect`` should be set to the ratio of their units.
+  ``plotview.aspect`` should be set to the ratio of their units. This can also
+  be set using the 'Edit Parameters' button on the Options tab.
+
+.. image:: /images/skewed-axis.png
+   :align: center
+   :width: 75%
 
 * Set Offsets::
 
