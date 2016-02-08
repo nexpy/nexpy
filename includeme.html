@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Installation &mdash; NeXpy 0.7.2+0.gbbf6f7d.dirty documentation</title>
+    <title>Installation &mdash; NeXpy 0.7.2+1.gc7a60a1 documentation</title>
     
     <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.7.2+0.gbbf6f7d.dirty',
+        VERSION:     '0.7.2+1.gc7a60a1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -25,7 +25,7 @@
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="shortcut icon" href="_static/favicon.ico"/>
-    <link rel="top" title="NeXpy 0.7.2+0.gbbf6f7d.dirty documentation" href="index.html" />
+    <link rel="top" title="NeXpy 0.7.2+1.gc7a60a1 documentation" href="index.html" />
     <link rel="next" title="Python Interface to NeXus" href="pythonshell.html" />
     <link rel="prev" title="NeXpy: A Python GUI to analyze NeXus data" href="index.html" /> 
   </head>
@@ -45,7 +45,7 @@
         <li class="right" >
           <a href="index.html" title="NeXpy: A Python GUI to analyze NeXus data"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.7.2+0.gbbf6f7d.dirty documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.7.2+1.gc7a60a1 documentation</a> &raquo;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -165,11 +165,14 @@ the latest development version in the <a class="reference external" href="https:
 <h1>Required Libraries<a class="headerlink" href="#required-libraries" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="python-command-line-api">
 <h2>Python Command-Line API<a class="headerlink" href="#python-command-line-api" title="Permalink to this headline">¶</a></h2>
-<p>The current version of NeXpy uses h5py to read and write NeXus files because
-of its ability to handle large data files. There is therefore no dependency
-on the <a class="reference external" href="http://download.nexusformat.org/doc/html/napi.html">NeXus C API</a>.
-This also means that the current version cannot read and write HDF4 or XML
-NeXus files.</p>
+<p>NeXpy uses the nexusformat package to read and write NeXus files, which uses the
+h5py library. There is therefore no dependency on the <a class="reference external" href="http://download.nexusformat.org/doc/html/napi.html">NeXus C API</a>. This also means that the
+current version cannot read and write HDF4 or XML NeXus files.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">With v0.2.0, the nexusformat package is compatible with both Python 2
+and 3. However, NeXpy is currently only compatible with Python 2.</p>
+</div>
 <p>If you only intend to utilize the Python API from the command-line, the only
 other required library is <a class="reference external" href="http://numpy.scipy.org">Numpy</a>.</p>
 <table border="1" class="docutils">
@@ -196,8 +199,8 @@ other required library is <a class="reference external" href="http://numpy.scipy
 </table>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">If you need to read HDF4 or XML files now, please clone the
-old-master branch (<a class="reference external" href="https://github.com/nexpy/nexpy/tree/old-master">https://github.com/nexpy/nexpy/tree/old-master</a>).</p>
+<p class="last">If you need to read HDF4 or XML files, it is best to convert them to
+HDF5 first using the <a class="reference external" href="http://download.nexusformat.org/doc/html/utilities.html">NeXus command-line utilities</a>.</p>
 </div>
 </div>
 <div class="section" id="nexpy-gui">
@@ -336,7 +339,7 @@ for the current PyQt version.</p>
         <li class="right" >
           <a href="index.html" title="NeXpy: A Python GUI to analyze NeXus data"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.7.2+0.gbbf6f7d.dirty documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.7.2+1.gc7a60a1 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">

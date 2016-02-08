@@ -601,6 +601,17 @@ and sliders.
   conventions 
   <http://matplotlib.org/api/axes_api.html?highlight=grid#matplotlib.axes.Axes.grid>`_.
 
+* Change Default Ticks:
+
+    >>> plotview.locator(*args, **opts)
+
+  This calls the Matplotlib `MaxNLocator function
+  <http://matplotlib.org/api/ticker_api.html#matplotlib.ticker.MaxNLocator>`_, 
+  which defines the default behavior for generating ticks. The default options
+  are ``MaxNLocator(nbins=9, steps=[1, 2, 5, 10])``. If specific tick positions
+  are required, you can set them using the standard Matplotlib functions on the
+  ``plotview.ax`` instance.
+
 Fitting NeXus Data
 ------------------
 It is possible to fit one-dimensional data using the non-linear least-squares 

@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Python Graphical User Interface &mdash; NeXpy 0.7.2+0.gbbf6f7d.dirty documentation</title>
+    <title>Python Graphical User Interface &mdash; NeXpy 0.7.2+1.gc7a60a1 documentation</title>
     
     <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.7.2+0.gbbf6f7d.dirty',
+        VERSION:     '0.7.2+1.gc7a60a1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -25,7 +25,7 @@
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="shortcut icon" href="_static/favicon.ico"/>
-    <link rel="top" title="NeXpy 0.7.2+0.gbbf6f7d.dirty documentation" href="index.html" />
+    <link rel="top" title="NeXpy 0.7.2+1.gc7a60a1 documentation" href="index.html" />
     <link rel="next" title="NeXus Tree API Modules" href="treeapi.html" />
     <link rel="prev" title="Python Interface to NeXus" href="pythonshell.html" /> 
   </head>
@@ -45,7 +45,7 @@
         <li class="right" >
           <a href="pythonshell.html" title="Python Interface to NeXus"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.7.2+0.gbbf6f7d.dirty documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.7.2+1.gc7a60a1 documentation</a> &raquo;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -731,6 +731,16 @@ for more details.</p>
 given to modify the color, linestyle, <em>etc</em>, using the standard <a class="reference external" href="http://matplotlib.org/api/axes_api.html?highlight=grid#matplotlib.axes.Axes.grid">Matplotlib
 conventions</a>.</p>
 </li>
+<li><p class="first">Change Default Ticks:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">plotview</span><span class="o">.</span><span class="n">locator</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">opts</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This calls the Matplotlib <a class="reference external" href="http://matplotlib.org/api/ticker_api.html#matplotlib.ticker.MaxNLocator">MaxNLocator function</a>,
+which defines the default behavior for generating ticks. The default options
+are <code class="docutils literal"><span class="pre">MaxNLocator(nbins=9,</span> <span class="pre">steps=[1,</span> <span class="pre">2,</span> <span class="pre">5,</span> <span class="pre">10])</span></code>. If specific tick positions
+are required, you can set them using the standard Matplotlib functions on the
+<code class="docutils literal"><span class="pre">plotview.ax</span></code> instance.</p>
+</li>
 </ul>
 </div>
 <div class="section" id="fitting-nexus-data">
@@ -1080,7 +1090,7 @@ required code in ~/.nexpy/config.py.</p>
         <li class="right" >
           <a href="pythonshell.html" title="Python Interface to NeXus"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.7.2+0.gbbf6f7d.dirty documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.7.2+1.gc7a60a1 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
