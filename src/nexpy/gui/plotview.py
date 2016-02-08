@@ -59,7 +59,7 @@ interpolations = ['nearest', 'bilinear', 'bicubic', 'spline16', 'spline36',
 linestyles = {'-': 'Solid', '--': 'Dashed', '-.': 'DashDot', ':': 'Dotted',
               'none': 'None', 'None': 'None'}
 markers = markers.MarkerStyle.markers
-locator = MaxNLocator(nbins=9, steps=[1, 2, 5, 10], integer=True)
+locator = MaxNLocator(nbins=9, steps=[1, 2, 5, 10])
 
 
 def report_error(context, error):
@@ -752,6 +752,13 @@ class NXPlotView(QtGui.QDialog):
             x, y = np.asarray(x), np.asarray(y)
             angle = np.radians(self.skew)
             return 1.*x-y/np.tan(angle),  y/np.sin(angle)
+
+    def locator(self, *args, **opts):
+        locator = MaxNLocator(*args, **opts)
+        self.grid_helper = GridHelperCurveLinear((self.transform, 
+                                                  self.inverse_transform),
+                                                  grid_locator1=locator,
+                                                  grid_locator2=locator)
 
     def set_log_image(self):
         if self.vtab.logbox.isChecked():
