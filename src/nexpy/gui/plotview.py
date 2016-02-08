@@ -753,6 +753,13 @@ class NXPlotView(QtGui.QDialog):
             angle = np.radians(self.skew)
             return 1.*x-y/np.tan(angle),  y/np.sin(angle)
 
+    def locator(self, *args, **opts):
+        locator = MaxNLocator(*args, **opts)
+        self.grid_helper = GridHelperCurveLinear((self.transform, 
+                                                  self.inverse_transform),
+                                                  grid_locator1=locator,
+                                                  grid_locator2=locator)
+
     def set_log_image(self):
         if self.vtab.logbox.isChecked():
             self.set_data_limits()
