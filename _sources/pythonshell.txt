@@ -2,7 +2,7 @@
 Python Interface to NeXus
 *************************
 The Python interface to NeXus can be used within a standard Python or iPython 
-shell:: 
+shell using the `nexusformat <https://github.com/nexpy/nexusformat>`_ package.:: 
 
  $ python
  Python 2.7.2 (default, Oct 11 2012, 20:14:37) 
@@ -12,7 +12,9 @@ shell::
 
 .. note:: Although wildcard imports are usually discouraged in Python, there
           should not be any name clashes using it here because all the 
-          imported functions and variables start with 'nx' or 'NX'. 
+          imported functions and variables start with 'nx' or 'NX'.
+
+With v0.2.0, the nexusformat package is compatible with both Python 2 and 3.
 
 Loading NeXus Data
 ==================
