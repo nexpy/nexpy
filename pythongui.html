@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Python Graphical User Interface &mdash; NeXpy 0.7.0+0.gd3a78e4.dirty documentation</title>
+    <title>Python Graphical User Interface &mdash; NeXpy 0.7.2 documentation</title>
     
     <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.7.0+0.gd3a78e4.dirty',
+        VERSION:     '0.7.2',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -25,7 +25,7 @@
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="shortcut icon" href="_static/favicon.ico"/>
-    <link rel="top" title="NeXpy 0.7.0+0.gd3a78e4.dirty documentation" href="index.html" />
+    <link rel="top" title="NeXpy 0.7.2 documentation" href="index.html" />
     <link rel="next" title="NeXus Tree API Modules" href="treeapi.html" />
     <link rel="prev" title="Python Interface to NeXus" href="pythonshell.html" /> 
   </head>
@@ -45,7 +45,7 @@
         <li class="right" >
           <a href="pythonshell.html" title="Python Interface to NeXus"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.7.0+0.gd3a78e4.dirty documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.7.2 documentation</a> &raquo;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -661,7 +661,8 @@ menu, <em>e.g.</em>, &lt;Ctrl&gt;+2 (⌘+2 on a Mac) to select Figure 2.</p>
 <p><code class="docutils literal"><span class="pre">&lt;aspect&gt;</span></code> can be any of the values allowed by the <a class="reference external" href="http://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes.set_aspect">Matplotlib set_aspect</a>
 function, <em>i.e.</em>, &#8216;auto&#8217;, &#8216;equal&#8217;, or the numerical value of the
 ratio between the height and the width (if the units are identical). The
-&#8216;Aspect&#8217; button (see above) toggles between &#8216;auto&#8217; and &#8216;equal&#8217;.</p>
+&#8216;Aspect&#8217; button (see above) toggles between &#8216;auto&#8217; and &#8216;equal&#8217;. This can also
+be set using the &#8216;Edit Parameters&#8217; button on the Options tab.</p>
 </li>
 <li><p class="first">Set Skew Angle:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">plotview</span><span class="o">.</span><span class="n">skew</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">angle</span><span class="o">&gt;</span>
@@ -671,8 +672,12 @@ ratio between the height and the width (if the units are identical). The
 the axes are plotted as orthogonal. If <code class="docutils literal"><span class="pre">plotview.aspect</span></code> is currently set to
 &#8216;auto&#8217;, this command will automatically set it to 1.0 (equivalent to &#8216;equal&#8217;),
 <em>i.e.</em>, assuming the units of the x and y-axes are the same. If they are not,
-<code class="docutils literal"><span class="pre">plotview.aspect</span></code> should be set to the ratio of their units.</p>
+<code class="docutils literal"><span class="pre">plotview.aspect</span></code> should be set to the ratio of their units. This can also
+be set using the &#8216;Edit Parameters&#8217; button on the Options tab.</p>
 </li>
+</ul>
+<a class="reference internal image-reference" href="_images/skewed-axis.png"><img alt="_images/skewed-axis.png" class="align-center" src="_images/skewed-axis.png" style="width: 75%;" /></a>
+<ul>
 <li><p class="first">Set Offsets:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">plotview</span><span class="o">.</span><span class="n">offsets</span> <span class="o">=</span> <span class="o">&lt;</span><span class="bp">True</span><span class="o">|</span><span class="bp">False</span><span class="o">&gt;</span>
 </pre></div>
@@ -725,6 +730,16 @@ for more details.</p>
 <p>Draws grid lines at the major tick values. Additional keyword arguments can be
 given to modify the color, linestyle, <em>etc</em>, using the standard <a class="reference external" href="http://matplotlib.org/api/axes_api.html?highlight=grid#matplotlib.axes.Axes.grid">Matplotlib
 conventions</a>.</p>
+</li>
+<li><p class="first">Change Default Ticks:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">plotview</span><span class="o">.</span><span class="n">locator</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">opts</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This calls the Matplotlib <a class="reference external" href="http://matplotlib.org/api/ticker_api.html#matplotlib.ticker.MaxNLocator">MaxNLocator function</a>,
+which defines the default behavior for generating ticks. The default options
+are <code class="docutils literal"><span class="pre">MaxNLocator(nbins=9,</span> <span class="pre">steps=[1,</span> <span class="pre">2,</span> <span class="pre">5,</span> <span class="pre">10])</span></code>. If specific tick positions
+are required, you can set them using the standard Matplotlib functions on the
+<code class="docutils literal"><span class="pre">plotview.ax</span></code> instance.</p>
 </li>
 </ul>
 </div>
@@ -896,7 +911,7 @@ directory in <code class="docutils literal"><span class="pre">~/.nexpy/readers</
 </div>
 <div class="admonition seealso">
 <p class="first admonition-title">See also</p>
-<p class="last">See <code class="xref py py-class docutils literal"><span class="pre">nexpy.gui.importdialog.BaseImportDialog</span></code> and its parent
+<p class="last">See <a class="reference internal" href="importdialog.html#nexpy.gui.importdialog.BaseImportDialog" title="nexpy.gui.importdialog.BaseImportDialog"><code class="xref py py-class docutils literal"><span class="pre">nexpy.gui.importdialog.BaseImportDialog</span></code></a> and its parent
 <code class="xref py py-class docutils literal"><span class="pre">nexpy.gui.importdialog.BaseDialog</span></code> for other
 pre-defined methods.</p>
 </div>
@@ -948,7 +963,7 @@ buttons to activate different parts of the analysis, and finally the
 functions themselves.</p>
 <div class="admonition seealso">
 <p class="first admonition-title">See also</p>
-<p class="last">See <code class="xref py py-class docutils literal"><span class="pre">nexpy.gui.datadialogs.BaseDialog</span></code> for a list of
+<p class="last">See <a class="reference internal" href="importdialog.html#nexpy.gui.datadialogs.BaseDialog" title="nexpy.gui.datadialogs.BaseDialog"><code class="xref py py-class docutils literal"><span class="pre">nexpy.gui.datadialogs.BaseDialog</span></code></a> for a list of
 pre-defined dialog methods if the dialog uses it as the parent
 class.</p>
 </div>
@@ -1075,7 +1090,7 @@ required code in ~/.nexpy/config.py.</p>
         <li class="right" >
           <a href="pythonshell.html" title="Python Interface to NeXus"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.7.0+0.gd3a78e4.dirty documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.7.2 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
