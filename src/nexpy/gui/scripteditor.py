@@ -8,6 +8,9 @@
 #
 # The full license is in the file COPYING, distributed with this software.
 #-----------------------------------------------------------------------------
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+import six
 
 import os
 import sys
@@ -17,7 +20,7 @@ from nexpy.gui.pyqt import QtCore, QtGui, getSaveFileName
 import pygments
 from pygments.formatter import Formatter
 
-from datadialogs import BaseDialog
+from .datadialogs import BaseDialog
 
 
 def hex2QColor(c):

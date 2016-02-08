@@ -37,8 +37,8 @@ class BaseImportDialog(BaseDialog):
 
         :returns: :class:`NXroot` or :class:`NXentry` object
         '''
-        raise NotImplementedError, "must override in subclass"
-    
+        raise NotImplementedError("must override in subclass")
+
     def accept(self):
         """
         Completes the data import.
