@@ -59,7 +59,7 @@ interpolations = ['nearest', 'bilinear', 'bicubic', 'spline16', 'spline36',
 linestyles = {'-': 'Solid', '--': 'Dashed', '-.': 'DashDot', ':': 'Dotted',
               'none': 'None', 'None': 'None'}
 markers = markers.MarkerStyle.markers
-locator = MaxNLocator(nbins=9, steps=[1, 2, 5, 10], integer=True)
+locator = MaxNLocator(nbins=9, steps=[1, 2, 5, 10])
 
 
 def report_error(context, error):
