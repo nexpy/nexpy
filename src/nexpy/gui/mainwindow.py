@@ -44,9 +44,9 @@ def background(f):
 
 # local imports
 from .treeview import NXTreeView
-from .plotview import NXPlotView
+from .plotview import NXPlotView, NXProjectionPanels
 from .datadialogs import *
-from .scripteditor import ScriptDialog
+from .scripteditor import NXScriptWindow, NXScriptEditor
 import nexpy
 from nexusformat.nexus import (nxload, NeXusError, NXFile, NXobject,
                                NXfield, NXgroup, NXlink, NXroot, NXentry)

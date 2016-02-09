@@ -305,8 +305,7 @@ class NXPlotView(QtGui.QDialog):
         file_choices = "PNG (*.png)|*.png"
 
         path = six.text_type(QtGui.QFileDialog.getSaveFileName(self,
-                        'Save file', '',
-                        file_choices))
+                             'Save file', '', file_choices))
         if path:
             self.canvas.print_figure(path, dpi=self.dpi)
             self.statusBar().showMessage('Saved to %s' % path, 2000)
