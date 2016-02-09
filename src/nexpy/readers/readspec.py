@@ -151,8 +151,8 @@ class Parser(object):
         for key in [str(s) for s in scan_list]:
             if key not in complete_scan_list:
                 msg = 'scan ' + str(key) + ' was not found'
-                raise ValueError, msg
-        
+                raise ValueError(msg)
+
         root = NXroot()
 
         root.attrs['spec2nexus'] = str(spec2nexus.__version__)

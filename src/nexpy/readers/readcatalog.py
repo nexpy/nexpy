@@ -1,4 +1,4 @@
-#!/usr/bin/env python 
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 #-----------------------------------------------------------------------------
@@ -12,7 +12,14 @@
 """
 Module to read in data from a Globus Online catalog and convert it to NeXus.
 """
+
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
 import os
+
+from matplotlib.backends.qt_compat import QtCore, QtGui
+
 import numpy as np
 from globusonline.catalog.client.examples.catalog_wrapper import CatalogWrapper
 
@@ -24,11 +31,11 @@ filetype = "Catalog File"
 
 class ImportDialog(BaseImportDialog):
     """Dialog to import data from a Globus Online catalog"""
- 
+
     def __init__(self, parent=None):
 
         super(ImportDialog, self).__init__(parent)
-        
+
         token_file = os.path.join(os.path.expanduser('~'),'.nexpy',
                                   'globusonline', 'gotoken.txt')
         self.wrap = CatalogWrapper(token='file', token_file=token_file)
@@ -49,7 +56,7 @@ class ImportDialog(BaseImportDialog):
         self.layout.addLayout(catalog_layout)
         self.layout.addWidget(self.close_buttons())
         self.setLayout(self.layout)
-  
+
         self.setWindowTitle("Import "+str(filetype))
 
     def get_catalog(self):
@@ -67,13 +74,13 @@ class ImportDialog(BaseImportDialog):
         dataset_button.clicked.connect(self.get_dataset)
         dataset_layout.addWidget(self.dataset_box)
         dataset_layout.addWidget(dataset_button)
-        self.layout.insertLayout(1, dataset_layout)            
+        self.layout.insertLayout(1, dataset_layout)
 
     def get_catalog_id(self, name):
         for catalog in self.catalogs:
             if catalog['config']['name']==name:
                 return catalog['id']
- 
+
     def get_dataset(self):
         self.dataset_id = self.get_dataset_id(self.dataset_box.currentText())
         _,self.members = self.wrap.catalogClient.get_members(self.catalog_id,
@@ -89,8 +96,8 @@ class ImportDialog(BaseImportDialog):
         member_button = QtGui.QPushButton("Choose Member")
         member_button.clicked.connect(self.get_member)
         member_layout.addWidget(self.member_box)
-        member_layout.addWidget(member_button)            
-        self.layout.insertLayout(2, member_layout)            
+        member_layout.addWidget(member_button)
+        self.layout.insertLayout(2, member_layout)
 
     def get_dataset_id(self, name):
         for dataset in self.datasets:
@@ -98,9 +105,9 @@ class ImportDialog(BaseImportDialog):
                 return dataset['id']
 
     def get_member(self):
-        print self.catalog_id, self.dataset_id
-        self.wrap.transfer_members(self.catalog_id, self.dataset_id, 
+        print(self.catalog_id, self.dataset_id)
+        self.wrap.transfer_members(self.catalog_id, self.dataset_id,
             '/Users/rosborn/Desktop')
- 
+
     def get_data(self):
         return NXentry()

@@ -1,4 +1,4 @@
-#!/usr/bin/env python 
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 #-----------------------------------------------------------------------------
@@ -18,6 +18,8 @@ of a Matplotlib plotting pane and a tree view for displaying NeXus data.
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
+from __future__ import (absolute_import, division, print_function)
+import six
 
 import glob
 import imp
@@ -41,12 +43,12 @@ def background(f):
     return t
 
 # local imports
-from treeview import NXTreeView
-from plotview import NXPlotView, NXProjectionPanels
-from datadialogs import *
-from scripteditor import NXScriptWindow, NXScriptEditor
+from .treeview import NXTreeView
+from .plotview import NXPlotView
+from .datadialogs import *
+from .scripteditor import ScriptDialog
 import nexpy
-from nexusformat.nexus import (nxload, NeXusError, NXFile, NXobject, 
+from nexusformat.nexus import (nxload, NeXusError, NXFile, NXobject,
                                NXfield, NXgroup, NXlink, NXroot, NXentry)
 
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
@@ -75,7 +77,7 @@ class NXRichJupyterWidget(RichJupyterWidget):
         else:
             indent = ' ' * indent_spaces
         return status != 'incomplete', indent
- 
+
 
 class MainWindow(QtGui.QMainWindow):
 
@@ -88,10 +90,10 @@ class MainWindow(QtGui.QMainWindow):
 
     def __init__(self, app, tree, config=None):
         """ Create a MainWindow for the application
-        
+
         Parameters
         ----------
-        
+
         app : reference to QApplication parent
         tree : :class:`NXTree` object used as the rootr of the :class:`NXTreeView` items
         config : Jupyter configuration
@@ -135,7 +137,7 @@ class MainWindow(QtGui.QMainWindow):
         self.console.exit_requested.connect(stop)
         self.console.show()
 
-        self.console.input_sep = ''        
+        self.console.input_sep = ''
 
         self.shell = self.console.kernel_manager.kernel.shell
         self.user_ns = self.console.kernel_manager.kernel.shell.user_ns
@@ -145,11 +147,11 @@ class MainWindow(QtGui.QMainWindow):
         right_splitter.addWidget(self.plotview)
         right_splitter.addWidget(self.console)
 
-        rightlayout = QtGui.QVBoxLayout()        
+        rightlayout = QtGui.QVBoxLayout()
         rightlayout.addWidget(right_splitter)
         rightlayout.setContentsMargins(0, 0, 0, 0)
         rightpane.setLayout(rightlayout)
-        
+
         self.tree = tree
         self.treeview = NXTreeView(self.tree, parent=mainwindow, mainwindow=self)
         self.treeview.setMinimumWidth(200)
@@ -193,7 +195,7 @@ class MainWindow(QtGui.QMainWindow):
         """ Called when you quit NeXpy or close the main window.
         """
         title = self.window().windowTitle()
-        cancel = QtGui.QMessageBox.Cancel        
+        cancel = QtGui.QMessageBox.Cancel
         msg = "Are you sure you want to quit NeXpy?"
         close = QtGui.QPushButton("&Quit", self)
         close.setShortcut('Q')
@@ -214,9 +216,9 @@ class MainWindow(QtGui.QMainWindow):
     # Populate the menu bar with common actions and shortcuts
     def add_menu_action(self, menu, action, defer_shortcut=False):
         """Add action to menu as well as self
-        
+
         So that when the menu bar is invisible, its actions are still available.
-        
+
         If defer_shortcut is True, set the shortcut context to widget-only,
         where it will avoid conflict with shortcuts already bound to the
         widgets themselves.
@@ -226,7 +228,7 @@ class MainWindow(QtGui.QMainWindow):
 
         if defer_shortcut:
             action.setShortcutContext(QtCore.Qt.WidgetShortcut)
-    
+
     def init_menu_bar(self):
         #create menu in the order they should appear in the menu bar
         self.menu_bar = QtGui.QMenuBar()
@@ -241,10 +243,10 @@ class MainWindow(QtGui.QMainWindow):
         self.init_script_menu()
         self.init_help_menu()
         self.setMenuBar(self.menu_bar)
-    
+
     def init_file_menu(self):
         self.file_menu = self.menu_bar.addMenu("&File")
-        
+
         self.file_menu.addSeparator()
 
         self.newworkspace_action=QtGui.QAction("&New...",
@@ -252,37 +254,37 @@ class MainWindow(QtGui.QMainWindow):
             shortcut=QtGui.QKeySequence.New,
             triggered=self.new_workspace
             )
-        self.add_menu_action(self.file_menu, self.newworkspace_action, True)  
-        
+        self.add_menu_action(self.file_menu, self.newworkspace_action, True)
+
         self.openfile_action=QtGui.QAction("&Open",
             self,
             shortcut=QtGui.QKeySequence.Open,
             triggered=self.open_file
             )
-        self.add_menu_action(self.file_menu, self.openfile_action, True)  
-        
+        self.add_menu_action(self.file_menu, self.openfile_action, True)
+
         self.openeditablefile_action=QtGui.QAction("Open (read/write)",
             self,
             shortcut=QtGui.QKeySequence("Ctrl+Shift+O"),
             triggered=self.open_editable_file
             )
-        self.addAction(self.openeditablefile_action)  
+        self.addAction(self.openeditablefile_action)
 
-        self.init_recent_menu() 
-        
+        self.init_recent_menu()
+
         self.savefile_action=QtGui.QAction("&Save as...",
             self,
             shortcut=QtGui.QKeySequence.Save,
             triggered=self.save_file
             )
-        self.add_menu_action(self.file_menu, self.savefile_action, True)  
-        
+        self.add_menu_action(self.file_menu, self.savefile_action, True)
+
         self.duplicate_action=QtGui.QAction("&Duplicate...",
             self,
             shortcut=QtGui.QKeySequence("Ctrl+D"),
             triggered=self.duplicate
             )
-        self.add_menu_action(self.file_menu, self.duplicate_action, True)  
+        self.add_menu_action(self.file_menu, self.duplicate_action, True)
 
         self.file_menu.addSeparator()
 
@@ -290,13 +292,13 @@ class MainWindow(QtGui.QMainWindow):
             self,
             triggered=self.reload
             )
-        self.add_menu_action(self.file_menu, self.reload_action, True)  
+        self.add_menu_action(self.file_menu, self.reload_action, True)
 
         self.remove_action=QtGui.QAction("Remove",
             self,
             triggered=self.remove
             )
-        self.add_menu_action(self.file_menu, self.remove_action, True)  
+        self.add_menu_action(self.file_menu, self.remove_action, True)
 
         self.file_menu.addSeparator()
 
@@ -305,21 +307,21 @@ class MainWindow(QtGui.QMainWindow):
             shortcut=QtGui.QKeySequence("Ctrl+L"),
             triggered=self.lock_file
             )
-        self.add_menu_action(self.file_menu, self.lockfile_action, True)  
-        
+        self.add_menu_action(self.file_menu, self.lockfile_action, True)
+
         self.unlockfile_action=QtGui.QAction("&Unlock File",
             self,
             shortcut=QtGui.QKeySequence("Ctrl+U"),
             triggered=self.unlock_file
             )
-        self.add_menu_action(self.file_menu, self.unlockfile_action, True)  
-        
+        self.add_menu_action(self.file_menu, self.unlockfile_action, True)
+
         self.file_menu.addSeparator()
 
         self.init_import_menu()
-        
+
         self.file_menu.addSeparator()
-        
+
         printkey = QtGui.QKeySequence(QtGui.QKeySequence.Print)
         if printkey.matches("Ctrl+P") and sys.platform != 'darwin':
             # Only override the default if there is a collision.
@@ -330,7 +332,7 @@ class MainWindow(QtGui.QMainWindow):
             shortcut=printkey,
             triggered=self.print_action_console)
         self.add_menu_action(self.file_menu, self.print_action, True)
-        
+
         if sys.platform != 'darwin':
             # OSX always has Quit in the Application menu, only add it
             # to the File menu elsewhere.
@@ -346,7 +348,7 @@ class MainWindow(QtGui.QMainWindow):
 
     def init_edit_menu(self):
         self.edit_menu = self.menu_bar.addMenu("&Edit")
-        
+
         self.undo_action = QtGui.QAction("&Undo",
             self,
             shortcut=QtGui.QKeySequence.Undo,
@@ -392,7 +394,7 @@ class MainWindow(QtGui.QMainWindow):
         self.add_menu_action(self.edit_menu, self.paste_action, True)
 
         self.edit_menu.addSeparator()
-        
+
         selectall = QtGui.QKeySequence(QtGui.QKeySequence.SelectAll)
         if selectall.matches("Ctrl+A") and sys.platform != 'darwin':
             # Only override the default if there is a collision.
@@ -404,21 +406,21 @@ class MainWindow(QtGui.QMainWindow):
             triggered=self.select_all_console
             )
         self.add_menu_action(self.edit_menu, self.select_all_action, True)
-    
+
     def init_data_menu(self):
         self.data_menu = self.menu_bar.addMenu("Data")
-        
+
         self.plot_data_action=QtGui.QAction("Plot Data",
             self,
             triggered=self.plot_data
             )
-        self.add_menu_action(self.data_menu, self.plot_data_action, True)  
-        
+        self.add_menu_action(self.data_menu, self.plot_data_action, True)
+
         self.overplot_data_action=QtGui.QAction("Overplot Data",
             self,
             triggered=self.overplot_data
             )
-        self.add_menu_action(self.data_menu, self.overplot_data_action, True)  
+        self.add_menu_action(self.data_menu, self.overplot_data_action, True)
 
         self.plot_image_action=QtGui.QAction("Plot RGB(A) Image",
             self,
@@ -432,63 +434,63 @@ class MainWindow(QtGui.QMainWindow):
             self,
             triggered=self.add_data
             )
-        self.add_menu_action(self.data_menu, self.add_action, True)  
+        self.add_menu_action(self.data_menu, self.add_action, True)
 
         self.initialize_action=QtGui.QAction("Initialize Data",
             self,
             triggered=self.initialize_data
             )
-        self.add_menu_action(self.data_menu, self.initialize_action, True)  
+        self.add_menu_action(self.data_menu, self.initialize_action, True)
 
         self.rename_action=QtGui.QAction("Rename Data",
             self,
             triggered=self.rename_data
             )
-        self.add_menu_action(self.data_menu, self.rename_action, True)  
+        self.add_menu_action(self.data_menu, self.rename_action, True)
 
         self.copydata_action=QtGui.QAction("Copy Data",
             self,
             shortcut=QtGui.QKeySequence("Ctrl+Shift+C"),
             triggered=self.copy_data
             )
-        self.add_menu_action(self.data_menu, self.copydata_action, True)  
+        self.add_menu_action(self.data_menu, self.copydata_action, True)
 
         self.pastedata_action=QtGui.QAction("Paste Data",
             self,
             shortcut=QtGui.QKeySequence("Ctrl+Shift+V"),
             triggered=self.paste_data
             )
-        self.add_menu_action(self.data_menu, self.pastedata_action, True)  
+        self.add_menu_action(self.data_menu, self.pastedata_action, True)
 
         self.pastelink_action=QtGui.QAction("Paste As Link",
             self,
             shortcut=QtGui.QKeySequence("Ctrl+Alt+Shift+V"),
             triggered=self.paste_link
             )
-        self.add_menu_action(self.data_menu, self.pastelink_action, True)  
+        self.add_menu_action(self.data_menu, self.pastelink_action, True)
 
         self.delete_action=QtGui.QAction("Delete Data",
             self,
             shortcut=QtGui.QKeySequence("Ctrl+Shift+X"),
             triggered=self.delete_data
             )
-        self.add_menu_action(self.data_menu, self.delete_action, True)  
+        self.add_menu_action(self.data_menu, self.delete_action, True)
 
         self.data_menu.addSeparator()
- 
+
         self.link_action=QtGui.QAction("Show Link",
             self,
             triggered=self.show_link
             )
-        self.add_menu_action(self.data_menu, self.link_action, True)  
+        self.add_menu_action(self.data_menu, self.link_action, True)
 
         self.data_menu.addSeparator()
- 
+
         self.signal_action=QtGui.QAction("Set Signal",
             self,
             triggered=self.set_signal
             )
-        self.add_menu_action(self.data_menu, self.signal_action, True)  
+        self.add_menu_action(self.data_menu, self.signal_action, True)
 
         self.data_menu.addSeparator()
 
@@ -503,8 +505,8 @@ class MainWindow(QtGui.QMainWindow):
             from remotedialogs import RemoteDialog, ExecManager, ExecWindow, \
                                       exec_actions
 
-            self.remote_menu = self.menu_bar.addMenu("Remote")       
-            
+            self.remote_menu = self.menu_bar.addMenu("Remote")
+
             self.openremotefile_action=QtGui.QAction("Open Remote...",
                 self,
                 shortcut=QtGui.QKeySequence("Ctrl+Alt+O"),
@@ -524,17 +526,17 @@ class MainWindow(QtGui.QMainWindow):
             self.add_menu_action(self.remote_menu, self.exec_list_action)
 
             self.remote_menu.addSeparator()
-            
+
             exec_actions(self, self.remote_menu)
 
         except ImportError as error:
-            logging.info('Could not add "Remote" menu\n%s%s' 
+            logging.info('Could not add "Remote" menu\n%s%s'
                          % (40*' ', error))
 
-        
+
     def init_plugin_menus(self):
         """Add an menu item for every module in the plugin menus"""
-        from consoleapp import _nexpy_dir
+        from .consoleapp import _nexpy_dir
         self.plugin_names = set()
         private_path = os.path.join(_nexpy_dir, 'plugins')
         if os.path.isdir(private_path):
@@ -563,7 +565,7 @@ class MainWindow(QtGui.QMainWindow):
             finally:
                 if fp:
                     fp.close()
- 
+
     def init_view_menu(self):
         self.view_menu = self.menu_bar.addMenu("&View")
 
@@ -575,7 +577,7 @@ class MainWindow(QtGui.QMainWindow):
                 statusTip="Toggle visibility of menubar",
                 triggered=self.toggle_menu_bar)
             self.add_menu_action(self.view_menu, self.toggle_menu_bar_act)
-        
+
         fs_key = "Ctrl+Meta+F" if sys.platform == 'darwin' else "F11"
         self.full_screen_act = QtGui.QAction("&Full Screen",
             self,
@@ -618,8 +620,8 @@ class MainWindow(QtGui.QMainWindow):
     def init_magic_menu(self):
         self.magic_menu = self.menu_bar.addMenu("&Magic")
         self.magic_menu_separator = self.magic_menu.addSeparator()
-        
-        self.all_magic_menu = self._get_magic_menu("AllMagics", 
+
+        self.all_magic_menu = self._get_magic_menu("AllMagics",
                                                    menulabel="&All Magics...")
 
         # This action should usually not appear as it will be cleared when menu
@@ -688,7 +690,7 @@ class MainWindow(QtGui.QMainWindow):
             self.add_menu_action(self.window_menu, self.minimizeAct)
             self.add_menu_action(self.window_menu, self.maximizeAct)
             self.window_menu.addSeparator()
-        
+
         self.log_action=QtGui.QAction("Show Log File",
             self,
             shortcut=QtGui.QKeySequence("Ctrl+Shift+L"),
@@ -772,7 +774,7 @@ class MainWindow(QtGui.QMainWindow):
         self.script_menu.addSeparator()
 
         self.scripts = {}
-        from consoleapp import _nexpy_dir
+        from .consoleapp import _nexpy_dir
         script_dir = os.path.join(_nexpy_dir, 'scripts')
         if os.path.exists(script_dir):
             files = os.listdir(script_dir)
@@ -787,7 +789,7 @@ class MainWindow(QtGui.QMainWindow):
         # a QAction.MenuRole like HelpMenuRole otherwise it will lose
         # this search field functionality
 
-        self.help_menu = self.menu_bar.addMenu("&Help")      
+        self.help_menu = self.menu_bar.addMenu("&Help")
 
         # Help Menu
 
@@ -848,7 +850,7 @@ class MainWindow(QtGui.QMainWindow):
 
     def init_import_menu(self):
         """Add an import menu item for every module in the readers directory"""
-        from consoleapp import _nexpy_dir
+        from .consoleapp import _nexpy_dir
         self.import_names = set()
         self.import_menu = self.file_menu.addMenu("Import")
         private_path = os.path.join(_nexpy_dir, 'readers')
@@ -883,8 +885,8 @@ class MainWindow(QtGui.QMainWindow):
     def new_workspace(self):
         try:
             default_name = self.treeview.tree.get_new_name()
-            name, ok = QtGui.QInputDialog.getText(self, 'New Workspace', 
-                             'Workspace Name:', text=default_name)        
+            name, ok = QtGui.QInputDialog.getText(self, 'New Workspace',
+                             'Workspace Name:', text=default_name)
             if name and ok:
                 self.treeview.tree[name] = NXroot(NXentry())
                 self.treeview.select_node(self.treeview.tree[name].entry)
@@ -895,19 +897,19 @@ class MainWindow(QtGui.QMainWindow):
 
     def open_file(self):
         try:
-            fname = getOpenFileName(self, 'Open File (Read Only)', 
+            fname = getOpenFileName(self, 'Open File (Read Only)',
                                     self.default_directory,  self.file_filter)
             if fname:
                 name = self.treeview.tree.get_name(fname)
                 self.treeview.tree[name] = self.user_ns[name] = nxload(fname)
                 self.treeview.select_node(self.treeview.tree[name])
                 self.default_directory = os.path.dirname(fname)
-                logging.info("NeXus file '%s' opened as workspace '%s'" 
+                logging.info("NeXus file '%s' opened as workspace '%s'"
                              % (fname, name))
                 self.update_recent_files(fname)
         except (NeXusError, IOError) as error:
             report_error("Opening File", error)
-  
+
     def open_editable_file(self):
         try:
             fname = getOpenFileName(self, 'Open File (Read/Write)',
@@ -917,7 +919,7 @@ class MainWindow(QtGui.QMainWindow):
                 self.treeview.tree[name] = self.user_ns[name] = nxload(fname, 'rw')
                 self.treeview.select_node(self.treeview.tree[name])
                 self.default_directory = os.path.dirname(fname)
-                logging.info("NeXus file '%s' opened (unlocked) as workspace '%s'" 
+                logging.info("NeXus file '%s' opened (unlocked) as workspace '%s'"
                              % (fname, name))
                 self.update_recent_files(fname)
         except (NeXusError, IOError) as error:
@@ -930,7 +932,7 @@ class MainWindow(QtGui.QMainWindow):
             self.treeview.tree[name] = self.user_ns[name] = nxload(fname)
             self.treeview.select_node(self.treeview.tree[name])
             self.default_directory = os.path.dirname(fname)
-            logging.info("NeXus file '%s' opened as workspace '%s'" 
+            logging.info("NeXus file '%s' opened as workspace '%s'"
                          % (fname, name))
             self.update_recent_files(fname)
         except (NeXusError, IOError) as error:
@@ -942,7 +944,7 @@ class MainWindow(QtGui.QMainWindow):
         QtGui.QToolTip.showText(
             position, self.recent_file_actions[action][1],
             self.recent_menu, self.recent_menu.actionGeometry(action))
-            
+
     def update_recent_files(self, recent_file):
         from consoleapp import _nexpy_dir
         self.settings = QtCore.QSettings(
@@ -960,7 +962,7 @@ class MainWindow(QtGui.QMainWindow):
         recent_files = recent_files[:self.max_recent_files]
         for i, recent_file in enumerate(recent_files):
             try:
-                action = [k for k, v in self.recent_file_actions.iteritems() 
+                action = [k for k, v in self.recent_file_actions.iteritems()
                           if v[0] == i][0]
                 action.setText(os.path.basename(recent_file))
                 action.setToolTip(recent_file)
@@ -993,7 +995,7 @@ class MainWindow(QtGui.QMainWindow):
                 name = node.nxname
                 existing = False
             default_name = os.path.join(self.default_directory, name)
-            fname = getSaveFileName(self, "Choose a Filename", default_name, 
+            fname = getSaveFileName(self, "Choose a Filename", default_name,
                                     self.file_filter)
             if fname:
                 old_name = node.nxname
@@ -1005,7 +1007,7 @@ class MainWindow(QtGui.QMainWindow):
                     self.treeview.select_node(self.treeview.tree[name])
                 self.treeview.update()
                 self.default_directory = os.path.dirname(fname)
-                logging.info("NeXus workspace '%s' saved as '%s'" 
+                logging.info("NeXus workspace '%s' saved as '%s'"
                              % (old_name, fname))
         except NeXusError as error:
             report_error("Saving File", error)
@@ -1017,24 +1019,24 @@ class MainWindow(QtGui.QMainWindow):
                 if node.nxfilemode:
                     name = self.treeview.tree.get_new_name()
                     default_name = os.path.join(self.default_directory,name)
-                    fname = getSaveFileName(self, "Choose a Filename", 
+                    fname = getSaveFileName(self, "Choose a Filename",
                                             default_name, self.file_filter)
                     if fname:
                         nx_file = NXFile(fname, 'w')
                         nx_file.copyfile(node.nxfile)
                         name = self.treeview.tree.get_name(fname)
-                        self.treeview.tree[name] = self.user_ns[name] = nx_file.readfile()                       
+                        self.treeview.tree[name] = self.user_ns[name] = nx_file.readfile()
                         self.default_directory = os.path.dirname(fname)
-                        logging.info("Workspace '%s' duplicated in '%s'" 
+                        logging.info("Workspace '%s' duplicated in '%s'"
                                      % (node.nxname, fname))
                 else:
                     default_name = self.treeview.tree.get_new_name()
-                    name, ok = QtGui.QInputDialog.getText(self, 
-                                   "Duplicate Workspace", "Workspace Name:", 
-                                   text=default_name)        
+                    name, ok = QtGui.QInputDialog.getText(self,
+                                   "Duplicate Workspace", "Workspace Name:",
+                                   text=default_name)
                     if name and ok:
                         self.treeview.tree[name] = node
-                        logging.info("Workspace '%s' duplicated as workspace '%s'" 
+                        logging.info("Workspace '%s' duplicated as workspace '%s'"
                                      % (node.nxname, name))
                 if name in self.treeview.tree:
                     self.treeview.select_node(self.treeview.tree[name])
@@ -1127,14 +1129,14 @@ class MainWindow(QtGui.QMainWindow):
                     self.default_directory = os.path.dirname(self.import_dialog.import_file)
                 except Exception:
                     pass
-                logging.info("Workspace '%s' imported" % name)               
+                logging.info("Workspace '%s' imported" % name)
         except NeXusError as error:
             report_error("Importing File", error)
 
     def plot_data(self):
         try:
             node = self.treeview.get_node()
-            if node is not None:        
+            if node is not None:
                 self.treeview.status_message(node)
                 if isinstance(node, NXgroup):
                     try:
@@ -1153,7 +1155,7 @@ class MainWindow(QtGui.QMainWindow):
     def overplot_data(self):
         try:
             node = self.treeview.get_node()
-            if node is not None:        
+            if node is not None:
                 self.treeview.status_message(node)
                 node.oplot(fmt='o')
         except NeXusError as error:
@@ -1162,7 +1164,7 @@ class MainWindow(QtGui.QMainWindow):
     def plot_line(self):
         try:
             node = self.treeview.get_node()
-            if node is not None:        
+            if node is not None:
                 self.treeview.status_message(node)
                 if isinstance(node, NXgroup):
                     try:
@@ -1181,7 +1183,7 @@ class MainWindow(QtGui.QMainWindow):
     def overplot_line(self):
         try:
             node = self.treeview.get_node()
-            if node is not None:        
+            if node is not None:
                 self.treeview.status_message(node)
                 node.oplot(fmt='-')
         except NeXusError as error:
@@ -1190,7 +1192,7 @@ class MainWindow(QtGui.QMainWindow):
     def plot_image(self):
         try:
             node = self.treeview.get_node()
-            if node is not None:        
+            if node is not None:
                 self.treeview.status_message(node)
                 node.implot()
         except NeXusError as error:
@@ -1198,23 +1200,23 @@ class MainWindow(QtGui.QMainWindow):
 
     def add_data(self):
         try:
-            node = self.treeview.get_node()  
+            node = self.treeview.get_node()
             if node is not None:
                 if node.nxfilemode == 'r':
-                    raise NeXusError("NeXus file is locked")    
+                    raise NeXusError("NeXus file is locked")
                 dialog = AddDialog(node, self)
                 dialog.exec_()
             else:
-                self.new_workspace()    
+                self.new_workspace()
         except NeXusError as error:
             report_error("Adding Data", error)
 
     def initialize_data(self):
         try:
-            node = self.treeview.get_node()      
+            node = self.treeview.get_node()
             if node is not None:
                 if node.nxfilemode == 'r':
-                    raise NeXusError("NeXus file is locked")    
+                    raise NeXusError("NeXus file is locked")
                 if isinstance(node, NXgroup):
                     dialog = InitializeDialog(node, self)
                     dialog.exec_()
@@ -1232,8 +1234,8 @@ class MainWindow(QtGui.QMainWindow):
                         path = node.nxpath
                         dialog = RenameDialog(node, self)
                         dialog.exec_()
-                        logging.info("'%s' renamed as '%s'" 
-                                     % (path, node.nxpath)) 
+                        logging.info("'%s' renamed as '%s'"
+                                     % (path, node.nxpath))
                     else:
                         raise NeXusError("NeXus file is locked")
         except NeXusError as error:
@@ -1244,7 +1246,7 @@ class MainWindow(QtGui.QMainWindow):
             node = self.treeview.get_node()
             if not isinstance(node, NXroot):
                 self.copied_node = self.treeview.get_node()
-                logging.info("'%s' copied" % self.copied_node.nxpath) 
+                logging.info("'%s' copied" % self.copied_node.nxpath)
             else:
                 raise NeXusError("Use 'Duplicate File' to copy an NXroot group")
         except NeXusError as error:
@@ -1256,26 +1258,26 @@ class MainWindow(QtGui.QMainWindow):
             if isinstance(node, NXgroup) and self.copied_node:
                 if node.nxfilemode != 'r':
                     node.insert(self.copied_node)
-                    logging.info("'%s' pasted to '%s'" 
+                    logging.info("'%s' pasted to '%s'"
                                  % (self.copied_node.nxpath, node.nxpath))
-                else:   
+                else:
                     raise NeXusError("NeXus file is locked")
         except NeXusError as error:
             report_error("Pasting Data", error)
- 
+
     def paste_link(self):
         try:
             node = self.treeview.get_node()
             if isinstance(node, NXgroup) and self.copied_node:
                 if node.nxfilemode != 'r':
                     node.makelink(self.copied_node)
-                    logging.info("'%s' pasted as link to '%s'" 
+                    logging.info("'%s' pasted as link to '%s'"
                                  % (self.copied_node.nxpath, node.nxpath))
                 else:
                     raise NeXusError("NeXus file is locked")
         except NeXusError as error:
             report_error("Pasting Data as Link", error)
- 
+
     def delete_data(self):
         try:
             node = self.treeview.get_node()
@@ -1284,8 +1286,8 @@ class MainWindow(QtGui.QMainWindow):
                     path = node.nxpath
                     dialog = DeleteDialog(node, self)
                     dialog.show()
-                    logging.info("'%s' deleted" % path) 
-                else:   
+                    logging.info("'%s' deleted" % path)
+                else:
                     raise NeXusError("NeXus file is locked")
         except NeXusError as error:
             report_error("Deleting Data", error)
@@ -1301,7 +1303,7 @@ class MainWindow(QtGui.QMainWindow):
                                              node.nxfilename)
                     try:
                         name = self.treeview.tree.node_from_file(fname)
-                    except IndexError:    
+                    except IndexError:
                         name = self.treeview.tree.get_name(fname)
                         self.treeview.tree[name] = self.user_ns[name] = nxload(fname)
                     self.treeview.select_node(self.treeview.tree[name][node.nxtarget])
@@ -1319,8 +1321,8 @@ class MainWindow(QtGui.QMainWindow):
                 if node.nxfilemode != 'r':
                     dialog = SignalDialog(node, self)
                     dialog.show()
-                    logging.info("Signal set for '%s'" % node.nxgroup.nxpath) 
-                else:   
+                    logging.info("Signal set for '%s'" % node.nxgroup.nxpath)
+                else:
                     raise NeXusError("NeXus file is locked")
         except NeXusError as error:
             report_error("Setting Signal", error)
@@ -1330,7 +1332,7 @@ class MainWindow(QtGui.QMainWindow):
             try:
                 from fitdialogs import FitDialog
             except ImportError:
-                logging.info("The lmfit module is not installed") 
+                logging.info("The lmfit module is not installed")
                 raise NeXusError("Please install the lmfit module")
             node = self.treeview.get_node()
             if node is None:
@@ -1345,12 +1347,12 @@ class MainWindow(QtGui.QMainWindow):
                     node.plot()
                 except KeyError:
                     raise NeXusError("NeXus item not plottable")
-                from nexpy.gui.plotview import plotview            
+                from nexpy.gui.plotview import plotview
                 entry = NXentry(data=plotview.plotdata)
             if len(entry.data.nxsignal.shape) == 1:
                 dialog = FitDialog(entry, parent=self)
                 dialog.show()
-                logging.info("Fitting invoked on'%s'" % node.nxpath) 
+                logging.info("Fitting invoked on'%s'" % node.nxpath)
             else:
                 raise NeXusError("Fitting only enabled for one-dimensional data")
         except NeXusError as error:
@@ -1368,7 +1370,7 @@ class MainWindow(QtGui.QMainWindow):
     def input_base_classes(self):
         base_class_path = pkg_resources.resource_filename(
                               'nexpy', 'definitions/base_classes')
-        nxdl_files = map(os.path.basename, 
+        nxdl_files = map(os.path.basename,
             glob.glob(os.path.join(base_class_path,'*.nxdl.xml')))
         pattern = re.compile(r'[\t\n ]+')
         self.nxclasses = {}
@@ -1470,10 +1472,10 @@ class MainWindow(QtGui.QMainWindow):
         for v in self._magic_menu_dict.values():
             v.clear()
         self.all_magic_menu.clear()
-        
+
         if not display_data:
             return
-        
+
         if display_data['status'] != 'ok':
             self.log.warn("%%lsmagic user-expression failed: %s" % display_data)
             return
@@ -1485,7 +1487,7 @@ class MainWindow(QtGui.QMainWindow):
             mdict = json.loads(data)
         else:
             return
-        
+
         for mtype in sorted(mdict):
             subdict = mdict[mtype]
             prefix = magic_escapes[mtype]
@@ -1493,7 +1495,7 @@ class MainWindow(QtGui.QMainWindow):
                 mclass = subdict[name]
                 magic_menu = self._get_magic_menu(mclass)
                 pmagic = prefix + name
-                
+
                 # Adding seperate QActions is needed for some window managers
                 xaction = QtGui.QAction(pmagic,
                     self,
@@ -1518,7 +1520,7 @@ class MainWindow(QtGui.QMainWindow):
 
     def _get_magic_menu(self, menuidentifier, menulabel=None):
         """return a submagic menu by name, and create it if needed
-       
+
         parameters:
         -----------
 
@@ -1571,7 +1573,7 @@ class MainWindow(QtGui.QMainWindow):
         from nexpy.gui.plotview import plotview
         if plotview.number != 1:
             plotview.close()
-        
+
     def update_active(self, number):
         for num in self.active_action:
             if self.active_action[num].isChecked():
@@ -1579,7 +1581,7 @@ class MainWindow(QtGui.QMainWindow):
                 self.active_action[num].setChecked(False)
         if number in self.active_action:
             self.active_action[number].setChecked(True)
-    
+
     def make_active(self, number):
         if number in self.active_action:
             self.update_active(number)
@@ -1592,7 +1594,7 @@ class MainWindow(QtGui.QMainWindow):
             dialog.exec_()
         except NeXusError as error:
             report_error("Changing Plot Limits", error)
-    
+
     def reset_axes(self):
         try:
             from nexpy.gui.plotview import plotview
@@ -1613,14 +1615,14 @@ class MainWindow(QtGui.QMainWindow):
             plotview.ptab.open_panel()
         elif self.panels.tabs.count() != 0:
             self.panels.raise_()
-    
+
     def show_script_window(self):
         if self.editors.tabs.count() == 0:
             self.new_script()
         else:
             self.editors.setVisible(True)
             self.editors.raise_()
-    
+
     def new_script(self):
         try:
             file_name = None
@@ -1633,11 +1635,11 @@ class MainWindow(QtGui.QMainWindow):
 
     def open_script(self):
         try:
-            from consoleapp import _nexpy_dir
+            from .consoleapp import _nexpy_dir
             script_dir = os.path.join(_nexpy_dir, 'scripts')
             file_filter = ';;'.join(("Python Files (*.py)",
                                          "Any Files (*.* *)"))
-            file_name = getOpenFileName(self, 'Open Script', script_dir, 
+            file_name = getOpenFileName(self, 'Open Script', script_dir,
                                         file_filter)
             if file_name:
                 editor = NXScriptEditor(file_name, self)
@@ -1657,10 +1659,10 @@ class MainWindow(QtGui.QMainWindow):
             logging.info("NeXus script '%s' opened" % file_name)
         except NeXusError as error:
             report_error("Opening Script", error)
-            
+
     def add_script_action(self, file_name):
         name = os.path.basename(file_name)
-        script_action = QtGui.QAction("Open "+name, self, 
+        script_action = QtGui.QAction("Open "+name, self,
                                triggered=self.open_script_file)
         self.add_menu_action(self.script_menu, script_action, self)
         self.scripts[script_action] = file_name
@@ -1818,7 +1820,7 @@ class MainWindow(QtGui.QMainWindow):
         okay = QtGui.QMessageBox.Ok
 
         reply = self.close()
-        
+
         if reply == cancel:
             event.ignore()
             return
