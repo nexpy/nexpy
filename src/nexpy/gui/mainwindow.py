@@ -550,8 +550,9 @@ class MainWindow(QtGui.QMainWindow):
         self.plugin = {}
         plugin_paths = [private_path, public_path]
         for plugin_name in sorted(self.plugin_names):
-            fp, pathname, description = imp.find_module(plugin_name, plugin_paths)
+            fp = None
             try:
+                fp, pathname, description = imp.find_module(plugin_name, plugin_paths)
                 plugin_module = imp.load_module(plugin_name, fp, pathname, description)
                 name, actions = plugin_module.plugin_menu()
                 plugin_menu = self.menu_bar.addMenu(name)
@@ -830,7 +831,7 @@ class MainWindow(QtGui.QMainWindow):
 
     def init_recent_menu(self):
         """Add recent files menu item for recently opened files"""
-        from consoleapp import _nexpy_dir
+        from .consoleapp import _nexpy_dir
         self.settings = QtCore.QSettings(
             os.path.join(_nexpy_dir, "settings.ini"), QtCore.QSettings.IniFormat)
         recent_files = self.settings.value("recent/recentFiles")
@@ -839,7 +840,7 @@ class MainWindow(QtGui.QMainWindow):
         self.recent_file_actions = {}
         if recent_files is None:
             recent_files = []
-        elif isinstance(recent_files, basestring):
+        elif isinstance(recent_files, six.text_type):
             recent_files = [recent_files]
         for i, recent_file in enumerate(recent_files):
             action = QtGui.QAction(os.path.basename(recent_file), self,
@@ -874,7 +875,7 @@ class MainWindow(QtGui.QMainWindow):
                                               triggered=self.show_import_dialog)
                 self.add_menu_action(self.import_menu, import_action, self)
                 self.importer[import_action] = import_module
-            except ImportError as error:
+            except Exception as error:
                 logging.info(
                 'The "%s" importer could not be added to the Import menu\n%s%s'
                 % (import_name, 40*' ', error))
@@ -946,13 +947,13 @@ class MainWindow(QtGui.QMainWindow):
             self.recent_menu, self.recent_menu.actionGeometry(action))
 
     def update_recent_files(self, recent_file):
-        from consoleapp import _nexpy_dir
+        from .consoleapp import _nexpy_dir
         self.settings = QtCore.QSettings(
             os.path.join(_nexpy_dir, "settings.ini"), QtCore.QSettings.IniFormat)
         recent_files = self.settings.value("recent/recentFiles")
         if recent_files is None:
             recent_files = []
-        elif isinstance(recent_files, basestring):
+        elif isinstance(recent_files, six.text_type):
             recent_files = [recent_files]
         try:
             recent_files.remove(recent_file)
@@ -962,7 +963,7 @@ class MainWindow(QtGui.QMainWindow):
         recent_files = recent_files[:self.max_recent_files]
         for i, recent_file in enumerate(recent_files):
             try:
-                action = [k for k, v in self.recent_file_actions.iteritems()
+                action = [k for k, v in self.recent_file_actions.items()
                           if v[0] == i][0]
                 action.setText(os.path.basename(recent_file))
                 action.setToolTip(recent_file)
@@ -1549,7 +1550,7 @@ class MainWindow(QtGui.QMainWindow):
                 checkable=True)
             self.window_menu.addAction(self.active_action[number])
         else:
-            numbers = [num for num in sorted(self.active_action.keys()) if num < 100]
+            numbers = [num for num in sorted(self.active_action) if num < 100]
             if number > numbers[-1]:
                 before_action = self.window_separator
             else:
@@ -1668,7 +1669,7 @@ class MainWindow(QtGui.QMainWindow):
         self.scripts[script_action] = file_name
 
     def remove_script_action(self, file_name):
-        for action, name in self.scripts.iteritems():
+        for action, name in self.scripts.items():
             if name == file_name:
                 self.script_menu.removeAction(action)
 
