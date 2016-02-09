@@ -147,7 +147,7 @@ class Parser(object):
         if self.SPECfile is None:
             return None
 
-        complete_scan_list = self.SPECfile.scans.keys()
+        complete_scan_list = list(self.SPECfile.scans)
         for key in [str(s) for s in scan_list]:
             if key not in complete_scan_list:
                 msg = 'scan ' + str(key) + ' was not found'

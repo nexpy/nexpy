@@ -102,8 +102,8 @@ aliases.update(qt_aliases)
 
 # get flags&aliases into sets, and remove a couple that
 # shouldn't be scrubbed from backend flags:
-qt_aliases = set(qt_aliases.keys())
-qt_flags = set(qt_flags.keys())
+qt_aliases = set(qt_aliases)
+qt_flags = set(qt_flags)
 
 #-----------------------------------------------------------------------------
 # NXConsoleApp

@@ -38,7 +38,7 @@ class NXtree(NXgroup):
 
     def __setitem__(self, key, value):
         if isinstance(value, NXroot):
-            if key not in self._entries.keys():
+            if key not in self._entries:
                 value._group = self
                 value._name = key
                 self._entries[key] = value
@@ -124,9 +124,9 @@ class NXtree(NXgroup):
         name = os.path.splitext(os.path.basename(filename))[0].replace(' ','_')
         name = "".join([c for c in name.replace('-','_') 
                         if c.isalpha() or c.isdigit() or c=='_'])
-        if name in _shell.keys():
+        if name in _shell:
             ind = []
-            for key in _shell.keys():
+            for key in _shell:
                 try:
                     if key.startswith(name+'_'): 
                         ind.append(int(key[len(name)+1:]))
@@ -139,7 +139,7 @@ class NXtree(NXgroup):
     def get_new_name(self):
         from nexpy.gui.consoleapp import _shell
         ind = []
-        for key in _shell.keys():
+        for key in _shell:
             try:
                 if key.startswith('w'): 
                     ind.append(int(key[1:]))
@@ -163,7 +163,7 @@ class NXtree(NXgroup):
                     del _shell[shell_names[0]]
 
     def node_from_file(self, fname):
-        return [name for name in self.keys() if 
+        return [name for name in self if 
             os.path.abspath(fname)==os.path.abspath(self[name].nxfilename)][0]
 
 

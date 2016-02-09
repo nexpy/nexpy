@@ -439,7 +439,7 @@ class GridParameters(OrderedDict):
 
     def get_parameters(self, p):
         i = 0
-        for key in [x.keys()[0] for x in self.parameters]:
+        for key in [list(x)[0] for x in self.parameters]:
             self[key].value = p[i]
             i += 1
 

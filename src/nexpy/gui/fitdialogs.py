@@ -52,7 +52,7 @@ class FitDialog(BaseDialog):
  
         function_layout = QtGui.QHBoxLayout()
         self.functioncombo = QtGui.QComboBox()
-        for name in sorted(self.function_module.keys()):
+        for name in sorted(self.function_module):
             self.functioncombo.addItem(name)
         self.functioncombo.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToContents)
         self.functioncombo.setMinimumWidth(100)
@@ -481,10 +481,10 @@ class FitDialog(BaseDialog):
         else:
             entry['title'] = 'Fit Model'
             entry['model'] = self.get_model()
-        if 'w0' not in self.tree.keys():
+        if 'w0' not in self.tree:
             self.tree.add(NXroot(name='w0'))
         ind = []
-        for key in self.tree['w0'].keys():
+        for key in self.tree['w0']:
             try:
                 if key.startswith('f'): 
                     ind.append(int(key[1:]))

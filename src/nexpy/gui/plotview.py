@@ -2693,7 +2693,7 @@ class CustomizeDialog(BaseDialog):
 
     def update_curves(self):
         curves = self.get_curves()
-        new_curves = list(set(curves.keys()) - set(self.curves.keys()))
+        new_curves = list(set(curves) - set(self.curves))
         for curve in new_curves:
             self.curves[curve] = curves[curve]
             self.parameters[curve] = self.curve_parameters(curve)
@@ -2830,11 +2830,11 @@ class NXColorButton(ColorButton):
 
 
 def keep_data(data):
-    from nexpy.gui.consoleapp import _tree
-    if 'w0' not in _tree.keys():
+    from .consoleapp import _tree
+    if 'w0' not in _tree:
         _tree.add(NXroot(name='w0'))
     ind = []
-    for key in _tree['w0'].keys():
+    for key in _tree['w0']:
         try:
             if key.startswith('s'):
                 ind.append(int(key[1:]))
