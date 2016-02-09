@@ -445,7 +445,7 @@ class GridParameters(OrderedDict):
 
     def refine_parameters(self, residuals, method='nelder-mead', **opts):
         self.set_parameters()
-        p0 = np.array([p.values()[0] for p in self.parameters])
+        p0 = np.array([list(p.values())[0] for p in self.parameters])
         result = minimize(residuals, p0, method='nelder-mead',
                           options={'xtol': 1e-6, 'disp': True})
         self.get_parameters(result.x)
