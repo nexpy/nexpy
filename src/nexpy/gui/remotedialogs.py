@@ -8,18 +8,20 @@
 #
 # The full license is in the file COPYING, distributed with this software.
 #-----------------------------------------------------------------------------
+from __future__ import (absolute_import, division, print_function)
 
 import logging
 import os
 
-from nexpy.gui.pyqt import QtGui, QtCore
+from .pyqt import QtGui, QtCore
 from Pyro4.errors import CommunicationError
 
 from nexusformat.nexus import (NeXusError, NXgroup, NXfield, NXattr,
                                NXroot, NXentry, NXdata, NXparameters)
-from nexpy.gui.datadialogs import BaseDialog
 from nexusformat.pyro.globus import GlobusCatalog
 from nexusformat.pyro.ssh import NeXPyroSSH
+
+from .datadialogs import BaseDialog
 
 
 class RemoteDialog(BaseDialog):
@@ -233,7 +235,7 @@ class ExecManager:
         
     def terminate(self, task_id):
         task = self.tasks[task_id]
-        print "KILLING", task
+        print("KILLING", task)
         task.terminate()
         del self.tasks[task_id]
 

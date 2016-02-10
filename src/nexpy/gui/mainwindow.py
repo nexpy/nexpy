@@ -33,26 +33,18 @@ import xml.etree.ElementTree as ET
 from threading import Thread
 
 from .pyqt import QtGui, QtCore, getOpenFileName, getSaveFileName
+from qtconsole.rich_jupyter_widget import RichJupyterWidget
+from qtconsole.inprocess import QtInProcessKernelManager
 from IPython.core.magic import magic_escapes
 
+from nexusformat.nexus import (nxload, NeXusError, NXFile, NXobject,
+                               NXfield, NXgroup, NXlink, NXroot, NXentry)
 
-def background(f):
-    """call a function in a simple thread, to prevent blocking"""
-    t = Thread(target=f)
-    t.start()
-    return t
-
-# local imports
+from .. import __version__
 from .treeview import NXTreeView
 from .plotview import NXPlotView, NXProjectionPanels
 from .datadialogs import *
 from .scripteditor import NXScriptWindow, NXScriptEditor
-from .. import __version__
-from nexusformat.nexus import (nxload, NeXusError, NXFile, NXobject,
-                               NXfield, NXgroup, NXlink, NXroot, NXentry)
-
-from qtconsole.rich_jupyter_widget import RichJupyterWidget
-from qtconsole.inprocess import QtInProcessKernelManager
 
 
 def report_error(context, error):
@@ -502,7 +494,7 @@ class MainWindow(QtGui.QMainWindow):
 
     def init_remote_menus(self):
         try:
-            from remotedialogs import RemoteDialog, ExecManager, ExecWindow, \
+            from .remotedialogs import RemoteDialog, ExecManager, ExecWindow, \
                                       exec_actions
 
             self.remote_menu = self.menu_bar.addMenu("Remote")
@@ -1331,7 +1323,7 @@ class MainWindow(QtGui.QMainWindow):
     def fit_data(self):
         try:
             try:
-                from fitdialogs import FitDialog
+                from .fitdialogs import FitDialog
             except ImportError:
                 logging.info("The lmfit module is not installed")
                 raise NeXusError("Please install the lmfit module")
@@ -1419,7 +1411,7 @@ class MainWindow(QtGui.QMainWindow):
 
     def show_execwindow(self):
         try:
-            from remotedialogs import ExecWindow
+            from .remotedialogs import ExecWindow
             if self.execwindow is None:
                 self.execwindow = ExecWindow(self.exec_mgr)
                 self.execwindow.show()

@@ -158,7 +158,7 @@ class NXPlotView(QtGui.QDialog):
     def __init__(self, label=None, parent=None):
 
         if parent is None:
-            from nexpy.gui.consoleapp import _mainwindow
+            from .consoleapp import _mainwindow
             parent = _mainwindow
 
         super(NXPlotView, self).__init__(parent)
@@ -269,7 +269,7 @@ class NXPlotView(QtGui.QDialog):
         plotview = self
         Gcf.set_active(self.figuremanager)
         self.show()
-        from nexpy.gui.consoleapp import _mainwindow, _shell
+        from .consoleapp import _mainwindow, _shell
         if self.label == 'Main':
             _mainwindow.raise_()
         else:
@@ -279,17 +279,17 @@ class NXPlotView(QtGui.QDialog):
 
     def update_active(self):
         if 'Projection' not in self.label:
-            from nexpy.gui.consoleapp import _mainwindow
+            from .consoleapp import _mainwindow
             _mainwindow.update_active(self.number)
 
     def add_menu_action(self):
-        from nexpy.gui.consoleapp import _mainwindow
+        from .consoleapp import _mainwindow
         if self.label not in _mainwindow.active_action:
             _mainwindow.make_active_action(self.number, self.label)
         _mainwindow.update_active(self.number)
 
     def remove_menu_action(self):
-        from nexpy.gui.consoleapp import _mainwindow
+        from .consoleapp import _mainwindow
         if self.number in _mainwindow.active_action:
             _mainwindow.window_menu.removeAction(
                 _mainwindow.active_action[self.number])
@@ -1190,7 +1190,7 @@ class NXPlotView(QtGui.QDialog):
             self.projection_panel.close()
         if self.customize_panel:
             self.customize_panel.close()
-        from nexpy.gui.consoleapp import _mainwindow
+        from .consoleapp import _mainwindow
         if _mainwindow.panels.tabs.count() == 0:
             _mainwindow.panels.setVisible(False)
 
@@ -2066,7 +2066,7 @@ class NXProjectionTab(QtGui.QWidget):
             self.overplot_box.setChecked(False)
         self.plotview.make_active()
         plotviews[projection.label].raise_()
-        from nexpy.gui.consoleapp import _mainwindow
+        from .consoleapp import _mainwindow
         _mainwindow.panels.update()
 
     def open_panel(self):
@@ -2126,7 +2126,7 @@ class NXProjectionPanel(QtGui.QWidget):
         self.plotview = plotview
         self.ndim = self.plotview.ndim
 
-        from nexpy.gui.consoleapp import _mainwindow
+        from .consoleapp import _mainwindow
         self.window = _mainwindow.panels
 
         QtGui.QWidget.__init__(self, parent=self.window.tabs)

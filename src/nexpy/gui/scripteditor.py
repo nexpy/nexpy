@@ -15,10 +15,10 @@ import six
 import os
 import sys
 import tempfile
-
-from nexpy.gui.pyqt import QtCore, QtGui, getSaveFileName
 import pygments
 from pygments.formatter import Formatter
+
+from .pyqt import QtCore, QtGui, getSaveFileName
 
 from .datadialogs import BaseDialog
 
