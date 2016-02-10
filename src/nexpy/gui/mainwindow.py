@@ -325,17 +325,17 @@ class MainWindow(QtGui.QMainWindow):
             triggered=self.print_action_console)
         self.add_menu_action(self.file_menu, self.print_action, True)
 
-        if sys.platform != 'darwin':
-            # OSX always has Quit in the Application menu, only add it
-            # to the File menu elsewhere.
-
-            self.file_menu.addSeparator()
-
-            self.quit_action = QtGui.QAction("&Quit",
-                self,
-                shortcut=QtGui.QKeySequence.Quit,
-                triggered=self.close,
+        self.quit_action = QtGui.QAction("&Quit",
+            self,
+            shortcut=QtGui.QKeySequence.Quit,
+            triggered=self.close,
             )
+        # OSX always has Quit in the Application menu, only add it
+        # to the File menu elsewhere.
+        if sys.platform == 'darwin':
+            self.addAction(self.quit_action)
+        else:
+            self.file_menu.addSeparator()
             self.add_menu_action(self.file_menu, self.quit_action)
 
     def init_edit_menu(self):
