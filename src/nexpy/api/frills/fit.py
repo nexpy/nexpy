@@ -102,8 +102,8 @@ class Function(object):
         return self._parameters
 
     def guess_parameters(self, x, y):
-        map(lambda p,g: p.__setattr__('value', g), self.parameters, 
-                        self.module.guess(x, y))
+        list(map(lambda p,g: p.__setattr__('value', g), self.parameters, 
+                 self.module.guess(x, y)))
 
     @property
     def parameter_values(self):

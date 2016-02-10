@@ -268,7 +268,7 @@ class FitDialog(BaseDialog):
     def remove_function(self):
         expanded_name = self.removecombo.currentText()
         name = self.compressed_name(expanded_name)
-        f = filter(lambda x: x.name == name, self.functions)[0]
+        f = list(filter(lambda x: x.name == name, self.functions))[0]
         for row in f.rows:
             for column in range(8):
                 item = self.parameter_grid.itemAtPosition(row, column)
@@ -368,7 +368,8 @@ class FitDialog(BaseDialog):
         y = np.array(fit.y)
         for f in self.functions:
             guess = f.module.guess(fit.x, y)
-            map(lambda p, g: p.__setattr__('value', g), f.parameters, guess)
+            list(map(lambda p, g: p.__setattr__('value', g), f.parameters, 
+                     guess))
             y = y - f.module.values(fit.x, guess)
 
     def get_model(self, f=None):
@@ -392,7 +393,7 @@ class FitDialog(BaseDialog):
             self.get_model().oplot('-')
         else:
             name = self.compressed_name(plot_function)
-            f = filter(lambda x: x.name == name, self.functions)[0]
+            f = list(filter(lambda x: x.name == name, self.functions))[0]
             self.get_model(f).oplot('--')
 
     def define_errors(self):
