@@ -15,15 +15,15 @@ import os
 import re
 import sys
 
-from nexpy.gui.pyqt import QtGui, QtCore
+from .pyqt import QtGui, QtCore
 import pkg_resources
 import numpy as np
 
 from nexusformat.nexus import (NeXusError, NXgroup, NXfield, NXattr,
                                NXroot, NXentry, NXdata, NXparameters)
-from nexpy.gui.datadialogs import BaseDialog
+from .datadialogs import BaseDialog
 
-from nexpy.api.frills.fit import Fit, Function, Parameter
+from ..api.frills.fit import Fit, Function, Parameter
 
     
 class FitDialog(BaseDialog):
@@ -36,10 +36,10 @@ class FitDialog(BaseDialog):
  
         self.data = self.initialize_data(entry.data)
 
-        from nexpy.gui.consoleapp import _tree
+        from .consoleapp import _tree
         self.tree = _tree
 
-        from nexpy.gui.plotview import plotview
+        from .plotview import plotview
         self.plotview = plotview
         self.functions = []
         self.parameters = []
@@ -405,7 +405,7 @@ class FitDialog(BaseDialog):
             use_errors = True
         else:
             use_errors = False
-        from nexpy.gui.mainwindow import report_error
+        from .mainwindow import report_error
         try:
             self.fit = Fit(self.data, self.functions, use_errors)
             self.fit.fit_data()

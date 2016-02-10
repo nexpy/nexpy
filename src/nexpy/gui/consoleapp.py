@@ -27,11 +27,11 @@ import signal
 import sys
 import tempfile
 
-from nexpy.gui.pyqt import QtCore, QtGui
+from .pyqt import QtCore, QtGui
 
-# Local imports
 from .mainwindow import MainWindow
 from .treeview import NXtree
+
 from nexusformat.nexus import nxclasses, nxload
 
 from traitlets.config.application import boolean_flag
@@ -49,8 +49,6 @@ from jupyter_core.application import JupyterApp, base_flags, base_aliases
 from jupyter_client.consoleapp import (
         JupyterConsoleApp, app_aliases, app_flags,
     )
-
-
 from jupyter_client.localinterfaces import is_local_ip
 
 #-----------------------------------------------------------------------------

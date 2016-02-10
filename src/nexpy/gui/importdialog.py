@@ -16,7 +16,7 @@ Base class for import dialogs
 import os
 
 from nexusformat.nexus import *
-from nexpy.gui.datadialogs import BaseDialog
+from .datadialogs import BaseDialog
 
 filetype = "Text File" #Defines the Import Menu label
 
@@ -26,7 +26,7 @@ class BaseImportDialog(BaseDialog):
     def __init__(self, parent=None):
 
         super(BaseImportDialog, self).__init__(parent)
-        from nexpy.gui.consoleapp import _mainwindow
+        from .consoleapp import _mainwindow
         self.default_directory = _mainwindow.default_directory
         self.import_file = None     # must define in subclass
 
@@ -44,7 +44,7 @@ class BaseImportDialog(BaseDialog):
         Completes the data import.
         """
         self.accepted = True
-        from nexpy.gui.consoleapp import _mainwindow
+        from .consoleapp import _mainwindow
         _mainwindow.import_data()
         super(BaseImportDialog, self).accept()
         

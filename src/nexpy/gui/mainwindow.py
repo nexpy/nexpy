@@ -32,7 +32,7 @@ import webbrowser
 import xml.etree.ElementTree as ET
 from threading import Thread
 
-from nexpy.gui.pyqt import QtGui, QtCore, getOpenFileName, getSaveFileName
+from .pyqt import QtGui, QtCore, getOpenFileName, getSaveFileName
 from IPython.core.magic import magic_escapes
 
 
@@ -47,7 +47,7 @@ from .treeview import NXTreeView
 from .plotview import NXPlotView, NXProjectionPanels
 from .datadialogs import *
 from .scripteditor import NXScriptWindow, NXScriptEditor
-import nexpy
+from .. import __version__
 from nexusformat.nexus import (nxload, NeXusError, NXFile, NXobject,
                                NXfield, NXgroup, NXlink, NXroot, NXentry)
 
@@ -187,7 +187,7 @@ class MainWindow(QtGui.QMainWindow):
             "Any Files (*.* *)"))
         self.max_recent_files = 20
 
-        self.setWindowTitle('NeXpy v'+nexpy.__version__)
+        self.setWindowTitle('NeXpy v'+__version__)
         self.statusBar().showMessage('Ready')
         self.console._control.setFocus()
 
@@ -1348,7 +1348,7 @@ class MainWindow(QtGui.QMainWindow):
                     node.plot()
                 except KeyError:
                     raise NeXusError("NeXus item not plottable")
-                from nexpy.gui.plotview import plotview
+                from .plotview import plotview
                 entry = NXentry(data=plotview.plotdata)
             if len(entry.data.nxsignal.shape) == 1:
                 dialog = FitDialog(entry, parent=self)
@@ -1484,7 +1484,7 @@ class MainWindow(QtGui.QMainWindow):
         data = display_data['data'].get('application/json', {})
         if isinstance(data, dict):
             mdict = data
-        elif isinstance(data, basestring):
+        elif isinstance(data, six.text_type):
             mdict = json.loads(data)
         else:
             return
@@ -1571,7 +1571,7 @@ class MainWindow(QtGui.QMainWindow):
         plotview = NXPlotView()
 
     def close_window(self):
-        from nexpy.gui.plotview import plotview
+        from .plotview import plotview
         if plotview.number != 1:
             plotview.close()
 
@@ -1590,7 +1590,7 @@ class MainWindow(QtGui.QMainWindow):
 
     def limit_axes(self):
         try:
-            from nexpy.gui.plotview import plotview
+            from .plotview import plotview
             dialog = LimitDialog(self)
             dialog.exec_()
         except NeXusError as error:
@@ -1598,7 +1598,7 @@ class MainWindow(QtGui.QMainWindow):
 
     def reset_axes(self):
         try:
-            from nexpy.gui.plotview import plotview
+            from .plotview import plotview
             plotview.reset_plot_limits()
         except NeXusError as error:
             report_error("Resetting Plot Limits", error)
@@ -1611,7 +1611,7 @@ class MainWindow(QtGui.QMainWindow):
             report_error("Showing Log File", error)
 
     def show_projection_panel(self):
-        from nexpy.gui.plotview import plotview
+        from .plotview import plotview
         if plotview.label != 'Projection' and plotview.ndim > 1:
             plotview.ptab.open_panel()
         elif self.panels.tabs.count() != 0:
