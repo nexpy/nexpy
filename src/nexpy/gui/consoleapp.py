@@ -18,7 +18,7 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 import six
-# stdlib imports
+
 import logging
 import logging.handlers
 import pkg_resources
@@ -229,7 +229,7 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
         except Exception:
             pass
 
-    def init_shell(self):
+    def init_shell(self, filename):
         """Initialize imports in the shell."""
         global _shell
         _shell = self.window.user_ns
@@ -261,17 +261,18 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
                  "from matplotlib import pylab, mlab, pyplot\n"
                  "plt = pyplot")
             six.exec_(s,  self.window.user_ns)
-        try:
-            print(sys.argv[1])
-            fname = os.path.expanduser(sys.argv[1])
-            name = _mainwindow.treeview.tree.get_name(fname)
-            _mainwindow.treeview.tree[name] = self.window.user_ns[name] = nxload(fname)
-            _mainwindow.treeview.select_node(_mainwindow.treeview.tree[name])
-            logging.info("NeXus file '%s' opened as workspace '%s'"
-                          % (fname, name))
-            self.window.user_ns[name].plot()
-        except:
-            pass
+        if filename is not None:
+            try:
+                fname = os.path.expanduser(filename)
+                name = _mainwindow.treeview.tree.get_name(fname)
+                _mainwindow.treeview.tree[name] = self.window.user_ns[name] \
+                                                = nxload(fname)
+                _mainwindow.treeview.select_node(_mainwindow.treeview.tree[name])
+                logging.info("NeXus file '%s' opened as workspace '%s'"
+                              % (fname, name))
+                self.window.user_ns[name].plot()
+            except Exception:
+                pass
 
     def init_colors(self):
         """Configure the coloring of the widget"""
@@ -295,13 +296,13 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
         self._sigint_timer = timer
 
     @catch_config_error
-    def initialize(self, argv=None):
+    def initialize(self, filename=None, argv=None):
         super(NXConsoleApp, self).initialize(argv)
         self.init_dir()
         self.init_log()
         self.init_tree()
         self.init_gui()
-        self.init_shell()
+        self.init_shell(filename)
         self.init_colors()
         self.init_signal()
 
@@ -319,9 +320,9 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
 # Main entry point
 #-----------------------------------------------------------------------------
 
-def main():
+def main(filename=None):
     app = NXConsoleApp()
-    app.initialize()
+    app.initialize(filename=filename)
     app.start()
 
 

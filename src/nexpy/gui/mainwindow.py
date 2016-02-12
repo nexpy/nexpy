@@ -1056,7 +1056,7 @@ class MainWindow(QtGui.QMainWindow):
                 except Exception:
                     pass
         except NeXusError as error:
-            report_error("Removing File", error)
+            report_error("Reloading File", error)
 
     def remove(self):
         try:
