@@ -27,10 +27,10 @@ Two GUI elements are provided for convenience:
 """
 import numpy as np
 
-from ..gui.pyqt import QtGui
+from nexpy.gui.pyqt import QtGui
 
 from nexusformat.nexus import *
-from ..gui.importdialog import BaseImportDialog
+from nexpy.gui.importdialog import BaseImportDialog
 
 filetype = "Text File"
 

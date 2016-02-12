@@ -12,13 +12,17 @@
 """
 Module to read in a SPE or NXSPE file and convert it to NeXus.
 """
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
 import os
 import numpy as np
 
+from nexpy.gui.pyqt import QtGui
+
 from nexusformat.nexus import *
 from nexusformat.nexus.tree import convert_index, centers
-from ..gui.pyqt import QtGui
-from ..gui.importdialog import BaseImportDialog
+from nexpy.gui.importdialog import BaseImportDialog
 
 filetype = "SPE/NXSPE File"
 

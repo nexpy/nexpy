@@ -14,9 +14,10 @@ Module to read in a SPEC file and convert it to NeXus.
 import os
 import numpy as np
 
+from nexpy.gui.pyqt import QtCore, QtGui, getOpenFileName
+
 from nexusformat.nexus import *
-from ..gui.pyqt import QtCore, QtGui, getOpenFileName
-from ..gui.importdialog import BaseImportDialog
+from nexpy.gui.importdialog import BaseImportDialog
 
 filetype = "SPEC File"
 

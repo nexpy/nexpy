@@ -16,10 +16,10 @@ import os
 import re
 import numpy as np
 
-from ..gui.pyqt import QtGui, QtCore
+from nexpy.gui.pyqt import QtGui, QtCore
 
 from nexusformat.nexus import NXfield, NXentry, NXdata, NeXusError
-from ..gui.importdialog import BaseImportDialog
+from nexpy.gui.importdialog import BaseImportDialog
 
 filetype = "Image Stack"
 maximum = 0.0

@@ -18,12 +18,13 @@ from __future__ import (absolute_import, division, print_function,
 
 import os
 
+from nexpy.gui.pyqt import QtCore, QtGui
+
 import numpy as np
 from globusonline.catalog.client.examples.catalog_wrapper import CatalogWrapper
 
 from nexusformat.nexus import *
-from .pyqt import QtCore, QtGui
-from ..gui.importdialog import BaseImportDialog
+from nexpy.gui.importdialog import BaseImportDialog
 
 filetype = "Catalog File"
 
