@@ -15,8 +15,8 @@ import os
 import numpy as np
 
 from nexusformat.nexus import *
-from nexpy.gui.pyqt import QtCore, QtGui, getOpenFileName
-from nexpy.gui.importdialog import BaseImportDialog
+from ..gui.pyqt import QtCore, QtGui, getOpenFileName
+from ..gui.importdialog import BaseImportDialog
 
 filetype = "SPEC File"
 
@@ -194,7 +194,7 @@ class Parser(object):
                 # http://certif.com/spec_manual/fourc_4_9.html
                 entry.G.attrs['description'] = desc
                 for item, value in scan.G.items():
-                    entry.G[item] = NXfield([float(x) for x in value.split()])
+                    entry.G[item] = NXfield(list(map(float, value.split())))
             if scan.T != '':
                 entry['counting_basis'] = NXfield('SPEC scan with constant counting time')
                 entry['T'] = NXfield(float(scan.T))
@@ -206,7 +206,7 @@ class Parser(object):
                 entry['M'].units = 'counts'
                 entry['M'].description = 'SPEC scan with constant monitor count'
             if scan.Q != '':
-                entry['Q'] = NXfield(float([float(x) for x in scan.Q])
+                entry['Q'] = NXfield(list(map(float,scan.Q)))
                 entry['Q'].description = 'hkl at start of scan'
 
             root['scan_' + str(key)] = entry

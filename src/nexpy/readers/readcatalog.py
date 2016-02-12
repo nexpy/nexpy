@@ -23,7 +23,7 @@ from globusonline.catalog.client.examples.catalog_wrapper import CatalogWrapper
 
 from nexusformat.nexus import *
 from .pyqt import QtCore, QtGui
-from .importdialog import BaseImportDialog
+from ..gui.importdialog import BaseImportDialog
 
 filetype = "Catalog File"
 

@@ -17,8 +17,8 @@ import numpy as np
 
 from nexusformat.nexus import *
 from nexusformat.nexus.tree import convert_index, centers
-from nexpy.gui.pyqt import QtGui
-from nexpy.gui.importdialog import BaseImportDialog
+from ..gui.pyqt import QtGui
+from ..gui.importdialog import BaseImportDialog
 
 filetype = "SPE/NXSPE File"
 

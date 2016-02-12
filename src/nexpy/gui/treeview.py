@@ -15,7 +15,7 @@ import six
 import os
 import pkg_resources
 
-from nexpy.gui.pyqt import QtCore, QtGui
+from .pyqt import QtCore, QtGui
 from nexusformat.nexus import *
 
 
@@ -42,7 +42,7 @@ class NXtree(NXgroup):
                 value._group = self
                 value._name = key
                 self._entries[key] = value
-                from nexpy.gui.consoleapp import _shell
+                from .consoleapp import _shell
                 _shell[key] = self._entries[key]
                 self.set_changed()
             else:
@@ -52,7 +52,7 @@ class NXtree(NXgroup):
     
     def __delitem__(self, key):
         del self._entries[key]
-        from nexpy.gui.consoleapp import _shell
+        from .consoleapp import _shell
         del _shell[key]
         self.set_changed()
 
@@ -120,7 +120,7 @@ class NXtree(NXgroup):
             raise NeXusError('%s not in the tree')
 
     def get_name(self, filename):
-        from nexpy.gui.consoleapp import _shell
+        from .consoleapp import _shell
         name = os.path.splitext(os.path.basename(filename))[0].replace(' ','_')
         name = "".join([c for c in name.replace('-','_') 
                         if c.isalpha() or c.isdigit() or c=='_'])
@@ -137,7 +137,7 @@ class NXtree(NXgroup):
         return name
 
     def get_new_name(self):
-        from nexpy.gui.consoleapp import _shell
+        from .consoleapp import _shell
         ind = []
         for key in _shell:
             try:
@@ -149,12 +149,12 @@ class NXtree(NXgroup):
         return 'w'+str(sorted(ind)[-1]+1)
 
     def get_shell_names(self, node):
-        from nexpy.gui.consoleapp import _shell
+        from .consoleapp import _shell
         return [obj[0] for obj in _shell.items() if id(obj[1]) == id(node) 
                 and not obj[0].startswith('_')]
 
     def sync_shell_names(self):
-        from nexpy.gui.consoleapp import _shell
+        from .consoleapp import _shell
         for key, value in self.items():
             shell_names = self.get_shell_names(value)
             if key not in shell_names:

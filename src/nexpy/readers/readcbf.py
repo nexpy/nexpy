@@ -12,12 +12,15 @@
 """
 Module to read in a CBF file and convert it to NeXus.
 """
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
 import numpy as np
 import pycbf
 
 from nexusformat.nexus import *
-from nexpy.gui.pyqt import QtGui
-from nexpy.gui.importdialog import BaseImportDialog
+from ..gui.pyqt import QtGui
+from ..gui.importdialog import BaseImportDialog
 
 filetype = "CBF File"
 

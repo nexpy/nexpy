@@ -18,7 +18,8 @@ of a Matplotlib plotting pane and a tree view for displaying NeXus data.
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
-from __future__ import (absolute_import, division, print_function)
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 import six
 
 import glob
@@ -1449,7 +1450,7 @@ class MainWindow(QtGui.QMainWindow):
         # to active console **at run time**.
         def inner_dynamic_magic():
             self.console.execute(magic)
-        inner_dynamic_magic.__name__ = "dynamics_magic_s"
+        inner_dynamic_magic.__name__ = str("dynamics_magic_s")
         return inner_dynamic_magic
 
     def populate_all_magic_menu(self, display_data=None):
