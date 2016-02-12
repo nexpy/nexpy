@@ -16,9 +16,8 @@ import os
 import re
 import numpy as np
 
-from nexpy.gui.pyqt import QtGui, QtCore
-
 from nexusformat.nexus import NXfield, NXentry, NXdata, NeXusError
+from nexpy.gui.pyqt import QtGui, QtCore
 from nexpy.gui.importdialog import BaseImportDialog
 
 filetype = "Image Stack"
@@ -234,10 +233,7 @@ class ImportDialog(BaseImportDialog):
 
     def read_image(self, filename):
         if self.get_image_type() == 'CBF':
-            try:
-                import pybcbf
-            except ImportError:
-                raise NeXusError("Please install the 'pycbf' module")
+            import pycbf
             cbf = pycbf.cbf_handle_struct()
             cbf.read_file(str(filename), pycbf.MSG_DIGEST)
             cbf.select_datablock(0)
@@ -246,11 +242,8 @@ class ImportDialog(BaseImportDialog):
             imsize = cbf.get_image_size(0)
             return np.fromstring(cbf.get_integerarray_as_string(),np.int32).reshape(imsize)
         else:
-            try:
-                import tifffile as TIFF
-            except ImportError:
-                raise NeXusError("Please install the 'tifffile' module")
-            return TIFF.imread(filename)
+            import tifffile
+            return tifffile.imread(filename)
 
     def read_images(self, filenames):
         v0 = self.read_image(filenames[0])
@@ -269,6 +262,16 @@ class ImportDialog(BaseImportDialog):
         else:
             self.import_file = self.get_directory()       
         filenames = self.get_files()
+        if self.get_image_type() == 'CBF':
+            try:
+                import pycbf
+            except ImportError:
+                raise NeXusError("Please install the 'pycbf' module")
+        else:
+            try:
+                import tifffile
+            except ImportError:
+                raise NeXusError("Please install the 'tifffile' module")
         v0 = self.read_image(filenames[0])
         x = NXfield(range(v0.shape[1]), dtype=np.uint16, name='x')
         y = NXfield(range(v0.shape[0]), dtype=np.uint16, name='y')
@@ -282,7 +285,7 @@ class ImportDialog(BaseImportDialog):
             chunk_size = v.shape[0]/10
         self.progress_bar.setVisible(True)
         self.progress_bar.setRange(0, len(filenames))
-        for i in range(0, len(filenames)):
+        for i in range(0, len(filenames), chunk_size):
             try:
                 files = []
                 for j in range(i,i+chunk_size):
