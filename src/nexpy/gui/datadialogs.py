@@ -14,6 +14,7 @@ import six
 
 import imp
 import logging
+import numbers
 import os
 import re
 import sys
@@ -1085,7 +1086,7 @@ class InitializeDialog(BaseDialog):
                 it = iter(shape)
                 return shape
             except TypeError:
-                if isinstance(shape, int):
+                if isinstance(shape, numbers.Integral):
                     return (shape,)
                 else:
                     raise NeXusError('Invalid shape')
