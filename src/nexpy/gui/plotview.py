@@ -67,8 +67,8 @@ locator = MaxNLocator(nbins=9, steps=[1, 2, 5, 10])
 
 
 def report_error(context, error):
-    import mainwindow
-    mainwindow.report_error(context, error)
+    from .mainwindow import report_error
+    report_error(context, error)
 
 
 def new_figure_manager(label=None, *args, **kwargs):

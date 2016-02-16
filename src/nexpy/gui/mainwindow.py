@@ -970,7 +970,7 @@ class MainWindow(QtGui.QMainWindow):
 
     def open_remote_file(self):
         try:
-            from remotedialogs import RemoteDialog
+            from .remotedialogs import RemoteDialog
             if self.remote_dialog is None:
                 self.remote_dialog = RemoteDialog(defaults=self.remote_defaults)
             self.remote_dialog.show()
