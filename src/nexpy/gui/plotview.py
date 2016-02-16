@@ -826,17 +826,20 @@ class NXPlotView(QtGui.QDialog):
         return self._aspect
 
     def _set_aspect(self, aspect):
-        if aspect == 'auto':
-            self._aspect = 'auto'
-            self.otab._actions['set_aspect'].setChecked(False)
-        elif aspect == 'equal':
-            self._aspect = 'equal'
-            self.otab._actions['set_aspect'].setChecked(True)
-        else:
-            try:
-                self._aspect = float(aspect)
+        try:
+            self._aspect = float(aspect)
+            if self._aspect > 0.0:
                 self.otab._actions['set_aspect'].setChecked(True)
-            except ValueError:
+            else:
+                return
+        except (ValueError, TypeError):
+            if aspect == 'auto':
+                self._aspect = 'auto'
+                self.otab._actions['set_aspect'].setChecked(False)
+            elif aspect == 'equal':
+                self._aspect = 'equal'
+                self.otab._actions['set_aspect'].setChecked(True)
+            else:
                 return
         try:
             plotview.ax.set_aspect(self._aspect)
@@ -851,13 +854,19 @@ class NXPlotView(QtGui.QDialog):
         return self._skew_angle
 
     def _set_skew(self, skew_angle):
-        if (skew_angle is None or skew_angle == '' or skew_angle == 'None' or
-            np.isclose(skew_angle, 0.0) or np.isclose(skew_angle, 90.0)):
-            self._skew_angle = None
-        else:
-            self._skew_angle = skew_angle
-        if self.skew is not None and self.aspect == 'auto':
-            self.aspect = 'equal'
+        try:
+            self._skew_angle = float(skew_angle)
+            if np.isclose(self._skew_angle, 0.0) or np.isclose(self._skew_angle, 90.0):
+                self._skew_angle = None
+        except (ValueError, TypeError):
+            if (skew_angle is None or six.text_type(skew_angle) == '' or six.text_type(skew_angle) == 'None'):
+                self._skew_angle = None
+            else:
+                return
+        if self.skew is not None and self._aspect == 'auto':
+            self._aspect = 'equal'
+            self.otab._actions['set_aspect'].setChecked(True)
+            plotview.ax.set_aspect(self._aspect)
         self.grid_helper = GridHelperCurveLinear((self.transform,
                                                   self.inverse_transform),
                                                   grid_locator1=locator,

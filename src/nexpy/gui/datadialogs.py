@@ -552,7 +552,7 @@ class GridParameter(object):
                 return np.asscalar(np.array(_value).astype(self.field.dtype))
             except AttributeError:
                 try:
-                    return np.float32(_value)
+                    return float(_value)
                 except ValueError:
                     return _value
 
