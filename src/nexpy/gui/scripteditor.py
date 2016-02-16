@@ -76,10 +76,10 @@ class Highlighter(QtGui.QSyntaxHighlighter):
         Takes a block and applies format to the document. 
         """
         
-        text=unicode(self.document().toPlainText())+'\n'
+        text=six.text_type(self.document().toPlainText())+'\n'
         pygments.highlight(text, self.lexer, self.formatter)
         p = self.currentBlock().position()
-        for i in range(len(unicode(text))):
+        for i in range(len(six.text_type(text))):
             try:
                 self.setFormat(i, 1, self.formatter.data[p+i])
             except IndexError:
