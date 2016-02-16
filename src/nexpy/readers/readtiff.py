@@ -12,6 +12,9 @@
 """
 Module to read in a TIFF file and convert it to NeXus.
 """
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
 import numpy as np
 
 from nexpy.gui.pyqt import QtGui

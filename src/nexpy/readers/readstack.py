@@ -12,6 +12,9 @@
 """
 Module to read in a folder of image files and convert them to NeXus.
 """
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
 import os
 import re
 import numpy as np

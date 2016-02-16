@@ -11,6 +11,9 @@
 """
 Module to read in a SPEC file and convert it to NeXus.
 """
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
 import os
 import numpy as np
 
