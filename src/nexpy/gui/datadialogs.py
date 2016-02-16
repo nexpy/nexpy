@@ -1378,7 +1378,7 @@ class SignalDialog(BaseDialog):
             axes = self.get_axes()
             if None in axes:
                 raise NeXusError("Unable to set axes")
-            if len(set(axes)) < len(axes):
+            if len(set([axis.nxname for axis in axes])) < len(axes):
                 raise NeXusError("Cannot have duplicate axes")
             self.group.nxsignal = self.signal
             self.group.nxaxes = axes
