@@ -39,8 +39,6 @@ from traitlets.config.application import catch_config_error
 from qtconsole.jupyter_widget import JupyterWidget
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
 from qtconsole import styles, __version__
-from qtconsole.client import QtKernelClient
-from qtconsole.manager import QtKernelManager
 from traitlets import (
     Dict, Unicode, CBool, Any
 )
@@ -129,8 +127,6 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
     aliases = Dict(aliases)
     frontend_flags = Any(qt_flags)
     frontend_aliases = Any(qt_aliases)
-    kernel_client_class = QtKernelClient
-    kernel_manager_class = QtKernelManager
 
     stylesheet = Unicode('', config=True,
         help="path to a custom CSS stylesheet")
