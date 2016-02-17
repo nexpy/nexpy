@@ -16,7 +16,7 @@ knowledge of the file format. The underlying Python API for reading and writing
 NeXus files is provided by the `nexusformat 
 <https://github.com/nexpy/nexusformat>`_ package, which is also described here.
 
-.. note:: NeXpy v0.7.2 is now available for `download 
+.. note:: NeXpy v0.8.0 is now available for `download 
           <https://pypi.python.org/pypi/NeXpy/>`_ (`Release Notes 
           <https://github.com/nexpy/nexpy/releases>`_). This is a beta-release 
           so please post any issues that you encounter on the `NeXpy GitHub 
