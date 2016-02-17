@@ -1,10 +1,10 @@
 package:
   name: nexpy
-  version: "0.7.2"
+  version: "0.8.0"
 
 source:
   git_url: https://github.com/nexpy/nexpy.git
-  git_tag: v0.7.2
+  git_tag: v0.8.0
 
 build:
   entry_points:
@@ -16,7 +16,7 @@ requirements:
   build:
     - python
     - setuptools
-    - nexusformat >=0.1.4
+    - nexusformat >=0.2.1
     - numpy >=1.6.0
     - scipy
     - h5py
@@ -27,7 +27,7 @@ requirements:
 
   run:
     - python
-    - nexusformat >=0.1.4
+    - nexusformat >=0.2.1
     - numpy >=1.6.0
     - scipy
     - h5py

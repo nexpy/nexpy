@@ -17,11 +17,6 @@ If you have an Anaconda installation, use::
 
     $ conda install -c https://conda.anaconda.org/nexpy nexpy
 
-.. warning:: The Conda build has not yet been extensively tested, so please post 
-             an issue on `Github issue page 
-             <https://github.com/nexpy/nexpy/issues>`_ if you encounter a 
-             problem.
-
 If you have trouble with the pip or easy_install installations, you can install
 the package from the source code either by downloading one of the 
 `Github releases <https://github.com/nexpy/nexpy/releases>`_ or by cloning the
