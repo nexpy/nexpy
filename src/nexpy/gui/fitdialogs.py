@@ -8,6 +8,8 @@
 #
 # The full license is in the file COPYING, distributed with this software.
 #-----------------------------------------------------------------------------
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
 import imp
 import logging
@@ -15,15 +17,15 @@ import os
 import re
 import sys
 
-from nexpy.gui.pyqt import QtGui, QtCore
+from .pyqt import QtGui, QtCore
 import pkg_resources
 import numpy as np
 
 from nexusformat.nexus import (NeXusError, NXgroup, NXfield, NXattr,
                                NXroot, NXentry, NXdata, NXparameters)
-from nexpy.gui.datadialogs import BaseDialog
+from .datadialogs import BaseDialog
 
-from nexpy.api.frills.fit import Fit, Function, Parameter
+from ..api.frills.fit import Fit, Function, Parameter
 
     
 class FitDialog(BaseDialog):
@@ -36,10 +38,10 @@ class FitDialog(BaseDialog):
  
         self.data = self.initialize_data(entry.data)
 
-        from nexpy.gui.consoleapp import _tree
+        from .consoleapp import _tree
         self.tree = _tree
 
-        from nexpy.gui.plotview import plotview
+        from .plotview import plotview
         self.plotview = plotview
         self.functions = []
         self.parameters = []
@@ -52,7 +54,7 @@ class FitDialog(BaseDialog):
  
         function_layout = QtGui.QHBoxLayout()
         self.functioncombo = QtGui.QComboBox()
-        for name in sorted(self.function_module.keys()):
+        for name in sorted(self.function_module):
             self.functioncombo.addItem(name)
         self.functioncombo.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToContents)
         self.functioncombo.setMinimumWidth(100)
@@ -268,7 +270,7 @@ class FitDialog(BaseDialog):
     def remove_function(self):
         expanded_name = self.removecombo.currentText()
         name = self.compressed_name(expanded_name)
-        f = filter(lambda x: x.name == name, self.functions)[0]
+        f = list(filter(lambda x: x.name == name, self.functions))[0]
         for row in f.rows:
             for column in range(8):
                 item = self.parameter_grid.itemAtPosition(row, column)
@@ -368,7 +370,8 @@ class FitDialog(BaseDialog):
         y = np.array(fit.y)
         for f in self.functions:
             guess = f.module.guess(fit.x, y)
-            map(lambda p, g: p.__setattr__('value', g), f.parameters, guess)
+            list(map(lambda p, g: p.__setattr__('value', g), f.parameters, 
+                     guess))
             y = y - f.module.values(fit.x, guess)
 
     def get_model(self, f=None):
@@ -392,7 +395,7 @@ class FitDialog(BaseDialog):
             self.get_model().oplot('-')
         else:
             name = self.compressed_name(plot_function)
-            f = filter(lambda x: x.name == name, self.functions)[0]
+            f = list(filter(lambda x: x.name == name, self.functions))[0]
             self.get_model(f).oplot('--')
 
     def define_errors(self):
@@ -405,7 +408,7 @@ class FitDialog(BaseDialog):
             use_errors = True
         else:
             use_errors = False
-        from nexpy.gui.mainwindow import report_error
+        from .mainwindow import report_error
         try:
             self.fit = Fit(self.data, self.functions, use_errors)
             self.fit.fit_data()
@@ -481,10 +484,10 @@ class FitDialog(BaseDialog):
         else:
             entry['title'] = 'Fit Model'
             entry['model'] = self.get_model()
-        if 'w0' not in self.tree.keys():
+        if 'w0' not in self.tree:
             self.tree.add(NXroot(name='w0'))
         ind = []
-        for key in self.tree['w0'].keys():
+        for key in self.tree['w0']:
             try:
                 if key.startswith('f'): 
                     ind.append(int(key[1:]))

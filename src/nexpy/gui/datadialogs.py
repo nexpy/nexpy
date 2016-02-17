@@ -8,9 +8,13 @@
 #
 # The full license is in the file COPYING, distributed with this software.
 #-----------------------------------------------------------------------------
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+import six
 
 import imp
 import logging
+import numbers
 import os
 import re
 import sys
@@ -53,7 +57,7 @@ class BaseDialog(QtGui.QDialog):
     def __init__(self, parent=None):
 
         self.accepted = False
-        from nexpy.gui.consoleapp import _mainwindow
+        from .consoleapp import _mainwindow
         self.mainwindow = _mainwindow
         self.treeview = self.mainwindow.treeview
         self.default_directory = _mainwindow.default_directory
@@ -439,13 +443,13 @@ class GridParameters(OrderedDict):
 
     def get_parameters(self, p):
         i = 0
-        for key in [x.keys()[0] for x in self.parameters]:
+        for key in [list(x)[0] for x in self.parameters]:
             self[key].value = p[i]
             i += 1
 
     def refine_parameters(self, residuals, method='nelder-mead', **opts):
         self.set_parameters()
-        p0 = np.array([p.values()[0] for p in self.parameters])
+        p0 = np.array([list(p.values())[0] for p in self.parameters])
         result = minimize(residuals, p0, method='nelder-mead',
                           options={'xtol': 1e-6, 'disp': True})
         self.get_parameters(result.x)
@@ -548,7 +552,7 @@ class GridParameter(object):
                 return np.asscalar(np.array(_value).astype(self.field.dtype))
             except AttributeError:
                 try:
-                    return np.float32(_value)
+                    return float(_value)
                 except ValueError:
                     return _value
 
@@ -563,7 +567,7 @@ class GridParameter(object):
             else:
                 if isinstance(value, NXfield):
                     value = value.nxdata
-                if isinstance(value, basestring):
+                if isinstance(value, six.text_type):
                     self.box.setText(value)
                 else:
                     self.box.setText('%.6g' % value)
@@ -710,7 +714,7 @@ class LimitDialog(BaseDialog):
 
         super(LimitDialog, self).__init__(parent)
  
-        from nexpy.gui.plotview import plotview
+        from .plotview import plotview
 
         self.plotview = plotview
         
@@ -765,7 +769,7 @@ class LimitDialog(BaseDialog):
         self.setWindowTitle("Limit axes")
 
     def textbox(self):
-        from nexpy.gui.plotview import NXTextBox
+        from .plotview import NXTextBox
         textbox = NXTextBox()
         textbox.setAlignment(QtCore.Qt.AlignRight)
         textbox.setFixedWidth(75)
@@ -845,7 +849,7 @@ class AddDialog(BaseDialog):
             combo_label.setText("Group Class:")
             self.combo_box = QtGui.QComboBox()
             self.combo_box.currentIndexChanged.connect(self.select_combo)
-            from nexpy.gui.consoleapp import _mainwindow
+            from .consoleapp import _mainwindow
             standard_groups = sorted(list(set([g for g in 
                               _mainwindow.nxclasses[self.node.nxclass][2]])))
             for name in standard_groups:
@@ -871,7 +875,7 @@ class AddDialog(BaseDialog):
             combo_label.setAlignment(QtCore.Qt.AlignLeft)
             self.combo_box = QtGui.QComboBox()
             self.combo_box.currentIndexChanged.connect(self.select_combo)
-            from nexpy.gui.consoleapp import _mainwindow
+            from .consoleapp import _mainwindow
             fields = sorted(list(set([g for g in 
                             _mainwindow.nxclasses[self.node.nxclass][1]])))
             for name in fields:
@@ -952,7 +956,7 @@ class AddDialog(BaseDialog):
             if dtype == "char":
                 return value
             else:
-                from nexpy.gui.consoleapp import _shell
+                from .consoleapp import _shell
                 try:
                     return eval(value, {"__builtins__": {}}, _shell)
                 except Exception:
@@ -1025,7 +1029,7 @@ class InitializeDialog(BaseDialog):
         self.name_box.setAlignment(QtCore.Qt.AlignLeft)
         self.combo_box = QtGui.QComboBox()
         self.combo_box.currentIndexChanged.connect(self.select_combo)
-        from nexpy.gui.consoleapp import _mainwindow
+        from .consoleapp import _mainwindow
         fields = sorted(list(set([g for g in 
                         _mainwindow.nxclasses[self.node.nxclass][1]])))
         for name in fields:
@@ -1082,7 +1086,7 @@ class InitializeDialog(BaseDialog):
                 it = iter(shape)
                 return shape
             except TypeError:
-                if isinstance(shape, int):
+                if isinstance(shape, numbers.Integral):
                     return (shape,)
                 else:
                     raise NeXusError('Invalid shape')
@@ -1134,7 +1138,7 @@ class RenameDialog(BaseDialog):
             combo_label.setAlignment(QtCore.Qt.AlignLeft)
             combo_label.setText("New Class:")
             self.combo_box = QtGui.QComboBox()
-            from nexpy.gui.consoleapp import _mainwindow
+            from .consoleapp import _mainwindow
             parent_class = self.node.nxgroup.nxclass
             standard_groups = sorted(list(set([g for g in 
                           _mainwindow.nxclasses[parent_class][2]])))
@@ -1165,7 +1169,7 @@ class RenameDialog(BaseDialog):
                 combo_label.setText("Valid Fields:")
                 self.combo_box = QtGui.QComboBox()
                 self.combo_box.currentIndexChanged.connect(self.set_name)
-                from nexpy.gui.consoleapp import _mainwindow
+                from .consoleapp import _mainwindow
                 fields = sorted(list(set([g for g in 
                             _mainwindow.nxclasses[parent_class][1]])))
                 for name in fields:
@@ -1374,13 +1378,13 @@ class SignalDialog(BaseDialog):
             axes = self.get_axes()
             if None in axes:
                 raise NeXusError("Unable to set axes")
-            if len(set(axes)) < len(axes):
+            if len(set([axis.nxname for axis in axes])) < len(axes):
                 raise NeXusError("Cannot have duplicate axes")
             self.group.nxsignal = self.signal
             self.group.nxaxes = axes
             super(SignalDialog, self).accept()
         except NeXusError as error:
-            from nexpy.gui.mainwindow import report_error 
+            from .mainwindow import report_error 
             report_error("Setting signal", error)
 
     
@@ -1391,7 +1395,7 @@ class LogDialog(BaseDialog):
 
         super(LogDialog, self).__init__(parent)
  
-        from consoleapp import _nexpy_dir
+        from .consoleapp import _nexpy_dir
         self.log_directory = _nexpy_dir
 
         self.ansi_re = re.compile('\x1b' + r'\[([\dA-Fa-f;]*?)m')

@@ -8,10 +8,14 @@
 #
 # The full license is in the file COPYING, distributed with this software.
 #-----------------------------------------------------------------------------
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+import six
+
 import os
 import pkg_resources
 
-from nexpy.gui.pyqt import QtCore, QtGui
+from .pyqt import QtCore, QtGui
 from nexusformat.nexus import *
 
 
@@ -34,11 +38,11 @@ class NXtree(NXgroup):
 
     def __setitem__(self, key, value):
         if isinstance(value, NXroot):
-            if key not in self._entries.keys():
+            if key not in self._entries:
                 value._group = self
                 value._name = key
                 self._entries[key] = value
-                from nexpy.gui.consoleapp import _shell
+                from .consoleapp import _shell
                 _shell[key] = self._entries[key]
                 self.set_changed()
             else:
@@ -48,7 +52,7 @@ class NXtree(NXgroup):
     
     def __delitem__(self, key):
         del self._entries[key]
-        from nexpy.gui.consoleapp import _shell
+        from .consoleapp import _shell
         del _shell[key]
         self.set_changed()
 
@@ -91,14 +95,14 @@ class NXtree(NXgroup):
                 group = NXroot(node)
                 name = self.get_new_name()
                 self[name] = group
-                print "NeXpy: '%s' added to tree in '%s'" % (node.nxname, 
-                                                             group.nxname)
+                print("NeXpy: '%s' added to tree in '%s'" % (node.nxname,
+                                                             group.nxname))
             else:
                 group = NXroot(NXentry(node))
                 name = self.get_new_name()
                 self[name] = group
-                print "NeXpy: '%s' added to tree in '%s%s'" % (node.nxname, 
-                                              group.nxname, node.nxgroup.nxpath)
+                print("NeXpy: '%s' added to tree in '%s%s'" % (node.nxname,
+                                              group.nxname, node.nxgroup.nxpath))
         else:
             raise NeXusError("Only an NXgroup can be added to the tree")
 
@@ -116,13 +120,13 @@ class NXtree(NXgroup):
             raise NeXusError('%s not in the tree')
 
     def get_name(self, filename):
-        from nexpy.gui.consoleapp import _shell
+        from .consoleapp import _shell
         name = os.path.splitext(os.path.basename(filename))[0].replace(' ','_')
         name = "".join([c for c in name.replace('-','_') 
                         if c.isalpha() or c.isdigit() or c=='_'])
-        if name in _shell.keys():
+        if name in _shell:
             ind = []
-            for key in _shell.keys():
+            for key in _shell:
                 try:
                     if key.startswith(name+'_'): 
                         ind.append(int(key[len(name)+1:]))
@@ -133,9 +137,9 @@ class NXtree(NXgroup):
         return name
 
     def get_new_name(self):
-        from nexpy.gui.consoleapp import _shell
+        from .consoleapp import _shell
         ind = []
-        for key in _shell.keys():
+        for key in _shell:
             try:
                 if key.startswith('w'): 
                     ind.append(int(key[1:]))
@@ -145,12 +149,12 @@ class NXtree(NXgroup):
         return 'w'+str(sorted(ind)[-1]+1)
 
     def get_shell_names(self, node):
-        from nexpy.gui.consoleapp import _shell
+        from .consoleapp import _shell
         return [obj[0] for obj in _shell.items() if id(obj[1]) == id(node) 
                 and not obj[0].startswith('_')]
 
     def sync_shell_names(self):
-        from nexpy.gui.consoleapp import _shell
+        from .consoleapp import _shell
         for key, value in self.items():
             shell_names = self.get_shell_names(value)
             if key not in shell_names:
@@ -159,7 +163,7 @@ class NXtree(NXgroup):
                     del _shell[shell_names[0]]
 
     def node_from_file(self, fname):
-        return [name for name in self.keys() if 
+        return [name for name in self if 
             os.path.abspath(fname)==os.path.abspath(self[name].nxfilename)][0]
 
 

@@ -8,16 +8,19 @@
 #
 # The full license is in the file COPYING, distributed with this software.
 #-----------------------------------------------------------------------------
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+import six
 
 import os
 import sys
 import tempfile
-
-from nexpy.gui.pyqt import QtCore, QtGui, getSaveFileName
 import pygments
 from pygments.formatter import Formatter
 
-from datadialogs import BaseDialog
+from .pyqt import QtCore, QtGui, getSaveFileName
+
+from .datadialogs import BaseDialog
 
 
 def hex2QColor(c):
@@ -73,10 +76,10 @@ class Highlighter(QtGui.QSyntaxHighlighter):
         Takes a block and applies format to the document. 
         """
         
-        text=unicode(self.document().toPlainText())+'\n'
+        text=six.text_type(self.document().toPlainText())+'\n'
         pygments.highlight(text, self.lexer, self.formatter)
         p = self.currentBlock().position()
-        for i in range(len(unicode(text))):
+        for i in range(len(six.text_type(text))):
             try:
                 self.setFormat(i, 1, self.formatter.data[p+i])
             except IndexError:
@@ -156,13 +159,13 @@ class NXScriptEditor(QtGui.QWidget):
  
     def __init__(self, file_name=None, parent=None):
 
-        from nexpy.gui.consoleapp import _mainwindow
+        from .consoleapp import _mainwindow
         self.window = _mainwindow.editors
 
         QtGui.QWidget.__init__(self, parent=self.window.tabs)
  
         self.file_name = file_name
-        from consoleapp import _nexpy_dir
+        from .consoleapp import _nexpy_dir
         self.default_directory = os.path.join(_nexpy_dir, 'scripts')
 
         layout = QtGui.QVBoxLayout()
@@ -243,7 +246,7 @@ class NXScriptEditor(QtGui.QWidget):
             self.number_box.setStyleSheet("QLabel {padding: 1px 0}")
 
     def run_script(self):
-        from consoleapp import _mainwindow
+        from .consoleapp import _mainwindow
         text = self.get_text()
         if 'sys.argv' in text:
             file_name = tempfile.mkstemp('.py')[1]
@@ -271,7 +274,7 @@ class NXScriptEditor(QtGui.QWidget):
                 f.write(self.get_text())
             self.file_name = file_name
             self.window.tabs.setTabText(self.index, os.path.basename(self.file_name))
-            from consoleapp import _mainwindow
+            from .consoleapp import _mainwindow
             _mainwindow.add_script_action(self.file_name)
             self.delete_button.setVisible(True)
 
@@ -282,7 +285,7 @@ class NXScriptEditor(QtGui.QWidget):
                       "This cannot be reversed")
             if ret == QtGui.QMessageBox.Ok:
                 os.remove(self.file_name)
-                from consoleapp import _mainwindow
+                from .consoleapp import _mainwindow
                 _mainwindow.remove_script_action(self.file_name)
                 self.close()
 

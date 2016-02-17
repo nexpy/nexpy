@@ -11,11 +11,15 @@
 """
 Module to read in a SPEC file and convert it to NeXus.
 """
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
 import os
 import numpy as np
 
-from nexusformat.nexus import *
 from nexpy.gui.pyqt import QtCore, QtGui, getOpenFileName
+
+from nexusformat.nexus import *
 from nexpy.gui.importdialog import BaseImportDialog
 
 filetype = "SPEC File"
@@ -147,12 +151,12 @@ class Parser(object):
         if self.SPECfile is None:
             return None
 
-        complete_scan_list = self.SPECfile.scans.keys()
+        complete_scan_list = list(self.SPECfile.scans)
         for key in [str(s) for s in scan_list]:
             if key not in complete_scan_list:
                 msg = 'scan ' + str(key) + ' was not found'
-                raise ValueError, msg
-        
+                raise ValueError(msg)
+
         root = NXroot()
 
         root.attrs['spec2nexus'] = str(spec2nexus.__version__)
@@ -194,7 +198,7 @@ class Parser(object):
                 # http://certif.com/spec_manual/fourc_4_9.html
                 entry.G.attrs['description'] = desc
                 for item, value in scan.G.items():
-                    entry.G[item] = NXfield(map(float, value.split()))
+                    entry.G[item] = NXfield(list(map(float, value.split())))
             if scan.T != '':
                 entry['counting_basis'] = NXfield('SPEC scan with constant counting time')
                 entry['T'] = NXfield(float(scan.T))
@@ -206,7 +210,7 @@ class Parser(object):
                 entry['M'].units = 'counts'
                 entry['M'].description = 'SPEC scan with constant monitor count'
             if scan.Q != '':
-                entry['Q'] = NXfield(map(float,scan.Q))
+                entry['Q'] = NXfield(list(map(float,scan.Q)))
                 entry['Q'].description = 'hkl at start of scan'
 
             root['scan_' + str(key)] = entry
@@ -296,8 +300,10 @@ class Parser(object):
             label2 = scan.L[1]      # mnemonic v. name
         axis1 = scan.data.get(label1)
         axis2 = scan.data.get(label2)
-        intervals1, intervals2 = map(int, (intervals1, intervals2))
-        start1, end1, start2, end2, time = map(float, (start1, end1, start2, end2, time))
+        intervals1, intervals2 = int(intervals1), int(intervals2)
+        start1, end1 = float(start1), float(end1)
+        start2, end2 = float(start2), float(end2)
+        time = float(time)
         if len(axis1) < intervals1:     # stopped scan before second row started
             self.parser_1D_columns(nxdata, scan)        # fallback support
             # TODO: what about the MCA data in this case?
@@ -333,7 +339,7 @@ class Parser(object):
         if '_mca_' in scan.data:    # 3-D array
             # TODO: ?merge with parser_mca_spectra()?
             _num_spectra = len(scan.data['_mca_'])
-            spectra_lengths = map(len, scan.data['_mca_'])
+            spectra_lengths = list(map(len, scan.data['_mca_']))
             num_channels = max(spectra_lengths)
             if num_channels != min(spectra_lengths):
                 msg = 'MCA spectra have different lengths'

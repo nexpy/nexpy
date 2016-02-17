@@ -1,4 +1,4 @@
-#!/usr/bin/env python 
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 #-----------------------------------------------------------------------------
@@ -15,8 +15,10 @@
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+import six
 
-# stdlib imports
 import logging
 import logging.handlers
 import pkg_resources
@@ -25,10 +27,11 @@ import signal
 import sys
 import tempfile
 
-from nexpy.gui.pyqt import QtCore, QtGui
+from .pyqt import QtCore, QtGui
 
-from mainwindow import MainWindow
-from treeview import NXtree
+from .mainwindow import MainWindow
+from .treeview import NXtree
+
 from nexusformat.nexus import nxclasses, nxload
 
 from traitlets.config.application import boolean_flag
@@ -46,8 +49,6 @@ from jupyter_core.application import JupyterApp, base_flags, base_aliases
 from jupyter_client.consoleapp import (
         JupyterConsoleApp, app_aliases, app_flags,
     )
-
-
 from jupyter_client.localinterfaces import is_local_ip
 
 #-----------------------------------------------------------------------------
@@ -99,8 +100,8 @@ aliases.update(qt_aliases)
 
 # get flags&aliases into sets, and remove a couple that
 # shouldn't be scrubbed from backend flags:
-qt_aliases = set(qt_aliases.keys())
-qt_flags = set(qt_flags.keys())
+qt_aliases = set(qt_aliases)
+qt_flags = set(qt_flags)
 
 #-----------------------------------------------------------------------------
 # NXConsoleApp
@@ -111,15 +112,15 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
     version = __version__
     description = """
         The NeXpy Console.
-        
-        This launches a Console-style application using Qt. 
-        
+
+        This launches a Console-style application using Qt.
+
         The console is embedded in a GUI that contains a tree view of
         all NXroot groups and a matplotlib plotting pane. It also has all
         the added benefits of a Jupyter Qt Console with multiline editing,
-        autocompletion, tooltips, command line histories and the ability to 
+        autocompletion, tooltips, command line histories and the ability to
         save your session as HTML or print the output.
-        
+
     """
     examples = _examples
 
@@ -192,7 +193,7 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
             try:
                 logging.root.setLevel(logging.__dict__[value])
             except KeyError:
-                print 'Invalid log level:', value
+                print('Invalid log level:', value)
                 sys.exit(1)
         hdlr.setFormatter(fmtr)
         logging.root.addHandler(hdlr)
@@ -204,7 +205,7 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
         global _tree
         self.tree = NXtree()
         _tree = self.tree
-        
+
     def init_gui(self):
         """Initialize the GUI."""
         self.app = QtGui.QApplication.instance()
@@ -228,7 +229,7 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
         except Exception:
             pass
 
-    def init_shell(self):
+    def init_shell(self, filename):
         """Initialize imports in the shell."""
         global _shell
         _shell = self.window.user_ns
@@ -237,18 +238,18 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
              "from nexusformat.nexus import *\n"
              "import nexpy\n"
              "from nexpy.gui.plotview import NXPlotView")
-        exec s in self.window.user_ns
-        
+        six.exec_(s, self.window.user_ns)
+
         s = ""
         for _class in nxclasses:
             s = "%s=nx.%s\n" % (_class,_class) + s
-        exec s in self.window.user_ns
+        six.exec_(s, self.window.user_ns)
 
         try:
-            f = open(os.path.join(os.path.expanduser('~'), '.nexpy', 
+            f = open(os.path.join(os.path.expanduser('~'), '.nexpy',
                                   'config.py'))
             s = ''.join(f.readlines())
-            exec s in self.window.user_ns
+            six.exec_(s, self.window.user_ns)
         except:
             s = ("import sys\n"
                  "import os\n"
@@ -259,18 +260,19 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
                  "import matplotlib as mpl\n"
                  "from matplotlib import pylab, mlab, pyplot\n"
                  "plt = pyplot")
-            exec s in self.window.user_ns
-        try:
-            print sys.argv[1]
-            fname = os.path.expanduser(sys.argv[1])
-            name = _mainwindow.treeview.tree.get_name(fname)
-            _mainwindow.treeview.tree[name] = self.window.user_ns[name] = nxload(fname)
-            _mainwindow.treeview.select_node(_mainwindow.treeview.tree[name])
-            logging.info("NeXus file '%s' opened as workspace '%s'" 
-                          % (fname, name))
-            self.window.user_ns[name].plot()
-        except:
-            pass
+            six.exec_(s,  self.window.user_ns)
+        if filename is not None:
+            try:
+                fname = os.path.expanduser(filename)
+                name = _mainwindow.treeview.tree.get_name(fname)
+                _mainwindow.treeview.tree[name] = self.window.user_ns[name] \
+                                                = nxload(fname)
+                _mainwindow.treeview.select_node(_mainwindow.treeview.tree[name])
+                logging.info("NeXus file '%s' opened as workspace '%s'"
+                              % (fname, name))
+                self.window.user_ns[name].plot()
+            except Exception:
+                pass
 
     def init_colors(self):
         """Configure the coloring of the widget"""
@@ -294,13 +296,13 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
         self._sigint_timer = timer
 
     @catch_config_error
-    def initialize(self, argv=None):
+    def initialize(self, filename=None, argv=None):
         super(NXConsoleApp, self).initialize(argv)
         self.init_dir()
         self.init_log()
         self.init_tree()
         self.init_gui()
-        self.init_shell()
+        self.init_shell(filename)
         self.init_colors()
         self.init_signal()
 
@@ -318,9 +320,9 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
 # Main entry point
 #-----------------------------------------------------------------------------
 
-def main():
+def main(filename=None):
     app = NXConsoleApp()
-    app.initialize()
+    app.initialize(filename=filename)
     app.start()
 
 

@@ -1,4 +1,4 @@
-#!/usr/bin/env python 
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 #-----------------------------------------------------------------------------
@@ -12,11 +12,15 @@
 """
 Plotting window
 """
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+import six
 
 from .pyqt import QtCore, QtGui
 
-import pkg_resources
+import numbers
 import numpy as np
+import pkg_resources
 
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -31,7 +35,7 @@ from matplotlib.image import NonUniformImage
 from matplotlib.colors import LogNorm, Normalize, colorConverter, rgb2hex
 from matplotlib.cm import cmap_d, get_cmap
 from matplotlib.lines import Line2D
-from matplotlib import markers 
+from matplotlib import markers
 from matplotlib.patches import Circle, Ellipse, Rectangle, Polygon
 from matplotlib.transforms import nonsingular
 from mpl_toolkits.axisartist.grid_helper_curvelinear import GridHelperCurveLinear
@@ -45,16 +49,16 @@ from .datadialogs import BaseDialog, GridParameters
 plotview = None
 plotviews = {}
 colors = ['b', 'g', 'r', 'c', 'm', 'y', 'k', 'w']
-cmaps = ['viridis', 'inferno', 'magma', 'plasma', 'spring', 'summer', 'autumn', 
-         'winter', 'cool', 'hot', 'bone', 'copper', 'gray', 'pink', 'jet', 
+cmaps = ['viridis', 'inferno', 'magma', 'plasma', 'spring', 'summer', 'autumn',
+         'winter', 'cool', 'hot', 'bone', 'copper', 'gray', 'pink', 'jet',
          'spectral', 'rainbow', 'hsv', 'flag', 'prism']
 cmaps = [cm for cm in cmaps if cm in cmap_d]
 if 'viridis' in cmaps:
     default_cmap = 'viridis'
 else:
     default_cmap = 'jet'
-interpolations = ['nearest', 'bilinear', 'bicubic', 'spline16', 'spline36', 
-                  'hanning', 'hamming', 'hermite', 'kaiser', 'quadric', 
+interpolations = ['nearest', 'bilinear', 'bicubic', 'spline16', 'spline36',
+                  'hanning', 'hamming', 'hermite', 'kaiser', 'quadric',
                   'catrom', 'gaussian', 'bessel', 'mitchell', 'sinc', 'lanczos']
 linestyles = {'-': 'Solid', '--': 'Dashed', '-.': 'DashDot', ':': 'Dotted',
               'none': 'None', 'None': 'None'}
@@ -63,14 +67,14 @@ locator = MaxNLocator(nbins=9, steps=[1, 2, 5, 10])
 
 
 def report_error(context, error):
-    import mainwindow
-    mainwindow.report_error(context, error)
+    from .mainwindow import report_error
+    report_error(context, error)
 
 
 def new_figure_manager(label=None, *args, **kwargs):
     """
     Create a new figure manager instance
-    
+
     Figure numbers > 100 are preserved for the Projection and Fit windows.
     """
     if label is None:
@@ -81,7 +85,7 @@ def new_figure_manager(label=None, *args, **kwargs):
             num = max(nums) + 1
         else:
             num = 101
-    else:    
+    else:
         nums = [num for num in plt.get_fignums() if num < 100]
         if nums:
             missing_nums = sorted(set(range(nums[0], nums[-1]+1)).difference(nums))
@@ -103,7 +107,7 @@ def change_plotview(label):
         plotviews[label].make_active()
         plotview = plotviews[label]
     else:
-        plotview = NXPlotView(label)   
+        plotview = NXPlotView(label)
     return plotview
 
 
@@ -139,10 +143,10 @@ class NXFigureManager(FigureManager):
 class NXPlotView(QtGui.QDialog):
     """
     PyQT widget containing a NeXpy plot.
-    
-    The widget consists of a QVBoxLayout containing a matplotlib canvas over a 
+
+    The widget consists of a QVBoxLayout containing a matplotlib canvas over a
     tab widget, which contains NXPlotTab objects for adjusting plot axes:
-    
+
         vtab: Intensity axis (color scale) for two- and higher-dimensional plots
         xtab: x-axis (horizontal)
         ytab: y-axis (vertical); this is the intensity axis for one-dimensional plots
@@ -153,9 +157,9 @@ class NXPlotView(QtGui.QDialog):
               and saving plots as PNG files
     """
     def __init__(self, label=None, parent=None):
-        
+
         if parent is None:
-            from nexpy.gui.consoleapp import _mainwindow
+            from .consoleapp import _mainwindow
             parent = _mainwindow
 
         super(NXPlotView, self).__init__(parent)
@@ -171,7 +175,7 @@ class NXPlotView(QtGui.QDialog):
         self.canvas = self.figuremanager.canvas
         self.canvas.setParent(self)
         self.canvas.setFocusPolicy(QtCore.Qt.ClickFocus)
-        # Since we have only one plot, we can use add_axes 
+        # Since we have only one plot, we can use add_axes
         # instead of add_subplot, but then the subplot
         # configuration tool in the navigation toolbar wouldn't
         # work.
@@ -182,7 +186,7 @@ class NXPlotView(QtGui.QDialog):
         def make_active(event):
             if 'Projection' not in self.label:
                 self.make_active()
-            self.xdata, self.ydata = self.inverse_transform(event.xdata, 
+            self.xdata, self.ydata = self.inverse_transform(event.xdata,
                                                             event.ydata)
             if event.button == 3:
                 try:
@@ -220,7 +224,7 @@ class NXPlotView(QtGui.QDialog):
         self.tab_widget.addTab(self.otab, 'options')
         self.currentTab = self.otab
         self.tab_widget.setCurrentWidget(self.currentTab)
-        
+
         vbox.addWidget(self.tab_widget)
         self.setLayout(vbox)
 
@@ -238,11 +242,11 @@ class NXPlotView(QtGui.QDialog):
         self._skew_angle = None
         self._grid = False
 
-        self.grid_helper = GridHelperCurveLinear((self.transform, 
+        self.grid_helper = GridHelperCurveLinear((self.transform,
                                                   self.inverse_transform),
                                                   grid_locator1=locator,
                                                   grid_locator2=locator)
-                
+
         plotview = self
         plotviews[self.label] = self
         self.plotviews = plotviews
@@ -255,7 +259,7 @@ class NXPlotView(QtGui.QDialog):
             self.show()
 
         #Initialize the plotting window with a token plot
-        self.plot(NXdata(signal=NXfield([0,1], name='y'), 
+        self.plot(NXdata(signal=NXfield([0,1], name='y'),
                   axes=NXfield([0,1], name='x')), fmt='wo', mec='w')
 
     def __repr__(self):
@@ -266,7 +270,7 @@ class NXPlotView(QtGui.QDialog):
         plotview = self
         Gcf.set_active(self.figuremanager)
         self.show()
-        from nexpy.gui.consoleapp import _mainwindow, _shell
+        from .consoleapp import _mainwindow, _shell
         if self.label == 'Main':
             _mainwindow.raise_()
         else:
@@ -276,17 +280,17 @@ class NXPlotView(QtGui.QDialog):
 
     def update_active(self):
         if 'Projection' not in self.label:
-            from nexpy.gui.consoleapp import _mainwindow
+            from .consoleapp import _mainwindow
             _mainwindow.update_active(self.number)
-    
+
     def add_menu_action(self):
-        from nexpy.gui.consoleapp import _mainwindow
+        from .consoleapp import _mainwindow
         if self.label not in _mainwindow.active_action:
             _mainwindow.make_active_action(self.number, self.label)
         _mainwindow.update_active(self.number)
 
     def remove_menu_action(self):
-        from nexpy.gui.consoleapp import _mainwindow
+        from .consoleapp import _mainwindow
         if self.number in _mainwindow.active_action:
             _mainwindow.window_menu.removeAction(
                 _mainwindow.active_action[self.number])
@@ -300,8 +304,9 @@ class NXPlotView(QtGui.QDialog):
         Opens a dialog box for saving a plot as a PNG file
         """
         file_choices = "PNG (*.png)|*.png"
-        
-        path = unicode(getSaveFileName(self, 'Save file', '', file_choices))
+
+        path = six.text_type(QtGui.QFileDialog.getSaveFileName(self,
+                             'Save file', '', file_choices))
         if path:
             self.canvas.print_figure(path, dpi=self.dpi)
             self.statusBar().showMessage('Saved to %s' % path, 2000)
@@ -311,7 +316,7 @@ class NXPlotView(QtGui.QDialog):
         """
         This is the function invoked to plot an NXdata group with optional limits
         and matplotlib options
-        
+
         Arguments
         ---------
         data : NXdata
@@ -367,40 +372,40 @@ class NXPlotView(QtGui.QDialog):
                     self.yaxis.lo = ymin
                 if ymax:
                     self.yaxis.hi = ymax
-                if logx: 
+                if logx:
                     self.xtab.logbox.setChecked(True)
                 else:
                     self.xtab.logbox.setChecked(False)
-                if log or logy: 
+                if log or logy:
                     self.ytab.logbox.setChecked(True)
                 else:
                     self.ytab.logbox.setChecked(False)
-            if fmt == '': 
+            if fmt == '':
                 fmt = colors[self.num%len(colors)] + 'o'
-                
+
             self.plot_points(fmt, over, **opts)
 
         #Higher-dimensional plot
         else:
-            if xmin: 
+            if xmin:
                 self.xaxis.lo = xmin
             else:
                 self.xaxis.lo = self.xaxis.min
-            if xmax: 
+            if xmax:
                 self.xaxis.hi = xmax
             else:
                 self.xaxis.hi = self.xaxis.max
-            if ymin: 
+            if ymin:
                 self.yaxis.lo = ymin
             else:
                 self.yaxis.lo = self.yaxis.min
-            if ymax: 
+            if ymax:
                 self.yaxis.hi = ymax
             else:
                 self.yaxis.hi = self.yaxis.max
-            if vmin: 
+            if vmin:
                 self.vaxis.lo = vmin
-            if vmax: 
+            if vmax:
                 self.vaxis.hi = vmax
             if log:
                 self.vtab.logbox.setChecked(True)
@@ -433,7 +438,7 @@ class NXPlotView(QtGui.QDialog):
 
     def get_plotdata(self, over=False):
         """Return an NXdata group containing the plottable data
-        
+
         This function removes size 1 arrays, creates axes if none are specified
         and initializes the NXPlotAxis instances.
         """
@@ -493,7 +498,7 @@ class NXPlotView(QtGui.QDialog):
             plotdata = NXdata(self.signal, [self.axes[i] for i in [-2,-1]])
 
         plotdata['title'] = self.data.nxtitle
-       
+
         return plotdata
 
     def get_points(self):
@@ -504,10 +509,10 @@ class NXPlotView(QtGui.QDialog):
         else:
             e = None
         return x, y, e
-    
+
     def plot_points(self, fmt, over=False, **opts):
 
-        if not over: 
+        if not over:
             self.figure.clf()
         ax = self.figure.gca()
 
@@ -538,22 +543,22 @@ class NXPlotView(QtGui.QDialog):
             xlo, xhi = ax.set_xlim(auto=True)
             ylo, yhi = ax.set_ylim(auto=True)
 
-            if self.xaxis.lo: 
+            if self.xaxis.lo:
                 ax.set_xlim(xmin=self.xaxis.lo)
             else:
-                self.xaxis.lo = xlo        
-            if self.xaxis.hi: 
-                ax.set_xlim(xmax=self.xaxis.hi)        
+                self.xaxis.lo = xlo
+            if self.xaxis.hi:
+                ax.set_xlim(xmax=self.xaxis.hi)
             else:
-                self.xaxis.hi = xhi        
-            if self.yaxis.lo: 
-                ax.set_ylim(ymin=self.yaxis.lo)        
+                self.xaxis.hi = xhi
+            if self.yaxis.lo:
+                ax.set_ylim(ymin=self.yaxis.lo)
             else:
-                self.yaxis.lo = ylo        
-            if self.yaxis.hi: 
+                self.yaxis.lo = ylo
+            if self.yaxis.hi:
                 ax.set_ylim(ymax=self.yaxis.hi)
             else:
-                self.yaxis.hi = yhi     
+                self.yaxis.hi = yhi
             if self.xtab.logbox.isChecked():
                 ax.set_xscale('log')
             if self.ytab.logbox.isChecked():
@@ -581,7 +586,7 @@ class NXPlotView(QtGui.QDialog):
         self.x, self.y, self.v = self.get_image()
 
         self.set_data_limits()
-        
+
         if self.vtab.logbox.isChecked():
             opts["norm"] = LogNorm(self.vaxis.lo, self.vaxis.hi)
         else:
@@ -607,7 +612,7 @@ class NXPlotView(QtGui.QDialog):
             opts['origin'] = 'lower'
             if 'interpolation' not in opts:
                 opts['interpolation'] = 'nearest'
-            self.image = ax.imshow(self.v, extent=extent, cmap=self.cmap, 
+            self.image = ax.imshow(self.v, extent=extent, cmap=self.cmap,
                                    **opts)
         else:
             if self.skew is not None:
@@ -618,7 +623,7 @@ class NXPlotView(QtGui.QDialog):
             self.image = ax.pcolormesh(x, y, self.v, cmap=self.cmap, **opts)
         self.image.get_cmap().set_bad('k', 1.0)
         ax.set_aspect(self.aspect)
-        
+
         if not self.rgb_image:
             self.colorbar = self.figure.colorbar(self.image, ax=ax)
 
@@ -633,13 +638,13 @@ class NXPlotView(QtGui.QDialog):
         ax.set_xlabel(self.xaxis.label)
         ax.set_ylabel(self.yaxis.label)
         ax.set_title(self.title)
-        
+
         vmin, vmax = self.image.get_clim()
         if self.vaxis.min > vmin:
             self.vaxis.min = vmin
         if self.vaxis.max < vmax:
             self.vaxis.max = vmax
-        
+
         self.vtab.set_axis(self.vaxis)
 
     @property
@@ -740,7 +745,7 @@ class NXPlotView(QtGui.QDialog):
     def transform(self, x, y):
         if x is None or y is None or self.skew is None:
             return x, y
-        else:    
+        else:
             x, y = np.asarray(x), np.asarray(y)
             angle = np.radians(self.skew)
             return 1.*x+np.cos(angle)*y,  np.sin(angle)*y
@@ -794,7 +799,7 @@ class NXPlotView(QtGui.QDialog):
         if vmin is not None:
             self.vaxis.min = vmin
         if vmax is not None:
-            self.vaxis.max = vmax        
+            self.vaxis.max = vmax
         self.update_tabs()
 
     def reset_plot_limits(self, autoscale=True):
@@ -819,19 +824,22 @@ class NXPlotView(QtGui.QDialog):
 
     def _aspect(self):
         return self._aspect
-        
+
     def _set_aspect(self, aspect):
-        if aspect == 'auto':
-            self._aspect = 'auto'
-            self.otab._actions['set_aspect'].setChecked(False)
-        elif aspect == 'equal':
-            self._aspect = 'equal'
-            self.otab._actions['set_aspect'].setChecked(True)
-        else:
-            try:
-                self._aspect = float(aspect)
+        try:
+            self._aspect = float(aspect)
+            if self._aspect > 0.0:
                 self.otab._actions['set_aspect'].setChecked(True)
-            except ValueError:
+            else:
+                return
+        except (ValueError, TypeError):
+            if aspect == 'auto':
+                self._aspect = 'auto'
+                self.otab._actions['set_aspect'].setChecked(False)
+            elif aspect == 'equal':
+                self._aspect = 'equal'
+                self.otab._actions['set_aspect'].setChecked(True)
+            else:
                 return
         try:
             plotview.ax.set_aspect(self._aspect)
@@ -844,16 +852,22 @@ class NXPlotView(QtGui.QDialog):
 
     def _skew(self):
         return self._skew_angle
-        
+
     def _set_skew(self, skew_angle):
-        if (skew_angle is None or skew_angle == '' or skew_angle == 'None' or
-            np.isclose(skew_angle, 0.0) or np.isclose(skew_angle, 90.0)):
-            self._skew_angle = None
-        else:
-            self._skew_angle = skew_angle
-        if self.skew is not None and self.aspect == 'auto':
-            self.aspect = 'equal'
-        self.grid_helper = GridHelperCurveLinear((self.transform, 
+        try:
+            self._skew_angle = float(skew_angle)
+            if np.isclose(self._skew_angle, 0.0) or np.isclose(self._skew_angle, 90.0):
+                self._skew_angle = None
+        except (ValueError, TypeError):
+            if (skew_angle is None or six.text_type(skew_angle) == '' or six.text_type(skew_angle) == 'None'):
+                self._skew_angle = None
+            else:
+                return
+        if self.skew is not None and self._aspect == 'auto':
+            self._aspect = 'equal'
+            self.otab._actions['set_aspect'].setChecked(True)
+            plotview.ax.set_aspect(self._aspect)
+        self.grid_helper = GridHelperCurveLinear((self.transform,
                                                   self.inverse_transform),
                                                   grid_locator1=locator,
                                                   grid_locator2=locator)
@@ -899,7 +913,7 @@ class NXPlotView(QtGui.QDialog):
         except ValueError as error:
             raise NeXusError(str(error))
 
-    interpolation = property(_interpolation, _set_interpolation, 
+    interpolation = property(_interpolation, _set_interpolation,
                              "Property: interpolation method")
 
     def _offsets(self):
@@ -982,7 +996,7 @@ class NXPlotView(QtGui.QDialog):
         crosshairs = []
         crosshairs.append(self.vline(float(x), **opts))
         crosshairs.append(self.hline(float(y), **opts))
-        return crosshairs        
+        return crosshairs
 
     def xline(self, x, **opts):
         if self.skew is None:
@@ -1012,12 +1026,12 @@ class NXPlotView(QtGui.QDialog):
 
     def rectangle(self, x, y, dx, dy, **opts):
         if self.skew is None:
-            rectangle = plotview.ax.add_patch(Rectangle((float(x),float(y)), 
+            rectangle = plotview.ax.add_patch(Rectangle((float(x),float(y)),
                                               float(dx), float(dy), **opts))
         else:
             xc, yc = [x, x, x+dx, x+dx], [y, y+dy, y+dy, y]
             xy = [self.transform(_x, _y) for _x,_y in zip(xc,yc)]
-            rectangle = plotview.ax.add_patch(Polygon(xy, True, **opts))            
+            rectangle = plotview.ax.add_patch(Polygon(xy, True, **opts))
         if 'facecolor' not in opts:
             rectangle.set_facecolor('none')
         self.canvas.draw()
@@ -1026,7 +1040,7 @@ class NXPlotView(QtGui.QDialog):
     def ellipse(self, x, y, dx, dy, **opts):
         if self.skew is not None:
             x, y = self.transform(x, y)
-        ellipse = plotview.ax.add_patch(Ellipse((float(x),float(y)), 
+        ellipse = plotview.ax.add_patch(Ellipse((float(x),float(y)),
                                                 float(dx), float(dy), **opts))
         if 'facecolor' not in opts:
             ellipse.set_facecolor('none')
@@ -1036,7 +1050,7 @@ class NXPlotView(QtGui.QDialog):
     def circle(self, x, y, radius, **opts):
         if self.skew is not None:
             x, y = self.transform(x, y)
-        circle = plotview.ax.add_patch(Circle((float(x),float(y)), radius, 
+        circle = plotview.ax.add_patch(Circle((float(x),float(y)), radius,
                                               **opts))
         if 'facecolor' not in opts:
             circle.set_facecolor('none')
@@ -1113,7 +1127,7 @@ class NXPlotView(QtGui.QDialog):
             self.ytab.set_axis(self.yaxis)
             self.vtab.set_axis(self.vaxis)
             self.limits = (ymin, ymax, xmin, xmax)
-            if self.aspect is not 'auto' and self.aspect is not 'equal':
+            if isinstance(self.aspect, numbers.Real):
                 self.aspect = 1.0 / self.aspect
             self.replot_data(newaxis=True)
         elif tab == self.ytab and axis == self.xaxis:
@@ -1186,7 +1200,7 @@ class NXPlotView(QtGui.QDialog):
             self.projection_panel.close()
         if self.customize_panel:
             self.customize_panel.close()
-        from nexpy.gui.consoleapp import _mainwindow
+        from .consoleapp import _mainwindow
         if _mainwindow.panels.tabs.count() == 0:
             _mainwindow.panels.setVisible(False)
 
@@ -1282,8 +1296,8 @@ class NXPlotAxis(object):
 
 
 class NXReplotSignal(QtCore.QObject):
-    
-    replot = QtCore.Signal() 
+
+    replot = QtCore.Signal()
 
 
 class NXPlotTab(QtGui.QWidget):
@@ -1300,7 +1314,7 @@ class NXPlotTab(QtGui.QWidget):
         hbox = QtGui.QHBoxLayout()
         widgets = []
 
-        if axis: 
+        if axis:
             self.axiscombo = self.combobox(self.change_axis)
             widgets.append(self.axiscombo)
         else:
@@ -1326,7 +1340,7 @@ class NXPlotTab(QtGui.QWidget):
             self.minslider = self.slider(self.read_minslider)
             self.maxslider = self.slider(self.read_maxslider)
             self.maxbox = self.doublespinbox(self.read_maxbox)
-            if log: 
+            if log:
                 self.logbox = self.checkbox("Log", self.set_log)
                 self.logbox.setChecked(False)
             else:
@@ -1335,11 +1349,11 @@ class NXPlotTab(QtGui.QWidget):
             widgets.append(self.minbox)
             widgets.extend([self.minslider, self.maxslider])
             widgets.append(self.maxbox)
-            if log: 
+            if log:
                 widgets.append(self.logbox)
             widgets.append(self.flipbox)
             self.lockbox = self.scalebox = None
-        
+
         if image:
             self.cmapcombo = self.combobox(self.change_cmap)
             self.cmapcombo.addItems(cmaps)
@@ -1354,18 +1368,18 @@ class NXPlotTab(QtGui.QWidget):
             self.cmapcombo = None
             self.interpcombo = None
 
-        if zaxis: 
+        if zaxis:
             hbox.addStretch()
         for w in widgets:
             hbox.addWidget(w)
             hbox.setAlignment(w, QtCore.Qt.AlignVCenter)
-        if zaxis: 
+        if zaxis:
             hbox.addStretch()
 
         self.setLayout(hbox)
 
         self.replotSignal = NXReplotSignal()
-        self.replotSignal.replot.connect(self.plotview.replot_data)       
+        self.replotSignal.replot.connect(self.plotview.replot_data)
 
     def __repr__(self):
         return 'NXPlotTab("%s")' % self.name
@@ -1374,7 +1388,7 @@ class NXPlotTab(QtGui.QWidget):
         self.block_signals(True)
         self.axis = axis
         if self.zaxis:
-            self.minbox.data = self.maxbox.data = self.axis.centers  
+            self.minbox.data = self.maxbox.data = self.axis.centers
             self.minbox.setRange(0, len(self.axis.data)-1)
             self.maxbox.setRange(0, len(self.axis.data)-1)
             self.minbox.setValue(axis.lo)
@@ -1401,7 +1415,7 @@ class NXPlotTab(QtGui.QWidget):
             if self.plotview.equally_spaced:
                 self.interpcombo.setVisible(True)
                 self.set_interpolation(self._cached_interpolation)
-                self.change_interpolation()         
+                self.change_interpolation()
             else:
                 self.interpcombo.setVisible(False)
         self.block_signals(False)
@@ -1419,7 +1433,7 @@ class NXPlotTab(QtGui.QWidget):
         spinbox.setFixedWidth(100)
         spinbox.setKeyboardTracking(False)
         spinbox.setAccelerated(False)
-        spinbox.valueChanged.connect(slot)
+        spinbox.valueChanged[six.text_type].connect(slot)
         return spinbox
 
     def doublespinbox(self, slot):
@@ -1609,7 +1623,7 @@ class NXPlotTab(QtGui.QWidget):
             pass
 
     locked = property(_locked, _set_locked, "Property: Tab lock")
-    
+
     def change_lock(self):
         self._set_locked(self.locked)
 
@@ -1626,7 +1640,7 @@ class NXPlotTab(QtGui.QWidget):
             pass
 
     flipped = property(_flipped, _set_flipped, "Property: Axis flip")
-    
+
     def flip_axis(self):
         try:
             self.plotview.replot_axes()
@@ -1670,7 +1684,7 @@ class NXPlotTab(QtGui.QWidget):
     def get_axes(self):
         if self.zaxis:
             plot_axes = [self.plotview.xaxis.name, self.plotview.yaxis.name]
-            return  [axis.nxname for axis in self.plotview.axes 
+            return  [axis.nxname for axis in self.plotview.axes
                      if axis.nxname not in plot_axes]
         else:
             return [axis.nxname for axis in self.plotview.axes]
@@ -1713,28 +1727,28 @@ class NXPlotTab(QtGui.QWidget):
 
     def init_toolbar(self):
         _backward_icon = QtGui.QIcon(
-            pkg_resources.resource_filename('nexpy.gui', 
+            pkg_resources.resource_filename('nexpy.gui',
                                             'resources/backward-icon.png'))
         _pause_icon = QtGui.QIcon(
-            pkg_resources.resource_filename('nexpy.gui', 
+            pkg_resources.resource_filename('nexpy.gui',
                                             'resources/pause-icon.png'))
         _forward_icon = QtGui.QIcon(
-            pkg_resources.resource_filename('nexpy.gui', 
+            pkg_resources.resource_filename('nexpy.gui',
                                             'resources/forward-icon.png'))
         _refresh_icon = QtGui.QIcon(
-            pkg_resources.resource_filename('nexpy.gui', 
+            pkg_resources.resource_filename('nexpy.gui',
                                             'resources/refresh-icon.png'))
         self.toolbar = QtGui.QToolBar(parent=self)
         self.toolbar.setIconSize(QtCore.QSize(16,16))
         self.add_action(_refresh_icon, self.plotview.replot_data, "Replot",
                         checkable=False)
         self.toolbar.addSeparator()
-        self.playback_action = self.add_action(_backward_icon, 
-                                               self.playback, 
+        self.playback_action = self.add_action(_backward_icon,
+                                               self.playback,
                                                "Play Back")
         self.add_action(_pause_icon, self.pause, "Pause", checkable=False)
-        self.playforward_action = self.add_action(_forward_icon, 
-                                                  self.playforward, 
+        self.playforward_action = self.add_action(_forward_icon,
+                                                  self.playforward,
                                                   "Play Forward")
         self.timer = QtCore.QTimer(self)
         self.timer.timeout.connect(self.slideshow)
@@ -1787,7 +1801,7 @@ class NXPlotTab(QtGui.QWidget):
 class NXTextBox(QtGui.QLineEdit):
 
     def value(self):
-        return float(unicode(self.text()))
+        return float(six.text_type(self.text()))
 
     def setValue(self, value):
         self.setText(str(float('%.4g' % value)))
@@ -1826,7 +1840,7 @@ class NXSpinBox(QtGui.QSpinBox):
         super(NXSpinBox, self).setValue(self.valueFromText(value))
 
     def valueFromText(self, text):
-        return self.indexFromValue(float(unicode(text)))
+        return self.indexFromValue(float(six.text_type(text)))
 
     def textFromValue(self, value):
         try:
@@ -1895,7 +1909,7 @@ class NXDoubleSpinBox(QtGui.QDoubleSpinBox):
         self.validator.setDecimals(1000)
         self.old_value = None
         self.diff = None
-    
+
     def validate(self, input_value, pos):
         return self.validator.validate(input_value, pos)
 
@@ -1944,7 +1958,7 @@ class NXProjectionTab(QtGui.QWidget):
         self.plot_button = QtGui.QPushButton("Plot", self)
         self.plot_button.clicked.connect(self.plot_projection)
         widgets.append(self.plot_button)
-        
+
         self.overplot_box = QtGui.QCheckBox("Over")
         self.overplot_box.setChecked(False)
         if 'Projection' not in plotviews:
@@ -1960,7 +1974,7 @@ class NXProjectionTab(QtGui.QWidget):
             hbox.addWidget(w)
             hbox.setAlignment(w, QtCore.Qt.AlignVCenter)
         hbox.addStretch()
-        
+
         self.setLayout(hbox)
 
         self.plotview = plotview
@@ -1969,11 +1983,11 @@ class NXProjectionTab(QtGui.QWidget):
         return 'NXProjectionTab("%s")' % self.plotview.label
 
     def get_axes(self):
-        return  [self.plotview.axis[axis].name 
+        return  [self.plotview.axis[axis].name
                  for axis in range(self.plotview.ndim)]
 
     def set_axes(self):
-        axes = self.get_axes()    
+        axes = self.get_axes()
         self.xbox.clear()
         self.xbox.addItems(axes)
         self.xbox.setCurrentIndex(self.xbox.findText(self.plotview.xaxis.name))
@@ -2002,7 +2016,7 @@ class NXProjectionTab(QtGui.QWidget):
             return 'None'
         else:
             return self.ybox.currentText()
-    
+
     def set_yaxis(self):
         if self.yaxis == self.xaxis:
             for idx in range(self.xbox.count()):
@@ -2028,7 +2042,7 @@ class NXProjectionTab(QtGui.QWidget):
             xdim, xlo, xhi = xaxis.dim, xaxis.lo, xaxis.hi
             yaxis = self.plotview.yaxis
             ydim, ylo, yhi = yaxis.dim, yaxis.lo, yaxis.hi
-            
+
         limits[xdim] = (xlo, xhi)
         limits[ydim] = (ylo, yhi)
         for axis in axes:
@@ -2062,7 +2076,7 @@ class NXProjectionTab(QtGui.QWidget):
             self.overplot_box.setChecked(False)
         self.plotview.make_active()
         plotviews[projection.label].raise_()
-        from nexpy.gui.consoleapp import _mainwindow
+        from .consoleapp import _mainwindow
         _mainwindow.panels.update()
 
     def open_panel(self):
@@ -2108,7 +2122,7 @@ class NXProjectionPanels(QtGui.QDialog):
     def closeEvent(self, event):
         self.close()
         event.accept()
-        
+
     def close(self):
         for panel in self.panels:
             panel.close()
@@ -2122,7 +2136,7 @@ class NXProjectionPanel(QtGui.QWidget):
         self.plotview = plotview
         self.ndim = self.plotview.ndim
 
-        from nexpy.gui.consoleapp import _mainwindow
+        from .consoleapp import _mainwindow
         self.window = _mainwindow.panels
 
         QtGui.QWidget.__init__(self, parent=self.window.tabs)
@@ -2186,10 +2200,10 @@ class NXProjectionPanel(QtGui.QWidget):
             grid.addWidget(QtGui.QLabel(self.plotview.axis[axis].name), row, 0)
             grid.addWidget(self.minbox[axis], row, 1)
             grid.addWidget(self.maxbox[axis], row, 2)
-            grid.addWidget(self.lockbox[axis], row, 3, 
+            grid.addWidget(self.lockbox[axis], row, 3,
                            alignment=QtCore.Qt.AlignHCenter)
 
-        row += 1          
+        row += 1
         self.save_button = QtGui.QPushButton("Save", self)
         self.save_button.clicked.connect(self.save_projection)
         self.save_button.setDefault(False)
@@ -2204,7 +2218,7 @@ class NXProjectionPanel(QtGui.QWidget):
         self.overplot_box.setChecked(False)
         if 'Projection' not in plotviews:
             self.overplot_box.setVisible(False)
-        grid.addWidget(self.overplot_box, row, 3, 
+        grid.addWidget(self.overplot_box, row, 3,
                        alignment=QtCore.Qt.AlignHCenter)
 
         row += 1
@@ -2236,9 +2250,9 @@ class NXProjectionPanel(QtGui.QWidget):
         button_layout.addStretch()
         layout.addLayout(button_layout)
         layout.addStretch()
-        
+
         self.setLayout(layout)
-        self.window.tabs.insertTab(self.plotview.number-1, self, 
+        self.window.tabs.insertTab(self.plotview.number-1, self,
                                    self.plotview.label)
         self.window.tabs.adjustSize()
         self.window.tabs.setCurrentWidget(self)
@@ -2249,7 +2263,7 @@ class NXProjectionPanel(QtGui.QWidget):
             self.minbox[axis].data = self.maxbox[axis].data = \
                 self.plotview.axis[axis].centers
             self.minbox[axis].boundaries = self.maxbox[axis].boundaries = \
-                boundaries(self.minbox[axis].data, 
+                boundaries(self.minbox[axis].data,
                            self.minbox[axis].data.shape[0])
             self.minbox[axis].setMaximum(self.minbox[axis].data.size-1)
             self.maxbox[axis].setMaximum(self.maxbox[axis].data.size-1)
@@ -2264,7 +2278,7 @@ class NXProjectionPanel(QtGui.QWidget):
         return self.plotview.xtab.get_axes()
 
     def set_axes(self):
-        axes = self.get_axes()    
+        axes = self.get_axes()
         self.xbox.clear()
         self.xbox.addItems(axes)
         self.xbox.setCurrentIndex(self.xbox.findText(self.plotview.xaxis.name))
@@ -2293,7 +2307,7 @@ class NXProjectionPanel(QtGui.QWidget):
             return 'None'
         else:
             return self.ybox.currentText()
-    
+
     def set_yaxis(self):
         if self.yaxis == self.xaxis:
             for idx in range(self.xbox.count()):
@@ -2322,7 +2336,7 @@ class NXProjectionPanel(QtGui.QWidget):
                        for axis in range(self.ndim)]
             return [(_min, _max+1) if _min <= _max else (_max, _min+1)
                     for _min, _max in _limits]
-    
+
     def update_limits(self):
         for axis in range(self.ndim):
             lo, hi = self.plotview.axis[axis].get_limits()
@@ -2406,7 +2420,7 @@ class NXProjectionPanel(QtGui.QWidget):
         spinbox.setFixedWidth(100)
         spinbox.setKeyboardTracking(False)
         spinbox.setAccelerated(True)
-        spinbox.valueChanged.connect(self.set_limits)
+        spinbox.valueChanged[six.text_type].connect(self.set_limits)
         return spinbox
 
     def block_signals(self, block=True):
@@ -2504,7 +2518,7 @@ class NXNavigationToolbar(NavigationToolbar):
                 action.setToolTip('Customize plot')
 
     def home(self, autoscale=True):
-        super(NXNavigationToolbar, self).home()        
+        super(NXNavigationToolbar, self).home()
         self.plotview.reset_plot_limits(autoscale)
 
     def edit_parameters(self):
@@ -2526,7 +2540,7 @@ class NXNavigationToolbar(NavigationToolbar):
         self.plotview.xtab.set_limits(xmin, xmax)
         self.plotview.ytab.set_limits(ymin, ymax)
         if event.button == 1:
-            self.plotview.zoom = {'x': (xdim, xmin, xmax), 
+            self.plotview.zoom = {'x': (xdim, xmin, xmax),
                                   'y': (ydim, ymin, ymax)}
             if self.plotview.projection_panel:
                 self.plotview.projection_panel.update_limits()
@@ -2540,12 +2554,12 @@ class NXNavigationToolbar(NavigationToolbar):
         self.plotview.xtab.set_limits(xmin, xmax)
         self.plotview.ytab.set_limits(ymin, ymax)
         if self.plotview.projection_panel:
-            self.plotview.projection_panel.update_limits()            
+            self.plotview.projection_panel.update_limits()
 
     def _update_view(self):
         super(NXNavigationToolbar, self)._update_view()
         lims = self._views()
-        if lims is None: 
+        if lims is None:
             return
         xmin, xmax, ymin, ymax = lims[0]
         if xmin > xmax:
@@ -2606,8 +2620,8 @@ class CustomizeDialog(BaseDialog):
         pl['ylabel'].box.setMinimumWidth(200)
         if self.plotview.image is not None:
             image_grid = QtGui.QVBoxLayout()
-            self.parameters['image'] = self.image_parameters()  
-            self.update_image_parameters()    
+            self.parameters['image'] = self.image_parameters()
+            self.update_image_parameters()
             image_grid.addLayout(self.parameters['image'].grid_layout)
             self.set_layout(pl.grid(header=False),
                             image_grid,
@@ -2617,7 +2631,7 @@ class CustomizeDialog(BaseDialog):
             self.curve_grids = QtGui.QWidget(parent=self)
             self.curve_layout = QtGui.QVBoxLayout()
             self.curve_layout.setContentsMargins(0, 20, 0, 0)
-            self.curve_box = self.select_box(list(self.curves), 
+            self.curve_box = self.select_box(list(self.curves),
                                              slot=self.select_curve)
             self.curve_layout.addWidget(self.curve_box)
             for curve in self.curves:
@@ -2686,10 +2700,10 @@ class CustomizeDialog(BaseDialog):
         lines = self.plotview.ax.get_lines()
         labels = [line.get_label() for line in lines]
         return dict(zip(labels, lines))
-        
+
     def update_curves(self):
         curves = self.get_curves()
-        new_curves = list(set(curves.keys()) - set(self.curves.keys()))
+        new_curves = list(set(curves) - set(self.curves))
         for curve in new_curves:
             self.curves[curve] = curves[curve]
             self.parameters[curve] = self.curve_parameters(curve)
@@ -2720,7 +2734,7 @@ class CustomizeDialog(BaseDialog):
         parameters.grid(title='Curve Parameters', header=False)
         return parameters
 
-    def update_curve_parameters(self, curve):    
+    def update_curve_parameters(self, curve):
         c, p = self.curves[curve], self.parameters[curve]
         p['linestyle'].value = linestyles[c.get_linestyle()]
         p['linewidth'].value = c.get_linewidth()
@@ -2774,12 +2788,12 @@ class CustomizeDialog(BaseDialog):
         else:
             for curve in self.curves:
                 c, pc = self.curves[curve], self.parameters[curve]
-                linestyle = [k for k, v in linestyles.items() 
+                linestyle = [k for k, v in linestyles.items()
                              if v == pc['linestyle'].value][0]
                 c.set_linestyle(linestyle)
                 c.set_linewidth(pc['linewidth'].value)
                 c.set_color(pc['linecolor'].value)
-                marker = [k for k, v in markers.items() 
+                marker = [k for k, v in markers.items()
                           if v == pc['marker'].value][0]
                 c.set_marker(marker)
                 c.set_markersize(pc['markersize'].value)
@@ -2826,13 +2840,13 @@ class NXColorButton(ColorButton):
 
 
 def keep_data(data):
-    from nexpy.gui.consoleapp import _tree
-    if 'w0' not in _tree.keys():
+    from .consoleapp import _tree
+    if 'w0' not in _tree:
         _tree.add(NXroot(name='w0'))
     ind = []
-    for key in _tree['w0'].keys():
+    for key in _tree['w0']:
         try:
-            if key.startswith('s'): 
+            if key.startswith('s'):
                 ind.append(int(key[1:]))
         except ValueError:
             pass
@@ -2864,7 +2878,7 @@ def boundaries(axis, dimlen):
         start = ax[0] - (ax[1] - ax[0])/2
         end = ax[-1] + (ax[-1] - ax[-2])/2
         return np.concatenate((np.atleast_1d(start),
-                               (ax[:-1] + ax[1:])/2, 
+                               (ax[:-1] + ax[1:])/2,
                                np.atleast_1d(end)))
     else:
         assert ax.shape[0] == dimlen + 1
@@ -2877,9 +2891,8 @@ def fix_projection(shape, axes, limits):
         if s == 1:
             fixed_limits.append((0,0))
         else:
-            fixed_limits.append(limits.pop(0))    
+            fixed_limits.append(limits.pop(0))
     for (i,s) in enumerate(shape):
         if s==1:
             fixed_axes=[a+1 if a>=i else a for a in fixed_axes]
     return fixed_axes, fixed_limits
-

@@ -12,11 +12,13 @@
 """
 Base class for import dialogs
 """
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
 import os
 
 from nexusformat.nexus import *
-from nexpy.gui.datadialogs import BaseDialog
+from .datadialogs import BaseDialog
 
 filetype = "Text File" #Defines the Import Menu label
 
@@ -26,7 +28,7 @@ class BaseImportDialog(BaseDialog):
     def __init__(self, parent=None):
 
         super(BaseImportDialog, self).__init__(parent)
-        from nexpy.gui.consoleapp import _mainwindow
+        from .consoleapp import _mainwindow
         self.default_directory = _mainwindow.default_directory
         self.import_file = None     # must define in subclass
 
@@ -37,14 +39,14 @@ class BaseImportDialog(BaseDialog):
 
         :returns: :class:`NXroot` or :class:`NXentry` object
         '''
-        raise NotImplementedError, "must override in subclass"
-    
+        raise NotImplementedError("must override in subclass")
+
     def accept(self):
         """
         Completes the data import.
         """
         self.accepted = True
-        from nexpy.gui.consoleapp import _mainwindow
+        from .consoleapp import _mainwindow
         _mainwindow.import_data()
         super(BaseImportDialog, self).accept()
         

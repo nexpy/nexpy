@@ -12,12 +12,16 @@
 """
 Module to read in a SPE or NXSPE file and convert it to NeXus.
 """
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
 import os
 import numpy as np
 
+from nexpy.gui.pyqt import QtGui
+
 from nexusformat.nexus import *
 from nexusformat.nexus.tree import convert_index, centers
-from nexpy.gui.pyqt import QtGui
 from nexpy.gui.importdialog import BaseImportDialog
 
 filetype = "SPE/NXSPE File"
@@ -271,7 +275,7 @@ def readspe(spefile):
     f = open(spefile, 'r')
     lines = f.readlines()
     f.close()
-    nphi, nomega = map(int, lines[0].split())
+    nphi, nomega = list(map(int, lines[0].split()))
     i = 2
     phi = readaxisblock(lines, i, nphi+1)
     i = i + ((phi.size-1)/8) + 2
@@ -310,9 +314,9 @@ def readspeblock(lines, start, size):
 		values = np.zeros(size)
 		offset = 0
 		for line in lines[start:start+nlines]:
-			buffer = filter(lambda x: x.strip(), 
-							[line[i:i+10] for i in range(0,80,10)])
-			values[offset:offset+len(buffer)] = map(float, buffer)
+			buffer = list(filter(lambda x: x.strip(), 
+						  [line[i:i+10] for i in range(0,80,10)]))
+			values[offset:offset+len(buffer)] = [float(x) for x in buffer]
 			offset = offset + len(buffer)
 		return values.clip(0.0,1e8)    
 

@@ -25,10 +25,14 @@ Two GUI elements are provided for convenience:
     ImportDialog.buttonbox: Contains a "Cancel" and "OK" button to close the dialog. 
                             This should be placed at the bottom of all import dialogs.
 """
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
 import numpy as np
 
-from nexusformat.nexus import *
 from nexpy.gui.pyqt import QtGui
+
+from nexusformat.nexus import *
 from nexpy.gui.importdialog import BaseImportDialog
 
 filetype = "Text File"

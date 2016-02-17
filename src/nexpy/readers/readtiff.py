@@ -12,10 +12,14 @@
 """
 Module to read in a TIFF file and convert it to NeXus.
 """
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
 import numpy as np
 
-from nexusformat.nexus import *
 from nexpy.gui.pyqt import QtGui
+
+from nexusformat.nexus import *
 from nexpy.gui.importdialog import BaseImportDialog
 
 filetype = "TIFF Image"
