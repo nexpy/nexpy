@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Adding a File Importer &mdash; NeXpy 0.8.0+0.g07011b9.dirty documentation</title>
+    <title>Adding a File Importer &mdash; NeXpy 0.8.0 documentation</title>
     
     <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.8.0+0.g07011b9.dirty',
+        VERSION:     '0.8.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -25,7 +25,7 @@
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="shortcut icon" href="_static/favicon.ico"/>
-    <link rel="top" title="NeXpy 0.8.0+0.g07011b9.dirty documentation" href="index.html" />
+    <link rel="top" title="NeXpy 0.8.0 documentation" href="index.html" />
     <link rel="next" title="NeXpy BaseDialog Class" href="importdialog.html" />
     <link rel="prev" title="NeXus Tree API Modules" href="treeapi.html" /> 
   </head>
@@ -45,7 +45,7 @@
         <li class="right" >
           <a href="treeapi.html" title="NeXus Tree API Modules"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.8.0+0.g07011b9.dirty documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.8.0 documentation</a> &raquo;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -170,8 +170,8 @@ in the NeXpy source code tree in the <em>readers</em> subdirectory.</p>
 46
 47
 48
-49</pre></div></td><td class="code"><div class="highlight"><pre><span class="c">#!/usr/bin/env python</span>
-<span class="c"># -*- coding: utf-8 -*-</span>
+49</pre></div></td><td class="code"><div class="highlight"><pre><span class="ch">#!/usr/bin/env python</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
 
 <span class="sd">&#39;&#39;&#39;describe this importer&#39;&#39;&#39;</span>
 
@@ -181,7 +181,7 @@ in the NeXpy source code tree in the <em>readers</em> subdirectory.</p>
 <span class="kn">from</span> <span class="nn">nexpy.api.nexus</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="kn">from</span> <span class="nn">nexpy.gui.importdialog</span> <span class="kn">import</span> <span class="n">BaseImportDialog</span>
 
-<span class="n">filetype</span> <span class="o">=</span> <span class="s">&#39;my file format&#39;</span>   <span class="c"># these words go in the import menu</span>
+<span class="n">filetype</span> <span class="o">=</span> <span class="s1">&#39;my file format&#39;</span>   <span class="c1"># these words go in the import menu</span>
 
 <span class="k">class</span> <span class="nc">ImportDialog</span><span class="p">(</span><span class="n">BaseImportDialog</span><span class="p">):</span>
     <span class="sd">&#39;&#39;&#39;Dialog to import my file format&#39;&#39;&#39;</span>
@@ -192,9 +192,9 @@ in the NeXpy source code tree in the <em>readers</em> subdirectory.</p>
         <span class="bp">self</span><span class="o">.</span><span class="n">accepted</span> <span class="o">=</span> <span class="bp">False</span>
         <span class="kn">from</span> <span class="nn">nexpy.gui.consoleapp</span> <span class="kn">import</span> <span class="n">_mainwindow</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">default_directory</span> <span class="o">=</span> <span class="n">_mainwindow</span><span class="o">.</span><span class="n">default_directory</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">import_file</span> <span class="o">=</span> <span class="bp">None</span>     <span class="c"># must set in self.get_data()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">import_file</span> <span class="o">=</span> <span class="bp">None</span>     <span class="c1"># must set in self.get_data()</span>
 
-        <span class="c"># build the dialog box here</span>
+        <span class="c1"># build the dialog box here</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">progress_bar</span> <span class="o">=</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QProgressBar</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">progress_bar</span><span class="o">.</span><span class="n">setVisible</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
 
@@ -208,15 +208,15 @@ in the NeXpy source code tree in the <em>readers</em> subdirectory.</p>
         <span class="bp">self</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">addLayout</span><span class="p">(</span><span class="n">status_layout</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">setLayout</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">layout</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">setWindowTitle</span><span class="p">(</span><span class="s">&quot;Import &quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">filetype</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setWindowTitle</span><span class="p">(</span><span class="s2">&quot;Import &quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">filetype</span><span class="p">))</span>
 
     <span class="k">def</span> <span class="nf">get_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
        <span class="sd">&#39;&#39;&#39;read the data and return either :class:`NXroot` or :class:`NXentry`&#39;&#39;&#39;</span>
-       <span class="c"># MUST define self.import_file as chosen file name</span>
-       <span class="c"># use convenience method to get from dialog widget</span>
+       <span class="c1"># MUST define self.import_file as chosen file name</span>
+       <span class="c1"># use convenience method to get from dialog widget</span>
        <span class="bp">self</span><span class="o">.</span><span class="n">import_file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_filename</span><span class="p">()</span>
 
-       <span class="n">x</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">10</span><span class="p">)</span>     <span class="c"># example data</span>
+       <span class="n">x</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">10</span><span class="p">)</span>     <span class="c1"># example data</span>
        <span class="n">y</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">11</span><span class="p">)</span>
        <span class="k">return</span> <span class="n">NXroot</span><span class="p">(</span><span class="n">NXentry</span><span class="p">(</span><span class="n">NXdata</span><span class="p">(</span><span class="n">y</span><span class="p">,</span><span class="n">x</span><span class="p">)))</span>
 </pre></div>
@@ -264,7 +264,7 @@ This should be placed at the bottom of all import dialogs.</p>
         <li class="right" >
           <a href="treeapi.html" title="NeXus Tree API Modules"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.8.0+0.g07011b9.dirty documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.8.0 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">

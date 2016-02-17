@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Python Graphical User Interface &mdash; NeXpy 0.8.0+0.g07011b9.dirty documentation</title>
+    <title>Python Graphical User Interface &mdash; NeXpy 0.8.0 documentation</title>
     
     <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.8.0+0.g07011b9.dirty',
+        VERSION:     '0.8.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -25,7 +25,7 @@
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="shortcut icon" href="_static/favicon.ico"/>
-    <link rel="top" title="NeXpy 0.8.0+0.g07011b9.dirty documentation" href="index.html" />
+    <link rel="top" title="NeXpy 0.8.0 documentation" href="index.html" />
     <link rel="next" title="NeXus Tree API Modules" href="treeapi.html" />
     <link rel="prev" title="Python Interface to NeXus" href="pythonshell.html" /> 
   </head>
@@ -45,7 +45,7 @@
         <li class="right" >
           <a href="pythonshell.html" title="Python Interface to NeXus"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.8.0+0.g07011b9.dirty documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.8.0 documentation</a> &raquo;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -758,8 +758,8 @@ starting parameters, respectively.</p>
 <p>As an example, here is the complete Gaussian function:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 
-<span class="n">function_name</span> <span class="o">=</span> <span class="s">&#39;Gaussian&#39;</span>
-<span class="n">parameters</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;Integral&#39;</span><span class="p">,</span> <span class="s">&#39;Sigma&#39;</span><span class="p">,</span> <span class="s">&#39;Center&#39;</span><span class="p">]</span>
+<span class="n">function_name</span> <span class="o">=</span> <span class="s1">&#39;Gaussian&#39;</span>
+<span class="n">parameters</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Integral&#39;</span><span class="p">,</span> <span class="s1">&#39;Sigma&#39;</span><span class="p">,</span> <span class="s1">&#39;Center&#39;</span><span class="p">]</span>
 
 <span class="n">factor</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span>
 
@@ -807,7 +807,7 @@ example of a module that reads the original format and returns NeXus data:</p>
 </pre></div>
 </div>
 <p>This could be run in the shell pane and then added to the tree using:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">nxtree</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">get_data</span><span class="p">(</span><span class="s">&#39;image.tif&#39;</span><span class="p">))</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">nxtree</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">get_data</span><span class="p">(</span><span class="s1">&#39;image.tif&#39;</span><span class="p">))</span>
 </pre></div>
 </div>
 <div class="section" id="existing-readers">
@@ -874,7 +874,7 @@ directory in <code class="docutils literal"><span class="pre">~/.nexpy/readers</
 <span class="kn">from</span> <span class="nn">nexusformat.nexus</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="kn">from</span> <span class="nn">nexpy.gui.importdialog</span> <span class="kn">import</span> <span class="n">BaseImportDialog</span>
 
-<span class="n">filetype</span> <span class="o">=</span> <span class="s">&quot;TIFF Image&quot;</span> <span class="c">#Defines the Import Menu label</span>
+<span class="n">filetype</span> <span class="o">=</span> <span class="s2">&quot;TIFF Image&quot;</span> <span class="c1">#Defines the Import Menu label</span>
 
 <span class="k">class</span> <span class="nc">ImportDialog</span><span class="p">(</span><span class="n">BaseImportDialog</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Dialog to import a TIFF image&quot;&quot;&quot;</span>
@@ -888,14 +888,14 @@ directory in <code class="docutils literal"><span class="pre">~/.nexpy/readers</
         <span class="n">layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">close_buttons</span><span class="p">())</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">setLayout</span><span class="p">(</span><span class="n">layout</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">setWindowTitle</span><span class="p">(</span><span class="s">&quot;Import &quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">filetype</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setWindowTitle</span><span class="p">(</span><span class="s2">&quot;Import &quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">filetype</span><span class="p">))</span>
 
     <span class="k">def</span> <span class="nf">get_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="kn">from</span> <span class="nn">libtiff</span> <span class="kn">import</span> <span class="n">TIFF</span>
         <span class="n">im</span> <span class="o">=</span> <span class="n">TIFF</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_filename</span><span class="p">())</span>
-        <span class="n">z</span> <span class="o">=</span> <span class="n">NXfield</span><span class="p">(</span><span class="n">im</span><span class="o">.</span><span class="n">read_image</span><span class="p">(),</span> <span class="n">name</span><span class="o">=</span><span class="s">&#39;z&#39;</span><span class="p">)</span>
-        <span class="n">y</span> <span class="o">=</span> <span class="n">NXfield</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">z</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">name</span><span class="o">=</span><span class="s">&#39;y&#39;</span><span class="p">)</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="n">NXfield</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">z</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="n">name</span><span class="o">=</span><span class="s">&#39;x&#39;</span><span class="p">)</span>
+        <span class="n">z</span> <span class="o">=</span> <span class="n">NXfield</span><span class="p">(</span><span class="n">im</span><span class="o">.</span><span class="n">read_image</span><span class="p">(),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;z&#39;</span><span class="p">)</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">NXfield</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">z</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;y&#39;</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">NXfield</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">z</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;x&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">NXentry</span><span class="p">(</span><span class="n">NXdata</span><span class="p">(</span><span class="n">z</span><span class="p">,(</span><span class="n">y</span><span class="p">,</span><span class="n">x</span><span class="p">)))</span>
 </pre></div>
 </div>
@@ -925,10 +925,10 @@ has a couple of menu items to perform data analysis on the example file,
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">get_ei</span><span class="o">,</span> <span class="nn">convert_qe</span>
 
 <span class="k">def</span> <span class="nf">plugin_menu</span><span class="p">():</span>
-    <span class="n">menu</span> <span class="o">=</span> <span class="s">&#39;Chopper&#39;</span>
+    <span class="n">menu</span> <span class="o">=</span> <span class="s1">&#39;Chopper&#39;</span>
     <span class="n">actions</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="n">actions</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="s">&#39;Get Incident Energy&#39;</span><span class="p">,</span> <span class="n">get_ei</span><span class="o">.</span><span class="n">show_dialog</span><span class="p">))</span>
-    <span class="n">actions</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="s">&#39;Convert to Q-E&#39;</span><span class="p">,</span> <span class="n">convert_qe</span><span class="o">.</span><span class="n">show_dialog</span><span class="p">))</span>
+    <span class="n">actions</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="s1">&#39;Get Incident Energy&#39;</span><span class="p">,</span> <span class="n">get_ei</span><span class="o">.</span><span class="n">show_dialog</span><span class="p">))</span>
+    <span class="n">actions</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="s1">&#39;Convert to Q-E&#39;</span><span class="p">,</span> <span class="n">convert_qe</span><span class="o">.</span><span class="n">show_dialog</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">menu</span><span class="p">,</span> <span class="n">actions</span>
 </pre></div>
 </div>
@@ -970,7 +970,7 @@ class.</p>
         <span class="n">dialog</span> <span class="o">=</span> <span class="n">EnergyDialog</span><span class="p">()</span>
         <span class="n">dialog</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
     <span class="k">except</span> <span class="n">NeXusError</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
-        <span class="n">report_error</span><span class="p">(</span><span class="s">&quot;Getting Incident Energy&quot;</span><span class="p">,</span> <span class="n">error</span><span class="p">)</span>
+        <span class="n">report_error</span><span class="p">(</span><span class="s2">&quot;Getting Incident Energy&quot;</span><span class="p">,</span> <span class="n">error</span><span class="p">)</span>
 
 
 <span class="k">class</span> <span class="nc">EnergyDialog</span><span class="p">(</span><span class="n">BaseDialog</span><span class="p">):</span>
@@ -981,51 +981,51 @@ class.</p>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">select_entry</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span> <span class="o">=</span> <span class="n">GridParameters</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s">&#39;m1&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">entry</span><span class="p">[</span><span class="s">&#39;monitor1/distance&#39;</span><span class="p">],</span>
-                            <span class="s">&#39;Monitor 1 Distance&#39;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s">&#39;m2&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">entry</span><span class="p">[</span><span class="s">&#39;monitor2/distance&#39;</span><span class="p">],</span>
-                            <span class="s">&#39;Monitor 2 Distance&#39;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s">&#39;Ei&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">entry</span><span class="p">[</span><span class="s">&#39;instrument/monochromator/energy&#39;</span><span class="p">],</span>
-                            <span class="s">&#39;Incident Energy&#39;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s">&#39;mod&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">entry</span><span class="p">[</span><span class="s">&#39;instrument/source/distance&#39;</span><span class="p">],</span>
-                            <span class="s">&#39;Moderator Distance&#39;</span><span class="p">)</span>
-        <span class="n">action_buttons</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">action_buttons</span><span class="p">((</span><span class="s">&#39;Get Ei&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_ei</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s1">&#39;m1&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">entry</span><span class="p">[</span><span class="s1">&#39;monitor1/distance&#39;</span><span class="p">],</span>
+                            <span class="s1">&#39;Monitor 1 Distance&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s1">&#39;m2&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">entry</span><span class="p">[</span><span class="s1">&#39;monitor2/distance&#39;</span><span class="p">],</span>
+                            <span class="s1">&#39;Monitor 2 Distance&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s1">&#39;Ei&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">entry</span><span class="p">[</span><span class="s1">&#39;instrument/monochromator/energy&#39;</span><span class="p">],</span>
+                            <span class="s1">&#39;Incident Energy&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s1">&#39;mod&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">entry</span><span class="p">[</span><span class="s1">&#39;instrument/source/distance&#39;</span><span class="p">],</span>
+                            <span class="s1">&#39;Moderator Distance&#39;</span><span class="p">)</span>
+        <span class="n">action_buttons</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">action_buttons</span><span class="p">((</span><span class="s1">&#39;Get Ei&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_ei</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">set_layout</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">entry_layout</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">grid</span><span class="p">(),</span>
                         <span class="n">action_buttons</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">close_buttons</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s">&#39;Get Incident Energy&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Get Incident Energy&#39;</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">m1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">entry</span><span class="p">[</span><span class="s">&#39;monitor1&#39;</span><span class="p">]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">m2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">entry</span><span class="p">[</span><span class="s">&#39;monitor2&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">m1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">entry</span><span class="p">[</span><span class="s1">&#39;monitor1&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">m2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">entry</span><span class="p">[</span><span class="s1">&#39;monitor2&#39;</span><span class="p">]</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">m1_distance</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="s">&#39;m1&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">moderator_distance</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;m1&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">moderator_distance</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">m2_distance</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="s">&#39;m2&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">moderator_distance</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;m2&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">moderator_distance</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">Ei</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="s">&#39;Ei&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;Ei&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">moderator_distance</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="s">&#39;mod&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;mod&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
 
     <span class="k">def</span> <span class="nf">get_ei</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">t</span> <span class="o">=</span> <span class="mf">2286.26</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">m1_distance</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Ei</span><span class="p">)</span>
         <span class="n">m1_time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">m1</span><span class="p">[</span><span class="n">t</span><span class="o">-</span><span class="mf">200.0</span><span class="p">:</span><span class="n">t</span><span class="o">+</span><span class="mf">200.0</span><span class="p">]</span><span class="o">.</span><span class="n">moment</span><span class="p">()</span>
         <span class="n">t</span> <span class="o">=</span> <span class="mf">2286.26</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">m2_distance</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Ei</span><span class="p">)</span>
         <span class="n">m2_time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">m2</span><span class="p">[</span><span class="n">t</span><span class="o">-</span><span class="mf">200.0</span><span class="p">:</span><span class="n">t</span><span class="o">+</span><span class="mf">200.0</span><span class="p">]</span><span class="o">.</span><span class="n">moment</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="s">&#39;Ei&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="p">(</span><span class="mf">2286.26</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">m2_distance</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">m1_distance</span><span class="p">)</span> <span class="o">/</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;Ei&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="p">(</span><span class="mf">2286.26</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">m2_distance</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">m1_distance</span><span class="p">)</span> <span class="o">/</span>
                                        <span class="p">(</span><span class="n">m2_time</span> <span class="o">-</span> <span class="n">m1_time</span><span class="p">))</span><span class="o">**</span><span class="mi">2</span>
 
     <span class="k">def</span> <span class="nf">accept</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="s">&#39;Ei&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;Ei&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
         <span class="k">except</span> <span class="n">NeXusError</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
-            <span class="n">report_error</span><span class="p">(</span><span class="s">&quot;Getting Incident Energy&quot;</span><span class="p">,</span> <span class="n">error</span><span class="p">)</span>
+            <span class="n">report_error</span><span class="p">(</span><span class="s2">&quot;Getting Incident Energy&quot;</span><span class="p">,</span> <span class="n">error</span><span class="p">)</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">EnergyDialog</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">accept</span><span class="p">()</span>
 </pre></div>
 </div>
@@ -1080,7 +1080,7 @@ required code in ~/.nexpy/config.py.</p>
         <li class="right" >
           <a href="pythonshell.html" title="Python Interface to NeXus"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.8.0+0.g07011b9.dirty documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.8.0 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
