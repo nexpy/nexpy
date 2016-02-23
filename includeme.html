@@ -228,6 +228,16 @@ Jupyter QtConsole, which has replaced the old IPython QtConsole.</p>
 </tr>
 </tbody>
 </table>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Some people have reported that NeXpy crashes on launch on some
+Linux systems. We believe that this may be due to both PyQt4 and
+PyQt5 being installed, although that doesn&#8217;t cause a problem on
+all systems. If NeXpy crashes on launch, please try setting the
+environment variable QT_API to either &#8216;pyqt&#8217;, for the PyQt4
+library, or &#8216;pyside&#8217;, for the PySide library, depending on what you
+have installed, <em>e.g.</em>, in BASH, type <cite>export QT_API=pyqt</cite>.</p>
+</div>
 <div class="admonition seealso">
 <p class="first admonition-title">See also</p>
 <p class="last">If you are having problems linking to the PySide library, you may
