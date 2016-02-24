@@ -117,7 +117,7 @@
 <p>A PyQT GUI has been created to make it easier to keep track of the loaded NeXus
 files and the results of any subsequent analysis. It is invoked from the command
 line by:</p>
-<div class="highlight-python"><div class="highlight"><pre>&gt; nexpy
+<div class="highlight-python"><div class="highlight"><pre><span></span>&gt; nexpy
 </pre></div>
 </div>
 <div class="admonition note">
@@ -471,7 +471,7 @@ act on the shell text.</p>
 <p>NXroot groups that are displayed in the tree pane are all children of a group
 of class NXtree, known as &#8216;tree&#8217;. If you create a NeXus group dynamically in the
 IPython shell, it can be added to the tree pane using the tree&#8217;s add method:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">=</span><span class="n">NXroot</span><span class="p">()</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">=</span><span class="n">NXroot</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">entry</span> <span class="o">=</span> <span class="n">NXentry</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">nxtree</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
 </pre></div>
@@ -587,8 +587,11 @@ dimensions. The limits are set by the x, y, and z-tabs, while the projection
 axes are selected using the dropdown boxes. For a one-dimensional
 projection, select &#8216;None&#8217; from the y box. The projections may be plotted in
 a separate window, using the &#8216;Plot&#8217; button or saved to a scratch NXdata
-group within &#8216;w0&#8217; on the tree. A checkbox allows the overplotting of
-one-dimensional projections.</p>
+group on the tree. If &#8216;Sum&#8217; is checked, the projection contains the sum over
+all the summed pixels; if not, the projection contains the average, <em>i.e.</em>,
+the sum divided by the number of pixels in each orthogonal dimension. If a
+one-dimensional projection is plotted, a checkbox appears allowing
+additional one-dimensional projections to be plotted over it.</p>
 <a class="reference internal image-reference" href="_images/projection.png"><img alt="_images/projection.png" class="align-center" src="_images/projection.png" style="width: 75%;" /></a>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
@@ -599,7 +602,9 @@ restore the previous behavior, click the &#8216;Sum&#8217; checkbox.</p>
 panel. The panel is more convenient when making a systematic exploration of
 different projections limits and provides pixel accuracy in computing
 projections. The x and y limits of the plot are displayed as a dashed
-rectangle, which can be hidden if preferred.</p>
+rectangle, which can be hidden if preferred. If &#8216;Sum Projections&#8217; is
+checked, the projection contains the sum over the axes orthogonal to the
+plotting axes. Otherwise, it contains the average.</p>
 </div></blockquote>
 <a class="reference internal image-reference" href="_images/projection-panel.png"><img alt="_images/projection-panel.png" class="align-center" src="_images/projection-panel.png" style="width: 90%;" /></a>
 <div class="admonition note">
@@ -666,7 +671,7 @@ menu, <em>e.g.</em>, &lt;Ctrl&gt;+2 (⌘+2 on a Mac) to select Figure 2.</p>
 </div></blockquote>
 <ul>
 <li><p class="first">Set Aspect Ratio:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">plotview</span><span class="o">.</span><span class="n">aspect</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">aspect</span><span class="o">&gt;</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">plotview</span><span class="o">.</span><span class="n">aspect</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">aspect</span><span class="o">&gt;</span>
 </pre></div>
 </div>
 <p><code class="docutils literal"><span class="pre">&lt;aspect&gt;</span></code> can be any of the values allowed by the <a class="reference external" href="http://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes.set_aspect">Matplotlib set_aspect</a>
@@ -676,7 +681,7 @@ ratio between the height and the width (if the units are identical). The
 be set using the &#8216;Edit Parameters&#8217; button on the Options tab.</p>
 </li>
 <li><p class="first">Set Skew Angle:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">plotview</span><span class="o">.</span><span class="n">skew</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">angle</span><span class="o">&gt;</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">plotview</span><span class="o">.</span><span class="n">skew</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">angle</span><span class="o">&gt;</span>
 </pre></div>
 </div>
 <p>This sets the angle between the x and y-axes in degrees. If set to <code class="docutils literal"><span class="pre">None</span></code>,
@@ -690,7 +695,7 @@ be set using the &#8216;Edit Parameters&#8217; button on the Options tab.</p>
 <a class="reference internal image-reference" href="_images/skewed-axis.png"><img alt="_images/skewed-axis.png" class="align-center" src="_images/skewed-axis.png" style="width: 75%;" /></a>
 <ul>
 <li><p class="first">Set Offsets:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">plotview</span><span class="o">.</span><span class="n">offsets</span> <span class="o">=</span> <span class="o">&lt;</span><span class="bp">True</span><span class="o">|</span><span class="bp">False</span><span class="o">&gt;</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">plotview</span><span class="o">.</span><span class="n">offsets</span> <span class="o">=</span> <span class="o">&lt;</span><span class="bp">True</span><span class="o">|</span><span class="bp">False</span><span class="o">&gt;</span>
 </pre></div>
 </div>
 <p>If the range of an axis is much smaller than the absolute values, the axis
@@ -699,7 +704,7 @@ converts the axis labels to differences from a fixed offset value or not.
 The default is <code class="docutils literal"><span class="pre">False</span></code>.</p>
 </li>
 <li><p class="first">Select Color Map:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">plotview</span><span class="o">.</span><span class="n">cmap</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">cmap</span><span class="o">&gt;</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">plotview</span><span class="o">.</span><span class="n">cmap</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">cmap</span><span class="o">&gt;</span>
 </pre></div>
 </div>
 <p>This allows the color map of the currently displayed image to be changed.
@@ -708,7 +713,7 @@ This can be useful if the map is not available in the Signal Tab. See the
 for more details.</p>
 </li>
 <li><p class="first">Draw Shapes:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">plotview</span><span class="o">.</span><span class="n">vline</span><span class="p">(</span><span class="o">&lt;</span><span class="n">x</span><span class="o">&gt;</span><span class="p">,</span> <span class="o">&lt;</span><span class="n">ymin</span><span class="o">&gt;</span><span class="p">,</span> <span class="o">&lt;</span><span class="n">ymax</span><span class="o">&gt;</span><span class="p">)</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">plotview</span><span class="o">.</span><span class="n">vline</span><span class="p">(</span><span class="o">&lt;</span><span class="n">x</span><span class="o">&gt;</span><span class="p">,</span> <span class="o">&lt;</span><span class="n">ymin</span><span class="o">&gt;</span><span class="p">,</span> <span class="o">&lt;</span><span class="n">ymax</span><span class="o">&gt;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">plotview</span><span class="o">.</span><span class="n">hline</span><span class="p">(</span><span class="o">&lt;</span><span class="n">y</span><span class="o">&gt;</span><span class="p">,</span> <span class="o">&lt;</span><span class="n">xmin</span><span class="o">&gt;</span><span class="p">,</span> <span class="o">&lt;</span><span class="n">xmax</span><span class="o">&gt;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">plotview</span><span class="o">.</span><span class="n">vlines</span><span class="p">(</span><span class="o">&lt;</span><span class="n">x</span><span class="o">-</span><span class="n">array</span><span class="o">&gt;</span><span class="p">,</span> <span class="o">&lt;</span><span class="n">ymin</span><span class="o">&gt;</span><span class="p">,</span> <span class="o">&lt;</span><span class="n">ymax</span><span class="o">&gt;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">plotview</span><span class="o">.</span><span class="n">hlines</span><span class="p">(</span><span class="o">&lt;</span><span class="n">y</span><span class="o">-</span><span class="n">array</span><span class="o">&gt;</span><span class="p">,</span> <span class="o">&lt;</span><span class="n">xmin</span><span class="o">&gt;</span><span class="p">,</span> <span class="o">&lt;</span><span class="n">xmax</span><span class="o">&gt;</span><span class="p">)</span>
@@ -735,7 +740,7 @@ properties, <em>etc</em>. See the <a class="reference external" href="http://mat
 for more details.</p>
 </li>
 <li><p class="first">Draw Grid:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">plotview</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="bp">True</span><span class="o">|</span><span class="bp">False</span><span class="p">)</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">plotview</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="bp">True</span><span class="o">|</span><span class="bp">False</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Draws grid lines at the major tick values. Additional keyword arguments can be
@@ -767,7 +772,7 @@ saved fit.</p>
 parameter names, and provide two modules to return the function values and
 starting parameters, respectively.</p>
 <p>As an example, here is the complete Gaussian function:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 
 <span class="n">function_name</span> <span class="o">=</span> <span class="s1">&#39;Gaussian&#39;</span>
 <span class="n">parameters</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Integral&#39;</span><span class="p">,</span> <span class="s1">&#39;Sigma&#39;</span><span class="p">,</span> <span class="s1">&#39;Center&#39;</span><span class="p">]</span>
@@ -808,7 +813,7 @@ values that do not trigger an exception.</p>
 TIFF images, and text files, using the <a class="reference external" href="File:Import">File:Import</a> menus. If a file format is
 not currently supported, the user can write their own. The following is an
 example of a module that reads the original format and returns NeXus data:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">get_data</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">get_data</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
     <span class="kn">from</span> <span class="nn">libtiff</span> <span class="kn">import</span> <span class="n">TIFF</span>
     <span class="n">im</span> <span class="o">=</span> <span class="n">TIFF</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
     <span class="n">z</span> <span class="o">=</span> <span class="n">im</span><span class="o">.</span><span class="n">read_image</span><span class="p">()</span>
@@ -818,7 +823,7 @@ example of a module that reads the original format and returns NeXus data:</p>
 </pre></div>
 </div>
 <p>This could be run in the shell pane and then added to the tree using:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">nxtree</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">get_data</span><span class="p">(</span><span class="s1">&#39;image.tif&#39;</span><span class="p">))</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">nxtree</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">get_data</span><span class="p">(</span><span class="s1">&#39;image.tif&#39;</span><span class="p">))</span>
 </pre></div>
 </div>
 <div class="section" id="existing-readers">
@@ -861,7 +866,7 @@ parameters, but there are plans to add that in the future.</p>
 directory. User-defined import dialogs can be added to their private readers
 directory in <code class="docutils literal"><span class="pre">~/.nexpy/readers</span></code>.</p>
 <p>Here is an example of an import dialog:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="sd">&quot;&quot;&quot;</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Module to read in a TIFF file and convert it to NeXus.</span>
 
 <span class="sd">Each importer needs to layout the GUI buttons necessary for defining the</span>
@@ -933,7 +938,7 @@ to show how plugins can work. It adds a top-level menu item, <code class="docuti
 has a couple of menu items to perform data analysis on the example file,
 <code class="docutils literal"><span class="pre">chopper.nxs</span></code>, which is distributed with NeXpy.</p>
 <p>Here is the <code class="docutils literal"><span class="pre">__init__.py</span></code> file:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">get_ei</span><span class="o">,</span> <span class="nn">convert_qe</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">get_ei</span><span class="o">,</span> <span class="nn">convert_qe</span>
 
 <span class="k">def</span> <span class="nf">plugin_menu</span><span class="p">():</span>
     <span class="n">menu</span> <span class="o">=</span> <span class="s1">&#39;Chopper&#39;</span>
@@ -969,7 +974,7 @@ pre-defined dialog methods if the dialog uses it as the parent
 class.</p>
 </div>
 <p>Here is the code:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">nexpy.gui.pyqt</span> <span class="kn">import</span> <span class="n">QtGui</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">nexpy.gui.pyqt</span> <span class="kn">import</span> <span class="n">QtGui</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">nexpy.gui.datadialogs</span> <span class="kn">import</span> <span class="n">BaseDialog</span><span class="p">,</span> <span class="n">GridParameters</span>
 <span class="kn">from</span> <span class="nn">nexpy.gui.mainwindow</span> <span class="kn">import</span> <span class="n">report_error</span>
@@ -1044,7 +1049,7 @@ class.</p>
 <div class="section" id="configuring-nexpy">
 <h2>Configuring NeXpy<a class="headerlink" href="#configuring-nexpy" title="Permalink to this headline">¶</a></h2>
 <p>The NeXpy shell imports the following NeXus classes:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">nexpy</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">nexpy</span>
 <span class="kn">import</span> <span class="nn">nexusformat.nexus</span> <span class="kn">as</span> <span class="nn">nx</span>
 <span class="kn">from</span> <span class="nn">nexusformat.nexus</span> <span class="kn">import</span> <span class="n">NXFile</span><span class="p">,</span> <span class="n">NXgroup</span><span class="p">,</span> <span class="n">NXfield</span><span class="p">,</span> <span class="n">NXattr</span><span class="p">,</span> <span class="n">NXlink</span>
 </pre></div>
@@ -1053,7 +1058,7 @@ class.</p>
 NXsample, <em>etc</em>).</p>
 <p>For convenience, the NeXpy shell also imports a number of other modules that are
 commonly used:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">sys</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">h5py</span> <span class="kn">as</span> <span class="nn">h5</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
