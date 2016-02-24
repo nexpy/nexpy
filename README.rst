@@ -107,6 +107,16 @@ IPython v4.0.0     http://ipython.org/
 matplotlib v1.4.0  http://matplotlib.sourceforge.net/
 =================  =================================================
 
+.. warning:: Some people have reported that NeXpy crashes on launch on some
+             Linux systems. We believe that this may be due to both PyQt4 and
+             PyQt5 being installed, although that doesn't cause a problem on 
+             all systems. If NeXpy crashes on launch, please try setting the
+             environment variable QT_API to either 'pyqt', for the PyQt4 
+             library, or 'pyside', for the PySide library, depending on what you
+             have installed, *e.g.*, in BASH, type ::
+
+                 export QT_API=pyqt
+
 .. seealso:: If you are having problems linking to the PySide library, you may
              need to run the PySide post-installation script after installing
              PySide, *i.e.*, ``python pyside_postinstall.py -install``. See 
