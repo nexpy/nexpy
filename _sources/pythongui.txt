@@ -401,10 +401,14 @@ and sliders.
 
     If the data rank is three or more, the 2D plot *vs* x and y is a projection 
     along the remaining axes. The z-tab sets the limits for those projections.
-    It contains a dropdown menu for selecting the axis to be summed over and
-    two text boxes for selecting the projection limits. When the data are first
-    plotted, only the top slice if plotted, *i.e.*, all the z-axis limits are 
-    set to their minimum value.
+    It contains a dropdown menu for selecting the axis to be averaged or summed 
+    over and two text boxes for selecting the projection limits. When the data 
+    are first plotted, only the top slice if plotted, *i.e.*, all the z-axis 
+    limits are set to their minimum value.
+
+    .. note:: Projections are now averaged over the summed bins by default. To
+              restore the previous behavior, click the 'Sum' checkbox in the
+              Projection Tab.
     
     When 'Lock' is checked, the difference between the limits of the selected 
     z-axis is fixed. This allows successive images along the z-axis to be 
@@ -454,6 +458,9 @@ and sliders.
        :align: center
        :width: 75%
 
+    .. note:: Projections are now averaged over the summed bins by default. To
+              restore the previous behavior, click the 'Sum' checkbox.
+    
     The projection tab also contains a button to open a separate projection 
     panel. The panel is more convenient when making a systematic exploration of 
     different projections limits and provides pixel accuracy in computing 

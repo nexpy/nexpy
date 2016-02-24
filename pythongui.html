@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Python Graphical User Interface &mdash; NeXpy 0.8.0 documentation</title>
+    <title>Python Graphical User Interface &mdash; NeXpy 0.8.1 documentation</title>
     
     <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.8.0',
+        VERSION:     '0.8.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -25,7 +25,7 @@
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="shortcut icon" href="_static/favicon.ico"/>
-    <link rel="top" title="NeXpy 0.8.0 documentation" href="index.html" />
+    <link rel="top" title="NeXpy 0.8.1 documentation" href="index.html" />
     <link rel="next" title="NeXus Tree API Modules" href="treeapi.html" />
     <link rel="prev" title="Python Interface to NeXus" href="pythonshell.html" /> 
   </head>
@@ -45,7 +45,7 @@
         <li class="right" >
           <a href="pythonshell.html" title="Python Interface to NeXus"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.8.0 documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.8.1 documentation</a> &raquo;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -539,10 +539,16 @@ sliders.</p>
 <div><a class="reference internal image-reference" href="_images/z-tab.png"><img alt="_images/z-tab.png" class="align-center" src="_images/z-tab.png" style="width: 75%;" /></a>
 <p>If the data rank is three or more, the 2D plot <em>vs</em> x and y is a projection
 along the remaining axes. The z-tab sets the limits for those projections.
-It contains a dropdown menu for selecting the axis to be summed over and
-two text boxes for selecting the projection limits. When the data are first
-plotted, only the top slice if plotted, <em>i.e.</em>, all the z-axis limits are
-set to their minimum value.</p>
+It contains a dropdown menu for selecting the axis to be averaged or summed
+over and two text boxes for selecting the projection limits. When the data
+are first plotted, only the top slice if plotted, <em>i.e.</em>, all the z-axis
+limits are set to their minimum value.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Projections are now averaged over the summed bins by default. To
+restore the previous behavior, click the &#8216;Sum&#8217; checkbox in the
+Projection Tab.</p>
+</div>
 <p>When &#8216;Lock&#8217; is checked, the difference between the limits of the selected
 z-axis is fixed. This allows successive images along the z-axis to be
 plotted by clicking the text-box arrows in increments of the difference
@@ -584,6 +590,11 @@ a separate window, using the &#8216;Plot&#8217; button or saved to a scratch NXd
 group within &#8216;w0&#8217; on the tree. A checkbox allows the overplotting of
 one-dimensional projections.</p>
 <a class="reference internal image-reference" href="_images/projection.png"><img alt="_images/projection.png" class="align-center" src="_images/projection.png" style="width: 75%;" /></a>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Projections are now averaged over the summed bins by default. To
+restore the previous behavior, click the &#8216;Sum&#8217; checkbox.</p>
+</div>
 <p>The projection tab also contains a button to open a separate projection
 panel. The panel is more convenient when making a systematic exploration of
 different projections limits and provides pixel accuracy in computing
@@ -1080,7 +1091,7 @@ required code in ~/.nexpy/config.py.</p>
         <li class="right" >
           <a href="pythonshell.html" title="Python Interface to NeXus"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.8.0 documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.8.1 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">

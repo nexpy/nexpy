@@ -731,6 +731,18 @@ NXdata.sum(axis=None):
      >>> a.sum(1).nxsignal
      NXfield([  0.   6.  12.])   
 
+NXdata.average(axis=None):
+    Returns the average of the NXdata signal data. This is identical to the sum
+    method, but the result is divided by the number of data elements in the 
+    summation::
+
+     >>> a.average()
+     1.5
+     >>> a.average(0).nxsignal
+     NXfield([ 0.,  1.,  2.,  3.])
+     >>> a.average(1).nxsignal
+     NXfield([ 0. ,  1.5,  3. ])   
+
 NXdata.moment(order=1):
     Returns an NXfield containing the first moment of the NXdata group assuming 
     the signal is one-dimensional. Currently, only the first moment has been 
