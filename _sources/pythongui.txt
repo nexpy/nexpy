@@ -472,16 +472,16 @@ and sliders.
     checked, the projection contains the sum over the axes orthogonal to the 
     plotting axes. Otherwise, it contains the average.
   
-.. image:: /images/projection-panel.png
-   :align: center
-   :width: 90%
+    .. image:: /images/projection-panel.png
+       :align: center
+       :width: 90%
 
-.. note:: The projection panel can also be used to mask and unmask data within 
-          the dashed rectangle. See :doc:`pythonshell` for descriptions of
-          masked arrays.
+    .. note:: The projection panel can also be used to mask and unmask data within 
+              the dashed rectangle. See :doc:`pythonshell` for descriptions of
+              masked arrays.
 
-.. note:: Each plotting window can have a separate projection panel in a tabbed
-          interface. 
+    .. note:: Each plotting window can have a separate projection panel in a tabbed
+              interface. 
   
 **Options Tab**
 
