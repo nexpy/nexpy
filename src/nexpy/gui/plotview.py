@@ -692,7 +692,7 @@ class NXPlotView(QtGui.QDialog):
                 limits.append((self.axis[i].lo, self.axis[i].hi))
         if self.data.nxsignal.shape != self.data.plot_shape:
             axes, limits = fix_projection(self.data.nxsignal.shape, axes, limits)
-        self.plotdata = self.data.project(axes, limits)
+        self.plotdata = self.data.project(axes, limits, summed=self.summed)
         self.plotdata.title = self.title
         if newaxis:
             self.plot_image()
@@ -887,6 +887,13 @@ class NXPlotView(QtGui.QDialog):
         self.ztab.scalebox.setChecked(value)
 
     autoscale = property(_autoscale, _set_autoscale, "Property: Autoscale boolean")
+
+    @property
+    def summed(self):
+        if self.ptab.summed:
+            return True
+        else:
+            return False
 
     def _cmap(self):
         return self.vtab.cmap
@@ -1935,6 +1942,8 @@ class NXProjectionTab(QtGui.QWidget):
 
         super(NXProjectionTab, self).__init__()
 
+        self.plotview = plotview
+
         hbox = QtGui.QHBoxLayout()
         widgets = []
 
@@ -1959,6 +1968,11 @@ class NXProjectionTab(QtGui.QWidget):
         self.plot_button.clicked.connect(self.plot_projection)
         widgets.append(self.plot_button)
 
+        self.sumbox = QtGui.QCheckBox("Sum")
+        self.sumbox.setChecked(False)
+        self.sumbox.clicked.connect(self.plotview.replot_data)
+        widgets.append(self.sumbox)
+
         self.overplot_box = QtGui.QCheckBox("Over")
         self.overplot_box.setChecked(False)
         if 'Projection' not in plotviews:
@@ -1976,8 +1990,6 @@ class NXProjectionTab(QtGui.QWidget):
         hbox.addStretch()
 
         self.setLayout(hbox)
-
-        self.plotview = plotview
 
     def __repr__(self):
         return 'NXProjectionTab("%s")' % self.plotview.label
@@ -2024,6 +2036,13 @@ class NXProjectionTab(QtGui.QWidget):
                     self.xbox.setCurrentIndex(idx)
                     break
 
+    @property
+    def summed(self):
+        try:
+            return self.sumbox.isChecked()
+        except:
+            return False
+
     def get_projection(self):
         x = self.get_axes().index(self.xaxis)
         if self.yaxis == 'None':
@@ -2057,7 +2076,7 @@ class NXProjectionTab(QtGui.QWidget):
 
     def save_projection(self):
         axes, limits = self.get_projection()
-        keep_data(self.plotview.data.project(axes, limits))
+        keep_data(self.plotview.data.project(axes, limits, summed=self.summed))
 
     def plot_projection(self):
         if 'Projection' not in plotviews:
@@ -2068,7 +2087,9 @@ class NXProjectionTab(QtGui.QWidget):
             over = True
         else:
             over = False
-        projection.plot(self.plotview.data.project(axes, limits), over=over)
+        projection.plot(self.plotview.data.project(axes, limits, 
+                                                   summed=self.summed), 
+                        over=over)
         if len(axes) == 1:
             self.overplot_box.setVisible(True)
         else:
@@ -2233,6 +2254,12 @@ class NXProjectionPanel(QtGui.QWidget):
         self.unmask_button.setAutoDefault(False)
         grid.addWidget(self.unmask_button, row, 2)
 
+        row += 1
+        self.sumbox = QtGui.QCheckBox("Sum Projections")
+        self.sumbox.setChecked(False)
+        grid.addWidget(self.sumbox, row, 1, 1, 2, 
+                       alignment=QtCore.Qt.AlignHCenter)
+
         layout.addLayout(grid)
 
         button_layout = QtGui.QHBoxLayout()
@@ -2353,6 +2380,13 @@ class NXProjectionPanel(QtGui.QWidget):
                 self.minbox[axis].diff = self.maxbox[axis].diff = None
                 self.minbox[axis].setDisabled(False)
 
+    @property
+    def summed(self):
+        try:
+            return self.sumbox.isChecked()
+        except:
+            return False
+
     def get_projection(self):
         x = self.get_axes().index(self.xaxis)
         if self.yaxis == 'None':
@@ -2371,7 +2405,7 @@ class NXProjectionPanel(QtGui.QWidget):
     def save_projection(self):
         try:
             axes, limits = self.get_projection()
-            keep_data(self.plotview.data.project(axes, limits))
+            keep_data(self.plotview.data.project(axes, limits, summed=self.summed))
         except NeXusError as error:
             report_error("Saving Projection", error)
 
@@ -2385,8 +2419,9 @@ class NXProjectionPanel(QtGui.QWidget):
                 over = True
             else:
                 over = False
-            projection.plot(self.plotview.data.project(axes, limits),
-                             over=over)
+            projection.plot(self.plotview.data.project(axes, limits, 
+                                                       summed=self.summed),
+                            over=over)
             if len(axes) == 1:
                 self.overplot_box.setVisible(True)
             else:
