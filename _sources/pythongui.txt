@@ -767,7 +767,7 @@ Here is an example of an import dialog::
                                  of all import dialogs.
  """
 
- from PySide import QtCore, QtGui
+ from nexpy.api.qt import QtGui
 
  import numpy as np
  from nexusformat.nexus import *
