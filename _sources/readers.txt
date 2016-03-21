@@ -33,7 +33,7 @@ Start with this basic template:
    
    '''describe this importer'''
    
-   from IPython.external.qt import QtGui
+  from nexpy.gui.pyqt import QtGui
    
    import numpy as np
    from nexpy.api.nexus import *
