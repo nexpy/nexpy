@@ -62,7 +62,7 @@
 <li><a class="reference internal" href="#nexus-fields">NeXus Fields</a><ul>
 <li><a class="reference internal" href="#nexus-attributes">NeXus attributes</a></li>
 <li><a class="reference internal" href="#masked-arrays">Masked Arrays</a></li>
-<li><a class="reference internal" href="#handling-big-data">Handling Big Data</a></li>
+<li><a class="reference internal" href="#large-arrays">Large Arrays</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#nexus-groups">NeXus Groups</a><ul>
@@ -414,8 +414,8 @@ the methods described above.</p>
 </div>
 <p>Masks can also be set using the Projection panel in the <a class="reference internal" href="pythongui.html"><em>Python Graphical User Interface</em></a>.</p>
 </div>
-<div class="section" id="handling-big-data">
-<h4>Handling Big Data<a class="headerlink" href="#handling-big-data" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="large-arrays">
+<h4>Large Arrays<a class="headerlink" href="#large-arrays" title="Permalink to this headline">¶</a></h4>
 <p>If the size of an array is too large to be loaded into memory (as defined by
 NX_MEMORY), the NXfield can be initialized without any initial values, and then
 filled incrementally as slabs:</p>
