@@ -1,0 +1,354 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Installation &mdash; NeXpy 0.8.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.8.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="shortcut icon" href="_static/favicon.ico"/>
+    <link rel="top" title="NeXpy 0.8.1 documentation" href="index.html" />
+    <link rel="next" title="Python Interface to NeXus" href="pythonshell.html" />
+    <link rel="prev" title="NeXpy: A Python GUI to analyze NeXus data" href="index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="pythonshell.html" title="Python Interface to NeXus"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="NeXpy: A Python GUI to analyze NeXus data"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.8.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Installation</a></li>
+<li><a class="reference internal" href="#required-libraries">Required Libraries</a><ul>
+<li><a class="reference internal" href="#python-command-line-api">Python Command-Line API</a></li>
+<li><a class="reference internal" href="#nexpy-gui">NeXpy GUI</a></li>
+<li><a class="reference internal" href="#additional-packages">Additional Packages</a></li>
+<li><a class="reference internal" href="#semantic-versioning">Semantic Versioning</a></li>
+<li><a class="reference internal" href="#user-support">User Support</a></li>
+<li><a class="reference internal" href="#acknowledgements">Acknowledgements</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="index.html"
+                        title="previous chapter">NeXpy: A Python GUI to analyze NeXus data</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="pythonshell.html"
+                        title="next chapter">Python Interface to NeXus</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/includeme.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="installation">
+<h1>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h1>
+<p>Released versions of NeXpy are available on <a class="reference external" href="https://pypi.python.org/pypi/NeXpy/">PyPI</a> and as a <a class="reference external" href="https://anaconda.org/nexpy">Conda installation</a>.</p>
+<p>If you have the <a class="reference external" href="https://pypi.python.org/pypi/setuptools">Python Setup Tools</a>
+installed, then you can install using either:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span>$ pip install nexpy
+</pre></div>
+</div>
+<p>or:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span>$ easy_install nexpy
+</pre></div>
+</div>
+<p>If you have an Anaconda installation, use:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span>$ conda install -c https://conda.anaconda.org/nexpy nexpy
+</pre></div>
+</div>
+<p>If you have trouble with the pip or easy_install installations, you can install
+the package from the source code either by downloading one of the
+<a class="reference external" href="https://github.com/nexpy/nexpy/releases">Github releases</a> or by cloning the
+latest development version in the <a class="reference external" href="https://github.com/nexpy/nexpy">NeXpy Git
+repository</a>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span>$ git clone https://github.com/nexpy/nexpy.git
+</pre></div>
+</div>
+<p>You can then install NeXpy by changing to the source directory and typing:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span>$ python setup.py install
+</pre></div>
+</div>
+<p>To install in an alternate location:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span>$ python setup.py install --prefix=/path/to/installation/dir
+</pre></div>
+</div>
+<p>As of v0.6.0, the Python API for reading and writing NeXus files is in a
+separate package, <a class="reference external" href="https://github.com/nexpy/nexusformat">nexusformat</a>, which
+is also available on <a class="reference external" href="https://pypi.python.org/pypi/nexusformat/">PyPI</a> and
+will be automatically installed as a NeXpy dependency if you use pip.</p>
+<p>If the NeXpy GUI is not required, the package may be used in a regular Python
+shell. It may be installed using:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span>$ pip install nexusformat
+</pre></div>
+</div>
+<p>or:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span>$ easy_install nexusformat
+</pre></div>
+</div>
+<p>or:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span>$ conda install -c https://conda.anaconda.org/nexpy nexusformat
+</pre></div>
+</div>
+<p>The package can also be installed from the source code using the setup commands
+described above. The source code is available either by downloading one of the
+<a class="reference external" href="https://github.com/nexpy/nexusformat/releases">Github releases</a> or by cloning
+the latest development version in the <a class="reference external" href="https://github.com/nexpy/nexusformat">NeXpy Git repository</a>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span>$ git clone https://github.com/nexpy/nexusformat.git
+</pre></div>
+</div>
+</div>
+<div class="section" id="required-libraries">
+<h1>Required Libraries<a class="headerlink" href="#required-libraries" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="python-command-line-api">
+<h2>Python Command-Line API<a class="headerlink" href="#python-command-line-api" title="Permalink to this headline">¶</a></h2>
+<p>The current version of NeXpy uses h5py to read and write NeXus files because
+of its ability to handle large data files. There is therefore no dependency
+on the <a class="reference external" href="http://download.nexusformat.org/doc/html/napi.html">NeXus C API</a>.
+This also means that the current version cannot read and write HDF4 or XML
+NeXus files.</p>
+<p>If you only intend to utilize the Python API from the command-line, the only
+other required library is <a class="reference external" href="http://numpy.scipy.org">Numpy</a>.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="26%" />
+<col width="74%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Library</th>
+<th class="head">URL</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>nexusformat</td>
+<td><a class="reference external" href="https://github.com/nexpy/nexusformat">https://github.com/nexpy/nexusformat</a></td>
+</tr>
+<tr class="row-odd"><td>h5py</td>
+<td><a class="reference external" href="http://www.h5py.org">http://www.h5py.org</a></td>
+</tr>
+<tr class="row-even"><td>numpy</td>
+<td><a class="reference external" href="http://numpy.scipy.org/">http://numpy.scipy.org/</a></td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If you need to read HDF4 or XML files now, please clone the
+old-master branch (<a class="reference external" href="https://github.com/nexpy/nexpy/tree/old-master">https://github.com/nexpy/nexpy/tree/old-master</a>).</p>
+</div>
+</div>
+<div class="section" id="nexpy-gui">
+<h2>NeXpy GUI<a class="headerlink" href="#nexpy-gui" title="Permalink to this headline">¶</a></h2>
+<p>The GUI is built using the PyQt. The latest version supports either
+PyQt4 or PySide, and should load whichever library it finds. Neither are
+listed as a dependency but one or other must be installed. PyQt4 is included
+in the
+<a class="reference external" href="https://store.continuum.io/cshop/anaconda/">Anaconda default distribution</a>
+while PySide is included in the <a class="reference external" href="http://www.enthought.com">Enthought Python Distribution</a> or within Enthought&#8217;s <a class="reference external" href="https://www.enthought.com/products/canopy/">Canopy Application</a>.</p>
+<p>The GUI includes an <a class="reference external" href="http://ipython.org/">IPython shell</a> and a <a class="reference external" href="http://matplotlib.sourceforge.net">Matplotlib
+plotting pane</a>. The IPython shell is
+embedded in the Qt GUI using an implementation based on the newly-released
+Jupyter QtConsole, which has replaced the old IPython QtConsole.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="26%" />
+<col width="74%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Library</th>
+<th class="head">URL</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>jupyter</td>
+<td><a class="reference external" href="http://jupyter.org/">http://jupyter.org/</a></td>
+</tr>
+<tr class="row-odd"><td>IPython v4.0.0</td>
+<td><a class="reference external" href="http://ipython.org/">http://ipython.org/</a></td>
+</tr>
+<tr class="row-even"><td>matplotlib v1.4.0</td>
+<td><a class="reference external" href="http://matplotlib.sourceforge.net/">http://matplotlib.sourceforge.net/</a></td>
+</tr>
+</tbody>
+</table>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p>Some people have reported that NeXpy crashes on launch on some
+Linux systems. We believe that this may be due to both PyQt4 and
+PyQt5 being installed, although that doesn&#8217;t cause a problem on
+all systems. If NeXpy crashes on launch, please try setting the
+environment variable QT_API to either &#8216;pyqt&#8217;, for the PyQt4
+library, or &#8216;pyside&#8217;, for the PySide library, depending on what you
+have installed, <em>e.g.</em>, in BASH, type</p>
+<div class="last highlight-python"><div class="highlight"><pre><span></span>export QT_API=pyqt
+</pre></div>
+</div>
+</div>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last">If you are having problems linking to the PySide library, you may
+need to run the PySide post-installation script after installing
+PySide, <em>i.e.</em>, <code class="docutils literal"><span class="pre">python</span> <span class="pre">pyside_postinstall.py</span> <span class="pre">-install</span></code>. See
+<a class="reference external" href="https://github.com/nexpy/nexpy/issues/29">this issue</a>.</p>
+</div>
+</div>
+<div class="section" id="additional-packages">
+<h2>Additional Packages<a class="headerlink" href="#additional-packages" title="Permalink to this headline">¶</a></h2>
+<p>Additional functionality is provided by other external Python packages.
+Least-squares fitting requires Matt Newville&#8217;s least-squares fitting package,
+<a class="reference external" href="http://newville.github.io/lmfit-py">lmfit-py</a>. Importers may also require
+libraries to read the imported files in their native format, <em>e.g.</em>, <a class="reference external" href="http://spec2nexus.readthedocs.org/">spec2nexus</a> for reading SPEC files.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">As of v0.7.1, NeXpy no longer includes the <a class="reference external" href="https://pypi.python.org/pypi/tifffile">tifffile module</a>. This can now be
+installed with <code class="docutils literal"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">tifffile</span></code>.</p>
+</div>
+<p>From v0.1.5, we now have an importer for <a class="reference external" href="http://www.bernstein-plus-sons.com/software/CBF/">Crystallographic Binary Files</a>, using PyCBF, which must
+be separately installed.</p>
+<p>From v0.4.3, the log window is colorized if <a class="reference external" href="https://pypi.python.org/pypi/ansi2html/">ansi2html</a> is installed.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="23%" />
+<col width="77%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Library</th>
+<th class="head">URL</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>lmfit</td>
+<td><a class="reference external" href="http://newville.github.io/lmfit-py/">http://newville.github.io/lmfit-py/</a></td>
+</tr>
+<tr class="row-odd"><td>tifffile</td>
+<td><a class="reference external" href="https://pypi.python.org/pypi/tifffile">https://pypi.python.org/pypi/tifffile</a></td>
+</tr>
+<tr class="row-even"><td>pycbf</td>
+<td><a class="reference external" href="http://sourceforge.net/projects/cbflib/files/cbflib/pycbf/">http://sourceforge.net/projects/cbflib/files/cbflib/pycbf/</a></td>
+</tr>
+<tr class="row-odd"><td>spec2nexus</td>
+<td><a class="reference external" href="http://spec2nexus.readthedocs.org/">http://spec2nexus.readthedocs.org/</a></td>
+</tr>
+<tr class="row-even"><td>ansi2html</td>
+<td><a class="reference external" href="https://pypi.python.org/pypi/ansi2html/">https://pypi.python.org/pypi/ansi2html/</a></td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">NeXpy should still run without these additional packages, but invoking
+the relevant menu items may trigger an exception.</p>
+</div>
+</div>
+<div class="section" id="semantic-versioning">
+<h2>Semantic Versioning<a class="headerlink" href="#semantic-versioning" title="Permalink to this headline">¶</a></h2>
+<p>With the release of v0.1.0, NeXpy is using <a class="reference external" href="http://semver.org/spec/v2.0.0.html">Semantic Versioning</a>.</p>
+</div>
+<div class="section" id="user-support">
+<h2>User Support<a class="headerlink" href="#user-support" title="Permalink to this headline">¶</a></h2>
+<p>Consult the <a class="reference external" href="http://nexpy.github.io/nexpy/">NeXpy documentation</a> for details
+of both the Python command-line API and how to use the NeXpy GUI. If you have
+any general questions concerning the use of NeXpy, please address
+them to the <a class="reference external" href="http://download.nexusformat.org/doc/html/mailinglist.html">NeXus Mailing List</a>. If you discover
+any bugs, please submit a <a class="reference external" href="https://github.com/nexpy/nexpy/issues">Github issue</a>, preferably with relevant tracebacks.</p>
+</div>
+<div class="section" id="acknowledgements">
+<h2>Acknowledgements<a class="headerlink" href="#acknowledgements" title="Permalink to this headline">¶</a></h2>
+<p>The <a class="reference external" href="http://www.nexusformat.org">NeXus format</a> for neutron, x-ray and muon
+data is developed by an international collaboration under the supervision of the
+<a class="reference external" href="http://wiki.nexusformat.org/NIAC">NeXus International Advisory Committee</a>.
+The Python tree API used in NeXpy was originally developed by Paul Kienzle, who
+also wrote the standard Python interface to the NeXus C-API. The original
+version of NeXpy was initially developed by Boyana Norris, Jason Sarich, and
+Daniel Lowell, and Ray Osborn using wxPython, and formed the inspiration
+for the current PyQt version.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="pythonshell.html" title="Python Interface to NeXus"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="NeXpy: A Python GUI to analyze NeXus data"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.8.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2013-2015, Ray Osborn.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.1.
+    </div>
+  </body>
+</html>
