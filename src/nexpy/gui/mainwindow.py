@@ -172,9 +172,6 @@ class MainWindow(QtGui.QMainWindow):
 
         self.init_menu_bar()
 
-        self.remote_dialog = None
-        self.remote_defaults = (None, None)
-
         self.file_filter = ';;'.join((
             "NeXus Files (*.nxs *.nx5 *.h5 *.hdf *.hdf5 *.cxi)",
             "Any Files (*.* *)"))
@@ -201,8 +198,6 @@ class MainWindow(QtGui.QMainWindow):
         pixmap = QtGui.QPixmap(self._app.icon.pixmap(QtCore.QSize(64,64)))
         box.setIconPixmap(pixmap)
         reply = box.exec_()
-        if self.remote_dialog != None:
-            self.remote_dialog.finalize()
 
         return reply
 
@@ -228,7 +223,6 @@ class MainWindow(QtGui.QMainWindow):
         self.init_file_menu()
         self.init_edit_menu()
         self.init_data_menu()
-        self.init_remote_menus()
         self.init_plugin_menus()
         self.init_view_menu()
         self.init_magic_menu()
@@ -492,40 +486,6 @@ class MainWindow(QtGui.QMainWindow):
             triggered=self.fit_data
             )
         self.add_menu_action(self.data_menu, self.fit_action, True)
-
-    def init_remote_menus(self):
-        try:
-            from .remotedialogs import RemoteDialog, ExecManager, ExecWindow, \
-                                      exec_actions
-
-            self.remote_menu = self.menu_bar.addMenu("Remote")
-
-            self.openremotefile_action=QtGui.QAction("Open Remote...",
-                self,
-                shortcut=QtGui.QKeySequence("Ctrl+Alt+O"),
-                triggered=self.open_remote_file
-                )
-            self.add_menu_action(self.remote_menu, self.openremotefile_action)
-
-            self.remote_menu.addSeparator()
-
-            self.exec_mgr = ExecManager()
-            self.execwindow = None
-
-            self.exec_list_action=QtGui.QAction("Execution listing",
-                self,
-                triggered=self.show_execwindow
-                )
-            self.add_menu_action(self.remote_menu, self.exec_list_action)
-
-            self.remote_menu.addSeparator()
-
-            exec_actions(self, self.remote_menu)
-
-        except ImportError as error:
-            logging.info('Could not add "Remote" menu\n%s%s'
-                         % (40*' ', error))
-
 
     def init_plugin_menus(self):
         """Add an menu item for every module in the plugin menus"""
@@ -968,15 +928,6 @@ class MainWindow(QtGui.QMainWindow):
             self.recent_file_actions[action] = (i, recent_file)
         self.settings.setValue("recent/recentFiles", recent_files)
 
-    def open_remote_file(self):
-        try:
-            from .remotedialogs import RemoteDialog
-            if self.remote_dialog is None:
-                self.remote_dialog = RemoteDialog(defaults=self.remote_defaults)
-            self.remote_dialog.show()
-        except NeXusError as error:
-            report_error("Opening Remote File", error)
-
     def save_file(self):
         try:
             node = self.treeview.get_node()
@@ -1409,17 +1360,6 @@ class MainWindow(QtGui.QMainWindow):
                                 pass
                     class_groups[dtype] = (name, doc)
             self.nxclasses[class_name] = (class_doc, class_fields, class_groups)
-
-    def show_execwindow(self):
-        try:
-            from .remotedialogs import ExecWindow
-            if self.execwindow is None:
-                self.execwindow = ExecWindow(self.exec_mgr)
-                self.execwindow.show()
-            else:
-                self.execwindow.refresh()
-        except NeXusError as error:
-            report_error("Remote Dialogs unavailable", error)
 
     def _make_dynamic_magic(self,magic):
         """Return a function `fun` that will execute `magic` on the console.
