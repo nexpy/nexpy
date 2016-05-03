@@ -61,8 +61,8 @@
 <li><a class="reference internal" href="#nexus-objects">NeXus Objects</a><ul>
 <li><a class="reference internal" href="#nexus-fields">NeXus Fields</a><ul>
 <li><a class="reference internal" href="#nexus-attributes">NeXus attributes</a></li>
-<li><a class="reference internal" href="#slab-input-output">Slab Input/Output</a></li>
 <li><a class="reference internal" href="#masked-arrays">Masked Arrays</a></li>
+<li><a class="reference internal" href="#handling-big-data">Handling Big Data</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#nexus-groups">NeXus Groups</a><ul>
@@ -324,6 +324,17 @@ example, a float64 array can be converted to float32 on assignment:</p>
 <p class="last">Numeric dtypes can be defined either as a string, <em>e.g.</em>, &#8216;int16&#8217;,
 &#8216;float32&#8217;, or using the numpy dtypes, <em>e.g.</em>, np.int16, np.float32.</p>
 </div>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">By default, Python strings are stored as variable-length strings in
+the HDF5 file. These use a special object dtype defined by h5py
+(see the <a class="reference external" href="http://docs.h5py.org/en/latest/special.html#variable-length-strings">h5py documentation</a>).
+As of v0.3.0, if you wish to store fixed length strings, specify
+a dtype of &#8216;S&#8217; or, <em>e.g.</em>, &#8216;S10&#8217; when creating the NXfield. Any
+dtype of kind &#8216;U&#8217; (for unicode string in Python 3), will be
+automatically converted to the variable-length string dtype since
+HDF5 cannot convert them.</p>
+</div>
 <p>Similarly, the shape and dimension sizes of an integer or float array is
 inherited from the assigned numpy array. It is possible to initialize an NXfield
 array without specifying the data values in advance, <em>e.g.</em>, if the data has to
@@ -354,24 +365,6 @@ group.</p>
 <span class="go">  temperature = 40.0</span>
 <span class="go">    @units = K</span>
 </pre></div>
-</div>
-</div>
-<div class="section" id="slab-input-output">
-<h4>Slab Input/Output<a class="headerlink" href="#slab-input-output" title="Permalink to this headline">¶</a></h4>
-<p>If the size of the NXfield array is too large to be loaded into memory (as
-defined by NX_MEMORY), the data values should be read or written in as a series
-of slabs represented by NXfield slices:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">Ni</span><span class="p">):</span>
-<span class="go">        for j in range(Nj):</span>
-<span class="go">            value = root.NXentry[0].data.data[i,j,:]</span>
-<span class="go">            ...</span>
-</pre></div>
-</div>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">NXfield values are stored in its &#8216;nxdata&#8217; attribute. For integers and
-floats, this will be a numpy array. If the values have not been
-loaded, &#8216;nxdata&#8217; is set to None.</p>
 </div>
 </div>
 <div class="section" id="masked-arrays">
@@ -420,6 +413,65 @@ manually, but it is recommended that modifications to the mask use
 the methods described above.</p>
 </div>
 <p>Masks can also be set using the Projection panel in the <a class="reference internal" href="pythongui.html"><em>Python Graphical User Interface</em></a>.</p>
+</div>
+<div class="section" id="handling-big-data">
+<h4>Handling Big Data<a class="headerlink" href="#handling-big-data" title="Permalink to this headline">¶</a></h4>
+<p>If the size of an array is too large to be loaded into memory (as defined by
+NX_MEMORY), the NXfield can be initialized without any initial values, and then
+filled incrementally as slabs:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">entry</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">z</span> <span class="o">=</span> <span class="n">NXfield</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span><span class="mi">1000</span><span class="p">,</span><span class="mi">1000</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1000</span><span class="p">):</span>
+<span class="go">        entry.data.z[i,:,:] = np.ones(shape=(1000,1000), dtype=np.float32)</span>
+<span class="go">            ...</span>
+</pre></div>
+</div>
+<p>If <cite>entry</cite> in the above example is already stored in a NeXus file (with write
+access), then <cite>entry.data.z</cite> is automatically updated in the file. If it is not
+stored in a file, the field is stored in an HDF5 core memory file that will be
+copied to the NeXus file when it is saved.</p>
+<p>When initializing the NXfield, it is possible to specify a number of HDF5
+attributes that specify how the data are stored.</p>
+<ul>
+<li><p class="first">Compression:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">z</span> <span class="o">=</span> <span class="n">NXfield</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span><span class="mi">1000</span><span class="p">,</span><span class="mi">1000</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">compression</span><span class="o">=</span><span class="s1">&#39;lzf&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This specifies the compression filter used. For large arrays, the data are
+compressed with the <cite>gzip</cite> filter by default.</p>
+</li>
+<li><p class="first">Chunk size:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">z</span> <span class="o">=</span> <span class="n">NXfield</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span><span class="mi">1000</span><span class="p">,</span><span class="mi">1000</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">chunks</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">100</span><span class="p">,</span><span class="mi">100</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>If chunk sizes are not specified, HDF5 will choose default sizes.</p>
+</li>
+<li><p class="first">Maximum array shape:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">z</span> <span class="o">=</span> <span class="n">NXfield</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">1000</span><span class="p">,</span><span class="mi">1000</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">maxshape</span><span class="o">=</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span><span class="mi">1000</span><span class="p">,</span><span class="mi">1000</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>The initial shape is defined by the <cite>shape</cite> attribute, but it will be
+automatically expanded up to a limit of <cite>maxshape</cite> if necessary.</p>
+</li>
+<li><p class="first">Fill value:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">z</span> <span class="o">=</span> <span class="n">NXfield</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span><span class="mi">1000</span><span class="p">,</span><span class="mi">1000</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">fillvalue</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Slabs that are not initialized will contain the specified fill value. This is
+normally set to zero by default.</p>
+</li>
+</ul>
+<p>All these values can be adjusted at the command line until the first slab has
+been written, whether to a file or in core memory, using the <cite>compression</cite>,
+<cite>chunks</cite>, <cite>maxshape</cite> or <cite>fillvalue</cite> properties, <em>e.g.</em></p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">z</span> <span class="o">=</span> <span class="n">NXfield</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span><span class="mi">1000</span><span class="p">,</span><span class="mi">1000</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">z</span><span class="o">.</span><span class="n">compression</span> <span class="o">=</span> <span class="s1">&#39;lzf&#39;</span>
+</pre></div>
+</div>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Setting the HDF5 attributes on an NXfield that is not stored
+in a NeXus file requires v0.3.0.</p>
+</div>
 </div>
 </div>
 <div class="section" id="nexus-groups">

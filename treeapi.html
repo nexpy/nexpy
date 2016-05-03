@@ -618,7 +618,7 @@ set to True.</p>
 
 <dl class="class">
 <dt id="nexusformat.nexus.tree.NXfield">
-<em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXfield</code><span class="sig-paren">(</span><em>value=None</em>, <em>name='field'</em>, <em>dtype=None</em>, <em>shape=()</em>, <em>group=None</em>, <em>attrs=None</em>, <em>**attr</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXfield" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXfield</code><span class="sig-paren">(</span><em>value=None</em>, <em>name='field'</em>, <em>dtype=None</em>, <em>shape=None</em>, <em>group=None</em>, <em>attrs=None</em>, <em>**attr</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXfield" title="Permalink to this definition">¶</a></dt>
 <dd><p>A NeXus data field.</p>
 <p>This is a subclass of NXobject that contains scalar, array, or string data
 and associated NeXus attributes.</p>
@@ -874,6 +874,18 @@ assuming it contains bin centers.</p>
 assuming it contains bin boundaries.</p>
 </dd></dl>
 
+<dl class="attribute">
+<dt id="nexusformat.nexus.tree.NXfield.chunks">
+<code class="descname">chunks</code><a class="headerlink" href="#nexusformat.nexus.tree.NXfield.chunks" title="Permalink to this definition">¶</a></dt>
+<dd><p>Property: Chunk sizes of NeXus field</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="nexusformat.nexus.tree.NXfield.compression">
+<code class="descname">compression</code><a class="headerlink" href="#nexusformat.nexus.tree.NXfield.compression" title="Permalink to this definition">¶</a></dt>
+<dd><p>Property: Compression of NeXus field</p>
+</dd></dl>
+
 <dl class="method">
 <dt id="nexusformat.nexus.tree.NXfield.convert">
 <code class="descname">convert</code><span class="sig-paren">(</span><em>units=''</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXfield.convert" title="Permalink to this definition">¶</a></dt>
@@ -884,6 +896,12 @@ assuming it contains bin boundaries.</p>
 <dt id="nexusformat.nexus.tree.NXfield.dtype">
 <code class="descname">dtype</code><a class="headerlink" href="#nexusformat.nexus.tree.NXfield.dtype" title="Permalink to this definition">¶</a></dt>
 <dd><p>Property: Data type of NeXus field</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="nexusformat.nexus.tree.NXfield.fillvalue">
+<code class="descname">fillvalue</code><a class="headerlink" href="#nexusformat.nexus.tree.NXfield.fillvalue" title="Permalink to this definition">¶</a></dt>
+<dd><p>Property: Default fill value of NeXus field</p>
 </dd></dl>
 
 <dl class="method">
@@ -937,6 +955,12 @@ differs by less than 1% of the step size to the neighboring element.</p>
 <dt id="nexusformat.nexus.tree.NXfield.max">
 <code class="descname">max</code><span class="sig-paren">(</span><em>axis=None</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXfield.max" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the maximum value of the array ignoring NaNs</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="nexusformat.nexus.tree.NXfield.maxshape">
+<code class="descname">maxshape</code><a class="headerlink" href="#nexusformat.nexus.tree.NXfield.maxshape" title="Permalink to this definition">¶</a></dt>
+<dd><p>Property: Maximum size of NeXus field array</p>
 </dd></dl>
 
 <dl class="method">
@@ -1379,7 +1403,7 @@ the NXdata group.</p>
 
 <dl class="class">
 <dt id="nexusformat.nexus.tree.NXattr">
-<em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXattr</code><span class="sig-paren">(</span><em>value=None</em>, <em>dtype=None</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXattr" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXattr</code><span class="sig-paren">(</span><em>value=None</em>, <em>dtype=None</em>, <em>shape=None</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXattr" title="Permalink to this definition">¶</a></dt>
 <dd><p>Class for NeXus attributes of a NXfield or NXgroup object.</p>
 <p>This class is only used for NeXus attributes that are stored in a
 NeXus file and helps to distinguish them from Python attributes.
