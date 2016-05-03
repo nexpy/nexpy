@@ -3,7 +3,7 @@
 '''package requirements are checked at runtime and installation time'''
 
 #-----------------------------------------------------------------------------
-# Copyright (c) 2013-2014, NeXpy Development Team.
+# Copyright (c) 2013-2016, NeXpy Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -11,7 +11,7 @@
 #-----------------------------------------------------------------------------
 
 pkg_requirements = [
-    'nexusformat>=0.2.2',
+    'nexusformat>=0.3.0',
     'numpy>=1.6.0',
     'scipy',
     'h5py',
@@ -20,5 +20,5 @@ pkg_requirements = [
     'matplotlib>=1.4.0',
 ]
 extra_requirements = {
-    'spec': ['spec2nexus>=2014.1228.0',],
+    'spec': ['spec2nexus>=2016.216.0',],
 }

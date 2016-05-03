@@ -451,8 +451,11 @@ and sliders.
     axes are selected using the dropdown boxes. For a one-dimensional 
     projection, select 'None' from the y box. The projections may be plotted in
     a separate window, using the 'Plot' button or saved to a scratch NXdata 
-    group within 'w0' on the tree. A checkbox allows the overplotting of 
-    one-dimensional projections.
+    group on the tree. If 'Sum' is checked, the projection contains the sum over
+    all the summed pixels; if not, the projection contains the average, *i.e.*, 
+    the sum divided by the number of pixels in each orthogonal dimension. If a
+    one-dimensional projection is plotted, a checkbox appears allowing
+    additional one-dimensional projections to be plotted over it.
     
     .. image:: /images/projection.png
        :align: center
@@ -465,18 +468,20 @@ and sliders.
     panel. The panel is more convenient when making a systematic exploration of 
     different projections limits and provides pixel accuracy in computing 
     projections. The x and y limits of the plot are displayed as a dashed 
-    rectangle, which can be hidden if preferred.
+    rectangle, which can be hidden if preferred. If 'Sum Projections' is 
+    checked, the projection contains the sum over the axes orthogonal to the 
+    plotting axes. Otherwise, it contains the average.
   
-.. image:: /images/projection-panel.png
-   :align: center
-   :width: 90%
+    .. image:: /images/projection-panel.png
+       :align: center
+       :width: 90%
 
-.. note:: The projection panel can also be used to mask and unmask data within 
-          the dashed rectangle. See :doc:`pythonshell` for descriptions of
-          masked arrays.
+    .. note:: The projection panel can also be used to mask and unmask data within 
+              the dashed rectangle. See :doc:`pythonshell` for descriptions of
+              masked arrays.
 
-.. note:: Each plotting window can have a separate projection panel in a tabbed
-          interface. 
+    .. note:: Each plotting window can have a separate projection panel in a tabbed
+              interface. 
   
 **Options Tab**
 
@@ -762,7 +767,7 @@ Here is an example of an import dialog::
                                  of all import dialogs.
  """
 
- from PySide import QtCore, QtGui
+ from nexpy.gui.qt import QtGui
 
  import numpy as np
  from nexusformat.nexus import *

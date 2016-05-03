@@ -12,7 +12,7 @@ shell::
 
 .. note:: Although wildcard imports are usually discouraged in Python, there
           should not be any name clashes using it here because all the 
-          imported functions and variables start with 'nx' or 'NX'. 
+          imported functions and variables start with 'nx' or 'NX'.
 
 Loading NeXus Data
 ==================
@@ -174,6 +174,16 @@ example, a float64 array can be converted to float32 on assignment::
 .. note:: Numeric dtypes can be defined either as a string, *e.g.*, 'int16', 
           'float32', or using the numpy dtypes, *e.g.*, np.int16, np.float32.
 
+.. warning:: By default, Python strings are stored as variable-length strings in
+             the HDF5 file. These use a special object dtype defined by h5py 
+             (see the `h5py documentation 
+             <http://docs.h5py.org/en/latest/special.html#variable-length-strings>`_).
+             As of v0.3.0, if you wish to store fixed length strings, specify 
+             a dtype of 'S' or, *e.g.*, 'S10' when creating the NXfield. Any
+             dtype of kind 'U' (for unicode string in Python 3), will be 
+             automatically converted to the variable-length string dtype since
+             HDF5 cannot convert them.
+
 Similarly, the shape and dimension sizes of an integer or float array is 
 inherited from the assigned numpy array. It is possible to initialize an NXfield
 array without specifying the data values in advance, *e.g.*, if the data has to
@@ -205,21 +215,6 @@ When a NeXus tree is printed, the attributes are prefixed by '@'::
  sample:NXsample
    temperature = 40.0
      @units = K 
-
-Slab Input/Output
-^^^^^^^^^^^^^^^^^
-If the size of the NXfield array is too large to be loaded into memory (as 
-defined by NX_MEMORY), the data values should be read or written in as a series 
-of slabs represented by NXfield slices::
-
- >>> for i in range(Ni):
-         for j in range(Nj):
-             value = root.NXentry[0].data.data[i,j,:]
-             ...
-
-.. note:: NXfield values are stored in its 'nxdata' attribute. For integers and
-          floats, this will be a numpy array. If the values have not been 
-          loaded, 'nxdata' is set to None.
 
 Masked Arrays
 ^^^^^^^^^^^^^
@@ -265,6 +260,62 @@ The mask can then be saved to the NeXus file if required.
              the methods described above.
              
 Masks can also be set using the Projection panel in the :doc:`pythongui`.
+
+Handling Big Data
+^^^^^^^^^^^^^^^^^
+If the size of an array is too large to be loaded into memory (as defined by 
+NX_MEMORY), the NXfield can be initialized without any initial values, and then
+filled incrementally as slabs::
+
+ >>> entry.data.z = NXfield(shape=(1000,1000,1000), dtype=np.float32)
+ >>> for i in range(1000):
+         entry.data.z[i,:,:] = np.ones(shape=(1000,1000), dtype=np.float32)
+             ...
+
+If `entry` in the above example is already stored in a NeXus file (with write
+access), then `entry.data.z` is automatically updated in the file. If it is not
+stored in a file, the field is stored in an HDF5 core memory file that will be
+copied to the NeXus file when it is saved.
+
+When initializing the NXfield, it is possible to specify a number of HDF5 
+attributes that specify how the data are stored. 
+
+* Compression::
+
+    >>> z = NXfield(shape=(1000,1000,1000), dtype=np.float32, compression='lzf')
+
+  This specifies the compression filter used. For large arrays, the data are
+  compressed with the `gzip` filter by default. 
+
+* Chunk size::
+
+    >>> z = NXfield(shape=(1000,1000,1000), dtype=np.float32, chunks=(1,100,100))
+
+  If chunk sizes are not specified, HDF5 will choose default sizes.
+
+* Maximum array shape::
+
+    >>> z = NXfield(shape=(10,1000,1000), dtype=np.float32, maxshape=(1000,1000,1000))
+
+  The initial shape is defined by the `shape` attribute, but it will be 
+  automatically expanded up to a limit of `maxshape` if necessary.
+
+* Fill value::
+
+    >>> z = NXfield(shape=(1000,1000,1000), dtype=np.float32, fillvalue=np.nan)
+
+  Slabs that are not initialized will contain the specified fill value. This is
+  normally set to zero by default.
+  
+All these values can be adjusted at the command line until the first slab has
+been written, whether to a file or in core memory, using the `compression`, 
+`chunks`, `maxshape` or `fillvalue` properties, *e.g.*
+
+ >>> z = NXfield(shape=(1000,1000,1000), dtype=np.float32)
+ >>> z.compression = 'lzf'
+
+.. warning :: Setting the HDF5 attributes on an NXfield that is not stored
+              in a NeXus file requires v0.3.0.
 
 NeXus Groups
 ------------
