@@ -417,7 +417,7 @@ the methods described above.</p>
 <div class="section" id="large-arrays">
 <h4>Large Arrays<a class="headerlink" href="#large-arrays" title="Permalink to this headline">¶</a></h4>
 <p>If the size of an array is too large to be loaded into memory (as defined by
-NX_MEMORY), the NXfield can be initialized without any initial values, and then
+NX_MEMORY), the NXfield can be created without any initial values, and then
 filled incrementally as slabs:</p>
 <div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">entry</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">z</span> <span class="o">=</span> <span class="n">NXfield</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span><span class="mi">1000</span><span class="p">,</span><span class="mi">1000</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1000</span><span class="p">):</span>
