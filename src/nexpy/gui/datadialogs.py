@@ -16,11 +16,12 @@ import imp
 import logging
 import numbers
 import os
+import pkg_resources
 import re
+import shutil
 import sys
 
 from .pyqt import QtGui, QtCore, getOpenFileName
-import pkg_resources
 import numpy as np
 from scipy.optimize import minimize
 
@@ -65,7 +66,8 @@ class BaseDialog(QtGui.QDialog):
         self.nexus_filter = ';;'.join((
              "NeXus Files (*.nxs *.nx5 *.h5 *.hdf *.hdf5)",
 	         "Any Files (*.* *)"))
-
+        self.checkbox = {}
+        self.radiobutton = {}
         if parent is None:
             parent = self.mainwindow
         super(BaseDialog, self).__init__(parent)
@@ -108,6 +110,28 @@ class BaseDialog(QtGui.QDialog):
              button.clicked.connect(action)
              layout.addWidget(button)
              layout.addStretch()
+        return layout
+
+    def checkboxes(self, *items):
+        layout = QtGui.QHBoxLayout()
+        layout.addStretch()
+        for label, text, checked in items:
+             self.checkbox[label] = QtGui.QCheckBox(text)
+             self.checkbox[label].setChecked(checked)
+             layout.addWidget(self.checkbox[label])
+             layout.addStretch()
+        return layout
+
+    def radiobuttons(self, *items):
+        group = QtGui.QButtonGroup()
+        layout = QtGui.QHBoxLayout()
+        layout.addStretch()
+        for label, text, checked in items:
+             self.radiobutton[label] = QtGui.QRadioButton(text)
+             self.radiobutton[label].setChecked(checked)
+             layout.addWidget(self.radiobutton[label])
+             layout.addStretch()
+             group.addButton(self.radiobutton[label])
         return layout
 
     def filebox(self):
@@ -1389,7 +1413,7 @@ class SignalDialog(BaseDialog):
 
     
 class LogDialog(BaseDialog):
-    """Dialog to display a NeXpy log filt"""
+    """Dialog to display a NeXpy log file"""
  
     def __init__(self, parent=None):
 
@@ -1441,3 +1465,45 @@ class LogDialog(BaseDialog):
         self.setWindowTitle("Log File: %s" % self.file_name)
 
 
+class InstallDialog(BaseDialog):
+    """Dialog to install a NeXus plugin"""
+
+    def __init__(self, node, parent=None):
+
+        super(InstallDialog, self).__init__(parent)
+
+        self.setWindowTitle("Install Plugin")
+
+        self.set_layout(self.directorybox('Choose plugin directory'), 
+                        self.radiobuttons(('local', 'Install locally', True),
+                                          ('nexpy', 'Install in NeXpy', False)), 
+                        self.close_buttons())
+        self.set_title('Installing Plugin')
+
+    def accept(self):
+        plugin_directory = self.get_directory()
+        plugin_name = os.path.basename(os.path.normpath(plugin_directory))
+        if not os.path.exists(os.path.join(plugin_directory, '__init__.py')):
+            raise NeXusError('This directory does not contain a Python package')
+        if self.radiobutton['local'].isChecked():
+            from .consoleapp import _nexpy_dir
+            plugin_path = os.path.join(_nexpy_dir, 'plugins')
+        else:
+            plugin_path = pkg_resources.resource_filename('nexpy', 
+                                                        os.path.join('plugins'))
+        installed_path = os.path.join(plugin_path, plugin_name)
+        if os.path.exists(installed_path):
+            ret = self.confirm_action("Overwrite?", "Plugin already exists")
+            if ret == QtGui.QMessageBox.Ok:
+                shutil.rmtree(installed_path)
+            else:
+                return
+        shutil.copytree(plugin_directory, installed_path)
+        from .consoleapp import _mainwindow
+        try:
+            _mainwindow.add_plugin_menu(plugin_name, [plugin_path])
+        except Exception as error:
+             raise NeXusError(error)                         
+        super(InstallDialog, self).accept()
+
+    

@@ -500,25 +500,30 @@ class MainWindow(QtGui.QMainWindow):
         for name in os.listdir(public_path):
             if os.path.isdir(os.path.join(public_path, name)):
                 self.plugin_names.add(name)
-        self.plugin = {}
         plugin_paths = [private_path, public_path]
         for plugin_name in sorted(self.plugin_names):
-            fp = None
             try:
-                fp, pathname, description = imp.find_module(plugin_name, plugin_paths)
-                plugin_module = imp.load_module(plugin_name, fp, pathname, description)
-                name, actions = plugin_module.plugin_menu()
-                plugin_menu = self.menu_bar.addMenu(name)
-                for action in actions:
-                    self.add_menu_action(plugin_menu, QtGui.QAction(
-                        action[0], self, triggered=action[1]))
+                self.add_plugin_menu(plugin_name, plugin_paths)
             except Exception as error:
                 logging.info(
                 'The "%s" plugin could not be added to the main menu\n%s%s'
                 % (plugin_name, 40*' ', error))
-            finally:
-                if fp:
-                    fp.close()
+
+    def add_plugin_menu(self, plugin_name, plugin_paths):
+        fp = None
+        try:
+            fp, pathname, description = imp.find_module(plugin_name, plugin_paths)
+            plugin_module = imp.load_module(plugin_name, fp, pathname, description)
+            name, actions = plugin_module.plugin_menu()
+            plugin_menu = self.menu_bar.addMenu(name)
+            for action in actions:
+                self.add_menu_action(plugin_menu, QtGui.QAction(
+                    action[0], self, triggered=action[1]))
+        except Exception as error:
+            raise Exception(error)
+        finally:
+            if fp:
+                fp.close()
 
     def init_view_menu(self):
         self.view_menu = self.menu_bar.addMenu("&View")
@@ -781,6 +786,14 @@ class MainWindow(QtGui.QMainWindow):
             triggered=self.guiref_console
             )
         self.add_menu_action(self.help_menu, self.guiref_console_action)
+
+        self.help_menu.addSeparator()
+
+        self.install_action=QtGui.QAction("Install Plugin",
+            self,
+            triggered=self.install_plugin
+            )
+        self.add_menu_action(self.help_menu, self.install_action, True)
 
     def init_recent_menu(self):
         """Add recent files menu item for recently opened files"""
@@ -1617,6 +1630,13 @@ class MainWindow(QtGui.QMainWindow):
     def _open_ipython_online_help(self):
         filename = "http://ipython.org/ipython-doc/stable/index.html"
         webbrowser.open(filename, new=1, autoraise=True)
+
+    def install_plugin(self):
+        try:
+            dialog = InstallDialog(self)
+            dialog.show()
+        except NeXusError as error:
+            report_error("Installing Plugin", error)
 
     # minimize/maximize/fullscreen actions:
 
