@@ -261,10 +261,10 @@ The mask can then be saved to the NeXus file if required.
              
 Masks can also be set using the Projection panel in the :doc:`pythongui`.
 
-Handling Big Data
-^^^^^^^^^^^^^^^^^
+Large Arrays
+^^^^^^^^^^^^
 If the size of an array is too large to be loaded into memory (as defined by 
-NX_MEMORY), the NXfield can be initialized without any initial values, and then
+NX_MEMORY), the NXfield can be created without any initial values, and then
 filled incrementally as slabs::
 
  >>> entry.data.z = NXfield(shape=(1000,1000,1000), dtype=np.float32)
