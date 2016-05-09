@@ -75,6 +75,10 @@ class Fit(object):
             for parameter in self.parameters:
                 self.parameters[parameter].value = \
                     self.result.params[parameter].value
+                self.parameters[parameter].stderr = \
+                    self.result.params[parameter].stderr
+                self.parameters[parameter].correl = \
+                    self.result.params[parameter].correl
         for f in self.functions:
             for p in f.parameters:
                 p.name = p.original_name
