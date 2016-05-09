@@ -500,8 +500,8 @@ class MainWindow(QtGui.QMainWindow):
         for name in os.listdir(public_path):
             if os.path.isdir(os.path.join(public_path, name)):
                 self.plugin_names.add(name)
-        plugin_paths = [private_path, public_path]
-        for plugin_name in sorted(self.plugin_names):
+        plugin_paths = [private_path, public_path] # Private path overrides public
+        for plugin_name in set(sorted(self.plugin_names)):
             try:
                 self.add_plugin_menu(plugin_name, plugin_paths)
             except Exception as error:

@@ -1480,6 +1480,7 @@ class InstallDialog(BaseDialog):
                         self.close_buttons())
         self.set_title('Installing Plugin')
 
+
     def accept(self):
         plugin_directory = self.get_directory()
         plugin_name = os.path.basename(os.path.normpath(plugin_directory))
@@ -1493,14 +1494,18 @@ class InstallDialog(BaseDialog):
                                                         os.path.join('plugins'))
         installed_path = os.path.join(plugin_path, plugin_name)
         if os.path.exists(installed_path):
-            ret = self.confirm_action("Overwrite?", "Plugin already exists")
+            ret = self.confirm_action("Overwrite plugin?", 
+                                      "Plugin '%s' already exists" % plugin_name)
             if ret == QtGui.QMessageBox.Ok:
                 shutil.rmtree(installed_path)
             else:
                 return
         shutil.copytree(plugin_directory, installed_path)
-        from .consoleapp import _mainwindow
         try:
+            from .consoleapp import _mainwindow
+            for action in [action for action in _mainwindow.menuBar().actions() 
+                           if action.text().lower() == plugin_name.lower()]:
+                _mainwindow.menuBar().removeAction(action)   
             _mainwindow.add_plugin_menu(plugin_name, [plugin_path])
         except Exception as error:
              raise NeXusError(error)                         
