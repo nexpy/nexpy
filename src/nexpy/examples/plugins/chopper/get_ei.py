@@ -1,4 +1,3 @@
-from nexpy.gui.pyqt import QtGui
 import numpy as np
 from nexpy.gui.datadialogs import BaseDialog, GridParameters
 from nexpy.gui.mainwindow import report_error
@@ -16,6 +15,7 @@ def show_dialog(parent=None):
 class EnergyDialog(BaseDialog):
 
     def __init__(self, parent=None):
+
         super(EnergyDialog, self).__init__(parent)
 
         self.select_entry()
