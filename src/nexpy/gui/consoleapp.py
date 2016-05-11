@@ -166,7 +166,8 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
                 nexpy_dir = tempfile.mkdtemp()
             else:
                 os.mkdir(nexpy_dir)
-        for subdirectory in ['functions', 'plugins', 'readers', 'scripts']:
+        for subdirectory in ['backups', 'functions', 'plugins', 'readers', 
+                             'scripts']:
             directory = os.path.join(nexpy_dir, subdirectory)
             if not os.path.exists(directory):
                 os.mkdir(directory)

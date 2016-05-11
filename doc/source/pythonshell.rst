@@ -169,7 +169,7 @@ example, a float64 array can be converted to float32 on assignment::
   dtype('float32')
   >>> b=NXfield('Some Text')
   >>> b.dtype, b.shape
-  (dtype('S9'), ())
+  (dtype('O'), ())
 
 .. note:: Numeric dtypes can be defined either as a string, *e.g.*, 'int16', 
           'float32', or using the numpy dtypes, *e.g.*, np.int16, np.float32.
@@ -179,10 +179,20 @@ example, a float64 array can be converted to float32 on assignment::
              (see the `h5py documentation 
              <http://docs.h5py.org/en/latest/special.html#variable-length-strings>`_).
              As of v0.3.0, if you wish to store fixed length strings, specify 
-             a dtype of 'S' or, *e.g.*, 'S10' when creating the NXfield. Any
+             a dtype of kind 'S', *e.g.*, 'S10' when creating the NXfield. Any
              dtype of kind 'U' (for unicode string in Python 3), will be 
              automatically converted to the variable-length string dtype since
              HDF5 cannot convert them.
+
+.. warning:: If you wish to store an array of strings containing Unicode
+             characters as fixed-length strings, convert them to byte strings
+             first using UTF-8 encoding, *e.g.*::
+             
+               >>> t = [u'a', u'b', u'c', u'd', u'é']
+               >>> a=NXfield(np.array(np.core.defchararray.encode(t, 'utf-8')), 
+                             dtype='S10')
+               >>> a
+               NXfield(array(['a', 'b', 'c', 'd', '\xc3\xa9'], dtype='|S10'))
 
 Similarly, the shape and dimension sizes of an integer or float array is 
 inherited from the assigned numpy array. It is possible to initialize an NXfield
@@ -192,6 +202,8 @@ be created in slabs::
   >>> a=NXfield(dtype=np.float32, shape=[2048,2048,2048])
   >>> a
   NXfield(dtype=float32,shape=(2048, 2048, 2048))
+
+More details of handling large arrays are given below.
 
 NeXus attributes
 ^^^^^^^^^^^^^^^^  
@@ -261,10 +273,10 @@ The mask can then be saved to the NeXus file if required.
              
 Masks can also be set using the Projection panel in the :doc:`pythongui`.
 
-Handling Big Data
-^^^^^^^^^^^^^^^^^
+Large Arrays
+^^^^^^^^^^^^
 If the size of an array is too large to be loaded into memory (as defined by 
-NX_MEMORY), the NXfield can be initialized without any initial values, and then
+NX_MEMORY), the NXfield can be created without any initial values, and then
 filled incrementally as slabs::
 
  >>> entry.data.z = NXfield(shape=(1000,1000,1000), dtype=np.float32)

@@ -309,6 +309,20 @@ class MainWindow(QtGui.QMainWindow):
 
         self.file_menu.addSeparator()
 
+        self.install_plugin_action=QtGui.QAction("Install Plugin",
+            self,
+            triggered=self.install_plugin
+            )
+        self.add_menu_action(self.file_menu, self.install_plugin_action, True)
+
+        self.remove_plugin_action=QtGui.QAction("Remove Plugin",
+            self,
+            triggered=self.remove_plugin
+            )
+        self.add_menu_action(self.file_menu, self.remove_plugin_action, True)
+
+        self.file_menu.addSeparator()
+
         printkey = QtGui.QKeySequence(QtGui.QKeySequence.Print)
         if printkey.matches("Ctrl+P") and sys.platform != 'darwin':
             # Only override the default if there is a collision.
@@ -500,25 +514,30 @@ class MainWindow(QtGui.QMainWindow):
         for name in os.listdir(public_path):
             if os.path.isdir(os.path.join(public_path, name)):
                 self.plugin_names.add(name)
-        self.plugin = {}
-        plugin_paths = [private_path, public_path]
-        for plugin_name in sorted(self.plugin_names):
-            fp = None
+        plugin_paths = [private_path, public_path] # Private path overrides public
+        for plugin_name in set(sorted(self.plugin_names)):
             try:
-                fp, pathname, description = imp.find_module(plugin_name, plugin_paths)
-                plugin_module = imp.load_module(plugin_name, fp, pathname, description)
-                name, actions = plugin_module.plugin_menu()
-                plugin_menu = self.menu_bar.addMenu(name)
-                for action in actions:
-                    self.add_menu_action(plugin_menu, QtGui.QAction(
-                        action[0], self, triggered=action[1]))
+                self.add_plugin_menu(plugin_name, plugin_paths)
             except Exception as error:
                 logging.info(
                 'The "%s" plugin could not be added to the main menu\n%s%s'
                 % (plugin_name, 40*' ', error))
-            finally:
-                if fp:
-                    fp.close()
+
+    def add_plugin_menu(self, plugin_name, plugin_paths):
+        fp = None
+        try:
+            fp, pathname, description = imp.find_module(plugin_name, plugin_paths)
+            plugin_module = imp.load_module(plugin_name, fp, pathname, description)
+            name, actions = plugin_module.plugin_menu()
+            plugin_menu = self.menu_bar.addMenu(name)
+            for action in actions:
+                self.add_menu_action(plugin_menu, QtGui.QAction(
+                    action[0], self, triggered=action[1]))
+        except Exception as error:
+            raise Exception(error)
+        finally:
+            if fp:
+                fp.close()
 
     def init_view_menu(self):
         self.view_menu = self.menu_bar.addMenu("&View")
@@ -781,6 +800,20 @@ class MainWindow(QtGui.QMainWindow):
             triggered=self.guiref_console
             )
         self.add_menu_action(self.help_menu, self.guiref_console_action)
+
+        self.help_menu.addSeparator()
+
+        self.example_file_action=QtGui.QAction("Open Example File",
+            self,
+            triggered=self.open_example_file
+            )
+        self.add_menu_action(self.help_menu, self.example_file_action, True)
+
+        self.example_script_action=QtGui.QAction("Open Example Script",
+            self,
+            triggered=self.open_example_script
+            )
+        self.add_menu_action(self.help_menu, self.example_script_action, True)
 
     def init_recent_menu(self):
         """Add recent files menu item for recently opened files"""
@@ -1077,6 +1110,20 @@ class MainWindow(QtGui.QMainWindow):
                 logging.info("Workspace '%s' imported" % name)
         except NeXusError as error:
             report_error("Importing File", error)
+
+    def install_plugin(self):
+        try:
+            dialog = InstallPluginDialog(self)
+            dialog.show()
+        except NeXusError as error:
+            report_error("Installing Plugin", error)
+
+    def remove_plugin(self):
+        try:
+            dialog = RemovePluginDialog(self)
+            dialog.show()
+        except NeXusError as error:
+            report_error("Removing Plugin", error)
 
     def plot_data(self):
         try:
@@ -1617,6 +1664,26 @@ class MainWindow(QtGui.QMainWindow):
     def _open_ipython_online_help(self):
         filename = "http://ipython.org/ipython-doc/stable/index.html"
         webbrowser.open(filename, new=1, autoraise=True)
+
+    def open_example_file(self):
+        default_directory = self.default_directory
+        self.default_directory = pkg_resources.resource_filename('nexpy', 
+                                                                 'examples')
+        self.open_file()
+        self.default_directory = default_directory
+
+    def open_example_script(self):
+        script_dir = pkg_resources.resource_filename('nexpy', 
+                                            os.path.join('examples', 'scripts'))
+        file_filter = ';;'.join(("Python Files (*.py)",
+                                         "Any Files (*.* *)"))
+        file_name = getOpenFileName(self, 'Open Script', script_dir,
+                                    file_filter)
+        if file_name:
+            editor = NXScriptEditor(file_name, self)
+            self.editors.setVisible(True)
+            self.editors.raise_()
+            logging.info("NeXus script '%s' opened" % file_name)
 
     # minimize/maximize/fullscreen actions:
 
