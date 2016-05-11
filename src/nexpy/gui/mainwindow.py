@@ -789,11 +789,31 @@ class MainWindow(QtGui.QMainWindow):
 
         self.help_menu.addSeparator()
 
-        self.install_action=QtGui.QAction("Install Plugin",
+        self.example_file_action=QtGui.QAction("Open Example File",
+            self,
+            triggered=self.open_example_file
+            )
+        self.add_menu_action(self.help_menu, self.example_file_action, True)
+
+        self.example_script_action=QtGui.QAction("Open Example Script",
+            self,
+            triggered=self.open_example_script
+            )
+        self.add_menu_action(self.help_menu, self.example_script_action, True)
+
+        self.help_menu.addSeparator()
+
+        self.install_plugin_action=QtGui.QAction("Install Plugin",
             self,
             triggered=self.install_plugin
             )
-        self.add_menu_action(self.help_menu, self.install_action, True)
+        self.add_menu_action(self.help_menu, self.install_plugin_action, True)
+
+        self.remove_plugin_action=QtGui.QAction("Remove Plugin",
+            self,
+            triggered=self.remove_plugin
+            )
+        self.add_menu_action(self.help_menu, self.remove_plugin_action, True)
 
     def init_recent_menu(self):
         """Add recent files menu item for recently opened files"""
@@ -1631,12 +1651,39 @@ class MainWindow(QtGui.QMainWindow):
         filename = "http://ipython.org/ipython-doc/stable/index.html"
         webbrowser.open(filename, new=1, autoraise=True)
 
+    def open_example_file(self):
+        default_directory = self.default_directory
+        self.default_directory = pkg_resources.resource_filename('nexpy', 
+                                                                 'examples')
+        self.open_file()
+        self.default_directory = default_directory
+
+    def open_example_script(self):
+        script_dir = pkg_resources.resource_filename('nexpy', 
+                                            os.path.join('examples', 'scripts'))
+        file_filter = ';;'.join(("Python Files (*.py)",
+                                         "Any Files (*.* *)"))
+        file_name = getOpenFileName(self, 'Open Script', script_dir,
+                                    file_filter)
+        if file_name:
+            editor = NXScriptEditor(file_name, self)
+            self.editors.setVisible(True)
+            self.editors.raise_()
+            logging.info("NeXus script '%s' opened" % file_name)
+
     def install_plugin(self):
         try:
-            dialog = InstallDialog(self)
+            dialog = InstallPluginDialog(self)
             dialog.show()
         except NeXusError as error:
             report_error("Installing Plugin", error)
+
+    def remove_plugin(self):
+        try:
+            dialog = RemovePluginDialog(self)
+            dialog.show()
+        except NeXusError as error:
+            report_error("Removing Plugin", error)
 
     # minimize/maximize/fullscreen actions:
 

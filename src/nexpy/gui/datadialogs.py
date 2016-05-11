@@ -20,6 +20,7 @@ import pkg_resources
 import re
 import shutil
 import sys
+from datetime import datetime
 
 from .pyqt import QtGui, QtCore, getOpenFileName
 import numpy as np
@@ -50,6 +51,10 @@ def wrap(text, length):
 def natural_sort(key):
     import re
     return [int(t) if t.isdigit() else t for t in re.split(r'(\d+)', key)]    
+
+
+def timestamp():
+    return datetime.now().strftime('%Y%m%d%H%M%S')
 
 
 class BaseDialog(QtGui.QDialog):
@@ -188,7 +193,7 @@ class BaseDialog(QtGui.QDialog):
         dirname = QtGui.QFileDialog.getExistingDirectory(self, 
                                                          'Choose Directory', 
                                                          dirname)
-        if os.path.exists(dirname):    # avoids problems if <Cancel> was selected
+        if os.path.exists(dirname):  # avoids problems if <Cancel> was selected
             self.directoryname.setText(str(dirname))
             self.set_default_directory(dirname)
 
@@ -1279,6 +1284,9 @@ class SignalDialog(BaseDialog):
     def __init__(self, node, parent=None):
 
         super(SignalDialog, self).__init__(parent)
+
+        from .mainwindow import report_error
+        self.report_error = report_error
  
         if isinstance(node, NXfield):
             self.group = node.nxgroup
@@ -1408,8 +1416,8 @@ class SignalDialog(BaseDialog):
             self.group.nxaxes = axes
             super(SignalDialog, self).accept()
         except NeXusError as error:
-            from .mainwindow import report_error 
-            report_error("Setting signal", error)
+            self.report_error("Setting signal", error)
+            super(SignalDialog, self).reject()
 
     
 class LogDialog(BaseDialog):
@@ -1465,12 +1473,22 @@ class LogDialog(BaseDialog):
         self.setWindowTitle("Log File: %s" % self.file_name)
 
 
-class InstallDialog(BaseDialog):
+class InstallPluginDialog(BaseDialog):
     """Dialog to install a NeXus plugin"""
 
     def __init__(self, node, parent=None):
 
-        super(InstallDialog, self).__init__(parent)
+        super(InstallPluginDialog, self).__init__(parent)
+
+        from .mainwindow import report_error
+        self.report_error = report_error
+ 
+        from .consoleapp import _nexpy_dir, _mainwindow
+        self.mainwindow = _mainwindow
+        self.local_directory = os.path.join(_nexpy_dir, 'plugins')
+        self.nexpy_directory = pkg_resources.resource_filename('nexpy', 
+                                                               'plugins')
+        self.backup_directory = os.path.join(_nexpy_dir, 'backups')
 
         self.setWindowTitle("Install Plugin")
 
@@ -1480,35 +1498,132 @@ class InstallDialog(BaseDialog):
                         self.close_buttons())
         self.set_title('Installing Plugin')
 
+    def get_menu_name(self, plugin_name, plugin_path):
+        try:
+            import imp
+            fp, pathname, desc = imp.find_module(plugin_name, 
+                                                 [os.path.dirname(plugin_path)])
+            plugin_module = imp.load_module(plugin_name, fp, pathname, desc)
+            name, _ = plugin_module.plugin_menu()
+            return name
+        except:
+            return None
 
-    def accept(self):
+    def install_plugin(self):        
         plugin_directory = self.get_directory()
         plugin_name = os.path.basename(os.path.normpath(plugin_directory))
-        if not os.path.exists(os.path.join(plugin_directory, '__init__.py')):
-            raise NeXusError('This directory does not contain a Python package')
+        plugin_menu_name = self.get_menu_name(plugin_name, plugin_directory)
+        if plugin_menu_name is None:
+            raise NeXusError('This directory does not contain a valid plugin')
         if self.radiobutton['local'].isChecked():
-            from .consoleapp import _nexpy_dir
-            plugin_path = os.path.join(_nexpy_dir, 'plugins')
+            plugin_path = self.local_directory
         else:
-            plugin_path = pkg_resources.resource_filename('nexpy', 
-                                                        os.path.join('plugins'))
+            plugin_path = self.nexpy_directory
         installed_path = os.path.join(plugin_path, plugin_name)
         if os.path.exists(installed_path):
             ret = self.confirm_action("Overwrite plugin?", 
                                       "Plugin '%s' already exists" % plugin_name)
             if ret == QtGui.QMessageBox.Ok:
-                shutil.rmtree(installed_path)
+                backup = os.path.join(self.backup_directory, timestamp())
+                os.mkdir(backup)
+                shutil.move(installed_path, backup)
             else:
                 return
         shutil.copytree(plugin_directory, installed_path)
         try:
-            from .consoleapp import _mainwindow
-            for action in [action for action in _mainwindow.menuBar().actions() 
-                           if action.text().lower() == plugin_name.lower()]:
-                _mainwindow.menuBar().removeAction(action)   
-            _mainwindow.add_plugin_menu(plugin_name, [plugin_path])
+            for action in [action for action in self.mainwindow.menuBar().actions() 
+                           if action.text() == plugin_menu_name]:
+                self.mainwindow.menuBar().removeAction(action)   
+            self.mainwindow.add_plugin_menu(plugin_name, [plugin_path])
         except Exception as error:
              raise NeXusError(error)                         
-        super(InstallDialog, self).accept()
+
+    def accept(self):
+        try:
+            self.install_plugin()
+            super(InstallPluginDialog, self).accept()
+        except NeXusError as error:
+            self.report_error("Installing plugin", error)
+
+
+class RemovePluginDialog(BaseDialog):
+    """Dialog to remove a NeXus plugin"""
+
+    def __init__(self, node, parent=None):
+
+        super(RemovePluginDialog, self).__init__(parent)
+
+        from .mainwindow import report_error
+        self.report_error = report_error
+ 
+        from .consoleapp import _nexpy_dir, _mainwindow
+        self.mainwindow = _mainwindow
+        self.local_directory = os.path.join(_nexpy_dir, 'plugins')
+        self.nexpy_directory = pkg_resources.resource_filename('nexpy', 
+                                                               'plugins')
+        self.backup_directory = os.path.join(_nexpy_dir, 'backups')
+
+        self.setWindowTitle("Remove Plugin")
+
+        self.set_layout(self.directorybox('Choose plugin directory'), 
+                        self.radiobuttons(('local', 'Local plugin', True),
+                                          ('nexpy', 'NeXpy plugin', False)), 
+                        self.close_buttons())
+        self.set_title('Removing Plugin')
+        self.radiobutton['local'].clicked.connect(self.set_local_directory)
+        self.radiobutton['nexpy'].clicked.connect(self.set_nexpy_directory)
+        self.set_local_directory()
+
+    def set_local_directory(self):
+        self.set_default_directory(self.local_directory)
+        self.directoryname.setText(self.local_directory)
+
+    def set_nexpy_directory(self):
+        self.set_default_directory(self.nexpy_directory)
+        self.directoryname.setText(self.nexpy_directory)
+
+    def get_menu_name(self, plugin_name, plugin_path):
+        try:
+            import imp
+            fp, pathname, desc = imp.find_module(plugin_name, 
+                                                 [os.path.dirname(plugin_path)])
+            plugin_module = imp.load_module(plugin_name, fp, pathname, desc)
+            name, _ = plugin_module.plugin_menu()
+            return name
+        except:
+            return None
+
+    def remove_plugin(self):
+        plugin_directory = self.get_directory()
+        if (os.path.dirname(plugin_directory) != self.local_directory and
+            os.path.dirname(plugin_directory) != self.nexpy_directory):
+            raise NeXusError("Directory '%s' not in plugins directory"
+                             % plugin_directory)
+        plugin_name = os.path.basename(os.path.normpath(plugin_directory))
+        plugin_menu_name = self.get_menu_name(plugin_name, plugin_directory)
+        if plugin_menu_name is None:
+            raise NeXusError('This directory does not contain a valid plugin')
+        if os.path.exists(plugin_directory):
+            ret = self.confirm_action("Remove '%s'?" % plugin_directory, 
+                                      "This cannot be reversed")
+            if ret == QtGui.QMessageBox.Ok:
+                backup = os.path.join(self.backup_directory, timestamp())
+                os.mkdir(backup)
+                shutil.move(plugin_directory, backup)
+            else:
+                return
+        try:
+            for action in [action for action in self.mainwindow.menuBar().actions() 
+                           if action.text().lower() == plugin_name.lower()]:
+                self.mainwindow.menuBar().removeAction(action)   
+        except Exception as error:
+             raise NeXusError(error)                         
+
+    def accept(self):
+        try:
+            self.remove_plugin()
+            super(RemovePluginDialog, self).accept()
+        except NeXusError as error:
+            self.report_error("Removing plugin", error)
 
     
