@@ -4,11 +4,10 @@
 About these example data files
 ------------------------------
 
-These files are examples of various
-data files that may be read by **NeXpy**, either directly
-through the Open file dialog or indirectly by one or 
-more of the file import handlers.  Either they demonstrate 
-or test features of NeXpy or the :class:`Tree` interface.
+These files are examples of various data files that may be read by **NeXpy**, 
+either directly through the Open file dialog or indirectly by one or more of the 
+file import handlers.  Either they demonstrate or test features of NeXpy or the 
+:class:`Tree` interface.
 
 ==================  ==========  ===================================
 file                type        description
