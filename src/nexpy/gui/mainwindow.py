@@ -309,6 +309,20 @@ class MainWindow(QtGui.QMainWindow):
 
         self.file_menu.addSeparator()
 
+        self.install_plugin_action=QtGui.QAction("Install Plugin",
+            self,
+            triggered=self.install_plugin
+            )
+        self.add_menu_action(self.file_menu, self.install_plugin_action, True)
+
+        self.remove_plugin_action=QtGui.QAction("Remove Plugin",
+            self,
+            triggered=self.remove_plugin
+            )
+        self.add_menu_action(self.file_menu, self.remove_plugin_action, True)
+
+        self.file_menu.addSeparator()
+
         printkey = QtGui.QKeySequence(QtGui.QKeySequence.Print)
         if printkey.matches("Ctrl+P") and sys.platform != 'darwin':
             # Only override the default if there is a collision.
@@ -801,20 +815,6 @@ class MainWindow(QtGui.QMainWindow):
             )
         self.add_menu_action(self.help_menu, self.example_script_action, True)
 
-        self.help_menu.addSeparator()
-
-        self.install_plugin_action=QtGui.QAction("Install Plugin",
-            self,
-            triggered=self.install_plugin
-            )
-        self.add_menu_action(self.help_menu, self.install_plugin_action, True)
-
-        self.remove_plugin_action=QtGui.QAction("Remove Plugin",
-            self,
-            triggered=self.remove_plugin
-            )
-        self.add_menu_action(self.help_menu, self.remove_plugin_action, True)
-
     def init_recent_menu(self):
         """Add recent files menu item for recently opened files"""
         from .consoleapp import _nexpy_dir
@@ -1110,6 +1110,20 @@ class MainWindow(QtGui.QMainWindow):
                 logging.info("Workspace '%s' imported" % name)
         except NeXusError as error:
             report_error("Importing File", error)
+
+    def install_plugin(self):
+        try:
+            dialog = InstallPluginDialog(self)
+            dialog.show()
+        except NeXusError as error:
+            report_error("Installing Plugin", error)
+
+    def remove_plugin(self):
+        try:
+            dialog = RemovePluginDialog(self)
+            dialog.show()
+        except NeXusError as error:
+            report_error("Removing Plugin", error)
 
     def plot_data(self):
         try:
@@ -1670,20 +1684,6 @@ class MainWindow(QtGui.QMainWindow):
             self.editors.setVisible(True)
             self.editors.raise_()
             logging.info("NeXus script '%s' opened" % file_name)
-
-    def install_plugin(self):
-        try:
-            dialog = InstallPluginDialog(self)
-            dialog.show()
-        except NeXusError as error:
-            report_error("Installing Plugin", error)
-
-    def remove_plugin(self):
-        try:
-            dialog = RemovePluginDialog(self)
-            dialog.show()
-        except NeXusError as error:
-            report_error("Removing Plugin", error)
 
     # minimize/maximize/fullscreen actions:
 
