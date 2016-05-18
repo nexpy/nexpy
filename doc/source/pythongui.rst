@@ -324,9 +324,9 @@ Script Menu
 
 Other Menus
 ^^^^^^^^^^^
-The Edit, View, Magic, and Help Menus currently consist of menu items 
-provided by the IPython shell in the Jupyter Qt Console. All the operations 
-act on the shell text.
+The Edit, View, Magic, and Help Menus mostly consist of menu items provided by 
+the Jupyter shell in the Jupyter Qt Console. All these operations act on the 
+shell text.
 
 Adding NeXus Data to the Tree
 -----------------------------
