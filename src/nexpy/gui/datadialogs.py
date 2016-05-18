@@ -391,6 +391,17 @@ class BaseDialog(QtGui.QDialog):
         msgBox.setDefaultButton(QtGui.QMessageBox.Ok)
         return msgBox.exec_()
 
+    def report_error(context, error):
+        title = type(error).__name__ + ': ' + context
+        message_box = QtGui.QMessageBox()
+        message_box.setText(title)
+        message_box.setInformativeText(str(error))
+        message_box.setStandardButtons(QtGui.QMessageBox.Ok)
+        message_box.setDefaultButton(QtGui.QMessageBox.Ok)
+        message_box.setIcon(QtGui.QMessageBox.Warning)
+        return message_box.exec_()
+
+
 
 class GridParameters(OrderedDict):
     """
@@ -728,9 +739,13 @@ class PlotDialog(BaseDialog):
         return [self.get_axis(axis) for axis in range(self.ndim)]
 
     def accept(self):
-        data = NXdata(self.signal, self.get_axes(), title=self.signal.nxtitle)
-        data.plot(fmt=self.fmt)
-        super(PlotDialog, self).accept()
+        try:
+            data = NXdata(self.signal, self.get_axes(), title=self.signal.nxtitle)
+            data.plot(fmt=self.fmt)
+            super(PlotDialog, self).accept()
+        except NeXusError as error:
+            self.report_error("Plotting data", error)
+            super(PlotDialog, self).reject()
 
     
 class LimitDialog(BaseDialog):
@@ -805,15 +820,19 @@ class LimitDialog(BaseDialog):
         return textbox
 
     def accept(self):
-        xmin, xmax = self.xmin_box.value(), self.xmax_box.value() 
-        ymin, ymax = self.ymin_box.value(), self.ymax_box.value()
-        if self.plotview.ndim > 1:
-            vmin, vmax = self.vmin_box.value(), self.vmax_box.value()
-            self.plotview.autoscale = False
-            self.plotview.set_plot_limits(xmin, xmax, ymin, ymax, vmin, vmax)
-        else:
-            self.plotview.set_plot_limits(xmin, xmax, ymin, ymax)
-        super(LimitDialog, self).accept()
+        try:
+            xmin, xmax = self.xmin_box.value(), self.xmax_box.value() 
+            ymin, ymax = self.ymin_box.value(), self.ymax_box.value()
+            if self.plotview.ndim > 1:
+                vmin, vmax = self.vmin_box.value(), self.vmax_box.value()
+                self.plotview.autoscale = False
+                self.plotview.set_plot_limits(xmin, xmax, ymin, ymax, vmin, vmax)
+            else:
+                self.plotview.set_plot_limits(xmin, xmax, ymin, ymax)
+            super(LimitDialog, self).accept()
+        except NeXusError as error:
+            self.report_error("Setting plot limits", error)
+            super(LimitDialog, self).reject()
 
     
 class AddDialog(BaseDialog):
@@ -1285,9 +1304,6 @@ class SignalDialog(BaseDialog):
 
         super(SignalDialog, self).__init__(parent)
 
-        from .mainwindow import report_error
-        self.report_error = report_error
- 
         if isinstance(node, NXfield):
             self.group = node.nxgroup
             signal_name = node.nxname
@@ -1480,9 +1496,6 @@ class InstallPluginDialog(BaseDialog):
 
         super(InstallPluginDialog, self).__init__(parent)
 
-        from .mainwindow import report_error
-        self.report_error = report_error
- 
         from .consoleapp import _nexpy_dir, _mainwindow
         self.mainwindow = _mainwindow
         self.local_directory = os.path.join(_nexpy_dir, 'plugins')
