@@ -31,30 +31,10 @@ try:
 except ImportError:
     from ordereddict import OrderedDict
 
+from .utils import confirm_action, natural_sort, report_error, timestamp, wrap
+
 from nexusformat.nexus import (NeXusError, NXgroup, NXfield, NXattr,
                                NXroot, NXentry, NXdata, NXparameters)
-
-
-def wrap(text, length):
-    words = text.split()
-    lines = []
-    line = ''
-    for w in words:
-        if len(w) + len(line) > length:
-            lines.append(line)
-            line = ''
-        line = line + w + ' '
-        if w is words[-1]: lines.append(line)
-    return '\n'.join(lines)
-
-
-def natural_sort(key):
-    import re
-    return [int(t) if t.isdigit() else t for t in re.split(r'(\d+)', key)]    
-
-
-def timestamp():
-    return datetime.now().strftime('%Y%m%d%H%M%S')
 
 
 class BaseDialog(QtGui.QDialog):
@@ -75,6 +55,7 @@ class BaseDialog(QtGui.QDialog):
         self.radiobutton = {}
         if parent is None:
             parent = self.mainwindow
+        self.confirm_action, self.report_error = confirm_action, report_error
         super(BaseDialog, self).__init__(parent)
 
     def set_layout(self, *items):
@@ -381,26 +362,6 @@ class BaseDialog(QtGui.QDialog):
         Return the node currently selected in the treeview
         """
         return self.treeview.get_node()
-
-    def confirm_action(self, query, information=None):
-        msgBox = QtGui.QMessageBox()
-        msgBox.setText(query)
-        if information:
-            msgBox.setInformativeText(information)
-        msgBox.setStandardButtons(QtGui.QMessageBox.Ok | QtGui.QMessageBox.Cancel)
-        msgBox.setDefaultButton(QtGui.QMessageBox.Ok)
-        return msgBox.exec_()
-
-    def report_error(context, error):
-        title = type(error).__name__ + ': ' + context
-        message_box = QtGui.QMessageBox()
-        message_box.setText(title)
-        message_box.setInformativeText(str(error))
-        message_box.setStandardButtons(QtGui.QMessageBox.Ok)
-        message_box.setDefaultButton(QtGui.QMessageBox.Ok)
-        message_box.setIcon(QtGui.QMessageBox.Warning)
-        return message_box.exec_()
-
 
 
 class GridParameters(OrderedDict):
@@ -744,7 +705,7 @@ class PlotDialog(BaseDialog):
             data.plot(fmt=self.fmt)
             super(PlotDialog, self).accept()
         except NeXusError as error:
-            self.report_error("Plotting data", error)
+            report_error("Plotting data", error)
             super(PlotDialog, self).reject()
 
     
@@ -831,7 +792,7 @@ class LimitDialog(BaseDialog):
                 self.plotview.set_plot_limits(xmin, xmax, ymin, ymax)
             super(LimitDialog, self).accept()
         except NeXusError as error:
-            self.report_error("Setting plot limits", error)
+            report_error("Setting plot limits", error)
             super(LimitDialog, self).reject()
 
     
@@ -1432,7 +1393,7 @@ class SignalDialog(BaseDialog):
             self.group.nxaxes = axes
             super(SignalDialog, self).accept()
         except NeXusError as error:
-            self.report_error("Setting signal", error)
+            report_error("Setting signal", error)
             super(SignalDialog, self).reject()
 
     
@@ -1556,7 +1517,7 @@ class InstallPluginDialog(BaseDialog):
             self.install_plugin()
             super(InstallPluginDialog, self).accept()
         except NeXusError as error:
-            self.report_error("Installing plugin", error)
+            report_error("Installing plugin", error)
 
 
 class RemovePluginDialog(BaseDialog):
@@ -1565,9 +1526,6 @@ class RemovePluginDialog(BaseDialog):
     def __init__(self, node, parent=None):
 
         super(RemovePluginDialog, self).__init__(parent)
-
-        from .mainwindow import report_error
-        self.report_error = report_error
  
         from .consoleapp import _nexpy_dir, _mainwindow
         self.mainwindow = _mainwindow
@@ -1637,6 +1595,6 @@ class RemovePluginDialog(BaseDialog):
             self.remove_plugin()
             super(RemovePluginDialog, self).accept()
         except NeXusError as error:
-            self.report_error("Removing plugin", error)
+            report_error("Removing plugin", error)
 
     

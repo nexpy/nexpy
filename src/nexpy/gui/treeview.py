@@ -16,14 +16,10 @@ import os
 import pkg_resources
 
 from .pyqt import QtCore, QtGui
+from .utils import natural_sort
 from nexusformat.nexus import *
 
 
-def natural_sort(key):
-    import re
-    return [int(t) if t.isdigit() else t for t in re.split(r'(\d+)', key)]
-
-    
 class NXtree(NXgroup):
     """
     NXtree group. This is a subclass of the NXgroup class.

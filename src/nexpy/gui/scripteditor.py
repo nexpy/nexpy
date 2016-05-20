@@ -21,6 +21,7 @@ from pygments.formatter import Formatter
 from .pyqt import QtCore, QtGui, getSaveFileName
 
 from .datadialogs import BaseDialog
+from .utils import confirm_action
 
 
 def hex2QColor(c):
@@ -280,7 +281,7 @@ class NXScriptEditor(QtGui.QWidget):
 
     def delete_script(self):
         if self.file_name:
-            ret = self.confirm_action(
+            ret = confirm_action(
                       "Are you sure you want to delete '%s'?" % self.file_name,
                       "This cannot be reversed")
             if ret == QtGui.QMessageBox.Ok:
@@ -288,16 +289,6 @@ class NXScriptEditor(QtGui.QWidget):
                 from .consoleapp import _mainwindow
                 _mainwindow.remove_script_action(self.file_name)
                 self.close()
-
-    def confirm_action(self, query, information=None):
-        message_box = QtGui.QMessageBox()
-        message_box.setText(query)
-        if information:
-            message_box.setInformativeText(information)
-        message_box.setStandardButtons(QtGui.QMessageBox.Ok | 
-                                       QtGui.QMessageBox.Cancel)
-        message_box.setDefaultButton(QtGui.QMessageBox.Ok)
-        return message_box.exec_()
 
     def close(self):
         self.window.tabs.removeTab(self.index)

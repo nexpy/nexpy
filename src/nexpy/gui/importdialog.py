@@ -49,8 +49,4 @@ class BaseImportDialog(BaseDialog):
         from .consoleapp import _mainwindow
         _mainwindow.import_data()
         super(BaseImportDialog, self).accept()
-        
-
-def natural_sort(key):
-    import re
-    return [int(t) if t.isdigit() else t for t in re.split(r'(\d+)', key)]    
+ 

@@ -24,6 +24,7 @@ import numpy as np
 from nexusformat.nexus import (NeXusError, NXgroup, NXfield, NXattr,
                                NXroot, NXentry, NXdata, NXparameters)
 from .datadialogs import BaseDialog
+from .utils import report_error
 
 from ..api.frills.fit import Fit, Function, Parameter
 
@@ -408,7 +409,6 @@ class FitDialog(BaseDialog):
             use_errors = True
         else:
             use_errors = False
-        from .mainwindow import report_error
         try:
             self.fit = Fit(self.data, self.functions, use_errors)
             self.fit.fit_data()

@@ -1,7 +1,7 @@
 from nexpy.gui.pyqt import QtGui
 import numpy as np
 from nexpy.gui.datadialogs import BaseDialog, GridParameters
-from nexpy.gui.mainwindow import report_error
+from nexpy.gui.utils import report_error
 from nexusformat.nexus import NXfield, NXdata, NeXusError
 from nexusformat.nexus.tree import centers
 

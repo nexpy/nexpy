@@ -46,18 +46,7 @@ from .treeview import NXTreeView
 from .plotview import NXPlotView, NXProjectionPanels
 from .datadialogs import *
 from .scripteditor import NXScriptWindow, NXScriptEditor
-
-
-def report_error(context, error):
-    title = type(error).__name__ + ': ' + context
-    message_box = QtGui.QMessageBox()
-    message_box.setText(title)
-    message_box.setInformativeText(str(error))
-    message_box.setStandardButtons(QtGui.QMessageBox.Ok)
-    message_box.setDefaultButton(QtGui.QMessageBox.Ok)
-    message_box.setIcon(QtGui.QMessageBox.Warning)
-    return message_box.exec_()
-# logging.basicConfig(level=logging.DEBUG)
+from .utils import confirm_action, report_error
 
 
 class NXRichJupyterWidget(RichJupyterWidget):
@@ -1030,8 +1019,7 @@ class MainWindow(QtGui.QMainWindow):
             path = node.nxpath
             root = node.nxroot
             name = root.nxname
-            ret = self.confirm_action(
-                  "Are you sure you want to reload '%s'?" % name)
+            ret = confirm_action("Are you sure you want to reload '%s'?" % name)
             if ret == QtGui.QMessageBox.Ok:
                 self.treeview.tree.reload(name)
                 logging.info("Workspace '%s' reloaded" % name)
@@ -1047,7 +1035,7 @@ class MainWindow(QtGui.QMainWindow):
             node = self.treeview.get_node()
             name = node.nxname
             if isinstance(node, NXroot):
-                ret = self.confirm_action(
+                ret = confirm_action(
                           "Are you sure you want to remove '%s'?" % name)
                 if ret == QtGui.QMessageBox.Ok:
                     del self.treeview.tree[name]
@@ -1069,7 +1057,7 @@ class MainWindow(QtGui.QMainWindow):
         try:
             node = self.treeview.get_node()
             if isinstance(node, NXroot):
-                ret = self.confirm_action(
+                ret = confirm_action(
                           "Are you sure you want to unlock the file?",
                           "Changes to an unlocked file cannot be reversed")
                 if ret == QtGui.QMessageBox.Ok:

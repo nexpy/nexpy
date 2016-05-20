@@ -45,6 +45,7 @@ from mpl_toolkits.axisartist.grid_finder import MaxNLocator
 from nexusformat.nexus import NXfield, NXdata, NXroot, NeXusError
 
 from .datadialogs import BaseDialog, GridParameters
+from .utils import report_error
 
 plotview = None
 plotviews = {}
@@ -64,11 +65,6 @@ linestyles = {'-': 'Solid', '--': 'Dashed', '-.': 'DashDot', ':': 'Dotted',
               'none': 'None', 'None': 'None'}
 markers = markers.MarkerStyle.markers
 locator = MaxNLocator(nbins=9, steps=[1, 2, 5, 10])
-
-
-def report_error(context, error):
-    from .mainwindow import report_error
-    report_error(context, error)
 
 
 def new_figure_manager(label=None, *args, **kwargs):
@@ -2668,7 +2664,12 @@ class CustomizeDialog(BaseDialog):
             self.curve_layout.setContentsMargins(0, 20, 0, 0)
             self.curve_box = self.select_box(list(self.curves),
                                              slot=self.select_curve)
-            self.curve_layout.addWidget(self.curve_box)
+            self.curve_box.setMinimumWidth(200)
+            layout = QtGui.QHBoxLayout()
+            layout.addStretch()
+            layout.addWidget(self.curve_box)
+            layout.addStretch()
+            self.curve_layout.addLayout(layout)
             for curve in self.curves:
                 self.parameters[curve] = self.curve_parameters(curve)
                 self.update_curve_parameters(curve)
@@ -2704,9 +2705,9 @@ class CustomizeDialog(BaseDialog):
 
     def update_labels(self):
         pl = self.parameters['labels']
-        pl['title'].value = plotview.title
-        pl['xlabel'].value = plotview.xaxis.label
-        pl['ylabel'].value = plotview.yaxis.label
+        pl['title'].value = self.plotview.title
+        pl['xlabel'].value = self.plotview.xaxis.label
+        pl['ylabel'].value = self.plotview.yaxis.label
 
     def image_parameters(self):
         parameters = GridParameters()
@@ -2734,6 +2735,8 @@ class CustomizeDialog(BaseDialog):
     def get_curves(self):
         lines = self.plotview.ax.get_lines()
         labels = [line.get_label() for line in lines]
+        for (i,label) in enumerate(labels):
+            labels[i] = '%d: ' % (i+1) + labels[i]
         return dict(zip(labels, lines))
 
     def update_curves(self):
