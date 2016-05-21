@@ -1338,15 +1338,6 @@ class MainWindow(QtGui.QMainWindow):
         except NeXusError as error:
             report_error("Fitting Data", error)
 
-    def confirm_action(self, query, information=None):
-        message_box = QtGui.QMessageBox()
-        message_box.setText(query)
-        if information:
-            message_box.setInformativeText(information)
-        message_box.setStandardButtons(QtGui.QMessageBox.Ok | QtGui.QMessageBox.Cancel)
-        message_box.setDefaultButton(QtGui.QMessageBox.Ok)
-        return message_box.exec_()
-
     def input_base_classes(self):
         base_class_path = pkg_resources.resource_filename(
                               'nexpy', 'definitions/base_classes')
