@@ -20,7 +20,6 @@ import pkg_resources
 import re
 import shutil
 import sys
-from datetime import datetime
 
 from .pyqt import QtGui, QtCore, getOpenFileName
 import numpy as np
@@ -969,7 +968,7 @@ class AddDialog(BaseDialog):
                 try:
                     return eval(value, {"__builtins__": {}}, _shell)
                 except Exception:
-                    return str(value)
+                    return value
         else:
             return None
 
@@ -1212,50 +1211,6 @@ class RenameDialog(BaseDialog):
             if self.combo_box is not None:
                 self.node.nxclass = self.get_class()
         super(RenameDialog, self).accept()
-
-    
-class RemoveDialog(BaseDialog):
-    """Dialog to remove a NeXus node from the tree"""
- 
-    def __init__(self, node, parent=None):
-
-        super(RemoveDialog, self).__init__(parent)
- 
-        self.node = node
- 
-        layout = QtGui.QVBoxLayout()
-        layout.addWidget(QtGui.QLabel('Are you sure you want to remove "%s"?' 
-                                      % node.nxname))
-        layout.addWidget(self.close_buttons()) 
-        self.setLayout(layout)
-
-        self.setWindowTitle("Remove NeXus File")
-
-    def accept(self):
-        del self.node.nxgroup[self.node.nxname]
-        super(RemoveDialog, self).accept()
-
-    
-class DeleteDialog(BaseDialog):
-    """Dialog to delete a NeXus node"""
- 
-    def __init__(self, node, parent=None):
-
-        super(DeleteDialog, self).__init__(parent)
- 
-        self.node = node
- 
-        layout = QtGui.QVBoxLayout()
-        layout.addWidget(QtGui.QLabel('Are you sure you want to delete "%s"?' 
-                                      % node.nxname))
-        layout.addWidget(self.close_buttons()) 
-        self.setLayout(layout)
-
-        self.setWindowTitle("Delete NeXus Data")
-
-    def accept(self):
-        del self.node.nxgroup[self.node.nxname]
-        super(DeleteDialog, self).accept()
 
     
 class SignalDialog(BaseDialog):

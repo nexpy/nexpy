@@ -1263,10 +1263,12 @@ class MainWindow(QtGui.QMainWindow):
             node = self.treeview.get_node()
             if node is not None:
                 if node.nxroot.nxfilemode != 'r':
-                    path = node.nxpath
-                    dialog = DeleteDialog(node, self)
-                    dialog.show()
-                    logging.info("'%s' deleted" % path)
+                    ret = confirm_action('Are you sure you want to delete "%s"?'
+                                         % (node.nxroot.nxname+node.nxpath))
+                    if ret == QtGui.QMessageBox.Ok:
+                        del node.nxgroup[node.nxname]
+                        logging.info("'%s' deleted" % 
+                                     (node.nxroot.nxname+node.nxpath))
                 else:
                     raise NeXusError("NeXus file is locked")
         except NeXusError as error:
