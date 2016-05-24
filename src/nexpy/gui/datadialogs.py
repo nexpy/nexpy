@@ -97,6 +97,22 @@ class BaseDialog(QtGui.QDialog):
              layout.addStretch()
         return layout
 
+    def labels(self, *labels, **opts):
+        if 'align' in opts:
+            align = opts['align']
+        else:
+            align = 'center'
+        layout = QtGui.QVBoxLayout()
+        for label in labels:
+            horizontal_layout = QtGui.QHBoxLayout()
+            if align == 'center' or align == 'right':
+                horizontal_layout.addStretch()
+            horizontal_layout.addWidget(QtGui.QLabel(label))
+            if align == 'center' or align == 'left':
+                horizontal_layout.addStretch()
+            layout.addLayout(horizontal_layout)
+        return layout
+
     def checkboxes(self, *items):
         layout = QtGui.QHBoxLayout()
         layout.addStretch()
@@ -1405,10 +1421,42 @@ class LogDialog(BaseDialog):
         self.setWindowTitle("Log File: %s" % self.file_name)
 
 
+class UnlockDialog(BaseDialog):
+    """Dialog to unlock a file"""
+
+    def __init__(self, node, parent=None):
+
+        super(UnlockDialog, self).__init__(parent)
+
+        self.setWindowTitle("Unlock File")
+        self.node = node
+
+        self.set_layout(self.labels(
+                            "<b>Are you sure you want to unlock the file?</b>"),
+                        self.checkboxes(('backup', 'Backup File', True)), 
+                        self.close_buttons())
+        self.set_title('Unlocking File')
+
+    def accept(self):
+        try:
+            if self.checkbox['backup'].isChecked():
+                from .consoleapp import _nexpy_dir
+                dir = os.path.join(_nexpy_dir, 'backups', timestamp())
+                os.mkdir(dir)
+                self.node.backup(dir=dir)
+                logging.info("Workspace '%s' backed up to '%s'" 
+                             % (self.node.nxname, self.node.nxbackup))
+            self.node.unlock()
+            logging.info("Workspace '%s' unlocked" % self.node.nxname)
+            super(UnlockDialog, self).accept()
+        except NeXusError as error:
+            report_error("Unlocking file", error)
+
+
 class InstallPluginDialog(BaseDialog):
     """Dialog to install a NeXus plugin"""
 
-    def __init__(self, node, parent=None):
+    def __init__(self, parent=None):
 
         super(InstallPluginDialog, self).__init__(parent)
 
@@ -1478,7 +1526,7 @@ class InstallPluginDialog(BaseDialog):
 class RemovePluginDialog(BaseDialog):
     """Dialog to remove a NeXus plugin"""
 
-    def __init__(self, node, parent=None):
+    def __init__(self, parent=None):
 
         super(RemovePluginDialog, self).__init__(parent)
  

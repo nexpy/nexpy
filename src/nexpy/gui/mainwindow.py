@@ -46,7 +46,7 @@ from .treeview import NXTreeView
 from .plotview import NXPlotView, NXProjectionPanels
 from .datadialogs import *
 from .scripteditor import NXScriptWindow, NXScriptEditor
-from .utils import confirm_action, report_error
+from .utils import confirm_action, report_error, timestamp
 
 
 class NXRichJupyterWidget(RichJupyterWidget):
@@ -291,6 +291,21 @@ class MainWindow(QtGui.QMainWindow):
             triggered=self.unlock_file
             )
         self.add_menu_action(self.file_menu, self.unlockfile_action, True)
+
+        self.file_menu.addSeparator()
+
+        self.backup_action=QtGui.QAction("&Backup File",
+            self,
+            shortcut=QtGui.QKeySequence("Ctrl+B"),
+            triggered=self.backup_file
+            )
+        self.add_menu_action(self.file_menu, self.backup_action, True)
+
+        self.restore_action=QtGui.QAction("Restore Backup",
+            self,
+            triggered=self.restore_file
+            )
+        self.add_menu_action(self.file_menu, self.restore_action, True)
 
         self.file_menu.addSeparator()
 
@@ -1050,6 +1065,8 @@ class MainWindow(QtGui.QMainWindow):
                 node.lock()
                 self.treeview.update()
                 logging.info("Workspace '%s' locked" % node.nxname)
+            else:
+                raise NeXusError("Can only lock a NXroot group")
         except NeXusError as error:
             report_error("Locking File", error)
 
@@ -1057,15 +1074,45 @@ class MainWindow(QtGui.QMainWindow):
         try:
             node = self.treeview.get_node()
             if isinstance(node, NXroot):
-                ret = confirm_action(
-                          "Are you sure you want to unlock the file?",
-                          "Changes to an unlocked file cannot be reversed")
-                if ret == QtGui.QMessageBox.Ok:
-                    node.unlock()
-                    self.treeview.update()
-                    logging.info("Workspace '%s' unlocked" % node.nxname)
+                dialog = UnlockDialog(node, self)
+                dialog.show()
+                self.treeview.update()
+            else:
+                raise NeXusError("Can only unlock a NXroot group")
         except NeXusError as error:
             report_error("Unlocking File", error)
+
+    def backup_file(self):
+        try:
+            node = self.treeview.get_node()
+            if isinstance(node, NXroot):
+                from .consoleapp import _nexpy_dir
+                dir = os.path.join(_nexpy_dir, 'backups', timestamp())
+                os.mkdir(dir)
+                node.backup(dir=dir)
+                logging.info("Workspace '%s' backed up to '%s'" 
+                             % (node.nxname, node.nxbackup))
+            else:
+                raise NeXusError("Can only backup a NXroot group")
+        except NeXusError as error:
+            report_error("Backing Up File", error)
+
+    def restore_file(self):
+        try:
+            node = self.treeview.get_node()
+            if isinstance(node, NXroot):
+                ret = confirm_action(
+                          "Are you sure you want to restore the file?",
+                          "This will overwrite the current contents of '%s'"
+                          % node.nxname)
+                if ret == QtGui.QMessageBox.Ok:
+                    node.restore(overwrite=True)
+                    self.treeview.update()
+                    logging.info("Workspace '%s' backed up" % node.nxname)
+            else:
+                raise NeXusError("Can only restore a NXroot group")
+        except NeXusError as error:
+            report_error("Restoring File", error)
 
     def show_import_dialog(self):
         try:

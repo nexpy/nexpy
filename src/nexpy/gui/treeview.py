@@ -294,6 +294,8 @@ class NXTreeView(QtGui.QTreeView):
         self.remove_action=QtGui.QAction("Remove...", self, triggered=self.remove)
         self.lockfile_action=QtGui.QAction("Lock", self, triggered=self.lock_file)
         self.unlockfile_action=QtGui.QAction("Unlock...", self, triggered=self.unlock_file)
+        self.backup_action=QtGui.QAction("Backup", self, triggered=self.backup_file)
+        self.restore_action=QtGui.QAction("Restore...", self, triggered=self.restore_file)
 
     def popMenu(self, node):
         menu = QtGui.QMenu(self)
@@ -344,14 +346,22 @@ class NXTreeView(QtGui.QTreeView):
         if isinstance(node, NXroot) and node.nxfilemode:
             menu.addAction(self.duplicate_action)
             menu.addSeparator()
+        if node.nxfilemode:
+            menu.addAction(self.reload_action)
+        if isinstance(node, NXroot) and node.nxfilemode:
+            menu.addAction(self.duplicate_action)
+            menu.addSeparator()
+            menu.addAction(self.remove_action)
+            menu.addSeparator()
             if node.nxfilemode == 'r':
                 menu.addAction(self.unlockfile_action)
             else:
                 menu.addAction(self.lockfile_action)
             menu.addSeparator()
-            menu.addAction(self.remove_action)
-        if node.nxfilemode:
-            menu.addAction(self.reload_action)
+            menu.addAction(self.backup_action)
+            if node.nxbackup:
+                menu.addAction(self.restore_action)
+            menu.addSeparator
         return menu
 
     def save_file(self):
@@ -371,6 +381,12 @@ class NXTreeView(QtGui.QTreeView):
 
     def unlock_file(self):
         self.mainwindow.unlock_file()
+
+    def backup_file(self):
+        self.mainwindow.backup_file()
+
+    def restore_file(self):
+        self.mainwindow.restore_file()
 
     def plot_data(self):
         self.mainwindow.plot_data()
