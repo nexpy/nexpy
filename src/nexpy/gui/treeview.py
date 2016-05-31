@@ -26,12 +26,15 @@ class NXtree(NXgroup):
 
     It is used as the invisible root item for NeXpy tree views.
     """
-    nxclass = 'NXtree'
-    nxname = 'tree'
     _model = None
     _view = None
     _item = None
 
+    def __init__(self):
+        self._class = 'NXtree'
+        self._name = 'tree'
+        self._entries = {}
+        
     def __setitem__(self, key, value):
         if isinstance(value, NXroot):
             if key not in self._entries:

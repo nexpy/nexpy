@@ -947,6 +947,8 @@ class NXPlotView(QtGui.QDialog):
             self._grid = True
         else:
             self._grid = not self._grid
+        if 'linestyle' not in opts:
+            opts['linestyle'] = ':'
         if 'color' not in opts:
             opts['color'] = 'w'
         self.ax.grid(self._grid, **opts)

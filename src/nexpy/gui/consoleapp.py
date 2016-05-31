@@ -158,7 +158,7 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
 
     def init_dir(self):
         """Initialize NeXpy home directory"""
-        home_dir = os.path.realpath(os.path.expanduser('~'))
+        home_dir = os.path.abspath(os.path.expanduser('~'))
         nexpy_dir = os.path.join(home_dir, '.nexpy')
         if not os.path.exists(nexpy_dir):
             parent = os.path.dirname(nexpy_dir)
