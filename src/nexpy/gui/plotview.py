@@ -1199,7 +1199,7 @@ class NXPlotView(QtGui.QDialog):
             else:
                 row = np.searchsorted(plotview.yaxis.boundaries-y, 0.0) - 1
             z = self.v[row,col]
-            return 'x=%1.4f y=%1.4f\nv=%1.4g'%(x, y, z)
+            return 'x={:.4g} y={:.4g}\nv={:.4g}'.format(x, y, z)
         except:
             return ''
 
@@ -2642,6 +2642,18 @@ class NXNavigationToolbar(NavigationToolbar):
             self.plotview.aspect = 'equal'
         else:
             self.plotview.aspect = 'auto'
+
+    def mouse_move(self, event):
+        self._set_cursor(event)
+        if event.inaxes and event.inaxes.get_navigate():
+            try:
+                s = self.plotview.format_coord(event.xdata, event.ydata)
+            except (ValueError, OverflowError):
+                pass
+            self.set_message(s)
+        else:
+            self.set_message('')
+
 
 class CustomizeDialog(BaseDialog):
 
