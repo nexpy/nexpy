@@ -44,6 +44,7 @@ from mpl_toolkits.axisartist.grid_finder import MaxNLocator
 
 from nexusformat.nexus import NXfield, NXdata, NXroot, NeXusError
 
+from .. import __version__
 from .datadialogs import BaseDialog, GridParameters
 from .utils import report_error
 
@@ -255,8 +256,13 @@ class NXPlotView(QtGui.QDialog):
             self.show()
 
         #Initialize the plotting window with a token plot
-        self.plot(NXdata(signal=NXfield([0,1], name='y'),
-                  axes=NXfield([0,1], name='x')), fmt='wo', mec='w')
+        if self.label == "Main":
+            logo = mpl.image.imread(pkg_resources.resource_filename(
+                                    'nexpy.gui', 'resources/icon/NeXpy.png'))
+            self.plot(NXdata(signal=NXfield(logo[180:880,50:1010], name='z'),
+                             axes=(NXfield(np.arange(700,0,-1), name='y'), 
+                                   NXfield(np.arange(960), name='x')),
+                             title='NeXpy v'+__version__), image=True)
 
     def __repr__(self):
         return 'NXPlotView("%s")' % self.label
@@ -427,6 +433,7 @@ class NXPlotView(QtGui.QDialog):
             self.replot_axes(draw=False)
 
         self.offsets = False
+        self.aspect = self._aspect
 
         self.draw()
         self.otab.push_current()
