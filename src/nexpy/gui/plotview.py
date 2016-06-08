@@ -260,8 +260,8 @@ class NXPlotView(QtGui.QDialog):
             logo = mpl.image.imread(pkg_resources.resource_filename(
                                     'nexpy.gui', 'resources/icon/NeXpy.png'))
             self.plot(NXdata(signal=NXfield(logo[180:880,50:1010], name='z'),
-                             axes=(NXfield(np.arange(700,0,-1), name='y'), 
-                                   NXfield(np.arange(960), name='x')),
+                             axes=(NXfield(1.145*np.arange(700,0,-1), name='y'), 
+                                   NXfield(1.045*np.arange(960), name='x')),
                              title='NeXpy v'+__version__), image=True)
 
     def __repr__(self):
@@ -599,7 +599,6 @@ class NXPlotView(QtGui.QDialog):
         subplot = Subplot(self.figure, 1, 1, 1, grid_helper=self.grid_helper)
         ax = self.figure.add_subplot(subplot)
         ax.autoscale(enable=True)
-        ax.format_coord = self.format_coord
 
         if self.xaxis.reversed:
             left, right = self.xaxis.max, self.xaxis.min
@@ -1200,7 +1199,7 @@ class NXPlotView(QtGui.QDialog):
                 row = np.searchsorted(plotview.yaxis.boundaries-y, 0.0) - 1
             z = self.v[row,col]
             return 'x={:.4g} y={:.4g}\nv={:.4g}'.format(x, y, z)
-        except:
+        except Exception:
             return ''
 
     def close_view(self):

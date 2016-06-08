@@ -32,6 +32,10 @@ import sys
 import webbrowser
 import xml.etree.ElementTree as ET
 from threading import Thread
+try:
+    from configparser import ConfigParser
+except ImportError:
+    from ConfigParser import ConfigParser
 
 from .pyqt import QtGui, QtCore, getOpenFileName, getSaveFileName
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
@@ -87,6 +91,7 @@ class MainWindow(QtGui.QMainWindow):
         self._app.setStyle("QMacStyle")
         self.config = config
         self.default_directory = os.path.expanduser('~')
+        self.settings = ConfigParser()
         self.copied_node = None
 
         mainwindow = QtGui.QWidget()
@@ -822,9 +827,9 @@ class MainWindow(QtGui.QMainWindow):
     def init_recent_menu(self):
         """Add recent files menu item for recently opened files"""
         from .consoleapp import _nexpy_dir
-        self.settings = QtCore.QSettings(
-            os.path.join(_nexpy_dir, "settings.ini"), QtCore.QSettings.IniFormat)
-        recent_files = self.settings.value("recent/recentFiles")
+        self.settings.read(os.path.join(_nexpy_dir, "settings.ini"))
+        recent_files = [f.strip() for f in 
+                        self.settings.get("recent", "recentFiles").split(',')]
         self.recent_menu = self.file_menu.addMenu("Open Recent")
         self.recent_menu.hovered.connect(self.hover_recent_menu)
         self.recent_file_actions = {}
@@ -938,9 +943,9 @@ class MainWindow(QtGui.QMainWindow):
 
     def update_recent_files(self, recent_file):
         from .consoleapp import _nexpy_dir
-        self.settings = QtCore.QSettings(
-            os.path.join(_nexpy_dir, "settings.ini"), QtCore.QSettings.IniFormat)
-        recent_files = self.settings.value("recent/recentFiles")
+        self.settings.read(os.path.join(_nexpy_dir, "settings.ini"))
+        recent_files = [f.strip() for f in 
+                        self.settings.get("recent", "recentFiles").split(',')]
         if recent_files is None:
             recent_files = []
         elif isinstance(recent_files, six.text_type):
@@ -963,7 +968,9 @@ class MainWindow(QtGui.QMainWindow):
                 action.setToolTip(recent_file)
                 self.add_menu_action(self.recent_menu, action, self)
             self.recent_file_actions[action] = (i, recent_file)
-        self.settings.setValue("recent/recentFiles", recent_files)
+        self.settings.set("recent", "recentFiles", ", ".join(recent_files))
+        with open(os.path.join(_nexpy_dir, "settings.ini"), 'w') as f:
+            self.settings.write(f)
 
     def save_file(self):
         try:
