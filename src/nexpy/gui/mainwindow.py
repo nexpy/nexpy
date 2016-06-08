@@ -988,12 +988,11 @@ class MainWindow(QtGui.QMainWindow):
                                     self.file_filter)
             if fname:
                 old_name = node.nxname
-                node.save(fname)
-                if existing:
-                    name = self.treeview.tree.get_name(fname)
-                    self.treeview.tree[name] = self.user_ns[name] = nxload(fname, 'rw')
-                    del self.treeview.tree[old_name]
-                    self.treeview.select_node(self.treeview.tree[name])
+                root = node.save(fname)
+                del self.treeview.tree[old_name]
+                name = self.treeview.tree.get_name(fname)
+                self.treeview.tree[name] = self.user_ns[name] = root
+                self.treeview.select_node(self.treeview.tree[name])
                 self.treeview.update()
                 self.default_directory = os.path.dirname(fname)
                 logging.info("NeXus workspace '%s' saved as '%s'"
