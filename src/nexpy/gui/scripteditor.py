@@ -160,14 +160,17 @@ class NXScriptEditor(QtGui.QWidget):
  
     def __init__(self, file_name=None, parent=None):
 
-        from .consoleapp import _mainwindow
-        self.window = _mainwindow.editors
+        if parent is None:
+            from .consoleapp import _mainwindow
+            self.mainwindow = _mainwindow
+        else:
+            self.mainwindow = parent
+        self.window = self.mainwindow.editors
 
         QtGui.QWidget.__init__(self, parent=self.window.tabs)
  
         self.file_name = file_name
-        from .consoleapp import _nexpy_dir
-        self.default_directory = os.path.join(_nexpy_dir, 'scripts')
+        self.default_directory = self.mainwindow.script_dir
 
         layout = QtGui.QVBoxLayout()
         self.text_layout = QtGui.QHBoxLayout()
@@ -247,17 +250,16 @@ class NXScriptEditor(QtGui.QWidget):
             self.number_box.setStyleSheet("QLabel {padding: 1px 0}")
 
     def run_script(self):
-        from .consoleapp import _mainwindow
         text = self.get_text()
         if 'sys.argv' in text:
             file_name = tempfile.mkstemp('.py')[1]
             with open(file_name, 'w') as f:
                 f.write(self.get_text())
             args = self.argument_box.text()
-            _mainwindow.console.execute('run -i %s %s' % (file_name, args))
+            self.mainwindow.console.execute('run -i %s %s' % (file_name, args))
             os.remove(file_name)
         else:
-            _mainwindow.console.execute(self.get_text())
+            self.mainwindow.console.execute(self.get_text())
 
     def save_script(self):
         if self.file_name:
@@ -275,8 +277,7 @@ class NXScriptEditor(QtGui.QWidget):
                 f.write(self.get_text())
             self.file_name = file_name
             self.window.tabs.setTabText(self.index, os.path.basename(self.file_name))
-            from .consoleapp import _mainwindow
-            _mainwindow.add_script_action(self.file_name)
+            self.mainwindow.add_script_action(self.file_name)
             self.delete_button.setVisible(True)
 
     def delete_script(self):
@@ -286,8 +287,7 @@ class NXScriptEditor(QtGui.QWidget):
                       "This cannot be reversed")
             if ret == QtGui.QMessageBox.Ok:
                 os.remove(self.file_name)
-                from .consoleapp import _mainwindow
-                _mainwindow.remove_script_action(self.file_name)
+                self.mainwindow.remove_script_action(self.file_name)
                 self.close()
 
     def close(self):
