@@ -30,10 +30,11 @@ try:
 except ImportError:
     from ordereddict import OrderedDict
 
-from .utils import confirm_action, natural_sort, report_error, timestamp, wrap
+from .utils import confirm_action, report_error, natural_sort, wrap
+from .utils import human_size, timestamp, format_timestamp
 
 from nexusformat.nexus import (NeXusError, NXgroup, NXfield, NXattr,
-                               NXroot, NXentry, NXdata, NXparameters)
+                               NXroot, NXentry, NXdata, NXparameters, nxload)
 
 
 class BaseDialog(QtGui.QDialog):
@@ -45,15 +46,13 @@ class BaseDialog(QtGui.QDialog):
         from .consoleapp import _mainwindow
         self.mainwindow = _mainwindow
         self.treeview = self.mainwindow.treeview
-        self.default_directory = _mainwindow.default_directory
+        self.default_directory = self.mainwindow.default_directory
         self.import_file = None     # must define in subclass
         self.nexus_filter = ';;'.join((
              "NeXus Files (*.nxs *.nx5 *.h5 *.hdf *.hdf5)",
 	         "Any Files (*.* *)"))
         self.checkbox = {}
         self.radiobutton = {}
-        if parent is None:
-            parent = self.mainwindow
         self.confirm_action, self.report_error = confirm_action, report_error
         super(BaseDialog, self).__init__(parent)
 
@@ -113,9 +112,14 @@ class BaseDialog(QtGui.QDialog):
             layout.addLayout(horizontal_layout)
         return layout
 
-    def checkboxes(self, *items):
+    def checkboxes(self, *items, **opts):
+        if 'align' in opts:
+            align = opts['align']
+        else:
+            align = 'center'
         layout = QtGui.QHBoxLayout()
-        layout.addStretch()
+        if align != 'left':
+            layout.addStretch()
         for label, text, checked in items:
              self.checkbox[label] = QtGui.QCheckBox(text)
              self.checkbox[label].setChecked(checked)
@@ -873,21 +877,20 @@ class AddDialog(BaseDialog):
             combo_label.setText("Group Class:")
             self.combo_box = QtGui.QComboBox()
             self.combo_box.currentIndexChanged.connect(self.select_combo)
-            from .consoleapp import _mainwindow
             standard_groups = sorted(list(set([g for g in 
-                              _mainwindow.nxclasses[self.node.nxclass][2]])))
+                              self.mainwindow.nxclasses[self.node.nxclass][2]])))
             for name in standard_groups:
                 self.combo_box.addItem(name)
                 self.combo_box.setItemData(self.combo_box.count()-1, 
-                    wrap(_mainwindow.nxclasses[name][0], 40),
+                    wrap(self.mainwindow.nxclasses[name][0], 40),
                     QtCore.Qt.ToolTipRole)
             self.combo_box.insertSeparator(self.combo_box.count())
-            other_groups = sorted([g for g in _mainwindow.nxclasses if g not in
-                                   standard_groups])
+            other_groups = sorted([g for g in self.mainwindow.nxclasses 
+                                   if g not in standard_groups])
             for name in other_groups:
                 self.combo_box.addItem(name)
                 self.combo_box.setItemData(self.combo_box.count()-1, 
-                    wrap(_mainwindow.nxclasses[name][0], 40),
+                    wrap(self.mainwindow.nxclasses[name][0], 40),
                     QtCore.Qt.ToolTipRole)
             self.combo_box.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToContents)
             grid.addWidget(combo_label, 0, 0)
@@ -899,13 +902,12 @@ class AddDialog(BaseDialog):
             combo_label.setAlignment(QtCore.Qt.AlignLeft)
             self.combo_box = QtGui.QComboBox()
             self.combo_box.currentIndexChanged.connect(self.select_combo)
-            from .consoleapp import _mainwindow
             fields = sorted(list(set([g for g in 
-                            _mainwindow.nxclasses[self.node.nxclass][1]])))
+                            self.mainwindow.nxclasses[self.node.nxclass][1]])))
             for name in fields:
                 self.combo_box.addItem(name)
                 self.combo_box.setItemData(self.combo_box.count()-1, 
-                    wrap(_mainwindow.nxclasses[self.node.nxclass][1][name][2], 40),
+                    wrap(self.mainwindow.nxclasses[self.node.nxclass][1][name][2], 40),
                     QtCore.Qt.ToolTipRole)
             self.combo_box.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToContents)
             grid.addWidget(name_label, 0, 0)
@@ -1053,13 +1055,12 @@ class InitializeDialog(BaseDialog):
         self.name_box.setAlignment(QtCore.Qt.AlignLeft)
         self.combo_box = QtGui.QComboBox()
         self.combo_box.currentIndexChanged.connect(self.select_combo)
-        from .consoleapp import _mainwindow
         fields = sorted(list(set([g for g in 
-                        _mainwindow.nxclasses[self.node.nxclass][1]])))
+                        self.mainwindow.nxclasses[self.node.nxclass][1]])))
         for name in fields:
             self.combo_box.addItem(name)
             self.combo_box.setItemData(self.combo_box.count()-1, 
-                wrap(_mainwindow.nxclasses[self.node.nxclass][1][name][2], 40),
+                wrap(self.mainwindow.nxclasses[self.node.nxclass][1][name][2], 40),
                 QtCore.Qt.ToolTipRole)
         self.combo_box.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToContents)
         grid.addWidget(name_label, 0, 0)
@@ -1162,22 +1163,21 @@ class RenameDialog(BaseDialog):
             combo_label.setAlignment(QtCore.Qt.AlignLeft)
             combo_label.setText("New Class:")
             self.combo_box = QtGui.QComboBox()
-            from .consoleapp import _mainwindow
             parent_class = self.node.nxgroup.nxclass
             standard_groups = sorted(list(set([g for g in 
-                          _mainwindow.nxclasses[parent_class][2]])))
+                                  self.mainwindow.nxclasses[parent_class][2]])))
             for name in standard_groups:
                 self.combo_box.addItem(name)
                 self.combo_box.setItemData(self.combo_box.count()-1, 
-                    wrap(_mainwindow.nxclasses[name][0], 40),
+                    wrap(self.mainwindow.nxclasses[name][0], 40),
                     QtCore.Qt.ToolTipRole)
             self.combo_box.insertSeparator(self.combo_box.count())
-            other_groups = sorted([g for g in _mainwindow.nxclasses 
+            other_groups = sorted([g for g in self.mainwindow.nxclasses 
                                    if g not in standard_groups])
             for name in other_groups:
                 self.combo_box.addItem(name)
                 self.combo_box.setItemData(self.combo_box.count()-1, 
-                    wrap(_mainwindow.nxclasses[name][0], 40),
+                    wrap(self.mainwindow.nxclasses[name][0], 40),
                     QtCore.Qt.ToolTipRole)
             self.combo_box.insertSeparator(self.combo_box.count())
             self.combo_box.addItem('NXgroup')
@@ -1193,13 +1193,12 @@ class RenameDialog(BaseDialog):
                 combo_label.setText("Valid Fields:")
                 self.combo_box = QtGui.QComboBox()
                 self.combo_box.currentIndexChanged.connect(self.set_name)
-                from .consoleapp import _mainwindow
                 fields = sorted(list(set([g for g in 
-                            _mainwindow.nxclasses[parent_class][1]])))
+                                self.mainwindow.nxclasses[parent_class][1]])))
                 for name in fields:
                     self.combo_box.addItem(name)
                     self.combo_box.setItemData(self.combo_box.count()-1, 
-                        wrap(_mainwindow.nxclasses[parent_class][1][name][2], 40),
+                        wrap(self.mainwindow.nxclasses[parent_class][1][name][2], 40),
                         QtCore.Qt.ToolTipRole)
                 if self.node.nxname in fields:
                     self.combo_box.setCurrentIndex(self.combo_box.findText(self.node.nxname))
@@ -1375,8 +1374,7 @@ class LogDialog(BaseDialog):
 
         super(LogDialog, self).__init__(parent)
  
-        from .consoleapp import _nexpy_dir
-        self.log_directory = _nexpy_dir
+        self.log_directory = self.mainwindow.nexpy_dir
 
         self.ansi_re = re.compile('\x1b' + r'\[([\dA-Fa-f;]*?)m')
  
@@ -1431,19 +1429,28 @@ class UnlockDialog(BaseDialog):
         self.setWindowTitle("Unlock File")
         self.node = node
 
+        if not os.path.exists(self.node.nxfilename):
+            raise NeXusError("'%s' does not exist")
+        file_size = os.path.getsize(self.node.nxfilename)
+        if file_size > 10000000:
+            default = False
+        else:
+            default = True
         self.set_layout(self.labels(
                             "<b>Are you sure you want to unlock the file?</b>"),
-                        self.checkboxes(('backup', 'Backup File', True)), 
+                        self.checkboxes(('backup', 'Backup file (%s)' 
+                                         % human_size(file_size), default)),
                         self.close_buttons())
         self.set_title('Unlocking File')
 
     def accept(self):
         try:
             if self.checkbox['backup'].isChecked():
-                from .consoleapp import _nexpy_dir
-                dir = os.path.join(_nexpy_dir, 'backups', timestamp())
+                dir = os.path.join(self.mainwindow.backup_dir, timestamp())
                 os.mkdir(dir)
                 self.node.backup(dir=dir)
+                self.mainwindow.settings.set('backups', self.node.nxbackup)
+                self.mainwindow.settings.save()
                 logging.info("Workspace '%s' backed up to '%s'" 
                              % (self.node.nxname, self.node.nxbackup))
             self.node.unlock()
@@ -1460,12 +1467,10 @@ class InstallPluginDialog(BaseDialog):
 
         super(InstallPluginDialog, self).__init__(parent)
 
-        from .consoleapp import _nexpy_dir, _mainwindow
-        self.mainwindow = _mainwindow
-        self.local_directory = os.path.join(_nexpy_dir, 'plugins')
+        self.local_directory = self.mainwindow.plugin_dir
         self.nexpy_directory = pkg_resources.resource_filename('nexpy', 
                                                                'plugins')
-        self.backup_directory = os.path.join(_nexpy_dir, 'backups')
+        self.backup_directory = self.mainwindow.backup_dir
 
         self.setWindowTitle("Install Plugin")
 
@@ -1504,6 +1509,8 @@ class InstallPluginDialog(BaseDialog):
                 backup = os.path.join(self.backup_directory, timestamp())
                 os.mkdir(backup)
                 shutil.move(installed_path, backup)
+                self.mainwindow.settings.set('plugins', plugin_name, backup)
+                self.mainwindow.settings.save()
             else:
                 return
         shutil.copytree(plugin_directory, installed_path)
@@ -1530,12 +1537,10 @@ class RemovePluginDialog(BaseDialog):
 
         super(RemovePluginDialog, self).__init__(parent)
  
-        from .consoleapp import _nexpy_dir, _mainwindow
-        self.mainwindow = _mainwindow
-        self.local_directory = os.path.join(_nexpy_dir, 'plugins')
+        self.local_directory = self.mainwindow.plugin_dir
         self.nexpy_directory = pkg_resources.resource_filename('nexpy', 
                                                                'plugins')
-        self.backup_directory = os.path.join(_nexpy_dir, 'backups')
+        self.backup_directory = self.mainwindow.backup_dir
 
         self.setWindowTitle("Remove Plugin")
 
@@ -1584,6 +1589,8 @@ class RemovePluginDialog(BaseDialog):
                 backup = os.path.join(self.backup_directory, timestamp())
                 os.mkdir(backup)
                 shutil.move(plugin_directory, backup)
+                self.mainwindow.settings.set('plugins', plugin_name, backup)
+                self.mainwindow.settings.save()
             else:
                 return
         try:
@@ -1600,4 +1607,68 @@ class RemovePluginDialog(BaseDialog):
         except NeXusError as error:
             report_error("Removing plugin", error)
 
-    
+class ManageBackupsDialog(BaseDialog):
+    """Dialog to purge backup files"""
+
+    def __init__(self, parent=None):
+
+        super(ManageBackupsDialog, self).__init__(parent)
+ 
+        self.backup_dir = self.mainwindow.backup_dir
+
+        options = reversed(self.mainwindow.settings.options('backups'))
+        backups = []
+        for backup in options:
+            if os.path.exists(backup):
+                backups.append(backup)
+            else:
+                self.mainwindow.settings.remove_option('backups', backup)
+        self.mainwindow.settings.save()
+        items = []
+        for backup in backups:
+            date = format_timestamp(os.path.basename(os.path.dirname(backup)))
+            name = self.get_name(backup)
+            size = os.path.getsize(backup)
+            items.append(
+                self.checkboxes((backup, '%s: %s (%s)' 
+                                         % (date, name, human_size(size)), 
+                                 False), align='left'))
+        items.append(self.action_buttons(('Restore Files', self.restore),
+                                         ('Delete Files', self.delete)))
+        items.append(self.close_buttons())
+
+        self.set_layout(*items)
+
+        self.set_title('Manage Backups')
+
+    def get_name(self, backup):
+        name, ext = os.path.splitext(os.path.basename(backup))
+        return name[:name.find('_backup')] + ext
+
+    def restore(self):
+        for backup in self.checkbox:
+            if self.checkbox[backup].isChecked():
+                name = self.treeview.tree.get_name(self.get_name(backup))
+                self.treeview.tree[name] = self.mainwindow.user_ns[name] = nxload(backup)
+                self.checkbox[backup].setChecked(False)
+                self.checkbox[backup].setDisabled(True)
+
+    def delete(self):
+        backups = []
+        for backup in self.checkbox:
+            if self.checkbox[backup].isChecked():
+                backups.append(backup)
+        if backups:
+            ret = self.confirm_action("Delete selected backups?",
+                                      "\n".join(backups))
+            if ret == QtGui.QMessageBox.Ok:
+                for backup in backups:
+                    if (os.path.exists(backup) and 
+                        os.path.realpath(backup).startswith(self.backup_dir)):
+                        os.remove(os.path.realpath(backup))
+                        os.rmdir(os.path.dirname(os.path.realpath(backup))) 
+                        self.mainwindow.settings.remove_option('backups', backup)
+                    self.checkbox[backup].setChecked(False)
+                    self.checkbox[backup].setDisabled(True)
+                self.mainwindow.settings.save()
+                
