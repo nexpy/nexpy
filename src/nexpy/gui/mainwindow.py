@@ -32,10 +32,6 @@ import sys
 import webbrowser
 import xml.etree.ElementTree as ET
 from threading import Thread
-try:
-    from configparser import ConfigParser
-except ImportError:
-    from ConfigParser import ConfigParser
 
 from .pyqt import QtGui, QtCore, getOpenFileName, getSaveFileName
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
@@ -74,7 +70,7 @@ class MainWindow(QtGui.QMainWindow):
     _magic_menu_dict = {}
 
 
-    def __init__(self, app, tree, config=None):
+    def __init__(self, app, tree, settings, config):
         """ Create a MainWindow for the application
 
         Parameters
@@ -87,12 +83,20 @@ class MainWindow(QtGui.QMainWindow):
 
         super(MainWindow, self).__init__()
         self.resize(1000, 800)
-        self._app = app
+        self.app = app
+        self._app = app.app
         self._app.setStyle("QMacStyle")
+        self.settings = settings
         self.config = config
-        self.default_directory = os.path.expanduser('~')
-        self.settings = ConfigParser()
         self.copied_node = None
+
+        self.default_directory = os.path.expanduser('~')
+        self.nexpy_dir = self.app.nexpy_dir
+        self.backup_dir = self.app.backup_dir
+        self.plugin_dir = self.app.plugin_dir
+        self.reader_dir = self.app.reader_dir
+        self.script_dir = self.app.script_dir
+        self.function_dir = self.app.function_dir
 
         mainwindow = QtGui.QWidget()
 
@@ -109,7 +113,6 @@ class MainWindow(QtGui.QMainWindow):
         self.console.setMinimumSize(700, 100)
         self.console.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Fixed)
         self.console._confirm_exit = True
-        self.console.gui_completion = 'droplist'
         self.console.kernel_manager = QtInProcessKernelManager(config=self.config)
         self.console.kernel_manager.start_kernel()
         self.console.kernel_manager.kernel.gui = 'qt4'
@@ -124,7 +127,10 @@ class MainWindow(QtGui.QMainWindow):
         self.console.exit_requested.connect(stop)
         self.console.show()
 
-        self.console.input_sep = ''
+        if 'gui_completion' not in self.config['ConsoleWidget']:
+            self.console.gui_completion = 'droplist'
+        if 'input_sep' not in self.config['JupyterWidget']:
+            self.console.input_sep = ''
 
         self.shell = self.console.kernel_manager.kernel.shell
         self.user_ns = self.console.kernel_manager.kernel.shell.user_ns
@@ -283,6 +289,10 @@ class MainWindow(QtGui.QMainWindow):
 
         self.file_menu.addSeparator()
 
+        self.init_import_menu()
+
+        self.file_menu.addSeparator()
+
         self.lockfile_action=QtGui.QAction("&Lock File",
             self,
             shortcut=QtGui.QKeySequence("Ctrl+L"),
@@ -306,15 +316,17 @@ class MainWindow(QtGui.QMainWindow):
             )
         self.add_menu_action(self.file_menu, self.backup_action, True)
 
-        self.restore_action=QtGui.QAction("Restore Backup",
+        self.restore_action=QtGui.QAction("Restore Backup...",
             self,
             triggered=self.restore_file
             )
         self.add_menu_action(self.file_menu, self.restore_action, True)
 
-        self.file_menu.addSeparator()
-
-        self.init_import_menu()
+        self.manage_backups_action=QtGui.QAction("Manage Backups...",
+            self,
+            triggered=self.manage_backups
+            )
+        self.add_menu_action(self.file_menu, self.manage_backups_action, True)
 
         self.file_menu.addSeparator()
 
@@ -512,9 +524,8 @@ class MainWindow(QtGui.QMainWindow):
 
     def init_plugin_menus(self):
         """Add an menu item for every module in the plugin menus"""
-        from .consoleapp import _nexpy_dir
         self.plugin_names = set()
-        private_path = os.path.join(_nexpy_dir, 'plugins')
+        private_path = self.plugin_dir
         if os.path.isdir(private_path):
             for name in os.listdir(private_path):
                 if os.path.isdir(os.path.join(private_path, name)):
@@ -756,13 +767,10 @@ class MainWindow(QtGui.QMainWindow):
         self.script_menu.addSeparator()
 
         self.scripts = {}
-        from .consoleapp import _nexpy_dir
-        script_dir = os.path.join(_nexpy_dir, 'scripts')
-        if os.path.exists(script_dir):
-            files = os.listdir(script_dir)
-            for file_name in files:
-                if file_name.endswith('.py'):
-                    self.add_script_action(os.path.join(script_dir, file_name))
+        files = os.listdir(self.script_dir)
+        for file_name in files:
+            if file_name.endswith('.py'):
+                self.add_script_action(os.path.join(self.script_dir, file_name))
 
     def init_help_menu(self):
         # please keep the Help menu in Mac Os even if empty. It will
@@ -826,17 +834,10 @@ class MainWindow(QtGui.QMainWindow):
 
     def init_recent_menu(self):
         """Add recent files menu item for recently opened files"""
-        from .consoleapp import _nexpy_dir
-        self.settings.read(os.path.join(_nexpy_dir, "settings.ini"))
-        recent_files = [f.strip() for f in 
-                        self.settings.get("recent", "recentFiles").split(',')]
+        recent_files = self.settings.options("recent")
         self.recent_menu = self.file_menu.addMenu("Open Recent")
         self.recent_menu.hovered.connect(self.hover_recent_menu)
         self.recent_file_actions = {}
-        if recent_files is None:
-            recent_files = []
-        elif isinstance(recent_files, six.text_type):
-            recent_files = [recent_files]
         for i, recent_file in enumerate(recent_files):
             action = QtGui.QAction(os.path.basename(recent_file), self,
                                    triggered=self.open_recent_file)
@@ -846,10 +847,9 @@ class MainWindow(QtGui.QMainWindow):
 
     def init_import_menu(self):
         """Add an import menu item for every module in the readers directory"""
-        from .consoleapp import _nexpy_dir
         self.import_names = set()
         self.import_menu = self.file_menu.addMenu("Import")
-        private_path = os.path.join(_nexpy_dir, 'readers')
+        private_path = self.reader_dir
         if os.path.isdir(private_path):
             for filename in os.listdir(private_path):
                 name, ext = os.path.splitext(filename)
@@ -942,14 +942,7 @@ class MainWindow(QtGui.QMainWindow):
             self.recent_menu, self.recent_menu.actionGeometry(action))
 
     def update_recent_files(self, recent_file):
-        from .consoleapp import _nexpy_dir
-        self.settings.read(os.path.join(_nexpy_dir, "settings.ini"))
-        recent_files = [f.strip() for f in 
-                        self.settings.get("recent", "recentFiles").split(',')]
-        if recent_files is None:
-            recent_files = []
-        elif isinstance(recent_files, six.text_type):
-            recent_files = [recent_files]
+        recent_files = self.settings.options("recent")
         try:
             recent_files.remove(recent_file)
         except ValueError:
@@ -968,9 +961,10 @@ class MainWindow(QtGui.QMainWindow):
                 action.setToolTip(recent_file)
                 self.add_menu_action(self.recent_menu, action, self)
             self.recent_file_actions[action] = (i, recent_file)
-        self.settings.set("recent", "recentFiles", ", ".join(recent_files))
-        with open(os.path.join(_nexpy_dir, "settings.ini"), 'w') as f:
-            self.settings.write(f)
+        self.settings.purge("recent")
+        for recent_file in recent_files:
+            self.settings.set("recent", recent_file)
+        self.settings.save()
 
     def save_file(self):
         try:
@@ -1064,66 +1058,10 @@ class MainWindow(QtGui.QMainWindow):
         except NeXusError as error:
             report_error("Removing File", error)
 
-    def lock_file(self):
-        try:
-            node = self.treeview.get_node()
-            if isinstance(node, NXroot):
-                node.lock()
-                self.treeview.update()
-                logging.info("Workspace '%s' locked" % node.nxname)
-            else:
-                raise NeXusError("Can only lock a NXroot group")
-        except NeXusError as error:
-            report_error("Locking File", error)
-
-    def unlock_file(self):
-        try:
-            node = self.treeview.get_node()
-            if isinstance(node, NXroot):
-                dialog = UnlockDialog(node, self)
-                dialog.show()
-                self.treeview.update()
-            else:
-                raise NeXusError("Can only unlock a NXroot group")
-        except NeXusError as error:
-            report_error("Unlocking File", error)
-
-    def backup_file(self):
-        try:
-            node = self.treeview.get_node()
-            if isinstance(node, NXroot):
-                from .consoleapp import _nexpy_dir
-                dir = os.path.join(_nexpy_dir, 'backups', timestamp())
-                os.mkdir(dir)
-                node.backup(dir=dir)
-                logging.info("Workspace '%s' backed up to '%s'" 
-                             % (node.nxname, node.nxbackup))
-            else:
-                raise NeXusError("Can only backup a NXroot group")
-        except NeXusError as error:
-            report_error("Backing Up File", error)
-
-    def restore_file(self):
-        try:
-            node = self.treeview.get_node()
-            if isinstance(node, NXroot):
-                ret = confirm_action(
-                          "Are you sure you want to restore the file?",
-                          "This will overwrite the current contents of '%s'"
-                          % node.nxname)
-                if ret == QtGui.QMessageBox.Ok:
-                    node.restore(overwrite=True)
-                    self.treeview.update()
-                    logging.info("Workspace '%s' backed up" % node.nxname)
-            else:
-                raise NeXusError("Can only restore a NXroot group")
-        except NeXusError as error:
-            report_error("Restoring File", error)
-
     def show_import_dialog(self):
         try:
             import_module = self.importer[self.sender()]
-            self.import_dialog = import_module.ImportDialog()
+            self.import_dialog = import_module.ImportDialog(parent=self)
             self.import_dialog.show()
         except NeXusError as error:
             report_error("Importing File", error)
@@ -1152,16 +1090,79 @@ class MainWindow(QtGui.QMainWindow):
         except NeXusError as error:
             report_error("Importing File", error)
 
+    def lock_file(self):
+        try:
+            node = self.treeview.get_node()
+            if isinstance(node, NXroot):
+                node.lock()
+                self.treeview.update()
+                logging.info("Workspace '%s' locked" % node.nxname)
+            else:
+                raise NeXusError("Can only lock a NXroot group")
+        except NeXusError as error:
+            report_error("Locking File", error)
+
+    def unlock_file(self):
+        try:
+            node = self.treeview.get_node()
+            if isinstance(node, NXroot):
+                dialog = UnlockDialog(node, parent=self)
+                dialog.show()
+                self.treeview.update()
+            else:
+                raise NeXusError("Can only unlock a NXroot group")
+        except NeXusError as error:
+            report_error("Unlocking File", error)
+
+    def backup_file(self):
+        try:
+            node = self.treeview.get_node()
+            if isinstance(node, NXroot):
+                dir = os.path.join(self.console.nexpy_dir, 'backups', timestamp())
+                os.mkdir(dir)
+                node.backup(dir=dir)
+                self.settings.set('backups', node.nxbackup)
+                logging.info("Workspace '%s' backed up to '%s'" 
+                             % (node.nxname, node.nxbackup))
+            else:
+                raise NeXusError("Can only backup a NXroot group")
+        except NeXusError as error:
+            report_error("Backing Up File", error)
+
+    def restore_file(self):
+        try:
+            node = self.treeview.get_node()
+            if isinstance(node, NXroot):
+                ret = confirm_action(
+                          "Are you sure you want to restore the file?",
+                          "This will overwrite the current contents of '%s'"
+                          % node.nxname)
+                if ret == QtGui.QMessageBox.Ok:
+                    node.restore(overwrite=True)
+                    self.treeview.update()
+                    logging.info("Workspace '%s' backed up" % node.nxname)
+            else:
+                raise NeXusError("Can only restore a NXroot group")
+        except NeXusError as error:
+            report_error("Restoring File", error)
+
+    def manage_backups(self):
+        try:
+            dialog = ManageBackupsDialog(parent=self)
+            dialog.show()
+        except NeXusError as error:
+            report_error("Managing Backups", error)
+
     def install_plugin(self):
         try:
-            dialog = InstallPluginDialog(self)
+            dialog = InstallPluginDialog(parent=self)
             dialog.show()
         except NeXusError as error:
             report_error("Installing Plugin", error)
 
     def remove_plugin(self):
         try:
-            dialog = RemovePluginDialog(self)
+            dialog = RemovePluginDialog(parent=self)
             dialog.show()
         except NeXusError as error:
             report_error("Removing Plugin", error)
@@ -1178,7 +1179,7 @@ class MainWindow(QtGui.QMainWindow):
                     except (KeyError, NeXusError):
                         pass
                 if node.is_plottable():
-                    dialog = PlotDialog(node, self, fmt='o')
+                    dialog = PlotDialog(node, parent=self, fmt='o')
                     dialog.show()
                 else:
                     raise NeXusError("Data not plottable")
@@ -1206,7 +1207,7 @@ class MainWindow(QtGui.QMainWindow):
                     except (KeyError, NeXusError):
                         pass
                 if node.is_plottable():
-                    dialog = PlotDialog(node, self, fmt='-')
+                    dialog = PlotDialog(node, parent=self, fmt='-')
                     dialog.show()
                 else:
                     raise NeXusError("Data not plottable")
@@ -1237,7 +1238,7 @@ class MainWindow(QtGui.QMainWindow):
             if node is not None:
                 if node.nxfilemode == 'r':
                     raise NeXusError("NeXus file is locked")
-                dialog = AddDialog(node, self)
+                dialog = AddDialog(node, parent=self)
                 dialog.exec_()
             else:
                 self.new_workspace()
@@ -1251,7 +1252,7 @@ class MainWindow(QtGui.QMainWindow):
                 if node.nxfilemode == 'r':
                     raise NeXusError("NeXus file is locked")
                 if isinstance(node, NXgroup):
-                    dialog = InitializeDialog(node, self)
+                    dialog = InitializeDialog(node, parent=self)
                     dialog.exec_()
                 else:
                     raise NeXusError("An NXfield can only be added to an NXgroup")
@@ -1265,7 +1266,7 @@ class MainWindow(QtGui.QMainWindow):
                 if node is not None:
                     if node.nxfilemode != 'r' or isinstance(node, NXroot):
                         path = node.nxpath
-                        dialog = RenameDialog(node, self)
+                        dialog = RenameDialog(node, parent=self)
                         dialog.exec_()
                         logging.info("'%s' renamed as '%s'"
                                      % (path, node.nxpath))
@@ -1354,7 +1355,7 @@ class MainWindow(QtGui.QMainWindow):
             node = self.treeview.get_node()
             if isinstance(node, NXobject):
                 if node.nxfilemode != 'r':
-                    dialog = SignalDialog(node, self)
+                    dialog = SignalDialog(node, parent=self)
                     dialog.show()
                     logging.info("Signal set for '%s'" % node.nxgroup.nxpath)
                 else:
@@ -1605,7 +1606,7 @@ class MainWindow(QtGui.QMainWindow):
     def limit_axes(self):
         try:
             from .plotview import plotview
-            dialog = LimitDialog(self)
+            dialog = LimitDialog(parent=self)
             dialog.exec_()
         except NeXusError as error:
             report_error("Changing Plot Limits", error)
@@ -1619,7 +1620,7 @@ class MainWindow(QtGui.QMainWindow):
 
     def show_log(self):
         try:
-            dialog = LogDialog(self)
+            dialog = LogDialog(parent=self)
             dialog.show()
         except NeXusError as error:
             report_error("Showing Log File", error)
@@ -1641,7 +1642,7 @@ class MainWindow(QtGui.QMainWindow):
     def new_script(self):
         try:
             file_name = None
-            editor = NXScriptEditor(file_name, self)
+            editor = NXScriptEditor(file_name, parent=self)
             self.editors.setVisible(True)
             self.editors.raise_()
             logging.info("Creating new script")
@@ -1650,8 +1651,7 @@ class MainWindow(QtGui.QMainWindow):
 
     def open_script(self):
         try:
-            from .consoleapp import _nexpy_dir
-            script_dir = os.path.join(_nexpy_dir, 'scripts')
+            script_dir = os.path.join(self.console.nexpy_dir, 'scripts')
             file_filter = ';;'.join(("Python Files (*.py)",
                                          "Any Files (*.* *)"))
             file_name = getOpenFileName(self, 'Open Script', script_dir,
