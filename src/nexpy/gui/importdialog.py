@@ -28,8 +28,7 @@ class BaseImportDialog(BaseDialog):
     def __init__(self, parent=None):
 
         super(BaseImportDialog, self).__init__(parent)
-        from .consoleapp import _mainwindow
-        self.default_directory = _mainwindow.default_directory
+        self.default_directory = self.mainwindow.default_directory
         self.import_file = None     # must define in subclass
 
     def get_data(self):
@@ -46,7 +45,6 @@ class BaseImportDialog(BaseDialog):
         Completes the data import.
         """
         self.accepted = True
-        from .consoleapp import _mainwindow
-        _mainwindow.import_data()
+        self.mainwindow.import_data()
         super(BaseImportDialog, self).accept()
  
