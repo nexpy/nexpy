@@ -155,9 +155,8 @@ class NXPlotView(QtGui.QDialog):
     """
     def __init__(self, label=None, parent=None):
 
-        if parent is None:
-            from .consoleapp import _mainwindow
-            parent = _mainwindow
+        from .consoleapp import _mainwindow
+        self.mainwindow = _mainwindow
 
         super(NXPlotView, self).__init__(parent)
 
@@ -272,34 +271,30 @@ class NXPlotView(QtGui.QDialog):
         plotview = self
         Gcf.set_active(self.figuremanager)
         self.show()
-        from .consoleapp import _mainwindow, _shell
         if self.label == 'Main':
-            _mainwindow.raise_()
+            self.mainwindow.raise_()
         else:
             self.raise_()
         self.update_active()
-        _shell['plotview'] = self
+        self.mainwindow.user_ns['plotview'] = self
 
     def update_active(self):
         if 'Projection' not in self.label:
-            from .consoleapp import _mainwindow
-            _mainwindow.update_active(self.number)
+            self.mainwindow.update_active(self.number)
 
     def add_menu_action(self):
-        from .consoleapp import _mainwindow
-        if self.label not in _mainwindow.active_action:
-            _mainwindow.make_active_action(self.number, self.label)
-        _mainwindow.update_active(self.number)
+        if self.label not in self.mainwindow.active_action:
+            self.mainwindow.make_active_action(self.number, self.label)
+        self.mainwindow.update_active(self.number)
 
     def remove_menu_action(self):
-        from .consoleapp import _mainwindow
-        if self.number in _mainwindow.active_action:
-            _mainwindow.window_menu.removeAction(
-                _mainwindow.active_action[self.number])
-            del _mainwindow.active_action[self.number]
-        if self.number == _mainwindow.previous_active:
-            _mainwindow.previous_active = 1
-        _mainwindow.make_active(_mainwindow.previous_active)
+        if self.number in self.mainwindow.active_action:
+            self.mainwindow.window_menu.removeAction(
+                self.mainwindow.active_action[self.number])
+            del self.mainwindow.active_action[self.number]
+        if self.number == self.mainwindow.previous_active:
+            self.mainwindow.previous_active = 1
+        self.mainwindow.make_active(self.mainwindow.previous_active)
 
     def save_plot(self):
         """
@@ -997,7 +992,7 @@ class NXPlotView(QtGui.QDialog):
             xmin = plotview.ax.get_xlim()[0]
         if xmax is None:
             xmax = plotview.ax.get_xlim()[1]
-        lines = plotivew.ax.hlines(y, xmin, xmax, **opts)
+        lines = plotview.ax.hlines(y, xmin, xmax, **opts)
         self.canvas.draw()
         return lines
 
@@ -1010,10 +1005,10 @@ class NXPlotView(QtGui.QDialog):
         return crosshairs
 
     def xline(self, x, **opts):
+        ymin, ymax = self.yaxis.get_limits()
         if self.skew is None:
             return self.vline(x, ymin, ymax, **opts)
         else:
-            ymin, ymax = self.yaxis.get_limits()
             x0, _ = self.transform(float(x), ymin)
             x1, _ = self.transform(float(x), ymax)
             y0, y1 = plotview.ax.get_ylim()
@@ -1023,14 +1018,14 @@ class NXPlotView(QtGui.QDialog):
             return line
 
     def yline(self, y, **opts):
+        xmin, xmax = self.xaxis.get_limits()
         if self.skew is None:
             return self.hline(y, xmin, xmax, **opts)
         else:
-            xmin, xmax = self.xaxis.get_limits()
             _, y0 = self.transform(xmin, float(y))
             _, y1 = self.transform(xmax, float(y))
             x0, x1 = plotview.ax.get_xlim()
-            line = Line2D([x0,x1], [y0,y1], **opts)
+            line = Line2D([x0, x1], [y0, y1], **opts)
             plotview.ax.add_line(line)
             self.canvas.draw()
             return line
@@ -1211,9 +1206,8 @@ class NXPlotView(QtGui.QDialog):
             self.projection_panel.close()
         if self.customize_panel:
             self.customize_panel.close()
-        from .consoleapp import _mainwindow
-        if _mainwindow.panels.tabs.count() == 0:
-            _mainwindow.panels.setVisible(False)
+        if self.mainwindow.panels.tabs.count() == 0:
+            self.mainwindow.panels.setVisible(False)
 
     def closeEvent(self, event):
         self.close_view()
@@ -2101,8 +2095,7 @@ class NXProjectionTab(QtGui.QWidget):
             self.overplot_box.setChecked(False)
         self.plotview.make_active()
         plotviews[projection.label].raise_()
-        from .consoleapp import _mainwindow
-        _mainwindow.panels.update()
+        self.plotview.mainwindow.panels.update()
 
     def open_panel(self):
         if not self.plotview.projection_panel:
@@ -2161,8 +2154,7 @@ class NXProjectionPanel(QtGui.QWidget):
         self.plotview = plotview
         self.ndim = self.plotview.ndim
 
-        from .consoleapp import _mainwindow
-        self.window = _mainwindow.panels
+        self.window = self.plotview.mainwindow.panels
 
         QtGui.QWidget.__init__(self, parent=self.window.tabs)
 
