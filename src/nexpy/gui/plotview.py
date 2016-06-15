@@ -155,8 +155,11 @@ class NXPlotView(QtGui.QDialog):
     """
     def __init__(self, label=None, parent=None):
 
-        from .consoleapp import _mainwindow
-        self.mainwindow = _mainwindow
+        if parent is not None:
+            self.mainwindow = parent
+        else:
+            from .consoleapp import _mainwindow
+            self.mainwindow = _mainwindow
 
         super(NXPlotView, self).__init__(parent)
 
@@ -2553,7 +2556,7 @@ class NXNavigationToolbar(NavigationToolbar):
         self.plotview.reset_plot_limits(autoscale)
 
     def edit_parameters(self):
-        self.plotview.customize_panel = CustomizeDialog(self.plotview, parent=self)
+        self.plotview.customize_panel = CustomizeDialog(parent=self.plotview)
         self.plotview.customize_panel.show()
 
     def add_data(self):
@@ -2648,19 +2651,22 @@ class NXNavigationToolbar(NavigationToolbar):
 
 class CustomizeDialog(BaseDialog):
 
-    def __init__(self, plotview, parent=None):
+    def __init__(self, parent):
         super(CustomizeDialog, self).__init__(parent)
 
-        self.plotview = plotview
+        self.plotview = parent
 
         self.parameters = {}
         pl = self.parameters['labels'] = GridParameters()
         pl.add('title', plotview.title, 'Title')
         pl['title'].box.setMinimumWidth(200)
+        pl['title'].box.setAlignment(QtCore.Qt.AlignLeft)
         pl.add('xlabel', plotview.xaxis.label, 'X-Axis Label')
         pl['xlabel'].box.setMinimumWidth(200)
+        pl['xlabel'].box.setAlignment(QtCore.Qt.AlignLeft)
         pl.add('ylabel', plotview.yaxis.label, 'Y-Axis Label')
         pl['ylabel'].box.setMinimumWidth(200)
+        pl['ylabel'].box.setAlignment(QtCore.Qt.AlignLeft)
         if self.plotview.image is not None:
             image_grid = QtGui.QVBoxLayout()
             self.parameters['image'] = self.image_parameters()
