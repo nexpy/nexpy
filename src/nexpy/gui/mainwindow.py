@@ -102,7 +102,7 @@ class MainWindow(QtGui.QMainWindow):
 
         rightpane = QtGui.QWidget()
 
-        self.plotview = NXPlotView(label="Main", parent=rightpane)
+        self.plotview = NXPlotView(label="Main", parent=self)
         self.plotview.setMinimumSize(700, 550)
         self.panels = NXProjectionPanels(self)
         self.panels.setVisible(False)
@@ -146,7 +146,7 @@ class MainWindow(QtGui.QMainWindow):
         rightpane.setLayout(rightlayout)
 
         self.tree = tree
-        self.treeview = NXTreeView(self.tree, parent=mainwindow, mainwindow=self)
+        self.treeview = NXTreeView(self.tree, parent=self)
         self.treeview.setMinimumWidth(200)
         self.treeview.setMaximumWidth(400)
         self.treeview.setSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Expanding)
@@ -1583,7 +1583,7 @@ class MainWindow(QtGui.QMainWindow):
         self.make_active(number)
 
     def new_plot_window(self):
-        plotview = NXPlotView()
+        plotview = NXPlotView(self)
 
     def close_window(self):
         from .plotview import plotview
