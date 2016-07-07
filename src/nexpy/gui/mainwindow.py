@@ -103,7 +103,6 @@ class MainWindow(QtGui.QMainWindow):
         rightpane = QtGui.QWidget()
 
         self.plotview = NXPlotView(label="Main", parent=self)
-        self.plotview.setMinimumSize(700, 550)
         self.panels = NXProjectionPanels(self)
         self.panels.setVisible(False)
         self.editors = NXScriptWindow(self)
@@ -112,6 +111,7 @@ class MainWindow(QtGui.QMainWindow):
         self.console = NXRichJupyterWidget(config=self.config, parent=rightpane)
         self.console.setMinimumSize(700, 100)
         self.console.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Fixed)
+        self.console.resize(727, 223)
         self.console._confirm_exit = True
         self.console.kernel_manager = QtInProcessKernelManager(config=self.config)
         self.console.kernel_manager.start_kernel()
@@ -734,6 +734,15 @@ class MainWindow(QtGui.QMainWindow):
             triggered=self.close_window
             )
         self.add_menu_action(self.window_menu, self.closewindow_action, True)
+
+        self.window_menu.addSeparator()
+
+        self.equalizewindow_action=QtGui.QAction("Equalize Plot Sizes",
+            self,
+            shortcut=QtGui.QKeySequence("Ctrl+Shift+E"),
+            triggered=self.equalize_windows
+            )
+        self.add_menu_action(self.window_menu, self.equalizewindow_action, True)
 
         self.window_menu.addSeparator()
 
@@ -1583,12 +1592,17 @@ class MainWindow(QtGui.QMainWindow):
         self.make_active(number)
 
     def new_plot_window(self):
-        plotview = NXPlotView(self)
+        plotview = NXPlotView(parent=self)
 
     def close_window(self):
         from .plotview import plotview
         if plotview.number != 1:
             plotview.close()
+
+    def equalize_windows(self):
+        if 'Main' in self.plotviews:
+            for label in [label for label in self.plotviews if label != 'Main']:
+                self.plotviews[label].resize(self.plotviews['Main'].size())
 
     def update_active(self, number):
         for num in self.active_action:

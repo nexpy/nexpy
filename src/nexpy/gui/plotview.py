@@ -66,6 +66,8 @@ linestyles = {'-': 'Solid', '--': 'Dashed', '-.': 'DashDot', ':': 'Dotted',
               'none': 'None', 'None': 'None'}
 markers = markers.MarkerStyle.markers
 locator = MaxNLocator(nbins=9, steps=[1, 2, 5, 10])
+logo = mpl.image.imread(pkg_resources.resource_filename(
+           'nexpy.gui', 'resources/icon/NeXpy.png'))[180:880,50:1010]
 
 
 def new_figure_manager(label=None, *args, **kwargs):
@@ -163,6 +165,7 @@ class NXPlotView(QtGui.QDialog):
 
         super(NXPlotView, self).__init__(parent)
 
+        self.setMinimumSize(700, 550)
         self.setSizePolicy(QtGui.QSizePolicy.MinimumExpanding,
                            QtGui.QSizePolicy.MinimumExpanding)
 
@@ -205,11 +208,9 @@ class NXPlotView(QtGui.QDialog):
         else:
             self.label = "Figure %d" % self.number
 
-        vbox = QtGui.QVBoxLayout()
-        vbox.addWidget(self.canvas)
-
         self.tab_widget = QtGui.QTabWidget()
         self.tab_widget.setFixedHeight(80)
+        self.tab_widget.setMinimumWidth(700)
 
         self.vtab = NXPlotTab('v', axis=False, image=True, plotview=self)
         self.xtab = NXPlotTab('x', plotview=self)
@@ -224,8 +225,11 @@ class NXPlotView(QtGui.QDialog):
         self.currentTab = self.otab
         self.tab_widget.setCurrentWidget(self.currentTab)
 
-        vbox.addWidget(self.tab_widget)
-        self.setLayout(vbox)
+        self.vbox = QtGui.QVBoxLayout()
+        self.vbox.setMargin(12)
+        self.vbox.addWidget(self.canvas)
+        self.vbox.addWidget(self.tab_widget)
+        self.setLayout(self.vbox)
 
         self.setWindowTitle(self.label)
 
@@ -237,6 +241,7 @@ class NXPlotView(QtGui.QDialog):
         self.image = None
         self.colorbar = None
         self.zoom = None
+        self.rgb_image = False
         self._aspect = 'auto'
         self._skew_angle = None
         self._grid = False
@@ -254,17 +259,18 @@ class NXPlotView(QtGui.QDialog):
         self.customize_panel = None
 
         if self.label != "Main":
+            if 'Main' in plotviews:
+                self.resize(plotviews['Main'].size())
             self.add_menu_action()
             self.show()
 
-        #Initialize the plotting window with a token plot
-        if self.label == "Main":
-            logo = mpl.image.imread(pkg_resources.resource_filename(
-                                    'nexpy.gui', 'resources/icon/NeXpy.png'))
-            self.plot(NXdata(signal=NXfield(logo[180:880,50:1010], name='z'),
-                             axes=(NXfield(1.145*np.arange(700,0,-1), name='y'), 
-                                   NXfield(1.045*np.arange(960), name='x')),
-                             title='NeXpy v'+__version__), image=True)
+        #Display the NeXpy logo in the plotting window
+        self.figure.clf()
+        self.ax.imshow(logo)
+        self.ax.axes.get_xaxis().set_visible(False)
+        self.ax.axes.get_yaxis().set_visible(False)
+        self.draw()
+
 
     def __repr__(self):
         return 'NXPlotView("%s")' % self.label
@@ -2565,8 +2571,11 @@ class NXNavigationToolbar(NavigationToolbar):
     def release_zoom(self, event):
         'the release mouse button callback in zoom to rect mode'
         super(NXNavigationToolbar, self).release_zoom(event)
-        xdim = self.plotview.xtab.axis.dim
-        ydim = self.plotview.ytab.axis.dim
+        try:
+            xdim = self.plotview.xtab.axis.dim
+            ydim = self.plotview.ytab.axis.dim
+        except AttributeError:
+            return
         xmin, xmax = self.plotview.ax.get_xlim()
         ymin, ymax = self.plotview.ax.get_ylim()
         xmin, ymin = self.plotview.inverse_transform(xmin, ymin)
