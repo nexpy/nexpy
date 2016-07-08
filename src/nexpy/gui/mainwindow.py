@@ -1127,7 +1127,7 @@ class MainWindow(QtGui.QMainWindow):
         try:
             node = self.treeview.get_node()
             if isinstance(node, NXroot):
-                dir = os.path.join(self.console.nexpy_dir, 'backups', timestamp())
+                dir = os.path.join(self.nexpy_dir, 'backups', timestamp())
                 os.mkdir(dir)
                 node.backup(dir=dir)
                 self.settings.set('backups', node.nxbackup)
@@ -1665,7 +1665,7 @@ class MainWindow(QtGui.QMainWindow):
 
     def open_script(self):
         try:
-            script_dir = os.path.join(self.console.nexpy_dir, 'scripts')
+            script_dir = os.path.join(self.nexpy_dir, 'scripts')
             file_filter = ';;'.join(("Python Files (*.py)",
                                          "Any Files (*.* *)"))
             file_name = getOpenFileName(self, 'Open Script', script_dir,
