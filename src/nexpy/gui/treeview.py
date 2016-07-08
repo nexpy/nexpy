@@ -62,6 +62,7 @@ class NXtree(NXgroup):
                 for item in self._item.child(row).walk():
                     self.sync_children(item)
             self._view.update()
+            self._view.status_message(self._view.node)
 
     def sync_children(self, item):
         if isinstance(item.node, NXgroup):
