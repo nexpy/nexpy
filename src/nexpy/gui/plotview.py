@@ -20,6 +20,7 @@ from .pyqt import QtCore, QtGui
 
 import numbers
 import numpy as np
+import os
 import pkg_resources
 
 import matplotlib as mpl
@@ -2533,6 +2534,10 @@ class NXNavigationToolbar(NavigationToolbar):
     def __repr__(self):
         return 'NXNavigationToolbar("%s")' % self.plotview.label
 
+    def _icon(self, name):
+        return QtGui.QIcon(os.path.join(pkg_resources.resource_filename(
+                                        'nexpy.gui', 'resources'), name))
+
     def _init_toolbar(self):
         self.toolitems = (
             ('Home', 'Reset original view', 'home', 'home'),
@@ -2542,16 +2547,13 @@ class NXNavigationToolbar(NavigationToolbar):
             ('Pan', 'Pan axes with left mouse, zoom with right', 'move', 'pan'),
             ('Zoom', 'Zoom to rectangle', 'zoom_to_rect', 'zoom'),
             (None, None, None, None),
-            ('Aspect', 'Set aspect ratio to equal', 'hand', 'set_aspect'),
+            ('Aspect', 'Set aspect ratio to equal', 'equal', 'set_aspect'),
             (None, None, None, None),
             ('Subplots', 'Configure subplots', 'subplots', 'configure_subplots'),
             ('Save', 'Save the figure', 'filesave', 'save_figure'),
             ('Add', 'Add plot data to tree', 'hand', 'add_data')
                 )
         super(NXNavigationToolbar, self)._init_toolbar()
-        self._actions['set_aspect'].setIcon(QtGui.QIcon(
-                pkg_resources.resource_filename('nexpy.gui',
-                                                'resources/equal.png')))
         self._actions['set_aspect'].setCheckable(True)
         for action in self.findChildren(QtGui.QAction):
             if action.text() == 'Customize':
