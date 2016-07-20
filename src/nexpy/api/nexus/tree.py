@@ -968,7 +968,7 @@ class NXobject(object):
             txt2 = u"@" + unicode(k)
             try:
                 txt3 = u" = " + unicode(str(self.attrs[k]))
-            except UnicodeDecodeError, err:
+            except UnicodeDecodeError as err:
                 # this is a wild assumption to read non-compliant strings from Soleil
                 txt3 = u" = " + unicode(str(self.attrs[k]), "ISO-8859-1")
             txt = txt1 + txt2 + txt3
@@ -1009,7 +1009,7 @@ class NXobject(object):
         displayed. If 'recursive' is True, the contents of child groups are
         also displayed.
         """
-        print self._str_tree(attrs=attrs, recursive=recursive)
+        print(self._str_tree(attrs=attrs, recursive=recursive))
 
     @property
     def tree(self):
@@ -2054,7 +2054,7 @@ class NXfield(NXobject):
         for large arrays will be printed.
         """
         if self._value is not None:
-            if self.dtype.kind == 'S' and self.shape <> ():
+            if self.dtype.kind == 'S' and self.shape != ():
                 return '\n'.join([t for t in self._value.flatten()])
             else:
                 return str(self._value)
@@ -4031,7 +4031,7 @@ def tree(filename):
     Reads and summarize the named NeXus file.
     """
     root = load(filename)
-    print root.tree
+    print(root.tree)
 
 def demo(argv):
     """
@@ -4065,7 +4065,7 @@ usage: %s cmd [args]
     ls *.nxs
     plot file.nxs entry.data
         """%(argv[0],)
-        print usage
+        print(usage)
 
 
 if __name__ == "__main__":

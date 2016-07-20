@@ -192,7 +192,7 @@ class Converter(object):
             raise KeyError("%s not in %s"%(units," ".join(self.scalemap.keys())))
 
 def _check(expect,get):
-    if expect != get: raise ValueError, "Expected %s but got %s"%(expect,get)
+    if expect != get: raise ValueError("Expected %s but got %s"%(expect,get))
     #print expect,"==",get
 
 def test():
