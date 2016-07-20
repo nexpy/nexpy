@@ -303,14 +303,16 @@ class NXTreeView(QtGui.QTreeView):
             if node.is_plottable():
                 menu.addAction(self.plot_data_action)
                 if ((isinstance(node, NXgroup) and
-                    node.nxsignal and node.nxsignal.plot_rank == 1) or
+                    node.nxsignal is not None and 
+                    node.nxsignal.plot_rank == 1) or
                     (isinstance(node, NXfield) and node.plot_rank == 1)):
                     menu.addAction(self.plot_line_action)
                     if self.mainwindow.plotview.ndim == 1:
                         menu.addAction(self.overplot_data_action)
                         menu.addAction(self.overplot_line_action)
-                if ((isinstance(node, NXgroup) and node.plottable_data and
-                     node.plottable_data.nxsignal and
+                if ((isinstance(node, NXgroup) and 
+                     node.plottable_data is not None and
+                     node.plottable_data.nxsignal is not None and
                      node.plottable_data.nxsignal.plot_rank > 2) or
                     (isinstance(node, NXfield) and node.plot_rank > 2)):
                     menu.addAction(self.plot_image_action)
@@ -342,9 +344,10 @@ class NXTreeView(QtGui.QTreeView):
                 menu.addSeparator()
             menu.addAction(self.signal_action)
         menu.addSeparator()
-        menu.addAction(self.savefile_action)
-        if isinstance(node, NXroot) and node.nxfilemode:
-            menu.addAction(self.duplicate_action)
+        if isinstance(node, NXroot):
+            menu.addAction(self.savefile_action)
+            if node.nxfilemode:
+                menu.addAction(self.duplicate_action)
             menu.addSeparator()
         if node.nxfilemode:
             menu.addAction(self.reload_action)
