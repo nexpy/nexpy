@@ -978,8 +978,8 @@ class MainWindow(QtGui.QMainWindow):
     def save_file(self):
         try:
             node = self.treeview.get_node()
-            if node is None:
-                return
+            if node is None or not isinstance(node, NXroot):
+                raise NeXusError("Only NXroot groups can be saved")
             if node.nxfilemode:
                 name = self.treeview.tree.get_new_name()
                 existing = True
