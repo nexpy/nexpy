@@ -991,7 +991,7 @@ class MainWindow(QtGui.QMainWindow):
                                     self.file_filter)
             if fname:
                 old_name = node.nxname
-                root = node.save(fname)
+                root = node.save(fname, 'w')
                 del self.treeview.tree[old_name]
                 name = self.treeview.tree.get_name(fname)
                 self.treeview.tree[name] = self.user_ns[name] = root
@@ -1007,16 +1007,16 @@ class MainWindow(QtGui.QMainWindow):
         try:
             node = self.treeview.get_node()
             if isinstance(node, NXroot):
-                if node.nxfilemode:
+                if node.nxfile:
                     name = self.treeview.tree.get_new_name()
                     default_name = os.path.join(self.default_directory,name)
                     fname = getSaveFileName(self, "Choose a Filename",
                                             default_name, self.file_filter)
                     if fname:
-                        nx_file = NXFile(fname, 'w')
-                        nx_file.copyfile(node.nxfile)
+                        with NXFile(fname, 'w') as f:
+                            f.copyfile(node.nxfile)
                         name = self.treeview.tree.get_name(fname)
-                        self.treeview.tree[name] = self.user_ns[name] = nx_file.readfile()
+                        self.treeview.tree[name] = self.user_ns[name] = nxload(fname)
                         self.default_directory = os.path.dirname(fname)
                         logging.info("Workspace '%s' duplicated in '%s'"
                                      % (node.nxname, fname))
