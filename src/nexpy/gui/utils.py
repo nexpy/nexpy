@@ -34,6 +34,15 @@ def confirm_action(query, information=None):
     return message_box.exec_()
 
 
+def display_message(message, information=None):
+    """Display a message box with an error message"""
+    message_box = QtGui.QMessageBox()
+    message_box.setText(message)
+    if information:
+        message_box.setInformativeText(information)
+    return message_box.exec_()
+
+
 def wrap(text, length):
     """Wrap text lines based on a given length"""
     words = text.split()

@@ -46,7 +46,7 @@ from .treeview import NXTreeView
 from .plotview import NXPlotView, NXProjectionPanels
 from .datadialogs import *
 from .scripteditor import NXScriptWindow, NXScriptEditor
-from .utils import confirm_action, report_error, timestamp
+from .utils import confirm_action, report_error, display_message, timestamp
 
 
 class NXRichJupyterWidget(RichJupyterWidget):
@@ -1131,6 +1131,8 @@ class MainWindow(QtGui.QMainWindow):
                 os.mkdir(dir)
                 node.backup(dir=dir)
                 self.settings.set('backups', node.nxbackup)
+                display_message("Workspace '%s' backed up" % node.nxname, 
+                                information=node.nxbackup)
                 logging.info("Workspace '%s' backed up to '%s'" 
                              % (node.nxname, node.nxbackup))
             else:
