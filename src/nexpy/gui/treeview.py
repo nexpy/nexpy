@@ -440,7 +440,7 @@ class NXTreeView(QtGui.QTreeView):
         if isinstance(message, NXfield):
             text = message.tree
         elif isinstance(message, NXgroup):
-            text = message.nxclass+':'+message.nxname+' '+message._str_attrs()
+            text = message._str_name()+' '+message._str_attrs()
         else:
             text = str(message)
         self.mainwindow.statusBar().showMessage(text.replace('\n','; '))
