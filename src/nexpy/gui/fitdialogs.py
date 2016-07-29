@@ -143,6 +143,8 @@ class FitDialog(BaseDialog):
             if len(data.nxsignal.shape) > 1:
                 raise NeXusError("Fitting only possible on one-dimensional arrays")
             fit_data = NXdata(data.nxsignal, data.nxaxes, title=data.nxtitle)
+            if fit_data.nxsignal.shape[0] == fit_data.nxaxes[0].shape[0] - 1:
+                fit_data.nxaxes = [fit_data.nxaxes[0].centers()]
             if data.nxerrors:
                 fit_data.errors = data.nxerrors
             return fit_data
