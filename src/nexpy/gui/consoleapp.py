@@ -193,7 +193,7 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
             if not (os.path.exists(backup) and 
                     os.path.realpath(backup).startswith(self.backup_dir)):
                 self.settings.remove_option('backups', backup)
-            elif backup_age(backup) > 7:
+            elif backup_age(backup) > 3:
                 os.remove(os.path.realpath(backup))
                 os.rmdir(os.path.dirname(os.path.realpath(backup))) 
                 self.settings.remove_option('backups', backup)
