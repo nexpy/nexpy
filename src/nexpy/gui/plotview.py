@@ -265,6 +265,9 @@ class NXPlotView(QtGui.QDialog):
             self.add_menu_action()
             self.show()
 
+        #Add dummy NXdata group to ensure properties resolve properly
+        self.data = self.plotdata = NXdata((0,1), [(0,1)])
+
         #Display the NeXpy logo in the plotting window
         self.figure.clf()
         self.ax.imshow(logo)
