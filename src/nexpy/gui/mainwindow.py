@@ -1343,14 +1343,14 @@ class MainWindow(QtGui.QMainWindow):
         try:
             node = self.treeview.get_node()
             if isinstance(node, NXlink):
-                if node.nxfilename != node.nxroot.nxfilename:
+                if node.nxfilename and node.nxfilename != node.nxroot.nxfilename:
                     fname = node.nxfilename
                     if not os.path.isabs(fname):
                         fname = os.path.join(os.path.dirname(node.nxroot.nxfilename),
                                              node.nxfilename)
                     try:
                         name = self.treeview.tree.node_from_file(fname)
-                    except IndexError:
+                    except (AttributeError, IndexError):
                         name = self.treeview.tree.get_name(fname)
                         self.treeview.tree[name] = self.user_ns[name] = nxload(fname)
                     self.treeview.select_node(self.treeview.tree[name][node.nxtarget])

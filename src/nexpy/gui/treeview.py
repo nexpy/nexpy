@@ -158,8 +158,12 @@ class NXtree(NXgroup):
                     del self._shell[shell_names[0]]
 
     def node_from_file(self, fname):
-        return [name for name in self if 
-            os.path.abspath(fname)==os.path.abspath(self[name].nxfilename)][0]
+        fname = os.path.abspath(fname)
+        names = [name for name in self if self[name].nxfilename]
+        try:   
+            return [name for name in names if fname==self[name].nxfilename][0]
+        except IndexError:
+            return None
 
 
 class NXTreeItem(QtGui.QStandardItem):
