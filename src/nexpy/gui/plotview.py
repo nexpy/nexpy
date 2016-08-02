@@ -2114,7 +2114,6 @@ class NXProjectionTab(QtGui.QWidget):
         if not self.plotview.projection_panel:
             self.plotview.projection_panel = NXProjectionPanel(
                                                  plotview=self.plotview)
-            self.plotview.projection_panel.update_limits()
         self.plotview.projection_panel.window.setVisible(True)
         self.plotview.projection_panel.window.tabs.setCurrentWidget(
                                                  self.plotview.projection_panel)
@@ -2272,6 +2271,10 @@ class NXProjectionPanel(QtGui.QWidget):
         layout.addLayout(grid)
 
         button_layout = QtGui.QHBoxLayout()
+        self.reset_button = QtGui.QPushButton("Reset Limits", self)
+        self.reset_button.clicked.connect(self.reset_limits)
+        self.reset_button.setDefault(False)
+        self.reset_button.setAutoDefault(False)
         self.rectangle_button = QtGui.QPushButton("Hide Rectangle", self)
         self.rectangle_button.clicked.connect(self.show_rectangle)
         self.rectangle_button.setDefault(False)
@@ -2281,6 +2284,7 @@ class NXProjectionPanel(QtGui.QWidget):
         self.close_button.setDefault(False)
         self.close_button.setAutoDefault(False)
         button_layout.addStretch()
+        button_layout.addWidget(self.reset_button)
         button_layout.addWidget(self.rectangle_button)
         button_layout.addWidget(self.close_button)
         button_layout.addStretch()
@@ -2304,7 +2308,10 @@ class NXProjectionPanel(QtGui.QWidget):
             self.minbox[axis].setMaximum(self.minbox[axis].data.size-1)
             self.maxbox[axis].setMaximum(self.maxbox[axis].data.size-1)
             self.minbox[axis].diff = self.maxbox[axis].diff = None
-
+            self.block_signals(True)
+            self.minbox[axis].setValue(self.minbox[axis].data[0])
+            self.maxbox[axis].setValue(self.maxbox[axis].data[-1])
+            self.block_signals(False)
         self.update_limits()
 
     def __repr__(self):
@@ -2373,11 +2380,31 @@ class NXProjectionPanel(QtGui.QWidget):
             return [(_min, _max+1) if _min <= _max else (_max, _min+1)
                     for _min, _max in _limits]
 
+    def reset_limits(self):
+        self.block_signals(True)
+        for axis in range(self.ndim):
+            self.block_signals(True)
+            self.minbox[axis].setValue(self.minbox[axis].data[0])
+            self.maxbox[axis].setValue(self.maxbox[axis].data[-1])
+            self.block_signals(False)
+        self.update_limits()
+
     def update_limits(self):
         for axis in range(self.ndim):
             lo, hi = self.plotview.axis[axis].get_limits()
-            self.minbox[axis].setValue(lo)
-            self.maxbox[axis].setValue(hi)
+            minbox, maxbox = self.minbox[axis], self.maxbox[axis]
+            ilo, ihi = minbox.indexFromValue(lo), maxbox.indexFromValue(hi)
+            if (self.plotview.axis[axis] is self.plotview.xaxis or 
+                   self.plotview.axis[axis] is self.plotview.yaxis):
+                ilo = ilo + 1
+                ihi = max(ilo, ihi-1)
+                if lo > minbox.value():
+                    minbox.setValue(minbox.valueFromIndex(ilo))
+                if  hi < maxbox.value():
+                    maxbox.setValue(maxbox.valueFromIndex(ihi))
+            else:
+                minbox.setValue(minbox.valueFromIndex(ilo))
+                maxbox.setValue(maxbox.valueFromIndex(ihi))
 
     def set_lock(self):
         for axis in range(self.ndim):
