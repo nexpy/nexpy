@@ -2699,13 +2699,13 @@ class CustomizeDialog(BaseDialog):
 
         self.parameters = {}
         pl = self.parameters['labels'] = GridParameters()
-        pl.add('title', plotview.title, 'Title')
+        pl.add('title', self.plotview.title, 'Title')
         pl['title'].box.setMinimumWidth(200)
         pl['title'].box.setAlignment(QtCore.Qt.AlignLeft)
-        pl.add('xlabel', plotview.xaxis.label, 'X-Axis Label')
+        pl.add('xlabel', self.plotview.xaxis.label, 'X-Axis Label')
         pl['xlabel'].box.setMinimumWidth(200)
         pl['xlabel'].box.setAlignment(QtCore.Qt.AlignLeft)
-        pl.add('ylabel', plotview.yaxis.label, 'Y-Axis Label')
+        pl.add('ylabel', self.plotview.yaxis.label, 'Y-Axis Label')
         pl['ylabel'].box.setMinimumWidth(200)
         pl['ylabel'].box.setAlignment(QtCore.Qt.AlignLeft)
         if self.plotview.image is not None:
