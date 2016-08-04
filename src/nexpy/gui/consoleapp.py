@@ -23,6 +23,7 @@ import logging
 import logging.handlers
 import pkg_resources
 import os
+import shutil
 import signal
 import sys
 import tempfile
@@ -31,6 +32,7 @@ from .pyqt import QtCore, QtGui
 
 from .mainwindow import MainWindow
 from .treeview import NXtree
+from .utils import NXConfigParser, timestamp_age
 
 from nexusformat.nexus import nxclasses, nxload
 
@@ -47,7 +49,6 @@ from jupyter_core.application import JupyterApp, base_flags, base_aliases
 from jupyter_client.consoleapp import (
         JupyterConsoleApp, app_aliases, app_flags,
     )
-from jupyter_client.localinterfaces import is_local_ip
 
 #-----------------------------------------------------------------------------
 # Globals
@@ -158,7 +159,7 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
 
     def init_dir(self):
         """Initialize NeXpy home directory"""
-        home_dir = os.path.realpath(os.path.expanduser('~'))
+        home_dir = os.path.abspath(os.path.expanduser('~'))
         nexpy_dir = os.path.join(home_dir, '.nexpy')
         if not os.path.exists(nexpy_dir):
             parent = os.path.dirname(nexpy_dir)
@@ -172,12 +173,36 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
             if not os.path.exists(directory):
                 os.mkdir(directory)
         global _nexpy_dir
-        _nexpy_dir = nexpy_dir
+        self.nexpy_dir = _nexpy_dir = nexpy_dir
+        self.backup_dir = os.path.join(self.nexpy_dir, 'backups')
+        self.plugin_dir = os.path.join(self.nexpy_dir, 'plugins')
+        self.reader_dir = os.path.join(self.nexpy_dir, 'readers')
+        self.script_dir = os.path.join(self.nexpy_dir, 'scripts')
+        self.function_dir = os.path.join(self.nexpy_dir, 'functions')
+
+    def init_settings(self):
+        self.settings = NXConfigParser(os.path.join(self.nexpy_dir, 
+                                                    'settings.ini'))
+        def backup_age(backup):
+            try:
+                return timestamp_age(os.path.basename(os.path.dirname(backup)))
+            except ValueError:
+                return 0
+        backups = self.settings.options('backups')
+        for backup in backups:
+            if not (os.path.exists(backup) and 
+                    os.path.realpath(backup).startswith(self.backup_dir)):
+                self.settings.remove_option('backups', backup)
+            elif backup_age(backup) > 3:
+                os.remove(os.path.realpath(backup))
+                os.rmdir(os.path.dirname(os.path.realpath(backup))) 
+                self.settings.remove_option('backups', backup)
+        self.settings.save()
 
     def init_log(self):
         value = os.getenv("NEXPY_LOG")
         if value == None:
-            log_file = os.path.join(_nexpy_dir, 'nexpy.log')
+            log_file = os.path.join(self.nexpy_dir, 'nexpy.log')
             hdlr = logging.handlers.RotatingFileHandler(log_file, maxBytes=50000,
                                                         backupCount=5)
             fmt = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
@@ -209,7 +234,7 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
         if self.app is None:
             self.app = QtGui.QApplication(['nexpy'])
         self.app.setApplicationName('nexpy')
-        self.window = MainWindow(self.app, self.tree, config=self.config)
+        self.window = MainWindow(self, self.tree, self.settings, self.config)
         self.window.log = self.log
         global _mainwindow
         _mainwindow = self.window
@@ -261,10 +286,10 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
         if filename is not None:
             try:
                 fname = os.path.expanduser(filename)
-                name = _mainwindow.treeview.tree.get_name(fname)
-                _mainwindow.treeview.tree[name] = self.window.user_ns[name] \
+                name = self.window.treeview.tree.get_name(fname)
+                self.window.treeview.tree[name] = self.window.user_ns[name] \
                                                 = nxload(fname)
-                _mainwindow.treeview.select_node(_mainwindow.treeview.tree[name])
+                self.window.treeview.select_node(self.window.treeview.tree[name])
                 logging.info("NeXus file '%s' opened as workspace '%s'"
                               % (fname, name))
                 self.window.user_ns[name].plot()
@@ -296,6 +321,7 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
     def initialize(self, filename=None, argv=None):
         super(NXConsoleApp, self).initialize(argv)
         self.init_dir()
+        self.init_settings()
         self.init_log()
         self.init_tree()
         self.init_gui()

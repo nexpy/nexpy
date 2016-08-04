@@ -38,8 +38,6 @@ class ImportDialog(BaseImportDialog):
             raise NeXusError("Please install the 'spec2nexus' module")
 
         self.accepted = False
-        from nexpy.gui.consoleapp import _mainwindow
-        self.default_directory = _mainwindow.default_directory
         self.import_file = None     # must set in self.get_data()
         self.spec = None
 

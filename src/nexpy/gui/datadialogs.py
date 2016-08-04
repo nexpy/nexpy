@@ -20,7 +20,6 @@ import pkg_resources
 import re
 import shutil
 import sys
-from datetime import datetime
 
 from .pyqt import QtGui, QtCore, getOpenFileName
 import numpy as np
@@ -31,30 +30,11 @@ try:
 except ImportError:
     from ordereddict import OrderedDict
 
+from .utils import confirm_action, report_error, natural_sort, wrap
+from .utils import human_size, timestamp, format_timestamp
+
 from nexusformat.nexus import (NeXusError, NXgroup, NXfield, NXattr,
-                               NXroot, NXentry, NXdata, NXparameters)
-
-
-def wrap(text, length):
-    words = text.split()
-    lines = []
-    line = ''
-    for w in words:
-        if len(w) + len(line) > length:
-            lines.append(line)
-            line = ''
-        line = line + w + ' '
-        if w is words[-1]: lines.append(line)
-    return '\n'.join(lines)
-
-
-def natural_sort(key):
-    import re
-    return [int(t) if t.isdigit() else t for t in re.split(r'(\d+)', key)]    
-
-
-def timestamp():
-    return datetime.now().strftime('%Y%m%d%H%M%S')
+                               NXroot, NXentry, NXdata, NXparameters, nxload)
 
 
 class BaseDialog(QtGui.QDialog):
@@ -66,15 +46,14 @@ class BaseDialog(QtGui.QDialog):
         from .consoleapp import _mainwindow
         self.mainwindow = _mainwindow
         self.treeview = self.mainwindow.treeview
-        self.default_directory = _mainwindow.default_directory
+        self.default_directory = self.mainwindow.default_directory
         self.import_file = None     # must define in subclass
         self.nexus_filter = ';;'.join((
              "NeXus Files (*.nxs *.nx5 *.h5 *.hdf *.hdf5)",
 	         "Any Files (*.* *)"))
         self.checkbox = {}
         self.radiobutton = {}
-        if parent is None:
-            parent = self.mainwindow
+        self.confirm_action, self.report_error = confirm_action, report_error
         super(BaseDialog, self).__init__(parent)
 
     def set_layout(self, *items):
@@ -117,9 +96,30 @@ class BaseDialog(QtGui.QDialog):
              layout.addStretch()
         return layout
 
-    def checkboxes(self, *items):
+    def labels(self, *labels, **opts):
+        if 'align' in opts:
+            align = opts['align']
+        else:
+            align = 'center'
+        layout = QtGui.QVBoxLayout()
+        for label in labels:
+            horizontal_layout = QtGui.QHBoxLayout()
+            if align == 'center' or align == 'right':
+                horizontal_layout.addStretch()
+            horizontal_layout.addWidget(QtGui.QLabel(label))
+            if align == 'center' or align == 'left':
+                horizontal_layout.addStretch()
+            layout.addLayout(horizontal_layout)
+        return layout
+
+    def checkboxes(self, *items, **opts):
+        if 'align' in opts:
+            align = opts['align']
+        else:
+            align = 'center'
         layout = QtGui.QHBoxLayout()
-        layout.addStretch()
+        if align != 'left':
+            layout.addStretch()
         for label, text, checked in items:
              self.checkbox[label] = QtGui.QCheckBox(text)
              self.checkbox[label].setChecked(checked)
@@ -381,15 +381,6 @@ class BaseDialog(QtGui.QDialog):
         Return the node currently selected in the treeview
         """
         return self.treeview.get_node()
-
-    def confirm_action(self, query, information=None):
-        msgBox = QtGui.QMessageBox()
-        msgBox.setText(query)
-        if information:
-            msgBox.setInformativeText(information)
-        msgBox.setStandardButtons(QtGui.QMessageBox.Ok | QtGui.QMessageBox.Cancel)
-        msgBox.setDefaultButton(QtGui.QMessageBox.Ok)
-        return msgBox.exec_()
 
 
 class GridParameters(OrderedDict):
@@ -728,9 +719,13 @@ class PlotDialog(BaseDialog):
         return [self.get_axis(axis) for axis in range(self.ndim)]
 
     def accept(self):
-        data = NXdata(self.signal, self.get_axes(), title=self.signal.nxtitle)
-        data.plot(fmt=self.fmt)
-        super(PlotDialog, self).accept()
+        try:
+            data = NXdata(self.signal, self.get_axes(), title=self.signal.nxtitle)
+            data.plot(fmt=self.fmt)
+            super(PlotDialog, self).accept()
+        except NeXusError as error:
+            report_error("Plotting data", error)
+            super(PlotDialog, self).reject()
 
     
 class LimitDialog(BaseDialog):
@@ -805,15 +800,19 @@ class LimitDialog(BaseDialog):
         return textbox
 
     def accept(self):
-        xmin, xmax = self.xmin_box.value(), self.xmax_box.value() 
-        ymin, ymax = self.ymin_box.value(), self.ymax_box.value()
-        if self.plotview.ndim > 1:
-            vmin, vmax = self.vmin_box.value(), self.vmax_box.value()
-            self.plotview.autoscale = False
-            self.plotview.set_plot_limits(xmin, xmax, ymin, ymax, vmin, vmax)
-        else:
-            self.plotview.set_plot_limits(xmin, xmax, ymin, ymax)
-        super(LimitDialog, self).accept()
+        try:
+            xmin, xmax = self.xmin_box.value(), self.xmax_box.value() 
+            ymin, ymax = self.ymin_box.value(), self.ymax_box.value()
+            if self.plotview.ndim > 1:
+                vmin, vmax = self.vmin_box.value(), self.vmax_box.value()
+                self.plotview.autoscale = False
+                self.plotview.set_plot_limits(xmin, xmax, ymin, ymax, vmin, vmax)
+            else:
+                self.plotview.set_plot_limits(xmin, xmax, ymin, ymax)
+            super(LimitDialog, self).accept()
+        except NeXusError as error:
+            report_error("Setting plot limits", error)
+            super(LimitDialog, self).reject()
 
     
 class AddDialog(BaseDialog):
@@ -878,21 +877,20 @@ class AddDialog(BaseDialog):
             combo_label.setText("Group Class:")
             self.combo_box = QtGui.QComboBox()
             self.combo_box.currentIndexChanged.connect(self.select_combo)
-            from .consoleapp import _mainwindow
             standard_groups = sorted(list(set([g for g in 
-                              _mainwindow.nxclasses[self.node.nxclass][2]])))
+                              self.mainwindow.nxclasses[self.node.nxclass][2]])))
             for name in standard_groups:
                 self.combo_box.addItem(name)
                 self.combo_box.setItemData(self.combo_box.count()-1, 
-                    wrap(_mainwindow.nxclasses[name][0], 40),
+                    wrap(self.mainwindow.nxclasses[name][0], 40),
                     QtCore.Qt.ToolTipRole)
             self.combo_box.insertSeparator(self.combo_box.count())
-            other_groups = sorted([g for g in _mainwindow.nxclasses if g not in
-                                   standard_groups])
+            other_groups = sorted([g for g in self.mainwindow.nxclasses 
+                                   if g not in standard_groups])
             for name in other_groups:
                 self.combo_box.addItem(name)
                 self.combo_box.setItemData(self.combo_box.count()-1, 
-                    wrap(_mainwindow.nxclasses[name][0], 40),
+                    wrap(self.mainwindow.nxclasses[name][0], 40),
                     QtCore.Qt.ToolTipRole)
             self.combo_box.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToContents)
             grid.addWidget(combo_label, 0, 0)
@@ -904,13 +902,12 @@ class AddDialog(BaseDialog):
             combo_label.setAlignment(QtCore.Qt.AlignLeft)
             self.combo_box = QtGui.QComboBox()
             self.combo_box.currentIndexChanged.connect(self.select_combo)
-            from .consoleapp import _mainwindow
             fields = sorted(list(set([g for g in 
-                            _mainwindow.nxclasses[self.node.nxclass][1]])))
+                            self.mainwindow.nxclasses[self.node.nxclass][1]])))
             for name in fields:
                 self.combo_box.addItem(name)
                 self.combo_box.setItemData(self.combo_box.count()-1, 
-                    wrap(_mainwindow.nxclasses[self.node.nxclass][1][name][2], 40),
+                    wrap(self.mainwindow.nxclasses[self.node.nxclass][1][name][2], 40),
                     QtCore.Qt.ToolTipRole)
             self.combo_box.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToContents)
             grid.addWidget(name_label, 0, 0)
@@ -989,7 +986,7 @@ class AddDialog(BaseDialog):
                 try:
                     return eval(value, {"__builtins__": {}}, _shell)
                 except Exception:
-                    return str(value)
+                    return value
         else:
             return None
 
@@ -1058,13 +1055,12 @@ class InitializeDialog(BaseDialog):
         self.name_box.setAlignment(QtCore.Qt.AlignLeft)
         self.combo_box = QtGui.QComboBox()
         self.combo_box.currentIndexChanged.connect(self.select_combo)
-        from .consoleapp import _mainwindow
         fields = sorted(list(set([g for g in 
-                        _mainwindow.nxclasses[self.node.nxclass][1]])))
+                        self.mainwindow.nxclasses[self.node.nxclass][1]])))
         for name in fields:
             self.combo_box.addItem(name)
             self.combo_box.setItemData(self.combo_box.count()-1, 
-                wrap(_mainwindow.nxclasses[self.node.nxclass][1][name][2], 40),
+                wrap(self.mainwindow.nxclasses[self.node.nxclass][1][name][2], 40),
                 QtCore.Qt.ToolTipRole)
         self.combo_box.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToContents)
         grid.addWidget(name_label, 0, 0)
@@ -1167,22 +1163,21 @@ class RenameDialog(BaseDialog):
             combo_label.setAlignment(QtCore.Qt.AlignLeft)
             combo_label.setText("New Class:")
             self.combo_box = QtGui.QComboBox()
-            from .consoleapp import _mainwindow
             parent_class = self.node.nxgroup.nxclass
             standard_groups = sorted(list(set([g for g in 
-                          _mainwindow.nxclasses[parent_class][2]])))
+                                  self.mainwindow.nxclasses[parent_class][2]])))
             for name in standard_groups:
                 self.combo_box.addItem(name)
                 self.combo_box.setItemData(self.combo_box.count()-1, 
-                    wrap(_mainwindow.nxclasses[name][0], 40),
+                    wrap(self.mainwindow.nxclasses[name][0], 40),
                     QtCore.Qt.ToolTipRole)
             self.combo_box.insertSeparator(self.combo_box.count())
-            other_groups = sorted([g for g in _mainwindow.nxclasses 
+            other_groups = sorted([g for g in self.mainwindow.nxclasses 
                                    if g not in standard_groups])
             for name in other_groups:
                 self.combo_box.addItem(name)
                 self.combo_box.setItemData(self.combo_box.count()-1, 
-                    wrap(_mainwindow.nxclasses[name][0], 40),
+                    wrap(self.mainwindow.nxclasses[name][0], 40),
                     QtCore.Qt.ToolTipRole)
             self.combo_box.insertSeparator(self.combo_box.count())
             self.combo_box.addItem('NXgroup')
@@ -1198,13 +1193,12 @@ class RenameDialog(BaseDialog):
                 combo_label.setText("Valid Fields:")
                 self.combo_box = QtGui.QComboBox()
                 self.combo_box.currentIndexChanged.connect(self.set_name)
-                from .consoleapp import _mainwindow
                 fields = sorted(list(set([g for g in 
-                            _mainwindow.nxclasses[parent_class][1]])))
+                                self.mainwindow.nxclasses[parent_class][1]])))
                 for name in fields:
                     self.combo_box.addItem(name)
                     self.combo_box.setItemData(self.combo_box.count()-1, 
-                        wrap(_mainwindow.nxclasses[parent_class][1][name][2], 40),
+                        wrap(self.mainwindow.nxclasses[parent_class][1][name][2], 40),
                         QtCore.Qt.ToolTipRole)
                 if self.node.nxname in fields:
                     self.combo_box.setCurrentIndex(self.combo_box.findText(self.node.nxname))
@@ -1234,50 +1228,6 @@ class RenameDialog(BaseDialog):
         super(RenameDialog, self).accept()
 
     
-class RemoveDialog(BaseDialog):
-    """Dialog to remove a NeXus node from the tree"""
- 
-    def __init__(self, node, parent=None):
-
-        super(RemoveDialog, self).__init__(parent)
- 
-        self.node = node
- 
-        layout = QtGui.QVBoxLayout()
-        layout.addWidget(QtGui.QLabel('Are you sure you want to remove "%s"?' 
-                                      % node.nxname))
-        layout.addWidget(self.close_buttons()) 
-        self.setLayout(layout)
-
-        self.setWindowTitle("Remove NeXus File")
-
-    def accept(self):
-        del self.node.nxgroup[self.node.nxname]
-        super(RemoveDialog, self).accept()
-
-    
-class DeleteDialog(BaseDialog):
-    """Dialog to delete a NeXus node"""
- 
-    def __init__(self, node, parent=None):
-
-        super(DeleteDialog, self).__init__(parent)
- 
-        self.node = node
- 
-        layout = QtGui.QVBoxLayout()
-        layout.addWidget(QtGui.QLabel('Are you sure you want to delete "%s"?' 
-                                      % node.nxname))
-        layout.addWidget(self.close_buttons()) 
-        self.setLayout(layout)
-
-        self.setWindowTitle("Delete NeXus Data")
-
-    def accept(self):
-        del self.node.nxgroup[self.node.nxname]
-        super(DeleteDialog, self).accept()
-
-    
 class SignalDialog(BaseDialog):
     """Dialog to set the signal of NXdata"""
  
@@ -1285,9 +1235,6 @@ class SignalDialog(BaseDialog):
 
         super(SignalDialog, self).__init__(parent)
 
-        from .mainwindow import report_error
-        self.report_error = report_error
- 
         if isinstance(node, NXfield):
             self.group = node.nxgroup
             signal_name = node.nxname
@@ -1416,7 +1363,7 @@ class SignalDialog(BaseDialog):
             self.group.nxaxes = axes
             super(SignalDialog, self).accept()
         except NeXusError as error:
-            self.report_error("Setting signal", error)
+            report_error("Setting signal", error)
             super(SignalDialog, self).reject()
 
     
@@ -1427,8 +1374,7 @@ class LogDialog(BaseDialog):
 
         super(LogDialog, self).__init__(parent)
  
-        from .consoleapp import _nexpy_dir
-        self.log_directory = _nexpy_dir
+        self.log_directory = self.mainwindow.nexpy_dir
 
         self.ansi_re = re.compile('\x1b' + r'\[([\dA-Fa-f;]*?)m')
  
@@ -1473,22 +1419,58 @@ class LogDialog(BaseDialog):
         self.setWindowTitle("Log File: %s" % self.file_name)
 
 
-class InstallPluginDialog(BaseDialog):
-    """Dialog to install a NeXus plugin"""
+class UnlockDialog(BaseDialog):
+    """Dialog to unlock a file"""
 
     def __init__(self, node, parent=None):
 
+        super(UnlockDialog, self).__init__(parent)
+
+        self.setWindowTitle("Unlock File")
+        self.node = node
+
+        if not os.path.exists(self.node.nxfilename):
+            raise NeXusError("'%s' does not exist")
+        file_size = os.path.getsize(self.node.nxfilename)
+        if file_size > 10000000:
+            default = False
+        else:
+            default = True
+        self.set_layout(self.labels(
+                            "<b>Are you sure you want to unlock the file?</b>"),
+                        self.checkboxes(('backup', 'Backup file (%s)' 
+                                         % human_size(file_size), default)),
+                        self.close_buttons())
+        self.set_title('Unlocking File')
+
+    def accept(self):
+        try:
+            if self.checkbox['backup'].isChecked():
+                dir = os.path.join(self.mainwindow.backup_dir, timestamp())
+                os.mkdir(dir)
+                self.node.backup(dir=dir)
+                self.mainwindow.settings.set('backups', self.node.nxbackup)
+                self.mainwindow.settings.save()
+                logging.info("Workspace '%s' backed up to '%s'" 
+                             % (self.node.nxname, self.node.nxbackup))
+            self.node.unlock()
+            logging.info("Workspace '%s' unlocked" % self.node.nxname)
+            super(UnlockDialog, self).accept()
+        except NeXusError as error:
+            report_error("Unlocking file", error)
+
+
+class InstallPluginDialog(BaseDialog):
+    """Dialog to install a NeXus plugin"""
+
+    def __init__(self, parent=None):
+
         super(InstallPluginDialog, self).__init__(parent)
 
-        from .mainwindow import report_error
-        self.report_error = report_error
- 
-        from .consoleapp import _nexpy_dir, _mainwindow
-        self.mainwindow = _mainwindow
-        self.local_directory = os.path.join(_nexpy_dir, 'plugins')
+        self.local_directory = self.mainwindow.plugin_dir
         self.nexpy_directory = pkg_resources.resource_filename('nexpy', 
                                                                'plugins')
-        self.backup_directory = os.path.join(_nexpy_dir, 'backups')
+        self.backup_directory = self.mainwindow.backup_dir
 
         self.setWindowTitle("Install Plugin")
 
@@ -1527,6 +1509,8 @@ class InstallPluginDialog(BaseDialog):
                 backup = os.path.join(self.backup_directory, timestamp())
                 os.mkdir(backup)
                 shutil.move(installed_path, backup)
+                self.mainwindow.settings.set('plugins', plugin_name, backup)
+                self.mainwindow.settings.save()
             else:
                 return
         shutil.copytree(plugin_directory, installed_path)
@@ -1543,25 +1527,20 @@ class InstallPluginDialog(BaseDialog):
             self.install_plugin()
             super(InstallPluginDialog, self).accept()
         except NeXusError as error:
-            self.report_error("Installing plugin", error)
+            report_error("Installing plugin", error)
 
 
 class RemovePluginDialog(BaseDialog):
     """Dialog to remove a NeXus plugin"""
 
-    def __init__(self, node, parent=None):
+    def __init__(self, parent=None):
 
         super(RemovePluginDialog, self).__init__(parent)
-
-        from .mainwindow import report_error
-        self.report_error = report_error
  
-        from .consoleapp import _nexpy_dir, _mainwindow
-        self.mainwindow = _mainwindow
-        self.local_directory = os.path.join(_nexpy_dir, 'plugins')
+        self.local_directory = self.mainwindow.plugin_dir
         self.nexpy_directory = pkg_resources.resource_filename('nexpy', 
                                                                'plugins')
-        self.backup_directory = os.path.join(_nexpy_dir, 'backups')
+        self.backup_directory = self.mainwindow.backup_dir
 
         self.setWindowTitle("Remove Plugin")
 
@@ -1610,6 +1589,8 @@ class RemovePluginDialog(BaseDialog):
                 backup = os.path.join(self.backup_directory, timestamp())
                 os.mkdir(backup)
                 shutil.move(plugin_directory, backup)
+                self.mainwindow.settings.set('plugins', plugin_name, backup)
+                self.mainwindow.settings.save()
             else:
                 return
         try:
@@ -1624,6 +1605,70 @@ class RemovePluginDialog(BaseDialog):
             self.remove_plugin()
             super(RemovePluginDialog, self).accept()
         except NeXusError as error:
-            self.report_error("Removing plugin", error)
+            report_error("Removing plugin", error)
 
-    
+class ManageBackupsDialog(BaseDialog):
+    """Dialog to purge backup files"""
+
+    def __init__(self, parent=None):
+
+        super(ManageBackupsDialog, self).__init__(parent)
+ 
+        self.backup_dir = self.mainwindow.backup_dir
+
+        options = reversed(self.mainwindow.settings.options('backups'))
+        backups = []
+        for backup in options:
+            if os.path.exists(backup):
+                backups.append(backup)
+            else:
+                self.mainwindow.settings.remove_option('backups', backup)
+        self.mainwindow.settings.save()
+        items = []
+        for backup in backups:
+            date = format_timestamp(os.path.basename(os.path.dirname(backup)))
+            name = self.get_name(backup)
+            size = os.path.getsize(backup)
+            items.append(
+                self.checkboxes((backup, '%s: %s (%s)' 
+                                         % (date, name, human_size(size)), 
+                                 False), align='left'))
+        items.append(self.action_buttons(('Restore Files', self.restore),
+                                         ('Delete Files', self.delete)))
+        items.append(self.close_buttons())
+
+        self.set_layout(*items)
+
+        self.set_title('Manage Backups')
+
+    def get_name(self, backup):
+        name, ext = os.path.splitext(os.path.basename(backup))
+        return name[:name.find('_backup')] + ext
+
+    def restore(self):
+        for backup in self.checkbox:
+            if self.checkbox[backup].isChecked():
+                name = self.treeview.tree.get_name(self.get_name(backup))
+                self.treeview.tree[name] = self.mainwindow.user_ns[name] = nxload(backup)
+                self.checkbox[backup].setChecked(False)
+                self.checkbox[backup].setDisabled(True)
+
+    def delete(self):
+        backups = []
+        for backup in self.checkbox:
+            if self.checkbox[backup].isChecked():
+                backups.append(backup)
+        if backups:
+            ret = self.confirm_action("Delete selected backups?",
+                                      "\n".join(backups))
+            if ret == QtGui.QMessageBox.Ok:
+                for backup in backups:
+                    if (os.path.exists(backup) and 
+                        os.path.realpath(backup).startswith(self.backup_dir)):
+                        os.remove(os.path.realpath(backup))
+                        os.rmdir(os.path.dirname(os.path.realpath(backup))) 
+                        self.mainwindow.settings.remove_option('backups', backup)
+                    self.checkbox[backup].setChecked(False)
+                    self.checkbox[backup].setDisabled(True)
+                self.mainwindow.settings.save()
+                

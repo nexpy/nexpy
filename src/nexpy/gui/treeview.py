@@ -16,34 +16,33 @@ import os
 import pkg_resources
 
 from .pyqt import QtCore, QtGui
+from .utils import natural_sort
 from nexusformat.nexus import *
 
 
-def natural_sort(key):
-    import re
-    return [int(t) if t.isdigit() else t for t in re.split(r'(\d+)', key)]
-
-    
 class NXtree(NXgroup):
     """
     NXtree group. This is a subclass of the NXgroup class.
 
     It is used as the invisible root item for NeXpy tree views.
     """
-    nxclass = 'NXtree'
-    nxname = 'tree'
     _model = None
     _view = None
     _item = None
+    _shell = None
 
+    def __init__(self):
+        self._class = 'NXtree'
+        self._name = 'tree'
+        self._entries = {}
+        
     def __setitem__(self, key, value):
         if isinstance(value, NXroot):
             if key not in self._entries:
                 value._group = self
                 value._name = key
                 self._entries[key] = value
-                from .consoleapp import _shell
-                _shell[key] = self._entries[key]
+                self._shell[key] = self._entries[key]
                 self.set_changed()
             else:
                 raise NeXusError("Name already in the tree")
@@ -52,8 +51,7 @@ class NXtree(NXgroup):
     
     def __delitem__(self, key):
         del self._entries[key]
-        from .consoleapp import _shell
-        del _shell[key]
+        del self._shell[key]
         self.set_changed()
 
     def set_changed(self):
@@ -64,6 +62,7 @@ class NXtree(NXgroup):
                 for item in self._item.child(row).walk():
                     self.sync_children(item)
             self._view.update()
+            self._view.status_message(self._view.node)
 
     def sync_children(self, item):
         if isinstance(item.node, NXgroup):
@@ -120,13 +119,12 @@ class NXtree(NXgroup):
             raise NeXusError('%s not in the tree')
 
     def get_name(self, filename):
-        from .consoleapp import _shell
         name = os.path.splitext(os.path.basename(filename))[0].replace(' ','_')
         name = "".join([c for c in name.replace('-','_') 
                         if c.isalpha() or c.isdigit() or c=='_'])
-        if name in _shell:
+        if name in self._shell:
             ind = []
-            for key in _shell:
+            for key in self._shell:
                 try:
                     if key.startswith(name+'_'): 
                         ind.append(int(key[len(name)+1:]))
@@ -137,9 +135,8 @@ class NXtree(NXgroup):
         return name
 
     def get_new_name(self):
-        from .consoleapp import _shell
         ind = []
-        for key in _shell:
+        for key in self._shell:
             try:
                 if key.startswith('w'): 
                     ind.append(int(key[1:]))
@@ -149,22 +146,24 @@ class NXtree(NXgroup):
         return 'w'+str(sorted(ind)[-1]+1)
 
     def get_shell_names(self, node):
-        from .consoleapp import _shell
-        return [obj[0] for obj in _shell.items() if id(obj[1]) == id(node) 
+        return [obj[0] for obj in self._shell.items() if id(obj[1]) == id(node) 
                 and not obj[0].startswith('_')]
 
     def sync_shell_names(self):
-        from .consoleapp import _shell
         for key, value in self.items():
             shell_names = self.get_shell_names(value)
             if key not in shell_names:
-                _shell[key] = value
+                self._shell[key] = value
                 if shell_names:
-                    del _shell[shell_names[0]]
+                    del self._shell[shell_names[0]]
 
     def node_from_file(self, fname):
-        return [name for name in self if 
-            os.path.abspath(fname)==os.path.abspath(self[name].nxfilename)][0]
+        fname = os.path.abspath(fname)
+        names = [name for name in self if self[name].nxfilename]
+        try:   
+            return [name for name in names if fname==self[name].nxfilename][0]
+        except IndexError:
+            return None
 
 
 class NXTreeItem(QtGui.QStandardItem):
@@ -240,11 +239,11 @@ class NXSortModel(QtGui.QSortFilterProxyModel):
     
 class NXTreeView(QtGui.QTreeView):
 
-    def __init__(self, tree, parent=None, mainwindow=None):
+    def __init__(self, tree, parent):
         super(NXTreeView, self).__init__(parent)
 
         self.tree = tree
-        self.mainwindow = mainwindow
+        self.mainwindow = parent
         self._model = QtGui.QStandardItemModel()
         self.proxymodel = NXSortModel(self)
         self.proxymodel.setSourceModel(self._model)
@@ -262,6 +261,7 @@ class NXTreeView(QtGui.QTreeView):
         self.tree._item.node = self.tree
         self.tree._model = self._model
         self.tree._view = self
+        self.tree._shell = self.mainwindow.user_ns
 
         self.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
         self.setExpandsOnDoubleClick(False)
@@ -298,6 +298,8 @@ class NXTreeView(QtGui.QTreeView):
         self.remove_action=QtGui.QAction("Remove...", self, triggered=self.remove)
         self.lockfile_action=QtGui.QAction("Lock", self, triggered=self.lock_file)
         self.unlockfile_action=QtGui.QAction("Unlock...", self, triggered=self.unlock_file)
+        self.backup_action=QtGui.QAction("Backup", self, triggered=self.backup_file)
+        self.restore_action=QtGui.QAction("Restore...", self, triggered=self.restore_file)
 
     def popMenu(self, node):
         menu = QtGui.QMenu(self)
@@ -305,14 +307,16 @@ class NXTreeView(QtGui.QTreeView):
             if node.is_plottable():
                 menu.addAction(self.plot_data_action)
                 if ((isinstance(node, NXgroup) and
-                    node.nxsignal and node.nxsignal.plot_rank == 1) or
+                    node.nxsignal is not None and 
+                    node.nxsignal.plot_rank == 1) or
                     (isinstance(node, NXfield) and node.plot_rank == 1)):
                     menu.addAction(self.plot_line_action)
                     if self.mainwindow.plotview.ndim == 1:
                         menu.addAction(self.overplot_data_action)
                         menu.addAction(self.overplot_line_action)
-                if ((isinstance(node, NXgroup) and node.plottable_data and
-                     node.plottable_data.nxsignal and
+                if ((isinstance(node, NXgroup) and 
+                     node.plottable_data is not None and
+                     node.plottable_data.nxsignal is not None and
                      node.plottable_data.nxsignal.plot_rank > 2) or
                     (isinstance(node, NXfield) and node.plot_rank > 2)):
                     menu.addAction(self.plot_image_action)
@@ -331,7 +335,7 @@ class NXTreeView(QtGui.QTreeView):
         menu.addSeparator()
         if not isinstance(node, NXroot):
             menu.addAction(self.copy_action)
-        if isinstance(node, NXgroup) and self.mainwindow.copied_node:
+        if isinstance(node, NXgroup) and self.mainwindow.copied_node is not None:
             menu.addAction(self.paste_action)
             menu.addAction(self.pastelink_action)
         if isinstance(node, NXlink):
@@ -344,18 +348,27 @@ class NXTreeView(QtGui.QTreeView):
                 menu.addSeparator()
             menu.addAction(self.signal_action)
         menu.addSeparator()
-        menu.addAction(self.savefile_action)
+        if isinstance(node, NXroot):
+            menu.addAction(self.savefile_action)
+            if node.nxfilemode:
+                menu.addAction(self.duplicate_action)
+            menu.addSeparator()
+        if node.nxfilemode:
+            menu.addAction(self.reload_action)
         if isinstance(node, NXroot) and node.nxfilemode:
             menu.addAction(self.duplicate_action)
+            menu.addSeparator()
+            menu.addAction(self.remove_action)
             menu.addSeparator()
             if node.nxfilemode == 'r':
                 menu.addAction(self.unlockfile_action)
             else:
                 menu.addAction(self.lockfile_action)
             menu.addSeparator()
-            menu.addAction(self.remove_action)
-        if node.nxfilemode:
-            menu.addAction(self.reload_action)
+            menu.addAction(self.backup_action)
+            if node.nxbackup:
+                menu.addAction(self.restore_action)
+            menu.addSeparator
         return menu
 
     def save_file(self):
@@ -375,6 +388,12 @@ class NXTreeView(QtGui.QTreeView):
 
     def unlock_file(self):
         self.mainwindow.unlock_file()
+
+    def backup_file(self):
+        self.mainwindow.backup_file()
+
+    def restore_file(self):
+        self.mainwindow.restore_file()
 
     def plot_data(self):
         self.mainwindow.plot_data()
@@ -425,7 +444,7 @@ class NXTreeView(QtGui.QTreeView):
         if isinstance(message, NXfield):
             text = message.tree
         elif isinstance(message, NXgroup):
-            text = message.nxclass+':'+message.nxname+' '+message._str_attrs()
+            text = message._str_name()+' '+message._str_attrs()
         else:
             text = str(message)
         self.mainwindow.statusBar().showMessage(text.replace('\n','; '))
