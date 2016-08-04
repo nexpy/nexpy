@@ -54,6 +54,8 @@ class BaseDialog(QtGui.QDialog):
         self.checkbox = {}
         self.radiobutton = {}
         self.confirm_action, self.report_error = confirm_action, report_error
+        if parent is None:
+            parent = self.mainwindow
         super(BaseDialog, self).__init__(parent)
 
     def set_layout(self, *items):
