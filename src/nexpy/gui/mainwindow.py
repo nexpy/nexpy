@@ -1300,7 +1300,7 @@ class MainWindow(QtGui.QMainWindow):
     def paste_data(self):
         try:
             node = self.treeview.get_node()
-            if isinstance(node, NXgroup) and self.copied_node:
+            if isinstance(node, NXgroup) and self.copied_node is not None:
                 if node.nxfilemode != 'r':
                     node.insert(self.copied_node)
                     logging.info("'%s' pasted to '%s'"
@@ -1313,7 +1313,7 @@ class MainWindow(QtGui.QMainWindow):
     def paste_link(self):
         try:
             node = self.treeview.get_node()
-            if isinstance(node, NXgroup) and self.copied_node:
+            if isinstance(node, NXgroup) and self.copied_node is not None:
                 if node.nxfilemode != 'r':
                     node.makelink(self.copied_node)
                     logging.info("'%s' pasted as link to '%s'"

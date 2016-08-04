@@ -335,7 +335,7 @@ class NXTreeView(QtGui.QTreeView):
         menu.addSeparator()
         if not isinstance(node, NXroot):
             menu.addAction(self.copy_action)
-        if isinstance(node, NXgroup) and self.mainwindow.copied_node:
+        if isinstance(node, NXgroup) and self.mainwindow.copied_node is not None:
             menu.addAction(self.paste_action)
             menu.addAction(self.pastelink_action)
         if isinstance(node, NXlink):
