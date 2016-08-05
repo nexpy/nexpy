@@ -46,6 +46,7 @@ class BaseDialog(QtGui.QDialog):
         from .consoleapp import _mainwindow
         self.mainwindow = _mainwindow
         self.treeview = self.mainwindow.treeview
+        self.tree = self.treeview.tree
         self.default_directory = self.mainwindow.default_directory
         self.import_file = None     # must define in subclass
         self.nexus_filter = ';;'.join((
