@@ -1276,7 +1276,8 @@ class MainWindow(QtGui.QMainWindow):
             if self is not None:
                 node = self.treeview.get_node()
                 if node is not None:
-                    if node.nxfilemode != 'r' or isinstance(node, NXroot):
+                    if (isinstance(node, NXroot) or 
+                           node.nxgroup.nxfilemode != 'r'):
                         path = node.nxpath
                         dialog = RenameDialog(node, parent=self)
                         dialog.exec_()
