@@ -260,7 +260,7 @@ class BaseDialog(QtGui.QDialog):
         box = QtGui.QComboBox()
         box.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToContents)
         roots = []
-        for root in self.treeview.tree.NXroot:
+        for root in self.tree.NXroot:
             roots.append(root.nxname)
         for root in sorted(roots):
             box.addItem(root)
@@ -287,18 +287,18 @@ class BaseDialog(QtGui.QDialog):
 
     @property
     def root(self):
-        return self.treeview.tree[self.root_box.currentText()]
+        return self.tree[self.root_box.currentText()]
 
     @property
     def other_root(self):
-        return self.treeview.tree[self.other_root_box.currentText()]
+        return self.tree[self.other_root_box.currentText()]
 
     def select_entry(self, slot=None, text='Select Entry :', other=False):
         layout = QtGui.QHBoxLayout()
         box = QtGui.QComboBox()
         box.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToContents)
         entries = []
-        for root in self.treeview.tree.NXroot:
+        for root in self.tree.NXroot:
             for entry in root.NXentry:
                 entries.append(root.nxname+'/'+entry.nxname)
         for entry in sorted(entries):
@@ -326,11 +326,11 @@ class BaseDialog(QtGui.QDialog):
 
     @property
     def entry(self):
-        return self.treeview.tree[self.entry_box.currentText()]
+        return self.tree[self.entry_box.currentText()]
 
     @property
     def other_entry(self):
-        return self.treeview.tree[self.other_entry_box.currentText()]
+        return self.tree[self.other_entry_box.currentText()]
 
     def read_parameter(self, root, path):
         """
@@ -1651,8 +1651,8 @@ class ManageBackupsDialog(BaseDialog):
     def restore(self):
         for backup in self.checkbox:
             if self.checkbox[backup].isChecked():
-                name = self.treeview.tree.get_name(self.get_name(backup))
-                self.treeview.tree[name] = self.mainwindow.user_ns[name] = nxload(backup)
+                name = self.tree.get_name(self.get_name(backup))
+                self.tree[name] = self.mainwindow.user_ns[name] = nxload(backup)
                 self.checkbox[backup].setChecked(False)
                 self.checkbox[backup].setDisabled(True)
 
