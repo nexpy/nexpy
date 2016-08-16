@@ -2312,7 +2312,7 @@ class NXProjectionPanel(QtGui.QWidget):
             self.minbox[axis].setValue(self.minbox[axis].data[0])
             self.maxbox[axis].setValue(self.maxbox[axis].data[-1])
             self.block_signals(False)
-        self.update_limits()
+        self.set_limits()
 
     def __repr__(self):
         return 'NXProjectionPanel("%s")' % self.plotview.label
@@ -2527,8 +2527,10 @@ class NXProjectionPanel(QtGui.QWidget):
             y0 = self.minbox[yp].minBoundaryValue(self.minbox[yp].index)
             y1 = self.maxbox[yp].maxBoundaryValue(self.maxbox[yp].index)
 
-        if self.rectangle:
+        try:
             self.rectangle.remove()
+        except Exception:
+            pass
         self.rectangle = self.plotview.rectangle(x0, y0, x1-x0, y1-y0)
         self.rectangle.set_color('white')
         self.rectangle.set_facecolor('none')
@@ -2544,7 +2546,7 @@ class NXProjectionPanel(QtGui.QWidget):
     def close(self):
         try:
             self.rectangle.remove()
-        except:
+        except Exception:
             pass
         self.plotview.canvas.draw()
         self.rectangle = None
