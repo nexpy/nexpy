@@ -260,8 +260,6 @@ class NXPlotView(QtGui.QDialog):
         self.customize_panel = None
 
         if self.label != "Main":
-            if 'Main' in plotviews:
-                self.resize(plotviews['Main'].size())
             self.add_menu_action()
             self.show()
 
