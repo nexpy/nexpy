@@ -421,7 +421,7 @@ class GridParameters(OrderedDict):
 
     def grid(self, header=True, title=None):
         grid = QtGui.QGridLayout()
-        grid.setSpacing(10)
+        grid.setSpacing(5)
         header_font = QtGui.QFont()
         header_font.setBold(True)
         row = 0
