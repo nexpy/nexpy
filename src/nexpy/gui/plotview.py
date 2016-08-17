@@ -1828,8 +1828,6 @@ class NXSpinBox(QtGui.QSpinBox):
     def __init__(self, data=None):
         super(NXSpinBox, self).__init__()
         self.data = data
-        if self.data is not None:
-            self.boundaries = boundaries(self.data, self.data.shape[0])
         self.validator = QtGui.QDoubleValidator()
         self.old_value = None
         self.diff = None
@@ -1837,9 +1835,25 @@ class NXSpinBox(QtGui.QSpinBox):
 
     def value(self):
         if self.data is not None:
-            return float(self.data[self.index])
+            return float(self.centers[self.index])
         else:
             return 0.0
+
+    @property
+    def centers(self):
+        if self.data is None:
+            return None
+        elif self.reversed:
+            return self.data[::-1]
+        else:
+            return self.data
+
+    @property
+    def boundaries(self):
+        if self.data is None:
+            return None
+        else:
+            return boundaries(self.centers, self.data.shape[0])
 
     @property
     def index(self):
@@ -1860,25 +1874,25 @@ class NXSpinBox(QtGui.QSpinBox):
 
     def textFromValue(self, value):
         try:
-            return str(float('%.4g' % self.data[value]))
+            return str(float('%.4g' % self.centers[value]))
         except:
             return ''
 
     def valueFromIndex(self, idx):
         if idx < 0:
-            return self.data[0]
+            return self.centers[0]
         elif idx > self.maximum():
-            return self.data[-1]
+            return self.centers[-1]
         else:
-            return self.data[idx]
+            return self.centers[idx]
 
     def indexFromValue(self, value):
-        return (np.abs(self.data - value)).argmin()
+        return (np.abs(self.centers - value)).argmin()
 
     def minBoundaryValue(self, idx):
         if idx <= 0:
             return self.boundaries[0]
-        elif idx >= len(self.data) - 1:
+        elif idx >= len(self.centers) - 1:
             return self.boundaries[-2]
         else:
             return self.boundaries[idx]
@@ -1886,7 +1900,7 @@ class NXSpinBox(QtGui.QSpinBox):
     def maxBoundaryValue(self, idx):
         if idx <= 0:
             return self.boundaries[1]
-        elif idx >= len(self.data) - 1:
+        elif idx >= len(self.centers) - 1:
             return self.boundaries[-1]
         else:
             return self.boundaries[idx+1]
@@ -1902,8 +1916,8 @@ class NXSpinBox(QtGui.QSpinBox):
         self.pause = False
         if self.diff:
             value = self.value() + steps * self.diff
-            if (value <= self.data[-1] + self.tolerance) and \
-               (value - self.diff >= self.data[0] - self.tolerance):
+            if (value <= self.centers[-1] + self.tolerance) and \
+               (value - self.diff >= self.centers[0] - self.tolerance):
                 self.setValue(value)
             else:
                 self.pause = True
@@ -2300,15 +2314,12 @@ class NXProjectionPanel(QtGui.QWidget):
         for axis in range(self.ndim):
             self.minbox[axis].data = self.maxbox[axis].data = \
                 self.plotview.axis[axis].centers
-            self.minbox[axis].boundaries = self.maxbox[axis].boundaries = \
-                boundaries(self.minbox[axis].data,
-                           self.minbox[axis].data.shape[0])
             self.minbox[axis].setMaximum(self.minbox[axis].data.size-1)
             self.maxbox[axis].setMaximum(self.maxbox[axis].data.size-1)
             self.minbox[axis].diff = self.maxbox[axis].diff = None
             self.block_signals(True)
-            self.minbox[axis].setValue(self.minbox[axis].data[0])
-            self.maxbox[axis].setValue(self.maxbox[axis].data[-1])
+            self.minbox[axis].setValue(self.minbox[axis].data.min())
+            self.maxbox[axis].setValue(self.maxbox[axis].data.max())
             self.block_signals(False)
         self.set_limits()
 
@@ -2366,24 +2377,23 @@ class NXProjectionPanel(QtGui.QWidget):
         self.draw_rectangle()
 
     def get_limits(self, axis=None):
+        def get_indices(minbox, maxbox):
+            start, stop = minbox.index, maxbox.index+1
+            if minbox.reversed:
+                start, stop = len(maxbox.data)-stop, len(minbox.data)-start
+            return start, stop
         if axis:
-            _min, _max = self.minbox[axis].index, self.maxbox[axis].index+1
-            if _min < _max:
-                return _min, _max
-            else:
-                return _max, _min
+            return get_indices(self.minbox[axis], self.maxbox[axis])
         else:
-            _limits = [(self.minbox[axis].index, self.maxbox[axis].index)
-                       for axis in range(self.ndim)]
-            return [(_min, _max+1) if _min <= _max else (_max, _min+1)
-                    for _min, _max in _limits]
+            return [get_indices(self.minbox[axis], self.maxbox[axis]) 
+                    for axis in range(self.ndim)]
 
     def reset_limits(self):
         self.block_signals(True)
         for axis in range(self.ndim):
             self.block_signals(True)
-            self.minbox[axis].setValue(self.minbox[axis].data[0])
-            self.maxbox[axis].setValue(self.maxbox[axis].data[-1])
+            self.minbox[axis].setValue(self.minbox[axis].data.min())
+            self.maxbox[axis].setValue(self.maxbox[axis].data.max())
             self.block_signals(False)
         self.update_limits()
 
@@ -2512,18 +2522,10 @@ class NXProjectionPanel(QtGui.QWidget):
         ax = self.plotview.figure.axes[0]
         xp = self.plotview.xaxis.dim
         yp = self.plotview.yaxis.dim
-        if self.minbox[xp].reversed:
-            x0 = self.minbox[xp].maxBoundaryValue(self.minbox[xp].index)
-            x1 = self.maxbox[xp].minBoundaryValue(self.maxbox[xp].index)
-        else:
-            x0 = self.minbox[xp].minBoundaryValue(self.minbox[xp].index)
-            x1 = self.maxbox[xp].maxBoundaryValue(self.maxbox[xp].index)
-        if self.minbox[yp].reversed:
-            y0 = self.minbox[yp].maxBoundaryValue(self.minbox[yp].index)
-            y1 = self.maxbox[yp].minBoundaryValue(self.maxbox[yp].index)
-        else:
-            y0 = self.minbox[yp].minBoundaryValue(self.minbox[yp].index)
-            y1 = self.maxbox[yp].maxBoundaryValue(self.maxbox[yp].index)
+        x0 = self.minbox[xp].minBoundaryValue(self.minbox[xp].index)
+        x1 = self.maxbox[xp].maxBoundaryValue(self.maxbox[xp].index)
+        y0 = self.minbox[yp].minBoundaryValue(self.minbox[yp].index)
+        y1 = self.maxbox[yp].maxBoundaryValue(self.maxbox[yp].index)
 
         try:
             self.rectangle.remove()
