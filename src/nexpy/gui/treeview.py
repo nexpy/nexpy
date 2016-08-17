@@ -30,6 +30,7 @@ class NXtree(NXgroup):
     _view = None
     _item = None
     _shell = None
+    _attrs = {}
 
     def __init__(self):
         self._class = 'NXtree'

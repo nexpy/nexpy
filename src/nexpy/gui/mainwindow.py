@@ -889,12 +889,12 @@ class MainWindow(QtGui.QMainWindow):
 
     def new_workspace(self):
         try:
-            default_name = self.treeview.tree.get_new_name()
+            default_name = self.tree.get_new_name()
             name, ok = QtGui.QInputDialog.getText(self, 'New Workspace',
                              'Workspace Name:', text=default_name)
             if name and ok:
-                self.treeview.tree[name] = NXroot(NXentry())
-                self.treeview.select_node(self.treeview.tree[name].entry)
+                self.tree[name] = NXroot(NXentry())
+                self.treeview.select_node(self.tree[name].entry)
                 self.treeview.update()
                 logging.info("New workspace '%s' created" % name)
         except NeXusError as error:
@@ -905,9 +905,9 @@ class MainWindow(QtGui.QMainWindow):
             fname = getOpenFileName(self, 'Open File (Read Only)',
                                     self.default_directory,  self.file_filter)
             if fname:
-                name = self.treeview.tree.get_name(fname)
-                self.treeview.tree[name] = self.user_ns[name] = nxload(fname)
-                self.treeview.select_node(self.treeview.tree[name])
+                name = self.tree.get_name(fname)
+                self.tree[name] = self.user_ns[name] = nxload(fname)
+                self.treeview.select_node(self.tree[name])
                 self.default_directory = os.path.dirname(fname)
                 logging.info("NeXus file '%s' opened as workspace '%s'"
                              % (fname, name))
@@ -920,9 +920,9 @@ class MainWindow(QtGui.QMainWindow):
             fname = getOpenFileName(self, 'Open File (Read/Write)',
                                     self.default_directory, self.file_filter)
             if fname:
-                name = self.treeview.tree.get_name(fname)
-                self.treeview.tree[name] = self.user_ns[name] = nxload(fname, 'rw')
-                self.treeview.select_node(self.treeview.tree[name])
+                name = self.tree.get_name(fname)
+                self.tree[name] = self.user_ns[name] = nxload(fname, 'rw')
+                self.treeview.select_node(self.tree[name])
                 self.default_directory = os.path.dirname(fname)
                 logging.info("NeXus file '%s' opened (unlocked) as workspace '%s'"
                              % (fname, name))
@@ -933,9 +933,9 @@ class MainWindow(QtGui.QMainWindow):
     def open_recent_file(self):
         try:
             fname = self.recent_file_actions[self.sender()][1]
-            name = self.treeview.tree.get_name(fname)
-            self.treeview.tree[name] = self.user_ns[name] = nxload(fname)
-            self.treeview.select_node(self.treeview.tree[name])
+            name = self.tree.get_name(fname)
+            self.tree[name] = self.user_ns[name] = nxload(fname)
+            self.treeview.select_node(self.tree[name])
             self.default_directory = os.path.dirname(fname)
             logging.info("NeXus file '%s' opened as workspace '%s'"
                          % (fname, name))
@@ -981,7 +981,7 @@ class MainWindow(QtGui.QMainWindow):
             if node is None or not isinstance(node, NXroot):
                 raise NeXusError("Only NXroot groups can be saved")
             if node.nxfilemode:
-                name = self.treeview.tree.get_new_name()
+                name = self.tree.get_new_name()
                 existing = True
             else:
                 name = node.nxname
@@ -992,10 +992,10 @@ class MainWindow(QtGui.QMainWindow):
             if fname:
                 old_name = node.nxname
                 root = node.save(fname, 'w')
-                del self.treeview.tree[old_name]
-                name = self.treeview.tree.get_name(fname)
-                self.treeview.tree[name] = self.user_ns[name] = root
-                self.treeview.select_node(self.treeview.tree[name])
+                del self.tree[old_name]
+                name = self.tree.get_name(fname)
+                self.tree[name] = self.user_ns[name] = root
+                self.treeview.select_node(self.tree[name])
                 self.treeview.update()
                 self.default_directory = os.path.dirname(fname)
                 logging.info("NeXus workspace '%s' saved as '%s'"
@@ -1008,29 +1008,29 @@ class MainWindow(QtGui.QMainWindow):
             node = self.treeview.get_node()
             if isinstance(node, NXroot):
                 if node.nxfile:
-                    name = self.treeview.tree.get_new_name()
+                    name = self.tree.get_new_name()
                     default_name = os.path.join(self.default_directory,name)
                     fname = getSaveFileName(self, "Choose a Filename",
                                             default_name, self.file_filter)
                     if fname:
                         with NXFile(fname, 'w') as f:
                             f.copyfile(node.nxfile)
-                        name = self.treeview.tree.get_name(fname)
-                        self.treeview.tree[name] = self.user_ns[name] = nxload(fname)
+                        name = self.tree.get_name(fname)
+                        self.tree[name] = self.user_ns[name] = nxload(fname)
                         self.default_directory = os.path.dirname(fname)
                         logging.info("Workspace '%s' duplicated in '%s'"
                                      % (node.nxname, fname))
                 else:
-                    default_name = self.treeview.tree.get_new_name()
+                    default_name = self.tree.get_new_name()
                     name, ok = QtGui.QInputDialog.getText(self,
                                    "Duplicate Workspace", "Workspace Name:",
                                    text=default_name)
                     if name and ok:
-                        self.treeview.tree[name] = node
+                        self.tree[name] = node
                         logging.info("Workspace '%s' duplicated as workspace '%s'"
                                      % (node.nxname, name))
-                if name in self.treeview.tree:
-                    self.treeview.select_node(self.treeview.tree[name])
+                if name in self.tree:
+                    self.treeview.select_node(self.tree[name])
                     self.treeview.update()
             else:
                 raise NeXusError("Only NXroot groups can be duplicated")
@@ -1045,10 +1045,10 @@ class MainWindow(QtGui.QMainWindow):
             name = root.nxname
             ret = confirm_action("Are you sure you want to reload '%s'?" % name)
             if ret == QtGui.QMessageBox.Ok:
-                self.treeview.tree.reload(name)
+                self.tree.reload(name)
                 logging.info("Workspace '%s' reloaded" % name)
                 try:
-                    self.treeview.select_node(self.treeview.tree[name][path])
+                    self.treeview.select_node(self.tree[name][path])
                 except Exception:
                     pass
         except NeXusError as error:
@@ -1062,7 +1062,7 @@ class MainWindow(QtGui.QMainWindow):
                 ret = confirm_action(
                           "Are you sure you want to remove '%s'?" % name)
                 if ret == QtGui.QMessageBox.Ok:
-                    del self.treeview.tree[name]
+                    del self.tree[name]
                     logging.info("Workspace '%s' removed" % name)
         except NeXusError as error:
             report_error("Removing File", error)
@@ -1080,16 +1080,17 @@ class MainWindow(QtGui.QMainWindow):
             if self.import_dialog.accepted:
                 imported_data = self.import_dialog.get_data()
                 try:
-                    name = self.treeview.tree.get_name(self.import_dialog.import_file)
+                    name = self.tree.get_name(self.import_dialog.import_file)
                 except Exception:
-                    name = self.treeview.tree.get_new_name()
+                    name = self.tree.get_new_name()
                 if isinstance(imported_data, NXentry):
-                    self.treeview.tree[name] = self.user_ns[name] = NXroot(imported_data)
+                    self.tree[name] = self.user_ns[name] = NXroot(imported_data)
                 elif isinstance(imported_data, NXroot):
-                    self.treeview.tree[name] = self.user_ns[name] = imported_data
+                    self.tree[name] = self.user_ns[name] = imported_data
                 else:
-                    raise NeXusError('Imported data must be an NXroot or NXentry group')
-                self.treeview.select_node(self.treeview.tree[name])
+                    raise NeXusError(
+                        'Imported data must be an NXroot or NXentry group')
+                self.treeview.select_node(self.tree[name])
                 self.treeview.setFocus()
                 try:
                     self.default_directory = os.path.dirname(self.import_dialog.import_file)
@@ -1275,7 +1276,8 @@ class MainWindow(QtGui.QMainWindow):
             if self is not None:
                 node = self.treeview.get_node()
                 if node is not None:
-                    if node.nxfilemode != 'r' or isinstance(node, NXroot):
+                    if (isinstance(node, NXroot) or 
+                           node.nxgroup.nxfilemode != 'r'):
                         path = node.nxpath
                         dialog = RenameDialog(node, parent=self)
                         dialog.exec_()
@@ -1348,11 +1350,11 @@ class MainWindow(QtGui.QMainWindow):
                     if not os.path.isabs(fname):
                         fname = os.path.join(os.path.dirname(node.nxroot.nxfilename),
                                              node.nxfilename)
-                    name = self.treeview.tree.node_from_file(fname)
+                    name = self.tree.node_from_file(fname)
                     if name is None:
-                        name = self.treeview.tree.get_name(fname)
-                        self.treeview.tree[name] = self.user_ns[name] = nxload(fname)
-                    self.treeview.select_node(self.treeview.tree[name][node.nxtarget])
+                        name = self.tree.get_name(fname)
+                        self.tree[name] = self.user_ns[name] = nxload(fname)
+                    self.treeview.select_node(self.tree[name][node.nxtarget])
                     self.treeview.setFocus()
                 else:
                     self.treeview.select_node(node.nxlink)
