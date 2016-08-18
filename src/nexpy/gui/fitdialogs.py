@@ -24,6 +24,7 @@ import numpy as np
 from nexusformat.nexus import (NeXusError, NXgroup, NXfield, NXattr,
                                NXroot, NXentry, NXdata, NXparameters)
 from .datadialogs import BaseDialog
+from .plotview import NXPlotView
 from .utils import report_error
 
 from ..api.frills.fit import Fit, Function, Parameter
@@ -32,14 +33,15 @@ from ..api.frills.fit import Fit, Function, Parameter
 class FitDialog(BaseDialog):
     """Dialog to fit one-dimensional NeXus data"""
  
-    def __init__(self, entry, plotview):
+    def __init__(self, entry):
 
         super(FitDialog, self).__init__()
         self.setMinimumWidth(850)        
  
         self._data = self.initialize_data(entry.data)
 
-        self.plotview = plotview
+        self.plotview = NXPlotView('Fit')
+        self.plotview.plot(self._data)
         self.functions = []
         self.parameters = []
 
@@ -79,11 +81,13 @@ class FitDialog(BaseDialog):
         self.plot_layout = QtGui.QHBoxLayout()
         plot_data_button = QtGui.QPushButton('Plot Data')
         plot_data_button.clicked.connect(self.plot_data)
-        plot_function_button = QtGui.QPushButton('Plot Function')
-        plot_function_button.clicked.connect(self.plot_model)
+        self.plot_function_button = QtGui.QPushButton('Plot Function')
+        self.plot_function_button.clicked.connect(self.plot_model)
+        self.plot_function_button.setVisible(False)
         self.plotcombo = QtGui.QComboBox()
         self.plotcombo.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToContents)
         self.plotcombo.setMinimumWidth(100)
+        self.plotcombo.setVisible(False)
         plot_label = QtGui.QLabel('X-axis:')
         self.plot_minbox = QtGui.QLineEdit(str(self.plotview.xtab.axis.min))
         self.plot_minbox.setAlignment(QtCore.Qt.AlignRight)
@@ -92,7 +96,7 @@ class FitDialog(BaseDialog):
         self.plot_maxbox.setAlignment(QtCore.Qt.AlignRight)
         self.plot_checkbox = QtGui.QCheckBox('Use Data Points')
         self.plot_layout.addWidget(plot_data_button)
-        self.plot_layout.addWidget(plot_function_button)
+        self.plot_layout.addWidget(self.plot_function_button)
         self.plot_layout.addWidget(self.plotcombo)
         self.plot_layout.addWidget(plot_label)
         self.plot_layout.addWidget(self.plot_minbox)
@@ -126,6 +130,7 @@ class FitDialog(BaseDialog):
 
         self.layout = QtGui.QVBoxLayout()
         self.layout.addLayout(function_layout)
+        self.layout.addLayout(self.plot_layout)
         self.layout.addWidget(self.close_buttons())
 
         self.setLayout(self.layout)
@@ -205,7 +210,8 @@ class FitDialog(BaseDialog):
 
     @property
     def data(self):
-        return self._data[self.plotview.xaxis.lo:self.plotview.xaxis.hi]
+        xmin, xmax = self.get_limits()
+        return self._data[xmin:xmax]
 
     def compressed_name(self, name):
         return re.sub(r'([a-zA-Z]*) # (\d*)', r'\1\2', name)
@@ -262,10 +268,11 @@ class FitDialog(BaseDialog):
         if self.first_time:
             self.layout.insertLayout(1, self.parameter_layout)
             self.layout.insertLayout(2, self.remove_layout)
-            self.layout.insertLayout(3, self.plot_layout)
             self.layout.insertLayout(4, self.action_layout)
+            self.plot_function_button.setVisible(True)
             self.plotcombo.addItem('All')
             self.plotcombo.insertSeparator(1)
+            self.plotcombo.setVisible(True)
         self.removecombo.addItem(self.expanded_name(f.name))
         self.plotcombo.addItem(self.expanded_name(f.name))
         self.first_time = False
@@ -382,23 +389,26 @@ class FitDialog(BaseDialog):
         if self.plot_checkbox.isChecked():
             x = fit.x
         else:
-            x = np.linspace(float(self.plot_minbox.text()), 
-                            float(self.plot_maxbox.text()), 1001)
+            xmin, xmax = self.get_limits()
+            x = np.linspace(xmin, xmax, 1001)
         return NXdata(NXfield(fit.get_model(x, f), name='model'),
                       NXfield(x, name=fit.data.nxaxes[0].nxname), 
                       title='Fit Results')
-    
+
+    def get_limits(self):
+        return float(self.plot_minbox.text()), float(self.plot_maxbox.text())
+
     def plot_data(self):
-        self.data.plot()
+        self.plotview.plot(self.data)
 
     def plot_model(self):
         plot_function = self.plotcombo.currentText()
         if plot_function == 'All':
-            self.get_model().oplot('-')
+            self.plotview.plot(self.get_model(), fmt='-', over=True)
         else:
             name = self.compressed_name(plot_function)
             f = list(filter(lambda x: x.name == name, self.functions))[0]
-            self.get_model(f).oplot('--')
+            self.plotview.plot(self.get_model(f), fmt='--', over=True)
 
     def define_errors(self):
         if self.fit_checkbox.isChecked():
