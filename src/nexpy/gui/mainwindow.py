@@ -1398,7 +1398,7 @@ class MainWindow(QtGui.QMainWindow):
                 from .plotview import plotview
                 entry = NXentry(data=plotview.plotdata)
             if len(entry.data.nxsignal.shape) == 1:
-                dialog = FitDialog(entry, parent=self)
+                dialog = FitDialog(entry, plotview=plotview)
                 dialog.show()
                 logging.info("Fitting invoked on'%s'" % node.nxpath)
             else:

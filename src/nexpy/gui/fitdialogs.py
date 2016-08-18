@@ -32,17 +32,13 @@ from ..api.frills.fit import Fit, Function, Parameter
 class FitDialog(BaseDialog):
     """Dialog to fit one-dimensional NeXus data"""
  
-    def __init__(self, entry, parent=None):
+    def __init__(self, entry, plotview):
 
-        super(FitDialog, self).__init__(parent)
+        super(FitDialog, self).__init__()
         self.setMinimumWidth(850)        
  
-        self.data = self.initialize_data(entry.data)
+        self._data = self.initialize_data(entry.data)
 
-        from .consoleapp import _tree
-        self.tree = _tree
-
-        from .plotview import plotview
         self.plotview = plotview
         self.functions = []
         self.parameters = []
@@ -109,7 +105,7 @@ class FitDialog(BaseDialog):
         fit_button = QtGui.QPushButton("Fit")
         fit_button.clicked.connect(self.fit_data)
         self.fit_label = QtGui.QLabel()
-        if self.data.nxerrors:
+        if self._data.nxerrors:
             self.fit_checkbox = QtGui.QCheckBox('Use Errors')
             self.fit_checkbox.setCheckState(QtCore.Qt.Checked)
         else:
@@ -186,7 +182,7 @@ class FitDialog(BaseDialog):
         scroll_widget = QtGui.QWidget()
 
         self.parameter_grid = QtGui.QGridLayout()
-        self.parameter_grid.setSpacing(10)
+        self.parameter_grid.setSpacing(5)
         headers = ['Function', 'Np', 'Name', 'Value', '', 'Min', 'Max', 'Fixed']
         width = [100, 50, 100, 100, 100, 100, 100, 50, 100]
         column = 0
@@ -206,6 +202,10 @@ class FitDialog(BaseDialog):
         grid_layout.addWidget(scroll_area)
 
         return grid_layout
+
+    @property
+    def data(self):
+        return self._data[self.plotview.xaxis.lo:self.plotview.xaxis.hi]
 
     def compressed_name(self, name):
         return re.sub(r'([a-zA-Z]*) # (\d*)', r'\1\2', name)
@@ -246,7 +246,7 @@ class FitDialog(BaseDialog):
         f = Function(name, module, parameters, function_index)
         self.functions.append(f)
         self.index_parameters()
-        self.guess_parameters()
+        self.guess_parameters(f)
         self.add_function_rows(f)
         self.write_parameters()
  
@@ -368,14 +368,13 @@ class FitDialog(BaseDialog):
                 if p.max:
                     p.max_box.setText('%.6g' % p.max)
 
-    def guess_parameters(self):
+    def guess_parameters(self, new_function):
         fit = Fit(self.data, self.functions)
         y = np.array(fit.y)
         for f in self.functions:
-            guess = f.module.guess(fit.x, y)
-            list(map(lambda p, g: p.__setattr__('value', g), f.parameters, 
-                     guess))
-            y = y - f.module.values(fit.x, guess)
+            if f is new_function:
+                f.guess_parameters(fit.x, y)
+            y = y - f.module.values(fit.x, f.parameter_values)
 
     def get_model(self, f=None):
         self.read_parameters()
