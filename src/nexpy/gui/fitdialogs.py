@@ -24,6 +24,7 @@ import numpy as np
 from nexusformat.nexus import (NeXusError, NXgroup, NXfield, NXattr,
                                NXroot, NXentry, NXdata, NXparameters)
 from .datadialogs import BaseDialog
+from .plotview import NXPlotView
 from .utils import report_error
 
 from ..api.frills.fit import Fit, Function, Parameter
@@ -32,18 +33,15 @@ from ..api.frills.fit import Fit, Function, Parameter
 class FitDialog(BaseDialog):
     """Dialog to fit one-dimensional NeXus data"""
  
-    def __init__(self, entry, parent=None):
+    def __init__(self, entry):
 
-        super(FitDialog, self).__init__(parent)
+        super(FitDialog, self).__init__()
         self.setMinimumWidth(850)        
  
-        self.data = self.initialize_data(entry.data)
+        self._data = self.initialize_data(entry.data)
 
-        from .consoleapp import _tree
-        self.tree = _tree
-
-        from .plotview import plotview
-        self.plotview = plotview
+        self.plotview = NXPlotView('Fit')
+        self.plotview.plot(self._data)
         self.functions = []
         self.parameters = []
 
@@ -83,11 +81,13 @@ class FitDialog(BaseDialog):
         self.plot_layout = QtGui.QHBoxLayout()
         plot_data_button = QtGui.QPushButton('Plot Data')
         plot_data_button.clicked.connect(self.plot_data)
-        plot_function_button = QtGui.QPushButton('Plot Function')
-        plot_function_button.clicked.connect(self.plot_model)
+        self.plot_function_button = QtGui.QPushButton('Plot Function')
+        self.plot_function_button.clicked.connect(self.plot_model)
+        self.plot_function_button.setVisible(False)
         self.plotcombo = QtGui.QComboBox()
         self.plotcombo.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToContents)
         self.plotcombo.setMinimumWidth(100)
+        self.plotcombo.setVisible(False)
         plot_label = QtGui.QLabel('X-axis:')
         self.plot_minbox = QtGui.QLineEdit(str(self.plotview.xtab.axis.min))
         self.plot_minbox.setAlignment(QtCore.Qt.AlignRight)
@@ -96,7 +96,7 @@ class FitDialog(BaseDialog):
         self.plot_maxbox.setAlignment(QtCore.Qt.AlignRight)
         self.plot_checkbox = QtGui.QCheckBox('Use Data Points')
         self.plot_layout.addWidget(plot_data_button)
-        self.plot_layout.addWidget(plot_function_button)
+        self.plot_layout.addWidget(self.plot_function_button)
         self.plot_layout.addWidget(self.plotcombo)
         self.plot_layout.addWidget(plot_label)
         self.plot_layout.addWidget(self.plot_minbox)
@@ -109,7 +109,7 @@ class FitDialog(BaseDialog):
         fit_button = QtGui.QPushButton("Fit")
         fit_button.clicked.connect(self.fit_data)
         self.fit_label = QtGui.QLabel()
-        if self.data.nxerrors:
+        if self._data.nxerrors:
             self.fit_checkbox = QtGui.QCheckBox('Use Errors')
             self.fit_checkbox.setCheckState(QtCore.Qt.Checked)
         else:
@@ -130,6 +130,7 @@ class FitDialog(BaseDialog):
 
         self.layout = QtGui.QVBoxLayout()
         self.layout.addLayout(function_layout)
+        self.layout.addLayout(self.plot_layout)
         self.layout.addWidget(self.close_buttons())
 
         self.setLayout(self.layout)
@@ -186,7 +187,7 @@ class FitDialog(BaseDialog):
         scroll_widget = QtGui.QWidget()
 
         self.parameter_grid = QtGui.QGridLayout()
-        self.parameter_grid.setSpacing(10)
+        self.parameter_grid.setSpacing(5)
         headers = ['Function', 'Np', 'Name', 'Value', '', 'Min', 'Max', 'Fixed']
         width = [100, 50, 100, 100, 100, 100, 100, 50, 100]
         column = 0
@@ -206,6 +207,11 @@ class FitDialog(BaseDialog):
         grid_layout.addWidget(scroll_area)
 
         return grid_layout
+
+    @property
+    def data(self):
+        xmin, xmax = self.get_limits()
+        return self._data[xmin:xmax]
 
     def compressed_name(self, name):
         return re.sub(r'([a-zA-Z]*) # (\d*)', r'\1\2', name)
@@ -228,8 +234,18 @@ class FitDialog(BaseDialog):
                         if p in entry[group].parameters.entries:
                             parameter = Parameter(p)
                             parameter.value = entry[group].parameters[p].nxdata
-                            parameter.min = float(entry[group].parameters[p].attrs['min'].nxdata)
-                            parameter.max = float(entry[group].parameters[p].attrs['max'].nxdata)                        
+                            parameter.min = float(
+                                entry[group].parameters[p].attrs['min'])
+                            parameter.max = float(
+                                entry[group].parameters[p].attrs['max'])
+                            if 'error' in entry[group].parameters[p].attrs:
+                                error = entry[group].parameters[p].attrs['error']
+                                if error > 0:
+                                    parameter.stderr = float(
+                                        entry[group].parameters[p].attrs['error'])
+                                    parameter.vary = True
+                                else:
+                                    parameter.vary = False
                             parameters.append(parameter)
                     f = Function(group, module, parameters, n)
                     self.functions.append(f)
@@ -246,7 +262,7 @@ class FitDialog(BaseDialog):
         f = Function(name, module, parameters, function_index)
         self.functions.append(f)
         self.index_parameters()
-        self.guess_parameters()
+        self.guess_parameters(f)
         self.add_function_rows(f)
         self.write_parameters()
  
@@ -262,10 +278,11 @@ class FitDialog(BaseDialog):
         if self.first_time:
             self.layout.insertLayout(1, self.parameter_layout)
             self.layout.insertLayout(2, self.remove_layout)
-            self.layout.insertLayout(3, self.plot_layout)
             self.layout.insertLayout(4, self.action_layout)
+            self.plot_function_button.setVisible(True)
             self.plotcombo.addItem('All')
             self.plotcombo.insertSeparator(1)
+            self.plotcombo.setVisible(True)
         self.removecombo.addItem(self.expanded_name(f.name))
         self.plotcombo.addItem(self.expanded_name(f.name))
         self.first_time = False
@@ -301,7 +318,8 @@ class FitDialog(BaseDialog):
                 p.parameter_box.setText(str(p.parameter_index))     
 
     def rename_function(self, old_name, new_name):
-        old_name, new_name = self.expanded_name(old_name), self.expanded_name(new_name)
+        old_name, new_name = (self.expanded_name(old_name), 
+                              self.expanded_name(new_name))
         plot_index = self.plotcombo.findText(old_name)
         self.plotcombo.setItemText(plot_index, new_name)
         remove_index = self.removecombo.findText(old_name)
@@ -353,29 +371,34 @@ class FitDialog(BaseDialog):
                 p.vary = not p.fixed_box.checkState()
 
     def write_parameters(self):
+        def write_value(box, value, prefix=None):
+            try:
+                if prefix:
+                    box.setText('%s %.6g' % (prefix, value))
+                else:
+                    box.setText('%.6g' % value)
+            except TypeError:
+                box.setText(' ')
         for f in self.functions:
             for p in f.parameters:
-                if p.parameter_index:
-                    p.parameter_box.setText(str(p.parameter_index))
-                if p.value:
-                    p.value_box.setText('%.6g' % p.value)
-                if p.vary and p.stderr:
-                    p.error_box.setText('+/- %.6g' % p.stderr)
+                write_value(p.parameter_box, p.parameter_index)
+                write_value(p.value_box, p.value)
+                if p.vary:
+                    write_value(p.error_box, p.stderr, prefix='+/-')
+                write_value(p.min_box, p.min)
+                write_value(p.max_box, p.max)
+                if p.vary:
+                    p.fixed_box.setCheckState(QtCore.Qt.Unchecked)
                 else:
-                    p.error_box.setText(' ')
-                if p.min:
-                    p.min_box.setText('%.6g' % p.min)
-                if p.max:
-                    p.max_box.setText('%.6g' % p.max)
+                    p.fixed_box.setCheckState(QtCore.Qt.Checked)
 
-    def guess_parameters(self):
+    def guess_parameters(self, new_function):
         fit = Fit(self.data, self.functions)
         y = np.array(fit.y)
         for f in self.functions:
-            guess = f.module.guess(fit.x, y)
-            list(map(lambda p, g: p.__setattr__('value', g), f.parameters, 
-                     guess))
-            y = y - f.module.values(fit.x, guess)
+            if f is new_function:
+                f.guess_parameters(fit.x, y)
+            y = y - f.module.values(fit.x, f.parameter_values)
 
     def get_model(self, f=None):
         self.read_parameters()
@@ -383,23 +406,26 @@ class FitDialog(BaseDialog):
         if self.plot_checkbox.isChecked():
             x = fit.x
         else:
-            x = np.linspace(float(self.plot_minbox.text()), 
-                            float(self.plot_maxbox.text()), 1001)
+            xmin, xmax = self.get_limits()
+            x = np.linspace(xmin, xmax, 1001)
         return NXdata(NXfield(fit.get_model(x, f), name='model'),
                       NXfield(x, name=fit.data.nxaxes[0].nxname), 
                       title='Fit Results')
-    
+
+    def get_limits(self):
+        return float(self.plot_minbox.text()), float(self.plot_maxbox.text())
+
     def plot_data(self):
-        self.data.plot()
+        self.plotview.plot(self.data)
 
     def plot_model(self):
         plot_function = self.plotcombo.currentText()
         if plot_function == 'All':
-            self.get_model().oplot('-')
+            self.plotview.plot(self.get_model(), fmt='-', over=True)
         else:
             name = self.compressed_name(plot_function)
             f = list(filter(lambda x: x.name == name, self.functions))[0]
-            self.get_model(f).oplot('--')
+            self.plotview.plot(self.get_model(f), fmt='--', over=True)
 
     def define_errors(self):
         if self.fit_checkbox.isChecked():
@@ -417,9 +443,11 @@ class FitDialog(BaseDialog):
         except Exception as error:
             report_error("Fitting Data", error)
         if self.fit.result.success:
-            self.fit_label.setText('Fit Successful Chi^2 = %s' % self.fit.result.redchi)
+            self.fit_label.setText('Fit Successful Chi^2 = %s' 
+                                   % self.fit.result.redchi)
         else:
-            self.fit_label.setText('Fit Failed Chi^2 = %s' % self.fit.result.redchi)
+            self.fit_label.setText('Fit Failed Chi^2 = %s' 
+                                   % self.fit.result.redchi)
         self.write_parameters()
         if not self.fitted:
             self.action_layout.addWidget(self.report_button)
@@ -438,18 +466,19 @@ class FitDialog(BaseDialog):
             errors = 'Uncertainties estimated'
         else:
             errors = 'Uncertainties not estimated'
-        text = '%s\n' % summary +\
-               '%s\n' % self.fit.result.message +\
-               '%s\n' % self.fit.result.lmdif_message +\
-               'scipy.optimize.leastsq error value = %s\n' % self.fit.result.ier +\
-               'Chi^2 = %s\n' % self.fit.result.chisqr +\
-               'Reduced Chi^2 = %s\n' % self.fit.result.redchi +\
-               '%s\n' % errors +\
-               'No. of Function Evaluations = %s\n' % self.fit.result.nfev +\
-               'No. of Variables = %s\n' % self.fit.result.nvarys +\
-               'No. of Data Points = %s\n' % self.fit.result.ndata +\
-               'No. of Degrees of Freedom = %s\n' % self.fit.result.nfree +\
-               '%s' % self.fit.fit_report()
+        text = ('%s\n' % summary +
+                '%s\n' % self.fit.result.message +
+                '%s\n' % self.fit.result.lmdif_message +
+                'scipy.optimize.leastsq error value = %s\n' 
+                    % self.fit.result.ier +
+                'Chi^2 = %s\n' % self.fit.result.chisqr +
+                'Reduced Chi^2 = %s\n' % self.fit.result.redchi +
+                '%s\n' % errors +
+                'No. of Function Evaluations = %s\n' % self.fit.result.nfev +
+                'No. of Variables = %s\n' % self.fit.result.nvarys +
+                'No. of Data Points = %s\n' % self.fit.result.ndata +
+                'No. of Degrees of Freedom = %s\n' % self.fit.result.nfree +
+                '%s' % self.fit.fit_report())
         message_box.setInformativeText(text)
         message_box.setStandardButtons(QtGui.QMessageBox.Ok)
         spacer = QtGui.QSpacerItem(500, 0, 
@@ -509,10 +538,13 @@ class FitDialog(BaseDialog):
         self.write_parameters()
    
     def accept(self):
+        self.plotview.close()
         super(FitDialog, self).accept()
         
     def reject(self):
+        self.plotview.close()
         super(FitDialog, self).reject()
 
     def closeEvent(self, event):
+        self.plotview.close()
         event.accept()

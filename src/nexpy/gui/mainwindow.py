@@ -1385,21 +1385,17 @@ class MainWindow(QtGui.QMainWindow):
             node = self.treeview.get_node()
             if node is None:
                 return
-            try:
-                if isinstance(node, NXentry) and node.nxtitle == 'Fit Results':
-                    entry = node
-                else:
-                    raise NameError
-            except NameError:
-                try:
-                    node.plot()
-                except KeyError:
+            elif isinstance(node, NXentry) and node.nxtitle == 'Fit Results':
+                entry = node
+                if not entry.data.is_plottable():
                     raise NeXusError("NeXus item not plottable")
-                from .plotview import plotview
-                entry = NXentry(data=plotview.plotdata)
+            elif isinstance(node, NXdata):
+                entry = NXentry(data=node)
+            else:
+                raise NeXusError("NeXus item not plottable")
             if len(entry.data.nxsignal.shape) == 1:
-                dialog = FitDialog(entry, parent=self)
-                dialog.show()
+                self.fitdialog = FitDialog(entry)
+                self.fitdialog.show()
                 logging.info("Fitting invoked on'%s'" % node.nxpath)
             else:
                 raise NeXusError("Fitting only enabled for one-dimensional data")
@@ -1573,8 +1569,15 @@ class MainWindow(QtGui.QMainWindow):
             self.active_action[number] = QtGui.QAction(label,
                 self,
                 shortcut=QtGui.QKeySequence("Ctrl+Shift+Alt+P"),
-                triggered=lambda: self.make_active(number),
-                checkable=True)
+                triggered=lambda: self.plotviews[label].raise_(),
+                checkable=False)
+            self.window_menu.addAction(self.active_action[number])
+        elif label == 'Fit':
+            self.active_action[number] = QtGui.QAction(label,
+                self,
+                shortcut=QtGui.QKeySequence("Ctrl+Shift+Alt+F"),
+                triggered=lambda: self.plotviews[label].raise_(),
+                checkable=False)
             self.window_menu.addAction(self.active_action[number])
         else:
             numbers = [num for num in sorted(self.active_action) if num < 100]

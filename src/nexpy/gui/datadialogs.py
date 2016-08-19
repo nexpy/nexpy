@@ -58,6 +58,7 @@ class BaseDialog(QtGui.QDialog):
         if parent is None:
             parent = self.mainwindow
         super(BaseDialog, self).__init__(parent)
+        self.installEventFilter(self)
 
     def set_layout(self, *items):
         self.layout = QtGui.QVBoxLayout()
@@ -75,19 +76,31 @@ class BaseDialog(QtGui.QDialog):
         """
         Creates a box containing the standard Cancel and OK buttons.
         """
-        buttonbox = QtGui.QDialogButtonBox(self)
-        buttonbox.setOrientation(QtCore.Qt.Horizontal)
+        self.close_box = QtGui.QDialogButtonBox(self)
+        self.close_box.setOrientation(QtCore.Qt.Horizontal)
         if save:
-            buttonbox.setStandardButtons(QtGui.QDialogButtonBox.Cancel|
-                                         QtGui.QDialogButtonBox.Save)
+            self.close_box.setStandardButtons(QtGui.QDialogButtonBox.Cancel|
+                                              QtGui.QDialogButtonBox.Save)
         else:
-            buttonbox.setStandardButtons(QtGui.QDialogButtonBox.Cancel|
-                                         QtGui.QDialogButtonBox.Ok)
-        buttonbox.accepted.connect(self.accept)
-        buttonbox.rejected.connect(self.reject)
-        return buttonbox
+            self.close_box.setStandardButtons(QtGui.QDialogButtonBox.Cancel|
+                                              QtGui.QDialogButtonBox.Ok)
+        self.close_box.accepted.connect(self.accept)
+        self.close_box.rejected.connect(self.reject)
+        return self.close_box
 
     buttonbox = close_buttons #For backward compatibility
+
+    def eventFilter(self, widget, event):
+        """Prevent closure of dialog when pressing [Return] or [Enter]"""
+        if event.type() == QtCore.QEvent.KeyPress:
+            key = event.key()
+            if key == QtCore.Qt.Key_Return or key == QtCore.Qt.Key_Enter:
+                event = QtGui.QKeyEvent(QtCore.QEvent.KeyPress, 
+                                        QtCore.Qt.Key_Tab,
+                                        QtCore.Qt.NoModifier)
+                QtCore.QCoreApplication.postEvent(widget, event)
+                return True
+        return QtGui.QWidget.eventFilter(self, widget, event)
 
     def action_buttons(self, *items):
         layout = QtGui.QHBoxLayout()
@@ -421,7 +434,7 @@ class GridParameters(OrderedDict):
 
     def grid(self, header=True, title=None):
         grid = QtGui.QGridLayout()
-        grid.setSpacing(10)
+        grid.setSpacing(5)
         header_font = QtGui.QFont()
         header_font.setBold(True)
         row = 0

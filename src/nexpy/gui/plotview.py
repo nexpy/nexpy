@@ -79,7 +79,7 @@ def new_figure_manager(label=None, *args, **kwargs):
     """
     if label is None:
         label = ''
-    if label == 'Projection':
+    if label == 'Projection' or label == 'Fit':
         nums = [num for num in plt.get_fignums() if num > 100]
         if nums:
             num = max(nums) + 1
@@ -104,8 +104,9 @@ def new_figure_manager(label=None, *args, **kwargs):
 def change_plotview(label):
     global plotview, plotviews
     if label in plotviews:
-        plotviews[label].make_active()
-        plotview = plotviews[label]
+        if plotviews[label].number < 101:
+            plotviews[label].make_active()
+            plotview = plotviews[label]
     else:
         plotview = NXPlotView(label)
     return plotview
@@ -163,6 +164,7 @@ class NXPlotView(QtGui.QDialog):
         else:
             from .consoleapp import _mainwindow
             self.mainwindow = _mainwindow
+            parent = self.mainwindow
 
         super(NXPlotView, self).__init__(parent)
 
@@ -175,6 +177,7 @@ class NXPlotView(QtGui.QDialog):
             plotviews[label].close()
 
         self.figuremanager = new_figure_manager(label)
+        self.number = self.figuremanager.num
         self.canvas = self.figuremanager.canvas
         self.canvas.setParent(self)
         self.canvas.setFocusPolicy(QtCore.Qt.ClickFocus)
@@ -187,7 +190,7 @@ class NXPlotView(QtGui.QDialog):
 
         Gcf.set_active(self.figuremanager)
         def make_active(event):
-            if 'Projection' not in self.label:
+            if self.number < 101:
                 self.make_active()
             self.xdata, self.ydata = self.inverse_transform(event.xdata,
                                                             event.ydata)
@@ -202,7 +205,6 @@ class NXPlotView(QtGui.QDialog):
         self.figuremanager.window = self
         self._destroying = False
         self.figure = self.canvas.figure
-        self.number = self.figuremanager.num
         if label:
             self.label = label
             self.figure.set_label(self.label)
@@ -252,7 +254,8 @@ class NXPlotView(QtGui.QDialog):
                                                   grid_locator1=locator,
                                                   grid_locator2=locator)
 
-        plotview = self
+        if self.number < 101:
+            plotview = self
         plotviews[self.label] = self
         self.plotviews = plotviews
 
@@ -279,7 +282,9 @@ class NXPlotView(QtGui.QDialog):
 
     def make_active(self):
         global plotview
-        plotview = self
+        if self.number < 101:
+            plotview = self
+            self.mainwindow.user_ns['plotview'] = self
         Gcf.set_active(self.figuremanager)
         self.show()
         if self.label == 'Main':
@@ -287,10 +292,9 @@ class NXPlotView(QtGui.QDialog):
         else:
             self.raise_()
         self.update_active()
-        self.mainwindow.user_ns['plotview'] = self
 
     def update_active(self):
-        if 'Projection' not in self.label:
+        if self.number < 101:
             self.mainwindow.update_active(self.number)
 
     def add_menu_action(self):
@@ -1090,7 +1094,7 @@ class NXPlotView(QtGui.QDialog):
             self.vtab.set_axis(self.vaxis)
             if self.tab_widget.indexOf(self.vtab) == -1:
                 self.tab_widget.insertTab(0,self.vtab,'signal')
-            if not self.label.startswith("Projection"):
+            if self.number < 101:
                 if self.tab_widget.indexOf(self.ptab) == -1:
                     self.tab_widget.insertTab(self.tab_widget.indexOf(self.otab),
                                               self.ptab,'projections')
@@ -2105,7 +2109,10 @@ class NXProjectionTab(QtGui.QWidget):
         if 'Projection' not in plotviews:
             self.overplot_box.setChecked(False)
         axes, limits = self.get_projection()
-        projection = change_plotview("Projection")
+        if 'Projection' in plotviews:
+            projection = plotviews['Projection']
+        else:
+            projection = NXPlotView('Projection')
         if len(axes) == 1 and self.overplot_box.isChecked():
             over = True
         else:
@@ -2455,10 +2462,12 @@ class NXProjectionPanel(QtGui.QWidget):
 
     def plot_projection(self):
         try:
-            if 'Projection' not in plotviews:
+            if 'Projection' in plotviews:
+                projection = plotviews['Projection']
+            else:
+                projection = NXPlotView('Projection')
                 self.overplot_box.setChecked(False)
             axes, limits = self.get_projection()
-            projection = change_plotview("Projection")
             if len(axes) == 1 and self.overplot_box.isChecked():
                 over = True
             else:
