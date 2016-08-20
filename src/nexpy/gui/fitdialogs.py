@@ -22,7 +22,7 @@ import pkg_resources
 import numpy as np
 
 from nexusformat.nexus import (NeXusError, NXgroup, NXfield, NXattr,
-                               NXroot, NXentry, NXdata, NXparameters)
+                               NXroot, NXentry, NXdata, NXparameters, nxload)
 from .datadialogs import BaseDialog
 from .plotview import NXPlotView
 from .utils import report_error
@@ -516,7 +516,7 @@ class FitDialog(BaseDialog):
             entry['title'] = 'Fit Model'
             entry['model'] = self.get_model()
         if 'w0' not in self.tree:
-            self.tree.add(NXroot(name='w0'))
+            self.tree['w0'] = nxload(self.mainwindow.scratch_file, 'rw')
         ind = []
         for key in self.tree['w0']:
             try:

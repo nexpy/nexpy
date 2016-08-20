@@ -23,14 +23,22 @@ def report_error(context, error):
     return message_box.exec_()
 
 
-def confirm_action(query, information=None):
+def confirm_action(query, information=None, answer=None):
     """Display a message box requesting confirmation"""
     message_box = QtGui.QMessageBox()
     message_box.setText(query)
     if information:
         message_box.setInformativeText(information)
-    message_box.setStandardButtons(QtGui.QMessageBox.Ok | QtGui.QMessageBox.Cancel)
-    message_box.setDefaultButton(QtGui.QMessageBox.Ok)
+    if answer == 'yes' or answer == 'no':
+        message_box.setStandardButtons(QtGui.QMessageBox.Yes | 
+                                       QtGui.QMessageBox.No)
+        if answer == 'yes':                           
+            message_box.setDefaultButton(QtGui.QMessageBox.Yes)
+        else:
+            message_box.setDefaultButton(QtGui.QMessageBox.No)
+    else:
+        message_box.setStandardButtons(QtGui.QMessageBox.Ok | 
+                                       QtGui.QMessageBox.Cancel)
     return message_box.exec_()
 
 

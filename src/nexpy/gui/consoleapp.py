@@ -34,7 +34,7 @@ from .mainwindow import MainWindow
 from .treeview import NXtree
 from .utils import NXConfigParser, timestamp_age
 
-from nexusformat.nexus import nxclasses, nxload
+from nexusformat.nexus import NXroot, nxclasses, nxload
 
 from traitlets.config.application import boolean_flag
 from traitlets.config.application import catch_config_error
@@ -179,6 +179,9 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
         self.reader_dir = os.path.join(self.nexpy_dir, 'readers')
         self.script_dir = os.path.join(self.nexpy_dir, 'scripts')
         self.function_dir = os.path.join(self.nexpy_dir, 'functions')
+        self.scratch_file = os.path.join(self.nexpy_dir, 'w0.nxs')
+        if not os.path.exists(self.scratch_file):
+            NXroot().save(self.scratch_file)
 
     def init_settings(self):
         self.settings = NXConfigParser(os.path.join(self.nexpy_dir, 
