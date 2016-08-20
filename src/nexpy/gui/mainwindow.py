@@ -97,6 +97,7 @@ class MainWindow(QtGui.QMainWindow):
         self.reader_dir = self.app.reader_dir
         self.script_dir = self.app.script_dir
         self.function_dir = self.app.function_dir
+        self.scratch_file = self.app.scratch_file
 
         mainwindow = QtGui.QWidget()
 
@@ -327,6 +328,26 @@ class MainWindow(QtGui.QMainWindow):
             triggered=self.manage_backups
             )
         self.add_menu_action(self.file_menu, self.manage_backups_action, True)
+
+        self.file_menu.addSeparator()
+
+        self.open_scratch_action=QtGui.QAction("Open Scratch File",
+            self,
+            triggered=self.open_scratch_file
+            )
+        self.add_menu_action(self.file_menu, self.open_scratch_action, True)
+
+        self.purge_scratch_action=QtGui.QAction("Purge Scratch File",
+            self,
+            triggered=self.purge_scratch_file
+            )
+        self.add_menu_action(self.file_menu, self.purge_scratch_action, True)
+
+        self.close_scratch_action=QtGui.QAction("Close Scratch File",
+            self,
+            triggered=self.close_scratch_file
+            )
+        self.add_menu_action(self.file_menu, self.close_scratch_action, True)
 
         self.file_menu.addSeparator()
 
@@ -906,7 +927,7 @@ class MainWindow(QtGui.QMainWindow):
                                     self.default_directory,  self.file_filter)
             if fname:
                 name = self.tree.get_name(fname)
-                self.tree[name] = self.user_ns[name] = nxload(fname)
+                self.tree[name] = nxload(fname)
                 self.treeview.select_node(self.tree[name])
                 self.default_directory = os.path.dirname(fname)
                 logging.info("NeXus file '%s' opened as workspace '%s'"
@@ -921,7 +942,7 @@ class MainWindow(QtGui.QMainWindow):
                                     self.default_directory, self.file_filter)
             if fname:
                 name = self.tree.get_name(fname)
-                self.tree[name] = self.user_ns[name] = nxload(fname, 'rw')
+                self.tree[name] = nxload(fname, 'rw')
                 self.treeview.select_node(self.tree[name])
                 self.default_directory = os.path.dirname(fname)
                 logging.info("NeXus file '%s' opened (unlocked) as workspace '%s'"
@@ -934,7 +955,7 @@ class MainWindow(QtGui.QMainWindow):
         try:
             fname = self.recent_file_actions[self.sender()][1]
             name = self.tree.get_name(fname)
-            self.tree[name] = self.user_ns[name] = nxload(fname)
+            self.tree[name] = nxload(fname)
             self.treeview.select_node(self.tree[name])
             self.default_directory = os.path.dirname(fname)
             logging.info("NeXus file '%s' opened as workspace '%s'"
@@ -1016,7 +1037,7 @@ class MainWindow(QtGui.QMainWindow):
                         with NXFile(fname, 'w') as f:
                             f.copyfile(node.nxfile)
                         name = self.tree.get_name(fname)
-                        self.tree[name] = self.user_ns[name] = nxload(fname)
+                        self.tree[name] = nxload(fname)
                         self.default_directory = os.path.dirname(fname)
                         logging.info("Workspace '%s' duplicated in '%s'"
                                      % (node.nxname, fname))
@@ -1164,6 +1185,38 @@ class MainWindow(QtGui.QMainWindow):
             dialog.show()
         except NeXusError as error:
             report_error("Managing Backups", error)
+
+    def open_scratch_file(self):
+        try:
+            self.tree['w0'] = nxload(self.scratch_file, 'rw')
+        except NeXusError as error:
+            report_error("Opening Scratch File", error)
+
+    def purge_scratch_file(self):
+        try:
+            if 'w0' in self.tree:
+                ret = confirm_action(
+                          "Are you sure you want to purge the scratch file?")
+                if ret == QtGui.QMessageBox.Ok:
+                    for entry in self.tree['w0'].entries.copy():
+                        del self.tree['w0'][entry]
+                    logging.info("Workspace 'w0' purged")
+        except NeXusError as error:
+            report_error("Purging Scratch File", error)
+
+    def close_scratch_file(self):
+        try:
+            if 'w0' in self.tree:
+                ret = confirm_action(
+                          "Do you want to delete the scratch file contents?", 
+                          answer='no')
+                if ret == QtGui.QMessageBox.Yes:
+                    for entry in self.tree['w0'].entries.copy():
+                        del self.tree['w0'][entry]
+                    logging.info("Workspace 'w0' purged")
+                del self.tree['w0']
+        except NeXusError as error:
+            report_error("Purging Scratch File", error)
 
     def install_plugin(self):
         try:
@@ -1353,7 +1406,7 @@ class MainWindow(QtGui.QMainWindow):
                     name = self.tree.node_from_file(fname)
                     if name is None:
                         name = self.tree.get_name(fname)
-                        self.tree[name] = self.user_ns[name] = nxload(fname)
+                        self.tree[name] = nxload(fname)
                     self.treeview.select_node(self.tree[name][node.nxtarget])
                     self.treeview.setFocus()
                 else:
