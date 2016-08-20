@@ -43,7 +43,7 @@ from mpl_toolkits.axisartist.grid_helper_curvelinear import GridHelperCurveLinea
 from mpl_toolkits.axisartist import Subplot
 from mpl_toolkits.axisartist.grid_finder import MaxNLocator
 
-from nexusformat.nexus import NXfield, NXdata, NXroot, NeXusError
+from nexusformat.nexus import NXfield, NXdata, NXroot, NeXusError, nxload
 
 from .. import __version__
 from .datadialogs import BaseDialog, GridParameters
@@ -2948,9 +2948,9 @@ class NXColorButton(ColorButton):
 
 
 def keep_data(data):
-    from .consoleapp import _tree
+    from .consoleapp import _nexpy_dir, _tree
     if 'w0' not in _tree:
-        _tree.add(NXroot(name='w0'))
+        _tree['w0'] = nxload(os.path.join(_nexpy_dir, 'w0.nxs'), 'rw')
     ind = []
     for key in _tree['w0']:
         try:
