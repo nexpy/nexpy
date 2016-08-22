@@ -51,7 +51,8 @@ class BaseDialog(QtGui.QDialog):
         self.import_file = None     # must define in subclass
         self.nexus_filter = ';;'.join((
              "NeXus Files (*.nxs *.nx5 *.h5 *.hdf *.hdf5)",
-	         "Any Files (*.* *)"))
+             "Any Files (*.* *)"))
+        self.textbox = {}
         self.checkbox = {}
         self.radiobutton = {}
         self.confirm_action, self.report_error = confirm_action, report_error
@@ -128,6 +129,24 @@ class BaseDialog(QtGui.QDialog):
             layout.addLayout(horizontal_layout)
         return layout
 
+    def textboxes(self, *items, **opts):
+        if 'layout' in opts and opts['layout'] == 'horizontal':
+            layout = QtGui.QHBoxLayout()
+        else:
+            layout = QtGui.QVBoxLayout()
+        for item in items:
+            item_layout = QtGui.QHBoxLayout()
+            label, value = item
+            label_box = QtGui.QLabel(label)
+            label_box.setAlignment(QtCore.Qt.AlignLeft)
+            self.textbox[label] = QtGui.QLineEdit(six.text_type(value))
+            self.textbox[label].setAlignment(QtCore.Qt.AlignLeft)
+            item_layout.addWidget(label_box)
+            item_layout.addWidget(self.textbox[label])
+            layout.addLayout(item_layout)
+            layout.addStretch()
+        return layout            
+            
     def checkboxes(self, *items, **opts):
         if 'align' in opts:
             align = opts['align']
@@ -829,6 +848,21 @@ class LimitDialog(BaseDialog):
         except NeXusError as error:
             report_error("Setting plot limits", error)
             super(LimitDialog, self).reject()
+
+    
+class ViewDialog(BaseDialog):
+    """Dialog to view a NeXus field"""
+
+    def __init__(self, field, parent=None):
+
+        super(ViewDialog, self).__init__(parent)
+
+        self.field = field
+
+        layout = self.textboxes(('Name:', self.field.nxname),
+                                ('Dtype:', self.field.dtype),
+                                ('Shape:', self.field.shape))
+        self.set_layout(layout, self.close_buttons(save=True))
 
     
 class AddDialog(BaseDialog):

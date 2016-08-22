@@ -473,6 +473,12 @@ class MainWindow(QtGui.QMainWindow):
 
         self.data_menu.addSeparator()
 
+        self.view_action=QtGui.QAction("View Data",
+            self,
+            triggered=self.view_data
+            )
+        self.add_menu_action(self.data_menu, self.view_action, True)
+
         self.add_action=QtGui.QAction("Add Data",
             self,
             triggered=self.add_data
@@ -1296,6 +1302,15 @@ class MainWindow(QtGui.QMainWindow):
                 node.implot()
         except NeXusError as error:
             report_error("Plotting RGB(A) Image Data", error)
+
+    def view_data(self):
+        try:
+            node = self.treeview.get_node()
+            if isinstance(node, NXfield):
+                dialog = ViewDialog(node, parent=self)
+                dialog.exec_()
+        except NeXusError as error:
+            report_error("Viewing Data", error)
 
     def add_data(self):
         try:
