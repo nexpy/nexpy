@@ -89,15 +89,19 @@ class FitDialog(BaseDialog):
         self.plotcombo.setMinimumWidth(100)
         self.plotcombo.setVisible(False)
         plot_label = QtGui.QLabel('X-axis:')
-        self.plot_minbox = QtGui.QLineEdit(str(self.plotview.xtab.axis.min))
+        self.plot_min = self.plotview.xaxis.min
+        self.plot_max = self.plotview.xaxis.max 
+        self.plot_minbox = QtGui.QLineEdit(str(self.plot_min))
         self.plot_minbox.setAlignment(QtCore.Qt.AlignRight)
         plot_tolabel = QtGui.QLabel(' to ')
-        self.plot_maxbox = QtGui.QLineEdit(str(self.plotview.xtab.axis.max))
+        self.plot_maxbox = QtGui.QLineEdit(str(self.plot_max))
         self.plot_maxbox.setAlignment(QtCore.Qt.AlignRight)
         self.plot_checkbox = QtGui.QCheckBox('Use Data Points')
+        self.plot_checkbox.setVisible(False)
         self.plot_layout.addWidget(plot_data_button)
         self.plot_layout.addWidget(self.plot_function_button)
         self.plot_layout.addWidget(self.plotcombo)
+        self.plot_layout.addSpacing(5)
         self.plot_layout.addWidget(plot_label)
         self.plot_layout.addWidget(self.plot_minbox)
         self.plot_layout.addWidget(plot_tolabel)
@@ -106,7 +110,7 @@ class FitDialog(BaseDialog):
         self.plot_layout.addStretch()
 
         self.action_layout = QtGui.QHBoxLayout()
-        fit_button = QtGui.QPushButton("Fit")
+        fit_button = QtGui.QPushButton('Fit')
         fit_button.clicked.connect(self.fit_data)
         self.fit_label = QtGui.QLabel()
         if self._data.nxerrors:
@@ -126,12 +130,21 @@ class FitDialog(BaseDialog):
         self.action_layout.addWidget(self.fit_label)
         self.action_layout.addStretch()
         self.action_layout.addWidget(self.fit_checkbox)
+        self.action_layout.addSpacing(5)
         self.action_layout.addWidget(self.save_button)
 
+        self.bottom_layout = QtGui.QHBoxLayout()
+        reset_button = QtGui.QPushButton('Reset Limits')
+        reset_button.clicked.connect(self.reset_limits)
+        self.bottom_layout.addWidget(reset_button)
+        self.bottom_layout.addStretch()
+        self.bottom_layout.addWidget(self.close_buttons())
+
         self.layout = QtGui.QVBoxLayout()
+        self.layout.setSpacing(5)
         self.layout.addLayout(function_layout)
         self.layout.addLayout(self.plot_layout)
-        self.layout.addWidget(self.close_buttons())
+        self.layout.addLayout(self.bottom_layout)
 
         self.setLayout(self.layout)
 
@@ -210,8 +223,15 @@ class FitDialog(BaseDialog):
 
     @property
     def data(self):
-        xmin, xmax = self.get_limits()
-        return self._data[xmin:xmax]
+        try:
+            xmin, xmax = self.get_limits()
+            axis = self._data.nxaxes[0]
+            if xmin > axis.max() or xmax < axis.min():
+                raise NeXusError('Invalid data range')
+            else:
+                return self._data[xmin:xmax]
+        except NeXusError as error:
+            report_error('Fitting data', error)
 
     def compressed_name(self, name):
         return re.sub(r'([a-zA-Z]*) # (\d*)', r'\1\2', name)
@@ -283,6 +303,7 @@ class FitDialog(BaseDialog):
             self.plotcombo.addItem('All')
             self.plotcombo.insertSeparator(1)
             self.plotcombo.setVisible(True)
+            self.plot_checkbox.setVisible(True)
         self.removecombo.addItem(self.expanded_name(f.name))
         self.plotcombo.addItem(self.expanded_name(f.name))
         self.first_time = False
@@ -414,6 +435,10 @@ class FitDialog(BaseDialog):
 
     def get_limits(self):
         return float(self.plot_minbox.text()), float(self.plot_maxbox.text())
+
+    def reset_limits(self):
+        self.plot_minbox.setText(str(self.plot_min))
+        self.plot_maxbox.setText(str(self.plot_max))
 
     def plot_data(self):
         self.plotview.plot(self.data)
