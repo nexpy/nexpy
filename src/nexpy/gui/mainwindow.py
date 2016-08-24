@@ -1445,7 +1445,7 @@ class MainWindow(QtGui.QMainWindow):
             elif isinstance(node, NXdata):
                 entry = NXentry(data=node)
             else:
-                raise NeXusError("NeXus item not plottable")
+                raise NeXusError("Select an NXdata group")
             if len(entry.data.nxsignal.shape) == 1:
                 self.fitdialog = FitDialog(entry)
                 self.fitdialog.show()
