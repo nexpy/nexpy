@@ -60,6 +60,18 @@ class BaseDialog(QtGui.QDialog):
         super(BaseDialog, self).__init__(parent)
         self.installEventFilter(self)
 
+    def eventFilter(self, widget, event):
+        """Prevent closure of dialog when pressing [Return] or [Enter]"""
+        if event.type() == QtCore.QEvent.KeyPress:
+            key = event.key()
+            if key == QtCore.Qt.Key_Return or key == QtCore.Qt.Key_Enter:
+                event = QtGui.QKeyEvent(QtCore.QEvent.KeyPress, 
+                                        QtCore.Qt.Key_Tab,
+                                        QtCore.Qt.NoModifier)
+                QtCore.QCoreApplication.postEvent(widget, event)
+                return True
+        return QtGui.QWidget.eventFilter(self, widget, event)
+
     def set_layout(self, *items):
         self.layout = QtGui.QVBoxLayout()
         for item in items:
@@ -89,18 +101,6 @@ class BaseDialog(QtGui.QDialog):
         return self.close_box
 
     buttonbox = close_buttons #For backward compatibility
-
-    def eventFilter(self, widget, event):
-        """Prevent closure of dialog when pressing [Return] or [Enter]"""
-        if event.type() == QtCore.QEvent.KeyPress:
-            key = event.key()
-            if key == QtCore.Qt.Key_Return or key == QtCore.Qt.Key_Enter:
-                event = QtGui.QKeyEvent(QtCore.QEvent.KeyPress, 
-                                        QtCore.Qt.Key_Tab,
-                                        QtCore.Qt.NoModifier)
-                QtCore.QCoreApplication.postEvent(widget, event)
-                return True
-        return QtGui.QWidget.eventFilter(self, widget, event)
 
     def action_buttons(self, *items):
         layout = QtGui.QHBoxLayout()
