@@ -1306,8 +1306,8 @@ class MainWindow(QtGui.QMainWindow):
     def view_data(self):
         try:
             node = self.treeview.get_node()
-            dialog = ViewDialog(node, parent=self)
-            dialog.show()
+            self.viewdialog = ViewDialog(node, parent=self)
+            self.viewdialog.show()
         except NeXusError as error:
             report_error("Viewing Data", error)
 
