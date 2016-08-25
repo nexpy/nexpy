@@ -283,6 +283,7 @@ class NXTreeView(QtGui.QTreeView):
                                            triggered=self.overplot_line)
         self.plot_image_action=QtGui.QAction("Plot RGB(A) Image", self, 
                                            triggered=self.plot_image)
+        self.view_action=QtGui.QAction("View...", self, triggered=self.view_data)
         self.add_action=QtGui.QAction("Add...", self, triggered=self.add_data)
         self.initialize_action=QtGui.QAction("Initialize...", self, triggered=self.initialize_data)
         self.rename_action=QtGui.QAction("Rename...", self, triggered=self.rename_data)
@@ -324,6 +325,7 @@ class NXTreeView(QtGui.QTreeView):
                 menu.addSeparator()
         except Exception:
             pass
+        menu.addAction(self.view_action)
         menu.addAction(self.add_action)
         if not isinstance(node, NXroot):
             if isinstance(node, NXgroup):
@@ -410,6 +412,9 @@ class NXTreeView(QtGui.QTreeView):
 
     def plot_image(self):
         self.mainwindow.plot_image()
+
+    def view_data(self):
+        self.mainwindow.view_data()
 
     def add_data(self):
         self.mainwindow.add_data()

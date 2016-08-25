@@ -1306,9 +1306,8 @@ class MainWindow(QtGui.QMainWindow):
     def view_data(self):
         try:
             node = self.treeview.get_node()
-            if isinstance(node, NXfield):
-                dialog = ViewDialog(node, parent=self)
-                dialog.exec_()
+            dialog = ViewDialog(node, parent=self)
+            dialog.show()
         except NeXusError as error:
             report_error("Viewing Data", error)
 
