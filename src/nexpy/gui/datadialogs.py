@@ -894,6 +894,7 @@ class ViewDialog(BaseDialog):
         layout.addLayout(self.properties.grid(header=False, 
                                               title='Properties', 
                                               width=200))
+        layout.addStretch()
 
         if node.attrs:
             self.attributes = GridParameters()
@@ -902,6 +903,7 @@ class ViewDialog(BaseDialog):
             layout.addLayout(self.attributes.grid(header=False, 
                                                   title='Attributes', 
                                                   width=200))
+            layout.addStretch()
         
         if isinstance(node, NXfield) and node.shape != () and node.shape != (1,):
             hlayout = QtGui.QHBoxLayout()
@@ -910,10 +912,13 @@ class ViewDialog(BaseDialog):
             vlayout = QtGui.QVBoxLayout()
             vlayout.addLayout(hlayout)
             vlayout.addWidget(self.close_buttons(close=True))
+            vlayout.setSizeConstraint(QtGui.QLayout.SetFixedSize)
             self.setLayout(vlayout)          
         else:
             layout.addWidget(self.close_buttons(close=True))
             self.setLayout(layout)
+
+        self.setWindowTitle(node.nxroot.nxname+node.nxpath)
 
     def table(self):
         layout = QtGui.QVBoxLayout()
@@ -932,7 +937,7 @@ class ViewDialog(BaseDialog):
             idx = []
             for i, s in enumerate(self.node.shape):
                 spinbox = QtGui.QSpinBox()
-                spinbox.setRange(0, s)   
+                spinbox.setRange(0, s-1)   
                 spinbox.valueChanged[six.text_type].connect(self.choose_data)
                 if len(self.node.shape) - i > 2:
                     idx.append(0)
@@ -953,13 +958,14 @@ class ViewDialog(BaseDialog):
             layout.addLayout(box_layout)
 
         self.table_view = QtGui.QTableView()
-        self.table_model = NXTableModel(self, data)
+        self.table_model = ViewTableModel(self, data)
         self.table_view.setModel(self.table_model)
-        self.table_view.resizeColumnsToContents()
-        self.table_view.horizontalHeader().stretchLastSection()
-        self.table_view.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
+        self.table_view.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        self.table_view.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.table_view.setSortingEnabled(False)
+        self.set_size()
         layout.addWidget(self.table_view)
+        layout.addStretch()
 
         return layout
 
@@ -973,21 +979,34 @@ class ViewDialog(BaseDialog):
             origin = [idx[0], 0]
             idx[0] = np.s_[idx[0]:min(self.node.shape[0], idx[0]+10)]
         self.table_model.choose_data(self.node[tuple(idx)][()], origin)
-        self.table_view.resizeColumnsToContents()
+        self.set_size()
 
-class NXTableModel(QtCore.QAbstractTableModel):
+    def set_size(self):
+        self.table_view.resizeColumnsToContents()
+        vwidth = self.table_view.verticalHeader().width()
+        hwidth = self.table_view.horizontalHeader().length()
+        self.table_view.setFixedWidth(vwidth + hwidth)
+        vheight = self.table_view.verticalHeader().length()
+        hheight = self.table_view.horizontalHeader().height()
+        self.table_view.setFixedHeight(vheight + hheight)
+
+
+class ViewTableModel(QtCore.QAbstractTableModel):
 
     def __init__(self, parent, data, *args):
-        super(NXTableModel, self).__init__(parent, *args)
+        super(ViewTableModel, self).__init__(parent, *args)
+        self._data = self.get_data(data)
+        self.origin = [0, 0]
+
+    def get_data(self, data):
         if len(data.shape) == 1:
             self.rows = data.shape[0]
             self.columns = 1
-            self._data = data.reshape((data.shape[0],1))
+            return data.reshape((data.shape[0],1))
         else:
             self.rows = data.shape[-2]
             self.columns = data.shape[-1]
-            self._data = data
-        self.origin = [0, 0]
+            return data
 
     def rowCount(self, parent=None):
         return self.rows
@@ -1014,13 +1033,12 @@ class NXTableModel(QtCore.QAbstractTableModel):
         return None
 
     def choose_data(self, data, origin):
-        self._data = data
+        self.layoutAboutToBeChanged.emit()
+        self._data = self.get_data(data)
         self.origin = origin
-        self.dataChanged.emit(self.index(0,0), 
-                              self.index(self.rowCount()-1,
-                                         self.columnCount()-1))
-        self.headerDataChanged.emit(QtCore.Qt.Horizontal, 0, min(10, self.columns))
-        self.headerDataChanged.emit(QtCore.Qt.Vertical, 0, min(10, self.rows))
+        self.layoutChanged.emit()
+        self.headerDataChanged.emit(QtCore.Qt.Horizontal, 0, min(9, self.columns-1))
+        self.headerDataChanged.emit(QtCore.Qt.Vertical, 0, min(9, self.rows-1))
 
   
 class AddDialog(BaseDialog):
