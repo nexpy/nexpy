@@ -869,26 +869,48 @@ class ViewDialog(BaseDialog):
 
         layout = QtGui.QVBoxLayout()
         self.properties = GridParameters()
+        
         self.properties.add('class', node.__class__.__name__, 'Class')
         self.properties.add('name', node.nxname, 'Name')
         self.properties.add('path', node.nxpath, 'Path')
         if isinstance(node, NXlink):
-            self.properties.add('target', node.nxtarget, 'Target Path')
-        if node.nxfilemode:
+            self.properties.add('target', node._target, 'Target Path')
+            if node._filename:
+                self.properties.add('linkfile', node._filename, 'Target File')
+                if node.nxroot != node and node.nxroot.nxfilename:
+                    self.properties.add('filename', node.nxroot.nxfilename, 
+                                        'Filename')
+                    self.properties.add('filemode', node.nxfilemode, 'Mode')
+        elif node.nxfilemode:
             self.properties.add('filename', node.nxfilename, 'Filename')
             self.properties.add('filemode', node.nxfilemode, 'Mode')
-        if isinstance(node, NXfield):
+        if isinstance(node, NXfield) and node.shape is not None:
             if node.shape == () or node.shape == (1,):
                 self.properties.add('value', six.text_type(node), 'Value')
             self.properties.add('dtype', node.dtype, 'Dtype')
             self.properties.add('shape', six.text_type(node.shape), 'Shape')
-            if node.nxfilemode:
+            try:
+                self.properties.add('maxshape', 
+                                    six.text_type(node.maxshape), 
+                                    'Maximum Shape')
+            except AttributeError:
+                pass
+            try:
                 self.properties.add('compression', 
                                     six.text_type(node.compression), 
                                     'Compression')
+            except AttributeError:
+                pass
+            try:
                 self.properties.add('chunks', six.text_type(node.chunks), 
                                     'Chunk Size')
-                self.properties.add('fillvalue', node.fillvalue, 'Fill Value')
+            except AttributeError:
+                pass
+            try:
+                self.properties.add('fillvalue', six.text_type(node.fillvalue), 
+                                    'Fill Value')
+            except AttributeError:
+                pass
         elif isinstance(node, NXgroup):
             self.properties.add('entries', len(node.entries), 'No. of Entries')
         layout.addLayout(self.properties.grid(header=False, 
@@ -905,7 +927,8 @@ class ViewDialog(BaseDialog):
                                                   width=200))
             layout.addStretch()
         
-        if isinstance(node, NXfield) and node.shape != () and node.shape != (1,):
+        if (isinstance(node, NXfield) and node.shape is not None and 
+               node.shape != () and node.shape != (1,)):
             hlayout = QtGui.QHBoxLayout()
             hlayout.addLayout(layout)
             hlayout.addLayout(self.table())
@@ -1017,12 +1040,18 @@ class ViewTableModel(QtCore.QAbstractTableModel):
     def data(self, index, role):
         if not index.isValid():
              return None
-        elif role == QtCore.Qt.DisplayRole:
+        try:
+            value = self._data[index.row()][index.column()]
+        except IndexError:
+            return None
+        text = six.text_type(value).lstrip('[').rstrip(']')
+        if role == QtCore.Qt.DisplayRole:
             try:
-                text = six.text_type(self._data[index.row()][index.column()])
-                return text.lstrip('[').rstrip(']')
-            except IndexError:
-                return None
+                return '%.6g' % float(text)
+            except (TypeError, ValueError):
+                return text[:10]
+        elif role == QtCore.Qt.ToolTipRole:
+            return text
         return None
 
     def headerData(self, position, orientation, role):
@@ -1451,6 +1480,7 @@ class RenameDialog(BaseDialog):
         if isinstance(self.node, NXgroup):
             if self.combo_box is not None:
                 self.node.nxclass = self.get_class()
+        self.node.update()
         super(RenameDialog, self).accept()
 
     
