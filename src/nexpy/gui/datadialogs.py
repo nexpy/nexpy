@@ -1049,7 +1049,7 @@ class ViewTableModel(QtCore.QAbstractTableModel):
             try:
                 return '%.6g' % float(text)
             except (TypeError, ValueError):
-                return text[:10]
+                return (text[:10] + '..') if len(text) > 10 else text
         elif role == QtCore.Qt.ToolTipRole:
             return text
         return None
