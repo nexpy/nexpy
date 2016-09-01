@@ -33,11 +33,13 @@ from matplotlib.backends.backend_qt4agg import NavigationToolbar2QT as Navigatio
 from matplotlib.backends.qt_editor.formlayout import ColorButton, to_qcolor
 from matplotlib.figure import Figure
 from matplotlib.image import NonUniformImage
-from matplotlib.colors import LogNorm, Normalize, colorConverter, rgb2hex
+from matplotlib.colors import LogNorm, Normalize, SymLogNorm
+from matplotlib.colors import colorConverter, rgb2hex
 from matplotlib.cm import cmap_d, get_cmap
 from matplotlib.lines import Line2D
 from matplotlib import markers
 from matplotlib.patches import Circle, Ellipse, Rectangle, Polygon
+from matplotlib import ticker
 from matplotlib.transforms import nonsingular
 from mpl_toolkits.axisartist.grid_helper_curvelinear import GridHelperCurveLinear
 from mpl_toolkits.axisartist import Subplot
@@ -800,6 +802,44 @@ class NXPlotView(QtGui.QDialog):
         else:
             ax.set_yscale('linear')
         self.draw()
+
+    def symlog(self, linthresh=None, linscale=None, vmax=None):
+        """Function to use symmetric log normalization in the current plot.
+
+           This implements SymLogNorm, which requires the definition of a 
+           region close to zero where a linear interpolation is utilized. 
+           The current data is replotted with the new normalization.
+
+        Args:
+            linthresh (float): The threshold value below which the linear 
+                interpolation is used.
+            linscale (float): A parameter that stretches the region over which
+                the linear interpolation is used.
+            vmax (float): The maximum value for the plot. This is applied 
+                symmetrically, i.e., vmin = -vmax.
+        """
+        if self.image is not None:
+            if vmax is None:
+                vmax = max(abs(self.vaxis.min), abs(self.vaxis.max))
+            if linthresh is None:
+                linthresh = vmax / 1000.0
+            if linscale is None:
+                linscale = 1
+            self.vaxis.min = self.vaxis.lo = -vmax
+            self.vaxis.max = self.vaxis.hi = vmax
+            self.image.set_norm(NXSymLogNorm(linthresh, linscale=linscale,
+                                             vmin=-vmax, vmax=vmax))
+            self.colorbar.remove()
+            maxlog = int(np.ceil(np.log10(vmax)))
+            logthresh = int(np.ceil(np.log10(linthresh)))
+            tick_locations =( [-vmax]
+                  + [-(10.0**x) for x in range(maxlog-1, logthresh-1, -1)]
+                  + [(10.0**x) for x in range(logthresh, maxlog)]
+                  + [vmax] )
+            self.colorbar = self.figure.colorbar(self.image, ax=plotview.ax,
+                                                 ticks=tick_locations)
+            self.image.set_clim(self.vaxis.lo, self.vaxis.hi)
+            self.vtab.set_axis(self.vaxis)
 
     def set_plot_limits(self, xmin=None, xmax=None, ymin=None, ymax=None, vmin=None, vmax=None):
         if xmin is not None:
