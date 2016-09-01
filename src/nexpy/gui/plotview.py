@@ -914,10 +914,11 @@ class NXPlotView(QtGui.QDialog):
 
     def _set_cmap(self, cmap):
         try:
-            self.vtab.set_cmap(get_cmap(cmap).name)
-            self.vtab.change_cmap()
+            new_cmap = get_cmap(cmap)
         except ValueError as error:
-            raise NeXusError(str(error))
+            raise NeXusError(six.text_type(error))
+        self.vtab.set_cmap(new_cmap.name)
+        self.vtab.change_cmap()
 
     cmap = property(_cmap, _set_cmap, "Property: color map")
 
@@ -1721,7 +1722,10 @@ class NXPlotTab(QtGui.QWidget):
             pass
 
     def set_cmap(self, cmap):
-        self.cmapcombo.setCurrentIndex(self.cmapcombo.findText(cmap))
+        idx = self.cmapcombo.findText(cmap)
+        if idx < 0 and cmap in cmap_d:
+            self.cmapcombo.addItem(cmap)
+            self.cmapcombo.setCurrentIndex(self.cmapcombo.findText(cmap))
 
     @property
     def cmap(self):
