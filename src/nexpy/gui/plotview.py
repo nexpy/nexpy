@@ -2953,6 +2953,19 @@ class NXColorButton(ColorButton):
         return self.parameter.value
 
 
+class NXSymLogNorm(SymLogNorm):
+    """
+    A subclass of Matplotlib SymLogNorm containing a bug fix
+    for backward compatibility to previous versions.
+    """
+    def __init__(self,  linthresh, linscale=1.0,
+                 vmin=None, vmax=None, clip=False):
+        super(NXSymLogNorm, self).__init__(linthresh, linscale, vmin, vmax, clip)
+        if (not hasattr(self, '_upper') and 
+                vmin is not None and vmax is not None):
+            self._transform_vmin_vmax()
+
+
 def keep_data(data):
     from .consoleapp import _nexpy_dir, _tree
     if 'w0' not in _tree:
