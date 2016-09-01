@@ -973,7 +973,7 @@ class NXPlotView(QtGui.QDialog):
             self.vtab.set_interpolation(interpolation)
             self.vtab.change_interpolation()
         except ValueError as error:
-            raise NeXusError(str(error))
+            raise NeXusError(six.text_type(error))
 
     interpolation = property(_interpolation, _set_interpolation,
                              "Property: interpolation method")
@@ -1870,7 +1870,7 @@ class NXTextBox(QtGui.QLineEdit):
         return float(six.text_type(self.text()))
 
     def setValue(self, value):
-        self.setText(str(float('%.4g' % value)))
+        self.setText(six.text_type(float('%.4g' % value)))
 
 
 class NXSpinBox(QtGui.QSpinBox):
@@ -1924,7 +1924,7 @@ class NXSpinBox(QtGui.QSpinBox):
 
     def textFromValue(self, value):
         try:
-            return str(float('%.4g' % self.centers[value]))
+            return six.text_type(float('%.4g' % self.centers[value]))
         except:
             return ''
 
@@ -3018,7 +3018,7 @@ def keep_data(data):
         except ValueError:
             pass
     if ind == []: ind = [0]
-    data.nxname = 's'+str(sorted(ind)[-1]+1)
+    data.nxname = 's'+six.text_type(sorted(ind)[-1]+1)
     _tree['w0'][data.nxname] = data
 
 def centers(axis, dimlen):
