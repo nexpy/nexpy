@@ -33,11 +33,13 @@ from matplotlib.backends.backend_qt4agg import NavigationToolbar2QT as Navigatio
 from matplotlib.backends.qt_editor.formlayout import ColorButton, to_qcolor
 from matplotlib.figure import Figure
 from matplotlib.image import NonUniformImage
-from matplotlib.colors import LogNorm, Normalize, colorConverter, rgb2hex
+from matplotlib.colors import LogNorm, Normalize, SymLogNorm
+from matplotlib.colors import colorConverter, rgb2hex
 from matplotlib.cm import cmap_d, get_cmap
 from matplotlib.lines import Line2D
 from matplotlib import markers
 from matplotlib.patches import Circle, Ellipse, Rectangle, Polygon
+from matplotlib import ticker
 from matplotlib.transforms import nonsingular
 from mpl_toolkits.axisartist.grid_helper_curvelinear import GridHelperCurveLinear
 from mpl_toolkits.axisartist import Subplot
@@ -52,9 +54,11 @@ from .utils import report_error
 plotview = None
 plotviews = {}
 colors = ['b', 'g', 'r', 'c', 'm', 'y', 'k', 'w']
-cmaps = ['viridis', 'inferno', 'magma', 'plasma', 'spring', 'summer', 'autumn',
-         'winter', 'cool', 'hot', 'bone', 'copper', 'gray', 'pink', 'jet',
-         'spectral', 'rainbow', 'hsv', 'flag', 'prism']
+cmaps = ['viridis', 'inferno', 'magma', 'plasma', #perceptually uniform
+         'spring', 'summer', 'autumn', 'winter', 'cool', 'hot', #sequential
+         'bone', 'copper', 'gray', 'pink', 
+         'coolwarm', 'RdBu', 'RdYlBu', 'RdYlGn', #diverging
+         'jet', 'spectral', 'rainbow', 'hsv', 'flag', 'prism'] #miscellaneous
 cmaps = [cm for cm in cmaps if cm in cmap_d]
 if 'viridis' in cmaps:
     default_cmap = 'viridis'
@@ -799,6 +803,44 @@ class NXPlotView(QtGui.QDialog):
             ax.set_yscale('linear')
         self.draw()
 
+    def symlog(self, linthresh=None, linscale=None, vmax=None):
+        """Function to use symmetric log normalization in the current plot.
+
+           This implements SymLogNorm, which requires the definition of a 
+           region close to zero where a linear interpolation is utilized. 
+           The current data is replotted with the new normalization.
+
+        Args:
+            linthresh (float): The threshold value below which the linear 
+                interpolation is used.
+            linscale (float): A parameter that stretches the region over which
+                the linear interpolation is used.
+            vmax (float): The maximum value for the plot. This is applied 
+                symmetrically, i.e., vmin = -vmax.
+        """
+        if self.image is not None:
+            if vmax is None:
+                vmax = max(abs(self.vaxis.min), abs(self.vaxis.max))
+            if linthresh is None:
+                linthresh = vmax / 1000.0
+            if linscale is None:
+                linscale = 1
+            self.vaxis.min = self.vaxis.lo = -vmax
+            self.vaxis.max = self.vaxis.hi = vmax
+            self.image.set_norm(NXSymLogNorm(linthresh, linscale=linscale,
+                                             vmin=-vmax, vmax=vmax))
+            self.colorbar.remove()
+            maxlog = int(np.ceil(np.log10(vmax)))
+            logthresh = int(np.ceil(np.log10(linthresh)))
+            tick_locations =( [-vmax]
+                  + [-(10.0**x) for x in range(maxlog-1, logthresh-1, -1)]
+                  + [(10.0**x) for x in range(logthresh, maxlog)]
+                  + [vmax] )
+            self.colorbar = self.figure.colorbar(self.image, ax=plotview.ax,
+                                                 ticks=tick_locations)
+            self.image.set_clim(self.vaxis.lo, self.vaxis.hi)
+            self.vtab.set_axis(self.vaxis)
+
     def set_plot_limits(self, xmin=None, xmax=None, ymin=None, ymax=None, vmin=None, vmax=None):
         if xmin is not None:
             self.xaxis.min = xmin
@@ -912,10 +954,11 @@ class NXPlotView(QtGui.QDialog):
 
     def _set_cmap(self, cmap):
         try:
-            self.vtab.set_cmap(get_cmap(cmap).name)
-            self.vtab.change_cmap()
+            new_cmap = get_cmap(cmap)
         except ValueError as error:
-            raise NeXusError(str(error))
+            raise NeXusError(six.text_type(error))
+        self.vtab.set_cmap(new_cmap.name)
+        self.vtab.change_cmap()
 
     cmap = property(_cmap, _set_cmap, "Property: color map")
 
@@ -930,7 +973,7 @@ class NXPlotView(QtGui.QDialog):
             self.vtab.set_interpolation(interpolation)
             self.vtab.change_interpolation()
         except ValueError as error:
-            raise NeXusError(str(error))
+            raise NeXusError(six.text_type(error))
 
     interpolation = property(_interpolation, _set_interpolation,
                              "Property: interpolation method")
@@ -1719,7 +1762,10 @@ class NXPlotTab(QtGui.QWidget):
             pass
 
     def set_cmap(self, cmap):
-        self.cmapcombo.setCurrentIndex(self.cmapcombo.findText(cmap))
+        idx = self.cmapcombo.findText(cmap)
+        if idx < 0 and cmap in cmap_d:
+            self.cmapcombo.addItem(cmap)
+            self.cmapcombo.setCurrentIndex(self.cmapcombo.findText(cmap))
 
     @property
     def cmap(self):
@@ -1824,7 +1870,7 @@ class NXTextBox(QtGui.QLineEdit):
         return float(six.text_type(self.text()))
 
     def setValue(self, value):
-        self.setText(str(float('%.4g' % value)))
+        self.setText(six.text_type(float('%.4g' % value)))
 
 
 class NXSpinBox(QtGui.QSpinBox):
@@ -1878,7 +1924,7 @@ class NXSpinBox(QtGui.QSpinBox):
 
     def textFromValue(self, value):
         try:
-            return str(float('%.4g' % self.centers[value]))
+            return six.text_type(float('%.4g' % self.centers[value]))
         except:
             return ''
 
@@ -2947,6 +2993,19 @@ class NXColorButton(ColorButton):
         return self.parameter.value
 
 
+class NXSymLogNorm(SymLogNorm):
+    """
+    A subclass of Matplotlib SymLogNorm containing a bug fix
+    for backward compatibility to previous versions.
+    """
+    def __init__(self,  linthresh, linscale=1.0,
+                 vmin=None, vmax=None, clip=False):
+        super(NXSymLogNorm, self).__init__(linthresh, linscale, vmin, vmax, clip)
+        if (not hasattr(self, '_upper') and 
+                vmin is not None and vmax is not None):
+            self._transform_vmin_vmax()
+
+
 def keep_data(data):
     from .consoleapp import _nexpy_dir, _tree
     if 'w0' not in _tree:
@@ -2959,7 +3018,7 @@ def keep_data(data):
         except ValueError:
             pass
     if ind == []: ind = [0]
-    data.nxname = 's'+str(sorted(ind)[-1]+1)
+    data.nxname = 's'+six.text_type(sorted(ind)[-1]+1)
     _tree['w0'][data.nxname] = data
 
 def centers(axis, dimlen):
