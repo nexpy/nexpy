@@ -55,9 +55,9 @@ plotview = None
 plotviews = {}
 colors = ['b', 'g', 'r', 'c', 'm', 'y', 'k', 'w']
 cmaps = ['viridis', 'inferno', 'magma', 'plasma', #perceptually uniform
-         'coolwarm', 'RdBu', 'RdYlBu', 'RdYlGn', #diverging
          'spring', 'summer', 'autumn', 'winter', 'cool', 'hot', #sequential
          'bone', 'copper', 'gray', 'pink', 
+         'coolwarm', 'RdBu', 'RdYlBu', 'RdYlGn', #diverging
          'jet', 'spectral', 'rainbow', 'hsv', 'flag', 'prism'] #miscellaneous
 cmaps = [cm for cm in cmaps if cm in cmap_d]
 if 'viridis' in cmaps:
