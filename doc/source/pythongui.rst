@@ -672,6 +672,27 @@ and sliders.
   conventions 
   <http://matplotlib.org/api/axes_api.html?highlight=grid#matplotlib.axes.Axes.grid>`_.
 
+* Convert to Symmetric Log Plot:
+
+    >>> plotview.symlog(linthresh, linscale, vmax)
+
+  Plot the data using symmetric logarithms for both positive and negative data.
+  The ``linthresh`` and ``linscale`` parameters are used to define the linear
+  region interpolating between the positive and negative log regions. See the
+  `Matplotlib documentation  
+  <http://matplotlib.org/users/colormapnorms.html#symmetric-logarithmic>`_ for
+  more details. The maximum and minimum signal values are set to +/- vmax.
+  
+  .. note:: There are a number of diverging color maps, such as ``coolwarm``,
+            that are ideal for displaying symmetric log data. 
+
+  .. warning:: This is not fully integrated into the plotting software, so if
+               you make any changes to the plot, such as switching axes, it may
+               be necessary to run this command again. It is possible to change
+               the z-axis values, *.e.g.*, by playing a movie, but you should
+               uncheck the ``Autoscale`` box. 
+
+
 Fitting NeXus Data
 ------------------
 It is possible to fit one-dimensional data using the non-linear least-squares 
