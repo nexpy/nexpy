@@ -1241,17 +1241,20 @@ class NXPlotView(QtGui.QDialog):
 
     def format_coord(self, x, y):
         try:
-            x, y = plotview.inverse_transform(x, y)
-            if plotview.xaxis.reversed:
-                col = np.searchsorted(x-plotview.xaxis.boundaries, 0.0) - 1
+            if plotview.ndim == 1:
+                return 'x={:.4g} y={:.4g}'.format(x, y)
             else:
-                col = np.searchsorted(plotview.xaxis.boundaries-x, 0.0) - 1
-            if plotview.yaxis.reversed:
-                row = np.searchsorted(y-plotview.yaxis.boundaries, 0.0) - 1
-            else:
-                row = np.searchsorted(plotview.yaxis.boundaries-y, 0.0) - 1
-            z = self.v[row,col]
-            return 'x={:.4g} y={:.4g}\nv={:.4g}'.format(x, y, z)
+                x, y = plotview.inverse_transform(x, y)
+                if plotview.xaxis.reversed:
+                    col = np.searchsorted(x-plotview.xaxis.boundaries, 0.0) - 1
+                else:
+                    col = np.searchsorted(plotview.xaxis.boundaries-x, 0.0) - 1
+                if plotview.yaxis.reversed:
+                    row = np.searchsorted(y-plotview.yaxis.boundaries, 0.0) - 1
+                else:
+                    row = np.searchsorted(plotview.yaxis.boundaries-y, 0.0) - 1
+                z = self.v[row,col]
+                return 'x={:.4g} y={:.4g}\nv={:.4g}'.format(x, y, z)
         except Exception:
             return ''
 
