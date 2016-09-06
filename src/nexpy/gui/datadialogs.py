@@ -33,7 +33,7 @@ except ImportError:
 from .utils import confirm_action, report_error, natural_sort, wrap
 from .utils import human_size, timestamp, format_timestamp
 
-from nexusformat.nexus import (NeXusError, NXgroup, NXfield, NXattr,
+from nexusformat.nexus import (NeXusError, NXgroup, NXfield, NXattr, NXlink,
                                NXroot, NXentry, NXdata, NXparameters, nxload)
 
 
@@ -51,7 +51,8 @@ class BaseDialog(QtGui.QDialog):
         self.import_file = None     # must define in subclass
         self.nexus_filter = ';;'.join((
              "NeXus Files (*.nxs *.nx5 *.h5 *.hdf *.hdf5)",
-	         "Any Files (*.* *)"))
+             "Any Files (*.* *)"))
+        self.textbox = {}
         self.checkbox = {}
         self.radiobutton = {}
         self.confirm_action, self.report_error = confirm_action, report_error
@@ -84,7 +85,7 @@ class BaseDialog(QtGui.QDialog):
     def set_title(self, title):
         self.setWindowTitle(title)
 
-    def close_buttons(self, save=False):
+    def close_buttons(self, save=False, close=False):
         """
         Creates a box containing the standard Cancel and OK buttons.
         """
@@ -93,6 +94,8 @@ class BaseDialog(QtGui.QDialog):
         if save:
             self.close_box.setStandardButtons(QtGui.QDialogButtonBox.Cancel|
                                               QtGui.QDialogButtonBox.Save)
+        elif close:
+            self.close_box.setStandardButtons(QtGui.QDialogButtonBox.Close)
         else:
             self.close_box.setStandardButtons(QtGui.QDialogButtonBox.Cancel|
                                               QtGui.QDialogButtonBox.Ok)
@@ -128,6 +131,24 @@ class BaseDialog(QtGui.QDialog):
             layout.addLayout(horizontal_layout)
         return layout
 
+    def textboxes(self, *items, **opts):
+        if 'layout' in opts and opts['layout'] == 'horizontal':
+            layout = QtGui.QHBoxLayout()
+        else:
+            layout = QtGui.QVBoxLayout()
+        for item in items:
+            item_layout = QtGui.QHBoxLayout()
+            label, value = item
+            label_box = QtGui.QLabel(label)
+            label_box.setAlignment(QtCore.Qt.AlignLeft)
+            self.textbox[label] = QtGui.QLineEdit(six.text_type(value))
+            self.textbox[label].setAlignment(QtCore.Qt.AlignLeft)
+            item_layout.addWidget(label_box)
+            item_layout.addWidget(self.textbox[label])
+            layout.addLayout(item_layout)
+            layout.addStretch()
+        return layout            
+            
     def checkboxes(self, *items, **opts):
         if 'align' in opts:
             align = opts['align']
@@ -432,7 +453,7 @@ class GridParameters(OrderedDict):
         self.__setitem__(name, GridParameter(value=value, name=name, label=label,
                                              vary=vary, slot=slot))
 
-    def grid(self, header=True, title=None):
+    def grid(self, header=True, title=None, width=None):
         grid = QtGui.QGridLayout()
         grid.setSpacing(5)
         header_font = QtGui.QFont()
@@ -459,6 +480,8 @@ class GridParameters(OrderedDict):
             label, value, checkbox = p.label, p.value, p.vary
             grid.addWidget(p.label, row, 0)
             grid.addWidget(p.box, row, 1, QtCore.Qt.AlignHCenter)
+            if width:
+                p.box.setFixedWidth(width)
             if checkbox is not None:
                 grid.addWidget(p.checkbox, row, 2, QtCore.Qt.AlignHCenter)
                 vary = True
@@ -606,7 +629,10 @@ class GridParameter(object):
                 if isinstance(value, six.text_type):
                     self.box.setText(value)
                 else:
-                    self.box.setText('%.6g' % value)
+                    try:
+                        self.box.setText('%.6g' % value)
+                    except TypeError:
+                        self.box.setText(six.text_type(value))
 
     @property
     def vary(self):
@@ -831,6 +857,219 @@ class LimitDialog(BaseDialog):
             super(LimitDialog, self).reject()
 
     
+class ViewDialog(BaseDialog):
+    """Dialog to view a NeXus field"""
+
+    def __init__(self, node, parent=None):
+
+        super(ViewDialog, self).__init__(parent)
+
+        self.node = node
+        self.spinboxes = []
+
+        layout = QtGui.QVBoxLayout()
+        self.properties = GridParameters()
+        
+        self.properties.add('class', node.__class__.__name__, 'Class')
+        self.properties.add('name', node.nxname, 'Name')
+        self.properties.add('path', node.nxpath, 'Path')
+        if isinstance(node, NXlink):
+            self.properties.add('target', node._target, 'Target Path')
+            if node._filename:
+                self.properties.add('linkfile', node._filename, 'Target File')
+                if node.nxroot != node and node.nxroot.nxfilename:
+                    self.properties.add('filename', node.nxroot.nxfilename, 
+                                        'Filename')
+                    self.properties.add('filemode', node.nxfilemode, 'Mode')
+        elif node.nxfilemode:
+            self.properties.add('filename', node.nxfilename, 'Filename')
+            self.properties.add('filemode', node.nxfilemode, 'Mode')
+        if isinstance(node, NXfield) and node.shape is not None:
+            if node.shape == () or node.shape == (1,):
+                self.properties.add('value', six.text_type(node), 'Value')
+            self.properties.add('dtype', node.dtype, 'Dtype')
+            self.properties.add('shape', six.text_type(node.shape), 'Shape')
+            try:
+                self.properties.add('maxshape', 
+                                    six.text_type(node.maxshape), 
+                                    'Maximum Shape')
+            except AttributeError:
+                pass
+            try:
+                self.properties.add('compression', 
+                                    six.text_type(node.compression), 
+                                    'Compression')
+            except AttributeError:
+                pass
+            try:
+                self.properties.add('chunks', six.text_type(node.chunks), 
+                                    'Chunk Size')
+            except AttributeError:
+                pass
+            try:
+                self.properties.add('fillvalue', six.text_type(node.fillvalue), 
+                                    'Fill Value')
+            except AttributeError:
+                pass
+        elif isinstance(node, NXgroup):
+            self.properties.add('entries', len(node.entries), 'No. of Entries')
+        layout.addLayout(self.properties.grid(header=False, 
+                                              title='Properties', 
+                                              width=200))
+        layout.addStretch()
+
+        if node.attrs:
+            self.attributes = GridParameters()
+            for attr in node.attrs:
+                self.attributes.add(attr, six.text_type(node.attrs[attr]), attr)
+            layout.addLayout(self.attributes.grid(header=False, 
+                                                  title='Attributes', 
+                                                  width=200))
+            layout.addStretch()
+        
+        if (isinstance(node, NXfield) and node.shape is not None and 
+               node.shape != () and node.shape != (1,)):
+            hlayout = QtGui.QHBoxLayout()
+            hlayout.addLayout(layout)
+            hlayout.addLayout(self.table())
+            vlayout = QtGui.QVBoxLayout()
+            vlayout.addLayout(hlayout)
+            vlayout.addWidget(self.close_buttons(close=True))
+            vlayout.setSizeConstraint(QtGui.QLayout.SetFixedSize)
+            self.setLayout(vlayout)          
+        else:
+            layout.addWidget(self.close_buttons(close=True))
+            self.setLayout(layout)
+
+        self.setWindowTitle(node.nxroot.nxname+node.nxpath)
+
+    def table(self):
+        layout = QtGui.QVBoxLayout()
+
+        title_layout = QtGui.QHBoxLayout()
+        title_label = QtGui.QLabel('Values')
+        header_font = QtGui.QFont()
+        header_font.setBold(True)
+        title_label.setFont(header_font)
+        title_layout.addStretch()
+        title_layout.addWidget(title_label)
+        title_layout.addStretch()
+        layout.addLayout(title_layout)
+
+        if [s for s in self.node.shape if s > 10]:
+            idx = []
+            for i, s in enumerate(self.node.shape):
+                spinbox = QtGui.QSpinBox()
+                spinbox.setRange(0, s-1)   
+                spinbox.valueChanged[six.text_type].connect(self.choose_data)
+                if len(self.node.shape) - i > 2:
+                    idx.append(0)
+                else:
+                    idx.append(np.s_[0:min(s,10)])
+                    spinbox.setSingleStep(10)
+                self.spinboxes.append(spinbox)
+            data = self.node[tuple(idx)][()]
+        else:
+            data = self.node[()]
+
+        if self.spinboxes:
+            box_layout = QtGui.QHBoxLayout()
+            box_layout.addStretch()
+            for spinbox in self.spinboxes:
+                box_layout.addWidget(spinbox)
+            box_layout.addStretch()
+            layout.addLayout(box_layout)
+
+        self.table_view = QtGui.QTableView()
+        self.table_model = ViewTableModel(self, data)
+        self.table_view.setModel(self.table_model)
+        self.table_view.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        self.table_view.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        self.table_view.setSortingEnabled(False)
+        self.set_size()
+        layout.addWidget(self.table_view)
+        layout.addStretch()
+
+        return layout
+
+    def choose_data(self):
+        idx = [s.value() for s in self.spinboxes]
+        if len(idx) > 1:
+            origin = [idx[-2], idx[-1]]
+            for i in [-2,-1]:
+                idx[i] = np.s_[idx[i]:min(self.node.shape[i], idx[i]+10)]
+        else:
+            origin = [idx[0], 0]
+            idx[0] = np.s_[idx[0]:min(self.node.shape[0], idx[0]+10)]
+        self.table_model.choose_data(self.node[tuple(idx)][()], origin)
+        self.set_size()
+
+    def set_size(self):
+        self.table_view.resizeColumnsToContents()
+        vwidth = self.table_view.verticalHeader().width()
+        hwidth = self.table_view.horizontalHeader().length()
+        self.table_view.setFixedWidth(vwidth + hwidth)
+        vheight = self.table_view.verticalHeader().length()
+        hheight = self.table_view.horizontalHeader().height()
+        self.table_view.setFixedHeight(vheight + hheight)
+
+
+class ViewTableModel(QtCore.QAbstractTableModel):
+
+    def __init__(self, parent, data, *args):
+        super(ViewTableModel, self).__init__(parent, *args)
+        self._data = self.get_data(data)
+        self.origin = [0, 0]
+
+    def get_data(self, data):
+        if len(data.shape) == 1:
+            self.rows = data.shape[0]
+            self.columns = 1
+            return data.reshape((data.shape[0],1))
+        else:
+            self.rows = data.shape[-2]
+            self.columns = data.shape[-1]
+            return data
+
+    def rowCount(self, parent=None):
+        return self.rows
+
+    def columnCount(self, parent=None):
+        return self.columns
+
+    def data(self, index, role):
+        if not index.isValid():
+             return None
+        try:
+            value = self._data[index.row()][index.column()]
+        except IndexError:
+            return None
+        text = six.text_type(value).lstrip('[').rstrip(']')
+        if role == QtCore.Qt.DisplayRole:
+            try:
+                return '%.6g' % float(text)
+            except (TypeError, ValueError):
+                return (text[:10] + '..') if len(text) > 10 else text
+        elif role == QtCore.Qt.ToolTipRole:
+            return text
+        return None
+
+    def headerData(self, position, orientation, role):
+        if orientation == QtCore.Qt.Horizontal and role == QtCore.Qt.DisplayRole:
+            return six.text_type(self.origin[1] + range(10)[position])
+        elif orientation == QtCore.Qt.Vertical and role == QtCore.Qt.DisplayRole:
+            return six.text_type(self.origin[0] + range(10)[position])
+        return None
+
+    def choose_data(self, data, origin):
+        self.layoutAboutToBeChanged.emit()
+        self._data = self.get_data(data)
+        self.origin = origin
+        self.layoutChanged.emit()
+        self.headerDataChanged.emit(QtCore.Qt.Horizontal, 0, min(9, self.columns-1))
+        self.headerDataChanged.emit(QtCore.Qt.Vertical, 0, min(9, self.rows-1))
+
+  
 class AddDialog(BaseDialog):
     """Dialog to add a NeXus node"""
 
@@ -1241,6 +1480,7 @@ class RenameDialog(BaseDialog):
         if isinstance(self.node, NXgroup):
             if self.combo_box is not None:
                 self.node.nxclass = self.get_class()
+        self.node.update()
         super(RenameDialog, self).accept()
 
     
