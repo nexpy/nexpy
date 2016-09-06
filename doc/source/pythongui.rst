@@ -108,26 +108,76 @@ File Menu
                  variable with a different name, that variable will not be 
                  deleted. 
 
-**Lock file**
+**Import**
+    Imports data from other formats. Some importers are provided with the NeXpy
+    distribution, but others will be loaded from the user's ``~/.nexpy/readers`` 
+    directory.
+ 
+    .. seealso:: `Importing NeXus Data`_
+
+**Lock File**
     Changes the file access mode to read-only. This will prevent further changes
     to the tree using either the GUI or the shell. Locked files are displayed
     with a padlock icon. 
 
-**Unlock file**
+**Unlock File**
     Changes the file access mode to read/write. If the root tree item has been
     saved to a file, any subsequent changes will automatically update the file,
     including deleting items. 
 
     .. warning:: Any changes to an unlocked file will be immediate and 
-                 irreversible. Make sure you have a backup if your file contains
-                 critical data.
+                 irreversible. If the file contains critical data, click the
+                 checkbox to create a backup, which can be restored later if
+                 necessary.
 
-**Import**
-    Imports data from other formats. Some importers are provided with the NeXpy
-    distribution, but others will be loaded from the user's ~/.nexpy/readers 
-    directory.
- 
-    .. seealso:: `Importing NeXus Data`_
+**Backup File**
+    Creates a backup of the selected file. The backup is stored in the user's
+    home directory in ``~/.nexpy/backups`` and may be restored if changes to
+    the currently open file need to be reversed. Backups are saved for three
+    days before being automatically deleted.
+
+**Restore File...**
+    Restores the backup of this file. The user is prompted to confirm that the
+    currently open file should be overwritten. 
+    
+    .. note:: This only applies to backups created during the current session. 
+              Previously saved backups can be restored using the ``Manage 
+              Backups`` menu item.
+    
+**Manage Backups...**
+     Provides the ability to restore or delete an existing backup stored in
+     ``~/.nexpy/backups``. Restoring the backup is equivalent to opening the
+     existing backup file. It is necessary to save it to a new location to 
+     prevent its automatic deletion after three days.
+
+**Open Scratch File...**
+     Saved projections and fits are stored in a scratch file called ``w0.nxs``,
+     which is stored in the user's NeXpy directory, ````~/.nexpy``. This file 
+     is automatically opened when new data is saved, but this menu item allows
+     it to be opened at any time.
+
+**Purge Scratch File...**
+     Previously saved items can be manually removed from the scratch file when 
+     they are no longer needed. This menu item purges all the items in one go.
+
+**Close Scratch File...**
+     Closes the scratch file.
+     
+**Install Plugin**
+     A directory containing a NeXpy plugin module can be installed either in the
+     user's NeXpy directory (``~/.nexpy/plugins``) or in the package directory
+     if the user has the necessary privilege. The plugin menu is appended to
+     the existing menus, but will be loaded in alphabetical order of the other
+     plugins when NeXpy is restarted.
+
+    .. note:: If a plugin of the same name exists in both directories, the 
+              user's plugin is loaded.
+
+    .. seealso:: `NeXpy Plugins`_
+    
+**Remove Plugin**
+     The selected NeXpy plugin module is removed from either the user's
+     NeXpy directory (``~/.nexpy/plugins``) or the package directory.
 
 **Print Shell**
     Prints the contents of the iPython shell.
@@ -153,6 +203,12 @@ Data Menu
     fastest varying dimension, which should be of size 3 or 4, contains the 
     RGB(A) values for each pixel. By convention, the first pixel is in the 
     upper-left corner, rather than the lower-left. 
+
+**View Data**
+    Provides a tabular view of the selected item, whether it is a group or a 
+    field. All the metadata associated with the item, including any attributes,
+    are displayed. For multidimensional data, a 10 x 10 slab of values is
+    displayed, with spin boxes to select the slab coordinates.
 
 **Add Data**
     Adds data to the selected tree item. If the selected item is a group, the
@@ -289,6 +345,9 @@ Window Menu
     open windows are listed in the Window menu, along with their labels ('Main',
     'Figure 1', 'Figure 2', *etc*.). These are used to switch the focus for
     subsequent plots.
+
+**Equalize Plot Sizes**
+    All plot windows are resized to match the main window.
 
 **Main, Figure 1, Figure 2...**
     These menu items set the selected plotting window to be active. As
@@ -626,7 +685,12 @@ functions to be combined, with the option of fixing or limiting parameters.
    :width: 90%
 
 The fit can be plotted, along with the constituent functions, in the main
-plotting window and the fitting parameters displayed in a message window. 
+plotting window and the fitting parameters displayed in a message window.
+
+.. note:: The fit is only performed over the range set by the X-axis limits 
+          entered in the Fit Dialog. These values can be changed between
+          fits if required, or reset to the overall range of the data using the
+          ``Reset Limits`` button.
 
 The original data, the fitted data, constituent functions, and the parameters
 can all be saved to an NXentry group in the Tree Pane for subsequent plotting, 
@@ -671,6 +735,9 @@ estimated from the first and last data points. This guess will be subtracted
 before estimating the peak parameters. Obviously, the more functions that are 
 added, the less reliable the guesses will be. Starting parameters will have to 
 be entered manually before the fit in those cases.
+
+.. note:: The X-range used in 'guessing' the parameters can be adjusted by 
+          setting the X-axis limits in the Fit Dialog. 
 
 .. note:: If it is not possible to estimate starting parameters, just return
           values that do not trigger an exception. 
