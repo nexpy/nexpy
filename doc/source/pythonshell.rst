@@ -570,13 +570,16 @@ In the case of external links, the first argument is the absolute path of the
 linked object within the external file, while the second argument is the 
 absolute or relative file path of the external file.
 
-.. note:: Only fields (*i.e.*, not groups) can currently be linked. This means
-          that the external file does not have to be a NeXus-compliant file, 
-          just a valid HDF5 file.
+By default, the target file path is converted to a relative path with respect
+to the parent file. If it is required to store the absolute file path, add the
+keyword argument, ``abspath=True``.
 
-.. warning:: The file containing the external link is referenced using the 
-             file path to the parent file. If the files are moved without 
-             preserving their relative file paths, the link will be broken.
+ >>> root.entry.data.data = NXlink('/counts', 
+                                   file='/home/user/external_counts.nxs',
+                                   abspath=True)
+ 
+.. warning:: If the files are moved without preserving their relative file 
+             paths, the parent file will still open but the link will be broken.
 
 Plotting NeXus Data
 ===================
