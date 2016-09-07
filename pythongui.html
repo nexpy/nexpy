@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Python Graphical User Interface &mdash; NeXpy 0.8.1 documentation</title>
+    <title>Python Graphical User Interface &mdash; NeXpy 0.9.0 documentation</title>
     
     <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.8.1',
+        VERSION:     '0.9.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -25,7 +25,7 @@
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="shortcut icon" href="_static/favicon.ico"/>
-    <link rel="top" title="NeXpy 0.8.1 documentation" href="index.html" />
+    <link rel="top" title="NeXpy 0.9.0 documentation" href="index.html" />
     <link rel="next" title="NeXus Tree API Modules" href="treeapi.html" />
     <link rel="prev" title="Python Interface to NeXus" href="pythonshell.html" /> 
   </head>
@@ -45,7 +45,7 @@
         <li class="right" >
           <a href="pythonshell.html" title="Python Interface to NeXus"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.8.1 documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.9.0 documentation</a> &raquo;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -219,30 +219,81 @@ variable with a different name, that variable will not be
 deleted.</p>
 </div>
 </dd>
-<dt><strong>Lock file</strong></dt>
-<dd>Changes the file access mode to read-only. This will prevent further changes
-to the tree using either the GUI or the shell. Locked files are displayed
-with a padlock icon.</dd>
-<dt><strong>Unlock file</strong></dt>
-<dd><p class="first">Changes the file access mode to read/write. If the root tree item has been
-saved to a file, any subsequent changes will automatically update the file,
-including deleting items.</p>
-<div class="last admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">Any changes to an unlocked file will be immediate and
-irreversible. Make sure you have a backup if your file contains
-critical data.</p>
-</div>
-</dd>
 <dt><strong>Import</strong></dt>
 <dd><p class="first">Imports data from other formats. Some importers are provided with the NeXpy
-distribution, but others will be loaded from the user&#8217;s ~/.nexpy/readers
+distribution, but others will be loaded from the user&#8217;s <code class="docutils literal"><span class="pre">~/.nexpy/readers</span></code>
 directory.</p>
 <div class="last admonition seealso">
 <p class="first admonition-title">See also</p>
 <p class="last"><a class="reference internal" href="#importing-nexus-data">Importing NeXus Data</a></p>
 </div>
 </dd>
+<dt><strong>Lock File</strong></dt>
+<dd>Changes the file access mode to read-only. This will prevent further changes
+to the tree using either the GUI or the shell. Locked files are displayed
+with a padlock icon.</dd>
+<dt><strong>Unlock File</strong></dt>
+<dd><p class="first">Changes the file access mode to read/write. If the root tree item has been
+saved to a file, any subsequent changes will automatically update the file,
+including deleting items.</p>
+<div class="last admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Any changes to an unlocked file will be immediate and
+irreversible. If the file contains critical data, click the
+checkbox to create a backup, which can be restored later if
+necessary.</p>
+</div>
+</dd>
+<dt><strong>Backup File</strong></dt>
+<dd>Creates a backup of the selected file. The backup is stored in the user&#8217;s
+home directory in <code class="docutils literal"><span class="pre">~/.nexpy/backups</span></code> and may be restored if changes to
+the currently open file need to be reversed. Backups are saved for three
+days before being automatically deleted.</dd>
+<dt><strong>Restore File...</strong></dt>
+<dd><p class="first">Restores the backup of this file. The user is prompted to confirm that the
+currently open file should be overwritten.</p>
+<div class="last admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This only applies to backups created during the current session.
+Previously saved backups can be restored using the <code class="docutils literal"><span class="pre">Manage</span>
+<span class="pre">Backups</span></code> menu item.</p>
+</div>
+</dd>
+<dt><strong>Manage Backups...</strong></dt>
+<dd>Provides the ability to restore or delete an existing backup stored in
+<code class="docutils literal"><span class="pre">~/.nexpy/backups</span></code>. Restoring the backup is equivalent to opening the
+existing backup file. It is necessary to save it to a new location to
+prevent its automatic deletion after three days.</dd>
+<dt><strong>Open Scratch File...</strong></dt>
+<dd>Saved projections and fits are stored in a scratch file called <code class="docutils literal"><span class="pre">w0.nxs</span></code>,
+which is stored in the user&#8217;s NeXpy directory, <code class="docutils literal"><span class="pre">``~/.nexpy</span></code>. This file
+is automatically opened when new data is saved, but this menu item allows
+it to be opened at any time.</dd>
+<dt><strong>Purge Scratch File...</strong></dt>
+<dd>Previously saved items can be manually removed from the scratch file when
+they are no longer needed. This menu item purges all the items in one go.</dd>
+<dt><strong>Close Scratch File...</strong></dt>
+<dd>Closes the scratch file.</dd>
+<dt><strong>Install Plugin</strong></dt>
+<dd><blockquote class="first">
+<div>A directory containing a NeXpy plugin module can be installed either in the
+user&#8217;s NeXpy directory (<code class="docutils literal"><span class="pre">~/.nexpy/plugins</span></code>) or in the package directory
+if the user has the necessary privilege. The plugin menu is appended to
+the existing menus, but will be loaded in alphabetical order of the other
+plugins when NeXpy is restarted.</div></blockquote>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If a plugin of the same name exists in both directories, the
+user&#8217;s plugin is loaded.</p>
+</div>
+<div class="last admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="#nexpy-plugins">NeXpy Plugins</a></p>
+</div>
+</dd>
+<dt><strong>Remove Plugin</strong></dt>
+<dd>The selected NeXpy plugin module is removed from either the user&#8217;s
+NeXpy directory (<code class="docutils literal"><span class="pre">~/.nexpy/plugins</span></code>) or the package directory.</dd>
 <dt><strong>Print Shell</strong></dt>
 <dd>Prints the contents of the iPython shell.</dd>
 </dl>
@@ -270,6 +321,11 @@ range.</p>
 fastest varying dimension, which should be of size 3 or 4, contains the
 RGB(A) values for each pixel. By convention, the first pixel is in the
 upper-left corner, rather than the lower-left.</dd>
+<dt><strong>View Data</strong></dt>
+<dd>Provides a tabular view of the selected item, whether it is a group or a
+field. All the metadata associated with the item, including any attributes,
+are displayed. For multidimensional data, a 10 x 10 slab of values is
+displayed, with spin boxes to select the slab coordinates.</dd>
 <dt><strong>Add Data</strong></dt>
 <dd><p class="first">Adds data to the selected tree item. If the selected item is a group, the
 added data can be a group or field. If the selected item is a field, the
@@ -422,6 +478,8 @@ currently active window. Clicking on the plot pane makes it active. All
 open windows are listed in the Window menu, along with their labels (&#8216;Main&#8217;,
 &#8216;Figure 1&#8217;, &#8216;Figure 2&#8217;, <em>etc</em>.). These are used to switch the focus for
 subsequent plots.</dd>
+<dt><strong>Equalize Plot Sizes</strong></dt>
+<dd>All plot windows are resized to match the main window.</dd>
 <dt><strong>Main, Figure 1, Figure 2...</strong></dt>
 <dd>These menu items set the selected plotting window to be active. As
 new windows are created, they are dynamically added to this list.</dd>
@@ -461,9 +519,9 @@ the script as <code class="docutils literal"><span class="pre">treeview.node</sp
 </div>
 <div class="section" id="other-menus">
 <h3>Other Menus<a class="headerlink" href="#other-menus" title="Permalink to this headline">¶</a></h3>
-<p>The Edit, View, Magic, and Help Menus currently consist of menu items
-provided by the IPython shell in the Jupyter Qt Console. All the operations
-act on the shell text.</p>
+<p>The Edit, View, Magic, and Help Menus mostly consist of menu items provided by
+the Jupyter shell in the Jupyter Qt Console. All these operations act on the
+shell text.</p>
 </div>
 </div>
 <div class="section" id="adding-nexus-data-to-the-tree">
@@ -747,6 +805,29 @@ for more details.</p>
 given to modify the color, linestyle, <em>etc</em>, using the standard <a class="reference external" href="http://matplotlib.org/api/axes_api.html?highlight=grid#matplotlib.axes.Axes.grid">Matplotlib
 conventions</a>.</p>
 </li>
+<li><p class="first">Convert to Symmetric Log Plot:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">plotview</span><span class="o">.</span><span class="n">symlog</span><span class="p">(</span><span class="n">linthresh</span><span class="p">,</span> <span class="n">linscale</span><span class="p">,</span> <span class="n">vmax</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Plot the data using symmetric logarithms for both positive and negative data.
+The <code class="docutils literal"><span class="pre">linthresh</span></code> and <code class="docutils literal"><span class="pre">linscale</span></code> parameters are used to define the linear
+region interpolating between the positive and negative log regions. See the
+<a class="reference external" href="http://matplotlib.org/users/colormapnorms.html#symmetric-logarithmic">Matplotlib documentation</a> for
+more details. The maximum and minimum signal values are set to +/- vmax.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">There are a number of diverging color maps, such as <code class="docutils literal"><span class="pre">coolwarm</span></code>,
+that are ideal for displaying symmetric log data.</p>
+</div>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">This is not fully integrated into the plotting software, so if
+you make any changes to the plot, such as switching axes, it may
+be necessary to run this command again. It is possible to change
+the z-axis values, <em>.e.g.</em>, by playing a movie, but you should
+uncheck the <code class="docutils literal"><span class="pre">Autoscale</span></code> box.</p>
+</div>
+</li>
 </ul>
 </div>
 <div class="section" id="fitting-nexus-data">
@@ -759,6 +840,13 @@ functions to be combined, with the option of fixing or limiting parameters.</p>
 <a class="reference internal image-reference" href="_images/nexpy-fits.png"><img alt="_images/nexpy-fits.png" class="align-center" src="_images/nexpy-fits.png" style="width: 90%;" /></a>
 <p>The fit can be plotted, along with the constituent functions, in the main
 plotting window and the fitting parameters displayed in a message window.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The fit is only performed over the range set by the X-axis limits
+entered in the Fit Dialog. These values can be changed between
+fits if required, or reset to the overall range of the data using the
+<code class="docutils literal"><span class="pre">Reset</span> <span class="pre">Limits</span></code> button.</p>
+</div>
 <p>The original data, the fitted data, constituent functions, and the parameters
 can all be saved to an NXentry group in the Tree Pane for subsequent plotting,
 refitting, or saving to a NeXus file. The group is an NXentry group, with name
@@ -800,6 +888,11 @@ estimated from the first and last data points. This guess will be subtracted
 before estimating the peak parameters. Obviously, the more functions that are
 added, the less reliable the guesses will be. Starting parameters will have to
 be entered manually before the fit in those cases.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The X-range used in &#8216;guessing&#8217; the parameters can be adjusted by
+setting the X-axis limits in the Fit Dialog.</p>
+</div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">If it is not possible to estimate starting parameters, just return
@@ -1096,7 +1189,7 @@ required code in ~/.nexpy/config.py.</p>
         <li class="right" >
           <a href="pythonshell.html" title="Python Interface to NeXus"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.8.1 documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.9.0 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">

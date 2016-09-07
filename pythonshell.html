@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Python Interface to NeXus &mdash; NeXpy 0.8.1 documentation</title>
+    <title>Python Interface to NeXus &mdash; NeXpy 0.9.0 documentation</title>
     
     <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.8.1',
+        VERSION:     '0.9.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -25,7 +25,7 @@
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="shortcut icon" href="_static/favicon.ico"/>
-    <link rel="top" title="NeXpy 0.8.1 documentation" href="index.html" />
+    <link rel="top" title="NeXpy 0.9.0 documentation" href="index.html" />
     <link rel="next" title="Python Graphical User Interface" href="pythongui.html" />
     <link rel="prev" title="Installation" href="includeme.html" /> 
   </head>
@@ -45,7 +45,7 @@
         <li class="right" >
           <a href="includeme.html" title="Installation"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.8.1 documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.9.0 documentation</a> &raquo;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -316,7 +316,7 @@ example, a float64 array can be converted to float32 on assignment:</p>
 <span class="go">dtype(&#39;float32&#39;)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">b</span><span class="o">=</span><span class="n">NXfield</span><span class="p">(</span><span class="s1">&#39;Some Text&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">b</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">b</span><span class="o">.</span><span class="n">shape</span>
-<span class="go">(dtype(&#39;S9&#39;), ())</span>
+<span class="go">(dtype(&#39;O&#39;), ())</span>
 </pre></div>
 </div>
 <div class="admonition note">
@@ -330,10 +330,23 @@ example, a float64 array can be converted to float32 on assignment:</p>
 the HDF5 file. These use a special object dtype defined by h5py
 (see the <a class="reference external" href="http://docs.h5py.org/en/latest/special.html#variable-length-strings">h5py documentation</a>).
 As of v0.3.0, if you wish to store fixed length strings, specify
-a dtype of &#8216;S&#8217; or, <em>e.g.</em>, &#8216;S10&#8217; when creating the NXfield. Any
+a dtype of kind &#8216;S&#8217;, <em>e.g.</em>, &#8216;S10&#8217; when creating the NXfield. Any
 dtype of kind &#8216;U&#8217; (for unicode string in Python 3), will be
 automatically converted to the variable-length string dtype since
 HDF5 cannot convert them.</p>
+</div>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p>If you wish to store an array of strings containing Unicode
+characters as fixed-length strings, convert them to byte strings
+first using UTF-8 encoding, <em>e.g.</em>:</p>
+<div class="last highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">t</span> <span class="o">=</span> <span class="p">[</span><span class="s1">u&#39;a&#39;</span><span class="p">,</span> <span class="s1">u&#39;b&#39;</span><span class="p">,</span> <span class="s1">u&#39;c&#39;</span><span class="p">,</span> <span class="s1">u&#39;d&#39;</span><span class="p">,</span> <span class="s1">u&#39;é&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">=</span><span class="n">NXfield</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">defchararray</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;utf-8&#39;</span><span class="p">)),</span>
+<span class="go">              dtype=&#39;S10&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span>
+<span class="go">NXfield(array([&#39;a&#39;, &#39;b&#39;, &#39;c&#39;, &#39;d&#39;, &#39;\xc3\xa9&#39;], dtype=&#39;|S10&#39;))</span>
+</pre></div>
+</div>
 </div>
 <p>Similarly, the shape and dimension sizes of an integer or float array is
 inherited from the assigned numpy array. It is possible to initialize an NXfield
@@ -344,6 +357,7 @@ be created in slabs:</p>
 <span class="go">NXfield(dtype=float32,shape=(2048, 2048, 2048))</span>
 </pre></div>
 </div>
+<p>More details of handling large arrays are given below.</p>
 <div class="section" id="nexus-attributes">
 <h4>NeXus attributes<a class="headerlink" href="#nexus-attributes" title="Permalink to this headline">¶</a></h4>
 <p>The NeXus standard allows additional attributes to be attached to NXfields to
@@ -733,17 +747,18 @@ This is accomplished using a similar syntax to internal links.</p>
 <p>In the case of external links, the first argument is the absolute path of the
 linked object within the external file, while the second argument is the
 absolute or relative file path of the external file.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">Only fields (<em>i.e.</em>, not groups) can currently be linked. This means
-that the external file does not have to be a NeXus-compliant file,
-just a valid HDF5 file.</p>
+<p>By default, the target file path is converted to a relative path with respect
+to the parent file. If it is required to store the absolute file path, add the
+keyword argument, <code class="docutils literal"><span class="pre">abspath=True</span></code>.</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">root</span><span class="o">.</span><span class="n">entry</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">NXlink</span><span class="p">(</span><span class="s1">&#39;/counts&#39;</span><span class="p">,</span>
+<span class="go">                                  file=&#39;/home/user/external_counts.nxs&#39;,</span>
+<span class="go">                                  abspath=True)</span>
+</pre></div>
 </div>
 <div class="admonition warning">
 <p class="first admonition-title">Warning</p>
-<p class="last">The file containing the external link is referenced using the
-file path to the parent file. If the files are moved without
-preserving their relative file paths, the link will be broken.</p>
+<p class="last">If the files are moved without preserving their relative file
+paths, the parent file will still open but the link will be broken.</p>
 </div>
 </div>
 </div>
@@ -1161,7 +1176,7 @@ if necessary, in order to produce a valid NeXus file.</p>
         <li class="right" >
           <a href="includeme.html" title="Installation"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.8.1 documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.9.0 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">

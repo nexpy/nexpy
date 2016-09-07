@@ -1,4 +1,5 @@
-import get_ei, convert_qe
+from __future__ import absolute_import
+from . import get_ei, convert_qe
 
 def plugin_menu():
     menu = 'Chopper'
