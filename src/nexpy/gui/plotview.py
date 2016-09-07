@@ -2377,7 +2377,8 @@ class NXProjectionPanel(QtGui.QWidget):
             self.minbox[axis].setValue(self.minbox[axis].data.min())
             self.maxbox[axis].setValue(self.maxbox[axis].data.max())
             self.block_signals(False)
-        self.set_limits()
+        self.update_limits()
+        self.draw_rectangle()
 
     def __repr__(self):
         return 'NXProjectionPanel("%s")' % self.plotview.label
@@ -2753,7 +2754,7 @@ class NXNavigationToolbar(NavigationToolbar):
 class CustomizeDialog(BaseDialog):
 
     def __init__(self, parent):
-        super(CustomizeDialog, self).__init__(parent)
+        super(CustomizeDialog, self).__init__(parent, default=True)
 
         self.plotview = parent
 
