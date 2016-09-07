@@ -40,7 +40,7 @@ from nexusformat.nexus import (NeXusError, NXgroup, NXfield, NXattr, NXlink,
 class BaseDialog(QtGui.QDialog):
     """Base dialog class for NeXpy dialogs"""
  
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, default=False):
 
         self.accepted = False
         from .consoleapp import _mainwindow
@@ -59,7 +59,8 @@ class BaseDialog(QtGui.QDialog):
         if parent is None:
             parent = self.mainwindow
         super(BaseDialog, self).__init__(parent)
-        self.installEventFilter(self)
+        if not default:
+            self.installEventFilter(self)
 
     def eventFilter(self, widget, event):
         """Prevent closure of dialog when pressing [Return] or [Enter]"""
@@ -862,7 +863,7 @@ class ViewDialog(BaseDialog):
 
     def __init__(self, node, parent=None):
 
-        super(ViewDialog, self).__init__(parent)
+        super(ViewDialog, self).__init__(parent, default=True)
 
         self.node = node
         self.spinboxes = []
@@ -1868,7 +1869,7 @@ class ManageBackupsDialog(BaseDialog):
 
     def __init__(self, parent=None):
 
-        super(ManageBackupsDialog, self).__init__(parent)
+        super(ManageBackupsDialog, self).__init__(parent, default=True)
  
         self.backup_dir = self.mainwindow.backup_dir
 
@@ -1891,7 +1892,7 @@ class ManageBackupsDialog(BaseDialog):
                                  False), align='left'))
         items.append(self.action_buttons(('Restore Files', self.restore),
                                          ('Delete Files', self.delete)))
-        items.append(self.close_buttons())
+        items.append(self.close_buttons(close=True))
 
         self.set_layout(*items)
 
