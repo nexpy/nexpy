@@ -210,6 +210,10 @@ Data Menu
     are displayed. For multidimensional data, a 10 x 10 slab of values is
     displayed, with spin boxes to select the slab coordinates.
 
+    .. image:: /images/view-panel.png
+       :align: center
+       :width: 90%
+
 **Add Data**
     Adds data to the selected tree item. If the selected item is a group, the
     added data can be a group or field. If the selected item is a field, the 
