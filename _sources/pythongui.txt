@@ -212,7 +212,7 @@ Data Menu
 
     .. image:: /images/view-panel.png
        :align: center
-       :width: 90%
+       :width: 100%
 
 **Add Data**
     Adds data to the selected tree item. If the selected item is a group, the
