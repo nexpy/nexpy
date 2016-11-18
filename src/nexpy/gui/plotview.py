@@ -67,6 +67,11 @@ else:
 interpolations = ['nearest', 'bilinear', 'bicubic', 'spline16', 'spline36',
                   'hanning', 'hamming', 'hermite', 'kaiser', 'quadric',
                   'catrom', 'gaussian', 'bessel', 'mitchell', 'sinc', 'lanczos']
+try:
+    from astropy.convolution import convolve, convolve_fft, Gaussian2DKernel
+    interpolations.insert(1, 'convolve')
+except ImportError:
+    pass
 linestyles = {'-': 'Solid', '--': 'Dashed', '-.': 'DashDot', ':': 'Dotted',
               'none': 'None', 'None': 'None'}
 markers = markers.MarkerStyle.markers
@@ -399,6 +404,7 @@ class NXPlotView(QtGui.QDialog):
             if fmt == '':
                 fmt = colors[self.num%len(colors)] + 'o'
 
+            self.x, self.y, self.e = self.get_points()
             self.plot_points(fmt, over, **opts)
 
         #Higher-dimensional plot
@@ -428,6 +434,7 @@ class NXPlotView(QtGui.QDialog):
             else:
                 self.vtab.logbox.setChecked(False)
 
+            self.x, self.y, self.v = self.get_image()
             self.plot_image(over, **opts)
 
         self.limits = (self.xaxis.min, self.xaxis.max,
@@ -533,8 +540,6 @@ class NXPlotView(QtGui.QDialog):
             self.figure.clf()
         ax = self.figure.gca()
 
-        self.x, self.y, self.e = self.get_points()
-
         if self.e is not None:
             ax.errorbar(self.x, self.y, self.e, fmt=fmt, **opts)
         else:
@@ -600,8 +605,6 @@ class NXPlotView(QtGui.QDialog):
 
     def plot_image(self, over=False, **opts):
 
-        self.x, self.y, self.v = self.get_image()
-
         self.set_data_limits()
 
         if self.vtab.logbox.isChecked():
@@ -624,11 +627,16 @@ class NXPlotView(QtGui.QDialog):
             bottom, top = self.yaxis.min, self.yaxis.max
         extent = (left, right, bottom, top)
 
+        if self.interpolation == 'convolve':
+            v = convolve(self.v, Gaussian2DKernel(2))
+            if self.equally_spaced:
+                opts['interpolation'] = 'bicubic'
+        else:
+            v = self.v
+
         if (self.rgb_image or self.equally_spaced) and self.skew is None:
             opts['origin'] = 'lower'
-            if 'interpolation' not in opts:
-                opts['interpolation'] = 'nearest'
-            self.image = ax.imshow(self.v, extent=extent, cmap=self.cmap,
+            self.image = ax.imshow(v, extent=extent, cmap=self.cmap,
                                    **opts)
         else:
             if self.skew is not None:
@@ -636,7 +644,7 @@ class NXPlotView(QtGui.QDialog):
                 x, y = self.transform(xx, yy)
             else:
                 x, y = self.x, self.y
-            self.image = ax.pcolormesh(x, y, self.v, cmap=self.cmap, **opts)
+            self.image = ax.pcolormesh(x, y, v, cmap=self.cmap, **opts)
         self.image.get_cmap().set_bad('k', 1.0)
         ax.set_aspect(self.aspect)
 
@@ -716,6 +724,7 @@ class NXPlotView(QtGui.QDialog):
         self.plotdata = self.data.project(axes, limits, summed=self.summed)
         self.plotdata.title = self.title
         if newaxis:
+            self.x, self.y, self.v = self.get_image()
             self.plot_image()
             self.draw()
         elif self.equally_spaced and self.skew is None:
@@ -967,21 +976,37 @@ class NXPlotView(QtGui.QDialog):
 
     cmap = property(_cmap, _set_cmap, "Property: color map")
 
-    def _interpolation(self):
-        if not self.equally_spaced:
-            return 'nearest'
+    @property
+    def interpolations(self):
+        if self.equally_spaced:
+            return interpolations
+        elif "convolve" in interpolations:
+            return interpolations[:2]
         else:
-            return self.vtab.interpolation
+            return interpolations[:1]
+
+    def _interpolation(self):
+        return self.vtab.interpolation
 
     def _set_interpolation(self, interpolation):
         try:
             self.vtab.set_interpolation(interpolation)
-            self.vtab.change_interpolation()
+            self.interpolate()
         except ValueError as error:
             raise NeXusError(six.text_type(error))
 
     interpolation = property(_interpolation, _set_interpolation,
                              "Property: interpolation method")
+
+    def interpolate(self):
+        if self.image:
+            if self.interpolation == 'convolve':
+                self.plot_image()
+                self.draw()
+            elif self.equally_spaced:
+                self.image.set_data(self.plotdata.nxsignal.nxdata)
+                self.image.set_interpolation(self.interpolation)
+                self.draw()
 
     def _offsets(self):
         return self._axis_offsets
@@ -995,7 +1020,10 @@ class NXPlotView(QtGui.QDialog):
 
     @property
     def equally_spaced(self):
-        return self.xaxis.equally_spaced and self.yaxis.equally_spaced
+        try:
+            return self.xaxis.equally_spaced and self.yaxis.equally_spaced
+        except Exception:
+            return False
 
     @property
     def ax(self):
@@ -1430,10 +1458,10 @@ class NXPlotTab(QtGui.QWidget):
             self.cmapcombo.addItems(cmaps)
             self.cmapcombo.setCurrentIndex(self.cmapcombo.findText(default_cmap))
             widgets.append(self.cmapcombo)
-            self.interpolations = interpolations
             self.interpcombo = self.combobox(self.change_interpolation)
-            self.interpcombo.addItems(self.interpolations)
+            self.interpcombo.addItems(interpolations)
             self.set_interpolation('nearest')
+            self._cached_interpolation = 'nearest'
             widgets.append(self.interpcombo)
         else:
             self.cmapcombo = None
@@ -1483,12 +1511,9 @@ class NXPlotTab(QtGui.QWidget):
                 self.axiscombo.addItems(self.get_axes())
             self.axiscombo.setCurrentIndex(self.axiscombo.findText(axis.name))
         if self.name == 'v':
-            if self.plotview.equally_spaced:
-                self.interpcombo.setVisible(True)
-                self.set_interpolation(self._cached_interpolation)
-                self.change_interpolation()
-            else:
-                self.interpcombo.setVisible(False)
+            self.interpcombo.clear()
+            self.interpcombo.addItems(self.plotview.interpolations)
+            self.set_interpolation(self._cached_interpolation)
         self.block_signals(False)
 
     def combobox(self, slot):
@@ -1781,20 +1806,16 @@ class NXPlotTab(QtGui.QWidget):
         return self.cmapcombo.currentText()
 
     def change_interpolation(self):
-        try:
-            self.plotview.image.set_interpolation(self.interpolation)
-            self.plotview.draw()
-            self._cached_interpolation = self.interpolation
-        except Exception:
-            pass
+        self._cached_interpolation = self.interpolation
+        self.plotview.interpolate()
 
     def set_interpolation(self, interpolation):
-        if interpolation in self.interpolations:
-            self.interpcombo.setCurrentIndex(
-                self.interpcombo.findText(interpolation))
+        idx = self.interpcombo.findText(interpolation)
+        if idx >= 0:
+            self.interpcombo.setCurrentIndex(idx)
             self._cached_interpolation = interpolation
         else:
-            raise NeXusError('Invalid interpolation method')
+            self.interpcombo.setCurrentIndex(0)
 
     @property
     def interpolation(self):
