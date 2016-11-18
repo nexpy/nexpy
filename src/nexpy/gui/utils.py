@@ -112,8 +112,7 @@ class NXConfigParser(ConfigParser, object):
     """A ConfigParser subclass that preserves the case of option names"""
 
     def __init__(self, settings_file):
-        super(NXConfigParser, self).__init__(allow_no_value=True, 
-                                             delimiters=('='))
+        super(NXConfigParser, self).__init__(allow_no_value=True)
         self.file = settings_file
         super(NXConfigParser, self).read(self.file)
         sections = self.sections()
