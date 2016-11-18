@@ -676,20 +676,25 @@ class NXPlotView(QtGui.QDialog):
     def ndim(self):
         return len(self.shape)
 
+    @property
+    def finite_v(self):
+        return self.v[np.isfinite(self.v)]
+
     def set_data_limits(self):
         if self.vaxis.lo is None or self.autoscale:
             try:
-                self.vaxis.lo = self.vaxis.min = np.nanmin(self.v[self.v>-np.inf])
+                self.vaxis.lo = self.vaxis.min = np.min(self.finite_v)
             except:
                 self.vaxis.lo = self.vaxis.min = 0.0
         if self.vaxis.hi is None or self.autoscale:
             try:
-                self.vaxis.hi = self.vaxis.max = np.nanmax(self.v[self.v<np.inf])
+                self.vaxis.hi = self.vaxis.max = np.max(self.finite_v)
             except:
                 self.vaxis.hi = self.vaxis.max = 0.1
         if self.vtab.logbox.isChecked():
             try:
-                self.vaxis.lo = max(self.vaxis.lo, self.v[self.v>0.0].min())
+                self.vaxis.lo = max(self.vaxis.lo, 
+                                    self.finite_v[self.finite_v>0.0].min())
             except ValueError:
                 self.vaxis.lo, self.vaxis.hi = (0.01, 0.1)
         self.vtab.set_axis(self.vaxis)
@@ -867,8 +872,8 @@ class NXPlotView(QtGui.QDialog):
         else:
             if autoscale:
                 try:
-                    self.vaxis.min = self.vaxis.lo = np.nanmin(self.v[self.v>-np.inf])
-                    self.vaxis.max = self.vaxis.hi = np.nanmax(self.v[self.v<np.inf])
+                    self.vaxis.min = self.vaxis.lo = np.min(self.finite_v)
+                    self.vaxis.max = self.vaxis.hi = np.max(self.finite_v)
                 except:
                     self.vaxis.min = self.vaxis.lo = 0.0
                     self.vaxis.max = self.vaxis.hi = 0.1
@@ -1290,8 +1295,8 @@ class NXPlotAxis(object):
                 self.centers = None
                 self.boundaries = None
                 try:
-                    self.min = np.nanmin(self.data[self.data>-np.inf])
-                    self.max = np.nanmax(self.data[self.data<np.inf])
+                    self.min = np.min(self.data[np.isfinite(self.data)])
+                    self.max = np.max(self.data[np.isfinite(self.data)])
                 except:
                     self.min = 0.0
                     self.max = 0.1
@@ -1305,8 +1310,8 @@ class NXPlotAxis(object):
                 self.centers = centers(self.data, dimlen)
                 self.boundaries = boundaries(self.data, dimlen)
                 try:
-                    self.min = np.nanmin(self.boundaries[self.boundaries>-np.inf])
-                    self.max = np.nanmax(self.boundaries[self.boundaries<np.inf])
+                    self.min = np.min(self.boundaries[np.isfinite(self.boundaries)])
+                    self.max = np.max(self.boundaries[np.isfinite(self.boundaries)])
                 except:
                     self.min = 0.0
                     self.max = 0.1
@@ -1600,7 +1605,7 @@ class NXPlotTab(QtGui.QWidget):
         self.block_signals(True)
         self.axis.hi = self.maxbox.value()
         _range = max(self.axis.hi - self.axis.min, self.axis.min_range)
-        self.axis.lo = self.axis.min + (self.minslider.value() * _range / 1000)
+        self.axis.lo = self.axis.min + (self.minslider.value()*_range/1000)
         self.minbox.setValue(self.axis.lo)
         _range = max(self.axis.max-self.axis.lo, self.axis.min_range)
         try:
@@ -1618,7 +1623,8 @@ class NXPlotTab(QtGui.QWidget):
         self.block_signals(True)
         self.axis.lo = self.minbox.value()
         _range = max(self.axis.max - self.axis.lo, self.axis.min_range)
-        self.axis.hi = self.axis.lo + max((self.maxslider.value() * _range / 1000), self.axis.min_range)
+        self.axis.hi = self.axis.lo + max((self.maxslider.value()*_range/1000), 
+                                          self.axis.min_range)
         self.maxbox.setValue(self.axis.hi)
         _range = max(self.axis.hi - self.axis.min, self.axis.min_range)
         try:
