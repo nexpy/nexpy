@@ -68,7 +68,7 @@ interpolations = ['nearest', 'bilinear', 'bicubic', 'spline16', 'spline36',
                   'hanning', 'hamming', 'hermite', 'kaiser', 'quadric',
                   'catrom', 'gaussian', 'bessel', 'mitchell', 'sinc', 'lanczos']
 try:
-    from astropy.convolution import convolve, convolve_fft, Gaussian2DKernel
+    from astropy.convolution import convolve, Gaussian2DKernel
     interpolations.insert(1, 'convolve')
 except ImportError:
     pass
@@ -853,6 +853,7 @@ class NXPlotView(QtGui.QDialog):
             self.colorbar = self.figure.colorbar(self.image, ax=plotview.ax,
                                                  ticks=tick_locations)
             self.image.set_clim(self.vaxis.lo, self.vaxis.hi)
+            self.draw()
             self.vtab.set_axis(self.vaxis)
 
     def set_plot_limits(self, xmin=None, xmax=None, ymin=None, ymax=None, vmin=None, vmax=None):
