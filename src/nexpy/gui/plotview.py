@@ -57,8 +57,8 @@ colors = ['b', 'g', 'r', 'c', 'm', 'y', 'k', 'w']
 cmaps = ['viridis', 'inferno', 'magma', 'plasma', #perceptually uniform
          'spring', 'summer', 'autumn', 'winter', 'cool', 'hot', #sequential
          'bone', 'copper', 'gray', 'pink', 
-         'coolwarm', 'seismic', 'RdBu', 'RdYlBu', 'RdYlGn', #diverging
-         'jet', 'spectral', 'rainbow', 'hsv', 'flag', 'prism'] #miscellaneous
+         'jet', 'spectral', 'rainbow', 'hsv', #miscellaneous
+         'seismic', 'coolwarm', 'RdBu', 'RdYlBu', 'RdYlGn'] #diverging
 cmaps = [cm for cm in cmaps if cm in cmap_d]
 if 'viridis' in cmaps:
     default_cmap = 'viridis'
@@ -601,7 +601,10 @@ class NXPlotView(QtGui.QDialog):
         x = self.xaxis.boundaries
         y = self.yaxis.boundaries
         v = self.plotdata.nxsignal.nxdata
-        return x, y, v
+        if self.interpolation == 'convolve':
+            return x, y, convolve(v, Gaussian2DKernel(2))
+        else:
+            return x, y, v
 
     def plot_image(self, over=False, **opts):
 
@@ -627,16 +630,15 @@ class NXPlotView(QtGui.QDialog):
             bottom, top = self.yaxis.min, self.yaxis.max
         extent = (left, right, bottom, top)
 
-        if self.interpolation == 'convolve':
-            v = convolve(self.v, Gaussian2DKernel(2))
-            if self.equally_spaced:
+        if self.equally_spaced:
+            if self.interpolation == 'convolve':
                 opts['interpolation'] = 'bicubic'
-        else:
-            v = self.v
+            else:
+                opts['interpolation'] = self.interpolation
 
         if (self.rgb_image or self.equally_spaced) and self.skew is None:
             opts['origin'] = 'lower'
-            self.image = ax.imshow(v, extent=extent, cmap=self.cmap,
+            self.image = ax.imshow(self.v, extent=extent, cmap=self.cmap,
                                    **opts)
         else:
             if self.skew is not None:
@@ -644,7 +646,7 @@ class NXPlotView(QtGui.QDialog):
                 x, y = self.transform(xx, yy)
             else:
                 x, y = self.x, self.y
-            self.image = ax.pcolormesh(x, y, v, cmap=self.cmap, **opts)
+            self.image = ax.pcolormesh(x, y, self.v, cmap=self.cmap, **opts)
         self.image.get_cmap().set_bad('k', 1.0)
         ax.set_aspect(self.aspect)
 
@@ -689,17 +691,21 @@ class NXPlotView(QtGui.QDialog):
         return self.v[np.isfinite(self.v)]
 
     def set_data_limits(self):
-        if self.vaxis.lo is None or self.autoscale:
-            try:
-                self.vaxis.lo = self.vaxis.min = np.min(self.finite_v)
-            except:
-                self.vaxis.lo = self.vaxis.min = 0.0
+        self.vaxis.data = self.v
         if self.vaxis.hi is None or self.autoscale:
             try:
                 self.vaxis.hi = self.vaxis.max = np.max(self.finite_v)
             except:
                 self.vaxis.hi = self.vaxis.max = 0.1
-        if self.vtab.logbox.isChecked():
+        if self.vtab.symmetric:
+            self.vaxis.lo = -self.vaxis.hi
+            self.vaxis.min = -self.vaxis.max
+        elif self.vaxis.lo is None or self.autoscale:
+            try:
+                self.vaxis.lo = self.vaxis.min = np.min(self.finite_v)
+            except:
+                self.vaxis.lo = self.vaxis.min = 0.0
+        if self.vtab.logbox.isChecked() and not self.vtab.symmetric:
             try:
                 self.vaxis.lo = max(self.vaxis.lo, 
                                     self.finite_v[self.finite_v>0.0].min())
@@ -746,6 +752,11 @@ class NXPlotView(QtGui.QDialog):
         try:
             self.set_data_limits()
             self.image.set_clim(self.vaxis.lo, self.vaxis.hi)
+            if self.equally_spaced:
+                if self.interpolation == 'convolve':
+                    self.image.set_interpolation('bicubic')
+                else:
+                    self.image.set_interpolation(self.interpolation)
             self.replot_axes()
         except:
             pass
@@ -798,8 +809,17 @@ class NXPlotView(QtGui.QDialog):
     def set_log_image(self):
         if self.vtab.logbox.isChecked():
             self.set_data_limits()
-            self.image.set_norm(LogNorm(self.vaxis.lo, self.vaxis.hi))
-            self.colorbar.set_norm(LogNorm(self.vaxis.lo, self.vaxis.hi))
+            if self.vtab.symmetric:
+                self.image.set_norm(NXSymLogNorm(self.vaxis.hi/10, linscale=0.1,
+                                                 vmin=self.vaxis.lo,
+                                                 vmax=self.vaxis.hi))
+                self.colorbar.set_norm(NXSymLogNorm(self.vaxis.hi/10, 
+                                                    linscale=0.1,
+                                                    vmin=self.vaxis.lo,
+                                                    vmax=self.vaxis.hi))
+            else:
+                self.image.set_norm(LogNorm(self.vaxis.lo, self.vaxis.hi))
+                self.colorbar.set_norm(LogNorm(self.vaxis.lo, self.vaxis.hi))
         else:
             self.image.set_norm(Normalize(self.vaxis.lo, self.vaxis.hi))
             self.colorbar.set_norm(Normalize(self.vaxis.lo, self.vaxis.hi))
@@ -836,9 +856,9 @@ class NXPlotView(QtGui.QDialog):
             if vmax is None:
                 vmax = max(abs(self.vaxis.min), abs(self.vaxis.max))
             if linthresh is None:
-                linthresh = vmax / 1000.0
+                linthresh = vmax / 10.0
             if linscale is None:
-                linscale = 1
+                linscale = 0.1
             self.vaxis.min = self.vaxis.lo = -vmax
             self.vaxis.max = self.vaxis.hi = vmax
             self.image.set_norm(NXSymLogNorm(linthresh, linscale=linscale,
@@ -1001,6 +1021,7 @@ class NXPlotView(QtGui.QDialog):
 
     def interpolate(self):
         if self.image:
+            self.x, self.y, self.v = self.get_image()
             if self.interpolation == 'convolve':
                 self.plot_image()
                 self.draw()
@@ -1457,7 +1478,14 @@ class NXPlotTab(QtGui.QWidget):
         if image:
             self.cmapcombo = self.combobox(self.change_cmap)
             self.cmapcombo.addItems(cmaps)
-            self.cmapcombo.setCurrentIndex(self.cmapcombo.findText(default_cmap))
+            if cmaps.index('spring') > 0:
+                self.cmapcombo.insertSeparator(
+                    self.cmapcombo.findText('spring'))
+            if cmaps.index('seismic') > 0:
+                self.cmapcombo.insertSeparator(
+                    self.cmapcombo.findText('seismic'))
+            self.cmapcombo.setCurrentIndex(
+                self.cmapcombo.findText(default_cmap))
             widgets.append(self.cmapcombo)
             self.interpcombo = self.combobox(self.change_interpolation)
             self.interpcombo.addItems(interpolations)
@@ -1565,6 +1593,46 @@ class NXPlotTab(QtGui.QWidget):
         return button
 
     @QtCore.Slot()
+    def read_maxbox(self):
+        hi = self.maxbox.value()
+        if np.isclose(hi, self.maxbox.old_value):
+            return
+        if self.name == 'x' or self.name == 'y' or self.name == 'v':
+            if self.name == 'v' and self.symmetric:
+                self.axis.hi = hi
+                self.axis.lo = -self.axis.hi
+                self.minbox.setValue(-hi)
+            elif hi > self.axis.lo:
+                self.axis.hi = hi
+            else:
+                self.maxbox.setValue(self.maxbox.old_value)
+                return
+            self.axis.max = self.axis.hi
+            self.axis.min = self.axis.lo
+            self.set_range()
+            self.set_sliders(self.axis.lo, self.axis.hi)
+            if self.name == 'v':
+                self.plotview.autoscale = False
+                self.plotview.replot_image()
+            else:
+                self.plotview.replot_axes()
+        else:
+            if self.axis.locked:
+                self.axis.hi = hi
+                self.axis.lo = self.axis.hi - self.axis.diff
+                if not np.isclose(self.axis.lo, self.minbox.old_value):
+                    self.minbox.setValue(self.axis.lo)
+                    self.minbox.old_value = self.axis.lo
+                self.replotSignal.replot.emit()
+            else:
+                if hi >= self.axis.lo:
+                    self.axis.hi = hi
+                else:
+                    self.maxbox.setValue(self.maxbox.old_value)
+                    return
+        self.maxbox.old_value = self.axis.hi
+
+    @QtCore.Slot()
     def read_minbox(self):
         lo = self.minbox.value()
         if not self.minbox.isEnabled() or self.axis.locked or \
@@ -1592,40 +1660,33 @@ class NXPlotTab(QtGui.QWidget):
                 return
         self.minbox.old_value = self.axis.lo
 
-    @QtCore.Slot()
-    def read_maxbox(self):
-        hi = self.maxbox.value()
-        if np.isclose(hi, self.maxbox.old_value):
-            return
-        if self.name == 'x' or self.name == 'y' or self.name == 'v':
-            if hi > self.axis.lo:
-                self.axis.hi = hi
-            else:
-                self.maxbox.setValue(self.maxbox.old_value)
-                return
-            self.axis.max = self.axis.hi
-            self.set_range()
-            self.set_sliders(self.axis.lo, self.axis.hi)
-            if self.name == 'v':
-                self.plotview.autoscale = False
-                self.plotview.replot_image()
-            else:
-                self.plotview.replot_axes()
+    def read_maxslider(self):
+        self.block_signals(True)
+        if self.name == 'v' and self.symmetric:
+            _range = max(self.axis.max, self.axis.min_range)
+            self.axis.hi = max((self.maxslider.value()*_range/1000), 
+                                self.axis.min_range)
+            self.axis.lo = -self.axis.hi
+            self.maxbox.setValue(self.axis.hi)
+            self.minbox.setValue(self.axis.lo)
+            self.minslider.setValue(1000 - self.maxslider.value())
         else:
-            if self.axis.locked:
-                self.axis.hi = hi
-                self.axis.lo = self.axis.hi - self.axis.diff
-                if not np.isclose(self.axis.lo, self.minbox.old_value):
-                    self.minbox.setValue(self.axis.lo)
-                    self.minbox.old_value = self.axis.lo
-                self.replotSignal.replot.emit()
-            else:
-                if hi >= self.axis.lo:
-                    self.axis.hi = hi
-                else:
-                    self.maxbox.setValue(self.maxbox.old_value)
-                    return
-        self.maxbox.old_value = self.axis.hi
+            self.axis.lo = self.minbox.value()
+            _range = max(self.axis.max - self.axis.lo, self.axis.min_range)
+            self.axis.hi = self.axis.lo + max((self.maxslider.value()*_range/1000), 
+                                               self.axis.min_range)
+            self.maxbox.setValue(self.axis.hi)
+            _range = max(self.axis.hi - self.axis.min, self.axis.min_range)
+            try:
+                self.minslider.setValue(1000*(self.axis.lo - self.axis.min)/_range)
+            except (ZeroDivisionError, OverflowError, RuntimeWarning):
+                self.minslider.setValue(1000)
+        if self.name == 'x' or self.name == 'y':
+            self.plotview.replot_axes()
+        else:
+            self.plotview.autoscale = False
+            self.plotview.replot_image()
+        self.block_signals(False)
 
     def read_minslider(self):
         self.block_signals(True)
@@ -1638,25 +1699,6 @@ class NXPlotTab(QtGui.QWidget):
             self.maxslider.setValue(1000*(self.axis.hi-self.axis.lo)/_range)
         except (ZeroDivisionError, OverflowError, RuntimeWarning):
             self.maxslider.setValue(0)
-        if self.name == 'x' or self.name == 'y':
-            self.plotview.replot_axes()
-        else:
-            self.plotview.autoscale = False
-            self.plotview.replot_image()
-        self.block_signals(False)
-
-    def read_maxslider(self):
-        self.block_signals(True)
-        self.axis.lo = self.minbox.value()
-        _range = max(self.axis.max - self.axis.lo, self.axis.min_range)
-        self.axis.hi = self.axis.lo + max((self.maxslider.value()*_range/1000), 
-                                          self.axis.min_range)
-        self.maxbox.setValue(self.axis.hi)
-        _range = max(self.axis.hi - self.axis.min, self.axis.min_range)
-        try:
-            self.minslider.setValue(1000*(self.axis.lo - self.axis.min)/_range)
-        except (ZeroDivisionError, OverflowError, RuntimeWarning):
-            self.minslider.setValue(1000)
         if self.name == 'x' or self.name == 'y':
             self.plotview.replot_axes()
         else:
@@ -1792,6 +1834,13 @@ class NXPlotTab(QtGui.QWidget):
             cm = get_cmap(self.cmap)
             cm.set_bad('k', 1)
             self.plotview.image.set_cmap(cm)
+            if self.symmetric:
+                self.symmetrize()
+                self.plotview.x, self.plotview.y, self.plotview.v = self.plotview.get_image()
+                self.plotview.replot_image()
+            else:
+                self.minbox.setDisabled(False)
+                self.minslider.setDisabled(False)
             self.plotview.draw()
         except Exception:
             pass
@@ -1805,6 +1854,24 @@ class NXPlotTab(QtGui.QWidget):
     @property
     def cmap(self):
         return self.cmapcombo.currentText()
+
+    @property
+    def symmetric(self):
+        if (self.cmapcombo is not None and
+            self.cmapcombo.currentIndex() >= self.cmapcombo.findText('seismic')):
+                return True
+        return False
+
+    def symmetrize(self):
+        self.axis.lo = -self.axis.hi
+        self.axis.min = -self.axis.max
+        self.maxbox.setMinimum(0.0)
+        self.minbox.setMinimum(-self.maxbox.maximum())
+        self.minbox.setMaximum(0.0)
+        self.minbox.setValue(-self.maxbox.value())
+        self.minbox.setDisabled(True)
+        self.minslider.setValue(1000-self.maxslider.value())
+        self.minslider.setDisabled(True)
 
     def change_interpolation(self):
         self._cached_interpolation = self.interpolation
@@ -2038,6 +2105,13 @@ class NXDoubleSpinBox(QtGui.QDoubleSpinBox):
         elif value < self.minimum():
             self.setMinimum(value)
         return value
+
+    def setValue(self, value):
+        if value > self.maximum():
+            self.setMaximum(value)
+        elif value < self.minimum():
+            self.setMinimum(value)
+        super(NXDoubleSpinBox, self).setValue(value)
 
 
 class NXProjectionTab(QtGui.QWidget):
