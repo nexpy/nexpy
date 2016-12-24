@@ -756,6 +756,7 @@ class NXPlotView(QtGui.QDialog):
         try:
             self.set_data_limits()
             self.image.set_clim(self.vaxis.lo, self.vaxis.hi)
+            self.colorbar.draw_all()
             if self.equally_spaced:
                 if self.interpolation == 'convolve':
                     self.image.set_interpolation('bicubic')
@@ -947,6 +948,8 @@ class NXPlotView(QtGui.QDialog):
         return self._skew_angle
 
     def _set_skew(self, skew_angle):
+        if self.skew and np.isclose(skew_angle, self._skew_angle):
+            return
         try:
             self._skew_angle = float(skew_angle)
             if np.isclose(self._skew_angle, 0.0) or np.isclose(self._skew_angle, 90.0):
