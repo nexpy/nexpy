@@ -73,7 +73,7 @@ try:
 except ImportError:
     pass
 linestyles = {'-': 'Solid', '--': 'Dashed', '-.': 'DashDot', ':': 'Dotted',
-              'none': 'None', 'None': 'None'}
+              'none': 'None'}
 markers = markers.MarkerStyle.markers
 locator = MaxNLocator(nbins=9, steps=[1, 2, 5, 10])
 logo = mpl.image.imread(pkg_resources.resource_filename(
@@ -257,6 +257,10 @@ class NXPlotView(QtGui.QDialog):
         self._aspect = 'auto'
         self._skew_angle = None
         self._grid = False
+        self._gridcolor = mpl.rcParams['grid.color']
+        self._gridstyle = mpl.rcParams['grid.linestyle']
+        self._linscale = 0.1
+        self._linfactor = 10.0
 
         self.grid_helper = GridHelperCurveLinear((self.transform,
                                                   self.inverse_transform),
@@ -659,7 +663,7 @@ class NXPlotView(QtGui.QDialog):
         ax.set_xlim(xlo, xhi)
         ax.set_ylim(ylo, yhi)
 
-        ax.grid(self._grid, color='w')
+        ax.grid(self._grid, color=self._gridcolor, linestyle=self._gridstyle)
 
         ax.set_xlabel(self.xaxis.label)
         ax.set_ylabel(self.yaxis.label)
@@ -1061,10 +1065,14 @@ class NXPlotView(QtGui.QDialog):
             self._grid = True
         else:
             self._grid = not self._grid
-        if 'linestyle' not in opts:
-            opts['linestyle'] = ':'
-        if 'color' not in opts:
-            opts['color'] = 'w'
+        if 'linestyle' in opts:
+            self._gridstyle = opts['linestyle']
+        else:
+            opts['linestyle'] = self._gridstyle
+        if 'color' in opts:
+            self._gridcolor = opts['color']
+        else:
+            opts['color'] = self._gridcolor
         self.ax.grid(self._grid, **opts)
         self.draw()
         self.update_customize_panel()
@@ -2900,7 +2908,7 @@ class CustomizeDialog(BaseDialog):
             self.set_layout(pl.grid(header=False),
                             self.curve_grids,
                             self.close_buttons())
-            self.update_colors()
+        self.update_colors()
         self.set_title('Customize %s' % self.plotview.label)
 
     def close_buttons(self):
@@ -2923,7 +2931,7 @@ class CustomizeDialog(BaseDialog):
             self.update_curves()
             for curve in self.curves:
                 self.update_curve_parameters(curve)
-            self.update_colors()
+        self.update_colors()
 
     def update_labels(self):
         pl = self.parameters['labels']
@@ -2936,6 +2944,8 @@ class CustomizeDialog(BaseDialog):
         parameters.add('aspect', 'auto', 'Aspect Ratio')
         parameters.add('skew', 90.0, 'Skew Angle')
         parameters.add('grid', ['On', 'Off'], 'Grid')
+        parameters.add('gridcolor', '#ffffff', 'Grid Color')
+        parameters.add('gridstyle', list(linestyles.values()), 'Grid Style')
         parameters.grid(title='Image Parameters', header=False)
         return parameters
 
@@ -2949,6 +2959,10 @@ class CustomizeDialog(BaseDialog):
             p['grid'].value = 'On'
         else:
             p['grid'].value = 'Off'
+        p['gridcolor'].value = rgb2hex(colorConverter.to_rgb(self.plotview._gridcolor))
+        p['gridcolor'].color_button = NXColorButton(p['gridcolor'])
+        p['gridcolor'].color_button.set_color(to_qcolor(self.plotview._gridcolor))
+        p['gridstyle'].value = linestyles[self.plotview._gridstyle]
 
     @property
     def curve(self):
@@ -3012,13 +3026,18 @@ class CustomizeDialog(BaseDialog):
 
     def update_colors(self):
         if self.plotview.image is not None:
-            pass
+            p = self.parameters['image']
+            p.grid_layout.addWidget(p['gridcolor'].color_button, 4, 2, 
+                                    alignment=QtCore.Qt.AlignCenter)
         else:
             for curve in self.curves:
                 p = self.parameters[curve]
-                p.grid_layout.addWidget(p['linecolor'].color_button, 2, 2)
-                p.grid_layout.addWidget(p['facecolor'].color_button, 5, 2)
-                p.grid_layout.addWidget(p['edgecolor'].color_button, 6, 2)
+                p.grid_layout.addWidget(p['linecolor'].color_button, 2, 2, 
+                                        alignment=QtCore.Qt.AlignCenter)
+                p.grid_layout.addWidget(p['facecolor'].color_button, 5, 2, 
+                                        alignment=QtCore.Qt.AlignCenter)
+                p.grid_layout.addWidget(p['edgecolor'].color_button, 6, 2, 
+                                        alignment=QtCore.Qt.AlignCenter)
 
     def select_curve(self):
         for curve in self.curves:
@@ -3041,6 +3060,9 @@ class CustomizeDialog(BaseDialog):
                 self.plotview._grid =True
             else:
                 self.plotview._grid =False
+            self.plotview._gridcolor = pi['gridcolor'].value
+            self.plotview._gridstyle = [k for k, v in linestyles.items()
+                                        if v == pi['gridstyle'].value][0]
             #reset in case plotview.aspect changed by plotview.skew
             self.plotview.grid(self.plotview._grid)
             self.plotview.skew = self.plotview._skew_angle
