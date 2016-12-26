@@ -57,8 +57,8 @@ colors = ['b', 'g', 'r', 'c', 'm', 'y', 'k', 'w']
 cmaps = ['viridis', 'inferno', 'magma', 'plasma', #perceptually uniform
          'spring', 'summer', 'autumn', 'winter', 'cool', 'hot', #sequential
          'bone', 'copper', 'gray', 'pink', 
-         'coolwarm', 'seismic', 'RdBu', 'RdYlBu', 'RdYlGn', #diverging
-         'jet', 'spectral', 'rainbow', 'hsv', 'flag', 'prism'] #miscellaneous
+         'jet', 'spectral', 'rainbow', 'hsv', #miscellaneous
+         'seismic', 'coolwarm', 'RdBu', 'RdYlBu', 'RdYlGn'] #diverging
 cmaps = [cm for cm in cmaps if cm in cmap_d]
 if 'viridis' in cmaps:
     default_cmap = 'viridis'
@@ -67,8 +67,13 @@ else:
 interpolations = ['nearest', 'bilinear', 'bicubic', 'spline16', 'spline36',
                   'hanning', 'hamming', 'hermite', 'kaiser', 'quadric',
                   'catrom', 'gaussian', 'bessel', 'mitchell', 'sinc', 'lanczos']
+try:
+    from astropy.convolution import convolve, Gaussian2DKernel
+    interpolations.insert(1, 'convolve')
+except ImportError:
+    pass
 linestyles = {'-': 'Solid', '--': 'Dashed', '-.': 'DashDot', ':': 'Dotted',
-              'none': 'None', 'None': 'None'}
+              'none': 'None'}
 markers = markers.MarkerStyle.markers
 locator = MaxNLocator(nbins=9, steps=[1, 2, 5, 10])
 logo = mpl.image.imread(pkg_resources.resource_filename(
@@ -252,6 +257,10 @@ class NXPlotView(QtGui.QDialog):
         self._aspect = 'auto'
         self._skew_angle = None
         self._grid = False
+        self._gridcolor = mpl.rcParams['grid.color']
+        self._gridstyle = mpl.rcParams['grid.linestyle']
+        self._linscale = 0.1
+        self._linfactor = 10.0
 
         self.grid_helper = GridHelperCurveLinear((self.transform,
                                                   self.inverse_transform),
@@ -399,6 +408,7 @@ class NXPlotView(QtGui.QDialog):
             if fmt == '':
                 fmt = colors[self.num%len(colors)] + 'o'
 
+            self.x, self.y, self.e = self.get_points()
             self.plot_points(fmt, over, **opts)
 
         #Higher-dimensional plot
@@ -428,6 +438,7 @@ class NXPlotView(QtGui.QDialog):
             else:
                 self.vtab.logbox.setChecked(False)
 
+            self.x, self.y, self.v = self.get_image()
             self.plot_image(over, **opts)
 
         self.limits = (self.xaxis.min, self.xaxis.max,
@@ -533,8 +544,6 @@ class NXPlotView(QtGui.QDialog):
             self.figure.clf()
         ax = self.figure.gca()
 
-        self.x, self.y, self.e = self.get_points()
-
         if self.e is not None:
             ax.errorbar(self.x, self.y, self.e, fmt=fmt, **opts)
         else:
@@ -596,11 +605,12 @@ class NXPlotView(QtGui.QDialog):
         x = self.xaxis.boundaries
         y = self.yaxis.boundaries
         v = self.plotdata.nxsignal.nxdata
-        return x, y, v
+        if self.interpolation == 'convolve':
+            return x, y, convolve(v, Gaussian2DKernel(2))
+        else:
+            return x, y, v
 
     def plot_image(self, over=False, **opts):
-
-        self.x, self.y, self.v = self.get_image()
 
         self.set_data_limits()
 
@@ -624,10 +634,14 @@ class NXPlotView(QtGui.QDialog):
             bottom, top = self.yaxis.min, self.yaxis.max
         extent = (left, right, bottom, top)
 
+        if self.equally_spaced:
+            if self.interpolation == 'convolve':
+                opts['interpolation'] = 'bicubic'
+            else:
+                opts['interpolation'] = self.interpolation
+
         if (self.rgb_image or self.equally_spaced) and self.skew is None:
             opts['origin'] = 'lower'
-            if 'interpolation' not in opts:
-                opts['interpolation'] = 'nearest'
             self.image = ax.imshow(self.v, extent=extent, cmap=self.cmap,
                                    **opts)
         else:
@@ -649,7 +663,7 @@ class NXPlotView(QtGui.QDialog):
         ax.set_xlim(xlo, xhi)
         ax.set_ylim(ylo, yhi)
 
-        ax.grid(self._grid, color='w')
+        ax.grid(self._grid, color=self._gridcolor, linestyle=self._gridstyle)
 
         ax.set_xlabel(self.xaxis.label)
         ax.set_ylabel(self.yaxis.label)
@@ -676,20 +690,29 @@ class NXPlotView(QtGui.QDialog):
     def ndim(self):
         return len(self.shape)
 
+    @property
+    def finite_v(self):
+        return self.v[np.isfinite(self.v)]
+
     def set_data_limits(self):
-        if self.vaxis.lo is None or self.autoscale:
-            try:
-                self.vaxis.lo = self.vaxis.min = np.nanmin(self.v[self.v>-np.inf])
-            except:
-                self.vaxis.lo = self.vaxis.min = 0.0
+        self.vaxis.data = self.v
         if self.vaxis.hi is None or self.autoscale:
             try:
-                self.vaxis.hi = self.vaxis.max = np.nanmax(self.v[self.v<np.inf])
+                self.vaxis.hi = self.vaxis.max = np.max(self.finite_v)
             except:
                 self.vaxis.hi = self.vaxis.max = 0.1
-        if self.vtab.logbox.isChecked():
+        if self.vtab.symmetric:
+            self.vaxis.lo = -self.vaxis.hi
+            self.vaxis.min = -self.vaxis.max
+        elif self.vaxis.lo is None or self.autoscale:
             try:
-                self.vaxis.lo = max(self.vaxis.lo, self.v[self.v>0.0].min())
+                self.vaxis.lo = self.vaxis.min = np.min(self.finite_v)
+            except:
+                self.vaxis.lo = self.vaxis.min = 0.0
+        if self.vtab.logbox.isChecked() and not self.vtab.symmetric:
+            try:
+                self.vaxis.lo = max(self.vaxis.lo, 
+                                    self.finite_v[self.finite_v>0.0].min())
             except ValueError:
                 self.vaxis.lo, self.vaxis.hi = (0.01, 0.1)
         self.vtab.set_axis(self.vaxis)
@@ -711,6 +734,7 @@ class NXPlotView(QtGui.QDialog):
         self.plotdata = self.data.project(axes, limits, summed=self.summed)
         self.plotdata.title = self.title
         if newaxis:
+            self.x, self.y, self.v = self.get_image()
             self.plot_image()
             self.draw()
         elif self.equally_spaced and self.skew is None:
@@ -732,6 +756,12 @@ class NXPlotView(QtGui.QDialog):
         try:
             self.set_data_limits()
             self.image.set_clim(self.vaxis.lo, self.vaxis.hi)
+            self.colorbar.draw_all()
+            if self.equally_spaced:
+                if self.interpolation == 'convolve':
+                    self.image.set_interpolation('bicubic')
+                else:
+                    self.image.set_interpolation(self.interpolation)
             self.replot_axes()
         except:
             pass
@@ -784,8 +814,17 @@ class NXPlotView(QtGui.QDialog):
     def set_log_image(self):
         if self.vtab.logbox.isChecked():
             self.set_data_limits()
-            self.image.set_norm(LogNorm(self.vaxis.lo, self.vaxis.hi))
-            self.colorbar.set_norm(LogNorm(self.vaxis.lo, self.vaxis.hi))
+            if self.vtab.symmetric:
+                self.image.set_norm(NXSymLogNorm(self.vaxis.hi/10, linscale=0.1,
+                                                 vmin=self.vaxis.lo,
+                                                 vmax=self.vaxis.hi))
+                self.colorbar.set_norm(NXSymLogNorm(self.vaxis.hi/10, 
+                                                    linscale=0.1,
+                                                    vmin=self.vaxis.lo,
+                                                    vmax=self.vaxis.hi))
+            else:
+                self.image.set_norm(LogNorm(self.vaxis.lo, self.vaxis.hi))
+                self.colorbar.set_norm(LogNorm(self.vaxis.lo, self.vaxis.hi))
         else:
             self.image.set_norm(Normalize(self.vaxis.lo, self.vaxis.hi))
             self.colorbar.set_norm(Normalize(self.vaxis.lo, self.vaxis.hi))
@@ -822,9 +861,9 @@ class NXPlotView(QtGui.QDialog):
             if vmax is None:
                 vmax = max(abs(self.vaxis.min), abs(self.vaxis.max))
             if linthresh is None:
-                linthresh = vmax / 1000.0
+                linthresh = vmax / 10.0
             if linscale is None:
-                linscale = 1
+                linscale = 0.1
             self.vaxis.min = self.vaxis.lo = -vmax
             self.vaxis.max = self.vaxis.hi = vmax
             self.image.set_norm(NXSymLogNorm(linthresh, linscale=linscale,
@@ -839,6 +878,7 @@ class NXPlotView(QtGui.QDialog):
             self.colorbar = self.figure.colorbar(self.image, ax=plotview.ax,
                                                  ticks=tick_locations)
             self.image.set_clim(self.vaxis.lo, self.vaxis.hi)
+            self.draw()
             self.vtab.set_axis(self.vaxis)
 
     def set_plot_limits(self, xmin=None, xmax=None, ymin=None, ymax=None, vmin=None, vmax=None):
@@ -867,8 +907,8 @@ class NXPlotView(QtGui.QDialog):
         else:
             if autoscale:
                 try:
-                    self.vaxis.min = self.vaxis.lo = np.nanmin(self.v[self.v>-np.inf])
-                    self.vaxis.max = self.vaxis.hi = np.nanmax(self.v[self.v<np.inf])
+                    self.vaxis.min = self.vaxis.lo = np.min(self.finite_v)
+                    self.vaxis.max = self.vaxis.hi = np.max(self.finite_v)
                 except:
                     self.vaxis.min = self.vaxis.lo = 0.0
                     self.vaxis.max = self.vaxis.hi = 0.1
@@ -908,6 +948,8 @@ class NXPlotView(QtGui.QDialog):
         return self._skew_angle
 
     def _set_skew(self, skew_angle):
+        if self.skew and np.isclose(skew_angle, self._skew_angle):
+            return
         try:
             self._skew_angle = float(skew_angle)
             if np.isclose(self._skew_angle, 0.0) or np.isclose(self._skew_angle, 90.0):
@@ -962,21 +1004,38 @@ class NXPlotView(QtGui.QDialog):
 
     cmap = property(_cmap, _set_cmap, "Property: color map")
 
-    def _interpolation(self):
-        if not self.equally_spaced:
-            return 'nearest'
+    @property
+    def interpolations(self):
+        if self.equally_spaced:
+            return interpolations
+        elif "convolve" in interpolations:
+            return interpolations[:2]
         else:
-            return self.vtab.interpolation
+            return interpolations[:1]
+
+    def _interpolation(self):
+        return self.vtab.interpolation
 
     def _set_interpolation(self, interpolation):
         try:
             self.vtab.set_interpolation(interpolation)
-            self.vtab.change_interpolation()
+            self.interpolate()
         except ValueError as error:
             raise NeXusError(six.text_type(error))
 
     interpolation = property(_interpolation, _set_interpolation,
                              "Property: interpolation method")
+
+    def interpolate(self):
+        if self.image:
+            self.x, self.y, self.v = self.get_image()
+            if self.interpolation == 'convolve':
+                self.plot_image()
+                self.draw()
+            elif self.equally_spaced:
+                self.image.set_data(self.plotdata.nxsignal.nxdata)
+                self.image.set_interpolation(self.interpolation)
+                self.draw()
 
     def _offsets(self):
         return self._axis_offsets
@@ -990,7 +1049,10 @@ class NXPlotView(QtGui.QDialog):
 
     @property
     def equally_spaced(self):
-        return self.xaxis.equally_spaced and self.yaxis.equally_spaced
+        try:
+            return self.xaxis.equally_spaced and self.yaxis.equally_spaced
+        except Exception:
+            return False
 
     @property
     def ax(self):
@@ -1006,10 +1068,14 @@ class NXPlotView(QtGui.QDialog):
             self._grid = True
         else:
             self._grid = not self._grid
-        if 'linestyle' not in opts:
-            opts['linestyle'] = ':'
-        if 'color' not in opts:
-            opts['color'] = 'w'
+        if 'linestyle' in opts:
+            self._gridstyle = opts['linestyle']
+        else:
+            opts['linestyle'] = self._gridstyle
+        if 'color' in opts:
+            self._gridcolor = opts['color']
+        else:
+            opts['color'] = self._gridcolor
         self.ax.grid(self._grid, **opts)
         self.draw()
         self.update_customize_panel()
@@ -1290,8 +1356,8 @@ class NXPlotAxis(object):
                 self.centers = None
                 self.boundaries = None
                 try:
-                    self.min = np.nanmin(self.data[self.data>-np.inf])
-                    self.max = np.nanmax(self.data[self.data<np.inf])
+                    self.min = np.min(self.data[np.isfinite(self.data)])
+                    self.max = np.max(self.data[np.isfinite(self.data)])
                 except:
                     self.min = 0.0
                     self.max = 0.1
@@ -1305,8 +1371,8 @@ class NXPlotAxis(object):
                 self.centers = centers(self.data, dimlen)
                 self.boundaries = boundaries(self.data, dimlen)
                 try:
-                    self.min = np.nanmin(self.boundaries[self.boundaries>-np.inf])
-                    self.max = np.nanmax(self.boundaries[self.boundaries<np.inf])
+                    self.min = np.min(self.boundaries[np.isfinite(self.boundaries)])
+                    self.max = np.max(self.boundaries[np.isfinite(self.boundaries)])
                 except:
                     self.min = 0.0
                     self.max = 0.1
@@ -1423,12 +1489,19 @@ class NXPlotTab(QtGui.QWidget):
         if image:
             self.cmapcombo = self.combobox(self.change_cmap)
             self.cmapcombo.addItems(cmaps)
-            self.cmapcombo.setCurrentIndex(self.cmapcombo.findText(default_cmap))
+            if cmaps.index('spring') > 0:
+                self.cmapcombo.insertSeparator(
+                    self.cmapcombo.findText('spring'))
+            if cmaps.index('seismic') > 0:
+                self.cmapcombo.insertSeparator(
+                    self.cmapcombo.findText('seismic'))
+            self.cmapcombo.setCurrentIndex(
+                self.cmapcombo.findText(default_cmap))
             widgets.append(self.cmapcombo)
-            self.interpolations = interpolations
             self.interpcombo = self.combobox(self.change_interpolation)
-            self.interpcombo.addItems(self.interpolations)
+            self.interpcombo.addItems(interpolations)
             self.set_interpolation('nearest')
+            self._cached_interpolation = 'nearest'
             widgets.append(self.interpcombo)
         else:
             self.cmapcombo = None
@@ -1478,12 +1551,9 @@ class NXPlotTab(QtGui.QWidget):
                 self.axiscombo.addItems(self.get_axes())
             self.axiscombo.setCurrentIndex(self.axiscombo.findText(axis.name))
         if self.name == 'v':
-            if self.plotview.equally_spaced:
-                self.interpcombo.setVisible(True)
-                self.set_interpolation(self._cached_interpolation)
-                self.change_interpolation()
-            else:
-                self.interpcombo.setVisible(False)
+            self.interpcombo.clear()
+            self.interpcombo.addItems(self.plotview.interpolations)
+            self.set_interpolation(self._cached_interpolation)
         self.block_signals(False)
 
     def combobox(self, slot):
@@ -1534,6 +1604,46 @@ class NXPlotTab(QtGui.QWidget):
         return button
 
     @QtCore.Slot()
+    def read_maxbox(self):
+        hi = self.maxbox.value()
+        if np.isclose(hi, self.maxbox.old_value):
+            return
+        if self.name == 'x' or self.name == 'y' or self.name == 'v':
+            if self.name == 'v' and self.symmetric:
+                self.axis.hi = hi
+                self.axis.lo = -self.axis.hi
+                self.minbox.setValue(-hi)
+            elif hi > self.axis.lo:
+                self.axis.hi = hi
+            else:
+                self.maxbox.setValue(self.maxbox.old_value)
+                return
+            self.axis.max = self.axis.hi
+            self.axis.min = self.axis.lo
+            self.set_range()
+            self.set_sliders(self.axis.lo, self.axis.hi)
+            if self.name == 'v':
+                self.plotview.autoscale = False
+                self.plotview.replot_image()
+            else:
+                self.plotview.replot_axes()
+        else:
+            if self.axis.locked:
+                self.axis.hi = hi
+                self.axis.lo = self.axis.hi - self.axis.diff
+                if not np.isclose(self.axis.lo, self.minbox.old_value):
+                    self.minbox.setValue(self.axis.lo)
+                    self.minbox.old_value = self.axis.lo
+                self.replotSignal.replot.emit()
+            else:
+                if hi >= self.axis.lo:
+                    self.axis.hi = hi
+                else:
+                    self.maxbox.setValue(self.maxbox.old_value)
+                    return
+        self.maxbox.old_value = self.axis.hi
+
+    @QtCore.Slot()
     def read_minbox(self):
         lo = self.minbox.value()
         if not self.minbox.isEnabled() or self.axis.locked or \
@@ -1561,52 +1671,27 @@ class NXPlotTab(QtGui.QWidget):
                 return
         self.minbox.old_value = self.axis.lo
 
-    @QtCore.Slot()
-    def read_maxbox(self):
-        hi = self.maxbox.value()
-        if np.isclose(hi, self.maxbox.old_value):
-            return
-        if self.name == 'x' or self.name == 'y' or self.name == 'v':
-            if hi > self.axis.lo:
-                self.axis.hi = hi
-            else:
-                self.maxbox.setValue(self.maxbox.old_value)
-                return
-            self.axis.max = self.axis.hi
-            self.set_range()
-            self.set_sliders(self.axis.lo, self.axis.hi)
-            if self.name == 'v':
-                self.plotview.autoscale = False
-                self.plotview.replot_image()
-            else:
-                self.plotview.replot_axes()
-        else:
-            if self.axis.locked:
-                self.axis.hi = hi
-                self.axis.lo = self.axis.hi - self.axis.diff
-                if not np.isclose(self.axis.lo, self.minbox.old_value):
-                    self.minbox.setValue(self.axis.lo)
-                    self.minbox.old_value = self.axis.lo
-                self.replotSignal.replot.emit()
-            else:
-                if hi >= self.axis.lo:
-                    self.axis.hi = hi
-                else:
-                    self.maxbox.setValue(self.maxbox.old_value)
-                    return
-        self.maxbox.old_value = self.axis.hi
-
-    def read_minslider(self):
+    def read_maxslider(self):
         self.block_signals(True)
-        self.axis.hi = self.maxbox.value()
-        _range = max(self.axis.hi - self.axis.min, self.axis.min_range)
-        self.axis.lo = self.axis.min + (self.minslider.value() * _range / 1000)
-        self.minbox.setValue(self.axis.lo)
-        _range = max(self.axis.max-self.axis.lo, self.axis.min_range)
-        try:
-            self.maxslider.setValue(1000*(self.axis.hi-self.axis.lo)/_range)
-        except (ZeroDivisionError, OverflowError, RuntimeWarning):
-            self.maxslider.setValue(0)
+        if self.name == 'v' and self.symmetric:
+            _range = max(self.axis.max, self.axis.min_range)
+            self.axis.hi = max((self.maxslider.value()*_range/1000), 
+                                self.axis.min_range)
+            self.axis.lo = -self.axis.hi
+            self.maxbox.setValue(self.axis.hi)
+            self.minbox.setValue(self.axis.lo)
+            self.minslider.setValue(1000 - self.maxslider.value())
+        else:
+            self.axis.lo = self.minbox.value()
+            _range = max(self.axis.max - self.axis.lo, self.axis.min_range)
+            self.axis.hi = self.axis.lo + max((self.maxslider.value()*_range/1000), 
+                                               self.axis.min_range)
+            self.maxbox.setValue(self.axis.hi)
+            _range = max(self.axis.hi - self.axis.min, self.axis.min_range)
+            try:
+                self.minslider.setValue(1000*(self.axis.lo - self.axis.min)/_range)
+            except (ZeroDivisionError, OverflowError, RuntimeWarning):
+                self.minslider.setValue(1000)
         if self.name == 'x' or self.name == 'y':
             self.plotview.replot_axes()
         else:
@@ -1614,17 +1699,17 @@ class NXPlotTab(QtGui.QWidget):
             self.plotview.replot_image()
         self.block_signals(False)
 
-    def read_maxslider(self):
+    def read_minslider(self):
         self.block_signals(True)
-        self.axis.lo = self.minbox.value()
-        _range = max(self.axis.max - self.axis.lo, self.axis.min_range)
-        self.axis.hi = self.axis.lo + max((self.maxslider.value() * _range / 1000), self.axis.min_range)
-        self.maxbox.setValue(self.axis.hi)
+        self.axis.hi = self.maxbox.value()
         _range = max(self.axis.hi - self.axis.min, self.axis.min_range)
+        self.axis.lo = self.axis.min + (self.minslider.value()*_range/1000)
+        self.minbox.setValue(self.axis.lo)
+        _range = max(self.axis.max-self.axis.lo, self.axis.min_range)
         try:
-            self.minslider.setValue(1000*(self.axis.lo - self.axis.min)/_range)
+            self.maxslider.setValue(1000*(self.axis.hi-self.axis.lo)/_range)
         except (ZeroDivisionError, OverflowError, RuntimeWarning):
-            self.minslider.setValue(1000)
+            self.maxslider.setValue(0)
         if self.name == 'x' or self.name == 'y':
             self.plotview.replot_axes()
         else:
@@ -1760,6 +1845,13 @@ class NXPlotTab(QtGui.QWidget):
             cm = get_cmap(self.cmap)
             cm.set_bad('k', 1)
             self.plotview.image.set_cmap(cm)
+            if self.symmetric:
+                self.symmetrize()
+                self.plotview.x, self.plotview.y, self.plotview.v = self.plotview.get_image()
+                self.plotview.replot_image()
+            else:
+                self.minbox.setDisabled(False)
+                self.minslider.setDisabled(False)
             self.plotview.draw()
         except Exception:
             pass
@@ -1774,21 +1866,35 @@ class NXPlotTab(QtGui.QWidget):
     def cmap(self):
         return self.cmapcombo.currentText()
 
+    @property
+    def symmetric(self):
+        if (self.cmapcombo is not None and
+            self.cmapcombo.currentIndex() >= self.cmapcombo.findText('seismic')):
+                return True
+        return False
+
+    def symmetrize(self):
+        self.axis.lo = -self.axis.hi
+        self.axis.min = -self.axis.max
+        self.maxbox.setMinimum(0.0)
+        self.minbox.setMinimum(-self.maxbox.maximum())
+        self.minbox.setMaximum(0.0)
+        self.minbox.setValue(-self.maxbox.value())
+        self.minbox.setDisabled(True)
+        self.minslider.setValue(1000-self.maxslider.value())
+        self.minslider.setDisabled(True)
+
     def change_interpolation(self):
-        try:
-            self.plotview.image.set_interpolation(self.interpolation)
-            self.plotview.draw()
-            self._cached_interpolation = self.interpolation
-        except Exception:
-            pass
+        self._cached_interpolation = self.interpolation
+        self.plotview.interpolate()
 
     def set_interpolation(self, interpolation):
-        if interpolation in self.interpolations:
-            self.interpcombo.setCurrentIndex(
-                self.interpcombo.findText(interpolation))
+        idx = self.interpcombo.findText(interpolation)
+        if idx >= 0:
+            self.interpcombo.setCurrentIndex(idx)
             self._cached_interpolation = interpolation
         else:
-            raise NeXusError('Invalid interpolation method')
+            self.interpcombo.setCurrentIndex(0)
 
     @property
     def interpolation(self):
@@ -2010,6 +2116,13 @@ class NXDoubleSpinBox(QtGui.QDoubleSpinBox):
         elif value < self.minimum():
             self.setMinimum(value)
         return value
+
+    def setValue(self, value):
+        if value > self.maximum():
+            self.setMaximum(value)
+        elif value < self.minimum():
+            self.setMinimum(value)
+        super(NXDoubleSpinBox, self).setValue(value)
 
 
 class NXProjectionTab(QtGui.QWidget):
@@ -2798,7 +2911,7 @@ class CustomizeDialog(BaseDialog):
             self.set_layout(pl.grid(header=False),
                             self.curve_grids,
                             self.close_buttons())
-            self.update_colors()
+        self.update_colors()
         self.set_title('Customize %s' % self.plotview.label)
 
     def close_buttons(self):
@@ -2821,7 +2934,7 @@ class CustomizeDialog(BaseDialog):
             self.update_curves()
             for curve in self.curves:
                 self.update_curve_parameters(curve)
-            self.update_colors()
+        self.update_colors()
 
     def update_labels(self):
         pl = self.parameters['labels']
@@ -2834,6 +2947,8 @@ class CustomizeDialog(BaseDialog):
         parameters.add('aspect', 'auto', 'Aspect Ratio')
         parameters.add('skew', 90.0, 'Skew Angle')
         parameters.add('grid', ['On', 'Off'], 'Grid')
+        parameters.add('gridcolor', '#ffffff', 'Grid Color')
+        parameters.add('gridstyle', list(linestyles.values()), 'Grid Style')
         parameters.grid(title='Image Parameters', header=False)
         return parameters
 
@@ -2847,6 +2962,10 @@ class CustomizeDialog(BaseDialog):
             p['grid'].value = 'On'
         else:
             p['grid'].value = 'Off'
+        p['gridcolor'].value = rgb2hex(colorConverter.to_rgb(self.plotview._gridcolor))
+        p['gridcolor'].color_button = NXColorButton(p['gridcolor'])
+        p['gridcolor'].color_button.set_color(to_qcolor(self.plotview._gridcolor))
+        p['gridstyle'].value = linestyles[self.plotview._gridstyle]
 
     @property
     def curve(self):
@@ -2910,13 +3029,18 @@ class CustomizeDialog(BaseDialog):
 
     def update_colors(self):
         if self.plotview.image is not None:
-            pass
+            p = self.parameters['image']
+            p.grid_layout.addWidget(p['gridcolor'].color_button, 4, 2, 
+                                    alignment=QtCore.Qt.AlignCenter)
         else:
             for curve in self.curves:
                 p = self.parameters[curve]
-                p.grid_layout.addWidget(p['linecolor'].color_button, 2, 2)
-                p.grid_layout.addWidget(p['facecolor'].color_button, 5, 2)
-                p.grid_layout.addWidget(p['edgecolor'].color_button, 6, 2)
+                p.grid_layout.addWidget(p['linecolor'].color_button, 2, 2, 
+                                        alignment=QtCore.Qt.AlignCenter)
+                p.grid_layout.addWidget(p['facecolor'].color_button, 5, 2, 
+                                        alignment=QtCore.Qt.AlignCenter)
+                p.grid_layout.addWidget(p['edgecolor'].color_button, 6, 2, 
+                                        alignment=QtCore.Qt.AlignCenter)
 
     def select_curve(self):
         for curve in self.curves:
@@ -2939,6 +3063,9 @@ class CustomizeDialog(BaseDialog):
                 self.plotview._grid =True
             else:
                 self.plotview._grid =False
+            self.plotview._gridcolor = pi['gridcolor'].value
+            self.plotview._gridstyle = [k for k, v in linestyles.items()
+                                        if v == pi['gridstyle'].value][0]
             #reset in case plotview.aspect changed by plotview.skew
             self.plotview.grid(self.plotview._grid)
             self.plotview.skew = self.plotview._skew_angle
