@@ -259,8 +259,8 @@ class NXPlotView(QtGui.QDialog):
         self._grid = False
         self._gridcolor = mpl.rcParams['grid.color']
         self._gridstyle = mpl.rcParams['grid.linestyle']
-        self._linscale = 0.1
-        self._linfactor = 10.0
+        self._linthresh = None
+        self._linscale = None
 
         self.grid_helper = GridHelperCurveLinear((self.transform,
                                                   self.inverse_transform),
@@ -815,11 +815,19 @@ class NXPlotView(QtGui.QDialog):
         if self.vtab.logbox.isChecked():
             self.set_data_limits()
             if self.vtab.symmetric:
-                self.image.set_norm(NXSymLogNorm(self.vaxis.hi/10, linscale=0.1,
+                if self._linthresh:
+                    linthresh = self._linthresh
+                else:
+                    linthresh = self.vaxis.hi / 10.0
+                if self._linscale:
+                    linscale = self._linscale
+                else:
+                    linscale = 0.1
+                self.image.set_norm(NXSymLogNorm(linthresh, linscale=linscale,
                                                  vmin=self.vaxis.lo,
                                                  vmax=self.vaxis.hi))
-                self.colorbar.set_norm(NXSymLogNorm(self.vaxis.hi/10, 
-                                                    linscale=0.1,
+                self.colorbar.set_norm(NXSymLogNorm(linthresh, 
+                                                    linscale=linscale,
                                                     vmin=self.vaxis.lo,
                                                     vmax=self.vaxis.hi))
             else:
@@ -857,26 +865,25 @@ class NXPlotView(QtGui.QDialog):
             vmax (float): The maximum value for the plot. This is applied 
                 symmetrically, i.e., vmin = -vmax.
         """
+        self._linthresh = linthresh
+        self._linscale = linscale
         if self.image is not None:
             if vmax is None:
                 vmax = max(abs(self.vaxis.min), abs(self.vaxis.max))
-            if linthresh is None:
+            if linthresh:
+                linthresh = self._linthresh
+            else:
                 linthresh = vmax / 10.0
-            if linscale is None:
+            if linscale:
+                linscale = self._linscale
+            else:
                 linscale = 0.1
             self.vaxis.min = self.vaxis.lo = -vmax
             self.vaxis.max = self.vaxis.hi = vmax
             self.image.set_norm(NXSymLogNorm(linthresh, linscale=linscale,
                                              vmin=-vmax, vmax=vmax))
-            self.colorbar.remove()
-            maxlog = int(np.ceil(np.log10(vmax)))
-            logthresh = int(np.ceil(np.log10(linthresh)))
-            tick_locations =( [-vmax]
-                  + [-(10.0**x) for x in range(maxlog-1, logthresh-1, -1)]
-                  + [(10.0**x) for x in range(logthresh, maxlog)]
-                  + [vmax] )
-            self.colorbar = self.figure.colorbar(self.image, ax=plotview.ax,
-                                                 ticks=tick_locations)
+            self.colorbar.set_norm(NXSymLogNorm(linthresh, linscale=linscale,
+                                             vmin=-vmax, vmax=vmax))
             self.image.set_clim(self.vaxis.lo, self.vaxis.hi)
             self.draw()
             self.vtab.set_axis(self.vaxis)
@@ -1031,11 +1038,10 @@ class NXPlotView(QtGui.QDialog):
             self.x, self.y, self.v = self.get_image()
             if self.interpolation == 'convolve':
                 self.plot_image()
-                self.draw()
             elif self.equally_spaced:
                 self.image.set_data(self.plotdata.nxsignal.nxdata)
                 self.image.set_interpolation(self.interpolation)
-                self.draw()
+            self.draw()
 
     def _offsets(self):
         return self._axis_offsets
@@ -1745,7 +1751,7 @@ class NXPlotTab(QtGui.QWidget):
     def set_log(self):
         try:
             if self.name == 'v':
-                if self.plotview.colorbar:
+                if self.plotview.image:
                     self.plotview.set_log_image()
             else:
                 self.plotview.set_log_axis()
