@@ -261,6 +261,7 @@ class NXPlotView(QtGui.QDialog):
         self._gridstyle = mpl.rcParams['grid.linestyle']
         self._linthresh = None
         self._linscale = None
+        self._stddev = 2.0
 
         self.grid_helper = GridHelperCurveLinear((self.transform,
                                                   self.inverse_transform),
@@ -606,7 +607,7 @@ class NXPlotView(QtGui.QDialog):
         y = self.yaxis.boundaries
         v = self.plotdata.nxsignal.nxdata
         if self.interpolation == 'convolve':
-            return x, y, convolve(v, Gaussian2DKernel(2))
+            return x, y, convolve(v, Gaussian2DKernel(self.smooth))
         else:
             return x, y, v
 
@@ -1042,6 +1043,15 @@ class NXPlotView(QtGui.QDialog):
                 self.image.set_data(self.plotdata.nxsignal.nxdata)
                 self.image.set_interpolation(self.interpolation)
             self.draw()
+
+    def _smooth(self):
+        return self._stddev
+
+    def _set_smooth(self, value):
+        self._stddev = value
+        self.interpolate()
+
+    smooth = property(_smooth, _set_smooth, "Property: No. of pixels in Gaussian convolution")
 
     def _offsets(self):
         return self._axis_offsets
