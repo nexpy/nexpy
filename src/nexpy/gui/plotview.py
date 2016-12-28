@@ -779,13 +779,13 @@ class NXPlotView(QtGui.QDialog):
             bottom, top = self.yaxis.data.min(), self.yaxis.data.max()
         extent = (left, right, bottom, top)
 
-        if self.equally_spaced:
+        if self.regular_grid:
             if self.interpolation == 'convolve':
                 opts['interpolation'] = 'bicubic'
             else:
                 opts['interpolation'] = self.interpolation
 
-        if (self.rgb_image or self.equally_spaced) and self.skew is None:
+        if (self.rgb_image or self.regular_grid):
             opts['origin'] = 'lower'
             self.image = ax.imshow(self.v, extent=extent, cmap=self.cmap,
                                    **opts)
@@ -910,7 +910,7 @@ class NXPlotView(QtGui.QDialog):
         if newaxis:
             self.plot_image()
             self.draw()
-        elif self.equally_spaced and self.skew is None:
+        elif self.regular_grid:
             self.image.set_data(self.v)
             if self.xaxis.reversed:
                 xmin, xmax = xmax, xmin
@@ -929,7 +929,7 @@ class NXPlotView(QtGui.QDialog):
             self.set_data_limits()
             self.image.set_clim(self.vaxis.lo, self.vaxis.hi)
             self.colorbar.draw_all()
-            if self.equally_spaced:
+            if self.regular_grid:
                 if self.interpolation == 'convolve':
                     self.image.set_interpolation('bicubic')
                 else:
@@ -1265,7 +1265,7 @@ class NXPlotView(QtGui.QDialog):
         methods. It is possible to use Gaussian smoothing, with the
         'convolve' option.
         """
-        if self.equally_spaced:
+        if self.regular_grid:
             return interpolations
         elif "convolve" in interpolations:
             return interpolations[:2]
@@ -1293,7 +1293,7 @@ class NXPlotView(QtGui.QDialog):
             self.x, self.y, self.v = self.get_image()
             if self.interpolation == 'convolve':
                 self.plot_image()
-            elif self.equally_spaced:
+            elif self.regular_grid:
                 self.image.set_data(self.plotdata.nxsignal.nxdata)
                 self.image.set_interpolation(self.interpolation)
             self.draw()
@@ -1323,15 +1323,17 @@ class NXPlotView(QtGui.QDialog):
     offsets = property(_offsets, _set_offsets, "Property: Axis offsets property")
 
     @property
-    def equally_spaced(self):
-        """Return whether the axes are equally spaced.
+    def regular_grid(self):
+        """Return whether it is possible to use 'imshow'.
         
-        If both the x and y axes are equally spaced, then the Matplotlib
-        imshow function is used for 2D plots. Otherwise, pcolormesh is
-        used.
+        If both the x and y axes are equally spaced and there is no skew
+        angle, the Matplotlib imshow function is used for 2D plots. 
+        Otherwise, pcolormesh is used.
         """
         try:
-            return self.xaxis.equally_spaced and self.yaxis.equally_spaced
+            return (self.xaxis.equally_spaced and 
+                    self.yaxis.equally_spaced
+                    and self.skew is None)
         except Exception:
             return False
 
