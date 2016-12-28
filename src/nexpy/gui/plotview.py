@@ -596,7 +596,6 @@ class NXPlotView(QtGui.QDialog):
                 self.axis[i].set_data(self.axes[i], self.shape[i])
             else:
                 self.axis[i] = NXPlotAxis(self.axes[i], i, self.shape[i])
-                self.axis[i].dim = i
 
         if self.ndim == 1:
             self.xaxis = self.axis[0]
@@ -907,12 +906,11 @@ class NXPlotView(QtGui.QDialog):
             axes, limits = fix_projection(self.data.nxsignal.shape, axes, limits)
         self.plotdata = self.data.project(axes, limits, summed=self.summed)
         self.plotdata.title = self.title
+        self.x, self.y, self.v = self.get_image()
         if newaxis:
-            self.x, self.y, self.v = self.get_image()
             self.plot_image()
             self.draw()
         elif self.equally_spaced and self.skew is None:
-            self.x, self.y, self.v = self.get_image()
             self.image.set_data(self.v)
             if self.xaxis.reversed:
                 xmin, xmax = xmax, xmin
@@ -921,7 +919,6 @@ class NXPlotView(QtGui.QDialog):
             self.image.set_extent((xmin, xmax, ymin, ymax))
             self.replot_image()
         else:
-            self.x, self.y, self.v = self.get_image()
             self.image.set_array(self.v.ravel())
             self.replot_image()
         self.grid(display=self._grid)
