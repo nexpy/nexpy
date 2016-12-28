@@ -770,13 +770,13 @@ class NXPlotView(QtGui.QDialog):
         ax.autoscale(enable=True)
 
         if self.xaxis.reversed:
-            left, right = self.xaxis.max, self.xaxis.min
+            left, right = self.xaxis.data.max(), self.xaxis.data.min()
         else:
-            left, right = self.xaxis.min, self.xaxis.max
+            left, right = self.xaxis.data.min(), self.xaxis.data.max()
         if self.yaxis.reversed:
-            bottom, top = self.yaxis.max, self.yaxis.min
+            bottom, top = self.yaxis.data.max(), self.yaxis.data.min()
         else:
-            bottom, top = self.yaxis.min, self.yaxis.max
+            bottom, top = self.yaxis.data.min(), self.yaxis.data.max()
         extent = (left, right, bottom, top)
 
         if self.equally_spaced:
