@@ -1532,7 +1532,7 @@ class NXPlotView(QtGui.QDialog):
             self.ytab.set_axis(self.yaxis)
             self.vtab.set_axis(self.vaxis)
             self.limits = (ymin, ymax, xmin, xmax)
-            if self.aspect is not 'auto' and self.aspect is not 'equal':
+            if isinstance(self.aspect, numbers.Real):
                 self.aspect = 1.0 / self.aspect
             self.replot_data(newaxis=True)
         elif tab == self.ztab:
