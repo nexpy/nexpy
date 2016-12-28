@@ -1182,8 +1182,6 @@ class NXPlotView(QtGui.QDialog):
         skew_angle: float
             The angle between the x and y axes for a 2D plot.
         """
-        if self.skew and np.isclose(skew_angle, self._skew_angle):
-            return
         try:
             self._skew_angle = float(skew_angle)
             if np.isclose(self._skew_angle, 0.0) or np.isclose(self._skew_angle, 90.0):
@@ -1404,7 +1402,7 @@ class NXPlotView(QtGui.QDialog):
             ymax = plotview.ax.get_ylim()[1]
         if self.skew is not None and y is not None:
             x, _ = self.transform(x, y)
-        lines = plotview.ax.vlines(float(x), ymin, ymax, **opts)
+        lines = plotview.ax.vlines(x, ymin, ymax, **opts)
         self.canvas.draw()
         return lines
 
@@ -1440,7 +1438,7 @@ class NXPlotView(QtGui.QDialog):
             xmax = plotview.ax.get_xlim()[1]
         if self.skew is not None and x is not None:
             _, y = self.transform(x, y)
-        lines = plotview.ax.hlines(float(y), xmin, xmax, **opts)
+        lines = plotview.ax.hlines(y, xmin, xmax, **opts)
         self.canvas.draw()
         return lines
 
@@ -1451,17 +1449,18 @@ class NXPlotView(QtGui.QDialog):
         
         Parameters
         ----------
-        x: float or ndarray
+        x: float
             x-value of vertical line
-        y: float or ndarray
+        y: float
             y-value of horizontal line
         opts: dictionary
             Valid options for displaying lines.
 
         Returns
         -------
-        lines: Matplotlib LineCollection
-            Collection of horizontal lines.
+        lines: list
+            List containing line collections of vertical and horizontal 
+            lines.
         """
         if self.skew is not None:
             x, y = self.transform(x, y)
@@ -1471,6 +1470,23 @@ class NXPlotView(QtGui.QDialog):
         return crosshairs
 
     def xline(self, x, **opts):
+        """Plot line at constant x-value.
+        
+        This is similar to vlines, but the line will be skewed if the 
+        plot is skewed.
+        
+        Parameters
+        ----------
+        x: float
+            x-value of vertical line
+        opts: dictionary
+            Valid options for displaying lines.
+
+        Returns
+        -------
+        line: Line2D
+            Matplotlib line object.
+        """
         ymin, ymax = self.yaxis.get_limits()
         if self.skew is None:
             return self.vline(x, ymin, ymax, **opts)
@@ -1484,6 +1500,23 @@ class NXPlotView(QtGui.QDialog):
             return line
 
     def yline(self, y, **opts):
+        """Plot line at constant y-value.
+        
+        This is similar to hlines, but the line will be skewed if the 
+        plot is skewed.
+        
+        Parameters
+        ----------
+        y: float
+            y-value of vertical line
+        opts: dictionary
+            Valid options for displaying lines.
+
+        Returns
+        -------
+        line: Line2D
+            Matplotlib line object.
+        """
         xmin, xmax = self.xaxis.get_limits()
         if self.skew is None:
             return self.hline(y, xmin, xmax, **opts)
@@ -1497,6 +1530,26 @@ class NXPlotView(QtGui.QDialog):
             return line
 
     def rectangle(self, x, y, dx, dy, **opts):
+        """Plot rectangle.
+        
+        Note
+        ----
+        The rectangle will be skewed if the plot is skewed.
+        
+        Parameters
+        ----------
+        x, y: float
+            x and y values of lower left corner
+        dx, dy: float
+            x and y widths of rectangle
+        opts: dictionary
+            Valid options for displaying shapes.
+
+        Returns
+        -------
+        rectangle: Polygon
+            Matplotlib polygon object.
+        """
         if self.skew is None:
             rectangle = plotview.ax.add_patch(Rectangle((float(x),float(y)),
                                               float(dx), float(dy), **opts))
@@ -1504,32 +1557,81 @@ class NXPlotView(QtGui.QDialog):
             xc, yc = [x, x, x+dx, x+dx], [y, y+dy, y+dy, y]
             xy = [self.transform(_x, _y) for _x,_y in zip(xc,yc)]
             rectangle = plotview.ax.add_patch(Polygon(xy, True, **opts))
+        if 'linewidth' not in opts:
+            rectangle.set_linewidth(1.0)
         if 'facecolor' not in opts:
             rectangle.set_facecolor('none')
         self.canvas.draw()
         return rectangle
 
     def ellipse(self, x, y, dx, dy, **opts):
+        """Plot ellipse.
+        
+        Note
+        ----
+        The ellipse will be skewed if the plot is skewed.
+        
+        Parameters
+        ----------
+        x, y: float
+            x and y values of ellipse center
+        dx, dy: float
+            x and y widths of ellipse
+        opts: dictionary
+            Valid options for displaying shapes.
+
+        Returns
+        -------
+        ellipse: Ellipse
+            Matplotlib ellipse object.
+        """
         if self.skew is not None:
             x, y = self.transform(x, y)
         ellipse = plotview.ax.add_patch(Ellipse((float(x),float(y)),
-                                                float(dx), float(dy), **opts))
+                                                float(dx), float(dy), 
+                                                **opts))
+        if 'linewidth' not in opts:
+            ellipse.set_linewidth(1.0)
         if 'facecolor' not in opts:
             ellipse.set_facecolor('none')
         self.canvas.draw()
         return ellipse
 
     def circle(self, x, y, radius, **opts):
+        """Plot circle.
+        
+        Note
+        ----
+        This assumes that the unit lengths of the x and y axes are the 
+        same. The circle will be skewed if the plot is skewed.
+        
+        Parameters
+        ----------
+        x, y: float
+            x and y values of center of circle.
+        radius: float
+            radius of circle.
+        opts: dictionary
+            Valid options for displaying shapes.
+
+        Returns
+        -------
+        circle: Circle
+            Matplotlib circle object.
+        """
         if self.skew is not None:
             x, y = self.transform(x, y)
         circle = plotview.ax.add_patch(Circle((float(x),float(y)), radius,
                                               **opts))
+        if 'linewidth' not in opts:
+            circle.set_linewidth(1.0)
         if 'facecolor' not in opts:
             circle.set_facecolor('none')
         self.canvas.draw()
         return circle
 
     def init_tabs(self):
+        """Initialize tabs for a new plot."""
         self.xtab.set_axis(self.xaxis)
         self.ytab.set_axis(self.yaxis)
         if self.ndim == 1:
@@ -1577,6 +1679,7 @@ class NXPlotView(QtGui.QDialog):
             self.customize_panel.close()
 
     def update_tabs(self):
+        """Update tabs when limits have changed."""
         self.xtab.set_range()
         self.xtab.set_limits(self.xaxis.lo, self.xaxis.hi)
         self.xtab.set_sliders(self.xaxis.lo, self.xaxis.hi)
