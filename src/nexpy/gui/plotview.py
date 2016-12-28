@@ -1189,7 +1189,8 @@ class NXPlotView(QtGui.QDialog):
             if np.isclose(self._skew_angle, 0.0) or np.isclose(self._skew_angle, 90.0):
                 self._skew_angle = None
         except (ValueError, TypeError):
-            if (skew_angle is None or six.text_type(skew_angle) == '' or six.text_type(skew_angle) == 'None'):
+            if (skew_angle is None or six.text_type(skew_angle) == '' or 
+                six.text_type(skew_angle) == 'None'):
                 self._skew_angle = None
             else:
                 return
@@ -1222,6 +1223,7 @@ class NXPlotView(QtGui.QDialog):
 
     @property
     def summed(self):
+        """Return True if the projection tab is set to sum the data."""
         if self.ptab.summed:
             return True
         else:
@@ -1256,6 +1258,13 @@ class NXPlotView(QtGui.QDialog):
 
     @property
     def interpolations(self):
+        """Return valid interpolations for the current plot.
+        
+        If the axes are not all equally spaced, then 2D plots use
+        pcolormesh, which cannot use any Matplotlib interpolation 
+        methods. It is possible to use Gaussian smoothing, with the
+        'convolve' option.
+        """
         if self.equally_spaced:
             return interpolations
         elif "convolve" in interpolations:
@@ -1264,9 +1273,11 @@ class NXPlotView(QtGui.QDialog):
             return interpolations[:1]
 
     def _interpolation(self):
+        """Return the currently selected interpolation method."""
         return self.vtab.interpolation
 
     def _set_interpolation(self, interpolation):
+        """Set the interpolation method and replot the data."""
         try:
             self.vtab.set_interpolation(interpolation)
             self.interpolate()
@@ -1277,6 +1288,7 @@ class NXPlotView(QtGui.QDialog):
                              "Property: interpolation method")
 
     def interpolate(self):
+        """Replot the data with the current interpolation method."""
         if self.image:
             self.x, self.y, self.v = self.get_image()
             if self.interpolation == 'convolve':
@@ -1287,18 +1299,23 @@ class NXPlotView(QtGui.QDialog):
             self.draw()
 
     def _smooth(self):
+        """Return standard deviation in pixels of Gaussian smoothing."""
         return self._stddev
 
     def _set_smooth(self, value):
+        """Set standard deviation in pixels of Gaussian smoothing."""
         self._stddev = value
         self.interpolate()
 
-    smooth = property(_smooth, _set_smooth, "Property: No. of pixels in Gaussian convolution")
+    smooth = property(_smooth, _set_smooth, 
+                      "Property: No. of pixels in Gaussian convolution")
 
     def _offsets(self):
+        """Return the axis offset used in tick labels."""
         return self._axis_offsets
 
     def _set_offsets(self, value):
+        """Set the axis offset used in tick labels and redraw plot."""
         self._axis_offsets = value
         self.ax.ticklabel_format(useOffset=self._axis_offsets)
         self.draw()
@@ -1310,7 +1327,8 @@ class NXPlotView(QtGui.QDialog):
         """Return whether the axes are equally spaced.
         
         If both the x and y axes are equally spaced, then the Matplotlib
-        imshow function is used for 2D plots.
+        imshow function is used for 2D plots. Otherwise, pcolormesh is
+        used.
         """
         try:
             return self.xaxis.equally_spaced and self.yaxis.equally_spaced
@@ -1327,6 +1345,17 @@ class NXPlotView(QtGui.QDialog):
         self.canvas.draw_idle()
 
     def grid(self, display=None, **opts):
+        """Set grid display.
+        
+        Parameters
+        ----------
+        display: bool or None
+            If True, the grid is displayed. If None, grid display is 
+            toggled on or off.
+        opts: dictionary
+            Valid options for displaying grids. If not set, the default
+            Matplotlib styles are used.
+        """
         if display is True or display is False:
             self._grid = display
         elif opts:
@@ -1345,47 +1374,93 @@ class NXPlotView(QtGui.QDialog):
         self.draw()
         self.update_customize_panel()
 
-    def vline(self, x, y=None, ymin=None, ymax=None, **opts):
+    def vlines(self, x, ymin=None, ymax=None, y=None, **opts):
+        """Plot vertical lines at x-value(s).
+        
+        Parameters
+        ----------
+        x: float or ndarray
+            x-values of vertical line(s)
+        y: float
+            y-value at which the x-value is determined. This is only 
+            required if the plot is skewed.
+        ymin: float
+            Minimum y-value of vertical line. Defaults to plot minimum.
+        ymax: float
+            Maximum y-value of vertical line. Defaults to plot maximum.
+        opts: dictionary
+            Valid options for displaying lines.
+
+        Returns
+        -------
+        lines: Matplotlib LineCollection
+            Collection of vertical lines.
+        """
         if ymin is None:
             ymin = plotview.ax.get_ylim()[0]
         if ymax is None:
             ymax = plotview.ax.get_ylim()[1]
         if self.skew is not None and y is not None:
             x, _ = self.transform(x, y)
-        line = plotview.ax.vlines(float(x), ymin, ymax, **opts)
+        lines = plotview.ax.vlines(float(x), ymin, ymax, **opts)
         self.canvas.draw()
-        return line
+        return lines
 
-    def hline(self, y, x=None, xmin=None, xmax=None, **opts):
+    vline = vlines
+
+    def hlines(self, y, xmin=None, xmax=None, x=None, **opts):
+        """Plot horizontal line at y-value(s).
+        
+        Parameters
+        ----------
+        y: float or ndarray
+            y-values of horizontal line(s)
+        x: float
+            x-value at which the y-value is determined. This is only 
+            required if the plot is skewed.
+        xmin: float
+            Minimum x-value of horizontal line. Defaults to plot 
+            minimum.
+        xmax: float
+            Maximum x-value of horizontal line. Defaults to plot 
+            maximum.
+        opts: dictionary
+            Valid options for displaying lines.
+
+        Returns
+        -------
+        lines: Matplotlib LineCollection
+            Collection of horizontal lines.
+        """
         if xmin is None:
             xmin = plotview.ax.get_xlim()[0]
         if xmax is None:
             xmax = plotview.ax.get_xlim()[1]
         if self.skew is not None and x is not None:
             _, y = self.transform(x, y)
-        line = plotview.ax.hlines(float(y), xmin, xmax, **opts)
-        self.canvas.draw()
-        return line
-
-    def vlines(self, x, ymin=None, ymax=None, **opts):
-        if ymin is None:
-            ymin = plotview.ax.get_ylim()[0]
-        if ymax is None:
-            ymax = plotview.ax.get_ylim()[1]
-        lines = plotview.ax.vlines(x, ymin, ymax, **opts)
+        lines = plotview.ax.hlines(float(y), xmin, xmax, **opts)
         self.canvas.draw()
         return lines
 
-    def hlines(self, y, xmin=None, xmax=None, **opts):
-        if xmin is None:
-            xmin = plotview.ax.get_xlim()[0]
-        if xmax is None:
-            xmax = plotview.ax.get_xlim()[1]
-        lines = plotview.ax.hlines(y, xmin, xmax, **opts)
-        self.canvas.draw()
-        return lines
+    hline = hlines
 
     def crosshairs(self, x, y, **opts):
+        """Plot crosshairs centered at (x,y).
+        
+        Parameters
+        ----------
+        x: float or ndarray
+            x-value of vertical line
+        y: float or ndarray
+            y-value of horizontal line
+        opts: dictionary
+            Valid options for displaying lines.
+
+        Returns
+        -------
+        lines: Matplotlib LineCollection
+            Collection of horizontal lines.
+        """
         if self.skew is not None:
             x, y = self.transform(x, y)
         crosshairs = []
