@@ -2210,7 +2210,7 @@ class NXPlotTab(QtGui.QWidget):
         """
         idx = self.cmapcombo.findText(cmap)
         if idx < 0 and cmap in cmap_d:
-            self.cmapcombo.addItem(cmap)
+            self.cmapcombo.insertItem(4, cmap)
             self.cmapcombo.setCurrentIndex(self.cmapcombo.findText(cmap))
 
     @property
