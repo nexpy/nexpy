@@ -1805,16 +1805,27 @@ class NXPlotAxis(object):
     dim: int
         Dimension value
     dimlen: int
-        Length of 
+        Length of equivalent dimension in the signal array. This is used 
+        to determine if the axis values are bin centers or boundaries.
+
     Attributes
     ----------
+    name: str
+        Axis name.
+    data: ndarray
+        Array of axis values.
+    dim: int
+        No. of the axis dimensions (not currently used).
+    reversed: bool
+        True if the axis values fall with increasing array index.
+    equally_spaced: bool
+        True if the axis values are regularly spaced.
     """
     def __init__(self, axis, dim=None, dimlen=None):
         self.name = axis.nxname
         self.data = axis.nxdata
         self.dim = dim
         self.reversed = False
-        self.flipped = False
         self.equally_spaced = True
         if self.data is not None:
             if dimlen is None:
