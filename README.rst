@@ -94,6 +94,9 @@ while PySide is included in the `Enthought Python Distribution
 <http://www.enthought.com>`_ or within Enthought's `Canopy Application
 <https://www.enthought.com/products/canopy/>`_.
 
+.. note:: Anaconda now installs PyQt5 by default. To ensure that PyQt4
+          is installed, type `conda install pyqt=4`.
+
 The GUI includes an `IPython shell <http://ipython.org/>`_ and a `Matplotlib
 plotting pane <http://matplotlib.sourceforge.net>`_. The IPython shell is
 embedded in the Qt GUI using an implementation based on the newly-released
@@ -141,6 +144,12 @@ be separately installed.
 From v0.4.3, the log window is colorized if `ansi2html 
 <https://pypi.python.org/pypi/ansi2html/>`_ is installed.
 
+From v0.9.1, a new 2D smoothing option is available in the list of 
+interpolations in the signal tab if `astropy <http://www.astropy.org>`_
+is installed. It is labelled 'convolve' and provides, by default, a 
+2-pixel Gaussian smoothing of the data. The number of pixels can be 
+changed in the shell by setting ``plotview.smooth``.
+
 =================  ==========================================================
 Library            URL
 =================  ==========================================================
@@ -149,6 +158,7 @@ tifffile           https://pypi.python.org/pypi/tifffile
 pycbf              http://sourceforge.net/projects/cbflib/files/cbflib/pycbf/
 spec2nexus         http://spec2nexus.readthedocs.org/
 ansi2html          https://pypi.python.org/pypi/ansi2html/
+astropy            http://www.astropy.org
 =================  ==========================================================
 
 .. note:: NeXpy should still run without these additional packages, but invoking
