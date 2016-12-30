@@ -565,17 +565,6 @@ class NXPlotView(QtGui.QDialog):
             If True, the signal and axes values are updated without
             creating a new NXPlotAxis instance.
         """
-        if self.ndim > 2:
-            idx=[np.s_[0] if s==1 else np.s_[:] for s in self.data.nxsignal.shape]
-            for i in range(len(idx)):
-                if idx.count(slice(None,None,None)) > 2:
-                    idx[i] = 0
-            self.signal = self.data.nxsignal[tuple(idx)][()]
-        elif self.rgb_image:
-            self.signal = self.data.nxsignal[()]
-        else:
-            self.signal = self.data.nxsignal[()].reshape(self.shape)
-
         if self.data.plot_axes is not None:
             axes = self.data.plot_axes
         else:
@@ -583,7 +572,21 @@ class NXPlotView(QtGui.QDialog):
                             for i in range(self.ndim)]
 
         self.axes = [NXfield(axes[i].nxdata, name=axes[i].nxname,
-                             attrs=axes[i].safe_attrs) for i in range(self.ndim)]
+                     attrs=axes[i].safe_attrs) for i in range(self.ndim)]
+
+        if self.ndim > 2:
+            idx=[np.s_[0] if s==1 else np.s_[:] for s in self.data.nxsignal.shape]
+            for i in range(len(idx)):
+                if idx.count(slice(None,None,None)) > 2:
+                    try:
+                        idx[i] = self.axes[i].index(0.0)
+                    except Exception:
+                        idx[i] = 0
+            self.signal = self.data.nxsignal[tuple(idx)][()]
+        elif self.rgb_image:
+            self.signal = self.data.nxsignal[()]
+        else:
+            self.signal = self.data.nxsignal[()].reshape(self.shape)
 
         if over:
             self.axis['signal'].set_data(self.signal)
@@ -609,11 +612,11 @@ class NXPlotView(QtGui.QDialog):
             self.xaxis = self.axis[self.ndim-1]
             self.yaxis = self.axis[self.ndim-2]
             if self.ndim > 2:
-                self.zaxis = self.axis[self.ndim-3]
-                self.zaxis.lo = self.zaxis.hi = self.zaxis.min
-                for i in range(self.ndim-3):
+                for i in range(self.ndim-2):
                     self.axis[i].lo = self.axis[i].hi \
-                        = self.axis[i].data.min()
+                        = self.axis[i].data[idx[i]]
+                self.zaxis = self.axis[self.ndim - 3]
+                self.zaxis.lo = self.zaxis.hi = self.axis[self.ndim - 3].lo
             else:
                 self.zaxis = None
             self.vaxis = self.axis['signal']
