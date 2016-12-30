@@ -293,6 +293,7 @@ class NXTreeView(QtGui.QTreeView):
         self.delete_action=QtGui.QAction("Delete...", self, triggered=self.delete_data)
         self.link_action=QtGui.QAction("Show Link", self, triggered=self.show_link)
         self.signal_action=QtGui.QAction("Set Signal...", self, triggered=self.set_signal)
+        self.default_action=QtGui.QAction("Set Default", self, triggered=self.set_default)
         self.fit_action=QtGui.QAction("Fit...", self, triggered=self.fit_data)
         self.savefile_action=QtGui.QAction("Save as...", self, triggered=self.save_file)
         self.duplicate_action=QtGui.QAction("Duplicate...", self, triggered=self.duplicate)
@@ -350,6 +351,8 @@ class NXTreeView(QtGui.QTreeView):
                 menu.addAction(self.fit_action)
                 menu.addSeparator()
             menu.addAction(self.signal_action)
+        if isinstance(node, NXentry) or isinstance(node, NXdata):
+            menu.addAction(self.default_action)
         menu.addSeparator()
         if isinstance(node, NXroot):
             menu.addAction(self.savefile_action)
@@ -442,6 +445,9 @@ class NXTreeView(QtGui.QTreeView):
 
     def set_signal(self):
         self.mainwindow.set_signal()
+
+    def set_default(self):
+        self.mainwindow.set_default()
 
     def fit_data(self):
         self.mainwindow.fit_data()

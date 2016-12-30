@@ -541,6 +541,12 @@ class MainWindow(QtGui.QMainWindow):
             )
         self.add_menu_action(self.data_menu, self.signal_action, True)
 
+        self.default_action=QtGui.QAction("Set Default",
+            self,
+            triggered=self.set_default
+            )
+        self.add_menu_action(self.data_menu, self.default_action, True)
+
         self.data_menu.addSeparator()
 
         self.fit_action=QtGui.QAction("Fit Data",
@@ -1441,6 +1447,27 @@ class MainWindow(QtGui.QMainWindow):
                     raise NeXusError("NeXus file is locked")
         except NeXusError as error:
             report_error("Setting Signal", error)
+
+    def set_default(self):
+        try:
+            node = self.treeview.get_node()
+            if isinstance(node, NXentry) or isinstance(node, NXdata):               
+                if node.nxfilemode != 'r':
+                    if node.nxgroup is None:
+                        raise NeXusError("There is no parent group")
+                    if 'default' in node.nxgroup.attrs:
+                        ret = confirm_action("Override existing default?")
+                        if ret != QtGui.QMessageBox.Ok:
+                            return
+                    node.nxgroup.attrs['default'] = node.nxname
+                    if node.nxgroup in node.nxroot.values():
+                        if 'default' not in node.nxroot.attrs:
+                            node.nxroot.attrs['default'] = node.nxgroup.nxname
+                    logging.info("Default set to '%s'" % node.nxpath)
+                else:
+                    raise NeXusError("NeXus file is locked")
+        except NeXusError as error:
+            report_error("Setting Default", error)
 
     def fit_data(self):
         try:
