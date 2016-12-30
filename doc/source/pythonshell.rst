@@ -284,8 +284,8 @@ filled incrementally as slabs::
          entry.data.z[i,:,:] = np.ones(shape=(1000,1000), dtype=np.float32)
              ...
 
-If `entry` in the above example is already stored in a NeXus file (with write
-access), then `entry.data.z` is automatically updated in the file. If it is not
+If ``entry`` in the above example is already stored in a NeXus file (with write
+access), then ``entry.data.z`` is automatically updated in the file. If it is not
 stored in a file, the field is stored in an HDF5 core memory file that will be
 copied to the NeXus file when it is saved.
 
@@ -297,7 +297,7 @@ attributes that specify how the data are stored.
     >>> z = NXfield(shape=(1000,1000,1000), dtype=np.float32, compression='lzf')
 
   This specifies the compression filter used. For large arrays, the data are
-  compressed with the `gzip` filter by default. 
+  compressed with the ``gzip`` filter by default. 
 
 * Chunk size::
 
@@ -309,8 +309,8 @@ attributes that specify how the data are stored.
 
     >>> z = NXfield(shape=(10,1000,1000), dtype=np.float32, maxshape=(1000,1000,1000))
 
-  The initial shape is defined by the `shape` attribute, but it will be 
-  automatically expanded up to a limit of `maxshape` if necessary.
+  The initial shape is defined by the ``shape`` attribute, but it will be 
+  automatically expanded up to a limit of ``maxshape`` if necessary.
 
 * Fill value::
 
@@ -320,8 +320,8 @@ attributes that specify how the data are stored.
   normally set to zero by default.
   
 All these values can be adjusted at the command line until the first slab has
-been written, whether to a file or in core memory, using the `compression`, 
-`chunks`, `maxshape` or `fillvalue` properties, *e.g.*
+been written, whether to a file or in core memory, using the ``compression``, 
+``chunks``, ``maxshape`` or ``fillvalue`` properties, *e.g.*
 
  >>> z = NXfield(shape=(1000,1000,1000), dtype=np.float32)
  >>> z.compression = 'lzf'
@@ -615,7 +615,12 @@ the image can be plotted using the 'image=True'.
  >>> data.plot(image=True)
 
 By convention, the first pixel of an image is in the upper-left corner, rather 
-than the lower-left used in other two-dimensional plots. 
+than the lower-left used in other two-dimensional plots.
+
+..note:: The plot method also works on NXroot and NXentry groups, if they are 
+         able to identify plottable data. If the ``default`` attribute is set, 
+         the default NXentry and/or NXdata groups are used. Otherwise, the first
+         valid NXdata group found in an iterative search is used.
  
 Additional Plot Methods
 -----------------------
