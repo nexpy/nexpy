@@ -1086,7 +1086,7 @@ class AddDialog(BaseDialog):
         class_layout = QtGui.QHBoxLayout()
         self.class_box = QtGui.QComboBox()
         if isinstance(self.node, NXgroup):
-            names = ['NXgroup', 'NXfield']
+            names = ['NXgroup', 'NXfield', 'NXattr']
         else:
             names = ['NXattr']
         for name in names:
