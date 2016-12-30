@@ -770,13 +770,13 @@ class NXPlotView(QtGui.QDialog):
         ax.autoscale(enable=True)
 
         if self.xaxis.reversed:
-            left, right = self.xaxis.data.max(), self.xaxis.data.min()
+            left, right = self.xaxis.max_data, self.xaxis.min_data
         else:
-            left, right = self.xaxis.data.min(), self.xaxis.data.max()
+            left, right = self.xaxis.min_data, self.xaxis.max_data
         if self.yaxis.reversed:
-            bottom, top = self.yaxis.data.max(), self.yaxis.data.min()
+            bottom, top = self.yaxis.max_data, self.yaxis.min_data
         else:
-            bottom, top = self.yaxis.data.min(), self.yaxis.data.max()
+            bottom, top = self.yaxis.min_data, self.yaxis.max_data
         extent = (left, right, bottom, top)
 
         if self.regular_grid:
@@ -785,7 +785,7 @@ class NXPlotView(QtGui.QDialog):
             else:
                 opts['interpolation'] = self.interpolation
 
-        if (self.rgb_image or self.regular_grid):
+        if self.rgb_image or self.regular_grid:
             opts['origin'] = 'lower'
             self.image = ax.imshow(self.v, extent=extent, cmap=self.cmap,
                                    **opts)
@@ -1834,7 +1834,7 @@ class NXPlotAxis(object):
                 try:
                     self.min = np.min(self.data[np.isfinite(self.data)])
                     self.max = np.max(self.data[np.isfinite(self.data)])
-                except:
+                except Exception:
                     self.min = 0.0
                     self.max = 0.1
             else:
@@ -1857,6 +1857,8 @@ class NXPlotAxis(object):
             self.boundaries = None
             self.min = None
             self.max = None
+        self.min_data = self.min
+        self.max_data = self.max
         self.lo = None
         self.hi = None
         self.diff = 0.0
@@ -2136,6 +2138,7 @@ class NXPlotTab(QtGui.QWidget):
 
     @QtCore.Slot()
     def read_maxbox(self):
+        """Update plot based on the maxbox value."""
         hi = self.maxbox.value()
         if np.isclose(hi, self.maxbox.old_value):
             return
