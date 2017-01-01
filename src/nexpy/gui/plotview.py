@@ -612,7 +612,6 @@ class NXPlotView(QtGui.QDialog):
             if self.ndim > 2:
                 for i in range(self.ndim-2):
                     self.axis[i].lo = self.axis[i].hi \
-                        = self.axis[i].data[idx[i]]
                 self.zaxis = self.axis[self.ndim - 3]
                 self.zaxis.lo = self.zaxis.hi = self.axis[self.ndim - 3].lo
             else:
@@ -996,6 +995,8 @@ class NXPlotView(QtGui.QDialog):
         if draw:
             self.draw()
 
+    def grid_helper(self):
+        """Define the locator used in skew transforms."""
         locator = MaxNLocator(nbins=9, steps=[1, 2, 5, 10])
         return GridHelperCurveLinear((self.transform, self.inverse_transform),
                                      grid_locator1=locator,
