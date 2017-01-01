@@ -612,6 +612,7 @@ class NXPlotView(QtGui.QDialog):
             if self.ndim > 2:
                 for i in range(self.ndim-2):
                     self.axis[i].lo = self.axis[i].hi \
+                        = np.float(self.axis[i].data[idx[i]])
                 self.zaxis = self.axis[self.ndim - 3]
                 self.zaxis.lo = self.zaxis.hi = self.axis[self.ndim - 3].lo
             else:
@@ -897,7 +898,7 @@ class NXPlotView(QtGui.QDialog):
         """
         axes = [self.yaxis.dim, self.xaxis.dim]
         limits = []
-        xmin, xmax, ymin, ymax = self.limits
+        xmin, xmax, ymin, ymax = [np.float(value) for value in self.limits]
         for i in range(self.ndim):
             if i in axes:
                 if i == self.xaxis.dim:
@@ -905,7 +906,8 @@ class NXPlotView(QtGui.QDialog):
                 else:
                     limits.append((ymin, ymax))
             else:
-                limits.append((self.axis[i].lo, self.axis[i].hi))
+                limits.append((np.float(self.axis[i].lo), 
+                               np.float(self.axis[i].hi)))
         if self.data.nxsignal.shape != self.data.plot_shape:
             axes, limits = fix_projection(self.data.nxsignal.shape, axes, limits)
         self.plotdata = self.data.project(axes, limits, summed=self.summed)
@@ -1020,10 +1022,6 @@ class NXPlotView(QtGui.QDialog):
             angle = np.radians(self.skew)
             return 1.*x-y/np.tan(angle),  y/np.sin(angle)
 
-    def locator(self, *args, **opts):
-        """Define the locator used in skew transforms."""
-        if self.vtab.logbox.isChecked():
-            self.set_data_limits()
     def set_log_axis(self):
         """Set x and y axis scales when the log option is on or off."""
         ax = self.figure.gca()
@@ -1058,6 +1056,7 @@ class NXPlotView(QtGui.QDialog):
         """
         self._linthresh = linthresh
         self._linscale = linscale
+        
         if self.image is not None:
             if vmax is None:
                 vmax = max(abs(self.vaxis.min), abs(self.vaxis.max))
@@ -1075,6 +1074,9 @@ class NXPlotView(QtGui.QDialog):
                                              vmin=-vmax, vmax=vmax))
             self.colorbar.set_norm(NXSymLogNorm(linthresh, linscale=linscale,
                                              vmin=-vmax, vmax=vmax))
+            self.colorbar.locator = AutoLocator()
+            self.colorbar.formatter = ScalarFormatter()
+            self.colorbar.update_normal(self.image)
             self.image.set_clim(self.vaxis.lo, self.vaxis.hi)
             self.draw()
             self.vtab.set_axis(self.vaxis)
