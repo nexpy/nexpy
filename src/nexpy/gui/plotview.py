@@ -42,7 +42,11 @@ from matplotlib.cm import cmap_d, get_cmap
 from matplotlib.lines import Line2D
 from matplotlib import markers
 from matplotlib.patches import Circle, Ellipse, Rectangle, Polygon
-from matplotlib import ticker
+from matplotlib.ticker import AutoLocator, LogLocator, ScalarFormatter
+try:
+    from matplotlib.ticker import LogFormatterSciNotation as LogFormatter
+except ImportError:
+    from matplotlib.ticker import LogFormatter
 from matplotlib.transforms import nonsingular
 from mpl_toolkits.axisartist.grid_helper_curvelinear import GridHelperCurveLinear
 from mpl_toolkits.axisartist import Subplot
@@ -78,7 +82,6 @@ except ImportError:
 linestyles = {'-': 'Solid', '--': 'Dashed', '-.': 'DashDot', ':': 'Dotted',
               'none': 'None'}
 markers = markers.MarkerStyle.markers
-locator = MaxNLocator(nbins=9, steps=[1, 2, 5, 10])
 logo = mpl.image.imread(pkg_resources.resource_filename(
            'nexpy.gui', 'resources/icon/NeXpy.png'))[180:880,50:1010]
 
@@ -333,11 +336,6 @@ class NXPlotView(QtGui.QDialog):
         self._linthresh = None
         self._linscale = None
         self._stddev = 2.0
-
-        self.grid_helper = GridHelperCurveLinear((self.transform,
-                                                  self.inverse_transform),
-                                                  grid_locator1=locator,
-                                                  grid_locator2=locator)
 
         if self.number < 101:
             plotview = self
@@ -768,8 +766,11 @@ class NXPlotView(QtGui.QDialog):
             opts["norm"] = Normalize(self.vaxis.lo, self.vaxis.hi)
 
         self.figure.clf()
-        subplot = Subplot(self.figure, 1, 1, 1, grid_helper=self.grid_helper)
-        ax = self.figure.add_subplot(subplot)
+        if self.skew:
+            ax = self.figure.add_subplot(Subplot(self.figure, 1, 1, 1, 
+                                         grid_helper=self.grid_helper()))
+        else:
+            ax = self.figure.add_subplot(1, 1, 1)
         ax.autoscale(enable=True)
 
         if self.xaxis.reversed:
@@ -811,7 +812,8 @@ class NXPlotView(QtGui.QDialog):
         ax.set_xlim(xlo, xhi)
         ax.set_ylim(ylo, yhi)
 
-        ax.grid(self._grid, color=self._gridcolor, linestyle=self._gridstyle)
+        if self._grid:
+            ax.grid(self._grid, color=self._gridcolor, linestyle=self._gridstyle)
 
         ax.set_xlabel(self.xaxis.label)
         ax.set_ylabel(self.yaxis.label)
@@ -929,16 +931,46 @@ class NXPlotView(QtGui.QDialog):
     def replot_image(self):
         """Replot the image with new signal limits."""
         try:
-            self.set_data_limits()
+            if self.vtab.logbox.isChecked():
+                self.set_data_limits()
+                if self.vtab.symmetric:
+                    if self._linthresh:
+                        linthresh = self._linthresh
+                    else:
+                        linthresh = self.vaxis.hi / 10.0
+                    if self._linscale:
+                        linscale = self._linscale
+                    else:
+                        linscale = 0.1
+                    self.colorbar.set_norm(NXSymLogNorm(linthresh, 
+                                                        linscale=linscale,
+                                                        vmin=self.vaxis.lo,
+                                                        vmax=self.vaxis.hi))
+                    self.colorbar.locator = AutoLocator()
+                    self.colorbar.formatter = ScalarFormatter()
+                    self.image.set_norm(NXSymLogNorm(linthresh, 
+                                                     linscale=linscale,
+                                                     vmin=self.vaxis.lo,
+                                                     vmax=self.vaxis.hi))
+                else:
+                    self.colorbar.set_norm(LogNorm(self.vaxis.lo, self.vaxis.hi))
+                    self.colorbar.locator = LogLocator()
+                    self.colorbar.formatter = LogFormatter()
+                    self.image.set_norm(LogNorm(self.vaxis.lo, self.vaxis.hi))
+            else:
+                self.colorbar.set_norm(Normalize(self.vaxis.lo, self.vaxis.hi))
+                self.colorbar.locator = AutoLocator()
+                self.colorbar.formatter = ScalarFormatter()
+                self.image.set_norm(Normalize(self.vaxis.lo, self.vaxis.hi))
+            self.colorbar.update_normal(self.image)
             self.image.set_clim(self.vaxis.lo, self.vaxis.hi)
-            self.colorbar.draw_all()
             if self.regular_grid:
                 if self.interpolation == 'convolve':
                     self.image.set_interpolation('bicubic')
                 else:
                     self.image.set_interpolation(self.interpolation)
             self.replot_axes()
-        except:
+        except Exception as error:
             pass
 
     def replot_axes(self, draw=True):
@@ -964,6 +996,11 @@ class NXPlotView(QtGui.QDialog):
         if draw:
             self.draw()
 
+        locator = MaxNLocator(nbins=9, steps=[1, 2, 5, 10])
+        return GridHelperCurveLinear((self.transform, self.inverse_transform),
+                                     grid_locator1=locator,
+                                     grid_locator2=locator)
+
     def transform(self, x, y):
         """Return the x and y values transformed by the skew angle."""
         if x is None or y is None or self.skew is None:
@@ -984,40 +1021,8 @@ class NXPlotView(QtGui.QDialog):
 
     def locator(self, *args, **opts):
         """Define the locator used in skew transforms."""
-        locator = MaxNLocator(*args, **opts)
-        self.grid_helper = GridHelperCurveLinear((self.transform, 
-                                                  self.inverse_transform),
-                                                  grid_locator1=locator,
-                                                  grid_locator2=locator)
-
-    def set_log_image(self):
-        """Set image normalization when the log option is on or off."""
         if self.vtab.logbox.isChecked():
             self.set_data_limits()
-            if self.vtab.symmetric:
-                if self._linthresh:
-                    linthresh = self._linthresh
-                else:
-                    linthresh = self.vaxis.hi / 10.0
-                if self._linscale:
-                    linscale = self._linscale
-                else:
-                    linscale = 0.1
-                self.image.set_norm(NXSymLogNorm(linthresh, linscale=linscale,
-                                                 vmin=self.vaxis.lo,
-                                                 vmax=self.vaxis.hi))
-                self.colorbar.set_norm(NXSymLogNorm(linthresh, 
-                                                    linscale=linscale,
-                                                    vmin=self.vaxis.lo,
-                                                    vmax=self.vaxis.hi))
-            else:
-                self.image.set_norm(LogNorm(self.vaxis.lo, self.vaxis.hi))
-                self.colorbar.set_norm(LogNorm(self.vaxis.lo, self.vaxis.hi))
-        else:
-            self.image.set_norm(Normalize(self.vaxis.lo, self.vaxis.hi))
-            self.colorbar.set_norm(Normalize(self.vaxis.lo, self.vaxis.hi))
-        self.replot_image()
-
     def set_log_axis(self):
         """Set x and y axis scales when the log option is on or off."""
         ax = self.figure.gca()
@@ -1199,10 +1204,6 @@ class NXPlotView(QtGui.QDialog):
             self._aspect = 'equal'
             self.otab._actions['set_aspect'].setChecked(True)
             plotview.ax.set_aspect(self._aspect)
-        self.grid_helper = GridHelperCurveLinear((self.transform,
-                                                  self.inverse_transform),
-                                                  grid_locator1=locator,
-                                                  grid_locator2=locator)
         if self.image is not None:
             self.replot_data(newaxis=True)
             self.update_customize_panel()
@@ -1373,7 +1374,8 @@ class NXPlotView(QtGui.QDialog):
             self._gridcolor = opts['color']
         else:
             opts['color'] = self._gridcolor
-        self.ax.grid(self._grid, **opts)
+        if self._grid:
+            self.ax.grid(self._grid, **opts)
         self.draw()
         self.update_customize_panel()
 
@@ -2281,9 +2283,8 @@ class NXPlotTab(QtGui.QWidget):
 
     def set_log(self):
         try:
-            if self.name == 'v':
-                if self.plotview.image:
-                    self.plotview.set_log_image()
+            if self.name == 'v' and self.plotview.image:
+                self.plotview.replot_image()
             else:
                 self.plotview.set_log_axis()
         except:
