@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Python Interface to NeXus &mdash; NeXpy 0.9.0 documentation</title>
+    <title>Python Interface to NeXus &mdash; NeXpy 0.9.1 documentation</title>
     
     <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.9.0',
+        VERSION:     '0.9.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -25,7 +25,7 @@
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="shortcut icon" href="_static/favicon.ico"/>
-    <link rel="top" title="NeXpy 0.9.0 documentation" href="index.html" />
+    <link rel="top" title="NeXpy 0.9.1 documentation" href="index.html" />
     <link rel="next" title="Python Graphical User Interface" href="pythongui.html" />
     <link rel="prev" title="Installation" href="includeme.html" /> 
   </head>
@@ -45,7 +45,7 @@
         <li class="right" >
           <a href="includeme.html" title="Installation"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.9.0 documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.9.1 documentation</a> &raquo;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -439,8 +439,8 @@ filled incrementally as slabs:</p>
 <span class="go">            ...</span>
 </pre></div>
 </div>
-<p>If <cite>entry</cite> in the above example is already stored in a NeXus file (with write
-access), then <cite>entry.data.z</cite> is automatically updated in the file. If it is not
+<p>If <code class="docutils literal"><span class="pre">entry</span></code> in the above example is already stored in a NeXus file (with write
+access), then <code class="docutils literal"><span class="pre">entry.data.z</span></code> is automatically updated in the file. If it is not
 stored in a file, the field is stored in an HDF5 core memory file that will be
 copied to the NeXus file when it is saved.</p>
 <p>When initializing the NXfield, it is possible to specify a number of HDF5
@@ -451,7 +451,7 @@ attributes that specify how the data are stored.</p>
 </pre></div>
 </div>
 <p>This specifies the compression filter used. For large arrays, the data are
-compressed with the <cite>gzip</cite> filter by default.</p>
+compressed with the <code class="docutils literal"><span class="pre">gzip</span></code> filter by default.</p>
 </li>
 <li><p class="first">Chunk size:</p>
 <div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">z</span> <span class="o">=</span> <span class="n">NXfield</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span><span class="mi">1000</span><span class="p">,</span><span class="mi">1000</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">chunks</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">100</span><span class="p">,</span><span class="mi">100</span><span class="p">))</span>
@@ -463,8 +463,8 @@ compressed with the <cite>gzip</cite> filter by default.</p>
 <div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">z</span> <span class="o">=</span> <span class="n">NXfield</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">1000</span><span class="p">,</span><span class="mi">1000</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">maxshape</span><span class="o">=</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span><span class="mi">1000</span><span class="p">,</span><span class="mi">1000</span><span class="p">))</span>
 </pre></div>
 </div>
-<p>The initial shape is defined by the <cite>shape</cite> attribute, but it will be
-automatically expanded up to a limit of <cite>maxshape</cite> if necessary.</p>
+<p>The initial shape is defined by the <code class="docutils literal"><span class="pre">shape</span></code> attribute, but it will be
+automatically expanded up to a limit of <code class="docutils literal"><span class="pre">maxshape</span></code> if necessary.</p>
 </li>
 <li><p class="first">Fill value:</p>
 <div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">z</span> <span class="o">=</span> <span class="n">NXfield</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span><span class="mi">1000</span><span class="p">,</span><span class="mi">1000</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">fillvalue</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
@@ -475,8 +475,8 @@ normally set to zero by default.</p>
 </li>
 </ul>
 <p>All these values can be adjusted at the command line until the first slab has
-been written, whether to a file or in core memory, using the <cite>compression</cite>,
-<cite>chunks</cite>, <cite>maxshape</cite> or <cite>fillvalue</cite> properties, <em>e.g.</em></p>
+been written, whether to a file or in core memory, using the <code class="docutils literal"><span class="pre">compression</span></code>,
+<code class="docutils literal"><span class="pre">chunks</span></code>, <code class="docutils literal"><span class="pre">maxshape</span></code> or <code class="docutils literal"><span class="pre">fillvalue</span></code> properties, <em>e.g.</em></p>
 <div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">z</span> <span class="o">=</span> <span class="n">NXfield</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span><span class="mi">1000</span><span class="p">,</span><span class="mi">1000</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">z</span><span class="o">.</span><span class="n">compression</span> <span class="o">=</span> <span class="s1">&#39;lzf&#39;</span>
 </pre></div>
@@ -794,6 +794,12 @@ the image can be plotted using the &#8216;image=True&#8217;.</p>
 </div>
 <p>By convention, the first pixel of an image is in the upper-left corner, rather
 than the lower-left used in other two-dimensional plots.</p>
+<dl class="docutils">
+<dt>..note:: The plot method also works on NXroot and NXentry groups, if they are</dt>
+<dd>able to identify plottable data. If the <code class="docutils literal"><span class="pre">default</span></code> attribute is set,
+the default NXentry and/or NXdata groups are used. Otherwise, the first
+valid NXdata group found in an iterative search is used.</dd>
+</dl>
 <div class="section" id="additional-plot-methods">
 <h3>Additional Plot Methods<a class="headerlink" href="#additional-plot-methods" title="Permalink to this headline">¶</a></h3>
 <p>As a convenience, additional plot methods can be used instead of adding extra
@@ -1176,7 +1182,7 @@ if necessary, in order to produce a valid NeXus file.</p>
         <li class="right" >
           <a href="includeme.html" title="Installation"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.9.0 documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.9.1 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">

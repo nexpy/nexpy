@@ -210,10 +210,6 @@ Data Menu
     are displayed. For multidimensional data, a 10 x 10 slab of values is
     displayed, with spin boxes to select the slab coordinates.
 
-    .. image:: /images/view-panel.png
-       :align: center
-       :width: 100%
-
 **Add Data**
     Adds data to the selected tree item. If the selected item is a group, the
     added data can be a group or field. If the selected item is a field, the 
@@ -295,6 +291,17 @@ Data Menu
     .. note:: The use of the 'Add Data' and 'Set Signal' menu items allows, in 
               principle, an entire NeXus data tree to be constructed using menu 
               calls. 
+
+**Set Default**
+    This sets the `default` attribute in the parent group to the currently 
+    selected group, *i.e.*, if the selected group is an NXdata (NXentry) group, 
+    the attribute will be set in the parent NXentry (NXroot) group. The 
+    `default` attribute is used to identify the default data to be plotted.
+
+    .. note:: When a NXdata group is set as the default, the parent NXentry 
+              group is also set as the default in the parent NXroot group 
+              provided one has not already been set. The default entry can be 
+              overridden. 
 
 **Fit Data**
     Fits the selected tree item. This assumes that the selected item is a valid 
@@ -435,12 +442,35 @@ and sliders.
        :width: 75%
 
     The signal tab contains text boxes and sliders to adjust the intensity 
-    limits, a checkbox to plot the intensity on a log scale, and a dropdown menu
-    to select a color palette.
+    limits, a checkbox to plot the intensity on a log scale, and two dropdown 
+    menus to select a color palette and a 2D interpolation method.
+    
+    The color palettes are divided into three sections, separating perceptually
+    uniform palettes at the top, miscellaneous palettes, and diverging palettes
+    at the bottom. See the `Matplotlib documentation 
+    <http://matplotlib.org/users/colormaps.html>`_ for more details.
+    
+    If a diverging color scale is used, the signal is assumed to be symmetric 
+    about 0, so the minimum box and slider are disabled and their values set to 
+    the negative of the maximum values. If a log scale is chosen, a `symmetric 
+    log plot <http://matplotlib.org/users/colormapnorms.html#symmetric-logarithmic>`_ 
+    is displayed, with threshold and scale parameters adjustable using the 
+    command-line `symlog` command (see below).
     
     .. note:: For a one-dimensional plot, there is no signal tab. The intensity
               is adjusted using the y-tab. There is also no signal tab for an 
               RGB(A) image, since the colors are defined by the RGB(A) values.
+
+    .. note:: The interpolation methods are the default options provided by 
+              Matplotlib, which are only available for 2D data with a regular
+              grid. 
+              
+    .. note:: If the `astropy <http://www.astropy.org>`_ module is installed, 
+              the interpolation dropdown menu includes a `convolve` option.
+              Strictly speaking, this is not an interpolation method, since it 
+              performs a Gaussian smoothing of the data, with a standard 
+              deviation set by the `smooth` option (see below). The default is 
+              2 pixels.
 
 **X/Y Tab**
 
@@ -568,8 +598,8 @@ and sliders.
       scratch workspace 'w0'.
     * **Edit** - opens dialog to customize both image and point plots. Use this
       to change the title and axis labels, modify the image aspect ratio and 
-      skew angles, turn axis grids on or off, or modify the point plot markers 
-      and lines.
+      skew angles, turn axis grids on or off and set their styles, or modify the 
+      point plot markers and lines.
 
     On the far right of the toolbar, the data and axis values are dynamically 
     updated to the values under the current mouse location.
@@ -620,6 +650,14 @@ and sliders.
 .. image:: /images/skewed-axis.png
    :align: center
    :width: 75%
+
+* Set Smoothing Width::
+
+    >>> plotview.smooth = <stddev>
+
+  This sets the standard deviation in pixels for the Gaussian smoothing of the 
+  data performed when the 'convolve' option is selected in the Signal tab. The
+  default value is 2.
 
 * Set Offsets::
 
@@ -687,14 +725,13 @@ and sliders.
   <http://matplotlib.org/users/colormapnorms.html#symmetric-logarithmic>`_ for
   more details. The maximum and minimum signal values are set to +/- vmax.
   
+  Calling ``symlog`` will set the ``linthresh`` and ``linscale`` parameters for
+  future plots. Call it without any parameters to set them to their default 
+  values, ``linthresh=vmax/10`` and ``linscale=0.1``.
+  
   .. note:: There are a number of diverging color maps, such as ``coolwarm``,
-            that are ideal for displaying symmetric log data. 
-
-  .. warning:: This is not fully integrated into the plotting software, so if
-               you make any changes to the plot, such as switching axes, it may
-               be necessary to run this command again. It is possible to change
-               the z-axis values, *.e.g.*, by playing a movie, but you should
-               uncheck the ``Autoscale`` box. 
+            that are ideal for displaying symmetric log data. Some are available
+            at the bottom of the color map dropdown menu in the Signal tab.
 
 
 Fitting NeXus Data

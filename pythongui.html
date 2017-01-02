@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Python Graphical User Interface &mdash; NeXpy 0.9.0 documentation</title>
+    <title>Python Graphical User Interface &mdash; NeXpy 0.9.1 documentation</title>
     
     <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.9.0',
+        VERSION:     '0.9.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -25,7 +25,7 @@
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="shortcut icon" href="_static/favicon.ico"/>
-    <link rel="top" title="NeXpy 0.9.0 documentation" href="index.html" />
+    <link rel="top" title="NeXpy 0.9.1 documentation" href="index.html" />
     <link rel="next" title="NeXus Tree API Modules" href="treeapi.html" />
     <link rel="prev" title="Python Interface to NeXus" href="pythonshell.html" /> 
   </head>
@@ -45,7 +45,7 @@
         <li class="right" >
           <a href="pythonshell.html" title="Python Interface to NeXus"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.9.0 documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.9.1 documentation</a> &raquo;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -322,12 +322,10 @@ fastest varying dimension, which should be of size 3 or 4, contains the
 RGB(A) values for each pixel. By convention, the first pixel is in the
 upper-left corner, rather than the lower-left.</dd>
 <dt><strong>View Data</strong></dt>
-<dd><p class="first">Provides a tabular view of the selected item, whether it is a group or a
+<dd>Provides a tabular view of the selected item, whether it is a group or a
 field. All the metadata associated with the item, including any attributes,
 are displayed. For multidimensional data, a 10 x 10 slab of values is
-displayed, with spin boxes to select the slab coordinates.</p>
-<a class="last reference internal image-reference" href="_images/view-panel.png"><img alt="_images/view-panel.png" class="align-center" src="_images/view-panel.png" style="width: 100%;" /></a>
-</dd>
+displayed, with spin boxes to select the slab coordinates.</dd>
 <dt><strong>Add Data</strong></dt>
 <dd><p class="first">Adds data to the selected tree item. If the selected item is a group, the
 added data can be a group or field. If the selected item is a field, the
@@ -416,6 +414,19 @@ compatible dimensions to plot the data against.</p>
 <p class="last">The use of the &#8216;Add Data&#8217; and &#8216;Set Signal&#8217; menu items allows, in
 principle, an entire NeXus data tree to be constructed using menu
 calls.</p>
+</div>
+</dd>
+<dt><strong>Set Default</strong></dt>
+<dd><p class="first">This sets the <cite>default</cite> attribute in the parent group to the currently
+selected group, <em>i.e.</em>, if the selected group is an NXdata (NXentry) group,
+the attribute will be set in the parent NXentry (NXroot) group. The
+<cite>default</cite> attribute is used to identify the default data to be plotted.</p>
+<div class="last admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">When a NXdata group is set as the default, the parent NXentry
+group is also set as the default in the parent NXroot group
+provided one has not already been set. The default entry can be
+overridden.</p>
 </div>
 </dd>
 <dt><strong>Fit Data</strong></dt>
@@ -572,13 +583,37 @@ the Home button in the Options Tab or right-clicking within the plot.</p>
 <blockquote>
 <div><a class="reference internal image-reference" href="_images/signal-tab.png"><img alt="_images/signal-tab.png" class="align-center" src="_images/signal-tab.png" style="width: 75%;" /></a>
 <p>The signal tab contains text boxes and sliders to adjust the intensity
-limits, a checkbox to plot the intensity on a log scale, and a dropdown menu
-to select a color palette.</p>
+limits, a checkbox to plot the intensity on a log scale, and two dropdown
+menus to select a color palette and a 2D interpolation method.</p>
+<p>The color palettes are divided into three sections, separating perceptually
+uniform palettes at the top, miscellaneous palettes, and diverging palettes
+at the bottom. See the <a class="reference external" href="http://matplotlib.org/users/colormaps.html">Matplotlib documentation</a> for more details.</p>
+<p>If a diverging color scale is used, the signal is assumed to be symmetric
+about 0, so the minimum box and slider are disabled and their values set to
+the negative of the maximum values. If a log scale is chosen, a <a class="reference external" href="http://matplotlib.org/users/colormapnorms.html#symmetric-logarithmic">symmetric
+log plot</a>
+is displayed, with threshold and scale parameters adjustable using the
+command-line <cite>symlog</cite> command (see below).</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">For a one-dimensional plot, there is no signal tab. The intensity
 is adjusted using the y-tab. There is also no signal tab for an
 RGB(A) image, since the colors are defined by the RGB(A) values.</p>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The interpolation methods are the default options provided by
+Matplotlib, which are only available for 2D data with a regular
+grid.</p>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If the <a class="reference external" href="http://www.astropy.org">astropy</a> module is installed,
+the interpolation dropdown menu includes a <cite>convolve</cite> option.
+Strictly speaking, this is not an interpolation method, since it
+performs a Gaussian smoothing of the data, with a standard
+deviation set by the <cite>smooth</cite> option (see below). The default is
+2 pixels.</p>
 </div>
 </div></blockquote>
 <p><strong>X/Y Tab</strong></p>
@@ -697,8 +732,8 @@ This is only valid if the units of the x and y axes are identical.</li>
 scratch workspace &#8216;w0&#8217;.</li>
 <li><strong>Edit</strong> - opens dialog to customize both image and point plots. Use this
 to change the title and axis labels, modify the image aspect ratio and
-skew angles, turn axis grids on or off, or modify the point plot markers
-and lines.</li>
+skew angles, turn axis grids on or off and set their styles, or modify the
+point plot markers and lines.</li>
 </ul>
 <p>On the far right of the toolbar, the data and axis values are dynamically
 updated to the values under the current mouse location.</p>
@@ -754,6 +789,14 @@ be set using the &#8216;Edit Parameters&#8217; button on the Options tab.</p>
 </ul>
 <a class="reference internal image-reference" href="_images/skewed-axis.png"><img alt="_images/skewed-axis.png" class="align-center" src="_images/skewed-axis.png" style="width: 75%;" /></a>
 <ul>
+<li><p class="first">Set Smoothing Width:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">plotview</span><span class="o">.</span><span class="n">smooth</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">stddev</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>This sets the standard deviation in pixels for the Gaussian smoothing of the
+data performed when the &#8216;convolve&#8217; option is selected in the Signal tab. The
+default value is 2.</p>
+</li>
 <li><p class="first">Set Offsets:</p>
 <div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">plotview</span><span class="o">.</span><span class="n">offsets</span> <span class="o">=</span> <span class="o">&lt;</span><span class="bp">True</span><span class="o">|</span><span class="bp">False</span><span class="o">&gt;</span>
 </pre></div>
@@ -816,18 +859,14 @@ The <code class="docutils literal"><span class="pre">linthresh</span></code> and
 region interpolating between the positive and negative log regions. See the
 <a class="reference external" href="http://matplotlib.org/users/colormapnorms.html#symmetric-logarithmic">Matplotlib documentation</a> for
 more details. The maximum and minimum signal values are set to +/- vmax.</p>
+<p>Calling <code class="docutils literal"><span class="pre">symlog</span></code> will set the <code class="docutils literal"><span class="pre">linthresh</span></code> and <code class="docutils literal"><span class="pre">linscale</span></code> parameters for
+future plots. Call it without any parameters to set them to their default
+values, <code class="docutils literal"><span class="pre">linthresh=vmax/10</span></code> and <code class="docutils literal"><span class="pre">linscale=0.1</span></code>.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">There are a number of diverging color maps, such as <code class="docutils literal"><span class="pre">coolwarm</span></code>,
-that are ideal for displaying symmetric log data.</p>
-</div>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">This is not fully integrated into the plotting software, so if
-you make any changes to the plot, such as switching axes, it may
-be necessary to run this command again. It is possible to change
-the z-axis values, <em>.e.g.</em>, by playing a movie, but you should
-uncheck the <code class="docutils literal"><span class="pre">Autoscale</span></code> box.</p>
+that are ideal for displaying symmetric log data. Some are available
+at the bottom of the color map dropdown menu in the Signal tab.</p>
 </div>
 </li>
 </ul>
@@ -1191,7 +1230,7 @@ required code in ~/.nexpy/config.py.</p>
         <li class="right" >
           <a href="pythonshell.html" title="Python Interface to NeXus"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.9.0 documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.9.1 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
