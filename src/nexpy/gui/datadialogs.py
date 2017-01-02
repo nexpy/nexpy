@@ -789,28 +789,28 @@ class LimitDialog(BaseDialog):
 
         xmin_layout = QtGui.QHBoxLayout()
         xmin_layout.addWidget(QtGui.QLabel('xmin'))
-        self.xmin_box = self.textbox()
+        self.xmin_box = self.limitbox()
         self.xmin_box.setValue(plotview.xaxis.min)
         xmin_layout.addWidget(self.xmin_box)
         layout.addLayout(xmin_layout)
 
         xmax_layout = QtGui.QHBoxLayout()
         xmax_layout.addWidget(QtGui.QLabel('xmax'))
-        self.xmax_box = self.textbox()
+        self.xmax_box = self.limitbox()
         self.xmax_box.setValue(plotview.xaxis.max)
         xmax_layout.addWidget(self.xmax_box)
         layout.addLayout(xmax_layout)
 
         ymin_layout = QtGui.QHBoxLayout()
         ymin_layout.addWidget(QtGui.QLabel('ymin'))
-        self.ymin_box = self.textbox()
+        self.ymin_box = self.limitbox()
         self.ymin_box.setValue(plotview.yaxis.min)
         ymin_layout.addWidget(self.ymin_box)
         layout.addLayout(ymin_layout)
 
         ymax_layout = QtGui.QHBoxLayout()
         ymax_layout.addWidget(QtGui.QLabel('ymax'))
-        self.ymax_box = self.textbox()
+        self.ymax_box = self.limitbox()
         self.ymax_box.setValue(plotview.yaxis.max)
         ymax_layout.addWidget(self.ymax_box)
         layout.addLayout(ymax_layout)
@@ -818,14 +818,14 @@ class LimitDialog(BaseDialog):
         if plotview.ndim > 1:
             vmin_layout = QtGui.QHBoxLayout()
             vmin_layout.addWidget(QtGui.QLabel('vmin'))
-            self.vmin_box = self.textbox()
+            self.vmin_box = self.limitbox()
             self.vmin_box.setValue(plotview.vaxis.min)
             vmin_layout.addWidget(self.vmin_box)
             layout.addLayout(vmin_layout)
 
             vmax_layout = QtGui.QHBoxLayout()
             vmax_layout.addWidget(QtGui.QLabel('vmax'))
-            self.vmax_box = self.textbox()
+            self.vmax_box = self.limitbox()
             self.vmax_box.setValue(plotview.vaxis.max)
             vmax_layout.addWidget(self.vmax_box)
             layout.addLayout(vmax_layout)
@@ -835,7 +835,7 @@ class LimitDialog(BaseDialog):
 
         self.setWindowTitle("Limit axes")
 
-    def textbox(self):
+    def limitbox(self):
         from .plotview import NXTextBox
         textbox = NXTextBox()
         textbox.setAlignment(QtCore.Qt.AlignRight)
