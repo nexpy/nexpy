@@ -71,6 +71,13 @@ def natural_sort(key):
     return [int(t) if t.isdigit() else t for t in re.split(r'(\d+)', key)]    
 
 
+def find_nearest(array, value):
+    idx = (np.abs(array-value)).argmin()
+    return array[idx]
+
+def find_nearest_index(array, value):
+    return (np.abs(array-value)).argmin()
+
 def human_size(bytes):
     """Convert a file size to human-readable form"""
     size = np.float(bytes)

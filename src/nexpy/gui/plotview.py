@@ -56,7 +56,7 @@ from nexusformat.nexus import NXfield, NXdata, NXroot, NeXusError, nxload
 
 from .. import __version__
 from .datadialogs import BaseDialog, GridParameters
-from .utils import report_error
+from .utils import report_error, find_nearest
 
 plotview = None
 plotviews = {}
@@ -1739,7 +1739,8 @@ class NXPlotView(QtGui.QDialog):
                 self.yaxis.set_limits(self.yaxis.min, self.yaxis.max)
                 self.yaxis.locked = False
                 self.limits = (xmin, xmax, self.yaxis.min, self.yaxis.max)
-            self.zaxis.set_limits(self.zaxis.min, self.zaxis.min)
+            z = find_nearest(self.zaxis.data, 0.0)
+            self.zaxis.set_limits(z, z)
             self.xtab.set_axis(self.xaxis)
             self.ytab.set_axis(self.yaxis)
             self.ztab.set_axis(self.zaxis)
