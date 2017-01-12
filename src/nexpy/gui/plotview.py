@@ -1158,7 +1158,7 @@ class NXPlotView(QtGui.QDialog):
                 self._aspect = 'equal'
                 self.otab._actions['set_aspect'].setChecked(True)
             else:
-                return
+                self._aspect = 'auto'
         try:
             plotview.ax.set_aspect(self._aspect)
             self.canvas.draw()
@@ -3632,7 +3632,14 @@ class CustomizeDialog(BaseDialog):
         self.plotview.ax.set_ylabel(self.plotview.yaxis.label)
         if self.plotview.image is not None:
             pi = self.parameters['image']
-            self.plotview._aspect = pi['aspect'].value
+            _aspect = pi['aspect'].value
+            try:
+                self.plotview._aspect = np.float(_aspect)
+            except ValueError:
+                if _aspect in ['auto', 'equal']:
+                    self.plotview._aspect = _aspect
+                else:
+                    pi['aspect'].value = self.plotview._aspect = 'auto'
             self.plotview._skew_angle = pi['skew'].value
             if pi['grid'].value == 'On':
                 self.plotview._grid =True
@@ -3641,8 +3648,7 @@ class CustomizeDialog(BaseDialog):
             self.plotview._gridcolor = pi['gridcolor'].value
             self.plotview._gridstyle = [k for k, v in linestyles.items()
                                         if v == pi['gridstyle'].value][0]
-            #reset in case plotview.aspect changed by plotview.skew
-            
+            #reset in case plotview.aspect changed by plotview.skew            
             self.plotview.grid(self.plotview._grid)
             self.plotview.skew = self.plotview._skew_angle
             self.plotview.aspect = self.plotview._aspect
