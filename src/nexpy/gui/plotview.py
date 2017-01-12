@@ -80,7 +80,7 @@ try:
 except ImportError:
     pass
 linestyles = {'-': 'Solid', '--': 'Dashed', '-.': 'DashDot', ':': 'Dotted',
-              'none': 'None'}
+              'None': 'None'}
 markers = markers.MarkerStyle.markers
 logo = mpl.image.imread(pkg_resources.resource_filename(
            'nexpy.gui', 'resources/icon/NeXpy.png'))[180:880,50:1010]
