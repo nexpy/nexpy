@@ -80,7 +80,7 @@ try:
 except ImportError:
     pass
 linestyles = {'-': 'Solid', '--': 'Dashed', '-.': 'DashDot', ':': 'Dotted',
-              'none': 'None'}
+              'None': 'None'}
 markers = markers.MarkerStyle.markers
 logo = mpl.image.imread(pkg_resources.resource_filename(
            'nexpy.gui', 'resources/icon/NeXpy.png'))[180:880,50:1010]
@@ -1158,7 +1158,7 @@ class NXPlotView(QtGui.QDialog):
                 self._aspect = 'equal'
                 self.otab._actions['set_aspect'].setChecked(True)
             else:
-                return
+                self._aspect = 'auto'
         try:
             plotview.ax.set_aspect(self._aspect)
             self.canvas.draw()
@@ -1192,15 +1192,22 @@ class NXPlotView(QtGui.QDialog):
             The angle between the x and y axes for a 2D plot.
         """
         try:
-            self._skew_angle = float(skew_angle)
-            if np.isclose(self._skew_angle, 0.0) or np.isclose(self._skew_angle, 90.0):
-                self._skew_angle = None
+            _skew_angle = float(skew_angle)
+            if self.skew is not None and np.isclose(self.skew, _skew_angle):
+                return
+            if np.isclose(_skew_angle, 0.0) or np.isclose(_skew_angle, 90.0):
+                _skew_angle = None
         except (ValueError, TypeError):
             if (skew_angle is None or six.text_type(skew_angle) == '' or 
-                six.text_type(skew_angle) == 'None'):
-                self._skew_angle = None
+                six.text_type(skew_angle) == 'None' or 
+                six.text_type(skew_angle) == 'none'):
+                _skew_angle = None
             else:
                 return
+        if self.skew is None and _skew_angle is None:
+            return
+        else:
+            self._skew_angle = _skew_angle
         if self.skew is not None and self._aspect == 'auto':
             self._aspect = 'equal'
             self.otab._actions['set_aspect'].setChecked(True)
@@ -2870,11 +2877,11 @@ class NXProjectionTab(QtGui.QWidget):
         if not self.plotview.projection_panel:
             self.plotview.projection_panel = NXProjectionPanel(
                                                  plotview=self.plotview)
-        self.plotview.projection_panel.window.setVisible(True)
-        self.plotview.projection_panel.window.tabs.setCurrentWidget(
+        self.plotview.projection_panel.panels.setVisible(True)
+        self.plotview.projection_panel.panels.tabs.setCurrentWidget(
                                                  self.plotview.projection_panel)
-        self.plotview.projection_panel.window.update()
-        self.plotview.projection_panel.window.raise_()
+        self.plotview.projection_panel.panels.update()
+        self.plotview.projection_panel.panels.raise_()
 
 
 class NXProjectionPanels(QtGui.QDialog):
@@ -2891,9 +2898,23 @@ class NXProjectionPanels(QtGui.QDialog):
     def __repr__(self):
         return 'NXProjectionPanels()'
 
+    def __getitem__(self, key):
+        try:
+            return [panel for panel in self.panels if panel.label == key][0]
+        except Exception as error:
+            return None
+
+    def __contains__(self, key):
+        """Implements 'k in d' test"""
+        return key in [panel for panel in self.panels if panel.label == key]
+
     @property
     def panels(self):
         return [self.tabs.widget(idx) for idx in range(self.tabs.count())]
+
+    @property
+    def labels(self):
+        return [panel.plotview.label for panel in self.panels]
 
     def update(self):
         for panel in self.panels:
@@ -2902,6 +2923,7 @@ class NXProjectionPanels(QtGui.QDialog):
                 panel.overplot_box.setVisible(True)
             else:
                 panel.overplot_box.setVisible(False)
+            panel.update_panels()
         if self.tabs.count() == 0:
             self.setVisible(False)
 
@@ -2921,10 +2943,10 @@ class NXProjectionPanel(QtGui.QWidget):
 
         self.plotview = plotview
         self.ndim = self.plotview.ndim
+        self.label = self.plotview.label
+        self.panels = self.plotview.mainwindow.panels
 
-        self.window = self.plotview.mainwindow.panels
-
-        QtGui.QWidget.__init__(self, parent=self.window.tabs)
+        QtGui.QWidget.__init__(self, parent=self.panels.tabs)
 
         layout = QtGui.QVBoxLayout()
 
@@ -3026,13 +3048,27 @@ class NXProjectionPanel(QtGui.QWidget):
 
         layout.addLayout(grid)
 
+        self.copy_row = QtGui.QWidget()
+        copy_layout = QtGui.QHBoxLayout()
+        self.copy_box = QtGui.QComboBox()
+        self.copy_button = QtGui.QPushButton("Copy Limits", self)
+        self.copy_button.clicked.connect(self.copy_limits)
+        self.copy_button.setDefault(False)
+        self.copy_button.setAutoDefault(False)
+        copy_layout.addStretch()
+        copy_layout.addWidget(self.copy_box)
+        copy_layout.addWidget(self.copy_button)
+        copy_layout.addStretch()
+        self.copy_row.setLayout(copy_layout)
+        layout.addWidget(self.copy_row)
+
         button_layout = QtGui.QHBoxLayout()
         self.reset_button = QtGui.QPushButton("Reset Limits", self)
         self.reset_button.clicked.connect(self.reset_limits)
         self.reset_button.setDefault(False)
         self.reset_button.setAutoDefault(False)
         self.rectangle_button = QtGui.QPushButton("Hide Rectangle", self)
-        self.rectangle_button.clicked.connect(self.show_rectangle)
+        self.rectangle_button.clicked.connect(self.toggle_rectangle)
         self.rectangle_button.setDefault(False)
         self.rectangle_button.setAutoDefault(False)
         self.close_button = QtGui.QPushButton("Close Panel", self)
@@ -3048,10 +3084,10 @@ class NXProjectionPanel(QtGui.QWidget):
         layout.addStretch()
 
         self.setLayout(layout)
-        self.window.tabs.insertTab(self.plotview.number-1, self,
+        self.panels.tabs.insertTab(self.plotview.number-1, self,
                                    self.plotview.label)
-        self.window.tabs.adjustSize()
-        self.window.tabs.setCurrentWidget(self)
+        self.panels.tabs.adjustSize()
+        self.panels.tabs.setCurrentWidget(self)
 
         self.rectangle = None
 
@@ -3066,6 +3102,7 @@ class NXProjectionPanel(QtGui.QWidget):
             self.maxbox[axis].setValue(self.maxbox[axis].data.max())
             self.block_signals(False)
         self.update_limits()
+        self.update_panels()
         self.draw_rectangle()
 
     def __repr__(self):
@@ -3158,6 +3195,26 @@ class NXProjectionPanel(QtGui.QWidget):
             else:
                 minbox.setValue(minbox.valueFromIndex(ilo))
                 maxbox.setValue(maxbox.valueFromIndex(ihi))
+        self.draw_rectangle()
+
+    def update_panels(self):
+        self.copy_row.setVisible(False)
+        self.copy_box.clear()
+        for panel in self.panels.panels:
+            if panel is not self and panel.ndim == self.ndim:
+                self.copy_row.setVisible(True)
+                self.copy_box.addItem(panel.label)
+
+    def copy_limits(self):
+        panel = self.panels[self.copy_box.currentText()]
+        for axis in range(self.ndim):
+            self.minbox[axis].setValue(panel.minbox[axis].value())
+            self.maxbox[axis].setValue(panel.maxbox[axis].value())
+            self.lockbox[axis].setCheckState(panel.lockbox[axis].checkState())
+        self.xbox.setCurrentIndex(panel.xbox.currentIndex())
+        if self.ndim > 1:
+            self.ybox.setCurrentIndex(panel.ybox.currentIndex())
+        self.draw_rectangle()              
 
     def set_lock(self):
         for axis in range(self.ndim):
@@ -3220,7 +3277,7 @@ class NXProjectionPanel(QtGui.QWidget):
                 self.overplot_box.setChecked(False)
             self.plotview.make_active()
             plotviews[projection.label].raise_()
-            self.window.update()
+            self.panels.update()
         except NeXusError as error:
             report_error("Plotting Projection", error)
 
@@ -3254,37 +3311,45 @@ class NXProjectionPanel(QtGui.QWidget):
             self.minbox[axis].blockSignals(block)
             self.maxbox[axis].blockSignals(block)
 
-    def show_rectangle(self):
-        if self.rectangle is None:
-            self.draw_rectangle()
-            self.rectangle_button.setText("Hide Rectangle")
-        else:
-            self.rectangle.remove()
-            self.rectangle = None
-            self.rectangle_button.setText("Show Rectangle")
-        self.plotview.canvas.draw()
-        self.window.update()
-
     def draw_rectangle(self):
-        ax = self.plotview.figure.axes[0]
         xp = self.plotview.xaxis.dim
         yp = self.plotview.yaxis.dim
         x0 = self.minbox[xp].minBoundaryValue(self.minbox[xp].index)
         x1 = self.maxbox[xp].maxBoundaryValue(self.maxbox[xp].index)
         y0 = self.minbox[yp].minBoundaryValue(self.minbox[yp].index)
         y1 = self.maxbox[yp].maxBoundaryValue(self.maxbox[yp].index)
-
-        try:
-            self.rectangle.remove()
-        except Exception:
-            pass
-        self.rectangle = self.plotview.rectangle(x0, y0, x1-x0, y1-y0)
-        self.rectangle.set_color('white')
-        self.rectangle.set_facecolor('none')
-        self.rectangle.set_linestyle('dashed')
-        self.rectangle.set_linewidth(2)
-        self.plotview.canvas.draw()
+        if self.rectangle is None or self.rectangle not in self.plotview.ax.patches:
+            self.rectangle = self.plotview.rectangle(x0, y0, x1-x0, y1-y0)
+            self.rectangle.set_facecolor('none')
+            self.rectangle.set_linestyle('dashed')
+            self.rectangle.set_linewidth(2)
+        else:
+            self.rectangle.set_bounds(x0, y0, x1-x0, y1-y0)
+        self.rectangle.set_edgecolor(self.plotview._gridcolor)
+        self.plotview.draw()
         self.rectangle_button.setText("Hide Rectangle")
+
+    def rectangle_visible(self):
+        return self.rectangle_button.text() == "Hide Rectangle"
+
+    def hide_rectangle(self):
+        if self.rectangle is not None:
+            self.rectangle.set_visible(False)
+        self.plotview.draw()
+        self.rectangle_button.setText("Show Rectangle")
+
+    def show_rectangle(self):
+        if self.rectangle is None or self.rectangle not in self.plotview.ax.patches:
+            self.draw_rectangle()
+        self.rectangle.set_visible(True)
+        self.plotview.draw()
+        self.rectangle_button.setText("Hide Rectangle")
+
+    def toggle_rectangle(self):
+        if self.rectangle_visible():
+            self.hide_rectangle()
+        else:
+            self.show_rectangle()
 
     def closeEvent(self, event):
         self.close()
@@ -3293,14 +3358,14 @@ class NXProjectionPanel(QtGui.QWidget):
     def close(self):
         try:
             self.rectangle.remove()
-        except Exception:
+        except Exception as error:
             pass
-        self.plotview.canvas.draw()
         self.rectangle = None
-        self.window.tabs.removeTab(self.window.tabs.indexOf(self))
+        self.plotview.draw()
+        self.panels.tabs.removeTab(self.panels.tabs.indexOf(self))
         self.plotview.projection_panel = None
         self.deleteLater()
-        self.window.update()
+        self.panels.update()
 
 
 class NXNavigationToolbar(NavigationToolbar):
@@ -3632,8 +3697,15 @@ class CustomizeDialog(BaseDialog):
         self.plotview.ax.set_ylabel(self.plotview.yaxis.label)
         if self.plotview.image is not None:
             pi = self.parameters['image']
-            self.plotview._aspect = pi['aspect'].value
-            self.plotview._skew_angle = pi['skew'].value
+            _aspect = pi['aspect'].value
+            try:
+                self.plotview._aspect = np.float(_aspect)
+            except ValueError:
+                if _aspect in ['auto', 'equal']:
+                    self.plotview._aspect = _aspect
+                else:
+                    pi['aspect'].value = self.plotview._aspect = 'auto'
+            _skew_angle = pi['skew'].value
             if pi['grid'].value == 'On':
                 self.plotview._grid =True
             else:
@@ -3641,11 +3713,12 @@ class CustomizeDialog(BaseDialog):
             self.plotview._gridcolor = pi['gridcolor'].value
             self.plotview._gridstyle = [k for k, v in linestyles.items()
                                         if v == pi['gridstyle'].value][0]
-            #reset in case plotview.aspect changed by plotview.skew
-            
+            #reset in case plotview.aspect changed by plotview.skew            
             self.plotview.grid(self.plotview._grid)
-            self.plotview.skew = self.plotview._skew_angle
+            self.plotview.skew = _skew_angle
             self.plotview.aspect = self.plotview._aspect
+            if self.plotview.projection_panel.rectangle is not None:
+                self.plotview.projection_panel.draw_rectangle()
         else:
             for curve in self.curves:
                 c, pc = self.curves[curve], self.parameters[curve]
