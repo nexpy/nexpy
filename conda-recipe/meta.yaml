@@ -1,10 +1,10 @@
 package:
   name: nexpy
-  version: "0.9.1"
+  version: "0.9.2"
 
 source:
   git_url: https://github.com/nexpy/nexpy.git
-  git_tag: v0.9.1
+  git_tag: v0.9.2
 
 build:
   entry_points:
