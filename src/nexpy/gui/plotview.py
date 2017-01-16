@@ -1192,15 +1192,22 @@ class NXPlotView(QtGui.QDialog):
             The angle between the x and y axes for a 2D plot.
         """
         try:
-            self._skew_angle = float(skew_angle)
-            if np.isclose(self._skew_angle, 0.0) or np.isclose(self._skew_angle, 90.0):
-                self._skew_angle = None
+            _skew_angle = float(skew_angle)
+            if self.skew is not None and np.isclose(self.skew, _skew_angle):
+                return
+            if np.isclose(_skew_angle, 0.0) or np.isclose(_skew_angle, 90.0):
+                _skew_angle = None
         except (ValueError, TypeError):
             if (skew_angle is None or six.text_type(skew_angle) == '' or 
-                six.text_type(skew_angle) == 'None'):
-                self._skew_angle = None
+                six.text_type(skew_angle) == 'None' or 
+                six.text_type(skew_angle) == 'none'):
+                _skew_angle = None
             else:
                 return
+        if self.skew is None and _skew_angle is None:
+            return
+        else:
+            self._skew_angle = _skew_angle
         if self.skew is not None and self._aspect == 'auto':
             self._aspect = 'equal'
             self.otab._actions['set_aspect'].setChecked(True)
@@ -3188,6 +3195,7 @@ class NXProjectionPanel(QtGui.QWidget):
             else:
                 minbox.setValue(minbox.valueFromIndex(ilo))
                 maxbox.setValue(maxbox.valueFromIndex(ihi))
+        self.draw_rectangle()
 
     def update_panels(self):
         self.copy_row.setVisible(False)
@@ -3205,7 +3213,8 @@ class NXProjectionPanel(QtGui.QWidget):
             self.lockbox[axis].setCheckState(panel.lockbox[axis].checkState())
         self.xbox.setCurrentIndex(panel.xbox.currentIndex())
         if self.ndim > 1:
-            self.ybox.setCurrentIndex(panel.ybox.currentIndex())                
+            self.ybox.setCurrentIndex(panel.ybox.currentIndex())
+        self.draw_rectangle()              
 
     def set_lock(self):
         for axis in range(self.ndim):
@@ -3309,14 +3318,14 @@ class NXProjectionPanel(QtGui.QWidget):
         x1 = self.maxbox[xp].maxBoundaryValue(self.maxbox[xp].index)
         y0 = self.minbox[yp].minBoundaryValue(self.minbox[yp].index)
         y1 = self.maxbox[yp].maxBoundaryValue(self.maxbox[yp].index)
-        if self.rectangle is None:
+        if self.rectangle is None or self.rectangle not in self.plotview.ax.patches:
             self.rectangle = self.plotview.rectangle(x0, y0, x1-x0, y1-y0)
-            self.rectangle.set_color('white')
             self.rectangle.set_facecolor('none')
             self.rectangle.set_linestyle('dashed')
             self.rectangle.set_linewidth(2)
         else:
             self.rectangle.set_bounds(x0, y0, x1-x0, y1-y0)
+        self.rectangle.set_edgecolor(self.plotview._gridcolor)
         self.plotview.draw()
         self.rectangle_button.setText("Hide Rectangle")
 
@@ -3330,7 +3339,7 @@ class NXProjectionPanel(QtGui.QWidget):
         self.rectangle_button.setText("Show Rectangle")
 
     def show_rectangle(self):
-        if self.rectangle is None:
+        if self.rectangle is None or self.rectangle not in self.plotview.ax.patches:
             self.draw_rectangle()
         self.rectangle.set_visible(True)
         self.plotview.draw()
@@ -3696,7 +3705,7 @@ class CustomizeDialog(BaseDialog):
                     self.plotview._aspect = _aspect
                 else:
                     pi['aspect'].value = self.plotview._aspect = 'auto'
-            self.plotview._skew_angle = pi['skew'].value
+            _skew_angle = pi['skew'].value
             if pi['grid'].value == 'On':
                 self.plotview._grid =True
             else:
@@ -3706,8 +3715,10 @@ class CustomizeDialog(BaseDialog):
                                         if v == pi['gridstyle'].value][0]
             #reset in case plotview.aspect changed by plotview.skew            
             self.plotview.grid(self.plotview._grid)
-            self.plotview.skew = self.plotview._skew_angle
+            self.plotview.skew = _skew_angle
             self.plotview.aspect = self.plotview._aspect
+            if self.plotview.projection_panel.rectangle is not None:
+                self.plotview.projection_panel.draw_rectangle()
         else:
             for curve in self.curves:
                 c, pc = self.curves[curve], self.parameters[curve]
