@@ -569,12 +569,16 @@ and sliders.
        :align: center
        :width: 90%
 
-    .. note:: The projection panel can also be used to mask and unmask data within 
-              the dashed rectangle. See :doc:`pythonshell` for descriptions of
-              masked arrays.
+    .. note:: The projection panel can also be used to mask and unmask data 
+              within the dashed rectangle. See :doc:`pythonshell` for 
+              descriptions of masked arrays.
 
-    .. note:: Each plotting window can have a separate projection panel in a tabbed
-              interface. 
+    .. note:: Each plotting window can have a separate projection panel in a 
+              tabbed interface.
+
+    .. note:: The color of the dashed rectangle showing the projection limits is
+              the same as the grid, and may be adjusted using the 'Edit' button
+              within the Options Tab.
   
 **Options Tab**
 
@@ -582,8 +586,8 @@ and sliders.
        :align: center
        :width: 90%
 
-    The options tab provides the standard Matplotlib toolbar. You can view with the addition
-    of one extra button. From left to right, the buttons are:
+    The options tab provides the standard Matplotlib toolbar. You can view with 
+    the addition of one extra button. From left to right, the buttons are:
     
     * **Home** - restores all plotting limits to their original values. 
     * **Arrows** - cycles through the limits of previous plots.
