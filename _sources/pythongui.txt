@@ -733,7 +733,6 @@ and sliders.
             that are ideal for displaying symmetric log data. Some are available
             at the bottom of the color map dropdown menu in the Signal tab.
 
-
 Fitting NeXus Data
 ------------------
 It is possible to fit one-dimensional data using the non-linear least-squares 
