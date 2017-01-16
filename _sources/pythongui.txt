@@ -577,8 +577,8 @@ and sliders.
               tabbed interface.
 
     .. note:: The color of the dashed rectangle showing the projection limits is
-              the same as the grid, and may be adjusted using the 'Edit' button
-              within the Options Tab.
+              the same as the grid color, which can be changed using the 'Edit' 
+              button within the Options Tab.
   
 **Options Tab**
 
