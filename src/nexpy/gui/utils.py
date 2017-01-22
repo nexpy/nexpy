@@ -122,7 +122,7 @@ class NXConfigParser(ConfigParser, object):
     def __init__(self, settings_file):
         super(NXConfigParser, self).__init__(allow_no_value=True)
         self.file = settings_file
-        self._optcre = re.compile(
+        self._optcre = re.compile( #makes '=' the only valid key/value delimiter
             r"(?P<option>.*?)\s*(?:(?P<vi>=)\s*(?P<value>.*))?$", re.VERBOSE)
         super(NXConfigParser, self).read(self.file)
         sections = self.sections()
