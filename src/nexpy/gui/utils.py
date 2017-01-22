@@ -119,22 +119,11 @@ def is_timestamp(time_string):
 class NXConfigParser(ConfigParser, object):
     """A ConfigParser subclass that preserves the case of option names"""
 
-    _OPT_NV_TMPL = r"""
-        (?P<option>.*?)                    # very permissive!
-        \s*(?:                             # any number of space/tab,
-        (?P<vi>{delim})\s*                 # optionally followed by
-                                           # any of the allowed
-                                           # delimiters, followed by any
-                                           # space/tab
-        (?P<value>.*))?$                   # everything up to eol
-        """
-
     def __init__(self, settings_file):
         super(NXConfigParser, self).__init__(allow_no_value=True)
         self.file = settings_file
-        d = "|".join(re.escape(d) for d in ['{','}'])
-        self._optcre = re.compile(self._OPT_NV_TMPL.format(delim=d),
-                                  re.VERBOSE)
+        self._optcre = re.compile(
+            r"(?P<option>.*?)\s*(?:(?P<vi>=)\s*(?P<value>.*))?$", re.VERBOSE)
         super(NXConfigParser, self).read(self.file)
         sections = self.sections()
         if 'recent' not in sections:
