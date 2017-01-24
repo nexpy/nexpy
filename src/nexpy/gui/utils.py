@@ -1,6 +1,7 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 import os
+import re
 from collections import OrderedDict
 from datetime import datetime
 try:
@@ -121,6 +122,8 @@ class NXConfigParser(ConfigParser, object):
     def __init__(self, settings_file):
         super(NXConfigParser, self).__init__(allow_no_value=True)
         self.file = settings_file
+        self._optcre = re.compile( #makes '=' the only valid key/value delimiter
+            r"(?P<option>.*?)\s*(?:(?P<vi>=)\s*(?P<value>.*))?$", re.VERBOSE)
         super(NXConfigParser, self).read(self.file)
         sections = self.sections()
         if 'recent' not in sections:

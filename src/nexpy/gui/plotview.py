@@ -3408,8 +3408,11 @@ class NXNavigationToolbar(NavigationToolbar):
         self.plotview.reset_plot_limits(autoscale)
 
     def edit_parameters(self):
-        self.plotview.customize_panel = CustomizeDialog(parent=self.plotview)
-        self.plotview.customize_panel.show()
+        if self.plotview.customize_panel is None:
+            self.plotview.customize_panel = CustomizeDialog(parent=self.plotview)
+            self.plotview.customize_panel.show()
+        else:
+            self.plotview.customize_panel.raise_()
 
     def add_data(self):
         keep_data(self.plotview.plotdata)
