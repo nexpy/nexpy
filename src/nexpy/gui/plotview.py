@@ -356,8 +356,8 @@ class NXPlotView(QtGui.QDialog):
 
     def display_logo(self):
         self.plot(NXdata(logo, title='NeXpy'), image=True)
-        self.ax.axes.get_xaxis().set_visible(False)
-        self.ax.axes.get_yaxis().set_visible(False)
+        self.ax.xaxis.set_visible(False)
+        self.ax.yaxis.set_visible(False)
         self.ax.title.set_visible(False)
         self.draw()
 
