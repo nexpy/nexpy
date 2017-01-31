@@ -3761,7 +3761,8 @@ class CustomizeDialog(BaseDialog):
             self.plotview.grid(self.plotview._grid)
             self.plotview.skew = _skew_angle
             self.plotview.aspect = self.plotview._aspect
-            if self.plotview.projection_panel._rectangle is not None:
+            if (self.plotview.projection_panel is not None and
+                    self.plotview.projection_panel._rectangle is not None):
                 self.plotview.projection_panel._rectangle.set_edgecolor(
                     self.plotview._gridcolor)
         else:
