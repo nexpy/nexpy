@@ -349,20 +349,17 @@ class NXPlotView(QtGui.QDialog):
             self.add_menu_action()
             self.show()
 
-        #Add dummy NXdata group to ensure properties resolve properly
-        self.data = self.plotdata = NXdata((0,1), [(0,1)], 
-                                           title='Title')
-
-        #Display the NeXpy logo in the plotting window
-        self.figure.clf()
-        self.ax.imshow(logo)
-        self.ax.axes.get_xaxis().set_visible(False)
-        self.ax.axes.get_yaxis().set_visible(False)
-        self.draw()
-
+        self.display_logo()
 
     def __repr__(self):
         return 'NXPlotView("%s")' % self.label
+
+    def display_logo(self):
+        self.plot(NXdata(logo, title='NeXpy'), image=True)
+        self.ax.axes.get_xaxis().set_visible(False)
+        self.ax.axes.get_yaxis().set_visible(False)
+        self.ax.title.set_visible(False)
+        self.draw()
 
     def make_active(self):
         """Make this window active for plotting."""
