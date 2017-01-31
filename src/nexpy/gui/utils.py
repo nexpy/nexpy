@@ -10,6 +10,10 @@ except ImportError:
     from ConfigParser import ConfigParser
 import numpy as np
 from .pyqt import QtGui
+try:
+    from astropy.convolution import Kernel
+except ImportError:
+    Kernel = object
 
 
 def report_error(context, error):
@@ -151,3 +155,20 @@ class NXConfigParser(ConfigParser, object):
             self.set("recent", path)
         self.remove_option("recent", "recentFiles")
         self.save()
+
+
+class Gaussian3DKernel(Kernel):
+
+    _separable = True
+    _is_bool = False
+
+    def __init__(self, stddev, **kwargs):
+        x = np.linspace(-15., 15., 17)
+        y = np.linspace(-15., 15., 17)
+        z = np.linspace(-15., 15., 17)
+        X,Y,Z = np.meshgrid(x,y,z)
+        array = np.exp(-(X**2+Y**2+Z**2)/(2*stddev**2))
+        self._default_size = _round_up_to_odd_integer(8 * stddev)
+        super(Gaussian3DKernel, self).__init__(array)
+        self.normalize()
+        self._truncation = np.abs(1. - self._array.sum())
