@@ -349,20 +349,17 @@ class NXPlotView(QtGui.QDialog):
             self.add_menu_action()
             self.show()
 
-        #Add dummy NXdata group to ensure properties resolve properly
-        self.data = self.plotdata = NXdata((0,1), [(0,1)], 
-                                           title='Title')
-
-        #Display the NeXpy logo in the plotting window
-        self.figure.clf()
-        self.ax.imshow(logo)
-        self.ax.axes.get_xaxis().set_visible(False)
-        self.ax.axes.get_yaxis().set_visible(False)
-        self.draw()
-
+        self.display_logo()
 
     def __repr__(self):
         return 'NXPlotView("%s")' % self.label
+
+    def display_logo(self):
+        self.plot(NXdata(logo, title='NeXpy'), image=True)
+        self.ax.xaxis.set_visible(False)
+        self.ax.yaxis.set_visible(False)
+        self.ax.title.set_visible(False)
+        self.draw()
 
     def make_active(self):
         """Make this window active for plotting."""
@@ -3764,7 +3761,8 @@ class CustomizeDialog(BaseDialog):
             self.plotview.grid(self.plotview._grid)
             self.plotview.skew = _skew_angle
             self.plotview.aspect = self.plotview._aspect
-            if self.plotview.projection_panel._rectangle is not None:
+            if (self.plotview.projection_panel is not None and
+                    self.plotview.projection_panel._rectangle is not None):
                 self.plotview.projection_panel._rectangle.set_edgecolor(
                     self.plotview._gridcolor)
         else:
