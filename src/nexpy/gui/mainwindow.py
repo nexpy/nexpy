@@ -260,6 +260,17 @@ class MainWindow(QtGui.QMainWindow):
 
         self.init_recent_menu()
 
+        try:
+            import h5pyd
+            self.openremotefile_action=QtGui.QAction("Open Remote...",
+                self,
+                triggered=self.open_remote_file
+                )
+            self.add_menu_action(self.file_menu, self.openremotefile_action, 
+                                 True)            
+        except ImportError:
+            pass
+
         self.savefile_action=QtGui.QAction("&Save as...",
             self,
             shortcut=QtGui.QKeySequence.Save,
@@ -975,6 +986,14 @@ class MainWindow(QtGui.QMainWindow):
             self.update_recent_files(fname)
         except (NeXusError, IOError) as error:
             report_error("Opening Recent File", error)
+
+    def open_remote_file(self):
+        try:
+            dialog = RemoteDialog(parent=self)
+            dialog.setModal(False)
+            dialog.show()
+        except NeXusError as error:
+            report_error("Opening Remote File", error)
 
     def hover_recent_menu(self, action):
         position = QtGui.QCursor.pos()

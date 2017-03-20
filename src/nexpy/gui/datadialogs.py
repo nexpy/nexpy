@@ -1071,6 +1071,44 @@ class ViewTableModel(QtCore.QAbstractTableModel):
         self.headerDataChanged.emit(QtCore.Qt.Vertical, 0, min(9, self.rows-1))
 
   
+class RemoteDialog(BaseDialog):
+    """Dialog to open a remote file.
+    """ 
+    def __init__(self, parent=None):
+
+        try:
+            import h5pyd
+            from nexusformat.nexus import nxgetserver, nxgetdomain
+        except ImportError:
+            raise NeXusError('Please install h5pyd for remote data access')
+
+        super(RemoteDialog, self).__init__()
+ 
+        self.parameters = GridParameters()
+        self.parameters.add('server', nxgetserver(), 'Server')
+        self.parameters.add('domain', nxgetdomain(), 'Domain')
+        self.parameters.add('filepath', '', 'File Path')
+        self.set_layout(self.parameters.grid(width=200), self.close_buttons())
+        self.set_title('Open Remote File')
+
+    def accept(self):
+        try:
+            from nexusformat.nexus import nxloadremote
+            server = self.parameters['server'].value
+            domain = self.parameters['domain'].value
+            filepath = self.parameters['filepath'].value
+            root = nxloadremote(filepath, server=server, domain=domain)
+            name = self.mainwindow.treeview.tree.get_name(filepath)               
+            self.mainwindow.treeview.tree[name] = self.mainwindow.user_ns[name] = root
+            logging.info(
+                "Opening remote NeXus file '%s' on '%s' as workspace '%s'"
+                % (root.nxfilename, root._file, name))
+            super(RemoteDialog, self).accept()
+        except Exception as error:
+            report_error("Opening remote file", error)
+            super(RemoteDialog, self).reject()
+
+
 class AddDialog(BaseDialog):
     """Dialog to add a NeXus node"""
 
