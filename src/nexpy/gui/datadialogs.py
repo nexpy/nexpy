@@ -177,11 +177,11 @@ class BaseDialog(QtGui.QDialog):
              group.addButton(self.radiobutton[label])
         return layout
 
-    def filebox(self):
+    def filebox(self, text="Choose File"):
         """
         Creates a text box and button for selecting a file.
         """
-        self.filebutton =  QtGui.QPushButton("Choose File")
+        self.filebutton =  QtGui.QPushButton(text)
         self.filebutton.clicked.connect(self.choose_file)
         self.filename = QtGui.QLineEdit(self)
         self.filename.setMinimumWidth(300)
