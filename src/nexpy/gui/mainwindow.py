@@ -217,6 +217,8 @@ class MainWindow(QtGui.QMainWindow):
 
         if defer_shortcut:
             action.setShortcutContext(QtCore.Qt.WidgetShortcut)
+        else:
+            action.setShortcutContext(QtCore.Qt.ApplicationShortcut)
 
     def init_menu_bar(self):
         #create menu in the order they should appear in the menu bar
@@ -242,14 +244,14 @@ class MainWindow(QtGui.QMainWindow):
             shortcut=QtGui.QKeySequence.New,
             triggered=self.new_workspace
             )
-        self.add_menu_action(self.file_menu, self.newworkspace_action, True)
+        self.add_menu_action(self.file_menu, self.newworkspace_action)
 
         self.openfile_action=QtGui.QAction("&Open",
             self,
             shortcut=QtGui.QKeySequence.Open,
             triggered=self.open_file
             )
-        self.add_menu_action(self.file_menu, self.openfile_action, True)
+        self.add_menu_action(self.file_menu, self.openfile_action)
 
         self.openeditablefile_action=QtGui.QAction("Open (read/write)",
             self,
@@ -260,19 +262,29 @@ class MainWindow(QtGui.QMainWindow):
 
         self.init_recent_menu()
 
+        try:
+            import h5pyd
+            self.openremotefile_action=QtGui.QAction("Open Remote...",
+                self,
+                triggered=self.open_remote_file
+                )
+            self.add_menu_action(self.file_menu, self.openremotefile_action)            
+        except ImportError:
+            pass
+
         self.savefile_action=QtGui.QAction("&Save as...",
             self,
             shortcut=QtGui.QKeySequence.Save,
             triggered=self.save_file
             )
-        self.add_menu_action(self.file_menu, self.savefile_action, True)
+        self.add_menu_action(self.file_menu, self.savefile_action)
 
         self.duplicate_action=QtGui.QAction("&Duplicate...",
             self,
             shortcut=QtGui.QKeySequence("Ctrl+D"),
             triggered=self.duplicate
             )
-        self.add_menu_action(self.file_menu, self.duplicate_action, True)
+        self.add_menu_action(self.file_menu, self.duplicate_action)
 
         self.file_menu.addSeparator()
 
@@ -280,13 +292,13 @@ class MainWindow(QtGui.QMainWindow):
             self,
             triggered=self.reload
             )
-        self.add_menu_action(self.file_menu, self.reload_action, True)
+        self.add_menu_action(self.file_menu, self.reload_action)
 
         self.remove_action=QtGui.QAction("Remove",
             self,
             triggered=self.remove
             )
-        self.add_menu_action(self.file_menu, self.remove_action, True)
+        self.add_menu_action(self.file_menu, self.remove_action)
 
         self.file_menu.addSeparator()
 
@@ -299,14 +311,14 @@ class MainWindow(QtGui.QMainWindow):
             shortcut=QtGui.QKeySequence("Ctrl+L"),
             triggered=self.lock_file
             )
-        self.add_menu_action(self.file_menu, self.lockfile_action, True)
+        self.add_menu_action(self.file_menu, self.lockfile_action)
 
         self.unlockfile_action=QtGui.QAction("&Unlock File",
             self,
             shortcut=QtGui.QKeySequence("Ctrl+U"),
             triggered=self.unlock_file
             )
-        self.add_menu_action(self.file_menu, self.unlockfile_action, True)
+        self.add_menu_action(self.file_menu, self.unlockfile_action)
 
         self.file_menu.addSeparator()
 
@@ -315,19 +327,19 @@ class MainWindow(QtGui.QMainWindow):
             shortcut=QtGui.QKeySequence("Ctrl+B"),
             triggered=self.backup_file
             )
-        self.add_menu_action(self.file_menu, self.backup_action, True)
+        self.add_menu_action(self.file_menu, self.backup_action)
 
         self.restore_action=QtGui.QAction("Restore Backup...",
             self,
             triggered=self.restore_file
             )
-        self.add_menu_action(self.file_menu, self.restore_action, True)
+        self.add_menu_action(self.file_menu, self.restore_action)
 
         self.manage_backups_action=QtGui.QAction("Manage Backups...",
             self,
             triggered=self.manage_backups
             )
-        self.add_menu_action(self.file_menu, self.manage_backups_action, True)
+        self.add_menu_action(self.file_menu, self.manage_backups_action)
 
         self.file_menu.addSeparator()
 
@@ -335,19 +347,19 @@ class MainWindow(QtGui.QMainWindow):
             self,
             triggered=self.open_scratch_file
             )
-        self.add_menu_action(self.file_menu, self.open_scratch_action, True)
+        self.add_menu_action(self.file_menu, self.open_scratch_action)
 
         self.purge_scratch_action=QtGui.QAction("Purge Scratch File",
             self,
             triggered=self.purge_scratch_file
             )
-        self.add_menu_action(self.file_menu, self.purge_scratch_action, True)
+        self.add_menu_action(self.file_menu, self.purge_scratch_action)
 
         self.close_scratch_action=QtGui.QAction("Close Scratch File",
             self,
             triggered=self.close_scratch_file
             )
-        self.add_menu_action(self.file_menu, self.close_scratch_action, True)
+        self.add_menu_action(self.file_menu, self.close_scratch_action)
 
         self.file_menu.addSeparator()
 
@@ -355,13 +367,13 @@ class MainWindow(QtGui.QMainWindow):
             self,
             triggered=self.install_plugin
             )
-        self.add_menu_action(self.file_menu, self.install_plugin_action, True)
+        self.add_menu_action(self.file_menu, self.install_plugin_action)
 
         self.remove_plugin_action=QtGui.QAction("Remove Plugin",
             self,
             triggered=self.remove_plugin
             )
-        self.add_menu_action(self.file_menu, self.remove_plugin_action, True)
+        self.add_menu_action(self.file_menu, self.remove_plugin_action)
 
         self.file_menu.addSeparator()
 
@@ -398,14 +410,14 @@ class MainWindow(QtGui.QMainWindow):
             statusTip="Undo last action if possible",
             triggered=self.undo_console
             )
-        self.add_menu_action(self.edit_menu, self.undo_action)
+        self.add_menu_action(self.edit_menu, self.undo_action, True)
 
         self.redo_action = QtGui.QAction("&Redo",
             self,
             shortcut=QtGui.QKeySequence.Redo,
             statusTip="Redo last action if possible",
             triggered=self.redo_console)
-        self.add_menu_action(self.edit_menu, self.redo_action)
+        self.add_menu_action(self.edit_menu, self.redo_action, True)
 
         self.edit_menu.addSeparator()
 
@@ -427,7 +439,7 @@ class MainWindow(QtGui.QMainWindow):
             self,
             triggered=self.copy_raw_console
             )
-        self.add_menu_action(self.edit_menu, self.copy_raw_action, True)
+        self.add_menu_action(self.edit_menu, self.copy_raw_action)
 
         self.paste_action = QtGui.QAction("&Paste",
             self,
@@ -457,19 +469,19 @@ class MainWindow(QtGui.QMainWindow):
             self,
             triggered=self.plot_data
             )
-        self.add_menu_action(self.data_menu, self.plot_data_action, True)
+        self.add_menu_action(self.data_menu, self.plot_data_action)
 
         self.overplot_data_action=QtGui.QAction("Overplot Data",
             self,
             triggered=self.overplot_data
             )
-        self.add_menu_action(self.data_menu, self.overplot_data_action, True)
+        self.add_menu_action(self.data_menu, self.overplot_data_action)
 
         self.plot_image_action=QtGui.QAction("Plot RGB(A) Image",
             self,
             triggered=self.plot_image
             )
-        self.add_menu_action(self.data_menu, self.plot_image_action, True)
+        self.add_menu_action(self.data_menu, self.plot_image_action)
 
         self.data_menu.addSeparator()
 
@@ -477,53 +489,53 @@ class MainWindow(QtGui.QMainWindow):
             self,
             triggered=self.view_data
             )
-        self.add_menu_action(self.data_menu, self.view_action, True)
+        self.add_menu_action(self.data_menu, self.view_action)
 
         self.add_action=QtGui.QAction("Add Data",
             self,
             triggered=self.add_data
             )
-        self.add_menu_action(self.data_menu, self.add_action, True)
+        self.add_menu_action(self.data_menu, self.add_action)
 
         self.initialize_action=QtGui.QAction("Initialize Data",
             self,
             triggered=self.initialize_data
             )
-        self.add_menu_action(self.data_menu, self.initialize_action, True)
+        self.add_menu_action(self.data_menu, self.initialize_action)
 
         self.rename_action=QtGui.QAction("Rename Data",
             self,
             triggered=self.rename_data
             )
-        self.add_menu_action(self.data_menu, self.rename_action, True)
+        self.add_menu_action(self.data_menu, self.rename_action)
 
         self.copydata_action=QtGui.QAction("Copy Data",
             self,
             shortcut=QtGui.QKeySequence("Ctrl+Shift+C"),
             triggered=self.copy_data
             )
-        self.add_menu_action(self.data_menu, self.copydata_action, True)
+        self.add_menu_action(self.data_menu, self.copydata_action)
 
         self.pastedata_action=QtGui.QAction("Paste Data",
             self,
             shortcut=QtGui.QKeySequence("Ctrl+Shift+V"),
             triggered=self.paste_data
             )
-        self.add_menu_action(self.data_menu, self.pastedata_action, True)
+        self.add_menu_action(self.data_menu, self.pastedata_action)
 
         self.pastelink_action=QtGui.QAction("Paste As Link",
             self,
             shortcut=QtGui.QKeySequence("Ctrl+Alt+Shift+V"),
             triggered=self.paste_link
             )
-        self.add_menu_action(self.data_menu, self.pastelink_action, True)
+        self.add_menu_action(self.data_menu, self.pastelink_action)
 
         self.delete_action=QtGui.QAction("Delete Data",
             self,
             shortcut=QtGui.QKeySequence("Ctrl+Shift+X"),
             triggered=self.delete_data
             )
-        self.add_menu_action(self.data_menu, self.delete_action, True)
+        self.add_menu_action(self.data_menu, self.delete_action)
 
         self.data_menu.addSeparator()
 
@@ -531,7 +543,7 @@ class MainWindow(QtGui.QMainWindow):
             self,
             triggered=self.show_link
             )
-        self.add_menu_action(self.data_menu, self.link_action, True)
+        self.add_menu_action(self.data_menu, self.link_action)
 
         self.data_menu.addSeparator()
 
@@ -539,13 +551,13 @@ class MainWindow(QtGui.QMainWindow):
             self,
             triggered=self.set_signal
             )
-        self.add_menu_action(self.data_menu, self.signal_action, True)
+        self.add_menu_action(self.data_menu, self.signal_action)
 
         self.default_action=QtGui.QAction("Set Default",
             self,
             triggered=self.set_default
             )
-        self.add_menu_action(self.data_menu, self.default_action, True)
+        self.add_menu_action(self.data_menu, self.default_action)
 
         self.data_menu.addSeparator()
 
@@ -553,7 +565,7 @@ class MainWindow(QtGui.QMainWindow):
             self,
             triggered=self.fit_data
             )
-        self.add_menu_action(self.data_menu, self.fit_action, True)
+        self.add_menu_action(self.data_menu, self.fit_action)
 
     def init_plugin_menus(self):
         """Add an menu item for every module in the plugin menus"""
@@ -759,14 +771,14 @@ class MainWindow(QtGui.QMainWindow):
             shortcut=QtGui.QKeySequence("Ctrl+Shift+N"),
             triggered=self.new_plot_window
             )
-        self.add_menu_action(self.window_menu, self.newplot_action, True)
+        self.add_menu_action(self.window_menu, self.newplot_action)
 
         self.closewindow_action=QtGui.QAction("Close Plot Window",
             self,
             shortcut=QtGui.QKeySequence("Ctrl+Shift+W"),
             triggered=self.close_window
             )
-        self.add_menu_action(self.window_menu, self.closewindow_action, True)
+        self.add_menu_action(self.window_menu, self.closewindow_action,)
 
         self.window_menu.addSeparator()
 
@@ -775,7 +787,7 @@ class MainWindow(QtGui.QMainWindow):
             shortcut=QtGui.QKeySequence("Ctrl+Shift+E"),
             triggered=self.equalize_windows
             )
-        self.add_menu_action(self.window_menu, self.equalizewindow_action, True)
+        self.add_menu_action(self.window_menu, self.equalizewindow_action)
 
         self.window_menu.addSeparator()
 
@@ -866,13 +878,13 @@ class MainWindow(QtGui.QMainWindow):
             self,
             triggered=self.open_example_file
             )
-        self.add_menu_action(self.help_menu, self.example_file_action, True)
+        self.add_menu_action(self.help_menu, self.example_file_action)
 
         self.example_script_action=QtGui.QAction("Open Example Script",
             self,
             triggered=self.open_example_script
             )
-        self.add_menu_action(self.help_menu, self.example_script_action, True)
+        self.add_menu_action(self.help_menu, self.example_script_action)
 
     def init_recent_menu(self):
         """Add recent files menu item for recently opened files"""
@@ -975,6 +987,14 @@ class MainWindow(QtGui.QMainWindow):
             self.update_recent_files(fname)
         except (NeXusError, IOError) as error:
             report_error("Opening Recent File", error)
+
+    def open_remote_file(self):
+        try:
+            dialog = RemoteDialog(parent=self)
+            dialog.setModal(False)
+            dialog.show()
+        except NeXusError as error:
+            report_error("Opening Remote File", error)
 
     def hover_recent_menu(self, action):
         position = QtGui.QCursor.pos()
