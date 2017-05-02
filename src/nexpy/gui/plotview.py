@@ -19,7 +19,7 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 import six
 
-from .pyqt import QtCore, QtGui
+from .pyqt import QtCore, QtGui, QtWidgets
 
 import numbers
 import numpy as np
@@ -30,9 +30,9 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 from matplotlib._pylab_helpers import Gcf
 from matplotlib.backend_bases import FigureManagerBase
-from matplotlib.backends.backend_qt4 import FigureManagerQT as FigureManager
-from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.backends.backend_qt4agg import NavigationToolbar2QT as NavigationToolbar
+from matplotlib.backends.backend_qt5 import FigureManagerQT as FigureManager
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 from matplotlib.backends.qt_editor.formlayout import ColorButton, to_qcolor
 from matplotlib.figure import Figure
 from matplotlib.image import NonUniformImage
@@ -152,8 +152,8 @@ class NXCanvas(FigureCanvas):
         FigureCanvas.__init__(self, figure)
 
         FigureCanvas.setSizePolicy(self,
-                                   QtGui.QSizePolicy.MinimumExpanding,
-                                   QtGui.QSizePolicy.MinimumExpanding)
+                                   QtWidgets.QSizePolicy.MinimumExpanding,
+                                   QtWidgets.QSizePolicy.MinimumExpanding)
         FigureCanvas.updateGeometry(self)
 
 
@@ -169,7 +169,7 @@ class NXFigureManager(FigureManager):
         self.canvas.figure.add_axobserver(notify_axes_change)
 
 
-class NXPlotView(QtGui.QDialog):
+class NXPlotView(QtWidgets.QDialog):
     """QT widget containing a NeXpy plot.
 
     The widget consists of a QVBoxLayout containing a matplotlib canvas 
@@ -252,8 +252,8 @@ class NXPlotView(QtGui.QDialog):
         super(NXPlotView, self).__init__(parent)
 
         self.setMinimumSize(700, 550)
-        self.setSizePolicy(QtGui.QSizePolicy.MinimumExpanding,
-                           QtGui.QSizePolicy.MinimumExpanding)
+        self.setSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding,
+                           QtWidgets.QSizePolicy.MinimumExpanding)
 
         global plotview, plotviews
         if label in plotviews:
@@ -294,7 +294,7 @@ class NXPlotView(QtGui.QDialog):
         else:
             self.label = "Figure %d" % self.number
 
-        self.tab_widget = QtGui.QTabWidget()
+        self.tab_widget = QtWidgets.QTabWidget()
         self.tab_widget.setFixedHeight(80)
         self.tab_widget.setMinimumWidth(700)
 
@@ -311,8 +311,8 @@ class NXPlotView(QtGui.QDialog):
         self.currentTab = self.otab
         self.tab_widget.setCurrentWidget(self.currentTab)
 
-        self.vbox = QtGui.QVBoxLayout()
-        self.vbox.setMargin(12)
+        self.vbox = QtWidgets.QVBoxLayout()
+        self.vbox.setContentsMargins(12, 12, 12, 12)
         self.vbox.addWidget(self.canvas)
         self.vbox.addWidget(self.tab_widget)
         self.setLayout(self.vbox)
@@ -399,7 +399,7 @@ class NXPlotView(QtGui.QDialog):
     def save_plot(self):
         """Open a dialog box for saving the plot as a PNG file"""
         file_choices = "PNG (*.png)|*.png"
-        path = six.text_type(QtGui.QFileDialog.getSaveFileName(self,
+        path = six.text_type(QtWidgets.QFileDialog.getSaveFileName(self,
                              'Save file', '', file_choices))
         if path:
             self.canvas.print_figure(path, dpi=self.dpi)
@@ -1962,7 +1962,7 @@ class NXReplotSignal(QtCore.QObject):
     replot = QtCore.Signal()
 
 
-class NXPlotTab(QtGui.QWidget):
+class NXPlotTab(QtWidgets.QWidget):
     """Tab widget for setting axis limits and options.
     
     Parameters
@@ -2001,7 +2001,7 @@ class NXPlotTab(QtGui.QWidget):
         self.plotview = plotview
 
         self.setMinimumHeight(51)
-        hbox = QtGui.QHBoxLayout()
+        hbox = QtWidgets.QHBoxLayout()
         widgets = []
 
         if axis:
@@ -2128,8 +2128,8 @@ class NXPlotTab(QtGui.QWidget):
 
     def combobox(self, slot):
         """Return a QComboBox with a signal slot."""
-        combobox = QtGui.QComboBox()
-        combobox.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToContents)
+        combobox = QtWidgets.QComboBox()
+        combobox.setSizeAdjustPolicy(QtWidgets.QComboBox.AdjustToContents)
         combobox.setMinimumWidth(100)
         combobox.activated.connect(slot)
         return combobox
@@ -2155,7 +2155,7 @@ class NXPlotTab(QtGui.QWidget):
 
     def slider(self, slot):
         """Return a QSlider with a signal slot."""
-        slider = QtGui.QSlider(QtCore.Qt.Horizontal)
+        slider = QtWidgets.QSlider(QtCore.Qt.Horizontal)
         slider.setMinimumWidth(100)
         slider.setRange(0, 1000)
         slider.setSingleStep(5)
@@ -2168,14 +2168,14 @@ class NXPlotTab(QtGui.QWidget):
 
     def checkbox(self, label, slot):
         """Return a QCheckbox with the specified label and slot."""
-        checkbox = QtGui.QCheckBox(label)
+        checkbox = QtWidgets.QCheckBox(label)
         checkbox.setChecked(False)
         checkbox.clicked.connect(slot)
         return checkbox
 
     def pushbutton(self, label, slot):
         """Return a QPushButton with the specified label and slot."""
-        button = QtGui.QPushButton(label)
+        button = QtWidgets.QPushButton(label)
         button.clicked.connect(slot)
         return button
 
@@ -2503,7 +2503,7 @@ class NXPlotTab(QtGui.QWidget):
         _refresh_icon = QtGui.QIcon(
             pkg_resources.resource_filename('nexpy.gui',
                                             'resources/refresh-icon.png'))
-        self.toolbar = QtGui.QToolBar(parent=self)
+        self.toolbar = QtWidgets.QToolBar(parent=self)
         self.toolbar.setIconSize(QtCore.QSize(16,16))
         self.add_action(_refresh_icon, self.plotview.replot_data, "Replot",
                         checkable=False)
@@ -2563,7 +2563,7 @@ class NXPlotTab(QtGui.QWidget):
         self.playback_action.setChecked(False)
 
 
-class NXTextBox(QtGui.QLineEdit):
+class NXTextBox(QtWidgets.QLineEdit):
     """Subclass of QLineEdit with floating values."""
     def value(self):
         return float(six.text_type(self.text()))
@@ -2572,7 +2572,7 @@ class NXTextBox(QtGui.QLineEdit):
         self.setText(six.text_type(float('%.4g' % value)))
 
 
-class NXSpinBox(QtGui.QSpinBox):
+class NXSpinBox(QtWidgets.QSpinBox):
     """Subclass of QSpinBox with floating values.
 
     Parameters
@@ -2699,7 +2699,7 @@ class NXSpinBox(QtGui.QSpinBox):
         self.valueChanged.emit(1)
 
 
-class NXDoubleSpinBox(QtGui.QDoubleSpinBox):
+class NXDoubleSpinBox(QtWidgets.QDoubleSpinBox):
 
     def __init__(self, data=None):
         super(NXDoubleSpinBox, self).__init__()
@@ -2735,7 +2735,7 @@ class NXDoubleSpinBox(QtGui.QDoubleSpinBox):
         super(NXDoubleSpinBox, self).setValue(value)
 
 
-class NXProjectionTab(QtGui.QWidget):
+class NXProjectionTab(QtWidgets.QWidget):
 
     def __init__(self, plotview=None):
 
@@ -2743,42 +2743,42 @@ class NXProjectionTab(QtGui.QWidget):
 
         self.plotview = plotview
 
-        hbox = QtGui.QHBoxLayout()
+        hbox = QtWidgets.QHBoxLayout()
         widgets = []
 
-        self.xbox = QtGui.QComboBox()
+        self.xbox = QtWidgets.QComboBox()
         self.xbox.currentIndexChanged.connect(self.set_xaxis)
-        self.xbox.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToContents)
-        widgets.append(QtGui.QLabel('X-Axis:'))
+        self.xbox.setSizeAdjustPolicy(QtWidgets.QComboBox.AdjustToContents)
+        widgets.append(QtWidgets.QLabel('X-Axis:'))
         widgets.append(self.xbox)
 
-        self.ybox = QtGui.QComboBox()
+        self.ybox = QtWidgets.QComboBox()
         self.ybox.currentIndexChanged.connect(self.set_yaxis)
-        self.ybox.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToContents)
-        self.ylabel = QtGui.QLabel('Y-Axis:')
+        self.ybox.setSizeAdjustPolicy(QtWidgets.QComboBox.AdjustToContents)
+        self.ylabel = QtWidgets.QLabel('Y-Axis:')
         widgets.append(self.ylabel)
         widgets.append(self.ybox)
 
-        self.save_button = QtGui.QPushButton("Save", self)
+        self.save_button = QtWidgets.QPushButton("Save", self)
         self.save_button.clicked.connect(self.save_projection)
         widgets.append(self.save_button)
 
-        self.plot_button = QtGui.QPushButton("Plot", self)
+        self.plot_button = QtWidgets.QPushButton("Plot", self)
         self.plot_button.clicked.connect(self.plot_projection)
         widgets.append(self.plot_button)
 
-        self.sumbox = QtGui.QCheckBox("Sum")
+        self.sumbox = QtWidgets.QCheckBox("Sum")
         self.sumbox.setChecked(False)
         self.sumbox.clicked.connect(self.plotview.replot_data)
         widgets.append(self.sumbox)
 
-        self.overplot_box = QtGui.QCheckBox("Over")
+        self.overplot_box = QtWidgets.QCheckBox("Over")
         self.overplot_box.setChecked(False)
         if 'Projection' not in plotviews:
             self.overplot_box.setVisible(False)
         widgets.append(self.overplot_box)
 
-        self.panel_button = QtGui.QPushButton("Open Panel", self)
+        self.panel_button = QtWidgets.QPushButton("Open Panel", self)
         self.panel_button.clicked.connect(self.open_panel)
         widgets.append(self.panel_button)
 
@@ -2912,12 +2912,12 @@ class NXProjectionTab(QtGui.QWidget):
         self.plotview.projection_panel.panels.raise_()
 
 
-class NXProjectionPanels(QtGui.QDialog):
+class NXProjectionPanels(QtWidgets.QDialog):
 
     def __init__(self, parent=None):
         super(NXProjectionPanels, self).__init__(parent)
-        layout = QtGui.QVBoxLayout()
-        self.tabs = QtGui.QTabWidget(self)
+        layout = QtWidgets.QVBoxLayout()
+        self.tabs = QtWidgets.QTabWidget(self)
         layout.addWidget(self.tabs)
         self.setLayout(layout)
         self.setWindowTitle('Projection Panel')
@@ -2965,7 +2965,7 @@ class NXProjectionPanels(QtGui.QDialog):
         self.setVisible(False)
 
 
-class NXProjectionPanel(QtGui.QWidget):
+class NXProjectionPanel(QtWidgets.QWidget):
 
     def __init__(self, plotview=None):
 
@@ -2974,24 +2974,24 @@ class NXProjectionPanel(QtGui.QWidget):
         self.label = self.plotview.label
         self.panels = self.plotview.mainwindow.panels
 
-        QtGui.QWidget.__init__(self, parent=self.panels.tabs)
+        QtWidgets.QWidget.__init__(self, parent=self.panels.tabs)
 
-        layout = QtGui.QVBoxLayout()
+        layout = QtWidgets.QVBoxLayout()
 
-        axisbox = QtGui.QHBoxLayout()
+        axisbox = QtWidgets.QHBoxLayout()
         widgets = []
 
-        self.xbox = QtGui.QComboBox()
+        self.xbox = QtWidgets.QComboBox()
         self.xbox.currentIndexChanged.connect(self.set_xaxis)
-        self.xbox.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToContents)
-        widgets.append(QtGui.QLabel('X-Axis:'))
+        self.xbox.setSizeAdjustPolicy(QtWidgets.QComboBox.AdjustToContents)
+        widgets.append(QtWidgets.QLabel('X-Axis:'))
         widgets.append(self.xbox)
 
-        self.ybox = QtGui.QComboBox()
+        self.ybox = QtWidgets.QComboBox()
         self.ybox.currentIndexChanged.connect(self.set_yaxis)
         self.ybox.setCurrentIndex(self.ybox.findText(self.plotview.yaxis.name))
-        self.ybox.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToContents)
-        self.ylabel = QtGui.QLabel('Y-Axis:')
+        self.ybox.setSizeAdjustPolicy(QtWidgets.QComboBox.AdjustToContents)
+        self.ylabel = QtWidgets.QLabel('Y-Axis:')
         widgets.append(self.ylabel)
         widgets.append(self.ybox)
 
@@ -3005,7 +3005,7 @@ class NXProjectionPanel(QtGui.QWidget):
 
         layout.addLayout(axisbox)
 
-        grid = QtGui.QGridLayout()
+        grid = QtWidgets.QGridLayout()
         grid.setSpacing(10)
         headers = ['Axis', 'Minimum', 'Maximum', 'Lock']
         width = [50, 100, 100, 25]
@@ -3013,7 +3013,7 @@ class NXProjectionPanel(QtGui.QWidget):
         header_font = QtGui.QFont()
         header_font.setBold(True)
         for header in headers:
-            label = QtGui.QLabel()
+            label = QtWidgets.QLabel()
             label.setAlignment(QtCore.Qt.AlignHCenter)
             label.setText(header)
             label.setFont(header_font)
@@ -3029,27 +3029,27 @@ class NXProjectionPanel(QtGui.QWidget):
             row += 1
             self.minbox[axis] = self.spinbox()
             self.maxbox[axis] = self.spinbox()
-            self.lockbox[axis] = QtGui.QCheckBox()
+            self.lockbox[axis] = QtWidgets.QCheckBox()
             self.lockbox[axis].stateChanged.connect(self.set_lock)
             self.lockbox[axis].setChecked(False)
-            grid.addWidget(QtGui.QLabel(self.plotview.axis[axis].name), row, 0)
+            grid.addWidget(QtWidgets.QLabel(self.plotview.axis[axis].name), row, 0)
             grid.addWidget(self.minbox[axis], row, 1)
             grid.addWidget(self.maxbox[axis], row, 2)
             grid.addWidget(self.lockbox[axis], row, 3,
                            alignment=QtCore.Qt.AlignHCenter)
 
         row += 1
-        self.save_button = QtGui.QPushButton("Save", self)
+        self.save_button = QtWidgets.QPushButton("Save", self)
         self.save_button.clicked.connect(self.save_projection)
         self.save_button.setDefault(False)
         self.save_button.setAutoDefault(False)
         grid.addWidget(self.save_button, row, 1)
-        self.plot_button = QtGui.QPushButton("Plot", self)
+        self.plot_button = QtWidgets.QPushButton("Plot", self)
         self.plot_button.clicked.connect(self.plot_projection)
         self.plot_button.setDefault(False)
         self.plot_button.setAutoDefault(False)
         grid.addWidget(self.plot_button, row, 2)
-        self.overplot_box = QtGui.QCheckBox()
+        self.overplot_box = QtWidgets.QCheckBox()
         self.overplot_box.setChecked(False)
         if 'Projection' not in plotviews:
             self.overplot_box.setVisible(False)
@@ -3057,29 +3057,29 @@ class NXProjectionPanel(QtGui.QWidget):
                        alignment=QtCore.Qt.AlignHCenter)
 
         row += 1
-        self.mask_button = QtGui.QPushButton("Mask", self)
+        self.mask_button = QtWidgets.QPushButton("Mask", self)
         self.mask_button.clicked.connect(self.mask_data)
         self.mask_button.setDefault(False)
         self.mask_button.setAutoDefault(False)
         grid.addWidget(self.mask_button, row, 1)
-        self.unmask_button = QtGui.QPushButton("Unmask", self)
+        self.unmask_button = QtWidgets.QPushButton("Unmask", self)
         self.unmask_button.clicked.connect(self.unmask_data)
         self.unmask_button.setDefault(False)
         self.unmask_button.setAutoDefault(False)
         grid.addWidget(self.unmask_button, row, 2)
 
         row += 1
-        self.sumbox = QtGui.QCheckBox("Sum Projections")
+        self.sumbox = QtWidgets.QCheckBox("Sum Projections")
         self.sumbox.setChecked(False)
         grid.addWidget(self.sumbox, row, 1, 1, 2, 
                        alignment=QtCore.Qt.AlignHCenter)
 
         layout.addLayout(grid)
 
-        self.copy_row = QtGui.QWidget()
-        copy_layout = QtGui.QHBoxLayout()
-        self.copy_box = QtGui.QComboBox()
-        self.copy_button = QtGui.QPushButton("Copy Limits", self)
+        self.copy_row = QtWidgets.QWidget()
+        copy_layout = QtWidgets.QHBoxLayout()
+        self.copy_box = QtWidgets.QComboBox()
+        self.copy_button = QtWidgets.QPushButton("Copy Limits", self)
         self.copy_button.clicked.connect(self.copy_limits)
         self.copy_button.setDefault(False)
         self.copy_button.setAutoDefault(False)
@@ -3090,16 +3090,16 @@ class NXProjectionPanel(QtGui.QWidget):
         self.copy_row.setLayout(copy_layout)
         layout.addWidget(self.copy_row)
 
-        button_layout = QtGui.QHBoxLayout()
-        self.reset_button = QtGui.QPushButton("Reset Limits", self)
+        button_layout = QtWidgets.QHBoxLayout()
+        self.reset_button = QtWidgets.QPushButton("Reset Limits", self)
         self.reset_button.clicked.connect(self.reset_limits)
         self.reset_button.setDefault(False)
         self.reset_button.setAutoDefault(False)
-        self.rectangle_button = QtGui.QPushButton("Hide Limits", self)
+        self.rectangle_button = QtWidgets.QPushButton("Hide Limits", self)
         self.rectangle_button.clicked.connect(self.toggle_rectangle)
         self.rectangle_button.setDefault(False)
         self.rectangle_button.setAutoDefault(False)
-        self.close_button = QtGui.QPushButton("Close Panel", self)
+        self.close_button = QtWidgets.QPushButton("Close Panel", self)
         self.close_button.clicked.connect(self.close)
         self.close_button.setDefault(False)
         self.close_button.setAutoDefault(False)
@@ -3440,7 +3440,7 @@ class NXNavigationToolbar(NavigationToolbar):
                 )
         super(NXNavigationToolbar, self)._init_toolbar()
         self._actions['set_aspect'].setCheckable(True)
-        for action in self.findChildren(QtGui.QAction):
+        for action in self.findChildren(QtWidgets.QAction):
             if action.text() == 'Customize':
                 action.setToolTip('Customize plot')
 
@@ -3567,7 +3567,7 @@ class CustomizeDialog(BaseDialog):
         pl['ylabel'].box.setMinimumWidth(200)
         pl['ylabel'].box.setAlignment(QtCore.Qt.AlignLeft)
         if self.plotview.image is not None:
-            image_grid = QtGui.QVBoxLayout()
+            image_grid = QtWidgets.QVBoxLayout()
             self.parameters['image'] = self.image_parameters()
             self.update_image_parameters()
             image_grid.addLayout(self.parameters['image'].grid_layout)
@@ -3576,13 +3576,13 @@ class CustomizeDialog(BaseDialog):
                             self.close_buttons())
         else:
             self.curves = self.get_curves()
-            self.curve_grids = QtGui.QWidget(parent=self)
-            self.curve_layout = QtGui.QVBoxLayout()
+            self.curve_grids = QtWidgets.QWidget(parent=self)
+            self.curve_layout = QtWidgets.QVBoxLayout()
             self.curve_layout.setContentsMargins(0, 20, 0, 0)
             self.curve_box = self.select_box(list(self.curves),
                                              slot=self.select_curve)
             self.curve_box.setMinimumWidth(200)
-            layout = QtGui.QHBoxLayout()
+            layout = QtWidgets.QHBoxLayout()
             layout.addStretch()
             layout.addWidget(self.curve_box)
             layout.addStretch()
@@ -3599,15 +3599,15 @@ class CustomizeDialog(BaseDialog):
         self.set_title('Customize %s' % self.plotview.label)
 
     def close_buttons(self):
-        buttonbox = QtGui.QDialogButtonBox(self)
+        buttonbox = QtWidgets.QDialogButtonBox(self)
         buttonbox.setOrientation(QtCore.Qt.Horizontal)
-        buttonbox.setStandardButtons(QtGui.QDialogButtonBox.Apply|
-                                     QtGui.QDialogButtonBox.Cancel|
-                                     QtGui.QDialogButtonBox.Save)
+        buttonbox.setStandardButtons(QtWidgets.QDialogButtonBox.Apply|
+                                     QtWidgets.QDialogButtonBox.Cancel|
+                                     QtWidgets.QDialogButtonBox.Save)
         buttonbox.accepted.connect(self.accept)
         buttonbox.rejected.connect(self.reject)
-        buttonbox.button(QtGui.QDialogButtonBox.Apply).clicked.connect(self.apply)
-        buttonbox.button(QtGui.QDialogButtonBox.Apply).setDefault(True)
+        buttonbox.button(QtWidgets.QDialogButtonBox.Apply).clicked.connect(self.apply)
+        buttonbox.button(QtWidgets.QDialogButtonBox.Apply).setDefault(True)
         return buttonbox
 
     def update(self):
@@ -3674,7 +3674,7 @@ class CustomizeDialog(BaseDialog):
 
     def initialize_curve(self, curve):
         pc = self.parameters[curve]
-        pc.widget = QtGui.QWidget(parent=self.curve_grids)
+        pc.widget = QtWidgets.QWidget(parent=self.curve_grids)
         pc.widget.setLayout(pc.grid(header=False))
         pc.widget.setVisible(False)
         self.curve_layout.addWidget(pc.widget)

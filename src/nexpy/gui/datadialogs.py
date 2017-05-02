@@ -21,7 +21,7 @@ import re
 import shutil
 import sys
 
-from .pyqt import QtGui, QtCore, getOpenFileName
+from .pyqt import QtCore, QtGui, QtWidgets, getOpenFileName
 import numpy as np
 from scipy.optimize import minimize
 
@@ -37,7 +37,7 @@ from nexusformat.nexus import (NeXusError, NXgroup, NXfield, NXattr, NXlink,
                                NXroot, NXentry, NXdata, NXparameters, nxload)
 
 
-class BaseDialog(QtGui.QDialog):
+class BaseDialog(QtWidgets.QDialog):
     """Base dialog class for NeXpy dialogs"""
  
     def __init__(self, parent=None, default=False):
@@ -72,14 +72,14 @@ class BaseDialog(QtGui.QDialog):
                                         QtCore.Qt.NoModifier)
                 QtCore.QCoreApplication.postEvent(widget, event)
                 return True
-        return QtGui.QWidget.eventFilter(self, widget, event)
+        return QtWidgets.QWidget.eventFilter(self, widget, event)
 
     def set_layout(self, *items):
-        self.layout = QtGui.QVBoxLayout()
+        self.layout = QtWidgets.QVBoxLayout()
         for item in items:
-            if isinstance(item, QtGui.QLayout):
+            if isinstance(item, QtWidgets.QLayout):
                 self.layout.addLayout(item)
-            elif isinstance(item, QtGui.QWidget):
+            elif isinstance(item, QtWidgets.QWidget):
                 self.layout.addWidget(item)
         self.setLayout(self.layout)
 
@@ -90,16 +90,16 @@ class BaseDialog(QtGui.QDialog):
         """
         Creates a box containing the standard Cancel and OK buttons.
         """
-        self.close_box = QtGui.QDialogButtonBox(self)
+        self.close_box = QtWidgets.QDialogButtonBox(self)
         self.close_box.setOrientation(QtCore.Qt.Horizontal)
         if save:
-            self.close_box.setStandardButtons(QtGui.QDialogButtonBox.Cancel|
-                                              QtGui.QDialogButtonBox.Save)
+            self.close_box.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel|
+                                              QtWidgets.QDialogButtonBox.Save)
         elif close:
-            self.close_box.setStandardButtons(QtGui.QDialogButtonBox.Close)
+            self.close_box.setStandardButtons(QtWidgets.QDialogButtonBox.Close)
         else:
-            self.close_box.setStandardButtons(QtGui.QDialogButtonBox.Cancel|
-                                              QtGui.QDialogButtonBox.Ok)
+            self.close_box.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel|
+                                              QtWidgets.QDialogButtonBox.Ok)
         self.close_box.accepted.connect(self.accept)
         self.close_box.rejected.connect(self.reject)
         return self.close_box
@@ -107,10 +107,10 @@ class BaseDialog(QtGui.QDialog):
     buttonbox = close_buttons #For backward compatibility
 
     def action_buttons(self, *items):
-        layout = QtGui.QHBoxLayout()
+        layout = QtWidgets.QHBoxLayout()
         layout.addStretch()
         for label, action in items:
-             button = QtGui.QPushButton(label)
+             button = QtWidgets.QPushButton(label)
              button.clicked.connect(action)
              layout.addWidget(button)
              layout.addStretch()
@@ -121,12 +121,12 @@ class BaseDialog(QtGui.QDialog):
             align = opts['align']
         else:
             align = 'center'
-        layout = QtGui.QVBoxLayout()
+        layout = QtWidgets.QVBoxLayout()
         for label in labels:
-            horizontal_layout = QtGui.QHBoxLayout()
+            horizontal_layout = QtWidgets.QHBoxLayout()
             if align == 'center' or align == 'right':
                 horizontal_layout.addStretch()
-            horizontal_layout.addWidget(QtGui.QLabel(label))
+            horizontal_layout.addWidget(QtWidgets.QLabel(label))
             if align == 'center' or align == 'left':
                 horizontal_layout.addStretch()
             layout.addLayout(horizontal_layout)
@@ -134,15 +134,15 @@ class BaseDialog(QtGui.QDialog):
 
     def textboxes(self, *items, **opts):
         if 'layout' in opts and opts['layout'] == 'horizontal':
-            layout = QtGui.QHBoxLayout()
+            layout = QtWidgets.QHBoxLayout()
         else:
-            layout = QtGui.QVBoxLayout()
+            layout = QtWidgets.QVBoxLayout()
         for item in items:
-            item_layout = QtGui.QHBoxLayout()
+            item_layout = QtWidgets.QHBoxLayout()
             label, value = item
-            label_box = QtGui.QLabel(label)
+            label_box = QtWidgets.QLabel(label)
             label_box.setAlignment(QtCore.Qt.AlignLeft)
-            self.textbox[label] = QtGui.QLineEdit(six.text_type(value))
+            self.textbox[label] = QtWidgets.QLineEdit(six.text_type(value))
             self.textbox[label].setAlignment(QtCore.Qt.AlignLeft)
             item_layout.addWidget(label_box)
             item_layout.addWidget(self.textbox[label])
@@ -155,22 +155,22 @@ class BaseDialog(QtGui.QDialog):
             align = opts['align']
         else:
             align = 'center'
-        layout = QtGui.QHBoxLayout()
+        layout = QtWidgets.QHBoxLayout()
         if align != 'left':
             layout.addStretch()
         for label, text, checked in items:
-             self.checkbox[label] = QtGui.QCheckBox(text)
+             self.checkbox[label] = QtWidgets.QCheckBox(text)
              self.checkbox[label].setChecked(checked)
              layout.addWidget(self.checkbox[label])
              layout.addStretch()
         return layout
 
     def radiobuttons(self, *items):
-        group = QtGui.QButtonGroup()
-        layout = QtGui.QHBoxLayout()
+        group = QtWidgets.QButtonGroup()
+        layout = QtWidgets.QHBoxLayout()
         layout.addStretch()
         for label, text, checked in items:
-             self.radiobutton[label] = QtGui.QRadioButton(text)
+             self.radiobutton[label] = QtWidgets.QRadioButton(text)
              self.radiobutton[label].setChecked(checked)
              layout.addWidget(self.radiobutton[label])
              layout.addStretch()
@@ -181,11 +181,11 @@ class BaseDialog(QtGui.QDialog):
         """
         Creates a text box and button for selecting a file.
         """
-        self.filebutton =  QtGui.QPushButton(text)
+        self.filebutton =  QtWidgets.QPushButton(text)
         self.filebutton.clicked.connect(self.choose_file)
-        self.filename = QtGui.QLineEdit(self)
+        self.filename = QtWidgets.QLineEdit(self)
         self.filename.setMinimumWidth(300)
-        filebox = QtGui.QHBoxLayout()
+        filebox = QtWidgets.QHBoxLayout()
         filebox.addWidget(self.filebutton)
         filebox.addWidget(self.filename)
         return filebox
@@ -194,14 +194,14 @@ class BaseDialog(QtGui.QDialog):
         """
         Creates a text box and button for selecting a directory.
         """
-        self.directorybutton =  QtGui.QPushButton(text)
+        self.directorybutton =  QtWidgets.QPushButton(text)
         self.directorybutton.clicked.connect(self.choose_directory)
-        self.directoryname = QtGui.QLineEdit(self)
+        self.directoryname = QtWidgets.QLineEdit(self)
         self.directoryname.setMinimumWidth(300)
         default = self.get_default_directory()
         if default:
             self.directoryname.setText(default)
-        directorybox = QtGui.QHBoxLayout()
+        directorybox = QtWidgets.QHBoxLayout()
         directorybox.addWidget(self.directorybutton)
         directorybox.addWidget(self.directoryname)
         return directorybox
@@ -228,7 +228,7 @@ class BaseDialog(QtGui.QDialog):
         Opens a file dialog and sets the directory text box to the chosen path.
         """
         dirname = self.get_default_directory()
-        dirname = QtGui.QFileDialog.getExistingDirectory(self, 
+        dirname = QtWidgets.QFileDialog.getExistingDirectory(self, 
                                                          'Choose Directory', 
                                                          dirname)
         if os.path.exists(dirname):  # avoids problems if <Cancel> was selected
@@ -277,8 +277,8 @@ class BaseDialog(QtGui.QDialog):
         return sorted(filenames,key=natural_sort)
 
     def select_box(self, choices, default=None, slot=None):
-        box = QtGui.QComboBox()
-        box.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToContents)
+        box = QtWidgets.QComboBox()
+        box.setSizeAdjustPolicy(QtWidgets.QComboBox.AdjustToContents)
         for choice in choices:
             box.addItem(choice)
         if default in choices:
@@ -291,9 +291,9 @@ class BaseDialog(QtGui.QDialog):
         return box
 
     def select_root(self, slot=None, text='Select Root :', other=False):
-        layout = QtGui.QHBoxLayout()
-        box = QtGui.QComboBox()
-        box.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToContents)
+        layout = QtWidgets.QHBoxLayout()
+        box = QtWidgets.QComboBox()
+        box.setSizeAdjustPolicy(QtWidgets.QComboBox.AdjustToContents)
         roots = []
         for root in self.tree.NXroot:
             roots.append(root.nxname)
@@ -309,7 +309,7 @@ class BaseDialog(QtGui.QDialog):
                 box.setCurrentIndex(0)
         if slot:
             box.currentIndexChanged.connect(slot)
-        layout.addWidget(QtGui.QLabel(text))
+        layout.addWidget(QtWidgets.QLabel(text))
         layout.addWidget(box)
         layout.addStretch()
         if not other:
@@ -329,9 +329,9 @@ class BaseDialog(QtGui.QDialog):
         return self.tree[self.other_root_box.currentText()]
 
     def select_entry(self, slot=None, text='Select Entry :', other=False):
-        layout = QtGui.QHBoxLayout()
-        box = QtGui.QComboBox()
-        box.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToContents)
+        layout = QtWidgets.QHBoxLayout()
+        box = QtWidgets.QComboBox()
+        box.setSizeAdjustPolicy(QtWidgets.QComboBox.AdjustToContents)
         entries = []
         for root in self.tree.NXroot:
             for entry in root.NXentry:
@@ -348,7 +348,7 @@ class BaseDialog(QtGui.QDialog):
                 box.setCurrentIndex(0)
         if slot:
             box.currentIndexChanged.connect(slot)
-        layout.addWidget(QtGui.QLabel(text))
+        layout.addWidget(QtWidgets.QLabel(text))
         layout.addWidget(box)
         layout.addStretch()
         if not other:
@@ -389,14 +389,14 @@ class BaseDialog(QtGui.QDialog):
         This usually needs to be subclassed in each dialog.
         """
         self.accepted = True
-        QtGui.QDialog.accept(self)
+        QtWidgets.QDialog.accept(self)
         
     def reject(self):
         """
         Cancels the dialog without saving the result.
         """
         self.accepted = False
-        QtGui.QDialog.reject(self)
+        QtWidgets.QDialog.reject(self)
 
     def update_progress(self):
         """
@@ -407,8 +407,8 @@ class BaseDialog(QtGui.QDialog):
         self.mainwindow._app.processEvents()
 
     def progress_layout(self, save=False):
-        layout = QtGui.QHBoxLayout()
-        self.progress_bar = QtGui.QProgressBar()
+        layout = QtWidgets.QHBoxLayout()
+        self.progress_bar = QtWidgets.QProgressBar()
         layout.addWidget(self.progress_bar)
         layout.addStretch()
         layout.addWidget(self.close_buttons(save))
@@ -455,23 +455,23 @@ class GridParameters(OrderedDict):
                                              vary=vary, slot=slot))
 
     def grid(self, header=True, title=None, width=None):
-        grid = QtGui.QGridLayout()
+        grid = QtWidgets.QGridLayout()
         grid.setSpacing(5)
         header_font = QtGui.QFont()
         header_font.setBold(True)
         row = 0
         if title:
-            title_label = QtGui.QLabel(title)
+            title_label = QtWidgets.QLabel(title)
             title_label.setFont(header_font)
             title_label.setAlignment(QtCore.Qt.AlignHCenter)
             grid.addWidget(title_label, row, 0, 1, 2)
             row += 1
         if header:
-            parameter_label = QtGui.QLabel('Parameter')
+            parameter_label = QtWidgets.QLabel('Parameter')
             parameter_label.setFont(header_font)
             parameter_label.setAlignment(QtCore.Qt.AlignHCenter)
             grid.addWidget(parameter_label, 0, 0)
-            value_label = QtGui.QLabel('Value')
+            value_label = QtWidgets.QLabel('Value')
             value_label.setFont(header_font)
             value_label.setAlignment(QtCore.Qt.AlignHCenter)
             grid.addWidget(value_label, row, 1)
@@ -488,7 +488,7 @@ class GridParameters(OrderedDict):
                 vary = True
             row += 1
         if vary:
-            fit_label = QtGui.QLabel('Fit?')
+            fit_label = QtWidgets.QLabel('Fit?')
             fit_label.setFont(header_font)
             grid.addWidget(fit_label, 0, 2, QtCore.Qt.AlignHCenter)
         self.grid_layout = grid
@@ -545,14 +545,14 @@ class GridParameter(object):
         self.name = name
         self._value = value
         if isinstance(value, list) or isinstance(value, tuple):
-            self.box = QtGui.QComboBox()
-            self.box.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToContents)
+            self.box = QtWidgets.QComboBox()
+            self.box.setSizeAdjustPolicy(QtWidgets.QComboBox.AdjustToContents)
             for v in value:
                 self.box.addItem(str(v))
             if slot is not None:
                 self.box.currentIndexChanged.connect(slot)
         else:
-            self.box = QtGui.QLineEdit()
+            self.box = QtWidgets.QLineEdit()
             self.box.setAlignment(QtCore.Qt.AlignRight)
             if value is not None:
                 if isinstance(value, NXfield):
@@ -567,12 +567,12 @@ class GridParameter(object):
             if slot is not None:
                 self.box.editingFinished.connect(slot)
         if vary is not None:
-            self.checkbox = QtGui.QCheckBox()
+            self.checkbox = QtWidgets.QCheckBox()
             self.vary = vary
             self.init_value = self.value
         else:
             self.checkbox = self.vary = self.init_value = None
-        self.label = QtGui.QLabel(label)
+        self.label = QtWidgets.QLabel(label)
 
     def set(self, value=None, vary=None):
         """
@@ -604,7 +604,7 @@ class GridParameter(object):
 
     @property
     def value(self):
-        if isinstance(self.box, QtGui.QComboBox):
+        if isinstance(self.box, QtWidgets.QComboBox):
             return self.box.currentText()
         else:
             _value = self.box.text()
@@ -620,7 +620,7 @@ class GridParameter(object):
     def value(self, value):
         self._value = value
         if value is not None:
-            if isinstance(self.box, QtGui.QComboBox):
+            if isinstance(self.box, QtWidgets.QComboBox):
                 idx = self.box.findText(value)
                 if idx >= 0:
                     self.box.setCurrentIndex(idx)
@@ -667,13 +667,13 @@ class PlotDialog(BaseDialog):
 
         self.fmt = fmt
 
-        self.signal_combo =  QtGui.QComboBox() 
+        self.signal_combo =  QtWidgets.QComboBox() 
         for node in self.group.values():
             if isinstance(node, NXfield) and node.is_plottable():
                 self.signal_combo.addItem(node.nxname)
         if self.signal_combo.count() == 0:
             raise NeXusError("No plottable field in group")
-        self.signal_combo.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToContents)
+        self.signal_combo.setSizeAdjustPolicy(QtWidgets.QComboBox.AdjustToContents)
         if signal_name:
             idx = self.signal_combo.findText(signal_name)
             if idx >= 0:
@@ -682,13 +682,13 @@ class PlotDialog(BaseDialog):
                 signal_name = None
         self.signal_combo.currentIndexChanged.connect(self.choose_signal)
  
-        self.grid = QtGui.QGridLayout()
+        self.grid = QtWidgets.QGridLayout()
         self.grid.setSpacing(10)
-        self.grid.addWidget(QtGui.QLabel('Signal :'), 0, 0)
+        self.grid.addWidget(QtWidgets.QLabel('Signal :'), 0, 0)
         self.grid.addWidget(self.signal_combo, 0, 1)
         self.choose_signal()
 
-        self.layout = QtGui.QVBoxLayout()
+        self.layout = QtWidgets.QVBoxLayout()
         self.layout.addLayout(self.grid)
         self.layout.addWidget(self.close_buttons())
         self.setLayout(self.layout)
@@ -708,7 +708,7 @@ class PlotDialog(BaseDialog):
         self.axis_boxes = {}
         for axis in range(self.ndim):
             row += 1
-            self.grid.addWidget(QtGui.QLabel("Axis %s: " % axis), row, 0)
+            self.grid.addWidget(QtWidgets.QLabel("Axis %s: " % axis), row, 0)
             self.axis_boxes[axis] = self.axis_box(axis)
             self.grid.addWidget(self.axis_boxes[axis], row, 1)
         while row < self.grid.rowCount() - 1:
@@ -716,7 +716,7 @@ class PlotDialog(BaseDialog):
             row += 1   
 
     def axis_box(self, axis):
-        box = QtGui.QComboBox()
+        box = QtWidgets.QComboBox()
         for node in self.group.values():
             if isinstance(node, NXfield) and node is not self.signal:
                 if self.check_axis(node, axis):
@@ -785,46 +785,46 @@ class LimitDialog(BaseDialog):
 
         self.plotview = plotview
         
-        layout = QtGui.QVBoxLayout()
+        layout = QtWidgets.QVBoxLayout()
 
-        xmin_layout = QtGui.QHBoxLayout()
-        xmin_layout.addWidget(QtGui.QLabel('xmin'))
+        xmin_layout = QtWidgets.QHBoxLayout()
+        xmin_layout.addWidget(QtWidgets.QLabel('xmin'))
         self.xmin_box = self.limitbox()
         self.xmin_box.setValue(plotview.xaxis.min)
         xmin_layout.addWidget(self.xmin_box)
         layout.addLayout(xmin_layout)
 
-        xmax_layout = QtGui.QHBoxLayout()
-        xmax_layout.addWidget(QtGui.QLabel('xmax'))
+        xmax_layout = QtWidgets.QHBoxLayout()
+        xmax_layout.addWidget(QtWidgets.QLabel('xmax'))
         self.xmax_box = self.limitbox()
         self.xmax_box.setValue(plotview.xaxis.max)
         xmax_layout.addWidget(self.xmax_box)
         layout.addLayout(xmax_layout)
 
-        ymin_layout = QtGui.QHBoxLayout()
-        ymin_layout.addWidget(QtGui.QLabel('ymin'))
+        ymin_layout = QtWidgets.QHBoxLayout()
+        ymin_layout.addWidget(QtWidgets.QLabel('ymin'))
         self.ymin_box = self.limitbox()
         self.ymin_box.setValue(plotview.yaxis.min)
         ymin_layout.addWidget(self.ymin_box)
         layout.addLayout(ymin_layout)
 
-        ymax_layout = QtGui.QHBoxLayout()
-        ymax_layout.addWidget(QtGui.QLabel('ymax'))
+        ymax_layout = QtWidgets.QHBoxLayout()
+        ymax_layout.addWidget(QtWidgets.QLabel('ymax'))
         self.ymax_box = self.limitbox()
         self.ymax_box.setValue(plotview.yaxis.max)
         ymax_layout.addWidget(self.ymax_box)
         layout.addLayout(ymax_layout)
 
         if plotview.ndim > 1:
-            vmin_layout = QtGui.QHBoxLayout()
-            vmin_layout.addWidget(QtGui.QLabel('vmin'))
+            vmin_layout = QtWidgets.QHBoxLayout()
+            vmin_layout.addWidget(QtWidgets.QLabel('vmin'))
             self.vmin_box = self.limitbox()
             self.vmin_box.setValue(plotview.vaxis.min)
             vmin_layout.addWidget(self.vmin_box)
             layout.addLayout(vmin_layout)
 
-            vmax_layout = QtGui.QHBoxLayout()
-            vmax_layout.addWidget(QtGui.QLabel('vmax'))
+            vmax_layout = QtWidgets.QHBoxLayout()
+            vmax_layout.addWidget(QtWidgets.QLabel('vmax'))
             self.vmax_box = self.limitbox()
             self.vmax_box.setValue(plotview.vaxis.max)
             vmax_layout.addWidget(self.vmax_box)
@@ -868,7 +868,7 @@ class ViewDialog(BaseDialog):
         self.node = node
         self.spinboxes = []
 
-        layout = QtGui.QVBoxLayout()
+        layout = QtWidgets.QVBoxLayout()
         self.properties = GridParameters()
         
         self.properties.add('class', node.__class__.__name__, 'Class')
@@ -930,13 +930,13 @@ class ViewDialog(BaseDialog):
         
         if (isinstance(node, NXfield) and node.shape is not None and 
                node.shape != () and node.shape != (1,)):
-            hlayout = QtGui.QHBoxLayout()
+            hlayout = QtWidgets.QHBoxLayout()
             hlayout.addLayout(layout)
             hlayout.addLayout(self.table())
-            vlayout = QtGui.QVBoxLayout()
+            vlayout = QtWidgets.QVBoxLayout()
             vlayout.addLayout(hlayout)
             vlayout.addWidget(self.close_buttons(close=True))
-            vlayout.setSizeConstraint(QtGui.QLayout.SetFixedSize)
+            vlayout.setSizeConstraint(QtWidgets.QLayout.SetFixedSize)
             self.setLayout(vlayout)          
         else:
             layout.addWidget(self.close_buttons(close=True))
@@ -945,10 +945,10 @@ class ViewDialog(BaseDialog):
         self.setWindowTitle(node.nxroot.nxname+node.nxpath)
 
     def table(self):
-        layout = QtGui.QVBoxLayout()
+        layout = QtWidgets.QVBoxLayout()
 
-        title_layout = QtGui.QHBoxLayout()
-        title_label = QtGui.QLabel('Values')
+        title_layout = QtWidgets.QHBoxLayout()
+        title_label = QtWidgets.QLabel('Values')
         header_font = QtGui.QFont()
         header_font.setBold(True)
         title_label.setFont(header_font)
@@ -960,7 +960,7 @@ class ViewDialog(BaseDialog):
         if [s for s in self.node.shape if s > 10]:
             idx = []
             for i, s in enumerate(self.node.shape):
-                spinbox = QtGui.QSpinBox()
+                spinbox = QtWidgets.QSpinBox()
                 spinbox.setRange(0, s-1)   
                 spinbox.valueChanged[six.text_type].connect(self.choose_data)
                 if len(self.node.shape) - i > 2:
@@ -974,14 +974,14 @@ class ViewDialog(BaseDialog):
             data = self.node[()]
 
         if self.spinboxes:
-            box_layout = QtGui.QHBoxLayout()
+            box_layout = QtWidgets.QHBoxLayout()
             box_layout.addStretch()
             for spinbox in self.spinboxes:
                 box_layout.addWidget(spinbox)
             box_layout.addStretch()
             layout.addLayout(box_layout)
 
-        self.table_view = QtGui.QTableView()
+        self.table_view = QtWidgets.QTableView()
         self.table_model = ViewTableModel(self, data)
         self.table_view.setModel(self.table_model)
         self.table_view.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
@@ -1121,15 +1121,15 @@ class AddDialog(BaseDialog):
 
         self.node = node
 
-        class_layout = QtGui.QHBoxLayout()
-        self.class_box = QtGui.QComboBox()
+        class_layout = QtWidgets.QHBoxLayout()
+        self.class_box = QtWidgets.QComboBox()
         if isinstance(self.node, NXgroup):
             names = ['NXgroup', 'NXfield', 'NXattr']
         else:
             names = ['NXattr']
         for name in names:
             self.class_box.addItem(name)
-        self.class_button = QtGui.QPushButton("Add")
+        self.class_button = QtWidgets.QPushButton("Add")
         self.class_button.clicked.connect(self.select_class)
         class_layout.addWidget(self.class_box)
         class_layout.addWidget(self.class_button)
@@ -1140,7 +1140,7 @@ class AddDialog(BaseDialog):
         else:
             self.setWindowTitle("Add NeXus Data")
 
-        self.layout = QtGui.QVBoxLayout()
+        self.layout = QtWidgets.QVBoxLayout()
         self.layout.addLayout(class_layout)
         self.layout.addWidget(self.close_buttons()) 
         self.setLayout(self.layout)
@@ -1157,19 +1157,19 @@ class AddDialog(BaseDialog):
         self.class_box.setDisabled(True)
 
     def define_grid(self, class_name):
-        grid = QtGui.QGridLayout()
+        grid = QtWidgets.QGridLayout()
         grid.setSpacing(10)
 
-        name_label = QtGui.QLabel()
+        name_label = QtWidgets.QLabel()
         name_label.setAlignment(QtCore.Qt.AlignLeft)
         name_label.setText("Name:")
-        self.name_box = QtGui.QLineEdit()
+        self.name_box = QtWidgets.QLineEdit()
         self.name_box.setAlignment(QtCore.Qt.AlignLeft)
         if class_name == "NXgroup":
-            combo_label = QtGui.QLabel()
+            combo_label = QtWidgets.QLabel()
             combo_label.setAlignment(QtCore.Qt.AlignLeft)
             combo_label.setText("Group Class:")
-            self.combo_box = QtGui.QComboBox()
+            self.combo_box = QtWidgets.QComboBox()
             self.combo_box.currentIndexChanged.connect(self.select_combo)
             standard_groups = sorted(list(set([g for g in 
                               self.mainwindow.nxclasses[self.node.nxclass][2]])))
@@ -1186,15 +1186,15 @@ class AddDialog(BaseDialog):
                 self.combo_box.setItemData(self.combo_box.count()-1, 
                     wrap(self.mainwindow.nxclasses[name][0], 40),
                     QtCore.Qt.ToolTipRole)
-            self.combo_box.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToContents)
+            self.combo_box.setSizeAdjustPolicy(QtWidgets.QComboBox.AdjustToContents)
             grid.addWidget(combo_label, 0, 0)
             grid.addWidget(self.combo_box, 0, 1)
             grid.addWidget(name_label, 1, 0)
             grid.addWidget(self.name_box, 1, 1)
         elif class_name == "NXfield":
-            combo_label = QtGui.QLabel()
+            combo_label = QtWidgets.QLabel()
             combo_label.setAlignment(QtCore.Qt.AlignLeft)
-            self.combo_box = QtGui.QComboBox()
+            self.combo_box = QtWidgets.QComboBox()
             self.combo_box.currentIndexChanged.connect(self.select_combo)
             fields = sorted(list(set([g for g in 
                             self.mainwindow.nxclasses[self.node.nxclass][1]])))
@@ -1203,56 +1203,56 @@ class AddDialog(BaseDialog):
                 self.combo_box.setItemData(self.combo_box.count()-1, 
                     wrap(self.mainwindow.nxclasses[self.node.nxclass][1][name][2], 40),
                     QtCore.Qt.ToolTipRole)
-            self.combo_box.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToContents)
+            self.combo_box.setSizeAdjustPolicy(QtWidgets.QComboBox.AdjustToContents)
             grid.addWidget(name_label, 0, 0)
             grid.addWidget(self.name_box, 0, 1)
             grid.addWidget(self.combo_box, 0, 2)
-            value_label = QtGui.QLabel()
+            value_label = QtWidgets.QLabel()
             value_label.setAlignment(QtCore.Qt.AlignLeft)
             value_label.setText("Value:")
-            self.value_box = QtGui.QLineEdit()
+            self.value_box = QtWidgets.QLineEdit()
             self.value_box.setAlignment(QtCore.Qt.AlignLeft)
             grid.addWidget(value_label, 1, 0)
             grid.addWidget(self.value_box, 1, 1)
-            units_label = QtGui.QLabel()
+            units_label = QtWidgets.QLabel()
             units_label.setAlignment(QtCore.Qt.AlignLeft)
             units_label.setText("Units:")
-            self.units_box = QtGui.QLineEdit()
+            self.units_box = QtWidgets.QLineEdit()
             self.units_box.setAlignment(QtCore.Qt.AlignLeft)
             grid.addWidget(units_label, 2, 0)
             grid.addWidget(self.units_box, 2, 1)
-            type_label = QtGui.QLabel()
+            type_label = QtWidgets.QLabel()
             type_label.setAlignment(QtCore.Qt.AlignLeft)
             type_label.setText("Datatype:")
-            self.type_box = QtGui.QComboBox()
+            self.type_box = QtWidgets.QComboBox()
             for name in self.data_types:
                 self.type_box.addItem(name)
             self.type_box.insertSeparator(0)
             self.type_box.insertItem(0, 'auto')
             self.type_box.setCurrentIndex(0)
-            self.type_box.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToContents)
+            self.type_box.setSizeAdjustPolicy(QtWidgets.QComboBox.AdjustToContents)
             grid.addWidget(type_label, 3, 0)
             grid.addWidget(self.type_box, 3, 1)
         else:
             grid.addWidget(name_label, 0, 0)
             grid.addWidget(self.name_box, 0, 1)
-            value_label = QtGui.QLabel()
+            value_label = QtWidgets.QLabel()
             value_label.setAlignment(QtCore.Qt.AlignLeft)
             value_label.setText("Value:")
-            self.value_box = QtGui.QLineEdit()
+            self.value_box = QtWidgets.QLineEdit()
             self.value_box.setAlignment(QtCore.Qt.AlignLeft)
             grid.addWidget(value_label, 1, 0)
             grid.addWidget(self.value_box, 1, 1)
-            type_label = QtGui.QLabel()
+            type_label = QtWidgets.QLabel()
             type_label.setAlignment(QtCore.Qt.AlignLeft)
             type_label.setText("Datatype:")
-            self.type_box = QtGui.QComboBox()
+            self.type_box = QtWidgets.QComboBox()
             for name in self.data_types:
                 self.type_box.addItem(name)
             self.type_box.insertSeparator(0)
             self.type_box.insertItem(0, 'auto')
             self.type_box.setCurrentIndex(0)
-            self.type_box.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToContents)
+            self.type_box.setSizeAdjustPolicy(QtWidgets.QComboBox.AdjustToContents)
             grid.addWidget(type_label, 2, 0)
             grid.addWidget(self.type_box, 2, 1)
         grid.setColumnMinimumWidth(1, 200)
@@ -1339,15 +1339,15 @@ class InitializeDialog(BaseDialog):
 
         self.setWindowTitle("Initialize NeXus Data")
 
-        grid = QtGui.QGridLayout()
+        grid = QtWidgets.QGridLayout()
         grid.setSpacing(10)
 
-        name_label = QtGui.QLabel()
+        name_label = QtWidgets.QLabel()
         name_label.setAlignment(QtCore.Qt.AlignLeft)
         name_label.setText("Name:")
-        self.name_box = QtGui.QLineEdit()
+        self.name_box = QtWidgets.QLineEdit()
         self.name_box.setAlignment(QtCore.Qt.AlignLeft)
-        self.combo_box = QtGui.QComboBox()
+        self.combo_box = QtWidgets.QComboBox()
         self.combo_box.currentIndexChanged.connect(self.select_combo)
         fields = sorted(list(set([g for g in 
                         self.mainwindow.nxclasses[self.node.nxclass][1]])))
@@ -1356,30 +1356,30 @@ class InitializeDialog(BaseDialog):
             self.combo_box.setItemData(self.combo_box.count()-1, 
                 wrap(self.mainwindow.nxclasses[self.node.nxclass][1][name][2], 40),
                 QtCore.Qt.ToolTipRole)
-        self.combo_box.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToContents)
+        self.combo_box.setSizeAdjustPolicy(QtWidgets.QComboBox.AdjustToContents)
         grid.addWidget(name_label, 0, 0)
         grid.addWidget(self.name_box, 0, 1)
         grid.addWidget(self.combo_box, 0, 2)
-        type_label = QtGui.QLabel()
+        type_label = QtWidgets.QLabel()
         type_label.setAlignment(QtCore.Qt.AlignLeft)
         type_label.setText("Datatype:")
-        self.type_box = QtGui.QComboBox()
+        self.type_box = QtWidgets.QComboBox()
         for name in self.data_types:
             self.type_box.addItem(name)
         self.type_box.setCurrentIndex(0)
-        self.type_box.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToContents)
+        self.type_box.setSizeAdjustPolicy(QtWidgets.QComboBox.AdjustToContents)
         grid.addWidget(type_label, 2, 0)
         grid.addWidget(self.type_box, 2, 1)
-        shape_label = QtGui.QLabel()
+        shape_label = QtWidgets.QLabel()
         shape_label.setAlignment(QtCore.Qt.AlignLeft)
         shape_label.setText("Shape:")
-        self.shape_box = QtGui.QLineEdit()
+        self.shape_box = QtWidgets.QLineEdit()
         self.shape_box.setAlignment(QtCore.Qt.AlignLeft)
         grid.addWidget(shape_label, 3, 0)
         grid.addWidget(self.shape_box, 3, 1)
         grid.setColumnMinimumWidth(1, 200)
 
-        self.layout = QtGui.QVBoxLayout()
+        self.layout = QtWidgets.QVBoxLayout()
         self.layout.addLayout(grid)
         self.layout.addWidget(self.close_buttons()) 
         self.setLayout(self.layout)
@@ -1436,27 +1436,27 @@ class RenameDialog(BaseDialog):
 
         self.setWindowTitle("Rename NeXus data")
 
-        self.layout = QtGui.QVBoxLayout()
+        self.layout = QtWidgets.QVBoxLayout()
         self.layout.addLayout(self.define_grid())
         self.layout.addWidget(self.close_buttons()) 
         self.setLayout(self.layout)
 
     def define_grid(self):
-        grid = QtGui.QGridLayout()
+        grid = QtWidgets.QGridLayout()
         grid.setSpacing(10)
-        name_label = QtGui.QLabel()
+        name_label = QtWidgets.QLabel()
         name_label.setAlignment(QtCore.Qt.AlignLeft)
         name_label.setText("New Name:")
-        self.name_box = QtGui.QLineEdit(self.node.nxname)
+        self.name_box = QtWidgets.QLineEdit(self.node.nxname)
         self.name_box.setAlignment(QtCore.Qt.AlignLeft)
         grid.addWidget(name_label, 0, 0)
         grid.addWidget(self.name_box, 0, 1)
         self.combo_box = None
         if isinstance(self.node, NXgroup) and self.node.nxclass != 'NXroot':
-            combo_label = QtGui.QLabel()
+            combo_label = QtWidgets.QLabel()
             combo_label.setAlignment(QtCore.Qt.AlignLeft)
             combo_label.setText("New Class:")
-            self.combo_box = QtGui.QComboBox()
+            self.combo_box = QtWidgets.QComboBox()
             parent_class = self.node.nxgroup.nxclass
             standard_groups = sorted(list(set([g for g in 
                                   self.mainwindow.nxclasses[parent_class][2]])))
@@ -1476,16 +1476,16 @@ class RenameDialog(BaseDialog):
             self.combo_box.insertSeparator(self.combo_box.count())
             self.combo_box.addItem('NXgroup')
             self.combo_box.setCurrentIndex(self.combo_box.findText(self.node.nxclass))
-            self.combo_box.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToContents)
+            self.combo_box.setSizeAdjustPolicy(QtWidgets.QComboBox.AdjustToContents)
             grid.addWidget(combo_label, 1, 0)
             grid.addWidget(self.combo_box, 1, 1)
         else:
             parent_class = self.node.nxgroup.nxclass
             if parent_class != 'NXroot' and parent_class != 'NXtree':
-                combo_label = QtGui.QLabel()
+                combo_label = QtWidgets.QLabel()
                 combo_label.setAlignment(QtCore.Qt.AlignLeft)
                 combo_label.setText("Valid Fields:")
-                self.combo_box = QtGui.QComboBox()
+                self.combo_box = QtWidgets.QComboBox()
                 self.combo_box.currentIndexChanged.connect(self.set_name)
                 fields = sorted(list(set([g for g in 
                                 self.mainwindow.nxclasses[parent_class][1]])))
@@ -1498,7 +1498,7 @@ class RenameDialog(BaseDialog):
                     self.combo_box.setCurrentIndex(self.combo_box.findText(self.node.nxname))
                 else:
                     self.name_box.setText(self.node.nxname)
-                self.combo_box.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToContents)
+                self.combo_box.setSizeAdjustPolicy(QtWidgets.QComboBox.AdjustToContents)
                 grid.addWidget(self.combo_box, 0, 2)
         grid.setColumnMinimumWidth(1, 200)
         return grid
@@ -1540,13 +1540,13 @@ class SignalDialog(BaseDialog):
             else:
                 signal_name = None
 
-        self.signal_combo =  QtGui.QComboBox() 
+        self.signal_combo =  QtWidgets.QComboBox() 
         for node in self.group.values():
             if isinstance(node, NXfield) and node.shape != ():
                 self.signal_combo.addItem(node.nxname)
         if self.signal_combo.count() == 0:
             raise NeXusError("No plottable field in group")
-        self.signal_combo.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToContents)
+        self.signal_combo.setSizeAdjustPolicy(QtWidgets.QComboBox.AdjustToContents)
         if signal_name:
             idx =  self.signal_combo.findText(signal_name)
             if idx >= 0:
@@ -1557,13 +1557,13 @@ class SignalDialog(BaseDialog):
             self.signal_combo.setCurrentIndex(0)
         self.signal_combo.currentIndexChanged.connect(self.choose_signal)
 
-        self.grid = QtGui.QGridLayout()
+        self.grid = QtWidgets.QGridLayout()
         self.grid.setSpacing(10)
-        self.grid.addWidget(QtGui.QLabel('Signal :'), 0, 0)
+        self.grid.addWidget(QtWidgets.QLabel('Signal :'), 0, 0)
         self.grid.addWidget(self.signal_combo, 0, 1)
         self.choose_signal()
 
-        self.layout = QtGui.QVBoxLayout()
+        self.layout = QtWidgets.QVBoxLayout()
         self.layout.addLayout(self.grid)
         self.layout.addWidget(self.close_buttons())
         self.setLayout(self.layout)
@@ -1585,14 +1585,14 @@ class SignalDialog(BaseDialog):
             self.axis_boxes[axis] = self.axis_box(axis)
             if self.axis_boxes[axis] is not None:
                 row += 1
-                self.grid.addWidget(QtGui.QLabel("Axis %s: " % axis), row, 0)
+                self.grid.addWidget(QtWidgets.QLabel("Axis %s: " % axis), row, 0)
                 self.grid.addWidget(self.axis_boxes[axis], row, 1)
         while row < self.grid.rowCount() - 1:
             self.remove_axis(row)
             row += 1   
 
     def axis_box(self, axis=0):
-        box = QtGui.QComboBox()
+        box = QtWidgets.QComboBox()
         for node in self.group.values():
             if node is not self.signal and self.check_axis(node, axis):
                 box.addItem(node.nxname)
@@ -1673,19 +1673,19 @@ class LogDialog(BaseDialog):
 
         self.ansi_re = re.compile('\x1b' + r'\[([\dA-Fa-f;]*?)m')
  
-        layout = QtGui.QVBoxLayout()
-        self.text_box = QtGui.QPlainTextEdit()
+        layout = QtWidgets.QVBoxLayout()
+        self.text_box = QtWidgets.QPlainTextEdit()
         self.text_box.setMinimumWidth(700)
         self.text_box.setMinimumHeight(600)
         layout.addWidget(self.text_box)
-        footer_layout = QtGui.QHBoxLayout()
-        self.file_combo = QtGui.QComboBox()
+        footer_layout = QtWidgets.QHBoxLayout()
+        self.file_combo = QtWidgets.QComboBox()
         for file_name in self.get_filesindirectory('nexpy', extension='.log*',
                                                    directory=self.log_directory):
             self.file_combo.addItem(file_name)
         self.file_combo.setCurrentIndex(self.file_combo.findText('nexpy.log'))
         self.file_combo.currentIndexChanged.connect(self.show_log)
-        close_box = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Close)
+        close_box = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.Close)
         close_box.rejected.connect(self.reject)
         footer_layout.addStretch()
         footer_layout.addWidget(self.file_combo)
@@ -1800,7 +1800,7 @@ class InstallPluginDialog(BaseDialog):
         if os.path.exists(installed_path):
             ret = self.confirm_action("Overwrite plugin?", 
                                       "Plugin '%s' already exists" % plugin_name)
-            if ret == QtGui.QMessageBox.Ok:
+            if ret == QtWidgets.QMessageBox.Ok:
                 backup = os.path.join(self.backup_directory, timestamp())
                 os.mkdir(backup)
                 shutil.move(installed_path, backup)
@@ -1880,7 +1880,7 @@ class RemovePluginDialog(BaseDialog):
         if os.path.exists(plugin_directory):
             ret = self.confirm_action("Remove '%s'?" % plugin_directory, 
                                       "This cannot be reversed")
-            if ret == QtGui.QMessageBox.Ok:
+            if ret == QtWidgets.QMessageBox.Ok:
                 backup = os.path.join(self.backup_directory, timestamp())
                 os.mkdir(backup)
                 shutil.move(plugin_directory, backup)
@@ -1956,7 +1956,7 @@ class ManageBackupsDialog(BaseDialog):
         if backups:
             ret = self.confirm_action("Delete selected backups?",
                                       "\n".join(backups))
-            if ret == QtGui.QMessageBox.Ok:
+            if ret == QtWidgets.QMessageBox.Ok:
                 for backup in backups:
                     if (os.path.exists(backup) and 
                         os.path.realpath(backup).startswith(self.backup_dir)):

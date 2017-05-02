@@ -28,7 +28,7 @@ import signal
 import sys
 import tempfile
 
-from .pyqt import QtCore, QtGui
+from .pyqt import QtCore, QtGui, QtWidgets
 
 from .mainwindow import MainWindow
 from .treeview import NXtree
@@ -233,9 +233,9 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
 
     def init_gui(self):
         """Initialize the GUI."""
-        self.app = QtGui.QApplication.instance()
+        self.app = QtWidgets.QApplication.instance()
         if self.app is None:
-            self.app = QtGui.QApplication(['nexpy'])
+            self.app = QtWidgets.QApplication(['nexpy'])
         self.app.setApplicationName('nexpy')
         self.window = MainWindow(self, self.tree, self.settings, self.config)
         self.window.log = self.log
@@ -250,7 +250,7 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
                 self.app.icon = QtGui.QIcon(
                     pkg_resources.resource_filename('nexpy.gui',
                                                     'resources/icon/NeXpy.png'))
-            QtGui.QApplication.setWindowIcon(self.app.icon)
+            QtWidgets.QApplication.setWindowIcon(self.app.icon)
         except Exception:
             pass
 
