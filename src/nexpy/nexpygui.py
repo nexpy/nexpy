@@ -12,7 +12,7 @@ from __future__ import print_function
 
 def main():
 
-    import argparse, nexpy, os, sys
+    import argparse, os, sys, nexpy
 
     parser = argparse.ArgumentParser(description="Launch NeXpy")
 
@@ -21,7 +21,6 @@ def main():
     parser.add_argument('-v', '--version', action='version', 
                         version='%(prog)s v'+nexpy.__version__)
     args = parser.parse_args()
-    sys.path.insert(0, os.path.abspath(os.path.join('..')))
     from nexpy.gui.consoleapp import main
     main(args.filename)
 
