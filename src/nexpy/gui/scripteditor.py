@@ -40,7 +40,7 @@ class QFormatter(Formatter):
         
         self.styles={}
         for token, style in self.style:
-            qtf=QtGui.QTextCharFormat()
+            qtf = QtGui.QTextCharFormat()
 
             if style['color']:
                 qtf.setForeground(hex2QColor(style['color'])) 

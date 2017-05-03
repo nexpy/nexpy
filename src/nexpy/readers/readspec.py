@@ -17,7 +17,7 @@ from __future__ import (absolute_import, division, print_function,
 import os
 import numpy as np
 
-from nexpy.gui.pyqt import QtCore, QtGui, getOpenFileName
+from nexpy.gui.pyqt import QtCore, QtWidgets, getOpenFileName
 
 from nexusformat.nexus import *
 from nexpy.gui.importdialog import BaseImportDialog
@@ -42,15 +42,15 @@ class ImportDialog(BaseImportDialog):
         self.spec = None
 
         # progress bar is updated via calls to pdate_progress()
-        self.progress_bar = QtGui.QProgressBar()
+        self.progress_bar = QtWidgets.QProgressBar()
         self.progress_bar.setVisible(False)
 
-        status_layout = QtGui.QHBoxLayout()
+        status_layout = QtWidgets.QHBoxLayout()
         status_layout.addWidget(self.progress_bar)
         status_layout.addStretch()
         status_layout.addWidget(self.close_buttons())
 
-        self.layout = QtGui.QVBoxLayout()
+        self.layout = QtWidgets.QVBoxLayout()
         self.layout.addLayout(self.filebox())
         self.layout.addLayout(self.scanbox())
         self.layout.addLayout(status_layout)
@@ -60,16 +60,16 @@ class ImportDialog(BaseImportDialog):
  
     def scanbox(self):
         '''create widgets for specifying scan range to import'''
-        scanminlabel = QtGui.QLabel("Min. Scan")
-        self.scanmin = QtGui.QLineEdit()
+        scanminlabel = QtWidgets.QLabel("Min. Scan")
+        self.scanmin = QtWidgets.QLineEdit()
         self.scanmin.setFixedWidth(100)
         self.scanmin.setAlignment(QtCore.Qt.AlignRight)
-        scanmaxlabel = QtGui.QLabel("Max. Scan")
-        self.scanmax = QtGui.QLineEdit()
+        scanmaxlabel = QtWidgets.QLabel("Max. Scan")
+        self.scanmax = QtWidgets.QLineEdit()
         self.scanmax.setFixedWidth(100)
         self.scanmax.setAlignment(QtCore.Qt.AlignRight)
 
-        scanbox = QtGui.QHBoxLayout()
+        scanbox = QtWidgets.QHBoxLayout()
         scanbox.addWidget(scanminlabel)
         scanbox.addWidget(self.scanmin)
         scanbox.addWidget(scanmaxlabel)

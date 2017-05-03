@@ -30,7 +30,7 @@ from __future__ import (absolute_import, division, print_function,
 
 import numpy as np
 
-from nexpy.gui.pyqt import QtGui
+from nexpy.gui.pyqt import QtWidgets
 
 from nexusformat.nexus import *
 from nexpy.gui.importdialog import BaseImportDialog
@@ -44,15 +44,15 @@ class ImportDialog(BaseImportDialog):
 
         super(ImportDialog, self).__init__(parent)
         
-        skippedbox = QtGui.QHBoxLayout()
-        skippedlabel = QtGui.QLabel("No. of skipped rows")
-        self.skiprows = QtGui.QLineEdit()
+        skippedbox = QtWidgets.QHBoxLayout()
+        skippedlabel = QtWidgets.QLabel("No. of skipped rows")
+        self.skiprows = QtWidgets.QLineEdit()
         self.skiprows.setText('0')
         self.skiprows.setFixedWidth(20)
         skippedbox.addWidget(skippedlabel)
         skippedbox.addWidget(self.skiprows)
  
-        layout = QtGui.QVBoxLayout()
+        layout = QtWidgets.QVBoxLayout()
         layout.addLayout(self.filebox())
         layout.addLayout(skippedbox)
         layout.addWidget(self.buttonbox())

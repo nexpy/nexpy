@@ -18,7 +18,7 @@ from __future__ import (absolute_import, division, print_function,
 import os
 import numpy as np
 
-from nexpy.gui.pyqt import QtGui
+from nexpy.gui.pyqt import QtWidgets
 
 from nexusformat.nexus import *
 from nexusformat.nexus.tree import convert_index, centers
@@ -35,33 +35,33 @@ class ImportDialog(BaseImportDialog):
 
         self.file_type = None
 
-        layout = QtGui.QVBoxLayout()
+        layout = QtWidgets.QVBoxLayout()
         layout.addLayout(self.filebox())
 
-        title_layout = QtGui.QHBoxLayout()
-        title_label = QtGui.QLabel('Title')
-        self.title_box = QtGui.QLineEdit()
+        title_layout = QtWidgets.QHBoxLayout()
+        title_label = QtWidgets.QLabel('Title')
+        self.title_box = QtWidgets.QLineEdit()
         title_layout.addWidget(title_label)
         title_layout.addWidget(self.title_box)
         layout.addLayout(title_layout)
         
-        energy_layout = QtGui.QHBoxLayout()
-        energy_label = QtGui.QLabel('Incident Energy')
-        self.energy_box = QtGui.QLineEdit()
+        energy_layout = QtWidgets.QHBoxLayout()
+        energy_label = QtWidgets.QLabel('Incident Energy')
+        self.energy_box = QtWidgets.QLineEdit()
         self.energy_box.setFixedWidth(150)
         energy_layout.addWidget(energy_label)
         energy_layout.addWidget(self.energy_box)
         energy_layout.addStretch()
         layout.addLayout(energy_layout)
 
-        step_layout = QtGui.QHBoxLayout()
-        Q_label = QtGui.QLabel('dQ')
-        self.Q_box = QtGui.QLineEdit()
+        step_layout = QtWidgets.QHBoxLayout()
+        Q_label = QtWidgets.QLabel('dQ')
+        self.Q_box = QtWidgets.QLineEdit()
         self.Q_box.setFixedWidth(75)
-        E_label = QtGui.QLabel('dE')
-        self.E_box = QtGui.QLineEdit()
+        E_label = QtWidgets.QLabel('dE')
+        self.E_box = QtWidgets.QLineEdit()
         self.E_box.setFixedWidth(75)
-        self.convert_box = QtGui.QCheckBox('Convert to S(Q,E)')
+        self.convert_box = QtWidgets.QCheckBox('Convert to S(Q,E)')
         self.convert_box.setChecked(False)
         step_layout.addWidget(self.convert_box)
         step_layout.addStretch()

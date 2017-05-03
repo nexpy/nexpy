@@ -18,7 +18,7 @@ from __future__ import (absolute_import, division, print_function,
 
 import os
 
-from nexpy.gui.pyqt import QtCore, QtGui
+from nexpy.gui.pyqt import QtWidgets
 
 import numpy as np
 from globusonline.catalog.client.examples.catalog_wrapper import CatalogWrapper
@@ -39,19 +39,19 @@ class ImportDialog(BaseImportDialog):
                                   'globusonline', 'gotoken.txt')
         self.wrap = CatalogWrapper(token='file', token_file=token_file)
         _,self.catalogs = self.wrap.catalogClient.get_catalogs()
-        catalog_layout = QtGui.QHBoxLayout()
-        self.catalog_box = QtGui.QComboBox()
+        catalog_layout = QtWidgets.QHBoxLayout()
+        self.catalog_box = QtWidgets.QComboBox()
         for catalog in self.catalogs:
             try:
                 self.catalog_box.addItem(catalog['config']['name'])
             except:
                 pass
-        self.catalog_box.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToContents)
-        catalog_button = QtGui.QPushButton("Choose Catalog")
+        self.catalog_box.setSizeAdjustPolicy(QtWidgets.QComboBox.AdjustToContents)
+        catalog_button = QtWidgets.QPushButton("Choose Catalog")
         catalog_button.clicked.connect(self.get_catalog)
         catalog_layout.addWidget(self.catalog_box)
         catalog_layout.addWidget(catalog_button)
-        self.layout = QtGui.QVBoxLayout()
+        self.layout = QtWidgets.QVBoxLayout()
         self.layout.addLayout(catalog_layout)
         self.layout.addWidget(self.close_buttons())
         self.setLayout(self.layout)
@@ -61,15 +61,15 @@ class ImportDialog(BaseImportDialog):
     def get_catalog(self):
         self.catalog_id = self.get_catalog_id(self.catalog_box.currentText())
         _,self.datasets = self.wrap.catalogClient.get_datasets(self.catalog_id)
-        dataset_layout = QtGui.QHBoxLayout()
-        self.dataset_box = QtGui.QComboBox()
+        dataset_layout = QtWidgets.QHBoxLayout()
+        self.dataset_box = QtWidgets.QComboBox()
         for dataset in self.datasets:
             try:
                 self.dataset_box.addItem(dataset['name'])
             except:
                 pass
-        self.dataset_box.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToContents)
-        dataset_button = QtGui.QPushButton("Choose Dataset")
+        self.dataset_box.setSizeAdjustPolicy(QtWidgets.QComboBox.AdjustToContents)
+        dataset_button = QtWidgets.QPushButton("Choose Dataset")
         dataset_button.clicked.connect(self.get_dataset)
         dataset_layout.addWidget(self.dataset_box)
         dataset_layout.addWidget(dataset_button)
@@ -84,15 +84,15 @@ class ImportDialog(BaseImportDialog):
         self.dataset_id = self.get_dataset_id(self.dataset_box.currentText())
         _,self.members = self.wrap.catalogClient.get_members(self.catalog_id,
                                                              self.dataset_id)
-        member_layout = QtGui.QHBoxLayout()
-        self.member_box = QtGui.QComboBox()
+        member_layout = QtWidgets.QHBoxLayout()
+        self.member_box = QtWidgets.QComboBox()
         for member in self.members:
             try:
                 self.member_box.addItem(member['data_uri'])
             except:
                 pass
-        self.member_box.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToContents)
-        member_button = QtGui.QPushButton("Choose Member")
+        self.member_box.setSizeAdjustPolicy(QtWidgets.QComboBox.AdjustToContents)
+        member_button = QtWidgets.QPushButton("Choose Member")
         member_button.clicked.connect(self.get_member)
         member_layout.addWidget(self.member_box)
         member_layout.addWidget(member_button)
