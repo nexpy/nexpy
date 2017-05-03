@@ -8,15 +8,16 @@ for api in ['QString', 'QVariant', 'QDate', 'QDateTime', 'QTextStream', 'QTime',
 from matplotlib.backends.qt_compat import QtCore, QtGui, QtWidgets
 if QtCore.__name__.lower().startswith('pyqt5'):
     os.environ['QT_API'] = 'pyqt5'
-    QtGui.QSortFilterProxyModel = QtCore.QSortFilterProxyModel
-    QtGui.QItemSelectionModel = QtCore.QItemSelectionModel
-    matplotlib.use('Qt5Agg', warn=False)    
-elif QtCore.__name__.lower().startswith('pyqt4'):
-    os.environ['QT_API'] = 'pyqt4'
-    matplotlib.use('Qt4Agg', warn=False)    
-elif QtCore.__name__.lower().startswith('pyside'):
-    os.environ['QT_API'] = 'pyside'
-    matplotlib.use('Qt4Agg', warn=False)    
+    QtVersion = 'Qt5Agg'  
+else:
+    QtCore.QSortFilterProxyModel = QtGui.QSortFilterProxyModel
+    QtCore.QItemSelectionModel = QtGui.QItemSelectionModel
+    QtVersion = 'Qt4Agg'  
+    if QtCore.__name__.lower().startswith('pyqt4'):
+        os.environ['QT_API'] = 'pyqt'
+    elif QtCore.__name__.lower().startswith('pyside'):
+        os.environ['QT_API'] = 'pyside'
+matplotlib.use(QtVersion, warn=False)
 
 def getOpenFileName(*args, **kwargs):
     fname = QtWidgets.QFileDialog.getOpenFileName(*args, **kwargs)

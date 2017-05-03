@@ -19,7 +19,7 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 import six
 
-from .pyqt import QtCore, QtGui, QtWidgets
+from .pyqt import QtCore, QtGui, QtWidgets, QtVersion
 
 import numbers
 import numpy as np
@@ -27,12 +27,16 @@ import os
 import pkg_resources
 
 import matplotlib as mpl
-import matplotlib.pyplot as plt
 from matplotlib._pylab_helpers import Gcf
 from matplotlib.backend_bases import FigureManagerBase
-from matplotlib.backends.backend_qt5 import FigureManagerQT as FigureManager
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
+if QtVersion == 'Qt5Agg':
+    from matplotlib.backends.backend_qt5 import FigureManagerQT as FigureManager
+    from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+    from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
+else:
+    from matplotlib.backends.backend_qt4 import FigureManagerQT as FigureManager
+    from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
+    from matplotlib.backends.backend_qt4agg import NavigationToolbar2QT as NavigationToolbar
 from matplotlib.backends.qt_editor.formlayout import ColorButton, to_qcolor
 from matplotlib.figure import Figure
 from matplotlib.image import NonUniformImage
@@ -97,6 +101,7 @@ def new_figure_manager(label=None, *args, **kwargs):
     label: str
         The label used to define 
     """
+    import matplotlib.pyplot as plt
     if label is None:
         label = ''
     if label == 'Projection' or label == 'Fit':

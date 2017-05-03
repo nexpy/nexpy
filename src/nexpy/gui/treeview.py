@@ -227,7 +227,7 @@ class NXTreeItem(QtGui.QStandardItem):
                 yield item
 
 
-class NXSortModel(QtGui.QSortFilterProxyModel):
+class NXSortModel(QtCore.QSortFilterProxyModel):
 
     def __init__(self, parent=None):
         super(NXSortModel, self).__init__(parent)
@@ -485,7 +485,7 @@ class NXTreeView(QtWidgets.QTreeView):
         if idx:
             self.setCurrentIndex(idx)
         self.selectionModel().select(self.currentIndex(),
-                                     QtGui.QItemSelectionModel.Select)
+                                     QtCore.QItemSelectionModel.Select)
         
     def selectionChanged(self, new, old):
         if new.indexes():

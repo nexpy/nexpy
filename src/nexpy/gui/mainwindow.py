@@ -116,7 +116,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.console._confirm_exit = True
         self.console.kernel_manager = QtInProcessKernelManager(config=self.config)
         self.console.kernel_manager.start_kernel()
-        self.console.kernel_manager.kernel.gui = 'qt4'
+        self.console.kernel_manager.kernel.gui = 'qt'
         self.console.kernel_client = self.console.kernel_manager.client()
         self.console.kernel_client.start_channels()
 
