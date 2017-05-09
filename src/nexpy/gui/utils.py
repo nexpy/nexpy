@@ -9,43 +9,43 @@ try:
 except ImportError:
     from ConfigParser import ConfigParser
 import numpy as np
-from .pyqt import QtGui
+from .pyqt import QtWidgets
 
 
 def report_error(context, error):
     """Display a message box with an error message"""
     title = type(error).__name__ + ': ' + context
-    message_box = QtGui.QMessageBox()
+    message_box = QtWidgets.QMessageBox()
     message_box.setText(title)
     message_box.setInformativeText(str(error))
-    message_box.setStandardButtons(QtGui.QMessageBox.Ok)
-    message_box.setDefaultButton(QtGui.QMessageBox.Ok)
-    message_box.setIcon(QtGui.QMessageBox.Warning)
+    message_box.setStandardButtons(QtWidgets.QMessageBox.Ok)
+    message_box.setDefaultButton(QtWidgets.QMessageBox.Ok)
+    message_box.setIcon(QtWidgets.QMessageBox.Warning)
     return message_box.exec_()
 
 
 def confirm_action(query, information=None, answer=None):
     """Display a message box requesting confirmation"""
-    message_box = QtGui.QMessageBox()
+    message_box = QtWidgets.QMessageBox()
     message_box.setText(query)
     if information:
         message_box.setInformativeText(information)
     if answer == 'yes' or answer == 'no':
-        message_box.setStandardButtons(QtGui.QMessageBox.Yes | 
-                                       QtGui.QMessageBox.No)
+        message_box.setStandardButtons(QtWidgets.QMessageBox.Yes | 
+                                       QtWidgets.QMessageBox.No)
         if answer == 'yes':                           
-            message_box.setDefaultButton(QtGui.QMessageBox.Yes)
+            message_box.setDefaultButton(QtWidgets.QMessageBox.Yes)
         else:
-            message_box.setDefaultButton(QtGui.QMessageBox.No)
+            message_box.setDefaultButton(QtWidgets.QMessageBox.No)
     else:
-        message_box.setStandardButtons(QtGui.QMessageBox.Ok | 
-                                       QtGui.QMessageBox.Cancel)
+        message_box.setStandardButtons(QtWidgets.QMessageBox.Ok | 
+                                       QtWidgets.QMessageBox.Cancel)
     return message_box.exec_()
 
 
 def display_message(message, information=None):
     """Display a message box with an error message"""
-    message_box = QtGui.QMessageBox()
+    message_box = QtWidgets.QMessageBox()
     message_box.setText(message)
     if information:
         message_box.setInformativeText(information)

@@ -17,7 +17,7 @@ import os
 import re
 import sys
 
-from .pyqt import QtGui, QtCore
+from .pyqt import QtCore, QtGui, QtWidgets
 import pkg_resources
 import numpy as np
 
@@ -51,13 +51,13 @@ class FitDialog(BaseDialog):
 
         self.initialize_functions()
  
-        function_layout = QtGui.QHBoxLayout()
-        self.functioncombo = QtGui.QComboBox()
+        function_layout = QtWidgets.QHBoxLayout()
+        self.functioncombo = QtWidgets.QComboBox()
         for name in sorted(self.function_module):
             self.functioncombo.addItem(name)
-        self.functioncombo.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToContents)
+        self.functioncombo.setSizeAdjustPolicy(QtWidgets.QComboBox.AdjustToContents)
         self.functioncombo.setMinimumWidth(100)
-        add_button = QtGui.QPushButton("Add Function")
+        add_button = QtWidgets.QPushButton("Add Function")
         add_button.clicked.connect(self.add_function)
         function_layout.addWidget(self.functioncombo)
         function_layout.addWidget(add_button)
@@ -68,35 +68,35 @@ class FitDialog(BaseDialog):
 
         self.parameter_layout = self.initialize_parameter_grid()
 
-        self.remove_layout = QtGui.QHBoxLayout()
-        remove_button = QtGui.QPushButton("Remove Function")
+        self.remove_layout = QtWidgets.QHBoxLayout()
+        remove_button = QtWidgets.QPushButton("Remove Function")
         remove_button.clicked.connect(self.remove_function)
-        self.removecombo = QtGui.QComboBox()
-        self.removecombo.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToContents)
+        self.removecombo = QtWidgets.QComboBox()
+        self.removecombo.setSizeAdjustPolicy(QtWidgets.QComboBox.AdjustToContents)
         self.removecombo.setMinimumWidth(100)
         self.remove_layout.addWidget(remove_button)
         self.remove_layout.addWidget(self.removecombo)
         self.remove_layout.addStretch()
 
-        self.plot_layout = QtGui.QHBoxLayout()
-        plot_data_button = QtGui.QPushButton('Plot Data')
+        self.plot_layout = QtWidgets.QHBoxLayout()
+        plot_data_button = QtWidgets.QPushButton('Plot Data')
         plot_data_button.clicked.connect(self.plot_data)
-        self.plot_function_button = QtGui.QPushButton('Plot Function')
+        self.plot_function_button = QtWidgets.QPushButton('Plot Function')
         self.plot_function_button.clicked.connect(self.plot_model)
         self.plot_function_button.setVisible(False)
-        self.plotcombo = QtGui.QComboBox()
-        self.plotcombo.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToContents)
+        self.plotcombo = QtWidgets.QComboBox()
+        self.plotcombo.setSizeAdjustPolicy(QtWidgets.QComboBox.AdjustToContents)
         self.plotcombo.setMinimumWidth(100)
         self.plotcombo.setVisible(False)
-        plot_label = QtGui.QLabel('X-axis:')
+        plot_label = QtWidgets.QLabel('X-axis:')
         self.plot_min = self.plotview.xaxis.min
         self.plot_max = self.plotview.xaxis.max 
-        self.plot_minbox = QtGui.QLineEdit(str(self.plot_min))
+        self.plot_minbox = QtWidgets.QLineEdit(str(self.plot_min))
         self.plot_minbox.setAlignment(QtCore.Qt.AlignRight)
-        plot_tolabel = QtGui.QLabel(' to ')
-        self.plot_maxbox = QtGui.QLineEdit(str(self.plot_max))
+        plot_tolabel = QtWidgets.QLabel(' to ')
+        self.plot_maxbox = QtWidgets.QLineEdit(str(self.plot_max))
         self.plot_maxbox.setAlignment(QtCore.Qt.AlignRight)
-        self.plot_checkbox = QtGui.QCheckBox('Use Data Points')
+        self.plot_checkbox = QtWidgets.QCheckBox('Use Data Points')
         self.plot_checkbox.setVisible(False)
         self.plot_layout.addWidget(plot_data_button)
         self.plot_layout.addWidget(self.plot_function_button)
@@ -109,22 +109,22 @@ class FitDialog(BaseDialog):
         self.plot_layout.addWidget(self.plot_checkbox)
         self.plot_layout.addStretch()
 
-        self.action_layout = QtGui.QHBoxLayout()
-        fit_button = QtGui.QPushButton('Fit')
+        self.action_layout = QtWidgets.QHBoxLayout()
+        fit_button = QtWidgets.QPushButton('Fit')
         fit_button.clicked.connect(self.fit_data)
-        self.fit_label = QtGui.QLabel()
+        self.fit_label = QtWidgets.QLabel()
         if self._data.nxerrors:
-            self.fit_checkbox = QtGui.QCheckBox('Use Errors')
+            self.fit_checkbox = QtWidgets.QCheckBox('Use Errors')
             self.fit_checkbox.setCheckState(QtCore.Qt.Checked)
         else:
-            self.fit_checkbox = QtGui.QCheckBox('Use Poisson Errors')
+            self.fit_checkbox = QtWidgets.QCheckBox('Use Poisson Errors')
             self.fit_checkbox.setCheckState(QtCore.Qt.Unchecked)
             self.fit_checkbox.stateChanged.connect(self.define_errors)
-        self.report_button = QtGui.QPushButton("Show Fit Report")
+        self.report_button = QtWidgets.QPushButton("Show Fit Report")
         self.report_button.clicked.connect(self.report_fit)
-        self.save_button = QtGui.QPushButton("Save Parameters")
+        self.save_button = QtWidgets.QPushButton("Save Parameters")
         self.save_button.clicked.connect(self.save_fit)
-        self.restore_button = QtGui.QPushButton("Restore Parameters")
+        self.restore_button = QtWidgets.QPushButton("Restore Parameters")
         self.restore_button.clicked.connect(self.restore_parameters)
         self.action_layout.addWidget(fit_button)
         self.action_layout.addWidget(self.fit_label)
@@ -133,14 +133,14 @@ class FitDialog(BaseDialog):
         self.action_layout.addSpacing(5)
         self.action_layout.addWidget(self.save_button)
 
-        self.bottom_layout = QtGui.QHBoxLayout()
-        reset_button = QtGui.QPushButton('Reset Limits')
+        self.bottom_layout = QtWidgets.QHBoxLayout()
+        reset_button = QtWidgets.QPushButton('Reset Limits')
         reset_button.clicked.connect(self.reset_limits)
         self.bottom_layout.addWidget(reset_button)
         self.bottom_layout.addStretch()
         self.bottom_layout.addWidget(self.close_buttons())
 
-        self.layout = QtGui.QVBoxLayout()
+        self.layout = QtWidgets.QVBoxLayout()
         self.layout.setSpacing(5)
         self.layout.addLayout(function_layout)
         self.layout.addLayout(self.plot_layout)
@@ -194,18 +194,18 @@ class FitDialog(BaseDialog):
                 self.function_module[function_module.function_name] = function_module
 
     def initialize_parameter_grid(self):
-        grid_layout = QtGui.QVBoxLayout()
-        scroll_area = QtGui.QScrollArea()
+        grid_layout = QtWidgets.QVBoxLayout()
+        scroll_area = QtWidgets.QScrollArea()
         scroll_area.setWidgetResizable(True)
-        scroll_widget = QtGui.QWidget()
+        scroll_widget = QtWidgets.QWidget()
 
-        self.parameter_grid = QtGui.QGridLayout()
+        self.parameter_grid = QtWidgets.QGridLayout()
         self.parameter_grid.setSpacing(5)
         headers = ['Function', 'Np', 'Name', 'Value', '', 'Min', 'Max', 'Fixed']
         width = [100, 50, 100, 100, 100, 100, 100, 50, 100]
         column = 0
         for header in headers:
-            label = QtGui.QLabel()
+            label = QtWidgets.QLabel()
             label.setFont(self.header_font)
             label.setAlignment(QtCore.Qt.AlignHCenter)
             label.setText(header)
@@ -350,23 +350,23 @@ class FitDialog(BaseDialog):
         row = self.parameter_grid.rowCount()
         name = self.expanded_name(f.name)
         f.rows = []
-        f.label_box = QtGui.QLabel(name)
+        f.label_box = QtWidgets.QLabel(name)
         self.parameter_grid.addWidget(f.label_box, row, 0)
         for p in f.parameters:
             p.parameter_index = row
-            p.parameter_box = QtGui.QLabel(str(p.parameter_index))
-            p.value_box = QtGui.QLineEdit()
+            p.parameter_box = QtWidgets.QLabel(str(p.parameter_index))
+            p.value_box = QtWidgets.QLineEdit()
             p.value_box.setAlignment(QtCore.Qt.AlignRight)
-            p.error_box = QtGui.QLabel()
-            p.min_box = QtGui.QLineEdit('-inf')
+            p.error_box = QtWidgets.QLabel()
+            p.min_box = QtWidgets.QLineEdit('-inf')
             p.min_box.setAlignment(QtCore.Qt.AlignRight)
-            p.max_box = QtGui.QLineEdit('inf')
+            p.max_box = QtWidgets.QLineEdit('inf')
             p.max_box.setAlignment(QtCore.Qt.AlignRight)
-            p.fixed_box = QtGui.QCheckBox()
-#            p.bound_box = QtGui.QLineEdit()
+            p.fixed_box = QtWidgets.QCheckBox()
+#            p.bound_box = QtWidgets.QLineEdit()
             self.parameter_grid.addWidget(p.parameter_box, row, 1,
                                           alignment=QtCore.Qt.AlignHCenter)
-            self.parameter_grid.addWidget(QtGui.QLabel(p.name), row, 2)
+            self.parameter_grid.addWidget(QtWidgets.QLabel(p.name), row, 2)
             self.parameter_grid.addWidget(p.value_box, row, 3)
             self.parameter_grid.addWidget(p.error_box, row, 4)
             self.parameter_grid.addWidget(p.min_box, row, 5)
@@ -481,7 +481,7 @@ class FitDialog(BaseDialog):
         self.fitted = True
 
     def report_fit(self):
-        message_box = QtGui.QMessageBox()
+        message_box = QtWidgets.QMessageBox()
         message_box.setText("Fit Results")
         if self.fit.result.success:
             summary = 'Fit Successful'
@@ -505,10 +505,10 @@ class FitDialog(BaseDialog):
                 'No. of Degrees of Freedom = %s\n' % self.fit.result.nfree +
                 '%s' % self.fit.fit_report())
         message_box.setInformativeText(text)
-        message_box.setStandardButtons(QtGui.QMessageBox.Ok)
-        spacer = QtGui.QSpacerItem(500, 0, 
-                                   QtGui.QSizePolicy.Minimum, 
-                                   QtGui.QSizePolicy.Expanding)
+        message_box.setStandardButtons(QtWidgets.QMessageBox.Ok)
+        spacer = QtWidgets.QSpacerItem(500, 0, 
+                                   QtWidgets.QSizePolicy.Minimum, 
+                                   QtWidgets.QSizePolicy.Expanding)
         layout = message_box.layout()
         layout.addItem(spacer, layout.rowCount(), 0, 1, layout.columnCount())
         message_box.exec_()

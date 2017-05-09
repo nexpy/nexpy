@@ -18,8 +18,6 @@ from __future__ import (absolute_import, division, print_function,
 import numpy as np
 import pycbf
 
-from nexpy.gui.pyqt import QtGui
-
 from nexusformat.nexus import *
 from nexpy.gui.importdialog import BaseImportDialog
 
@@ -32,10 +30,7 @@ class ImportDialog(BaseImportDialog):
 
         super(ImportDialog, self).__init__(parent)
         
-        layout = QtGui.QVBoxLayout()
-        layout.addLayout(self.filebox())
-        layout.addWidget(self.close_buttons())
-        self.setLayout(layout)
+        self.set_layout(self.filebox(), self.close_buttons())
   
         self.setWindowTitle("Import "+str(filetype))
  

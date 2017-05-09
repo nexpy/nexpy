@@ -15,7 +15,7 @@ import six
 import os
 import pkg_resources
 
-from .pyqt import QtCore, QtGui
+from .pyqt import QtCore, QtGui, QtWidgets
 from .utils import natural_sort
 from nexusformat.nexus import *
 
@@ -227,7 +227,7 @@ class NXTreeItem(QtGui.QStandardItem):
                 yield item
 
 
-class NXSortModel(QtGui.QSortFilterProxyModel):
+class NXSortModel(QtCore.QSortFilterProxyModel):
 
     def __init__(self, parent=None):
         super(NXSortModel, self).__init__(parent)
@@ -238,7 +238,7 @@ class NXSortModel(QtGui.QSortFilterProxyModel):
         return natural_sort(left_text) < natural_sort(right_text)
 
     
-class NXTreeView(QtGui.QTreeView):
+class NXTreeView(QtWidgets.QTreeView):
 
     def __init__(self, tree, parent):
         super(NXTreeView, self).__init__(parent)
@@ -264,7 +264,7 @@ class NXTreeView(QtGui.QTreeView):
         self.tree._view = self
         self.tree._shell = self.mainwindow.user_ns
 
-        self.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
+        self.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
         self.setExpandsOnDoubleClick(False)
         self.doubleClicked.connect(self.plot_data)
 
@@ -273,39 +273,39 @@ class NXTreeView(QtGui.QTreeView):
         self.customContextMenuRequested.connect(self.on_context_menu)
 
 
-        self.plot_data_action=QtGui.QAction("Plot", self, 
+        self.plot_data_action=QtWidgets.QAction("Plot", self, 
                                        triggered=self.plot_data)
-        self.plot_line_action=QtGui.QAction("Plot Line", self, 
+        self.plot_line_action=QtWidgets.QAction("Plot Line", self, 
                                        triggered=self.plot_line)
-        self.overplot_data_action=QtGui.QAction("Overplot", self, 
+        self.overplot_data_action=QtWidgets.QAction("Overplot", self, 
                                            triggered=self.overplot_data)
-        self.overplot_line_action=QtGui.QAction("Overplot Line", self, 
+        self.overplot_line_action=QtWidgets.QAction("Overplot Line", self, 
                                            triggered=self.overplot_line)
-        self.plot_image_action=QtGui.QAction("Plot RGB(A) Image", self, 
+        self.plot_image_action=QtWidgets.QAction("Plot RGB(A) Image", self, 
                                            triggered=self.plot_image)
-        self.view_action=QtGui.QAction("View...", self, triggered=self.view_data)
-        self.add_action=QtGui.QAction("Add...", self, triggered=self.add_data)
-        self.initialize_action=QtGui.QAction("Initialize...", self, triggered=self.initialize_data)
-        self.rename_action=QtGui.QAction("Rename...", self, triggered=self.rename_data)
-        self.copy_action=QtGui.QAction("Copy", self, triggered=self.copy_data)
-        self.paste_action=QtGui.QAction("Paste", self, triggered=self.paste_data)
-        self.pastelink_action=QtGui.QAction("Paste As Link", self, triggered=self.paste_link)
-        self.delete_action=QtGui.QAction("Delete...", self, triggered=self.delete_data)
-        self.link_action=QtGui.QAction("Show Link", self, triggered=self.show_link)
-        self.signal_action=QtGui.QAction("Set Signal...", self, triggered=self.set_signal)
-        self.default_action=QtGui.QAction("Set Default", self, triggered=self.set_default)
-        self.fit_action=QtGui.QAction("Fit...", self, triggered=self.fit_data)
-        self.savefile_action=QtGui.QAction("Save as...", self, triggered=self.save_file)
-        self.duplicate_action=QtGui.QAction("Duplicate...", self, triggered=self.duplicate)
-        self.reload_action=QtGui.QAction("Reload...", self, triggered=self.reload)
-        self.remove_action=QtGui.QAction("Remove...", self, triggered=self.remove)
-        self.lockfile_action=QtGui.QAction("Lock", self, triggered=self.lock_file)
-        self.unlockfile_action=QtGui.QAction("Unlock...", self, triggered=self.unlock_file)
-        self.backup_action=QtGui.QAction("Backup", self, triggered=self.backup_file)
-        self.restore_action=QtGui.QAction("Restore...", self, triggered=self.restore_file)
+        self.view_action=QtWidgets.QAction("View...", self, triggered=self.view_data)
+        self.add_action=QtWidgets.QAction("Add...", self, triggered=self.add_data)
+        self.initialize_action=QtWidgets.QAction("Initialize...", self, triggered=self.initialize_data)
+        self.rename_action=QtWidgets.QAction("Rename...", self, triggered=self.rename_data)
+        self.copy_action=QtWidgets.QAction("Copy", self, triggered=self.copy_data)
+        self.paste_action=QtWidgets.QAction("Paste", self, triggered=self.paste_data)
+        self.pastelink_action=QtWidgets.QAction("Paste As Link", self, triggered=self.paste_link)
+        self.delete_action=QtWidgets.QAction("Delete...", self, triggered=self.delete_data)
+        self.link_action=QtWidgets.QAction("Show Link", self, triggered=self.show_link)
+        self.signal_action=QtWidgets.QAction("Set Signal...", self, triggered=self.set_signal)
+        self.default_action=QtWidgets.QAction("Set Default", self, triggered=self.set_default)
+        self.fit_action=QtWidgets.QAction("Fit...", self, triggered=self.fit_data)
+        self.savefile_action=QtWidgets.QAction("Save as...", self, triggered=self.save_file)
+        self.duplicate_action=QtWidgets.QAction("Duplicate...", self, triggered=self.duplicate)
+        self.reload_action=QtWidgets.QAction("Reload...", self, triggered=self.reload)
+        self.remove_action=QtWidgets.QAction("Remove...", self, triggered=self.remove)
+        self.lockfile_action=QtWidgets.QAction("Lock", self, triggered=self.lock_file)
+        self.unlockfile_action=QtWidgets.QAction("Unlock...", self, triggered=self.unlock_file)
+        self.backup_action=QtWidgets.QAction("Backup", self, triggered=self.backup_file)
+        self.restore_action=QtWidgets.QAction("Restore...", self, triggered=self.restore_file)
 
     def popMenu(self, node):
-        menu = QtGui.QMenu(self)
+        menu = QtWidgets.QMenu(self)
         try:
             if node.is_plottable():
                 menu.addAction(self.plot_data_action)
@@ -485,7 +485,7 @@ class NXTreeView(QtGui.QTreeView):
         if idx:
             self.setCurrentIndex(idx)
         self.selectionModel().select(self.currentIndex(),
-                                     QtGui.QItemSelectionModel.Select)
+                                     QtCore.QItemSelectionModel.Select)
         
     def selectionChanged(self, new, old):
         if new.indexes():

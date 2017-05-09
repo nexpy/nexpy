@@ -18,7 +18,7 @@ import tempfile
 import pygments
 from pygments.formatter import Formatter
 
-from .pyqt import QtCore, QtGui, getSaveFileName
+from .pyqt import QtCore, QtGui, QtWidgets, getSaveFileName
 
 from .datadialogs import BaseDialog
 from .utils import confirm_action
@@ -40,7 +40,7 @@ class QFormatter(Formatter):
         
         self.styles={}
         for token, style in self.style:
-            qtf=QtGui.QTextCharFormat()
+            qtf = QtGui.QTextCharFormat()
 
             if style['color']:
                 qtf.setForeground(hex2QColor(style['color'])) 
@@ -88,7 +88,7 @@ class Highlighter(QtGui.QSyntaxHighlighter):
 
 
 
-class NXPlainTextEdit(QtGui.QPlainTextEdit):
+class NXPlainTextEdit(QtWidgets.QPlainTextEdit):
 
     def __init__(self, parent):
         super(NXPlainTextEdit, self).__init__()
@@ -121,12 +121,12 @@ class NXPlainTextEdit(QtGui.QPlainTextEdit):
                    self.line_height)
 
        
-class NXScriptWindow(QtGui.QDialog):
+class NXScriptWindow(QtWidgets.QDialog):
 
     def __init__(self, parent=None):
         super(NXScriptWindow, self).__init__(parent)
-        layout = QtGui.QVBoxLayout()
-        self.tabs = QtGui.QTabWidget(self)
+        layout = QtWidgets.QVBoxLayout()
+        self.tabs = QtWidgets.QTabWidget(self)
         layout.addWidget(self.tabs)
         self.setLayout(layout)
         self.setWindowTitle('Script Editor')
@@ -155,7 +155,7 @@ class NXScriptWindow(QtGui.QDialog):
         self.setVisible(False)
 
 
-class NXScriptEditor(QtGui.QWidget):
+class NXScriptEditor(QtWidgets.QWidget):
     """Dialog to plot arbitrary NeXus data in one or two dimensions"""
  
     def __init__(self, file_name=None, parent=None):
@@ -167,15 +167,15 @@ class NXScriptEditor(QtGui.QWidget):
             self.mainwindow = parent
         self.window = self.mainwindow.editors
 
-        QtGui.QWidget.__init__(self, parent=self.window.tabs)
+        QtWidgets.QWidget.__init__(self, parent=self.window.tabs)
  
         self.file_name = file_name
         self.default_directory = self.mainwindow.script_dir
 
-        layout = QtGui.QVBoxLayout()
-        self.text_layout = QtGui.QHBoxLayout()
+        layout = QtWidgets.QVBoxLayout()
+        self.text_layout = QtWidgets.QHBoxLayout()
         if sys.platform == 'darwin':
-            self.number_box = QtGui.QLabel('1')
+            self.number_box = QtWidgets.QLabel('1')
             self.number_box.setFont(QtGui.QFont('Courier'))
             self.number_box.setAlignment(QtCore.Qt.AlignTop | 
                                          QtCore.Qt.AlignRight)
@@ -185,20 +185,20 @@ class NXScriptEditor(QtGui.QWidget):
         self.text_layout.addWidget(self.text_box)
         layout.addLayout(self.text_layout)
         
-        run_button = QtGui.QPushButton('Run Script')
+        run_button = QtWidgets.QPushButton('Run Script')
         run_button.clicked.connect(self.run_script)
         run_button.setAutoDefault(False)
-        self.argument_box = QtGui.QLineEdit()
+        self.argument_box = QtWidgets.QLineEdit()
         self.argument_box.setMinimumWidth(200)
-        save_button = QtGui.QPushButton('Save')
+        save_button = QtWidgets.QPushButton('Save')
         save_button.clicked.connect(self.save_script)
-        save_as_button = QtGui.QPushButton('Save as...')
+        save_as_button = QtWidgets.QPushButton('Save as...')
         save_as_button.clicked.connect(self.save_script_as)
-        self.delete_button = QtGui.QPushButton('Delete')
+        self.delete_button = QtWidgets.QPushButton('Delete')
         self.delete_button.clicked.connect(self.delete_script)
-        close_button = QtGui.QPushButton('Close Tab')
+        close_button = QtWidgets.QPushButton('Close Tab')
         close_button.clicked.connect(self.close)
-        button_layout = QtGui.QHBoxLayout()
+        button_layout = QtWidgets.QHBoxLayout()
         button_layout.addWidget(run_button)
         button_layout.addWidget(self.argument_box)
         button_layout.addStretch()
@@ -285,7 +285,7 @@ class NXScriptEditor(QtGui.QWidget):
             ret = confirm_action(
                       "Are you sure you want to delete '%s'?" % self.file_name,
                       "This cannot be reversed")
-            if ret == QtGui.QMessageBox.Ok:
+            if ret == QtWidgets.QMessageBox.Ok:
                 os.remove(self.file_name)
                 self.mainwindow.remove_script_action(self.file_name)
                 self.close()

@@ -20,7 +20,7 @@ import re
 import numpy as np
 
 from nexusformat.nexus import NXfield, NXentry, NXdata, NeXusError
-from nexpy.gui.pyqt import QtGui, QtCore
+from nexpy.gui.pyqt import QtCore, QtWidgets
 from nexpy.gui.importdialog import BaseImportDialog
 
 filetype = "Image Stack"
@@ -35,7 +35,7 @@ class ImportDialog(BaseImportDialog):
 
         super(ImportDialog, self).__init__(parent)
         
-        self.layout = QtGui.QVBoxLayout()
+        self.layout = QtWidgets.QVBoxLayout()
 
         self.layout.addLayout(self.directorybox())
 
@@ -45,8 +45,8 @@ class ImportDialog(BaseImportDialog):
         self.rangebox = self.make_rangebox()
         self.layout.addWidget(self.rangebox)
 
-        status_layout = QtGui.QHBoxLayout()
-        self.progress_bar = QtGui.QProgressBar()
+        status_layout = QtWidgets.QHBoxLayout()
+        self.progress_bar = QtWidgets.QProgressBar()
         status_layout.addWidget(self.progress_bar)
         self.progress_bar.setVisible(False)
         status_layout.addStretch()
@@ -62,17 +62,17 @@ class ImportDialog(BaseImportDialog):
         return self.suffix_box.text()
 
     def make_filterbox(self):
-        filterbox = QtGui.QWidget()
-        layout = QtGui.QGridLayout()
+        filterbox = QtWidgets.QWidget()
+        layout = QtWidgets.QGridLayout()
         layout.setSpacing(10)
-        prefix_label = QtGui.QLabel('File Prefix')
-        self.prefix_box = QtGui.QLineEdit()
+        prefix_label = QtWidgets.QLabel('File Prefix')
+        self.prefix_box = QtWidgets.QLineEdit()
         self.prefix_box.editingFinished.connect(self.set_range)
-        suffix_label = QtGui.QLabel('File Suffix')
-        self.suffix_box = QtGui.QLineEdit('')
+        suffix_label = QtWidgets.QLabel('File Suffix')
+        self.suffix_box = QtWidgets.QLineEdit('')
         self.suffix_box.editingFinished.connect(self.get_prefixes)
-        extension_label = QtGui.QLabel('File Extension')
-        self.extension_box = QtGui.QLineEdit()
+        extension_label = QtWidgets.QLabel('File Extension')
+        self.extension_box = QtWidgets.QLineEdit()
         self.extension_box.editingFinished.connect(self.set_extension)
         layout.addWidget(prefix_label, 0, 0)
         layout.addWidget(self.prefix_box, 0, 1)
@@ -80,11 +80,11 @@ class ImportDialog(BaseImportDialog):
         layout.addWidget(self.suffix_box, 0, 3)
         layout.addWidget(extension_label, 0, 4)
         layout.addWidget(self.extension_box, 0, 5)
-        self.prefix_combo = QtGui.QComboBox()
-        self.prefix_combo.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToContents)
+        self.prefix_combo = QtWidgets.QComboBox()
+        self.prefix_combo.setSizeAdjustPolicy(QtWidgets.QComboBox.AdjustToContents)
         self.prefix_combo.activated.connect(self.choose_prefix)
-        self.extension_combo = QtGui.QComboBox()
-        self.extension_combo.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToContents)
+        self.extension_combo = QtWidgets.QComboBox()
+        self.extension_combo.setSizeAdjustPolicy(QtWidgets.QComboBox.AdjustToContents)
         self.extension_combo.activated.connect(self.choose_extension)
         layout.addWidget(self.prefix_combo, 1, 1, alignment=QtCore.Qt.AlignHCenter)
         layout.addWidget(self.extension_combo, 1, 5, alignment=QtCore.Qt.AlignHCenter)
@@ -93,14 +93,14 @@ class ImportDialog(BaseImportDialog):
         return filterbox
 
     def make_rangebox(self):
-        rangebox = QtGui.QWidget()
-        layout = QtGui.QHBoxLayout()
-        rangeminlabel = QtGui.QLabel("Min. index")
-        self.rangemin = QtGui.QLineEdit()
+        rangebox = QtWidgets.QWidget()
+        layout = QtWidgets.QHBoxLayout()
+        rangeminlabel = QtWidgets.QLabel("Min. index")
+        self.rangemin = QtWidgets.QLineEdit()
         self.rangemin.setFixedWidth(150)
         self.rangemin.setAlignment(QtCore.Qt.AlignRight)
-        rangemaxlabel = QtGui.QLabel("Max. index")
-        self.rangemax = QtGui.QLineEdit()
+        rangemaxlabel = QtWidgets.QLabel("Max. index")
+        self.rangemax = QtWidgets.QLineEdit()
         self.rangemax.setFixedWidth(150)
         self.rangemax.setAlignment(QtCore.Qt.AlignRight)
         layout.addWidget(rangeminlabel)
