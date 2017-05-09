@@ -23,7 +23,7 @@ requirements:
     - jupyter
     - ipython >=4.0.0
     - matplotlib >=1.4.0
-    - pyqt < 5
+    - pyqt
     - six
 
   run:
@@ -35,7 +35,7 @@ requirements:
     - jupyter
     - ipython >=4.0.0
     - matplotlib >=1.4.0
-    - pyqt < 5
+    - pyqt
 
 test:
   imports:
