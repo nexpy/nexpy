@@ -85,17 +85,14 @@ numpy              http://numpy.scipy.org/
 
 NeXpy GUI
 ---------
-The GUI is built using the PyQt. The latest version supports either 
-PyQt4 or PySide, and should load whichever library it finds. Neither are 
-listed as a dependency but one or other must be installed. PyQt4 is included
+The GUI is built using the PyQt. The latest version supports PyQt4, PySide, and
+with v0.10.0, PyQt5, and should load whichever library it finds. None are 
+listed as a dependency but one or other must be installed. PyQt5 is included
 in the 
 `Anaconda default distribution <https://store.continuum.io/cshop/anaconda/>`_ 
 while PySide is included in the `Enthought Python Distribution
 <http://www.enthought.com>`_ or within Enthought's `Canopy Application
 <https://www.enthought.com/products/canopy/>`_.
-
-.. note:: Anaconda now installs PyQt5 by default. To ensure that PyQt4
-          is installed, type `conda install pyqt=4`.
 
 The GUI includes an `IPython shell <http://ipython.org/>`_ and a `Matplotlib
 plotting pane <http://matplotlib.sourceforge.net>`_. The IPython shell is
@@ -115,8 +112,9 @@ matplotlib v1.4.0  http://matplotlib.sourceforge.net/
              PyQt5 being installed, although that doesn't cause a problem on 
              all systems. If NeXpy crashes on launch, please try setting the
              environment variable QT_API to either 'pyqt', for the PyQt4 
-             library, or 'pyside', for the PySide library, depending on what you
-             have installed, *e.g.*, in BASH, type ::
+             library, 'pyqt5' for the PyQt5 library, or 'pyside', for the 
+             PySide library, depending on what you have installed, *e.g.*, in 
+             BASH, type ::
 
                  export QT_API=pyqt
 

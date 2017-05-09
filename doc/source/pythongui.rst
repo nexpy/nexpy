@@ -871,10 +871,9 @@ parameters, but there are plans to add that in the future.
 
 Defining a Reader
 ^^^^^^^^^^^^^^^^^
-With a little knowledge of PyQt, it is possible to add a reader to the 
-File:Import menu using the existing samples as a guide in the nexpy.readers
-directory. User-defined import dialogs can be added to their private readers 
-directory in ``~/.nexpy/readers``.
+It is possible to add a reader to the File:Import menu using the existing 
+samples as a guide in the nexpy.readers directory. User-defined import dialogs 
+can be added to their private readers directory in ``~/.nexpy/readers``.
 
 Here is an example of an import dialog::
 
@@ -896,8 +895,6 @@ Here is an example of an import dialog::
                                  of all import dialogs.
  """
 
- from nexpy.gui.qt import QtGui
-
  import numpy as np
  from nexusformat.nexus import *
  from nexpy.gui.importdialog import BaseImportDialog
@@ -911,12 +908,9 @@ Here is an example of an import dialog::
 
          super(ImportDialog, self).__init__(parent)
         
-         layout = QtGui.QVBoxLayout()
-         layout.addLayout(self.filebox())
-         layout.addWidget(self.close_buttons())
-         self.setLayout(layout)
+         self.set_layout(self.filebox(), self.close_buttons())
   
-         self.setWindowTitle("Import "+str(filetype))
+         self.set_title("Import "+str(filetype))
  
      def get_data(self):
          from libtiff import TIFF
@@ -987,7 +981,6 @@ functions themselves.
 
 Here is the code::
 
-  from nexpy.gui.pyqt import QtGui
   import numpy as np
   from nexpy.gui.datadialogs import BaseDialog, GridParameters
   from nexpy.gui.mainwindow import report_error
