@@ -33,8 +33,6 @@ Start with this basic template:
    
    '''describe this importer'''
    
-   from nexpy.gui.pyqt import QtGui
-   
    import numpy as np
    from nexpy.api.nexus import *
    from nexpy.gui.importdialog import BaseImportDialog
@@ -48,25 +46,11 @@ Start with this basic template:
            super(ImportDialog, self).__init__(parent)
 
            self.accepted = False
-           from nexpy.gui.consoleapp import _mainwindow
-           self.default_directory = _mainwindow.default_directory
            self.import_file = None     # must set in self.get_data()
 
-           # build the dialog box here
-           self.progress_bar = QtGui.QProgressBar()
-           self.progress_bar.setVisible(False)
-
-           status_layout = QtGui.QHBoxLayout()
-           status_layout.addWidget(self.progress_bar)
-           status_layout.addStretch()
-           status_layout.addWidget(self.close_buttons())
-
-           self.layout = QtGui.QVBoxLayout()
-           self.layout.addLayout(self.filebox())
-           self.layout.addLayout(status_layout)
-           self.setLayout(self.layout)
+           self.set_layout(self.filebox(), self.progress_layout(save=True))
   
-           self.setWindowTitle("Import "+str(filetype))
+           self.set_title("Import "+str(filetype))
  
        def get_data(self):
           '''read the data and return either :class:`NXroot` or :class:`NXentry`'''
@@ -89,7 +73,7 @@ an *NXroot* or *NXentry* object. This will be added to the NeXpy tree.
 Features from the Superclass
 ----------------------------
 
-Two GUI convenience elements are provided from the superclass 
+Three GUI convenience elements are provided from the superclass 
 :class:`nexpy.gui.importdialog.BaseImportDialog`:
 
 *ImportDialog.filebox*: 

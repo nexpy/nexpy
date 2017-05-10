@@ -1,4 +1,3 @@
-from nexpy.gui.pyqt import QtGui
 import numpy as np
 from nexpy.gui.datadialogs import BaseDialog, GridParameters
 from nexpy.gui.utils import report_error
@@ -18,19 +17,17 @@ class ConvertDialog(BaseDialog):
 
     def __init__(self, parent=None):
         super(ConvertDialog, self).__init__(parent)
-        layout = QtGui.QVBoxLayout()
         self.select_entry()
         self.parameters = GridParameters()
         self.parameters.add('Ei', self.entry['instrument/monochromator/energy'],
                             'Incident Energy')
         self.parameters.add('dQ', self.round(np.sqrt(self.Ei/2)/50), 'Q Step')
         self.parameters.add('dE', self.round(self.Ei/50), 'Energy Step')
-        layout.addLayout(self.entry_layout)
-        layout.addLayout(self.parameters.grid())
-        layout.addLayout(self.action_buttons(('Plot', self.plot_data),
-                                             ('Save', self.save_data)))
-        layout.addWidget(self.close_buttons())
-        self.setLayout(layout)
+        self.set_layout(self.entry_layout, 
+                        self.parameters.grid(),
+                        self.action_buttons(('Plot', self.plot_data),
+                                            ('Save', self.save_data)),
+                        self.close_buttons())
         self.setWindowTitle('Converting to (Q,E)')
 
     @property

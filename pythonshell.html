@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Python Interface to NeXus &mdash; NeXpy 0.9.3 documentation</title>
+    <title>Python Interface to NeXus &mdash; NeXpy 0.10.0 documentation</title>
     
     <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.9.3',
+        VERSION:     '0.10.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -25,7 +25,7 @@
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="shortcut icon" href="_static/favicon.ico"/>
-    <link rel="top" title="NeXpy 0.9.3 documentation" href="index.html" />
+    <link rel="top" title="NeXpy 0.10.0 documentation" href="index.html" />
     <link rel="next" title="Python Graphical User Interface" href="pythongui.html" />
     <link rel="prev" title="Installation" href="includeme.html" /> 
   </head>
@@ -45,7 +45,7 @@
         <li class="right" >
           <a href="includeme.html" title="Installation"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.9.3 documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.10.0 documentation</a> &raquo;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -340,7 +340,7 @@ HDF5 cannot convert them.</p>
 <p>If you wish to store an array of strings containing Unicode
 characters as fixed-length strings, convert them to byte strings
 first using UTF-8 encoding, <em>e.g.</em>:</p>
-<div class="last highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">t</span> <span class="o">=</span> <span class="p">[</span><span class="s1">u&#39;a&#39;</span><span class="p">,</span> <span class="s1">u&#39;b&#39;</span><span class="p">,</span> <span class="s1">u&#39;c&#39;</span><span class="p">,</span> <span class="s1">u&#39;d&#39;</span><span class="p">,</span> <span class="s1">u&#39;é&#39;</span><span class="p">]</span>
+<div class="last highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">t</span> <span class="o">=</span> <span class="p">[</span><span class="sa">u</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="sa">u</span><span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="sa">u</span><span class="s1">&#39;c&#39;</span><span class="p">,</span> <span class="sa">u</span><span class="s1">&#39;d&#39;</span><span class="p">,</span> <span class="sa">u</span><span class="s1">&#39;é&#39;</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">=</span><span class="n">NXfield</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">defchararray</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;utf-8&#39;</span><span class="p">)),</span>
 <span class="go">              dtype=&#39;S10&#39;)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">a</span>
@@ -1182,7 +1182,7 @@ if necessary, in order to produce a valid NeXus file.</p>
         <li class="right" >
           <a href="includeme.html" title="Installation"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.9.3 documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.10.0 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">

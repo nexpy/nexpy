@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Installation &mdash; NeXpy 0.9.3 documentation</title>
+    <title>Installation &mdash; NeXpy 0.10.0 documentation</title>
     
     <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.9.3',
+        VERSION:     '0.10.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -25,7 +25,7 @@
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="shortcut icon" href="_static/favicon.ico"/>
-    <link rel="top" title="NeXpy 0.9.3 documentation" href="index.html" />
+    <link rel="top" title="NeXpy 0.10.0 documentation" href="index.html" />
     <link rel="next" title="Python Interface to NeXus" href="pythonshell.html" />
     <link rel="prev" title="NeXpy: A Python GUI to analyze NeXus data" href="index.html" /> 
   </head>
@@ -45,7 +45,7 @@
         <li class="right" >
           <a href="index.html" title="NeXpy: A Python GUI to analyze NeXus data"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.9.3 documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.10.0 documentation</a> &raquo;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -196,17 +196,12 @@ old-master branch (<a class="reference external" href="https://github.com/nexpy/
 </div>
 <div class="section" id="nexpy-gui">
 <h2>NeXpy GUI<a class="headerlink" href="#nexpy-gui" title="Permalink to this headline">¶</a></h2>
-<p>The GUI is built using the PyQt. The latest version supports either
-PyQt4 or PySide, and should load whichever library it finds. Neither are
-listed as a dependency but one or other must be installed. PyQt4 is included
+<p>The GUI is built using the PyQt. The latest version supports PyQt4, PySide, and
+with v0.10.0, PyQt5, and should load whichever library it finds. None are
+listed as a dependency but one or other must be installed. PyQt5 is included
 in the
 <a class="reference external" href="https://store.continuum.io/cshop/anaconda/">Anaconda default distribution</a>
 while PySide is included in the <a class="reference external" href="http://www.enthought.com">Enthought Python Distribution</a> or within Enthought&#8217;s <a class="reference external" href="https://www.enthought.com/products/canopy/">Canopy Application</a>.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">Anaconda now installs PyQt5 by default. To ensure that PyQt4
-is installed, type <cite>conda install pyqt=4</cite>.</p>
-</div>
 <p>The GUI includes an <a class="reference external" href="http://ipython.org/">IPython shell</a> and a <a class="reference external" href="http://matplotlib.sourceforge.net">Matplotlib
 plotting pane</a>. The IPython shell is
 embedded in the Qt GUI using an implementation based on the newly-released
@@ -240,8 +235,9 @@ Linux systems. We believe that this may be due to both PyQt4 and
 PyQt5 being installed, although that doesn&#8217;t cause a problem on
 all systems. If NeXpy crashes on launch, please try setting the
 environment variable QT_API to either &#8216;pyqt&#8217;, for the PyQt4
-library, or &#8216;pyside&#8217;, for the PySide library, depending on what you
-have installed, <em>e.g.</em>, in BASH, type</p>
+library, &#8216;pyqt5&#8217; for the PyQt5 library, or &#8216;pyside&#8217;, for the
+PySide library, depending on what you have installed, <em>e.g.</em>, in
+BASH, type</p>
 <div class="last highlight-python"><div class="highlight"><pre><span></span>export QT_API=pyqt
 </pre></div>
 </div>
@@ -356,7 +352,7 @@ for the current PyQt version.</p>
         <li class="right" >
           <a href="index.html" title="NeXpy: A Python GUI to analyze NeXus data"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.9.3 documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.10.0 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">

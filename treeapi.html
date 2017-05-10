@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>NeXus Tree API Modules &mdash; NeXpy 0.9.3 documentation</title>
+    <title>NeXus Tree API Modules &mdash; NeXpy 0.10.0 documentation</title>
     
     <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.9.3',
+        VERSION:     '0.10.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -25,7 +25,7 @@
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="shortcut icon" href="_static/favicon.ico"/>
-    <link rel="top" title="NeXpy 0.9.3 documentation" href="index.html" />
+    <link rel="top" title="NeXpy 0.10.0 documentation" href="index.html" />
     <link rel="next" title="Adding a File Importer" href="readers.html" />
     <link rel="prev" title="Python Graphical User Interface" href="pythongui.html" /> 
   </head>
@@ -45,7 +45,7 @@
         <li class="right" >
           <a href="pythongui.html" title="Python Graphical User Interface"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.9.3 documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.10.0 documentation</a> &raquo;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -335,7 +335,7 @@ title is the title of the group or the parent <a class="reference internal" href
 
 <dl class="class">
 <dt id="nexusformat.nexus.tree.NXFile">
-<em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXFile</code><span class="sig-paren">(</span><em>name</em>, <em>mode=None</em>, <em>**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXFile" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXFile</code><span class="sig-paren">(</span><em>name</em>, <em>mode='r'</em>, <em>**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXFile" title="Permalink to this definition">¶</a></dt>
 <dd><p>Structure-based interface to the NeXus file API.</p>
 <p>Usage:</p>
 <div class="highlight-python"><div class="highlight"><pre><span></span>file = NXFile(filename, [&#39;r&#39;,&#39;rw&#39;,&#39;w&#39;])
@@ -1582,6 +1582,21 @@ image = True   - plot as an RGB(A) image
 </dd></dl>
 
 <dl class="class">
+<dt id="nexusformat.nexus.tree.NXlog">
+<em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXlog</code><span class="sig-paren">(</span><em>*items</em>, <em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXlog" title="Permalink to this definition">¶</a></dt>
+<dd><p>NXlog group. This is a subclass of the NXgroup class.</p>
+<p>See the NXgroup documentation for more details.</p>
+<dl class="method">
+<dt id="nexusformat.nexus.tree.NXlog.plot">
+<code class="descname">plot</code><span class="sig-paren">(</span><em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXlog.plot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plots the logged values against the elapsed time. Valid Matplotlib 
+parameters, specifying markers, colors, etc, can be specified using the 
+&#8216;opts&#8217; dictionary.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
 <dt id="nexusformat.nexus.tree.NXsample">
 <em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXsample</code><span class="sig-paren">(</span><em>*items</em>, <em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXsample" title="Permalink to this definition">¶</a></dt>
 <dd><p>NXsample group. This is a subclass of the NXgroup class.</p>
@@ -1799,6 +1814,13 @@ image = True   - plot as an RGB(A) image
 </dd></dl>
 
 <dl class="class">
+<dt id="nexusformat.nexus.tree.NXprocess">
+<em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXprocess</code><span class="sig-paren">(</span><em>*items</em>, <em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXprocess" title="Permalink to this definition">¶</a></dt>
+<dd><p>NXprocess group. This is a subclass of the NXgroup class.</p>
+<p>See the NXgroup documentation for more details.</p>
+</dd></dl>
+
+<dl class="class">
 <dt id="nexusformat.nexus.tree.NXsensor">
 <em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXsensor</code><span class="sig-paren">(</span><em>*items</em>, <em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXsensor" title="Permalink to this definition">¶</a></dt>
 <dd><p>NXsensor group. This is a subclass of the NXgroup class.</p>
@@ -1848,32 +1870,16 @@ image = True   - plot as an RGB(A) image
 </dd></dl>
 
 <dl class="class">
-<dt id="nexusformat.nexus.tree.NXlog">
-<em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXlog</code><span class="sig-paren">(</span><em>*items</em>, <em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXlog" title="Permalink to this definition">¶</a></dt>
-<dd><p>NXlog group. This is a subclass of the NXgroup class.</p>
-<p>See the NXgroup documentation for more details.</p>
-<dl class="method">
-<dt id="nexusformat.nexus.tree.NXlog.plot">
-<code class="descname">plot</code><span class="sig-paren">(</span><em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXlog.plot" title="Permalink to this definition">¶</a></dt>
-<dd><p>Plots the logged values against the elapsed time. Valid Matplotlib 
-parameters, specifying markers, colors, etc, can be specified using the 
-&#8216;opts&#8217; dictionary.</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="nexusformat.nexus.tree.NXprocess">
-<em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXprocess</code><span class="sig-paren">(</span><em>*items</em>, <em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXprocess" title="Permalink to this definition">¶</a></dt>
-<dd><p>NXprocess group. This is a subclass of the NXgroup class.</p>
-<p>See the NXgroup documentation for more details.</p>
-</dd></dl>
-
-<dl class="class">
 <dt id="nexusformat.nexus.tree.NXnote">
 <em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXnote</code><span class="sig-paren">(</span><em>*items</em>, <em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXnote" title="Permalink to this definition">¶</a></dt>
 <dd><p>NXnote group. This is a subclass of the NXgroup class.</p>
 <p>See the NXgroup documentation for more details.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="nexusformat.nexus.tree.nxgetmemory">
+<code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">nxgetmemory</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.nxgetmemory" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the memory limit for data arrays (in MB).</p>
 </dd></dl>
 
 <dl class="function">
@@ -1883,9 +1889,21 @@ parameters, specifying markers, colors, etc, can be specified using the
 </dd></dl>
 
 <dl class="function">
+<dt id="nexusformat.nexus.tree.nxgetcompression">
+<code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">nxgetcompression</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.nxgetcompression" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns default compression filter.</p>
+</dd></dl>
+
+<dl class="function">
 <dt id="nexusformat.nexus.tree.nxsetcompression">
 <code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">nxsetcompression</code><span class="sig-paren">(</span><em>value</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.nxsetcompression" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sets default compression filter.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="nexusformat.nexus.tree.nxgetencoding">
+<code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">nxgetencoding</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.nxgetencoding" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the default encoding for input strings (usually &#8216;utf-8&#8217;).</p>
 </dd></dl>
 
 <dl class="function">
@@ -1948,7 +1966,7 @@ ls f1.nxs f2.nxs ...</div></blockquote>
         <li class="right" >
           <a href="pythongui.html" title="Python Graphical User Interface"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.9.3 documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.10.0 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
