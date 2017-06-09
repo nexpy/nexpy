@@ -166,7 +166,7 @@ class NXFigureManager(FigureManager):
     """Subclass of Matplotlib's FigureManager."""
     def __init__(self, canvas, num):
         FigureManagerBase.__init__(self, canvas, num)
-
+        self._status_and_tool_height = 0
         def notify_axes_change(fig):
             # This will be called whenever the current axes is changed
             if self.canvas.toolbar is not None:
