@@ -156,10 +156,8 @@ class NXCanvas(FigureCanvas):
 
         FigureCanvas.__init__(self, figure)
 
-        FigureCanvas.setSizePolicy(self,
-                                   QtWidgets.QSizePolicy.MinimumExpanding,
-                                   QtWidgets.QSizePolicy.MinimumExpanding)
-        FigureCanvas.updateGeometry(self)
+        self.setSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding,
+                           QtWidgets.QSizePolicy.MinimumExpanding)
 
 
 class NXFigureManager(FigureManager):
@@ -172,6 +170,11 @@ class NXFigureManager(FigureManager):
             if self.canvas.toolbar is not None:
                 self.canvas.toolbar.update()
         self.canvas.figure.add_axobserver(notify_axes_change)
+    
+    def resize(self, width, height):
+        extra_width = self.window.width() - self.canvas.width()
+        extra_height = self.window.height() - self.canvas.height()
+        self.window.resize(width+extra_width, height+extra_height)
 
 
 class NXPlotView(QtWidgets.QDialog):
@@ -256,7 +259,7 @@ class NXPlotView(QtWidgets.QDialog):
 
         super(NXPlotView, self).__init__(parent)
 
-        self.setMinimumSize(700, 550)
+        self.setMinimumSize(724, 550)
         self.setSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding,
                            QtWidgets.QSizePolicy.MinimumExpanding)
 
@@ -269,12 +272,6 @@ class NXPlotView(QtWidgets.QDialog):
         self.canvas = self.figuremanager.canvas
         self.canvas.setParent(self)
         self.canvas.setFocusPolicy(QtCore.Qt.ClickFocus)
-        # Since we have only one plot, we can use add_axes
-        # instead of add_subplot, but then the subplot
-        # configuration tool in the navigation toolbar wouldn't
-        # work.
-        #
-        # self.canvas.mpl_connect('pick_event', self.on_pick)
 
         Gcf.set_active(self.figuremanager)
         def make_active(event):
@@ -298,6 +295,8 @@ class NXPlotView(QtWidgets.QDialog):
             self.figure.set_label(self.label)
         else:
             self.label = "Figure %d" % self.number
+
+        self.canvas.setMinimumWidth(700)
 
         self.tab_widget = QtWidgets.QTabWidget()
         self.tab_widget.setFixedHeight(80)
@@ -323,6 +322,8 @@ class NXPlotView(QtWidgets.QDialog):
         self.setLayout(self.vbox)
 
         self.setWindowTitle(self.label)
+        
+        self.resize(734, 550)
 
         self.num = 0
         self.axis = {}
