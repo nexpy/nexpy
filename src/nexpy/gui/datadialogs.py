@@ -697,7 +697,11 @@ class PlotDialog(BaseDialog):
 
     @property
     def signal(self):
-        return self.group[self.signal_combo.currentText()]
+        signal = self.group[self.signal_combo.currentText()]
+        if isinstance(signal, NXlink):
+            return signal.nxlink
+        else:
+            return signal
 
     @property
     def ndim(self):
@@ -756,7 +760,11 @@ class PlotDialog(BaseDialog):
             return NXfield(range(self.signal.shape[axis]), 
                            name='index_%s' % axis)
         else:
-            return self.group[axis_name]
+            axis = self.group[axis_name]
+            if isinstance(axis, NXlink):
+                return axis.nxlink
+            else:
+                return axis
 
     def get_axes(self):
         return [self.get_axis(axis) for axis in range(self.ndim)]
@@ -766,7 +774,7 @@ class PlotDialog(BaseDialog):
             data = NXdata(self.signal, self.get_axes(), title=self.signal.nxtitle)
             data.plot(fmt=self.fmt)
             super(PlotDialog, self).accept()
-        except NeXusError as error:
+        except Exception as error:
             report_error("Plotting data", error)
             super(PlotDialog, self).reject()
 
