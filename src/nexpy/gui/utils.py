@@ -1,7 +1,9 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
+import importlib
 import os
 import re
+import sys
 from collections import OrderedDict
 from datetime import datetime
 try:
@@ -114,6 +116,32 @@ def is_timestamp(time_string):
         return isinstance(read_timestamp(time_string), datetime)
     except ValueError:
         return False
+
+
+class NXimporter(object):
+    def __init__(self, path):
+        self.path = path
+
+    def __enter__(self):
+        sys.path.insert(0, self.path)
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        sys.path.remove(self.path)
+
+
+def import_plugin(name, paths):
+    for path in paths:
+        with NXimporter(path):
+            try:
+                plugin_module = importlib.import_module(name)
+                if hasattr(plugin_module, '__file__'): #Not a namespace module
+                    return plugin_module
+            except Exception as error:
+                if str(error) == "No module named '%s'" % name:
+                    pass
+                else:
+                    raise Exception(error)
+    raise ImportError("No module named '%s'" % name)
 
 
 class NXConfigParser(ConfigParser, object):

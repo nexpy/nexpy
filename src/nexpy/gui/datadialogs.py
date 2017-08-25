@@ -12,7 +12,6 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 import six
 
-import imp
 import logging
 import numbers
 import os
@@ -30,8 +29,8 @@ try:
 except ImportError:
     from ordereddict import OrderedDict
 
-from .utils import confirm_action, report_error, natural_sort, wrap
-from .utils import human_size, timestamp, format_timestamp
+from .utils import confirm_action, report_error, import_plugin
+from .utils import natural_sort, wrap, human_size, timestamp, format_timestamp
 
 from nexusformat.nexus import (NeXusError, NXgroup, NXfield, NXattr, NXlink,
                                NXroot, NXentry, NXdata, NXparameters, nxload)
@@ -861,7 +860,7 @@ class LimitDialog(BaseDialog):
             else:
                 self.plotview.set_plot_limits(xmin, xmax, ymin, ymax)
             super(LimitDialog, self).accept()
-        except NeXusError as error:
+        except Exception as error:
             report_error("Setting plot limits", error)
             super(LimitDialog, self).reject()
 
@@ -1665,7 +1664,7 @@ class SignalDialog(BaseDialog):
             self.group.nxsignal = self.signal
             self.group.nxaxes = axes
             super(SignalDialog, self).accept()
-        except NeXusError as error:
+        except Exception as error:
             report_error("Setting signal", error)
             super(SignalDialog, self).reject()
 
@@ -1759,7 +1758,7 @@ class UnlockDialog(BaseDialog):
             self.node.unlock()
             logging.info("Workspace '%s' unlocked" % self.node.nxname)
             super(UnlockDialog, self).accept()
-        except NeXusError as error:
+        except Exception as error:
             report_error("Unlocking file", error)
 
 
@@ -1785,19 +1784,17 @@ class InstallPluginDialog(BaseDialog):
 
     def get_menu_name(self, plugin_name, plugin_path):
         try:
-            import imp
-            fp, pathname, desc = imp.find_module(plugin_name, 
-                                                 [os.path.dirname(plugin_path)])
-            plugin_module = imp.load_module(plugin_name, fp, pathname, desc)
+            plugin_module = import_plugin(plugin_name, [plugin_path])
             name, _ = plugin_module.plugin_menu()
             return name
-        except:
+        except Exception as error:
             return None
 
     def install_plugin(self):        
         plugin_directory = self.get_directory()
         plugin_name = os.path.basename(os.path.normpath(plugin_directory))
-        plugin_menu_name = self.get_menu_name(plugin_name, plugin_directory)
+        plugin_path = os.path.dirname(plugin_directory)
+        plugin_menu_name = self.get_menu_name(plugin_name, plugin_path)
         if plugin_menu_name is None:
             raise NeXusError('This directory does not contain a valid plugin')
         if self.radiobutton['local'].isChecked():
@@ -1829,7 +1826,7 @@ class InstallPluginDialog(BaseDialog):
         try:
             self.install_plugin()
             super(InstallPluginDialog, self).accept()
-        except NeXusError as error:
+        except Exception as error:
             report_error("Installing plugin", error)
 
 
@@ -1866,10 +1863,7 @@ class RemovePluginDialog(BaseDialog):
 
     def get_menu_name(self, plugin_name, plugin_path):
         try:
-            import imp
-            fp, pathname, desc = imp.find_module(plugin_name, 
-                                                 [os.path.dirname(plugin_path)])
-            plugin_module = imp.load_module(plugin_name, fp, pathname, desc)
+            plugin_module = import_plugin(plugin_name, [plugin_path])
             name, _ = plugin_module.plugin_menu()
             return name
         except:
@@ -1907,7 +1901,7 @@ class RemovePluginDialog(BaseDialog):
         try:
             self.remove_plugin()
             super(RemovePluginDialog, self).accept()
-        except NeXusError as error:
+        except Exception as error:
             report_error("Removing plugin", error)
 
 class ManageBackupsDialog(BaseDialog):
