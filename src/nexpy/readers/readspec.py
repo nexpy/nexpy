@@ -276,16 +276,15 @@ class Parser(object):
     def parser_mca_spectra(self, nxdata, scan, primary_axis_label):
         '''parse for optional MCA spectra'''
         if '_mca_' in scan.data:        # check for it
-            mca_dict = scan.data['_mca_'].values()
-            if len(mca_dict) > 1:
-                msg = 'support for more than one MCA not implemented'
-                raise NotImplementedError(msg)
-            mca_data = mca_dict[0]
-            nxdata.mca__spectrum_ = NXfield(mca_data)
-            nxdata.mca__spectrum_channel = NXfield(range(1, len(mca_data[0])+1))
-            nxdata.mca__spectrum_channel.units = 'channel'
-            axes = (primary_axis_label, 'mca__spectrum_channel')
-            nxdata.mca__spectrum_.axes = ':'.join( axes )
+            for mca_key, mca_data in scan.data['_mca_'].items():
+                key = "__" + mca_key
+                nxdata[key] = NXfield(mca_data)
+                nxdata[key].units = "counts"
+                ch_key = key + "_channel"
+                nxdata[ch_key] = NXfield(range(1, len(mca_data[0])+1))
+                nxdata[ch_key].units = 'channel'
+                axes = (primary_axis_label, ch_key)
+                nxdata[key].axes = ':'.join( axes )
     
     def parser_mesh(self, nxdata, scan):
         '''data parser for 2-D mesh and hklmesh'''
@@ -341,36 +340,36 @@ class Parser(object):
 
         if '_mca_' in scan.data:    # 3-D array
             # TODO: ?merge with parser_mca_spectra()?
-            mca_dict = scan.data['_mca_'].values()
-            if len(mca_dict) > 1:
-                msg = 'support for more than one MCA not implemented'
-                raise NotImplementedError(msg)
-            if len(mca_dict) == 0:
-                pass
-            mca_data = mca_dict[0]
+            for mca_key, mca_data in scan.data['_mca_'].items():
+                key = "__" + mca_key
 
-            spectra_lengths = list(map(len, mca_data))
-            num_channels = max(spectra_lengths)
-            if num_channels != min(spectra_lengths):
-                msg = 'MCA spectra have different lengths'
-                msg += ' in scan #' + str(scan.scanNum)
-                msg += ' in file ' + str(scan.specFile)
-                raise ValueError(msg)
-            data_shape += [num_channels, ]
-            mca = np.array(mca_data)
-            nxdata.mca__spectrum_ = NXfield(utils.reshape_data(mca, data_shape))
-            try:
-                # use MCA channel numbers as known at time of scan
-                chan1 = scan.MCA['first_saved']
-                chanN = scan.MCA['last_saved']
-                channel_range = range(chan1, chanN+1)
-            except:
-                # basic indices
-                channel_range = range(1, num_channels+1)
-            nxdata.mca__spectrum_channel = NXfield(channel_range)
-            nxdata.mca__spectrum_channel.units = 'channel'
-            axes = (label1, label2, 'mca__spectrum_channel')
-            nxdata.mca__spectrum_.axes = ':'.join( axes )
+                spectra_lengths = list(map(len, mca_data))
+                num_channels = max(spectra_lengths)
+                if num_channels != min(spectra_lengths):
+                    msg = 'MCA spectra have different lengths'
+                    msg += ' in scan #' + str(scan.scanNum)
+                    msg += ' in file ' + str(scan.specFile)
+                    raise ValueError(msg)
+
+                data_shape += [num_channels, ]
+                mca = np.array(mca_data)
+                nxdata[key] = NXfield(utils.reshape_data(mca, data_shape))
+                nxdata[key].units = "counts"
+
+                try:
+                    # use MCA channel numbers as known at time of scan
+                    chan1 = scan.MCA['first_saved']
+                    chanN = scan.MCA['last_saved']
+                    channel_range = range(chan1, chanN+1)
+                except:
+                    # basic indices
+                    channel_range = range(1, num_channels+1)
+
+                ch_key = key + "_channel"
+                nxdata[ch_key] = NXfield(channel_range)
+                nxdata[ch_key].units = 'channel'
+                axes = (label1, label2, ch_key)
+                nxdata[key].axes = ':'.join( axes )
     
     def metadata_NXlog(self, spec_metadata, description):
         '''
