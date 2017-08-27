@@ -11,15 +11,18 @@
 """
 Module to read in a SPEC file and convert it to NeXus.
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
+
+
+from __future__ import (
+    absolute_import, division, print_function, unicode_literals)
 
 import os
 import numpy as np
 
 from nexpy.gui.pyqt import QtCore, QtWidgets, getOpenFileName
 
-from nexusformat.nexus import *
+from nexusformat.nexus.tree import NeXusError
+from nexusformat.nexus.tree import NXroot, NXentry, NXfield, NXdata, NXlog
 from nexpy.gui.importdialog import BaseImportDialog
 
 filetype = "SPEC File"
@@ -123,7 +126,7 @@ class Parser(object):
     
     def openFile(self, filename):
         '''open the SPEC file and get its data'''
-        from spec2nexus.prjPySpec import SpecDataFile
+        from spec2nexus.spec import SpecDataFile
         if os.path.exists(filename):
             self.SPECfile = SpecDataFile(filename)
     
