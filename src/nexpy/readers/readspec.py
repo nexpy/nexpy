@@ -276,8 +276,13 @@ class Parser(object):
     def parser_mca_spectra(self, nxdata, scan, primary_axis_label):
         '''parse for optional MCA spectra'''
         if '_mca_' in scan.data:        # check for it
-            nxdata.mca__spectrum_ = NXfield(scan.data['_mca_'])
-            nxdata.mca__spectrum_channel = NXfield(range(1, len(scan.data['_mca_'][0])+1))
+            mca_dict = scan.data['_mca_'].values()
+            if len(mca_dict) > 1:
+                msg = 'support for more than one MCA not implemented'
+                raise NotImplemented(msg)
+            mca_data = mca_dict[0]
+            nxdata.mca__spectrum_ = NXfield(mca_data)
+            nxdata.mca__spectrum_channel = NXfield(range(1, len(mca_data[0])+1))
             nxdata.mca__spectrum_channel.units = 'channel'
             axes = (primary_axis_label, 'mca__spectrum_channel')
             nxdata.mca__spectrum_.axes = ':'.join( axes )
@@ -336,8 +341,14 @@ class Parser(object):
 
         if '_mca_' in scan.data:    # 3-D array
             # TODO: ?merge with parser_mca_spectra()?
-            _num_spectra = len(scan.data['_mca_'])
-            spectra_lengths = list(map(len, scan.data['_mca_']))
+            mca_dict = scan.data['_mca_']
+            if len(mca_dict) > 1:
+                msg = 'support for more than one MCA not implemented'
+                raise NotImplemented(msg)
+            mca_data = mca_dict[0]
+
+            _num_spectra = len(mca_dict)
+            spectra_lengths = list(map(len, mca_data))
             num_channels = max(spectra_lengths)
             if num_channels != min(spectra_lengths):
                 msg = 'MCA spectra have different lengths'
@@ -345,7 +356,7 @@ class Parser(object):
                 msg += ' in file ' + str(scan.specFile)
                 raise ValueError(msg)
             data_shape += [num_channels, ]
-            mca = np.array(scan.data['_mca_'])
+            mca = np.array(mca_data)
             nxdata.mca__spectrum_ = NXfield(utils.reshape_data(mca, data_shape))
             try:
                 # use MCA channel numbers as known at time of scan
