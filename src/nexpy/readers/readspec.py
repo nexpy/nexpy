@@ -341,13 +341,14 @@ class Parser(object):
 
         if '_mca_' in scan.data:    # 3-D array
             # TODO: ?merge with parser_mca_spectra()?
-            mca_dict = scan.data['_mca_']
+            mca_dict = scan.data['_mca_'].values()
             if len(mca_dict) > 1:
                 msg = 'support for more than one MCA not implemented'
                 raise NotImplementedError(msg)
+            if len(mca_dict) == 0:
+                pass
             mca_data = mca_dict[0]
 
-            _num_spectra = len(mca_dict)
             spectra_lengths = list(map(len, mca_data))
             num_channels = max(spectra_lengths)
             if num_channels != min(spectra_lengths):
