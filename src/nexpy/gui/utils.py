@@ -81,6 +81,7 @@ def find_nearest(array, value):
 def find_nearest_index(array, value):
     return (np.abs(array-value)).argmin()
 
+
 def human_size(bytes):
     """Convert a file size to human-readable form"""
     size = np.float(bytes)
@@ -102,7 +103,14 @@ def read_timestamp(time_string):
 
 def format_timestamp(time_string):
     """Return the timestamp as a formatted string."""
-    return datetime.strptime(time_string, '%Y%m%d%H%M%S').isoformat().replace('T', ' ')
+    return datetime.strptime(time_string, 
+                             '%Y%m%d%H%M%S').isoformat().replace('T', ' ')
+
+
+def restore_timestamp(time_string):
+    """Return a timestamp from a formatted string."""
+    return datetime.strptime(time_string, 
+                             "%Y-%m-%d %H:%M:%S").strftime('%Y%m%d%H%M%S')
 
 
 def timestamp_age(time_string):
@@ -158,6 +166,8 @@ class NXConfigParser(ConfigParser, object):
             self.add_section('recent')
         if 'backups' not in sections:
             self.add_section('backups')
+        if 'plugins' not in sections:
+            self.add_section('plugins')
         if 'recentFiles' in self.options('recent'):
             self.fix_recent()
 
@@ -174,7 +184,8 @@ class NXConfigParser(ConfigParser, object):
 
     def fix_recent(self):
         """Perform backward compatibility fix"""
-        paths = [f.strip() for f in self.get('recent', 'recentFiles').split(',')]
+        paths = [f.strip() for f 
+                 in self.get('recent', 'recentFiles').split(',')]
         for path in paths:
             self.set("recent", path)
         self.remove_option("recent", "recentFiles")
