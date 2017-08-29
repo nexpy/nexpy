@@ -930,7 +930,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.treeview.select_node(self.tree[name].entry)
                 self.treeview.update()
                 logging.info("New workspace '%s' created" % name)
-        except Exception as error:
+        except NeXusError as error:
             report_error("Creating New Workspace", error)
 
     def open_file(self):
@@ -945,7 +945,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 logging.info("NeXus file '%s' opened as workspace '%s'"
                              % (fname, name))
                 self.update_recent_files(fname)
-        except Exception as error:
+        except NeXusError as error:
             report_error("Opening File", error)
 
     def open_editable_file(self):
@@ -960,7 +960,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 logging.info("NeXus file '%s' opened (unlocked) as workspace '%s'"
                              % (fname, name))
                 self.update_recent_files(fname)
-        except Exception as error:
+        except NeXusError as error:
             report_error("Opening File (Read/Write)", error)
 
     def open_recent_file(self):
@@ -973,7 +973,7 @@ class MainWindow(QtWidgets.QMainWindow):
             logging.info("NeXus file '%s' opened as workspace '%s'"
                          % (fname, name))
             self.update_recent_files(fname)
-        except Exception as error:
+        except NeXusError as error:
             report_error("Opening Recent File", error)
 
     def open_remote_file(self):
@@ -981,7 +981,7 @@ class MainWindow(QtWidgets.QMainWindow):
             dialog = RemoteDialog(parent=self)
             dialog.setModal(False)
             dialog.show()
-        except Exception as error:
+        except NeXusError as error:
             report_error("Opening Remote File", error)
 
     def hover_recent_menu(self, action):
@@ -1041,7 +1041,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.default_directory = os.path.dirname(fname)
                 logging.info("NeXus workspace '%s' saved as '%s'"
                              % (old_name, fname))
-        except Exception as error:
+        except NeXusError as error:
             report_error("Saving File", error)
 
     def duplicate(self):
@@ -1075,7 +1075,7 @@ class MainWindow(QtWidgets.QMainWindow):
                     self.treeview.update()
             else:
                 raise NeXusError("Only NXroot groups can be duplicated")
-        except Exception as error:
+        except NeXusError as error:
             report_error("Duplicating File", error)
 
     def reload(self):
@@ -1092,7 +1092,7 @@ class MainWindow(QtWidgets.QMainWindow):
                     self.treeview.select_node(self.tree[name][path])
                 except Exception:
                     pass
-        except Exception as error:
+        except NeXusError as error:
             report_error("Reloading File", error)
 
     def remove(self):
@@ -1105,7 +1105,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 if ret == QtWidgets.QMessageBox.Ok:
                     del self.tree[name]
                     logging.info("Workspace '%s' removed" % name)
-        except Exception as error:
+        except NeXusError as error:
             report_error("Removing File", error)
 
     def show_import_dialog(self):
@@ -1113,7 +1113,7 @@ class MainWindow(QtWidgets.QMainWindow):
             import_module = self.importer[self.sender()]
             self.import_dialog = import_module.ImportDialog(parent=self)
             self.import_dialog.show()
-        except Exception as error:
+        except NeXusError as error:
             report_error("Importing File", error)
 
     def import_data(self):
@@ -1138,7 +1138,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 except Exception:
                     pass
                 logging.info("Workspace '%s' imported" % name)
-        except Exception as error:
+        except NeXusError as error:
             report_error("Importing File", error)
 
     def lock_file(self):
@@ -1150,7 +1150,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 logging.info("Workspace '%s' locked" % node.nxname)
             else:
                 raise NeXusError("Can only lock a NXroot group")
-        except Exception as error:
+        except NeXusError as error:
             report_error("Locking File", error)
 
     def unlock_file(self):
@@ -1162,7 +1162,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.treeview.update()
             else:
                 raise NeXusError("Can only unlock a NXroot group")
-        except Exception as error:
+        except NeXusError as error:
             report_error("Unlocking File", error)
 
     def backup_file(self):
@@ -1179,7 +1179,7 @@ class MainWindow(QtWidgets.QMainWindow):
                              % (node.nxname, node.nxbackup))
             else:
                 raise NeXusError("Can only backup a NXroot group")
-        except Exception as error:
+        except NeXusError as error:
             report_error("Backing Up File", error)
 
     def restore_file(self):
@@ -1196,20 +1196,20 @@ class MainWindow(QtWidgets.QMainWindow):
                     logging.info("Workspace '%s' backed up" % node.nxname)
             else:
                 raise NeXusError("Can only restore a NXroot group")
-        except Exception as error:
+        except NeXusError as error:
             report_error("Restoring File", error)
 
     def manage_backups(self):
         try:
             dialog = ManageBackupsDialog(parent=self)
             dialog.show()
-        except Exception as error:
+        except NeXusError as error:
             report_error("Managing Backups", error)
 
     def open_scratch_file(self):
         try:
             self.tree['w0'] = nxload(self.scratch_file, 'rw')
-        except Exception as error:
+        except NeXusError as error:
             report_error("Opening Scratch File", error)
 
     def purge_scratch_file(self):
@@ -1221,7 +1221,7 @@ class MainWindow(QtWidgets.QMainWindow):
                     for entry in self.tree['w0'].entries.copy():
                         del self.tree['w0'][entry]
                     logging.info("Workspace 'w0' purged")
-        except Exception as error:
+        except NeXusError as error:
             report_error("Purging Scratch File", error)
 
     def close_scratch_file(self):
@@ -1235,21 +1235,21 @@ class MainWindow(QtWidgets.QMainWindow):
                         del self.tree['w0'][entry]
                     logging.info("Workspace 'w0' purged")
                 del self.tree['w0']
-        except Exception as error:
+        except NeXusError as error:
             report_error("Purging Scratch File", error)
 
     def install_plugin(self):
         try:
             dialog = InstallPluginDialog(parent=self)
             dialog.show()
-        except Exception as error:
+        except NeXusError as error:
             report_error("Installing Plugin", error)
 
     def remove_plugin(self):
         try:
             dialog = RemovePluginDialog(parent=self)
             dialog.show()
-        except Exception as error:
+        except NeXusError as error:
             report_error("Removing Plugin", error)
 
     def plot_data(self):
@@ -1268,7 +1268,7 @@ class MainWindow(QtWidgets.QMainWindow):
                     dialog.show()
                 else:
                     raise NeXusError("Data not plottable")
-        except Exception as error:
+        except NeXusError as error:
             report_error("Plotting Data", error)
 
     def overplot_data(self):
@@ -1277,7 +1277,7 @@ class MainWindow(QtWidgets.QMainWindow):
             if node is not None:
                 self.treeview.status_message(node)
                 node.oplot(fmt='o')
-        except Exception as error:
+        except NeXusError as error:
             report_error("Overplotting Data", error)
 
     def plot_line(self):
@@ -1296,7 +1296,7 @@ class MainWindow(QtWidgets.QMainWindow):
                     dialog.show()
                 else:
                     raise NeXusError("Data not plottable")
-        except Exception as error:
+        except NeXusError as error:
             report_error("Plotting Data", error)
 
     def overplot_line(self):
@@ -1305,7 +1305,7 @@ class MainWindow(QtWidgets.QMainWindow):
             if node is not None:
                 self.treeview.status_message(node)
                 node.oplot(fmt='-')
-        except Exception as error:
+        except NeXusError as error:
             report_error("Overplotting Data", error)
 
     def plot_image(self):
@@ -1314,7 +1314,7 @@ class MainWindow(QtWidgets.QMainWindow):
             if node is not None:
                 self.treeview.status_message(node)
                 node.implot()
-        except Exception as error:
+        except NeXusError as error:
             report_error("Plotting RGB(A) Image Data", error)
 
     def view_data(self):
@@ -1322,7 +1322,7 @@ class MainWindow(QtWidgets.QMainWindow):
             node = self.treeview.get_node()
             self.viewdialog = ViewDialog(node, parent=self)
             self.viewdialog.show()
-        except Exception as error:
+        except NeXusError as error:
             report_error("Viewing Data", error)
 
     def add_data(self):
@@ -1335,7 +1335,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 dialog.exec_()
             else:
                 self.new_workspace()
-        except Exception as error:
+        except NeXusError as error:
             report_error("Adding Data", error)
 
     def initialize_data(self):
@@ -1349,7 +1349,7 @@ class MainWindow(QtWidgets.QMainWindow):
                     dialog.exec_()
                 else:
                     raise NeXusError("An NXfield can only be added to an NXgroup")
-        except Exception as error:
+        except NeXusError as error:
             report_error("Initializing Data", error)
 
     def rename_data(self):
@@ -1366,7 +1366,7 @@ class MainWindow(QtWidgets.QMainWindow):
                                      % (path, node.nxpath))
                     else:
                         raise NeXusError("NeXus file is locked")
-        except Exception as error:
+        except NeXusError as error:
             report_error("Renaming Data", error)
 
     def copy_data(self):
@@ -1377,7 +1377,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 logging.info("'%s' copied" % self.copied_node.nxpath)
             else:
                 raise NeXusError("Use 'Duplicate File' to copy an NXroot group")
-        except Exception as error:
+        except NeXusError as error:
             report_error("Copying Data", error)
 
     def paste_data(self):
@@ -1390,7 +1390,7 @@ class MainWindow(QtWidgets.QMainWindow):
                                  % (self.copied_node.nxpath, node.nxpath))
                 else:
                     raise NeXusError("NeXus file is locked")
-        except Exception as error:
+        except NeXusError as error:
             report_error("Pasting Data", error)
 
     def paste_link(self):
@@ -1403,7 +1403,7 @@ class MainWindow(QtWidgets.QMainWindow):
                                  % (self.copied_node.nxpath, node.nxpath))
                 else:
                     raise NeXusError("NeXus file is locked")
-        except Exception as error:
+        except NeXusError as error:
             report_error("Pasting Data as Link", error)
 
     def delete_data(self):
@@ -1419,7 +1419,7 @@ class MainWindow(QtWidgets.QMainWindow):
                                      (node.nxroot.nxname+node.nxpath))
                 else:
                     raise NeXusError("NeXus file is locked")
-        except Exception as error:
+        except NeXusError as error:
             report_error("Deleting Data", error)
 
     def show_link(self):
@@ -1440,7 +1440,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 else:
                     self.treeview.select_node(node.nxlink)
                 self.treeview.update()
-        except Exception as error:
+        except NeXusError as error:
             report_error("Showing Link", error)
 
     def set_signal(self):
@@ -1453,7 +1453,7 @@ class MainWindow(QtWidgets.QMainWindow):
                     logging.info("Signal set for '%s'" % node.nxgroup.nxpath)
                 else:
                     raise NeXusError("NeXus file is locked")
-        except Exception as error:
+        except NeXusError as error:
             report_error("Setting Signal", error)
 
     def set_default(self):
@@ -1474,7 +1474,7 @@ class MainWindow(QtWidgets.QMainWindow):
                     logging.info("Default set to '%s'" % node.nxpath)
                 else:
                     raise NeXusError("NeXus file is locked")
-        except Exception as error:
+        except NeXusError as error:
             report_error("Setting Default", error)
 
     def fit_data(self):
@@ -1502,7 +1502,7 @@ class MainWindow(QtWidgets.QMainWindow):
             else:
                 raise NeXusError(
                     "Fitting only enabled for one-dimensional data")
-        except Exception as error:
+        except NeXusError as error:
             report_error("Fitting Data", error)
 
     def input_base_classes(self):
@@ -1732,21 +1732,21 @@ class MainWindow(QtWidgets.QMainWindow):
             from .plotview import plotview
             dialog = LimitDialog(parent=self)
             dialog.exec_()
-        except Exception as error:
+        except NeXusError as error:
             report_error("Changing Plot Limits", error)
 
     def reset_axes(self):
         try:
             from .plotview import plotview
             plotview.reset_plot_limits()
-        except Exception as error:
+        except NeXusError as error:
             report_error("Resetting Plot Limits", error)
 
     def show_log(self):
         try:
             dialog = LogDialog(parent=self)
             dialog.show()
-        except Exception as error:
+        except NeXusError as error:
             report_error("Showing Log File", error)
 
     def show_projection_panel(self):
@@ -1770,7 +1770,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.editors.setVisible(True)
             self.editors.raise_()
             logging.info("Creating new script")
-        except Exception as error:
+        except NeXusError as error:
             report_error("Editing New Script", error)
 
     def open_script(self):
@@ -1785,7 +1785,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.editors.setVisible(True)
                 self.editors.raise_()
                 logging.info("NeXus script '%s' opened" % file_name)
-        except Exception as error:
+        except NeXusError as error:
             report_error("Editing Script", error)
 
     def open_script_file(self):
@@ -1796,7 +1796,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.editors.setVisible(True)
             self.editors.raise_()
             logging.info("NeXus script '%s' opened" % file_name)
-        except Exception as error:
+        except NeXusError as error:
             report_error("Opening Script", error)
 
     def add_script_action(self, file_name):
