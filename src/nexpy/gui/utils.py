@@ -1,11 +1,13 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 import importlib
+import logging
 import os
 import re
 import sys
 from collections import OrderedDict
 from datetime import datetime
+import traceback as tb
 try:
     from configparser import ConfigParser
 except ImportError:
@@ -51,6 +53,20 @@ def display_message(message, information=None):
     message_box.setText(message)
     if information:
         message_box.setInformativeText(information)
+    return message_box.exec_()
+
+
+def report_exception(error_type, error, traceback):
+    """Display and log an uncaught exception with its traceback"""
+    message = ''.join(tb.format_exception_only(error_type, error))
+    information = ''.join(tb.format_exception(error_type, error, traceback))
+    logging.error(type(error).__name__, exc_info=(error_type, error, traceback))
+    message_box = QtWidgets.QMessageBox()
+    message_box.setText(message)
+    message_box.setInformativeText(information)
+    message_box.setIcon(QtWidgets.QMessageBox.Warning)
+    layout = message_box.layout()
+    layout.setColumnMinimumWidth(layout.columnCount()-1, 500)
     return message_box.exec_()
 
 

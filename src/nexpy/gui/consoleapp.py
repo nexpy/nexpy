@@ -32,7 +32,7 @@ from .pyqt import QtCore, QtGui, QtWidgets
 
 from .mainwindow import MainWindow
 from .treeview import NXtree
-from .utils import NXConfigParser, timestamp_age
+from .utils import NXConfigParser, timestamp_age, report_exception
 
 from nexusformat.nexus import NXroot, nxclasses, nxload
 
@@ -136,7 +136,7 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
         help="Start the console window with the menu bar hidden.")
 
     plain = CBool(False, config=True,
-        help="Use a plaintext widget instead of rich text (plain can't print/save).")
+        help="Use a plaintext widget instead of rich text.")
 
     display_banner = CBool(True, config=True,
         help="Whether to display a banner upon starting the QtConsole."
@@ -206,7 +206,8 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
         value = os.getenv("NEXPY_LOG")
         if value == None:
             log_file = os.path.join(self.nexpy_dir, 'nexpy.log')
-            hdlr = logging.handlers.RotatingFileHandler(log_file, maxBytes=50000,
+            hdlr = logging.handlers.RotatingFileHandler(log_file, 
+                                                        maxBytes=50000,
                                                         backupCount=5)
             fmt = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
             fmtr = logging.Formatter(fmt, None)
@@ -237,6 +238,7 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
         if self.app is None:
             self.app = QtWidgets.QApplication([])
         self.app.setApplicationName('nexpy')
+        sys.excepthook = report_exception
         self.window = MainWindow(self, self.tree, self.settings, self.config)
         self.window.log = self.log
         global _mainwindow
@@ -292,7 +294,8 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
                 name = self.window.treeview.tree.get_name(fname)
                 self.window.treeview.tree[name] = self.window.user_ns[name] \
                                                 = nxload(fname)
-                self.window.treeview.select_node(self.window.treeview.tree[name])
+                self.window.treeview.select_node(
+                    self.window.treeview.tree[name])
                 logging.info("NeXus file '%s' opened as workspace '%s'"
                               % (fname, name))
                 self.window.user_ns[name].plot()
