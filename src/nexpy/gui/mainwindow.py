@@ -63,12 +63,7 @@ class NXRichJupyterWidget(RichJupyterWidget):
 
 class MainWindow(QtWidgets.QMainWindow):
 
-    #---------------------------------------------------------------------------
-    # 'object' interface
-    #---------------------------------------------------------------------------
-
     _magic_menu_dict = {}
-
 
     def __init__(self, app, tree, settings, config):
         """ Create a MainWindow for the application
@@ -111,7 +106,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.console = NXRichJupyterWidget(config=self.config, parent=rightpane)
         self.console.setMinimumSize(700, 100)
-        self.console.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
+        self.console.setSizePolicy(QtWidgets.QSizePolicy.Expanding, 
+                                   QtWidgets.QSizePolicy.Fixed)
         self.console._confirm_exit = True
         self.console.kernel_manager = QtInProcessKernelManager(config=self.config)
         self.console.kernel_manager.start_kernel()
@@ -149,7 +145,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.treeview = NXTreeView(self.tree, parent=self)
         self.treeview.setMinimumWidth(200)
         self.treeview.setMaximumWidth(400)
-        self.treeview.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Expanding)
+        self.treeview.setSizePolicy(QtWidgets.QSizePolicy.Preferred, 
+                                    QtWidgets.QSizePolicy.Expanding)
         self.user_ns['plotview'] = self.plotview
         self.user_ns['plotviews'] = self.plotviews = self.plotview.plotviews
         self.user_ns['treeview'] = self.treeview
@@ -1426,11 +1423,13 @@ class MainWindow(QtWidgets.QMainWindow):
         try:
             node = self.treeview.get_node()
             if isinstance(node, NXlink):
-                if node.nxfilename and node.nxfilename != node.nxroot.nxfilename:
+                if (node.nxfilename and 
+                    node.nxfilename != node.nxroot.nxfilename):
                     fname = node.nxfilename
                     if not os.path.isabs(fname):
-                        fname = os.path.join(os.path.dirname(node.nxroot.nxfilename),
-                                             node.nxfilename)
+                        fname = os.path.join(
+                            os.path.dirname(node.nxroot.nxfilename),
+                            node.nxfilename)
                     name = self.tree.node_from_file(fname)
                     if name is None:
                         name = self.tree.get_name(fname)
