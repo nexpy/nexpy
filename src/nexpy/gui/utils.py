@@ -1,5 +1,7 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
+import six
+
 import importlib
 import logging
 import os
@@ -144,29 +146,25 @@ def is_timestamp(time_string):
 
 
 class NXimporter(object):
-    def __init__(self, path):
-        self.path = path
+    def __init__(self, paths):
+        self.paths = paths
 
     def __enter__(self):
-        sys.path.insert(0, self.path)
+        for path in reversed(self.paths):
+            sys.path.insert(0, path)
 
     def __exit__(self, exc_type, exc_value, traceback):
-        sys.path.remove(self.path)
+        for path in self.paths:
+            sys.path.remove(path)
 
 
 def import_plugin(name, paths):
-    for path in paths:
-        with NXimporter(path):
-            try:
-                plugin_module = importlib.import_module(name)
-                if hasattr(plugin_module, '__file__'): #Not a namespace module
-                    return plugin_module
-            except Exception as error:
-                if str(error) == "No module named '%s'" % name:
-                    pass
-                else:
-                    raise Exception(error)
-    raise ImportError("No module named '%s'" % name)
+    with NXimporter(paths):
+        plugin_module = importlib.import_module(name)
+        if hasattr(plugin_module, '__file__'): #Not a namespace module
+            return plugin_module
+        else:
+            raise ImportError('Plugin cannot be a namespace module')
 
 
 class NXConfigParser(ConfigParser, object):
