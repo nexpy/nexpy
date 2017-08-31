@@ -148,7 +148,7 @@ File Menu
      Provides the ability to restore or delete an existing backup stored in
      ``~/.nexpy/backups``. Restoring the backup is equivalent to opening the
      existing backup file. It is necessary to save it to a new location to 
-     prevent its automatic deletion after three days.
+     prevent its automatic deletion after five days.
 
 **Open Scratch File...**
      Saved projections and fits are stored in a scratch file called ``w0.nxs``,
