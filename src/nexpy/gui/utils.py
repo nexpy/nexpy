@@ -1,9 +1,15 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
+import six
+
+import importlib
+import logging
 import os
 import re
+import sys
 from collections import OrderedDict
 from datetime import datetime
+import traceback as tb
 try:
     from configparser import ConfigParser
 except ImportError:
@@ -52,6 +58,21 @@ def display_message(message, information=None):
     return message_box.exec_()
 
 
+def report_exception(error_type, error, traceback):
+    """Display and log an uncaught exception with its traceback"""
+    message = ''.join(tb.format_exception_only(error_type, error))
+    information = ''.join(tb.format_exception(error_type, error, traceback))
+    logging.error('Exception in GUI event loop', 
+                  exc_info=(error_type, error, traceback))
+    message_box = QtWidgets.QMessageBox()
+    message_box.setText(message)
+    message_box.setInformativeText(information)
+    message_box.setIcon(QtWidgets.QMessageBox.Warning)
+    layout = message_box.layout()
+    layout.setColumnMinimumWidth(layout.columnCount()-1, 500)
+    return message_box.exec_()
+
+
 def wrap(text, length):
     """Wrap text lines based on a given length"""
     words = text.split()
@@ -79,6 +100,7 @@ def find_nearest(array, value):
 def find_nearest_index(array, value):
     return (np.abs(array-value)).argmin()
 
+
 def human_size(bytes):
     """Convert a file size to human-readable form"""
     size = np.float(bytes)
@@ -100,7 +122,14 @@ def read_timestamp(time_string):
 
 def format_timestamp(time_string):
     """Return the timestamp as a formatted string."""
-    return datetime.strptime(time_string, '%Y%m%d%H%M%S').isoformat().replace('T', ' ')
+    return datetime.strptime(time_string, 
+                             '%Y%m%d%H%M%S').isoformat().replace('T', ' ')
+
+
+def restore_timestamp(time_string):
+    """Return a timestamp from a formatted string."""
+    return datetime.strptime(time_string, 
+                             "%Y-%m-%d %H:%M:%S").strftime('%Y%m%d%H%M%S')
 
 
 def timestamp_age(time_string):
@@ -114,6 +143,28 @@ def is_timestamp(time_string):
         return isinstance(read_timestamp(time_string), datetime)
     except ValueError:
         return False
+
+
+class NXimporter(object):
+    def __init__(self, paths):
+        self.paths = paths
+
+    def __enter__(self):
+        for path in reversed(self.paths):
+            sys.path.insert(0, path)
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        for path in self.paths:
+            sys.path.remove(path)
+
+
+def import_plugin(name, paths):
+    with NXimporter(paths):
+        plugin_module = importlib.import_module(name)
+        if hasattr(plugin_module, '__file__'): #Not a namespace module
+            return plugin_module
+        else:
+            raise ImportError('Plugin cannot be a namespace module')
 
 
 class NXConfigParser(ConfigParser, object):
@@ -130,6 +181,8 @@ class NXConfigParser(ConfigParser, object):
             self.add_section('recent')
         if 'backups' not in sections:
             self.add_section('backups')
+        if 'plugins' not in sections:
+            self.add_section('plugins')
         if 'recentFiles' in self.options('recent'):
             self.fix_recent()
 
@@ -146,7 +199,8 @@ class NXConfigParser(ConfigParser, object):
 
     def fix_recent(self):
         """Perform backward compatibility fix"""
-        paths = [f.strip() for f in self.get('recent', 'recentFiles').split(',')]
+        paths = [f.strip() for f 
+                 in self.get('recent', 'recentFiles').split(',')]
         for path in paths:
             self.set("recent", path)
         self.remove_option("recent", "recentFiles")

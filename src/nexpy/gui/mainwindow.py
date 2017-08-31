@@ -23,7 +23,6 @@ from __future__ import (absolute_import, division, print_function,
 import six
 
 import glob
-import imp
 import json
 import logging
 import os
@@ -46,7 +45,8 @@ from .treeview import NXTreeView
 from .plotview import NXPlotView, NXProjectionPanels
 from .datadialogs import *
 from .scripteditor import NXScriptWindow, NXScriptEditor
-from .utils import confirm_action, report_error, display_message, timestamp
+from .utils import confirm_action, report_error, display_message 
+from .utils import import_plugin, timestamp
 
 
 class NXRichJupyterWidget(RichJupyterWidget):
@@ -63,12 +63,7 @@ class NXRichJupyterWidget(RichJupyterWidget):
 
 class MainWindow(QtWidgets.QMainWindow):
 
-    #---------------------------------------------------------------------------
-    # 'object' interface
-    #---------------------------------------------------------------------------
-
     _magic_menu_dict = {}
-
 
     def __init__(self, app, tree, settings, config):
         """ Create a MainWindow for the application
@@ -111,7 +106,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.console = NXRichJupyterWidget(config=self.config, parent=rightpane)
         self.console.setMinimumSize(700, 100)
-        self.console.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
+        self.console.setSizePolicy(QtWidgets.QSizePolicy.Expanding, 
+                                   QtWidgets.QSizePolicy.Fixed)
         self.console._confirm_exit = True
         self.console.kernel_manager = QtInProcessKernelManager(config=self.config)
         self.console.kernel_manager.start_kernel()
@@ -149,7 +145,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.treeview = NXTreeView(self.tree, parent=self)
         self.treeview.setMinimumWidth(200)
         self.treeview.setMaximumWidth(400)
-        self.treeview.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Expanding)
+        self.treeview.setSizePolicy(QtWidgets.QSizePolicy.Preferred, 
+                                    QtWidgets.QSizePolicy.Expanding)
         self.user_ns['plotview'] = self.plotview
         self.user_ns['plotviews'] = self.plotviews = self.plotview.plotviews
         self.user_ns['treeview'] = self.treeview
@@ -362,17 +359,23 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.file_menu.addSeparator()
 
-        self.install_plugin_action=QtWidgets.QAction("Install Plugin",
+        self.install_plugin_action=QtWidgets.QAction("Install Plugin...",
             self,
             triggered=self.install_plugin
             )
         self.add_menu_action(self.file_menu, self.install_plugin_action)
 
-        self.remove_plugin_action=QtWidgets.QAction("Remove Plugin",
+        self.remove_plugin_action=QtWidgets.QAction("Remove Plugin...",
             self,
             triggered=self.remove_plugin
             )
         self.add_menu_action(self.file_menu, self.remove_plugin_action)
+
+        self.restore_plugin_action=QtWidgets.QAction("Restore Plugin...",
+            self,
+            triggered=self.restore_plugin
+            )
+        self.add_menu_action(self.file_menu, self.restore_plugin_action)
 
         self.file_menu.addSeparator()
 
@@ -578,7 +581,7 @@ class MainWindow(QtWidgets.QMainWindow):
         for name in os.listdir(public_path):
             if os.path.isdir(os.path.join(public_path, name)):
                 self.plugin_names.add(name)
-        plugin_paths = [private_path, public_path] # Private path overrides public
+        plugin_paths = [private_path, public_path]
         for plugin_name in set(sorted(self.plugin_names)):
             try:
                 self.add_plugin_menu(plugin_name, plugin_paths)
@@ -588,20 +591,12 @@ class MainWindow(QtWidgets.QMainWindow):
                 % (plugin_name, 40*' ', error))
 
     def add_plugin_menu(self, plugin_name, plugin_paths):
-        fp = None
-        try:
-            fp, pathname, description = imp.find_module(plugin_name, plugin_paths)
-            plugin_module = imp.load_module(plugin_name, fp, pathname, description)
-            name, actions = plugin_module.plugin_menu()
-            plugin_menu = self.menu_bar.addMenu(name)
-            for action in actions:
-                self.add_menu_action(plugin_menu, QtWidgets.QAction(
-                    action[0], self, triggered=action[1]))
-        except Exception as error:
-            raise Exception(error)
-        finally:
-            if fp:
-                fp.close()
+        plugin_module = import_plugin(plugin_name, plugin_paths)
+        name, actions = plugin_module.plugin_menu()
+        plugin_menu = self.menu_bar.addMenu(name)
+        for action in actions:
+            self.add_menu_action(plugin_menu, QtWidgets.QAction(
+                action[0], self, triggered=action[1]))
 
     def init_view_menu(self):
         self.view_menu = self.menu_bar.addMenu("&View")
@@ -916,20 +911,17 @@ class MainWindow(QtWidgets.QMainWindow):
         self.importer = {}
         import_paths = [private_path, public_path]
         for import_name in sorted(self.import_names):
-            fp, pathname, description = imp.find_module(import_name, import_paths)
             try:
-                import_module = imp.load_module(import_name, fp, pathname, description)
-                import_action = QtWidgets.QAction("Import "+import_module.filetype, self,
-                                              triggered=self.show_import_dialog)
+                import_module = import_plugin(import_name, import_paths)
+                import_action = QtWidgets.QAction(
+                    "Import "+import_module.filetype, self,
+                    triggered=self.show_import_dialog)
                 self.add_menu_action(self.import_menu, import_action, self)
                 self.importer[import_action] = import_module
             except Exception as error:
                 logging.info(
                 'The "%s" importer could not be added to the Import menu\n%s%s'
                 % (import_name, 40*' ', error))
-            finally:
-                if fp:
-                    fp.close()
 
     def new_workspace(self):
         try:
@@ -956,7 +948,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 logging.info("NeXus file '%s' opened as workspace '%s'"
                              % (fname, name))
                 self.update_recent_files(fname)
-        except (NeXusError, IOError) as error:
+        except NeXusError as error:
             report_error("Opening File", error)
 
     def open_editable_file(self):
@@ -971,7 +963,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 logging.info("NeXus file '%s' opened (unlocked) as workspace '%s'"
                              % (fname, name))
                 self.update_recent_files(fname)
-        except (NeXusError, IOError) as error:
+        except NeXusError as error:
             report_error("Opening File (Read/Write)", error)
 
     def open_recent_file(self):
@@ -984,7 +976,7 @@ class MainWindow(QtWidgets.QMainWindow):
             logging.info("NeXus file '%s' opened as workspace '%s'"
                          % (fname, name))
             self.update_recent_files(fname)
-        except (NeXusError, IOError) as error:
+        except NeXusError as error:
             report_error("Opening Recent File", error)
 
     def open_remote_file(self):
@@ -1263,6 +1255,13 @@ class MainWindow(QtWidgets.QMainWindow):
         except NeXusError as error:
             report_error("Removing Plugin", error)
 
+    def restore_plugin(self):
+        try:
+            dialog = RestorePluginDialog(parent=self)
+            dialog.show()
+        except NeXusError as error:
+            report_error("Restoring Plugin", error)
+
     def plot_data(self):
         try:
             node = self.treeview.get_node()
@@ -1437,11 +1436,13 @@ class MainWindow(QtWidgets.QMainWindow):
         try:
             node = self.treeview.get_node()
             if isinstance(node, NXlink):
-                if node.nxfilename and node.nxfilename != node.nxroot.nxfilename:
+                if (node.nxfilename and 
+                    node.nxfilename != node.nxroot.nxfilename):
                     fname = node.nxfilename
                     if not os.path.isabs(fname):
-                        fname = os.path.join(os.path.dirname(node.nxroot.nxfilename),
-                                             node.nxfilename)
+                        fname = os.path.join(
+                            os.path.dirname(node.nxroot.nxfilename),
+                            node.nxfilename)
                     name = self.tree.node_from_file(fname)
                     if name is None:
                         name = self.tree.get_name(fname)
@@ -1511,7 +1512,8 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.fitdialog.show()
                 logging.info("Fitting invoked on'%s'" % node.nxpath)
             else:
-                raise NeXusError("Fitting only enabled for one-dimensional data")
+                raise NeXusError(
+                    "Fitting only enabled for one-dimensional data")
         except NeXusError as error:
             report_error("Fitting Data", error)
 
@@ -1524,7 +1526,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.nxclasses = {}
         for nxdl_file in nxdl_files:
             class_name = nxdl_file.split('.')[0]
-            xml_root = ET.parse(os.path.join(base_class_path, nxdl_file)).getroot()
+            xml_root = ET.parse(os.path.join(base_class_path, 
+                                             nxdl_file)).getroot()
             class_doc = ''
             class_groups = {}
             class_fields = {}

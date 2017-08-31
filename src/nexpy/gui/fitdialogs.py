@@ -11,7 +11,7 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-import imp
+import importlib
 import logging
 import os
 import re
@@ -176,7 +176,8 @@ class FitDialog(BaseDialog):
                 name, ext = os.path.splitext(file_)
                 if name != '__init__' and ext.startswith('.py'):
                     filenames.add(name)
-        functions_path = pkg_resources.resource_filename('nexpy.api.frills', 'functions')
+        functions_path = pkg_resources.resource_filename('nexpy.api.frills', 
+                                                         'functions')
         sys.path.append(functions_path)
         for file_ in os.listdir(functions_path):
             name, ext = os.path.splitext(file_)
@@ -184,14 +185,14 @@ class FitDialog(BaseDialog):
                 filenames.add(name)
         self.function_module = {}
         for name in sorted(filenames):
-            fp, pathname, description = imp.find_module(name)
             try:
-                function_module = imp.load_module(name, fp, pathname, description)
-            finally:
-                if fp:
-                    fp.close()
-            if hasattr(function_module, 'function_name'):
-                self.function_module[function_module.function_name] = function_module
+                function_module = importlib.import_module(name)
+                if hasattr(function_module, 'function_name'):
+                    self.function_module[function_module.function_name] = \
+                        function_module
+            except ImportError:
+                pass
+                
 
     def initialize_parameter_grid(self):
         grid_layout = QtWidgets.QVBoxLayout()

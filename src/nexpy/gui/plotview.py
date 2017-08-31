@@ -3290,8 +3290,9 @@ class NXProjectionPanel(QtWidgets.QWidget):
     def save_projection(self):
         try:
             axes, limits = self.get_projection()
-            keep_data(self.plotview.data.project(axes, limits, summed=self.summed))
-        except NeXusError as error:
+            keep_data(self.plotview.data.project(axes, limits,
+                                                 summed=self.summed))
+        except Exception as error:
             report_error("Saving Projection", error)
 
     def plot_projection(self):
@@ -3317,7 +3318,7 @@ class NXProjectionPanel(QtWidgets.QWidget):
             self.plotview.make_active()
             plotviews[projection.label].raise_()
             self.panels.update()
-        except NeXusError as error:
+        except Exception as error:
             report_error("Plotting Projection", error)
 
     def mask_data(self):
@@ -3325,7 +3326,7 @@ class NXProjectionPanel(QtWidgets.QWidget):
             limits = tuple(slice(x,y) for x,y in self.get_limits())
             self.plotview.data.nxsignal[limits] = np.ma.masked
             self.plotview.replot_data()
-        except NeXusError as error:
+        except Exception as error:
             report_error("Masking Data", error)
 
     def unmask_data(self):
@@ -3333,7 +3334,7 @@ class NXProjectionPanel(QtWidgets.QWidget):
             limits = tuple(slice(x,y) for x,y in self.get_limits())
             self.plotview.data.nxsignal.mask[limits] = np.ma.nomask
             self.plotview.replot_data()
-        except NeXusError as error:
+        except Exception as error:
             report_error("Masking Data", error)
 
     def spinbox(self):
