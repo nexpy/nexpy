@@ -359,17 +359,23 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.file_menu.addSeparator()
 
-        self.install_plugin_action=QtWidgets.QAction("Install Plugin",
+        self.install_plugin_action=QtWidgets.QAction("Install Plugin...",
             self,
             triggered=self.install_plugin
             )
         self.add_menu_action(self.file_menu, self.install_plugin_action)
 
-        self.remove_plugin_action=QtWidgets.QAction("Remove Plugin",
+        self.remove_plugin_action=QtWidgets.QAction("Remove Plugin...",
             self,
             triggered=self.remove_plugin
             )
         self.add_menu_action(self.file_menu, self.remove_plugin_action)
+
+        self.restore_plugin_action=QtWidgets.QAction("Restore Plugin...",
+            self,
+            triggered=self.restore_plugin
+            )
+        self.add_menu_action(self.file_menu, self.restore_plugin_action)
 
         self.file_menu.addSeparator()
 
@@ -1248,6 +1254,13 @@ class MainWindow(QtWidgets.QMainWindow):
             dialog.show()
         except NeXusError as error:
             report_error("Removing Plugin", error)
+
+    def restore_plugin(self):
+        try:
+            dialog = RestorePluginDialog(parent=self)
+            dialog.show()
+        except NeXusError as error:
+            report_error("Restoring Plugin", error)
 
     def plot_data(self):
         try:
