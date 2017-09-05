@@ -11,7 +11,7 @@
 #-----------------------------------------------------------------------------
 
 pkg_requirements = [
-    'nexusformat>=0.4.7',
+    'nexusformat>=0.4.9',
     'numpy>=1.6.0',
     'scipy',
     'h5py',
@@ -20,5 +20,5 @@ pkg_requirements = [
     'matplotlib>=1.4.0',
 ]
 extra_requirements = {
-    'spec': ['spec2nexus>=2016.216.0',],
+    'spec': ['spec2nexus>=2017.901.4',],
 }
