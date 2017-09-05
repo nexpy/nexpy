@@ -969,6 +969,8 @@ class MainWindow(QtWidgets.QMainWindow):
     def open_recent_file(self):
         try:
             fname = self.recent_file_actions[self.sender()][1]
+            if not os.path.exists(fname):
+                raise NeXusError("'%s' does not exist" % fname)
             name = self.tree.get_name(fname)
             self.tree[name] = nxload(fname)
             self.treeview.select_node(self.tree[name])
