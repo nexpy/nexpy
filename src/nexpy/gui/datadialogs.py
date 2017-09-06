@@ -29,7 +29,7 @@ try:
 except ImportError:
     from ordereddict import OrderedDict
 
-from .utils import confirm_action, report_error, import_plugin
+from .utils import confirm_action, report_error, import_plugin, convertHTML
 from .utils import natural_sort, wrap, human_size
 from .utils import timestamp, format_timestamp, restore_timestamp
 
@@ -1693,18 +1693,16 @@ class LogDialog(BaseDialog):
         super(LogDialog, self).__init__(parent)
  
         self.log_directory = self.mainwindow.nexpy_dir
-
-        self.ansi_re = re.compile('\x1b' + r'\[([\dA-Fa-f;]*?)m')
  
         layout = QtWidgets.QVBoxLayout()
-        self.text_box = QtWidgets.QPlainTextEdit()
+        self.text_box = QtWidgets.QTextEdit()
         self.text_box.setMinimumWidth(700)
         self.text_box.setMinimumHeight(600)
         layout.addWidget(self.text_box)
         footer_layout = QtWidgets.QHBoxLayout()
         self.file_combo = QtWidgets.QComboBox()
         for file_name in self.get_filesindirectory('nexpy', extension='.log*',
-                                                   directory=self.log_directory):
+                                                directory=self.log_directory):
             self.file_combo.addItem(file_name)
         self.file_combo.setCurrentIndex(self.file_combo.findText('nexpy.log'))
         self.file_combo.currentIndexChanged.connect(self.show_log)
@@ -1723,15 +1721,8 @@ class LogDialog(BaseDialog):
         return os.path.join(self.log_directory, self.file_combo.currentText())
 
     def show_log(self):
-        f = open(self.file_name, 'r')
-        try:
-            from ansi2html import Ansi2HTMLConverter
-            conv = Ansi2HTMLConverter(dark_bg=False, inline=True)
-            text = conv.convert(''.join(f.readlines()))
-            self.text_box.appendHtml(text)
-        except ImportError:
-            self.text_box.setPlainText(self.ansi_re.sub('', f.read()))
-        f.close()
+        with open(self.file_name, 'r') as f:
+            self.text_box.setText(convertHTML(f.read()))
         self.text_box.verticalScrollBar().setValue(
             self.text_box.verticalScrollBar().maximum())
         self.setWindowTitle("Log File: %s" % self.file_name)

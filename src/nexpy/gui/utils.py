@@ -7,8 +7,10 @@ import logging
 import os
 import re
 import sys
+
 from collections import OrderedDict
 from datetime import datetime
+from IPython.core.ultratb import ColorTB
 import traceback as tb
 try:
     from configparser import ConfigParser
@@ -16,6 +18,8 @@ except ImportError:
     from ConfigParser import ConfigParser
 import numpy as np
 from .pyqt import QtWidgets
+
+ansi_re = re.compile('\x1b' + r'\[([\dA-Fa-f;]*?)m')
 
 
 def report_error(context, error):
@@ -61,15 +65,14 @@ def display_message(message, information=None):
 def report_exception(error_type, error, traceback):
     """Display and log an uncaught exception with its traceback"""
     message = ''.join(tb.format_exception_only(error_type, error))
-    information = ''.join(tb.format_exception(error_type, error, traceback))
-    logging.error('Exception in GUI event loop', 
-                  exc_info=(error_type, error, traceback))
+    information = ColorTB(mode="Verbose").text(error_type, error, traceback)
+    logging.error('Exception in GUI event loop\n'+information+'\n')
     message_box = QtWidgets.QMessageBox()
     message_box.setText(message)
-    message_box.setInformativeText(information)
+    message_box.setInformativeText(convertHTML(information))
     message_box.setIcon(QtWidgets.QMessageBox.Warning)
     layout = message_box.layout()
-    layout.setColumnMinimumWidth(layout.columnCount()-1, 500)
+    layout.setColumnMinimumWidth(layout.columnCount()-1, 600)
     return message_box.exec_()
 
 
@@ -143,6 +146,15 @@ def is_timestamp(time_string):
         return isinstance(read_timestamp(time_string), datetime)
     except ValueError:
         return False
+
+
+def convertHTML(text):
+    try:
+        from ansi2html import Ansi2HTMLConverter
+        conv = Ansi2HTMLConverter(dark_bg=False, inline=True)
+        return conv.convert(text).replace('AAAAAA', 'FFFFFF')
+    except ImportError:
+        return ansi_re.sub('', text)
 
 
 class NXimporter(object):
