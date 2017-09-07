@@ -208,7 +208,7 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
             hdlr = logging.handlers.RotatingFileHandler(log_file, 
                                                         maxBytes=50000,
                                                         backupCount=5)
-            fmt = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+            fmt = '%(asctime)s - %(levelname)s - %(message)s'
             fmtr = logging.Formatter(fmt, None)
             logging.root.setLevel(logging.INFO)
         else:
