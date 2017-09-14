@@ -65,7 +65,7 @@ def display_message(message, information=None):
 def report_exception(error_type, error, traceback):
     """Display and log an uncaught exception with its traceback"""
     message = ''.join(tb.format_exception_only(error_type, error))
-    information = ColorTB(mode="Verbose").text(error_type, error, traceback)
+    information = ColorTB(mode="Context").text(error_type, error, traceback)
     logging.error('Exception in GUI event loop\n'+information+'\n')
     message_box = QtWidgets.QMessageBox()
     message_box.setText(message)
