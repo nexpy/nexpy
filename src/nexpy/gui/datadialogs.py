@@ -1696,7 +1696,7 @@ class LogDialog(BaseDialog):
  
         layout = QtWidgets.QVBoxLayout()
         self.text_box = QtWidgets.QTextEdit()
-        self.text_box.setMinimumWidth(700)
+        self.text_box.setMinimumWidth(800)
         self.text_box.setMinimumHeight(600)
         layout.addWidget(self.text_box)
         footer_layout = QtWidgets.QHBoxLayout()
