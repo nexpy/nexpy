@@ -588,7 +588,7 @@ class MainWindow(QtWidgets.QMainWindow):
             except Exception as error:
                 logging.info(
                 'The "%s" plugin could not be added to the main menu\n%s%s'
-                % (plugin_name, 40*' ', error))
+                % (plugin_name, 33*' ', error))
 
     def add_plugin_menu(self, plugin_name, plugin_paths):
         plugin_module = import_plugin(plugin_name, plugin_paths)
@@ -921,7 +921,7 @@ class MainWindow(QtWidgets.QMainWindow):
             except Exception as error:
                 logging.info(
                 'The "%s" importer could not be added to the Import menu\n%s%s'
-                % (import_name, 40*' ', error))
+                % (import_name, 33*' ', error))
 
     def new_workspace(self):
         try:
