@@ -199,10 +199,11 @@ class NXTreeItem(QtGui.QStandardItem):
         if role == QtCore.Qt.DisplayRole or role == QtCore.Qt.EditRole:
             return self.node.nxname
         elif role == QtCore.Qt.ToolTipRole:
-            if self.node.tree.count('\n') > 50:
-                return '\n'.join(self.node.short_tree.split('\n')[0:50])+'\n...'
+            tree = self.node.short_tree
+            if tree.count('\n') > 50:
+                return '\n'.join(tree.split('\n')[0:50])+'\n...'
             else:
-                return self.node.tree
+                return tree
         elif role == QtCore.Qt.DecorationRole:
             if isinstance(self.node, NXroot) and self.node.nxfilemode == 'r':
                 return self._locked
