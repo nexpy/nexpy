@@ -18,6 +18,7 @@ pkg_requirements = [
     'jupyter',
     'ipython>=4.0.0',
     'matplotlib>=1.4.0',
+    'ansi2html',
 ]
 extra_requirements = {
     'spec': ['spec2nexus>=2017.901.4',],
