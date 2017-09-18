@@ -733,7 +733,7 @@ class PlotDialog(BaseDialog):
             self.grid.addWidget(self.axis_boxes[axis], row, 1)
         while row < self.grid.rowCount() - 1:
             self.remove_axis(row)
-            row += 1   
+            row += 1 
 
     def axis_box(self, axis):
         box = QtWidgets.QComboBox()
@@ -744,6 +744,7 @@ class PlotDialog(BaseDialog):
         if box.count() > 0:
             box.insertSeparator(0)
         box.insertItem(0,'NXfield index')
+        box.setCurrentIndex(0)
         return box
 
     def remove_axis(self, axis):
