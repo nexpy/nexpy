@@ -226,7 +226,7 @@ class BaseDialog(QtWidgets.QDialog):
         """
         dirname = self.get_default_directory(self.filename.text())
         filename = getOpenFileName(self, 'Open File', dirname)
-        if os.path.exists(filename):    # avoids problems if <Cancel> was selected
+        if os.path.exists(filename): # avoids problems if <Cancel> was selected
             dirname = os.path.dirname(filename)
             self.filename.setText(str(filename))
             self.set_default_directory(dirname)
@@ -465,8 +465,8 @@ class GridParameters(OrderedDict):
         is equivalent to:
         p[name] = Parameter(name=name, value=XX, ....
         """
-        self.__setitem__(name, GridParameter(value=value, name=name, label=label,
-                                             vary=vary, slot=slot))
+        self.__setitem__(name, GridParameter(value=value, name=name, 
+                                             label=label, vary=vary, slot=slot))
 
     def grid(self, header=True, title=None, width=None):
         grid = QtWidgets.QGridLayout()
@@ -574,7 +574,8 @@ class GridParameter(object):
                         self.field = value
                         self.value = self.field.nxdata
                     else:
-                        raise NeXusError('Cannot set a grid parameter to an array')
+                        raise NeXusError(
+                            "Cannot set a grid parameter to an array")
                 else:
                     self.field = None
                     self.value = value
@@ -687,7 +688,8 @@ class PlotDialog(BaseDialog):
                 self.signal_combo.addItem(node.nxname)
         if self.signal_combo.count() == 0:
             raise NeXusError("No plottable field in group")
-        self.signal_combo.setSizeAdjustPolicy(QtWidgets.QComboBox.AdjustToContents)
+        self.signal_combo.setSizeAdjustPolicy(
+            QtWidgets.QComboBox.AdjustToContents)
         if signal_name:
             idx = self.signal_combo.findText(signal_name)
             if idx >= 0:
@@ -872,7 +874,8 @@ class LimitDialog(BaseDialog):
             if self.plotview.ndim > 1:
                 vmin, vmax = self.vmin_box.value(), self.vmax_box.value()
                 self.plotview.autoscale = False
-                self.plotview.set_plot_limits(xmin, xmax, ymin, ymax, vmin, vmax)
+                self.plotview.set_plot_limits(xmin, xmax, ymin, ymax, 
+                                              vmin, vmax)
             else:
                 self.plotview.set_plot_limits(xmin, xmax, ymin, ymax)
             super(LimitDialog, self).accept()
@@ -1007,7 +1010,8 @@ class ViewDialog(BaseDialog):
         self.table_view = QtWidgets.QTableView()
         self.table_model = ViewTableModel(self, data)
         self.table_view.setModel(self.table_model)
-        self.table_view.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        self.table_view.setHorizontalScrollBarPolicy(
+            QtCore.Qt.ScrollBarAlwaysOff)
         self.table_view.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.table_view.setSortingEnabled(False)
         self.set_size()
@@ -1079,9 +1083,11 @@ class ViewTableModel(QtCore.QAbstractTableModel):
         return None
 
     def headerData(self, position, orientation, role):
-        if orientation == QtCore.Qt.Horizontal and role == QtCore.Qt.DisplayRole:
+        if (orientation == QtCore.Qt.Horizontal and 
+            role == QtCore.Qt.DisplayRole):
             return six.text_type(self.origin[1] + range(10)[position])
-        elif orientation == QtCore.Qt.Vertical and role == QtCore.Qt.DisplayRole:
+        elif (orientation == QtCore.Qt.Vertical and 
+              role == QtCore.Qt.DisplayRole):
             return six.text_type(self.origin[0] + range(10)[position])
         return None
 
@@ -1090,7 +1096,8 @@ class ViewTableModel(QtCore.QAbstractTableModel):
         self._data = self.get_data(data)
         self.origin = origin
         self.layoutChanged.emit()
-        self.headerDataChanged.emit(QtCore.Qt.Horizontal, 0, min(9, self.columns-1))
+        self.headerDataChanged.emit(QtCore.Qt.Horizontal, 0, 
+                                    min(9, self.columns-1))
         self.headerDataChanged.emit(QtCore.Qt.Vertical, 0, min(9, self.rows-1))
 
   
@@ -1103,7 +1110,7 @@ class RemoteDialog(BaseDialog):
             import h5pyd
             from nexusformat.nexus import nxgetserver, nxgetdomain
         except ImportError:
-            raise NeXusError('Please install h5pyd for remote data access')
+            raise NeXusError("Please install h5pyd for remote data access")
 
         super(RemoteDialog, self).__init__()
  
@@ -1122,7 +1129,8 @@ class RemoteDialog(BaseDialog):
             filepath = self.parameters['filepath'].value
             root = nxloadremote(filepath, server=server, domain=domain)
             name = self.mainwindow.treeview.tree.get_name(filepath)               
-            self.mainwindow.treeview.tree[name] = self.mainwindow.user_ns[name] = root
+            self.mainwindow.treeview.tree[name] = \
+                self.mainwindow.user_ns[name] = root
             logging.info(
                 "Opening remote NeXus file '%s' on '%s' as workspace '%s'"
                 % (root.nxfilename, root._file, name))
@@ -1195,7 +1203,7 @@ class AddDialog(BaseDialog):
             self.combo_box = QtWidgets.QComboBox()
             self.combo_box.currentIndexChanged.connect(self.select_combo)
             standard_groups = sorted(list(set([g for g in 
-                              self.mainwindow.nxclasses[self.node.nxclass][2]])))
+                self.mainwindow.nxclasses[self.node.nxclass][2]])))
             for name in standard_groups:
                 self.combo_box.addItem(name)
                 self.combo_box.setItemData(self.combo_box.count()-1, 
@@ -1209,7 +1217,8 @@ class AddDialog(BaseDialog):
                 self.combo_box.setItemData(self.combo_box.count()-1, 
                     wrap(self.mainwindow.nxclasses[name][0], 40),
                     QtCore.Qt.ToolTipRole)
-            self.combo_box.setSizeAdjustPolicy(QtWidgets.QComboBox.AdjustToContents)
+            self.combo_box.setSizeAdjustPolicy(
+                QtWidgets.QComboBox.AdjustToContents)
             grid.addWidget(combo_label, 0, 0)
             grid.addWidget(self.combo_box, 0, 1)
             grid.addWidget(name_label, 1, 0)
@@ -1223,10 +1232,13 @@ class AddDialog(BaseDialog):
                             self.mainwindow.nxclasses[self.node.nxclass][1]])))
             for name in fields:
                 self.combo_box.addItem(name)
-                self.combo_box.setItemData(self.combo_box.count()-1, 
-                    wrap(self.mainwindow.nxclasses[self.node.nxclass][1][name][2], 40),
-                    QtCore.Qt.ToolTipRole)
-            self.combo_box.setSizeAdjustPolicy(QtWidgets.QComboBox.AdjustToContents)
+                self.combo_box.setItemData(
+                  self.combo_box.count()-1,
+                  wrap(self.mainwindow.nxclasses[self.node.nxclass][1][name][2], 
+                       40),
+                  QtCore.Qt.ToolTipRole)
+            self.combo_box.setSizeAdjustPolicy(
+                QtWidgets.QComboBox.AdjustToContents)
             grid.addWidget(name_label, 0, 0)
             grid.addWidget(self.name_box, 0, 1)
             grid.addWidget(self.combo_box, 0, 2)
@@ -1253,7 +1265,8 @@ class AddDialog(BaseDialog):
             self.type_box.insertSeparator(0)
             self.type_box.insertItem(0, 'auto')
             self.type_box.setCurrentIndex(0)
-            self.type_box.setSizeAdjustPolicy(QtWidgets.QComboBox.AdjustToContents)
+            self.type_box.setSizeAdjustPolicy(
+                QtWidgets.QComboBox.AdjustToContents)
             grid.addWidget(type_label, 3, 0)
             grid.addWidget(self.type_box, 3, 1)
         else:
@@ -1275,7 +1288,8 @@ class AddDialog(BaseDialog):
             self.type_box.insertSeparator(0)
             self.type_box.insertItem(0, 'auto')
             self.type_box.setCurrentIndex(0)
-            self.type_box.setSizeAdjustPolicy(QtWidgets.QComboBox.AdjustToContents)
+            self.type_box.setSizeAdjustPolicy(
+                QtWidgets.QComboBox.AdjustToContents)
             grid.addWidget(type_label, 2, 0)
             grid.addWidget(self.type_box, 2, 1)
         grid.setColumnMinimumWidth(1, 200)
@@ -1376,8 +1390,10 @@ class InitializeDialog(BaseDialog):
                         self.mainwindow.nxclasses[self.node.nxclass][1]])))
         for name in fields:
             self.combo_box.addItem(name)
-            self.combo_box.setItemData(self.combo_box.count()-1, 
-                wrap(self.mainwindow.nxclasses[self.node.nxclass][1][name][2], 40),
+            self.combo_box.setItemData(
+                self.combo_box.count()-1, 
+                wrap(self.mainwindow.nxclasses[self.node.nxclass][1][name][2], 
+                     40),
                 QtCore.Qt.ToolTipRole)
         self.combo_box.setSizeAdjustPolicy(QtWidgets.QComboBox.AdjustToContents)
         grid.addWidget(name_label, 0, 0)
@@ -1431,9 +1447,9 @@ class InitializeDialog(BaseDialog):
                 if isinstance(shape, numbers.Integral):
                     return (shape,)
                 else:
-                    raise NeXusError('Invalid shape')
+                    raise NeXusError("Invalid shape")
         except ValueError:
-            raise NeXusError('Invalid shape')
+            raise NeXusError("Invalid shape")
 
     def accept(self):
         name = self.get_name()
@@ -1498,8 +1514,10 @@ class RenameDialog(BaseDialog):
                     QtCore.Qt.ToolTipRole)
             self.combo_box.insertSeparator(self.combo_box.count())
             self.combo_box.addItem('NXgroup')
-            self.combo_box.setCurrentIndex(self.combo_box.findText(self.node.nxclass))
-            self.combo_box.setSizeAdjustPolicy(QtWidgets.QComboBox.AdjustToContents)
+            self.combo_box.setCurrentIndex(
+                self.combo_box.findText(self.node.nxclass))
+            self.combo_box.setSizeAdjustPolicy(
+                QtWidgets.QComboBox.AdjustToContents)
             grid.addWidget(combo_label, 1, 0)
             grid.addWidget(self.combo_box, 1, 1)
         else:
@@ -1514,14 +1532,18 @@ class RenameDialog(BaseDialog):
                                 self.mainwindow.nxclasses[parent_class][1]])))
                 for name in fields:
                     self.combo_box.addItem(name)
-                    self.combo_box.setItemData(self.combo_box.count()-1, 
-                        wrap(self.mainwindow.nxclasses[parent_class][1][name][2], 40),
-                        QtCore.Qt.ToolTipRole)
+                    self.combo_box.setItemData(
+                       self.combo_box.count()-1, 
+                       wrap(self.mainwindow.nxclasses[parent_class][1][name][2], 
+                            40),
+                       QtCore.Qt.ToolTipRole)
                 if self.node.nxname in fields:
-                    self.combo_box.setCurrentIndex(self.combo_box.findText(self.node.nxname))
+                    self.combo_box.setCurrentIndex(
+                        self.combo_box.findText(self.node.nxname))
                 else:
                     self.name_box.setText(self.node.nxname)
-                self.combo_box.setSizeAdjustPolicy(QtWidgets.QComboBox.AdjustToContents)
+                self.combo_box.setSizeAdjustPolicy(
+                    QtWidgets.QComboBox.AdjustToContents)
                 grid.addWidget(self.combo_box, 0, 2)
         grid.setColumnMinimumWidth(1, 200)
         return grid
@@ -1569,7 +1591,8 @@ class SignalDialog(BaseDialog):
                 self.signal_combo.addItem(node.nxname)
         if self.signal_combo.count() == 0:
             raise NeXusError("No plottable field in group")
-        self.signal_combo.setSizeAdjustPolicy(QtWidgets.QComboBox.AdjustToContents)
+        self.signal_combo.setSizeAdjustPolicy(
+            QtWidgets.QComboBox.AdjustToContents)
         if signal_name:
             idx =  self.signal_combo.findText(signal_name)
             if idx >= 0:
@@ -1608,7 +1631,8 @@ class SignalDialog(BaseDialog):
             self.axis_boxes[axis] = self.axis_box(axis)
             if self.axis_boxes[axis] is not None:
                 row += 1
-                self.grid.addWidget(QtWidgets.QLabel("Axis %s: " % axis), row, 0)
+                self.grid.addWidget(QtWidgets.QLabel("Axis %s: " % axis), 
+                                    row, 0)
                 self.grid.addWidget(self.axis_boxes[axis], row, 1)
         while row < self.grid.rowCount() - 1:
             self.remove_axis(row)
@@ -1870,7 +1894,7 @@ class InstallPluginDialog(BaseDialog):
         plugin_path = os.path.dirname(plugin_directory)
         plugin_menu_name = self.get_menu_name(plugin_name, plugin_path)
         if plugin_menu_name is None:
-            raise NeXusError('This directory does not contain a valid plugin')
+            raise NeXusError("This directory does not contain a valid plugin")
         if self.radiobutton['local'].isChecked():
             plugin_path = self.local_directory
         else:
@@ -1952,7 +1976,7 @@ class RemovePluginDialog(BaseDialog):
         plugin_name = os.path.basename(os.path.normpath(plugin_directory))
         plugin_menu_name = self.get_menu_name(plugin_name, plugin_directory)
         if plugin_menu_name is None:
-            raise NeXusError('This directory does not contain a valid plugin')
+            raise NeXusError("This directory does not contain a valid plugin")
         if os.path.exists(plugin_directory):
             ret = self.confirm_action("Remove '%s'?" % plugin_directory, 
                                       "This cannot be reversed")
@@ -2046,7 +2070,7 @@ class RestorePluginDialog(BaseDialog):
         plugin_path = os.path.dirname(plugin_directory)
         plugin_menu_name = self.get_menu_name(plugin_name, plugin_path)
         if plugin_menu_name is None:
-            raise NeXusError('This directory does not contain a valid plugin')
+            raise NeXusError("This directory does not contain a valid plugin")
         if self.radiobutton['local'].isChecked():
             plugin_path = self.local_directory
         else:
