@@ -794,7 +794,6 @@ class PlotDialog(BaseDialog):
             super(PlotDialog, self).accept()
         except NeXusError as error:
             report_error("Plotting data", error)
-            super(PlotDialog, self).reject()
 
     
 class LimitDialog(BaseDialog):
