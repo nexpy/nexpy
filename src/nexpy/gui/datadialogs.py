@@ -777,14 +777,14 @@ class PlotDialog(BaseDialog):
             return NXfield(range(self.signal.shape[axis]), 
                            name='index_%s' % axis)
         else:
-            axis = self.group[axis_name]
-            if isinstance(axis, NXlink):
-                return axis.nxlink
-            else:
-                return axis
+            return self.group[axis_name]
 
     def get_axes(self):
-        return [self.get_axis(axis) for axis in range(self.ndim)]
+        axes = [self.get_axis(axis) for axis in range(self.ndim)]
+        names = [axis.nxname for axis in axes]
+        if len(names) != len(set(names)):
+            raise NeXusError("Duplicate axes selected")
+        return axes
 
     def accept(self):
         try:
