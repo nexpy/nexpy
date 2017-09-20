@@ -256,8 +256,9 @@ class Parser(object):
             self.parser_1D_columns(nxdata, scan)
 
         # these locations suggested to NIAC, easier to parse than attached to dataset!
-        nxdata.attrs['signal'] = nxdata.nxsignal.nxname         
-        nxdata.attrs['axes'] = ':'.join([obj.nxname for obj in nxdata.nxaxes])
+        # but these are already set by the `nxsignal` and `nxaxes` assignments
+        #nxdata.attrs['signal'] = nxdata.nxsignal.nxname         
+        #nxdata.attrs['axes'] = ':'.join([obj.nxname for obj in nxdata.nxaxes])
         return nxdata
     
     def parser_1D_columns(self, nxdata, scan):
