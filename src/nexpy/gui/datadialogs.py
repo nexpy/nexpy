@@ -1744,6 +1744,9 @@ class LogDialog(BaseDialog):
     def file_name(self):
         return os.path.join(self.log_directory, self.file_combo.currentText())
 
+    def mouseReleaseEvent(self, event):
+        self.show_log()
+
     def show_log(self):
         with open(self.file_name, 'r') as f:
             self.text_box.setText(convertHTML(f.read()))
