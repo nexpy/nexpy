@@ -900,16 +900,18 @@ class ViewDialog(BaseDialog):
         self.properties.add('class', node.__class__.__name__, 'Class')
         self.properties.add('name', node.nxname, 'Name')
         self.properties.add('path', node.nxpath, 'Path')
+        if node.nxroot.nxfilename:
+            self.properties.add('file', node.nxroot.nxfilename, 'File')
         if isinstance(node, NXlink):
             self.properties.add('target', node._target, 'Target Path')
             if node._filename:
                 self.properties.add('linkfile', node._filename, 'Target File')
-                if node.nxroot != node and node.nxroot.nxfilename:
-                    self.properties.add('filename', node.nxroot.nxfilename, 
-                                        'Filename')
-                    self.properties.add('filemode', node.nxfilemode, 'Mode')
-        elif node.nxfilemode:
-            self.properties.add('filename', node.nxfilename, 'Filename')
+            elif node.nxfilename and node.nxfilename != node.nxroot.nxfilename:
+                self.properties.add('linkfile', node.nxfilename, 'Target File')
+        elif node.nxfilename and node.nxfilename != node.nxroot.nxfilename:
+            self.properties.add('target', node.nxfilepath, 'Target Path')
+            self.properties.add('linkfile', node.nxfilename, 'Target File')
+        if node.nxfilemode:
             self.properties.add('filemode', node.nxfilemode, 'Mode')
         if isinstance(node, NXfield) and node.shape is not None:
             if node.shape == () or node.shape == (1,):
@@ -1566,7 +1568,6 @@ class RenameDialog(BaseDialog):
         if isinstance(self.node, NXgroup):
             if self.combo_box is not None:
                 self.node.nxclass = self.get_class()
-        self.node.update()
         super(RenameDialog, self).accept()
 
     
