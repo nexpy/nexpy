@@ -1491,7 +1491,9 @@ class RenameDialog(BaseDialog):
         grid.addWidget(name_label, 0, 0)
         grid.addWidget(self.name_box, 0, 1)
         self.combo_box = None
-        if isinstance(self.node, NXgroup) and self.node.nxclass != 'NXroot':
+        if (isinstance(self.node, NXgroup) and 
+            not isinstance(self.node, NXlink) and 
+            self.node.nxclass != 'NXroot'):
             combo_label = QtWidgets.QLabel()
             combo_label.setAlignment(QtCore.Qt.AlignLeft)
             combo_label.setText("New Class:")
