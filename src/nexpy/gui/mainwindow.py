@@ -72,7 +72,7 @@ class MainWindow(QtWidgets.QMainWindow):
         ----------
 
         app : reference to QApplication parent
-        tree : :class:`NXTree` object used as the rootr of the :class:`NXTreeView` items
+        tree : :class:`NXTree` root of the :class:`NXTreeView` items
         config : Jupyter configuration
         """
 
@@ -109,18 +109,13 @@ class MainWindow(QtWidgets.QMainWindow):
         self.console.setSizePolicy(QtWidgets.QSizePolicy.Expanding, 
                                    QtWidgets.QSizePolicy.Fixed)
         self.console._confirm_exit = True
-        self.console.kernel_manager = QtInProcessKernelManager(config=self.config)
+        self.console.kernel_manager = QtInProcessKernelManager(
+                                          config=self.config)
         self.console.kernel_manager.start_kernel()
         self.console.kernel_manager.kernel.gui = 'qt'
         self.console.kernel_client = self.console.kernel_manager.client()
         self.console.kernel_client.start_channels()
-
-        def stop():
-            self.console.kernel_client.stop_channels()
-            self.console.kernel_manager.shutdown_kernel()
-            app.exit()
-
-        self.console.exit_requested.connect(stop)
+        self.console.exit_requested.connect(self.close)
         self.console.show()
 
         if 'gui_completion' not in self.config['ConsoleWidget']:
@@ -130,6 +125,12 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.shell = self.console.kernel_manager.kernel.shell
         self.user_ns = self.console.kernel_manager.kernel.shell.user_ns
+        self.shell.ask_exit = self.close
+        self.shell._old_stb = self.shell._showtraceback
+        def new_stb(etype, evalue, stb):
+            self.shell._old_stb(etype, evalue, [stb[-1]])
+            self.shell._last_traceback = stb
+        self.shell._showtraceback = new_stb
 
         right_splitter = QtWidgets.QSplitter(rightpane)
         right_splitter.setOrientation(QtCore.Qt.Vertical)

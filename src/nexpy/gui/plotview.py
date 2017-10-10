@@ -576,7 +576,8 @@ class NXPlotView(QtWidgets.QDialog):
                      attrs=axes[i].safe_attrs) for i in range(self.ndim)]
 
         if self.ndim > 2:
-            idx=[np.s_[0] if s==1 else np.s_[:] for s in self.data.nxsignal.shape]
+            idx=[np.s_[0] if s==1 else np.s_[:] 
+                for s in self.data.nxsignal.shape]
             for i in range(len(idx)):
                 if idx.count(slice(None,None,None)) > 2:
                     try:
@@ -728,6 +729,12 @@ class NXPlotView(QtWidgets.QDialog):
 
         self.image = None
         self.colorbar = None
+        if six.PY3:
+            try:
+                import mplcursors
+                self.mplcursor = mplcursors.cursor(ax.get_lines())
+            except ImportError:
+                self.mplcursor = None           
 
     def get_image(self):
         """Initialize the plot's signal and axis values.
@@ -817,7 +824,8 @@ class NXPlotView(QtWidgets.QDialog):
         ax.set_ylim(ylo, yhi)
 
         if self._grid:
-            ax.grid(self._grid, color=self._gridcolor, linestyle=self._gridstyle)
+            ax.grid(self._grid, color=self._gridcolor, 
+                    linestyle=self._gridstyle)
 
         ax.set_xlabel(self.xaxis.label)
         ax.set_ylabel(self.yaxis.label)
@@ -3613,7 +3621,8 @@ class CustomizeDialog(BaseDialog):
                                      QtWidgets.QDialogButtonBox.Save)
         buttonbox.accepted.connect(self.accept)
         buttonbox.rejected.connect(self.reject)
-        buttonbox.button(QtWidgets.QDialogButtonBox.Apply).clicked.connect(self.apply)
+        buttonbox.button(
+            QtWidgets.QDialogButtonBox.Apply).clicked.connect(self.apply)
         buttonbox.button(QtWidgets.QDialogButtonBox.Apply).setDefault(True)
         return buttonbox
 
@@ -3653,9 +3662,11 @@ class CustomizeDialog(BaseDialog):
             p['grid'].value = 'On'
         else:
             p['grid'].value = 'Off'
-        p['gridcolor'].value = rgb2hex(colorConverter.to_rgb(self.plotview._gridcolor))
+        p['gridcolor'].value = rgb2hex(
+            colorConverter.to_rgb(self.plotview._gridcolor))
         p['gridcolor'].color_button = NXColorButton(p['gridcolor'])
-        p['gridcolor'].color_button.set_color(to_qcolor(self.plotview._gridcolor))
+        p['gridcolor'].color_button.set_color(
+            to_qcolor(self.plotview._gridcolor))
         p['gridstyle'].value = linestyles[self.plotview._gridstyle]
 
     @property
