@@ -39,8 +39,9 @@ class FitDialog(BaseDialog):
  
         self._data = self.initialize_data(entry.data)
 
-        self.plotview = NXPlotView('Fit')
-        self.plotview.plot(self._data)
+        if 'Fit' not in self.plotviews:
+            self._plotview = NXPlotView('Fit')
+        self.plotview.plot(self._data, fmt='o')
         self.functions = []
         self.parameters = []
 
@@ -54,7 +55,8 @@ class FitDialog(BaseDialog):
         self.functioncombo = QtWidgets.QComboBox()
         for name in sorted(self.function_module):
             self.functioncombo.addItem(name)
-        self.functioncombo.setSizeAdjustPolicy(QtWidgets.QComboBox.AdjustToContents)
+        self.functioncombo.setSizeAdjustPolicy(
+            QtWidgets.QComboBox.AdjustToContents)
         self.functioncombo.setMinimumWidth(100)
         add_button = QtWidgets.QPushButton("Add Function")
         add_button.clicked.connect(self.add_function)
@@ -71,7 +73,8 @@ class FitDialog(BaseDialog):
         remove_button = QtWidgets.QPushButton("Remove Function")
         remove_button.clicked.connect(self.remove_function)
         self.removecombo = QtWidgets.QComboBox()
-        self.removecombo.setSizeAdjustPolicy(QtWidgets.QComboBox.AdjustToContents)
+        self.removecombo.setSizeAdjustPolicy(
+            QtWidgets.QComboBox.AdjustToContents)
         self.removecombo.setMinimumWidth(100)
         self.remove_layout.addWidget(remove_button)
         self.remove_layout.addWidget(self.removecombo)
@@ -144,17 +147,23 @@ class FitDialog(BaseDialog):
         self.layout.addLayout(function_layout)
         self.layout.addLayout(self.plot_layout)
         self.layout.addLayout(self.bottom_layout)
-
         self.setLayout(self.layout)
 
         self.setWindowTitle("Fit NeXus Data")
 
         self.load_entry(entry)
 
+    @property
+    def plotview(self):
+        if 'Fit' not in self.plotviews:
+            self._plotview = NXPlotView('Fit')
+        return self.plotviews['Fit']
+
     def initialize_data(self, data):
         if isinstance(data, NXdata):
             if len(data.nxsignal.shape) > 1:
-                raise NeXusError("Fitting only possible on one-dimensional arrays")
+                raise NeXusError(
+                    "Fitting only possible on one-dimensional arrays")
             fit_data = NXdata(data.nxsignal, data.nxaxes, title=data.nxtitle)
             if fit_data.nxsignal.shape[0] == fit_data.nxaxes[0].shape[0] - 1:
                 fit_data.nxaxes = [fit_data.nxaxes[0].centers()]
@@ -259,10 +268,12 @@ class FitDialog(BaseDialog):
                             parameter.max = float(
                                 entry[group].parameters[p].attrs['max'])
                             if 'error' in entry[group].parameters[p].attrs:
-                                error = entry[group].parameters[p].attrs['error']
+                                error = entry[group].parameters[p].attrs[
+                                            'error']
                                 if error > 0:
                                     parameter.stderr = float(
-                                        entry[group].parameters[p].attrs['error'])
+                                        entry[group].parameters[p].attrs[
+                                            'error'])
                                     parameter.vary = True
                                 else:
                                     parameter.vary = False
@@ -363,7 +374,6 @@ class FitDialog(BaseDialog):
             p.max_box = QtWidgets.QLineEdit('inf')
             p.max_box.setAlignment(QtCore.Qt.AlignRight)
             p.fixed_box = QtWidgets.QCheckBox()
-#            p.bound_box = QtWidgets.QLineEdit()
             self.parameter_grid.addWidget(p.parameter_box, row, 1,
                                           alignment=QtCore.Qt.AlignHCenter)
             self.parameter_grid.addWidget(QtWidgets.QLabel(p.name), row, 2)
@@ -373,7 +383,6 @@ class FitDialog(BaseDialog):
             self.parameter_grid.addWidget(p.max_box, row, 6)
             self.parameter_grid.addWidget(p.fixed_box, row, 7,
                                           alignment=QtCore.Qt.AlignHCenter)
-#            self.parameter_grid.addWidget(p.bound_box, row, 8)
             f.rows.append(row)
             row += 1
         self.parameter_grid.setRowStretch(self.parameter_grid.rowCount(),10)
@@ -441,7 +450,8 @@ class FitDialog(BaseDialog):
         self.plot_maxbox.setText(str(self.plot_max))
 
     def plot_data(self):
-        self.plotview.plot(self.data)
+        self.plotview.plot(self.data, fmt='o')
+        self.plotview.raise_()
 
     def plot_model(self):
         plot_function = self.plotcombo.currentText()
@@ -451,6 +461,7 @@ class FitDialog(BaseDialog):
             name = self.compressed_name(plot_function)
             f = list(filter(lambda x: x.name == name, self.functions))[0]
             self.plotview.plot(self.get_model(f), fmt='--', over=True)
+        self.plotview.raise_()
 
     def define_errors(self):
         if self.fit_checkbox.isChecked():
@@ -563,13 +574,16 @@ class FitDialog(BaseDialog):
         self.write_parameters()
    
     def accept(self):
-        self.plotview.close()
+        if 'Fit' in self.plotviews:
+            self.plotview.close()
         super(FitDialog, self).accept()
         
     def reject(self):
-        self.plotview.close()
+        if 'Fit' in self.plotviews:
+            self.plotview.close()
         super(FitDialog, self).reject()
 
     def closeEvent(self, event):
-        self.plotview.close()
+        if 'Fit' in self.plotviews:
+            self.plotview.close()
         event.accept()
