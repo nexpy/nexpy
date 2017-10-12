@@ -2905,7 +2905,7 @@ class NXProjectionTab(QtWidgets.QWidget):
             over = False
         projection.plot(self.plotview.data.project(axes, limits, 
                                                    summed=self.summed), 
-                        over=over)
+                        over=over, fmt='o')
         if len(axes) == 1:
             self.overplot_box.setVisible(True)
         else:
@@ -3317,7 +3317,7 @@ class NXProjectionPanel(QtWidgets.QWidget):
                 over = False
             projection.plot(self.plotview.data.project(axes, limits, 
                                                        summed=self.summed),
-                            over=over)
+                            over=over, fmt='o')
             if len(axes) == 1:
                 self.overplot_box.setVisible(True)
             else:
