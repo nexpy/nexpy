@@ -1569,6 +1569,7 @@ class MainWindow(QtWidgets.QMainWindow):
                                 pass
                     class_groups[dtype] = (name, doc)
             self.nxclasses[class_name] = (class_doc, class_fields, class_groups)
+        self.nxclasses['NXgroup'] = ('', {}, {})
 
     def _make_dynamic_magic(self,magic):
         """Return a function `fun` that will execute `magic` on the console.
