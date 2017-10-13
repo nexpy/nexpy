@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>NeXpy BaseDialog Class &mdash; NeXpy 0.10.0 documentation</title>
+    <title>NeXpy BaseDialog Class &#8212; NeXpy 0.10.3 documentation</title>
     
     <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,18 +14,20 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.10.0',
+        VERSION:     '0.10.3',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
       };
     </script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="shortcut icon" href="_static/favicon.ico"/>
-    <link rel="top" title="NeXpy 0.10.0 documentation" href="index.html" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Example data" href="example_data.html" />
     <link rel="prev" title="Adding a File Importer" href="readers.html" /> 
   </head>
@@ -45,7 +47,7 @@
         <li class="right" >
           <a href="readers.html" title="Adding a File Importer"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.10.0 documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.10.3 documentation</a> &#187;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -65,21 +67,18 @@
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
-      <li><a href="_sources/importdialog.txt"
+      <li><a href="_sources/importdialog.rst.txt"
             rel="nofollow">Show Source</a></li>
     </ul>
    </div>
 <div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
     </form>
-    <p class="searchtip" style="font-size: 90%">
-    Enter search terms or a module, class or function name.
-    </p>
 </div>
 <script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
@@ -116,13 +115,13 @@
 
 <dl class="method">
 <dt id="nexpy.gui.datadialogs.BaseDialog.filebox">
-<code class="descname">filebox</code><span class="sig-paren">(</span><em>text=u'Choose File'</em><span class="sig-paren">)</span><a class="headerlink" href="#nexpy.gui.datadialogs.BaseDialog.filebox" title="Permalink to this definition">¶</a></dt>
+<code class="descname">filebox</code><span class="sig-paren">(</span><em>text='Choose File'</em><span class="sig-paren">)</span><a class="headerlink" href="#nexpy.gui.datadialogs.BaseDialog.filebox" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates a text box and button for selecting a file.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="nexpy.gui.datadialogs.BaseDialog.directorybox">
-<code class="descname">directorybox</code><span class="sig-paren">(</span><em>text=u'Choose Directory'</em><span class="sig-paren">)</span><a class="headerlink" href="#nexpy.gui.datadialogs.BaseDialog.directorybox" title="Permalink to this definition">¶</a></dt>
+<code class="descname">directorybox</code><span class="sig-paren">(</span><em>text='Choose Directory'</em><span class="sig-paren">)</span><a class="headerlink" href="#nexpy.gui.datadialogs.BaseDialog.directorybox" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates a text box and button for selecting a directory.</p>
 </dd></dl>
 
@@ -164,7 +163,7 @@
 
 <dl class="method">
 <dt id="nexpy.gui.datadialogs.BaseDialog.get_filesindirectory">
-<code class="descname">get_filesindirectory</code><span class="sig-paren">(</span><em>prefix=u''</em>, <em>extension=u'.*'</em>, <em>directory=None</em><span class="sig-paren">)</span><a class="headerlink" href="#nexpy.gui.datadialogs.BaseDialog.get_filesindirectory" title="Permalink to this definition">¶</a></dt>
+<code class="descname">get_filesindirectory</code><span class="sig-paren">(</span><em>prefix=''</em>, <em>extension='.*'</em>, <em>directory=None</em><span class="sig-paren">)</span><a class="headerlink" href="#nexpy.gui.datadialogs.BaseDialog.get_filesindirectory" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a list of files in the selected directory.</p>
 <p>The files are sorted using a natural sort algorithm that preserves the
 numeric order when a file name consists of text and index so that, e.g., 
@@ -244,7 +243,7 @@ p[name] = Parameter(name=name, value=XX, ....</p>
 
 <dl class="class">
 <dt id="nexpy.gui.datadialogs.PlotDialog">
-<em class="property">class </em><code class="descclassname">nexpy.gui.datadialogs.</code><code class="descname">PlotDialog</code><span class="sig-paren">(</span><em>node</em>, <em>parent=None</em>, <em>fmt=u'o'</em><span class="sig-paren">)</span><a class="headerlink" href="#nexpy.gui.datadialogs.PlotDialog" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">nexpy.gui.datadialogs.</code><code class="descname">PlotDialog</code><span class="sig-paren">(</span><em>node</em>, <em>parent=None</em>, <em>fmt='o'</em><span class="sig-paren">)</span><a class="headerlink" href="#nexpy.gui.datadialogs.PlotDialog" title="Permalink to this definition">¶</a></dt>
 <dd><p>Dialog to plot arbitrary NeXus data in one or two dimensions</p>
 </dd></dl>
 
@@ -304,6 +303,12 @@ p[name] = Parameter(name=name, value=XX, ....</p>
 </dd></dl>
 
 <dl class="class">
+<dt id="nexpy.gui.datadialogs.ManageBackupsDialog">
+<em class="property">class </em><code class="descclassname">nexpy.gui.datadialogs.</code><code class="descname">ManageBackupsDialog</code><span class="sig-paren">(</span><em>parent=None</em><span class="sig-paren">)</span><a class="headerlink" href="#nexpy.gui.datadialogs.ManageBackupsDialog" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dialog to restore or purge backup files</p>
+</dd></dl>
+
+<dl class="class">
 <dt id="nexpy.gui.datadialogs.InstallPluginDialog">
 <em class="property">class </em><code class="descclassname">nexpy.gui.datadialogs.</code><code class="descname">InstallPluginDialog</code><span class="sig-paren">(</span><em>parent=None</em><span class="sig-paren">)</span><a class="headerlink" href="#nexpy.gui.datadialogs.InstallPluginDialog" title="Permalink to this definition">¶</a></dt>
 <dd><p>Dialog to install a NeXus plugin</p>
@@ -316,9 +321,9 @@ p[name] = Parameter(name=name, value=XX, ....</p>
 </dd></dl>
 
 <dl class="class">
-<dt id="nexpy.gui.datadialogs.ManageBackupsDialog">
-<em class="property">class </em><code class="descclassname">nexpy.gui.datadialogs.</code><code class="descname">ManageBackupsDialog</code><span class="sig-paren">(</span><em>parent=None</em><span class="sig-paren">)</span><a class="headerlink" href="#nexpy.gui.datadialogs.ManageBackupsDialog" title="Permalink to this definition">¶</a></dt>
-<dd><p>Dialog to purge backup files</p>
+<dt id="nexpy.gui.datadialogs.RestorePluginDialog">
+<em class="property">class </em><code class="descclassname">nexpy.gui.datadialogs.</code><code class="descname">RestorePluginDialog</code><span class="sig-paren">(</span><em>parent=None</em><span class="sig-paren">)</span><a class="headerlink" href="#nexpy.gui.datadialogs.RestorePluginDialog" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dialog to restore plugins from backups</p>
 </dd></dl>
 
 </div>
@@ -375,12 +380,12 @@ Must define self.import_file as file name</p>
         <li class="right" >
           <a href="readers.html" title="Adding a File Importer"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.10.0 documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.10.3 documentation</a> &#187;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
-        &copy; Copyright 2013-2015, Ray Osborn.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.1.
+        &#169; Copyright 2013-2015, Ray Osborn.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.6.
     </div>
   </body>
 </html>

@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Python Graphical User Interface &mdash; NeXpy 0.10.0 documentation</title>
+    <title>Python Graphical User Interface &#8212; NeXpy 0.10.3 documentation</title>
     
     <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,18 +14,20 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.10.0',
+        VERSION:     '0.10.3',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
       };
     </script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="shortcut icon" href="_static/favicon.ico"/>
-    <link rel="top" title="NeXpy 0.10.0 documentation" href="index.html" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="NeXus Tree API Modules" href="treeapi.html" />
     <link rel="prev" title="Python Interface to NeXus" href="pythonshell.html" /> 
   </head>
@@ -45,7 +47,7 @@
         <li class="right" >
           <a href="pythonshell.html" title="Python Interface to NeXus"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.10.0 documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.10.3 documentation</a> &#187;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -87,21 +89,18 @@
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
-      <li><a href="_sources/pythongui.txt"
+      <li><a href="_sources/pythongui.rst.txt"
             rel="nofollow">Show Source</a></li>
     </ul>
    </div>
 <div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
     </form>
-    <p class="searchtip" style="font-size: 90%">
-    Enter search terms or a module, class or function name.
-    </p>
 </div>
 <script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
@@ -117,7 +116,7 @@
 <p>A PyQT GUI has been created to make it easier to keep track of the loaded NeXus
 files and the results of any subsequent analysis. It is invoked from the command
 line by:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span>&gt; nexpy
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">nexpy</span>
 </pre></div>
 </div>
 <div class="admonition note">
@@ -263,7 +262,7 @@ Previously saved backups can be restored using the <code class="docutils literal
 <dd>Provides the ability to restore or delete an existing backup stored in
 <code class="docutils literal"><span class="pre">~/.nexpy/backups</span></code>. Restoring the backup is equivalent to opening the
 existing backup file. It is necessary to save it to a new location to
-prevent its automatic deletion after three days.</dd>
+prevent its automatic deletion after five days.</dd>
 <dt><strong>Open Scratch File...</strong></dt>
 <dd>Saved projections and fits are stored in a scratch file called <code class="docutils literal"><span class="pre">w0.nxs</span></code>,
 which is stored in the user&#8217;s NeXpy directory, <code class="docutils literal"><span class="pre">``~/.nexpy</span></code>. This file
@@ -294,6 +293,9 @@ user&#8217;s plugin is loaded.</p>
 <dt><strong>Remove Plugin</strong></dt>
 <dd>The selected NeXpy plugin module is removed from either the user&#8217;s
 NeXpy directory (<code class="docutils literal"><span class="pre">~/.nexpy/plugins</span></code>) or the package directory.</dd>
+<dt><strong>Restore Plugin</strong></dt>
+<dd>If a plugin is overwritten by installing another version, it is backed up
+in <code class="docutils literal"><span class="pre">~/.nexpy/backups</span></code>). This allows the old version to be restored.</dd>
 <dt><strong>Print Shell</strong></dt>
 <dd>Prints the contents of the iPython shell.</dd>
 </dl>
@@ -542,7 +544,7 @@ shell text.</p>
 <p>NXroot groups that are displayed in the tree pane are all children of a group
 of class NXtree, known as &#8216;tree&#8217;. If you create a NeXus group dynamically in the
 IPython shell, it can be added to the tree pane using the tree&#8217;s add method:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">=</span><span class="n">NXroot</span><span class="p">()</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">=</span><span class="n">NXroot</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">entry</span> <span class="o">=</span> <span class="n">NXentry</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">nxtree</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
 </pre></div>
@@ -703,21 +705,21 @@ plotting axes. Otherwise, it contains the average.</p>
 <a class="reference internal image-reference" href="_images/projection-panel.png"><img alt="_images/projection-panel.png" class="align-center" src="_images/projection-panel.png" style="width: 90%;" /></a>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">The projection panel can also be used to mask and unmask data within
-the dashed rectangle. See <a class="reference internal" href="pythonshell.html"><em>Python Interface to NeXus</em></a> for descriptions of
-masked arrays.</p>
+<p class="last">The projection panel can also be used to mask and unmask data
+within the dashed rectangle. See <a class="reference internal" href="pythonshell.html"><span class="doc">Python Interface to NeXus</span></a> for
+descriptions of masked arrays.</p>
 </div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">Each plotting window can have a separate projection panel in a tabbed
-interface.</p>
+<p class="last">Each plotting window can have a separate projection panel in a
+tabbed interface.</p>
 </div>
 </div></blockquote>
 <p><strong>Options Tab</strong></p>
 <blockquote>
 <div><a class="reference internal image-reference" href="_images/options-tab.png"><img alt="_images/options-tab.png" class="align-center" src="_images/options-tab.png" style="width: 90%;" /></a>
-<p>The options tab provides the standard Matplotlib toolbar. You can view with the addition
-of one extra button. From left to right, the buttons are:</p>
+<p>The options tab provides the standard Matplotlib toolbar. You can view with
+the addition of one extra button. From left to right, the buttons are:</p>
 <ul class="simple">
 <li><strong>Home</strong> - restores all plotting limits to their original values.</li>
 <li><strong>Arrows</strong> - cycles through the limits of previous plots.</li>
@@ -766,7 +768,7 @@ menu, <em>e.g.</em>, &lt;Ctrl&gt;+2 (⌘+2 on a Mac) to select Figure 2.</p>
 </div></blockquote>
 <ul>
 <li><p class="first">Set Aspect Ratio:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">plotview</span><span class="o">.</span><span class="n">aspect</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">aspect</span><span class="o">&gt;</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">plotview</span><span class="o">.</span><span class="n">aspect</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">aspect</span><span class="o">&gt;</span>
 </pre></div>
 </div>
 <p><code class="docutils literal"><span class="pre">&lt;aspect&gt;</span></code> can be any of the values allowed by the <a class="reference external" href="http://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes.set_aspect">Matplotlib set_aspect</a>
@@ -776,7 +778,7 @@ ratio between the height and the width (if the units are identical). The
 be set using the &#8216;Edit Parameters&#8217; button on the Options tab.</p>
 </li>
 <li><p class="first">Set Skew Angle:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">plotview</span><span class="o">.</span><span class="n">skew</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">angle</span><span class="o">&gt;</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">plotview</span><span class="o">.</span><span class="n">skew</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">angle</span><span class="o">&gt;</span>
 </pre></div>
 </div>
 <p>This sets the angle between the x and y-axes in degrees. If set to <code class="docutils literal"><span class="pre">None</span></code>,
@@ -790,7 +792,7 @@ be set using the &#8216;Edit Parameters&#8217; button on the Options tab.</p>
 <a class="reference internal image-reference" href="_images/skewed-axis.png"><img alt="_images/skewed-axis.png" class="align-center" src="_images/skewed-axis.png" style="width: 75%;" /></a>
 <ul>
 <li><p class="first">Set Smoothing Width:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">plotview</span><span class="o">.</span><span class="n">smooth</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">stddev</span><span class="o">&gt;</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">plotview</span><span class="o">.</span><span class="n">smooth</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">stddev</span><span class="o">&gt;</span>
 </pre></div>
 </div>
 <p>This sets the standard deviation in pixels for the Gaussian smoothing of the
@@ -798,7 +800,7 @@ data performed when the &#8216;convolve&#8217; option is selected in the Signal 
 default value is 2.</p>
 </li>
 <li><p class="first">Set Offsets:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">plotview</span><span class="o">.</span><span class="n">offsets</span> <span class="o">=</span> <span class="o">&lt;</span><span class="bp">True</span><span class="o">|</span><span class="bp">False</span><span class="o">&gt;</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">plotview</span><span class="o">.</span><span class="n">offsets</span> <span class="o">=</span> <span class="o">&lt;</span><span class="kc">True</span><span class="o">|</span><span class="kc">False</span><span class="o">&gt;</span>
 </pre></div>
 </div>
 <p>If the range of an axis is much smaller than the absolute values, the axis
@@ -807,7 +809,7 @@ converts the axis labels to differences from a fixed offset value or not.
 The default is <code class="docutils literal"><span class="pre">False</span></code>.</p>
 </li>
 <li><p class="first">Select Color Map:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">plotview</span><span class="o">.</span><span class="n">cmap</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">cmap</span><span class="o">&gt;</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">plotview</span><span class="o">.</span><span class="n">cmap</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">cmap</span><span class="o">&gt;</span>
 </pre></div>
 </div>
 <p>This allows the color map of the currently displayed image to be changed.
@@ -816,7 +818,7 @@ This can be useful if the map is not available in the Signal Tab. See the
 for more details.</p>
 </li>
 <li><p class="first">Draw Shapes:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">plotview</span><span class="o">.</span><span class="n">vline</span><span class="p">(</span><span class="o">&lt;</span><span class="n">x</span><span class="o">&gt;</span><span class="p">,</span> <span class="o">&lt;</span><span class="n">ymin</span><span class="o">&gt;</span><span class="p">,</span> <span class="o">&lt;</span><span class="n">ymax</span><span class="o">&gt;</span><span class="p">)</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">plotview</span><span class="o">.</span><span class="n">vline</span><span class="p">(</span><span class="o">&lt;</span><span class="n">x</span><span class="o">&gt;</span><span class="p">,</span> <span class="o">&lt;</span><span class="n">ymin</span><span class="o">&gt;</span><span class="p">,</span> <span class="o">&lt;</span><span class="n">ymax</span><span class="o">&gt;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">plotview</span><span class="o">.</span><span class="n">hline</span><span class="p">(</span><span class="o">&lt;</span><span class="n">y</span><span class="o">&gt;</span><span class="p">,</span> <span class="o">&lt;</span><span class="n">xmin</span><span class="o">&gt;</span><span class="p">,</span> <span class="o">&lt;</span><span class="n">xmax</span><span class="o">&gt;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">plotview</span><span class="o">.</span><span class="n">vlines</span><span class="p">(</span><span class="o">&lt;</span><span class="n">x</span><span class="o">-</span><span class="n">array</span><span class="o">&gt;</span><span class="p">,</span> <span class="o">&lt;</span><span class="n">ymin</span><span class="o">&gt;</span><span class="p">,</span> <span class="o">&lt;</span><span class="n">ymax</span><span class="o">&gt;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">plotview</span><span class="o">.</span><span class="n">hlines</span><span class="p">(</span><span class="o">&lt;</span><span class="n">y</span><span class="o">-</span><span class="n">array</span><span class="o">&gt;</span><span class="p">,</span> <span class="o">&lt;</span><span class="n">xmin</span><span class="o">&gt;</span><span class="p">,</span> <span class="o">&lt;</span><span class="n">xmax</span><span class="o">&gt;</span><span class="p">)</span>
@@ -843,7 +845,7 @@ properties, <em>etc</em>. See the <a class="reference external" href="http://mat
 for more details.</p>
 </li>
 <li><p class="first">Draw Grid:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">plotview</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="bp">True</span><span class="o">|</span><span class="bp">False</span><span class="p">)</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">plotview</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="o">|</span><span class="kc">False</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Draws grid lines at the major tick values. Additional keyword arguments can be
@@ -851,7 +853,7 @@ given to modify the color, linestyle, <em>etc</em>, using the standard <a class=
 conventions</a>.</p>
 </li>
 <li><p class="first">Convert to Symmetric Log Plot:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">plotview</span><span class="o">.</span><span class="n">symlog</span><span class="p">(</span><span class="n">linthresh</span><span class="p">,</span> <span class="n">linscale</span><span class="p">,</span> <span class="n">vmax</span><span class="p">)</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">plotview</span><span class="o">.</span><span class="n">symlog</span><span class="p">(</span><span class="n">linthresh</span><span class="p">,</span> <span class="n">linscale</span><span class="p">,</span> <span class="n">vmax</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Plot the data using symmetric logarithms for both positive and negative data.
@@ -901,7 +903,7 @@ saved fit.</p>
 parameter names, and provide two modules to return the function values and
 starting parameters, respectively.</p>
 <p>As an example, here is the complete Gaussian function:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 <span class="n">function_name</span> <span class="o">=</span> <span class="s1">&#39;Gaussian&#39;</span>
 <span class="n">parameters</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Integral&#39;</span><span class="p">,</span> <span class="s1">&#39;Sigma&#39;</span><span class="p">,</span> <span class="s1">&#39;Center&#39;</span><span class="p">]</span>
@@ -947,8 +949,8 @@ values that do not trigger an exception.</p>
 TIFF images, and text files, using the <a class="reference external" href="File:Import">File:Import</a> menus. If a file format is
 not currently supported, the user can write their own. The following is an
 example of a module that reads the original format and returns NeXus data:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">get_data</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
-    <span class="kn">from</span> <span class="nn">libtiff</span> <span class="kn">import</span> <span class="n">TIFF</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">get_data</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+    <span class="kn">from</span> <span class="nn">libtiff</span> <span class="k">import</span> <span class="n">TIFF</span>
     <span class="n">im</span> <span class="o">=</span> <span class="n">TIFF</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
     <span class="n">z</span> <span class="o">=</span> <span class="n">im</span><span class="o">.</span><span class="n">read_image</span><span class="p">()</span>
     <span class="n">y</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="n">z</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
@@ -957,7 +959,7 @@ example of a module that reads the original format and returns NeXus data:</p>
 </pre></div>
 </div>
 <p>This could be run in the shell pane and then added to the tree using:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">nxtree</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">get_data</span><span class="p">(</span><span class="s1">&#39;image.tif&#39;</span><span class="p">))</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">nxtree</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">get_data</span><span class="p">(</span><span class="s1">&#39;image.tif&#39;</span><span class="p">))</span>
 </pre></div>
 </div>
 <div class="section" id="existing-readers">
@@ -976,9 +978,9 @@ in a single directory, that are grouped with a common prefix followed by an
 integer defining the stack sequence.</p>
 <p><strong>Text Files</strong></p>
 <p>This reader will read ASCII data stored in two or three columns, containing the
-x and y values, and, optionally, errors. One or more header lines can be skipped.
-A more flexible text importer, allowing the selection of data from multiple
-columns, is under development.</p>
+x and y values, and, optionally, errors. One or more header lines can be
+skipped. A more flexible text importer, allowing the selection of data from
+multiple columns, is under development.</p>
 <p><strong>SPEC Files</strong></p>
 <p>This reader will read multiple SPEC scans from a single SPEC log file, creating
 a separate NXentry for each scan. All the columns in each scan are read into
@@ -999,7 +1001,7 @@ parameters, but there are plans to add that in the future.</p>
 samples as a guide in the nexpy.readers directory. User-defined import dialogs
 can be added to their private readers directory in <code class="docutils literal"><span class="pre">~/.nexpy/readers</span></code>.</p>
 <p>Here is an example of an import dialog:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Module to read in a TIFF file and convert it to NeXus.</span>
 
 <span class="sd">Each importer needs to layout the GUI buttons necessary for defining the</span>
@@ -1017,16 +1019,16 @@ can be added to their private readers directory in <code class="docutils literal
 <span class="sd">                                of all import dialogs.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">nexusformat.nexus</span> <span class="kn">import</span> <span class="o">*</span>
-<span class="kn">from</span> <span class="nn">nexpy.gui.importdialog</span> <span class="kn">import</span> <span class="n">BaseImportDialog</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">nexusformat.nexus</span> <span class="k">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">nexpy.gui.importdialog</span> <span class="k">import</span> <span class="n">BaseImportDialog</span>
 
 <span class="n">filetype</span> <span class="o">=</span> <span class="s2">&quot;TIFF Image&quot;</span> <span class="c1">#Defines the Import Menu label</span>
 
 <span class="k">class</span> <span class="nc">ImportDialog</span><span class="p">(</span><span class="n">BaseImportDialog</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Dialog to import a TIFF image&quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 
         <span class="nb">super</span><span class="p">(</span><span class="n">ImportDialog</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
 
@@ -1035,7 +1037,7 @@ can be added to their private readers directory in <code class="docutils literal
         <span class="bp">self</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">&quot;Import &quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">filetype</span><span class="p">))</span>
 
     <span class="k">def</span> <span class="nf">get_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="kn">from</span> <span class="nn">libtiff</span> <span class="kn">import</span> <span class="n">TIFF</span>
+        <span class="kn">from</span> <span class="nn">libtiff</span> <span class="k">import</span> <span class="n">TIFF</span>
         <span class="n">im</span> <span class="o">=</span> <span class="n">TIFF</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_filename</span><span class="p">())</span>
         <span class="n">z</span> <span class="o">=</span> <span class="n">NXfield</span><span class="p">(</span><span class="n">im</span><span class="o">.</span><span class="n">read_image</span><span class="p">(),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;z&#39;</span><span class="p">)</span>
         <span class="n">y</span> <span class="o">=</span> <span class="n">NXfield</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">z</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;y&#39;</span><span class="p">)</span>
@@ -1066,7 +1068,7 @@ to show how plugins can work. It adds a top-level menu item, <code class="docuti
 has a couple of menu items to perform data analysis on the example file,
 <code class="docutils literal"><span class="pre">chopper.nxs</span></code>, which is distributed with NeXpy.</p>
 <p>Here is the <code class="docutils literal"><span class="pre">__init__.py</span></code> file:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">get_ei</span><span class="o">,</span> <span class="nn">convert_qe</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">get_ei</span><span class="p">,</span> <span class="n">convert_qe</span>
 
 <span class="k">def</span> <span class="nf">plugin_menu</span><span class="p">():</span>
     <span class="n">menu</span> <span class="o">=</span> <span class="s1">&#39;Chopper&#39;</span>
@@ -1102,13 +1104,13 @@ pre-defined dialog methods if the dialog uses it as the parent
 class.</p>
 </div>
 <p>Here is the code:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">nexpy.gui.datadialogs</span> <span class="kn">import</span> <span class="n">BaseDialog</span><span class="p">,</span> <span class="n">GridParameters</span>
-<span class="kn">from</span> <span class="nn">nexpy.gui.mainwindow</span> <span class="kn">import</span> <span class="n">report_error</span>
-<span class="kn">from</span> <span class="nn">nexusformat.nexus</span> <span class="kn">import</span> <span class="n">NeXusError</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">nexpy.gui.datadialogs</span> <span class="k">import</span> <span class="n">BaseDialog</span><span class="p">,</span> <span class="n">GridParameters</span>
+<span class="kn">from</span> <span class="nn">nexpy.gui.mainwindow</span> <span class="k">import</span> <span class="n">report_error</span>
+<span class="kn">from</span> <span class="nn">nexusformat.nexus</span> <span class="k">import</span> <span class="n">NeXusError</span>
 
 
-<span class="k">def</span> <span class="nf">show_dialog</span><span class="p">(</span><span class="n">parent</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">show_dialog</span><span class="p">(</span><span class="n">parent</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">dialog</span> <span class="o">=</span> <span class="n">EnergyDialog</span><span class="p">()</span>
         <span class="n">dialog</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
@@ -1118,7 +1120,7 @@ class.</p>
 
 <span class="k">class</span> <span class="nc">EnergyDialog</span><span class="p">(</span><span class="n">BaseDialog</span><span class="p">):</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 
         <span class="nb">super</span><span class="p">(</span><span class="n">EnergyDialog</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
 
@@ -1128,13 +1130,14 @@ class.</p>
                             <span class="s1">&#39;Monitor 1 Distance&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s1">&#39;m2&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">entry</span><span class="p">[</span><span class="s1">&#39;monitor2/distance&#39;</span><span class="p">],</span>
                             <span class="s1">&#39;Monitor 2 Distance&#39;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s1">&#39;Ei&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">entry</span><span class="p">[</span><span class="s1">&#39;instrument/monochromator/energy&#39;</span><span class="p">],</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s1">&#39;Ei&#39;</span><span class="p">,</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">entry</span><span class="p">[</span><span class="s1">&#39;instrument/monochromator/energy&#39;</span><span class="p">],</span>
                             <span class="s1">&#39;Incident Energy&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s1">&#39;mod&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">entry</span><span class="p">[</span><span class="s1">&#39;instrument/source/distance&#39;</span><span class="p">],</span>
                             <span class="s1">&#39;Moderator Distance&#39;</span><span class="p">)</span>
         <span class="n">action_buttons</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">action_buttons</span><span class="p">((</span><span class="s1">&#39;Get Ei&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_ei</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">set_layout</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">entry_layout</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">grid</span><span class="p">(),</span>
-                        <span class="n">action_buttons</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">close_buttons</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+                        <span class="n">action_buttons</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">close_buttons</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Get Incident Energy&#39;</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">m1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">entry</span><span class="p">[</span><span class="s1">&#39;monitor1&#39;</span><span class="p">]</span>
@@ -1161,7 +1164,8 @@ class.</p>
         <span class="n">m1_time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">m1</span><span class="p">[</span><span class="n">t</span><span class="o">-</span><span class="mf">200.0</span><span class="p">:</span><span class="n">t</span><span class="o">+</span><span class="mf">200.0</span><span class="p">]</span><span class="o">.</span><span class="n">moment</span><span class="p">()</span>
         <span class="n">t</span> <span class="o">=</span> <span class="mf">2286.26</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">m2_distance</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Ei</span><span class="p">)</span>
         <span class="n">m2_time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">m2</span><span class="p">[</span><span class="n">t</span><span class="o">-</span><span class="mf">200.0</span><span class="p">:</span><span class="n">t</span><span class="o">+</span><span class="mf">200.0</span><span class="p">]</span><span class="o">.</span><span class="n">moment</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;Ei&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="p">(</span><span class="mf">2286.26</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">m2_distance</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">m1_distance</span><span class="p">)</span> <span class="o">/</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;Ei&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="p">(</span><span class="mf">2286.26</span> <span class="o">*</span>
+                                       <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">m2_distance</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">m1_distance</span><span class="p">)</span> <span class="o">/</span>
                                        <span class="p">(</span><span class="n">m2_time</span> <span class="o">-</span> <span class="n">m1_time</span><span class="p">))</span><span class="o">**</span><span class="mi">2</span>
 
     <span class="k">def</span> <span class="nf">accept</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -1176,23 +1180,23 @@ class.</p>
 <div class="section" id="configuring-nexpy">
 <h2>Configuring NeXpy<a class="headerlink" href="#configuring-nexpy" title="Permalink to this headline">¶</a></h2>
 <p>The NeXpy shell imports the following NeXus classes:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">nexpy</span>
-<span class="kn">import</span> <span class="nn">nexusformat.nexus</span> <span class="kn">as</span> <span class="nn">nx</span>
-<span class="kn">from</span> <span class="nn">nexusformat.nexus</span> <span class="kn">import</span> <span class="n">NXFile</span><span class="p">,</span> <span class="n">NXgroup</span><span class="p">,</span> <span class="n">NXfield</span><span class="p">,</span> <span class="n">NXattr</span><span class="p">,</span> <span class="n">NXlink</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">nexpy</span>
+<span class="kn">import</span> <span class="nn">nexusformat.nexus</span> <span class="k">as</span> <span class="nn">nx</span>
+<span class="kn">from</span> <span class="nn">nexusformat.nexus</span> <span class="k">import</span> <span class="n">NXFile</span><span class="p">,</span> <span class="n">NXgroup</span><span class="p">,</span> <span class="n">NXfield</span><span class="p">,</span> <span class="n">NXattr</span><span class="p">,</span> <span class="n">NXlink</span>
 </pre></div>
 </div>
 <p>along with all the currently defined NeXus group classes (NXentry, NXdata,
 NXsample, <em>etc</em>).</p>
 <p>For convenience, the NeXpy shell also imports a number of other modules that are
 commonly used:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">sys</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">h5py</span> <span class="kn">as</span> <span class="nn">h5</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">numpy.ma</span> <span class="kn">as</span> <span class="nn">ma</span>
-<span class="kn">import</span> <span class="nn">scipy</span> <span class="kn">as</span> <span class="nn">sp</span>
-<span class="kn">import</span> <span class="nn">matplotlib</span> <span class="kn">as</span> <span class="nn">mpl</span>
-<span class="kn">from</span> <span class="nn">matplotlib</span> <span class="kn">import</span> <span class="n">pylab</span><span class="p">,</span> <span class="n">mlab</span><span class="p">,</span> <span class="n">pyplot</span>
+<span class="kn">import</span> <span class="nn">h5py</span> <span class="k">as</span> <span class="nn">h5</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">numpy.ma</span> <span class="k">as</span> <span class="nn">ma</span>
+<span class="kn">import</span> <span class="nn">scipy</span> <span class="k">as</span> <span class="nn">sp</span>
+<span class="kn">import</span> <span class="nn">matplotlib</span> <span class="k">as</span> <span class="nn">mpl</span>
+<span class="kn">from</span> <span class="nn">matplotlib</span> <span class="k">import</span> <span class="n">pylab</span><span class="p">,</span> <span class="n">mlab</span><span class="p">,</span> <span class="n">pyplot</span>
 <span class="n">plt</span> <span class="o">=</span> <span class="n">pyplot</span>
 </pre></div>
 </div>
@@ -1223,12 +1227,12 @@ required code in ~/.nexpy/config.py.</p>
         <li class="right" >
           <a href="pythonshell.html" title="Python Interface to NeXus"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.10.0 documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.10.3 documentation</a> &#187;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
-        &copy; Copyright 2013-2015, Ray Osborn.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.1.
+        &#169; Copyright 2013-2015, Ray Osborn.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.6.
     </div>
   </body>
 </html>

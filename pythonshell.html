@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Python Interface to NeXus &mdash; NeXpy 0.10.0 documentation</title>
+    <title>Python Interface to NeXus &#8212; NeXpy 0.10.3 documentation</title>
     
     <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,18 +14,20 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.10.0',
+        VERSION:     '0.10.3',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
       };
     </script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="shortcut icon" href="_static/favicon.ico"/>
-    <link rel="top" title="NeXpy 0.10.0 documentation" href="index.html" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Python Graphical User Interface" href="pythongui.html" />
     <link rel="prev" title="Installation" href="includeme.html" /> 
   </head>
@@ -45,7 +47,7 @@
         <li class="right" >
           <a href="includeme.html" title="Installation"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.10.0 documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.10.3 documentation</a> &#187;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -111,21 +113,18 @@
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
-      <li><a href="_sources/pythonshell.txt"
+      <li><a href="_sources/pythonshell.rst.txt"
             rel="nofollow">Show Source</a></li>
     </ul>
    </div>
 <div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
     </form>
-    <p class="searchtip" style="font-size: 90%">
-    Enter search terms or a module, class or function name.
-    </p>
 </div>
 <script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
@@ -140,7 +139,7 @@
 <h1>Python Interface to NeXus<a class="headerlink" href="#python-interface-to-nexus" title="Permalink to this headline">¶</a></h1>
 <p>The Python interface to NeXus can be used within a standard Python or iPython
 shell:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span>$ python
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ python
 Python 2.7.2 (default, Oct 11 2012, 20:14:37)
 [GCC 4.2.1 Compatible Apple Clang 4.0 (tags/Apple/clang-418.0.60)] on darwin
 Type &quot;help&quot;, &quot;copyright&quot;, &quot;credits&quot; or &quot;license&quot; for more information.
@@ -156,38 +155,38 @@ imported functions and variables start with &#8216;nx&#8217; or &#8216;NX&#8217;
 <div class="section" id="loading-nexus-data">
 <h2>Loading NeXus Data<a class="headerlink" href="#loading-nexus-data" title="Permalink to this headline">¶</a></h2>
 <p>The entire tree structure of a NeXus file can be loaded by a single command:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">=</span><span class="n">nxload</span><span class="p">(</span><span class="s1">&#39;sns/data/ARCS_7326_tof.nxs&#39;</span><span class="p">)</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">=</span><span class="n">nxload</span><span class="p">(</span><span class="s1">&#39;sns/data/ARCS_7326_tof.nxs&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>The assigned variable now contains the entire tree structure of the file, which
 can be displayed by printing the &#8216;tree&#8217; property:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">a</span><span class="o">.</span><span class="n">tree</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">tree</span><span class="p">)</span>
 <span class="go">root:NXroot</span>
-<span class="go"> @HDF5_Version = 1.8.2</span>
-<span class="go"> @NeXus_version = 4.2.1</span>
-<span class="go"> @file_name = ARCS_7326_tof.nxs</span>
-<span class="go"> @file_time = 2010-05-05T01:59:25-05:00</span>
+<span class="go"> @HDF5_Version = &#39;1.8.2&#39;</span>
+<span class="go"> @NeXus_version = &#39;4.2.1&#39;</span>
+<span class="go"> @file_name = &#39;ARCS_7326_tof.nxs&#39;</span>
+<span class="go"> @file_time = &#39;2010-05-05T01:59:25-05:00&#39;</span>
 <span class="go"> entry:NXentry</span>
 <span class="go">   data:NXdata</span>
-<span class="go">     @axes = rotation_angle:tilt_angle:sample_angle:time_of_flight</span>
-<span class="go">     @signal = data</span>
+<span class="go">     @axes = [&#39;rotation_angle&#39; &#39;tilt_angle&#39; &#39;sample_angle&#39; &#39;time_of_flight&#39;]</span>
+<span class="go">     @signal = &#39;data&#39;</span>
 <span class="go">     data = float32(631x461x4x825)</span>
 <span class="go">     rotation_angle = float32(632)</span>
-<span class="go">       @units = degree</span>
-<span class="go">     sample_angle = [ 210.  215.  220.  225.  230.]</span>
-<span class="go">       @units = degree</span>
+<span class="go">       @units = &#39;degree&#39;</span>
+<span class="go">     sample_angle = float32(5)</span>
+<span class="go">       @units = &#39;degree&#39;</span>
 <span class="go">     tilt_angle = float32(462)</span>
-<span class="go">       @units = degree</span>
+<span class="go">       @units = &#39;degree&#39;</span>
 <span class="go">     time_of_flight = float32(826)</span>
-<span class="go">       @units = microsecond</span>
-<span class="go">   run_number = 7326</span>
+<span class="go">       @units = &#39;microsecond&#39;</span>
+<span class="go">   run_number = &#39;7326&#39;</span>
 <span class="go">   sample:NXsample</span>
-<span class="go">     pulse_time = 2854.94747365</span>
-<span class="go">       @units = microsecond</span>
+<span class="go">     pulse_time = 2854.947473649946</span>
+<span class="go">       @units = &#39;microsecond&#39;</span>
 </pre></div>
 </div>
 <p>Individual data items are immediately available from the command-line:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">a</span><span class="o">.</span><span class="n">entry</span><span class="o">.</span><span class="n">run_number</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">entry</span><span class="o">.</span><span class="n">run_number</span><span class="p">)</span>
 <span class="go">7326</span>
 </pre></div>
 </div>
@@ -208,7 +207,7 @@ data will have to be read as a series of slabs. The default value is
 <p>There is a second optional argument to the load module that defines the access
 mode for the existing data. For example, the following opens the file in
 read/write mode:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">=</span><span class="n">nxload</span><span class="p">(</span><span class="s1">&#39;chopper.nxs&#39;</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;rw&#39;</span><span class="p">)</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">=</span><span class="n">nxload</span><span class="p">(</span><span class="s1">&#39;chopper.nxs&#39;</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;rw&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>The default mode is &#8216;r&#8217;, <em>i.e.</em>, readonly access.</p>
@@ -217,17 +216,17 @@ read/write mode:</p>
 <p class="last">If the file is opened in read/write mode, any changes are made
 automatically to the file itself. In particular, any deletions of
 file objects will be irreversible. Make sure you have a backup
-if you open a mission-critical file. In the <a class="reference internal" href="pythongui.html"><em>Python Graphical User Interface</em></a>, this
+if you open a mission-critical file. In the <a class="reference internal" href="pythongui.html"><span class="doc">Python Graphical User Interface</span></a>, this
 can be achieved using the &#8216;Duplicate...&#8217; menu item.</p>
 </div>
 </div>
 </div>
 <div class="section" id="creating-nexus-data">
 <h2>Creating NeXus Data<a class="headerlink" href="#creating-nexus-data" title="Permalink to this headline">¶</a></h2>
-<p>It is just as easy to create new NeXus data sets from scratch using numpy
+<p>It is just as easy to create new NeXus data sets from scratch using Nunpy
 arrays. The following example shows the creation of a simple function, which is
 then saved to a file:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">=</span><span class="n">y</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span><span class="mi">101</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">X</span><span class="p">,</span><span class="n">Y</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">z</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">X</span><span class="p">)</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">Y</span><span class="p">)</span>
@@ -236,17 +235,18 @@ then saved to a file:</p>
 </pre></div>
 </div>
 <p>This file can then be loaded again:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">b</span><span class="o">=</span><span class="n">nxload</span><span class="p">(</span><span class="s1">&#39;function.nxs&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">b</span><span class="o">.</span><span class="n">tree</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">b</span><span class="o">=</span><span class="n">nxload</span><span class="p">(</span><span class="s1">&#39;function.nxs&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">b</span><span class="o">.</span><span class="n">tree</span><span class="p">)</span>
 <span class="go">root:NXroot</span>
-<span class="go"> @HDF5_Version = 1.8.2</span>
-<span class="go"> @NeXus_version = 4.2.1</span>
-<span class="go"> @file_name = function.nxs</span>
-<span class="go"> @file_time = 2010-05-10T17:01:13+01:00</span>
+<span class="go"> @HDF5_Version = &#39;1.8.17&#39;</span>
+<span class="go"> @file_name = &#39;function.nxs&#39;</span>
+<span class="go"> @file_time = &#39;2017-10-12T20:02:53.953375&#39;</span>
+<span class="go"> @h5py_version = &#39;2.7.0&#39;</span>
+<span class="go"> @nexusformat_version = &#39;0.4.10&#39;</span>
 <span class="go"> entry:NXentry</span>
 <span class="go">   data:NXdata</span>
-<span class="go">     @axes = axis1:axis2</span>
-<span class="go">     @signal = signal</span>
+<span class="go">     @axes = [&#39;axis1&#39; &#39;axis2&#39;]</span>
+<span class="go">     @signal = &#39;signal&#39;</span>
 <span class="go">     axis1 = float64(101)</span>
 <span class="go">     axis2 = float64(101)</span>
 <span class="go">     signal = float64(101x101)</span>
@@ -267,40 +267,37 @@ can contain fields, with base class NXfield, and/or other groups.</p>
 <div class="section" id="nexus-fields">
 <h3>NeXus Fields<a class="headerlink" href="#nexus-fields" title="Permalink to this headline">¶</a></h3>
 <p>NeXus data values are stored in NeXus objects of class &#8216;NXfield&#8217;. The NXfield
-class wraps standard numpy arrays, scalars, and python strings so that
+class wraps standard Nunpy arrays, scalars, and Python strings so that
 additional metadata (or attributes) and methods can be associated with them.</p>
 <p>There are three ways to create an NXfield.</p>
-<ul>
-<li><p class="first">Direct assignment:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">NXfield</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span><span class="mi">101</span><span class="p">),</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;degree&#39;</span><span class="p">)</span>
+<p># Direct assignment:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>  <span class="o">&gt;&gt;&gt;</span> <span class="n">x</span> <span class="o">=</span> <span class="n">NXfield</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span><span class="mi">101</span><span class="p">),</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;degree&#39;</span><span class="p">)</span>
+
+<span class="n">The</span> <span class="n">data</span> <span class="n">value</span> <span class="ow">is</span> <span class="n">given</span> <span class="n">by</span> <span class="n">the</span> <span class="n">first</span> <span class="n">positional</span> <span class="n">argument</span><span class="p">,</span> <span class="ow">and</span> <span class="n">may</span> <span class="n">be</span> <span class="n">a</span> <span class="n">Python</span>
+<span class="n">scalar</span> <span class="ow">or</span> <span class="n">string</span><span class="p">,</span> <span class="ow">or</span> <span class="n">a</span> <span class="n">Nunpy</span> <span class="n">array</span><span class="o">.</span> <span class="n">In</span> <span class="n">this</span> <span class="n">method</span><span class="p">,</span> <span class="n">keyword</span> <span class="n">arguments</span> <span class="n">can</span> <span class="n">be</span>
+<span class="n">used</span> <span class="n">to</span> <span class="n">define</span> <span class="n">NXfield</span> <span class="n">attributes</span><span class="o">.</span>
 </pre></div>
 </div>
-<p>The data value is given by the first positional argument, and may be a Python
-scalar or string, or a numpy array. In this method, keyword arguments can be
-used to define NXfield attributes.</p>
-</li>
-<li><p class="first">Attribute assignment as the child of a NeXus group:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">entry</span><span class="o">.</span><span class="n">sample</span><span class="o">.</span><span class="n">temperature</span><span class="o">=</span><span class="mf">40.0</span>
+<p># Attribute assignment as the child of a NeXus group:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>  <span class="o">&gt;&gt;&gt;</span> <span class="n">a</span><span class="o">.</span><span class="n">entry</span><span class="o">.</span><span class="n">sample</span><span class="o">.</span><span class="n">temperature</span><span class="o">=</span><span class="mf">40.0</span>
+
+<span class="n">The</span> <span class="n">assigned</span> <span class="n">values</span> <span class="n">are</span> <span class="n">automatically</span> <span class="n">converted</span> <span class="n">to</span> <span class="n">an</span> <span class="n">NXfield</span><span class="p">::</span>
+
+  <span class="o">&gt;&gt;&gt;</span> <span class="n">a</span><span class="o">.</span><span class="n">entry</span><span class="o">.</span><span class="n">sample</span><span class="o">.</span><span class="n">temperature</span>
+  <span class="n">NXfield</span><span class="p">(</span><span class="mf">40.0</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>The assigned values are automatically converted to an NXfield:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">entry</span><span class="o">.</span><span class="n">sample</span><span class="o">.</span><span class="n">temperature</span>
-<span class="go">NXfield(name=temperature,value=40.0)</span>
+<p># Dictionary assignment to the NeXus group:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>  <span class="o">&gt;&gt;&gt;</span> <span class="n">a</span><span class="o">.</span><span class="n">entry</span><span class="o">.</span><span class="n">sample</span><span class="p">[</span><span class="s2">&quot;temperature&quot;</span><span class="p">]</span><span class="o">=</span><span class="mf">40.0</span>
+
+<span class="n">This</span> <span class="ow">is</span> <span class="n">equivalent</span> <span class="n">to</span> <span class="n">the</span> <span class="n">second</span> <span class="n">method</span><span class="p">,</span> <span class="n">but</span> <span class="n">should</span> <span class="n">be</span> <span class="n">used</span> <span class="k">if</span> <span class="n">there</span> <span class="ow">is</span> <span class="n">a</span>
+<span class="n">danger</span> <span class="n">of</span> <span class="n">a</span> <span class="n">name</span> <span class="n">clash</span> <span class="k">with</span> <span class="n">an</span> <span class="n">NXfield</span> <span class="n">method</span><span class="p">,</span> <span class="o">*</span><span class="n">e</span><span class="o">.</span><span class="n">g</span><span class="o">.*</span><span class="p">,</span> <span class="k">if</span> <span class="n">the</span> <span class="n">NXfield</span> <span class="ow">is</span>
+<span class="n">called</span> <span class="s1">&#39;plot&#39;</span><span class="o">.</span>
 </pre></div>
 </div>
-</li>
-<li><p class="first">Dictionary assignment to the NeXus group:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">entry</span><span class="o">.</span><span class="n">sample</span><span class="p">[</span><span class="s2">&quot;temperature&quot;</span><span class="p">]</span><span class="o">=</span><span class="mf">40.0</span>
-</pre></div>
-</div>
-<p>This is equivalent to the second method, but should be used if there is a
-danger of a name clash with an NXfield method, <em>e.g.</em>, if the NXfield is
-called &#8216;plot&#8217;.</p>
-</li>
-</ul>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">When using the NeXpy GUI shell (see <a class="reference internal" href="pythongui.html"><em>Python Graphical User Interface</em></a>), it is possible
+<p class="last">When using the NeXpy GUI shell (see <a class="reference internal" href="pythongui.html"><span class="doc">Python Graphical User Interface</span></a>), it is possible
 to use tab completion to check for possible name clashes with NXfield
 methods. To avoid name clashes in scripts, use dictionary assignments.</p>
 </div>
@@ -308,7 +305,7 @@ methods. To avoid name clashes in scripts, use dictionary assignments.</p>
 normally inherited automatically from the data type of the Python object,
 although it is possible to define alternative (but compatible) datatypes. For
 example, a float64 array can be converted to float32 on assignment:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span><span class="mi">101</span><span class="p">)</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span><span class="mi">101</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">.</span><span class="n">dtype</span>
 <span class="go">dtype(&#39;float64&#39;)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">=</span><span class="n">NXfield</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;float32&#39;</span><span class="p">)</span>
@@ -322,7 +319,7 @@ example, a float64 array can be converted to float32 on assignment:</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">Numeric dtypes can be defined either as a string, <em>e.g.</em>, &#8216;int16&#8217;,
-&#8216;float32&#8217;, or using the numpy dtypes, <em>e.g.</em>, np.int16, np.float32.</p>
+&#8216;float32&#8217;, or using the Nunpy dtypes, <em>e.g.</em>, np.int16, np.float32.</p>
 </div>
 <div class="admonition warning">
 <p class="first admonition-title">Warning</p>
@@ -339,8 +336,8 @@ HDF5 cannot convert them.</p>
 <p class="first admonition-title">Warning</p>
 <p>If you wish to store an array of strings containing Unicode
 characters as fixed-length strings, convert them to byte strings
-first using UTF-8 encoding, <em>e.g.</em>:</p>
-<div class="last highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">t</span> <span class="o">=</span> <span class="p">[</span><span class="sa">u</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="sa">u</span><span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="sa">u</span><span class="s1">&#39;c&#39;</span><span class="p">,</span> <span class="sa">u</span><span class="s1">&#39;d&#39;</span><span class="p">,</span> <span class="sa">u</span><span class="s1">&#39;é&#39;</span><span class="p">]</span>
+first using UTF-8 encoding, <em>e.g.</em> (in Python 2.7):</p>
+<div class="last highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">t</span> <span class="o">=</span> <span class="p">[</span><span class="sa">u</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="sa">u</span><span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="sa">u</span><span class="s1">&#39;c&#39;</span><span class="p">,</span> <span class="sa">u</span><span class="s1">&#39;d&#39;</span><span class="p">,</span> <span class="sa">u</span><span class="s1">&#39;é&#39;</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">=</span><span class="n">NXfield</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">defchararray</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;utf-8&#39;</span><span class="p">)),</span>
 <span class="go">              dtype=&#39;S10&#39;)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">a</span>
@@ -349,12 +346,12 @@ first using UTF-8 encoding, <em>e.g.</em>:</p>
 </div>
 </div>
 <p>Similarly, the shape and dimension sizes of an integer or float array is
-inherited from the assigned numpy array. It is possible to initialize an NXfield
+inherited from the assigned Nunpy array. It is possible to initialize an NXfield
 array without specifying the data values in advance, <em>e.g.</em>, if the data has to
 be created in slabs:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">=</span><span class="n">NXfield</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="mi">2048</span><span class="p">,</span><span class="mi">2048</span><span class="p">,</span><span class="mi">2048</span><span class="p">])</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">=</span><span class="n">NXfield</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="mi">2048</span><span class="p">,</span><span class="mi">2048</span><span class="p">,</span><span class="mi">2048</span><span class="p">])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">a</span>
-<span class="go">NXfield(dtype=float32,shape=(2048, 2048, 2048))</span>
+<span class="go">NXfield(shape=(2048, 2048, 2048), dtype=float32)</span>
 </pre></div>
 </div>
 <p>More details of handling large arrays are given below.</p>
@@ -362,22 +359,22 @@ be created in slabs:</p>
 <h4>NeXus attributes<a class="headerlink" href="#nexus-attributes" title="Permalink to this headline">¶</a></h4>
 <p>The NeXus standard allows additional attributes to be attached to NXfields to
 contain metadata</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">entry</span><span class="o">.</span><span class="n">sample</span><span class="o">.</span><span class="n">temperature</span><span class="o">.</span><span class="n">units</span><span class="o">=</span><span class="s1">&#39;K&#39;</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">entry</span><span class="o">.</span><span class="n">sample</span><span class="o">.</span><span class="n">temperature</span><span class="o">.</span><span class="n">units</span><span class="o">=</span><span class="s1">&#39;K&#39;</span>
 </pre></div>
 </div>
 <p>These have a class of NXattr. They can be defined using the &#8216;attrs&#8217; dictionary
 if necessary to avoid name clashes:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">entry</span><span class="o">.</span><span class="n">sample</span><span class="o">.</span><span class="n">temperature</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;units&#39;</span><span class="p">]</span><span class="o">=</span><span class="s1">&#39;K&#39;</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">entry</span><span class="o">.</span><span class="n">sample</span><span class="o">.</span><span class="n">temperature</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;units&#39;</span><span class="p">]</span><span class="o">=</span><span class="s1">&#39;K&#39;</span>
 </pre></div>
 </div>
 <p>Other common attributes include the &#8216;signal&#8217; and &#8216;axes&#8217; attributes used to
 define the plottable signal and independent axes, respectively, in a NXdata
 group.</p>
 <p>When a NeXus tree is printed, the attributes are prefixed by &#8216;&#64;&#8217;:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">a</span><span class="o">.</span><span class="n">entry</span><span class="o">.</span><span class="n">sample</span><span class="o">.</span><span class="n">tree</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">entry</span><span class="o">.</span><span class="n">sample</span><span class="o">.</span><span class="n">tree</span><span class="p">)</span>
 <span class="go">sample:NXsample</span>
 <span class="go">  temperature = 40.0</span>
-<span class="go">    @units = K</span>
+<span class="go">    @units = &#39;K&#39;</span>
 </pre></div>
 </div>
 </div>
@@ -390,7 +387,7 @@ way of preventing bad data from contaminating statistical analyses, while
 preserving all the data values, good and bad, <em>i.e.</em>, masks can be turned on and
 off.</p>
 <p>NeXpy uses the same syntax as Numpy for masking and unmasking data.</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">z</span> <span class="o">=</span> <span class="n">NXfield</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">6</span><span class="p">],</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;z&#39;</span><span class="p">)</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">z</span> <span class="o">=</span> <span class="n">NXfield</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">6</span><span class="p">],</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;z&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">z</span><span class="p">[</span><span class="mi">3</span><span class="p">:</span><span class="mi">5</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">z</span>
 <span class="go">NXfield([1 2 3 -- -- 6])</span>
@@ -412,10 +409,10 @@ as in Numpy arrays. However, if the NXfield has a parent group, the mask is
 stored in a separate NXfield that is generated automatically by the mask
 assignment or whenever the masked NXfield is assigned to a group. The mask is
 identified by the &#8216;mask&#8217; attribute of the masked NXfield.</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">NXlog</span><span class="p">(</span><span class="n">z</span><span class="p">)</span><span class="o">.</span><span class="n">tree</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">NXlog</span><span class="p">(</span><span class="n">z</span><span class="p">)</span><span class="o">.</span><span class="n">tree</span><span class="p">)</span>
 <span class="go">log:NXlog</span>
 <span class="go">z = [1 2 3 4 -- 6]</span>
-<span class="go"> @mask = z_mask</span>
+<span class="go"> @mask = &#39;z_mask&#39;</span>
 <span class="go">z_mask = [False False False False  True False]</span>
 </pre></div>
 </div>
@@ -426,48 +423,48 @@ identified by the &#8216;mask&#8217; attribute of the masked NXfield.</p>
 manually, but it is recommended that modifications to the mask use
 the methods described above.</p>
 </div>
-<p>Masks can also be set using the Projection panel in the <a class="reference internal" href="pythongui.html"><em>Python Graphical User Interface</em></a>.</p>
+<p>Masks can also be set using the Projection panel in the <a class="reference internal" href="pythongui.html"><span class="doc">Python Graphical User Interface</span></a>.</p>
 </div>
 <div class="section" id="large-arrays">
 <h4>Large Arrays<a class="headerlink" href="#large-arrays" title="Permalink to this headline">¶</a></h4>
 <p>If the size of an array is too large to be loaded into memory (as defined by
 NX_MEMORY), the NXfield can be created without any initial values, and then
 filled incrementally as slabs:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">entry</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">z</span> <span class="o">=</span> <span class="n">NXfield</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span><span class="mi">1000</span><span class="p">,</span><span class="mi">1000</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">entry</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">z</span> <span class="o">=</span> <span class="n">NXfield</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span><span class="mi">1000</span><span class="p">,</span><span class="mi">1000</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1000</span><span class="p">):</span>
 <span class="go">        entry.data.z[i,:,:] = np.ones(shape=(1000,1000), dtype=np.float32)</span>
 <span class="go">            ...</span>
 </pre></div>
 </div>
 <p>If <code class="docutils literal"><span class="pre">entry</span></code> in the above example is already stored in a NeXus file (with write
-access), then <code class="docutils literal"><span class="pre">entry.data.z</span></code> is automatically updated in the file. If it is not
-stored in a file, the field is stored in an HDF5 core memory file that will be
-copied to the NeXus file when it is saved.</p>
+access), then <code class="docutils literal"><span class="pre">entry.data.z</span></code> is automatically updated in the file. If it is
+not stored in a file, the field is stored in an HDF5 core memory file that will
+be copied to the NeXus file when it is saved.</p>
 <p>When initializing the NXfield, it is possible to specify a number of HDF5
 attributes that specify how the data are stored.</p>
 <ul>
 <li><p class="first">Compression:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">z</span> <span class="o">=</span> <span class="n">NXfield</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span><span class="mi">1000</span><span class="p">,</span><span class="mi">1000</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">compression</span><span class="o">=</span><span class="s1">&#39;lzf&#39;</span><span class="p">)</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">z</span> <span class="o">=</span> <span class="n">NXfield</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span><span class="mi">1000</span><span class="p">,</span><span class="mi">1000</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">compression</span><span class="o">=</span><span class="s1">&#39;lzf&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>This specifies the compression filter used. For large arrays, the data are
 compressed with the <code class="docutils literal"><span class="pre">gzip</span></code> filter by default.</p>
 </li>
 <li><p class="first">Chunk size:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">z</span> <span class="o">=</span> <span class="n">NXfield</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span><span class="mi">1000</span><span class="p">,</span><span class="mi">1000</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">chunks</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">100</span><span class="p">,</span><span class="mi">100</span><span class="p">))</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">z</span> <span class="o">=</span> <span class="n">NXfield</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span><span class="mi">1000</span><span class="p">,</span><span class="mi">1000</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">chunks</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">100</span><span class="p">,</span><span class="mi">100</span><span class="p">))</span>
 </pre></div>
 </div>
 <p>If chunk sizes are not specified, HDF5 will choose default sizes.</p>
 </li>
 <li><p class="first">Maximum array shape:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">z</span> <span class="o">=</span> <span class="n">NXfield</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">1000</span><span class="p">,</span><span class="mi">1000</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">maxshape</span><span class="o">=</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span><span class="mi">1000</span><span class="p">,</span><span class="mi">1000</span><span class="p">))</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">z</span> <span class="o">=</span> <span class="n">NXfield</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">1000</span><span class="p">,</span><span class="mi">1000</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">maxshape</span><span class="o">=</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span><span class="mi">1000</span><span class="p">,</span><span class="mi">1000</span><span class="p">))</span>
 </pre></div>
 </div>
 <p>The initial shape is defined by the <code class="docutils literal"><span class="pre">shape</span></code> attribute, but it will be
 automatically expanded up to a limit of <code class="docutils literal"><span class="pre">maxshape</span></code> if necessary.</p>
 </li>
 <li><p class="first">Fill value:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">z</span> <span class="o">=</span> <span class="n">NXfield</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span><span class="mi">1000</span><span class="p">,</span><span class="mi">1000</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">fillvalue</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">z</span> <span class="o">=</span> <span class="n">NXfield</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span><span class="mi">1000</span><span class="p">,</span><span class="mi">1000</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">fillvalue</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Slabs that are not initialized will contain the specified fill value. This is
@@ -477,7 +474,7 @@ normally set to zero by default.</p>
 <p>All these values can be adjusted at the command line until the first slab has
 been written, whether to a file or in core memory, using the <code class="docutils literal"><span class="pre">compression</span></code>,
 <code class="docutils literal"><span class="pre">chunks</span></code>, <code class="docutils literal"><span class="pre">maxshape</span></code> or <code class="docutils literal"><span class="pre">fillvalue</span></code> properties, <em>e.g.</em></p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">z</span> <span class="o">=</span> <span class="n">NXfield</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span><span class="mi">1000</span><span class="p">,</span><span class="mi">1000</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">z</span> <span class="o">=</span> <span class="n">NXfield</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span><span class="mi">1000</span><span class="p">,</span><span class="mi">1000</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">z</span><span class="o">.</span><span class="n">compression</span> <span class="o">=</span> <span class="s1">&#39;lzf&#39;</span>
 </pre></div>
 </div>
@@ -495,28 +492,28 @@ defining the type of information they contain, <em>e.g.</em>, the NXsample class
 contains metadata that define the measurement sample, such as its temperature or
 lattice parameters. The initialization parameters can be used to populate the
 group with other predefined NeXus objects, either groups or fields:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">temperature</span> <span class="o">=</span> <span class="n">NXfield</span><span class="p">(</span><span class="mf">40.0</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;K&#39;</span><span class="p">)</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">temperature</span> <span class="o">=</span> <span class="n">NXfield</span><span class="p">(</span><span class="mf">40.0</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;K&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">sample</span> <span class="o">=</span> <span class="n">NXsample</span><span class="p">(</span><span class="n">temperature</span><span class="o">=</span><span class="n">temperature</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">sample</span><span class="o">.</span><span class="n">tree</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">sample</span><span class="o">.</span><span class="n">tree</span><span class="p">)</span>
 <span class="go">sample:NXsample</span>
 <span class="go">  temperature = 40.0</span>
-<span class="go">    @units = K</span>
+<span class="go">    @units = &#39;K&#39;</span>
 </pre></div>
 </div>
 <p>In this example, it was necessary to use the keyword form to add the NXfield
 &#8216;temperature&#8217; since its name is otherwise undefined within the NXsample group.
 However, the name is set automatically if the NXfield is added as an attribute
 or dictionary assignment:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">sample</span> <span class="o">=</span> <span class="n">NXsample</span><span class="p">()</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">sample</span> <span class="o">=</span> <span class="n">NXsample</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">sample</span><span class="o">.</span><span class="n">temperature</span><span class="o">=</span><span class="n">NXfield</span><span class="p">(</span><span class="mf">40.0</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;K&#39;</span><span class="p">)</span>
 <span class="go">sample:NXsample</span>
 <span class="go">  temperature = 40.0</span>
-<span class="go">    @units = K</span>
+<span class="go">    @units = &#39;K&#39;</span>
 </pre></div>
 </div>
 <p>The NeXus objects in a group (NXfields or NXgroups) can be accessed as
 dictionary items:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">sample</span><span class="p">[</span><span class="s2">&quot;temperature&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">40.0</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">sample</span><span class="p">[</span><span class="s2">&quot;temperature&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">40.0</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">sample</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
 <span class="go">[&#39;temperature&#39;]</span>
 </pre></div>
@@ -529,8 +526,8 @@ respect to the root object, <em>e.g.</em>, root[&#8216;/entry/sample/temperature
 <p>If a group is not created as another group attribute, its internal name defaults
 to the class name without the &#8216;NX&#8217; prefix. This can be useful in automatically
 creating nested groups with minimal typing:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">=</span><span class="n">NXentry</span><span class="p">(</span><span class="n">NXsample</span><span class="p">(</span><span class="n">temperature</span><span class="o">=</span><span class="mf">40.0</span><span class="p">),</span><span class="n">NXinstrument</span><span class="p">(</span><span class="n">NXdetector</span><span class="p">(</span><span class="n">distance</span><span class="o">=</span><span class="mf">10.8</span><span class="p">)))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">a</span><span class="o">.</span><span class="n">tree</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">=</span><span class="n">NXentry</span><span class="p">(</span><span class="n">NXsample</span><span class="p">(</span><span class="n">temperature</span><span class="o">=</span><span class="mf">40.0</span><span class="p">),</span><span class="n">NXinstrument</span><span class="p">(</span><span class="n">NXdetector</span><span class="p">(</span><span class="n">distance</span><span class="o">=</span><span class="mf">10.8</span><span class="p">)))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">tree</span><span class="p">)</span>
 <span class="go">entry:NXentry</span>
 <span class="go">  instrument:NXinstrument</span>
 <span class="go">    detector:NXdetector</span>
@@ -552,20 +549,20 @@ the axes. NeXus defines a method of associating axes with the appropriate
 dimension, but NeXpy provides a simple constructor that implements this method
 automatically. This was already demonstrated in the example above, reproduced
 here:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">=</span><span class="n">y</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span><span class="mi">101</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">X</span><span class="p">,</span><span class="n">Y</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">z</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">X</span><span class="p">)</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">Y</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">=</span><span class="n">NXdata</span><span class="p">(</span><span class="n">z</span><span class="p">,[</span><span class="n">y</span><span class="p">,</span><span class="n">x</span><span class="p">])</span>
 </pre></div>
 </div>
-<p>The first positional argument is an NXfield or numpy array containing the data,
-while the second is a list containing the axes, again as NXfields or numpy
+<p>The first positional argument is an NXfield or Nunpy array containing the data,
+while the second is a list containing the axes, again as NXfields or Nunpy
 arrays. In this example, the names of the arrays have not been defined within an
 NXfield so default names were assigned:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">a</span><span class="o">.</span><span class="n">tree</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">tree</span><span class="p">)</span>
 <span class="go">data:NXdata</span>
-<span class="go">  @axes = axis1:axis2</span>
+<span class="go">  @axes = [&#39;axis1&#39; &#39;axis2&#39;]</span>
 <span class="go">  @signal = signal</span>
 <span class="go">  axis1 = float64(101)</span>
 <span class="go">  axis2 = float64(101)</span>
@@ -576,9 +573,8 @@ NXfield so default names were assigned:</p>
 <p class="first admonition-title">Note</p>
 <p class="last">The plottable signal and axes are identified by the &#8216;signal&#8217;
 and &#8216;axes&#8217; attributes of the NXdata group. The &#8216;axes&#8217; attribute
-defines the axes as a string of NXfield names delimited here by
-a colon. White space or commas can also be used as delimiters. The
-NXdata constructor sets these attributes automatically.</p>
+defines the axes as a list of NXfield names The NXdata constructor
+sets these attributes automatically.</p>
 </div>
 <div class="admonition warning">
 <p class="first admonition-title">Warning</p>
@@ -586,18 +582,18 @@ NXdata constructor sets these attributes automatically.</p>
 in the array &#8216;signal(axis1,axis2)&#8217;, axis2 is the fastest to vary.
 In most image formats, <em>e.g.</em>, TIFF files, the x-axis is assumed
 to be the fastest varying axis, so we are adopting the same
-convention and plotting as &#8216;signal(y,x)&#8217;. The <a class="reference internal" href="pythongui.html"><em>Python Graphical User Interface</em></a>
+convention and plotting as &#8216;signal(y,x)&#8217;. The <a class="reference internal" href="pythongui.html"><span class="doc">Python Graphical User Interface</span></a>
 allows the x and y axes to be swapped.</p>
 </div>
 <p>Names can be assigned explicitly when creating the NXfield through the &#8216;name&#8217;
 attribute:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">phi</span><span class="o">=</span><span class="n">NXfield</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span><span class="mi">101</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;polar_angle&#39;</span><span class="p">)</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">phi</span><span class="o">=</span><span class="n">NXfield</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span><span class="mi">101</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;polar_angle&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="o">=</span><span class="n">NXfield</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">phi</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;intensity&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">=</span><span class="n">NXdata</span><span class="p">(</span><span class="n">data</span><span class="p">,(</span><span class="n">phi</span><span class="p">))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">a</span><span class="o">.</span><span class="n">tree</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">tree</span><span class="p">)</span>
 <span class="go">data:NXdata</span>
-<span class="go">  @axes = polar_angle</span>
-<span class="go">  @signal = intensity</span>
+<span class="go">  @axes = &#39;polar_angle&#39;</span>
+<span class="go">  @signal = &#39;intensity&#39;</span>
 <span class="go">  intensity = float64(101)</span>
 <span class="go">  polar_angle = float64(101)</span>
 </pre></div>
@@ -612,14 +608,14 @@ would also have been acceptable just to call NXdata(data, phi),
 </div>
 <p>It is also possible to define the plottable signal and/or axes using the
 &#8216;nxsignal&#8217; and &#8216;nxaxes&#8217; properties, respectively:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">phi</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span><span class="mi">101</span><span class="p">)</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">phi</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span><span class="mi">101</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">=</span><span class="n">NXdata</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">nxsignal</span><span class="o">=</span><span class="n">NXfield</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">phi</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;intensity&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">nxaxes</span><span class="o">=</span><span class="n">NXfield</span><span class="p">(</span><span class="n">phi</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;polar_angle&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">a</span><span class="o">.</span><span class="n">tree</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">tree</span><span class="p">)</span>
 <span class="go">data:NXdata</span>
-<span class="go">  @axes = polar_angle</span>
-<span class="go">  @signal = intensity</span>
+<span class="go">  @axes = &#39;polar_angle&#39;</span>
+<span class="go">  @signal = &#39;intensity&#39;</span>
 <span class="go">  intensity = float64(101)</span>
 <span class="go">  polar_angle = float64(101)</span>
 </pre></div>
@@ -635,30 +631,30 @@ fields in another NeXus file (see &#8216;External Links&#8217; below).</p>
 <p>For example, the polar angle and time-of-flight arrays may logically be stored
 with the detector information in a NXdetector group that is one of the
 NXinstrument subgroups:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">entry</span><span class="o">.</span><span class="n">instrument</span><span class="o">.</span><span class="n">tree</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">entry</span><span class="o">.</span><span class="n">instrument</span><span class="o">.</span><span class="n">tree</span><span class="p">)</span>
 <span class="go">instrument:NXinstrument</span>
 <span class="go">  detector:NXdetector</span>
 <span class="go">   distance = float32(128)</span>
-<span class="go">     @units = metre</span>
+<span class="go">     @units = &#39;metre&#39;</span>
 <span class="go">   polar_angle = float32(128)</span>
-<span class="go">     @units = radian</span>
+<span class="go">     @units = &#39;radian&#39;</span>
 <span class="go">   time_of_flight = float32(8252)</span>
-<span class="go">     @target = /entry/instrument/detector/time_of_flight</span>
-<span class="go">     @units = microsecond</span>
+<span class="go">     @target = &#39;/entry/instrument/detector/time_of_flight&#39;</span>
+<span class="go">     @units = &#39;microsecond&#39;</span>
 </pre></div>
 </div>
 <p>However, they may also be needed as plotting axes in a NXdata group:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">entry</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">tree</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">entry</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">tree</span><span class="p">)</span>
 <span class="go">data:NXdata</span>
-<span class="go">  @axes = polar_angle:time_of_flight</span>
+<span class="go">  @axes = [&#39;polar_angle&#39; &#39;time_of_flight&#39;]</span>
 <span class="go">  @signal = data</span>
 <span class="go">  data = uint32(128x8251)</span>
 <span class="go">  polar_angle = float32(128)</span>
-<span class="go">    @target = /entry/instrument/detector/polar_angle</span>
-<span class="go">    @units = radian</span>
+<span class="go">    @target = &#39;/entry/instrument/detector/polar_angle&#39;</span>
+<span class="go">    @units = &#39;radian&#39;</span>
 <span class="go">  time_of_flight = float32(8252)</span>
-<span class="go">    @target = /entry/instrument/detector/time_of_flight</span>
-<span class="go">    @units = microsecond</span>
+<span class="go">    @target = &#39;/entry/instrument/detector/time_of_flight&#39;</span>
+<span class="go">    @units = &#39;microsecond&#39;</span>
 </pre></div>
 </div>
 <p>Links allow the same data to be used in different contexts without using more
@@ -673,7 +669,7 @@ not need to worry if the object is parent or child. The data values and NeXus
 attributes of the parent to the NXlink object can be accessed directly through
 the child object. The parent object can be referenced directly, if required,
 using the &#8216;nxlink&#8217; attribute:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">entry</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">time_of_flight</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">entry</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">time_of_flight</span>
 <span class="go">NXlink(&#39;/entry/instrument/detector/time_of_flight&#39;)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">entry</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">time_of_flight</span><span class="o">.</span><span class="n">nxdata</span>
 <span class="go">array([   500.,    502.,    504., ...,  16998.,  17000.,  17002.], dtype=float32)</span>
@@ -687,7 +683,7 @@ using the &#8216;nxlink&#8217; attribute:</p>
 <p class="first admonition-title">Note</p>
 <p>The absolute path of the data with respect to the root object of the
 NeXus tree is given by the nxpath property:</p>
-<div class="last highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">entry</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">time_of_flight</span><span class="o">.</span><span class="n">nxpath</span>
+<div class="last highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">entry</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">time_of_flight</span><span class="o">.</span><span class="n">nxpath</span>
 <span class="go">&#39;/entry/data/time_of_flight&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">entry</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">time_of_flight</span><span class="o">.</span><span class="n">nxlink</span><span class="o">.</span><span class="n">nxpath</span>
 <span class="go">&#39;/entry/instrument/bank1/time_of_flight&#39;</span>
@@ -698,32 +694,32 @@ NeXus tree is given by the nxpath property:</p>
 <h4>Creating a Link<a class="headerlink" href="#creating-a-link" title="Permalink to this headline">¶</a></h4>
 <p>Links can be created using the target object as the argument assigned
 to another group:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">root</span><span class="o">.</span><span class="n">tree</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">root</span><span class="o">.</span><span class="n">tree</span><span class="p">)</span>
 <span class="go">root:NXroot</span>
 <span class="go">  entry:NXentry</span>
 <span class="go">    data:NXdata</span>
 <span class="go">    instrument:NXinstrument</span>
 <span class="go">      detector:NXdetector</span>
 <span class="go">        polar_angle = float64(192)</span>
-<span class="go">          @units = radian</span>
+<span class="go">          @units = &#39;radian&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">root</span><span class="o">.</span><span class="n">entry</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">polar_angle</span><span class="o">=</span><span class="n">NXlink</span><span class="p">(</span><span class="n">root</span><span class="o">.</span><span class="n">entry</span><span class="o">.</span><span class="n">instrument</span><span class="o">.</span><span class="n">detector</span><span class="o">.</span><span class="n">polar_angle</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>It is also possible to create links using the makelink method, which takes the
 parent object and, optionally, a new name as arguments:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">root</span><span class="o">.</span><span class="n">entry</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">makelink</span><span class="p">(</span><span class="n">root</span><span class="o">.</span><span class="n">entry</span><span class="o">.</span><span class="n">instrument</span><span class="o">.</span><span class="n">detector</span><span class="o">.</span><span class="n">polar_angle</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">root</span><span class="o">.</span><span class="n">tree</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">root</span><span class="o">.</span><span class="n">entry</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">makelink</span><span class="p">(</span><span class="n">root</span><span class="o">.</span><span class="n">entry</span><span class="o">.</span><span class="n">instrument</span><span class="o">.</span><span class="n">detector</span><span class="o">.</span><span class="n">polar_angle</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">root</span><span class="o">.</span><span class="n">tree</span><span class="p">)</span>
 <span class="go">root:NXroot</span>
 <span class="go">  entry:NXentry</span>
 <span class="go">    data:NXdata</span>
 <span class="go">      polar_angle = float64(192)</span>
-<span class="go">        @target = /entry/instrument/detector/polar_angle</span>
-<span class="go">        @units = radian</span>
+<span class="go">        @target = &#39;/entry/instrument/detector/polar_angle&#39;</span>
+<span class="go">        @units = &#39;radian&#39;</span>
 <span class="go">    instrument:NXinstrument</span>
 <span class="go">      detector:NXdetector</span>
 <span class="go">        polar_angle = float64(192)</span>
-<span class="go">          @target = /entry/instrument/detector/polar_angle</span>
-<span class="go">          @units = radian</span>
+<span class="go">          @target = &#39;/entry/instrument/detector/polar_angle&#39;</span>
+<span class="go">          @units = &#39;radian&#39;</span>
 </pre></div>
 </div>
 <div class="admonition note">
@@ -741,7 +737,7 @@ parent.</p>
 <h4>External Links<a class="headerlink" href="#external-links" title="Permalink to this headline">¶</a></h4>
 <p>It is also possible to link to a NeXus field that is stored in another file.
 This is accomplished using a similar syntax to internal links.</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">root</span><span class="o">.</span><span class="n">entry</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">NXlink</span><span class="p">(</span><span class="s1">&#39;/counts&#39;</span><span class="p">,</span> <span class="nb">file</span><span class="o">=</span><span class="s1">&#39;external_counts.nxs&#39;</span><span class="p">)</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">root</span><span class="o">.</span><span class="n">entry</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">NXlink</span><span class="p">(</span><span class="s1">&#39;/counts&#39;</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="s1">&#39;external_counts.nxs&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>In the case of external links, the first argument is the absolute path of the
@@ -750,7 +746,7 @@ absolute or relative file path of the external file.</p>
 <p>By default, the target file path is converted to a relative path with respect
 to the parent file. If it is required to store the absolute file path, add the
 keyword argument, <code class="docutils literal"><span class="pre">abspath=True</span></code>.</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">root</span><span class="o">.</span><span class="n">entry</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">NXlink</span><span class="p">(</span><span class="s1">&#39;/counts&#39;</span><span class="p">,</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">root</span><span class="o">.</span><span class="n">entry</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">NXlink</span><span class="p">(</span><span class="s1">&#39;/counts&#39;</span><span class="p">,</span>
 <span class="go">                                  file=&#39;/home/user/external_counts.nxs&#39;,</span>
 <span class="go">                                  abspath=True)</span>
 </pre></div>
@@ -767,7 +763,7 @@ paths, the parent file will still open but the link will be broken.</p>
 <h2>Plotting NeXus Data<a class="headerlink" href="#plotting-nexus-data" title="Permalink to this headline">¶</a></h2>
 <p>NXdata, NXmonitor, and NXlog groups all have a plot method, which automatically
 determines what should be plotted:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
 </pre></div>
 </div>
 <a class="reference internal image-reference" href="_images/simple-plot.png"><img alt="_images/simple-plot.png" class="align-center" src="_images/simple-plot.png" style="width: 80%;" /></a>
@@ -780,16 +776,16 @@ two-dimensional slices can be specified using slice indices on the NXdata group.
 <p>If the data is one-dimensional, it is possible to overplot more than one data
 set using &#8216;over=True&#8217;. By default, each plot has a new color, but conventional
 Matplotlib keywords can be used to change markers and colors:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">log</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">log</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="s1">&#39;r-&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">over</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">log</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">over</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">log</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>If the NXdata group contains RGB(A) image data, <em>i.e.</em>, the signal is a
 three-dimensional array, in which the fastest varying dimension, which should be
 of size 3 or 4, contains the RGB(A) values for each two-dimensional pixel, then
 the image can be plotted using the &#8216;image=True&#8217;.</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">image</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">image</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>By convention, the first pixel of an image is in the upper-left corner, rather
@@ -804,7 +800,7 @@ valid NXdata group found in an iterative search is used.</dd>
 <h3>Additional Plot Methods<a class="headerlink" href="#additional-plot-methods" title="Permalink to this headline">¶</a></h3>
 <p>As a convenience, additional plot methods can be used instead of adding extra
 keywords.</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="o">.</span><span class="n">oplot</span><span class="p">()</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="o">.</span><span class="n">oplot</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="o">.</span><span class="n">logplot</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="o">.</span><span class="n">implot</span><span class="p">()</span>
 </pre></div>
@@ -821,16 +817,16 @@ when invoking the plot method.</p>
 <h4>NXfield<a class="headerlink" href="#nxfield" title="Permalink to this headline">¶</a></h4>
 <p>NXfields usually consist of arrays of numeric data with associated metadata, the
 NeXus attributes (the exception is when they contain character strings). This
-makes them similar to numpy arrays, and this module allows the use of NXfields
-in numerical operations as if they were numpy ndarrays:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">NXfield</span><span class="p">((</span><span class="mf">1.0</span><span class="p">,</span><span class="mf">2.0</span><span class="p">,</span><span class="mf">3.0</span><span class="p">,</span><span class="mf">4.0</span><span class="p">))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">x</span><span class="o">+</span><span class="mi">1</span>
+makes them similar to Nunpy arrays, and this module allows the use of NXfields
+in numerical operations as if they were Nunpy ndarrays:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">NXfield</span><span class="p">((</span><span class="mf">1.0</span><span class="p">,</span><span class="mf">2.0</span><span class="p">,</span><span class="mf">3.0</span><span class="p">,</span><span class="mf">4.0</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">x</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
 <span class="go">[ 2.  3.  4.  5.]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="mi">2</span><span class="o">*</span><span class="n">x</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">x</span><span class="p">)</span>
 <span class="go">[ 2.  4.  6.  8.]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">x</span><span class="o">/</span><span class="mi">2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">x</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span>
 <span class="go">[ 0.5  1.   1.5  2. ]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">x</span><span class="o">**</span><span class="mi">2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">x</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
 <span class="go">[  1.   4.   9.  16.]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
 <span class="go">NXfield([[ 1.  2.]</span>
@@ -849,18 +845,18 @@ in numerical operations as if they were numpy ndarrays:</p>
 <p>Such operations return valid NXfield objects containing the same attributes
 as the first NXobject in the expression. The &#8216;reshape&#8217; and &#8216;transpose&#8217; methods
 also return NXfield objects.</p>
-<p>NXfields can be compared to other NXfields (this is a comparison of their numpy
+<p>NXfields can be compared to other NXfields (this is a comparison of their Nunpy
 arrays):</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">y</span><span class="o">=</span><span class="n">NXfield</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">((</span><span class="mf">1.5</span><span class="p">,</span><span class="mf">2.5</span><span class="p">,</span><span class="mf">3.5</span><span class="p">)),</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;y&#39;</span><span class="p">)</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">y</span><span class="o">=</span><span class="n">NXfield</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">((</span><span class="mf">1.5</span><span class="p">,</span><span class="mf">2.5</span><span class="p">,</span><span class="mf">3.5</span><span class="p">)),</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;y&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">==</span> <span class="n">y</span>
 <span class="go">True</span>
 </pre></div>
 </div>
 <p>NXfields are technically not a sub-class of the ndarray class, but they are cast
-as numpy arrays when required by numpy operations, returning either another
+as Nunpy arrays when required by Nunpy operations, returning either another
 NXfield or, in some cases, an ndarray that can easily be converted to an
 NXfield:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">NXfield</span><span class="p">((</span><span class="mf">1.0</span><span class="p">,</span><span class="mf">2.0</span><span class="p">,</span><span class="mf">3.0</span><span class="p">,</span><span class="mf">4.0</span><span class="p">))</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">NXfield</span><span class="p">((</span><span class="mf">1.0</span><span class="p">,</span><span class="mf">2.0</span><span class="p">,</span><span class="mf">3.0</span><span class="p">,</span><span class="mf">4.0</span><span class="p">))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">.</span><span class="n">size</span>
 <span class="go">4</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
@@ -877,10 +873,10 @@ NXfield:</p>
 <span class="go">array([ 0.84147098,  0.90929743,  0.14112001, -0.7568025 ])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
 <span class="go">array([ 1.        ,  1.41421356,  1.73205081,  2.        ])</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">NXdata</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="p">(</span><span class="n">x</span><span class="p">))</span><span class="o">.</span><span class="n">tree</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">NXdata</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="p">(</span><span class="n">x</span><span class="p">))</span><span class="o">.</span><span class="n">tree</span><span class="p">)</span>
 <span class="go">data:NXdata</span>
-<span class="go">  @axes = x</span>
-<span class="go">  @signal = signal</span>
+<span class="go">  @axes = &#39;x&#39;</span>
+<span class="go">  @signal = &#39;signal&#39;</span>
 <span class="go">  signal = [ 0.84147098  0.90929743  0.14112001 -0.7568025 ]</span>
 <span class="go">  x = [ 1.  2.  3.  4.]</span>
 </pre></div>
@@ -891,61 +887,61 @@ NXfield:</p>
 <p>Similar operations can also be performed on whole NXdata groups. If two NXdata
 groups are to be added, the rank and dimension sizes of the main signal array
 must match (although the names could be different):</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">y</span><span class="o">=</span><span class="n">NXfield</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">x</span><span class="p">),</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;y&#39;</span><span class="p">)</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">y</span><span class="o">=</span><span class="n">NXfield</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">x</span><span class="p">),</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;y&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">y</span>
 <span class="go">NXfield(name=y,value=[ 0.99749499  0.59847214 -0.35078323])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">=</span><span class="n">NXdata</span><span class="p">(</span><span class="n">y</span><span class="p">,</span><span class="n">x</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">a</span><span class="o">.</span><span class="n">tree</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">tree</span><span class="p">)</span>
 <span class="go">data:NXdata</span>
-<span class="go">  @axes = x</span>
-<span class="go">  @signal = y</span>
+<span class="go">  @axes = &#39;x&#39;</span>
+<span class="go">  @signal = &#39;y&#39;</span>
 <span class="go">  x = [ 1.5  2.5  3.5]</span>
 <span class="go">  y = [ 0.99749499  0.59847214 -0.35078323]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="p">(</span><span class="n">a</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">tree</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">((</span><span class="n">a</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">tree</span><span class="p">)</span>
 <span class="go">data:NXdata</span>
-<span class="go">  @axes = x</span>
-<span class="go">  @signal = y</span>
+<span class="go">  @axes = &#39;x&#39;</span>
+<span class="go">  @signal = &#39;y&#39;</span>
 <span class="go">  x = [ 1.5  2.5  3.5]</span>
 <span class="go">  y = [ 1.99749499  1.59847214  0.64921677]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">a</span><span class="p">)</span><span class="o">.</span><span class="n">tree</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">((</span><span class="mi">2</span><span class="o">*</span><span class="n">a</span><span class="p">)</span><span class="o">.</span><span class="n">tree</span><span class="p">)</span>
 <span class="go">data:NXdata</span>
-<span class="go">  @axes = x</span>
-<span class="go">  @signal = y</span>
+<span class="go">  @axes = &#39;x&#39;</span>
+<span class="go">  @signal = &#39;y&#39;</span>
 <span class="go">  x = [ 1.5  2.5  3.5]</span>
 <span class="go">  y = [ 1.99498997  1.19694429 -0.70156646]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="p">(</span><span class="n">a</span><span class="o">+</span><span class="n">a</span><span class="p">)</span><span class="o">.</span><span class="n">tree</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">((</span><span class="n">a</span><span class="o">+</span><span class="n">a</span><span class="p">)</span><span class="o">.</span><span class="n">tree</span><span class="p">)</span>
 <span class="go">data:NXdata</span>
-<span class="go">  @axes = x</span>
-<span class="go">  @signal = y</span>
+<span class="go">  @axes = &#39;x&#39;</span>
+<span class="go">  @signal = &#39;y&#39;</span>
 <span class="go">  x = [ 1.5  2.5  3.5]</span>
 <span class="go">  y = [ 1.99498997  1.19694429 -0.70156646]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="p">(</span><span class="n">a</span><span class="o">-</span><span class="n">a</span><span class="p">)</span><span class="o">.</span><span class="n">tree</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">((</span><span class="n">a</span><span class="o">-</span><span class="n">a</span><span class="p">)</span><span class="o">.</span><span class="n">tree</span><span class="p">)</span>
 <span class="go">data:NXdata</span>
-<span class="go">  @axes = x</span>
-<span class="go">  @signal = y</span>
+<span class="go">  @axes = &#39;x&#39;</span>
+<span class="go">  @signal = &#39;y&#39;</span>
 <span class="go">  x = [ 1.5  2.5  3.5]</span>
 <span class="go">  y = [ 0.  0.  0.]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="p">(</span><span class="n">a</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">tree</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">((</span><span class="n">a</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">tree</span><span class="p">)</span>
 <span class="go">data:NXdata</span>
-<span class="go">  @axes = x</span>
-<span class="go">  @signal = y</span>
+<span class="go">  @axes = &#39;x&#39;</span>
+<span class="go">  @signal = &#39;y&#39;</span>
 <span class="go">  x = [ 1.5  2.5  3.5]</span>
 <span class="go">  y = [ 0.49874749  0.29923607 -0.17539161]</span>
 </pre></div>
 </div>
 <p>If data errors are included in the NXdata group (with an additional array named
 &#8216;errors&#8217;), then the errors are propagated according to the operand:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">a</span><span class="o">.</span><span class="n">tree</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">tree</span><span class="p">)</span>
 <span class="go">data:NXdata</span>
-<span class="go">  @axes = x</span>
-<span class="go">  @signal = y</span>
+<span class="go">  @axes = &#39;x&#39;</span>
+<span class="go">  @signal = &#39;y&#39;</span>
 <span class="go">  errors = [ 0.99874671  0.77360981  0.59226956]</span>
 <span class="go">  x = [ 1.5  2.5  3.5]</span>
 <span class="go">  y = [ 0.99749499  0.59847214  0.35078323]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="p">(</span><span class="n">a</span><span class="o">+</span><span class="n">a</span><span class="p">)</span><span class="o">.</span><span class="n">tree</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">((</span><span class="n">a</span><span class="o">+</span><span class="n">a</span><span class="p">)</span><span class="o">.</span><span class="n">tree</span><span class="p">)</span>
 <span class="go">data:NXdata</span>
-<span class="go">  @axes = x</span>
-<span class="go">  @signal = y</span>
+<span class="go">  @axes = &#39;x&#39;</span>
+<span class="go">  @signal = &#39;y&#39;</span>
 <span class="go">  errors = [ 1.41244114  1.09404949  0.83759564]</span>
 <span class="go">  x = [ 1.5  2.5  3.5]</span>
 <span class="go">  y = [ 1.99498997  1.19694429  0.70156646]</span>
@@ -958,14 +954,14 @@ must match (although the names could be different):</p>
 total is returned. Otherwise, it is summed along the specified axis. The
 result is a new NXdata group containing a copy of all the metadata contained
 in the original NXdata group:</p>
-<div class="last highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">3.</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+<div class="last highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">3.</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">y</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">2.</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">X</span><span class="p">,</span><span class="n">Y</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">=</span><span class="n">NXdata</span><span class="p">(</span><span class="n">X</span><span class="o">*</span><span class="n">Y</span><span class="p">,(</span><span class="n">y</span><span class="p">,</span><span class="n">x</span><span class="p">))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">a</span><span class="o">.</span><span class="n">tree</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">tree</span><span class="p">)</span>
 <span class="go">data:NXdata</span>
-<span class="go">  @axes = axis1:axis2</span>
-<span class="go">  @signal = signal</span>
+<span class="go">  @axes = [&#39;axis1&#39; &#39;axis2&#39;]</span>
+<span class="go">  @signal = &#39;signal&#39;</span>
 <span class="go">  axis1 = [ 0.  1.  2.  3.]</span>
 <span class="go">  axis2 = [ 0.  1.  2.]</span>
 <span class="go">  signal = float64(3x4)</span>
@@ -986,7 +982,7 @@ in the original NXdata group:</p>
 <dd><p class="first">Returns the average of the NXdata signal data. This is identical to the sum
 method, but the result is divided by the number of data elements in the
 summation:</p>
-<div class="last highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">average</span><span class="p">()</span>
+<div class="last highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">average</span><span class="p">()</span>
 <span class="go">1.5</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">nxsignal</span>
 <span class="go">NXfield([ 0.,  1.,  2.,  3.])</span>
@@ -999,7 +995,7 @@ summation:</p>
 <dd><p class="first">Returns an NXfield containing the first moment of the NXdata group assuming
 the signal is one-dimensional. Currently, only the first moment has been
 defined:</p>
-<div class="last highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">10.</span><span class="p">,</span> <span class="mi">11</span><span class="p">)</span>
+<div class="last highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">10.</span><span class="p">,</span> <span class="mi">11</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">y</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="p">(</span><span class="n">x</span><span class="o">-</span><span class="mi">3</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">=</span><span class="n">NXdata</span><span class="p">(</span><span class="n">y</span><span class="p">,</span><span class="n">x</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">moment</span><span class="p">()</span>
@@ -1014,15 +1010,15 @@ defined:</p>
 <h3>Slicing<a class="headerlink" href="#slicing" title="Permalink to this headline">¶</a></h3>
 <div class="section" id="id1">
 <h4>NXfield<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h4>
-<p>A slice of an NXfield can be obtained using the usual python indexing syntax:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">=</span><span class="n">NXfield</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span><span class="mi">101</span><span class="p">))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">51</span><span class="p">]</span>
+<p>A slice of an NXfield can be obtained using the usual Python indexing syntax:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">=</span><span class="n">NXfield</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span><span class="mi">101</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">51</span><span class="p">])</span>
 <span class="go">[ 0.          0.06283185  0.12566371 ...,  3.01592895  3.0787608 3.14159265]</span>
 </pre></div>
 </div>
 <p>If either of the indices are floats, then the limits are set by the values
 themselves (assuming the array is monotonic):</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">x</span><span class="p">[</span><span class="mf">0.5</span><span class="p">:</span><span class="mf">1.5</span><span class="p">]</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mf">0.5</span><span class="p">:</span><span class="mf">1.5</span><span class="p">])</span>
 <span class="go">[ 0.50265482  0.56548668  0.62831853 ...,  1.38230077  1.44513262 1.50796447]</span>
 </pre></div>
 </div>
@@ -1034,7 +1030,7 @@ works on the multidimensional NXfield, but the full NXdata group is returned
 with both the signal data and the associated axes limited by the slice
 parameters. If either of the limits along any one axis is a float, the limits
 are set by the values of the axis:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">=</span><span class="n">NXdata</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">x</span><span class="p">),</span><span class="n">x</span><span class="p">)</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">=</span><span class="n">NXdata</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">x</span><span class="p">),</span><span class="n">x</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="p">[</span><span class="mf">1.5</span><span class="p">:</span><span class="mf">2.5</span><span class="p">]</span><span class="o">.</span><span class="n">x</span>
 <span class="go">NXfield(name=x,value=[ 1.57079633  1.72787596  1.88495559 ...,  2.19911486  2.35619449])</span>
 </pre></div>
@@ -1042,23 +1038,28 @@ are set by the values of the axis:</p>
 <p>Unless the slice reduces one of the axes to a single item, the rank of the data
 remains the same. To project data along one of the axes, and so reduce the rank
 by one, the data can be summed along that axis using the sum() method:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">=</span><span class="n">y</span><span class="o">=</span><span class="n">NXfield</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span><span class="mi">41</span><span class="p">))</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">=</span><span class="n">y</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span><span class="mi">41</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">X</span><span class="p">,</span><span class="n">Y</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">=</span><span class="n">NXdata</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">X</span><span class="p">)</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">Y</span><span class="p">),</span> <span class="p">(</span><span class="n">y</span><span class="p">,</span><span class="n">x</span><span class="p">))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">a</span><span class="o">.</span><span class="n">tree</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">tree</span><span class="p">)</span>
 <span class="go">data:NXdata</span>
-<span class="go">  @axes = axis1:axis2</span>
-<span class="go">  @signal = signal</span>
+<span class="go">  @axes = [&#39;axis1&#39; &#39;axis2&#39;]</span>
+<span class="go">  @signal = &#39;signal&#39;</span>
 <span class="go">  axis1 = float64(41)</span>
 <span class="go">  axis2 = float64(41)</span>
 <span class="go">  signal = float64(41x41)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">a</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">tree</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">tree</span><span class="p">)</span>
 <span class="go">data:NXdata</span>
-<span class="go">  @axes = axis2</span>
-<span class="go">  @signal = signal</span>
+<span class="go">  @axes = [&#39;axis2&#39;]</span>
+<span class="go">  @signal = &#39;signal&#39;</span>
+<span class="go">  @summed_bins = 41</span>
+<span class="go">  axis1 = 3.141592653589793</span>
+<span class="go">    @maximum = 6.283185307179586</span>
+<span class="go">    @minimum = 0.0</span>
+<span class="go">    @summed_bins = 41</span>
 <span class="go">  axis2 = float64(41)</span>
 <span class="go">  signal = float64(41)</span>
-<span class="go">    @long_name = Integral from 0.0 to 6.28318530718</span>
+<span class="go">  title = &#39;data&#39;</span>
 </pre></div>
 </div>
 <p>It is also possible to slice whole NXdata groups. In this case, the slicing
@@ -1066,7 +1067,7 @@ works on the multidimensional NXfield, but the full NXdata group is returned
 with both the signal data and the associated axes limited by the slice
 parameters. If either of the limits along any one axis is a float, the limits
 are set by the values of the axis:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">=</span><span class="n">NXdata</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">x</span><span class="p">),</span><span class="n">x</span><span class="p">)</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">=</span><span class="n">NXdata</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">x</span><span class="p">),</span><span class="n">x</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="p">[</span><span class="mf">1.5</span><span class="p">:</span><span class="mf">2.5</span><span class="p">]</span><span class="o">.</span><span class="n">x</span>
 <span class="go">NXfield(name=x,value=[ 1.57079633  1.72787596  1.88495559 ...,  2.19911486  2.35619449])</span>
 </pre></div>
@@ -1074,24 +1075,24 @@ are set by the values of the axis:</p>
 <p>Unless the slice reduces one of the axes to a single item, the rank of the data
 remains the same. To project data along one of the axes, and so reduce the rank
 by one, the data can be summed along that axis using the sum() method. This
-employs the numpy array sum() method:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">=</span><span class="n">y</span><span class="o">=</span><span class="n">NXfield</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span><span class="mi">41</span><span class="p">))</span>
+employs the Nunpy array sum() method:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">=</span><span class="n">y</span><span class="o">=</span><span class="n">NXfield</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span><span class="mi">41</span><span class="p">))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">X</span><span class="p">,</span><span class="n">Y</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">=</span><span class="n">NXdata</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">X</span><span class="p">)</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">Y</span><span class="p">),</span> <span class="p">(</span><span class="n">y</span><span class="p">,</span><span class="n">x</span><span class="p">))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">a</span><span class="o">.</span><span class="n">tree</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">tree</span><span class="p">)</span>
 <span class="go">data:NXdata</span>
-<span class="go">  @axes = axis1:axis2</span>
-<span class="go">  @signal = signal</span>
+<span class="go">  @axes = [&#39;axis1&#39; &#39;axis2&#39;]</span>
+<span class="go">  @signal = &#39;signal&#39;</span>
 <span class="go">  axis1 = float64(41)</span>
 <span class="go">  axis2 = float64(41)</span>
 <span class="go">  signal = float64(41x41)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">a</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">tree</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">tree</span><span class="p">)</span>
 <span class="go">data:NXdata</span>
-<span class="go">  @axes = axis2</span>
-<span class="go">  @signal = signal</span>
+<span class="go">  @axes = &#39;axis2&#39;</span>
+<span class="go">  @signal = &#39;signal&#39;</span>
 <span class="go">  axis2 = float64(41)</span>
 <span class="go">  signal = float64(41)</span>
-<span class="go">    @long_name = Integral from 0.0 to 6.28318530718</span>
+<span class="go">    @long_name = &#39;Integral from 0.0 to 6.28318530718 &#39;</span>
 </pre></div>
 </div>
 <dl class="docutils">
@@ -1101,25 +1102,25 @@ summing over the limits, which are specified as a list of tuples for each
 dimension. If the axis is not to be limited, then specify the limit as
 <em>None</em>. The data should be at least two-dimensional and the values are
 assumed to be floating point.</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">3.</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">3.</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">y</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">2.</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">X</span><span class="p">,</span><span class="n">Y</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">=</span><span class="n">NXdata</span><span class="p">(</span><span class="n">X</span><span class="o">*</span><span class="n">Y</span><span class="p">,(</span><span class="n">y</span><span class="p">,</span><span class="n">x</span><span class="p">))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">a</span><span class="o">.</span><span class="n">tree</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">tree</span><span class="p">)</span>
 <span class="go">data:NXdata</span>
-<span class="go">  @axes = axis1:axis2</span>
-<span class="go">  @signal = signal</span>
+<span class="go">  @axes = [&#39;axis1&#39; &#39;axis2&#39;]</span>
+<span class="go">  @signal = &#39;signal&#39;</span>
 <span class="go">  axis1 = [ 0.  1.  2.]</span>
 <span class="go">  axis2 = [ 0.  1.  2.  3.]</span>
 <span class="go">  signal = float64(3x4)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">a</span><span class="o">.</span><span class="n">signal</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">signal</span><span class="p">)</span>
 <span class="go">[[ 0.  0.  0.  0.]</span>
 <span class="go"> [ 0.  1.  2.  3.]</span>
 <span class="go"> [ 0.  2.  4.  6.]]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">a</span><span class="o">.</span><span class="n">project</span><span class="p">([</span><span class="mi">0</span><span class="p">],[(</span><span class="bp">None</span><span class="p">,</span><span class="bp">None</span><span class="p">),(</span><span class="mf">0.5</span><span class="p">,</span><span class="mf">2.5</span><span class="p">)])</span><span class="o">.</span><span class="n">tree</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">project</span><span class="p">([</span><span class="mi">0</span><span class="p">],[(</span><span class="kc">None</span><span class="p">,</span><span class="kc">None</span><span class="p">),(</span><span class="mf">0.5</span><span class="p">,</span><span class="mf">2.5</span><span class="p">)])</span><span class="o">.</span><span class="n">tree</span><span class="p">)</span>
 <span class="go">data:NXdata</span>
-<span class="go">  @axes = axis1</span>
-<span class="go">  @signal = signal</span>
+<span class="go">  @axes = &#39;axis1&#39;</span>
+<span class="go">  @signal = &#39;signal&#39;</span>
 <span class="go">  axis1 = [ 0.  1.  2.]</span>
 <span class="go">  axis2 = 1.5</span>
 <span class="go">    @maximum = 2.0</span>
@@ -1127,7 +1128,7 @@ assumed to be floating point.</p>
 <span class="go">  signal = [ 0.  3.  6.]</span>
 </pre></div>
 </div>
-<p class="last">The <a class="reference internal" href="pythongui.html"><em>Python Graphical User Interface</em></a> provides a menu-based approach to simplify the plotting
+<p class="last">The <a class="reference internal" href="pythongui.html"><span class="doc">Python Graphical User Interface</span></a> provides a menu-based approach to simplify the plotting
 of data projections.</p>
 </dd>
 </dl>
@@ -1138,7 +1139,7 @@ of data projections.</p>
 <h2>Saving NeXus Data<a class="headerlink" href="#saving-nexus-data" title="Permalink to this headline">¶</a></h2>
 <p>Every NeXus object, whether it is a group or a field, has a save() method as
 illustrated in <a class="reference internal" href="#creating-nexus-data">Creating NeXus Data</a>.:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">root</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="s1">&#39;example.nxs&#39;</span><span class="p">)</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">root</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="s1">&#39;example.nxs&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 <div class="section" id="nxroot-groups">
@@ -1182,12 +1183,12 @@ if necessary, in order to produce a valid NeXus file.</p>
         <li class="right" >
           <a href="includeme.html" title="Installation"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.10.0 documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.10.3 documentation</a> &#187;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
-        &copy; Copyright 2013-2015, Ray Osborn.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.1.
+        &#169; Copyright 2013-2015, Ray Osborn.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.6.
     </div>
   </body>
 </html>
