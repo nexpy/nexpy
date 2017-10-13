@@ -11,6 +11,7 @@ build:
     - nexpy = nexpy.nexpygui:main
   number: 0
 # osx_is_app: True
+  osx_is_app: True
 
 requirements:
   build:
@@ -45,7 +46,6 @@ test:
     - nexpy.api
     - nexpy.api.frills
     - nexpy.api.frills.functions
-    - nexpy.api.nexus
     - nexpy.definitions
     - nexpy.gui
     - nexpy.plugins
