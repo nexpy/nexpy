@@ -23,33 +23,33 @@ The entire tree structure of a NeXus file can be loaded by a single command::
 The assigned variable now contains the entire tree structure of the file, which 
 can be displayed by printing the 'tree' property::
 
- >>> print a.tree
+ >>> print(a.tree)
  root:NXroot
-  @HDF5_Version = 1.8.2
-  @NeXus_version = 4.2.1
-  @file_name = ARCS_7326_tof.nxs
-  @file_time = 2010-05-05T01:59:25-05:00
+  @HDF5_Version = '1.8.2'
+  @NeXus_version = '4.2.1'
+  @file_name = 'ARCS_7326_tof.nxs'
+  @file_time = '2010-05-05T01:59:25-05:00'
   entry:NXentry
     data:NXdata
-      @axes = rotation_angle:tilt_angle:sample_angle:time_of_flight
-      @signal = data
+      @axes = ['rotation_angle' 'tilt_angle' 'sample_angle' 'time_of_flight']
+      @signal = 'data'
       data = float32(631x461x4x825)
       rotation_angle = float32(632)
-        @units = degree
-      sample_angle = [ 210.  215.  220.  225.  230.]
-        @units = degree
+        @units = 'degree'
+      sample_angle = float32(5)
+        @units = 'degree'
       tilt_angle = float32(462)
-        @units = degree
+        @units = 'degree'
       time_of_flight = float32(826)
-        @units = microsecond
-    run_number = 7326
+        @units = 'microsecond'
+    run_number = '7326'
     sample:NXsample
-      pulse_time = 2854.94747365
-        @units = microsecond
+      pulse_time = 2854.947473649946
+        @units = 'microsecond'
 
 Individual data items are immediately available from the command-line::
 
- >>> print a.entry.run_number
+ >>> print(a.entry.run_number)
  7326
 
 Note that only the tree structure and the values of smaller data sets are read
@@ -81,7 +81,7 @@ The default mode is 'r', *i.e.*, readonly access.
 
 Creating NeXus Data
 ===================
-It is just as easy to create new NeXus data sets from scratch using numpy 
+It is just as easy to create new NeXus data sets from scratch using Nunpy 
 arrays. The following example shows the creation of a simple function, which is 
 then saved to a file::
  
@@ -95,16 +95,17 @@ then saved to a file::
 This file can then be loaded again::
 
  >>> b=nxload('function.nxs')
- >>> print b.tree
+ >>> print(b.tree)
  root:NXroot
-  @HDF5_Version = 1.8.2
-  @NeXus_version = 4.2.1
-  @file_name = function.nxs
-  @file_time = 2010-05-10T17:01:13+01:00
+  @HDF5_Version = '1.8.17'
+  @file_name = 'function.nxs'
+  @file_time = '2017-10-12T20:02:53.953375'
+  @h5py_version = '2.7.0'
+  @nexusformat_version = '0.4.10'
   entry:NXentry
     data:NXdata
-      @axes = axis1:axis2
-      @signal = signal
+      @axes = ['axis1' 'axis2']
+      @signal = 'signal'
       axis1 = float64(101)
       axis2 = float64(101)
       signal = float64(101x101)
@@ -122,29 +123,29 @@ can contain fields, with base class NXfield, and/or other groups.
 NeXus Fields
 ------------
 NeXus data values are stored in NeXus objects of class 'NXfield'. The NXfield
-class wraps standard numpy arrays, scalars, and python strings so that
+class wraps standard Nunpy arrays, scalars, and Python strings so that
 additional metadata (or attributes) and methods can be associated with them. 
 
 There are three ways to create an NXfield.
 
-* Direct assignment::
+# Direct assignment::
 
     >>> x = NXfield(np.linspace(0,2*np.pi,101), units='degree')
 
   The data value is given by the first positional argument, and may be a Python
-  scalar or string, or a numpy array. In this method, keyword arguments can be
+  scalar or string, or a Nunpy array. In this method, keyword arguments can be
   used to define NXfield attributes.
 
-* Attribute assignment as the child of a NeXus group::
+# Attribute assignment as the child of a NeXus group::
 
     >>> a.entry.sample.temperature=40.0
 
   The assigned values are automatically converted to an NXfield::
 
     >>> a.entry.sample.temperature
-    NXfield(name=temperature,value=40.0)
+    NXfield(40.0)
 
-* Dictionary assignment to the NeXus group::
+# Dictionary assignment to the NeXus group::
 
     >>> a.entry.sample["temperature"]=40.0
 
@@ -172,7 +173,7 @@ example, a float64 array can be converted to float32 on assignment::
   (dtype('O'), ())
 
 .. note:: Numeric dtypes can be defined either as a string, *e.g.*, 'int16', 
-          'float32', or using the numpy dtypes, *e.g.*, np.int16, np.float32.
+          'float32', or using the Nunpy dtypes, *e.g.*, np.int16, np.float32.
 
 .. warning:: By default, Python strings are stored as variable-length strings in
              the HDF5 file. These use a special object dtype defined by h5py 
@@ -186,7 +187,7 @@ example, a float64 array can be converted to float32 on assignment::
 
 .. warning:: If you wish to store an array of strings containing Unicode
              characters as fixed-length strings, convert them to byte strings
-             first using UTF-8 encoding, *e.g.*::
+             first using UTF-8 encoding, *e.g.* (in Python 2.7)::
              
                >>> t = [u'a', u'b', u'c', u'd', u'é']
                >>> a=NXfield(np.array(np.core.defchararray.encode(t, 'utf-8')), 
@@ -195,13 +196,13 @@ example, a float64 array can be converted to float32 on assignment::
                NXfield(array(['a', 'b', 'c', 'd', '\xc3\xa9'], dtype='|S10'))
 
 Similarly, the shape and dimension sizes of an integer or float array is 
-inherited from the assigned numpy array. It is possible to initialize an NXfield
+inherited from the assigned Nunpy array. It is possible to initialize an NXfield
 array without specifying the data values in advance, *e.g.*, if the data has to
 be created in slabs::
 
   >>> a=NXfield(dtype=np.float32, shape=[2048,2048,2048])
   >>> a
-  NXfield(dtype=float32,shape=(2048, 2048, 2048))
+  NXfield(shape=(2048, 2048, 2048), dtype=float32)
 
 More details of handling large arrays are given below.
 
@@ -223,10 +224,10 @@ group.
 
 When a NeXus tree is printed, the attributes are prefixed by '@'::
 
- >>> print a.entry.sample.tree
+ >>> print(a.entry.sample.tree)
  sample:NXsample
    temperature = 40.0
-     @units = K 
+     @units = 'K' 
 
 Masked Arrays
 ^^^^^^^^^^^^^
@@ -259,10 +260,10 @@ stored in a separate NXfield that is generated automatically by the mask
 assignment or whenever the masked NXfield is assigned to a group. The mask is
 identified by the 'mask' attribute of the masked NXfield.
 
- >>> print NXlog(z).tree
+ >>> print(NXlog(z).tree)
  log:NXlog
  z = [1 2 3 4 -- 6]
-  @mask = z_mask
+  @mask = 'z_mask'
  z_mask = [False False False False  True False]
 
 The mask can then be saved to the NeXus file if required.
@@ -285,9 +286,9 @@ filled incrementally as slabs::
              ...
 
 If ``entry`` in the above example is already stored in a NeXus file (with write
-access), then ``entry.data.z`` is automatically updated in the file. If it is not
-stored in a file, the field is stored in an HDF5 core memory file that will be
-copied to the NeXus file when it is saved.
+access), then ``entry.data.z`` is automatically updated in the file. If it is 
+not stored in a file, the field is stored in an HDF5 core memory file that will 
+be copied to the NeXus file when it is saved.
 
 When initializing the NXfield, it is possible to specify a number of HDF5 
 attributes that specify how the data are stored. 
@@ -339,10 +340,10 @@ group with other predefined NeXus objects, either groups or fields::
 
  >>> temperature = NXfield(40.0, units='K')
  >>> sample = NXsample(temperature=temperature)
- >>> print sample.tree
+ >>> print(sample.tree)
  sample:NXsample
    temperature = 40.0
-     @units = K
+     @units = 'K'
 
 In this example, it was necessary to use the keyword form to add the NXfield 
 'temperature' since its name is otherwise undefined within the NXsample group. 
@@ -353,7 +354,7 @@ or dictionary assignment::
  >>> sample.temperature=NXfield(40.0, units='K')
  sample:NXsample
    temperature = 40.0
-     @units = K
+     @units = 'K'
 
 The NeXus objects in a group (NXfields or NXgroups) can be accessed as  
 dictionary items::
@@ -370,7 +371,7 @@ to the class name without the 'NX' prefix. This can be useful in automatically
 creating nested groups with minimal typing::
 
  >>> a=NXentry(NXsample(temperature=40.0),NXinstrument(NXdetector(distance=10.8)))
- >>> print a.tree
+ >>> print(a.tree)
  entry:NXentry
    instrument:NXinstrument
      detector:NXdetector
@@ -396,14 +397,14 @@ here::
  >>> z=np.sin(X)*np.sin(Y)
  >>> a=NXdata(z,[y,x])
 
-The first positional argument is an NXfield or numpy array containing the data,
-while the second is a list containing the axes, again as NXfields or numpy
+The first positional argument is an NXfield or Nunpy array containing the data,
+while the second is a list containing the axes, again as NXfields or Nunpy
 arrays. In this example, the names of the arrays have not been defined within an
 NXfield so default names were assigned::
 
- >>> print a.tree
+ >>> print(a.tree)
  data:NXdata
-   @axes = axis1:axis2
+   @axes = ['axis1' 'axis2']
    @signal = signal
    axis1 = float64(101)
    axis2 = float64(101)
@@ -411,9 +412,8 @@ NXfield so default names were assigned::
 
 .. note:: The plottable signal and axes are identified by the 'signal'
           and 'axes' attributes of the NXdata group. The 'axes' attribute 
-          defines the axes as a string of NXfield names delimited here by 
-          a colon. White space or commas can also be used as delimiters. The
-          NXdata constructor sets these attributes automatically.
+          defines the axes as a list of NXfield names The NXdata constructor 
+          sets these attributes automatically.
 
 .. warning:: Numpy stores arrays by default in C, or row-major, order, *i.e.*, 
              in the array 'signal(axis1,axis2)', axis2 is the fastest to vary. 
@@ -428,10 +428,10 @@ attribute::
  >>> phi=NXfield(np.linspace(0,2*np.pi,101), name='polar_angle')
  >>> data=NXfield(np.sin(phi), name='intensity')
  >>> a=NXdata(data,(phi))
- >>> print a.tree
+ >>> print(a.tree)
  data:NXdata
-   @axes = polar_angle
-   @signal = intensity
+   @axes = 'polar_angle'
+   @signal = 'intensity'
    intensity = float64(101)
    polar_angle = float64(101)
 
@@ -448,10 +448,10 @@ It is also possible to define the plottable signal and/or axes using the
  >>> a=NXdata()
  >>> a.nxsignal=NXfield(np.sin(phi), name='intensity')
  >>> a.nxaxes=NXfield(phi, name='polar_angle')
- >>> print a.tree
+ >>> print(a.tree)
  data:NXdata
-   @axes = polar_angle
-   @signal = intensity
+   @axes = 'polar_angle'
+   @signal = 'intensity'
    intensity = float64(101)
    polar_angle = float64(101)
 
@@ -467,30 +467,30 @@ For example, the polar angle and time-of-flight arrays may logically be stored
 with the detector information in a NXdetector group that is one of the 
 NXinstrument subgroups::
 
- >>> print entry.instrument.tree
+ >>> print(entry.instrument.tree)
  instrument:NXinstrument
    detector:NXdetector
     distance = float32(128)
-      @units = metre
+      @units = 'metre'
     polar_angle = float32(128)
-      @units = radian
+      @units = 'radian'
     time_of_flight = float32(8252)
-      @target = /entry/instrument/detector/time_of_flight
-      @units = microsecond
+      @target = '/entry/instrument/detector/time_of_flight'
+      @units = 'microsecond'
 
 However, they may also be needed as plotting axes in a NXdata group::
 
- >>> print entry.data.tree
+ >>> print(entry.data.tree)
  data:NXdata
-   @axes = polar_angle:time_of_flight
+   @axes = ['polar_angle' 'time_of_flight']
    @signal = data
    data = uint32(128x8251)
    polar_angle = float32(128)
-     @target = /entry/instrument/detector/polar_angle
-     @units = radian
+     @target = '/entry/instrument/detector/polar_angle'
+     @units = 'radian'
    time_of_flight = float32(8252)
-     @target = /entry/instrument/detector/time_of_flight
-     @units = microsecond
+     @target = '/entry/instrument/detector/time_of_flight'
+     @units = 'microsecond'
  
 Links allow the same data to be used in different contexts without using more
 memory or disk space.
@@ -526,32 +526,32 @@ Creating a Link
 Links can be created using the target object as the argument assigned
 to another group::
 
- >>> print root.tree
+ >>> print(root.tree)
  root:NXroot
    entry:NXentry
      data:NXdata
      instrument:NXinstrument
        detector:NXdetector
          polar_angle = float64(192)
-           @units = radian
+           @units = 'radian'
  >>> root.entry.data.polar_angle=NXlink(root.entry.instrument.detector.polar_angle)
 
 It is also possible to create links using the makelink method, which takes the 
 parent object and, optionally, a new name as arguments::
 
  >>> root.entry.data.makelink(root.entry.instrument.detector.polar_angle)
- >>> print root.tree
+ >>> print(root.tree)
  root:NXroot
    entry:NXentry
      data:NXdata
        polar_angle = float64(192)
-         @target = /entry/instrument/detector/polar_angle
-         @units = radian
+         @target = '/entry/instrument/detector/polar_angle'
+         @units = 'radian'
      instrument:NXinstrument
        detector:NXdetector
          polar_angle = float64(192)
-           @target = /entry/instrument/detector/polar_angle
-           @units = radian
+           @target = '/entry/instrument/detector/polar_angle'
+           @units = 'radian'
 
 .. note:: After creating the link, both the parent and target objects have an 
           additional attribute, 'target', showing the absolute path of the 
@@ -642,17 +642,17 @@ NXfield
 ^^^^^^^
 NXfields usually consist of arrays of numeric data with associated metadata, the 
 NeXus attributes (the exception is when they contain character strings). This 
-makes them similar to numpy arrays, and this module allows the use of NXfields 
-in numerical operations as if they were numpy ndarrays::
+makes them similar to Nunpy arrays, and this module allows the use of NXfields 
+in numerical operations as if they were Nunpy ndarrays::
 
  >>> x = NXfield((1.0,2.0,3.0,4.0))
- >>> print x+1
+ >>> print(x+1)
  [ 2.  3.  4.  5.]
- >>> print 2*x
+ >>> print(2*x)
  [ 2.  4.  6.  8.]
- >>> print x/2
+ >>> print(x/2)
  [ 0.5  1.   1.5  2. ]
- >>> print x**2
+ >>> print(x**2)
  [  1.   4.   9.  16.]
  >>> x.reshape((2,2))
  NXfield([[ 1.  2.]
@@ -671,7 +671,7 @@ Such operations return valid NXfield objects containing the same attributes
 as the first NXobject in the expression. The 'reshape' and 'transpose' methods 
 also return NXfield objects.
 
-NXfields can be compared to other NXfields (this is a comparison of their numpy 
+NXfields can be compared to other NXfields (this is a comparison of their Nunpy 
 arrays)::
 
  >>> y=NXfield(np.array((1.5,2.5,3.5)),name='y')
@@ -679,7 +679,7 @@ arrays)::
  True
 
 NXfields are technically not a sub-class of the ndarray class, but they are cast
-as numpy arrays when required by numpy operations, returning either another 
+as Nunpy arrays when required by Nunpy operations, returning either another 
 NXfield or, in some cases, an ndarray that can easily be converted to an 
 NXfield::
 
@@ -700,10 +700,10 @@ NXfield::
  array([ 0.84147098,  0.90929743,  0.14112001, -0.7568025 ])
  >>> np.sqrt(x)
  array([ 1.        ,  1.41421356,  1.73205081,  2.        ])
- >>> print NXdata(np.sin(x), (x)).tree
+ >>> print(NXdata(np.sin(x), (x)).tree)
  data:NXdata
-   @axes = x
-   @signal = signal
+   @axes = 'x'
+   @signal = 'signal'
    signal = [ 0.84147098  0.90929743  0.14112001 -0.7568025 ]
    x = [ 1.  2.  3.  4.]
 
@@ -717,57 +717,57 @@ must match (although the names could be different)::
  >>> y
  NXfield(name=y,value=[ 0.99749499  0.59847214 -0.35078323])
  >>> a=NXdata(y,x)
- >>> print a.tree
+ >>> print(a.tree)
  data:NXdata
-   @axes = x
-   @signal = y
+   @axes = 'x'
+   @signal = 'y'
    x = [ 1.5  2.5  3.5]
    y = [ 0.99749499  0.59847214 -0.35078323]
- >>> print (a+1).tree
+ >>> print((a+1).tree)
  data:NXdata
-   @axes = x
-   @signal = y
+   @axes = 'x'
+   @signal = 'y'
    x = [ 1.5  2.5  3.5]
    y = [ 1.99749499  1.59847214  0.64921677]
- >>> print (2*a).tree
+ >>> print((2*a).tree)
  data:NXdata
-   @axes = x
-   @signal = y
+   @axes = 'x'
+   @signal = 'y'
    x = [ 1.5  2.5  3.5]
    y = [ 1.99498997  1.19694429 -0.70156646]
- >>> print (a+a).tree
+ >>> print((a+a).tree)
  data:NXdata
-   @axes = x
-   @signal = y
+   @axes = 'x'
+   @signal = 'y'
    x = [ 1.5  2.5  3.5]
    y = [ 1.99498997  1.19694429 -0.70156646]
- >>> print (a-a).tree
+ >>> print((a-a).tree)
  data:NXdata
-   @axes = x
-   @signal = y
+   @axes = 'x'
+   @signal = 'y'
    x = [ 1.5  2.5  3.5]
    y = [ 0.  0.  0.]
- >>> print (a/2).tree
+ >>> print((a/2).tree)
  data:NXdata
-   @axes = x
-   @signal = y
+   @axes = 'x'
+   @signal = 'y'
    x = [ 1.5  2.5  3.5]
    y = [ 0.49874749  0.29923607 -0.17539161]
 
 If data errors are included in the NXdata group (with an additional array named 
 'errors'), then the errors are propagated according to the operand::
 
- >>> print a.tree
+ >>> print(a.tree)
  data:NXdata
-   @axes = x
-   @signal = y
+   @axes = 'x'
+   @signal = 'y'
    errors = [ 0.99874671  0.77360981  0.59226956]
    x = [ 1.5  2.5  3.5]
    y = [ 0.99749499  0.59847214  0.35078323]
- >>> print (a+a).tree
+ >>> print((a+a).tree)
  data:NXdata
-   @axes = x
-   @signal = y
+   @axes = 'x'
+   @signal = 'y'
    errors = [ 1.41244114  1.09404949  0.83759564]
    x = [ 1.5  2.5  3.5]
    y = [ 1.99498997  1.19694429  0.70156646]
@@ -784,10 +784,10 @@ NXdata.sum(axis=None):
      >>> y=np.linspace(0, 2., 3)
      >>> X,Y=np.meshgrid(x,y)
      >>> a=NXdata(X*Y,(y,x))
-     >>> print a.tree
+     >>> print(a.tree)
      data:NXdata
-       @axes = axis1:axis2
-       @signal = signal
+       @axes = ['axis1' 'axis2']
+       @signal = 'signal'
        axis1 = [ 0.  1.  2.  3.]
        axis2 = [ 0.  1.  2.]
        signal = float64(3x4)
@@ -830,16 +830,16 @@ Slicing
 -------
 NXfield
 ^^^^^^^
-A slice of an NXfield can be obtained using the usual python indexing syntax::
+A slice of an NXfield can be obtained using the usual Python indexing syntax::
 
  >>> x=NXfield(np.linspace(0,2*np.pi,101))
- >>> print x[0:51]
+ >>> print(x[0:51])
  [ 0.          0.06283185  0.12566371 ...,  3.01592895  3.0787608 3.14159265]
 
 If either of the indices are floats, then the limits are set by the values 
 themselves (assuming the array is monotonic)::
 
- >>> print x[0.5:1.5]
+ >>> print(x[0.5:1.5])
  [ 0.50265482  0.56548668  0.62831853 ...,  1.38230077  1.44513262 1.50796447]
 
 NXdata
@@ -858,23 +858,28 @@ Unless the slice reduces one of the axes to a single item, the rank of the data
 remains the same. To project data along one of the axes, and so reduce the rank
 by one, the data can be summed along that axis using the sum() method::
 
- >>> x=y=NXfield(np.linspace(0,2*np.pi,41))
+ >>> x=y=np.linspace(0,2*np.pi,41)
  >>> X,Y=np.meshgrid(x,y)
  >>> a=NXdata(np.sin(X)*np.sin(Y), (y,x))
- >>> print a.tree
+ >>> print(a.tree)
  data:NXdata
-   @axes = axis1:axis2
-   @signal = signal
+   @axes = ['axis1' 'axis2']
+   @signal = 'signal'
    axis1 = float64(41)
    axis2 = float64(41)
    signal = float64(41x41)
- >>> print a.sum(0).tree
+ >>> print(a.sum(0).tree)
  data:NXdata
-   @axes = axis2
-   @signal = signal
+   @axes = ['axis2']
+   @signal = 'signal'
+   @summed_bins = 41
+   axis1 = 3.141592653589793
+     @maximum = 6.283185307179586
+     @minimum = 0.0
+     @summed_bins = 41
    axis2 = float64(41)
    signal = float64(41)
-     @long_name = Integral from 0.0 to 6.28318530718 
+   title = 'data'
 
 It is also possible to slice whole NXdata groups. In this case, the slicing
 works on the multidimensional NXfield, but the full NXdata group is returned
@@ -889,25 +894,25 @@ are set by the values of the axis::
 Unless the slice reduces one of the axes to a single item, the rank of the data
 remains the same. To project data along one of the axes, and so reduce the rank
 by one, the data can be summed along that axis using the sum() method. This
-employs the numpy array sum() method::
+employs the Nunpy array sum() method::
 
  >>> x=y=NXfield(np.linspace(0,2*np.pi,41))
  >>> X,Y=np.meshgrid(x,y)
  >>> a=NXdata(np.sin(X)*np.sin(Y), (y,x))
- >>> print a.tree
+ >>> print(a.tree)
  data:NXdata
-   @axes = axis1:axis2
-   @signal = signal
+   @axes = ['axis1' 'axis2']
+   @signal = 'signal'
    axis1 = float64(41)
    axis2 = float64(41)
    signal = float64(41x41)
- >>> print a.sum(0).tree
+ >>> print(a.sum(0).tree)
  data:NXdata
-   @axes = axis2
-   @signal = signal
+   @axes = 'axis2'
+   @signal = 'signal'
    axis2 = float64(41)
    signal = float64(41)
-     @long_name = Integral from 0.0 to 6.28318530718 
+     @long_name = 'Integral from 0.0 to 6.28318530718 '
 
 NXdata.project(axes, limits):
     The project() method projects the data along a specified 1D axis or 2D axes 
@@ -920,21 +925,21 @@ NXdata.project(axes, limits):
     >>> y=np.linspace(0, 2., 3)
     >>> X,Y=np.meshgrid(x,y)
     >>> a=NXdata(X*Y,(y,x))
-    >>> print a.tree
+    >>> print(a.tree)
     data:NXdata
-      @axes = axis1:axis2
-      @signal = signal
+      @axes = ['axis1' 'axis2']
+      @signal = 'signal'
       axis1 = [ 0.  1.  2.]
       axis2 = [ 0.  1.  2.  3.]
       signal = float64(3x4)
-    >>> print a.signal
+    >>> print(a.signal)
     [[ 0.  0.  0.  0.]
      [ 0.  1.  2.  3.]
      [ 0.  2.  4.  6.]]
-    >>> print a.project([0],[(None,None),(0.5,2.5)]).tree
+    >>> print(a.project([0],[(None,None),(0.5,2.5)]).tree)
     data:NXdata
-      @axes = axis1
-      @signal = signal
+      @axes = 'axis1'
+      @signal = 'signal'
       axis1 = [ 0.  1.  2.]
       axis2 = 1.5
         @maximum = 2.0
