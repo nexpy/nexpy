@@ -113,7 +113,8 @@ def new_figure_manager(label=None, *args, **kwargs):
     else:
         nums = [num for num in plt.get_fignums() if num < 100]
         if nums:
-            missing_nums = sorted(set(range(nums[0], nums[-1]+1)).difference(nums))
+            missing_nums = sorted(set(range(nums[0], 
+                                  nums[-1]+1)).difference(nums))
             if missing_nums:
                 num = missing_nums[0]
             else:
@@ -943,7 +944,8 @@ class NXPlotView(QtWidgets.QDialog):
                 limits.append((np.float(self.axis[i].lo), 
                                np.float(self.axis[i].hi)))
         if self.data.nxsignal.shape != self.data.plot_shape:
-            axes, limits = fix_projection(self.data.nxsignal.shape, axes, limits)
+            axes, limits = fix_projection(self.data.nxsignal.shape, axes, 
+                                          limits)
         self.plotdata = self.data.project(axes, limits, summed=self.summed)
         self.plotdata.title = self.title
         self.x, self.y, self.v = self.get_image()
@@ -1240,7 +1242,8 @@ class NXPlotView(QtWidgets.QDialog):
         """Set the ztab autoscale checkbox to True or False"""
         self.ztab.scalebox.setChecked(value)
 
-    autoscale = property(_autoscale, _set_autoscale, "Property: Autoscale boolean")
+    autoscale = property(_autoscale, _set_autoscale, 
+                         "Property: Autoscale boolean")
 
     @property
     def summed(self):
@@ -1341,7 +1344,8 @@ class NXPlotView(QtWidgets.QDialog):
         self.ax.ticklabel_format(useOffset=self._axis_offsets)
         self.draw()
 
-    offsets = property(_offsets, _set_offsets, "Property: Axis offsets property")
+    offsets = property(_offsets, _set_offsets, 
+                       "Property: Axis offsets property")
 
     @property
     def regular_grid(self):
@@ -1705,8 +1709,9 @@ class NXPlotView(QtWidgets.QDialog):
                 self.tab_widget.insertTab(0,self.vtab,'signal')
             if self.number < 101:
                 if self.tab_widget.indexOf(self.ptab) == -1:
-                    self.tab_widget.insertTab(self.tab_widget.indexOf(self.otab),
-                                              self.ptab,'projections')
+                    self.tab_widget.insertTab(
+                        self.tab_widget.indexOf(self.otab),
+                        self.ptab, 'projections')
                 self.ptab.set_axes()
                 self.zoom = None
             if self.ndim > 2:
@@ -1715,8 +1720,9 @@ class NXPlotView(QtWidgets.QDialog):
                 self.ztab.pause()
                 self.ztab.scalebox.setChecked(True)
                 if self.tab_widget.indexOf(self.ztab) == -1:
-                    self.tab_widget.insertTab(self.tab_widget.indexOf(self.ptab),
-                                              self.ztab,'z')
+                    self.tab_widget.insertTab(
+                        self.tab_widget.indexOf(self.ptab),
+                        self.ztab, 'z')
             else:
                 self.tab_widget.removeTab(self.tab_widget.indexOf(self.ztab))
             self.xtab.logbox.setVisible(False)
@@ -1904,8 +1910,10 @@ class NXPlotAxis(object):
                 self.centers = centers(self.data, dimlen)
                 self.boundaries = boundaries(self.data, dimlen)
                 try:
-                    self.min = np.min(self.boundaries[np.isfinite(self.boundaries)])
-                    self.max = np.max(self.boundaries[np.isfinite(self.boundaries)])
+                    self.min = np.min(
+                        self.boundaries[np.isfinite(self.boundaries)])
+                    self.max = np.max(
+                        self.boundaries[np.isfinite(self.boundaries)])
                 except:
                     self.min = 0.0
                     self.max = 0.1
@@ -2275,12 +2283,13 @@ class NXPlotTab(QtWidgets.QWidget):
         else:
             self.axis.lo = self.minbox.value()
             _range = max(self.axis.max - self.axis.lo, self.axis.min_range)
-            self.axis.hi = self.axis.lo + max((self.maxslider.value()*_range/1000), 
-                                               self.axis.min_range)
+            self.axis.hi = self.axis.lo + max(
+                (self.maxslider.value()*_range/1000), self.axis.min_range)
             self.maxbox.setValue(self.axis.hi)
             _range = max(self.axis.hi - self.axis.min, self.axis.min_range)
             try:
-                self.minslider.setValue(1000*(self.axis.lo - self.axis.min)/_range)
+                self.minslider.setValue(1000*(self.axis.lo - self.axis.min) / 
+                                        _range)
             except (ZeroDivisionError, OverflowError, RuntimeWarning):
                 self.minslider.setValue(1000)
         if self.name == 'x' or self.name == 'y':
@@ -2396,7 +2405,8 @@ class NXPlotTab(QtWidgets.QWidget):
     def set_range(self):
         """Set the range and step sizes for the minbox and maxbox."""
         if np.isclose(self.axis.min, self.axis.max):
-            self.axis.min, self.axis.max = nonsingular(self.axis.min, self.axis.max)
+            self.axis.min, self.axis.max = nonsingular(self.axis.min, 
+                                                       self.axis.max)
         self.minbox.setRange(self.axis.min, self.axis.max)
         self.maxbox.setRange(self.axis.min, self.axis.max)
         range = self.axis.max - self.axis.min
@@ -2472,7 +2482,8 @@ class NXPlotTab(QtWidgets.QWidget):
     def symmetric(self):
         """Return True if a divergent color map has been selected."""
         if (self.cmapcombo is not None and
-            self.cmapcombo.currentIndex() >= self.cmapcombo.findText('seismic')):
+            self.cmapcombo.currentIndex() >= 
+            self.cmapcombo.findText('seismic')):
                 return True
         return False
 
@@ -2825,7 +2836,8 @@ class NXProjectionTab(QtWidgets.QWidget):
             self.ybox.clear()
             axes.insert(0,'None')
             self.ybox.addItems(axes)
-            self.ybox.setCurrentIndex(self.ybox.findText(self.plotview.yaxis.name))
+            self.ybox.setCurrentIndex(
+                self.ybox.findText(self.plotview.yaxis.name))
 
     @property
     def xaxis(self):
@@ -2881,7 +2893,8 @@ class NXProjectionTab(QtWidgets.QWidget):
             if axis not in [ydim, xdim]:
                 limits[axis] = (None, None)
         shape = self.plotview.data.nxsignal.shape
-        if len(shape)-len(limits) > 0 and len(shape)-len(limits) == shape.count(1):
+        if (len(shape)-len(limits) > 0 and 
+            len(shape)-len(limits) == shape.count(1)):
             axes, limits = fix_projection(shape, axes, limits)
         if self.plotview.rgb_image:
             limits.append((None, None))
@@ -3046,7 +3059,8 @@ class NXProjectionPanel(QtWidgets.QWidget):
             self.lockbox[axis] = QtWidgets.QCheckBox()
             self.lockbox[axis].stateChanged.connect(self.set_lock)
             self.lockbox[axis].setChecked(False)
-            grid.addWidget(QtWidgets.QLabel(self.plotview.axis[axis].name), row, 0)
+            grid.addWidget(QtWidgets.QLabel(self.plotview.axis[axis].name), 
+                                            row, 0)
             grid.addWidget(self.minbox[axis], row, 1)
             grid.addWidget(self.maxbox[axis], row, 2)
             grid.addWidget(self.lockbox[axis], row, 3,
@@ -3167,7 +3181,8 @@ class NXProjectionPanel(QtWidgets.QWidget):
             self.ybox.clear()
             axes.insert(0,'None')
             self.ybox.addItems(axes)
-            self.ybox.setCurrentIndex(self.ybox.findText(self.plotview.yaxis.name))
+            self.ybox.setCurrentIndex(
+                self.ybox.findText(self.plotview.yaxis.name))
 
     @property
     def xaxis(self):
@@ -3267,7 +3282,8 @@ class NXProjectionPanel(QtWidgets.QWidget):
         for axis in range(self.ndim):
             if self.lockbox[axis].isChecked():
                 lo, hi = self.minbox[axis].value(), self.maxbox[axis].value()
-                self.minbox[axis].diff = self.maxbox[axis].diff = max(hi - lo, 0.0)
+                self.minbox[axis].diff = self.maxbox[axis].diff = max(hi - lo, 
+                                                                      0.0)
                 self.minbox[axis].setDisabled(True)
             else:
                 self.minbox[axis].diff = self.maxbox[axis].diff = None
@@ -3289,7 +3305,8 @@ class NXProjectionPanel(QtWidgets.QWidget):
             axes = [y,x]
         limits = self.get_limits()
         shape = self.plotview.data.nxsignal.shape
-        if len(shape)-len(limits) > 0 and len(shape)-len(limits) == shape.count(1):
+        if (len(shape)-len(limits) > 0 and 
+            len(shape)-len(limits) == shape.count(1)):
             axes, limits = fix_projection(shape, axes, limits)
         if self.plotview.rgb_image:
             limits.append((None, None))
@@ -3449,7 +3466,8 @@ class NXNavigationToolbar(NavigationToolbar):
             (None, None, None, None),
             ('Aspect', 'Set aspect ratio to equal', 'equal', 'set_aspect'),
             (None, None, None, None),
-            ('Subplots', 'Configure subplots', 'subplots', 'configure_subplots'),
+            ('Subplots', 'Configure subplots', 'subplots', 
+             'configure_subplots'),
             ('Save', 'Save the figure', 'filesave', 'save_figure'),
             ('Add', 'Add plot data to tree', 'hand', 'add_data')
                 )
@@ -3465,7 +3483,8 @@ class NXNavigationToolbar(NavigationToolbar):
 
     def edit_parameters(self):
         if self.plotview.customize_panel is None:
-            self.plotview.customize_panel = CustomizeDialog(parent=self.plotview)
+            self.plotview.customize_panel = CustomizeDialog(
+                parent=self.plotview)
             self.plotview.customize_panel.show()
         else:
             self.plotview.customize_panel.raise_()
@@ -3722,12 +3741,16 @@ class CustomizeDialog(BaseDialog):
         p['linecolor'].color_button.set_color(to_qcolor(c.get_color()))
         p['marker'].value = markers[c.get_marker()]
         p['markersize'].value = c.get_markersize()
-        p['facecolor'].value = rgb2hex(colorConverter.to_rgb(c.get_markerfacecolor()))
+        p['facecolor'].value = rgb2hex(
+            colorConverter.to_rgb(c.get_markerfacecolor()))
         p['facecolor'].color_button = NXColorButton(p['facecolor'])
-        p['facecolor'].color_button.set_color(to_qcolor(c.get_markerfacecolor()))
-        p['edgecolor'].value = rgb2hex(colorConverter.to_rgb(c.get_markeredgecolor()))
+        p['facecolor'].color_button.set_color(
+            to_qcolor(c.get_markerfacecolor()))
+        p['edgecolor'].value = rgb2hex(
+            colorConverter.to_rgb(c.get_markeredgecolor()))
         p['edgecolor'].color_button = NXColorButton(p['edgecolor'])
-        p['edgecolor'].color_button.set_color(to_qcolor(c.get_markeredgecolor()))
+        p['edgecolor'].color_button.set_color(
+            to_qcolor(c.get_markeredgecolor()))
 
     def update_colors(self):
         if self.plotview.image is not None:
@@ -3844,7 +3867,8 @@ class NXSymLogNorm(SymLogNorm):
     """
     def __init__(self,  linthresh, linscale=1.0,
                  vmin=None, vmax=None, clip=False):
-        super(NXSymLogNorm, self).__init__(linthresh, linscale, vmin, vmax, clip)
+        super(NXSymLogNorm, self).__init__(linthresh, linscale, vmin, vmax, 
+                                           clip)
         if (not hasattr(self, '_upper') and 
                 vmin is not None and vmax is not None):
             self._transform_vmin_vmax()
