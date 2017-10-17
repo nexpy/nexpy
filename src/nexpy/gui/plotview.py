@@ -25,6 +25,7 @@ import numbers
 import numpy as np
 import os
 import pkg_resources
+import sys
 
 import matplotlib as mpl
 from matplotlib._pylab_helpers import Gcf
@@ -946,7 +947,11 @@ class NXPlotView(QtWidgets.QDialog):
         if self.data.nxsignal.shape != self.data.plot_shape:
             axes, limits = fix_projection(self.data.nxsignal.shape, axes, 
                                           limits)
-        self.plotdata = self.data.project(axes, limits, summed=self.summed)
+        try:
+            self.plotdata = self.data.project(axes, limits, summed=self.summed)
+        except Exception:
+            self.ztab.pause()
+            six.reraise(*sys.exc_info())
         self.plotdata.title = self.title
         self.x, self.y, self.v = self.get_image()
         if newaxis:
