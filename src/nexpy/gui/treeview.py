@@ -46,7 +46,7 @@ class NXtree(NXgroup):
                 self._shell[key] = self._entries[key]
                 self.set_changed()
             else:
-                raise NeXusError("Name already in the tree")
+                raise NeXusError("'"+key+"' already in the tree")
         else:
             raise NeXusError("Value must be an NXroot group")
     

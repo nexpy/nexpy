@@ -231,7 +231,7 @@ class NXScriptEditor(QtWidgets.QWidget):
         return 'NXScriptEditor(%s)' % self.label
         
     def get_text(self):
-        return self.text_box.document().toPlainText()+'\n'
+        return self.text_box.document().toPlainText().strip()+'\n'
 
     def update_line_numbers(self, count):
         if sys.platform != 'darwin':

@@ -97,8 +97,8 @@ File Menu
 
 **Reload**
     Reloads the NeXus file. This is useful if another application has modified
-    the data since originally opening the file. This is not currently detected
-    by NeXpy.
+    the data since originally opening the file. Such modifications are not 
+    detected by NeXpy.
 
 **Remove**
     Removes the root item from the tree.
@@ -179,6 +179,10 @@ File Menu
      The selected NeXpy plugin module is removed from either the user's
      NeXpy directory (``~/.nexpy/plugins``) or the package directory.
 
+**Restore Plugin**
+     If a plugin is overwritten by installing another version, it is backed up
+     in ``~/.nexpy/backups``). This allows the old version to be restored.
+
 **Print Shell**
     Prints the contents of the iPython shell.
 
@@ -219,7 +223,7 @@ Data Menu
     type to be specified. A dropdown menu can be used to enter field names 
     that are defined by the NeXus standard, but the user is free to enter 
     alternative names. The value field can be any valid Python expression, 
-    including numpy functions such as np.linspace().
+    including Numpy functions such as np.linspace().
     
     When adding a group, the Add Data dialog allows the name and class of the
     group to be specified. A dropdown menu display can be used to enter one of 
@@ -316,13 +320,12 @@ Window Menu
 **Show Log File**
     Opens a text window displaying the NeXpy log file(s). These files, which are
     stored in ``~/.nexpy/nexpy.log``, ``~/.nexpy/nexpy.log.1``, *etc*., 
-    currently record operations on the tree items, as well as errors in the
-    IPython shell.
+    records operations on the tree items, as well as comprehensive tracebacks of 
+    exceptions in both the GUI and the IPython shell. Only one-line summaries 
+    are displayed in the shell to improve readability.
 
-    .. note:: If `ansi2html <https://github.com/ralphbean/ansi2html>`_ is 
-              installed, tracebacks will be rendered in color. The log files
-              contain ANSI markup, which is rendered in the terminal using 
-              ``less -r``.
+    .. note:: The log files contain ANSI markup to colorize the text, which can
+              be rendered in the terminal using ``less -r``.
 
 **Show Projection Panel**
     Show the projection panel for the currently active plotting window. This is
@@ -417,7 +420,7 @@ tree nodes, *e.g.*, w4.
           in shell commands. The NXtree group is only used by the GUI and cannot 
           be saved to a file.
 
-.. warning:: In python, an object may be accessible within the shell with more
+.. warning:: In Python, an object may be accessible within the shell with more
              than one name. NeXpy searches the shell dictionary for an object
              with the same ID as the added NeXus object and so may choose a 
              different name. The object in the tree can be renamed.
@@ -569,12 +572,12 @@ and sliders.
        :align: center
        :width: 90%
 
-    .. note:: The projection panel can also be used to mask and unmask data within 
-              the dashed rectangle. See :doc:`pythonshell` for descriptions of
-              masked arrays.
+    .. note:: The projection panel can also be used to mask and unmask data 
+              within the dashed rectangle. See :doc:`pythonshell` for 
+              descriptions of masked arrays.
 
-    .. note:: Each plotting window can have a separate projection panel in a tabbed
-              interface. 
+    .. note:: Each plotting window can have a separate projection panel in a 
+              tabbed interface. 
   
 **Options Tab**
 
@@ -582,8 +585,8 @@ and sliders.
        :align: center
        :width: 90%
 
-    The options tab provides the standard Matplotlib toolbar. You can view with the addition
-    of one extra button. From left to right, the buttons are:
+    The options tab provides the standard Matplotlib toolbar. You can view with 
+    the addition of one extra button. From left to right, the buttons are:
     
     * **Home** - restores all plotting limits to their original values. 
     * **Arrows** - cycles through the limits of previous plots.
@@ -848,9 +851,9 @@ integer defining the stack sequence.
 **Text Files**
 
 This reader will read ASCII data stored in two or three columns, containing the
-x and y values, and, optionally, errors. One or more header lines can be skipped.
-A more flexible text importer, allowing the selection of data from multiple 
-columns, is under development.
+x and y values, and, optionally, errors. One or more header lines can be 
+skipped. A more flexible text importer, allowing the selection of data from 
+multiple columns, is under development.
 
 **SPEC Files**
 
@@ -943,7 +946,7 @@ has a couple of menu items to perform data analysis on the example file,
 
 Here is the ``__init__.py`` file::
 
-  import get_ei, convert_qe
+  from . import get_ei, convert_qe
 
   def plugin_menu():
       menu = 'Chopper'
@@ -1007,7 +1010,8 @@ Here is the code::
                               'Monitor 1 Distance')
           self.parameters.add('m2', self.entry['monitor2/distance'], 
                               'Monitor 2 Distance')
-          self.parameters.add('Ei', self.entry['instrument/monochromator/energy'], 
+          self.parameters.add('Ei', 
+                              self.entry['instrument/monochromator/energy'], 
                               'Incident Energy')
           self.parameters.add('mod', self.entry['instrument/source/distance'], 
                               'Moderator Distance')
@@ -1040,7 +1044,8 @@ Here is the code::
           m1_time = self.m1[t-200.0:t+200.0].moment()
           t = 2286.26 * self.m2_distance / np.sqrt(self.Ei)
           m2_time = self.m2[t-200.0:t+200.0].moment()
-          self.parameters['Ei'].value = (2286.26 * (self.m2_distance - self.m1_distance) /
+          self.parameters['Ei'].value = (2286.26 * 
+                                         (self.m2_distance - self.m1_distance) /
                                          (m2_time - m1_time))**2
 
       def accept(self):

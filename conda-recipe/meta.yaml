@@ -1,22 +1,23 @@
 package:
   name: nexpy
-  version: "0.10.3"
+  version: "0.10.4"
 
 source:
   git_url: https://github.com/nexpy/nexpy.git
-  git_tag: v0.10.3
+  git_tag: v0.10.4
 
 build:
   entry_points:
     - nexpy = nexpy.nexpygui:main
   number: 0
 # osx_is_app: True
+  osx_is_app: True
 
 requirements:
   build:
     - python
     - setuptools
-    - nexusformat >=0.4.10
+    - nexusformat >=0.4.11
     - numpy >=1.6.0
     - scipy
     - h5py
@@ -29,7 +30,7 @@ requirements:
 
   run:
     - python
-    - nexusformat >=0.4.10
+    - nexusformat >=0.4.11
     - numpy >=1.6.0
     - scipy
     - h5py
@@ -45,7 +46,6 @@ test:
     - nexpy.api
     - nexpy.api.frills
     - nexpy.api.frills.functions
-    - nexpy.api.nexus
     - nexpy.definitions
     - nexpy.gui
     - nexpy.plugins

@@ -98,13 +98,14 @@ The GUI includes an `IPython shell <http://ipython.org/>`_ and a `Matplotlib
 plotting pane <http://matplotlib.sourceforge.net>`_. The IPython shell is
 embedded in the Qt GUI using an implementation based on the newly-released
 Jupyter QtConsole, which has replaced the old IPython QtConsole.
-          
+
 =================  =================================================
 Library            URL
 =================  =================================================
 jupyter            http://jupyter.org/
 IPython v4.0.0     http://ipython.org/
 matplotlib v1.4.0  http://matplotlib.sourceforge.net/
+ansi2html          https://pypi.python.org/pypi/ansi2html/
 =================  =================================================
 
 .. warning:: Some people have reported that NeXpy crashes on launch on some
@@ -117,6 +118,11 @@ matplotlib v1.4.0  http://matplotlib.sourceforge.net/
              BASH, type ::
 
                  export QT_API=pyqt
+
+.. note:: As of v0.10.3, `ansi2html <https://pypi.python.org/pypi/ansi2html/>`_ 
+          has been added as a dependency, since colorized tracebacks are now
+          produced by uncaught GUI exceptions and displayed in dialog boxes and
+          stored in the log files. 
 
 .. seealso:: If you are having problems linking to the PySide library, you may
              need to run the PySide post-installation script after installing
@@ -139,9 +145,6 @@ From v0.1.5, we now have an importer for `Crystallographic Binary Files
 <http://www.bernstein-plus-sons.com/software/CBF/>`_, using PyCBF, which must
 be separately installed.
 
-From v0.4.3, the log window is colorized if `ansi2html 
-<https://pypi.python.org/pypi/ansi2html/>`_ is installed.
-
 From v0.9.1, a new 2D smoothing option is available in the list of 
 interpolations in the signal tab if `astropy <http://www.astropy.org>`_
 is installed. It is labelled 'convolve' and provides, by default, a 
@@ -155,7 +158,6 @@ lmfit              http://newville.github.io/lmfit-py/
 tifffile           https://pypi.python.org/pypi/tifffile
 pycbf              http://sourceforge.net/projects/cbflib/files/cbflib/pycbf/
 spec2nexus         http://spec2nexus.readthedocs.org/
-ansi2html          https://pypi.python.org/pypi/ansi2html/
 astropy            http://www.astropy.org
 =================  ==========================================================
 
