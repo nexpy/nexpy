@@ -1045,6 +1045,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.treeview.select_node(self.tree[name])
                 self.treeview.update()
                 self.default_directory = os.path.dirname(fname)
+                self.update_recent_files(fname)
                 logging.info("NeXus workspace '%s' saved as '%s'"
                              % (old_name, fname))
         except NeXusError as error:
@@ -1065,6 +1066,7 @@ class MainWindow(QtWidgets.QMainWindow):
                         name = self.tree.get_name(fname)
                         self.tree[name] = nxload(fname)
                         self.default_directory = os.path.dirname(fname)
+                        self.update_recent_files(fname)
                         logging.info("Workspace '%s' duplicated in '%s'"
                                      % (node.nxname, fname))
                 else:
@@ -1074,8 +1076,9 @@ class MainWindow(QtWidgets.QMainWindow):
                                    text=default_name)
                     if name and ok:
                         self.tree[name] = node
-                        logging.info("Workspace '%s' duplicated as workspace '%s'"
-                                     % (node.nxname, name))
+                        logging.info(
+                            "Workspace '%s' duplicated as workspace '%s'"
+                            % (node.nxname, name))
                 if name in self.tree:
                     self.treeview.select_node(self.tree[name])
                     self.treeview.update()
