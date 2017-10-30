@@ -1758,6 +1758,10 @@ class LogDialog(BaseDialog):
             self.text_box.verticalScrollBar().maximum())
         self.setWindowTitle("Log File: %s" % self.file_name)
 
+    def reject(self):
+        super(LogDialog, self).reject()
+        self.mainwindow.log_window = None
+
 
 class UnlockDialog(BaseDialog):
     """Dialog to unlock a file"""

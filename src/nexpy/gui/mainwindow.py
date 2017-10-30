@@ -103,6 +103,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.panels.setVisible(False)
         self.editors = NXScriptWindow(self)
         self.editors.setVisible(False)
+        self.log_window = None
 
         self.console = NXRichJupyterWidget(config=self.config, parent=rightpane)
         self.console.setMinimumSize(700, 100)
@@ -1763,8 +1764,12 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def show_log(self):
         try:
-            dialog = LogDialog(parent=self)
-            dialog.show()
+            if self.log_window:
+                self.log_window.show_log()
+                self.log_window.raise_()
+            else:
+                self.log_window = LogDialog(parent=self)
+                self.log_window.show()
         except NeXusError as error:
             report_error("Showing Log File", error)
 
