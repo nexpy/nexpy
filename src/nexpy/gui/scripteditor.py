@@ -87,7 +87,6 @@ class Highlighter(QtGui.QSyntaxHighlighter):
                 pass
 
 
-
 class NXPlainTextEdit(QtWidgets.QPlainTextEdit):
 
     def __init__(self, parent):
@@ -276,7 +275,8 @@ class NXScriptEditor(QtWidgets.QWidget):
             with open(file_name, 'w') as f:
                 f.write(self.get_text())
             self.file_name = file_name
-            self.window.tabs.setTabText(self.index, os.path.basename(self.file_name))
+            self.window.tabs.setTabText(self.index, 
+                                        os.path.basename(self.file_name))
             self.mainwindow.add_script_action(self.file_name)
             self.delete_button.setVisible(True)
 
