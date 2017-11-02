@@ -26,6 +26,7 @@ import numpy as np
 import os
 import pkg_resources
 import sys
+import warnings
 
 import matplotlib as mpl
 from matplotlib._pylab_helpers import Gcf
@@ -53,6 +54,7 @@ try:
 except ImportError:
     from matplotlib.ticker import LogFormatter
 from matplotlib.transforms import nonsingular
+from matplotlib.cbook import mplDeprecation
 from mpl_toolkits.axisartist.grid_helper_curvelinear import GridHelperCurveLinear
 from mpl_toolkits.axisartist import Subplot
 from mpl_toolkits.axisartist.grid_finder import MaxNLocator
@@ -90,6 +92,7 @@ linestyles = {'-': 'Solid', '--': 'Dashed', '-.': 'DashDot', ':': 'Dotted',
 markers = markers.MarkerStyle.markers
 logo = mpl.image.imread(pkg_resources.resource_filename(
            'nexpy.gui', 'resources/icon/NeXpy.png'))[180:880,50:1010]
+warnings.filterwarnings("ignore", category=mplDeprecation)
 
 
 def new_figure_manager(label=None, *args, **kwargs):
