@@ -56,6 +56,7 @@ from matplotlib.transforms import nonsingular
 from mpl_toolkits.axisartist.grid_helper_curvelinear import GridHelperCurveLinear
 from mpl_toolkits.axisartist import Subplot
 from mpl_toolkits.axisartist.grid_finder import MaxNLocator
+from scipy.spatial import Voronoi, voronoi_plot_2d
 
 from nexusformat.nexus import NXfield, NXdata, NXroot, NeXusError, nxload
 
@@ -1694,6 +1695,57 @@ class NXPlotView(QtWidgets.QDialog):
             circle.set_facecolor('none')
         self.canvas.draw()
         return circle
+
+    def voronoi(self, x, y, z, **opts):
+        """Output Voronoi plot based z(x,y) where x and y are pixel centers
+
+        Parameters
+        ----------
+        x, y: NXfield
+            x and y values of pixel centers - one-dimensional
+        z: NXfield
+            intensity of pixels - two-dimensional
+        """
+        self.signal = z
+        self.axes = [y.average(0), x.average(1)]
+        self.x = self.axes[1].nxdata
+        self.y = self.axes[0].nxdata
+        self.v = self.signal.nxdata
+        self.axis['signal'] = self.vaxis = NXPlotAxis(self.signal)
+        self.axis[0] = self.xaxis = NXPlotAxis(self.axes[0])
+        self.axis[1] = self.yaxis = NXPlotAxis(self.axes[1])
+        
+        self.figure.clf()
+        x, y, z = x.nxdata, y.nxdata, z.nxdata
+        vor = Voronoi([(x[i,j],y[i,j]) for i in range(z.shape[0]) 
+                                       for j in range(z.shape[1])])
+        if 'show_vertices' not in opts:
+            opts['show_vertices'] = False
+        if 'show_points' not in opts:
+            opts['show_points'] = False
+        if 'line_width' not in opts:
+            opts['line_width'] = 0.2        
+        voronoi_plot_2d(vor, ax=self.ax, **opts)
+        z = z.flatten()
+        self.vaxis.min = self.vaxis.lo = z.min()
+        self.vaxis.max = self.vaxis.hi = z.max()
+        self.set_data_norm()
+        mapper = mpl.cm.ScalarMappable(norm=self.norm, cmap=self.cmap)
+        for r in range(len(vor.point_region)):
+            region = vor.regions[vor.point_region[r]]
+            polygon = [vor.vertices[i] for i in region if i != -1]
+            self.ax.fill(*zip(*polygon), color=mapper.to_rgba(z[r]))
+#        self.colorbar = self.figure.colorbar(mapper)
+        self.xaxis.lo, self.xaxis.hi = x.min(), x.max()
+        self.yaxis.lo, self.yaxis.hi = y.min(), y.max()
+        self.ax.set_xlabel(self.xaxis.label)
+        self.ax.set_ylabel(self.yaxis.label)
+        self.ax.set_title(self.title)
+        self.limits = (self.xaxis.min, self.xaxis.max,
+                       self.yaxis.min, self.yaxis.max)
+        self.init_tabs()
+        self.draw()
+        self.otab.push_current()
 
     def init_tabs(self):
         """Initialize tabs for a new plot."""
