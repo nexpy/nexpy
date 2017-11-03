@@ -1710,13 +1710,13 @@ class NXPlotView(QtWidgets.QDialog):
             intensity of pixels - two-dimensional
         """
         self.signal = z
-        self.axes = [y.average(0), x.average(1)]
+        self.axes = [y.average(1), x.average(0)]
         self.x = self.axes[1].nxdata
         self.y = self.axes[0].nxdata
         self.v = self.signal.nxdata
         self.axis['signal'] = self.vaxis = NXPlotAxis(self.signal)
-        self.axis[0] = self.xaxis = NXPlotAxis(self.axes[0])
-        self.axis[1] = self.yaxis = NXPlotAxis(self.axes[1])
+        self.axis[1] = self.xaxis = NXPlotAxis(self.axes[1])
+        self.axis[0] = self.yaxis = NXPlotAxis(self.axes[0])
         
         self.figure.clf()
         x, y, z = x.nxdata, y.nxdata, z.nxdata
@@ -1734,16 +1734,17 @@ class NXPlotView(QtWidgets.QDialog):
         self.vaxis.max = self.vaxis.hi = z.max()
         self.set_data_norm()
         mapper = mpl.cm.ScalarMappable(norm=self.norm, cmap=self.cmap)
+        mapper.set_array(z)
         for r in range(len(vor.point_region)):
             region = vor.regions[vor.point_region[r]]
             polygon = [vor.vertices[i] for i in region if i != -1]
             self.ax.fill(*zip(*polygon), color=mapper.to_rgba(z[r]))
-#        self.colorbar = self.figure.colorbar(mapper)
+        self.colorbar = self.figure.colorbar(mapper)
         self.xaxis.lo, self.xaxis.hi = x.min(), x.max()
         self.yaxis.lo, self.yaxis.hi = y.min(), y.max()
         self.ax.set_xlabel(self.xaxis.label)
         self.ax.set_ylabel(self.yaxis.label)
-        self.ax.set_title(self.title)
+        self.ax.set_title('Voronoi Plot')
         self.limits = (self.xaxis.min, self.xaxis.max,
                        self.yaxis.min, self.yaxis.max)
         self.init_tabs()
