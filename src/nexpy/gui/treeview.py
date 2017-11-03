@@ -328,6 +328,7 @@ class NXTreeView(QtWidgets.QTreeView):
 
     def popMenu(self, node):
         menu = QtWidgets.QMenu(self)
+        from .plotview import plotview
         try:
             if node.is_plottable():
                 menu.addAction(self.plot_data_action)
@@ -336,7 +337,7 @@ class NXTreeView(QtWidgets.QTreeView):
                     node.nxsignal.plot_rank == 1) or
                     (isinstance(node, NXfield) and node.plot_rank == 1)):
                     menu.addAction(self.plot_line_action)
-                    if self.mainwindow.plotview.ndim == 1:
+                    if plotview.ndim == 1:
                         menu.addAction(self.overplot_data_action)
                         menu.addAction(self.overplot_line_action)
                 if ((isinstance(node, NXgroup) and 

@@ -103,6 +103,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.panels.setVisible(False)
         self.editors = NXScriptWindow(self)
         self.editors.setVisible(False)
+        self.log_window = None
 
         self.console = NXRichJupyterWidget(config=self.config, parent=rightpane)
         self.console.setMinimumSize(700, 100)
@@ -1045,6 +1046,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.treeview.select_node(self.tree[name])
                 self.treeview.update()
                 self.default_directory = os.path.dirname(fname)
+                self.update_recent_files(fname)
                 logging.info("NeXus workspace '%s' saved as '%s'"
                              % (old_name, fname))
         except NeXusError as error:
@@ -1065,6 +1067,7 @@ class MainWindow(QtWidgets.QMainWindow):
                         name = self.tree.get_name(fname)
                         self.tree[name] = nxload(fname)
                         self.default_directory = os.path.dirname(fname)
+                        self.update_recent_files(fname)
                         logging.info("Workspace '%s' duplicated in '%s'"
                                      % (node.nxname, fname))
                 else:
@@ -1074,8 +1077,9 @@ class MainWindow(QtWidgets.QMainWindow):
                                    text=default_name)
                     if name and ok:
                         self.tree[name] = node
-                        logging.info("Workspace '%s' duplicated as workspace '%s'"
-                                     % (node.nxname, name))
+                        logging.info(
+                            "Workspace '%s' duplicated as workspace '%s'"
+                            % (node.nxname, name))
                 if name in self.tree:
                     self.treeview.select_node(self.tree[name])
                     self.treeview.update()
@@ -1760,8 +1764,12 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def show_log(self):
         try:
-            dialog = LogDialog(parent=self)
-            dialog.show()
+            if self.log_window:
+                self.log_window.show_log()
+                self.log_window.raise_()
+            else:
+                self.log_window = LogDialog(parent=self)
+                self.log_window.show()
         except NeXusError as error:
             report_error("Showing Log File", error)
 
