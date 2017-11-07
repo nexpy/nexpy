@@ -1,12 +1,14 @@
 *************************
 Python Interface to NeXus
 *************************
-The Python interface to NeXus can be used within a standard Python or iPython 
+The Python interface to NeXus is provided by the `nexusformat 
+<https://github.com/nexpy/nexusformat>`_ package, which is distributed 
+separately from NeXpy. It can be used within a standard Python or IPython 
 shell:: 
 
  $ python
- Python 2.7.2 (default, Oct 11 2012, 20:14:37) 
- [GCC 4.2.1 Compatible Apple Clang 4.0 (tags/Apple/clang-418.0.60)] on darwin
+ Python 3.6.1 |Anaconda custom (x86_64)| (default, May 11 2017, 13:04:09) 
+ [GCC 4.2.1 Compatible Apple LLVM 6.0 (clang-600.0.57)] on darwin
  Type "help", "copyright", "credits" or "license" for more information.
  >>> from nexusformat.nexus import *
 
