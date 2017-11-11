@@ -62,8 +62,16 @@ def display_message(message, information=None):
     return message_box.exec_()
 
 
-def report_exception(error_type, error, traceback):
+def report_exception(*args):
     """Display and log an uncaught exception with its traceback"""
+    if len(args) == 3:
+        error_type, error, traceback = args[:3]
+    elif len(args) == 1:
+        if six.PY3:
+            exc = args[0]
+            error_type, error, traceback = exc.__class__, exc, exc.__traceback__
+        else:
+            error_type, error, traceback = sys.exc_info()
     message = ''.join(tb.format_exception_only(error_type, error))
     information = ColorTB(mode="Context").text(error_type, error, traceback)
     logging.error('Exception in GUI event loop\n'+information+'\n')
