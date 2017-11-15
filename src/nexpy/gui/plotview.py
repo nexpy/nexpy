@@ -1426,7 +1426,8 @@ class NXPlotView(QtWidgets.QDialog):
         elif opts:
             self._grid = True
         else:
-            self._grid = not self._grid
+            self._grid = not (self.ax.xaxis._gridOnMajor or
+                              self.ax.yaxis._gridOnMajor)
         if 'linestyle' in opts:
             self._gridstyle = opts['linestyle']
         else:
@@ -2144,7 +2145,7 @@ class NXPlotTab(QtWidgets.QWidget):
             self.maxslider = self.slider(self.read_maxslider)
             self.maxbox = self.doublespinbox(self.read_maxbox)
             if log:
-                self.logbox = self.checkbox("Log", self.set_log)
+                self.logbox = self.checkbox("Log", self.change_log)
                 self.logbox.setChecked(False)
             else:
                 self.logbox = None
@@ -2282,7 +2283,7 @@ class NXPlotTab(QtWidgets.QWidget):
         """Return a QCheckbox with the specified label and slot."""
         checkbox = QtWidgets.QCheckBox(label)
         checkbox.setChecked(False)
-        checkbox.clicked.connect(slot)
+        checkbox.stateChanged.connect(slot)
         return checkbox
 
     def pushbutton(self, label, slot):
