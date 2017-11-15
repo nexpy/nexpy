@@ -314,6 +314,7 @@ class NXPlotView(QtWidgets.QDialog):
         self.tab_widget.addTab(self.otab, 'options')
         self.currentTab = self.otab
         self.tab_widget.setCurrentWidget(self.currentTab)
+        self.tab_widget.setFocusPolicy(QtCore.Qt.StrongFocus)
 
         self.vbox = QtWidgets.QVBoxLayout()
         self.vbox.setContentsMargins(12, 12, 12, 12)
@@ -345,12 +346,9 @@ class NXPlotView(QtWidgets.QDialog):
 
         # Remove some key default Matplotlib key mappings
         for key in [key for key in mpl.rcParams if key.startswith('keymap')]:
-            if 'l' in mpl.rcParams[key]:
-                mpl.rcParams[key].remove('l')
-            if 'k' in mpl.rcParams[key]:
-                mpl.rcParams[key].remove('k')
-            if 'z' in mpl.rcParams[key]:
-                mpl.rcParams[key].remove('z')
+            for shortcut in 'klopsvxyzAEGOPSZ':
+                if shortcut in mpl.rcParams[key]:
+                    mpl.rcParams[key].remove(shortcut)
 
         if self.number < 101:
             plotview = self
@@ -390,7 +388,31 @@ class NXPlotView(QtWidgets.QDialog):
                     self.vtab.log = False
                 else:
                     self.vtab.log = True
+        elif event.key == 's' or event.key == 'v':
+            self.tab_widget.setCurrentIndex(self.tab_widget.indexOf(self.vtab))
+        elif event.key == 'x':
+            self.tab_widget.setCurrentIndex(self.tab_widget.indexOf(self.xtab))
+        elif event.key == 'y':
+            self.tab_widget.setCurrentIndex(self.tab_widget.indexOf(self.ytab))
         elif event.key == 'z':
+            self.tab_widget.setCurrentIndex(self.tab_widget.indexOf(self.ztab))
+        elif event.key == 'p':
+            self.tab_widget.setCurrentIndex(self.tab_widget.indexOf(self.ptab))
+        elif event.key == 'o':
+            self.tab_widget.setCurrentIndex(self.tab_widget.indexOf(self.otab))
+        elif event.key == 'A':
+            self.otab.add_data()
+        elif event.key == 'E':
+            self.otab.toggle_aspect()
+        elif event.key == 'G':
+            self.grid()
+        elif event.key == 'O':
+            self.otab.edit_parameters()
+        elif event.key == 'P':
+            self.otab.pan()
+        elif event.key == 'S':
+            self.otab.save_figure()
+        elif event.key == 'Z':
             self.otab.zoom()
 
     def display_logo(self):
@@ -3670,6 +3692,12 @@ class NXNavigationToolbar(NavigationToolbar):
         self.plotview.ytab.set_sliders(ymin, ymax)
         self.plotview.ytab.block_signals(False)
 
+    def toggle_aspect(self):
+        if self._actions['set_aspect'].isChecked():
+            self.plotview.aspect = 'auto'
+        else:
+            self.plotview.aspect = 'equal'
+    
     def set_aspect(self):
         if self._actions['set_aspect'].isChecked():
             self.plotview.aspect = 'equal'
