@@ -803,16 +803,19 @@ class NXPlotView(QtWidgets.QDialog):
         opts: dictionary
             A dictionary containing Matplotlib options.
         """
-        self.set_data_limits()
-        self.set_data_norm()
 
-        self.figure.clf()
-        if self.skew:
-            ax = self.figure.add_subplot(Subplot(self.figure, 1, 1, 1, 
-                                         grid_helper=self.grid_helper()))
+        if not over:
+            self.set_data_limits()
+            self.set_data_norm()
+            self.figure.clf()
+            if self.skew:
+                ax = self.figure.add_subplot(Subplot(self.figure, 1, 1, 1, 
+                                             grid_helper=self.grid_helper()))
+            else:
+                ax = self.figure.add_subplot(1, 1, 1)
+            ax.autoscale(enable=True)
         else:
-            ax = self.figure.add_subplot(1, 1, 1)
-        ax.autoscale(enable=True)
+            ax = self.ax
 
         if self.xaxis.reversed:
             left, right = self.xaxis.max_data, self.xaxis.min_data
@@ -845,7 +848,7 @@ class NXPlotView(QtWidgets.QDialog):
         self.image.get_cmap().set_bad('k', 1.0)
         ax.set_aspect(self.aspect)
 
-        if not self.rgb_image:
+        if not over and not self.rgb_image:
             self.colorbar = self.figure.colorbar(self.image, ax=ax,
                                                  norm=plotview.norm)
             self.colorbar.locator = self.locator
@@ -862,9 +865,10 @@ class NXPlotView(QtWidgets.QDialog):
             ax.grid(self._grid, color=self._gridcolor, 
                     linestyle=self._gridstyle)
 
-        ax.set_xlabel(self.xaxis.label)
-        ax.set_ylabel(self.yaxis.label)
-        ax.set_title(self.title)
+        if not over:
+            ax.set_xlabel(self.xaxis.label)
+            ax.set_ylabel(self.yaxis.label)
+            ax.set_title(self.title)
 
         vmin, vmax = self.image.get_clim()
         if self.vaxis.min > vmin:
