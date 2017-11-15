@@ -277,22 +277,15 @@ class NXPlotView(QtWidgets.QDialog):
         self.number = self.figuremanager.num
         self.canvas = self.figuremanager.canvas
         self.canvas.setParent(self)
-        self.canvas.setFocusPolicy(QtCore.Qt.ClickFocus)
+        self.canvas.setFocusPolicy(QtCore.Qt.StrongFocus)
 
         Gcf.set_active(self.figuremanager)
-        def make_active(event):
-            if self.number < 101:
-                self.make_active()
-            self.xdata, self.ydata = self.inverse_transform(event.xdata,
-                                                            event.ydata)
-            if event.button == 3:
-                try:
-                    self.otab.home(autoscale=False)
-                except Exception:
-                    pass
-        cid = self.canvas.mpl_connect('button_press_event', make_active)
+        self.button_press_cid = self.canvas.mpl_connect('button_press_event', 
+                                                        self.on_button_press)
+        self.key_press_cid = self.canvas.mpl_connect('key_press_event', 
+                                                     self.on_key_press)
         self.canvas.figure.show = lambda *args: self.show()
-        self.figuremanager._cidgcf = cid
+        self.figuremanager._cidgcf = self.button_press_cid
         self.figuremanager.window = self
         self._destroying = False
         self.figure = self.canvas.figure
@@ -349,6 +342,15 @@ class NXPlotView(QtWidgets.QDialog):
         self._linscale = None
         self._stddev = 2.0
 
+        # Remove some key default Matplotlib key mappings
+        for key in [key for key in mpl.rcParams if key.startswith('keymap')]:
+            if 'l' in mpl.rcParams[key]:
+                mpl.rcParams[key].remove('l')
+            if 'k' in mpl.rcParams[key]:
+                mpl.rcParams[key].remove('k')
+            if 'z' in mpl.rcParams[key]:
+                mpl.rcParams[key].remove('z')
+
         if self.number < 101:
             plotview = self
         plotviews[self.label] = self
@@ -365,6 +367,30 @@ class NXPlotView(QtWidgets.QDialog):
 
     def __repr__(self):
         return 'NXPlotView("%s")' % self.label
+
+    def on_button_press(self, event):
+        if self.number < 101:
+            self.make_active()
+        if event.inaxes:
+            self.xdata, self.ydata = self.inverse_transform(event.xdata, 
+                                                            event.ydata)
+        else:
+            self.xdata, self.ydata = None, None
+        if event.button == 3:
+            try:
+                self.otab.home(autoscale=False)
+            except Exception:
+                pass
+
+    def on_key_press(self, event):
+        if event.key == 'l':
+            if self.ndim > 1:
+                if self.vtab.log:
+                    self.vtab.log = False
+                else:
+                    self.vtab.log = True
+        elif event.key == 'z':
+            self.otab.zoom()
 
     def display_logo(self):
         self.plot(NXdata(logo, title='NeXpy'), image=True)
@@ -385,6 +411,8 @@ class NXPlotView(QtWidgets.QDialog):
             self.mainwindow.raise_()
         else:
             self.raise_()
+        self.canvas.activateWindow()
+        self.canvas.setFocus()
         self.update_active()
 
     def update_active(self):
@@ -2398,18 +2426,29 @@ class NXPlotTab(QtWidgets.QWidget):
         if self.minslider: self.minslider.blockSignals(block)
         if self.maxslider: self.maxslider.blockSignals(block)
 
-    @property
-    def log(self):
-        if self.logbox is not None:
+    def _log(self):
+        try:
             return self.logbox.isChecked()
+        except Exception:
+            return False
 
-    def set_log(self):
+    def _set_log(self, value):
+        try:
+            if value != self.log:
+                self.logbox.setChecked(value)
+                self.change_log()
+        except Exception:
+            pass
+    
+    log = property(_log, _set_log, "Property: Log scale")
+
+    def change_log(self):
         try:
             if self.name == 'v' and self.plotview.image:
                 self.plotview.replot_image()
             else:
                 self.plotview.set_log_axis()
-        except:
+        except Exception:
             pass
 
     def _locked(self):
@@ -3639,6 +3678,7 @@ class NXNavigationToolbar(NavigationToolbar):
             except (ValueError, OverflowError):
                 pass
             self.set_message(s)
+            self.plotview.canvas.setFocus()
         else:
             self.set_message('')
 
@@ -3738,6 +3778,8 @@ class CustomizeDialog(BaseDialog):
         p['skew'].value = self.plotview._skew_angle
         if self.plotview._skew_angle is None:
             p['skew'].value = 90.0
+        self.plotview._grid = (self.plotview.ax.xaxis._gridOnMajor and
+                               self.plotview.ax.yaxis._gridOnMajor)
         if self.plotview._grid:
             p['grid'].value = 'On'
         else:
