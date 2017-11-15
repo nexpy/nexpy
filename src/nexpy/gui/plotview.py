@@ -64,7 +64,7 @@ from nexusformat.nexus import NXfield, NXdata, NXroot, NeXusError, nxload
 
 from .. import __version__
 from .datadialogs import BaseDialog, GridParameters
-from .utils import report_error, find_nearest
+from .utils import report_error, report_exception, find_nearest
 
 plotview = None
 plotviews = {}
@@ -278,6 +278,7 @@ class NXPlotView(QtWidgets.QDialog):
         self.canvas = self.figuremanager.canvas
         self.canvas.setParent(self)
         self.canvas.setFocusPolicy(QtCore.Qt.StrongFocus)
+        self.canvas.callbacks.exception_handler = report_exception
 
         Gcf.set_active(self.figuremanager)
         self.button_press_cid = self.canvas.mpl_connect('button_press_event', 
