@@ -20,6 +20,7 @@ from .pyqt import QtCore, QtGui, QtWidgets
 import pkg_resources
 import numpy as np
 
+import matplotlib as mpl
 from nexusformat.nexus import (NeXusError, NXgroup, NXfield, NXattr,
                                NXroot, NXentry, NXdata, NXparameters, nxload)
 from .datadialogs import BaseDialog
@@ -42,6 +43,9 @@ class FitDialog(BaseDialog):
         if 'Fit' not in self.plotviews:
             self._plotview = NXPlotView('Fit')
         self.plotview.plot(self._data, fmt='o')
+        mpl.rcParams['keymap.home'].pop(1)
+        mpl.rcParams['keymap.yscale'] = []
+        self.plotview.canvas.mpl_connect('key_press_event', self.on_key_press)
         self.functions = []
         self.parameters = []
 
@@ -572,6 +576,12 @@ class FitDialog(BaseDialog):
                 p.stderr = None
         self.fit_label.setText(' ')
         self.write_parameters()
+
+    def on_key_press(self, event):
+        if event.key == 'l':
+            self.plot_minbox.setText(str(event.xdata))
+        elif event.key == 'r':
+            self.plot_maxbox.setText(str(event.xdata))
    
     def accept(self):
         if 'Fit' in self.plotviews:
