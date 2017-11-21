@@ -580,10 +580,11 @@ class FitDialog(BaseDialog):
         self.write_parameters()
 
     def on_key_press(self, event):
-        if event.key == 'l':
-            self.plot_minbox.setText(str(event.xdata))
-        elif event.key == 'r':
-            self.plot_maxbox.setText(str(event.xdata))
+        if event.inaxes:
+            if event.key == 'l':
+                self.plot_minbox.setText(str(event.xdata))
+            elif event.key == 'r':
+                self.plot_maxbox.setText(str(event.xdata))
    
     def accept(self):
         if 'Fit' in self.plotviews:
