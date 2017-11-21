@@ -442,7 +442,6 @@ class NXPlotView(QtWidgets.QDialog):
         The key that was pressed is stored in the Matplotlib KeyEvent 'key' 
         attribute.
         """
-        print('Receiving %s' % event.key)
         if event.key == 'l':
             if self.ndim > 1:
                 if self.vtab.log:
