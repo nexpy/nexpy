@@ -43,8 +43,10 @@ class FitDialog(BaseDialog):
         if 'Fit' not in self.plotviews:
             self._plotview = NXPlotView('Fit')
         self.plotview.plot(self._data, fmt='o')
-        mpl.rcParams['keymap.home'].pop(1)
-        mpl.rcParams['keymap.yscale'] = []
+        for key in [key for key in mpl.rcParams if key.startswith('keymap')]:
+            for shortcut in 'lr':
+                if shortcut in mpl.rcParams[key]:
+                    mpl.rcParams[key].remove(shortcut)
         self.plotview.canvas.mpl_connect('key_press_event', self.on_key_press)
         self.functions = []
         self.parameters = []
