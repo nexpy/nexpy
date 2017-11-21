@@ -30,7 +30,7 @@ import warnings
 
 import matplotlib as mpl
 from matplotlib._pylab_helpers import Gcf
-from matplotlib.backend_bases import FigureManagerBase
+from matplotlib.backend_bases import FigureManagerBase, FigureCanvasBase
 if QtVersion == 'Qt5Agg':
     from matplotlib.backends.backend_qt5 import FigureManagerQT as FigureManager
     from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
@@ -266,6 +266,7 @@ class NXPlotView(QtWidgets.QDialog):
         self.setMinimumSize(724, 550)
         self.setSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding,
                            QtWidgets.QSizePolicy.MinimumExpanding)
+        self.setFocusPolicy(QtCore.Qt.StrongFocus)
 
         global plotview, plotviews
         if label in plotviews:
@@ -364,6 +365,20 @@ class NXPlotView(QtWidgets.QDialog):
 
     def __repr__(self):
         return 'NXPlotView("%s")' % self.label
+
+    def keyPressEvent(self, event):
+        """Override the QWidget keyPressEvent.
+
+        This converts the event into a Matplotlib KeyEvent so that keyboard
+        shortcuts entered outside the canvas are treated as canvas shortcuts.
+
+        Parameters
+        ----------
+        event : PyQt QKeyEvent
+        """
+        key = self.canvas._get_key(event)
+        if key is not None:
+            FigureCanvasBase.key_press_event(self.canvas, key, guiEvent=event)
 
     def on_button_press(self, event):
         """Handle mouse button press events in the Matplotlib canvas.
