@@ -19,6 +19,12 @@ except ImportError:
 import numpy as np
 from .pyqt import QtWidgets
 
+try:
+    from astropy.convolution import Kernel
+except ImportError:
+    Kernel = object
+
+
 ansi_re = re.compile('\x1b' + r'\[([\dA-Fa-f;]*?)m')
 
 
@@ -62,8 +68,16 @@ def display_message(message, information=None):
     return message_box.exec_()
 
 
-def report_exception(error_type, error, traceback):
+def report_exception(*args):
     """Display and log an uncaught exception with its traceback"""
+    if len(args) == 3:
+        error_type, error, traceback = args[:3]
+    elif len(args) == 1:
+        if six.PY3:
+            exc = args[0]
+            error_type, error, traceback = exc.__class__, exc, exc.__traceback__
+        else:
+            error_type, error, traceback = sys.exc_info()
     message = ''.join(tb.format_exception_only(error_type, error))
     information = ColorTB(mode="Context").text(error_type, error, traceback)
     logging.error('Exception in GUI event loop\n'+information+'\n')
@@ -217,3 +231,20 @@ class NXConfigParser(ConfigParser, object):
             self.set("recent", path)
         self.remove_option("recent", "recentFiles")
         self.save()
+
+
+class Gaussian3DKernel(Kernel):
+
+    _separable = True
+    _is_bool = False
+
+    def __init__(self, stddev, **kwargs):
+        x = np.linspace(-15., 15., 17)
+        y = np.linspace(-15., 15., 17)
+        z = np.linspace(-15., 15., 17)
+        X,Y,Z = np.meshgrid(x,y,z)
+        array = np.exp(-(X**2+Y**2+Z**2)/(2*stddev**2))
+        self._default_size = _round_up_to_odd_integer(8 * stddev)
+        super(Gaussian3DKernel, self).__init__(array)
+        self.normalize()
+        self._truncation = np.abs(1. - self._array.sum())

@@ -53,7 +53,8 @@ class NXRichJupyterWidget(RichJupyterWidget):
 
     def _is_complete(self, source, interactive=True):
         shell = self.kernel_manager.kernel.shell
-        status, indent_spaces = shell.input_transformer_manager.check_complete(source)
+        status, indent_spaces = shell.input_transformer_manager.check_complete(
+                                    source)
         if indent_spaces is None:
             indent = ''
         else:
@@ -98,7 +99,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         rightpane = QtWidgets.QWidget()
 
-        self.plotview = NXPlotView(label="Main", parent=self)
+        main_plotview = NXPlotView(label="Main", parent=self)
         self.panels = NXProjectionPanels(self)
         self.panels.setVisible(False)
         self.editors = NXScriptWindow(self)
@@ -119,6 +120,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.console.exit_requested.connect(self.close)
         self.console.show()
 
+        self.shellview = self.console._control
+        self.shellview.setFocusPolicy(QtCore.Qt.StrongFocus)
+
         if 'gui_completion' not in self.config['ConsoleWidget']:
             self.console.gui_completion = 'droplist'
         if 'input_sep' not in self.config['JupyterWidget']:
@@ -135,7 +139,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         right_splitter = QtWidgets.QSplitter(rightpane)
         right_splitter.setOrientation(QtCore.Qt.Vertical)
-        right_splitter.addWidget(self.plotview)
+        right_splitter.addWidget(main_plotview)
         right_splitter.addWidget(self.console)
 
         rightlayout = QtWidgets.QVBoxLayout()
@@ -178,7 +182,12 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.setWindowTitle('NeXpy v'+__version__)
         self.statusBar().showMessage('Ready')
-        self.console._control.setFocus()
+        self.shellview.setFocus()
+
+    @property
+    def plotview(self):
+        from .plotview import plotview
+        return plotview
 
     def close(self):
         """ Called when you quit NeXpy or close the main window.
@@ -381,14 +390,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.file_menu.addSeparator()
 
-        printkey = QtGui.QKeySequence(QtGui.QKeySequence.Print)
-        if printkey.matches("Ctrl+P") and sys.platform != 'darwin':
-            # Only override the default if there is a collision.
-            # Qt ctrl = cmd on OSX, so the match gets a false positive on OSX.
-            printkey = "Ctrl+Shift+P"
-        self.print_action = QtWidgets.QAction("&Print Shell",
+        self.print_action = QtWidgets.QAction("Print Shell",
             self,
-            shortcut=printkey,
             triggered=self.print_action_console)
         self.add_menu_action(self.file_menu, self.print_action, True)
 
@@ -469,14 +472,21 @@ class MainWindow(QtWidgets.QMainWindow):
     def init_data_menu(self):
         self.data_menu = self.menu_bar.addMenu("Data")
 
-        self.plot_data_action=QtWidgets.QAction("Plot Data",
+        plotkey = QtGui.QKeySequence(QtGui.QKeySequence.Print)
+        if plotkey.matches("Ctrl+P") and sys.platform != 'darwin':
+            # Only override the default if there is a collision.
+            # Qt ctrl = cmd on OSX, so the match gets a false positive on OSX.
+            plotkey = "Ctrl+Shift+P"
+        self.plot_data_action=QtWidgets.QAction("&Plot Data",
             self,
+            shortcut=plotkey,
             triggered=self.plot_data
             )
         self.add_menu_action(self.data_menu, self.plot_data_action)
 
         self.overplot_data_action=QtWidgets.QAction("Overplot Data",
             self,
+            shortcut="Ctrl+Alt+P",
             triggered=self.overplot_data
             )
         self.add_menu_action(self.data_menu, self.overplot_data_action)
@@ -491,6 +501,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.view_action=QtWidgets.QAction("View Data",
             self,
+            shortcut="Ctrl+Alt+V",
             triggered=self.view_data
             )
         self.add_menu_action(self.data_menu, self.view_action)
@@ -725,6 +736,22 @@ class MainWindow(QtWidgets.QMainWindow):
             self.add_menu_action(self.window_menu, self.maximizeAct)
             self.window_menu.addSeparator()
 
+        self.tree_action=QtWidgets.QAction("Show Tree",
+            self,
+            shortcut=QtGui.QKeySequence("Ctrl+Shift+T"),
+            triggered=self.show_tree
+            )
+        self.add_menu_action(self.window_menu, self.tree_action)
+
+        self.shell_action=QtWidgets.QAction("Show IPython Shell",
+            self,
+            shortcut=QtGui.QKeySequence("Ctrl+Shift+I"),
+            triggered=self.show_shell
+            )
+        self.add_menu_action(self.window_menu, self.shell_action)
+
+        self.window_menu.addSeparator()
+
         self.log_action=QtWidgets.QAction("Show Log File",
             self,
             shortcut=QtGui.QKeySequence("Ctrl+Shift+L"),
@@ -838,7 +865,8 @@ class MainWindow(QtWidgets.QMainWindow):
             triggered=self._open_nexpy_online_help)
         self.add_menu_action(self.help_menu, self.nexpyHelpAct)
 
-        self.nexusHelpAct = QtWidgets.QAction("Open NeXus Base Class Definitions Online",
+        self.nexusHelpAct = QtWidgets.QAction(
+            "Open NeXus Base Class Definitions Online",
             self,
             triggered=self._open_nexus_online_help)
         self.add_menu_action(self.help_menu, self.nexusHelpAct)
@@ -946,6 +974,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 name = self.tree.get_name(fname)
                 self.tree[name] = nxload(fname)
                 self.treeview.select_node(self.tree[name])
+                self.treeview.setFocus()
                 self.default_directory = os.path.dirname(fname)
                 logging.info("NeXus file '%s' opened as workspace '%s'"
                              % (fname, name))
@@ -961,9 +990,11 @@ class MainWindow(QtWidgets.QMainWindow):
                 name = self.tree.get_name(fname)
                 self.tree[name] = nxload(fname, 'rw')
                 self.treeview.select_node(self.tree[name])
+                self.treeview.setFocus()
                 self.default_directory = os.path.dirname(fname)
-                logging.info("NeXus file '%s' opened (unlocked) as workspace '%s'"
-                             % (fname, name))
+                logging.info(
+                    "NeXus file '%s' opened (unlocked) as workspace '%s'"
+                    % (fname, name))
                 self.update_recent_files(fname)
         except NeXusError as error:
             report_error("Opening File (Read/Write)", error)
@@ -976,6 +1007,7 @@ class MainWindow(QtWidgets.QMainWindow):
             name = self.tree.get_name(fname)
             self.tree[name] = nxload(fname)
             self.treeview.select_node(self.tree[name])
+            self.treeview.setFocus()
             self.default_directory = os.path.dirname(fname)
             logging.info("NeXus file '%s' opened as workspace '%s'"
                          % (fname, name))
@@ -1277,6 +1309,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 if isinstance(node, NXgroup):
                     try:
                         node.plot(fmt='o')
+                        self.plotview.make_active()
                         return
                     except (KeyError, NeXusError):
                         pass
@@ -1294,6 +1327,7 @@ class MainWindow(QtWidgets.QMainWindow):
             if node is not None:
                 self.treeview.status_message(node)
                 node.oplot(fmt='o')
+                self.plotview.make_active()
         except NeXusError as error:
             report_error("Overplotting Data", error)
 
@@ -1305,6 +1339,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 if isinstance(node, NXgroup):
                     try:
                         node.plot(fmt='-')
+                        self.plotview.make_active()
                         return
                     except (KeyError, NeXusError):
                         pass
@@ -1322,6 +1357,8 @@ class MainWindow(QtWidgets.QMainWindow):
             if node is not None:
                 self.treeview.status_message(node)
                 node.oplot(fmt='-')
+                from .plotview import plotview
+                plotview.make_active()
         except NeXusError as error:
             report_error("Overplotting Data", error)
 
@@ -1331,6 +1368,8 @@ class MainWindow(QtWidgets.QMainWindow):
             if node is not None:
                 self.treeview.status_message(node)
                 node.implot()
+                from .plotview import plotview
+                plotview.make_active()
         except NeXusError as error:
             report_error("Plotting RGB(A) Image Data", error)
 
@@ -1722,12 +1761,11 @@ class MainWindow(QtWidgets.QMainWindow):
         self.make_active(number)
 
     def new_plot_window(self):
-        plotview = NXPlotView(parent=self)
+        new_plotview = NXPlotView(parent=self)
 
     def close_window(self):
-        from .plotview import plotview
-        if plotview.number != 1:
-            plotview.close()
+        if self.plotview.number != 1:
+            self.plotview.close()
 
     def equalize_windows(self):
         if 'Main' in self.plotviews:
@@ -1761,6 +1799,18 @@ class MainWindow(QtWidgets.QMainWindow):
             plotview.reset_plot_limits()
         except NeXusError as error:
             report_error("Resetting Plot Limits", error)
+
+    def show_tree(self):
+        self.raise_()
+        self.treeview.raise_()
+        self.treeview.activateWindow()
+        self.treeview.setFocus()
+
+    def show_shell(self):
+        self.raise_()
+        self.shellview.raise_()
+        self.shellview.activateWindow()
+        self.shellview.setFocus()
 
     def show_log(self):
         try:

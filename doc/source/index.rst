@@ -17,7 +17,7 @@ reading and writing NeXus files is provided by the `nexusformat
 <https://github.com/nexpy/nexusformat>`_ package, which utilizes 
 `h5py <http://www.h5py.org/>`_. The Python API is also described here.
 
-.. note:: NeXpy v0.10.4 is now available for `download 
+.. note:: NeXpy v0.10.6 is now available for `download 
           <https://pypi.python.org/pypi/NeXpy/>`_ (`Release Notes 
           <https://github.com/nexpy/nexpy/releases>`_). This is a beta-release 
           so please post any issues that you encounter on the `NeXpy GitHub 

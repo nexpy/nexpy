@@ -260,6 +260,8 @@ class NXTreeView(QtWidgets.QTreeView):
         self.setSortingEnabled(True)
         self.sortByColumn(0, QtCore.Qt.AscendingOrder)
 
+        self.setFocusPolicy(QtCore.Qt.StrongFocus)
+
         self.tree._item = self._model.invisibleRootItem()
         self.tree._item.node = self.tree
         self.tree._model = self._model
