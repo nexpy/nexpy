@@ -446,6 +446,20 @@ non-linear least-squares fitting module.</p>
 <div class="section" id="window-menu">
 <h3>Window Menu<a class="headerlink" href="#window-menu" title="Permalink to this headline">¶</a></h3>
 <dl class="docutils">
+<dt><strong>Show Tree</strong></dt>
+<dd><p class="first">Bring the tree view to the front and give it keyboard focus.</p>
+<div class="last admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">With v0.10.6, this has the keyboard shortcut of Ctrl+Shift+T.</p>
+</div>
+</dd>
+<dt><strong>Show IPython Shell</strong></dt>
+<dd><p class="first">Bring the shell to the front and give it keyboard focus.</p>
+<div class="last admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">With v0.10.6, this has the keyboard shortcut of Ctrl+Shift+I.</p>
+</div>
+</dd>
 <dt><strong>Show Log File</strong></dt>
 <dd><p class="first">Opens a text window displaying the NeXpy log file(s). These files, which are
 stored in <code class="docutils literal"><span class="pre">~/.nexpy/nexpy.log</span></code>, <code class="docutils literal"><span class="pre">~/.nexpy/nexpy.log.1</span></code>, <em>etc</em>.,
@@ -871,6 +885,27 @@ at the bottom of the color map dropdown menu in the Signal tab.</p>
 </div>
 </li>
 </ul>
+<p><strong>Keyboard Shortcuts</strong></p>
+<blockquote>
+<div><p>With v0.10.6, a number of keyboard shortcuts are defined in the currently
+selected plotting window. These can be used to switch between tabs or set
+various plotting options.</p>
+<ul class="simple">
+<li><strong>s</strong> - switch to the Signal tab.</li>
+<li><strong>x</strong> - switch to the X tab.</li>
+<li><strong>y</strong> - switch to the Y tab.</li>
+<li><strong>z</strong> - switch to the Z tab.</li>
+<li><strong>p</strong> - switch to the Projection tab.</li>
+<li><strong>o</strong> - switch to the Options tab.</li>
+<li><strong>l</strong> - toggle logarithmic signal scale (2D plots only)</li>
+<li><strong>P</strong> - toggle panning mode (if enabled, zoom mode is disabled).</li>
+<li><strong>Z</strong> - toggle zoom mode (if enabled, pan mode is disabled).</li>
+<li><strong>E</strong> - toggle the aspect ratio between equal and automatic</li>
+<li><strong>S</strong> - save plot to a graphics file.</li>
+<li><strong>A</strong> - add plotted data to the tree pane.</li>
+<li><strong>O</strong> - open dialog to customize plots.</li>
+</ul>
+</div></blockquote>
 </div>
 <div class="section" id="fitting-nexus-data">
 <h2>Fitting NeXus Data<a class="headerlink" href="#fitting-nexus-data" title="Permalink to this headline">¶</a></h2>
@@ -888,6 +923,12 @@ plotting window and the fitting parameters displayed in a message window.</p>
 entered in the Fit Dialog. These values can be changed between
 fits if required, or reset to the overall range of the data using the
 <code class="docutils literal"><span class="pre">Reset</span> <span class="pre">Limits</span></code> button.</p>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">With v0.10.6, the keyboard shortcuts &#8216;l&#8217; and &#8216;r&#8217; can
+be used to set the X-axis limits in the fit dialog to the current
+cursor position in the canvas.</p>
 </div>
 <p>The original data, the fitted data, constituent functions, and the parameters
 can all be saved to an NXentry group in the Tree Pane for subsequent plotting,
@@ -932,13 +973,19 @@ added, the less reliable the guesses will be. Starting parameters will have to
 be entered manually before the fit in those cases.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
+<p class="last">If it is not possible to estimate starting parameters, just return
+values that do not trigger an exception.</p>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
 <p class="last">The X-range used in &#8216;guessing&#8217; the parameters can be adjusted by
 setting the X-axis limits in the Fit Dialog.</p>
 </div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">If it is not possible to estimate starting parameters, just return
-values that do not trigger an exception.</p>
+<p class="last">With v0.10.6, the keyboard shortcuts &#8216;l&#8217; and &#8216;r&#8217; can
+be used to set the X-axis limits in the fit dialog to the current
+cursor position in the canvas.</p>
 </div>
 </div>
 </div>
