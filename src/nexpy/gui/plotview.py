@@ -415,6 +415,8 @@ class NXPlotView(QtWidgets.QDialog):
             Switch to the `x`, `y` or `z` tabs, respectively.
         'p', 'o'
             Switch to the `Projection` or `Option` tab, respectively.
+        'l'
+            Toggle log scale (2D only).
         'A'
             Store the plotted data. This is equivalent to selecting the 
             `Add Data` option button on the toolbar.
@@ -450,14 +452,19 @@ class NXPlotView(QtWidgets.QDialog):
                     self.vtab.log = True
         elif event.key == 's' or event.key == 'v':
             self.tab_widget.setCurrentIndex(self.tab_widget.indexOf(self.vtab))
+            self.vtab.minbox.setFocus()
         elif event.key == 'x':
             self.tab_widget.setCurrentIndex(self.tab_widget.indexOf(self.xtab))
+            self.xtab.axiscombo.setFocus()
         elif event.key == 'y':
             self.tab_widget.setCurrentIndex(self.tab_widget.indexOf(self.ytab))
+            self.ytab.axiscombo.setFocus()
         elif event.key == 'z':
             self.tab_widget.setCurrentIndex(self.tab_widget.indexOf(self.ztab))
+            self.ztab.axiscombo.setFocus()
         elif event.key == 'p':
             self.tab_widget.setCurrentIndex(self.tab_widget.indexOf(self.ptab))
+            self.ptab.xbox.setFocus()
         elif event.key == 'o':
             self.tab_widget.setCurrentIndex(self.tab_widget.indexOf(self.otab))
         elif event.key == 'A':
@@ -565,7 +572,7 @@ class NXPlotView(QtWidgets.QDialog):
         logy : bool
             If True, the y-axis is plotted on a log scale. This is 
             equivalent to 'log=True' for one-dimenional data.
-        skew
+        skew : float
             The value of the skew angle between the x and y axes for 2D 
             plots.
         """
@@ -2330,8 +2337,9 @@ class NXPlotTab(QtWidgets.QWidget):
 
     def combobox(self, slot):
         """Return a QComboBox with a signal slot."""
-        combobox = QtWidgets.QComboBox()
+        combobox = NXComboBox()
         combobox.setSizeAdjustPolicy(QtWidgets.QComboBox.AdjustToContents)
+        combobox.setFocusPolicy(QtCore.Qt.StrongFocus)
         combobox.setMinimumWidth(100)
         combobox.activated.connect(slot)
         return combobox
@@ -2369,8 +2377,10 @@ class NXPlotTab(QtWidgets.QWidget):
         return slider
 
     def checkbox(self, label, slot):
-        """Return a QCheckbox with the specified label and slot."""
-        checkbox = QtWidgets.QCheckBox(label)
+        """Return a checkbox with the specified label and slot."""
+        checkbox = NXCheckBox(label)
+        checkbox.setFocusPolicy(QtCore.Qt.StrongFocus)
+        checkbox.setTristate(False)
         checkbox.setChecked(False)
         checkbox.stateChanged.connect(slot)
         return checkbox
@@ -2951,6 +2961,29 @@ class NXDoubleSpinBox(QtWidgets.QDoubleSpinBox):
         elif value < self.minimum():
             self.setMinimum(value)
         super(NXDoubleSpinBox, self).setValue(value)
+
+
+class NXComboBox(QtWidgets.QComboBox):
+
+    def keyPressEvent(self, event):
+        if (event.key() == QtCore.Qt.Key_Up or 
+            event.key() == QtCore.Qt.Key_Down):
+            super(NXComboBox, self).keyPressEvent(event)
+        else:
+            self.parent().keyPressEvent(event)
+
+
+class NXCheckBox(QtWidgets.QCheckBox):
+
+    def keyPressEvent(self, event):
+        if (event.key() == QtCore.Qt.Key_Up or 
+            event.key() == QtCore.Qt.Key_Down):
+            if self.isChecked():
+                self.setCheckState(False)
+            else:
+                self.setCheckState(True)
+        else:
+            self.parent().keyPressEvent(event)
 
 
 class NXProjectionTab(QtWidgets.QWidget):
