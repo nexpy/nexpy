@@ -345,7 +345,7 @@ class NXPlotView(QtWidgets.QDialog):
 
         # Remove some key default Matplotlib key mappings
         for key in [key for key in mpl.rcParams if key.startswith('keymap')]:
-            for shortcut in 'klopsvxyzAEGOPSZ':
+            for shortcut in 'bfklopsvxyzAEGOPSZ':
                 if shortcut in mpl.rcParams[key]:
                     mpl.rcParams[key].remove(shortcut)
 
@@ -417,6 +417,8 @@ class NXPlotView(QtWidgets.QDialog):
             Switch to the `Projection` or `Option` tab, respectively.
         'l'
             Toggle log scale (2D only).
+        'f', 'b'
+            Play the current z-axis values forward or backward, respectively.
         'A'
             Store the plotted data. This is equivalent to selecting the 
             `Add Data` option button on the toolbar.
@@ -450,6 +452,12 @@ class NXPlotView(QtWidgets.QDialog):
                     self.vtab.log = False
                 else:
                     self.vtab.log = True
+        elif event.key == 'f':
+            self.ztab.playforward()
+        elif event.key == 'b':
+            self.ztab.playback()
+        elif event.key == ' ':
+            self.ztab.pause()
         elif event.key == 's' or event.key == 'v':
             self.tab_widget.setCurrentIndex(self.tab_widget.indexOf(self.vtab))
             self.vtab.minbox.setFocus()
