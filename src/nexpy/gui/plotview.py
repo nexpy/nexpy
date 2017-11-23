@@ -3759,10 +3759,8 @@ class NXNavigationToolbar(NavigationToolbar):
 
     def _update_view(self):
         super(NXNavigationToolbar, self)._update_view()
-        lims = self._views()
-        if lims is None:
-            return
-        xmin, xmax, ymin, ymax = lims[0]
+        xmin, xmax = self.plotview.ax.get_xlim()
+        ymin, ymax = self.plotview.ax.get_ylim()
         if xmin > xmax:
             if self.plotview.xaxis.reversed:
                 self.plotview.xtab.flipped = False
