@@ -2982,15 +2982,15 @@ class NXDoubleSpinBox(QtWidgets.QDoubleSpinBox):
 
 class NXComboBox(QtWidgets.QComboBox):
 
-    def __init__(self, slot=None, items=[], name=None):
+    def __init__(self, slot=None, items=[], default=None):
         super(NXComboBox, self).__init__()
         self.setSizeAdjustPolicy(QtWidgets.QComboBox.AdjustToContents)
         self.setFocusPolicy(QtCore.Qt.StrongFocus)
         self.setMinimumWidth(100)
         if items:
             self.addItems(items)
-            if name:
-                self.setCurrentIndex(self.findText(name))
+            if default:
+                self.setCurrentIndex(self.findText(default))
         if slot:
             self.activated.connect(slot)
 
