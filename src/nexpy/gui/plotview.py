@@ -460,7 +460,6 @@ class NXPlotView(QtWidgets.QDialog):
             self.ztab.pause()
         elif event.key == 's' or event.key == 'v':
             self.tab_widget.setCurrentIndex(self.tab_widget.indexOf(self.vtab))
-            self.vtab.minbox.setFocus()
         elif event.key == 'x':
             self.tab_widget.setCurrentIndex(self.tab_widget.indexOf(self.xtab))
             self.xtab.axiscombo.setFocus()
@@ -1950,8 +1949,19 @@ class NXPlotView(QtWidgets.QDialog):
         self.update_customize_panel()
 
     def change_axis(self, tab, axis):
-        """Replace the axis in a plot tab."""
+        """Replace the axis in a plot tab.
+        
+        Parameters
+        ----------
+        tab : NXPlotTab
+            Tab containing the axis to be changed
+        axis : NXPlotAxis
+            Axis that replaces the current selection in the tab
+        """
         xmin, xmax, ymin, ymax = self.limits
+        if (tab == self.xtab and axis == self.xaxis or
+            tab == self.ytab and axis == self.yaxis):
+            return
         if tab == self.xtab and axis == self.yaxis:
             self.yaxis = self.ytab.axis = self.xtab.axis
             self.xaxis = self.xtab.axis = axis
@@ -2217,11 +2227,14 @@ class NXPlotTab(QtWidgets.QWidget):
         self.name = name
         self.plotview = plotview
 
+        self.setFocusPolicy(QtCore.Qt.StrongFocus)
+
         self.setMinimumHeight(51)
         hbox = QtWidgets.QHBoxLayout()
         widgets = []
 
         if axis:
+            self.axiscombo = NXComboBox(self.change_axis)
             widgets.append(self.axiscombo)
         else:
             self.axiscombo = None
@@ -3037,6 +3050,7 @@ class NXProjectionTab(QtWidgets.QWidget):
         self.sumbox = NXCheckBox("Sum", self.plotview.replot_data)
         widgets.append(self.sumbox)
 
+        self.overplot_box = NXCheckBox("Over")
         if 'Projection' not in plotviews:
             self.overplot_box.setVisible(False)
         widgets.append(self.overplot_box)
@@ -3678,6 +3692,7 @@ class NXNavigationToolbar(NavigationToolbar):
         super(NXNavigationToolbar, self).__init__(canvas, parent)
         self.plotview = canvas.parent()
         self.zoom()
+        self.setFocusPolicy(QtCore.Qt.StrongFocus)
 
     def __repr__(self):
         return 'NXNavigationToolbar("%s")' % self.plotview.label
