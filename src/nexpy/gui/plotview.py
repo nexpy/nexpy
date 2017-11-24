@@ -80,6 +80,7 @@ else:
 interpolations = ['nearest', 'bilinear', 'bicubic', 'spline16', 'spline36',
                   'hanning', 'hamming', 'hermite', 'kaiser', 'quadric',
                   'catrom', 'gaussian', 'bessel', 'mitchell', 'sinc', 'lanczos']
+default_interpolation = 'nearest'
 try:
     from astropy.convolution import convolve, Gaussian2DKernel
     interpolations.insert(1, 'convolve')
@@ -1110,7 +1111,7 @@ class NXPlotView(QtWidgets.QDialog):
         self.grid(display=self._grid)
 
     def replot_image(self):
-        """Replot the image with new signal limits."""
+        """Replot the image."""
         try:
             self.set_data_limits()
             self.set_data_norm()
@@ -1419,7 +1420,7 @@ class NXPlotView(QtWidgets.QDialog):
             new_cmap = get_cmap(cmap)
         except ValueError as error:
             raise NeXusError(six.text_type(error))
-        self.vtab.set_cmap(new_cmap.name)
+        self.vtab.cmap = new_cmap.name
         self.vtab.change_cmap()
 
     cmap = property(_cmap, _set_cmap, "Property: color map")
@@ -2276,19 +2277,17 @@ class NXPlotTab(QtWidgets.QWidget):
             self.lockbox = self.scalebox = None
         if image:
             self.cmapcombo = NXComboBox(self.change_cmap, cmaps, default_cmap)
+            self._cached_cmap = default_cmap
             if cmaps.index('spring') > 0:
                 self.cmapcombo.insertSeparator(
                     self.cmapcombo.findText('spring'))
             if cmaps.index('seismic') > 0:
                 self.cmapcombo.insertSeparator(
                     self.cmapcombo.findText('seismic'))
-            self.cmapcombo.setCurrentIndex(
-                self.cmapcombo.findText(default_cmap))
             widgets.append(self.cmapcombo)
             self.interpcombo = NXComboBox(self.change_interpolation, 
-                                          interpolations)
-            self.set_interpolation('nearest')
-            self._cached_interpolation = 'nearest'
+                                          interpolations, default_interpolation)
+            self._cached_interpolation = default_interpolation
             widgets.append(self.interpcombo)
         else:
             self.cmapcombo = None
@@ -2352,7 +2351,7 @@ class NXPlotTab(QtWidgets.QWidget):
         if self.name == 'v':
             self.interpcombo.clear()
             self.interpcombo.addItems(self.plotview.interpolations)
-            self.set_interpolation(self._cached_interpolation)
+            self.interpolation = self._cached_interpolation
         self.block_signals(False)
 
     def spinbox(self, slot):
@@ -2646,45 +2645,62 @@ class NXPlotTab(QtWidgets.QWidget):
 
     def change_cmap(self):
         """Change the color map of the current plot."""
-        try:
-            cm = get_cmap(self.cmap)
-            cm.set_bad('k', 1)
-            self.plotview.image.set_cmap(cm)
-            if self.symmetric:
-                self.symmetrize()
-                self.plotview.x, self.plotview.y, self.plotview.v = self.plotview.get_image()
-                self.plotview.replot_image()
-            else:
-                self.minbox.setDisabled(False)
-                self.minslider.setDisabled(False)
-            self.plotview.draw()
-        except Exception:
-            pass
+        if self.cmap != self._cached_cmap:
+            try:
+                cm = get_cmap(self.cmap)
+                cm.set_bad('k', 1)
+                self.plotview.image.set_cmap(cm)
+                if self.symmetric:
+                    self.symmetrize()
+                    self.plotview.x, self.plotview.y, self.plotview.v = \
+                        self.plotview.get_image()
+                    self.plotview.replot_image()
+                else:
+                    self.minbox.setDisabled(False)
+                    self.minslider.setDisabled(False)
+                    if self.is_symmetric_cmap(self._cached_cmap):
+                        self.vaxis.lo = None
+                        self.plotview.replot_image()
+                self.plotview.draw()
+                self._cached_cmap = self.cmap
+            except Exception:
+                pass
 
-    def set_cmap(self, cmap):
+    def _cmap(self):
+        """Return the currently selected color map."""
+        return self.cmapcombo.currentText()
+
+    def _set_cmap(self, cmap):
         """Set the color map.
         
         If the color map is available but was not included in the 
         default list when NeXpy was launched, it is added to the list.
         """
-        idx = self.cmapcombo.findText(cmap)
-        if idx < 0 and cmap in cmap_d:
-            self.cmapcombo.insertItem(4, cmap)
-            self.cmapcombo.setCurrentIndex(self.cmapcombo.findText(cmap))
+        if cmap != self._cached_cmap:
+            idx = self.cmapcombo.findText(cmap)
+            if idx < 0:
+                if cmap in cmap_d:
+                    self.cmapcombo.insertItem(4, cmap)
+                    self.cmapcombo.setCurrentIndex(
+                        self.cmapcombo.findText(cmap))
+                else:
+                    raise NeXusError("Invalid Color Map")
+            self._cached_cmap = cmap
 
-    @property
-    def cmap(self):
-        """Return the currently selected color map."""
-        return self.cmapcombo.currentText()
-
+    cmap = property(_cmap, _set_cmap, "Property: Image color map")
+    
     @property
     def symmetric(self):
         """Return True if a divergent color map has been selected."""
+        return self.is_symmetric_cmap(self.cmap)
+
+    def is_symmetric_cmap(self, cmap):
         if (self.cmapcombo is not None and
-            self.cmapcombo.currentIndex() >= 
+            self.cmapcombo.findText(cmap) >= 
             self.cmapcombo.findText('seismic')):
-                return True
-        return False
+            return True
+        else:
+            return False    
 
     def symmetrize(self):
         """Symmetrize the minimum and maximum boxes and sliders."""
@@ -2699,20 +2715,25 @@ class NXPlotTab(QtWidgets.QWidget):
         self.minslider.setDisabled(True)
 
     def change_interpolation(self):
-        self._cached_interpolation = self.interpolation
-        self.plotview.interpolate()
+        if self.interpolation != self._cached_interpolation:
+            self.plotview.interpolate()
+            self._cached_interpolation = self.interpolation
 
-    def set_interpolation(self, interpolation):
-        idx = self.interpcombo.findText(interpolation)
-        if idx >= 0:
-            self.interpcombo.setCurrentIndex(idx)
+    def _set_interpolation(self, interpolation):
+        if interpolation != self._cached_interpolation:
+            idx = self.interpcombo.findText(interpolation)
+            if idx >= 0:
+                self.interpcombo.setCurrentIndex(idx)
+                self._cached_interpolation = interpolation
+            else:
+                self.interpcombo.setCurrentIndex(0)
             self._cached_interpolation = interpolation
-        else:
-            self.interpcombo.setCurrentIndex(0)
 
-    @property
-    def interpolation(self):
+    def _interpolation(self):
         return self.interpcombo.currentText()
+
+    interpolation = property(_interpolation, _set_interpolation, 
+                             "Property: Image color map")
 
     def init_toolbar(self):
         _backward_icon = QtGui.QIcon(
