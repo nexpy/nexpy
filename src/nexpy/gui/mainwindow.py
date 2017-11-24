@@ -121,7 +121,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.console.show()
 
         self.shellview = self.console._control
-        self.shellview.setFocusPolicy(QtCore.Qt.StrongFocus)
+        self.shellview.setFocusPolicy(QtCore.Qt.ClickFocus)
 
         if 'gui_completion' not in self.config['ConsoleWidget']:
             self.console.gui_completion = 'droplist'
@@ -182,6 +182,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.setWindowTitle('NeXpy v'+__version__)
         self.statusBar().showMessage('Ready')
+
         self.shellview.setFocus()
 
     @property
