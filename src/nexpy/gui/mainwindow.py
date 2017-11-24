@@ -1710,8 +1710,9 @@ class MainWindow(QtWidgets.QMainWindow):
         menulabel : str
             Label for the menu
 
-        Will infere the menu name from the identifier at creation if menulabel not given.
-        To do so you have too give menuidentifier as a CamelCassedString
+        Will infere the menu name from the identifier at creation if menulabel 
+        not given. To do so you have too give menuidentifier as a 
+        CamelCassedString
         """
         menu = self._magic_menu_dict.get(menuidentifier,None)
         if not menu :
@@ -1728,14 +1729,14 @@ class MainWindow(QtWidgets.QMainWindow):
             self.active_action[number] = QtWidgets.QAction(label,
                 self,
                 shortcut=QtGui.QKeySequence("Ctrl+Shift+Alt+P"),
-                triggered=lambda: self.plotviews[label].raise_(),
+                triggered=lambda: self.plotviews[label].make_active(),
                 checkable=False)
             self.window_menu.addAction(self.active_action[number])
         elif label == 'Fit':
             self.active_action[number] = QtWidgets.QAction(label,
                 self,
                 shortcut=QtGui.QKeySequence("Ctrl+Shift+Alt+F"),
-                triggered=lambda: self.plotviews[label].raise_(),
+                triggered=lambda: self.plotviews[label].make_active(),
                 checkable=False)
             self.window_menu.addAction(self.active_action[number])
         else:
