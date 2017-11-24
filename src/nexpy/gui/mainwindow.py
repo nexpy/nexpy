@@ -473,14 +473,9 @@ class MainWindow(QtWidgets.QMainWindow):
     def init_data_menu(self):
         self.data_menu = self.menu_bar.addMenu("Data")
 
-        plotkey = QtGui.QKeySequence(QtGui.QKeySequence.Print)
-        if plotkey.matches("Ctrl+P") and sys.platform != 'darwin':
-            # Only override the default if there is a collision.
-            # Qt ctrl = cmd on OSX, so the match gets a false positive on OSX.
-            plotkey = "Ctrl+Shift+P"
         self.plot_data_action=QtWidgets.QAction("&Plot Data",
             self,
-            shortcut=plotkey,
+            shortcut="Ctrl+P",
             triggered=self.plot_data
             )
         self.add_menu_action(self.data_menu, self.plot_data_action)
