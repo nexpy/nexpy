@@ -2222,7 +2222,6 @@ class NXPlotTab(QtWidgets.QWidget):
         widgets = []
 
         if axis:
-            self.axiscombo = self.combobox(self.change_axis)
             widgets.append(self.axiscombo)
         else:
             self.axiscombo = None
@@ -2262,8 +2261,7 @@ class NXPlotTab(QtWidgets.QWidget):
             widgets.append(self.flipbox)
             self.lockbox = self.scalebox = None
         if image:
-            self.cmapcombo = self.combobox(self.change_cmap)
-            self.cmapcombo.addItems(cmaps)
+            self.cmapcombo = NXComboBox(self.change_cmap, cmaps, default_cmap)
             if cmaps.index('spring') > 0:
                 self.cmapcombo.insertSeparator(
                     self.cmapcombo.findText('spring'))
@@ -2273,8 +2271,8 @@ class NXPlotTab(QtWidgets.QWidget):
             self.cmapcombo.setCurrentIndex(
                 self.cmapcombo.findText(default_cmap))
             widgets.append(self.cmapcombo)
-            self.interpcombo = self.combobox(self.change_interpolation)
-            self.interpcombo.addItems(interpolations)
+            self.interpcombo = NXComboBox(self.change_interpolation, 
+                                          interpolations)
             self.set_interpolation('nearest')
             self._cached_interpolation = 'nearest'
             widgets.append(self.interpcombo)
@@ -2343,15 +2341,6 @@ class NXPlotTab(QtWidgets.QWidget):
             self.set_interpolation(self._cached_interpolation)
         self.block_signals(False)
 
-    def combobox(self, slot):
-        """Return a QComboBox with a signal slot."""
-        combobox = NXComboBox()
-        combobox.setSizeAdjustPolicy(QtWidgets.QComboBox.AdjustToContents)
-        combobox.setFocusPolicy(QtCore.Qt.StrongFocus)
-        combobox.setMinimumWidth(100)
-        combobox.activated.connect(slot)
-        return combobox
-
     def spinbox(self, slot):
         """Return a NXSpinBox with a signal slot."""
         spinbox = NXSpinBox()
@@ -2396,6 +2385,7 @@ class NXPlotTab(QtWidgets.QWidget):
     def pushbutton(self, label, slot):
         """Return a QPushButton with the specified label and slot."""
         button = QtWidgets.QPushButton(label)
+        button.setFocusPolicy(QtCore.Qt.StrongFocus)
         button.clicked.connect(slot)
         return button
 
@@ -2973,23 +2963,45 @@ class NXDoubleSpinBox(QtWidgets.QDoubleSpinBox):
 
 class NXComboBox(QtWidgets.QComboBox):
 
+    def __init__(self, slot=None, items=[], name=None):
+        super(NXComboBox, self).__init__()
+        self.setSizeAdjustPolicy(QtWidgets.QComboBox.AdjustToContents)
+        self.setFocusPolicy(QtCore.Qt.StrongFocus)
+        self.setMinimumWidth(100)
+        if items:
+            self.addItems(items)
+            if name:
+                self.setCurrentIndex(self.findText(name))
+        if slot:
+            self.activated.connect(slot)
+
     def keyPressEvent(self, event):
         if (event.key() == QtCore.Qt.Key_Up or 
             event.key() == QtCore.Qt.Key_Down):
             super(NXComboBox, self).keyPressEvent(event)
+        elif (event.key() == QtCore.Qt.Key_Right or 
+              event.key() == QtCore.Qt.Key_Left):
+            self.showPopup()
         else:
             self.parent().keyPressEvent(event)
 
 
 class NXCheckBox(QtWidgets.QCheckBox):
 
+    def __init__(self, label=None, slot=None, checked=False):
+        super(NXCheckBox, self).__init__(label)
+        self.setFocusPolicy(QtCore.Qt.StrongFocus)
+        self.setChecked(checked)
+        if slot:
+            self.stateChanged.connect(slot)
+
     def keyPressEvent(self, event):
         if (event.key() == QtCore.Qt.Key_Up or 
             event.key() == QtCore.Qt.Key_Down):
             if self.isChecked():
-                self.setCheckState(False)
+                self.setCheckState(QtCore.Qt.Unchecked)
             else:
-                self.setCheckState(True)
+                self.setCheckState(QtCore.Qt.Checked)
         else:
             self.parent().keyPressEvent(event)
 
@@ -3005,15 +3017,11 @@ class NXProjectionTab(QtWidgets.QWidget):
         hbox = QtWidgets.QHBoxLayout()
         widgets = []
 
-        self.xbox = QtWidgets.QComboBox()
-        self.xbox.currentIndexChanged.connect(self.set_xaxis)
-        self.xbox.setSizeAdjustPolicy(QtWidgets.QComboBox.AdjustToContents)
+        self.xbox = NXComboBox(self.set_xaxis)
         widgets.append(QtWidgets.QLabel('X-Axis:'))
         widgets.append(self.xbox)
 
-        self.ybox = QtWidgets.QComboBox()
-        self.ybox.currentIndexChanged.connect(self.set_yaxis)
-        self.ybox.setSizeAdjustPolicy(QtWidgets.QComboBox.AdjustToContents)
+        self.ybox = NXComboBox(self.set_yaxis)
         self.ylabel = QtWidgets.QLabel('Y-Axis:')
         widgets.append(self.ylabel)
         widgets.append(self.ybox)
@@ -3026,13 +3034,9 @@ class NXProjectionTab(QtWidgets.QWidget):
         self.plot_button.clicked.connect(self.plot_projection)
         widgets.append(self.plot_button)
 
-        self.sumbox = QtWidgets.QCheckBox("Sum")
-        self.sumbox.setChecked(False)
-        self.sumbox.clicked.connect(self.plotview.replot_data)
+        self.sumbox = NXCheckBox("Sum", self.plotview.replot_data)
         widgets.append(self.sumbox)
 
-        self.overplot_box = QtWidgets.QCheckBox("Over")
-        self.overplot_box.setChecked(False)
         if 'Projection' not in plotviews:
             self.overplot_box.setVisible(False)
         widgets.append(self.overplot_box)
@@ -3048,6 +3052,8 @@ class NXProjectionTab(QtWidgets.QWidget):
         hbox.addStretch()
 
         self.setLayout(hbox)
+
+        self.setFocusPolicy(QtCore.Qt.StrongFocus)
 
     def __repr__(self):
         return 'NXProjectionTab("%s")' % self.plotview.label
@@ -3242,16 +3248,11 @@ class NXProjectionPanel(QtWidgets.QWidget):
         axisbox = QtWidgets.QHBoxLayout()
         widgets = []
 
-        self.xbox = QtWidgets.QComboBox()
-        self.xbox.currentIndexChanged.connect(self.set_xaxis)
-        self.xbox.setSizeAdjustPolicy(QtWidgets.QComboBox.AdjustToContents)
+        self.xbox = NXComboBox(self.set_xaxis)
         widgets.append(QtWidgets.QLabel('X-Axis:'))
         widgets.append(self.xbox)
 
-        self.ybox = QtWidgets.QComboBox()
-        self.ybox.currentIndexChanged.connect(self.set_yaxis)
-        self.ybox.setCurrentIndex(self.ybox.findText(self.plotview.yaxis.name))
-        self.ybox.setSizeAdjustPolicy(QtWidgets.QComboBox.AdjustToContents)
+        self.ybox = NXComboBox(self.set_yaxis)
         self.ylabel = QtWidgets.QLabel('Y-Axis:')
         widgets.append(self.ylabel)
         widgets.append(self.ybox)
@@ -3290,9 +3291,7 @@ class NXProjectionPanel(QtWidgets.QWidget):
             row += 1
             self.minbox[axis] = self.spinbox()
             self.maxbox[axis] = self.spinbox()
-            self.lockbox[axis] = QtWidgets.QCheckBox()
-            self.lockbox[axis].stateChanged.connect(self.set_lock)
-            self.lockbox[axis].setChecked(False)
+            self.lockbox[axis] = NXCheckBox(slot=self.set_lock)
             grid.addWidget(QtWidgets.QLabel(self.plotview.axis[axis].name), 
                                             row, 0)
             grid.addWidget(self.minbox[axis], row, 1)
@@ -3311,8 +3310,7 @@ class NXProjectionPanel(QtWidgets.QWidget):
         self.plot_button.setDefault(False)
         self.plot_button.setAutoDefault(False)
         grid.addWidget(self.plot_button, row, 2)
-        self.overplot_box = QtWidgets.QCheckBox()
-        self.overplot_box.setChecked(False)
+        self.overplot_box = NXCheckBox()
         if 'Projection' not in plotviews:
             self.overplot_box.setVisible(False)
         grid.addWidget(self.overplot_box, row, 3,
@@ -3331,8 +3329,7 @@ class NXProjectionPanel(QtWidgets.QWidget):
         grid.addWidget(self.unmask_button, row, 2)
 
         row += 1
-        self.sumbox = QtWidgets.QCheckBox("Sum Projections")
-        self.sumbox.setChecked(False)
+        self.sumbox = NXCheckBox("Sum Projections")
         grid.addWidget(self.sumbox, row, 1, 1, 2, 
                        alignment=QtCore.Qt.AlignHCenter)
 
@@ -3340,7 +3337,7 @@ class NXProjectionPanel(QtWidgets.QWidget):
 
         self.copy_row = QtWidgets.QWidget()
         copy_layout = QtWidgets.QHBoxLayout()
-        self.copy_box = QtWidgets.QComboBox()
+        self.copy_box = NXComboBox()
         self.copy_button = QtWidgets.QPushButton("Copy Limits", self)
         self.copy_button.clicked.connect(self.copy_limits)
         self.copy_button.setDefault(False)
