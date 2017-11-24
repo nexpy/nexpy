@@ -138,7 +138,7 @@ def change_plotview(label):
     Parameters
     ----------
     label : str
-        The label of the plotting window to be activatd.
+        The label of the plotting window to be activated.
     """
     global plotview, plotviews
     if label in plotviews:
@@ -391,8 +391,6 @@ class NXPlotView(QtWidgets.QDialog):
         ----------
         event : Matplotlib KeyEvent
         """
-        if self.number < 101:
-            self.make_active()
         if event.inaxes:
             self.xdata, self.ydata = self.inverse_transform(event.xdata, 
                                                             event.ydata)
