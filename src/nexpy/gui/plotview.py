@@ -43,7 +43,6 @@ from matplotlib.backends.qt_editor.formlayout import ColorButton, to_qcolor
 from matplotlib.figure import Figure
 from matplotlib.image import NonUniformImage
 from matplotlib.colors import LogNorm, Normalize, SymLogNorm
-from matplotlib.colors import colorConverter, rgb2hex
 from matplotlib.cm import cmap_d, get_cmap
 from matplotlib.lines import Line2D
 from matplotlib import markers
@@ -63,7 +62,6 @@ from scipy.spatial import Voronoi, voronoi_plot_2d
 from nexusformat.nexus import NXfield, NXdata, NXroot, NeXusError, nxload
 
 from .. import __version__
-from .datadialogs import BaseDialog, GridParameters
 from .utils import report_error, report_exception, find_nearest
 
 plotview = None
@@ -391,6 +389,7 @@ class NXPlotView(QtWidgets.QDialog):
         ----------
         event : Matplotlib KeyEvent
         """
+        self.make_active()
         if event.inaxes:
             self.xdata, self.ydata = self.inverse_transform(event.xdata, 
                                                             event.ydata)
@@ -2245,10 +2244,9 @@ class NXPlotTab(QtWidgets.QWidget):
             self.zaxis = True
             self.minbox = self.spinbox(self.read_minbox)
             self.maxbox = self.spinbox(self.read_maxbox)
-            self.lockbox = self.checkbox("Lock", self.change_lock)
+            self.lockbox = NXCheckBox("Lock", self.change_lock)
             self.lockbox.setChecked(True)
-            self.scalebox = self.checkbox("Autoscale", 
-                                          self.plotview.replot_image)
+            self.scalebox = NXCheckBox("Autoscale", self.plotview.replot_image)
             self.scalebox.setChecked(True)
             self.init_toolbar()
             widgets.append(self.minbox)
@@ -2264,11 +2262,11 @@ class NXPlotTab(QtWidgets.QWidget):
             self.maxslider = self.slider(self.read_maxslider)
             self.maxbox = self.doublespinbox(self.read_maxbox)
             if log:
-                self.logbox = self.checkbox("Log", self.change_log)
+                self.logbox = NXCheckBox("Log", self.change_log)
                 self.logbox.setChecked(False)
             else:
                 self.logbox = None
-            self.flipbox = self.checkbox("Flip", self.flip_axis)
+            self.flipbox = NXCheckBox("Flip", self.flip_axis)
             widgets.append(self.minbox)
             widgets.extend([self.minslider, self.maxslider])
             widgets.append(self.maxbox)
@@ -2388,22 +2386,6 @@ class NXPlotTab(QtWidgets.QWidget):
         if self.name != 'v':
             slider.sliderMoved.connect(slot)
         return slider
-
-    def checkbox(self, label, slot):
-        """Return a checkbox with the specified label and slot."""
-        checkbox = NXCheckBox(label)
-        checkbox.setFocusPolicy(QtCore.Qt.StrongFocus)
-        checkbox.setTristate(False)
-        checkbox.setChecked(False)
-        checkbox.stateChanged.connect(slot)
-        return checkbox
-
-    def pushbutton(self, label, slot):
-        """Return a QPushButton with the specified label and slot."""
-        button = QtWidgets.QPushButton(label)
-        button.setFocusPolicy(QtCore.Qt.StrongFocus)
-        button.clicked.connect(slot)
-        return button
 
     @QtCore.Slot()
     def read_maxbox(self):
@@ -3022,6 +3004,45 @@ class NXCheckBox(QtWidgets.QCheckBox):
             self.parent().keyPressEvent(event)
 
 
+class NXPushButton(QtWidgets.QPushButton):
+
+    def __init__(self, label, slot, parent=None):
+        """Return a QPushButton with the specified label and slot."""
+        super(NXPushButton, self).__init__(label, parent)
+        self.setFocusPolicy(QtCore.Qt.StrongFocus)
+        self.setDefault(False)
+        self.setAutoDefault(False)
+        self.clicked.connect(slot)
+
+    def keyPressEvent(self, event):
+        if (event.key() == QtCore.Qt.Key_Return or 
+            event.key() == QtCore.Qt.Key_Enter or
+            event.key() == QtCore.Qt.Key_Space):
+            self.clicked.emit()
+        else:
+            self.parent().keyPressEvent(event)
+
+
+class NXColorButton(ColorButton):
+
+    def __init__(self, parameter):
+        super(NXColorButton, self).__init__()
+        self.parameter = parameter
+        self.parameter.box.editingFinished.connect(self.update_color)
+        self.colorChanged.connect(self.update_text)
+
+    def update_color(self):
+        color = self.text()
+        qcolor = to_qcolor(color)
+        self.color = qcolor  # defaults to black if not qcolor.isValid()
+
+    def update_text(self, color):
+        self.parameter.value = color.name()
+
+    def text(self):
+        return self.parameter.value
+
+
 class NXProjectionTab(QtWidgets.QWidget):
 
     def __init__(self, plotview=None):
@@ -3042,12 +3063,10 @@ class NXProjectionTab(QtWidgets.QWidget):
         widgets.append(self.ylabel)
         widgets.append(self.ybox)
 
-        self.save_button = QtWidgets.QPushButton("Save", self)
-        self.save_button.clicked.connect(self.save_projection)
+        self.save_button = NXPushButton("Save", self.save_projection, self)
         widgets.append(self.save_button)
 
-        self.plot_button = QtWidgets.QPushButton("Plot", self)
-        self.plot_button.clicked.connect(self.plot_projection)
+        self.plot_button = NXPushButton("Plot", self.plot_projection, self)
         widgets.append(self.plot_button)
 
         self.sumbox = NXCheckBox("Sum", self.plotview.replot_data)
@@ -3058,8 +3077,7 @@ class NXProjectionTab(QtWidgets.QWidget):
             self.overplot_box.setVisible(False)
         widgets.append(self.overplot_box)
 
-        self.panel_button = QtWidgets.QPushButton("Open Panel", self)
-        self.panel_button.clicked.connect(self.open_panel)
+        self.panel_button = NXPushButton("Open Panel", self.open_panel, self)
         widgets.append(self.panel_button)
 
         hbox.addStretch()
@@ -3069,6 +3087,13 @@ class NXProjectionTab(QtWidgets.QWidget):
         hbox.addStretch()
 
         self.setLayout(hbox)
+
+        self.setTabOrder(self.xbox, self.ybox)
+        self.setTabOrder(self.ybox, self.save_button)
+        self.setTabOrder(self.save_button, self.plot_button)
+        self.setTabOrder(self.plot_button, self.sumbox)
+        self.setTabOrder(self.sumbox, self.overplot_box)
+        self.setTabOrder(self.overplot_box, self.panel_button)
 
         self.setFocusPolicy(QtCore.Qt.StrongFocus)
 
@@ -3181,7 +3206,6 @@ class NXProjectionTab(QtWidgets.QWidget):
         else:
             self.overplot_box.setVisible(False)
             self.overplot_box.setChecked(False)
-        self.plotview.make_active()
         plotviews[projection.label].raise_()
         self.plotview.mainwindow.panels.update()
 
@@ -3317,15 +3341,9 @@ class NXProjectionPanel(QtWidgets.QWidget):
                            alignment=QtCore.Qt.AlignHCenter)
 
         row += 1
-        self.save_button = QtWidgets.QPushButton("Save", self)
-        self.save_button.clicked.connect(self.save_projection)
-        self.save_button.setDefault(False)
-        self.save_button.setAutoDefault(False)
+        self.save_button = NXPushButton("Save", self.save_projection, self)
         grid.addWidget(self.save_button, row, 1)
-        self.plot_button = QtWidgets.QPushButton("Plot", self)
-        self.plot_button.clicked.connect(self.plot_projection)
-        self.plot_button.setDefault(False)
-        self.plot_button.setAutoDefault(False)
+        self.plot_button = NXPushButton("Plot", self.plot_projection, self)
         grid.addWidget(self.plot_button, row, 2)
         self.overplot_box = NXCheckBox()
         if 'Projection' not in plotviews:
@@ -3334,15 +3352,9 @@ class NXProjectionPanel(QtWidgets.QWidget):
                        alignment=QtCore.Qt.AlignHCenter)
 
         row += 1
-        self.mask_button = QtWidgets.QPushButton("Mask", self)
-        self.mask_button.clicked.connect(self.mask_data)
-        self.mask_button.setDefault(False)
-        self.mask_button.setAutoDefault(False)
+        self.mask_button = NXPushButton("Mask", self.mask_data, self)
         grid.addWidget(self.mask_button, row, 1)
-        self.unmask_button = QtWidgets.QPushButton("Unmask", self)
-        self.unmask_button.clicked.connect(self.unmask_data)
-        self.unmask_button.setDefault(False)
-        self.unmask_button.setAutoDefault(False)
+        self.unmask_button = NXPushButton("Unmask", self.unmask_data, self)
         grid.addWidget(self.unmask_button, row, 2)
 
         row += 1
@@ -3355,10 +3367,7 @@ class NXProjectionPanel(QtWidgets.QWidget):
         self.copy_row = QtWidgets.QWidget()
         copy_layout = QtWidgets.QHBoxLayout()
         self.copy_box = NXComboBox()
-        self.copy_button = QtWidgets.QPushButton("Copy Limits", self)
-        self.copy_button.clicked.connect(self.copy_limits)
-        self.copy_button.setDefault(False)
-        self.copy_button.setAutoDefault(False)
+        self.copy_button = NXPushButton("Copy Limits", self.copy_limits, self)
         copy_layout.addStretch()
         copy_layout.addWidget(self.copy_box)
         copy_layout.addWidget(self.copy_button)
@@ -3367,18 +3376,11 @@ class NXProjectionPanel(QtWidgets.QWidget):
         layout.addWidget(self.copy_row)
 
         button_layout = QtWidgets.QHBoxLayout()
-        self.reset_button = QtWidgets.QPushButton("Reset Limits", self)
-        self.reset_button.clicked.connect(self.reset_limits)
-        self.reset_button.setDefault(False)
-        self.reset_button.setAutoDefault(False)
-        self.rectangle_button = QtWidgets.QPushButton("Hide Limits", self)
-        self.rectangle_button.clicked.connect(self.toggle_rectangle)
-        self.rectangle_button.setDefault(False)
-        self.rectangle_button.setAutoDefault(False)
-        self.close_button = QtWidgets.QPushButton("Close Panel", self)
-        self.close_button.clicked.connect(self.close)
-        self.close_button.setDefault(False)
-        self.close_button.setAutoDefault(False)
+        self.reset_button = NXPushButton("Reset Limits", self.reset_limits, 
+                                         self)
+        self.rectangle_button = NXPushButton("Hide Limits", 
+                                             self.toggle_rectangle, self)
+        self.close_button = NXPushButton("Close Panel", self.close, self)
         button_layout.addStretch()
         button_layout.addWidget(self.reset_button)
         button_layout.addWidget(self.rectangle_button)
@@ -3732,6 +3734,7 @@ class NXNavigationToolbar(NavigationToolbar):
 
     def edit_parameters(self):
         if self.plotview.customize_panel is None:
+            from .datadialogs import CustomizeDialog
             self.plotview.customize_panel = CustomizeDialog(
                 parent=self.plotview)
             self.plotview.customize_panel.show()
@@ -3834,286 +3837,6 @@ class NXNavigationToolbar(NavigationToolbar):
             self.plotview.canvas.setFocus()
         else:
             self.set_message('')
-
-
-class CustomizeDialog(BaseDialog):
-
-    def __init__(self, parent):
-        super(CustomizeDialog, self).__init__(parent, default=True)
-
-        self.plotview = parent
-
-        self.parameters = {}
-        pl = self.parameters['labels'] = GridParameters()
-        pl.add('title', self.plotview.title, 'Title')
-        pl['title'].box.setMinimumWidth(200)
-        pl['title'].box.setAlignment(QtCore.Qt.AlignLeft)
-        pl.add('xlabel', self.plotview.xaxis.label, 'X-Axis Label')
-        pl['xlabel'].box.setMinimumWidth(200)
-        pl['xlabel'].box.setAlignment(QtCore.Qt.AlignLeft)
-        pl.add('ylabel', self.plotview.yaxis.label, 'Y-Axis Label')
-        pl['ylabel'].box.setMinimumWidth(200)
-        pl['ylabel'].box.setAlignment(QtCore.Qt.AlignLeft)
-        if self.plotview.image is not None:
-            image_grid = QtWidgets.QVBoxLayout()
-            self.parameters['image'] = self.image_parameters()
-            self.update_image_parameters()
-            image_grid.addLayout(self.parameters['image'].grid_layout)
-            self.set_layout(pl.grid(header=False),
-                            image_grid,
-                            self.close_buttons())
-        else:
-            self.curves = self.get_curves()
-            self.curve_grids = QtWidgets.QWidget(parent=self)
-            self.curve_layout = QtWidgets.QVBoxLayout()
-            self.curve_layout.setContentsMargins(0, 20, 0, 0)
-            self.curve_box = self.select_box(list(self.curves),
-                                             slot=self.select_curve)
-            self.curve_box.setMinimumWidth(200)
-            layout = QtWidgets.QHBoxLayout()
-            layout.addStretch()
-            layout.addWidget(self.curve_box)
-            layout.addStretch()
-            self.curve_layout.addLayout(layout)
-            for curve in self.curves:
-                self.parameters[curve] = self.curve_parameters(curve)
-                self.update_curve_parameters(curve)
-                self.initialize_curve(curve)
-            self.curve_grids.setLayout(self.curve_layout)
-            self.set_layout(pl.grid(header=False),
-                            self.curve_grids,
-                            self.close_buttons())
-        self.update_colors()
-        self.set_title('Customize %s' % self.plotview.label)
-
-    def close_buttons(self):
-        buttonbox = QtWidgets.QDialogButtonBox(self)
-        buttonbox.setOrientation(QtCore.Qt.Horizontal)
-        buttonbox.setStandardButtons(QtWidgets.QDialogButtonBox.Apply|
-                                     QtWidgets.QDialogButtonBox.Cancel|
-                                     QtWidgets.QDialogButtonBox.Save)
-        buttonbox.accepted.connect(self.accept)
-        buttonbox.rejected.connect(self.reject)
-        buttonbox.button(
-            QtWidgets.QDialogButtonBox.Apply).clicked.connect(self.apply)
-        buttonbox.button(QtWidgets.QDialogButtonBox.Apply).setDefault(True)
-        return buttonbox
-
-    def update(self):
-        self.update_labels()
-        if self.plotview.image is not None:
-            self.update_image_parameters()
-        else:
-            self.update_curves()
-            for curve in self.curves:
-                self.update_curve_parameters(curve)
-        self.update_colors()
-
-    def update_labels(self):
-        pl = self.parameters['labels']
-        pl['title'].value = self.plotview.title
-        pl['xlabel'].value = self.plotview.xaxis.label
-        pl['ylabel'].value = self.plotview.yaxis.label
-
-    def image_parameters(self):
-        parameters = GridParameters()
-        parameters.add('aspect', 'auto', 'Aspect Ratio')
-        parameters.add('skew', 90.0, 'Skew Angle')
-        parameters.add('grid', ['On', 'Off'], 'Grid')
-        parameters.add('gridcolor', '#ffffff', 'Grid Color')
-        parameters.add('gridstyle', list(linestyles.values()), 'Grid Style')
-        parameters.grid(title='Image Parameters', header=False)
-        return parameters
-
-    def update_image_parameters(self):
-        p = self.parameters['image']
-        p['aspect'].value = self.plotview._aspect
-        p['skew'].value = self.plotview._skew_angle
-        if self.plotview._skew_angle is None:
-            p['skew'].value = 90.0
-        self.plotview._grid = (self.plotview.ax.xaxis._gridOnMajor and
-                               self.plotview.ax.yaxis._gridOnMajor)
-        if self.plotview._grid:
-            p['grid'].value = 'On'
-        else:
-            p['grid'].value = 'Off'
-        p['gridcolor'].value = rgb2hex(
-            colorConverter.to_rgb(self.plotview._gridcolor))
-        p['gridcolor'].color_button = NXColorButton(p['gridcolor'])
-        p['gridcolor'].color_button.set_color(
-            to_qcolor(self.plotview._gridcolor))
-        p['gridstyle'].value = linestyles[self.plotview._gridstyle]
-
-    @property
-    def curve(self):
-        return self.curve_box.currentText()
-
-    def get_curves(self):
-        lines = self.plotview.ax.get_lines()
-        labels = [line.get_label() for line in lines]
-        for (i,label) in enumerate(labels):
-            labels[i] = '%d: ' % (i+1) + labels[i]
-        return dict(zip(labels, lines))
-
-    def update_curves(self):
-        curves = self.get_curves()
-        new_curves = list(set(curves) - set(self.curves))
-        for curve in new_curves:
-            self.curves[curve] = curves[curve]
-            self.parameters[curve] = self.curve_parameters(curve)
-            self.update_curve_parameters(curve)
-            self.initialize_curve(curve)
-            self.curve_box.addItem(curve)
-
-    def initialize_curve(self, curve):
-        pc = self.parameters[curve]
-        pc.widget = QtWidgets.QWidget(parent=self.curve_grids)
-        pc.widget.setLayout(pc.grid(header=False))
-        pc.widget.setVisible(False)
-        self.curve_layout.addWidget(pc.widget)
-        if curve == self.curve:
-            pc.widget.setVisible(True)
-        else:
-            pc.widget.setVisible(False)
-
-    def curve_parameters(self, curve):
-        parameters = GridParameters()
-        parameters.add('linestyle', list(linestyles.values()), 'Line Style')
-        parameters.add('linewidth', 1.0, 'Line Width')
-        parameters.add('linecolor', '#000000', 'Line Color')
-        parameters.add('marker', list(markers.values()), 'Marker Style')
-        parameters.add('markersize', 1.0, 'Marker Size')
-        parameters.add('facecolor', '#000000', 'Face Color')
-        parameters.add('edgecolor', '#000000', 'Edge Color')
-        parameters.grid(title='Curve Parameters', header=False)
-        return parameters
-
-    def update_curve_parameters(self, curve):
-        c, p = self.curves[curve], self.parameters[curve]
-        p['linestyle'].value = linestyles[c.get_linestyle()]
-        p['linewidth'].value = c.get_linewidth()
-        p['linecolor'].value = rgb2hex(colorConverter.to_rgb(c.get_color()))
-        p['linecolor'].color_button = NXColorButton(p['linecolor'])
-        p['linecolor'].color_button.set_color(to_qcolor(c.get_color()))
-        p['marker'].value = markers[c.get_marker()]
-        p['markersize'].value = c.get_markersize()
-        p['facecolor'].value = rgb2hex(
-            colorConverter.to_rgb(c.get_markerfacecolor()))
-        p['facecolor'].color_button = NXColorButton(p['facecolor'])
-        p['facecolor'].color_button.set_color(
-            to_qcolor(c.get_markerfacecolor()))
-        p['edgecolor'].value = rgb2hex(
-            colorConverter.to_rgb(c.get_markeredgecolor()))
-        p['edgecolor'].color_button = NXColorButton(p['edgecolor'])
-        p['edgecolor'].color_button.set_color(
-            to_qcolor(c.get_markeredgecolor()))
-
-    def update_colors(self):
-        if self.plotview.image is not None:
-            p = self.parameters['image']
-            p.grid_layout.addWidget(p['gridcolor'].color_button, 4, 2, 
-                                    alignment=QtCore.Qt.AlignCenter)
-        else:
-            for curve in self.curves:
-                p = self.parameters[curve]
-                p.grid_layout.addWidget(p['linecolor'].color_button, 2, 2, 
-                                        alignment=QtCore.Qt.AlignCenter)
-                p.grid_layout.addWidget(p['facecolor'].color_button, 5, 2, 
-                                        alignment=QtCore.Qt.AlignCenter)
-                p.grid_layout.addWidget(p['edgecolor'].color_button, 6, 2, 
-                                        alignment=QtCore.Qt.AlignCenter)
-
-    def select_curve(self):
-        for curve in self.curves:
-            self.parameters[curve].widget.setVisible(False)
-        self.parameters[self.curve].widget.setVisible(True)
-
-    def apply(self):
-        pl = self.parameters['labels']
-        self.plotview.title = pl['title'].value
-        self.plotview.ax.set_title(self.plotview.title)
-        self.plotview.xaxis.label = pl['xlabel'].value
-        self.plotview.ax.set_xlabel(self.plotview.xaxis.label)
-        self.plotview.yaxis.label = pl['ylabel'].value
-        self.plotview.ax.set_ylabel(self.plotview.yaxis.label)
-        if self.plotview.image is not None:
-            pi = self.parameters['image']
-            _aspect = pi['aspect'].value
-            try:
-                self.plotview._aspect = np.float(_aspect)
-            except ValueError:
-                if _aspect in ['auto', 'equal']:
-                    self.plotview._aspect = _aspect
-                else:
-                    pi['aspect'].value = self.plotview._aspect = 'auto'
-            _skew_angle = pi['skew'].value
-            if pi['grid'].value == 'On':
-                self.plotview._grid =True
-            else:
-                self.plotview._grid =False
-            self.plotview._gridcolor = pi['gridcolor'].value
-            self.plotview._gridstyle = [k for k, v in linestyles.items()
-                                        if v == pi['gridstyle'].value][0]
-            #reset in case plotview.aspect changed by plotview.skew            
-            self.plotview.grid(self.plotview._grid)
-            self.plotview.skew = _skew_angle
-            self.plotview.aspect = self.plotview._aspect
-            if (self.plotview.projection_panel is not None and
-                    self.plotview.projection_panel._rectangle is not None):
-                self.plotview.projection_panel._rectangle.set_edgecolor(
-                    self.plotview._gridcolor)
-        else:
-            for curve in self.curves:
-                c, pc = self.curves[curve], self.parameters[curve]
-                linestyle = [k for k, v in linestyles.items()
-                             if v == pc['linestyle'].value][0]
-                c.set_linestyle(linestyle)
-                c.set_linewidth(pc['linewidth'].value)
-                c.set_color(pc['linecolor'].value)
-                marker = [k for k, v in markers.items()
-                          if v == pc['marker'].value][0]
-                c.set_marker(marker)
-                c.set_markersize(pc['markersize'].value)
-                c.set_markerfacecolor(pc['facecolor'].value)
-                c.set_markeredgecolor(pc['edgecolor'].value)
-        self.plotview.draw()
-
-    def accept(self):
-        self.apply()
-        self.plotview.customize_panel = None
-        super(CustomizeDialog, self).accept()
-
-    def reject(self):
-        self.plotview.customize_panel = None
-        super(CustomizeDialog, self).reject()
-
-    def closeEvent(self, event):
-        self.close()
-
-    def close(self):
-        self.plotview.customize_panel = None
-        super(CustomizeDialog, self).close()
-        self.deleteLater()
-
-
-class NXColorButton(ColorButton):
-
-    def __init__(self, parameter):
-        super(NXColorButton, self).__init__()
-        self.parameter = parameter
-        self.parameter.box.editingFinished.connect(self.update_color)
-        self.colorChanged.connect(self.update_text)
-
-    def update_color(self):
-        color = self.text()
-        qcolor = to_qcolor(color)
-        self.color = qcolor  # defaults to black if not qcolor.isValid()
-
-    def update_text(self, color):
-        self.parameter.value = color.name()
-
-    def text(self):
-        return self.parameter.value
 
 
 class NXSymLogNorm(SymLogNorm):

@@ -23,6 +23,8 @@ import sys
 from .pyqt import QtCore, QtGui, QtWidgets, getOpenFileName
 import numpy as np
 from scipy.optimize import minimize
+from matplotlib.colors import rgb2hex, colorConverter
+from matplotlib.backends.qt_editor.formlayout import ColorButton, to_qcolor
 
 try:
     from collections import OrderedDict
@@ -32,6 +34,7 @@ except ImportError:
 from .utils import confirm_action, report_error, import_plugin, convertHTML
 from .utils import natural_sort, wrap, human_size
 from .utils import timestamp, format_timestamp, restore_timestamp
+from .plotview import NXCheckBox, NXComboBox, NXPushButton, NXColorButton
 
 from nexusformat.nexus import (NeXusError, NXgroup, NXfield, NXattr, NXlink,
                                NXroot, NXentry, NXdata, NXparameters, nxload)
@@ -113,8 +116,7 @@ class BaseDialog(QtWidgets.QDialog):
         layout = QtWidgets.QHBoxLayout()
         layout.addStretch()
         for label, action in items:
-             button = QtWidgets.QPushButton(label)
-             button.clicked.connect(action)
+             button = NXPushButton(label, action)
              layout.addWidget(button)
              layout.addStretch()
         return layout
@@ -165,7 +167,7 @@ class BaseDialog(QtWidgets.QDialog):
         if align != 'left':
             layout.addStretch()
         for label, text, checked in items:
-             self.checkbox[label] = QtWidgets.QCheckBox(text)
+             self.checkbox[label] = NXCheckBox(text)
              self.checkbox[label].setChecked(checked)
              layout.addWidget(self.checkbox[label])
              layout.addStretch()
@@ -196,8 +198,7 @@ class BaseDialog(QtWidgets.QDialog):
         """
         Creates a text box and button for selecting a file.
         """
-        self.filebutton =  QtWidgets.QPushButton(text)
-        self.filebutton.clicked.connect(self.choose_file)
+        self.filebutton =  NXPushButton(text, self.choose_file)
         self.filename = QtWidgets.QLineEdit(self)
         self.filename.setMinimumWidth(300)
         filebox = QtWidgets.QHBoxLayout()
@@ -209,8 +210,7 @@ class BaseDialog(QtWidgets.QDialog):
         """
         Creates a text box and button for selecting a directory.
         """
-        self.directorybutton =  QtWidgets.QPushButton(text)
-        self.directorybutton.clicked.connect(self.choose_directory)
+        self.directorybutton =  NXPushButton(text, self.choose_directory)
         self.directoryname = QtWidgets.QLineEdit(self)
         self.directoryname.setMinimumWidth(300)
         default = self.get_default_directory()
@@ -292,8 +292,7 @@ class BaseDialog(QtWidgets.QDialog):
         return sorted(filenames,key=natural_sort)
 
     def select_box(self, choices, default=None, slot=None):
-        box = QtWidgets.QComboBox()
-        box.setSizeAdjustPolicy(QtWidgets.QComboBox.AdjustToContents)
+        box = NXComboBox()
         for choice in choices:
             box.addItem(choice)
         if default in choices:
@@ -307,8 +306,7 @@ class BaseDialog(QtWidgets.QDialog):
 
     def select_root(self, slot=None, text='Select Root :', other=False):
         layout = QtWidgets.QHBoxLayout()
-        box = QtWidgets.QComboBox()
-        box.setSizeAdjustPolicy(QtWidgets.QComboBox.AdjustToContents)
+        box = NXComboBox()
         roots = []
         for root in self.tree.NXroot:
             roots.append(root.nxname)
@@ -345,8 +343,7 @@ class BaseDialog(QtWidgets.QDialog):
 
     def select_entry(self, slot=None, text='Select Entry :', other=False):
         layout = QtWidgets.QHBoxLayout()
-        box = QtWidgets.QComboBox()
-        box.setSizeAdjustPolicy(QtWidgets.QComboBox.AdjustToContents)
+        box = NXComboBox()
         entries = []
         for root in self.tree.NXroot:
             for entry in root.NXentry:
@@ -560,8 +557,7 @@ class GridParameter(object):
         self.name = name
         self._value = value
         if isinstance(value, list) or isinstance(value, tuple):
-            self.box = QtWidgets.QComboBox()
-            self.box.setSizeAdjustPolicy(QtWidgets.QComboBox.AdjustToContents)
+            self.box = NXComboBox()
             for v in value:
                 self.box.addItem(str(v))
             if slot is not None:
@@ -583,7 +579,7 @@ class GridParameter(object):
             if slot is not None:
                 self.box.editingFinished.connect(slot)
         if vary is not None:
-            self.checkbox = QtWidgets.QCheckBox()
+            self.checkbox = NXCheckBox()
             self.vary = vary
             self.init_value = self.value
         else:
@@ -620,7 +616,7 @@ class GridParameter(object):
 
     @property
     def value(self):
-        if isinstance(self.box, QtWidgets.QComboBox):
+        if isinstance(self.box, NXComboBox):
             return self.box.currentText()
         else:
             _value = self.box.text()
@@ -636,7 +632,7 @@ class GridParameter(object):
     def value(self, value):
         self._value = value
         if value is not None:
-            if isinstance(self.box, QtWidgets.QComboBox):
+            if isinstance(self.box, NXComboBox):
                 idx = self.box.findText(value)
                 if idx >= 0:
                     self.box.setCurrentIndex(idx)
@@ -683,14 +679,12 @@ class PlotDialog(BaseDialog):
 
         self.fmt = fmt
 
-        self.signal_combo =  QtWidgets.QComboBox() 
+        self.signal_combo =  NXComboBox() 
         for node in self.group.values():
             if isinstance(node, NXfield) and node.is_plottable():
                 self.signal_combo.addItem(node.nxname)
         if self.signal_combo.count() == 0:
             raise NeXusError("No plottable field in group")
-        self.signal_combo.setSizeAdjustPolicy(
-            QtWidgets.QComboBox.AdjustToContents)
         if signal_name:
             idx = self.signal_combo.findText(signal_name)
             if idx >= 0:
@@ -737,7 +731,7 @@ class PlotDialog(BaseDialog):
             row += 1 
 
     def axis_box(self, axis):
-        box = QtWidgets.QComboBox()
+        box = NXComboBox()
         for node in self.group.values():
             if isinstance(node, NXfield) and node is not self.signal:
                 if self.check_axis(node, axis):
@@ -797,6 +791,273 @@ class PlotDialog(BaseDialog):
             report_error("Plotting data", error)
 
     
+class CustomizeDialog(BaseDialog):
+
+    def __init__(self, parent):
+        super(CustomizeDialog, self).__init__(parent, default=True)
+
+        self.plotview = parent
+
+        from .plotview import markers, linestyles
+        self.markers, self.linestyles = markers, linestyles
+
+        self.parameters = {}
+        pl = self.parameters['labels'] = GridParameters()
+        pl.add('title', self.plotview.title, 'Title')
+        pl['title'].box.setMinimumWidth(200)
+        pl['title'].box.setAlignment(QtCore.Qt.AlignLeft)
+        pl.add('xlabel', self.plotview.xaxis.label, 'X-Axis Label')
+        pl['xlabel'].box.setMinimumWidth(200)
+        pl['xlabel'].box.setAlignment(QtCore.Qt.AlignLeft)
+        pl.add('ylabel', self.plotview.yaxis.label, 'Y-Axis Label')
+        pl['ylabel'].box.setMinimumWidth(200)
+        pl['ylabel'].box.setAlignment(QtCore.Qt.AlignLeft)
+        if self.plotview.image is not None:
+            image_grid = QtWidgets.QVBoxLayout()
+            self.parameters['image'] = self.image_parameters()
+            self.update_image_parameters()
+            image_grid.addLayout(self.parameters['image'].grid_layout)
+            self.set_layout(pl.grid(header=False),
+                            image_grid,
+                            self.close_buttons())
+        else:
+            self.curves = self.get_curves()
+            self.curve_grids = QtWidgets.QWidget(parent=self)
+            self.curve_layout = QtWidgets.QVBoxLayout()
+            self.curve_layout.setContentsMargins(0, 20, 0, 0)
+            self.curve_box = self.select_box(list(self.curves),
+                                             slot=self.select_curve)
+            self.curve_box.setMinimumWidth(200)
+            layout = QtWidgets.QHBoxLayout()
+            layout.addStretch()
+            layout.addWidget(self.curve_box)
+            layout.addStretch()
+            self.curve_layout.addLayout(layout)
+            for curve in self.curves:
+                self.parameters[curve] = self.curve_parameters(curve)
+                self.update_curve_parameters(curve)
+                self.initialize_curve(curve)
+            self.curve_grids.setLayout(self.curve_layout)
+            self.set_layout(pl.grid(header=False),
+                            self.curve_grids,
+                            self.close_buttons())
+        self.update_colors()
+        self.set_title('Customize %s' % self.plotview.label)
+        self.setFocusPolicy(QtCore.Qt.StrongFocus)
+
+    def close_buttons(self):
+        buttonbox = QtWidgets.QDialogButtonBox(self)
+        buttonbox.setOrientation(QtCore.Qt.Horizontal)
+        buttonbox.setStandardButtons(QtWidgets.QDialogButtonBox.Apply|
+                                     QtWidgets.QDialogButtonBox.Cancel|
+                                     QtWidgets.QDialogButtonBox.Save)
+        buttonbox.setFocusPolicy(QtCore.Qt.StrongFocus)
+        buttonbox.accepted.connect(self.accept)
+        buttonbox.rejected.connect(self.reject)
+        buttonbox.button(
+            QtWidgets.QDialogButtonBox.Apply).clicked.connect(self.apply)
+        buttonbox.button(QtWidgets.QDialogButtonBox.Apply).setDefault(True)
+        return buttonbox
+
+    def update(self):
+        self.update_labels()
+        if self.plotview.image is not None:
+            self.update_image_parameters()
+        else:
+            self.update_curves()
+            for curve in self.curves:
+                self.update_curve_parameters(curve)
+        self.update_colors()
+
+    def update_labels(self):
+        pl = self.parameters['labels']
+        pl['title'].value = self.plotview.title
+        pl['xlabel'].value = self.plotview.xaxis.label
+        pl['ylabel'].value = self.plotview.yaxis.label
+
+    def image_parameters(self):
+        parameters = GridParameters()
+        parameters.add('aspect', 'auto', 'Aspect Ratio')
+        parameters.add('skew', 90.0, 'Skew Angle')
+        parameters.add('grid', ['On', 'Off'], 'Grid')
+        parameters.add('gridcolor', '#ffffff', 'Grid Color')
+        parameters.add('gridstyle', list(self.linestyles.values()), 
+                       'Grid Style')
+        parameters.grid(title='Image Parameters', header=False)
+        return parameters
+
+    def update_image_parameters(self):
+        p = self.parameters['image']
+        p['aspect'].value = self.plotview._aspect
+        p['skew'].value = self.plotview._skew_angle
+        if self.plotview._skew_angle is None:
+            p['skew'].value = 90.0
+        self.plotview._grid = (self.plotview.ax.xaxis._gridOnMajor and
+                               self.plotview.ax.yaxis._gridOnMajor)
+        if self.plotview._grid:
+            p['grid'].value = 'On'
+        else:
+            p['grid'].value = 'Off'
+        p['gridcolor'].value = rgb2hex(
+            colorConverter.to_rgb(self.plotview._gridcolor))
+        p['gridcolor'].color_button = NXColorButton(p['gridcolor'])
+        p['gridcolor'].color_button.set_color(
+            to_qcolor(self.plotview._gridcolor))
+        p['gridstyle'].value = self.linestyles[self.plotview._gridstyle]
+
+    @property
+    def curve(self):
+        return self.curve_box.currentText()
+
+    def get_curves(self):
+        lines = self.plotview.ax.get_lines()
+        labels = [line.get_label() for line in lines]
+        for (i,label) in enumerate(labels):
+            labels[i] = '%d: ' % (i+1) + labels[i]
+        return dict(zip(labels, lines))
+
+    def update_curves(self):
+        curves = self.get_curves()
+        new_curves = list(set(curves) - set(self.curves))
+        for curve in new_curves:
+            self.curves[curve] = curves[curve]
+            self.parameters[curve] = self.curve_parameters(curve)
+            self.update_curve_parameters(curve)
+            self.initialize_curve(curve)
+            self.curve_box.addItem(curve)
+
+    def initialize_curve(self, curve):
+        pc = self.parameters[curve]
+        pc.widget = QtWidgets.QWidget(parent=self.curve_grids)
+        pc.widget.setLayout(pc.grid(header=False))
+        pc.widget.setVisible(False)
+        self.curve_layout.addWidget(pc.widget)
+        if curve == self.curve:
+            pc.widget.setVisible(True)
+        else:
+            pc.widget.setVisible(False)
+
+    def curve_parameters(self, curve):
+        parameters = GridParameters()
+        parameters.add('linestyle', list(self.linestyles.values()), 
+                       'Line Style')
+        parameters.add('linewidth', 1.0, 'Line Width')
+        parameters.add('linecolor', '#000000', 'Line Color')
+        parameters.add('marker', list(self.markers.values()), 'Marker Style')
+        parameters.add('markersize', 1.0, 'Marker Size')
+        parameters.add('facecolor', '#000000', 'Face Color')
+        parameters.add('edgecolor', '#000000', 'Edge Color')
+        parameters.grid(title='Curve Parameters', header=False)
+        return parameters
+
+    def update_curve_parameters(self, curve):
+        c, p = self.curves[curve], self.parameters[curve]
+        p['linestyle'].value = self.linestyles[c.get_linestyle()]
+        p['linewidth'].value = c.get_linewidth()
+        p['linecolor'].value = rgb2hex(colorConverter.to_rgb(c.get_color()))
+        p['linecolor'].color_button = NXColorButton(p['linecolor'])
+        p['linecolor'].color_button.set_color(to_qcolor(c.get_color()))
+        p['marker'].value = self.markers[c.get_marker()]
+        p['markersize'].value = c.get_markersize()
+        p['facecolor'].value = rgb2hex(
+            colorConverter.to_rgb(c.get_markerfacecolor()))
+        p['facecolor'].color_button = NXColorButton(p['facecolor'])
+        p['facecolor'].color_button.set_color(
+            to_qcolor(c.get_markerfacecolor()))
+        p['edgecolor'].value = rgb2hex(
+            colorConverter.to_rgb(c.get_markeredgecolor()))
+        p['edgecolor'].color_button = NXColorButton(p['edgecolor'])
+        p['edgecolor'].color_button.set_color(
+            to_qcolor(c.get_markeredgecolor()))
+
+    def update_colors(self):
+        if self.plotview.image is not None:
+            p = self.parameters['image']
+            p.grid_layout.addWidget(p['gridcolor'].color_button, 4, 2, 
+                                    alignment=QtCore.Qt.AlignCenter)
+        else:
+            for curve in self.curves:
+                p = self.parameters[curve]
+                p.grid_layout.addWidget(p['linecolor'].color_button, 2, 2, 
+                                        alignment=QtCore.Qt.AlignCenter)
+                p.grid_layout.addWidget(p['facecolor'].color_button, 5, 2, 
+                                        alignment=QtCore.Qt.AlignCenter)
+                p.grid_layout.addWidget(p['edgecolor'].color_button, 6, 2, 
+                                        alignment=QtCore.Qt.AlignCenter)
+
+    def select_curve(self):
+        for curve in self.curves:
+            self.parameters[curve].widget.setVisible(False)
+        self.parameters[self.curve].widget.setVisible(True)
+
+    def apply(self):
+        pl = self.parameters['labels']
+        self.plotview.title = pl['title'].value
+        self.plotview.ax.set_title(self.plotview.title)
+        self.plotview.xaxis.label = pl['xlabel'].value
+        self.plotview.ax.set_xlabel(self.plotview.xaxis.label)
+        self.plotview.yaxis.label = pl['ylabel'].value
+        self.plotview.ax.set_ylabel(self.plotview.yaxis.label)
+        if self.plotview.image is not None:
+            pi = self.parameters['image']
+            _aspect = pi['aspect'].value
+            try:
+                self.plotview._aspect = np.float(_aspect)
+            except ValueError:
+                if _aspect in ['auto', 'equal']:
+                    self.plotview._aspect = _aspect
+                else:
+                    pi['aspect'].value = self.plotview._aspect = 'auto'
+            _skew_angle = pi['skew'].value
+            if pi['grid'].value == 'On':
+                self.plotview._grid =True
+            else:
+                self.plotview._grid =False
+            self.plotview._gridcolor = pi['gridcolor'].value
+            self.plotview._gridstyle = [k for k, v in self.linestyles.items()
+                                        if v == pi['gridstyle'].value][0]
+            #reset in case plotview.aspect changed by plotview.skew            
+            self.plotview.grid(self.plotview._grid)
+            self.plotview.skew = _skew_angle
+            self.plotview.aspect = self.plotview._aspect
+            if (self.plotview.projection_panel is not None and
+                    self.plotview.projection_panel._rectangle is not None):
+                self.plotview.projection_panel._rectangle.set_edgecolor(
+                    self.plotview._gridcolor)
+        else:
+            for curve in self.curves:
+                c, pc = self.curves[curve], self.parameters[curve]
+                linestyle = [k for k, v in self.linestyles.items()
+                             if v == pc['linestyle'].value][0]
+                c.set_linestyle(linestyle)
+                c.set_linewidth(pc['linewidth'].value)
+                c.set_color(pc['linecolor'].value)
+                marker = [k for k, v in self.markers.items()
+                          if v == pc['marker'].value][0]
+                c.set_marker(marker)
+                c.set_markersize(pc['markersize'].value)
+                c.set_markerfacecolor(pc['facecolor'].value)
+                c.set_markeredgecolor(pc['edgecolor'].value)
+        self.plotview.draw()
+
+    def accept(self):
+        self.apply()
+        self.plotview.customize_panel = None
+        super(CustomizeDialog, self).accept()
+
+    def reject(self):
+        self.plotview.customize_panel = None
+        super(CustomizeDialog, self).reject()
+
+    def closeEvent(self, event):
+        self.close()
+
+    def close(self):
+        self.plotview.customize_panel = None
+        super(CustomizeDialog, self).close()
+        self.deleteLater()
+
+
 class LimitDialog(BaseDialog):
     """Dialog to set plot window limits
     
@@ -1156,15 +1417,14 @@ class AddDialog(BaseDialog):
         self.node = node
 
         class_layout = QtWidgets.QHBoxLayout()
-        self.class_box = QtWidgets.QComboBox()
+        self.class_box = NXComboBox()
         if isinstance(self.node, NXgroup):
             names = ['NXgroup', 'NXfield', 'NXattr']
         else:
             names = ['NXattr']
         for name in names:
             self.class_box.addItem(name)
-        self.class_button = QtWidgets.QPushButton("Add")
-        self.class_button.clicked.connect(self.select_class)
+        self.class_button = NXPushButton("Add", self.select_class)
         class_layout.addWidget(self.class_box)
         class_layout.addWidget(self.class_button)
         class_layout.addStretch()       
@@ -1203,8 +1463,7 @@ class AddDialog(BaseDialog):
             combo_label = QtWidgets.QLabel()
             combo_label.setAlignment(QtCore.Qt.AlignLeft)
             combo_label.setText("Group Class:")
-            self.combo_box = QtWidgets.QComboBox()
-            self.combo_box.currentIndexChanged.connect(self.select_combo)
+            self.combo_box = NXComboBox(self.select_combo)
             standard_groups = sorted(list(set([g for g in 
                 self.mainwindow.nxclasses[self.node.nxclass][2]])))
             for name in standard_groups:
@@ -1220,8 +1479,6 @@ class AddDialog(BaseDialog):
                 self.combo_box.setItemData(self.combo_box.count()-1, 
                     wrap(self.mainwindow.nxclasses[name][0], 40),
                     QtCore.Qt.ToolTipRole)
-            self.combo_box.setSizeAdjustPolicy(
-                QtWidgets.QComboBox.AdjustToContents)
             grid.addWidget(combo_label, 0, 0)
             grid.addWidget(self.combo_box, 0, 1)
             grid.addWidget(name_label, 1, 0)
@@ -1229,8 +1486,7 @@ class AddDialog(BaseDialog):
         elif class_name == "NXfield":
             combo_label = QtWidgets.QLabel()
             combo_label.setAlignment(QtCore.Qt.AlignLeft)
-            self.combo_box = QtWidgets.QComboBox()
-            self.combo_box.currentIndexChanged.connect(self.select_combo)
+            self.combo_box = NXComboBox(self.select_combo)
             fields = sorted(list(set([g for g in 
                             self.mainwindow.nxclasses[self.node.nxclass][1]])))
             for name in fields:
@@ -1240,8 +1496,6 @@ class AddDialog(BaseDialog):
                   wrap(self.mainwindow.nxclasses[self.node.nxclass][1][name][2], 
                        40),
                   QtCore.Qt.ToolTipRole)
-            self.combo_box.setSizeAdjustPolicy(
-                QtWidgets.QComboBox.AdjustToContents)
             grid.addWidget(name_label, 0, 0)
             grid.addWidget(self.name_box, 0, 1)
             grid.addWidget(self.combo_box, 0, 2)
@@ -1262,14 +1516,12 @@ class AddDialog(BaseDialog):
             type_label = QtWidgets.QLabel()
             type_label.setAlignment(QtCore.Qt.AlignLeft)
             type_label.setText("Datatype:")
-            self.type_box = QtWidgets.QComboBox()
+            self.type_box = NXComboBox()
             for name in self.data_types:
                 self.type_box.addItem(name)
             self.type_box.insertSeparator(0)
             self.type_box.insertItem(0, 'auto')
             self.type_box.setCurrentIndex(0)
-            self.type_box.setSizeAdjustPolicy(
-                QtWidgets.QComboBox.AdjustToContents)
             grid.addWidget(type_label, 3, 0)
             grid.addWidget(self.type_box, 3, 1)
         else:
@@ -1285,14 +1537,12 @@ class AddDialog(BaseDialog):
             type_label = QtWidgets.QLabel()
             type_label.setAlignment(QtCore.Qt.AlignLeft)
             type_label.setText("Datatype:")
-            self.type_box = QtWidgets.QComboBox()
+            self.type_box = NXComboBox()
             for name in self.data_types:
                 self.type_box.addItem(name)
             self.type_box.insertSeparator(0)
             self.type_box.insertItem(0, 'auto')
             self.type_box.setCurrentIndex(0)
-            self.type_box.setSizeAdjustPolicy(
-                QtWidgets.QComboBox.AdjustToContents)
             grid.addWidget(type_label, 2, 0)
             grid.addWidget(self.type_box, 2, 1)
         grid.setColumnMinimumWidth(1, 200)
@@ -1387,8 +1637,7 @@ class InitializeDialog(BaseDialog):
         name_label.setText("Name:")
         self.name_box = QtWidgets.QLineEdit()
         self.name_box.setAlignment(QtCore.Qt.AlignLeft)
-        self.combo_box = QtWidgets.QComboBox()
-        self.combo_box.currentIndexChanged.connect(self.select_combo)
+        self.combo_box = NXComboBox(self.select_combo)
         fields = sorted(list(set([g for g in 
                         self.mainwindow.nxclasses[self.node.nxclass][1]])))
         for name in fields:
@@ -1398,18 +1647,16 @@ class InitializeDialog(BaseDialog):
                 wrap(self.mainwindow.nxclasses[self.node.nxclass][1][name][2], 
                      40),
                 QtCore.Qt.ToolTipRole)
-        self.combo_box.setSizeAdjustPolicy(QtWidgets.QComboBox.AdjustToContents)
         grid.addWidget(name_label, 0, 0)
         grid.addWidget(self.name_box, 0, 1)
         grid.addWidget(self.combo_box, 0, 2)
         type_label = QtWidgets.QLabel()
         type_label.setAlignment(QtCore.Qt.AlignLeft)
         type_label.setText("Datatype:")
-        self.type_box = QtWidgets.QComboBox()
+        self.type_box = NXComboBox()
         for name in self.data_types:
             self.type_box.addItem(name)
         self.type_box.setCurrentIndex(0)
-        self.type_box.setSizeAdjustPolicy(QtWidgets.QComboBox.AdjustToContents)
         grid.addWidget(type_label, 2, 0)
         grid.addWidget(self.type_box, 2, 1)
         shape_label = QtWidgets.QLabel()
@@ -1500,7 +1747,7 @@ class RenameDialog(BaseDialog):
             combo_label = QtWidgets.QLabel()
             combo_label.setAlignment(QtCore.Qt.AlignLeft)
             combo_label.setText("New Class:")
-            self.combo_box = QtWidgets.QComboBox()
+            self.combo_box = NXComboBox()
             parent_class = self.node.nxgroup.nxclass
             standard_groups = sorted(list(set([g for g in 
                                   self.mainwindow.nxclasses[parent_class][2]])))
@@ -1521,8 +1768,6 @@ class RenameDialog(BaseDialog):
             self.combo_box.addItem('NXgroup')
             self.combo_box.setCurrentIndex(
                 self.combo_box.findText(self.node.nxclass))
-            self.combo_box.setSizeAdjustPolicy(
-                QtWidgets.QComboBox.AdjustToContents)
             grid.addWidget(combo_label, 1, 0)
             grid.addWidget(self.combo_box, 1, 1)
         else:
@@ -1531,8 +1776,7 @@ class RenameDialog(BaseDialog):
                 combo_label = QtWidgets.QLabel()
                 combo_label.setAlignment(QtCore.Qt.AlignLeft)
                 combo_label.setText("Valid Fields:")
-                self.combo_box = QtWidgets.QComboBox()
-                self.combo_box.currentIndexChanged.connect(self.set_name)
+                self.combo_box = NXComboBox(self.set_name)
                 fields = sorted(list(set([g for g in 
                                 self.mainwindow.nxclasses[parent_class][1]])))
                 for name in fields:
@@ -1547,8 +1791,6 @@ class RenameDialog(BaseDialog):
                         self.combo_box.findText(self.node.nxname))
                 else:
                     self.name_box.setText(self.node.nxname)
-                self.combo_box.setSizeAdjustPolicy(
-                    QtWidgets.QComboBox.AdjustToContents)
                 grid.addWidget(self.combo_box, 0, 2)
         grid.setColumnMinimumWidth(1, 200)
         return grid
@@ -1589,14 +1831,12 @@ class SignalDialog(BaseDialog):
             else:
                 signal_name = None
 
-        self.signal_combo =  QtWidgets.QComboBox() 
+        self.signal_combo =  NXComboBox() 
         for node in self.group.values():
             if isinstance(node, NXfield) and node.shape != ():
                 self.signal_combo.addItem(node.nxname)
         if self.signal_combo.count() == 0:
             raise NeXusError("No plottable field in group")
-        self.signal_combo.setSizeAdjustPolicy(
-            QtWidgets.QComboBox.AdjustToContents)
         if signal_name:
             idx =  self.signal_combo.findText(signal_name)
             if idx >= 0:
@@ -1643,7 +1883,7 @@ class SignalDialog(BaseDialog):
             row += 1   
 
     def axis_box(self, axis=0):
-        box = QtWidgets.QComboBox()
+        box = NXComboBox()
         for node in self.group.values():
             if node is not self.signal and self.check_axis(node, axis):
                 box.addItem(node.nxname)
@@ -1728,12 +1968,11 @@ class LogDialog(BaseDialog):
         self.text_box.setMinimumHeight(600)
         layout.addWidget(self.text_box)
         footer_layout = QtWidgets.QHBoxLayout()
-        self.file_combo = QtWidgets.QComboBox()
+        self.file_combo = NXComboBox(self.show_log)
         for file_name in self.get_filesindirectory('nexpy', extension='.log*',
                                                 directory=self.log_directory):
             self.file_combo.addItem(file_name)
         self.file_combo.setCurrentIndex(self.file_combo.findText('nexpy.log'))
-        self.file_combo.currentIndexChanged.connect(self.show_log)
         close_box = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.Close)
         close_box.rejected.connect(self.reject)
         footer_layout.addStretch()
