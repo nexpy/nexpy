@@ -1240,17 +1240,21 @@ class NXPlotView(QtWidgets.QDialog):
                         vmin=None, vmax=None):
         """Set the minimum and maximum values of the plot."""
         if xmin is not None:
-            self.xaxis.min = xmin
+            self.xaxis.min = self.xaxis.lo = xmin
         if xmax is not None:
-            self.xaxis.max = xmax
+            self.xaxis.max = self.xaxis.hi = xmax
         if ymin is not None:
-            self.yaxis.min = ymin
+            self.yaxis.min = self.yaxis.lo = ymin
         if ymax is not None:
-            self.yaxis.max = ymax
+            self.yaxis.max = self.yaxis.hi = ymax
         if vmin is not None:
-            self.vaxis.min = vmin
+            self.vaxis.min = self.vaxis.lo = vmin
         if vmax is not None:
-            self.vaxis.max = vmax
+            self.vaxis.max = self.vaxis.hi = vmax
+        if self.ndim == 1:
+            self.replot_axes()
+        else:
+            self.replot_image()
         self.update_tabs()
 
     def reset_plot_limits(self, autoscale=True):
