@@ -841,9 +841,14 @@ class CustomizeDialog(BaseDialog):
             self.set_layout(pl.grid(header=False),
                             self.curve_grids,
                             self.close_buttons())
+            self.setTabOrder(self.parameters['labels']['ylabel'].box, 
+                             self.curve_box)
         self.update_colors()
         self.set_title('Customize %s' % self.plotview.label)
         self.setFocusPolicy(QtCore.Qt.StrongFocus)
+        self.setTabOrder(self.apply_button, self.cancel_button)
+        self.setTabOrder(self.cancel_button, self.save_button)
+        self.parameters['labels']['title'].box.setFocus()
 
     def close_buttons(self):
         buttonbox = QtWidgets.QDialogButtonBox(self)
@@ -851,12 +856,17 @@ class CustomizeDialog(BaseDialog):
         buttonbox.setStandardButtons(QtWidgets.QDialogButtonBox.Apply|
                                      QtWidgets.QDialogButtonBox.Cancel|
                                      QtWidgets.QDialogButtonBox.Save)
-        buttonbox.setFocusPolicy(QtCore.Qt.StrongFocus)
+        buttonbox.setFocusPolicy(QtCore.Qt.NoFocus)
+        self.apply_button = buttonbox.button(QtWidgets.QDialogButtonBox.Apply)
+        self.apply_button.setFocusPolicy(QtCore.Qt.StrongFocus)
+        self.apply_button.setDefault(True)
+        self.cancel_button = buttonbox.button(QtWidgets.QDialogButtonBox.Cancel)
+        self.cancel_button.setFocusPolicy(QtCore.Qt.StrongFocus)
+        self.save_button = buttonbox.button(QtWidgets.QDialogButtonBox.Save)
+        self.save_button.setFocusPolicy(QtCore.Qt.StrongFocus)
         buttonbox.accepted.connect(self.accept)
         buttonbox.rejected.connect(self.reject)
-        buttonbox.button(
-            QtWidgets.QDialogButtonBox.Apply).clicked.connect(self.apply)
-        buttonbox.button(QtWidgets.QDialogButtonBox.Apply).setDefault(True)
+        self.apply_button.clicked.connect(self.apply)
         return buttonbox
 
     def update(self):
@@ -1966,6 +1976,7 @@ class LogDialog(BaseDialog):
         self.text_box = QtWidgets.QTextEdit()
         self.text_box.setMinimumWidth(800)
         self.text_box.setMinimumHeight(600)
+        self.text_box.setFocusPolicy(QtCore.Qt.NoFocus)
         layout.addWidget(self.text_box)
         footer_layout = QtWidgets.QHBoxLayout()
         self.file_combo = NXComboBox(self.show_log)
@@ -1974,6 +1985,8 @@ class LogDialog(BaseDialog):
             self.file_combo.addItem(file_name)
         self.file_combo.setCurrentIndex(self.file_combo.findText('nexpy.log'))
         close_box = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.Close)
+        close_box.setFocusPolicy(QtCore.Qt.StrongFocus)
+        close_box.setFocus()
         close_box.rejected.connect(self.reject)
         footer_layout.addStretch()
         footer_layout.addWidget(self.file_combo)
