@@ -1014,24 +1014,23 @@ class NXPlotView(QtWidgets.QDialog):
         """Set the vaxis data and limits for 2D plots."""
         self.vaxis.data = self.v
         if self.vaxis.hi is None or self.autoscale:
-            try:
-                self.vaxis.hi = self.vaxis.max = np.max(self.finite_v)
-            except:
-                self.vaxis.hi = self.vaxis.max = 0.1
+            self.vaxis.hi = self.vaxis.max = np.max(self.finite_v)
         if self.vtab.symmetric:
             self.vaxis.lo = -self.vaxis.hi
             self.vaxis.min = -self.vaxis.max
         elif self.vaxis.lo is None or self.autoscale:
+            self.vaxis.lo = self.vaxis.min = np.min(self.finite_v)
+        if self.vtab.log and not self.vtab.symmetric:
             try:
-                self.vaxis.lo = self.vaxis.min = np.min(self.finite_v)
-            except:
-                self.vaxis.lo = self.vaxis.min = 0.0
-        if self.vtab.logbox.isChecked() and not self.vtab.symmetric:
+                self.vaxis.hi = max(self.vaxis.hi, 
+                                    self.finite_v[self.finite_v>0.0].min())
+            except ValueError:
+                self.vaxis.lo = max(self.vaxis.lo, 0.01)
             try:
                 self.vaxis.lo = max(self.vaxis.lo, 
                                     self.finite_v[self.finite_v>0.0].min())
             except ValueError:
-                self.vaxis.lo, self.vaxis.hi = (0.01, 0.1)
+                self.vaxis.lo = max(self.vaxis.lo, 0.01)
         self.vtab.set_axis(self.vaxis)
 
     def set_data_norm(self):
@@ -1416,12 +1415,7 @@ class NXPlotView(QtWidgets.QDialog):
         NeXusError
             If the requested color map is not available.
         """
-        try:
-            new_cmap = get_cmap(cmap)
-        except ValueError as error:
-            raise NeXusError(six.text_type(error))
-        self.vtab.cmap = new_cmap.name
-        self.vtab.change_cmap()
+        self.vtab.cmap = cmap
 
     cmap = property(_cmap, _set_cmap, "Property: color map")
 
@@ -1447,11 +1441,7 @@ class NXPlotView(QtWidgets.QDialog):
 
     def _set_interpolation(self, interpolation):
         """Set the interpolation method and replot the data."""
-        try:
-            self.vtab.set_interpolation(interpolation)
-            self.interpolate()
-        except ValueError as error:
-            raise NeXusError(six.text_type(error))
+        self.vtab.interpolation = interpolation
 
     interpolation = property(_interpolation, _set_interpolation,
                              "Property: interpolation method")
@@ -2645,26 +2635,7 @@ class NXPlotTab(QtWidgets.QWidget):
 
     def change_cmap(self):
         """Change the color map of the current plot."""
-        if self.cmap != self._cached_cmap:
-            try:
-                cm = get_cmap(self.cmap)
-                cm.set_bad('k', 1)
-                self.plotview.image.set_cmap(cm)
-                if self.symmetric:
-                    self.symmetrize()
-                    self.plotview.x, self.plotview.y, self.plotview.v = \
-                        self.plotview.get_image()
-                    self.plotview.replot_image()
-                else:
-                    self.minbox.setDisabled(False)
-                    self.minslider.setDisabled(False)
-                    if self.is_symmetric_cmap(self._cached_cmap):
-                        self.vaxis.lo = None
-                        self.plotview.replot_image()
-                self.plotview.draw()
-                self._cached_cmap = self.cmap
-            except Exception:
-                pass
+        self.cmap = self.cmapcombo.currentText()
 
     def _cmap(self):
         """Return the currently selected color map."""
@@ -2676,6 +2647,8 @@ class NXPlotTab(QtWidgets.QWidget):
         If the color map is available but was not included in the 
         default list when NeXpy was launched, it is added to the list.
         """
+        cm = get_cmap(cmap)
+        cmap = cm.name
         if cmap != self._cached_cmap:
             idx = self.cmapcombo.findText(cmap)
             if idx < 0:
@@ -2685,7 +2658,22 @@ class NXPlotTab(QtWidgets.QWidget):
                         self.cmapcombo.findText(cmap))
                 else:
                     raise NeXusError("Invalid Color Map")
-            self._cached_cmap = cmap
+            else:
+                self.cmapcombo.setCurrentIndex(idx)
+            cm.set_bad('k', 1)
+            self.plotview.image.set_cmap(cm)
+            if self.symmetric:
+                self.symmetrize()
+                self.plotview.x, self.plotview.y, self.plotview.v = \
+                    self.plotview.get_image()
+                self.plotview.replot_image()
+            else:
+                self.minbox.setDisabled(False)
+                self.minslider.setDisabled(False)
+                if self.is_symmetric_cmap(self._cached_cmap):
+                    self.axis.lo = None
+                self.plotview.replot_image()
+            self._cached_cmap = self.cmap
 
     cmap = property(_cmap, _set_cmap, "Property: Image color map")
     
@@ -2715,9 +2703,10 @@ class NXPlotTab(QtWidgets.QWidget):
         self.minslider.setDisabled(True)
 
     def change_interpolation(self):
-        if self.interpolation != self._cached_interpolation:
-            self.plotview.interpolate()
-            self._cached_interpolation = self.interpolation
+        self.interpolation = self.interpcombo.currentText()
+
+    def _interpolation(self):
+        return self.interpcombo.currentText()
 
     def _set_interpolation(self, interpolation):
         if interpolation != self._cached_interpolation:
@@ -2728,9 +2717,7 @@ class NXPlotTab(QtWidgets.QWidget):
             else:
                 self.interpcombo.setCurrentIndex(0)
             self._cached_interpolation = interpolation
-
-    def _interpolation(self):
-        return self.interpcombo.currentText()
+            self.plotview.interpolate()
 
     interpolation = property(_interpolation, _set_interpolation, 
                              "Property: Image color map")
