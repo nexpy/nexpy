@@ -1182,24 +1182,24 @@ class MainWindow(QtWidgets.QMainWindow):
     def lock_file(self):
         try:
             node = self.treeview.get_node()
-            if isinstance(node, NXroot):
+            if isinstance(node, NXroot) and node.nxfilemode:
                 node.lock()
                 self.treeview.update()
                 logging.info("Workspace '%s' locked" % node.nxname)
             else:
-                raise NeXusError("Can only lock a NXroot group")
+                raise NeXusError("Can only lock a saved NXroot group")
         except NeXusError as error:
             report_error("Locking File", error)
 
     def unlock_file(self):
         try:
             node = self.treeview.get_node()
-            if isinstance(node, NXroot):
+            if isinstance(node, NXroot) and node.nxfilemode:
                 dialog = UnlockDialog(node, parent=self)
                 dialog.show()
                 self.treeview.update()
             else:
-                raise NeXusError("Can only unlock a NXroot group")
+                raise NeXusError("Can only unlock a saved NXroot group")
         except NeXusError as error:
             report_error("Unlocking File", error)
 
