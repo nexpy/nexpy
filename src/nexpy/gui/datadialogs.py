@@ -1731,18 +1731,21 @@ class InitializeDialog(BaseDialog):
             raise NeXusError("Invalid fill value")
 
     def accept(self):
-        name = self.get_name()
-        if name:
-            dtype = self.dtype
-            shape = self.shape
-            fillvalue = self.fillvalue
-            self.node[name] = NXfield(dtype=dtype, shape=shape, 
-                                      fillvalue=fillvalue)
-            logging.info("'%s' initialized in '%s'" 
+        try:
+            name = self.get_name().strip()
+            if name:
+                dtype = self.dtype
+                shape = self.shape
+                fillvalue = self.fillvalue
+                self.node[name] = NXfield(dtype=dtype, shape=shape, 
+                                          fillvalue=fillvalue)
+                logging.info("'%s' initialized in '%s'" 
                          % (self.node[name], self.node.nxpath)) 
-            super(InitializeDialog, self).accept()
-        else:
-            raise NeXusError("Invalid name")
+                super(InitializeDialog, self).accept()
+            else:
+                raise NeXusError("Invalid name")
+        except NeXusError as error:
+            report_error("Initializing Data", error)
 
     
 class RenameDialog(BaseDialog):
