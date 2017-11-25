@@ -3426,6 +3426,8 @@ class NXProjectionPanel(QtWidgets.QWidget):
         self.update_limits()
         self.update_panels()
 
+        self.xbox.setFocus()
+
     def __repr__(self):
         return 'NXProjectionPanel("%s")' % self.plotview.label
 
