@@ -344,7 +344,7 @@ class NXPlotView(QtWidgets.QDialog):
 
         # Remove some key default Matplotlib key mappings
         for key in [key for key in mpl.rcParams if key.startswith('keymap')]:
-            for shortcut in 'bfkloprsvxyzAEGOPSZ':
+            for shortcut in 'bfhkloprsvxyzAEGHOPSZ':
                 if shortcut in mpl.rcParams[key]:
                     mpl.rcParams[key].remove(shortcut)
 
@@ -446,13 +446,7 @@ class NXPlotView(QtWidgets.QDialog):
         The key that was pressed is stored in the Matplotlib KeyEvent 'key' 
         attribute.
         """
-        if event.key == 'l':
-            if self.ndim > 1:
-                if self.vtab.log:
-                    self.vtab.log = False
-                else:
-                    self.vtab.log = True
-        elif event.key == 'f':
+        if event.key == 'f':
             self.ztab.playforward()
         elif event.key == 'b':
             self.ztab.playback()
@@ -461,6 +455,14 @@ class NXPlotView(QtWidgets.QDialog):
         elif event.key == 'r':
             if self.ndim > 1:
                 self.replot_data()
+        elif event.key == 'h':
+            self.otab.home(autoscale=False)
+        elif event.key == 'l':
+            if self.ndim > 1:
+                if self.vtab.log:
+                    self.vtab.log = False
+                else:
+                    self.vtab.log = True
         elif event.key == 's' or event.key == 'v':
             self.tab_widget.setCurrentIndex(self.tab_widget.indexOf(self.vtab))
         elif event.key == 'x':
@@ -481,6 +483,8 @@ class NXPlotView(QtWidgets.QDialog):
             self.otab.add_data()
         elif event.key == 'E':
             self.otab.toggle_aspect()
+        elif event.key == 'H':
+            self.otab.home()
         elif event.key == 'G':
             self.grid()
         elif event.key == 'O':
