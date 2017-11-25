@@ -265,7 +265,7 @@ class NXPlotView(QtWidgets.QDialog):
         self.setMinimumSize(724, 550)
         self.setSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding,
                            QtWidgets.QSizePolicy.MinimumExpanding)
-        self.setFocusPolicy(QtCore.Qt.StrongFocus)
+        self.setFocusPolicy(QtCore.Qt.ClickFocus)
 
         global plotview, plotviews
         if label in plotviews:
@@ -275,7 +275,7 @@ class NXPlotView(QtWidgets.QDialog):
         self.number = self.figuremanager.num
         self.canvas = self.figuremanager.canvas
         self.canvas.setParent(self)
-        self.canvas.setFocusPolicy(QtCore.Qt.StrongFocus)
+        self.canvas.setFocusPolicy(QtCore.Qt.ClickFocus)
         self.canvas.callbacks.exception_handler = report_exception
 
         Gcf.set_active(self.figuremanager)
@@ -312,7 +312,7 @@ class NXPlotView(QtWidgets.QDialog):
         self.tab_widget.addTab(self.otab, 'options')
         self.currentTab = self.otab
         self.tab_widget.setCurrentWidget(self.currentTab)
-        self.tab_widget.setFocusPolicy(QtCore.Qt.StrongFocus)
+        self.tab_widget.setFocusPolicy(QtCore.Qt.NoFocus)
 
         self.vbox = QtWidgets.QVBoxLayout()
         self.vbox.setContentsMargins(12, 12, 12, 12)
@@ -2220,7 +2220,7 @@ class NXPlotTab(QtWidgets.QWidget):
         self.name = name
         self.plotview = plotview
 
-        self.setFocusPolicy(QtCore.Qt.StrongFocus)
+        self.setFocusPolicy(QtCore.Qt.ClickFocus)
 
         self.setMinimumHeight(51)
         hbox = QtWidgets.QHBoxLayout()
@@ -2366,6 +2366,7 @@ class NXPlotTab(QtWidgets.QWidget):
     def slider(self, slot):
         """Return a QSlider with a signal slot."""
         slider = QtWidgets.QSlider(QtCore.Qt.Horizontal)
+        slider.setFocusPolicy(QtCore.Qt.NoFocus)
         slider.setMinimumWidth(100)
         slider.setRange(0, 1000)
         slider.setSingleStep(5)
@@ -3103,8 +3104,6 @@ class NXProjectionTab(QtWidgets.QWidget):
         self.setTabOrder(self.sumbox, self.overplot_box)
         self.setTabOrder(self.overplot_box, self.panel_button)
 
-        self.setFocusPolicy(QtCore.Qt.StrongFocus)
-
     def __repr__(self):
         return 'NXProjectionTab("%s")' % self.plotview.label
 
@@ -3705,7 +3704,6 @@ class NXNavigationToolbar(NavigationToolbar):
         super(NXNavigationToolbar, self).__init__(canvas, parent)
         self.plotview = canvas.parent()
         self.zoom()
-        self.setFocusPolicy(QtCore.Qt.StrongFocus)
 
     def __repr__(self):
         return 'NXNavigationToolbar("%s")' % self.plotview.label
