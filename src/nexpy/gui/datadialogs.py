@@ -1628,7 +1628,7 @@ class AddDialog(BaseDialog):
 class InitializeDialog(BaseDialog):
     """Dialog to initialize a NeXus field node"""
 
-    data_types = ['char', 'float32', 'float64', 'int8', 'uint8', 'int16', 
+    data_types = ['float32', 'float64', 'int8', 'uint8', 'int16', 
                   'uint16', 'int32', 'uint32', 'int64', 'uint64']
  
     def __init__(self, node, parent=None):
@@ -1677,6 +1677,14 @@ class InitializeDialog(BaseDialog):
         grid.addWidget(shape_label, 3, 0)
         grid.addWidget(self.shape_box, 3, 1)
         grid.setColumnMinimumWidth(1, 200)
+        fill_label = QtWidgets.QLabel()
+        fill_label.setAlignment(QtCore.Qt.AlignLeft)
+        fill_label.setText("Fill Value:")
+        self.fill_box = QtWidgets.QLineEdit('0')
+        self.fill_box.setAlignment(QtCore.Qt.AlignLeft)
+        grid.addWidget(fill_label, 4, 0)
+        grid.addWidget(self.fill_box, 4, 1)
+        grid.setColumnMinimumWidth(1, 200)
 
         self.layout = QtWidgets.QVBoxLayout()
         self.layout.addLayout(grid)
@@ -1692,36 +1700,49 @@ class InitializeDialog(BaseDialog):
     def set_name(self, name):
         self.name_box.setText(name)
 
-    def get_type(self):
-        dtype = self.type_box.currentText()
-        return dtype 
+    @property
+    def dtype(self):
+        return np.dtype(self.type_box.currentText())
 
-    def get_shape(self):
+    @property
+    def shape(self):
+        shape = self.shape_box.text().strip()
+        if shape == '':
+            raise NeXusError("Invalid shape")
         import ast
         try:
-            shape = ast.literal_eval(self.shape_box.text())
+            shape = ast.literal_eval(shape)
             try:
                 it = iter(shape)
                 return shape
-            except TypeError:
+            except Exception:
                 if isinstance(shape, numbers.Integral):
                     return (shape,)
                 else:
                     raise NeXusError("Invalid shape")
-        except ValueError:
+        except Exception:
             raise NeXusError("Invalid shape")
+
+    @property
+    def fillvalue(self):
+        try:
+            return np.asarray(eval(self.fill_box.text()), dtype=self.dtype)
+        except Exception:
+            raise NeXusError("Invalid fill value")
 
     def accept(self):
         name = self.get_name()
         if name:
-            dtype = self.get_type()
-            if dtype is None:
-                dtype = np.float64
-            shape = self.get_shape()
-            self.node[name] = NXfield(dtype=dtype, shape=shape)
+            dtype = self.dtype
+            shape = self.shape
+            fillvalue = self.fillvalue
+            self.node[name] = NXfield(dtype=dtype, shape=shape, 
+                                      fillvalue=fillvalue)
             logging.info("'%s' initialized in '%s'" 
                          % (self.node[name], self.node.nxpath)) 
-        super(InitializeDialog, self).accept()
+            super(InitializeDialog, self).accept()
+        else:
+            raise NeXusError("Invalid name")
 
     
 class RenameDialog(BaseDialog):
