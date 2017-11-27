@@ -448,10 +448,16 @@ class NXPlotView(QtWidgets.QDialog):
         """
         if event.key == 'f':
             self.ztab.playforward()
+            self.tab_widget.setCurrentIndex(self.tab_widget.indexOf(self.ztab))
+            self.ztab.axiscombo.setFocus()
         elif event.key == 'b':
             self.ztab.playback()
+            self.tab_widget.setCurrentIndex(self.tab_widget.indexOf(self.ztab))
+            self.ztab.axiscombo.setFocus()
         elif event.key == ' ':
             self.ztab.pause()
+            self.tab_widget.setCurrentIndex(self.tab_widget.indexOf(self.ztab))
+            self.ztab.axiscombo.setFocus()
         elif event.key == 'r':
             if self.ndim > 1:
                 self.replot_data()
