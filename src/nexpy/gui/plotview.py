@@ -2330,8 +2330,8 @@ class NXPlotTab(QtWidgets.QWidget):
         self.axis = axis
         if self.zaxis:
             self.minbox.data = self.maxbox.data = self.axis.centers
-            self.minbox.setRange(0, len(self.axis.data)-1)
-            self.maxbox.setRange(0, len(self.axis.data)-1)
+            self.minbox.setRange(0, len(self.minbox.data)-1)
+            self.maxbox.setRange(0, len(self.maxbox.data)-1)
             self.minbox.setValue(axis.lo)
             self.maxbox.setValue(axis.hi)
             self.minbox.diff = self.maxbox.diff = axis.hi - axis.lo
