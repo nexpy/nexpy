@@ -2733,6 +2733,7 @@ class NXPlotTab(QtWidgets.QWidget):
                 self.interpcombo.setCurrentIndex(0)
             self._cached_interpolation = interpolation
             self.plotview.interpolate()
+            self._cached_interpolation = self.interpolation
 
     interpolation = property(_interpolation, _set_interpolation, 
                              "Property: Image color map")
