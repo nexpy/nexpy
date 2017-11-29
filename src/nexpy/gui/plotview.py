@@ -2355,7 +2355,8 @@ class NXPlotTab(QtWidgets.QWidget):
         if self.name == 'v':
             self.interpcombo.clear()
             self.interpcombo.addItems(self.plotview.interpolations)
-            self.interpolation = self._cached_interpolation
+            self.interpcombo.setCurrentIndex(
+                self.interpcombo.findText(self._cached_interpolation))
         self.block_signals(False)
 
     def spinbox(self, slot):
