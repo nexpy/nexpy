@@ -121,7 +121,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.console.show()
 
         self.shellview = self.console._control
-        self.shellview.setFocusPolicy(QtCore.Qt.StrongFocus)
+        self.shellview.setFocusPolicy(QtCore.Qt.ClickFocus)
 
         if 'gui_completion' not in self.config['ConsoleWidget']:
             self.console.gui_completion = 'droplist'
@@ -182,6 +182,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.setWindowTitle('NeXpy v'+__version__)
         self.statusBar().showMessage('Ready')
+
         self.shellview.setFocus()
 
     @property
@@ -472,14 +473,9 @@ class MainWindow(QtWidgets.QMainWindow):
     def init_data_menu(self):
         self.data_menu = self.menu_bar.addMenu("Data")
 
-        plotkey = QtGui.QKeySequence(QtGui.QKeySequence.Print)
-        if plotkey.matches("Ctrl+P") and sys.platform != 'darwin':
-            # Only override the default if there is a collision.
-            # Qt ctrl = cmd on OSX, so the match gets a false positive on OSX.
-            plotkey = "Ctrl+Shift+P"
         self.plot_data_action=QtWidgets.QAction("&Plot Data",
             self,
-            shortcut=plotkey,
+            shortcut="Ctrl+P",
             triggered=self.plot_data
             )
         self.add_menu_action(self.data_menu, self.plot_data_action)
@@ -1186,24 +1182,24 @@ class MainWindow(QtWidgets.QMainWindow):
     def lock_file(self):
         try:
             node = self.treeview.get_node()
-            if isinstance(node, NXroot):
+            if isinstance(node, NXroot) and node.nxfilemode:
                 node.lock()
                 self.treeview.update()
                 logging.info("Workspace '%s' locked" % node.nxname)
             else:
-                raise NeXusError("Can only lock a NXroot group")
+                raise NeXusError("Can only lock a saved NXroot group")
         except NeXusError as error:
             report_error("Locking File", error)
 
     def unlock_file(self):
         try:
             node = self.treeview.get_node()
-            if isinstance(node, NXroot):
+            if isinstance(node, NXroot) and node.nxfilemode:
                 dialog = UnlockDialog(node, parent=self)
                 dialog.show()
                 self.treeview.update()
             else:
-                raise NeXusError("Can only unlock a NXroot group")
+                raise NeXusError("Can only unlock a saved NXroot group")
         except NeXusError as error:
             report_error("Unlocking File", error)
 
@@ -1714,8 +1710,9 @@ class MainWindow(QtWidgets.QMainWindow):
         menulabel : str
             Label for the menu
 
-        Will infere the menu name from the identifier at creation if menulabel not given.
-        To do so you have too give menuidentifier as a CamelCassedString
+        Will infere the menu name from the identifier at creation if menulabel 
+        not given. To do so you have too give menuidentifier as a 
+        CamelCassedString
         """
         menu = self._magic_menu_dict.get(menuidentifier,None)
         if not menu :
@@ -1732,14 +1729,14 @@ class MainWindow(QtWidgets.QMainWindow):
             self.active_action[number] = QtWidgets.QAction(label,
                 self,
                 shortcut=QtGui.QKeySequence("Ctrl+Shift+Alt+P"),
-                triggered=lambda: self.plotviews[label].raise_(),
+                triggered=lambda: self.plotviews[label].make_active(),
                 checkable=False)
             self.window_menu.addAction(self.active_action[number])
         elif label == 'Fit':
             self.active_action[number] = QtWidgets.QAction(label,
                 self,
                 shortcut=QtGui.QKeySequence("Ctrl+Shift+Alt+F"),
-                triggered=lambda: self.plotviews[label].raise_(),
+                triggered=lambda: self.plotviews[label].make_active(),
                 checkable=False)
             self.window_menu.addAction(self.active_action[number])
         else:

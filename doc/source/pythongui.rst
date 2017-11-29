@@ -77,7 +77,7 @@ File Menu
     allow modifications to the file (see below).
 
     .. note:: It is possible to open a file in directly read/write mode using 
-              the keyboard shortcut Alt-Shift-O (Cmd-Shift-O on a Mac). Note 
+              the keyboard shortcut Ctrl+Shift+O (⌘+⇧+O on a Mac). Note 
               that any changes to the file tree, using either the shell or GUI 
               commands, will be automatically updated in the file.
 
@@ -317,6 +317,18 @@ Data Menu
 
 Window Menu
 ^^^^^^^^^^^
+**Show Tree**
+    Brings the tree view to the front and give it keyboard focus.
+
+    .. note:: This has the keyboard shortcut of Ctrl+Shift+T (⌘+⇧+T on a 
+              Mac).
+
+**Show IPython Shell**
+    Brings the shell to the front and give it keyboard focus.
+
+    .. note:: This has the keyboard shortcut of Ctrl+Shift+I (⌘+⇧+I on a 
+              Mac).
+
 **Show Log File**
     Opens a text window displaying the NeXpy log file(s). These files, which are
     stored in ``~/.nexpy/nexpy.log``, ``~/.nexpy/nexpy.log.1``, *etc*., 
@@ -328,12 +340,12 @@ Window Menu
               be rendered in the terminal using ``less -r``.
 
 **Show Projection Panel**
-    Show the projection panel for the currently active plotting window. This is
+    Shows the projection panel for the currently active plotting window. This is
     equivalent to clicking on 'Show Panel' in the projection tab (see below). 
     All the open projection panels are displayed as tabs in a single window.
 
 **Show Script Editor**
-    Show the script editor. If multiple scripts are open, they are displayed as
+    Shows the script editor. If multiple scripts are open, they are displayed as
     tabs in a single window. If no scripts are open, this will open a new 
     script.
 
@@ -456,7 +468,8 @@ and sliders.
     If a diverging color scale is used, the signal is assumed to be symmetric 
     about 0, so the minimum box and slider are disabled and their values set to 
     the negative of the maximum values. If a log scale is chosen, a `symmetric 
-    log plot <http://matplotlib.org/users/colormapnorms.html#symmetric-logarithmic>`_ 
+    log plot 
+    <http://matplotlib.org/users/colormapnorms.html#symmetric-logarithmic>`_ 
     is displayed, with threshold and scale parameters adjustable using the 
     command-line `symlog` command (see below).
     
@@ -736,6 +749,30 @@ and sliders.
             that are ideal for displaying symmetric log data. Some are available
             at the bottom of the color map dropdown menu in the Signal tab.
 
+**Keyboard Shortcuts**
+
+    With v0.10.6, a number of keyboard shortcuts are defined when focus is on
+    the plotting window. These can be used to switch between tabs or set
+    various plotting options.
+
+    .. note:: Keyboard focus can be switched to a particular plotting window by 
+              (a) clicking within the window, (b) using the Window menu, or (c) 
+              typing Ctrl+'n' (⌘+'n' on a Mac), where 'n' is the plot window 
+              number.
+
+    * **s** - switch to the Signal tab. 
+    * **x** - switch to the X tab.
+    * **y** - switch to the Y tab.
+    * **z** - switch to the Z tab.
+    * **p** - switch to the Projection tab.
+    * **o** - switch to the Options tab.
+    * **l** - toggle logarithmic signal scale (2D plots only).
+    * **P** - toggle panning mode (if enabled, zoom mode is disabled).
+    * **Z** - toggle zoom mode (if enabled, pan mode is disabled).
+    * **E** - toggle the aspect ratio between 'equal' and 'automatic'.
+    * **S** - save plot to a graphics file.
+    * **A** - add plotted data to the tree pane.
+    * **O** - open dialog to customize plots. 
 
 Fitting NeXus Data
 ------------------
@@ -756,6 +793,10 @@ plotting window and the fitting parameters displayed in a message window.
           entered in the Fit Dialog. These values can be changed between
           fits if required, or reset to the overall range of the data using the
           ``Reset Limits`` button.
+
+.. note:: With v0.10.6, the keyboard shortcuts 'l' and 'r' can 
+          be used to set the X-axis limits in the fit dialog to the current 
+          cursor position in the canvas.
 
 The original data, the fitted data, constituent functions, and the parameters
 can all be saved to an NXentry group in the Tree Pane for subsequent plotting, 
@@ -801,11 +842,15 @@ before estimating the peak parameters. Obviously, the more functions that are
 added, the less reliable the guesses will be. Starting parameters will have to 
 be entered manually before the fit in those cases.
 
-.. note:: The X-range used in 'guessing' the parameters can be adjusted by 
-          setting the X-axis limits in the Fit Dialog. 
-
 .. note:: If it is not possible to estimate starting parameters, just return
           values that do not trigger an exception. 
+
+.. note:: The X-range used in 'guessing' the parameters can be adjusted by 
+          setting the X-axis limits in the Fit Dialog.
+
+.. note:: With v0.10.6, the keyboard shortcuts 'l' and 'r' can 
+          be used to set the X-axis limits in the fit dialog to the current 
+          cursor position in the canvas.
 
 Importing NeXus Data
 --------------------

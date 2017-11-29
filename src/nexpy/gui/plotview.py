@@ -43,7 +43,6 @@ from matplotlib.backends.qt_editor.formlayout import ColorButton, to_qcolor
 from matplotlib.figure import Figure
 from matplotlib.image import NonUniformImage
 from matplotlib.colors import LogNorm, Normalize, SymLogNorm
-from matplotlib.colors import colorConverter, rgb2hex
 from matplotlib.cm import cmap_d, get_cmap
 from matplotlib.lines import Line2D
 from matplotlib import markers
@@ -63,7 +62,6 @@ from scipy.spatial import Voronoi, voronoi_plot_2d
 from nexusformat.nexus import NXfield, NXdata, NXroot, NeXusError, nxload
 
 from .. import __version__
-from .datadialogs import BaseDialog, GridParameters
 from .utils import report_error, report_exception, find_nearest
 
 plotview = None
@@ -82,6 +80,7 @@ else:
 interpolations = ['nearest', 'bilinear', 'bicubic', 'spline16', 'spline36',
                   'hanning', 'hamming', 'hermite', 'kaiser', 'quadric',
                   'catrom', 'gaussian', 'bessel', 'mitchell', 'sinc', 'lanczos']
+default_interpolation = 'nearest'
 try:
     from astropy.convolution import convolve, Gaussian2DKernel
     interpolations.insert(1, 'convolve')
@@ -138,7 +137,7 @@ def change_plotview(label):
     Parameters
     ----------
     label : str
-        The label of the plotting window to be activatd.
+        The label of the plotting window to be activated.
     """
     global plotview, plotviews
     if label in plotviews:
@@ -266,7 +265,7 @@ class NXPlotView(QtWidgets.QDialog):
         self.setMinimumSize(724, 550)
         self.setSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding,
                            QtWidgets.QSizePolicy.MinimumExpanding)
-        self.setFocusPolicy(QtCore.Qt.StrongFocus)
+        self.setFocusPolicy(QtCore.Qt.ClickFocus)
 
         global plotview, plotviews
         if label in plotviews:
@@ -276,7 +275,7 @@ class NXPlotView(QtWidgets.QDialog):
         self.number = self.figuremanager.num
         self.canvas = self.figuremanager.canvas
         self.canvas.setParent(self)
-        self.canvas.setFocusPolicy(QtCore.Qt.StrongFocus)
+        self.canvas.setFocusPolicy(QtCore.Qt.ClickFocus)
         self.canvas.callbacks.exception_handler = report_exception
 
         Gcf.set_active(self.figuremanager)
@@ -313,7 +312,7 @@ class NXPlotView(QtWidgets.QDialog):
         self.tab_widget.addTab(self.otab, 'options')
         self.currentTab = self.otab
         self.tab_widget.setCurrentWidget(self.currentTab)
-        self.tab_widget.setFocusPolicy(QtCore.Qt.StrongFocus)
+        self.tab_widget.setFocusPolicy(QtCore.Qt.NoFocus)
 
         self.vbox = QtWidgets.QVBoxLayout()
         self.vbox.setContentsMargins(12, 12, 12, 12)
@@ -345,7 +344,7 @@ class NXPlotView(QtWidgets.QDialog):
 
         # Remove some key default Matplotlib key mappings
         for key in [key for key in mpl.rcParams if key.startswith('keymap')]:
-            for shortcut in 'klopsvxyzAEGOPSZ':
+            for shortcut in 'bfhkloprsvxyzAEGHOPSZ':
                 if shortcut in mpl.rcParams[key]:
                     mpl.rcParams[key].remove(shortcut)
 
@@ -391,8 +390,7 @@ class NXPlotView(QtWidgets.QDialog):
         ----------
         event : Matplotlib KeyEvent
         """
-        if self.number < 101:
-            self.make_active()
+        self.make_active()
         if event.inaxes:
             self.xdata, self.ydata = self.inverse_transform(event.xdata, 
                                                             event.ydata)
@@ -415,6 +413,12 @@ class NXPlotView(QtWidgets.QDialog):
             Switch to the `x`, `y` or `z` tabs, respectively.
         'p', 'o'
             Switch to the `Projection` or `Option` tab, respectively.
+        'l'
+            Toggle log scale (2D only).
+        'f', 'b'
+            Play the current z-axis values forward or backward, respectively.
+        'r'
+            Replot the image
         'A'
             Store the plotted data. This is equivalent to selecting the 
             `Add Data` option button on the toolbar.
@@ -442,7 +446,24 @@ class NXPlotView(QtWidgets.QDialog):
         The key that was pressed is stored in the Matplotlib KeyEvent 'key' 
         attribute.
         """
-        if event.key == 'l':
+        if event.key == 'f':
+            self.ztab.playforward()
+            self.tab_widget.setCurrentIndex(self.tab_widget.indexOf(self.ztab))
+            self.ztab.axiscombo.setFocus()
+        elif event.key == 'b':
+            self.ztab.playback()
+            self.tab_widget.setCurrentIndex(self.tab_widget.indexOf(self.ztab))
+            self.ztab.axiscombo.setFocus()
+        elif event.key == ' ':
+            self.ztab.pause()
+            self.tab_widget.setCurrentIndex(self.tab_widget.indexOf(self.ztab))
+            self.ztab.axiscombo.setFocus()
+        elif event.key == 'r':
+            if self.ndim > 1:
+                self.replot_data()
+        elif event.key == 'h':
+            self.otab.home(autoscale=False)
+        elif event.key == 'l':
             if self.ndim > 1:
                 if self.vtab.log:
                     self.vtab.log = False
@@ -452,18 +473,24 @@ class NXPlotView(QtWidgets.QDialog):
             self.tab_widget.setCurrentIndex(self.tab_widget.indexOf(self.vtab))
         elif event.key == 'x':
             self.tab_widget.setCurrentIndex(self.tab_widget.indexOf(self.xtab))
+            self.xtab.axiscombo.setFocus()
         elif event.key == 'y':
             self.tab_widget.setCurrentIndex(self.tab_widget.indexOf(self.ytab))
+            self.ytab.axiscombo.setFocus()
         elif event.key == 'z':
             self.tab_widget.setCurrentIndex(self.tab_widget.indexOf(self.ztab))
+            self.ztab.axiscombo.setFocus()
         elif event.key == 'p':
             self.tab_widget.setCurrentIndex(self.tab_widget.indexOf(self.ptab))
+            self.ptab.xbox.setFocus()
         elif event.key == 'o':
             self.tab_widget.setCurrentIndex(self.tab_widget.indexOf(self.otab))
         elif event.key == 'A':
             self.otab.add_data()
         elif event.key == 'E':
             self.otab.toggle_aspect()
+        elif event.key == 'H':
+            self.otab.home()
         elif event.key == 'G':
             self.grid()
         elif event.key == 'O':
@@ -565,7 +592,7 @@ class NXPlotView(QtWidgets.QDialog):
         logy : bool
             If True, the y-axis is plotted on a log scale. This is 
             equivalent to 'log=True' for one-dimenional data.
-        skew
+        skew : float
             The value of the skew angle between the x and y axes for 2D 
             plots.
         """
@@ -997,24 +1024,23 @@ class NXPlotView(QtWidgets.QDialog):
         """Set the vaxis data and limits for 2D plots."""
         self.vaxis.data = self.v
         if self.vaxis.hi is None or self.autoscale:
-            try:
-                self.vaxis.hi = self.vaxis.max = np.max(self.finite_v)
-            except:
-                self.vaxis.hi = self.vaxis.max = 0.1
+            self.vaxis.hi = self.vaxis.max = np.max(self.finite_v)
         if self.vtab.symmetric:
             self.vaxis.lo = -self.vaxis.hi
             self.vaxis.min = -self.vaxis.max
         elif self.vaxis.lo is None or self.autoscale:
+            self.vaxis.lo = self.vaxis.min = np.min(self.finite_v)
+        if self.vtab.log and not self.vtab.symmetric:
             try:
-                self.vaxis.lo = self.vaxis.min = np.min(self.finite_v)
-            except:
-                self.vaxis.lo = self.vaxis.min = 0.0
-        if self.vtab.logbox.isChecked() and not self.vtab.symmetric:
+                self.vaxis.hi = max(self.vaxis.hi, 
+                                    self.finite_v[self.finite_v>0.0].min())
+            except ValueError:
+                self.vaxis.lo = max(self.vaxis.lo, 0.01)
             try:
                 self.vaxis.lo = max(self.vaxis.lo, 
                                     self.finite_v[self.finite_v>0.0].min())
             except ValueError:
-                self.vaxis.lo, self.vaxis.hi = (0.01, 0.1)
+                self.vaxis.lo = max(self.vaxis.lo, 0.01)
         self.vtab.set_axis(self.vaxis)
 
     def set_data_norm(self):
@@ -1094,7 +1120,7 @@ class NXPlotView(QtWidgets.QDialog):
         self.grid(display=self._grid)
 
     def replot_image(self):
-        """Replot the image with new signal limits."""
+        """Replot the image."""
         try:
             self.set_data_limits()
             self.set_data_norm()
@@ -1224,17 +1250,21 @@ class NXPlotView(QtWidgets.QDialog):
                         vmin=None, vmax=None):
         """Set the minimum and maximum values of the plot."""
         if xmin is not None:
-            self.xaxis.min = xmin
+            self.xaxis.min = self.xaxis.lo = xmin
         if xmax is not None:
-            self.xaxis.max = xmax
+            self.xaxis.max = self.xaxis.hi = xmax
         if ymin is not None:
-            self.yaxis.min = ymin
+            self.yaxis.min = self.yaxis.lo = ymin
         if ymax is not None:
-            self.yaxis.max = ymax
+            self.yaxis.max = self.yaxis.hi = ymax
         if vmin is not None:
-            self.vaxis.min = vmin
+            self.vaxis.min = self.vaxis.lo = vmin
         if vmax is not None:
-            self.vaxis.max = vmax
+            self.vaxis.max = self.vaxis.hi = vmax
+        if self.ndim == 1:
+            self.replot_axes()
+        else:
+            self.replot_image()
         self.update_tabs()
 
     def reset_plot_limits(self, autoscale=True):
@@ -1399,12 +1429,7 @@ class NXPlotView(QtWidgets.QDialog):
         NeXusError
             If the requested color map is not available.
         """
-        try:
-            new_cmap = get_cmap(cmap)
-        except ValueError as error:
-            raise NeXusError(six.text_type(error))
-        self.vtab.set_cmap(new_cmap.name)
-        self.vtab.change_cmap()
+        self.vtab.cmap = cmap
 
     cmap = property(_cmap, _set_cmap, "Property: color map")
 
@@ -1430,11 +1455,7 @@ class NXPlotView(QtWidgets.QDialog):
 
     def _set_interpolation(self, interpolation):
         """Set the interpolation method and replot the data."""
-        try:
-            self.vtab.set_interpolation(interpolation)
-            self.interpolate()
-        except ValueError as error:
-            raise NeXusError(six.text_type(error))
+        self.vtab.interpolation = interpolation
 
     interpolation = property(_interpolation, _set_interpolation,
                              "Property: interpolation method")
@@ -1935,8 +1956,19 @@ class NXPlotView(QtWidgets.QDialog):
         self.update_customize_panel()
 
     def change_axis(self, tab, axis):
-        """Replace the axis in a plot tab."""
+        """Replace the axis in a plot tab.
+        
+        Parameters
+        ----------
+        tab : NXPlotTab
+            Tab containing the axis to be changed
+        axis : NXPlotAxis
+            Axis that replaces the current selection in the tab
+        """
         xmin, xmax, ymin, ymax = self.limits
+        if (tab == self.xtab and axis == self.xaxis or
+            tab == self.ytab and axis == self.yaxis):
+            return
         if tab == self.xtab and axis == self.yaxis:
             self.yaxis = self.ytab.axis = self.xtab.axis
             self.xaxis = self.xtab.axis = axis
@@ -2202,12 +2234,14 @@ class NXPlotTab(QtWidgets.QWidget):
         self.name = name
         self.plotview = plotview
 
+        self.setFocusPolicy(QtCore.Qt.ClickFocus)
+
         self.setMinimumHeight(51)
         hbox = QtWidgets.QHBoxLayout()
         widgets = []
 
         if axis:
-            self.axiscombo = self.combobox(self.change_axis)
+            self.axiscombo = NXComboBox(self.change_axis)
             widgets.append(self.axiscombo)
         else:
             self.axiscombo = None
@@ -2215,10 +2249,9 @@ class NXPlotTab(QtWidgets.QWidget):
             self.zaxis = True
             self.minbox = self.spinbox(self.read_minbox)
             self.maxbox = self.spinbox(self.read_maxbox)
-            self.lockbox = self.checkbox("Lock", self.change_lock)
+            self.lockbox = NXCheckBox("Lock", self.change_lock)
             self.lockbox.setChecked(True)
-            self.scalebox = self.checkbox("Autoscale", 
-                                          self.plotview.replot_image)
+            self.scalebox = NXCheckBox("Autoscale", self.plotview.replot_image)
             self.scalebox.setChecked(True)
             self.init_toolbar()
             widgets.append(self.minbox)
@@ -2234,11 +2267,11 @@ class NXPlotTab(QtWidgets.QWidget):
             self.maxslider = self.slider(self.read_maxslider)
             self.maxbox = self.doublespinbox(self.read_maxbox)
             if log:
-                self.logbox = self.checkbox("Log", self.change_log)
+                self.logbox = NXCheckBox("Log", self.change_log)
                 self.logbox.setChecked(False)
             else:
                 self.logbox = None
-            self.flipbox = self.checkbox("Flip", self.flip_axis)
+            self.flipbox = NXCheckBox("Flip", self.flip_axis)
             widgets.append(self.minbox)
             widgets.extend([self.minslider, self.maxslider])
             widgets.append(self.maxbox)
@@ -2247,21 +2280,18 @@ class NXPlotTab(QtWidgets.QWidget):
             widgets.append(self.flipbox)
             self.lockbox = self.scalebox = None
         if image:
-            self.cmapcombo = self.combobox(self.change_cmap)
-            self.cmapcombo.addItems(cmaps)
+            self.cmapcombo = NXComboBox(self.change_cmap, cmaps, default_cmap)
+            self._cached_cmap = default_cmap
             if cmaps.index('spring') > 0:
                 self.cmapcombo.insertSeparator(
                     self.cmapcombo.findText('spring'))
             if cmaps.index('seismic') > 0:
                 self.cmapcombo.insertSeparator(
                     self.cmapcombo.findText('seismic'))
-            self.cmapcombo.setCurrentIndex(
-                self.cmapcombo.findText(default_cmap))
             widgets.append(self.cmapcombo)
-            self.interpcombo = self.combobox(self.change_interpolation)
-            self.interpcombo.addItems(interpolations)
-            self.set_interpolation('nearest')
-            self._cached_interpolation = 'nearest'
+            self.interpcombo = NXComboBox(self.change_interpolation, 
+                                          interpolations, default_interpolation)
+            self._cached_interpolation = default_interpolation
             widgets.append(self.interpcombo)
         else:
             self.cmapcombo = None
@@ -2300,8 +2330,8 @@ class NXPlotTab(QtWidgets.QWidget):
         self.axis = axis
         if self.zaxis:
             self.minbox.data = self.maxbox.data = self.axis.centers
-            self.minbox.setRange(0, len(self.axis.data)-1)
-            self.maxbox.setRange(0, len(self.axis.data)-1)
+            self.minbox.setRange(0, len(self.minbox.data)-1)
+            self.maxbox.setRange(0, len(self.maxbox.data)-1)
             self.minbox.setValue(axis.lo)
             self.maxbox.setValue(axis.hi)
             self.minbox.diff = self.maxbox.diff = axis.hi - axis.lo
@@ -2325,16 +2355,8 @@ class NXPlotTab(QtWidgets.QWidget):
         if self.name == 'v':
             self.interpcombo.clear()
             self.interpcombo.addItems(self.plotview.interpolations)
-            self.set_interpolation(self._cached_interpolation)
+            self.interpolation = self._cached_interpolation
         self.block_signals(False)
-
-    def combobox(self, slot):
-        """Return a QComboBox with a signal slot."""
-        combobox = QtWidgets.QComboBox()
-        combobox.setSizeAdjustPolicy(QtWidgets.QComboBox.AdjustToContents)
-        combobox.setMinimumWidth(100)
-        combobox.activated.connect(slot)
-        return combobox
 
     def spinbox(self, slot):
         """Return a NXSpinBox with a signal slot."""
@@ -2358,6 +2380,7 @@ class NXPlotTab(QtWidgets.QWidget):
     def slider(self, slot):
         """Return a QSlider with a signal slot."""
         slider = QtWidgets.QSlider(QtCore.Qt.Horizontal)
+        slider.setFocusPolicy(QtCore.Qt.NoFocus)
         slider.setMinimumWidth(100)
         slider.setRange(0, 1000)
         slider.setSingleStep(5)
@@ -2367,19 +2390,6 @@ class NXPlotTab(QtWidgets.QWidget):
         if self.name != 'v':
             slider.sliderMoved.connect(slot)
         return slider
-
-    def checkbox(self, label, slot):
-        """Return a QCheckbox with the specified label and slot."""
-        checkbox = QtWidgets.QCheckBox(label)
-        checkbox.setChecked(False)
-        checkbox.stateChanged.connect(slot)
-        return checkbox
-
-    def pushbutton(self, label, slot):
-        """Return a QPushButton with the specified label and slot."""
-        button = QtWidgets.QPushButton(label)
-        button.clicked.connect(slot)
-        return button
 
     @QtCore.Slot()
     def read_maxbox(self):
@@ -2640,45 +2650,60 @@ class NXPlotTab(QtWidgets.QWidget):
 
     def change_cmap(self):
         """Change the color map of the current plot."""
-        try:
-            cm = get_cmap(self.cmap)
-            cm.set_bad('k', 1)
-            self.plotview.image.set_cmap(cm)
-            if self.symmetric:
-                self.symmetrize()
-                self.plotview.x, self.plotview.y, self.plotview.v = self.plotview.get_image()
-                self.plotview.replot_image()
-            else:
-                self.minbox.setDisabled(False)
-                self.minslider.setDisabled(False)
-            self.plotview.draw()
-        except Exception:
-            pass
+        self.cmap = self.cmapcombo.currentText()
 
-    def set_cmap(self, cmap):
+    def _cmap(self):
+        """Return the currently selected color map."""
+        return self.cmapcombo.currentText()
+
+    def _set_cmap(self, cmap):
         """Set the color map.
         
         If the color map is available but was not included in the 
         default list when NeXpy was launched, it is added to the list.
         """
-        idx = self.cmapcombo.findText(cmap)
-        if idx < 0 and cmap in cmap_d:
-            self.cmapcombo.insertItem(4, cmap)
-            self.cmapcombo.setCurrentIndex(self.cmapcombo.findText(cmap))
+        cm = get_cmap(cmap)
+        cmap = cm.name
+        if cmap != self._cached_cmap:
+            idx = self.cmapcombo.findText(cmap)
+            if idx < 0:
+                if cmap in cmap_d:
+                    self.cmapcombo.insertItem(5, cmap)
+                    self.cmapcombo.setCurrentIndex(
+                        self.cmapcombo.findText(cmap))
+                else:
+                    raise NeXusError("Invalid Color Map")
+            else:
+                self.cmapcombo.setCurrentIndex(idx)
+            cm.set_bad('k', 1)
+            self.plotview.image.set_cmap(cm)
+            if self.symmetric:
+                self.symmetrize()
+                self.plotview.x, self.plotview.y, self.plotview.v = \
+                    self.plotview.get_image()
+                self.plotview.replot_image()
+            else:
+                self.minbox.setDisabled(False)
+                self.minslider.setDisabled(False)
+                if self.is_symmetric_cmap(self._cached_cmap):
+                    self.axis.lo = None
+                self.plotview.replot_image()
+            self._cached_cmap = self.cmap
 
-    @property
-    def cmap(self):
-        """Return the currently selected color map."""
-        return self.cmapcombo.currentText()
-
+    cmap = property(_cmap, _set_cmap, "Property: Image color map")
+    
     @property
     def symmetric(self):
         """Return True if a divergent color map has been selected."""
+        return self.is_symmetric_cmap(self.cmap)
+
+    def is_symmetric_cmap(self, cmap):
         if (self.cmapcombo is not None and
-            self.cmapcombo.currentIndex() >= 
+            self.cmapcombo.findText(cmap) >= 
             self.cmapcombo.findText('seismic')):
-                return True
-        return False
+            return True
+        else:
+            return False    
 
     def symmetrize(self):
         """Symmetrize the minimum and maximum boxes and sliders."""
@@ -2693,20 +2718,25 @@ class NXPlotTab(QtWidgets.QWidget):
         self.minslider.setDisabled(True)
 
     def change_interpolation(self):
-        self._cached_interpolation = self.interpolation
-        self.plotview.interpolate()
+        self.interpolation = self.interpcombo.currentText()
 
-    def set_interpolation(self, interpolation):
-        idx = self.interpcombo.findText(interpolation)
-        if idx >= 0:
-            self.interpcombo.setCurrentIndex(idx)
-            self._cached_interpolation = interpolation
-        else:
-            self.interpcombo.setCurrentIndex(0)
-
-    @property
-    def interpolation(self):
+    def _interpolation(self):
         return self.interpcombo.currentText()
+
+    def _set_interpolation(self, interpolation):
+        if interpolation != self._cached_interpolation:
+            idx = self.interpcombo.findText(interpolation)
+            if idx >= 0:
+                self.interpcombo.setCurrentIndex(idx)
+                self._cached_interpolation = interpolation
+            else:
+                self.interpcombo.setCurrentIndex(0)
+            self._cached_interpolation = interpolation
+            self.plotview.interpolate()
+            self._cached_interpolation = self.interpolation
+
+    interpolation = property(_interpolation, _set_interpolation, 
+                             "Property: Image color map")
 
     def init_toolbar(self):
         _backward_icon = QtGui.QIcon(
@@ -2953,6 +2983,90 @@ class NXDoubleSpinBox(QtWidgets.QDoubleSpinBox):
         super(NXDoubleSpinBox, self).setValue(value)
 
 
+class NXComboBox(QtWidgets.QComboBox):
+
+    def __init__(self, slot=None, items=[], default=None):
+        super(NXComboBox, self).__init__()
+        self.setSizeAdjustPolicy(QtWidgets.QComboBox.AdjustToContents)
+        self.setFocusPolicy(QtCore.Qt.StrongFocus)
+        self.setMinimumWidth(100)
+        if items:
+            self.addItems(items)
+            if default:
+                self.setCurrentIndex(self.findText(default))
+        if slot:
+            self.activated.connect(slot)
+
+    def keyPressEvent(self, event):
+        if (event.key() == QtCore.Qt.Key_Up or 
+            event.key() == QtCore.Qt.Key_Down):
+            super(NXComboBox, self).keyPressEvent(event)
+        elif (event.key() == QtCore.Qt.Key_Right or 
+              event.key() == QtCore.Qt.Key_Left):
+            self.showPopup()
+        else:
+            self.parent().keyPressEvent(event)
+
+
+class NXCheckBox(QtWidgets.QCheckBox):
+
+    def __init__(self, label=None, slot=None, checked=False):
+        super(NXCheckBox, self).__init__(label)
+        self.setFocusPolicy(QtCore.Qt.StrongFocus)
+        self.setChecked(checked)
+        if slot:
+            self.stateChanged.connect(slot)
+
+    def keyPressEvent(self, event):
+        if (event.key() == QtCore.Qt.Key_Up or 
+            event.key() == QtCore.Qt.Key_Down):
+            if self.isChecked():
+                self.setCheckState(QtCore.Qt.Unchecked)
+            else:
+                self.setCheckState(QtCore.Qt.Checked)
+        else:
+            self.parent().keyPressEvent(event)
+
+
+class NXPushButton(QtWidgets.QPushButton):
+
+    def __init__(self, label, slot, parent=None):
+        """Return a QPushButton with the specified label and slot."""
+        super(NXPushButton, self).__init__(label, parent)
+        self.setFocusPolicy(QtCore.Qt.StrongFocus)
+        self.setDefault(False)
+        self.setAutoDefault(False)
+        self.clicked.connect(slot)
+
+    def keyPressEvent(self, event):
+        if (event.key() == QtCore.Qt.Key_Return or 
+            event.key() == QtCore.Qt.Key_Enter or
+            event.key() == QtCore.Qt.Key_Space):
+            self.clicked.emit()
+        else:
+            self.parent().keyPressEvent(event)
+
+
+class NXColorButton(ColorButton):
+
+    def __init__(self, parameter):
+        super(NXColorButton, self).__init__()
+        self.parameter = parameter
+        self.parameter.box.editingFinished.connect(self.update_color)
+        self.colorChanged.connect(self.update_text)
+
+    def update_color(self):
+        color = self.text()
+        qcolor = to_qcolor(color)
+        self.color = qcolor  # defaults to black if not qcolor.isValid()
+
+    def update_text(self, color):
+        self.parameter.value = color.name()
+
+    def text(self):
+        return self.parameter.value
+
+
 class NXProjectionTab(QtWidgets.QWidget):
 
     def __init__(self, plotview=None):
@@ -2964,40 +3078,30 @@ class NXProjectionTab(QtWidgets.QWidget):
         hbox = QtWidgets.QHBoxLayout()
         widgets = []
 
-        self.xbox = QtWidgets.QComboBox()
-        self.xbox.currentIndexChanged.connect(self.set_xaxis)
-        self.xbox.setSizeAdjustPolicy(QtWidgets.QComboBox.AdjustToContents)
+        self.xbox = NXComboBox(self.set_xaxis)
         widgets.append(QtWidgets.QLabel('X-Axis:'))
         widgets.append(self.xbox)
 
-        self.ybox = QtWidgets.QComboBox()
-        self.ybox.currentIndexChanged.connect(self.set_yaxis)
-        self.ybox.setSizeAdjustPolicy(QtWidgets.QComboBox.AdjustToContents)
+        self.ybox = NXComboBox(self.set_yaxis)
         self.ylabel = QtWidgets.QLabel('Y-Axis:')
         widgets.append(self.ylabel)
         widgets.append(self.ybox)
 
-        self.save_button = QtWidgets.QPushButton("Save", self)
-        self.save_button.clicked.connect(self.save_projection)
+        self.save_button = NXPushButton("Save", self.save_projection, self)
         widgets.append(self.save_button)
 
-        self.plot_button = QtWidgets.QPushButton("Plot", self)
-        self.plot_button.clicked.connect(self.plot_projection)
+        self.plot_button = NXPushButton("Plot", self.plot_projection, self)
         widgets.append(self.plot_button)
 
-        self.sumbox = QtWidgets.QCheckBox("Sum")
-        self.sumbox.setChecked(False)
-        self.sumbox.clicked.connect(self.plotview.replot_data)
+        self.sumbox = NXCheckBox("Sum", self.plotview.replot_data)
         widgets.append(self.sumbox)
 
-        self.overplot_box = QtWidgets.QCheckBox("Over")
-        self.overplot_box.setChecked(False)
+        self.overplot_box = NXCheckBox("Over")
         if 'Projection' not in plotviews:
             self.overplot_box.setVisible(False)
         widgets.append(self.overplot_box)
 
-        self.panel_button = QtWidgets.QPushButton("Open Panel", self)
-        self.panel_button.clicked.connect(self.open_panel)
+        self.panel_button = NXPushButton("Open Panel", self.open_panel, self)
         widgets.append(self.panel_button)
 
         hbox.addStretch()
@@ -3007,6 +3111,13 @@ class NXProjectionTab(QtWidgets.QWidget):
         hbox.addStretch()
 
         self.setLayout(hbox)
+
+        self.setTabOrder(self.xbox, self.ybox)
+        self.setTabOrder(self.ybox, self.save_button)
+        self.setTabOrder(self.save_button, self.plot_button)
+        self.setTabOrder(self.plot_button, self.sumbox)
+        self.setTabOrder(self.sumbox, self.overplot_box)
+        self.setTabOrder(self.overplot_box, self.panel_button)
 
     def __repr__(self):
         return 'NXProjectionTab("%s")' % self.plotview.label
@@ -3117,7 +3228,6 @@ class NXProjectionTab(QtWidgets.QWidget):
         else:
             self.overplot_box.setVisible(False)
             self.overplot_box.setChecked(False)
-        self.plotview.make_active()
         plotviews[projection.label].raise_()
         self.plotview.mainwindow.panels.update()
 
@@ -3201,16 +3311,11 @@ class NXProjectionPanel(QtWidgets.QWidget):
         axisbox = QtWidgets.QHBoxLayout()
         widgets = []
 
-        self.xbox = QtWidgets.QComboBox()
-        self.xbox.currentIndexChanged.connect(self.set_xaxis)
-        self.xbox.setSizeAdjustPolicy(QtWidgets.QComboBox.AdjustToContents)
+        self.xbox = NXComboBox(self.set_xaxis)
         widgets.append(QtWidgets.QLabel('X-Axis:'))
         widgets.append(self.xbox)
 
-        self.ybox = QtWidgets.QComboBox()
-        self.ybox.currentIndexChanged.connect(self.set_yaxis)
-        self.ybox.setCurrentIndex(self.ybox.findText(self.plotview.yaxis.name))
-        self.ybox.setSizeAdjustPolicy(QtWidgets.QComboBox.AdjustToContents)
+        self.ybox = NXComboBox(self.set_yaxis)
         self.ylabel = QtWidgets.QLabel('Y-Axis:')
         widgets.append(self.ylabel)
         widgets.append(self.ybox)
@@ -3249,9 +3354,7 @@ class NXProjectionPanel(QtWidgets.QWidget):
             row += 1
             self.minbox[axis] = self.spinbox()
             self.maxbox[axis] = self.spinbox()
-            self.lockbox[axis] = QtWidgets.QCheckBox()
-            self.lockbox[axis].stateChanged.connect(self.set_lock)
-            self.lockbox[axis].setChecked(False)
+            self.lockbox[axis] = NXCheckBox(slot=self.set_lock)
             grid.addWidget(QtWidgets.QLabel(self.plotview.axis[axis].name), 
                                             row, 0)
             grid.addWidget(self.minbox[axis], row, 1)
@@ -3260,38 +3363,24 @@ class NXProjectionPanel(QtWidgets.QWidget):
                            alignment=QtCore.Qt.AlignHCenter)
 
         row += 1
-        self.save_button = QtWidgets.QPushButton("Save", self)
-        self.save_button.clicked.connect(self.save_projection)
-        self.save_button.setDefault(False)
-        self.save_button.setAutoDefault(False)
+        self.save_button = NXPushButton("Save", self.save_projection, self)
         grid.addWidget(self.save_button, row, 1)
-        self.plot_button = QtWidgets.QPushButton("Plot", self)
-        self.plot_button.clicked.connect(self.plot_projection)
-        self.plot_button.setDefault(False)
-        self.plot_button.setAutoDefault(False)
+        self.plot_button = NXPushButton("Plot", self.plot_projection, self)
         grid.addWidget(self.plot_button, row, 2)
-        self.overplot_box = QtWidgets.QCheckBox()
-        self.overplot_box.setChecked(False)
+        self.overplot_box = NXCheckBox()
         if 'Projection' not in plotviews:
             self.overplot_box.setVisible(False)
         grid.addWidget(self.overplot_box, row, 3,
                        alignment=QtCore.Qt.AlignHCenter)
 
         row += 1
-        self.mask_button = QtWidgets.QPushButton("Mask", self)
-        self.mask_button.clicked.connect(self.mask_data)
-        self.mask_button.setDefault(False)
-        self.mask_button.setAutoDefault(False)
+        self.mask_button = NXPushButton("Mask", self.mask_data, self)
         grid.addWidget(self.mask_button, row, 1)
-        self.unmask_button = QtWidgets.QPushButton("Unmask", self)
-        self.unmask_button.clicked.connect(self.unmask_data)
-        self.unmask_button.setDefault(False)
-        self.unmask_button.setAutoDefault(False)
+        self.unmask_button = NXPushButton("Unmask", self.unmask_data, self)
         grid.addWidget(self.unmask_button, row, 2)
 
         row += 1
-        self.sumbox = QtWidgets.QCheckBox("Sum Projections")
-        self.sumbox.setChecked(False)
+        self.sumbox = NXCheckBox("Sum Projections")
         grid.addWidget(self.sumbox, row, 1, 1, 2, 
                        alignment=QtCore.Qt.AlignHCenter)
 
@@ -3299,11 +3388,8 @@ class NXProjectionPanel(QtWidgets.QWidget):
 
         self.copy_row = QtWidgets.QWidget()
         copy_layout = QtWidgets.QHBoxLayout()
-        self.copy_box = QtWidgets.QComboBox()
-        self.copy_button = QtWidgets.QPushButton("Copy Limits", self)
-        self.copy_button.clicked.connect(self.copy_limits)
-        self.copy_button.setDefault(False)
-        self.copy_button.setAutoDefault(False)
+        self.copy_box = NXComboBox()
+        self.copy_button = NXPushButton("Copy Limits", self.copy_limits, self)
         copy_layout.addStretch()
         copy_layout.addWidget(self.copy_box)
         copy_layout.addWidget(self.copy_button)
@@ -3312,18 +3398,11 @@ class NXProjectionPanel(QtWidgets.QWidget):
         layout.addWidget(self.copy_row)
 
         button_layout = QtWidgets.QHBoxLayout()
-        self.reset_button = QtWidgets.QPushButton("Reset Limits", self)
-        self.reset_button.clicked.connect(self.reset_limits)
-        self.reset_button.setDefault(False)
-        self.reset_button.setAutoDefault(False)
-        self.rectangle_button = QtWidgets.QPushButton("Hide Limits", self)
-        self.rectangle_button.clicked.connect(self.toggle_rectangle)
-        self.rectangle_button.setDefault(False)
-        self.rectangle_button.setAutoDefault(False)
-        self.close_button = QtWidgets.QPushButton("Close Panel", self)
-        self.close_button.clicked.connect(self.close)
-        self.close_button.setDefault(False)
-        self.close_button.setAutoDefault(False)
+        self.reset_button = NXPushButton("Reset Limits", self.reset_limits, 
+                                         self)
+        self.rectangle_button = NXPushButton("Hide Limits", 
+                                             self.toggle_rectangle, self)
+        self.close_button = NXPushButton("Close Panel", self.close, self)
         button_layout.addStretch()
         button_layout.addWidget(self.reset_button)
         button_layout.addWidget(self.rectangle_button)
@@ -3353,6 +3432,8 @@ class NXProjectionPanel(QtWidgets.QWidget):
 
         self.update_limits()
         self.update_panels()
+
+        self.xbox.setFocus()
 
     def __repr__(self):
         return 'NXProjectionPanel("%s")' % self.plotview.label
@@ -3676,6 +3757,7 @@ class NXNavigationToolbar(NavigationToolbar):
 
     def edit_parameters(self):
         if self.plotview.customize_panel is None:
+            from .datadialogs import CustomizeDialog
             self.plotview.customize_panel = CustomizeDialog(
                 parent=self.plotview)
             self.plotview.customize_panel.show()
@@ -3718,10 +3800,8 @@ class NXNavigationToolbar(NavigationToolbar):
 
     def _update_view(self):
         super(NXNavigationToolbar, self)._update_view()
-        lims = self._views()
-        if lims is None:
-            return
-        xmin, xmax, ymin, ymax = lims[0]
+        xmin, xmax = self.plotview.ax.get_xlim()
+        ymin, ymax = self.plotview.ax.get_ylim()
         if xmin > xmax:
             if self.plotview.xaxis.reversed:
                 self.plotview.xtab.flipped = False
@@ -3780,286 +3860,6 @@ class NXNavigationToolbar(NavigationToolbar):
             self.plotview.canvas.setFocus()
         else:
             self.set_message('')
-
-
-class CustomizeDialog(BaseDialog):
-
-    def __init__(self, parent):
-        super(CustomizeDialog, self).__init__(parent, default=True)
-
-        self.plotview = parent
-
-        self.parameters = {}
-        pl = self.parameters['labels'] = GridParameters()
-        pl.add('title', self.plotview.title, 'Title')
-        pl['title'].box.setMinimumWidth(200)
-        pl['title'].box.setAlignment(QtCore.Qt.AlignLeft)
-        pl.add('xlabel', self.plotview.xaxis.label, 'X-Axis Label')
-        pl['xlabel'].box.setMinimumWidth(200)
-        pl['xlabel'].box.setAlignment(QtCore.Qt.AlignLeft)
-        pl.add('ylabel', self.plotview.yaxis.label, 'Y-Axis Label')
-        pl['ylabel'].box.setMinimumWidth(200)
-        pl['ylabel'].box.setAlignment(QtCore.Qt.AlignLeft)
-        if self.plotview.image is not None:
-            image_grid = QtWidgets.QVBoxLayout()
-            self.parameters['image'] = self.image_parameters()
-            self.update_image_parameters()
-            image_grid.addLayout(self.parameters['image'].grid_layout)
-            self.set_layout(pl.grid(header=False),
-                            image_grid,
-                            self.close_buttons())
-        else:
-            self.curves = self.get_curves()
-            self.curve_grids = QtWidgets.QWidget(parent=self)
-            self.curve_layout = QtWidgets.QVBoxLayout()
-            self.curve_layout.setContentsMargins(0, 20, 0, 0)
-            self.curve_box = self.select_box(list(self.curves),
-                                             slot=self.select_curve)
-            self.curve_box.setMinimumWidth(200)
-            layout = QtWidgets.QHBoxLayout()
-            layout.addStretch()
-            layout.addWidget(self.curve_box)
-            layout.addStretch()
-            self.curve_layout.addLayout(layout)
-            for curve in self.curves:
-                self.parameters[curve] = self.curve_parameters(curve)
-                self.update_curve_parameters(curve)
-                self.initialize_curve(curve)
-            self.curve_grids.setLayout(self.curve_layout)
-            self.set_layout(pl.grid(header=False),
-                            self.curve_grids,
-                            self.close_buttons())
-        self.update_colors()
-        self.set_title('Customize %s' % self.plotview.label)
-
-    def close_buttons(self):
-        buttonbox = QtWidgets.QDialogButtonBox(self)
-        buttonbox.setOrientation(QtCore.Qt.Horizontal)
-        buttonbox.setStandardButtons(QtWidgets.QDialogButtonBox.Apply|
-                                     QtWidgets.QDialogButtonBox.Cancel|
-                                     QtWidgets.QDialogButtonBox.Save)
-        buttonbox.accepted.connect(self.accept)
-        buttonbox.rejected.connect(self.reject)
-        buttonbox.button(
-            QtWidgets.QDialogButtonBox.Apply).clicked.connect(self.apply)
-        buttonbox.button(QtWidgets.QDialogButtonBox.Apply).setDefault(True)
-        return buttonbox
-
-    def update(self):
-        self.update_labels()
-        if self.plotview.image is not None:
-            self.update_image_parameters()
-        else:
-            self.update_curves()
-            for curve in self.curves:
-                self.update_curve_parameters(curve)
-        self.update_colors()
-
-    def update_labels(self):
-        pl = self.parameters['labels']
-        pl['title'].value = self.plotview.title
-        pl['xlabel'].value = self.plotview.xaxis.label
-        pl['ylabel'].value = self.plotview.yaxis.label
-
-    def image_parameters(self):
-        parameters = GridParameters()
-        parameters.add('aspect', 'auto', 'Aspect Ratio')
-        parameters.add('skew', 90.0, 'Skew Angle')
-        parameters.add('grid', ['On', 'Off'], 'Grid')
-        parameters.add('gridcolor', '#ffffff', 'Grid Color')
-        parameters.add('gridstyle', list(linestyles.values()), 'Grid Style')
-        parameters.grid(title='Image Parameters', header=False)
-        return parameters
-
-    def update_image_parameters(self):
-        p = self.parameters['image']
-        p['aspect'].value = self.plotview._aspect
-        p['skew'].value = self.plotview._skew_angle
-        if self.plotview._skew_angle is None:
-            p['skew'].value = 90.0
-        self.plotview._grid = (self.plotview.ax.xaxis._gridOnMajor and
-                               self.plotview.ax.yaxis._gridOnMajor)
-        if self.plotview._grid:
-            p['grid'].value = 'On'
-        else:
-            p['grid'].value = 'Off'
-        p['gridcolor'].value = rgb2hex(
-            colorConverter.to_rgb(self.plotview._gridcolor))
-        p['gridcolor'].color_button = NXColorButton(p['gridcolor'])
-        p['gridcolor'].color_button.set_color(
-            to_qcolor(self.plotview._gridcolor))
-        p['gridstyle'].value = linestyles[self.plotview._gridstyle]
-
-    @property
-    def curve(self):
-        return self.curve_box.currentText()
-
-    def get_curves(self):
-        lines = self.plotview.ax.get_lines()
-        labels = [line.get_label() for line in lines]
-        for (i,label) in enumerate(labels):
-            labels[i] = '%d: ' % (i+1) + labels[i]
-        return dict(zip(labels, lines))
-
-    def update_curves(self):
-        curves = self.get_curves()
-        new_curves = list(set(curves) - set(self.curves))
-        for curve in new_curves:
-            self.curves[curve] = curves[curve]
-            self.parameters[curve] = self.curve_parameters(curve)
-            self.update_curve_parameters(curve)
-            self.initialize_curve(curve)
-            self.curve_box.addItem(curve)
-
-    def initialize_curve(self, curve):
-        pc = self.parameters[curve]
-        pc.widget = QtWidgets.QWidget(parent=self.curve_grids)
-        pc.widget.setLayout(pc.grid(header=False))
-        pc.widget.setVisible(False)
-        self.curve_layout.addWidget(pc.widget)
-        if curve == self.curve:
-            pc.widget.setVisible(True)
-        else:
-            pc.widget.setVisible(False)
-
-    def curve_parameters(self, curve):
-        parameters = GridParameters()
-        parameters.add('linestyle', list(linestyles.values()), 'Line Style')
-        parameters.add('linewidth', 1.0, 'Line Width')
-        parameters.add('linecolor', '#000000', 'Line Color')
-        parameters.add('marker', list(markers.values()), 'Marker Style')
-        parameters.add('markersize', 1.0, 'Marker Size')
-        parameters.add('facecolor', '#000000', 'Face Color')
-        parameters.add('edgecolor', '#000000', 'Edge Color')
-        parameters.grid(title='Curve Parameters', header=False)
-        return parameters
-
-    def update_curve_parameters(self, curve):
-        c, p = self.curves[curve], self.parameters[curve]
-        p['linestyle'].value = linestyles[c.get_linestyle()]
-        p['linewidth'].value = c.get_linewidth()
-        p['linecolor'].value = rgb2hex(colorConverter.to_rgb(c.get_color()))
-        p['linecolor'].color_button = NXColorButton(p['linecolor'])
-        p['linecolor'].color_button.set_color(to_qcolor(c.get_color()))
-        p['marker'].value = markers[c.get_marker()]
-        p['markersize'].value = c.get_markersize()
-        p['facecolor'].value = rgb2hex(
-            colorConverter.to_rgb(c.get_markerfacecolor()))
-        p['facecolor'].color_button = NXColorButton(p['facecolor'])
-        p['facecolor'].color_button.set_color(
-            to_qcolor(c.get_markerfacecolor()))
-        p['edgecolor'].value = rgb2hex(
-            colorConverter.to_rgb(c.get_markeredgecolor()))
-        p['edgecolor'].color_button = NXColorButton(p['edgecolor'])
-        p['edgecolor'].color_button.set_color(
-            to_qcolor(c.get_markeredgecolor()))
-
-    def update_colors(self):
-        if self.plotview.image is not None:
-            p = self.parameters['image']
-            p.grid_layout.addWidget(p['gridcolor'].color_button, 4, 2, 
-                                    alignment=QtCore.Qt.AlignCenter)
-        else:
-            for curve in self.curves:
-                p = self.parameters[curve]
-                p.grid_layout.addWidget(p['linecolor'].color_button, 2, 2, 
-                                        alignment=QtCore.Qt.AlignCenter)
-                p.grid_layout.addWidget(p['facecolor'].color_button, 5, 2, 
-                                        alignment=QtCore.Qt.AlignCenter)
-                p.grid_layout.addWidget(p['edgecolor'].color_button, 6, 2, 
-                                        alignment=QtCore.Qt.AlignCenter)
-
-    def select_curve(self):
-        for curve in self.curves:
-            self.parameters[curve].widget.setVisible(False)
-        self.parameters[self.curve].widget.setVisible(True)
-
-    def apply(self):
-        pl = self.parameters['labels']
-        self.plotview.title = pl['title'].value
-        self.plotview.ax.set_title(self.plotview.title)
-        self.plotview.xaxis.label = pl['xlabel'].value
-        self.plotview.ax.set_xlabel(self.plotview.xaxis.label)
-        self.plotview.yaxis.label = pl['ylabel'].value
-        self.plotview.ax.set_ylabel(self.plotview.yaxis.label)
-        if self.plotview.image is not None:
-            pi = self.parameters['image']
-            _aspect = pi['aspect'].value
-            try:
-                self.plotview._aspect = np.float(_aspect)
-            except ValueError:
-                if _aspect in ['auto', 'equal']:
-                    self.plotview._aspect = _aspect
-                else:
-                    pi['aspect'].value = self.plotview._aspect = 'auto'
-            _skew_angle = pi['skew'].value
-            if pi['grid'].value == 'On':
-                self.plotview._grid =True
-            else:
-                self.plotview._grid =False
-            self.plotview._gridcolor = pi['gridcolor'].value
-            self.plotview._gridstyle = [k for k, v in linestyles.items()
-                                        if v == pi['gridstyle'].value][0]
-            #reset in case plotview.aspect changed by plotview.skew            
-            self.plotview.grid(self.plotview._grid)
-            self.plotview.skew = _skew_angle
-            self.plotview.aspect = self.plotview._aspect
-            if (self.plotview.projection_panel is not None and
-                    self.plotview.projection_panel._rectangle is not None):
-                self.plotview.projection_panel._rectangle.set_edgecolor(
-                    self.plotview._gridcolor)
-        else:
-            for curve in self.curves:
-                c, pc = self.curves[curve], self.parameters[curve]
-                linestyle = [k for k, v in linestyles.items()
-                             if v == pc['linestyle'].value][0]
-                c.set_linestyle(linestyle)
-                c.set_linewidth(pc['linewidth'].value)
-                c.set_color(pc['linecolor'].value)
-                marker = [k for k, v in markers.items()
-                          if v == pc['marker'].value][0]
-                c.set_marker(marker)
-                c.set_markersize(pc['markersize'].value)
-                c.set_markerfacecolor(pc['facecolor'].value)
-                c.set_markeredgecolor(pc['edgecolor'].value)
-        self.plotview.draw()
-
-    def accept(self):
-        self.apply()
-        self.plotview.customize_panel = None
-        super(CustomizeDialog, self).accept()
-
-    def reject(self):
-        self.plotview.customize_panel = None
-        super(CustomizeDialog, self).reject()
-
-    def closeEvent(self, event):
-        self.close()
-
-    def close(self):
-        self.plotview.customize_panel = None
-        super(CustomizeDialog, self).close()
-        self.deleteLater()
-
-
-class NXColorButton(ColorButton):
-
-    def __init__(self, parameter):
-        super(NXColorButton, self).__init__()
-        self.parameter = parameter
-        self.parameter.box.editingFinished.connect(self.update_color)
-        self.colorChanged.connect(self.update_text)
-
-    def update_color(self):
-        color = self.text()
-        qcolor = to_qcolor(color)
-        self.color = qcolor  # defaults to black if not qcolor.isValid()
-
-    def update_text(self, color):
-        self.parameter.value = color.name()
-
-    def text(self):
-        return self.parameter.value
 
 
 class NXSymLogNorm(SymLogNorm):
