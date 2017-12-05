@@ -355,6 +355,7 @@ class NXPlotView(QtWidgets.QDialog):
 
         self.projection_panel = None
         self.customize_panel = None
+        self.shapes = []
 
         if self.label != "Main":
             self.add_menu_action()
@@ -1740,6 +1741,7 @@ class NXPlotView(QtWidgets.QDialog):
         if 'facecolor' not in opts:
             rectangle.set_facecolor('none')
         self.canvas.draw()
+        self.shapes.append(rectangle)
         return rectangle
 
     def polygon(self, xy, closed=True, **opts):
@@ -1771,6 +1773,7 @@ class NXPlotView(QtWidgets.QDialog):
         if 'facecolor' not in opts:
             polygon.set_facecolor('none')
         self.canvas.draw()
+        self.shapes.append(polygon)
         return polygon
 
     def ellipse(self, x, y, dx, dy, **opts):
@@ -1804,6 +1807,7 @@ class NXPlotView(QtWidgets.QDialog):
         if 'facecolor' not in opts:
             ellipse.set_facecolor('none')
         self.canvas.draw()
+        self.shapes.append(ellipse)
         return ellipse
 
     def circle(self, x, y, radius, **opts):
@@ -1837,6 +1841,7 @@ class NXPlotView(QtWidgets.QDialog):
         if 'facecolor' not in opts:
             circle.set_facecolor('none')
         self.canvas.draw()
+        self.shapes.append(circle)
         return circle
 
     def voronoi(self, x, y, z, **opts):
