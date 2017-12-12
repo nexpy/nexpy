@@ -675,6 +675,14 @@ class NXPlotView(QtWidgets.QDialog):
                 self.vtab.logbox.setChecked(True)
             else:
                 self.vtab.logbox.setChecked(False)
+            if logx:
+                self.xtab.logbox.setChecked(True)
+            else:
+                self.xtab.logbox.setChecked(False)
+            if logy:
+                self.ytab.logbox.setChecked(True)
+            else:
+                self.ytab.logbox.setChecked(False)
 
             self.x, self.y, self.v = self.get_image()
             self.plot_image(over, **opts)
@@ -982,6 +990,10 @@ class NXPlotView(QtWidgets.QDialog):
             ax.set_xlabel(self.xaxis.label)
             ax.set_ylabel(self.yaxis.label)
             ax.set_title(self.title)
+            if self.xtab.logbox.isChecked():
+                ax.set_xscale('log')
+            if self.ytab.logbox.isChecked():
+                ax.set_yscale('log')
 
         vmin, vmax = self.image.get_clim()
         if self.vaxis.min > vmin:
@@ -1489,9 +1501,10 @@ class NXPlotView(QtWidgets.QDialog):
 
     def _set_offsets(self, value):
         """Set the axis offset used in tick labels and redraw plot."""
-        self._axis_offsets = value
-        self.ax.ticklabel_format(useOffset=self._axis_offsets)
-        self.draw()
+        if isinstance(self.formatter, ScalarFormatter):
+            self._axis_offsets = value
+            self.ax.ticklabel_format(useOffset=self._axis_offsets)
+            self.draw()
 
     offsets = property(_offsets, _set_offsets, 
                        "Property: Axis offsets property")
@@ -1926,10 +1939,10 @@ class NXPlotView(QtWidgets.QDialog):
                         self.ztab, 'z')
             else:
                 self.tab_widget.removeTab(self.tab_widget.indexOf(self.ztab))
-            self.xtab.logbox.setVisible(False)
+            self.xtab.logbox.setVisible(True)
             self.xtab.axiscombo.setVisible(True)
             self.xtab.flipbox.setVisible(True)
-            self.ytab.logbox.setVisible(False)
+            self.ytab.logbox.setVisible(True)
             self.ytab.axiscombo.setVisible(True)
             self.ytab.flipbox.setVisible(True)
             if self.rgb_image:
