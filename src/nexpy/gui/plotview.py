@@ -1201,16 +1201,18 @@ class NXPlotView(QtWidgets.QDialog):
 
     def set_log_axis(self):
         """Set x and y axis scales when the log option is on or off."""
-        ax = self.figure.gca()
-        if self.xtab.logbox.isChecked():
+        ax = self.ax
+        if self.xlog:
+            self.xtab.set_limits(*self.xaxis.log_limits())
             ax.set_xscale('log')
         else:
             ax.set_xscale('linear')
-        if self.ytab.logbox.isChecked():
+        if self.ylog:
+            self.ytab.set_limits(*self.yaxis.log_limits())
             ax.set_yscale('log')
         else:
             ax.set_yscale('linear')
-        self.draw()
+        self.replot_axes()
 
     def symlog(self, linthresh=None, linscale=None, vmax=None):
         """Use symmetric log normalization in the current plot.
@@ -1284,8 +1286,12 @@ class NXPlotView(QtWidgets.QDialog):
         xmin, xmax, ymin, ymax = self.limits
         self.xaxis.min = self.xaxis.lo = self.xtab.minbox.old_value = xmin
         self.xaxis.max = self.xaxis.hi = self.xtab.maxbox.old_value = xmax
+        if self.xlog:
+            self.xaxis.lo, self.xaxis.hi = self.xaxis.log_limits()
         self.yaxis.min = self.yaxis.lo = self.ytab.minbox.old_value = ymin
         self.yaxis.max = self.yaxis.hi = self.ytab.maxbox.old_value = ymax
+        if self.ylog:
+            self.yaxis.lo, self.yaxis.hi = self.yaxis.log_limits()
         if self.ndim == 1:
             self.replot_axes()
         else:
@@ -1299,6 +1305,14 @@ class NXPlotView(QtWidgets.QDialog):
                 self.vtab.set_axis(self.vaxis)
             self.replot_image()
         self.update_tabs()
+
+    @property
+    def xlog(self):
+        return self.xtab.logbox.isChecked()
+
+    @property
+    def ylog(self):
+        return self.ytab.logbox.isChecked()
 
     def _aspect(self):
         """Return the currently set aspect ratio value."""
@@ -2195,6 +2209,15 @@ class NXPlotAxis(object):
         """Return the low and high values for the axis."""
         return float(self.lo), float(self.hi)
 
+    def log_limits(self):
+        """Return limits with positive values."""
+        try:
+            minpos = min(self.data[self.data>0.0])
+        except ValueError:
+            minpos = 1e-300
+        return (minpos if self.lo <= 0 else self.lo,
+                minpos if self.hi <= 0 else self.hi)
+
     @property
     def min_range(self):
         return self.max_range*1e-6
@@ -2356,6 +2379,10 @@ class NXPlotTab(QtWidgets.QWidget):
         self.maxbox.old_value = axis.hi
         if not self.zaxis:
             self.axis.locked = False
+            if np.all(self.axis.data < 0.0):
+                self.logbox.setEnabled(False)
+            else:
+                self.logbox.setEnabled(True)
             self.flipbox.setChecked(False)
             self.set_sliders(axis.lo, axis.hi)
         if self.axiscombo is not None:
