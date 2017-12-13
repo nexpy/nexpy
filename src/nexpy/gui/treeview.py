@@ -110,6 +110,7 @@ class NXtree(NXgroup):
     def load(self, filename, mode='r'):
         name = self.get_name(filename)
         self[name] = nxload(filename, mode)
+        return self[name]
 
     def reload(self, name):
         if name in self:
@@ -117,6 +118,7 @@ class NXtree(NXgroup):
             if isinstance(root, NXroot):
                 del self[name]
                 self[name] = root
+            return self[name]
         else:
             raise NeXusError('%s not in the tree')
 
