@@ -635,14 +635,8 @@ class NXPlotView(QtWidgets.QDialog):
                     self.yaxis.lo = ymin
                 if ymax:
                     self.yaxis.hi = ymax
-                if logx:
-                    self.xtab.logbox.setChecked(True)
-                else:
-                    self.xtab.logbox.setChecked(False)
-                if log or logy:
-                    self.ytab.logbox.setChecked(True)
-                else:
-                    self.ytab.logbox.setChecked(False)
+                if log:
+                    logy = True
             if fmt == '':
                 fmt = colors[self.num%len(colors)] + 'o'
 
@@ -671,22 +665,9 @@ class NXPlotView(QtWidgets.QDialog):
                 self.vaxis.lo = vmin
             if vmax:
                 self.vaxis.hi = vmax
-            if log:
-                self.vtab.logbox.setChecked(True)
-            else:
-                self.vtab.logbox.setChecked(False)
-            if logx:
-                self.xtab.logbox.setChecked(True)
-            else:
-                self.xtab.logbox.setChecked(False)
-            if logy:
-                self.ytab.logbox.setChecked(True)
-            else:
-                self.ytab.logbox.setChecked(False)
-
             self.x, self.y, self.v = self.get_image()
             self.plot_image(over, **opts)
-
+            
         self.limits = (self.xaxis.min, self.xaxis.max,
                        self.yaxis.min, self.yaxis.max)
 
@@ -700,11 +681,16 @@ class NXPlotView(QtWidgets.QDialog):
             self.replot_axes(draw=False)
             if self.aspect == 'auto':
                 self.aspect = 'equal'
-        elif self.xaxis.reversed or self.yaxis.reversed:
+        if self.xaxis.reversed or self.yaxis.reversed:
             self.replot_axes(draw=False)
 
         self.offsets = False
         self.aspect = self._aspect
+
+        if self.ndim > 1:
+            self.logv = log
+        self.logx = logx
+        self.logy = logy
 
         self.draw()
         self.otab.push_current()
@@ -870,10 +856,6 @@ class NXPlotView(QtWidgets.QDialog):
                 ax.set_ylim(ymax=self.yaxis.hi)
             else:
                 self.yaxis.hi = yhi
-            if self.xtab.logbox.isChecked():
-                ax.set_xscale('log')
-            if self.ytab.logbox.isChecked():
-                ax.set_yscale('log')
             ax.set_xlabel(self.xaxis.label)
             ax.set_ylabel(self.yaxis.label)
             ax.set_title(self.title)
@@ -882,7 +864,7 @@ class NXPlotView(QtWidgets.QDialog):
             self.yaxis.min, self.yaxis.max = ax.get_ylim()
             self.xaxis.lo, self.xaxis.hi = self.xaxis.min, self.xaxis.max
             self.yaxis.lo, self.yaxis.hi = self.yaxis.min, self.yaxis.max
-
+            
         self.image = None
         self.colorbar = None
         if six.PY3:
@@ -990,18 +972,12 @@ class NXPlotView(QtWidgets.QDialog):
             ax.set_xlabel(self.xaxis.label)
             ax.set_ylabel(self.yaxis.label)
             ax.set_title(self.title)
-            if self.xtab.logbox.isChecked():
-                ax.set_xscale('log')
-            if self.ytab.logbox.isChecked():
-                ax.set_yscale('log')
 
         vmin, vmax = self.image.get_clim()
         if self.vaxis.min > vmin:
             self.vaxis.min = vmin
         if self.vaxis.max < vmax:
             self.vaxis.max = vmax
-
-        self.vtab.set_axis(self.vaxis)
 
     @property
     def shape(self):
@@ -1053,7 +1029,6 @@ class NXPlotView(QtWidgets.QDialog):
                                     self.finite_v[self.finite_v>0.0].min())
             except ValueError:
                 self.vaxis.lo = max(self.vaxis.lo, 0.01)
-        self.vtab.set_axis(self.vaxis)
 
     def set_data_norm(self):
         """Set the normalization for 2D plots."""
@@ -1199,20 +1174,27 @@ class NXPlotView(QtWidgets.QDialog):
             angle = np.radians(self.skew)
             return 1.*x-y/np.tan(angle),  y/np.sin(angle)
 
-    def set_log_axis(self):
+    def set_log_axis(self, name):
         """Set x and y axis scales when the log option is on or off."""
-        ax = self.ax
-        if self.xlog:
-            self.xtab.set_limits(*self.xaxis.log_limits())
-            ax.set_xscale('log')
+        if name == 'v' and self.image is not None:
+            self.replot_image()
         else:
-            ax.set_xscale('linear')
-        if self.ylog:
-            self.ytab.set_limits(*self.yaxis.log_limits())
-            ax.set_yscale('log')
-        else:
-            ax.set_yscale('linear')
-        self.replot_axes()
+            ax = self.ax
+            if name == 'x':
+                if self.logx:
+                    self.aspect = 'auto'
+                    self.xtab.set_limits(*self.xaxis.log_limits())
+                    ax.set_xscale('log')
+                else:
+                    ax.set_xscale('linear')
+            elif name == 'y':
+                if self.logy:
+                    self.aspect = 'auto'
+                    self.ytab.set_limits(*self.yaxis.log_limits())
+                    ax.set_yscale('log')
+                else:
+                    ax.set_yscale('linear')
+            self.replot_axes()
 
     def symlog(self, linthresh=None, linscale=None, vmax=None):
         """Use symmetric log normalization in the current plot.
@@ -1286,16 +1268,17 @@ class NXPlotView(QtWidgets.QDialog):
         xmin, xmax, ymin, ymax = self.limits
         self.xaxis.min = self.xaxis.lo = self.xtab.minbox.old_value = xmin
         self.xaxis.max = self.xaxis.hi = self.xtab.maxbox.old_value = xmax
-        if self.xlog:
+        if self.logx:
             self.xaxis.lo, self.xaxis.hi = self.xaxis.log_limits()
         self.yaxis.min = self.yaxis.lo = self.ytab.minbox.old_value = ymin
         self.yaxis.max = self.yaxis.hi = self.ytab.maxbox.old_value = ymax
-        if self.ylog:
+        if self.logy:
             self.yaxis.lo, self.yaxis.hi = self.yaxis.log_limits()
         if self.ndim == 1:
             self.replot_axes()
         else:
             if autoscale:
+                logv = self.logv
                 try:
                     self.vaxis.min = self.vaxis.lo = np.min(self.finite_v)
                     self.vaxis.max = self.vaxis.hi = np.max(self.finite_v)
@@ -1303,16 +1286,33 @@ class NXPlotView(QtWidgets.QDialog):
                     self.vaxis.min = self.vaxis.lo = 0.0
                     self.vaxis.max = self.vaxis.hi = 0.1
                 self.vtab.set_axis(self.vaxis)
+                self.logv = logv
             self.replot_image()
         self.update_tabs()
 
     @property
-    def xlog(self):
-        return self.xtab.logbox.isChecked()
+    def logx(self):
+        return self.xtab.log
+
+    @logx.setter
+    def logx(self, value):
+        self.xtab.log = value
 
     @property
-    def ylog(self):
-        return self.ytab.logbox.isChecked()
+    def logy(self):
+        return self.ytab.log
+
+    @logy.setter
+    def logy(self, value):
+        self.ytab.log = value
+
+    @property
+    def logv(self):
+        return self.vtab.log
+
+    @logv.setter
+    def logv(self, value):
+        self.vtab.log = value
 
     def _aspect(self):
         """Return the currently set aspect ratio value."""
@@ -1341,6 +1341,8 @@ class NXPlotView(QtWidgets.QDialog):
             the same, or a floating point value representing the ratio.
             A value of 1 is equivalent to 'equal'.
         """
+        if aspect != 'auto' and (self.logx or self.logy):
+            raise NeXusError("Cannot set aspect ratio with log axes")
         try:
             self._aspect = float(aspect)
             if self._aspect > 0.0:
@@ -1515,10 +1517,12 @@ class NXPlotView(QtWidgets.QDialog):
 
     def _set_offsets(self, value):
         """Set the axis offset used in tick labels and redraw plot."""
-        if isinstance(self.formatter, ScalarFormatter):
+        try :
             self._axis_offsets = value
             self.ax.ticklabel_format(useOffset=self._axis_offsets)
             self.draw()
+        except Exception as error:
+            pass
 
     offsets = property(_offsets, _set_offsets, 
                        "Property: Axis offsets property")
@@ -2379,7 +2383,8 @@ class NXPlotTab(QtWidgets.QWidget):
         self.maxbox.old_value = axis.hi
         if not self.zaxis:
             self.axis.locked = False
-            if np.all(self.axis.data < 0.0):
+            self.logbox.setChecked(False)
+            if np.all(self.axis.data <= 0.0):
                 self.logbox.setEnabled(False)
             else:
                 self.logbox.setEnabled(True)
@@ -2569,6 +2574,8 @@ class NXPlotTab(QtWidgets.QWidget):
             self.minslider.blockSignals(block)
         if self.maxslider: 
             self.maxslider.blockSignals(block)
+        if self.logbox:
+            self.logbox.blockSignals(block)
 
     def _log(self):
         try:
@@ -2577,10 +2584,11 @@ class NXPlotTab(QtWidgets.QWidget):
             return False
 
     def _set_log(self, value):
+        if np.all(self.axis.data <= 0.0):
+            raise NeXusError("Cannot set log axis when all values are <= 0")
         try:
             if value != self.log:
                 self.logbox.setChecked(value)
-                self.change_log()
         except Exception:
             pass
     
@@ -2588,10 +2596,7 @@ class NXPlotTab(QtWidgets.QWidget):
 
     def change_log(self):
         try:
-            if self.name == 'v' and self.plotview.image:
-                self.plotview.replot_image()
-            else:
-                self.plotview.set_log_axis()
+            self.plotview.set_log_axis(self.name)
         except Exception:
             pass
 
@@ -3673,6 +3678,8 @@ class NXProjectionPanel(QtWidgets.QWidget):
         try:
             limits = tuple(slice(x,y) for x,y in self.get_limits())
             self.plotview.data.nxsignal.mask[limits] = np.ma.nomask
+            if not self.plotview.data.nxsignal.mask.any():
+                self.plotview.data.mask = np.ma.nomask
             self.plotview.replot_data()
         except NeXusError as error:
             report_error("Masking Data", error)
