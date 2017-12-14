@@ -3800,7 +3800,6 @@ class NXNavigationToolbar(NavigationToolbar):
                 action.setToolTip('Customize plot')
 
     def home(self, autoscale=True):
-        super(NXNavigationToolbar, self).home()
         self.plotview.reset_plot_limits(autoscale)
 
     def edit_parameters(self):
