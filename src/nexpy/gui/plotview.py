@@ -464,11 +464,14 @@ class NXPlotView(QtWidgets.QDialog):
         elif event.key == 'h':
             self.otab.home(autoscale=False)
         elif event.key == 'l':
-            if self.ndim > 1:
-                if self.vtab.log:
-                    self.vtab.log = False
-                else:
-                    self.vtab.log = True
+            try:
+                if self.ndim > 1:
+                    if self.vtab.log:
+                        self.vtab.log = False
+                    else:
+                        self.vtab.log = True
+            except NeXusError as error:
+                report_error("Setting Log Scale", error)
         elif event.key == 's' or event.key == 'v':
             self.tab_widget.setCurrentIndex(self.tab_widget.indexOf(self.vtab))
         elif event.key == 'x':
@@ -2584,7 +2587,7 @@ class NXPlotTab(QtWidgets.QWidget):
             return False
 
     def _set_log(self, value):
-        if np.all(self.axis.data <= 0.0):
+        if value and np.all(self.axis.data <= 0.0):
             raise NeXusError("Cannot set log axis when all values are <= 0")
         try:
             if value != self.log:
@@ -3885,16 +3888,24 @@ class NXNavigationToolbar(NavigationToolbar):
         self.plotview.ytab.block_signals(False)
 
     def toggle_aspect(self):
-        if self._actions['set_aspect'].isChecked():
-            self.plotview.aspect = 'auto'
-        else:
-            self.plotview.aspect = 'equal'
+        try:
+            if self._actions['set_aspect'].isChecked():
+                self.plotview.aspect = 'auto'
+            else: 
+                self.plotview.aspect = 'equal'
+        except NeXusError as error:
+            self._actions['set_aspect'].setChecked(False)
+            report_error("Setting Aspect Ratio", error)
     
     def set_aspect(self):
-        if self._actions['set_aspect'].isChecked():
-            self.plotview.aspect = 'equal'
-        else:
-            self.plotview.aspect = 'auto'
+        try:
+            if self._actions['set_aspect'].isChecked():
+                self.plotview.aspect = 'equal'
+            else:
+                self.plotview.aspect = 'auto'
+        except NeXusError as error:
+            self._actions['set_aspect'].setChecked(False)
+            report_error("Setting Aspect Ratio", error)
 
     def mouse_move(self, event):
         self._set_cursor(event)
