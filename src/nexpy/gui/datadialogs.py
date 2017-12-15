@@ -2058,13 +2058,15 @@ class UnlockDialog(BaseDialog):
         self.setWindowTitle("Unlock File")
         self.node = node
 
-        if not os.path.exists(self.node.nxfilename):
-            raise NeXusError("'%s' does not exist")
-        file_size = os.path.getsize(self.node.nxfilename)
-        if file_size > 10000000:
-            default = False
+        default = False
+        if self.node.exists():
+            file_size = os.path.getsize(self.node.nxfilename)
+            if file_size < 10000000:
+                default = True
         else:
-            default = True
+            self.node.unlock()
+            raise NeXusError("'%s' does not exist" % 
+                             os.path.abspath(self.nxfilename))
         self.set_layout(self.labels(
                             "<b>Are you sure you want to unlock the file?</b>"),
                         self.checkboxes(('backup', 'Backup file (%s)' 
