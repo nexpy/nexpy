@@ -1174,18 +1174,22 @@ class ViewDialog(BaseDialog):
         self.properties.add('path', node.nxpath, 'Path')
         if node.nxroot.nxfilename:
             self.properties.add('file', node.nxroot.nxfilename, 'File')
+        if node.exists():
+            target_label = 'Target File'
+        else:
+            target_label = 'Target File*'
         if isinstance(node, NXlink):
             self.properties.add('target', node._target, 'Target Path')
             if node._filename:
-                self.properties.add('linkfile', node._filename, 'Target File')
+                self.properties.add('linkfile', node._filename, target_label)
             elif node.nxfilename and node.nxfilename != node.nxroot.nxfilename:
-                self.properties.add('linkfile', node.nxfilename, 'Target File')
+                self.properties.add('linkfile', node.nxfilename, target_label)
         elif node.nxfilename and node.nxfilename != node.nxroot.nxfilename:
             self.properties.add('target', node.nxfilepath, 'Target Path')
-            self.properties.add('linkfile', node.nxfilename, 'Target File')
+            self.properties.add('linkfile', node.nxfilename, target_label)
         if node.nxfilemode:
             self.properties.add('filemode', node.nxfilemode, 'Mode')
-        if node.nxfilename and not os.path.exists(node.nxfilename):
+        if not node.exists():
             pass
         elif isinstance(node, NXfield) and node.shape is not None:
             if node.shape == () or node.shape == (1,):
@@ -1219,6 +1223,9 @@ class ViewDialog(BaseDialog):
         layout.addLayout(self.properties.grid(header=False, 
                                               title='Properties', 
                                               width=200))
+        if not node.exists():
+            layout.addWidget(QtWidgets.QLabel("*Target file does not exist"))
+        
         layout.addStretch()
 
         if node.attrs:
@@ -1229,7 +1236,7 @@ class ViewDialog(BaseDialog):
                                                   title='Attributes', 
                                                   width=200))
             layout.addStretch()
-        
+
         if (isinstance(node, NXfield) and node.shape is not None and 
                node.shape != () and node.shape != (1,)):
             hlayout = QtWidgets.QHBoxLayout()
