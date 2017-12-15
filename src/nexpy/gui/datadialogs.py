@@ -1185,7 +1185,9 @@ class ViewDialog(BaseDialog):
             self.properties.add('linkfile', node.nxfilename, 'Target File')
         if node.nxfilemode:
             self.properties.add('filemode', node.nxfilemode, 'Mode')
-        if isinstance(node, NXfield) and node.shape is not None:
+        if node.nxfilename and not os.path.exists(node.nxfilename):
+            pass
+        elif isinstance(node, NXfield) and node.shape is not None:
             if node.shape == () or node.shape == (1,):
                 self.properties.add('value', six.text_type(node), 'Value')
             self.properties.add('dtype', node.dtype, 'Dtype')
@@ -1194,23 +1196,23 @@ class ViewDialog(BaseDialog):
                 self.properties.add('maxshape', 
                                     six.text_type(node.maxshape), 
                                     'Maximum Shape')
-            except AttributeError:
+            except (AttributeError, OSError):
                 pass
             try:
                 self.properties.add('compression', 
                                     six.text_type(node.compression), 
                                     'Compression')
-            except AttributeError:
+            except (AttributeError, OSError):
                 pass
             try:
                 self.properties.add('chunks', six.text_type(node.chunks), 
                                     'Chunk Size')
-            except AttributeError:
+            except (AttributeError, OSError):
                 pass
             try:
                 self.properties.add('fillvalue', six.text_type(node.fillvalue), 
                                     'Fill Value')
-            except AttributeError:
+            except (AttributeError, OSError):
                 pass
         elif isinstance(node, NXgroup):
             self.properties.add('entries', len(node.entries), 'No. of Entries')
