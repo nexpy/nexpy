@@ -1485,6 +1485,8 @@ class MainWindow(QtWidgets.QMainWindow):
                         fname = os.path.join(
                             os.path.dirname(node.nxroot.nxfilename),
                             node.nxfilename)
+                    if not os.path.exists(fname):
+                        raise NeXusError("External file does not exist")
                     name = self.tree.node_from_file(fname)
                     if name is None:
                         name = self.tree.get_name(fname)
