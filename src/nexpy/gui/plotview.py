@@ -668,6 +668,7 @@ class NXPlotView(QtWidgets.QDialog):
                 self.vaxis.lo = vmin
             if vmax:
                 self.vaxis.hi = vmax
+            self.reset_log()
             self.x, self.y, self.v = self.get_image()
             self.plot_image(over, **opts)
             
@@ -976,11 +977,7 @@ class NXPlotView(QtWidgets.QDialog):
             ax.set_ylabel(self.yaxis.label)
             ax.set_title(self.title)
 
-        vmin, vmax = self.image.get_clim()
-        if self.vaxis.min > vmin:
-            self.vaxis.min = vmin
-        if self.vaxis.max < vmax:
-            self.vaxis.max = vmax
+        self.vaxis.min, self.vaxis.max = self.image.get_clim()
 
     @property
     def shape(self):
@@ -1035,7 +1032,7 @@ class NXPlotView(QtWidgets.QDialog):
 
     def set_data_norm(self):
         """Set the normalization for 2D plots."""
-        if self.vtab.logbox.isChecked():
+        if self.vtab.log:
             if self.vtab.symmetric:
                 if self._linthresh:
                     linthresh = self._linthresh
@@ -1197,7 +1194,6 @@ class NXPlotView(QtWidgets.QDialog):
                     ax.set_yscale('log')
                 else:
                     ax.set_yscale('linear')
-            self.replot_axes()
 
     def symlog(self, linthresh=None, linscale=None, vmax=None):
         """Use symmetric log normalization in the current plot.
@@ -1292,6 +1288,11 @@ class NXPlotView(QtWidgets.QDialog):
                 self.logv = logv
             self.replot_image()
         self.update_tabs()
+
+    def reset_log(self):
+        self.vtab.block_signals(True)
+        self.vtab.logbox.setChecked(False)
+        self.vtab.block_signals(False)
 
     @property
     def logx(self):
@@ -2600,6 +2601,7 @@ class NXPlotTab(QtWidgets.QWidget):
     def change_log(self):
         try:
             self.plotview.set_log_axis(self.name)
+            self.plotview.replot_axes()
         except Exception:
             pass
 
