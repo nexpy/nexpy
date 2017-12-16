@@ -1174,18 +1174,24 @@ class ViewDialog(BaseDialog):
         self.properties.add('path', node.nxpath, 'Path')
         if node.nxroot.nxfilename:
             self.properties.add('file', node.nxroot.nxfilename, 'File')
+        if node.exists():
+            target_label = 'Target File'
+        else:
+            target_label = 'Target File*'
         if isinstance(node, NXlink):
             self.properties.add('target', node._target, 'Target Path')
             if node._filename:
-                self.properties.add('linkfile', node._filename, 'Target File')
+                self.properties.add('linkfile', node._filename, target_label)
             elif node.nxfilename and node.nxfilename != node.nxroot.nxfilename:
-                self.properties.add('linkfile', node.nxfilename, 'Target File')
+                self.properties.add('linkfile', node.nxfilename, target_label)
         elif node.nxfilename and node.nxfilename != node.nxroot.nxfilename:
             self.properties.add('target', node.nxfilepath, 'Target Path')
-            self.properties.add('linkfile', node.nxfilename, 'Target File')
+            self.properties.add('linkfile', node.nxfilename, target_label)
         if node.nxfilemode:
             self.properties.add('filemode', node.nxfilemode, 'Mode')
-        if isinstance(node, NXfield) and node.shape is not None:
+        if not node.exists():
+            pass
+        elif isinstance(node, NXfield) and node.shape is not None:
             if node.shape == () or node.shape == (1,):
                 self.properties.add('value', six.text_type(node), 'Value')
             self.properties.add('dtype', node.dtype, 'Dtype')
@@ -1194,29 +1200,32 @@ class ViewDialog(BaseDialog):
                 self.properties.add('maxshape', 
                                     six.text_type(node.maxshape), 
                                     'Maximum Shape')
-            except AttributeError:
+            except (AttributeError, OSError):
                 pass
             try:
                 self.properties.add('compression', 
                                     six.text_type(node.compression), 
                                     'Compression')
-            except AttributeError:
+            except (AttributeError, OSError):
                 pass
             try:
                 self.properties.add('chunks', six.text_type(node.chunks), 
                                     'Chunk Size')
-            except AttributeError:
+            except (AttributeError, OSError):
                 pass
             try:
                 self.properties.add('fillvalue', six.text_type(node.fillvalue), 
                                     'Fill Value')
-            except AttributeError:
+            except (AttributeError, OSError):
                 pass
         elif isinstance(node, NXgroup):
             self.properties.add('entries', len(node.entries), 'No. of Entries')
         layout.addLayout(self.properties.grid(header=False, 
                                               title='Properties', 
                                               width=200))
+        if not node.exists():
+            layout.addWidget(QtWidgets.QLabel("*Target file does not exist"))
+        
         layout.addStretch()
 
         if node.attrs:
@@ -1227,7 +1236,7 @@ class ViewDialog(BaseDialog):
                                                   title='Attributes', 
                                                   width=200))
             layout.addStretch()
-        
+
         if (isinstance(node, NXfield) and node.shape is not None and 
                node.shape != () and node.shape != (1,)):
             hlayout = QtWidgets.QHBoxLayout()
@@ -2049,13 +2058,15 @@ class UnlockDialog(BaseDialog):
         self.setWindowTitle("Unlock File")
         self.node = node
 
-        if not os.path.exists(self.node.nxfilename):
-            raise NeXusError("'%s' does not exist")
-        file_size = os.path.getsize(self.node.nxfilename)
-        if file_size > 10000000:
-            default = False
+        default = False
+        if self.node.exists():
+            file_size = os.path.getsize(self.node.nxfilename)
+            if file_size < 10000000:
+                default = True
         else:
-            default = True
+            self.node.unlock()
+            raise NeXusError("'%s' does not exist" % 
+                             os.path.abspath(self.nxfilename))
         self.set_layout(self.labels(
                             "<b>Are you sure you want to unlock the file?</b>"),
                         self.checkboxes(('backup', 'Backup file (%s)' 
