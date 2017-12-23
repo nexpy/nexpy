@@ -164,6 +164,7 @@ def is_timestamp(time_string):
 
 
 def convertHTML(text):
+    """Replaces ANSI color codes with HTML"""
     try:
         from ansi2html import Ansi2HTMLConverter
         conv = Ansi2HTMLConverter(dark_bg=False, inline=True)
@@ -172,7 +173,25 @@ def convertHTML(text):
         return ansi_re.sub('', text)
 
 def get_colors(n, first='#1f77b4', last='#d62728'):
-    """Return a list of colors interpolating between limits"""
+    """Return a list of colors interpolating between the first and last.
+
+    The function accepts both strings representing hex colors and tuples 
+    containing RGB values, which must be between 0 and 1.
+
+    Parameters
+    ----------
+    n : int
+        Number of colors to be generated.
+    first : str or tuple of float
+        First color in the list (defaults to Matplotlib default blue).
+    last : str, tuple
+        Last color in the list(defaults to Matplotlib default red).
+
+    Returns
+    -------
+    colors : list
+        A list of strings containing hex colors
+    """
     if not isinstance(first, tuple):
         first = to_rgb(first)
     if not isinstance(last, tuple):
