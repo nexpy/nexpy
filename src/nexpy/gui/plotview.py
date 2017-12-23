@@ -183,11 +183,12 @@ class NXFigureManager(FigureManager):
 
 
 class NXPlotView(QtWidgets.QDialog):
-    """QT widget containing a NeXpy plot.
+    """Qt widget containing a NeXpy plot.
 
     The widget consists of a QVBoxLayout containing a matplotlib canvas 
     over a tab widget, which contains NXPlotTab objects for adjusting 
-    plot axes.
+    plot axes. The first class instance is embedded in the NeXpy main window,
+    but subsequent instances are in separate windows.
 
     Parameters
     ----------
@@ -1619,6 +1620,7 @@ class NXPlotView(QtWidgets.QDialog):
             x, _ = self.transform(x, y)
         lines = plotview.ax.vlines(x, ymin, ymax, **opts)
         self.canvas.draw()
+        self.shapes.append(lines)
         return lines
 
     vline = vlines
@@ -1655,6 +1657,7 @@ class NXPlotView(QtWidgets.QDialog):
             _, y = self.transform(x, y)
         lines = plotview.ax.hlines(y, xmin, xmax, **opts)
         self.canvas.draw()
+        self.shapes.append(lines)
         return lines
 
     hline = hlines
@@ -1711,6 +1714,7 @@ class NXPlotView(QtWidgets.QDialog):
             line = Line2D([x0,x1], [y0,y1], **opts)
             plotview.ax.add_line(line)
             self.canvas.draw()
+            self.shapes.append(line)
             return line
 
     def yline(self, y, **opts):
@@ -1741,6 +1745,7 @@ class NXPlotView(QtWidgets.QDialog):
             line = Line2D([x0, x1], [y0, y1], **opts)
             plotview.ax.add_line(line)
             self.canvas.draw()
+            self.shapes.append(line)
             return line
 
     def rectangle(self, x, y, dx, dy, **opts):
