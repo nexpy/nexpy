@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #-----------------------------------------------------------------------------
-# Copyright (c) 2013, NeXpy Development Team.
+# Copyright (c) 2013-2017, NeXpy Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -15,6 +15,25 @@ from lmfit import minimize, Parameters, Parameter, fit_report, __version__
 from nexusformat.nexus import NXdata, NXparameters, NeXusError
 
 class Fit(object):
+    """Class defining the data, parameters, and results of a least-squares fit.
+
+    Attributes
+    ----------
+    x : ndarray
+        x-values of data.
+    y : ndarray
+        y-values of data.
+    e : ndarray, optional
+        standard deviations of the y-values.
+    use_errors : bool
+        set to True if the errors are to be used in the fit.
+    data : NXdata
+        NXdata group containing the signal and axis.
+    functions : list of Function objects
+        Functions to be used in constructing the fit model.
+    fit
+        Results of the fit.
+    """
 
     def __init__(self, data=None, functions=None, use_errors=True):
         self.x = None
@@ -26,6 +45,14 @@ class Fit(object):
         self.fit = None
 
     def set_data(self, data):
+        """
+        Initialize the data used in the fit
+
+        Parameters
+        ----------
+        data : NXdata
+            NXdata group containing the signal and axis.
+        """
         if isinstance(data, NXdata):
             self.data = data
             signal = data.nxsignal
@@ -41,6 +68,20 @@ class Fit(object):
             raise TypeError("Must be an NXdata group")
 
     def get_model(self, x=None, f=None):
+        """Returns the value of the model.
+
+        Parameters
+        ----------
+        x : ndarray, optional
+            x-values where the model is calculated. Defaults to `self.x`
+        f : Function, optional
+            Function to be included in the model. Defaults to all the functions.
+
+        Returns
+        -------
+        model : ndarray
+            values of the model at the requested x-varlues.
+        """
         if x is None: 
             x = self.x
         model = np.zeros(x.shape,np.float64)
@@ -52,6 +93,18 @@ class Fit(object):
         return model
 
     def residuals(self, parameters):
+        """Returns the residuals for the specified parameters
+
+        Parameters
+        ----------
+        parameters : List of Parameters
+            Parameter objects containing the values to be used in the model.
+
+        Returns
+        -------
+        residuals : ndarray
+            Differences between the y-values and the model.
+        """
         if __version__ > '0.8.3':
             for parameter in parameters:
                 self.parameters[parameter].value = parameters[parameter].value
@@ -61,7 +114,7 @@ class Fit(object):
             return self.y - self.get_model()
 
     def fit_data(self):
-        """Run a scipy leastsq regression"""
+        """Run a scipy leastsq regression."""
         self.parameters = Parameters()
         for f in self.functions:
             for p in f.parameters:
@@ -84,10 +137,57 @@ class Fit(object):
                 p.name = p.original_name
 
     def fit_report(self):
+        """Return the report created by lmfit."""
         return str(fit_report(self.parameters))
+
+    def save_fit(self, x=None):
+        """Store the fit results in a NXsubentry for saving to a NeXus file.
+
+        Parameters
+        ----------
+        x : ndarray, optional
+            x-values at which to calculate the model. Defaults to `self.x`
+        Returns
+        -------
+        entry : NXsubentry
+            NXsubentry group that contains the data, models and parameters.
+        """
+        entry = NXsubentry()    
+        entry['data'] = self.data
+        for f in self.functions:
+            entry[f.name] = self.get_model(x, f)
+            parameters = NXparameters()
+            for p in f.parameters:
+                parameters[p.name] = NXfield(p.value, error=p.stderr, 
+                                             initial_value=p.init_value,
+                                             min=str(p.min), max=str(p.max))
+            entry[f.name].insert(parameters)
+        entry['title'] = 'Fit Results'
+        entry['fit'] = self.get_model(x)
+        fit_result = NXparameters()
+        fit_result.nfev = self.fit.result.nfev
+        fit_result.ier = self.fit.result.ier 
+        fit_result.chisq = self.fit.result.chisqr
+        fit_result.redchi = self.fit.result.redchi
+        fit_result.message = self.fit.result.message
+        fit_result.lmdif_message = self.fit.result.lmdif_message
+        entry['statistics'] = self.fit_result
+
+        return entry
 
 
 class Function(object):
+    """Class defining a function to be used in the fit.
+
+    Attributes
+    ----------
+    name : str
+        name of the function
+    module : Python module
+        module containing the function code.
+    function_index : int
+        index of the function
+    """
 
     def __init__(self, name=None, module=None, parameters=None, function_index=0):
         self.name = name
@@ -100,18 +200,22 @@ class Function(object):
 
     @property
     def parameters(self):
+        """List of parameters defining the function."""
         if self._parameters is None:
             self._parameters = [Parameter(name) 
                                 for name in self.module.parameters]
         return self._parameters
 
     def guess_parameters(self, x, y):
+        """Return a list of parameters determined by the function's `guess` method."""
         [setattr(p, 'value', g) for p,g in zip(self.parameters,
                                                self.module.guess(x, y))]
 
     @property
     def parameter_values(self):
+        """Return a list of parameter values."""
         return [p.value for p in self.parameters]
 
-    def function_values(self, x):         
+    def function_values(self, x):
+        """Return the calculated values with the current parameters."""
         return self.module.values(x, self.parameter_values)
