@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>NeXus Tree API Modules &#8212; NeXpy 0.10.6 documentation</title>
+    <title>NeXus Tree API Modules &#8212; NeXpy 0.10.8 documentation</title>
     
     <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.10.6',
+        VERSION:     '0.10.8',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -47,7 +47,7 @@
         <li class="right" >
           <a href="pythongui.html" title="Python Graphical User Interface"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.10.6 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.10.8 documentation</a> &#187;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -940,7 +940,7 @@ returned.</p>
 <dl class="attribute">
 <dt id="nexusformat.nexus.tree.NXfield.mask">
 <code class="descname">mask</code><a class="headerlink" href="#nexusformat.nexus.tree.NXfield.mask" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the NXfield&#8217;s mask as an array</p>
+<dd><p>Returns the NXfield&#8217;s mask as an array.</p>
 <p>Only works if the NXfield is in a group and has the &#8216;mask&#8217; attribute set
 or if the NXfield array is defined as a masked array.</p>
 </dd></dl>
@@ -1600,6 +1600,12 @@ are defined:</p>
 <dd><p>Returns the NXfield containing the signal errors.</p>
 </dd></dl>
 
+<dl class="attribute">
+<dt id="nexusformat.nexus.tree.NXdata.mask">
+<code class="descname">mask</code><a class="headerlink" href="#nexusformat.nexus.tree.NXdata.mask" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the signal mask if one exists.</p>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="class">
@@ -1994,7 +2000,7 @@ ls f1.nxs f2.nxs ...</div></blockquote>
         <li class="right" >
           <a href="pythongui.html" title="Python Graphical User Interface"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.10.6 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.10.8 documentation</a> &#187;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
