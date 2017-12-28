@@ -140,7 +140,7 @@ class Fit(object):
         """Return the report created by lmfit."""
         return str(fit_report(self.parameters))
 
-    def save_fit(self, x=None):
+    def save(self, x=None):
         """Store the fit results in a NXsubentry for saving to a NeXus file.
 
         Parameters
