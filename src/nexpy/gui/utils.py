@@ -18,7 +18,7 @@ except ImportError:
     from ConfigParser import ConfigParser
 import numpy as np
 from .pyqt import QtWidgets
-from matplotlib.colors import to_hex, to_rgb
+from matplotlib.colors import hex2color, rgb2hex
 
 try:
     from astropy.convolution import Kernel
@@ -193,12 +193,12 @@ def get_colors(n, first='#1f77b4', last='#d62728'):
         A list of strings containing hex colors
     """
     if not isinstance(first, tuple):
-        first = to_rgb(first)
+        first = hex2color(first)
     if not isinstance(last, tuple):
-        last = to_rgb(last)
-    return [to_hex((first[0]+(last[0]-first[0])*i/(n-1), 
-                    first[1]+(last[1]-first[1])*i/(n-1),
-                    first[2]+(last[2]-first[2])*i/(n-1))) for i in range(n)]
+        last = hex2color(last)
+    return [rgb2hex((first[0]+(last[0]-first[0])*i/(n-1), 
+                     first[1]+(last[1]-first[1])*i/(n-1),
+                     first[2]+(last[2]-first[2])*i/(n-1))) for i in range(n)]
 
 class NXimporter(object):
     def __init__(self, paths):
