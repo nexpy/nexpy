@@ -958,8 +958,8 @@ class NXPlotView(QtWidgets.QDialog):
         ax.set_aspect(self.aspect)
 
         if not over and not self.rgb_image:
-            self.colorbar = self.figure.colorbar(self.image, ax=ax,
-                                                 norm=plotview.norm)
+            self.colorbar = self.figure.colorbar(self.image, ax=ax, 
+                                                 norm=self.norm)
             self.colorbar.locator = self.locator
             self.colorbar.formatter = self.formatter
             self.colorbar.update_normal(self.image)
@@ -1292,9 +1292,10 @@ class NXPlotView(QtWidgets.QDialog):
         self.update_tabs()
 
     def reset_log(self):
-        self.vtab.block_signals(True)
-        self.vtab.logbox.setChecked(False)
-        self.vtab.block_signals(False)
+        for tab in [self.xtab, self.ytab, self.vtab]:
+            tab.block_signals(True)
+            tab.logbox.setChecked(False)
+            tab.block_signals(False)
 
     @property
     def logx(self):
@@ -2011,8 +2012,8 @@ class NXPlotView(QtWidgets.QDialog):
             Axis that replaces the current selection in the tab
         """
         xmin, xmax, ymin, ymax = self.limits
-        if (tab == self.xtab and axis == self.xaxis or
-            tab == self.ytab and axis == self.yaxis):
+        if ((tab == self.xtab and axis == self.xaxis) or
+            (tab == self.ytab and axis == self.yaxis)):
             return
         if tab == self.xtab and axis == self.yaxis:
             self.yaxis = self.ytab.axis = self.xtab.axis
@@ -2397,10 +2398,12 @@ class NXPlotTab(QtWidgets.QWidget):
         self.maxbox.old_value = axis.hi
         if not self.zaxis:
             self.axis.locked = False
-            self.logbox.setChecked(False)
             if np.all(self.axis.data <= 0.0):
+                self.logbox.setChecked(False)
                 self.logbox.setEnabled(False)
             else:
+                if self.name != 'v':
+                    self.logbox.setChecked(False)
                 self.logbox.setEnabled(True)
             self.flipbox.setChecked(False)
             self.set_sliders(axis.lo, axis.hi)
