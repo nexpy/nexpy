@@ -179,6 +179,7 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
         self.reader_dir = os.path.join(self.nexpy_dir, 'readers')
         self.script_dir = os.path.join(self.nexpy_dir, 'scripts')
         self.function_dir = os.path.join(self.nexpy_dir, 'functions')
+        sys.path.append(self.function_dir)
         self.scratch_file = os.path.join(self.nexpy_dir, 'w0.nxs')
         if not os.path.exists(self.scratch_file):
             NXroot().save(self.scratch_file)
