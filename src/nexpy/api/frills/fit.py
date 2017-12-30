@@ -12,7 +12,7 @@
 import numpy as np
 from lmfit import minimize, Parameters, Parameter, fit_report, __version__
 
-from nexusformat.nexus import NXdata, NXparameters, NeXusError
+from nexusformat.nexus import *
 
 class Fit(object):
     """Class defining the data, parameters, and results of a least-squares fit.
@@ -43,6 +43,7 @@ class Fit(object):
         self.set_data(data)
         self.functions = functions
         self.fit = None
+        self.result = None
 
     def set_data(self, data):
         """
@@ -152,26 +153,31 @@ class Fit(object):
         entry : NXsubentry
             NXsubentry group that contains the data, models and parameters.
         """
-        entry = NXsubentry()    
+        entry = NXentry()    
         entry['data'] = self.data
         for f in self.functions:
-            entry[f.name] = self.get_model(x, f)
+            entry[f.name] = NXdata(NXfield(self.get_model(x, f), name='model'),
+                                   NXfield(x, name=self.data.nxaxes[0].nxname), 
+                                   title='Fit Results')
             parameters = NXparameters()
             for p in f.parameters:
                 parameters[p.name] = NXfield(p.value, error=p.stderr, 
                                              initial_value=p.init_value,
                                              min=str(p.min), max=str(p.max))
-            entry[f.name].insert(parameters)
+            entry[f.name]['parameters'] = parameters
         entry['title'] = 'Fit Results'
-        entry['fit'] = self.get_model(x)
-        fit_result = NXparameters()
-        fit_result.nfev = self.fit.result.nfev
-        fit_result.ier = self.fit.result.ier 
-        fit_result.chisq = self.fit.result.chisqr
-        fit_result.redchi = self.fit.result.redchi
-        fit_result.message = self.fit.result.message
-        fit_result.lmdif_message = self.fit.result.lmdif_message
-        entry['statistics'] = self.fit_result
+        entry['fit'] = NXdata(NXfield(self.get_model(x), name='model'),
+                              NXfield(x, name=self.data.nxaxes[0].nxname), 
+                              title='Fit Results')
+        if self.result is not None:
+            fit = NXparameters()
+            fit.nfev = self.result.nfev
+            fit.ier = self.result.ier 
+            fit.chisq = self.result.chisqr
+            fit.redchi = self.result.redchi
+            fit.message = self.result.message
+            fit.lmdif_message = self.result.lmdif_message
+            entry['statistics'] = fit
 
         return entry
 
