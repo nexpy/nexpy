@@ -2462,11 +2462,11 @@ class NXPlotTab(QtWidgets.QWidget):
                 self.axis.hi = hi
                 self.axis.lo = -self.axis.hi
                 self.minbox.setValue(-hi)
-            elif hi > self.axis.lo:
-                self.axis.hi = hi
             else:
-                self.maxbox.setValue(self.maxbox.old_value)
-                return
+                self.axis.hi = hi
+                if hi < self.axis.lo:
+                    self.axis.lo = self.axis.data.min()
+                    self.minbox.setValue(self.axis.lo)
             self.axis.max = self.axis.hi
             self.axis.min = self.axis.lo
             self.set_range()
@@ -2485,11 +2485,12 @@ class NXPlotTab(QtWidgets.QWidget):
                     self.minbox.old_value = self.axis.lo
                 self.replotSignal.replot.emit()
             else:
-                if hi >= self.axis.lo:
-                    self.axis.hi = hi
-                else:
-                    self.maxbox.setValue(self.maxbox.old_value)
-                    return
+                self.axis.hi = hi
+                if self.axis.hi < self.axis.lo:
+                    self.axis.lo = self.axis.hi
+                    self.minbox.setValue(self.axis.lo)
+                elif np.isclose(self.axis.lo, self.axis.hi):
+                    self.replotSignal.replot.emit()
         self.maxbox.old_value = self.axis.hi
 
     @QtCore.Slot()
@@ -2499,11 +2500,10 @@ class NXPlotTab(QtWidgets.QWidget):
             np.isclose(lo, self.minbox.old_value):
             return
         if self.name == 'x' or self.name == 'y' or self.name == 'v':
-            if lo < self.axis.hi:
-                self.axis.lo = lo
-            else:
-                self.minbox.setValue(self.minbox.old_value)
-                return
+            self.axis.lo = lo
+            if lo > self.axis.hi:
+                self.axis.hi = self.axis.max = self.axis.data.max()
+                self.maxbox.setValue(self.axis.hi)
             self.axis.min = self.axis.lo
             self.set_range()
             self.set_sliders(self.axis.lo, self.axis.hi)
@@ -2513,11 +2513,10 @@ class NXPlotTab(QtWidgets.QWidget):
             else:
                 self.plotview.replot_axes()
         else:
-            if lo <= self.axis.hi:
-                self.axis.lo = lo
-            else:
-                self.minbox.setValue(self.minbox.old_value)
-                return
+            self.axis.lo = lo
+            if lo > self.axis.hi:
+                self.axis.hi = self.axis.lo
+                self.maxbox.setValue(self.axis.hi)
         self.minbox.old_value = self.axis.lo
 
     def read_maxslider(self):
@@ -3548,7 +3547,7 @@ class NXProjectionPanel(QtWidgets.QWidget):
                 min_value = self.maxbox[axis].value() - self.maxbox[axis].diff
                 self.minbox[axis].setValue(min_value)
             elif self.minbox[axis].value() > self.maxbox[axis].value():
-                self.minbox[axis].setValue(self.maxbox[axis].value())
+                self.maxbox[axis].setValue(self.minbox[axis].value())
         self.block_signals(False)
         self.draw_rectangle()
 
