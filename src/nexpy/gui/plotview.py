@@ -2467,6 +2467,7 @@ class NXPlotTab(QtWidgets.QWidget):
                 if hi < self.axis.lo:
                     self.axis.lo = self.axis.data.min()
                     self.minbox.setValue(self.axis.lo)
+                    self.minbox.old_value = self.axis.lo
             self.axis.max = self.axis.hi
             self.axis.min = self.axis.lo
             self.set_range()
@@ -2504,6 +2505,7 @@ class NXPlotTab(QtWidgets.QWidget):
             if lo > self.axis.hi:
                 self.axis.hi = self.axis.max = self.axis.data.max()
                 self.maxbox.setValue(self.axis.hi)
+                self.maxbox.old_value = self.axis.hi
             self.axis.min = self.axis.lo
             self.set_range()
             self.set_sliders(self.axis.lo, self.axis.hi)
