@@ -2490,6 +2490,7 @@ class NXPlotTab(QtWidgets.QWidget):
                 if self.axis.hi < self.axis.lo:
                     self.axis.lo = self.axis.hi
                     self.minbox.setValue(self.axis.lo)
+                    self.minbox.old_value = self.axis.lo
                 elif np.isclose(self.axis.lo, self.axis.hi):
                     self.replotSignal.replot.emit()
         self.maxbox.old_value = self.axis.hi
@@ -2519,6 +2520,7 @@ class NXPlotTab(QtWidgets.QWidget):
             if lo > self.axis.hi:
                 self.axis.hi = self.axis.lo
                 self.maxbox.setValue(self.axis.hi)
+                self.maxbox.old_value = self.axis.hi
         self.minbox.old_value = self.axis.lo
 
     def read_maxslider(self):
