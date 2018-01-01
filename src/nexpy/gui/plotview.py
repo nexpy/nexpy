@@ -280,10 +280,11 @@ class NXPlotView(QtWidgets.QDialog):
         self.canvas.callbacks.exception_handler = report_exception
 
         Gcf.set_active(self.figuremanager)
-        self.button_press_cid = self.canvas.mpl_connect('button_press_event', 
-                                                        self.on_button_press)
-        self.key_press_cid = self.canvas.mpl_connect('key_press_event', 
-                                                     self.on_key_press)
+        self.mpl_connect = self.canvas.mpl_connect
+        self.button_press_cid = self.mpl_connect('button_press_event', 
+                                                 self.on_button_press)
+        self.key_press_cid = self.mpl_connect('key_press_event', 
+                                              self.on_key_press)
         self.canvas.figure.show = lambda *args: self.show()
         self.figuremanager._cidgcf = self.button_press_cid
         self.figuremanager.window = self
@@ -394,16 +395,12 @@ class NXPlotView(QtWidgets.QDialog):
         """
         self.make_active()
         if event.inaxes:
+            self.x, self.y = event.x, event.y
             self.xdata, self.ydata = self.inverse_transform(event.xdata, 
                                                             event.ydata)
         else:
-            self.xdata, self.ydata = None, None
-        if event.button == 3:
-            try:
-                self.otab.home(autoscale=False)
-            except Exception:
-                pass
-
+            self.x, self.y, self.xdata, self.ydata = None, None, None, None
+        
     def on_key_press(self, event):
         """Handle key press events in the Matplotlib canvas.
 
@@ -3832,36 +3829,62 @@ class NXNavigationToolbar(NavigationToolbar):
     def add_data(self):
         keep_data(self.plotview.plotdata)
 
+    def release(self, event):
+        try:
+            for zoom_id in self._ids_zoom:
+                self.canvas.mpl_disconnect(zoom_id)
+            self.remove_rubberband()
+        except Exception as error:
+            pass
+        self._ids_zoom = []
+        self._xypress = None
+        self._button_pressed = None
+        self._zoom_mode = None
+        self.plotview.x, self.plotview.y = None, None
+        super(NXNavigationToolbar, self).release(event)
+
     def release_zoom(self, event):
         'the release mouse button callback in zoom to rect mode'
-        super(NXNavigationToolbar, self).release_zoom(event)
-        try:
-            xdim = self.plotview.xtab.axis.dim
-            ydim = self.plotview.ytab.axis.dim
-        except AttributeError:
-            return
+        if event.button == 1:
+            super(NXNavigationToolbar, self).release_zoom(event)
+            self._update_release()
+            if self.plotview.ndim > 1 and self.plotview.label != "Projection":
+                self.plotview.tab_widget.setCurrentWidget(self.plotview.ptab)
+        elif event.button == 3:
+            if self.plotview.ndim == 1:
+                self.home()
+            elif ((abs(event.x - self.plotview.x) < 5) and
+                  (abs(event.y - self.plotview.y) < 5)):
+                self.home(autoscale=False)
+            else:
+                self.plotview.ptab.open_panel()
+                xmin, xmax = sorted([event.xdata, self.plotview.xdata])
+                ymin, ymax = sorted([event.ydata, self.plotview.ydata])
+                xp, yp = self.plotview.xaxis.dim, self.plotview.yaxis.dim
+                self.plotview.projection_panel.maxbox[xp].setValue(str(xmax))
+                self.plotview.projection_panel.minbox[xp].setValue(str(xmin))
+                self.plotview.projection_panel.maxbox[yp].setValue(str(ymax))
+                self.plotview.projection_panel.minbox[yp].setValue(str(ymin))
+            self.release(event)
+
+    def release_pan(self, event):
+        super(NXNavigationToolbar, self).release_pan(event)
+        self._update_release()
+
+    def _update_release(self):
         xmin, xmax = self.plotview.ax.get_xlim()
         ymin, ymax = self.plotview.ax.get_ylim()
         xmin, ymin = self.plotview.inverse_transform(xmin, ymin)
         xmax, ymax = self.plotview.inverse_transform(xmax, ymax)
         self.plotview.xtab.set_limits(xmin, xmax)
         self.plotview.ytab.set_limits(ymin, ymax)
-        if event.button == 1:
-            self.plotview.zoom = {'x': (xdim, xmin, xmax),
-                                  'y': (ydim, ymin, ymax)}
-            if self.plotview.projection_panel:
-                self.plotview.projection_panel.update_limits()
-            elif self.plotview.label != "Projection":
-                self.plotview.tab_widget.setCurrentWidget(self.plotview.ptab)
-
-    def release_pan(self, event):
-        super(NXNavigationToolbar, self).release_pan(event)
-        xmin, xmax = self.plotview.ax.get_xlim()
-        ymin, ymax = self.plotview.ax.get_ylim()
-        self.plotview.xtab.set_limits(xmin, xmax)
-        self.plotview.ytab.set_limits(ymin, ymax)
-        if self.plotview.projection_panel:
-            self.plotview.projection_panel.update_limits()
+        try:
+            xdim = self.plotview.xtab.axis.dim
+            ydim = self.plotview.ytab.axis.dim
+        except AttributeError:
+            return
+        self.plotview.zoom = {'x': (xdim, xmin, xmax),
+                              'y': (ydim, ymin, ymax)}
 
     def _update_view(self):
         super(NXNavigationToolbar, self)._update_view()
