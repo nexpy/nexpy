@@ -91,6 +91,15 @@ def report_exception(*args):
     return message_box.exec_()
 
 
+def iterable(obj):
+    """Return true if the argument is iterable"""
+    try:
+        iter(obj)
+    except TypeError:
+        return False
+    return True
+
+
 def wrap(text, length):
     """Wrap text lines based on a given length"""
     words = text.split()
