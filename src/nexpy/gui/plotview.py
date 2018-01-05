@@ -340,13 +340,14 @@ class NXPlotView(QtWidgets.QDialog):
         self._grid = False
         self._gridcolor = mpl.rcParams['grid.color']
         self._gridstyle = mpl.rcParams['grid.linestyle']
+        self._minorgrid = []
         self._linthresh = None
         self._linscale = None
         self._stddev = 2.0
 
         # Remove some key default Matplotlib key mappings
         for key in [key for key in mpl.rcParams if key.startswith('keymap')]:
-            for shortcut in 'bfhkloprsvxyzAEGHOPSZ':
+            for shortcut in 'bfghkloprsvxyzAEGHOPSZ':
                 if shortcut in mpl.rcParams[key]:
                     mpl.rcParams[key].remove(shortcut)
 
@@ -418,6 +419,8 @@ class NXPlotView(QtWidgets.QDialog):
             Play the current z-axis values forward or backward, respectively.
         'r'
             Replot the image
+        'g'
+            Toggle display of the minor grid.
         'A'
             Store the plotted data. This is equivalent to selecting the 
             `Add Data` option button on the toolbar.
@@ -460,6 +463,8 @@ class NXPlotView(QtWidgets.QDialog):
         elif event.key == 'r':
             if self.ndim > 1:
                 self.replot_data()
+        elif event.key == 'g':
+            self.grid(minor=True)
         elif event.key == 'h':
             self.otab.home(autoscale=False)
         elif event.key == 'l':
@@ -1555,7 +1560,7 @@ class NXPlotView(QtWidgets.QDialog):
         """Redraw the current plot."""
         self.canvas.draw_idle()
 
-    def grid(self, display=None, **opts):
+    def grid(self, display=None, minor=False, **opts):
         """Set grid display.
         
         Parameters
@@ -1574,17 +1579,30 @@ class NXPlotView(QtWidgets.QDialog):
         else:
             self._grid = not (self.ax.xaxis._gridOnMajor or
                               self.ax.yaxis._gridOnMajor)
-        if 'linestyle' in opts:
-            self._gridstyle = opts['linestyle']
+        if self._grid:
+            self.ax.xaxis._gridOnMajor = self.ax.yaxis._gridOnMajor = True
+            if 'linestyle' in opts:
+                self._gridstyle = opts['linestyle']
+            else:
+                opts['linestyle'] = self._gridstyle
+            if 'color' in opts:
+                self._gridcolor = opts['color']
+            else:
+                opts['color'] = self._gridcolor
+            self.ax.grid(self._grid, **opts)
+            if minor:
+                self.ax.xaxis._gridOnMinor = self.ax.yaxis._gridOnMinor = True
+                self.ax.minorticks_on()
+                lw = max(self.ax.xaxis.get_gridlines()[0].get_linewidth()/2, 
+                         0.1)
+                self.ax.grid(True, which='minor', axis='both', linewidth=lw, 
+                             **opts)
+            else:
+                self.ax.xaxis._gridOnMinor = self.ax.yaxis._gridOnMinor = False
+                self.ax.minorticks_off()
         else:
-            opts['linestyle'] = self._gridstyle
-        if 'color' in opts:
-            self._gridcolor = opts['color']
-        else:
-            opts['color'] = self._gridcolor
-        if not self._grid:
-            opts = {}
-        self.ax.grid(self._grid, **opts)
+            self.ax.xaxis._gridOnMajor = self.ax.yaxis._gridOnMajor = False
+            plotview.ax.grid(False, which='both', axis='both')
         self.draw()
         self.update_customize_panel()
 
