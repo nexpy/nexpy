@@ -1568,6 +1568,8 @@ class NXPlotView(QtWidgets.QDialog):
         display : bool or None
             If True, the grid is displayed. If None, grid display is 
             toggled on or off.
+        minor : bool or None
+            If True, both major and minor gridlines are displayed.
         opts : dict
             Valid options for displaying grids. If not set, the default
             Matplotlib styles are used.
@@ -1589,7 +1591,7 @@ class NXPlotView(QtWidgets.QDialog):
                 self._gridcolor = opts['color']
             else:
                 opts['color'] = self._gridcolor
-            self.ax.grid(self._grid, **opts)
+            self.ax.grid(self._grid, which='major', **opts)
             if minor:
                 self.ax.xaxis._gridOnMinor = self.ax.yaxis._gridOnMinor = True
                 self.ax.minorticks_on()
