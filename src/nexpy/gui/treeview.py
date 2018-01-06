@@ -329,6 +329,8 @@ class NXTreeView(QtWidgets.QTreeView):
                                              triggered=self.backup_file)
         self.restore_action=QtWidgets.QAction("Restore...", self, 
                                               triggered=self.restore_file)
+        self.collapse_action=QtWidgets.QAction("Collapse Tree", self,
+                                               triggered=self.collapse)
 
     def popMenu(self, node):
         menu = QtWidgets.QMenu(self)
@@ -403,6 +405,8 @@ class NXTreeView(QtWidgets.QTreeView):
             if node.nxbackup:
                 menu.addAction(self.restore_action)
             menu.addSeparator
+        menu.addSeparator()
+        menu.addAction(self.collapse_action)
         return menu
 
     def save_file(self):
@@ -521,6 +525,13 @@ class NXTreeView(QtWidgets.QTreeView):
             self.status_message(node)
         else:
             self.status_message('')
+
+    def collapse(self, index=None):
+        if index:
+            super(NXTreeView, self).collapse(index)
+        else:
+            self.collapseAll()
+            self.setCurrentIndex(self.model().index(0,0))
 
     def on_context_menu(self, point):
         self.popMenu(self.get_node()).exec_(self.mapToGlobal(point))

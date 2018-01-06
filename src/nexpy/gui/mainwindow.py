@@ -310,6 +310,14 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.file_menu.addSeparator()
 
+        self.collapse_action=QtWidgets.QAction("Collapse Tree",
+            self,
+            triggered=self.collapse_tree
+            )
+        self.add_menu_action(self.file_menu, self.collapse_action)
+
+        self.file_menu.addSeparator()
+
         self.init_import_menu()
 
         self.file_menu.addSeparator()
@@ -1148,6 +1156,9 @@ class MainWindow(QtWidgets.QMainWindow):
                     logging.info("Workspace '%s' removed" % name)
         except NeXusError as error:
             report_error("Removing File", error)
+
+    def collapse_tree(self):
+        self.treeview.collapse()
 
     def show_import_dialog(self):
         try:
