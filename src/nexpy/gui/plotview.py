@@ -448,21 +448,20 @@ class NXPlotView(QtWidgets.QDialog):
         The key that was pressed is stored in the Matplotlib KeyEvent 'key' 
         attribute.
         """
-        if event.key == 'f':
+        if event.key == 'f' and self.ndim > 2:
             self.ztab.playforward()
             self.tab_widget.setCurrentIndex(self.tab_widget.indexOf(self.ztab))
             self.ztab.axiscombo.setFocus()
-        elif event.key == 'b':
+        elif event.key == 'b' and self.ndim > 2:
             self.ztab.playback()
             self.tab_widget.setCurrentIndex(self.tab_widget.indexOf(self.ztab))
             self.ztab.axiscombo.setFocus()
-        elif event.key == ' ':
+        elif event.key == ' ' and self.ndim > 2:
             self.ztab.pause()
             self.tab_widget.setCurrentIndex(self.tab_widget.indexOf(self.ztab))
             self.ztab.axiscombo.setFocus()
-        elif event.key == 'r':
-            if self.ndim > 1:
-                self.replot_data()
+        elif event.key == 'r' and self.ndim > 2:
+            self.replot_data()
         elif event.key == 'g':
             self.grid(minor=True)
         elif event.key == 'h':
@@ -484,17 +483,17 @@ class NXPlotView(QtWidgets.QDialog):
         elif event.key == 'y':
             self.tab_widget.setCurrentIndex(self.tab_widget.indexOf(self.ytab))
             self.ytab.axiscombo.setFocus()
-        elif event.key == 'z':
+        elif event.key == 'z' and self.ndim > 2:
             self.tab_widget.setCurrentIndex(self.tab_widget.indexOf(self.ztab))
             self.ztab.axiscombo.setFocus()
-        elif event.key == 'p':
+        elif event.key == 'p' and self.ndim > 1:
             self.tab_widget.setCurrentIndex(self.tab_widget.indexOf(self.ptab))
             self.ptab.xbox.setFocus()
         elif event.key == 'o':
             self.tab_widget.setCurrentIndex(self.tab_widget.indexOf(self.otab))
         elif event.key == 'A':
             self.otab.add_data()
-        elif event.key == 'E':
+        elif event.key == 'E' and self.ndim > 1:
             self.otab.toggle_aspect()
         elif event.key == 'H':
             self.otab.home()
@@ -2865,35 +2864,43 @@ class NXPlotTab(QtWidgets.QWidget):
             self.pause()
 
     def playback(self):
-        self.locked = True
-        if self.playsteps == -1:
-            self.interval = self.timer.interval() / 2
-        else:
-            self.playsteps = -1
-            self.interval = 1000
-        self.timer.setInterval(self.interval)
-        self.timer.start(self.interval)
-        self.playback_action.setChecked(True)
-        self.playforward_action.setChecked(False)
+        try:
+            self.locked = True
+            if self.playsteps == -1:
+                self.interval = self.timer.interval() / 2
+            else:
+                self.playsteps = -1
+                self.interval = 1000
+            self.timer.setInterval(self.interval)
+            self.timer.start(self.interval)
+            self.playback_action.setChecked(True)
+            self.playforward_action.setChecked(False)
+        except Exception:
+            self.pause()
+            six.reraise(*sys.exc_info())            
 
     def pause(self):
         self.playsteps = 0
-        self.timer.stop()
         self.playback_action.setChecked(False)
         self.playforward_action.setChecked(False)
+        self.timer.stop()
 
     def playforward(self):
-        self.locked = True
-        if self.playsteps == 1:
-            self.interval = self.timer.interval() / 2
-        else:
-            self.playsteps = 1
-            self.interval = 1000
-        self.timer.setInterval(self.interval)
-        self.timer.start(self.interval)
-        self.playforward_action.setChecked(True)
-        self.playback_action.setChecked(False)
-
+        try:
+            self.locked = True
+            if self.playsteps == 1:
+                self.interval = self.timer.interval() / 2
+            else:
+                self.playsteps = 1
+                self.interval = 1000
+            self.timer.setInterval(self.interval)
+            self.timer.start(self.interval)
+            self.playforward_action.setChecked(True)
+            self.playback_action.setChecked(False)
+        except Exception:
+            self.pause()
+            six.reraise(*sys.exc_info())            
+            
 
 class NXTextBox(QtWidgets.QLineEdit):
     """Subclass of QLineEdit with floating values."""
