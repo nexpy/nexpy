@@ -2859,11 +2859,19 @@ class NXPlotTab(QtWidgets.QWidget):
         return action
 
     def slideshow(self):
-        self.maxbox.stepBy(self.playsteps)
-        if self.maxbox.pause:
+        if self.plotview.ndim < 3:
+            return
+        try:
+            self.maxbox.stepBy(self.playsteps)
+            if self.maxbox.pause:
+                self.pause()
+        except Exception:
             self.pause()
+            six.reraise(*sys.exc_info())                        
 
     def playback(self):
+        if self.plotview.ndim < 3:
+            return
         try:
             self.locked = True
             if self.playsteps == -1:
@@ -2886,6 +2894,8 @@ class NXPlotTab(QtWidgets.QWidget):
         self.timer.stop()
 
     def playforward(self):
+        if self.plotview.ndim < 3:
+            return
         try:
             self.locked = True
             if self.playsteps == 1:
