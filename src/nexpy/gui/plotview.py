@@ -1155,9 +1155,11 @@ class NXPlotView(QtWidgets.QDialog):
     def grid_helper(self):
         """Define the locator used in skew transforms."""
         locator = MaxNLocator(nbins=9, steps=[1, 2, 5, 10])
-        return GridHelperCurveLinear((self.transform, self.inverse_transform),
-                                     grid_locator1=locator,
-                                     grid_locator2=locator)
+        self._grid_helper = GridHelperCurveLinear((self.transform, 
+                                                   self.inverse_transform),
+                                                   grid_locator1=locator,
+                                                   grid_locator2=locator)
+        return self._grid_helper
 
     def transform(self, x, y):
         """Return the x and y values transformed by the skew angle."""
@@ -1612,7 +1614,7 @@ class NXPlotView(QtWidgets.QDialog):
         
         Parameters
         ----------
-        x : float or ndarray
+        x : float or list of floats or ndarray
             x-values of vertical line(s)
         y : float
             y-value at which the x-value is determined. This is only 
@@ -1630,12 +1632,12 @@ class NXPlotView(QtWidgets.QDialog):
             Collection of vertical lines.
         """
         if ymin is None:
-            ymin = plotview.ax.get_ylim()[0]
+            ymin = self.ax.get_ylim()[0]
         if ymax is None:
-            ymax = plotview.ax.get_ylim()[1]
+            ymax = self.ax.get_ylim()[1]
         if self.skew is not None and y is not None:
             x, _ = self.transform(x, y)
-        lines = plotview.ax.vlines(x, ymin, ymax, **opts)
+        lines = self.ax.vlines(x, ymin, ymax, **opts)
         self.canvas.draw()
         self.shapes.append(lines)
         return lines
@@ -1647,7 +1649,7 @@ class NXPlotView(QtWidgets.QDialog):
         
         Parameters
         ----------
-        y : float or ndarray
+        y : float or list of floats or ndarray
             y-values of horizontal line(s)
         x : float
             x-value at which the y-value is determined. This is only 
@@ -1667,12 +1669,12 @@ class NXPlotView(QtWidgets.QDialog):
             Collection of horizontal lines.
         """
         if xmin is None:
-            xmin = plotview.ax.get_xlim()[0]
+            xmin = self.ax.get_xlim()[0]
         if xmax is None:
-            xmax = plotview.ax.get_xlim()[1]
+            xmax = self.ax.get_xlim()[1]
         if self.skew is not None and x is not None:
             _, y = self.transform(x, y)
-        lines = plotview.ax.hlines(y, xmin, xmax, **opts)
+        lines = self.ax.hlines(y, xmin, xmax, **opts)
         self.canvas.draw()
         self.shapes.append(lines)
         return lines
@@ -1703,16 +1705,20 @@ class NXPlotView(QtWidgets.QDialog):
         crosshairs.append(self.hline(float(y), **opts))
         return crosshairs
 
-    def xline(self, x, **opts):
-        """Plot line at constant x-value.
+    def xlines(self, x, ymin=None, ymax=None, **opts):
+        """Plot line at constant x-values.
         
         This is similar to vlines, but the line will be skewed if the 
         plot is skewed.
         
         Parameters
         ----------
-        x : float
+        x : float or list of floats or ndarray
             x-value of vertical line
+        ymin : float
+            Minimum y-value of vertical line. Defaults to plot minimum.
+        ymax : float
+            Maximum y-value of vertical line. Defaults to plot maximum.
         opts : dict
             Valid options for displaying lines.
 
@@ -1721,20 +1727,28 @@ class NXPlotView(QtWidgets.QDialog):
         line : Line2D
             Matplotlib line object.
         """
-        ymin, ymax = self.yaxis.get_limits()
+        y0, y1 = self.yaxis.get_limits()
+        if ymin is None:
+            ymin = y0
+        if ymax is None:
+            ymax = y1
         if self.skew is None:
-            return self.vline(x, ymin, ymax, **opts)
+            return self.vlines(x, ymin, ymax, **opts)
         else:
-            x0, _ = self.transform(float(x), ymin)
-            x1, _ = self.transform(float(x), ymax)
-            y0, y1 = plotview.ax.get_ylim()
-            line = Line2D([x0,x1], [y0,y1], **opts)
-            plotview.ax.add_line(line)
+            x0, y0 = self.transform(x, ymin)
+            x1, y1 = self.transform(x, ymax)
+            lines = []
+            for i in range(len(x0)):
+                line = Line2D([x0[i],x1[i]], [y0,y1], **opts)
+                self.ax.add_line(line)
+                lines.append(line)
             self.canvas.draw()
-            self.shapes.append(line)
-            return line
+            self.shapes.append(lines)
+            return lines
 
-    def yline(self, y, **opts):
+    xline = xlines
+
+    def ylines(self, y, xmin=None, xmax=None, **opts):
         """Plot line at constant y-value.
         
         This is similar to hlines, but the line will be skewed if the 
@@ -1742,8 +1756,14 @@ class NXPlotView(QtWidgets.QDialog):
         
         Parameters
         ----------
-        y : float
+        y : float or list of floats or ndarray
             y-value of vertical line
+        xmin : float
+            Minimum x-value of horizontal line. Defaults to plot 
+            minimum.
+        xmax : float
+            Maximum x-value of horizontal line. Defaults to plot 
+            maximum.
         opts : dict
             Valid options for displaying lines.
 
@@ -1752,18 +1772,26 @@ class NXPlotView(QtWidgets.QDialog):
         line : Line2D
             Matplotlib line object.
         """
-        xmin, xmax = self.xaxis.get_limits()
+        x0, x1 = self.xaxis.get_limits()
+        if xmin is None:
+            xmin = x0
+        if xmax is None:
+            xmax = x1
         if self.skew is None:
             return self.hline(y, xmin, xmax, **opts)
         else:
-            _, y0 = self.transform(xmin, float(y))
-            _, y1 = self.transform(xmax, float(y))
-            x0, x1 = plotview.ax.get_xlim()
-            line = Line2D([x0, x1], [y0, y1], **opts)
-            plotview.ax.add_line(line)
+            x0, y0 = self.transform(xmin, y)
+            x1, y1 = self.transform(xmax, y)
+            lines = []
+            for i in range(len(y0)):
+                line = Line2D([x0[i], x1[i]], [y0[i], y1[i]], **opts)
+                self.ax.add_line(line)
+                lines.append(line)
             self.canvas.draw()
-            self.shapes.append(line)
-            return line
+            self.shapes.append(lines)
+            return lines
+
+    yline = ylines
 
     def rectangle(self, x, y, dx, dy, **opts):
         """Plot rectangle.
@@ -1787,12 +1815,12 @@ class NXPlotView(QtWidgets.QDialog):
             Matplotlib polygon object.
         """
         if self.skew is None:
-            rectangle = plotview.ax.add_patch(Rectangle((float(x),float(y)),
-                                              float(dx), float(dy), **opts))
+            rectangle = self.ax.add_patch(Rectangle((float(x),float(y)),
+                                          float(dx), float(dy), **opts))
         else:
             xc, yc = [x, x, x+dx, x+dx], [y, y+dy, y+dy, y]
             xy = [self.transform(_x, _y) for _x,_y in zip(xc,yc)]
-            rectangle = plotview.ax.add_patch(Polygon(xy, True, **opts))
+            rectangle = self.ax.add_patch(Polygon(xy, True, **opts))
         if 'linewidth' not in opts:
             rectangle.set_linewidth(1.0)
         if 'facecolor' not in opts:
@@ -1824,7 +1852,7 @@ class NXPlotView(QtWidgets.QDialog):
         """
         if self.skew is not None:
             xy = [self.transform(_x, _y) for _x,_y in xy]
-        polygon = plotview.ax.add_patch(Polygon(xy, closed, **opts))
+        polygon = self.ax.add_patch(Polygon(xy, closed, **opts))
         if 'linewidth' not in opts:
             polygon.set_linewidth(1.0)
         if 'facecolor' not in opts:
@@ -1856,9 +1884,8 @@ class NXPlotView(QtWidgets.QDialog):
         """
         if self.skew is not None:
             x, y = self.transform(x, y)
-        ellipse = plotview.ax.add_patch(Ellipse((float(x),float(y)),
-                                                float(dx), float(dy), 
-                                                **opts))
+        ellipse = self.ax.add_patch(Ellipse((float(x),float(y)), 
+                                             float(dx), float(dy), **opts))
         if 'linewidth' not in opts:
             ellipse.set_linewidth(1.0)
         if 'facecolor' not in opts:
@@ -1891,7 +1918,7 @@ class NXPlotView(QtWidgets.QDialog):
         """
         if self.skew is not None:
             x, y = self.transform(x, y)
-        circle = plotview.ax.add_patch(Circle((float(x),float(y)), radius,
+        circle = self.ax.add_patch(Circle((float(x),float(y)), radius,
                                               **opts))
         if 'linewidth' not in opts:
             circle.set_linewidth(1.0)
@@ -2091,18 +2118,18 @@ class NXPlotView(QtWidgets.QDialog):
     def format_coord(self, x, y):
         """Return the x, y, and signal values for the selected pixel."""
         try:
-            if plotview.ndim == 1:
+            if self.ndim == 1:
                 return 'x={:.4g} y={:.4g}'.format(x, y)
             else:
-                x, y = plotview.inverse_transform(x, y)
-                if plotview.xaxis.reversed:
-                    col = np.searchsorted(x-plotview.xaxis.boundaries, 0.0) - 1
+                x, y = self.inverse_transform(x, y)
+                if self.xaxis.reversed:
+                    col = np.searchsorted(x-self.xaxis.boundaries, 0.0) - 1
                 else:
-                    col = np.searchsorted(plotview.xaxis.boundaries-x, 0.0) - 1
-                if plotview.yaxis.reversed:
-                    row = np.searchsorted(y-plotview.yaxis.boundaries, 0.0) - 1
+                    col = np.searchsorted(self.xaxis.boundaries-x, 0.0) - 1
+                if self.yaxis.reversed:
+                    row = np.searchsorted(y-self.yaxis.boundaries, 0.0) - 1
                 else:
-                    row = np.searchsorted(plotview.yaxis.boundaries-y, 0.0) - 1
+                    row = np.searchsorted(self.yaxis.boundaries-y, 0.0) - 1
                 z = self.v[row,col]
                 return 'x={:.4g} y={:.4g}\nv={:.4g}'.format(x, y, z)
         except Exception:
