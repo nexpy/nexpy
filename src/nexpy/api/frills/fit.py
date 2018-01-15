@@ -142,7 +142,7 @@ class Fit(object):
         return str(fit_report(self.parameters))
 
     def save(self, x=None):
-        """Store the fit results in a NXsubentry for saving to a NeXus file.
+        """Save the fit results in a NXprocess group.
 
         Parameters
         ----------
@@ -150,13 +150,13 @@ class Fit(object):
             x-values at which to calculate the model. Defaults to `self.x`
         Returns
         -------
-        entry : NXsubentry
-            NXsubentry group that contains the data, models and parameters.
+        group : NXprocess
+            NXprocess group that contains the data, models and parameters.
         """
-        entry = NXentry()    
-        entry['data'] = self.data
+        group = NXprocess(program='lmfit', version=__version__)    
+        group['data'] = self.data
         for f in self.functions:
-            entry[f.name] = NXdata(NXfield(self.get_model(x, f), name='model'),
+            group[f.name] = NXdata(NXfield(self.get_model(x, f), name='model'),
                                    NXfield(x, name=self.data.nxaxes[0].nxname), 
                                    title='Fit Results')
             parameters = NXparameters()
@@ -164,9 +164,9 @@ class Fit(object):
                 parameters[p.name] = NXfield(p.value, error=p.stderr, 
                                              initial_value=p.init_value,
                                              min=str(p.min), max=str(p.max))
-            entry[f.name]['parameters'] = parameters
-        entry['title'] = 'Fit Results'
-        entry['fit'] = NXdata(NXfield(self.get_model(x), name='model'),
+            group[f.name]['parameters'] = parameters
+        group['title'] = 'Fit Results'
+        group['fit'] = NXdata(NXfield(self.get_model(x), name='model'),
                               NXfield(x, name=self.data.nxaxes[0].nxname), 
                               title='Fit Results')
         if self.result is not None:
@@ -177,9 +177,19 @@ class Fit(object):
             fit.redchi = self.result.redchi
             fit.message = self.result.message
             fit.lmdif_message = self.result.lmdif_message
-            entry['statistics'] = fit
+            group['statistics'] = fit
+            group.note = NXnote(self.result.message,
+                ('%s\n' % self.result.lmdif_message +
+                 'scipy.optimize.leastsq error value = %s\n' % self.result.ier +
+                 'Chi^2 = %s\n' % self.result.chisqr +
+                 'Reduced Chi^2 = %s\n' % self.result.redchi +
+                 'No. of Function Evaluations = %s\n' % self.result.nfev +
+                 'No. of Variables = %s\n' % self.result.nvarys +
+                 'No. of Data Points = %s\n' % self.result.ndata +
+                 'No. of Degrees of Freedom = %s\n' % self.result.nfree +
+                 '%s' % self.fit_report()))
 
-        return entry
+        return group
 
 
 class Function(object):

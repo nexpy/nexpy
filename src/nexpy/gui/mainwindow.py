@@ -37,8 +37,7 @@ from qtconsole.rich_jupyter_widget import RichJupyterWidget
 from qtconsole.inprocess import QtInProcessKernelManager
 from IPython.core.magic import magic_escapes
 
-from nexusformat.nexus import (nxload, NeXusError, NXFile, NXobject,
-                               NXfield, NXgroup, NXlink, NXroot, NXentry)
+from nexusformat.nexus import *
 
 from .. import __version__
 from .treeview import NXTreeView
@@ -1584,16 +1583,17 @@ class MainWindow(QtWidgets.QMainWindow):
             node = self.treeview.get_node()
             if node is None:
                 return
-            elif isinstance(node, NXentry) and node.nxtitle == 'Fit Results':
-                entry = node
-                if not entry.data.is_plottable():
+            elif ((isinstance(node, NXentry) or isinstance(node, NXprocess)) and 
+                  node.nxtitle == 'Fit Results'):
+                group = node
+                if not group.data.is_plottable():
                     raise NeXusError("NeXus item not plottable")
             elif isinstance(node, NXdata):
-                entry = NXentry(data=node)
+                group = NXentry(data=node)
             else:
                 raise NeXusError("Select an NXdata group")
-            if len(entry.data.nxsignal.shape) == 1:
-                self.fitdialog = FitDialog(entry)
+            if len(group.data.nxsignal.shape) == 1:
+                self.fitdialog = FitDialog(group)
                 self.fitdialog.show()
                 logging.info("Fitting invoked on'%s'" % node.nxpath)
             else:
