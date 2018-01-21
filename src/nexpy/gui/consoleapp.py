@@ -185,6 +185,7 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
             NXroot().save(self.scratch_file)
 
     def init_settings(self):
+        """Initialize access to the NeXpy settings file."""
         self.settings = NXConfigParser(os.path.join(self.nexpy_dir, 
                                                     'settings.ini'))
         def backup_age(backup):
@@ -203,28 +204,24 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
         self.settings.save()
 
     def init_log(self):
-        value = os.getenv("NEXPY_LOG")
-        if value == None:
-            log_file = os.path.join(self.nexpy_dir, 'nexpy.log')
-            hdlr = logging.handlers.RotatingFileHandler(log_file, 
-                                                        maxBytes=50000,
-                                                        backupCount=5)
-            fmt = '%(asctime)s - %(levelname)s - %(message)s'
-            fmtr = logging.Formatter(fmt, None)
-            logging.root.setLevel(logging.INFO)
-        else:
-            hdlr = logging.StreamHandler(stream=sys.stdout)
-            fmt = '%(levelname)s %(module)s.%(funcName)s() %(message)s'
-            fmtr = logging.Formatter(fmt)
-            try:
-                logging.root.setLevel(logging.__dict__[value])
-            except KeyError:
-                print('Invalid log level:', value)
-                sys.exit(1)
-        hdlr.setFormatter(fmtr)
-        logging.root.addHandler(hdlr)
+        """Initialize the NeXpy logger."""
+        log_file = os.path.join(self.nexpy_dir, 'nexpy.log')
+        handler = logging.handlers.RotatingFileHandler(log_file, 
+                                                       maxBytes=50000,
+                                                       backupCount=5)
+        fmt = '%(asctime)s - %(levelname)s - %(message)s'
+        formatter = logging.Formatter(fmt, None)
+        handler.setFormatter(formatter)
+        logging.root.addHandler(handler)
+        levels = {'CRITICAL':logging.CRITICAL, 'ERROR':logging.ERROR,
+                  'WARNING':logging.WARNING, 'INFO':logging.INFO, 
+                  'DEBUG':logging.DEBUG}
+        level = os.getenv("NEXPY_LOG")
+        if level is None or level.upper() not in levels:
+            level = 'INFO'            
+        logging.root.setLevel(levels[level.upper()])
         logging.info('NeXpy launched')
-        logging.debug('Log level is: ' + str(value))
+        logging.info('Log level is ' + level.upper())        
 
     def init_tree(self):
         """Initialize the NeXus tree used in the tree view."""
@@ -304,10 +301,6 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
 
     def init_colors(self):
         """Configure the coloring of the widget"""
-        # Note: This will be dramatically simplified when colors
-        # are removed from the backend.
-
-        # Configure the style.
         self.window.console.set_default_style()
 
     def init_signal(self):
