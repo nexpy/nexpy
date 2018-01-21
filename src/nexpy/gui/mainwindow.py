@@ -23,6 +23,7 @@ from __future__ import (absolute_import, division, print_function,
 import six
 
 import glob
+import io
 import json
 import logging
 import os
@@ -66,14 +67,17 @@ class MainWindow(QtWidgets.QMainWindow):
     _magic_menu_dict = {}
 
     def __init__(self, app, tree, settings, config):
-        """ Create a MainWindow for the application
+        """ Create a MainWindow for the application.
 
         Parameters
         ----------
-
-        app : reference to QApplication parent
-        tree : :class:`NXTree` root of the :class:`NXTreeView` items
-        config : Jupyter configuration
+        app : QApplication instance
+            Parent application.
+        tree : NXTree instance
+            :class:`NXTree` root of the :class:`NXTreeView` items.
+        settings : NXConfigParser instance
+            ConfigParser instance for accessing the NeXpy settings file.
+        config : JupyterApp.config_file
         """
 
         super(MainWindow, self).__init__()
@@ -93,6 +97,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.script_dir = self.app.script_dir
         self.function_dir = self.app.function_dir
         self.scratch_file = self.app.scratch_file
+
+        #Need to temporarily initialize sys.stdout to prevent IPython exception.
+        self.tmp_stdout = sys.stdout = sys.stderr = io.StringIO()
 
         mainwindow = QtWidgets.QWidget()
 
