@@ -193,14 +193,13 @@ class MainWindow(QtWidgets.QMainWindow):
         return plotview
 
     def close(self):
-        """ Called when you quit NeXpy or close the main window.
-        """
+        """ Called when you quit NeXpy or close the main window."""
         title = self.window().windowTitle()
         cancel = QtWidgets.QMessageBox.Cancel
         msg = "Are you sure you want to quit NeXpy?"
         close = QtWidgets.QPushButton("&Quit", self)
         close.setShortcut('Q')
-        close.clicked.connect(QtCore.QCoreApplication.instance().quit)
+        close.clicked.connect(self.quit)
         box = QtWidgets.QMessageBox(QtWidgets.QMessageBox.Question, title, msg)
         box.addButton(cancel)
         box.addButton(close, QtWidgets.QMessageBox.YesRole)
@@ -212,6 +211,10 @@ class MainWindow(QtWidgets.QMainWindow):
 
         return reply
 
+    def quit(self):
+        logging.info('NeXpy closed\n'+80*'-')
+        QtCore.QCoreApplication.instance().quit()
+        
     # Populate the menu bar with common actions and shortcuts
     def add_menu_action(self, menu, action, defer_shortcut=False):
         """Add action to menu as well as self
@@ -2102,5 +2105,4 @@ class MainWindow(QtWidgets.QMainWindow):
             return
 
         if reply == okay:
-            logging.info('NeXpy closed')
             event.accept()
