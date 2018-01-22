@@ -676,6 +676,11 @@ class PlotDialog(BaseDialog):
         else:
             self.group = node
             signal_name = None
+        
+        if self.group.nxaxes is not None:
+            self.default_axes = [axis.nxname for axis in self.group.nxaxes]
+        else:
+            self.default_axes = None
 
         self.fmt = fmt
 
@@ -732,14 +737,19 @@ class PlotDialog(BaseDialog):
 
     def axis_box(self, axis):
         box = NXComboBox()
+        axes = []
         for node in self.group.values():
             if isinstance(node, NXfield) and node is not self.signal:
                 if self.check_axis(node, axis):
+                    axes.append(node.nxname)
                     box.addItem(node.nxname)
         if box.count() > 0:
             box.insertSeparator(0)
         box.insertItem(0,'NXfield index')
-        box.setCurrentIndex(0)
+        if self.default_axes is not None and self.default_axes[axis] in axes:
+            box.setCurrentIndex(box.findText(self.default_axes[axis]))
+        else:
+            box.setCurrentIndex(0)
         return box
 
     def remove_axis(self, axis):
