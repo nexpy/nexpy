@@ -34,7 +34,7 @@ from .mainwindow import MainWindow
 from .treeview import NXtree
 from .utils import NXConfigParser, NXLogger, timestamp_age, report_exception
 
-from nexusformat.nexus import NXroot, nxclasses, nxload
+from nexusformat.nexus import NXroot, nxclasses, nxload, nxversion
 
 from traitlets.config.application import boolean_flag
 from traitlets.config.application import catch_config_error
@@ -49,6 +49,10 @@ from jupyter_core.application import JupyterApp, base_flags, base_aliases
 from jupyter_client.consoleapp import (
         JupyterConsoleApp, app_aliases, app_flags,
     )
+
+from IPython import __version__ as ipython_version
+from matplotlib import __version__ as mpl_version    
+from .. import __version__ as nexpy_version
 
 #-----------------------------------------------------------------------------
 # Globals
@@ -218,10 +222,17 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
                   'DEBUG':logging.DEBUG}
         level = os.getenv("NEXPY_LOG")
         if level is None or level.upper() not in levels:
-            level = 'INFO'            
-        logging.root.setLevel(levels[level.upper()])
+            level = 'INFO'
+        else:
+            level = level.upper()       
+        logging.root.setLevel(levels[level])
         logging.info('NeXpy launched')
-        logging.info('Log level is ' + level.upper())        
+        logging.info('Log level is ' + level)
+        logging.info('Python ' + sys.version.split()[0] + ': ' + sys.executable)
+        logging.info('IPython v' + ipython_version)
+        logging.info('Matplotlib v' + mpl_version)  
+        logging.info('NeXpy v' + nexpy_version)
+        logging.info('nexusformat v' + nxversion)
         sys.stdout = sys.stderr = NXLogger()
 
     def init_tree(self):
