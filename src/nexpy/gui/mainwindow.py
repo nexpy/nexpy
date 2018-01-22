@@ -23,7 +23,6 @@ from __future__ import (absolute_import, division, print_function,
 import six
 
 import glob
-import io
 import json
 import logging
 import os
@@ -97,9 +96,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.script_dir = self.app.script_dir
         self.function_dir = self.app.function_dir
         self.scratch_file = self.app.scratch_file
-
-        #Need to temporarily initialize sys.stdout to prevent IPython exception.
-        self.tmp_stdout = sys.stdout = sys.stderr = io.StringIO()
 
         mainwindow = QtWidgets.QWidget()
 

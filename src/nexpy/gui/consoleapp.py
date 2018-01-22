@@ -32,7 +32,7 @@ from .pyqt import QtCore, QtGui, QtWidgets
 
 from .mainwindow import MainWindow
 from .treeview import NXtree
-from .utils import NXConfigParser, timestamp_age, report_exception
+from .utils import NXConfigParser, NXLogger, timestamp_age, report_exception
 
 from nexusformat.nexus import NXroot, nxclasses, nxload
 
@@ -222,6 +222,7 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
         logging.root.setLevel(levels[level.upper()])
         logging.info('NeXpy launched')
         logging.info('Log level is ' + level.upper())        
+        sys.stdout = sys.stderr = NXLogger()
 
     def init_tree(self):
         """Initialize the NeXus tree used in the tree view."""
