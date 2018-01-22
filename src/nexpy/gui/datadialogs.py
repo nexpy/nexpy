@@ -793,6 +793,11 @@ class PlotDialog(BaseDialog):
 
     def accept(self):
         try:
+            if self.signal.nxroot.nxclass == "NXroot":
+                label = self.signal.nxroot.nxname + self.signal.nxpath
+            else:
+                label = self.signal.nxpath
+            self.signal.attrs['label'] = label
             data = NXdata(self.signal, self.get_axes(), 
                           title=self.signal.nxtitle)
             data.plot(fmt=self.fmt)
