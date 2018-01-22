@@ -25,6 +25,7 @@ import numbers
 import numpy as np
 import os
 import pkg_resources
+import posixpath
 import sys
 import warnings
 
@@ -344,6 +345,7 @@ class NXPlotView(QtWidgets.QDialog):
         self._linthresh = None
         self._linscale = None
         self._stddev = 2.0
+        self._primary_signal_group = None
 
         # Remove some key default Matplotlib key mappings
         for key in [key for key in mpl.rcParams if key.startswith('keymap')]:
@@ -715,7 +717,13 @@ class NXPlotView(QtWidgets.QDialog):
             If True, the signal and axes values are updated without
             creating a new NXPlotAxis instance.
         """
-        if self.data.plot_axes is not None:
+        if not over:
+            self._primary_signal_group = self.signal_group
+
+        if (over and self.signal_group == self._primary_signal_group and
+            self.data.nxsignal.valid_axes(self.plotdata.nxaxes)):
+            axes = self.plotdata.nxaxes
+        elif self.data.plot_axes is not None:
             axes = self.data.plot_axes
         else:
             axes = [NXfield(np.arange(self.shape[i]), name='Axis%s'%i)
@@ -827,10 +835,7 @@ class NXPlotView(QtWidgets.QDialog):
         else:
             ax.plot(self.x, self.y, fmt,  **opts)
 
-        path = self.data.nxsignal.nxpath
-        if self.data.nxroot.nxclass == "NXroot":
-            path = self.data.nxroot.nxname + path
-        ax.lines[-1].set_label(path)
+        ax.lines[-1].set_label(self.signal_group + '/'  + self.signal.nxname)
 
         if over:
             self.xaxis.min = min(self.xaxis.lo, self.x.min())
@@ -981,6 +986,17 @@ class NXPlotView(QtWidgets.QDialog):
             ax.set_title(self.title)
 
         self.vaxis.min, self.vaxis.max = self.image.get_clim()
+
+    @property
+    def signal_group(self):
+        """Determine full path of signal."""
+        if self.data.nxroot.nxclass == "NXroot":
+            return posixpath.dirname(self.data.nxroot.nxname + 
+                                     self.data.nxsignal.nxpath)
+        elif 'signal_path' in self.data.nxsignal.attrs:
+            return posixpath.dirname(self.data.nxsignal.attrs['signal_path'])
+        else:
+            return None
 
     @property
     def shape(self):
