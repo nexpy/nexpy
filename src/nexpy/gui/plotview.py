@@ -338,7 +338,6 @@ class NXPlotView(QtWidgets.QDialog):
         self.rgb_image = False
         self._aspect = 'auto'
         self._skew_angle = None
-        self._legend = None
         self._grid = False
         self._gridcolor = mpl.rcParams['grid.color']
         self._gridstyle = mpl.rcParams['grid.linestyle']
@@ -1580,13 +1579,14 @@ class NXPlotView(QtWidgets.QDialog):
 
     def legend(self, *items, **opts):
         """Add a legend to the plot."""
-        self._legend = self.ax.legend(*items, **opts)
-        self._legend.draggable(True)
+        _legend = self.ax.legend(*items, **opts)
+        _legend.draggable(True)
         self.draw()
-        return self._legend
+        return _legend
 
     def remove_legend(self):
-        self._legend.remove()
+        if self.ax.get_legend():
+            self.ax.get_legend().remove()
         self.draw()
 
     def grid(self, display=None, minor=False, **opts):
