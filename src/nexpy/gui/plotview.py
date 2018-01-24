@@ -1579,14 +1579,16 @@ class NXPlotView(QtWidgets.QDialog):
 
     def legend(self, *items, **opts):
         """Add a legend to the plot."""
-        _legend = self.ax.legend(*items, **opts)
-        _legend.draggable(True)
+        self._legend = self.ax.legend(*items, **opts)
+        self._legend.draggable(True)
         self.draw()
-        return _legend
+        return self._legend
 
     def remove_legend(self):
+        """Remove the legend."""
         if self.ax.get_legend():
             self.ax.get_legend().remove()
+        self._legend = None
         self.draw()
 
     def grid(self, display=None, minor=False, **opts):
