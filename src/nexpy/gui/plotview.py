@@ -3941,19 +3941,20 @@ class NXNavigationToolbar(NavigationToolbar):
         super(NXNavigationToolbar, self).release(event)
 
     def release_zoom(self, event):
-        'the release mouse button callback in zoom to rect mode'
+        """The release mouse button callback in zoom to rect mode."""
         if event.button == 1:
             super(NXNavigationToolbar, self).release_zoom(event)
             self._update_release()
             if self.plotview.ndim > 1 and self.plotview.label != "Projection":
                 self.plotview.tab_widget.setCurrentWidget(self.plotview.ptab)
         elif event.button == 3:
-            if self.plotview.ndim == 1:
+            if self.plotview.ndim == 1 or not event.inaxes:
                 self.home()
-            elif ((abs(event.x - self.plotview.x) < 5) and
-                  (abs(event.y - self.plotview.y) < 5)):
+            elif (self.plotview.x and self.plotview.y and
+                  abs(event.x - self.plotview.x) < 5 and
+                  abs(event.y - self.plotview.y) < 5):
                 self.home(autoscale=False)
-            else:
+            elif self.plotview.xdata and self.plotview.ydata:
                 self.plotview.ptab.open_panel()
                 xmin, xmax = sorted([event.xdata, self.plotview.xdata])
                 ymin, ymax = sorted([event.ydata, self.plotview.ydata])
@@ -3962,7 +3963,7 @@ class NXNavigationToolbar(NavigationToolbar):
                 self.plotview.projection_panel.minbox[xp].setValue(str(xmin))
                 self.plotview.projection_panel.maxbox[yp].setValue(str(ymax))
                 self.plotview.projection_panel.minbox[yp].setValue(str(ymin))
-            self.release(event)
+        self.release(event)
 
     def release_pan(self, event):
         super(NXNavigationToolbar, self).release_pan(event)
