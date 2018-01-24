@@ -63,7 +63,7 @@ from scipy.spatial import Voronoi, voronoi_plot_2d
 from nexusformat.nexus import NXfield, NXdata, NXroot, NeXusError, nxload
 
 from .. import __version__
-from .utils import report_error, report_exception, find_nearest
+from .utils import report_error, report_exception, find_nearest, iterable
 
 plotview = None
 plotviews = {}
@@ -341,7 +341,10 @@ class NXPlotView(QtWidgets.QDialog):
         self._grid = False
         self._gridcolor = mpl.rcParams['grid.color']
         self._gridstyle = mpl.rcParams['grid.linestyle']
-        self._minorgrid = []
+        self._gridwidth = mpl.rcParams['grid.linewidth']
+        self._minorgrid = False
+        self._majorlines = []
+        self._minorlines = []
         self._linthresh = None
         self._linscale = None
         self._stddev = 2.0
@@ -701,6 +704,8 @@ class NXPlotView(QtWidgets.QDialog):
         self.logx = logx
         self.logy = logy
 
+        self.grid(self._grid, self._minorgrid)
+
         self.draw()
         self.otab.push_current()
         mpl.interactive(True)
@@ -976,10 +981,6 @@ class NXPlotView(QtWidgets.QDialog):
         ax.set_xlim(xlo, xhi)
         ax.set_ylim(ylo, yhi)
 
-        if self._grid:
-            ax.grid(self._grid, color=self._gridcolor, 
-                    linestyle=self._gridstyle)
-
         if not over:
             ax.set_xlabel(self.xaxis.label)
             ax.set_ylabel(self.yaxis.label)
@@ -1123,7 +1124,7 @@ class NXPlotView(QtWidgets.QDialog):
         else:
             self.image.set_array(self.v.ravel())
             self.replot_image()
-        self.grid(display=self._grid)
+        self.grid(self._grid, self._minorgrid)
 
     def replot_image(self):
         """Replot the image."""
@@ -1170,7 +1171,7 @@ class NXPlotView(QtWidgets.QDialog):
 
     def grid_helper(self):
         """Define the locator used in skew transforms."""
-        locator = MaxNLocator(nbins=9, steps=[1, 2, 5, 10])
+        locator = MaxNLocator(nbins=9, steps=[1, 2, 2.5, 5, 10])
         self._grid_helper = GridHelperCurveLinear((self.transform, 
                                                    self.inverse_transform),
                                                    grid_locator1=locator,
@@ -1612,32 +1613,71 @@ class NXPlotView(QtWidgets.QDialog):
         else:
             self._grid = not (self.ax.xaxis._gridOnMajor or
                               self.ax.yaxis._gridOnMajor)
+        self._minorgrid = minor
         if self._grid:
             self.ax.xaxis._gridOnMajor = self.ax.yaxis._gridOnMajor = True
             if 'linestyle' in opts:
                 self._gridstyle = opts['linestyle']
             else:
                 opts['linestyle'] = self._gridstyle
+            if 'linewidth' in opts:
+                self._gridwidth = opts['linewidth']
+            else:
+                opts['linewidth'] = self._gridwidth
             if 'color' in opts:
                 self._gridcolor = opts['color']
             else:
                 opts['color'] = self._gridcolor
-            self.ax.grid(self._grid, which='major', **opts)
             if minor:
-                self.ax.xaxis._gridOnMinor = self.ax.yaxis._gridOnMinor = True
+                self.ax.xaxis._gridOnMinor = True
+                self.ax.yaxis._gridOnMinor = True
                 self.ax.minorticks_on()
-                lw = max(self.ax.xaxis.get_gridlines()[0].get_linewidth()/2, 
-                         0.1)
-                self.ax.grid(True, which='minor', axis='both', linewidth=lw, 
-                             **opts)
             else:
-                self.ax.xaxis._gridOnMinor = self.ax.yaxis._gridOnMinor = False
-                self.ax.minorticks_off()
+                self.ax.xaxis._gridOnMinor = False
+                self.ax.yaxis._gridOnMinor = False
+                self.ax.minorticks_off()            
+            if self.skew:
+                self.draw_skewed_grid(minor=minor, **opts)
+            else:
+                self.ax.grid(self._grid, which='major', axis='both', **opts)
+                if minor:
+                    opts['linewidth'] = max(self._gridwidth/2, 0.1)
+                    self.ax.grid(True, which='minor', axis='both', **opts)
+                self.remove_skewed_grid()
         else:
             self.ax.xaxis._gridOnMajor = self.ax.yaxis._gridOnMajor = False
-            plotview.ax.grid(False, which='both', axis='both')
+            self.ax.xaxis._gridOnMinor = self.ax.yaxis._gridOnMinor = False
+            self.ax.grid(False, which='both', axis='both')
+            if self.skew:
+                self.remove_skewed_grid()
         self.draw()
         self.update_customize_panel()
+
+    def draw_skewed_grid(self, minor=False, **opts):
+        self.remove_skewed_grid()
+        self._majorlines = (
+            self.xlines(self.ax.xaxis.get_majorticklocs(), **opts) +
+            self.ylines(self.ax.yaxis.get_majorticklocs(), **opts))
+        if minor:
+            opts['linewidth'] = max(self._gridwidth/2, 0.1)
+            self._minorlines = (
+                self.xlines(self.ax.xaxis.get_minorticklocs(), **opts) +
+                self.ylines(self.ax.yaxis.get_minorticklocs(), **opts))
+
+    def remove_skewed_grid(self, major=True, minor=True):
+        if major:
+            for line in self._majorlines:
+                try:
+                    line.remove()
+                except Exception:
+                    pass
+        if minor:
+            for line in self._minorlines:
+                try:
+                    line.remove()
+                except Exception:
+                    pass
+        self._majorlines = self._minorlines = []
 
     def vlines(self, x, ymin=None, ymax=None, y=None, **opts):
         """Plot vertical lines at x-value(s).
@@ -1757,7 +1797,7 @@ class NXPlotView(QtWidgets.QDialog):
         line : Line2D
             Matplotlib line object.
         """
-        y0, y1 = self.yaxis.get_limits()
+        y0, y1 = self.yaxis.min, self.yaxis.max
         if ymin is None:
             ymin = y0
         if ymax is None:
@@ -1765,6 +1805,8 @@ class NXPlotView(QtWidgets.QDialog):
         if self.skew is None:
             return self.vlines(x, ymin, ymax, **opts)
         else:
+            if not iterable(x):
+                x = [x]
             x0, y0 = self.transform(x, ymin)
             x1, y1 = self.transform(x, ymax)
             lines = []
@@ -1802,7 +1844,7 @@ class NXPlotView(QtWidgets.QDialog):
         line : Line2D
             Matplotlib line object.
         """
-        x0, x1 = self.xaxis.get_limits()
+        x0, x1 = self.xaxis.min, self.xaxis.max
         if xmin is None:
             xmin = x0
         if xmax is None:
@@ -1810,6 +1852,8 @@ class NXPlotView(QtWidgets.QDialog):
         if self.skew is None:
             return self.hline(y, xmin, xmax, **opts)
         else:
+            if not iterable(y):
+                y = [y]
             x0, y0 = self.transform(xmin, y)
             x1, y1 = self.transform(xmax, y)
             lines = []
@@ -3912,7 +3956,19 @@ class NXNavigationToolbar(NavigationToolbar):
                 action.setToolTip('Customize plot')
 
     def home(self, autoscale=True):
+        """Redraw the plot with the original limits.
+        
+        This also redraws the grid, if the axes are skewed, since this is not
+        automatically handled by Matplotlib.
+        
+        Parameters
+        ----------
+        autoscale : bool, optional
+            If False, only the x and y axis limits are reset. 
+        """
         self.plotview.reset_plot_limits(autoscale)
+        if self.plotview.skew:
+            self.plotview.grid(self.plotview._grid, self.plotview._minorgrid)
 
     def edit_parameters(self):
         if self.plotview.customize_panel is None:
