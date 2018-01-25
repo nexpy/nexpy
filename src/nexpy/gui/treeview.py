@@ -287,6 +287,11 @@ class NXTreeView(QtWidgets.QTreeView):
                                     triggered=self.mainwindow.overplot_data)
         self.overplot_line_action=QtWidgets.QAction("Overplot Line", self, 
                                     triggered=self.mainwindow.overplot_line)
+        self.multiplot_data_action=QtWidgets.QAction("Plot All Signals", self, 
+                                    triggered=self.mainwindow.multiplot_data)
+        self.multiplot_lines_action=QtWidgets.QAction(
+                                    "Plot All Signals as Lines", self, 
+                                    triggered=self.mainwindow.multiplot_lines)
         self.plot_image_action=QtWidgets.QAction("Plot RGB(A) Image", self, 
                                     triggered=self.mainwindow.plot_image)
         self.view_action=QtWidgets.QAction("View...", self, 
@@ -346,6 +351,9 @@ class NXTreeView(QtWidgets.QTreeView):
                     if plotview.ndim == 1:
                         menu.addAction(self.overplot_data_action)
                         menu.addAction(self.overplot_line_action)
+                    if 'auxiliary_signals' in node.attrs:
+                        menu.addAction(self.multiplot_data_action)
+                        menu.addAction(self.multiplot_lines_action)
                 if ((isinstance(node, NXgroup) and 
                      node.plottable_data is not None and
                      node.plottable_data.nxsignal is not None and

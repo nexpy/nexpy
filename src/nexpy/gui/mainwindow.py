@@ -45,7 +45,7 @@ from .plotview import NXPlotView, NXProjectionPanels
 from .datadialogs import *
 from .scripteditor import NXScriptWindow, NXScriptEditor
 from .utils import confirm_action, report_error, display_message 
-from .utils import import_plugin, timestamp
+from .utils import import_plugin, timestamp, get_colors
 
 
 class NXRichJupyterWidget(RichJupyterWidget):
@@ -499,6 +499,12 @@ class MainWindow(QtWidgets.QMainWindow):
             triggered=self.overplot_data
             )
         self.add_menu_action(self.data_menu, self.overplot_data_action)
+
+        self.multiplot_data_action=QtWidgets.QAction("Plot All Signals",
+            self,
+            triggered=self.multiplot_data
+            )
+        self.add_menu_action(self.data_menu, self.multiplot_data_action)
 
         self.plot_image_action=QtWidgets.QAction("Plot RGB(A) Image",
             self,
@@ -1391,6 +1397,56 @@ class MainWindow(QtWidgets.QMainWindow):
                 plotview.make_active()
         except NeXusError as error:
             report_error("Overplotting Data", error)
+
+    def multiplot_data(self):
+        try:
+            node = self.treeview.get_node()
+            if node is not None:
+                if not node.exists():
+                    raise NeXusError("'%s' does not exist" % 
+                                     os.path.abspath(node.nxfilename))
+                elif not isinstance(node, NXgroup):
+                    raise NeXusError("Multiplots only available for groups.")
+                self.treeview.status_message(node)
+                signals = [node.nxsignal]
+                signals.extend([node[signal] for signal 
+                                in node.attrs['auxiliary_signals']])
+                colors = get_colors(len(signals))
+                for i, signal in enumerate(signals):
+                    if i == 0:
+                        signal.plot(fmt='o', color=colors[i])
+                    else:
+                        signal.oplot(fmt='o', color=colors[i])
+                self.plotview.otab.home()
+                self.plotview.legend(nameonly=True)
+                self.plotview.make_active()
+        except NeXusError as error:
+            report_error("Plotting Data", error)
+
+    def multiplot_lines(self):
+        try:
+            node = self.treeview.get_node()
+            if node is not None:
+                if not node.exists():
+                    raise NeXusError("'%s' does not exist" % 
+                                     os.path.abspath(node.nxfilename))
+                elif not isinstance(node, NXgroup):
+                    raise NeXusError("Multiplots only available for groups.")
+                self.treeview.status_message(node)
+                signals = [node.nxsignal]
+                signals.extend([node[signal] for signal 
+                                in node.attrs['auxiliary_signals']])
+                colors = get_colors(len(signals))
+                for i, signal in enumerate(signals):
+                    if i == 0:
+                        signal.plot(fmt='-', color=colors[i])
+                    else:
+                        signal.oplot(fmt='-', color=colors[i])
+                self.plotview.otab.home()
+                self.plotview.legend()
+                self.plotview.make_active()
+        except NeXusError as error:
+            report_error("Plotting Data", error)
 
     def plot_image(self):
         try:
