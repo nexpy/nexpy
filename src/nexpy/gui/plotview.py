@@ -846,16 +846,12 @@ class NXPlotView(QtWidgets.QDialog):
         ax.lines[-1].set_label(self.signal_group + '/'  + self.signal.nxname)
 
         if over:
-            self.xaxis.min = min(self.xaxis.lo, self.x.min())
-            self.xaxis.max = max(self.xaxis.hi, self.x.max())
-            _range = self.xaxis.max - self.xaxis.min
-            if self.xaxis.min < self.xaxis.lo:
-                self.xaxis.min = self.xaxis.min - 0.05*_range
-            if self.xaxis.max > self.xaxis.hi:
-                self.xaxis.max = self.xaxis.max + 0.05*_range
-            ax.set_xlim(self.xaxis.lo, self.xaxis.hi)
-            self.yaxis.min = min(self.yaxis.lo, self.y.min())
-            self.yaxis.max = max(self.yaxis.hi, self.y.max())
+            self.xaxis.lo, self.xaxis.hi = ax.get_xlim()
+            self.yaxis.lo, self.yaxis.hi = ax.get_ylim()
+            self.xaxis.min = min(self.xaxis.min, self.xaxis.lo, self.x.min())
+            self.xaxis.max = max(self.xaxis.max, self.xaxis.hi, self.x.max())
+            self.yaxis.min = min(self.yaxis.min, self.yaxis.lo, self.y.min())
+            self.yaxis.max = max(self.yaxis.max, self.yaxis.hi, self.y.max())
         else:
             xlo, xhi = ax.set_xlim(auto=True)
             ylo, yhi = ax.set_ylim(auto=True)
