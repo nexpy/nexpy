@@ -1443,7 +1443,7 @@ class MainWindow(QtWidgets.QMainWindow):
                     else:
                         signal.oplot(fmt='-', color=colors[i])
                 self.plotview.otab.home()
-                self.plotview.legend()
+                self.plotview.legend(nameonly=True)
                 self.plotview.make_active()
         except NeXusError as error:
             report_error("Plotting Data", error)
