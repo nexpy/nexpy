@@ -338,6 +338,8 @@ class NXPlotView(QtWidgets.QDialog):
         self.rgb_image = False
         self._aspect = 'auto'
         self._skew_angle = None
+        self._legend = None
+        self._nameonly = False
         self._grid = False
         self._gridcolor = mpl.rcParams['grid.color']
         self._gridstyle = mpl.rcParams['grid.linestyle']
@@ -648,6 +650,7 @@ class NXPlotView(QtWidgets.QDialog):
                     self.yaxis.hi = ymax
                 if log:
                     logy = True
+                self._nameonly = False
             if fmt == '':
                 fmt = colors[self.num%len(colors)] + 'o'
 
@@ -1580,7 +1583,17 @@ class NXPlotView(QtWidgets.QDialog):
 
     def legend(self, *items, **opts):
         """Add a legend to the plot."""
-        self._legend = self.ax.legend(*items, **opts)
+        if len(items) == 0:
+            handles, labels = self.ax.get_legend_handles_labels()
+        elif len(items) == 1:
+            handles, _ = self.ax.get_legend_handles_labels()
+            labels = items[0]
+        else:
+            handles, labels = items
+        self._nameonly = opts.pop('nameonly', self._nameonly)
+        if self._nameonly:
+            labels = [posixpath.basename(label) for label in labels]
+        self._legend = self.ax.legend(handles, labels, **opts)
         self._legend.draggable(True)
         self.draw()
         return self._legend
@@ -1590,6 +1603,7 @@ class NXPlotView(QtWidgets.QDialog):
         if self.ax.get_legend():
             self.ax.get_legend().remove()
         self._legend = None
+        self._nameonly = False
         self.draw()
 
     def grid(self, display=None, minor=False, **opts):

@@ -20,6 +20,8 @@ import re
 import shutil
 import sys
 
+from posixpath import basename
+
 from .pyqt import QtCore, QtGui, QtWidgets, getOpenFileName
 import numpy as np
 from scipy.optimize import minimize
@@ -857,7 +859,9 @@ class CustomizeDialog(BaseDialog):
                 self.initialize_curve(curve)
             self.curve_grids.setLayout(self.curve_layout)
             pg = self.parameters['legend'] = GridParameters()
-            pg.add('legend', ['None'] + list(Legend.codes), 'Legend')
+            pg.add('legend', ['None'] + [key.title() for key in Legend.codes], 
+                   'Legend')
+            pg.add('label', ['Full Path', 'Name Only'], 'Label')
             self.update_legend_parameters()
             self.set_layout(pl.grid(header=False),
                             self.curve_grids,
@@ -987,13 +991,15 @@ class CustomizeDialog(BaseDialog):
     def update_curve_parameters(self, curve):
         c, p = self.curves[curve], self.parameters[curve]
         p['label'].value = c.get_label()
-        if ((self.plotview.ax.get_legend() and 
-            c.get_label() in [label.get_text() for label in 
-                              self.plotview.ax.get_legend().texts]) or
-            self.plotview.ax.get_legend() is None):
+        if self.plotview.ax.get_legend() is None:        
             p['legend'].value = 'Yes'
         else:
-            p['legend'].value = 'No'
+            labels = [label.get_text() for label in
+                      self.plotview.ax.get_legend().texts]
+            if curve.split()[-1] in labels or basename(curve) in labels:
+                p['legend'].value = 'Yes'
+            else:
+                p['legend'].value = 'No'
         p['linestyle'].value = self.linestyles[c.get_linestyle()]
         p['linewidth'].value = c.get_linewidth()
         p['linecolor'].value = rgb2hex(colorConverter.to_rgb(c.get_color()))
@@ -1034,18 +1040,31 @@ class CustomizeDialog(BaseDialog):
 
     def update_legend_parameters(self):
         p = self.parameters['legend']
-        if self.plotview.ax.get_legend():
+        if self.plotview.ax.get_legend() and not self.is_empty_legend():
             _loc = self.plotview.ax.get_legend()._loc
             if _loc in self.legend_location:
-                p['legend'].value = self.legend_location[_loc]
+                p['legend'].value = self.legend_location[_loc].title()
             else:
-                p['legend'].value = 'best'
+                p['legend'].value = 'Best'
         else:
             p['legend'].value = 'None'
+        if self.plotview._nameonly == True:
+            p['label'].value = 'Name Only'
+        else:
+            p['label'].value = 'Full Path'
+
+    def is_empty_legend(self):
+        return 'Yes' not in [self.parameters[curve]['legend'].value 
+                             for curve in self.curves]
 
     def set_legend(self):
-        legend_location = self.parameters['legend']['legend'].value
-        if legend_location == 'None':
+        legend_location = self.parameters['legend']['legend'].value.lower()
+        label_selection = self.parameters['legend']['label'].value
+        if label_selection == 'Full Path':
+            _nameonly = False
+        else:
+            _nameonly = True
+        if legend_location == 'None' or self.is_empty_legend():
             self.plotview.remove_legend()
         else:
             curves = []
@@ -1054,7 +1073,8 @@ class CustomizeDialog(BaseDialog):
                 if self.parameters[curve]['legend'].value == 'Yes':
                     curves.append(self.curves[curve])
                     labels.append(self.parameters[curve]['label'].value)
-            self.plotview.legend(curves, labels, loc=legend_location)         
+            self.plotview.legend(curves, labels, nameonly=_nameonly,
+                                 loc=legend_location)         
 
     def apply(self):
         pl = self.parameters['labels']
@@ -1093,7 +1113,6 @@ class CustomizeDialog(BaseDialog):
         else:
             for curve in self.curves:
                 c, pc = self.curves[curve], self.parameters[curve]
-                c.set_label(pc['label'].value)
                 linestyle = [k for k, v in self.linestyles.items()
                              if v == pc['linestyle'].value][0]
                 c.set_linestyle(linestyle)
