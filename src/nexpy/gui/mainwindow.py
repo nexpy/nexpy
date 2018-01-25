@@ -1407,6 +1407,9 @@ class MainWindow(QtWidgets.QMainWindow):
                                      os.path.abspath(node.nxfilename))
                 elif not isinstance(node, NXgroup):
                     raise NeXusError("Multiplots only available for groups.")
+                elif 'auxiliary_signals' not in node.attrs:
+                    raise NeXusError(
+                        "Group must have the 'auxiliary_signals' attribute.")
                 self.treeview.status_message(node)
                 signals = [node.nxsignal]
                 signals.extend([node[signal] for signal 
@@ -1432,6 +1435,9 @@ class MainWindow(QtWidgets.QMainWindow):
                                      os.path.abspath(node.nxfilename))
                 elif not isinstance(node, NXgroup):
                     raise NeXusError("Multiplots only available for groups.")
+                elif 'auxiliary_signals' not in node.attrs:
+                    raise NeXusError(
+                        "Group must have the 'auxiliary_signals' attribute.")
                 self.treeview.status_message(node)
                 signals = [node.nxsignal]
                 signals.extend([node[signal] for signal 
