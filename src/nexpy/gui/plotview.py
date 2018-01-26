@@ -25,6 +25,7 @@ import numbers
 import numpy as np
 import os
 import pkg_resources
+import posixpath
 import sys
 import warnings
 
@@ -62,7 +63,7 @@ from scipy.spatial import Voronoi, voronoi_plot_2d
 from nexusformat.nexus import NXfield, NXdata, NXroot, NeXusError, nxload
 
 from .. import __version__
-from .utils import report_error, report_exception, find_nearest
+from .utils import report_error, report_exception, find_nearest, iterable
 
 plotview = None
 plotviews = {}
@@ -183,11 +184,12 @@ class NXFigureManager(FigureManager):
 
 
 class NXPlotView(QtWidgets.QDialog):
-    """QT widget containing a NeXpy plot.
+    """Qt widget containing a NeXpy plot.
 
     The widget consists of a QVBoxLayout containing a matplotlib canvas 
     over a tab widget, which contains NXPlotTab objects for adjusting 
-    plot axes.
+    plot axes. The first class instance is embedded in the NeXpy main window,
+    but subsequent instances are in separate windows.
 
     Parameters
     ----------
@@ -279,10 +281,11 @@ class NXPlotView(QtWidgets.QDialog):
         self.canvas.callbacks.exception_handler = report_exception
 
         Gcf.set_active(self.figuremanager)
-        self.button_press_cid = self.canvas.mpl_connect('button_press_event', 
-                                                        self.on_button_press)
-        self.key_press_cid = self.canvas.mpl_connect('key_press_event', 
-                                                     self.on_key_press)
+        self.mpl_connect = self.canvas.mpl_connect
+        self.button_press_cid = self.mpl_connect('button_press_event', 
+                                                 self.on_button_press)
+        self.key_press_cid = self.mpl_connect('key_press_event', 
+                                              self.on_key_press)
         self.canvas.figure.show = lambda *args: self.show()
         self.figuremanager._cidgcf = self.button_press_cid
         self.figuremanager.window = self
@@ -335,16 +338,23 @@ class NXPlotView(QtWidgets.QDialog):
         self.rgb_image = False
         self._aspect = 'auto'
         self._skew_angle = None
+        self._legend = None
+        self._nameonly = False
         self._grid = False
         self._gridcolor = mpl.rcParams['grid.color']
         self._gridstyle = mpl.rcParams['grid.linestyle']
+        self._gridwidth = mpl.rcParams['grid.linewidth']
+        self._minorgrid = False
+        self._majorlines = []
+        self._minorlines = []
         self._linthresh = None
         self._linscale = None
         self._stddev = 2.0
+        self._primary_signal_group = None
 
         # Remove some key default Matplotlib key mappings
         for key in [key for key in mpl.rcParams if key.startswith('keymap')]:
-            for shortcut in 'bfhkloprsvxyzAEGHOPSZ':
+            for shortcut in 'bfghkloprsvxyzAEGHOPSZ':
                 if shortcut in mpl.rcParams[key]:
                     mpl.rcParams[key].remove(shortcut)
 
@@ -355,6 +365,7 @@ class NXPlotView(QtWidgets.QDialog):
 
         self.projection_panel = None
         self.customize_panel = None
+        self.shapes = []
 
         if self.label != "Main":
             self.add_menu_action()
@@ -392,16 +403,12 @@ class NXPlotView(QtWidgets.QDialog):
         """
         self.make_active()
         if event.inaxes:
+            self.x, self.y = event.x, event.y
             self.xdata, self.ydata = self.inverse_transform(event.xdata, 
                                                             event.ydata)
         else:
-            self.xdata, self.ydata = None, None
-        if event.button == 3:
-            try:
-                self.otab.home(autoscale=False)
-            except Exception:
-                pass
-
+            self.x, self.y, self.xdata, self.ydata = None, None, None, None
+        
     def on_key_press(self, event):
         """Handle key press events in the Matplotlib canvas.
 
@@ -419,6 +426,8 @@ class NXPlotView(QtWidgets.QDialog):
             Play the current z-axis values forward or backward, respectively.
         'r'
             Replot the image
+        'g'
+            Toggle display of the minor grid.
         'A'
             Store the plotted data. This is equivalent to selecting the 
             `Add Data` option button on the toolbar.
@@ -446,21 +455,22 @@ class NXPlotView(QtWidgets.QDialog):
         The key that was pressed is stored in the Matplotlib KeyEvent 'key' 
         attribute.
         """
-        if event.key == 'f':
+        if event.key == 'f' and self.ndim > 2:
             self.ztab.playforward()
             self.tab_widget.setCurrentIndex(self.tab_widget.indexOf(self.ztab))
             self.ztab.axiscombo.setFocus()
-        elif event.key == 'b':
+        elif event.key == 'b' and self.ndim > 2:
             self.ztab.playback()
             self.tab_widget.setCurrentIndex(self.tab_widget.indexOf(self.ztab))
             self.ztab.axiscombo.setFocus()
-        elif event.key == ' ':
+        elif event.key == ' ' and self.ndim > 2:
             self.ztab.pause()
             self.tab_widget.setCurrentIndex(self.tab_widget.indexOf(self.ztab))
             self.ztab.axiscombo.setFocus()
-        elif event.key == 'r':
-            if self.ndim > 1:
-                self.replot_data()
+        elif event.key == 'r' and self.ndim > 2:
+            self.replot_data()
+        elif event.key == 'g':
+            self.grid(minor=True)
         elif event.key == 'h':
             self.otab.home(autoscale=False)
         elif event.key == 'l':
@@ -480,17 +490,17 @@ class NXPlotView(QtWidgets.QDialog):
         elif event.key == 'y':
             self.tab_widget.setCurrentIndex(self.tab_widget.indexOf(self.ytab))
             self.ytab.axiscombo.setFocus()
-        elif event.key == 'z':
+        elif event.key == 'z' and self.ndim > 2:
             self.tab_widget.setCurrentIndex(self.tab_widget.indexOf(self.ztab))
             self.ztab.axiscombo.setFocus()
-        elif event.key == 'p':
+        elif event.key == 'p' and self.ndim > 1:
             self.tab_widget.setCurrentIndex(self.tab_widget.indexOf(self.ptab))
             self.ptab.xbox.setFocus()
         elif event.key == 'o':
             self.tab_widget.setCurrentIndex(self.tab_widget.indexOf(self.otab))
         elif event.key == 'A':
             self.otab.add_data()
-        elif event.key == 'E':
+        elif event.key == 'E' and self.ndim > 1:
             self.otab.toggle_aspect()
         elif event.key == 'H':
             self.otab.home()
@@ -640,6 +650,7 @@ class NXPlotView(QtWidgets.QDialog):
                     self.yaxis.hi = ymax
                 if log:
                     logy = True
+                self._nameonly = False
             if fmt == '':
                 fmt = colors[self.num%len(colors)] + 'o'
 
@@ -696,6 +707,8 @@ class NXPlotView(QtWidgets.QDialog):
         self.logx = logx
         self.logy = logy
 
+        self.grid(self._grid, self._minorgrid)
+
         self.draw()
         self.otab.push_current()
         mpl.interactive(True)
@@ -712,7 +725,13 @@ class NXPlotView(QtWidgets.QDialog):
             If True, the signal and axes values are updated without
             creating a new NXPlotAxis instance.
         """
-        if self.data.plot_axes is not None:
+        if not over:
+            self._primary_signal_group = self.signal_group
+
+        if (over and self.signal_group == self._primary_signal_group and
+            self.data.nxsignal.valid_axes(self.plotdata.nxaxes)):
+            axes = self.plotdata.nxaxes
+        elif self.data.plot_axes is not None:
             axes = self.data.plot_axes
         else:
             axes = [NXfield(np.arange(self.shape[i]), name='Axis%s'%i)
@@ -824,22 +843,15 @@ class NXPlotView(QtWidgets.QDialog):
         else:
             ax.plot(self.x, self.y, fmt,  **opts)
 
-        path = self.data.nxsignal.nxpath
-        if self.data.nxroot.nxclass == "NXroot":
-            path = self.data.nxroot.nxname + path
-        ax.lines[-1].set_label(path)
+        ax.lines[-1].set_label(self.signal_group + '/'  + self.signal.nxname)
 
         if over:
-            self.xaxis.min = min(self.xaxis.lo, self.x.min())
-            self.xaxis.max = max(self.xaxis.hi, self.x.max())
-            _range = self.xaxis.max - self.xaxis.min
-            if self.xaxis.min < self.xaxis.lo:
-                self.xaxis.min = self.xaxis.min - 0.05*_range
-            if self.xaxis.max > self.xaxis.hi:
-                self.xaxis.max = self.xaxis.max + 0.05*_range
-            ax.set_xlim(self.xaxis.lo, self.xaxis.hi)
-            self.yaxis.min = min(self.yaxis.lo, self.y.min())
-            self.yaxis.max = max(self.yaxis.hi, self.y.max())
+            self.xaxis.lo, self.xaxis.hi = ax.get_xlim()
+            self.yaxis.lo, self.yaxis.hi = ax.get_ylim()
+            self.xaxis.min = min(self.xaxis.min, self.xaxis.lo, self.x.min())
+            self.xaxis.max = max(self.xaxis.max, self.xaxis.hi, self.x.max())
+            self.yaxis.min = min(self.yaxis.min, self.yaxis.lo, self.y.min())
+            self.yaxis.max = max(self.yaxis.max, self.yaxis.hi, self.y.max())
         else:
             xlo, xhi = ax.set_xlim(auto=True)
             ylo, yhi = ax.set_ylim(auto=True)
@@ -956,8 +968,8 @@ class NXPlotView(QtWidgets.QDialog):
         ax.set_aspect(self.aspect)
 
         if not over and not self.rgb_image:
-            self.colorbar = self.figure.colorbar(self.image, ax=ax,
-                                                 norm=plotview.norm)
+            self.colorbar = self.figure.colorbar(self.image, ax=ax, 
+                                                 norm=self.norm)
             self.colorbar.locator = self.locator
             self.colorbar.formatter = self.formatter
             self.colorbar.update_normal(self.image)
@@ -968,16 +980,23 @@ class NXPlotView(QtWidgets.QDialog):
         ax.set_xlim(xlo, xhi)
         ax.set_ylim(ylo, yhi)
 
-        if self._grid:
-            ax.grid(self._grid, color=self._gridcolor, 
-                    linestyle=self._gridstyle)
-
         if not over:
             ax.set_xlabel(self.xaxis.label)
             ax.set_ylabel(self.yaxis.label)
             ax.set_title(self.title)
 
         self.vaxis.min, self.vaxis.max = self.image.get_clim()
+
+    @property
+    def signal_group(self):
+        """Determine full path of signal."""
+        if self.data.nxroot.nxclass == "NXroot":
+            return posixpath.dirname(self.data.nxroot.nxname + 
+                                     self.data.nxsignal.nxpath)
+        elif 'signal_path' in self.data.nxsignal.attrs:
+            return posixpath.dirname(self.data.nxsignal.attrs['signal_path'])
+        else:
+            return None
 
     @property
     def shape(self):
@@ -1104,7 +1123,7 @@ class NXPlotView(QtWidgets.QDialog):
         else:
             self.image.set_array(self.v.ravel())
             self.replot_image()
-        self.grid(display=self._grid)
+        self.grid(self._grid, self._minorgrid)
 
     def replot_image(self):
         """Replot the image."""
@@ -1151,10 +1170,12 @@ class NXPlotView(QtWidgets.QDialog):
 
     def grid_helper(self):
         """Define the locator used in skew transforms."""
-        locator = MaxNLocator(nbins=9, steps=[1, 2, 5, 10])
-        return GridHelperCurveLinear((self.transform, self.inverse_transform),
-                                     grid_locator1=locator,
-                                     grid_locator2=locator)
+        locator = MaxNLocator(nbins=9, steps=[1, 2, 2.5, 5, 10])
+        self._grid_helper = GridHelperCurveLinear((self.transform, 
+                                                   self.inverse_transform),
+                                                   grid_locator1=locator,
+                                                   grid_locator2=locator)
+        return self._grid_helper
 
     def transform(self, x, y):
         """Return the x and y values transformed by the skew angle."""
@@ -1290,9 +1311,10 @@ class NXPlotView(QtWidgets.QDialog):
         self.update_tabs()
 
     def reset_log(self):
-        self.vtab.block_signals(True)
-        self.vtab.logbox.setChecked(False)
-        self.vtab.block_signals(False)
+        for tab in [self.xtab, self.ytab, self.vtab]:
+            tab.block_signals(True)
+            tab.logbox.setChecked(False)
+            tab.block_signals(False)
 
     @property
     def logx(self):
@@ -1555,7 +1577,32 @@ class NXPlotView(QtWidgets.QDialog):
         """Redraw the current plot."""
         self.canvas.draw_idle()
 
-    def grid(self, display=None, **opts):
+    def legend(self, *items, **opts):
+        """Add a legend to the plot."""
+        if len(items) == 0:
+            handles, labels = self.ax.get_legend_handles_labels()
+        elif len(items) == 1:
+            handles, _ = self.ax.get_legend_handles_labels()
+            labels = items[0]
+        else:
+            handles, labels = items
+        self._nameonly = opts.pop('nameonly', self._nameonly)
+        if self._nameonly:
+            labels = [posixpath.basename(label) for label in labels]
+        self._legend = self.ax.legend(handles, labels, **opts)
+        self._legend.draggable(True)
+        self.draw()
+        return self._legend
+
+    def remove_legend(self):
+        """Remove the legend."""
+        if self.ax.get_legend():
+            self.ax.get_legend().remove()
+        self._legend = None
+        self._nameonly = False
+        self.draw()
+
+    def grid(self, display=None, minor=False, **opts):
         """Set grid display.
         
         Parameters
@@ -1563,6 +1610,8 @@ class NXPlotView(QtWidgets.QDialog):
         display : bool or None
             If True, the grid is displayed. If None, grid display is 
             toggled on or off.
+        minor : bool or None
+            If True, both major and minor gridlines are displayed.
         opts : dict
             Valid options for displaying grids. If not set, the default
             Matplotlib styles are used.
@@ -1574,26 +1623,78 @@ class NXPlotView(QtWidgets.QDialog):
         else:
             self._grid = not (self.ax.xaxis._gridOnMajor or
                               self.ax.yaxis._gridOnMajor)
-        if 'linestyle' in opts:
-            self._gridstyle = opts['linestyle']
+        self._minorgrid = minor
+        if self._grid:
+            self.ax.xaxis._gridOnMajor = self.ax.yaxis._gridOnMajor = True
+            if 'linestyle' in opts:
+                self._gridstyle = opts['linestyle']
+            else:
+                opts['linestyle'] = self._gridstyle
+            if 'linewidth' in opts:
+                self._gridwidth = opts['linewidth']
+            else:
+                opts['linewidth'] = self._gridwidth
+            if 'color' in opts:
+                self._gridcolor = opts['color']
+            else:
+                opts['color'] = self._gridcolor
+            if minor:
+                self.ax.xaxis._gridOnMinor = True
+                self.ax.yaxis._gridOnMinor = True
+                self.ax.minorticks_on()
+            else:
+                self.ax.xaxis._gridOnMinor = False
+                self.ax.yaxis._gridOnMinor = False
+                self.ax.minorticks_off()            
+            if self.skew:
+                self.draw_skewed_grid(minor=minor, **opts)
+            else:
+                self.ax.grid(self._grid, which='major', axis='both', **opts)
+                if minor:
+                    opts['linewidth'] = max(self._gridwidth/2, 0.1)
+                    self.ax.grid(True, which='minor', axis='both', **opts)
+                self.remove_skewed_grid()
         else:
-            opts['linestyle'] = self._gridstyle
-        if 'color' in opts:
-            self._gridcolor = opts['color']
-        else:
-            opts['color'] = self._gridcolor
-        if not self._grid:
-            opts = {}
-        self.ax.grid(self._grid, **opts)
+            self.ax.xaxis._gridOnMajor = self.ax.yaxis._gridOnMajor = False
+            self.ax.xaxis._gridOnMinor = self.ax.yaxis._gridOnMinor = False
+            self.ax.grid(False, which='both', axis='both')
+            if self.skew:
+                self.remove_skewed_grid()
         self.draw()
         self.update_customize_panel()
+
+    def draw_skewed_grid(self, minor=False, **opts):
+        self.remove_skewed_grid()
+        self._majorlines = (
+            self.xlines(self.ax.xaxis.get_majorticklocs(), **opts) +
+            self.ylines(self.ax.yaxis.get_majorticklocs(), **opts))
+        if minor:
+            opts['linewidth'] = max(self._gridwidth/2, 0.1)
+            self._minorlines = (
+                self.xlines(self.ax.xaxis.get_minorticklocs(), **opts) +
+                self.ylines(self.ax.yaxis.get_minorticklocs(), **opts))
+
+    def remove_skewed_grid(self, major=True, minor=True):
+        if major:
+            for line in self._majorlines:
+                try:
+                    line.remove()
+                except Exception:
+                    pass
+        if minor:
+            for line in self._minorlines:
+                try:
+                    line.remove()
+                except Exception:
+                    pass
+        self._majorlines = self._minorlines = []
 
     def vlines(self, x, ymin=None, ymax=None, y=None, **opts):
         """Plot vertical lines at x-value(s).
         
         Parameters
         ----------
-        x : float or ndarray
+        x : float or list of floats or ndarray
             x-values of vertical line(s)
         y : float
             y-value at which the x-value is determined. This is only 
@@ -1611,13 +1712,14 @@ class NXPlotView(QtWidgets.QDialog):
             Collection of vertical lines.
         """
         if ymin is None:
-            ymin = plotview.ax.get_ylim()[0]
+            ymin = self.ax.get_ylim()[0]
         if ymax is None:
-            ymax = plotview.ax.get_ylim()[1]
+            ymax = self.ax.get_ylim()[1]
         if self.skew is not None and y is not None:
             x, _ = self.transform(x, y)
-        lines = plotview.ax.vlines(x, ymin, ymax, **opts)
+        lines = self.ax.vlines(x, ymin, ymax, **opts)
         self.canvas.draw()
+        self.shapes.append(lines)
         return lines
 
     vline = vlines
@@ -1627,7 +1729,7 @@ class NXPlotView(QtWidgets.QDialog):
         
         Parameters
         ----------
-        y : float or ndarray
+        y : float or list of floats or ndarray
             y-values of horizontal line(s)
         x : float
             x-value at which the y-value is determined. This is only 
@@ -1647,13 +1749,14 @@ class NXPlotView(QtWidgets.QDialog):
             Collection of horizontal lines.
         """
         if xmin is None:
-            xmin = plotview.ax.get_xlim()[0]
+            xmin = self.ax.get_xlim()[0]
         if xmax is None:
-            xmax = plotview.ax.get_xlim()[1]
+            xmax = self.ax.get_xlim()[1]
         if self.skew is not None and x is not None:
             _, y = self.transform(x, y)
-        lines = plotview.ax.hlines(y, xmin, xmax, **opts)
+        lines = self.ax.hlines(y, xmin, xmax, **opts)
         self.canvas.draw()
+        self.shapes.append(lines)
         return lines
 
     hline = hlines
@@ -1682,16 +1785,20 @@ class NXPlotView(QtWidgets.QDialog):
         crosshairs.append(self.hline(float(y), **opts))
         return crosshairs
 
-    def xline(self, x, **opts):
-        """Plot line at constant x-value.
+    def xlines(self, x, ymin=None, ymax=None, **opts):
+        """Plot line at constant x-values.
         
         This is similar to vlines, but the line will be skewed if the 
         plot is skewed.
         
         Parameters
         ----------
-        x : float
+        x : float or list of floats or ndarray
             x-value of vertical line
+        ymin : float
+            Minimum y-value of vertical line. Defaults to plot minimum.
+        ymax : float
+            Maximum y-value of vertical line. Defaults to plot maximum.
         opts : dict
             Valid options for displaying lines.
 
@@ -1700,19 +1807,30 @@ class NXPlotView(QtWidgets.QDialog):
         line : Line2D
             Matplotlib line object.
         """
-        ymin, ymax = self.yaxis.get_limits()
+        y0, y1 = self.yaxis.min, self.yaxis.max
+        if ymin is None:
+            ymin = y0
+        if ymax is None:
+            ymax = y1
         if self.skew is None:
-            return self.vline(x, ymin, ymax, **opts)
+            return self.vlines(x, ymin, ymax, **opts)
         else:
-            x0, _ = self.transform(float(x), ymin)
-            x1, _ = self.transform(float(x), ymax)
-            y0, y1 = plotview.ax.get_ylim()
-            line = Line2D([x0,x1], [y0,y1], **opts)
-            plotview.ax.add_line(line)
+            if not iterable(x):
+                x = [x]
+            x0, y0 = self.transform(x, ymin)
+            x1, y1 = self.transform(x, ymax)
+            lines = []
+            for i in range(len(x0)):
+                line = Line2D([x0[i],x1[i]], [y0,y1], **opts)
+                self.ax.add_line(line)
+                lines.append(line)
             self.canvas.draw()
-            return line
+            self.shapes.append(lines)
+            return lines
 
-    def yline(self, y, **opts):
+    xline = xlines
+
+    def ylines(self, y, xmin=None, xmax=None, **opts):
         """Plot line at constant y-value.
         
         This is similar to hlines, but the line will be skewed if the 
@@ -1720,8 +1838,14 @@ class NXPlotView(QtWidgets.QDialog):
         
         Parameters
         ----------
-        y : float
+        y : float or list of floats or ndarray
             y-value of vertical line
+        xmin : float
+            Minimum x-value of horizontal line. Defaults to plot 
+            minimum.
+        xmax : float
+            Maximum x-value of horizontal line. Defaults to plot 
+            maximum.
         opts : dict
             Valid options for displaying lines.
 
@@ -1730,17 +1854,28 @@ class NXPlotView(QtWidgets.QDialog):
         line : Line2D
             Matplotlib line object.
         """
-        xmin, xmax = self.xaxis.get_limits()
+        x0, x1 = self.xaxis.min, self.xaxis.max
+        if xmin is None:
+            xmin = x0
+        if xmax is None:
+            xmax = x1
         if self.skew is None:
             return self.hline(y, xmin, xmax, **opts)
         else:
-            _, y0 = self.transform(xmin, float(y))
-            _, y1 = self.transform(xmax, float(y))
-            x0, x1 = plotview.ax.get_xlim()
-            line = Line2D([x0, x1], [y0, y1], **opts)
-            plotview.ax.add_line(line)
+            if not iterable(y):
+                y = [y]
+            x0, y0 = self.transform(xmin, y)
+            x1, y1 = self.transform(xmax, y)
+            lines = []
+            for i in range(len(y0)):
+                line = Line2D([x0[i], x1[i]], [y0[i], y1[i]], **opts)
+                self.ax.add_line(line)
+                lines.append(line)
             self.canvas.draw()
-            return line
+            self.shapes.append(lines)
+            return lines
+
+    yline = ylines
 
     def rectangle(self, x, y, dx, dy, **opts):
         """Plot rectangle.
@@ -1764,17 +1899,18 @@ class NXPlotView(QtWidgets.QDialog):
             Matplotlib polygon object.
         """
         if self.skew is None:
-            rectangle = plotview.ax.add_patch(Rectangle((float(x),float(y)),
-                                              float(dx), float(dy), **opts))
+            rectangle = self.ax.add_patch(Rectangle((float(x),float(y)),
+                                          float(dx), float(dy), **opts))
         else:
             xc, yc = [x, x, x+dx, x+dx], [y, y+dy, y+dy, y]
             xy = [self.transform(_x, _y) for _x,_y in zip(xc,yc)]
-            rectangle = plotview.ax.add_patch(Polygon(xy, True, **opts))
+            rectangle = self.ax.add_patch(Polygon(xy, True, **opts))
         if 'linewidth' not in opts:
             rectangle.set_linewidth(1.0)
         if 'facecolor' not in opts:
             rectangle.set_facecolor('none')
         self.canvas.draw()
+        self.shapes.append(rectangle)
         return rectangle
 
     def polygon(self, xy, closed=True, **opts):
@@ -1800,12 +1936,13 @@ class NXPlotView(QtWidgets.QDialog):
         """
         if self.skew is not None:
             xy = [self.transform(_x, _y) for _x,_y in xy]
-        polygon = plotview.ax.add_patch(Polygon(xy, closed, **opts))
+        polygon = self.ax.add_patch(Polygon(xy, closed, **opts))
         if 'linewidth' not in opts:
             polygon.set_linewidth(1.0)
         if 'facecolor' not in opts:
             polygon.set_facecolor('none')
         self.canvas.draw()
+        self.shapes.append(polygon)
         return polygon
 
     def ellipse(self, x, y, dx, dy, **opts):
@@ -1831,14 +1968,14 @@ class NXPlotView(QtWidgets.QDialog):
         """
         if self.skew is not None:
             x, y = self.transform(x, y)
-        ellipse = plotview.ax.add_patch(Ellipse((float(x),float(y)),
-                                                float(dx), float(dy), 
-                                                **opts))
+        ellipse = self.ax.add_patch(Ellipse((float(x),float(y)), 
+                                             float(dx), float(dy), **opts))
         if 'linewidth' not in opts:
             ellipse.set_linewidth(1.0)
         if 'facecolor' not in opts:
             ellipse.set_facecolor('none')
         self.canvas.draw()
+        self.shapes.append(ellipse)
         return ellipse
 
     def circle(self, x, y, radius, **opts):
@@ -1865,13 +2002,14 @@ class NXPlotView(QtWidgets.QDialog):
         """
         if self.skew is not None:
             x, y = self.transform(x, y)
-        circle = plotview.ax.add_patch(Circle((float(x),float(y)), radius,
+        circle = self.ax.add_patch(Circle((float(x),float(y)), radius,
                                               **opts))
         if 'linewidth' not in opts:
             circle.set_linewidth(1.0)
         if 'facecolor' not in opts:
             circle.set_facecolor('none')
         self.canvas.draw()
+        self.shapes.append(circle)
         return circle
 
     def voronoi(self, x, y, z, **opts):
@@ -2001,8 +2139,8 @@ class NXPlotView(QtWidgets.QDialog):
             Axis that replaces the current selection in the tab
         """
         xmin, xmax, ymin, ymax = self.limits
-        if (tab == self.xtab and axis == self.xaxis or
-            tab == self.ytab and axis == self.yaxis):
+        if ((tab == self.xtab and axis == self.xaxis) or
+            (tab == self.ytab and axis == self.yaxis)):
             return
         if tab == self.xtab and axis == self.yaxis:
             self.yaxis = self.ytab.axis = self.xtab.axis
@@ -2064,18 +2202,18 @@ class NXPlotView(QtWidgets.QDialog):
     def format_coord(self, x, y):
         """Return the x, y, and signal values for the selected pixel."""
         try:
-            if plotview.ndim == 1:
+            if self.ndim == 1:
                 return 'x={:.4g} y={:.4g}'.format(x, y)
             else:
-                x, y = plotview.inverse_transform(x, y)
-                if plotview.xaxis.reversed:
-                    col = np.searchsorted(x-plotview.xaxis.boundaries, 0.0) - 1
+                x, y = self.inverse_transform(x, y)
+                if self.xaxis.reversed:
+                    col = np.searchsorted(x-self.xaxis.boundaries, 0.0) - 1
                 else:
-                    col = np.searchsorted(plotview.xaxis.boundaries-x, 0.0) - 1
-                if plotview.yaxis.reversed:
-                    row = np.searchsorted(y-plotview.yaxis.boundaries, 0.0) - 1
+                    col = np.searchsorted(self.xaxis.boundaries-x, 0.0) - 1
+                if self.yaxis.reversed:
+                    row = np.searchsorted(y-self.yaxis.boundaries, 0.0) - 1
                 else:
-                    row = np.searchsorted(plotview.yaxis.boundaries-y, 0.0) - 1
+                    row = np.searchsorted(self.yaxis.boundaries-y, 0.0) - 1
                 z = self.v[row,col]
                 return 'x={:.4g} y={:.4g}\nv={:.4g}'.format(x, y, z)
         except Exception:
@@ -2387,10 +2525,12 @@ class NXPlotTab(QtWidgets.QWidget):
         self.maxbox.old_value = axis.hi
         if not self.zaxis:
             self.axis.locked = False
-            self.logbox.setChecked(False)
             if np.all(self.axis.data <= 0.0):
+                self.logbox.setChecked(False)
                 self.logbox.setEnabled(False)
             else:
+                if self.name != 'v':
+                    self.logbox.setChecked(False)
                 self.logbox.setEnabled(True)
             self.flipbox.setChecked(False)
             self.set_sliders(axis.lo, axis.hi)
@@ -2452,11 +2592,12 @@ class NXPlotTab(QtWidgets.QWidget):
                 self.axis.hi = hi
                 self.axis.lo = -self.axis.hi
                 self.minbox.setValue(-hi)
-            elif hi > self.axis.lo:
-                self.axis.hi = hi
             else:
-                self.maxbox.setValue(self.maxbox.old_value)
-                return
+                self.axis.hi = hi
+                if hi < self.axis.lo:
+                    self.axis.lo = self.axis.data.min()
+                    self.minbox.setValue(self.axis.lo)
+                    self.minbox.old_value = self.axis.lo
             self.axis.max = self.axis.hi
             self.axis.min = self.axis.lo
             self.set_range()
@@ -2475,11 +2616,13 @@ class NXPlotTab(QtWidgets.QWidget):
                     self.minbox.old_value = self.axis.lo
                 self.replotSignal.replot.emit()
             else:
-                if hi >= self.axis.lo:
-                    self.axis.hi = hi
-                else:
-                    self.maxbox.setValue(self.maxbox.old_value)
-                    return
+                self.axis.hi = hi
+                if self.axis.hi < self.axis.lo:
+                    self.axis.lo = self.axis.hi
+                    self.minbox.setValue(self.axis.lo)
+                    self.minbox.old_value = self.axis.lo
+                elif np.isclose(self.axis.lo, self.axis.hi):
+                    self.replotSignal.replot.emit()
         self.maxbox.old_value = self.axis.hi
 
     @QtCore.Slot()
@@ -2489,11 +2632,11 @@ class NXPlotTab(QtWidgets.QWidget):
             np.isclose(lo, self.minbox.old_value):
             return
         if self.name == 'x' or self.name == 'y' or self.name == 'v':
-            if lo < self.axis.hi:
-                self.axis.lo = lo
-            else:
-                self.minbox.setValue(self.minbox.old_value)
-                return
+            self.axis.lo = lo
+            if lo > self.axis.hi:
+                self.axis.hi = self.axis.max = self.axis.data.max()
+                self.maxbox.setValue(self.axis.hi)
+                self.maxbox.old_value = self.axis.hi
             self.axis.min = self.axis.lo
             self.set_range()
             self.set_sliders(self.axis.lo, self.axis.hi)
@@ -2503,11 +2646,11 @@ class NXPlotTab(QtWidgets.QWidget):
             else:
                 self.plotview.replot_axes()
         else:
-            if lo <= self.axis.hi:
-                self.axis.lo = lo
-            else:
-                self.minbox.setValue(self.minbox.old_value)
-                return
+            self.axis.lo = lo
+            if lo > self.axis.hi:
+                self.axis.hi = self.axis.lo
+                self.maxbox.setValue(self.axis.hi)
+                self.maxbox.old_value = self.axis.hi
         self.minbox.old_value = self.axis.lo
 
     def read_maxslider(self):
@@ -2827,40 +2970,58 @@ class NXPlotTab(QtWidgets.QWidget):
         return action
 
     def slideshow(self):
-        self.maxbox.stepBy(self.playsteps)
-        if self.maxbox.pause:
+        if self.plotview.ndim < 3:
+            return
+        try:
+            self.maxbox.stepBy(self.playsteps)
+            if self.maxbox.pause:
+                self.pause()
+        except Exception:
             self.pause()
+            six.reraise(*sys.exc_info())                        
 
     def playback(self):
-        self.locked = True
-        if self.playsteps == -1:
-            self.interval = self.timer.interval() / 2
-        else:
-            self.playsteps = -1
-            self.interval = 1000
-        self.timer.setInterval(self.interval)
-        self.timer.start(self.interval)
-        self.playback_action.setChecked(True)
-        self.playforward_action.setChecked(False)
+        if self.plotview.ndim < 3:
+            return
+        try:
+            self.locked = True
+            if self.playsteps == -1:
+                self.interval = self.timer.interval() / 2
+            else:
+                self.playsteps = -1
+                self.interval = 1000
+            self.timer.setInterval(self.interval)
+            self.timer.start(self.interval)
+            self.playback_action.setChecked(True)
+            self.playforward_action.setChecked(False)
+        except Exception:
+            self.pause()
+            six.reraise(*sys.exc_info())            
 
     def pause(self):
         self.playsteps = 0
-        self.timer.stop()
         self.playback_action.setChecked(False)
         self.playforward_action.setChecked(False)
+        self.timer.stop()
 
     def playforward(self):
-        self.locked = True
-        if self.playsteps == 1:
-            self.interval = self.timer.interval() / 2
-        else:
-            self.playsteps = 1
-            self.interval = 1000
-        self.timer.setInterval(self.interval)
-        self.timer.start(self.interval)
-        self.playforward_action.setChecked(True)
-        self.playback_action.setChecked(False)
-
+        if self.plotview.ndim < 3:
+            return
+        try:
+            self.locked = True
+            if self.playsteps == 1:
+                self.interval = self.timer.interval() / 2
+            else:
+                self.playsteps = 1
+                self.interval = 1000
+            self.timer.setInterval(self.interval)
+            self.timer.start(self.interval)
+            self.playforward_action.setChecked(True)
+            self.playback_action.setChecked(False)
+        except Exception:
+            self.pause()
+            six.reraise(*sys.exc_info())            
+            
 
 class NXTextBox(QtWidgets.QLineEdit):
     """Subclass of QLineEdit with floating values."""
@@ -3538,7 +3699,7 @@ class NXProjectionPanel(QtWidgets.QWidget):
                 min_value = self.maxbox[axis].value() - self.maxbox[axis].diff
                 self.minbox[axis].setValue(min_value)
             elif self.minbox[axis].value() > self.maxbox[axis].value():
-                self.minbox[axis].setValue(self.maxbox[axis].value())
+                self.maxbox[axis].setValue(self.minbox[axis].value())
         self.block_signals(False)
         self.draw_rectangle()
 
@@ -3805,7 +3966,19 @@ class NXNavigationToolbar(NavigationToolbar):
                 action.setToolTip('Customize plot')
 
     def home(self, autoscale=True):
+        """Redraw the plot with the original limits.
+        
+        This also redraws the grid, if the axes are skewed, since this is not
+        automatically handled by Matplotlib.
+        
+        Parameters
+        ----------
+        autoscale : bool, optional
+            If False, only the x and y axis limits are reset. 
+        """
         self.plotview.reset_plot_limits(autoscale)
+        if self.plotview.skew:
+            self.plotview.grid(self.plotview._grid, self.plotview._minorgrid)
 
     def edit_parameters(self):
         if self.plotview.customize_panel is None:
@@ -3819,36 +3992,63 @@ class NXNavigationToolbar(NavigationToolbar):
     def add_data(self):
         keep_data(self.plotview.plotdata)
 
-    def release_zoom(self, event):
-        'the release mouse button callback in zoom to rect mode'
-        super(NXNavigationToolbar, self).release_zoom(event)
+    def release(self, event):
         try:
-            xdim = self.plotview.xtab.axis.dim
-            ydim = self.plotview.ytab.axis.dim
-        except AttributeError:
-            return
+            for zoom_id in self._ids_zoom:
+                self.canvas.mpl_disconnect(zoom_id)
+            self.remove_rubberband()
+        except Exception as error:
+            pass
+        self._ids_zoom = []
+        self._xypress = None
+        self._button_pressed = None
+        self._zoom_mode = None
+        self.plotview.x, self.plotview.y = None, None
+        super(NXNavigationToolbar, self).release(event)
+
+    def release_zoom(self, event):
+        """The release mouse button callback in zoom to rect mode."""
+        if event.button == 1:
+            super(NXNavigationToolbar, self).release_zoom(event)
+            self._update_release()
+            if self.plotview.ndim > 1 and self.plotview.label != "Projection":
+                self.plotview.tab_widget.setCurrentWidget(self.plotview.ptab)
+        elif event.button == 3:
+            if self.plotview.ndim == 1 or not event.inaxes:
+                self.home()
+            elif (self.plotview.x and self.plotview.y and
+                  abs(event.x - self.plotview.x) < 5 and
+                  abs(event.y - self.plotview.y) < 5):
+                self.home(autoscale=False)
+            elif self.plotview.xdata and self.plotview.ydata:
+                self.plotview.ptab.open_panel()
+                xmin, xmax = sorted([event.xdata, self.plotview.xdata])
+                ymin, ymax = sorted([event.ydata, self.plotview.ydata])
+                xp, yp = self.plotview.xaxis.dim, self.plotview.yaxis.dim
+                self.plotview.projection_panel.maxbox[xp].setValue(str(xmax))
+                self.plotview.projection_panel.minbox[xp].setValue(str(xmin))
+                self.plotview.projection_panel.maxbox[yp].setValue(str(ymax))
+                self.plotview.projection_panel.minbox[yp].setValue(str(ymin))
+        self.release(event)
+
+    def release_pan(self, event):
+        super(NXNavigationToolbar, self).release_pan(event)
+        self._update_release()
+
+    def _update_release(self):
         xmin, xmax = self.plotview.ax.get_xlim()
         ymin, ymax = self.plotview.ax.get_ylim()
         xmin, ymin = self.plotview.inverse_transform(xmin, ymin)
         xmax, ymax = self.plotview.inverse_transform(xmax, ymax)
         self.plotview.xtab.set_limits(xmin, xmax)
         self.plotview.ytab.set_limits(ymin, ymax)
-        if event.button == 1:
-            self.plotview.zoom = {'x': (xdim, xmin, xmax),
-                                  'y': (ydim, ymin, ymax)}
-            if self.plotview.projection_panel:
-                self.plotview.projection_panel.update_limits()
-            elif self.plotview.label != "Projection":
-                self.plotview.tab_widget.setCurrentWidget(self.plotview.ptab)
-
-    def release_pan(self, event):
-        super(NXNavigationToolbar, self).release_pan(event)
-        xmin, xmax = self.plotview.ax.get_xlim()
-        ymin, ymax = self.plotview.ax.get_ylim()
-        self.plotview.xtab.set_limits(xmin, xmax)
-        self.plotview.ytab.set_limits(ymin, ymax)
-        if self.plotview.projection_panel:
-            self.plotview.projection_panel.update_limits()
+        try:
+            xdim = self.plotview.xtab.axis.dim
+            ydim = self.plotview.ytab.axis.dim
+        except AttributeError:
+            return
+        self.plotview.zoom = {'x': (xdim, xmin, xmax),
+                              'y': (ydim, ymin, ymax)}
 
     def _update_view(self):
         super(NXNavigationToolbar, self)._update_view()

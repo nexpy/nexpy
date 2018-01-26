@@ -17,7 +17,7 @@ pkg_requirements = [
     'h5py',
     'jupyter',
     'ipython>=4.0.0',
-    'matplotlib>=1.4.0',
+    'matplotlib>=1.5.0',
     'ansi2html',
 ]
 extra_requirements = {

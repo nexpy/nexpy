@@ -3,6 +3,7 @@ from __future__ import (absolute_import, division, print_function,
 import six
 
 import importlib
+import io
 import logging
 import os
 import re
@@ -18,6 +19,7 @@ except ImportError:
     from ConfigParser import ConfigParser
 import numpy as np
 from .pyqt import QtWidgets
+from matplotlib.colors import hex2color, rgb2hex
 
 try:
     from astropy.convolution import Kernel
@@ -88,6 +90,15 @@ def report_exception(*args):
     layout = message_box.layout()
     layout.setColumnMinimumWidth(layout.columnCount()-1, 600)
     return message_box.exec_()
+
+
+def iterable(obj):
+    """Return true if the argument is iterable"""
+    try:
+        iter(obj)
+    except TypeError:
+        return False
+    return True
 
 
 def wrap(text, length):
@@ -163,6 +174,7 @@ def is_timestamp(time_string):
 
 
 def convertHTML(text):
+    """Replaces ANSI color codes with HTML"""
     try:
         from ansi2html import Ansi2HTMLConverter
         conv = Ansi2HTMLConverter(dark_bg=False, inline=True)
@@ -170,6 +182,33 @@ def convertHTML(text):
     except ImportError:
         return ansi_re.sub('', text)
 
+def get_colors(n, first='#1f77b4', last='#d62728'):
+    """Return a list of colors interpolating between the first and last.
+
+    The function accepts both strings representing hex colors and tuples 
+    containing RGB values, which must be between 0 and 1.
+
+    Parameters
+    ----------
+    n : int
+        Number of colors to be generated.
+    first : str or tuple of float
+        First color in the list (defaults to Matplotlib default blue).
+    last : str, tuple
+        Last color in the list(defaults to Matplotlib default red).
+
+    Returns
+    -------
+    colors : list
+        A list of strings containing hex colors
+    """
+    if not isinstance(first, tuple):
+        first = hex2color(first)
+    if not isinstance(last, tuple):
+        last = hex2color(last)
+    return [rgb2hex((first[0]+(last[0]-first[0])*i/(n-1), 
+                     first[1]+(last[1]-first[1])*i/(n-1),
+                     first[2]+(last[2]-first[2])*i/(n-1))) for i in range(n)]
 
 class NXimporter(object):
     def __init__(self, paths):
@@ -231,6 +270,23 @@ class NXConfigParser(ConfigParser, object):
             self.set("recent", path)
         self.remove_option("recent", "recentFiles")
         self.save()
+
+
+class NXLogger(io.StringIO):
+    """File-like stream object that redirects writes to the default logger.
+    
+    An NXLogger instance is used to provide a temporary redirect of 
+    sys.stdout and sys.stderr before the IPython kernel starts up.
+    """
+    def __init__(self):
+        super(NXLogger, self).__init__()
+        self.logger = logging.getLogger()
+        self.log_level = self.logger.getEffectiveLevel()
+        self.linebuf = ''
+
+    def write(self, buffer):
+        for line in buffer.rstrip().splitlines():
+            self.logger.log(self.log_level, line.rstrip())
 
 
 class Gaussian3DKernel(Kernel):
