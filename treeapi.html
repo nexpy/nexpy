@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>NeXus Tree API Modules &#8212; NeXpy 0.10.8 documentation</title>
+    <title>NeXus Tree API Modules &#8212; NeXpy 0.10.9 documentation</title>
     
     <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.10.8',
+        VERSION:     '0.10.9',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -47,7 +47,7 @@
         <li class="right" >
           <a href="pythongui.html" title="Python Graphical User Interface"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.10.8 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.10.9 documentation</a> &#187;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -576,7 +576,7 @@ which NeXus objects have been changed.</p>
 
 <dl class="class">
 <dt id="nexusformat.nexus.tree.NXfield">
-<em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXfield</code><span class="sig-paren">(</span><em>value=None</em>, <em>name='field'</em>, <em>dtype=None</em>, <em>shape=None</em>, <em>group=None</em>, <em>attrs=None</em>, <em>**attr</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXfield" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXfield</code><span class="sig-paren">(</span><em>value=None</em>, <em>name='unknown'</em>, <em>dtype=None</em>, <em>shape=None</em>, <em>group=None</em>, <em>attrs=None</em>, <em>**attr</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXfield" title="Permalink to this definition">¶</a></dt>
 <dd><p>A NeXus data field.</p>
 <p>This is a subclass of NXobject that contains scalar, array, or string data
 and associated NeXus attributes.</p>
@@ -923,6 +923,22 @@ the signal in its parent group, a list of the parent group&#8217;s axes will
 be returned.</p>
 </dd></dl>
 
+<dl class="method">
+<dt id="nexusformat.nexus.tree.NXfield.valid_axes">
+<code class="descname">valid_axes</code><span class="sig-paren">(</span><em>axes</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXfield.valid_axes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return True if the axes are consistent with the field.</p>
+<p>It checks that all the axes are one-dimensional, and that the size of
+each axis is equal to or one greater than the field dimension.</p>
+<dl class="docutils">
+<dt>axes <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
+<dd>List of NXfields</dd>
+</dl>
+<p>The function removes scalar axes before the check even though these are 
+returned by the nxaxes property. That is because ndim is 0 for scalars.
+They are automatically removed when plotting so this does not 
+invalidate the check.</p>
+</dd></dl>
+
 <dl class="attribute">
 <dt id="nexusformat.nexus.tree.NXfield.nxdata">
 <code class="descname">nxdata</code><a class="headerlink" href="#nexusformat.nexus.tree.NXfield.nxdata" title="Permalink to this definition">¶</a></dt>
@@ -1257,7 +1273,7 @@ file, the linked object in the external file is copied.</p>
 
 <dl class="method">
 <dt id="nexusformat.nexus.tree.NXgroup.makelink">
-<code class="descname">makelink</code><span class="sig-paren">(</span><em>target</em>, <em>name=None</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXgroup.makelink" title="Permalink to this definition">¶</a></dt>
+<code class="descname">makelink</code><span class="sig-paren">(</span><em>target</em>, <em>name=None</em>, <em>abspath=False</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXgroup.makelink" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates a linked NXobject within the group.</p>
 <p>The argument is the parent object. All attributes are inherited from the 
 parent object including the name.</p>
@@ -1442,13 +1458,6 @@ as the run duration, are not currently added together.</p>
 </dd></dl>
 
 <dl class="class">
-<dt>
-<em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXsubentry</code><span class="sig-paren">(</span><em>*items</em>, <em>**opts</em><span class="sig-paren">)</span></dt>
-<dd><p>NXsubentry group. This is a subclass of the NXsubentry class.</p>
-<p>See the NXgroup documentation for more details.</p>
-</dd></dl>
-
-<dl class="class">
 <dt id="nexusformat.nexus.tree.NXdata">
 <em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXdata</code><span class="sig-paren">(</span><em>signal=None</em>, <em>axes=None</em>, <em>errors=None</em>, <em>*items</em>, <em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXdata" title="Permalink to this definition">¶</a></dt>
 <dd><p>NXdata group. This is a subclass of the NXgroup class.</p>
@@ -1609,28 +1618,6 @@ are defined:</p>
 </dd></dl>
 
 <dl class="class">
-<dt id="nexusformat.nexus.tree.NXmonitor">
-<em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXmonitor</code><span class="sig-paren">(</span><em>signal=None</em>, <em>axes=()</em>, <em>*items</em>, <em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXmonitor" title="Permalink to this definition">¶</a></dt>
-<dd><p>NXmonitor group. This is a subclass of the NXdata class.</p>
-<p>See the NXdata and NXgroup documentation for more details.</p>
-</dd></dl>
-
-<dl class="class">
-<dt id="nexusformat.nexus.tree.NXlog">
-<em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXlog</code><span class="sig-paren">(</span><em>*items</em>, <em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXlog" title="Permalink to this definition">¶</a></dt>
-<dd><p>NXlog group. This is a subclass of the NXgroup class.</p>
-<p>See the NXgroup documentation for more details.</p>
-<dl class="method">
-<dt id="nexusformat.nexus.tree.NXlog.plot">
-<code class="descname">plot</code><span class="sig-paren">(</span><em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXlog.plot" title="Permalink to this definition">¶</a></dt>
-<dd><p>Plots the logged values against the elapsed time. Valid Matplotlib 
-parameters, specifying markers, colors, etc, can be specified using the 
-&#8216;opts&#8217; dictionary.</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="class">
 <dt id="nexusformat.nexus.tree.NXsample">
 <em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXsample</code><span class="sig-paren">(</span><em>*items</em>, <em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXsample" title="Permalink to this definition">¶</a></dt>
 <dd><p>NXsample group. This is a subclass of the NXgroup class.</p>
@@ -1687,9 +1674,9 @@ parameters, specifying markers, colors, etc, can be specified using the
 </dd></dl>
 
 <dl class="class">
-<dt id="nexusformat.nexus.tree.NXcharacterization">
-<em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXcharacterization</code><span class="sig-paren">(</span><em>*items</em>, <em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXcharacterization" title="Permalink to this definition">¶</a></dt>
-<dd><p>NXcharacterization group. This is a subclass of the NXgroup class.</p>
+<dt id="nexusformat.nexus.tree.NXcite">
+<em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXcite</code><span class="sig-paren">(</span><em>*items</em>, <em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXcite" title="Permalink to this definition">¶</a></dt>
+<dd><p>NXcite group. This is a subclass of the NXgroup class.</p>
 <p>See the NXgroup documentation for more details.</p>
 </dd></dl>
 
@@ -1725,6 +1712,13 @@ parameters, specifying markers, colors, etc, can be specified using the
 <dt id="nexusformat.nexus.tree.NXdetector_group">
 <em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXdetector_group</code><span class="sig-paren">(</span><em>*items</em>, <em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXdetector_group" title="Permalink to this definition">¶</a></dt>
 <dd><p>NXdetector_group group. This is a subclass of the NXgroup class.</p>
+<p>See the NXgroup documentation for more details.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="nexusformat.nexus.tree.NXdetector_module">
+<em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXdetector_module</code><span class="sig-paren">(</span><em>*items</em>, <em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXdetector_module" title="Permalink to this definition">¶</a></dt>
+<dd><p>NXdetector_module group. This is a subclass of the NXgroup class.</p>
 <p>See the NXgroup documentation for more details.</p>
 </dd></dl>
 
@@ -1774,6 +1768,13 @@ parameters, specifying markers, colors, etc, can be specified using the
 <dt id="nexusformat.nexus.tree.NXgeometry">
 <em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXgeometry</code><span class="sig-paren">(</span><em>*items</em>, <em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXgeometry" title="Permalink to this definition">¶</a></dt>
 <dd><p>NXgeometry group. This is a subclass of the NXgroup class.</p>
+<p>See the NXgroup documentation for more details.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="nexusformat.nexus.tree.NXgrating">
+<em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXgrating</code><span class="sig-paren">(</span><em>*items</em>, <em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXgrating" title="Permalink to this definition">¶</a></dt>
+<dd><p>NXgrating group. This is a subclass of the NXgroup class.</p>
 <p>See the NXgroup documentation for more details.</p>
 </dd></dl>
 
@@ -1834,6 +1835,13 @@ parameters, specifying markers, colors, etc, can be specified using the
 </dd></dl>
 
 <dl class="class">
+<dt id="nexusformat.nexus.tree.NXpinhole">
+<em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXpinhole</code><span class="sig-paren">(</span><em>*items</em>, <em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXpinhole" title="Permalink to this definition">¶</a></dt>
+<dd><p>NXpinhole group. This is a subclass of the NXgroup class.</p>
+<p>See the NXgroup documentation for more details.</p>
+</dd></dl>
+
+<dl class="class">
 <dt id="nexusformat.nexus.tree.NXpolarizer">
 <em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXpolarizer</code><span class="sig-paren">(</span><em>*items</em>, <em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXpolarizer" title="Permalink to this definition">¶</a></dt>
 <dd><p>NXpolarizer group. This is a subclass of the NXgroup class.</p>
@@ -1844,6 +1852,20 @@ parameters, specifying markers, colors, etc, can be specified using the
 <dt id="nexusformat.nexus.tree.NXpositioner">
 <em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXpositioner</code><span class="sig-paren">(</span><em>*items</em>, <em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXpositioner" title="Permalink to this definition">¶</a></dt>
 <dd><p>NXpositioner group. This is a subclass of the NXgroup class.</p>
+<p>See the NXgroup documentation for more details.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="nexusformat.nexus.tree.NXreflections">
+<em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXreflections</code><span class="sig-paren">(</span><em>*items</em>, <em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXreflections" title="Permalink to this definition">¶</a></dt>
+<dd><p>NXreflections group. This is a subclass of the NXgroup class.</p>
+<p>See the NXgroup documentation for more details.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="nexusformat.nexus.tree.NXsample_component">
+<em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXsample_component</code><span class="sig-paren">(</span><em>*items</em>, <em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXsample_component" title="Permalink to this definition">¶</a></dt>
+<dd><p>NXsample_component group. This is a subclass of the NXgroup class.</p>
 <p>See the NXgroup documentation for more details.</p>
 </dd></dl>
 
@@ -1862,9 +1884,23 @@ parameters, specifying markers, colors, etc, can be specified using the
 </dd></dl>
 
 <dl class="class">
+<dt id="nexusformat.nexus.tree.NXslit">
+<em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXslit</code><span class="sig-paren">(</span><em>*items</em>, <em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXslit" title="Permalink to this definition">¶</a></dt>
+<dd><p>NXslit group. This is a subclass of the NXgroup class.</p>
+<p>See the NXgroup documentation for more details.</p>
+</dd></dl>
+
+<dl class="class">
 <dt id="nexusformat.nexus.tree.NXsource">
 <em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXsource</code><span class="sig-paren">(</span><em>*items</em>, <em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXsource" title="Permalink to this definition">¶</a></dt>
 <dd><p>NXsource group. This is a subclass of the NXgroup class.</p>
+<p>See the NXgroup documentation for more details.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="nexusformat.nexus.tree.NXtransformations">
+<em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXtransformations</code><span class="sig-paren">(</span><em>*items</em>, <em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXtransformations" title="Permalink to this definition">¶</a></dt>
+<dd><p>NXtransformations group. This is a subclass of the NXgroup class.</p>
 <p>See the NXgroup documentation for more details.</p>
 </dd></dl>
 
@@ -1894,6 +1930,28 @@ parameters, specifying markers, colors, etc, can be specified using the
 <em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXxraylens</code><span class="sig-paren">(</span><em>*items</em>, <em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXxraylens" title="Permalink to this definition">¶</a></dt>
 <dd><p>NXxraylens group. This is a subclass of the NXgroup class.</p>
 <p>See the NXgroup documentation for more details.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="nexusformat.nexus.tree.NXmonitor">
+<em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXmonitor</code><span class="sig-paren">(</span><em>signal=None</em>, <em>axes=()</em>, <em>*items</em>, <em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXmonitor" title="Permalink to this definition">¶</a></dt>
+<dd><p>NXmonitor group. This is a subclass of the NXdata class.</p>
+<p>See the NXdata and NXgroup documentation for more details.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="nexusformat.nexus.tree.NXlog">
+<em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXlog</code><span class="sig-paren">(</span><em>*items</em>, <em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXlog" title="Permalink to this definition">¶</a></dt>
+<dd><p>NXlog group. This is a subclass of the NXgroup class.</p>
+<p>See the NXgroup documentation for more details.</p>
+<dl class="method">
+<dt id="nexusformat.nexus.tree.NXlog.plot">
+<code class="descname">plot</code><span class="sig-paren">(</span><em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXlog.plot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plots the logged values against the elapsed time. Valid Matplotlib 
+parameters, specifying markers, colors, etc, can be specified using the 
+&#8216;opts&#8217; dictionary.</p>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="class">
@@ -2000,7 +2058,7 @@ ls f1.nxs f2.nxs ...</div></blockquote>
         <li class="right" >
           <a href="pythongui.html" title="Python Graphical User Interface"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.10.8 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.10.9 documentation</a> &#187;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
