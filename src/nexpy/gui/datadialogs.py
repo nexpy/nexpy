@@ -20,11 +20,14 @@ import re
 import shutil
 import sys
 
+from posixpath import basename
+
 from .pyqt import QtCore, QtGui, QtWidgets, getOpenFileName
 import numpy as np
 from scipy.optimize import minimize
 from matplotlib.colors import rgb2hex, colorConverter
 from matplotlib.backends.qt_editor.formlayout import ColorButton, to_qcolor
+from matplotlib.legend import Legend
 
 try:
     from collections import OrderedDict
@@ -676,6 +679,11 @@ class PlotDialog(BaseDialog):
         else:
             self.group = node
             signal_name = None
+        
+        if self.group.nxaxes is not None:
+            self.default_axes = [axis.nxname for axis in self.group.nxaxes]
+        else:
+            self.default_axes = None
 
         self.fmt = fmt
 
@@ -732,14 +740,19 @@ class PlotDialog(BaseDialog):
 
     def axis_box(self, axis):
         box = NXComboBox()
+        axes = []
         for node in self.group.values():
             if isinstance(node, NXfield) and node is not self.signal:
                 if self.check_axis(node, axis):
+                    axes.append(node.nxname)
                     box.addItem(node.nxname)
         if box.count() > 0:
             box.insertSeparator(0)
         box.insertItem(0,'NXfield index')
-        box.setCurrentIndex(0)
+        if self.default_axes is not None and self.default_axes[axis] in axes:
+            box.setCurrentIndex(box.findText(self.default_axes[axis]))
+        else:
+            box.setCurrentIndex(0)
         return box
 
     def remove_axis(self, axis):
@@ -783,6 +796,11 @@ class PlotDialog(BaseDialog):
 
     def accept(self):
         try:
+            if self.signal.nxroot.nxclass == "NXroot":
+                signal_path = self.signal.nxroot.nxname + self.signal.nxpath
+            else:
+                signal_path = self.signal.nxpath
+            self.signal.attrs['signal_path'] = signal_path
             data = NXdata(self.signal, self.get_axes(), 
                           title=self.signal.nxtitle)
             data.plot(fmt=self.fmt)
@@ -792,6 +810,8 @@ class PlotDialog(BaseDialog):
 
     
 class CustomizeDialog(BaseDialog):
+
+    legend_location = {v: k for k, v in Legend.codes.items()}            
 
     def __init__(self, parent):
         super(CustomizeDialog, self).__init__(parent, default=True)
@@ -838,8 +858,14 @@ class CustomizeDialog(BaseDialog):
                 self.update_curve_parameters(curve)
                 self.initialize_curve(curve)
             self.curve_grids.setLayout(self.curve_layout)
+            pg = self.parameters['legend'] = GridParameters()
+            pg.add('legend', ['None'] + [key.title() for key in Legend.codes], 
+                   'Legend')
+            pg.add('label', ['Full Path', 'Name Only'], 'Label')
+            self.update_legend_parameters()
             self.set_layout(pl.grid(header=False),
                             self.curve_grids,
+                            pg.grid(header=False),
                             self.close_buttons())
             self.setTabOrder(self.parameters['labels']['ylabel'].box, 
                              self.curve_box)
@@ -949,6 +975,8 @@ class CustomizeDialog(BaseDialog):
 
     def curve_parameters(self, curve):
         parameters = GridParameters()
+        parameters.add('label', 'Label', 'Label')
+        parameters.add('legend', ['Yes', 'No'], 'Add to Legend')
         parameters.add('linestyle', list(self.linestyles.values()), 
                        'Line Style')
         parameters.add('linewidth', 1.0, 'Line Width')
@@ -962,6 +990,16 @@ class CustomizeDialog(BaseDialog):
 
     def update_curve_parameters(self, curve):
         c, p = self.curves[curve], self.parameters[curve]
+        p['label'].value = c.get_label()
+        if self.plotview.ax.get_legend() is None:        
+            p['legend'].value = 'Yes'
+        else:
+            labels = [label.get_text() for label in
+                      self.plotview.ax.get_legend().texts]
+            if curve.split()[-1] in labels or basename(curve) in labels:
+                p['legend'].value = 'Yes'
+            else:
+                p['legend'].value = 'No'
         p['linestyle'].value = self.linestyles[c.get_linestyle()]
         p['linewidth'].value = c.get_linewidth()
         p['linecolor'].value = rgb2hex(colorConverter.to_rgb(c.get_color()))
@@ -999,6 +1037,44 @@ class CustomizeDialog(BaseDialog):
         for curve in self.curves:
             self.parameters[curve].widget.setVisible(False)
         self.parameters[self.curve].widget.setVisible(True)
+
+    def update_legend_parameters(self):
+        p = self.parameters['legend']
+        if self.plotview.ax.get_legend() and not self.is_empty_legend():
+            _loc = self.plotview.ax.get_legend()._loc
+            if _loc in self.legend_location:
+                p['legend'].value = self.legend_location[_loc].title()
+            else:
+                p['legend'].value = 'Best'
+        else:
+            p['legend'].value = 'None'
+        if self.plotview._nameonly == True:
+            p['label'].value = 'Name Only'
+        else:
+            p['label'].value = 'Full Path'
+
+    def is_empty_legend(self):
+        return 'Yes' not in [self.parameters[curve]['legend'].value 
+                             for curve in self.curves]
+
+    def set_legend(self):
+        legend_location = self.parameters['legend']['legend'].value.lower()
+        label_selection = self.parameters['legend']['label'].value
+        if label_selection == 'Full Path':
+            _nameonly = False
+        else:
+            _nameonly = True
+        if legend_location == 'None' or self.is_empty_legend():
+            self.plotview.remove_legend()
+        else:
+            curves = []
+            labels = []
+            for curve in self.curves:
+                if self.parameters[curve]['legend'].value == 'Yes':
+                    curves.append(self.curves[curve])
+                    labels.append(self.parameters[curve]['label'].value)
+            self.plotview.legend(curves, labels, nameonly=_nameonly,
+                                 loc=legend_location)         
 
     def apply(self):
         pl = self.parameters['labels']
@@ -1048,6 +1124,7 @@ class CustomizeDialog(BaseDialog):
                 c.set_markersize(pc['markersize'].value)
                 c.set_markerfacecolor(pc['facecolor'].value)
                 c.set_markeredgecolor(pc['edgecolor'].value)
+            self.set_legend()
         self.plotview.draw()
 
     def accept(self):

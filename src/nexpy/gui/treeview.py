@@ -272,7 +272,7 @@ class NXTreeView(QtWidgets.QTreeView):
 
         self.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
         self.setExpandsOnDoubleClick(False)
-        self.doubleClicked.connect(self.plot_data)
+        self.doubleClicked.connect(self.mainwindow.plot_data)
 
         # Popup Menu
         self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
@@ -280,55 +280,62 @@ class NXTreeView(QtWidgets.QTreeView):
 
 
         self.plot_data_action=QtWidgets.QAction("Plot", self, 
-                                       triggered=self.plot_data)
+                                    triggered=self.mainwindow.plot_data)
         self.plot_line_action=QtWidgets.QAction("Plot Line", self, 
-                                       triggered=self.plot_line)
+                                    triggered=self.mainwindow.plot_line)
         self.overplot_data_action=QtWidgets.QAction("Overplot", self, 
-                                           triggered=self.overplot_data)
+                                    triggered=self.mainwindow.overplot_data)
         self.overplot_line_action=QtWidgets.QAction("Overplot Line", self, 
-                                           triggered=self.overplot_line)
+                                    triggered=self.mainwindow.overplot_line)
+        self.multiplot_data_action=QtWidgets.QAction("Plot All Signals", self, 
+                                    triggered=self.mainwindow.multiplot_data)
+        self.multiplot_lines_action=QtWidgets.QAction(
+                                    "Plot All Signals as Lines", self, 
+                                    triggered=self.mainwindow.multiplot_lines)
         self.plot_image_action=QtWidgets.QAction("Plot RGB(A) Image", self, 
-                                           triggered=self.plot_image)
+                                    triggered=self.mainwindow.plot_image)
         self.view_action=QtWidgets.QAction("View...", self, 
-                                           triggered=self.view_data)
+                                    triggered=self.mainwindow.view_data)
         self.add_action=QtWidgets.QAction("Add...", self, 
-                                          triggered=self.add_data)
+                                    triggered=self.mainwindow.add_data)
         self.initialize_action=QtWidgets.QAction("Initialize...", self, 
-                                                 triggered=self.initialize_data)
+                                    triggered=self.mainwindow.initialize_data)
         self.rename_action=QtWidgets.QAction("Rename...", self, 
-                                             triggered=self.rename_data)
+                                    triggered=self.mainwindow.rename_data)
         self.copy_action=QtWidgets.QAction("Copy", self, 
-                                           triggered=self.copy_data)
+                                    triggered=self.mainwindow.copy_data)
         self.paste_action=QtWidgets.QAction("Paste", self, 
-                                            triggered=self.paste_data)
+                                    triggered=self.mainwindow.paste_data)
         self.pastelink_action=QtWidgets.QAction("Paste As Link", self, 
-                                                triggered=self.paste_link)
+                                    triggered=self.mainwindow.paste_link)
         self.delete_action=QtWidgets.QAction("Delete...", self, 
-                                             triggered=self.delete_data)
+                                    triggered=self.mainwindow.delete_data)
         self.link_action=QtWidgets.QAction("Show Link", self, 
-                                           triggered=self.show_link)
+                                    triggered=self.mainwindow.show_link)
         self.signal_action=QtWidgets.QAction("Set Signal...", self, 
-                                             triggered=self.set_signal)
+                                    triggered=self.mainwindow.set_signal)
         self.default_action=QtWidgets.QAction("Set Default", self, 
-                                              triggered=self.set_default)
+                                    triggered=self.mainwindow.set_default)
         self.fit_action=QtWidgets.QAction("Fit...", self, 
-                                          triggered=self.fit_data)
+                                    triggered=self.mainwindow.fit_data)
         self.savefile_action=QtWidgets.QAction("Save as...", self, 
-                                               triggered=self.save_file)
+                                    triggered=self.mainwindow.save_file)
         self.duplicate_action=QtWidgets.QAction("Duplicate...", self, 
-                                                triggered=self.duplicate)
+                                    triggered=self.mainwindow.duplicate)
         self.reload_action=QtWidgets.QAction("Reload...", self, 
-                                             triggered=self.reload)
+                                    triggered=self.mainwindow.reload)
         self.remove_action=QtWidgets.QAction("Remove...", self, 
-                                             triggered=self.remove)
+                                    triggered=self.mainwindow.remove)
         self.lockfile_action=QtWidgets.QAction("Lock", self, 
-                                               triggered=self.lock_file)
+                                    triggered=self.mainwindow.lock_file)
         self.unlockfile_action=QtWidgets.QAction("Unlock...", self, 
-                                                 triggered=self.unlock_file)
+                                     triggered=self.mainwindow.unlock_file)
         self.backup_action=QtWidgets.QAction("Backup", self, 
-                                             triggered=self.backup_file)
+                                    triggered=self.mainwindow.backup_file)
         self.restore_action=QtWidgets.QAction("Restore...", self, 
-                                              triggered=self.restore_file)
+                                    triggered=self.mainwindow.restore_file)
+        self.collapse_action=QtWidgets.QAction("Collapse Tree", self,
+                                    triggered=self.collapse)
 
     def popMenu(self, node):
         menu = QtWidgets.QMenu(self)
@@ -344,6 +351,9 @@ class NXTreeView(QtWidgets.QTreeView):
                     if plotview.ndim == 1:
                         menu.addAction(self.overplot_data_action)
                         menu.addAction(self.overplot_line_action)
+                    if 'auxiliary_signals' in node.attrs:
+                        menu.addAction(self.multiplot_data_action)
+                        menu.addAction(self.multiplot_lines_action)
                 if ((isinstance(node, NXgroup) and 
                      node.plottable_data is not None and
                      node.plottable_data.nxsignal is not None and
@@ -403,82 +413,9 @@ class NXTreeView(QtWidgets.QTreeView):
             if node.nxbackup:
                 menu.addAction(self.restore_action)
             menu.addSeparator
+        menu.addSeparator()
+        menu.addAction(self.collapse_action)
         return menu
-
-    def save_file(self):
-        self.mainwindow.save_file()
-
-    def duplicate(self):
-        self.mainwindow.duplicate()
-
-    def reload(self):
-        self.mainwindow.reload()
-
-    def remove(self):
-        self.mainwindow.remove()
-
-    def lock_file(self):
-        self.mainwindow.lock_file()
-
-    def unlock_file(self):
-        self.mainwindow.unlock_file()
-
-    def backup_file(self):
-        self.mainwindow.backup_file()
-
-    def restore_file(self):
-        self.mainwindow.restore_file()
-
-    def plot_data(self):
-        self.mainwindow.plot_data()
-
-    def plot_line(self):
-        self.mainwindow.plot_line()
-
-    def overplot_data(self):
-        self.mainwindow.overplot_data()
-
-    def overplot_line(self):
-        self.mainwindow.overplot_line()
-
-    def plot_image(self):
-        self.mainwindow.plot_image()
-
-    def view_data(self):
-        self.mainwindow.view_data()
-
-    def add_data(self):
-        self.mainwindow.add_data()
-
-    def initialize_data(self):
-        self.mainwindow.initialize_data()
-
-    def rename_data(self):
-        self.mainwindow.rename_data()
-
-    def copy_data(self):
-        self.mainwindow.copy_data()
-
-    def paste_data(self):
-        self.mainwindow.paste_data()
-
-    def paste_link(self):
-        self.mainwindow.paste_link()
-
-    def delete_data(self):
-        self.mainwindow.delete_data()
-
-    def show_link(self):
-        self.mainwindow.show_link()
-
-    def set_signal(self):
-        self.mainwindow.set_signal()
-
-    def set_default(self):
-        self.mainwindow.set_default()
-
-    def fit_data(self):
-        self.mainwindow.fit_data()
 
     def status_message(self, message):
         if isinstance(message, NXfield):
@@ -521,6 +458,13 @@ class NXTreeView(QtWidgets.QTreeView):
             self.status_message(node)
         else:
             self.status_message('')
+
+    def collapse(self, index=None):
+        if index:
+            super(NXTreeView, self).collapse(index)
+        else:
+            self.collapseAll()
+            self.setCurrentIndex(self.model().index(0,0))
 
     def on_context_menu(self, point):
         self.popMenu(self.get_node()).exec_(self.mapToGlobal(point))

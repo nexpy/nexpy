@@ -16,13 +16,17 @@ import os
 import re
 import sys
 
-from .pyqt import QtCore, QtGui, QtWidgets
 import pkg_resources
 import numpy as np
 
 import matplotlib as mpl
+import lmfit
+
+from .pyqt import QtCore, QtGui, QtWidgets
+
 from nexusformat.nexus import (NeXusError, NXgroup, NXfield, NXattr,
-                               NXroot, NXentry, NXdata, NXparameters, nxload)
+                               NXroot, NXentry, NXdata, NXparameters, 
+                               NXnote, NXprocess, nxload)
 from .datadialogs import BaseDialog
 from .plotview import NXPlotView
 from .utils import report_error
@@ -533,19 +537,21 @@ class FitDialog(BaseDialog):
     def save_fit(self):
         """Saves fit results to an NXentry"""
         self.read_parameters()
-        entry = NXentry()
-        entry['data'] = self.data
+        group = NXprocess()
+        group['data'] = self.data
         for f in self.functions:
-            entry[f.name] = self.get_model(f)
+            group[f.name] = self.get_model(f)
             parameters = NXparameters()
             for p in f.parameters:
                 parameters[p.name] = NXfield(p.value, error=p.stderr, 
                                              initial_value=p.init_value,
                                              min=str(p.min), max=str(p.max))
-            entry[f.name].insert(parameters)
+            group[f.name].insert(parameters)
         if self.fit is not None:
-            entry['title'] = 'Fit Results'
-            entry['fit'] = self.get_model()
+            group['program'] = 'lmfit'
+            group['version'] = lmfit.__version__
+            group['title'] = 'Fit Results'
+            group['fit'] = self.get_model()
             fit = NXparameters()
             fit.nfev = self.fit.result.nfev
             fit.ier = self.fit.result.ier 
@@ -553,10 +559,22 @@ class FitDialog(BaseDialog):
             fit.redchi = self.fit.result.redchi
             fit.message = self.fit.result.message
             fit.lmdif_message = self.fit.result.lmdif_message
-            entry['statistics'] = fit
+            group['statistics'] = fit
+            group.note = NXnote(self.fit.result.message,
+                ('%s\n' % self.fit.result.lmdif_message +
+                 'scipy.optimize.leastsq error value = %s\n' 
+                 % self.fit.result.ier +
+                 'Chi^2 = %s\n' % self.fit.result.chisqr +
+                 'Reduced Chi^2 = %s\n' % self.fit.result.redchi +
+
+                 'No. of Function Evaluations = %s\n' % self.fit.result.nfev +
+                 'No. of Variables = %s\n' % self.fit.result.nvarys +
+                 'No. of Data Points = %s\n' % self.fit.result.ndata +
+                 'No. of Degrees of Freedom = %s\n' % self.fit.result.nfree +
+                 '%s' % self.fit.fit_report()))
         else:
-            entry['title'] = 'Fit Model'
-            entry['model'] = self.get_model()
+            group['title'] = 'Fit Model'
+            group['model'] = self.get_model()
         if 'w0' not in self.tree:
             self.tree['w0'] = nxload(self.mainwindow.scratch_file, 'rw')
         ind = []
@@ -569,7 +587,7 @@ class FitDialog(BaseDialog):
         if not ind:
             ind = [0]
         name = 'f'+str(sorted(ind)[-1]+1)
-        self.tree['w0'][name] = entry
+        self.tree['w0'][name] = group
 
     def restore_parameters(self):
         for f in self.functions:

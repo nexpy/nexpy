@@ -37,8 +37,7 @@ from qtconsole.rich_jupyter_widget import RichJupyterWidget
 from qtconsole.inprocess import QtInProcessKernelManager
 from IPython.core.magic import magic_escapes
 
-from nexusformat.nexus import (nxload, NeXusError, NXFile, NXobject,
-                               NXfield, NXgroup, NXlink, NXroot, NXentry)
+from nexusformat.nexus import *
 
 from .. import __version__
 from .treeview import NXTreeView
@@ -46,7 +45,7 @@ from .plotview import NXPlotView, NXProjectionPanels
 from .datadialogs import *
 from .scripteditor import NXScriptWindow, NXScriptEditor
 from .utils import confirm_action, report_error, display_message 
-from .utils import import_plugin, timestamp
+from .utils import import_plugin, timestamp, get_colors
 
 
 class NXRichJupyterWidget(RichJupyterWidget):
@@ -67,14 +66,17 @@ class MainWindow(QtWidgets.QMainWindow):
     _magic_menu_dict = {}
 
     def __init__(self, app, tree, settings, config):
-        """ Create a MainWindow for the application
+        """ Create a MainWindow for the application.
 
         Parameters
         ----------
-
-        app : reference to QApplication parent
-        tree : :class:`NXTree` root of the :class:`NXTreeView` items
-        config : Jupyter configuration
+        app : QApplication instance
+            Parent application.
+        tree : NXTree instance
+            :class:`NXTree` root of the :class:`NXTreeView` items.
+        settings : NXConfigParser instance
+            ConfigParser instance for accessing the NeXpy settings file.
+        config : JupyterApp.config_file
         """
 
         super(MainWindow, self).__init__()
@@ -191,14 +193,13 @@ class MainWindow(QtWidgets.QMainWindow):
         return plotview
 
     def close(self):
-        """ Called when you quit NeXpy or close the main window.
-        """
+        """ Called when you quit NeXpy or close the main window."""
         title = self.window().windowTitle()
         cancel = QtWidgets.QMessageBox.Cancel
         msg = "Are you sure you want to quit NeXpy?"
         close = QtWidgets.QPushButton("&Quit", self)
         close.setShortcut('Q')
-        close.clicked.connect(QtCore.QCoreApplication.instance().quit)
+        close.clicked.connect(self.quit)
         box = QtWidgets.QMessageBox(QtWidgets.QMessageBox.Question, title, msg)
         box.addButton(cancel)
         box.addButton(close, QtWidgets.QMessageBox.YesRole)
@@ -210,6 +211,10 @@ class MainWindow(QtWidgets.QMainWindow):
 
         return reply
 
+    def quit(self):
+        logging.info('NeXpy closed\n'+80*'-')
+        QtCore.QCoreApplication.instance().quit()
+        
     # Populate the menu bar with common actions and shortcuts
     def add_menu_action(self, menu, action, defer_shortcut=False):
         """Add action to menu as well as self
@@ -307,6 +312,14 @@ class MainWindow(QtWidgets.QMainWindow):
             triggered=self.remove
             )
         self.add_menu_action(self.file_menu, self.remove_action)
+
+        self.file_menu.addSeparator()
+
+        self.collapse_action=QtWidgets.QAction("Collapse Tree",
+            self,
+            triggered=self.collapse_tree
+            )
+        self.add_menu_action(self.file_menu, self.collapse_action)
 
         self.file_menu.addSeparator()
 
@@ -486,6 +499,12 @@ class MainWindow(QtWidgets.QMainWindow):
             triggered=self.overplot_data
             )
         self.add_menu_action(self.data_menu, self.overplot_data_action)
+
+        self.multiplot_data_action=QtWidgets.QAction("Plot All Signals",
+            self,
+            triggered=self.multiplot_data
+            )
+        self.add_menu_action(self.data_menu, self.multiplot_data_action)
 
         self.plot_image_action=QtWidgets.QAction("Plot RGB(A) Image",
             self,
@@ -1149,6 +1168,9 @@ class MainWindow(QtWidgets.QMainWindow):
         except NeXusError as error:
             report_error("Removing File", error)
 
+    def collapse_tree(self):
+        self.treeview.collapse()
+
     def show_import_dialog(self):
         try:
             import_module = self.importer[self.sender()]
@@ -1376,6 +1398,62 @@ class MainWindow(QtWidgets.QMainWindow):
         except NeXusError as error:
             report_error("Overplotting Data", error)
 
+    def multiplot_data(self):
+        try:
+            node = self.treeview.get_node()
+            if node is not None:
+                if not node.exists():
+                    raise NeXusError("'%s' does not exist" % 
+                                     os.path.abspath(node.nxfilename))
+                elif not isinstance(node, NXgroup):
+                    raise NeXusError("Multiplots only available for groups.")
+                elif 'auxiliary_signals' not in node.attrs:
+                    raise NeXusError(
+                        "Group must have the 'auxiliary_signals' attribute.")
+                self.treeview.status_message(node)
+                signals = [node.nxsignal]
+                signals.extend([node[signal] for signal 
+                                in node.attrs['auxiliary_signals']])
+                colors = get_colors(len(signals))
+                for i, signal in enumerate(signals):
+                    if i == 0:
+                        signal.plot(fmt='o', color=colors[i])
+                    else:
+                        signal.oplot(fmt='o', color=colors[i])
+                self.plotview.otab.home()
+                self.plotview.legend(nameonly=True)
+                self.plotview.make_active()
+        except NeXusError as error:
+            report_error("Plotting Data", error)
+
+    def multiplot_lines(self):
+        try:
+            node = self.treeview.get_node()
+            if node is not None:
+                if not node.exists():
+                    raise NeXusError("'%s' does not exist" % 
+                                     os.path.abspath(node.nxfilename))
+                elif not isinstance(node, NXgroup):
+                    raise NeXusError("Multiplots only available for groups.")
+                elif 'auxiliary_signals' not in node.attrs:
+                    raise NeXusError(
+                        "Group must have the 'auxiliary_signals' attribute.")
+                self.treeview.status_message(node)
+                signals = [node.nxsignal]
+                signals.extend([node[signal] for signal 
+                                in node.attrs['auxiliary_signals']])
+                colors = get_colors(len(signals))
+                for i, signal in enumerate(signals):
+                    if i == 0:
+                        signal.plot(fmt='-', color=colors[i])
+                    else:
+                        signal.oplot(fmt='-', color=colors[i])
+                self.plotview.otab.home()
+                self.plotview.legend(nameonly=True)
+                self.plotview.make_active()
+        except NeXusError as error:
+            report_error("Plotting Data", error)
+
     def plot_image(self):
         try:
             node = self.treeview.get_node()
@@ -1573,16 +1651,17 @@ class MainWindow(QtWidgets.QMainWindow):
             node = self.treeview.get_node()
             if node is None:
                 return
-            elif isinstance(node, NXentry) and node.nxtitle == 'Fit Results':
-                entry = node
-                if not entry.data.is_plottable():
+            elif ((isinstance(node, NXentry) or isinstance(node, NXprocess)) and 
+                  node.nxtitle == 'Fit Results'):
+                group = node
+                if not group.data.is_plottable():
                     raise NeXusError("NeXus item not plottable")
             elif isinstance(node, NXdata):
-                entry = NXentry(data=node)
+                group = NXentry(data=node)
             else:
                 raise NeXusError("Select an NXdata group")
-            if len(entry.data.nxsignal.shape) == 1:
-                self.fitdialog = FitDialog(entry)
+            if len(group.data.nxsignal.shape) == 1:
+                self.fitdialog = FitDialog(group)
                 self.fitdialog.show()
                 logging.info("Fitting invoked on'%s'" % node.nxpath)
             else:
@@ -2088,5 +2167,4 @@ class MainWindow(QtWidgets.QMainWindow):
             return
 
         if reply == okay:
-            logging.info('NeXpy closed')
             event.accept()
