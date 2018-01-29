@@ -25,9 +25,10 @@ import numbers
 import numpy as np
 import os
 import pkg_resources
-import posixpath
 import sys
 import warnings
+
+from posixpath import dirname, basename
 
 import matplotlib as mpl
 from matplotlib._pylab_helpers import Gcf
@@ -843,7 +844,7 @@ class NXPlotView(QtWidgets.QDialog):
         else:
             ax.plot(self.x, self.y, fmt,  **opts)
 
-        ax.lines[-1].set_label(self.signal_group + '/'  + self.signal.nxname)
+        ax.lines[-1].set_label(self.signal_group + self.signal.nxname)
 
         if over:
             self.xaxis.lo, self.xaxis.hi = ax.get_xlim()
@@ -991,12 +992,12 @@ class NXPlotView(QtWidgets.QDialog):
     def signal_group(self):
         """Determine full path of signal."""
         if self.data.nxroot.nxclass == "NXroot":
-            return posixpath.dirname(self.data.nxroot.nxname + 
-                                     self.data.nxsignal.nxpath)
+            return dirname(self.data.nxroot.nxname +
+                           self.data.nxsignal.nxpath) + '/'
         elif 'signal_path' in self.data.nxsignal.attrs:
-            return posixpath.dirname(self.data.nxsignal.attrs['signal_path'])
+            return dirname(self.data.nxsignal.attrs['signal_path']) + '/'
         else:
-            return None
+            return ''
 
     @property
     def shape(self):
@@ -1588,7 +1589,7 @@ class NXPlotView(QtWidgets.QDialog):
             handles, labels = items
         self._nameonly = opts.pop('nameonly', self._nameonly)
         if self._nameonly:
-            labels = [posixpath.basename(label) for label in labels]
+            labels = [basename(label) for label in labels]
         self._legend = self.ax.legend(handles, labels, **opts)
         self._legend.draggable(True)
         self.draw()
