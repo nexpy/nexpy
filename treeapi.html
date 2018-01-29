@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>NeXus Tree API Modules &#8212; NeXpy 0.10.9 documentation</title>
+    <title>NeXus Tree API Modules &#8212; NeXpy 0.10.10 documentation</title>
     
     <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.10.9',
+        VERSION:     '0.10.10',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -47,7 +47,7 @@
         <li class="right" >
           <a href="pythongui.html" title="Python Graphical User Interface"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.10.9 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.10.10 documentation</a> &#187;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -387,19 +387,16 @@ done using the h5py interface.</p>
 <dt id="nexusformat.nexus.tree.NXattr">
 <em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXattr</code><span class="sig-paren">(</span><em>value=None</em>, <em>dtype=None</em>, <em>shape=None</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXattr" title="Permalink to this definition">¶</a></dt>
 <dd><p>Class for NeXus attributes of a NXfield or NXgroup object.</p>
-<p>This class is only used for NeXus attributes that are stored in a
-NeXus file and helps to distinguish them from Python attributes.
-There are two Python attributes for each NeXus attribute.</p>
-<p><strong>Python Attributes</strong></p>
 <dl class="docutils">
+<dt>nxvalue <span class="classifier-delimiter">:</span> <span class="classifier">string, Numpy scalar, or Numpy ndarray</span></dt>
+<dd>The value of the NeXus attribute modified as described below.</dd>
 <dt>nxdata <span class="classifier-delimiter">:</span> <span class="classifier">string, Numpy scalar, or Numpy ndarray</span></dt>
-<dd>The value of the NeXus attribute.</dd>
+<dd>The unmodified value of the NeXus attribute.</dd>
 <dt>dtype <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
-<dd>The data type of the NeXus attribute. This is set to &#8216;char&#8217; for
-a string attribute or the string of the corresponding Numpy data type
-for a numeric attribute.</dd>
+<dd>The data type of the NeXus attribute value.</dd>
+<dt>shape <span class="classifier-delimiter">:</span> <span class="classifier">tuple</span></dt>
+<dd>The shape of the NeXus attribute value.</dd>
 </dl>
-<p><strong>NeXus Attributes</strong></p>
 <p>NeXus attributes are stored in the &#8216;attrs&#8217; dictionary of the parent object,
 NXfield or NXgroup, but can often be referenced or assigned using the
 attribute name as if it were an object attribute.</p>
@@ -411,17 +408,32 @@ assignments are all equivalent:</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">entry</span><span class="o">.</span><span class="n">sample</span><span class="o">.</span><span class="n">temperature</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="s1">&#39;K&#39;</span>
 </pre></div>
 </div>
-<p>The fourth version above is only allowed for NXfield attributes and is
-not allowed if the attribute has the same name as one of the following
+<p>The last version above is only allowed for NXfield attributes and is not 
+allowed if the attribute has the same name as one of the following
 internally defined attributes, i.e.,</p>
 <p>[&#8216;entries&#8217;, &#8216;attrs&#8217;, &#8216;dtype&#8217;,&#8217;shape&#8217;]</p>
 <p>or if the attribute name begins with &#8216;nx&#8217; or &#8216;_&#8217;. It is only possible to
 reference attributes with one of the proscribed names using the &#8216;attrs&#8217;
 dictionary.</p>
 <dl class="attribute">
+<dt id="nexusformat.nexus.tree.NXattr.nxvalue">
+<code class="descname">nxvalue</code><a class="headerlink" href="#nexusformat.nexus.tree.NXattr.nxvalue" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the attribute value.</p>
+<p>This is the value stored in the NeXus file, with the following
+exceptions.</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li>Size-1 arrays are returned as scalars.</li>
+<li>String or byte arrays are returns as a list of strings.</li>
+</ol>
+</div></blockquote>
+<p>If unmodified values are required, use the &#8216;nxdata&#8217; property.</p>
+</dd></dl>
+
+<dl class="attribute">
 <dt id="nexusformat.nexus.tree.NXattr.nxdata">
 <code class="descname">nxdata</code><a class="headerlink" href="#nexusformat.nexus.tree.NXattr.nxdata" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the attribute value.</p>
+<dd><p>Returns the unmodified attribute value.</p>
 </dd></dl>
 
 </dd></dl>
@@ -580,7 +592,6 @@ which NeXus objects have been changed.</p>
 <dd><p>A NeXus data field.</p>
 <p>This is a subclass of NXobject that contains scalar, array, or string data
 and associated NeXus attributes.</p>
-<p><strong>Input Parameters</strong></p>
 <dl class="docutils">
 <dt>value <span class="classifier-delimiter">:</span> <span class="classifier">scalar value, Numpy array, or string</span></dt>
 <dd>The numerical or string value of the NXfield, which is directly
@@ -615,9 +626,9 @@ all have class NXattr.</dd>
 using the convention for unix file paths.</dd>
 <dt>group <span class="classifier-delimiter">:</span> <span class="classifier">NXgroup or subclass of NXgroup</span></dt>
 <dd>The parent NeXus object. If the NXfield is initialized as the attribute
-of a parent group, this attribute is automatically set to the parent group.</dd>
+of a parent group, this attribute is automatically set to the parent 
+group.</dd>
 </dl>
-<p><strong>Python Attributes</strong></p>
 <dl class="docutils">
 <dt>nxclass <span class="classifier-delimiter">:</span> <span class="classifier">&#8216;NXfield&#8217;</span></dt>
 <dd>The class of the NXobject.</dd>
@@ -778,28 +789,6 @@ operation, e.g.,</p>
 <span class="go">array([ 1.        ,  1.41421356,  1.73205081,  2.        ])</span>
 </pre></div>
 </div>
-<p><strong>Methods</strong></p>
-<dl class="docutils">
-<dt>dir(self, attrs=False):</dt>
-<dd><p class="first">Print the NXfield specification.</p>
-<p class="last">This outputs the name, dimensions and data type of the NXfield.
-If &#8216;attrs&#8217; is True, NXfield attributes are displayed.</p>
-</dd>
-<dt>tree:</dt>
-<dd><p class="first">Returns the NXfield&#8217;s tree.</p>
-<p class="last">It invokes the &#8216;dir&#8217; method with both &#8216;attrs&#8217; and &#8216;recursive&#8217;
-set to True. Note that this is defined as a property attribute and
-does not require parentheses.</p>
-</dd>
-<dt>save(self, filename, format=&#8217;w5&#8217;)</dt>
-<dd><p class="first">Save the NXfield into a file wrapped in a NXroot group and NXentry group
-with default names. This is equivalent to</p>
-<div class="last highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">NXroot</span><span class="p">(</span><span class="n">NXentry</span><span class="p">(</span><span class="n">NXfield</span><span class="p">(</span><span class="o">...</span><span class="p">)))</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
-</pre></div>
-</div>
-</dd>
-</dl>
-<p><strong>Examples</strong></p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">NXfield</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span><span class="mi">101</span><span class="p">),</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;degree&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">phi</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">nxdata_as</span><span class="p">(</span><span class="n">units</span><span class="o">=</span><span class="s1">&#39;radian&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">y</span> <span class="o">=</span> <span class="n">NXfield</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">phi</span><span class="p">))</span>
@@ -940,9 +929,24 @@ invalidate the check.</p>
 </dd></dl>
 
 <dl class="attribute">
+<dt id="nexusformat.nexus.tree.NXfield.nxvalue">
+<code class="descname">nxvalue</code><a class="headerlink" href="#nexusformat.nexus.tree.NXfield.nxvalue" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the NXfield value.</p>
+<p>This is the value stored in the NeXus file, with the following
+exceptions.</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li>Size-1 arrays are returned as scalars.</li>
+<li>String or byte arrays are returns as a list of strings.</li>
+</ol>
+</div></blockquote>
+<p>If unmodified values are required, use the &#8216;nxdata&#8217; property.</p>
+</dd></dl>
+
+<dl class="attribute">
 <dt id="nexusformat.nexus.tree.NXfield.nxdata">
 <code class="descname">nxdata</code><a class="headerlink" href="#nexusformat.nexus.tree.NXfield.nxdata" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the data if it is not larger than NX_MEMORY.</p>
+<dd><p>Returns the NXfield data if it is not larger than NX_MEMORY.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -1057,7 +1061,8 @@ a parent group, this is set to the parent group.</dd>
 <dt>entries <span class="classifier-delimiter">:</span> <span class="classifier">dictionary</span></dt>
 <dd>A dictionary of all the NeXus objects contained within an NXgroup.</dd>
 <dt>attrs <span class="classifier-delimiter">:</span> <span class="classifier">dictionary</span></dt>
-<dd>A dictionary of all the NeXus attributes, i.e., attribute with class NXattr.</dd>
+<dd>A dictionary of all the NeXus attributes, i.e., attribute with class 
+NXattr.</dd>
 <dt>entries <span class="classifier-delimiter">:</span> <span class="classifier">dictionary</span></dt>
 <dd>A dictionary of all the NeXus objects contained within the group.</dd>
 <dt>attrs <span class="classifier-delimiter">:</span> <span class="classifier">dictionary</span></dt>
@@ -1934,7 +1939,7 @@ are defined:</p>
 
 <dl class="class">
 <dt id="nexusformat.nexus.tree.NXmonitor">
-<em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXmonitor</code><span class="sig-paren">(</span><em>signal=None</em>, <em>axes=()</em>, <em>*items</em>, <em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXmonitor" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">nexusformat.nexus.tree.</code><code class="descname">NXmonitor</code><span class="sig-paren">(</span><em>signal=None</em>, <em>axes=None</em>, <em>*items</em>, <em>**opts</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXmonitor" title="Permalink to this definition">¶</a></dt>
 <dd><p>NXmonitor group. This is a subclass of the NXdata class.</p>
 <p>See the NXdata and NXgroup documentation for more details.</p>
 </dd></dl>
@@ -2058,7 +2063,7 @@ ls f1.nxs f2.nxs ...</div></blockquote>
         <li class="right" >
           <a href="pythongui.html" title="Python Graphical User Interface"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.10.9 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.10.10 documentation</a> &#187;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
