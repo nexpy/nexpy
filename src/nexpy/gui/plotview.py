@@ -1386,7 +1386,7 @@ class NXPlotView(QtWidgets.QDialog):
             else:
                 self._aspect = 'auto'
         try:
-            plotview.ax.set_aspect(self._aspect)
+            self.ax.set_aspect(self._aspect)
             self.canvas.draw()
         except:
             pass
@@ -1437,7 +1437,7 @@ class NXPlotView(QtWidgets.QDialog):
         if self.skew is not None and self._aspect == 'auto':
             self._aspect = 'equal'
             self.otab._actions['set_aspect'].setChecked(True)
-            plotview.ax.set_aspect(self._aspect)
+            self.ax.set_aspect(self._aspect)
         if self.image is not None:
             self.replot_data(newaxis=True)
             self.update_customize_panel()
@@ -3827,8 +3827,8 @@ class NXProjectionPanel(QtWidgets.QWidget):
             else:
                 self.overplot_box.setVisible(False)
                 self.overplot_box.setChecked(False)
-            self.plotview.make_active()
-            plotviews[projection.label].raise_()
+            projection.make_active()
+            projection.raise_()
             self.panels.update()
         except NeXusError as error:
             report_error("Plotting Projection", error)
