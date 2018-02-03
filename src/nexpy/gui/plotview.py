@@ -1131,11 +1131,12 @@ class NXPlotView(QtWidgets.QDialog):
         try:
             self.set_data_limits()
             self.set_data_norm()
-            self.colorbar.locator = self.locator
-            self.colorbar.formatter = self.formatter
-            self.colorbar.set_norm(self.norm)
             self.image.set_norm(self.norm)
-            self.colorbar.update_normal(self.image)
+            if self.colorbar:
+                self.colorbar.locator = self.locator
+                self.colorbar.formatter = self.formatter
+                self.colorbar.set_norm(self.norm)
+                self.colorbar.update_normal(self.image)
             self.image.set_clim(self.vaxis.lo, self.vaxis.hi)
             if self.regular_grid:
                 if self.interpolation == 'convolve':
