@@ -53,7 +53,8 @@ class ImportDialog(BaseImportDialog):
 
         header = NXcollection()
         for k, v in im.header.items():
-            header[k] = v
+            if v is not None:
+                header[k] = v
 
         if note:
             return NXentry(NXdata(z,(y,x), CBF_header=note, header=header))
