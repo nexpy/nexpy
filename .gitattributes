@@ -1,1 +1,42 @@
-src/nexpy/_version.py export-subst
+# Auto detect text files and perform LF normalization
+* text=auto
+
+# Source files
+# ============
+*.pxd       text
+*.py        text
+*.py3       text
+*.pyw       text
+*.pyx       text
+*.xml       text
+*.md        text
+*.rst       text
+*.bat       text
+*.sh        text
+*.yaml      text
+*.cfg       text
+*.ipynb     text
+
+# Binary files
+# ============
+*.nxs       binary
+*.h5        binary
+*.db        binary
+*.p         binary
+*.pkl       binary
+*.pyc       binary
+*.pyd       binary
+*.pyo       binary
+*.png       binary
+*.jpg       binary
+*.jpeg      binary
+*.gif       binary
+*.tif       binary
+*.tiff      binary
+*.svg       binary
+*.eps       binary
+*.ico       binary
+
+# Versioneer setting
+#===================
+src/nexusformat/_version.py export-subst
