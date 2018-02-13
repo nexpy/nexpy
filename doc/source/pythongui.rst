@@ -614,8 +614,8 @@ and sliders.
       scratch workspace 'w0'.
     * **Edit** - opens dialog to customize both image and point plots. Use this
       to change the title and axis labels, modify the image aspect ratio and 
-      skew angles, turn axis grids on or off and set their styles, or modify the 
-      point plot markers and lines.
+      skew angles, turn axis grids on or off and set their styles, modify the 
+      point plot markers and lines, and draw legends.
 
     On the far right of the toolbar, the data and axis values are dynamically 
     updated to the values under the current mouse location.
@@ -730,6 +730,18 @@ and sliders.
   conventions 
   <http://matplotlib.org/api/axes_api.html?highlight=grid#matplotlib.axes.Axes.grid>`_.
 
+* Draw Legend::
+
+    >>> plotview.legend(*items, *opts)
+
+  This draws a legend using the standard Matplotlib API, *i.e.*, it is 
+  broadly equivalent to calling ``plotview.ax.legend()``. It is only intended
+  to be used for one-dimensional plots. By default, the labels will contain the 
+  full path to each plotted field, but setting the keyword argument, 
+  ``nameonly=True`` will restrict the label to the field name.
+  
+  .. note:: Legends are supported in the Customize Dialog since v0.10.9.
+
 * Convert to Symmetric Log Plot:
 
     >>> plotview.symlog(linthresh, linscale, vmax)
@@ -767,6 +779,8 @@ and sliders.
     * **p** - switch to the Projection tab.
     * **o** - switch to the Options tab.
     * **l** - toggle logarithmic signal scale (2D plots only).
+    * **g** - toggle display of major and minor grid.
+    * **G** - toggle display of major grid.
     * **P** - toggle panning mode (if enabled, zoom mode is disabled).
     * **Z** - toggle zoom mode (if enabled, pan mode is disabled).
     * **E** - toggle the aspect ratio between 'equal' and 'automatic'.
