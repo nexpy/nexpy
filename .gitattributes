@@ -39,4 +39,4 @@
 
 # Versioneer setting
 #===================
-src/nexusformat/_version.py export-subst
+src/nexpy/_version.py export-subst
