@@ -1026,11 +1026,11 @@ class CustomizeDialog(BaseDialog):
         else:
             for curve in self.curves:
                 p = self.parameters[curve]
-                p.grid_layout.addWidget(p['linecolor'].color_button, 2, 2, 
+                p.grid_layout.addWidget(p['linecolor'].color_button, 4, 2, 
                                         alignment=QtCore.Qt.AlignCenter)
-                p.grid_layout.addWidget(p['facecolor'].color_button, 5, 2, 
+                p.grid_layout.addWidget(p['facecolor'].color_button, 7, 2, 
                                         alignment=QtCore.Qt.AlignCenter)
-                p.grid_layout.addWidget(p['edgecolor'].color_button, 6, 2, 
+                p.grid_layout.addWidget(p['edgecolor'].color_button, 8, 2, 
                                         alignment=QtCore.Qt.AlignCenter)
 
     def select_curve(self):
