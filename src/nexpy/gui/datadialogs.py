@@ -1064,7 +1064,7 @@ class CustomizeDialog(BaseDialog):
             _nameonly = False
         else:
             _nameonly = True
-        if legend_location == 'None' or self.is_empty_legend():
+        if legend_location == 'none' or self.is_empty_legend():
             self.plotview.remove_legend()
         else:
             curves = []
