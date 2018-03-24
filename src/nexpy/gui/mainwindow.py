@@ -37,6 +37,12 @@ from qtconsole.rich_jupyter_widget import RichJupyterWidget
 from qtconsole.inprocess import QtInProcessKernelManager
 from IPython.core.magic import magic_escapes
 
+import matplotlib.image as img
+try:
+    import fabio
+except ImportError:
+    fabio = None
+
 from nexusformat.nexus import *
 
 from .. import __version__
@@ -45,7 +51,7 @@ from .plotview import NXPlotView, NXProjectionPanels
 from .datadialogs import *
 from .scripteditor import NXScriptWindow, NXScriptEditor
 from .utils import confirm_action, report_error, display_message 
-from .utils import import_plugin, timestamp, get_colors
+from .utils import import_plugin, timestamp, get_name, get_colors
 
 
 class NXRichJupyterWidget(RichJupyterWidget):
@@ -274,6 +280,13 @@ class MainWindow(QtWidgets.QMainWindow):
         self.addAction(self.openeditablefile_action)
 
         self.init_recent_menu()
+
+        self.openimage_action=QtWidgets.QAction("Open Image...",
+            self,
+            shortcut="Ctrl+Alt+O",
+            triggered=self.open_image
+            )
+        self.add_menu_action(self.file_menu, self.openimage_action)
 
         try:
             import h5pyd
@@ -1030,6 +1043,64 @@ class MainWindow(QtWidgets.QMainWindow):
         except NeXusError as error:
             report_error("Opening Recent File", error)
 
+    def open_image(self):
+        try:
+            file_filter = ';;'.join(("Any Files (*.* *)",
+                                     "TIFF Files (*.tiff *.tif)",
+                                     "CBF Files (*.cbf)",
+                                     "JPEG/PNG Files (*.jpg *.jpeg *.png)"))
+            fname = getOpenFileName(self, 'Open Image File',
+                                    self.default_directory, file_filter)
+            if fname is None:
+                return
+            try:
+                im = fabio.open(fname)
+                z = NXfield(im.data, name='z')
+                y = NXfield(range(z.shape[0]), name='y')
+                x = NXfield(range(z.shape[1]), name='x')
+                data = NXdata(z,(y,x))
+                if im.header:
+                    header = NXcollection()
+                    for k, v in im.header.items():
+                        if v is not None:
+                            header[k] = v
+                    data.header = header
+                if im.getclassname() == 'CbfImage':
+                    note = NXnote(type='text/plain', file_name=fname)
+                    note.data = im.header.pop('_array_data.header_contents', '')
+                    note.description = im.header.pop(
+                        '_array_data.header_convention', '')
+                    data.CBF_header = note
+            except Exception as fabio_error:
+                try:
+                    im = img.imread(fname)
+                except Exception as error:
+                    if fabio:
+                        raise NeXusError(fabio_error)
+                    else:
+                        raise NeXusError(
+                    "Image cannot be opened. Please install the 'fabio' module")
+                z = NXfield(im, name='z')
+                y = NXfield(range(z.shape[0]), name='y')
+                x = NXfield(range(z.shape[1]), name='x')
+                if z.ndim > 2:
+                    rgba = NXfield(range(z.shape[2]), name='rgba')
+                    data = NXdata(z, (y,x,rgba))
+                else:        
+                    data = NXdata(z, (y,x))
+            if 'images' not in self.tree:
+                self.tree['images'] = NXroot()  
+            name = get_name(fname, self.tree['images'].entries)
+            self.tree['images'][name] = data
+            node = self.tree['images'][name]
+            self.treeview.select_node(node)
+            self.treeview.setFocus()
+            self.default_directory = os.path.dirname(fname)
+            logging.info("Image file '%s' opened as '%s'" 
+                         % (fname, node.nxpath))
+        except NeXusError as error:
+            report_error("Opening Image File", error)
+
     def open_remote_file(self):
         try:
             dialog = RemoteDialog(parent=self)
@@ -1647,7 +1718,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 from .fitdialogs import FitDialog
             except ImportError:
                 logging.info("The lmfit module is not installed")
-                raise NeXusError("Please install the lmfit module")
+                raise NeXusError("Please install the 'lmfit' module")
             node = self.treeview.get_node()
             if node is None:
                 return
