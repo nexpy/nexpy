@@ -216,6 +216,9 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
         fmt = '%(asctime)s - %(levelname)s - %(message)s'
         formatter = logging.Formatter(fmt, None)
         handler.setFormatter(formatter)
+        if logging.root.hasHandlers():
+            for h in logging.root.handlers:
+                logging.root.removeHandler(h)
         logging.root.addHandler(handler)
         levels = {'CRITICAL':logging.CRITICAL, 'ERROR':logging.ERROR,
                   'WARNING':logging.WARNING, 'INFO':logging.INFO, 

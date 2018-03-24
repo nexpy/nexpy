@@ -182,6 +182,26 @@ def convertHTML(text):
     except ImportError:
         return ansi_re.sub('', text)
 
+
+def get_name(filename, entries=[]):
+    """Return a valid object name from a filename."""
+    name = os.path.splitext(os.path.basename(filename))[0].replace(' ','_')
+    name = "".join([c for c in name.replace('-','_') 
+                    if c.isalpha() or c.isdigit() or c=='_'])
+    if name in entries:
+        ind = []
+        for key in entries:
+            try:
+                if key.startswith(name+'_'): 
+                    ind.append(int(key[len(name)+1:]))
+            except ValueError:
+                pass
+        if ind == []: 
+            ind = [0]
+        name = name+'_'+str(sorted(ind)[-1]+1)
+    return name
+
+
 def get_colors(n, first='#1f77b4', last='#d62728'):
     """Return a list of colors interpolating between the first and last.
 
