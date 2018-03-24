@@ -1076,10 +1076,10 @@ class MainWindow(QtWidgets.QMainWindow):
                     im = img.imread(fname)
                 except Exception as error:
                     if fabio:
-                        raise NeXusError(fabio_error)
+                        raise NeXusError("Unable to open image")
                     else:
                         raise NeXusError(
-                    "Image cannot be opened. Please install the 'fabio' module")
+                    "Unable to open image. Please install the 'fabio' module")
                 z = NXfield(im, name='z')
                 y = NXfield(range(z.shape[0]), name='y')
                 x = NXfield(range(z.shape[1]), name='x')
