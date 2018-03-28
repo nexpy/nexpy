@@ -750,11 +750,14 @@ class NXPlotView(QtWidgets.QDialog):
                         idx[i] = self.axes[i].index(0.0)
                     except Exception:
                         idx[i] = 0
-            self.signal = self.data.nxsignal[tuple(idx)][()]
+            signal = self.data.nxsignal[tuple(idx)][()]
         elif self.rgb_image:
-            self.signal = self.data.nxsignal[()]
+            signal = self.data.nxsignal[()]
         else:
-            self.signal = self.data.nxsignal[()].reshape(self.shape)
+            signal = self.data.nxsignal[()].reshape(self.shape)
+        if signal.dtype == np.bool:
+            signal.dtype = np.int8
+        self.signal = signal        
 
         if over:
             self.axis['signal'].set_data(self.signal)
