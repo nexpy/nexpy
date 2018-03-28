@@ -1879,7 +1879,7 @@ class NXPlotView(QtWidgets.QDialog):
 
     yline = ylines
 
-    def rectangle(self, x, y, dx, dy, **opts):
+    def rectangle(self, x, y, dx, dy, border_tol=0.1, **opts):
         """Plot rectangle.
         
         Note
@@ -1900,17 +1900,14 @@ class NXPlotView(QtWidgets.QDialog):
         rectangle : Polygon
             Matplotlib polygon object.
         """
-        if self.skew is None:
-            rectangle = self.ax.add_patch(Rectangle((float(x),float(y)),
-                                          float(dx), float(dy), **opts))
-        else:
-            xc, yc = [x, x, x+dx, x+dx], [y, y+dy, y+dy, y]
-            xy = [self.transform(_x, _y) for _x,_y in zip(xc,yc)]
-            rectangle = self.ax.add_patch(Polygon(xy, True, **opts))
-        if 'linewidth' not in opts:
-            rectangle.set_linewidth(1.0)
-        if 'facecolor' not in opts:
-            rectangle.set_facecolor('none')
+#        if self.skew is None:
+#            rectangle = self.ax.add_patch(Rectangle((float(x),float(y)),
+#                                          float(dx), float(dy), **opts))
+#        else:
+#            xc, yc = [x, x, x+dx, x+dx], [y, y+dy, y+dy, y]
+#            xy = [self.transform(_x, _y) for _x,_y in zip(xc,yc)]
+#            rectangle = self.ax.add_patch(Polygon(xy, True, **opts))
+        rectangle = NXrectangle(x, y, dx, dy, border_tol, plotview=self, **opts)
         self.canvas.draw()
         self.shapes.append(rectangle)
         return rectangle
@@ -1980,7 +1977,7 @@ class NXPlotView(QtWidgets.QDialog):
         self.shapes.append(ellipse)
         return ellipse
 
-    def circle(self, x, y, radius, **opts):
+    def circle(self, x, y, radius, border_tol=0.1, **opts):
         """Plot circle.
         
         Parameters
@@ -1994,8 +1991,8 @@ class NXPlotView(QtWidgets.QDialog):
 
         Returns
         -------
-        circle : Circle
-            Matplotlib circle object.
+        circle : NXcircle
+            A draggable and expandable circle object.
 
         Notes
         -----
@@ -2004,12 +2001,7 @@ class NXPlotView(QtWidgets.QDialog):
         """
         if self.skew is not None:
             x, y = self.transform(x, y)
-        circle = self.ax.add_patch(Circle((float(x),float(y)), radius,
-                                              **opts))
-        if 'linewidth' not in opts:
-            circle.set_linewidth(1.0)
-        if 'facecolor' not in opts:
-            circle.set_facecolor('none')
+        circle = NXcircle(x, y, radius, border_tol, plotview=self, **opts)
         self.canvas.draw()
         self.shapes.append(circle)
         return circle
@@ -4122,6 +4114,163 @@ class NXNavigationToolbar(NavigationToolbar):
             self.plotview.canvas.setFocus()
         else:
             self.set_message('')
+
+
+class NXpatch(object):
+    """Class for a draggable shape on the NXPlotView canvas"""
+    lock = None
+     
+    def __init__(self, shape, border_tol=0.1, plotview=None):
+        if plotview:
+            self.plotview = get_plotview()
+        self.canvas = self.plotview.canvas
+        self.shape = shape
+        self.border_tol = border_tol
+        self.press = None
+        self.background = None
+        self.allow_resize = True
+        self._active = None
+        self.plotview.ax.add_patch(self.shape)
+
+    def connect(self):
+        'connect to all the events we need'
+        self._active = self.plotview.otab._active
+        if self._active == 'ZOOM':
+            self.plotview.otab.zoom()
+        elif self._active == 'PAN':
+            self.plotview.otab.pan()
+        self.cidpress = self.canvas.mpl_connect(
+            'button_press_event', self.on_press)
+        self.cidrelease = self.canvas.mpl_connect(
+            'button_release_event', self.on_release)
+        self.cidmotion = self.canvas.mpl_connect(
+            'motion_notify_event', self.on_motion)
+
+    def is_inside(self, event):
+        if event.inaxes != self.shape.axes: 
+            return False
+        contains, attrd = self.shape.contains(event)
+        if contains:
+            return True
+        else:
+            return False
+
+    def initialize(self, xp, yp):
+        """Function to be overridden by shape sub-class."""
+
+    def update(self, x, y):
+        """Function to be overridden by shape sub-class"""
+
+    def on_press(self, event):
+        'on button press we will see if the mouse is over us and store some data'
+        if not self.is_inside(event):
+            self.press = None
+            return
+        self.press = self.initialize(event.xdata, event.ydata)
+        self.canvas.draw()
+
+    def on_motion(self, event):
+        """on motion we will move the rect if the mouse is over us"""
+        if self.press is None: 
+            return
+        if event.inaxes != self.shape.axes: 
+            return
+        self.update(event.xdata, event.ydata)
+        self.canvas.draw()
+
+    def on_release(self, event):
+        'on release we reset the press data'
+        if self.press is None:
+            return
+        self.press = None
+        self.disconnect()
+        self.canvas.draw()
+
+    def disconnect(self):
+        'disconnect all the stored connection ids'
+        self.canvas.mpl_disconnect(self.cidpress)
+        self.canvas.mpl_disconnect(self.cidrelease)
+        self.canvas.mpl_disconnect(self.cidmotion)
+        if self._active == 'ZOOM':
+            self.plotview.otab.zoom()
+        elif self._active == 'PAN':
+            self.plotview.otab.pan()
+
+
+class NXcircle(NXpatch):
+
+    def __init__(self, x, y, radius, border_tol=0.1, plotview=None, **opts):
+        shape = Circle((float(x),float(y)), radius, **opts)
+        if 'linewidth' not in opts:
+            shape.set_linewidth(1.0)
+        if 'facecolor' not in opts:
+            shape.set_facecolor('r')
+        super(NXcircle, self).__init__(shape, border_tol, plotview)
+        self.circle = self.shape
+
+    def initialize(self, xp, yp):
+        x0, y0 = self.circle.center
+        r0 = self.circle.radius
+        if (self.allow_resize and
+            (np.sqrt((xp-x0)**2 + (yp-y0)**2) > r0 * (1-self.border_tol))):
+            expand = True
+        else:
+            expand = False
+        return x0, y0, r0, xp, yp, expand   
+
+    def update(self, x, y):
+        x0, y0, r0, xp, yp, expand = self.press
+        dx, dy = (x-xp, y-yp)
+        bt = self.border_tol
+        if expand:
+            r1 = np.sqrt((xp + dx - x0)**2 + (yp + dy - y0)**2)
+            self.shape.set_radius(r1)
+        else:
+            self.circle.center = (x0 + dx, y0 + dy)
+            self.circle.set_radius(r0)
+
+
+class NXrectangle(NXpatch):
+
+    def __init__(self, x, y, dx, dy, border_tol=0.1, plotview=None, **opts):
+        shape = Rectangle((float(x),float(y)), float(dx), float(dy), **opts)
+        if 'linewidth' not in opts:
+            shape.set_linewidth(1.0)
+        if 'facecolor' not in opts:
+            shape.set_facecolor('r')
+        super(NXrectangle, self).__init__(shape, border_tol, plotview)
+        self.rectangle = self.shape
+
+    def initialize(self, xp, yp):
+        x0, y0 = self.rectangle.xy
+        w0, h0 = self.rectangle.get_width(), self.rectangle.get_height()
+        bt = self.border_tol
+        if (self.allow_resize and
+            (abs(x0+np.true_divide(w0,2)-xp)>np.true_divide(w0,2)-bt*w0 or
+             abs(y0+np.true_divide(h0,2)-yp)>np.true_divide(h0,2)-bt*h0)):
+            expand = True
+        else:
+            expand = False
+        return x0, y0, w0, h0, xp, yp, expand   
+
+    def update(self, x, y):
+        x0, y0, w0, h0, xp, yp, expand = self.press
+        dx, dy = (x-xp, y-yp)
+        bt = self.border_tol
+        if expand:
+            if abs(x0 - xp) < bt * w0:
+                self.rectangle.set_x(x0+dx)
+                self.rectangle.set_width(w0-dx)
+            if abs(x0 + w0 - xp) < bt * w0:
+                self.rectangle.set_width(w0+dx)
+            elif abs(y0 - yp) < bt * h0:
+                self.rectangle.set_y(y0+dy)
+                self.rectangle.set_height(h0-dy)
+            elif abs(y0 + h0 - yp) < bt * h0:
+                self.rectangle.set_height(h0+dy)
+        else:
+            self.rectangle.set_x(x0+dx)
+            self.rectangle.set_y(y0+dy)
 
 
 class NXSymLogNorm(SymLogNorm):
