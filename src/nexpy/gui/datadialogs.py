@@ -344,7 +344,7 @@ class BaseDialog(QtWidgets.QDialog):
     def other_root(self):
         return self.tree[self.other_root_box.currentText()]
 
-    def select_entry(self, slot=None, text='Select Entry :', other=False):
+    def select_entry(self, slot=None, text='Select Entry', other=False):
         layout = QtWidgets.QHBoxLayout()
         box = NXComboBox()
         entries = []
@@ -361,10 +361,10 @@ class BaseDialog(QtWidgets.QDialog):
                     box.setCurrentIndex(idx)
             except Exception:
                 box.setCurrentIndex(0)
-        if slot:
-            box.currentIndexChanged.connect(slot)
-        layout.addWidget(QtWidgets.QLabel(text))
+        layout.addStretch()
         layout.addWidget(box)
+        if slot:
+            layout.addWidget(NXPushButton(text, slot))
         layout.addStretch()
         if not other:
             self.entry_box = box
