@@ -92,6 +92,21 @@ class BaseDialog(QtWidgets.QDialog):
                 self.layout.addWidget(item)
         self.setLayout(self.layout)
 
+    def make_layout(self, *items, horizontal=True):
+        if horizontal:
+            layout = QtWidgets.QHBoxLayout()
+            layout.addStretch()
+        else:
+            layout = QtWidgets.QVBoxLayout()
+        for item in items:
+            if isinstance(item, QtWidgets.QLayout):
+                layout.addLayout(item)
+            elif isinstance(item, QtWidgets.QWidget):
+                layout.addWidget(item)
+        if horizontal:
+            layout.addStretch()
+        return layout
+
     def set_title(self, title):
         self.setWindowTitle(title)
 
