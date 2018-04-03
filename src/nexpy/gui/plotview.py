@@ -367,6 +367,7 @@ class NXPlotView(QtWidgets.QDialog):
 
         self.projection_panel = None
         self.customize_panel = None
+        self.mask_panel = None
         self.shapes = []
 
         if self.label != "Main":
@@ -632,7 +633,7 @@ class NXPlotView(QtWidgets.QDialog):
             If True, the x-axis is plotted on a log scale.
         logy : bool
             If True, the y-axis is plotted on a log scale. This is 
-            equivalent to 'log=True' for one-dimenional data.
+            equivalent to 'log=True' for one-dimensional data.
         skew : float
             The value of the skew angle between the x and y axes for 2D 
             plots.
@@ -1906,7 +1907,7 @@ class NXPlotView(QtWidgets.QDialog):
 
     yline = ylines
 
-    def rectangle(self, x, y, dx, dy, border_tol=0.1, **opts):
+    def rectangle(self, x, y, dx, dy, **opts):
         """Plot rectangle.
         
         Note
@@ -1927,14 +1928,17 @@ class NXPlotView(QtWidgets.QDialog):
         rectangle : Polygon
             Matplotlib polygon object.
         """
-#        if self.skew is None:
-#            rectangle = self.ax.add_patch(Rectangle((float(x),float(y)),
-#                                          float(dx), float(dy), **opts))
-#        else:
-#            xc, yc = [x, x, x+dx, x+dx], [y, y+dy, y+dy, y]
-#            xy = [self.transform(_x, _y) for _x,_y in zip(xc,yc)]
-#            rectangle = self.ax.add_patch(Polygon(xy, True, **opts))
-        rectangle = NXrectangle(x, y, dx, dy, border_tol, plotview=self, **opts)
+        if self.skew is None:
+            rectangle = self.ax.add_patch(Rectangle((float(x),float(y)),
+                                          float(dx), float(dy), **opts))
+        else:
+            xc, yc = [x, x, x+dx, x+dx], [y, y+dy, y+dy, y]
+            xy = [self.transform(_x, _y) for _x,_y in zip(xc,yc)]
+            rectangle = self.ax.add_patch(Polygon(xy, True, **opts))
+        if 'linewidth' not in opts:
+            rectangle.set_linewidth(1.0)
+        if 'facecolor' not in opts:
+            rectangle.set_facecolor('none')
         self.canvas.draw()
         self.shapes.append(rectangle)
         return rectangle
@@ -2004,7 +2008,7 @@ class NXPlotView(QtWidgets.QDialog):
         self.shapes.append(ellipse)
         return ellipse
 
-    def circle(self, x, y, radius, border_tol=0.1, **opts):
+    def circle(self, x, y, radius, **opts):
         """Plot circle.
         
         Parameters
@@ -2018,8 +2022,8 @@ class NXPlotView(QtWidgets.QDialog):
 
         Returns
         -------
-        circle : NXcircle
-            A draggable and expandable circle object.
+        circle : Circle
+            Matplotlib circle object.
 
         Notes
         -----
@@ -2028,7 +2032,14 @@ class NXPlotView(QtWidgets.QDialog):
         """
         if self.skew is not None:
             x, y = self.transform(x, y)
-        circle = NXcircle(x, y, radius, border_tol, plotview=self, **opts)
+        circle = self.ax.add_patch(Circle((float(x),float(y)), radius,
+                                              **opts))
+        if 'linewidth' not in opts:
+            circle.set_linewidth(1.0)
+        if 'facecolor' not in opts:
+            circle.set_facecolor('r')
+        if 'edgecolor' not in opts:
+            circle.set_edgecolor('k')
         self.canvas.draw()
         self.shapes.append(circle)
         return circle
@@ -2134,6 +2145,8 @@ class NXPlotView(QtWidgets.QDialog):
             self.projection_panel.close()
         if self.customize_panel:
             self.customize_panel.close()
+        if self.mask_panel:
+            self.mask_panel.close()
 
     def update_tabs(self):
         """Update tabs when limits have changed."""
@@ -2250,6 +2263,8 @@ class NXPlotView(QtWidgets.QDialog):
             self.projection_panel.close()
         if self.customize_panel:
             self.customize_panel.close()
+        if self.mask_panel:
+            self.mask_panel.close()
         if self.mainwindow.panels.tabs.count() == 0:
             self.mainwindow.panels.setVisible(False)
 
@@ -4225,6 +4240,7 @@ class NXcircle(NXpatch):
         if 'facecolor' not in opts:
             shape.set_facecolor('r')
         super(NXcircle, self).__init__(shape, border_tol, plotview)
+        self.shape.set_label('Circle')
         self.circle = self.shape
 
     def initialize(self, xp, yp):
@@ -4242,8 +4258,8 @@ class NXcircle(NXpatch):
         dx, dy = (x-xp, y-yp)
         bt = self.border_tol
         if expand:
-            r1 = np.sqrt((xp + dx - x0)**2 + (yp + dy - y0)**2)
-            self.shape.set_radius(r1)
+            radius = np.sqrt((xp + dx - x0)**2 + (yp + dy - y0)**2)
+            self.shape.set_radius(radius)
         else:
             self.circle.center = (x0 + dx, y0 + dy)
             self.circle.set_radius(r0)
@@ -4258,6 +4274,7 @@ class NXrectangle(NXpatch):
         if 'facecolor' not in opts:
             shape.set_facecolor('r')
         super(NXrectangle, self).__init__(shape, border_tol, plotview)
+        self.shape.set_label('Rectangle')
         self.rectangle = self.shape
 
     def initialize(self, xp, yp):
