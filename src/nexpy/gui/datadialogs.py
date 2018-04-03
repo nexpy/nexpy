@@ -570,9 +570,9 @@ class GridParameter(object):
             self.box.setAlignment(QtCore.Qt.AlignRight)
             if value is not None:
                 if isinstance(value, NXfield):
-                    if value.shape == ():
+                    if value.shape == () or value.shape == (1,):
                         self.field = value
-                        self.value = self.field.nxdata
+                        self.value = self.field.nxvalue
                     else:
                         raise NeXusError(
                             "Cannot set a grid parameter to an array")
