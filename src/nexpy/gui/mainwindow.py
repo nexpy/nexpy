@@ -1215,8 +1215,7 @@ class MainWindow(QtWidgets.QMainWindow):
             path = node.nxpath
             root = node.nxroot
             name = root.nxname
-            ret = confirm_action("Are you sure you want to reload '%s'?" % name)
-            if ret == QtWidgets.QMessageBox.Ok:
+            if confirm_action("Are you sure you want to reload '%s'?" % name):
                 self.tree.reload(name)
                 logging.info("Workspace '%s' reloaded" % name)
                 try:
@@ -1231,9 +1230,8 @@ class MainWindow(QtWidgets.QMainWindow):
             node = self.treeview.get_node()
             name = node.nxname
             if isinstance(node, NXroot):
-                ret = confirm_action(
-                          "Are you sure you want to remove '%s'?" % name)
-                if ret == QtWidgets.QMessageBox.Ok:
+                if confirm_action("Are you sure you want to remove '%s'?" 
+                                  % name):
                     del self.tree[name]
                     logging.info("Workspace '%s' removed" % name)
         except NeXusError as error:
@@ -1323,11 +1321,9 @@ class MainWindow(QtWidgets.QMainWindow):
         try:
             node = self.treeview.get_node()
             if isinstance(node, NXroot):
-                ret = confirm_action(
-                          "Are you sure you want to restore the file?",
-                          "This will overwrite the current contents of '%s'"
-                          % node.nxname)
-                if ret == QtWidgets.QMessageBox.Ok:
+                if confirm_action("Are you sure you want to restore the file?",
+                        "This will overwrite the current contents of '%s'" 
+                        % node.nxname):
                     node.restore(overwrite=True)
                     self.treeview.update()
                     logging.info("Workspace '%s' backed up" % node.nxname)
@@ -1352,9 +1348,8 @@ class MainWindow(QtWidgets.QMainWindow):
     def purge_scratch_file(self):
         try:
             if 'w0' in self.tree:
-                ret = confirm_action(
-                          "Are you sure you want to purge the scratch file?")
-                if ret == QtWidgets.QMessageBox.Ok:
+                if confirm_action(
+                        "Are you sure you want to purge the scratch file?"):
                     for entry in self.tree['w0'].entries.copy():
                         del self.tree['w0'][entry]
                     logging.info("Workspace 'w0' purged")
@@ -1364,10 +1359,9 @@ class MainWindow(QtWidgets.QMainWindow):
     def close_scratch_file(self):
         try:
             if 'w0' in self.tree:
-                ret = confirm_action(
-                          "Do you want to delete the scratch file contents?", 
-                          answer='no')
-                if ret == QtWidgets.QMessageBox.Yes:
+                if confirm_action(
+                        "Do you want to delete the scratch file contents?", 
+                        answer='no'):
                     for entry in self.tree['w0'].entries.copy():
                         del self.tree['w0'][entry]
                     logging.info("Workspace 'w0' purged")
@@ -1642,9 +1636,8 @@ class MainWindow(QtWidgets.QMainWindow):
             node = self.treeview.get_node()
             if node is not None:
                 if node.nxroot.nxfilemode != 'r':
-                    ret = confirm_action('Are you sure you want to delete "%s"?'
-                                         % (node.nxroot.nxname+node.nxpath))
-                    if ret == QtWidgets.QMessageBox.Ok:
+                    if confirm_action("Are you sure you want to delete '%s'?"
+                                      % (node.nxroot.nxname+node.nxpath)):
                         del node.nxgroup[node.nxname]
                         logging.info("'%s' deleted" % 
                                      (node.nxroot.nxname+node.nxpath))
@@ -1699,8 +1692,7 @@ class MainWindow(QtWidgets.QMainWindow):
                     if node.nxgroup is None:
                         raise NeXusError("There is no parent group")
                     if 'default' in node.nxgroup.attrs:
-                        ret = confirm_action("Override existing default?")
-                        if ret != QtWidgets.QMessageBox.Ok:
+                        if not confirm_action("Override existing default?"):
                             return
                     node.nxgroup.attrs['default'] = node.nxname
                     if node.nxgroup in node.nxroot.values():

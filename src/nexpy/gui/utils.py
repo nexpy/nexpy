@@ -58,8 +58,12 @@ def confirm_action(query, information=None, answer=None):
     else:
         message_box.setStandardButtons(QtWidgets.QMessageBox.Ok | 
                                        QtWidgets.QMessageBox.Cancel)
-    return message_box.exec_()
-
+    response = message_box.exec_()
+    if (response == QtWidgets.QMessageBox.Yes or 
+        response == QtWidgets.QMessageBox.Ok):
+        return True
+    else:
+        return False
 
 def display_message(message, information=None):
     """Display a message box with an error message"""

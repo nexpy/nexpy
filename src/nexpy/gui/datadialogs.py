@@ -2235,9 +2235,8 @@ class ManageBackupsDialog(BaseDialog):
             if self.checkbox[backup].isChecked():
                 backups.append(backup)
         if backups:
-            ret = self.confirm_action("Delete selected backups?",
-                                      "\n".join(backups))
-            if ret == QtWidgets.QMessageBox.Ok:
+            if self.confirm_action("Delete selected backups?", 
+                                   "\n".join(backups)):
                 for backup in backups:
                     if (os.path.exists(backup) and 
                         os.path.realpath(backup).startswith(self.backup_dir)):
@@ -2291,10 +2290,8 @@ class InstallPluginDialog(BaseDialog):
             plugin_path = self.nexpy_directory
         installed_path = os.path.join(plugin_path, plugin_name)
         if os.path.exists(installed_path):
-            ret = self.confirm_action("Overwrite plugin?", 
-                                      "Plugin '%s' already exists" 
-                                      % plugin_name)
-            if ret == QtWidgets.QMessageBox.Ok:
+            if self.confirm_action("Overwrite plugin?", 
+                                   "Plugin '%s' already exists" % plugin_name):
                 backup = os.path.join(self.backup_dir, timestamp())
                 os.mkdir(backup)
                 shutil.move(installed_path, backup)
@@ -2368,9 +2365,8 @@ class RemovePluginDialog(BaseDialog):
         if plugin_menu_name is None:
             raise NeXusError("This directory does not contain a valid plugin")
         if os.path.exists(plugin_directory):
-            ret = self.confirm_action("Remove '%s'?" % plugin_directory, 
-                                      "This cannot be reversed")
-            if ret == QtWidgets.QMessageBox.Ok:
+            if self.confirm_action("Remove '%s'?" % plugin_directory, 
+                                   "This cannot be reversed"):
                 backup = os.path.join(self.backup_dir, timestamp())
                 os.mkdir(backup)
                 shutil.move(plugin_directory, backup)
@@ -2467,10 +2463,8 @@ class RestorePluginDialog(BaseDialog):
             plugin_path = self.nexpy_directory
         restored_path = os.path.join(plugin_path, plugin_name)
         if os.path.exists(restored_path):
-            ret = self.confirm_action("Overwrite plugin?", 
-                                      "Plugin '%s' already exists" 
-                                      % plugin_name)
-            if ret == QtWidgets.QMessageBox.Ok:
+            if self.confirm_action("Overwrite plugin?", 
+                                   "Plugin '%s' already exists" % plugin_name):
                 backup = os.path.join(self.backup_dir, timestamp())
                 os.mkdir(backup)
                 shutil.move(restored_path, backup)
