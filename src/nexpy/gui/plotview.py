@@ -355,7 +355,7 @@ class NXPlotView(QtWidgets.QDialog):
 
         # Remove some key default Matplotlib key mappings
         for key in [key for key in mpl.rcParams if key.startswith('keymap')]:
-            for shortcut in 'bfghkloprsvxyzAEGHOPSZ':
+            for shortcut in 'bfghkloprsvxyzAEFGHOPSZ':
                 if shortcut in mpl.rcParams[key]:
                     mpl.rcParams[key].remove(shortcut)
 
@@ -435,6 +435,8 @@ class NXPlotView(QtWidgets.QDialog):
         'E'
             Toggle the aspect ratio. This is equivalent to turning the 
             `Aspect Ratio` button on the toolbar on and off.
+        'F'
+            Toggle the flipping of the y-axis.
         'G'
             Toggle display of the axis grid.
         'O'
@@ -503,6 +505,11 @@ class NXPlotView(QtWidgets.QDialog):
             self.otab.add_data()
         elif event.key == 'E' and self.ndim > 1:
             self.otab.toggle_aspect()
+        elif event.key == 'F' and self.ndim > 1:
+            if self.ytab.flipped:
+                self.ytab.flipped = False
+            else:
+                self.ytab.flipped = True
         elif event.key == 'H':
             self.otab.home()
         elif event.key == 'G':
