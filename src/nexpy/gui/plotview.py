@@ -336,6 +336,7 @@ class NXPlotView(QtWidgets.QDialog):
         self.image = None
         self.colorbar = None
         self.zoom = None
+        self._active_mode = self.otab._active
         self.rgb_image = False
         self._aspect = 'auto'
         self._skew_angle = None
@@ -522,6 +523,25 @@ class NXPlotView(QtWidgets.QDialog):
             self.otab.save_figure()
         elif event.key == 'Z':
             self.otab.zoom()
+
+    def activate(self):
+        """Restore original signal connections.
+        
+        This assumes a previous call to the deactivate function, which sets the
+        current value of _active_mode.
+        """
+        if self._active_mode == 'ZOOM':
+            self.otab.zoom()
+        elif self._active_mode == 'PAN':
+            self.otab.pan()        
+    
+    def deactivate(self):
+        """Disable usual signal connections."""
+        self._active_mode = self.otab._active
+        if self._active_mode == 'ZOOM':
+            self.otab.zoom()
+        elif self._active_mode == 'PAN':
+            self.otab.pan()
 
     def display_logo(self):
         """Display the NeXpy logo in the plotting pane."""
@@ -4141,11 +4161,7 @@ class NXpatch(object):
 
     def connect(self):
         'connect to all the events we need'
-        self._active = self.plotview.otab._active
-        if self._active == 'ZOOM':
-            self.plotview.otab.zoom()
-        elif self._active == 'PAN':
-            self.plotview.otab.pan()
+        self.plotview.deactivate()
         self.cidpress = self.canvas.mpl_connect(
             'button_press_event', self.on_press)
         self.cidrelease = self.canvas.mpl_connect(
@@ -4190,7 +4206,6 @@ class NXpatch(object):
         if self.press is None:
             return
         self.press = None
-        self.disconnect()
         self.canvas.draw()
 
     def disconnect(self):
@@ -4198,10 +4213,7 @@ class NXpatch(object):
         self.canvas.mpl_disconnect(self.cidpress)
         self.canvas.mpl_disconnect(self.cidrelease)
         self.canvas.mpl_disconnect(self.cidmotion)
-        if self._active == 'ZOOM':
-            self.plotview.otab.zoom()
-        elif self._active == 'PAN':
-            self.plotview.otab.pan()
+        self.plotview.activate()
 
 
 class NXcircle(NXpatch):
