@@ -18,14 +18,19 @@ try:
 except ImportError:
     from ConfigParser import ConfigParser
 import numpy as np
-from .pyqt import QtWidgets
+from .pyqt import QtWidgets, getOpenFileName
 from matplotlib.colors import hex2color, rgb2hex
 
 try:
     from astropy.convolution import Kernel
 except ImportError:
     Kernel = object
+try:
+    import fabio
+except ImportError:
+    fabio = None
 
+from nexusformat.nexus import *
 
 ansi_re = re.compile('\x1b' + r'\[([\dA-Fa-f;]*?)m')
 
@@ -58,8 +63,12 @@ def confirm_action(query, information=None, answer=None):
     else:
         message_box.setStandardButtons(QtWidgets.QMessageBox.Ok | 
                                        QtWidgets.QMessageBox.Cancel)
-    return message_box.exec_()
-
+    response = message_box.exec_()
+    if (response == QtWidgets.QMessageBox.Yes or 
+        response == QtWidgets.QMessageBox.Ok):
+        return True
+    else:
+        return False
 
 def display_message(message, information=None):
     """Display a message box with an error message"""
@@ -229,6 +238,45 @@ def get_colors(n, first='#1f77b4', last='#d62728'):
     return [rgb2hex((first[0]+(last[0]-first[0])*i/(n-1), 
                      first[1]+(last[1]-first[1])*i/(n-1),
                      first[2]+(last[2]-first[2])*i/(n-1))) for i in range(n)]
+
+def load_image(filename):
+    try:
+        im = fabio.open(filename)
+        z = NXfield(im.data, name='z')
+        y = NXfield(range(z.shape[0]), name='y')
+        x = NXfield(range(z.shape[1]), name='x')
+        data = NXdata(z,(y,x))
+        if im.header:
+            header = NXcollection()
+            for k, v in im.header.items():
+                if v or v == 0:
+                    header[k] = v
+            data.header = header
+        if im.getclassname() == 'CbfImage':
+            note = NXnote(type='text/plain', file_name=filename)
+            note.data = im.header.pop('_array_data.header_contents', '')
+            note.description = im.header.pop(
+                '_array_data.header_convention', '')
+            data.CBF_header = note
+    except Exception:
+        try:
+            im = img.imread(filename)
+        except Exception as error:
+            if fabio:
+                raise NeXusError("Unable to open image")
+            else:
+                raise NeXusError(
+            "Unable to open image. Please install the 'fabio' module")
+        z = NXfield(im, name='z')
+        y = NXfield(range(z.shape[0]), name='y')
+        x = NXfield(range(z.shape[1]), name='x')
+        if z.ndim > 2:
+            rgba = NXfield(range(z.shape[2]), name='rgba')
+            data = NXdata(z, (y,x,rgba))
+        else:        
+            data = NXdata(z, (y,x))
+    data.title = filename
+    return data
 
 class NXimporter(object):
     def __init__(self, paths):

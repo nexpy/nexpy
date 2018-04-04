@@ -282,10 +282,9 @@ class NXScriptEditor(QtWidgets.QWidget):
 
     def delete_script(self):
         if self.file_name:
-            ret = confirm_action(
-                      "Are you sure you want to delete '%s'?" % self.file_name,
-                      "This cannot be reversed")
-            if ret == QtWidgets.QMessageBox.Ok:
+            if confirm_action(
+                    "Are you sure you want to delete '%s'?" % self.file_name,
+                    "This cannot be reversed"):
                 os.remove(self.file_name)
                 self.mainwindow.remove_script_action(self.file_name)
                 self.close()

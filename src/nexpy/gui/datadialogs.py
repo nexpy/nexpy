@@ -92,6 +92,21 @@ class BaseDialog(QtWidgets.QDialog):
                 self.layout.addWidget(item)
         self.setLayout(self.layout)
 
+    def make_layout(self, *items, horizontal=True):
+        if horizontal:
+            layout = QtWidgets.QHBoxLayout()
+            layout.addStretch()
+        else:
+            layout = QtWidgets.QVBoxLayout()
+        for item in items:
+            if isinstance(item, QtWidgets.QLayout):
+                layout.addLayout(item)
+            elif isinstance(item, QtWidgets.QWidget):
+                layout.addWidget(item)
+        if horizontal:
+            layout.addStretch()
+        return layout
+
     def set_title(self, title):
         self.setWindowTitle(title)
 
@@ -344,7 +359,7 @@ class BaseDialog(QtWidgets.QDialog):
     def other_root(self):
         return self.tree[self.other_root_box.currentText()]
 
-    def select_entry(self, slot=None, text='Select Entry :', other=False):
+    def select_entry(self, slot=None, text='Select Entry', other=False):
         layout = QtWidgets.QHBoxLayout()
         box = NXComboBox()
         entries = []
@@ -361,10 +376,10 @@ class BaseDialog(QtWidgets.QDialog):
                     box.setCurrentIndex(idx)
             except Exception:
                 box.setCurrentIndex(0)
-        if slot:
-            box.currentIndexChanged.connect(slot)
-        layout.addWidget(QtWidgets.QLabel(text))
+        layout.addStretch()
         layout.addWidget(box)
+        if slot:
+            layout.addWidget(NXPushButton(text, slot))
         layout.addStretch()
         if not other:
             self.entry_box = box
@@ -570,9 +585,9 @@ class GridParameter(object):
             self.box.setAlignment(QtCore.Qt.AlignRight)
             if value is not None:
                 if isinstance(value, NXfield):
-                    if value.shape == ():
+                    if value.shape == () or value.shape == (1,):
                         self.field = value
-                        self.value = self.field.nxdata
+                        self.value = self.field.nxvalue
                     else:
                         raise NeXusError(
                             "Cannot set a grid parameter to an array")
@@ -2220,9 +2235,8 @@ class ManageBackupsDialog(BaseDialog):
             if self.checkbox[backup].isChecked():
                 backups.append(backup)
         if backups:
-            ret = self.confirm_action("Delete selected backups?",
-                                      "\n".join(backups))
-            if ret == QtWidgets.QMessageBox.Ok:
+            if self.confirm_action("Delete selected backups?", 
+                                   "\n".join(backups)):
                 for backup in backups:
                     if (os.path.exists(backup) and 
                         os.path.realpath(backup).startswith(self.backup_dir)):
@@ -2276,10 +2290,8 @@ class InstallPluginDialog(BaseDialog):
             plugin_path = self.nexpy_directory
         installed_path = os.path.join(plugin_path, plugin_name)
         if os.path.exists(installed_path):
-            ret = self.confirm_action("Overwrite plugin?", 
-                                      "Plugin '%s' already exists" 
-                                      % plugin_name)
-            if ret == QtWidgets.QMessageBox.Ok:
+            if self.confirm_action("Overwrite plugin?", 
+                                   "Plugin '%s' already exists" % plugin_name):
                 backup = os.path.join(self.backup_dir, timestamp())
                 os.mkdir(backup)
                 shutil.move(installed_path, backup)
@@ -2353,9 +2365,8 @@ class RemovePluginDialog(BaseDialog):
         if plugin_menu_name is None:
             raise NeXusError("This directory does not contain a valid plugin")
         if os.path.exists(plugin_directory):
-            ret = self.confirm_action("Remove '%s'?" % plugin_directory, 
-                                      "This cannot be reversed")
-            if ret == QtWidgets.QMessageBox.Ok:
+            if self.confirm_action("Remove '%s'?" % plugin_directory, 
+                                   "This cannot be reversed"):
                 backup = os.path.join(self.backup_dir, timestamp())
                 os.mkdir(backup)
                 shutil.move(plugin_directory, backup)
@@ -2452,10 +2463,8 @@ class RestorePluginDialog(BaseDialog):
             plugin_path = self.nexpy_directory
         restored_path = os.path.join(plugin_path, plugin_name)
         if os.path.exists(restored_path):
-            ret = self.confirm_action("Overwrite plugin?", 
-                                      "Plugin '%s' already exists" 
-                                      % plugin_name)
-            if ret == QtWidgets.QMessageBox.Ok:
+            if self.confirm_action("Overwrite plugin?", 
+                                   "Plugin '%s' already exists" % plugin_name):
                 backup = os.path.join(self.backup_dir, timestamp())
                 os.mkdir(backup)
                 shutil.move(restored_path, backup)
