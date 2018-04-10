@@ -236,11 +236,14 @@ class BaseDialog(QtWidgets.QDialog):
              group.addButton(self.radiobutton[label])
         return layout
 
-    def filebox(self, text="Choose File"):
+    def filebox(self, text="Choose File", slot=None):
         """
         Creates a text box and button for selecting a file.
         """
-        self.filebutton =  NXPushButton(text, self.choose_file)
+        if slot:
+            self.filebutton = NXPushButton(text, slot)
+        else:
+            self.filebutton =  NXPushButton(text, self.choose_file)
         self.filename = QtWidgets.QLineEdit(self)
         self.filename.setMinimumWidth(300)
         filebox = QtWidgets.QHBoxLayout()
@@ -572,6 +575,13 @@ class GridParameters(OrderedDict):
                     if widget is not None:
                         widget.setVisible(True)
 
+        self.parameters = []
+        for p in self.values():
+            p.init_value = p.value
+            if p.vary:
+                self.parameters.append({p.name:p.value})
+
+    def set_parameters(self):
         self.parameters = []
         for p in self.values():
             p.init_value = p.value
