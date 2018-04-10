@@ -107,6 +107,30 @@ class BaseDialog(QtWidgets.QDialog):
             layout.addStretch()
         return layout
 
+    def add_layout(self, *items):
+        for item in items:
+            if isinstance(item, QtWidgets.QLayout):
+                self.layout.addLayout(item)
+            elif isinstance(item, QtWidgets.QWidget):
+                self.layout.addWidget(item)
+
+    def insert_layout(self, index, *items):
+        for item in items.reversed():
+            if isinstance(item, QtWidgets.QLayout):
+                self.layout.insertLayout(index, item)
+            elif isinstance(item, QtWidgets.QWidget):
+                self.layout.insertWidget(index, item)
+
+    def widget(self, item):
+        widget = QtWidgets.QWidget()
+        widget.layout = QtWidgets.QVBoxLayout()
+        if isinstance(item, QtWidgets.QLayout):
+            widget.layout.addLayout(item)
+        elif isinstance(item, QtWidgets.QWidget):
+            widget.layout.addWidget(item)
+        widget.setVisible(True)
+        return widget
+
     def set_title(self, title):
         self.setWindowTitle(title)
 
@@ -224,11 +248,14 @@ class BaseDialog(QtWidgets.QDialog):
         filebox.addWidget(self.filename)
         return filebox
  
-    def directorybox(self, text="Choose Directory"):
+    def directorybox(self, text="Choose Directory", slot=None):
         """
         Creates a text box and button for selecting a directory.
         """
-        self.directorybutton =  NXPushButton(text, self.choose_directory)
+        if slot:
+            self.directorybutton = NXPushButton(text, slot)
+        else:
+            self.directorybutton =  NXPushButton(text, self.choose_directory)
         self.directoryname = QtWidgets.QLineEdit(self)
         self.directoryname.setMinimumWidth(300)
         default = self.get_default_directory()
@@ -285,7 +312,7 @@ class BaseDialog(QtWidgets.QDialog):
         return suggestion
     
     def set_default_directory(self, suggestion):
-        '''define the default directory to use for open/save dialogs'''
+        """Defines the default directory to use for open/save dialogs"""
         if os.path.exists(suggestion):
             if not os.path.isdir(suggestion):
                 suggestion = os.path.dirname(suggestion)
@@ -320,6 +347,7 @@ class BaseDialog(QtWidgets.QDialog):
             box.setCurrentIndex(0)
         if slot:
             box.currentIndexChanged.connect(slot)
+        box.setSizeAdjustPolicy(QtWidgets.QComboBox.AdjustToContents)
         return box
 
     def select_root(self, slot=None, text='Select Root :', other=False):
@@ -486,7 +514,7 @@ class GridParameters(OrderedDict):
 
     def grid(self, header=True, title=None, width=None):
         grid = QtWidgets.QGridLayout()
-        grid.setSpacing(5)
+        grid.setSpacing(2)
         header_font = QtGui.QFont()
         header_font.setBold(True)
         row = 0
@@ -524,7 +552,26 @@ class GridParameters(OrderedDict):
         self.grid_layout = grid
         return grid
 
-    def set_parameters(self):
+    def hide_grid(self):
+        grid = self.grid_layout
+        for row in range(grid.rowCount()):
+            for column in range(grid.columnCount()):
+                item = grid.itemAtPosition(row, column)
+                if item is not None:
+                    widget = item.widget()
+                    if widget is not None:
+                        widget.setVisible(False)
+
+    def show_grid(self):
+        grid = self.grid_layout
+        for row in range(grid.rowCount()):
+            for column in range(grid.columnCount()):
+                item = grid.itemAtPosition(row, column)
+                if item is not None:
+                    widget = item.widget()
+                    if widget is not None:
+                        widget.setVisible(True)
+
         self.parameters = []
         for p in self.values():
             p.init_value = p.value
