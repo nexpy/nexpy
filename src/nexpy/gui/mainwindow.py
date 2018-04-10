@@ -282,6 +282,12 @@ class MainWindow(QtWidgets.QMainWindow):
             )
         self.add_menu_action(self.file_menu, self.openimage_action)
 
+        self.opendirectory_action=QtWidgets.QAction("Open Directory...",
+            self,
+            triggered=self.open_directory
+            )
+        self.add_menu_action(self.file_menu, self.opendirectory_action)
+
         try:
             import h5pyd
             self.openremotefile_action=QtWidgets.QAction("Open Remote...",
@@ -1060,6 +1066,31 @@ class MainWindow(QtWidgets.QMainWindow):
                          % (fname, node.nxpath))
         except NeXusError as error:
             report_error("Opening Image File", error)
+
+    def open_directory(self):
+        try:
+            directory = self.default_directory
+            directory = QtWidgets.QFileDialog.getExistingDirectory(self, 
+                        'Choose Directory', directory)
+            nxfiles = [f for f in os.listdir(directory) 
+                       if (f.endswith('.nxs') or f.endswith('.nx5') or
+                           f.endswith('.h5') or f.endswith('hdf5') or
+                           f.endswith('hdf') or f.endswith('.cxi'))]
+            if len(nxfiles) == 0:
+                raise NeXusError("No NeXus files found in directory")
+            if confirm_action("Open %s NeXus files" % len(nxfiles),
+                              '\n'.join(nxfiles)):
+                for nxfile in nxfiles:
+                    fname = os.path.join(directory, nxfile)
+                    name = self.tree.get_name(fname)
+                    self.tree[name] = nxload(fname)
+                self.treeview.select_node(self.tree[name])
+                self.treeview.setFocus()
+                self.default_directory = os.path.dirname(fname)
+                logging.info(
+                    "%s NeXus files opened from %s" % (len(nxfiles), directory))
+        except NeXusError as error:
+            report_error("Opening Directory", error)
 
     def open_remote_file(self):
         try:

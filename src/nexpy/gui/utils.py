@@ -20,6 +20,7 @@ except ImportError:
 import numpy as np
 from .pyqt import QtWidgets, getOpenFileName
 from matplotlib.colors import hex2color, rgb2hex
+import matplotlib.image as img
 
 try:
     from astropy.convolution import Kernel
