@@ -51,6 +51,7 @@ class BaseDialog(QtWidgets.QDialog):
         self.accepted = False
         from .consoleapp import _mainwindow
         self.mainwindow = _mainwindow
+        self.mainwindow.current_dialog = self
         self.treeview = self.mainwindow.treeview
         self.tree = self.treeview.tree
         self.plotviews = self.mainwindow.plotviews
