@@ -116,7 +116,7 @@ class BaseDialog(QtWidgets.QDialog):
                 self.layout.addWidget(item)
 
     def insert_layout(self, index, *items):
-        for item in items.reversed():
+        for item in reversed(list(items)):
             if isinstance(item, QtWidgets.QLayout):
                 self.layout.insertLayout(index, item)
             elif isinstance(item, QtWidgets.QWidget):
@@ -576,11 +576,17 @@ class GridParameters(OrderedDict):
                     if widget is not None:
                         widget.setVisible(True)
 
-        self.parameters = []
-        for p in self.values():
-            p.init_value = p.value
-            if p.vary:
-                self.parameters.append({p.name:p.value})
+    def delete_grid(self):
+        grid = self.grid_layout
+        for row in range(grid.rowCount()):
+            for column in range(grid.columnCount()):
+                item = grid.itemAtPosition(row, column)
+                if item is not None:
+                    widget = item.widget()
+                    if widget is not None:
+                        widget.setVisible(False)
+                        grid.removeWidget(widget)
+                        widget.deleteLater()           
 
     def set_parameters(self):
         self.parameters = []
