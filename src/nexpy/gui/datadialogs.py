@@ -92,7 +92,7 @@ class BaseDialog(QtWidgets.QDialog):
                 self.layout.addWidget(item)
         self.setLayout(self.layout)
 
-    def make_layout(self, *items, horizontal=True):
+    def make_layout(self, horizontal=True, *items):
         if horizontal:
             layout = QtWidgets.QHBoxLayout()
             layout.addStretch()
