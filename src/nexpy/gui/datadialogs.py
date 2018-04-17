@@ -549,7 +549,7 @@ class GridParameters(OrderedDict):
                 grid.addWidget(p.checkbox, row, 2, QtCore.Qt.AlignHCenter)
                 vary = True
             row += 1
-        if vary:
+        if header and vary:
             fit_label = QtWidgets.QLabel('Fit?')
             fit_label.setFont(header_font)
             grid.addWidget(fit_label, 0, 2, QtCore.Qt.AlignHCenter)
