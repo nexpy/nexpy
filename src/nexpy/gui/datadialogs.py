@@ -596,11 +596,11 @@ class GridParameters(OrderedDict):
         for p in parameters:
             self[p].value = parameters[p].value
 
-    def refine_parameters(self, residuals, method=None, **opts):
+    def refine_parameters(self, residuals, method='leastsq, **opts):
         from lmfit import minimize, Parameters
         self.parameters = Parameters()
         self.set_parameters()
-        result = minimize(residuals, self.parameters)
+        result = minimize(residuals, self.parameters, method=method)
         self.get_parameters(result.params)
 
     def restore_parameters(self):
