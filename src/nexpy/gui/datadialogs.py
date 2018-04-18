@@ -24,7 +24,6 @@ from posixpath import basename
 
 from .pyqt import QtCore, QtGui, QtWidgets, getOpenFileName
 import numpy as np
-from scipy.optimize import minimize
 from matplotlib.colors import rgb2hex, colorConverter
 from matplotlib.backends.qt_editor.formlayout import ColorButton, to_qcolor
 from matplotlib.legend import Legend
@@ -507,11 +506,11 @@ class GridParameters(OrderedDict):
 
         Example
         -------
-        p = Parameters()
+        p = GridParameters()
         p.add(name, value=XX, ...)
 
         is equivalent to:
-        p[name] = Parameter(name=name, value=XX, ....
+        p[name] = GridParameter(name=name, value=XX, ....
         """
         self.__setitem__(name, GridParameter(value=value, name=name, 
                                              label=label, vary=vary, slot=slot))
@@ -589,32 +588,28 @@ class GridParameters(OrderedDict):
                         widget.deleteLater()           
 
     def set_parameters(self):
-        self.parameters = []
-        for p in self.values():
-            p.init_value = p.value
-            if p.vary:
-                self.parameters.append({p.name:p.value})
+        from lmfit import Parameter
+        for p in [p for p in self if self[p].vary]:
+            self.parameters[p] = Parameter(self[p].name, self[p].value)
 
-    def get_parameters(self, p):
-        i = 0
-        for key in [list(x)[0] for x in self.parameters]:
-            self[key].value = p[i]
-            i += 1
+    def get_parameters(self, parameters):
+        for p in parameters:
+            self[p].value = parameters[p].value
 
-    def refine_parameters(self, residuals, method='nelder-mead', **opts):
+    def refine_parameters(self, residuals, method=None, **opts):
+        from lmfit import minimize, Parameters
+        self.parameters = Parameters()
         self.set_parameters()
-        p0 = np.array([list(p.values())[0] for p in self.parameters])
-        result = minimize(residuals, p0, method='nelder-mead',
-                          options={'xtol': 1e-6, 'disp': True})
-        self.get_parameters(result.x)
+        result = minimize(residuals, self.parameters)
+        self.get_parameters(result.params)
 
     def restore_parameters(self):
-        for p in self.values():
-            p.value = p.init_value
+        for p in [p for p in self if self[p].vary]:
+            self[p].value = self[p].init_value
 
     def save(self):
-        for p in self.values():
-            p.save()
+        for p in self:
+            self[p].save()
 
 
 class GridParameter(object):
