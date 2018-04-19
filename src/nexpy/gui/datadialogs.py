@@ -491,6 +491,8 @@ class GridParameters(OrderedDict):
     """
     def __init__(self, *args, **kwds):
         super(GridParameters, self).__init__(self)
+        self.result = None
+        self.status_layout = None
         self.update(*args, **kwds)
 
     def __setitem__(self, key, value):
@@ -588,20 +590,70 @@ class GridParameters(OrderedDict):
                         widget.deleteLater()           
 
     def set_parameters(self):
-        from lmfit import Parameter
+        from lmfit import Parameters, Parameter
+        self.lmfit_parameters = Parameters()
         for p in [p for p in self if self[p].vary]:
-            self.parameters[p] = Parameter(self[p].name, self[p].value)
+            self.lmfit_parameters[p] = Parameter(self[p].name, self[p].value)
 
     def get_parameters(self, parameters):
         for p in parameters:
             self[p].value = parameters[p].value
 
-    def refine_parameters(self, residuals, method='leastsq', **opts):
-        from lmfit import minimize, Parameters
-        self.parameters = Parameters()
+    def refine_parameters(self, residuals, method='least-squares', **opts):
+        from lmfit import minimize, Parameters, fit_report
         self.set_parameters()
-        result = minimize(residuals, self.parameters, method=method)
-        self.get_parameters(result.params)
+        if self.status_layout:
+            self.status_message.setText('Fitting...')
+            self.status_message.repaint()
+        self.result = minimize(residuals, self.lmfit_parameters, method=method)
+        self.fit_report = fit_report(self.result.params)
+        if self.status_layout:
+            self.status_message.setText(self.result.message)
+        self.get_parameters(self.result.params)
+
+    def report_layout(self):
+        layout = QtWidgets.QHBoxLayout()
+        self.status_message = QtWidgets.QLabel()
+        if self.result is None:
+            self.status_message.setText('Waiting to refine')
+        else:
+            self.status_message.setText(self.result.message)
+        layout.addWidget(self.status_message)
+        layout.addStretch()
+        layout.addWidget(NXPushButton('Show Report', self.show_report))
+        self.status_layout = layout
+        return layout
+        
+    def show_report(self):
+        if self.result is None:
+            return
+        message_box = QtWidgets.QMessageBox()
+        message_box.setText("Fit Results")
+        if self.result.success:
+            summary = 'Fit Successful'
+        else:
+            summary = 'Fit Failed'
+        if self.result.errorbars:
+            errors = 'Uncertainties estimated'
+        else:
+            errors = 'Uncertainties not estimated'
+        text = ('%s\n' % self.result.message +
+                'Chi^2 = %s\n' % self.result.chisqr +
+                'Reduced Chi^2 = %s\n' % self.result.redchi +
+                '%s\n' % errors +
+                'No. of Function Evaluations = %s\n' % self.result.nfev +
+                'No. of Variables = %s\n' % self.result.nvarys +
+                'No. of Data Points = %s\n' % self.result.ndata +
+                'No. of Degrees of Freedom = %s\n' % self.result.nfree +
+                '%s' % self.fit_report)
+        message_box.setInformativeText(text)
+        message_box.setStandardButtons(QtWidgets.QMessageBox.Ok)
+        spacer = QtWidgets.QSpacerItem(500, 0, 
+                                   QtWidgets.QSizePolicy.Minimum, 
+                                   QtWidgets.QSizePolicy.Expanding)
+        layout = message_box.layout()
+        layout.addItem(spacer, layout.rowCount(), 0, 1, layout.columnCount())
+        message_box.exec_()
 
     def restore_parameters(self):
         for p in [p for p in self if self[p].vary]:
