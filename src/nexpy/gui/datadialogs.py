@@ -397,6 +397,8 @@ class BaseDialog(QtWidgets.QDialog):
         for root in self.tree.NXroot:
             for entry in root.NXentry:
                 entries.append(root.nxname+'/'+entry.nxname)
+        if not entries:
+            raise NeXusError("No entries in the NeXus tree")
         for entry in sorted(entries):
             box.addItem(entry)
         if not other:
