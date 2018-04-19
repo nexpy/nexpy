@@ -505,19 +505,11 @@ class FitDialog(BaseDialog):
     def report_fit(self):
         message_box = QtWidgets.QMessageBox()
         message_box.setText("Fit Results")
-        if self.fit.result.success:
-            summary = 'Fit Successful'
-        else:
-            summary = 'Fit Failed'
         if self.fit.result.errorbars:
             errors = 'Uncertainties estimated'
         else:
             errors = 'Uncertainties not estimated'
-        text = ('%s\n' % summary +
-                '%s\n' % self.fit.result.message +
-                '%s\n' % self.fit.result.lmdif_message +
-                'scipy.optimize.leastsq error value = %s\n' 
-                    % self.fit.result.ier +
+        text = ('%s\n' % self.fit.result.message +
                 'Chi^2 = %s\n' % self.fit.result.chisqr +
                 'Reduced Chi^2 = %s\n' % self.fit.result.redchi +
                 '%s\n' % errors +
@@ -555,17 +547,12 @@ class FitDialog(BaseDialog):
             group['fit'] = self.get_model()
             fit = NXparameters()
             fit.nfev = self.fit.result.nfev
-            fit.ier = self.fit.result.ier 
             fit.chisq = self.fit.result.chisqr
             fit.redchi = self.fit.result.redchi
             fit.message = self.fit.result.message
-            fit.lmdif_message = self.fit.result.lmdif_message
             group['statistics'] = fit
             group.note = NXnote(self.fit.result.message,
-                ('%s\n' % self.fit.result.lmdif_message +
-                 'scipy.optimize.leastsq error value = %s\n' 
-                 % self.fit.result.ier +
-                 'Chi^2 = %s\n' % self.fit.result.chisqr +
+                ('Chi^2 = %s\n' % self.fit.result.chisqr +
                  'Reduced Chi^2 = %s\n' % self.fit.result.redchi +
 
                  'No. of Function Evaluations = %s\n' % self.fit.result.nfev +
