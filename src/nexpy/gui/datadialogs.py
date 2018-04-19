@@ -92,18 +92,14 @@ class BaseDialog(QtWidgets.QDialog):
                 self.layout.addWidget(item)
         self.setLayout(self.layout)
 
-    def make_layout(self, horizontal=True, *items):
-        if horizontal:
-            layout = QtWidgets.QHBoxLayout()
-            layout.addStretch()
-        else:
-            layout = QtWidgets.QVBoxLayout()
+    def make_layout(self, *items):
+        layout = QtWidgets.QHBoxLayout()
+        layout.addStretch()
         for item in items:
             if isinstance(item, QtWidgets.QLayout):
                 layout.addLayout(item)
             elif isinstance(item, QtWidgets.QWidget):
                 layout.addWidget(item)
-        if horizontal:
             layout.addStretch()
         return layout
 
@@ -173,7 +169,7 @@ class BaseDialog(QtWidgets.QDialog):
             horizontal_layout = QtWidgets.QHBoxLayout()
             if align == 'center' or align == 'right':
                 horizontal_layout.addStretch()
-            horizontal_layout.addWidget(QtWidgets.QLabel(label))
+            horizontal_layout.addWidget(QtWidgets.QLabel(six.text_type(label)))
             if align == 'center' or align == 'left':
                 horizontal_layout.addStretch()
             layout.addLayout(horizontal_layout)
@@ -185,8 +181,8 @@ class BaseDialog(QtWidgets.QDialog):
         else:
             layout = QtWidgets.QVBoxLayout()
         for item in items:
-            item_layout = QtWidgets.QHBoxLayout()
             label, value = item
+            item_layout = QtWidgets.QHBoxLayout()
             label_box = QtWidgets.QLabel(label)
             label_box.setAlignment(QtCore.Qt.AlignLeft)
             self.textbox[label] = QtWidgets.QLineEdit(six.text_type(value))
