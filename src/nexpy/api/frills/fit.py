@@ -124,8 +124,7 @@ class Fit(object):
                 if p.value is None:
                     p.value = 1.0
                 p.init_value = p.value
-        self.result = minimize(self.residuals, self.parameters, 
-                               method='least-squares')
+        self.result = minimize(self.residuals, self.parameters)
         if __version__ > '0.8.3':
             for parameter in self.parameters:
                 self.parameters[parameter].value = \
