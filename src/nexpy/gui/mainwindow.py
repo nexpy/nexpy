@@ -44,7 +44,7 @@ from .treeview import NXTreeView
 from .plotview import NXPlotView, NXProjectionPanels
 from .datadialogs import *
 from .scripteditor import NXScriptWindow, NXScriptEditor
-from .utils import confirm_action, report_error, display_message 
+from .utils import confirm_action, report_error, display_message, natural_sort
 from .utils import import_plugin, timestamp, get_name, get_colors, load_image
 
 
@@ -1072,10 +1072,11 @@ class MainWindow(QtWidgets.QMainWindow):
             directory = self.default_directory
             directory = QtWidgets.QFileDialog.getExistingDirectory(self, 
                         'Choose Directory', directory)
-            nxfiles = [f for f in os.listdir(directory) 
-                       if (f.endswith('.nxs') or f.endswith('.nx5') or
-                           f.endswith('.h5') or f.endswith('hdf5') or
-                           f.endswith('hdf') or f.endswith('.cxi'))]
+            nxfiles = sorted([f for f in os.listdir(directory) 
+                               if (f.endswith('.nxs') or f.endswith('.nx5') or
+                               f.endswith('.h5') or f.endswith('hdf5') or
+                               f.endswith('hdf') or f.endswith('.cxi'))],
+                               key=natural_sort)	
             if len(nxfiles) == 0:
                 raise NeXusError("No NeXus files found in directory")
             if confirm_action("Open %s NeXus files" % len(nxfiles),
