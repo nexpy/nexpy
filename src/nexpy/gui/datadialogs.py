@@ -33,7 +33,8 @@ try:
 except ImportError:
     from ordereddict import OrderedDict
 
-from .utils import confirm_action, report_error, import_plugin, convertHTML
+from .utils import confirm_action, display_message, report_error
+from .utils import import_plugin, convertHTML
 from .utils import natural_sort, wrap, human_size
 from .utils import timestamp, format_timestamp, restore_timestamp
 from .plotview import NXCheckBox, NXComboBox, NXPushButton, NXColorButton
@@ -64,7 +65,9 @@ class BaseDialog(QtWidgets.QDialog):
         self.radiobutton = {}
         self.radiogroup = []
         self.mainwindow.radiogroup = self.radiogroup
-        self.confirm_action, self.report_error = confirm_action, report_error
+        self.confirm_action = confirm_action
+        self.display_message = display_message
+        self.report_error = report_error
         if parent is None:
             parent = self.mainwindow
         super(BaseDialog, self).__init__(parent)
@@ -597,14 +600,14 @@ class GridParameters(OrderedDict):
         for p in parameters:
             self[p].value = parameters[p].value
 
-    def refine_parameters(self, residuals, method='least-squares', **opts):
+    def refine_parameters(self, residuals, **opts):
         from lmfit import minimize, Parameters, fit_report
         self.set_parameters()
         if self.status_layout:
             self.status_message.setText('Fitting...')
             self.status_message.repaint()
-        self.result = minimize(residuals, self.lmfit_parameters, method=method)
-        self.fit_report = fit_report(self.result.params)
+        self.result = minimize(residuals, self.lmfit_parameters, **opts)
+        self.fit_report = self.result.message+'\n'+fit_report(self.result)
         if self.status_layout:
             self.status_message.setText(self.result.message)
         self.get_parameters(self.result.params)
@@ -627,24 +630,7 @@ class GridParameters(OrderedDict):
             return
         message_box = QtWidgets.QMessageBox()
         message_box.setText("Fit Results")
-        if self.result.success:
-            summary = 'Fit Successful'
-        else:
-            summary = 'Fit Failed'
-        if self.result.errorbars:
-            errors = 'Uncertainties estimated'
-        else:
-            errors = 'Uncertainties not estimated'
-        text = ('%s\n' % self.result.message +
-                'Chi^2 = %s\n' % self.result.chisqr +
-                'Reduced Chi^2 = %s\n' % self.result.redchi +
-                '%s\n' % errors +
-                'No. of Function Evaluations = %s\n' % self.result.nfev +
-                'No. of Variables = %s\n' % self.result.nvarys +
-                'No. of Data Points = %s\n' % self.result.ndata +
-                'No. of Degrees of Freedom = %s\n' % self.result.nfree +
-                '%s' % self.fit_report)
-        message_box.setInformativeText(text)
+        message_box.setInformativeText(self.fit_report)
         message_box.setStandardButtons(QtWidgets.QMessageBox.Ok)
         spacer = QtWidgets.QSpacerItem(500, 0, 
                                    QtWidgets.QSizePolicy.Minimum, 

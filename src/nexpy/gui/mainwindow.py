@@ -44,7 +44,7 @@ from .treeview import NXTreeView
 from .plotview import NXPlotView, NXProjectionPanels
 from .datadialogs import *
 from .scripteditor import NXScriptWindow, NXScriptEditor
-from .utils import confirm_action, report_error, display_message 
+from .utils import confirm_action, report_error, display_message, natural_sort
 from .utils import import_plugin, timestamp, get_name, get_colors, load_image
 
 
@@ -1072,10 +1072,11 @@ class MainWindow(QtWidgets.QMainWindow):
             directory = self.default_directory
             directory = QtWidgets.QFileDialog.getExistingDirectory(self, 
                         'Choose Directory', directory)
-            nxfiles = [f for f in os.listdir(directory) 
-                       if (f.endswith('.nxs') or f.endswith('.nx5') or
-                           f.endswith('.h5') or f.endswith('hdf5') or
-                           f.endswith('hdf') or f.endswith('.cxi'))]
+            nxfiles = sorted([f for f in os.listdir(directory) 
+                               if (f.endswith('.nxs') or f.endswith('.nx5') or
+                               f.endswith('.h5') or f.endswith('hdf5') or
+                               f.endswith('hdf') or f.endswith('.cxi'))],
+                               key=natural_sort)	
             if len(nxfiles) == 0:
                 raise NeXusError("No NeXus files found in directory")
             if confirm_action("Open %s NeXus files" % len(nxfiles),
@@ -1626,12 +1627,15 @@ class MainWindow(QtWidgets.QMainWindow):
         try:
             node = self.treeview.get_node()
             if node is not None:
-                if node.nxroot.nxfilemode != 'r':
+                if node.nxfilemode != 'r':
                     if confirm_action("Are you sure you want to delete '%s'?"
                                       % (node.nxroot.nxname+node.nxpath)):
                         del node.nxgroup[node.nxname]
                         logging.info("'%s' deleted" % 
                                      (node.nxroot.nxname+node.nxpath))
+                elif node.is_external():
+                    raise NeXusError(
+                        "Cannot delete object in an externally linked group")
                 else:
                     raise NeXusError("NeXus file is locked")
         except NeXusError as error:
