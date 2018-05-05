@@ -1627,12 +1627,15 @@ class MainWindow(QtWidgets.QMainWindow):
         try:
             node = self.treeview.get_node()
             if node is not None:
-                if node.nxroot.nxfilemode != 'r':
+                if node.nxfilemode != 'r':
                     if confirm_action("Are you sure you want to delete '%s'?"
                                       % (node.nxroot.nxname+node.nxpath)):
                         del node.nxgroup[node.nxname]
                         logging.info("'%s' deleted" % 
                                      (node.nxroot.nxname+node.nxpath))
+                elif node.is_external():
+                    raise NeXusError(
+                        "Cannot delete object in an externally linked group")
                 else:
                     raise NeXusError("NeXus file is locked")
         except NeXusError as error:
