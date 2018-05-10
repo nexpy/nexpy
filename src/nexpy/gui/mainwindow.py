@@ -82,6 +82,7 @@ class MainWindow(QtWidgets.QMainWindow):
         super(MainWindow, self).__init__()
         self.resize(1000, 800)
         self.app = app
+        self.app = app
         self._app = app.app
         self._app.setStyle("QMacStyle")
         self.settings = settings
@@ -191,29 +192,6 @@ class MainWindow(QtWidgets.QMainWindow):
     def plotview(self):
         from .plotview import plotview
         return plotview
-
-    def close(self):
-        """ Called when you quit NeXpy or close the main window."""
-        title = self.window().windowTitle()
-        cancel = QtWidgets.QMessageBox.Cancel
-        msg = "Are you sure you want to quit NeXpy?"
-        close = QtWidgets.QPushButton("&Quit", self)
-        close.setShortcut('Q')
-        close.clicked.connect(self.quit)
-        box = QtWidgets.QMessageBox(QtWidgets.QMessageBox.Question, title, msg)
-        box.addButton(cancel)
-        box.addButton(close, QtWidgets.QMessageBox.YesRole)
-        box.setDefaultButton(close)
-        box.setEscapeButton(cancel)
-        pixmap = QtGui.QPixmap(self._app.icon.pixmap(QtCore.QSize(64,64)))
-        box.setIconPixmap(pixmap)
-        reply = box.exec_()
-
-        return reply
-
-    def quit(self):
-        logging.info('NeXpy closed\n'+80*'-')
-        QtCore.QCoreApplication.instance().quit()
         
     # Populate the menu bar with common actions and shortcuts
     def add_menu_action(self, menu, action, defer_shortcut=False):
@@ -2208,21 +2186,13 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def quickref_console(self):
         self.console.execute("%quickref")
-    #---------------------------------------------------------------------------
-    # QWidget interface
-    #---------------------------------------------------------------------------
 
     def closeEvent(self, event):
-        """ Confirm NeXpy quit if the window is closed.
-        """
-        cancel = QtWidgets.QMessageBox.Cancel
-        okay = QtWidgets.QMessageBox.Ok
-
-        reply = self.close()
-
-        if reply == cancel:
-            event.ignore()
-            return
-
-        if reply == okay:
-            event.accept()
+        """Customize the close process to confirm request to quit NeXpy."""
+        if confirm_action("Are you sure you want to quit NeXpy?", 
+                          icon=self.app.icon_pixmap):
+            logging.info('NeXpy closed\n'+80*'-')
+            self._app.quit()
+            return event.accept()
+        else:
+            return event.ignore()
