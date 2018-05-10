@@ -82,7 +82,6 @@ class MainWindow(QtWidgets.QMainWindow):
         super(MainWindow, self).__init__()
         self.resize(1000, 800)
         self.app = app
-        self.app = app
         self._app = app.app
         self._app.setStyle("QMacStyle")
         self.settings = settings
