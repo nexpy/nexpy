@@ -48,7 +48,7 @@ def report_error(context, error):
     return message_box.exec_()
 
 
-def confirm_action(query, information=None, answer=None):
+def confirm_action(query, information=None, answer=None, icon=None):
     """Display a message box requesting confirmation"""
     message_box = QtWidgets.QMessageBox()
     message_box.setText(query)
@@ -64,6 +64,9 @@ def confirm_action(query, information=None, answer=None):
     else:
         message_box.setStandardButtons(QtWidgets.QMessageBox.Ok | 
                                        QtWidgets.QMessageBox.Cancel)
+    if icon:
+        message_box.setIconPixmap(icon)
+
     response = message_box.exec_()
     if (response == QtWidgets.QMessageBox.Yes or 
         response == QtWidgets.QMessageBox.Ok):
