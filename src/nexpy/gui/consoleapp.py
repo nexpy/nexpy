@@ -253,6 +253,7 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
         if self.app is None:
             self.app = QtWidgets.QApplication(['nexpy'])
         self.app.setApplicationName('nexpy')
+        sys.excepthook = report_exception
         try:
             if 'svg' in QtGui.QImageReader.supportedImageFormats():
                 self.app.icon = QtGui.QIcon(
