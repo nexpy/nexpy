@@ -2191,6 +2191,7 @@ class MainWindow(QtWidgets.QMainWindow):
         if confirm_action("Are you sure you want to quit NeXpy?", 
                           icon=self.app.icon_pixmap):
             logging.info('NeXpy closed\n'+80*'-')
+            self._app.closeAllWindows()
             self._app.quit()
             return event.accept()
         else:
