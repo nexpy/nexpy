@@ -418,10 +418,10 @@ class NXTreeView(QtWidgets.QTreeView):
         return menu
 
     def status_message(self, message):
-        if isinstance(message, NXfield):
-            text = message.tree
-        elif isinstance(message, NXgroup):
+        if isinstance(message, NXfield) or isinstance(message, NXgroup):
             text = message._str_name()+' '+message._str_attrs()
+        elif isinstance(message, NXlink):
+            text = message._str_name()
         else:
             text = str(message)
         self.mainwindow.statusBar().showMessage(text.replace('\n','; '))
