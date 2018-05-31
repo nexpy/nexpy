@@ -467,13 +467,26 @@ class BaseDialog(QtWidgets.QDialog):
         self.accepted = False
         QtWidgets.QDialog.reject(self)
 
-    def update_progress(self):
+    def start_progress(self, limits):
+        start, stop = limits
+        if self.progress_bar:
+            self.progress_bar.setVisible(True)
+            self.progress_bar.setRange(start, stop)
+            self.progress_bar.setValue(start)
+
+    def update_progress(self, value=None):
         """
         Call the main QApplication.processEvents
         
         This ensures that GUI items like progress bars get updated
         """
+        if self.progress_bar and value is not None:
+            self.progress_bar.setValue(value)
         self.mainwindow._app.processEvents()
+
+    def stop_progress(self):
+        if self.progress_bar:
+            self.progress_bar.setVisible(False)
 
     def progress_layout(self, save=False):
         layout = QtWidgets.QHBoxLayout()
