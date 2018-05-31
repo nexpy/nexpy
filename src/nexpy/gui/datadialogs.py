@@ -235,6 +235,12 @@ class BaseDialog(QtWidgets.QDialog):
              group.addButton(self.radiobutton[label])
         return layout
 
+    def editor(self, text=None, *opts):
+        editbox = QtWidgets.QPlainTextEdit()
+        if text:
+            editbox.setPlainText(text)
+        return editbox
+
     def filebox(self, text="Choose File", slot=None):
         """
         Creates a text box and button for selecting a file.
