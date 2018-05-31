@@ -68,6 +68,7 @@ class BaseDialog(QtWidgets.QDialog):
         self.confirm_action = confirm_action
         self.display_message = display_message
         self.report_error = report_error
+        self.thread = None
         if parent is None:
             parent = self.mainwindow
         super(BaseDialog, self).__init__(parent)
@@ -235,6 +236,12 @@ class BaseDialog(QtWidgets.QDialog):
              group.addButton(self.radiobutton[label])
         return layout
 
+    def editor(self, text=None, *opts):
+        editbox = QtWidgets.QPlainTextEdit()
+        if text:
+            editbox.setPlainText(text)
+        return editbox
+
     def filebox(self, text="Choose File", slot=None):
         """
         Creates a text box and button for selecting a file.
@@ -358,6 +365,8 @@ class BaseDialog(QtWidgets.QDialog):
         roots = []
         for root in self.tree.NXroot:
             roots.append(root.nxname)
+        if not roots:
+            raise NeXusError("No files loaded in the NeXus tree")
         for root in sorted(roots):
             box.addItem(root)
         if not other:
@@ -368,10 +377,9 @@ class BaseDialog(QtWidgets.QDialog):
                     box.setCurrentIndex(idx)
             except Exception:
                 box.setCurrentIndex(0)
-        if slot:
-            box.currentIndexChanged.connect(slot)
-        layout.addWidget(QtWidgets.QLabel(text))
         layout.addWidget(box)
+        if slot:
+            layout.addWidget(NXPushButton(text, slot))
         layout.addStretch()
         if not other:
             self.root_box = box
@@ -460,13 +468,26 @@ class BaseDialog(QtWidgets.QDialog):
         self.accepted = False
         QtWidgets.QDialog.reject(self)
 
-    def update_progress(self):
+    def start_progress(self, limits):
+        start, stop = limits
+        if self.progress_bar:
+            self.progress_bar.setVisible(True)
+            self.progress_bar.setRange(start, stop)
+            self.progress_bar.setValue(start)
+
+    def update_progress(self, value=None):
         """
         Call the main QApplication.processEvents
         
         This ensures that GUI items like progress bars get updated
         """
+        if self.progress_bar and value is not None:
+            self.progress_bar.setValue(value)
         self.mainwindow._app.processEvents()
+
+    def stop_progress(self):
+        if self.progress_bar:
+            self.progress_bar.setVisible(False)
 
     def progress_layout(self, save=False):
         layout = QtWidgets.QHBoxLayout()
@@ -482,6 +503,22 @@ class BaseDialog(QtWidgets.QDialog):
         """
         return self.treeview.get_node()
 
+    def start_thread(self):
+        if self.thread:
+            self.stop_thread()
+        self.thread = QtCore.QThread()
+        return self.thread
+
+    def stop_thread(self):
+        if self.thread:
+            self.thread.exit()
+            self.thread.wait()
+            self.thread.deleteLater()
+
+    def closeEvent(self, event):
+        self.stop_thread()
+        super(BaseDialog, self).closeEvent(event)
+            
 
 class GridParameters(OrderedDict):
     """
