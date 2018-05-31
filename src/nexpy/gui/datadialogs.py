@@ -364,6 +364,8 @@ class BaseDialog(QtWidgets.QDialog):
         roots = []
         for root in self.tree.NXroot:
             roots.append(root.nxname)
+        if not roots:
+            raise NeXusError("No files loaded in the NeXus tree")
         for root in sorted(roots):
             box.addItem(root)
         if not other:
@@ -374,10 +376,9 @@ class BaseDialog(QtWidgets.QDialog):
                     box.setCurrentIndex(idx)
             except Exception:
                 box.setCurrentIndex(0)
-        if slot:
-            box.currentIndexChanged.connect(slot)
-        layout.addWidget(QtWidgets.QLabel(text))
         layout.addWidget(box)
+        if slot:
+            layout.addWidget(NXPushButton(text, slot))
         layout.addStretch()
         if not other:
             self.root_box = box
