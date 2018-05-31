@@ -68,6 +68,7 @@ class BaseDialog(QtWidgets.QDialog):
         self.confirm_action = confirm_action
         self.display_message = display_message
         self.report_error = report_error
+        self.thread = None
         if parent is None:
             parent = self.mainwindow
         super(BaseDialog, self).__init__(parent)
@@ -502,6 +503,22 @@ class BaseDialog(QtWidgets.QDialog):
         """
         return self.treeview.get_node()
 
+    def start_thread(self):
+        if self.thread:
+            self.stop_thread()
+        self.thread = QtCore.QThread()
+        return self.thread
+
+    def stop_thread(self):
+        if self.thread:
+            self.thread.exit()
+            self.thread.wait()
+            self.thread.deleteLater()
+
+    def closeEvent(self, event):
+        self.stop_thread()
+        super(BaseDialog, self).closeEvent(event)
+            
 
 class GridParameters(OrderedDict):
     """
