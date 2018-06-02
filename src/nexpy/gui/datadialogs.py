@@ -516,10 +516,11 @@ class BaseDialog(QtWidgets.QDialog):
         return self.thread
 
     def stop_thread(self):
-        if self.thread:
+        if isinstance(self.thread, QtCore.QThread):
             self.thread.exit()
             self.thread.wait()
             self.thread.deleteLater()
+        self.thread = None
 
     def closeEvent(self, event):
         self.stop_thread()
