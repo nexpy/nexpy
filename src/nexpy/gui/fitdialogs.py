@@ -588,9 +588,9 @@ class FitDialog(BaseDialog):
     def on_key_press(self, event):
         if event.inaxes:
             if event.key == 'l':
-                self.plot_minbox.setText(str(event.xdata))
+                self.plot_minbox.setText('%g' % event.xdata)
             elif event.key == 'r':
-                self.plot_maxbox.setText(str(event.xdata))
+                self.plot_maxbox.setText('%g' % event.xdata)
    
     def accept(self):
         if 'Fit' in self.plotviews:
