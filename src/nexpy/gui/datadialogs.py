@@ -237,9 +237,10 @@ class BaseDialog(QtWidgets.QDialog):
         return layout
 
     def editor(self, text=None, *opts):
-        editbox = QtWidgets.QPlainTextEdit()
+        editbox = QtWidgets.QTextEdit()
         if text:
-            editbox.setPlainText(text)
+            editbox.setText(text)
+        editbox.setFocusPolicy(QtCore.Qt.StrongFocus)
         return editbox
 
     def filebox(self, text="Choose File", slot=None):
