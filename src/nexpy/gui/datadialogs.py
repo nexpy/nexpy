@@ -69,6 +69,8 @@ class BaseDialog(QtWidgets.QDialog):
         self.display_message = display_message
         self.report_error = report_error
         self.thread = None
+        self.bold_font =  QtGui.QFont()
+        self.bold_font.setBold(True)
         if parent is None:
             parent = self.mainwindow
         super(BaseDialog, self).__init__(parent)
@@ -173,7 +175,10 @@ class BaseDialog(QtWidgets.QDialog):
             horizontal_layout = QtWidgets.QHBoxLayout()
             if align == 'center' or align == 'right':
                 horizontal_layout.addStretch()
-            horizontal_layout.addWidget(QtWidgets.QLabel(six.text_type(label)))
+            label_widget = QtWidgets.QLabel(six.text_type(label))
+            if 'header' in opts:
+                label_widget.setFont(self.bold_font)        
+            horizontal_layout.addWidget(label_widget)
             if align == 'center' or align == 'left':
                 horizontal_layout.addStretch()
             layout.addLayout(horizontal_layout)
