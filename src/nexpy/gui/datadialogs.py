@@ -458,6 +458,36 @@ class BaseDialog(QtWidgets.QDialog):
         except NeXusError:
             return None 
 
+    def hide_grid(self, grid):
+        for row in range(grid.rowCount()):
+            for column in range(grid.columnCount()):
+                item = grid.itemAtPosition(row, column)
+                if item is not None:
+                    widget = item.widget()
+                    if widget is not None:
+                        widget.setVisible(False)
+
+    def show_grid(self, grid):
+        for row in range(grid.rowCount()):
+            for column in range(grid.columnCount()):
+                item = grid.itemAtPosition(row, column)
+                if item is not None:
+                    widget = item.widget()
+                    if widget is not None:
+                        widget.setVisible(True)
+
+    def delete_grid(self, grid):
+        for row in range(grid.rowCount()):
+            for column in range(grid.columnCount()):
+                item = grid.itemAtPosition(row, column)
+                if item is not None:
+                    widget = item.widget()
+                    if widget is not None:
+                        widget.setVisible(False)
+                        grid.removeWidget(widget)
+                        widget.deleteLater()
+        grid.deleteLater()        
+
     def accept(self):
         """
         Accepts the result.
