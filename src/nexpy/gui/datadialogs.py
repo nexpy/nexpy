@@ -675,7 +675,7 @@ class GridParameters(OrderedDict):
             self[p].value = parameters[p].value
 
     def refine_parameters(self, residuals, **opts):
-        from lmfit import minimize, Parameters, fit_report
+        from lmfit import minimize, fit_report
         self.set_parameters()
         if self.status_layout:
             self.status_message.setText('Fitting...')
@@ -848,6 +848,14 @@ class GridParameter(object):
                 self.checkbox.setCheckState(QtCore.Qt.Checked)
             else:
                 self.checkbox.setCheckState(QtCore.Qt.Unchecked)
+
+    def disable(self, vary=None):
+        if vary:
+            self.vary = vary
+        self.checkbox.setEnabled(False)
+
+    def enable(self):
+        self.checkbox.setEnabled(True)
 
 
 class PlotDialog(BaseDialog):
