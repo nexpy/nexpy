@@ -263,7 +263,7 @@ class BaseDialog(QtWidgets.QDialog):
         filebox.addWidget(self.filename)
         return filebox
  
-    def directorybox(self, text="Choose Directory", slot=None):
+    def directorybox(self, text="Choose Directory", slot=None, default=True):
         """
         Creates a text box and button for selecting a directory.
         """
@@ -273,9 +273,9 @@ class BaseDialog(QtWidgets.QDialog):
             self.directorybutton =  NXPushButton(text, self.choose_directory)
         self.directoryname = QtWidgets.QLineEdit(self)
         self.directoryname.setMinimumWidth(300)
-        default = self.get_default_directory()
-        if default:
-            self.directoryname.setText(default)
+        default_directory = self.get_default_directory()
+        if default and default_directory:
+            self.directoryname.setText(default_directory)
         directorybox = QtWidgets.QHBoxLayout()
         directorybox.addWidget(self.directorybutton)
         directorybox.addWidget(self.directoryname)
