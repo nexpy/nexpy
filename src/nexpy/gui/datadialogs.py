@@ -850,11 +850,13 @@ class GridParameter(object):
                 self.checkbox.setCheckState(QtCore.Qt.Unchecked)
 
     def disable(self, vary=None):
-        if vary:
+        if vary is not None:
             self.vary = vary
         self.checkbox.setEnabled(False)
 
-    def enable(self):
+    def enable(self, vary=None):
+        if vary is not None:
+            self.vary = vary
         self.checkbox.setEnabled(True)
 
 
