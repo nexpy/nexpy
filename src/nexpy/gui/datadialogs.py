@@ -136,6 +136,16 @@ class BaseDialog(QtWidgets.QDialog):
     def set_title(self, title):
         self.setWindowTitle(title)
 
+    def close_layout(self, message=None, save=False, close=False):
+        layout = QtWidgets.QHBoxLayout()
+        self.status_message = QtWidgets.QLabel()
+        if message:
+            self.status_message.setText(message)
+        layout.addWidget(self.status_message)
+        layout.addStretch()
+        layout.addWidget(self.close_buttons(save=save, close=close))
+        return layout
+
     def close_buttons(self, save=False, close=False):
         """
         Creates a box containing the standard Cancel and OK buttons.
@@ -525,12 +535,12 @@ class BaseDialog(QtWidgets.QDialog):
         if self.progress_bar:
             self.progress_bar.setVisible(False)
 
-    def progress_layout(self, save=False):
+    def progress_layout(self, save=False, close=False):
         layout = QtWidgets.QHBoxLayout()
         self.progress_bar = QtWidgets.QProgressBar()
         layout.addWidget(self.progress_bar)
         layout.addStretch()
-        layout.addWidget(self.close_buttons(save))
+        layout.addWidget(self.close_buttons(save=save, close=close))
         return layout
 
     def get_node(self):
