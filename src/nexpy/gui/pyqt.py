@@ -1,18 +1,22 @@
 import os
 import matplotlib
-import sip
-for api in ['QString', 'QVariant', 'QDate', 'QDateTime', 'QTextStream', 'QTime', 
-            'QUrl']:
-    sip.setapi(api, 2)
+# this will not work with the newest version of PyQt
+try:
+    import sip
+    for api in ['QString', 'QVariant', 'QDate', 'QDateTime',
+                'QTextStream', 'QTime', 'QUrl']:
+        sip.setapi(api, 2)
+except ImportError:
+    pass
 
 from matplotlib.backends.qt_compat import QtCore, QtGui, QtWidgets
 if QtCore.__name__.lower().startswith('pyqt5'):
     os.environ['QT_API'] = 'pyqt5'
-    QtVersion = 'Qt5Agg'  
+    QtVersion = 'Qt5Agg'
 else:
     QtCore.QSortFilterProxyModel = QtGui.QSortFilterProxyModel
     QtCore.QItemSelectionModel = QtGui.QItemSelectionModel
-    QtVersion = 'Qt4Agg'  
+    QtVersion = 'Qt4Agg'
     if QtCore.__name__.lower().startswith('pyqt4'):
         os.environ['QT_API'] = 'pyqt'
     elif QtCore.__name__.lower().startswith('pyside'):
