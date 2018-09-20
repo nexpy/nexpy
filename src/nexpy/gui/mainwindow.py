@@ -324,9 +324,15 @@ class MainWindow(QtWidgets.QMainWindow):
             )
         self.add_menu_action(self.file_menu, self.lockfile_action)
 
+        if sys.platform == 'darwin':
+            #This maps onto Cmd+U on a Mac. On other systems, this clashes with 
+            #the Ctrl+U command-line editing shortcut.
+            unlock_shortcut = QtGui.QKeySequence("Ctrl+U")
+        else:
+            unlock_shortcut = QtGui.QKeySequence("Ctrl+Shift+U")
         self.unlockfile_action=QtWidgets.QAction("&Unlock File",
             self,
-            shortcut=QtGui.QKeySequence("Ctrl+U"),
+            shortcut=unlock_shortcut,
             triggered=self.unlock_file
             )
         self.add_menu_action(self.file_menu, self.unlockfile_action)
