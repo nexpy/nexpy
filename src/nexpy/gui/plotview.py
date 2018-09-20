@@ -1004,7 +1004,7 @@ class NXPlotView(QtWidgets.QDialog):
                                                  norm=self.norm)
             self.colorbar.locator = self.locator
             self.colorbar.formatter = self.formatter
-            self.colorbar.update_normal(self.image)
+            self.colorbar.update_bruteforce(self.image)
 
         xlo, ylo = self.transform(self.xaxis.lo, self.yaxis.lo)
         xhi, yhi = self.transform(self.xaxis.hi, self.yaxis.hi)
@@ -1167,7 +1167,7 @@ class NXPlotView(QtWidgets.QDialog):
                 self.colorbar.locator = self.locator
                 self.colorbar.formatter = self.formatter
                 self.colorbar.set_norm(self.norm)
-                self.colorbar.update_normal(self.image)
+                self.colorbar.update_bruteforce(self.image)
             self.image.set_clim(self.vaxis.lo, self.vaxis.hi)
             if self.regular_grid:
                 if self.interpolation == 'convolve':
@@ -1290,7 +1290,7 @@ class NXPlotView(QtWidgets.QDialog):
                                                 vmin=-vmax, vmax=vmax))
             self.image.set_norm(NXSymLogNorm(linthresh, linscale=linscale,
                                              vmin=-vmax, vmax=vmax))
-            self.colorbar.update_normal(self.image)
+            self.colorbar.update_bruteforce(self.image)
             self.image.set_clim(self.vaxis.lo, self.vaxis.hi)
             self.draw()
             self.vtab.set_axis(self.vaxis)
