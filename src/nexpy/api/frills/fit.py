@@ -172,16 +172,12 @@ class Fit(object):
         if self.result is not None:
             fit = NXparameters()
             fit.nfev = self.result.nfev
-            fit.ier = self.result.ier 
             fit.chisq = self.result.chisqr
             fit.redchi = self.result.redchi
             fit.message = self.result.message
-            fit.lmdif_message = self.result.lmdif_message
             group['statistics'] = fit
             group.note = NXnote(self.result.message,
-                ('%s\n' % self.result.lmdif_message +
-                 'scipy.optimize.leastsq error value = %s\n' % self.result.ier +
-                 'Chi^2 = %s\n' % self.result.chisqr +
+                ('Chi^2 = %s\n' % self.result.chisqr +
                  'Reduced Chi^2 = %s\n' % self.result.redchi +
                  'No. of Function Evaluations = %s\n' % self.result.nfev +
                  'No. of Variables = %s\n' % self.result.nvarys +

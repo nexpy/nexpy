@@ -19,7 +19,7 @@ import os
 import re
 import numpy as np
 
-from nexusformat.nexus import NXfield, NXentry, NXdata, NeXusError
+from nexusformat.nexus import *
 from nexpy.gui.pyqt import QtCore, QtWidgets
 from nexpy.gui.importdialog import BaseImportDialog
 
@@ -29,7 +29,7 @@ prefix_pattern = re.compile('^([^.]+)(?:(?<!\d)|(?=_))')
 
 
 class ImportDialog(BaseImportDialog):
-    """Dialog to import an image stack (TIFF or CBF)"""
+    """Dialog to import an image stack using Fabio"""
  
     def __init__(self, parent=None):
 
@@ -81,13 +81,17 @@ class ImportDialog(BaseImportDialog):
         layout.addWidget(extension_label, 0, 4)
         layout.addWidget(self.extension_box, 0, 5)
         self.prefix_combo = QtWidgets.QComboBox()
-        self.prefix_combo.setSizeAdjustPolicy(QtWidgets.QComboBox.AdjustToContents)
+        self.prefix_combo.setSizeAdjustPolicy(
+            QtWidgets.QComboBox.AdjustToContents)
         self.prefix_combo.activated.connect(self.choose_prefix)
         self.extension_combo = QtWidgets.QComboBox()
-        self.extension_combo.setSizeAdjustPolicy(QtWidgets.QComboBox.AdjustToContents)
+        self.extension_combo.setSizeAdjustPolicy(
+            QtWidgets.QComboBox.AdjustToContents)
         self.extension_combo.activated.connect(self.choose_extension)
-        layout.addWidget(self.prefix_combo, 1, 1, alignment=QtCore.Qt.AlignHCenter)
-        layout.addWidget(self.extension_combo, 1, 5, alignment=QtCore.Qt.AlignHCenter)
+        layout.addWidget(self.prefix_combo, 1, 1, 
+                         alignment=QtCore.Qt.AlignHCenter)
+        layout.addWidget(self.extension_combo, 1, 5, 
+                         alignment=QtCore.Qt.AlignHCenter)
         filterbox.setLayout(layout)
         filterbox.setVisible(False)
         return filterbox
@@ -133,7 +137,8 @@ class ImportDialog(BaseImportDialog):
                 self.prefix_combo.addItem(prefix)
         if self.get_prefix() not in prefixes:
             self.set_prefix(prefixes[0])
-        self.prefix_combo.setCurrentIndex(self.prefix_combo.findText(self.get_prefix()))
+        self.prefix_combo.setCurrentIndex(
+            self.prefix_combo.findText(self.get_prefix()))
         try:
             files = [f for f in files if f.startswith(self.get_prefix())]
             min, max = self.get_index(files[0]), self.get_index(files[-1])
@@ -170,7 +175,10 @@ class ImportDialog(BaseImportDialog):
                 self.set_extension('.tiff')
             elif '.cbf' in extensions:
                 self.set_extension('.cbf')
-        self.extension_combo.setCurrentIndex(self.extension_combo.findText(self.get_extension()))
+            else:
+                self.set_extension(list(extensions)[0])
+        self.extension_combo.setCurrentIndex(
+            self.extension_combo.findText(self.get_extension()))
         return extensions
 
     def get_extension(self):
@@ -187,17 +195,13 @@ class ImportDialog(BaseImportDialog):
             text = '.'+text
         self.extension_box.setText(text)
         if self.extension_combo.findText(text) >= 0:
-            self.extension_combo.setCurrentIndex(self.extension_combo.findText(text))
+            self.extension_combo.setCurrentIndex(
+                self.extension_combo.findText(text))
         self.get_prefixes()
 
-    def get_image_type(self):
-        if self.get_extension() == '.cbf':
-            return 'CBF'
-        else:
-            return 'TIFF'
-
     def get_index(self, file):
-        return int(re.match('^(.*?)([0-9]*)%s[.](.*)$' % self.suffix, file).groups()[1])
+        return int(re.match('^(.*?)([0-9]*)%s[.](.*)$' % self.suffix, 
+                   file).groups()[1])
 
     def get_indices(self):
         try:
@@ -217,13 +221,15 @@ class ImportDialog(BaseImportDialog):
                                               self.get_extension())
         if self.get_indices():
             min, max = self.get_indices()
-            return [file for file in filenames if self.get_index(file) >= min and 
-                                                  self.get_index(file) <= max]
+            return [file for file in filenames 
+                    if self.get_index(file) >= min and 
+                    self.get_index(file) <= max]
         else:
             return filenames
 
     def set_range(self):
-        files = self.get_filesindirectory(self.get_prefix(), self.get_extension())
+        files = self.get_filesindirectory(self.get_prefix(), 
+                                          self.get_extension())
         try:
             min, max = self.get_index(files[0]), self.get_index(files[-1])
             if min > max:
@@ -235,24 +241,18 @@ class ImportDialog(BaseImportDialog):
             self.rangebox.setVisible(False)
 
     def read_image(self, filename):
-        if self.get_image_type() == 'CBF':
-            import pycbf
-            cbf = pycbf.cbf_handle_struct()
-            cbf.read_file(str(filename), pycbf.MSG_DIGEST)
-            cbf.select_datablock(0)
-            cbf.select_category(0)
-            cbf.select_column(2)
-            imsize = cbf.get_image_size(0)
-            return np.fromstring(cbf.get_integerarray_as_string(),np.int32).reshape(imsize)
-        else:
-            import tifffile
-            return tifffile.imread(filename)
+        try:
+            import fabio
+        except ImportError:
+            raise NeXusError("Please install the 'fabio' module")
+        im = fabio.open(filename)
+        return im
 
     def read_images(self, filenames):
-        v0 = self.read_image(filenames[0])
+        v0 = self.read_image(filenames[0]).data
         v = np.zeros([len(filenames), v0.shape[0], v0.shape[1]], dtype=np.int32)
         for i,filename in enumerate(filenames):
-            v[i] = self.read_image(filename)
+            v[i] = self.read_image(filename).data
         global maximum
         if v.max() > maximum:
             maximum = v.max()
@@ -265,17 +265,12 @@ class ImportDialog(BaseImportDialog):
         else:
             self.import_file = self.get_directory()       
         filenames = self.get_files()
-        if self.get_image_type() == 'CBF':
-            try:
-                import pycbf
-            except ImportError:
-                raise NeXusError("Please install the 'pycbf' module")
-        else:
-            try:
-                import tifffile
-            except ImportError:
-                raise NeXusError("Please install the 'tifffile' module")
-        v0 = self.read_image(filenames[0])
+        try:
+            import fabio
+        except ImportError:
+            raise NeXusError("Please install the 'fabio' module")
+        im = self.read_image(filenames[0])
+        v0 = im.data
         x = NXfield(range(v0.shape[1]), dtype=np.uint16, name='x')
         y = NXfield(range(v0.shape[0]), dtype=np.uint16, name='y')
         z = NXfield(range(1,len(filenames)+1), dtype=np.uint16, name='z')
@@ -300,4 +295,20 @@ class ImportDialog(BaseImportDialog):
                 pass
         global maximum
         v.maximum = maximum
-        return NXentry(NXdata(v,(z,y,x)))
+
+        if im.getclassname() == 'CbfImage':
+            note = NXnote(type='text/plain', file_name=self.import_file)
+            note.data = im.header.pop('_array_data.header_contents', '')
+            note.description = im.header.pop(
+                '_array_data.header_convention', '')
+        else:
+            note = None
+
+        header = NXcollection()
+        for key, value in im.header.items():
+            header[key] = value
+
+        if note:
+            return NXentry(NXdata(v,(z,y,x), CBF_header=note, header=header))
+        else:
+            return NXentry(NXdata(v,(z,y,x), header=header))

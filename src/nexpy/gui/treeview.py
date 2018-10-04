@@ -453,6 +453,7 @@ class NXTreeView(QtWidgets.QTreeView):
                                      QtCore.QItemSelectionModel.Select)
         
     def selectionChanged(self, new, old):
+        super(NXTreeView, self).selectionChanged(new, old)
         if new.indexes():
             node = self.get_node()
             self.status_message(node)

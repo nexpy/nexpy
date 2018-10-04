@@ -44,8 +44,8 @@ from .treeview import NXTreeView
 from .plotview import NXPlotView, NXProjectionPanels
 from .datadialogs import *
 from .scripteditor import NXScriptWindow, NXScriptEditor
-from .utils import confirm_action, report_error, display_message 
-from .utils import import_plugin, timestamp, get_colors
+from .utils import confirm_action, report_error, display_message, natural_sort
+from .utils import import_plugin, timestamp, get_name, get_colors, load_image
 
 
 class NXRichJupyterWidget(RichJupyterWidget):
@@ -191,29 +191,6 @@ class MainWindow(QtWidgets.QMainWindow):
     def plotview(self):
         from .plotview import plotview
         return plotview
-
-    def close(self):
-        """ Called when you quit NeXpy or close the main window."""
-        title = self.window().windowTitle()
-        cancel = QtWidgets.QMessageBox.Cancel
-        msg = "Are you sure you want to quit NeXpy?"
-        close = QtWidgets.QPushButton("&Quit", self)
-        close.setShortcut('Q')
-        close.clicked.connect(self.quit)
-        box = QtWidgets.QMessageBox(QtWidgets.QMessageBox.Question, title, msg)
-        box.addButton(cancel)
-        box.addButton(close, QtWidgets.QMessageBox.YesRole)
-        box.setDefaultButton(close)
-        box.setEscapeButton(cancel)
-        pixmap = QtGui.QPixmap(self._app.icon.pixmap(QtCore.QSize(64,64)))
-        box.setIconPixmap(pixmap)
-        reply = box.exec_()
-
-        return reply
-
-    def quit(self):
-        logging.info('NeXpy closed\n'+80*'-')
-        QtCore.QCoreApplication.instance().quit()
         
     # Populate the menu bar with common actions and shortcuts
     def add_menu_action(self, menu, action, defer_shortcut=False):
@@ -275,6 +252,19 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.init_recent_menu()
 
+        self.openimage_action=QtWidgets.QAction("Open Image...",
+            self,
+            shortcut="Ctrl+Alt+O",
+            triggered=self.open_image
+            )
+        self.add_menu_action(self.file_menu, self.openimage_action)
+
+        self.opendirectory_action=QtWidgets.QAction("Open Directory...",
+            self,
+            triggered=self.open_directory
+            )
+        self.add_menu_action(self.file_menu, self.opendirectory_action)
+
         try:
             import h5pyd
             self.openremotefile_action=QtWidgets.QAction("Open Remote...",
@@ -334,9 +324,15 @@ class MainWindow(QtWidgets.QMainWindow):
             )
         self.add_menu_action(self.file_menu, self.lockfile_action)
 
+        if sys.platform == 'darwin':
+            #This maps onto Cmd+U on a Mac. On other systems, this clashes with 
+            #the Ctrl+U command-line editing shortcut.
+            unlock_shortcut = QtGui.QKeySequence("Ctrl+U")
+        else:
+            unlock_shortcut = QtGui.QKeySequence("Ctrl+Shift+U")
         self.unlockfile_action=QtWidgets.QAction("&Unlock File",
             self,
-            shortcut=QtGui.QKeySequence("Ctrl+U"),
+            shortcut=unlock_shortcut,
             triggered=self.unlock_file
             )
         self.add_menu_action(self.file_menu, self.unlockfile_action)
@@ -1030,6 +1026,56 @@ class MainWindow(QtWidgets.QMainWindow):
         except NeXusError as error:
             report_error("Opening Recent File", error)
 
+    def open_image(self):
+        try:
+            file_filter = ';;'.join(("Any Files (*.* *)",
+                                     "TIFF Files (*.tiff *.tif)",
+                                     "CBF Files (*.cbf)",
+                                     "JPEG/PNG Files (*.jpg *.jpeg *.png)"))
+            fname = getOpenFileName(self, 'Open Image File',
+                                    self.default_directory, file_filter)
+            if fname is None:
+                return
+            data = load_image(fname)
+            if 'images' not in self.tree:
+                self.tree['images'] = NXroot()  
+            name = get_name(fname, self.tree['images'].entries)
+            self.tree['images'][name] = data
+            node = self.tree['images'][name]
+            self.treeview.select_node(node)
+            self.treeview.setFocus()
+            self.default_directory = os.path.dirname(fname)
+            logging.info("Image file '%s' opened as 'images%s'" 
+                         % (fname, node.nxpath))
+        except NeXusError as error:
+            report_error("Opening Image File", error)
+
+    def open_directory(self):
+        try:
+            directory = self.default_directory
+            directory = QtWidgets.QFileDialog.getExistingDirectory(self, 
+                        'Choose Directory', directory)
+            nxfiles = sorted([f for f in os.listdir(directory) 
+                               if (f.endswith('.nxs') or f.endswith('.nx5') or
+                               f.endswith('.h5') or f.endswith('hdf5') or
+                               f.endswith('hdf') or f.endswith('.cxi'))],
+                               key=natural_sort)	
+            if len(nxfiles) == 0:
+                raise NeXusError("No NeXus files found in directory")
+            if confirm_action("Open %s NeXus files" % len(nxfiles),
+                              '\n'.join(nxfiles)):
+                for nxfile in nxfiles:
+                    fname = os.path.join(directory, nxfile)
+                    name = self.tree.get_name(fname)
+                    self.tree[name] = nxload(fname)
+                self.treeview.select_node(self.tree[name])
+                self.treeview.setFocus()
+                self.default_directory = os.path.dirname(fname)
+                logging.info(
+                    "%s NeXus files opened from %s" % (len(nxfiles), directory))
+        except NeXusError as error:
+            report_error("Opening Directory", error)
+
     def open_remote_file(self):
         try:
             dialog = RemoteDialog(parent=self)
@@ -1144,8 +1190,7 @@ class MainWindow(QtWidgets.QMainWindow):
             path = node.nxpath
             root = node.nxroot
             name = root.nxname
-            ret = confirm_action("Are you sure you want to reload '%s'?" % name)
-            if ret == QtWidgets.QMessageBox.Ok:
+            if confirm_action("Are you sure you want to reload '%s'?" % name):
                 self.tree.reload(name)
                 logging.info("Workspace '%s' reloaded" % name)
                 try:
@@ -1160,9 +1205,8 @@ class MainWindow(QtWidgets.QMainWindow):
             node = self.treeview.get_node()
             name = node.nxname
             if isinstance(node, NXroot):
-                ret = confirm_action(
-                          "Are you sure you want to remove '%s'?" % name)
-                if ret == QtWidgets.QMessageBox.Ok:
+                if confirm_action("Are you sure you want to remove '%s'?" 
+                                  % name):
                     del self.tree[name]
                     logging.info("Workspace '%s' removed" % name)
         except NeXusError as error:
@@ -1252,11 +1296,9 @@ class MainWindow(QtWidgets.QMainWindow):
         try:
             node = self.treeview.get_node()
             if isinstance(node, NXroot):
-                ret = confirm_action(
-                          "Are you sure you want to restore the file?",
-                          "This will overwrite the current contents of '%s'"
-                          % node.nxname)
-                if ret == QtWidgets.QMessageBox.Ok:
+                if confirm_action("Are you sure you want to restore the file?",
+                        "This will overwrite the current contents of '%s'" 
+                        % node.nxname):
                     node.restore(overwrite=True)
                     self.treeview.update()
                     logging.info("Workspace '%s' backed up" % node.nxname)
@@ -1281,9 +1323,8 @@ class MainWindow(QtWidgets.QMainWindow):
     def purge_scratch_file(self):
         try:
             if 'w0' in self.tree:
-                ret = confirm_action(
-                          "Are you sure you want to purge the scratch file?")
-                if ret == QtWidgets.QMessageBox.Ok:
+                if confirm_action(
+                        "Are you sure you want to purge the scratch file?"):
                     for entry in self.tree['w0'].entries.copy():
                         del self.tree['w0'][entry]
                     logging.info("Workspace 'w0' purged")
@@ -1293,10 +1334,9 @@ class MainWindow(QtWidgets.QMainWindow):
     def close_scratch_file(self):
         try:
             if 'w0' in self.tree:
-                ret = confirm_action(
-                          "Do you want to delete the scratch file contents?", 
-                          answer='no')
-                if ret == QtWidgets.QMessageBox.Yes:
+                if confirm_action(
+                        "Do you want to delete the scratch file contents?", 
+                        answer='no'):
                     for entry in self.tree['w0'].entries.copy():
                         del self.tree['w0'][entry]
                     logging.info("Workspace 'w0' purged")
@@ -1570,13 +1610,15 @@ class MainWindow(QtWidgets.QMainWindow):
         try:
             node = self.treeview.get_node()
             if node is not None:
-                if node.nxroot.nxfilemode != 'r':
-                    ret = confirm_action('Are you sure you want to delete "%s"?'
-                                         % (node.nxroot.nxname+node.nxpath))
-                    if ret == QtWidgets.QMessageBox.Ok:
+                if node.nxfilemode != 'r':
+                    if confirm_action("Are you sure you want to delete '%s'?"
+                                      % (node.nxroot.nxname+node.nxpath)):
                         del node.nxgroup[node.nxname]
                         logging.info("'%s' deleted" % 
                                      (node.nxroot.nxname+node.nxpath))
+                elif node.is_external():
+                    raise NeXusError(
+                        "Cannot delete object in an externally linked group")
                 else:
                     raise NeXusError("NeXus file is locked")
         except NeXusError as error:
@@ -1628,8 +1670,7 @@ class MainWindow(QtWidgets.QMainWindow):
                     if node.nxgroup is None:
                         raise NeXusError("There is no parent group")
                     if 'default' in node.nxgroup.attrs:
-                        ret = confirm_action("Override existing default?")
-                        if ret != QtWidgets.QMessageBox.Ok:
+                        if not confirm_action("Override existing default?"):
                             return
                     node.nxgroup.attrs['default'] = node.nxname
                     if node.nxgroup in node.nxroot.values():
@@ -1647,7 +1688,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 from .fitdialogs import FitDialog
             except ImportError:
                 logging.info("The lmfit module is not installed")
-                raise NeXusError("Please install the lmfit module")
+                raise NeXusError("Please install the 'lmfit' module")
             node = self.treeview.get_node()
             if node is None:
                 return
@@ -2150,21 +2191,16 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def quickref_console(self):
         self.console.execute("%quickref")
-    #---------------------------------------------------------------------------
-    # QWidget interface
-    #---------------------------------------------------------------------------
 
     def closeEvent(self, event):
-        """ Confirm NeXpy quit if the window is closed.
-        """
-        cancel = QtWidgets.QMessageBox.Cancel
-        okay = QtWidgets.QMessageBox.Ok
-
-        reply = self.close()
-
-        if reply == cancel:
-            event.ignore()
-            return
-
-        if reply == okay:
-            event.accept()
+        """Customize the close process to confirm request to quit NeXpy."""
+        if confirm_action("Are you sure you want to quit NeXpy?", 
+                          icon=self.app.icon_pixmap):
+            logging.info('NeXpy closed\n'+80*'-')
+            self.console.kernel_client.stop_channels()
+            self.console.kernel_manager.shutdown_kernel()
+            self._app.closeAllWindows()
+            self._app.quit()
+            return event.accept()
+        else:
+            return event.ignore()

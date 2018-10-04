@@ -336,6 +336,7 @@ class NXPlotView(QtWidgets.QDialog):
         self.image = None
         self.colorbar = None
         self.zoom = None
+        self._active_mode = self.otab._active
         self.rgb_image = False
         self._aspect = 'auto'
         self._skew_angle = None
@@ -355,7 +356,7 @@ class NXPlotView(QtWidgets.QDialog):
 
         # Remove some key default Matplotlib key mappings
         for key in [key for key in mpl.rcParams if key.startswith('keymap')]:
-            for shortcut in 'bfghkloprsvxyzAEGHOPSZ':
+            for shortcut in 'bfghkloprsvxyzAEFGHOPSZ':
                 if shortcut in mpl.rcParams[key]:
                     mpl.rcParams[key].remove(shortcut)
 
@@ -366,6 +367,7 @@ class NXPlotView(QtWidgets.QDialog):
 
         self.projection_panel = None
         self.customize_panel = None
+        self.mask_panel = None
         self.shapes = []
 
         if self.label != "Main":
@@ -435,6 +437,8 @@ class NXPlotView(QtWidgets.QDialog):
         'E'
             Toggle the aspect ratio. This is equivalent to turning the 
             `Aspect Ratio` button on the toolbar on and off.
+        'F'
+            Toggle the flipping of the y-axis.
         'G'
             Toggle display of the axis grid.
         'O'
@@ -503,6 +507,11 @@ class NXPlotView(QtWidgets.QDialog):
             self.otab.add_data()
         elif event.key == 'E' and self.ndim > 1:
             self.otab.toggle_aspect()
+        elif event.key == 'F' and self.ndim > 1:
+            if self.ytab.flipped:
+                self.ytab.flipped = False
+            else:
+                self.ytab.flipped = True
         elif event.key == 'H':
             self.otab.home()
         elif event.key == 'G':
@@ -515,6 +524,25 @@ class NXPlotView(QtWidgets.QDialog):
             self.otab.save_figure()
         elif event.key == 'Z':
             self.otab.zoom()
+
+    def activate(self):
+        """Restore original signal connections.
+        
+        This assumes a previous call to the deactivate function, which sets the
+        current value of _active_mode.
+        """
+        if self._active_mode == 'ZOOM':
+            self.otab.zoom()
+        elif self._active_mode == 'PAN':
+            self.otab.pan()        
+    
+    def deactivate(self):
+        """Disable usual signal connections."""
+        self._active_mode = self.otab._active
+        if self._active_mode == 'ZOOM':
+            self.otab.zoom()
+        elif self._active_mode == 'PAN':
+            self.otab.pan()
 
     def display_logo(self):
         """Display the NeXpy logo in the plotting pane."""
@@ -605,7 +633,7 @@ class NXPlotView(QtWidgets.QDialog):
             If True, the x-axis is plotted on a log scale.
         logy : bool
             If True, the y-axis is plotted on a log scale. This is 
-            equivalent to 'log=True' for one-dimenional data.
+            equivalent to 'log=True' for one-dimensional data.
         skew : float
             The value of the skew angle between the x and y axes for 2D 
             plots.
@@ -750,11 +778,14 @@ class NXPlotView(QtWidgets.QDialog):
                         idx[i] = self.axes[i].index(0.0)
                     except Exception:
                         idx[i] = 0
-            self.signal = self.data.nxsignal[tuple(idx)][()]
+            signal = self.data.nxsignal[tuple(idx)][()]
         elif self.rgb_image:
-            self.signal = self.data.nxsignal[()]
+            signal = self.data.nxsignal[()]
         else:
-            self.signal = self.data.nxsignal[()].reshape(self.shape)
+            signal = self.data.nxsignal[()].reshape(self.shape)
+        if signal.dtype == np.bool:
+            signal.dtype = np.int8
+        self.signal = signal        
 
         if over:
             self.axis['signal'].set_data(self.signal)
@@ -973,7 +1004,7 @@ class NXPlotView(QtWidgets.QDialog):
                                                  norm=self.norm)
             self.colorbar.locator = self.locator
             self.colorbar.formatter = self.formatter
-            self.colorbar.update_normal(self.image)
+            self.colorbar.update_bruteforce(self.image)
 
         xlo, ylo = self.transform(self.xaxis.lo, self.yaxis.lo)
         xhi, yhi = self.transform(self.xaxis.hi, self.yaxis.hi)
@@ -1131,11 +1162,12 @@ class NXPlotView(QtWidgets.QDialog):
         try:
             self.set_data_limits()
             self.set_data_norm()
-            self.colorbar.locator = self.locator
-            self.colorbar.formatter = self.formatter
-            self.colorbar.set_norm(self.norm)
             self.image.set_norm(self.norm)
-            self.colorbar.update_normal(self.image)
+            if self.colorbar:
+                self.colorbar.locator = self.locator
+                self.colorbar.formatter = self.formatter
+                self.colorbar.set_norm(self.norm)
+                self.colorbar.update_bruteforce(self.image)
             self.image.set_clim(self.vaxis.lo, self.vaxis.hi)
             if self.regular_grid:
                 if self.interpolation == 'convolve':
@@ -1258,7 +1290,7 @@ class NXPlotView(QtWidgets.QDialog):
                                                 vmin=-vmax, vmax=vmax))
             self.image.set_norm(NXSymLogNorm(linthresh, linscale=linscale,
                                              vmin=-vmax, vmax=vmax))
-            self.colorbar.update_normal(self.image)
+            self.colorbar.update_bruteforce(self.image)
             self.image.set_clim(self.vaxis.lo, self.vaxis.hi)
             self.draw()
             self.vtab.set_axis(self.vaxis)
@@ -2008,7 +2040,9 @@ class NXPlotView(QtWidgets.QDialog):
         if 'linewidth' not in opts:
             circle.set_linewidth(1.0)
         if 'facecolor' not in opts:
-            circle.set_facecolor('none')
+            circle.set_facecolor('r')
+        if 'edgecolor' not in opts:
+            circle.set_edgecolor('k')
         self.canvas.draw()
         self.shapes.append(circle)
         return circle
@@ -2114,6 +2148,8 @@ class NXPlotView(QtWidgets.QDialog):
             self.projection_panel.close()
         if self.customize_panel:
             self.customize_panel.close()
+        if self.mask_panel:
+            self.mask_panel.close()
 
     def update_tabs(self):
         """Update tabs when limits have changed."""
@@ -2230,6 +2266,8 @@ class NXPlotView(QtWidgets.QDialog):
             self.projection_panel.close()
         if self.customize_panel:
             self.customize_panel.close()
+        if self.mask_panel:
+            self.mask_panel.close()
         if self.mainwindow.panels.tabs.count() == 0:
             self.mainwindow.panels.setVisible(False)
 
@@ -4121,6 +4159,157 @@ class NXNavigationToolbar(NavigationToolbar):
             self.plotview.canvas.setFocus()
         else:
             self.set_message('')
+
+
+class NXpatch(object):
+    """Class for a draggable shape on the NXPlotView canvas"""
+    lock = None
+     
+    def __init__(self, shape, border_tol=0.1, plotview=None):
+        if plotview:
+            self.plotview = get_plotview()
+        self.canvas = self.plotview.canvas
+        self.shape = shape
+        self.border_tol = border_tol
+        self.press = None
+        self.background = None
+        self.allow_resize = True
+        self._active = None
+        self.plotview.ax.add_patch(self.shape)
+
+    def connect(self):
+        'connect to all the events we need'
+        self.plotview.deactivate()
+        self.cidpress = self.canvas.mpl_connect(
+            'button_press_event', self.on_press)
+        self.cidrelease = self.canvas.mpl_connect(
+            'button_release_event', self.on_release)
+        self.cidmotion = self.canvas.mpl_connect(
+            'motion_notify_event', self.on_motion)
+
+    def is_inside(self, event):
+        if event.inaxes != self.shape.axes: 
+            return False
+        contains, attrd = self.shape.contains(event)
+        if contains:
+            return True
+        else:
+            return False
+
+    def initialize(self, xp, yp):
+        """Function to be overridden by shape sub-class."""
+
+    def update(self, x, y):
+        """Function to be overridden by shape sub-class"""
+
+    def on_press(self, event):
+        'on button press we will see if the mouse is over us and store some data'
+        if not self.is_inside(event):
+            self.press = None
+            return
+        self.press = self.initialize(event.xdata, event.ydata)
+        self.canvas.draw()
+
+    def on_motion(self, event):
+        """on motion we will move the rect if the mouse is over us"""
+        if self.press is None: 
+            return
+        if event.inaxes != self.shape.axes: 
+            return
+        self.update(event.xdata, event.ydata)
+        self.canvas.draw()
+
+    def on_release(self, event):
+        'on release we reset the press data'
+        if self.press is None:
+            return
+        self.press = None
+        self.canvas.draw()
+
+    def disconnect(self):
+        'disconnect all the stored connection ids'
+        self.canvas.mpl_disconnect(self.cidpress)
+        self.canvas.mpl_disconnect(self.cidrelease)
+        self.canvas.mpl_disconnect(self.cidmotion)
+        self.plotview.activate()
+
+
+class NXcircle(NXpatch):
+
+    def __init__(self, x, y, radius, border_tol=0.1, plotview=None, **opts):
+        shape = Circle((float(x),float(y)), radius, **opts)
+        if 'linewidth' not in opts:
+            shape.set_linewidth(1.0)
+        if 'facecolor' not in opts:
+            shape.set_facecolor('r')
+        super(NXcircle, self).__init__(shape, border_tol, plotview)
+        self.shape.set_label('Circle')
+        self.circle = self.shape
+
+    def initialize(self, xp, yp):
+        x0, y0 = self.circle.center
+        r0 = self.circle.radius
+        if (self.allow_resize and
+            (np.sqrt((xp-x0)**2 + (yp-y0)**2) > r0 * (1-self.border_tol))):
+            expand = True
+        else:
+            expand = False
+        return x0, y0, r0, xp, yp, expand   
+
+    def update(self, x, y):
+        x0, y0, r0, xp, yp, expand = self.press
+        dx, dy = (x-xp, y-yp)
+        bt = self.border_tol
+        if expand:
+            radius = np.sqrt((xp + dx - x0)**2 + (yp + dy - y0)**2)
+            self.shape.set_radius(radius)
+        else:
+            self.circle.center = (x0 + dx, y0 + dy)
+            self.circle.set_radius(r0)
+
+
+class NXrectangle(NXpatch):
+
+    def __init__(self, x, y, dx, dy, border_tol=0.1, plotview=None, **opts):
+        shape = Rectangle((float(x),float(y)), float(dx), float(dy), **opts)
+        if 'linewidth' not in opts:
+            shape.set_linewidth(1.0)
+        if 'facecolor' not in opts:
+            shape.set_facecolor('r')
+        super(NXrectangle, self).__init__(shape, border_tol, plotview)
+        self.shape.set_label('Rectangle')
+        self.rectangle = self.shape
+
+    def initialize(self, xp, yp):
+        x0, y0 = self.rectangle.xy
+        w0, h0 = self.rectangle.get_width(), self.rectangle.get_height()
+        bt = self.border_tol
+        if (self.allow_resize and
+            (abs(x0+np.true_divide(w0,2)-xp)>np.true_divide(w0,2)-bt*w0 or
+             abs(y0+np.true_divide(h0,2)-yp)>np.true_divide(h0,2)-bt*h0)):
+            expand = True
+        else:
+            expand = False
+        return x0, y0, w0, h0, xp, yp, expand   
+
+    def update(self, x, y):
+        x0, y0, w0, h0, xp, yp, expand = self.press
+        dx, dy = (x-xp, y-yp)
+        bt = self.border_tol
+        if expand:
+            if abs(x0 - xp) < bt * w0:
+                self.rectangle.set_x(x0+dx)
+                self.rectangle.set_width(w0-dx)
+            if abs(x0 + w0 - xp) < bt * w0:
+                self.rectangle.set_width(w0+dx)
+            elif abs(y0 - yp) < bt * h0:
+                self.rectangle.set_y(y0+dy)
+                self.rectangle.set_height(h0-dy)
+            elif abs(y0 + h0 - yp) < bt * h0:
+                self.rectangle.set_height(h0+dy)
+        else:
+            self.rectangle.set_x(x0+dx)
+            self.rectangle.set_y(y0+dy)
 
 
 class NXSymLogNorm(SymLogNorm):

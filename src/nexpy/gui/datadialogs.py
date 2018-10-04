@@ -24,7 +24,6 @@ from posixpath import basename
 
 from .pyqt import QtCore, QtGui, QtWidgets, getOpenFileName
 import numpy as np
-from scipy.optimize import minimize
 from matplotlib.colors import rgb2hex, colorConverter
 from matplotlib.backends.qt_editor.formlayout import ColorButton, to_qcolor
 from matplotlib.legend import Legend
@@ -34,7 +33,8 @@ try:
 except ImportError:
     from ordereddict import OrderedDict
 
-from .utils import confirm_action, report_error, import_plugin, convertHTML
+from .utils import confirm_action, display_message, report_error
+from .utils import import_plugin, convertHTML
 from .utils import natural_sort, wrap, human_size
 from .utils import timestamp, format_timestamp, restore_timestamp
 from .plotview import NXCheckBox, NXComboBox, NXPushButton, NXColorButton
@@ -51,6 +51,7 @@ class BaseDialog(QtWidgets.QDialog):
         self.accepted = False
         from .consoleapp import _mainwindow
         self.mainwindow = _mainwindow
+        self.mainwindow.current_dialog = self
         self.treeview = self.mainwindow.treeview
         self.tree = self.treeview.tree
         self.plotviews = self.mainwindow.plotviews
@@ -64,7 +65,12 @@ class BaseDialog(QtWidgets.QDialog):
         self.radiobutton = {}
         self.radiogroup = []
         self.mainwindow.radiogroup = self.radiogroup
-        self.confirm_action, self.report_error = confirm_action, report_error
+        self.confirm_action = confirm_action
+        self.display_message = display_message
+        self.report_error = report_error
+        self.thread = None
+        self.bold_font =  QtGui.QFont()
+        self.bold_font.setBold(True)
         if parent is None:
             parent = self.mainwindow
         super(BaseDialog, self).__init__(parent)
@@ -92,8 +98,53 @@ class BaseDialog(QtWidgets.QDialog):
                 self.layout.addWidget(item)
         self.setLayout(self.layout)
 
+    def make_layout(self, *items):
+        layout = QtWidgets.QHBoxLayout()
+        layout.addStretch()
+        for item in items:
+            if isinstance(item, QtWidgets.QLayout):
+                layout.addLayout(item)
+            elif isinstance(item, QtWidgets.QWidget):
+                layout.addWidget(item)
+            layout.addStretch()
+        return layout
+
+    def add_layout(self, *items):
+        for item in items:
+            if isinstance(item, QtWidgets.QLayout):
+                self.layout.addLayout(item)
+            elif isinstance(item, QtWidgets.QWidget):
+                self.layout.addWidget(item)
+
+    def insert_layout(self, index, *items):
+        for item in reversed(list(items)):
+            if isinstance(item, QtWidgets.QLayout):
+                self.layout.insertLayout(index, item)
+            elif isinstance(item, QtWidgets.QWidget):
+                self.layout.insertWidget(index, item)
+
+    def widget(self, item):
+        widget = QtWidgets.QWidget()
+        widget.layout = QtWidgets.QVBoxLayout()
+        if isinstance(item, QtWidgets.QLayout):
+            widget.layout.addLayout(item)
+        elif isinstance(item, QtWidgets.QWidget):
+            widget.layout.addWidget(item)
+        widget.setVisible(True)
+        return widget
+
     def set_title(self, title):
         self.setWindowTitle(title)
+
+    def close_layout(self, message=None, save=False, close=False):
+        layout = QtWidgets.QHBoxLayout()
+        self.status_message = QtWidgets.QLabel()
+        if message:
+            self.status_message.setText(message)
+        layout.addWidget(self.status_message)
+        layout.addStretch()
+        layout.addWidget(self.close_buttons(save=save, close=close))
+        return layout
 
     def close_buttons(self, save=False, close=False):
         """
@@ -134,7 +185,10 @@ class BaseDialog(QtWidgets.QDialog):
             horizontal_layout = QtWidgets.QHBoxLayout()
             if align == 'center' or align == 'right':
                 horizontal_layout.addStretch()
-            horizontal_layout.addWidget(QtWidgets.QLabel(label))
+            label_widget = QtWidgets.QLabel(six.text_type(label))
+            if 'header' in opts:
+                label_widget.setFont(self.bold_font)        
+            horizontal_layout.addWidget(label_widget)
             if align == 'center' or align == 'left':
                 horizontal_layout.addStretch()
             layout.addLayout(horizontal_layout)
@@ -146,8 +200,8 @@ class BaseDialog(QtWidgets.QDialog):
         else:
             layout = QtWidgets.QVBoxLayout()
         for item in items:
-            item_layout = QtWidgets.QHBoxLayout()
             label, value = item
+            item_layout = QtWidgets.QHBoxLayout()
             label_box = QtWidgets.QLabel(label)
             label_box.setAlignment(QtCore.Qt.AlignLeft)
             self.textbox[label] = QtWidgets.QLineEdit(six.text_type(value))
@@ -197,11 +251,21 @@ class BaseDialog(QtWidgets.QDialog):
              group.addButton(self.radiobutton[label])
         return layout
 
-    def filebox(self, text="Choose File"):
+    def editor(self, text=None, *opts):
+        editbox = QtWidgets.QTextEdit()
+        if text:
+            editbox.setText(text)
+        editbox.setFocusPolicy(QtCore.Qt.StrongFocus)
+        return editbox
+
+    def filebox(self, text="Choose File", slot=None):
         """
         Creates a text box and button for selecting a file.
         """
-        self.filebutton =  NXPushButton(text, self.choose_file)
+        if slot:
+            self.filebutton = NXPushButton(text, slot)
+        else:
+            self.filebutton =  NXPushButton(text, self.choose_file)
         self.filename = QtWidgets.QLineEdit(self)
         self.filename.setMinimumWidth(300)
         filebox = QtWidgets.QHBoxLayout()
@@ -209,16 +273,19 @@ class BaseDialog(QtWidgets.QDialog):
         filebox.addWidget(self.filename)
         return filebox
  
-    def directorybox(self, text="Choose Directory"):
+    def directorybox(self, text="Choose Directory", slot=None, default=True):
         """
         Creates a text box and button for selecting a directory.
         """
-        self.directorybutton =  NXPushButton(text, self.choose_directory)
+        if slot:
+            self.directorybutton = NXPushButton(text, slot)
+        else:
+            self.directorybutton =  NXPushButton(text, self.choose_directory)
         self.directoryname = QtWidgets.QLineEdit(self)
         self.directoryname.setMinimumWidth(300)
-        default = self.get_default_directory()
-        if default:
-            self.directoryname.setText(default)
+        default_directory = self.get_default_directory()
+        if default and default_directory:
+            self.directoryname.setText(default_directory)
         directorybox = QtWidgets.QHBoxLayout()
         directorybox.addWidget(self.directorybutton)
         directorybox.addWidget(self.directoryname)
@@ -270,7 +337,7 @@ class BaseDialog(QtWidgets.QDialog):
         return suggestion
     
     def set_default_directory(self, suggestion):
-        '''define the default directory to use for open/save dialogs'''
+        """Defines the default directory to use for open/save dialogs"""
         if os.path.exists(suggestion):
             if not os.path.isdir(suggestion):
                 suggestion = os.path.dirname(suggestion)
@@ -305,6 +372,7 @@ class BaseDialog(QtWidgets.QDialog):
             box.setCurrentIndex(0)
         if slot:
             box.currentIndexChanged.connect(slot)
+        box.setSizeAdjustPolicy(QtWidgets.QComboBox.AdjustToContents)
         return box
 
     def select_root(self, slot=None, text='Select Root :', other=False):
@@ -313,6 +381,8 @@ class BaseDialog(QtWidgets.QDialog):
         roots = []
         for root in self.tree.NXroot:
             roots.append(root.nxname)
+        if not roots:
+            raise NeXusError("No files loaded in the NeXus tree")
         for root in sorted(roots):
             box.addItem(root)
         if not other:
@@ -323,10 +393,9 @@ class BaseDialog(QtWidgets.QDialog):
                     box.setCurrentIndex(idx)
             except Exception:
                 box.setCurrentIndex(0)
-        if slot:
-            box.currentIndexChanged.connect(slot)
-        layout.addWidget(QtWidgets.QLabel(text))
         layout.addWidget(box)
+        if slot:
+            layout.addWidget(NXPushButton(text, slot))
         layout.addStretch()
         if not other:
             self.root_box = box
@@ -344,13 +413,15 @@ class BaseDialog(QtWidgets.QDialog):
     def other_root(self):
         return self.tree[self.other_root_box.currentText()]
 
-    def select_entry(self, slot=None, text='Select Entry :', other=False):
+    def select_entry(self, slot=None, text='Select Entry', other=False):
         layout = QtWidgets.QHBoxLayout()
         box = NXComboBox()
         entries = []
         for root in self.tree.NXroot:
             for entry in root.NXentry:
                 entries.append(root.nxname+'/'+entry.nxname)
+        if not entries:
+            raise NeXusError("No entries in the NeXus tree")
         for entry in sorted(entries):
             box.addItem(entry)
         if not other:
@@ -361,10 +432,10 @@ class BaseDialog(QtWidgets.QDialog):
                     box.setCurrentIndex(idx)
             except Exception:
                 box.setCurrentIndex(0)
-        if slot:
-            box.currentIndexChanged.connect(slot)
-        layout.addWidget(QtWidgets.QLabel(text))
+        layout.addStretch()
         layout.addWidget(box)
+        if slot:
+            layout.addWidget(NXPushButton(text, slot))
         layout.addStretch()
         if not other:
             self.entry_box = box
@@ -397,6 +468,36 @@ class BaseDialog(QtWidgets.QDialog):
         except NeXusError:
             return None 
 
+    def hide_grid(self, grid):
+        for row in range(grid.rowCount()):
+            for column in range(grid.columnCount()):
+                item = grid.itemAtPosition(row, column)
+                if item is not None:
+                    widget = item.widget()
+                    if widget is not None:
+                        widget.setVisible(False)
+
+    def show_grid(self, grid):
+        for row in range(grid.rowCount()):
+            for column in range(grid.columnCount()):
+                item = grid.itemAtPosition(row, column)
+                if item is not None:
+                    widget = item.widget()
+                    if widget is not None:
+                        widget.setVisible(True)
+
+    def delete_grid(self, grid):
+        for row in range(grid.rowCount()):
+            for column in range(grid.columnCount()):
+                item = grid.itemAtPosition(row, column)
+                if item is not None:
+                    widget = item.widget()
+                    if widget is not None:
+                        widget.setVisible(False)
+                        grid.removeWidget(widget)
+                        widget.deleteLater()
+        grid.deleteLater()        
+
     def accept(self):
         """
         Accepts the result.
@@ -413,20 +514,33 @@ class BaseDialog(QtWidgets.QDialog):
         self.accepted = False
         QtWidgets.QDialog.reject(self)
 
-    def update_progress(self):
+    def start_progress(self, limits):
+        start, stop = limits
+        if self.progress_bar:
+            self.progress_bar.setVisible(True)
+            self.progress_bar.setRange(start, stop)
+            self.progress_bar.setValue(start)
+
+    def update_progress(self, value=None):
         """
         Call the main QApplication.processEvents
         
         This ensures that GUI items like progress bars get updated
         """
+        if self.progress_bar and value is not None:
+            self.progress_bar.setValue(value)
         self.mainwindow._app.processEvents()
 
-    def progress_layout(self, save=False):
+    def stop_progress(self):
+        if self.progress_bar:
+            self.progress_bar.setVisible(False)
+
+    def progress_layout(self, save=False, close=False):
         layout = QtWidgets.QHBoxLayout()
         self.progress_bar = QtWidgets.QProgressBar()
         layout.addWidget(self.progress_bar)
         layout.addStretch()
-        layout.addWidget(self.close_buttons(save))
+        layout.addWidget(self.close_buttons(save=save, close=close))
         return layout
 
     def get_node(self):
@@ -435,6 +549,23 @@ class BaseDialog(QtWidgets.QDialog):
         """
         return self.treeview.get_node()
 
+    def start_thread(self):
+        if self.thread:
+            self.stop_thread()
+        self.thread = QtCore.QThread()
+        return self.thread
+
+    def stop_thread(self):
+        if isinstance(self.thread, QtCore.QThread):
+            self.thread.exit()
+            self.thread.wait()
+            self.thread.deleteLater()
+        self.thread = None
+
+    def closeEvent(self, event):
+        self.stop_thread()
+        super(BaseDialog, self).closeEvent(event)
+            
 
 class GridParameters(OrderedDict):
     """
@@ -445,6 +576,8 @@ class GridParameters(OrderedDict):
     """
     def __init__(self, *args, **kwds):
         super(GridParameters, self).__init__(self)
+        self.result = None
+        self.status_layout = None
         self.update(*args, **kwds)
 
     def __setitem__(self, key, value):
@@ -460,18 +593,18 @@ class GridParameters(OrderedDict):
 
         Example
         -------
-        p = Parameters()
+        p = GridParameters()
         p.add(name, value=XX, ...)
 
         is equivalent to:
-        p[name] = Parameter(name=name, value=XX, ....
+        p[name] = GridParameter(name=name, value=XX, ....
         """
         self.__setitem__(name, GridParameter(value=value, name=name, 
                                              label=label, vary=vary, slot=slot))
 
     def grid(self, header=True, title=None, width=None):
         grid = QtWidgets.QGridLayout()
-        grid.setSpacing(5)
+        grid.setSpacing(2)
         header_font = QtGui.QFont()
         header_font.setBold(True)
         row = 0
@@ -502,40 +635,101 @@ class GridParameters(OrderedDict):
                 grid.addWidget(p.checkbox, row, 2, QtCore.Qt.AlignHCenter)
                 vary = True
             row += 1
-        if vary:
+        if header and vary:
             fit_label = QtWidgets.QLabel('Fit?')
             fit_label.setFont(header_font)
             grid.addWidget(fit_label, 0, 2, QtCore.Qt.AlignHCenter)
         self.grid_layout = grid
         return grid
 
+    def hide_grid(self):
+        grid = self.grid_layout
+        for row in range(grid.rowCount()):
+            for column in range(grid.columnCount()):
+                item = grid.itemAtPosition(row, column)
+                if item is not None:
+                    widget = item.widget()
+                    if widget is not None:
+                        widget.setVisible(False)
+
+    def show_grid(self):
+        grid = self.grid_layout
+        for row in range(grid.rowCount()):
+            for column in range(grid.columnCount()):
+                item = grid.itemAtPosition(row, column)
+                if item is not None:
+                    widget = item.widget()
+                    if widget is not None:
+                        widget.setVisible(True)
+
+    def delete_grid(self):
+        grid = self.grid_layout
+        for row in range(grid.rowCount()):
+            for column in range(grid.columnCount()):
+                item = grid.itemAtPosition(row, column)
+                if item is not None:
+                    widget = item.widget()
+                    if widget is not None:
+                        widget.setVisible(False)
+                        grid.removeWidget(widget)
+                        widget.deleteLater()           
+
     def set_parameters(self):
-        self.parameters = []
-        for p in self.values():
-            p.init_value = p.value
-            if p.vary:
-                self.parameters.append({p.name:p.value})
+        from lmfit import Parameters, Parameter
+        self.lmfit_parameters = Parameters()
+        for p in [p for p in self if self[p].vary]:
+            self.lmfit_parameters[p] = Parameter(self[p].name, self[p].value)
 
-    def get_parameters(self, p):
-        i = 0
-        for key in [list(x)[0] for x in self.parameters]:
-            self[key].value = p[i]
-            i += 1
+    def get_parameters(self, parameters):
+        for p in parameters:
+            self[p].value = parameters[p].value
 
-    def refine_parameters(self, residuals, method='nelder-mead', **opts):
+    def refine_parameters(self, residuals, **opts):
+        from lmfit import minimize, fit_report
         self.set_parameters()
-        p0 = np.array([list(p.values())[0] for p in self.parameters])
-        result = minimize(residuals, p0, method='nelder-mead',
-                          options={'xtol': 1e-6, 'disp': True})
-        self.get_parameters(result.x)
+        if self.status_layout:
+            self.status_message.setText('Fitting...')
+            self.status_message.repaint()
+        self.result = minimize(residuals, self.lmfit_parameters, **opts)
+        self.fit_report = self.result.message+'\n'+fit_report(self.result)
+        if self.status_layout:
+            self.status_message.setText(self.result.message)
+        self.get_parameters(self.result.params)
+
+    def report_layout(self):
+        layout = QtWidgets.QHBoxLayout()
+        self.status_message = QtWidgets.QLabel()
+        if self.result is None:
+            self.status_message.setText('Waiting to refine')
+        else:
+            self.status_message.setText(self.result.message)
+        layout.addWidget(self.status_message)
+        layout.addStretch()
+        layout.addWidget(NXPushButton('Show Report', self.show_report))
+        self.status_layout = layout
+        return layout
+        
+    def show_report(self):
+        if self.result is None:
+            return
+        message_box = QtWidgets.QMessageBox()
+        message_box.setText("Fit Results")
+        message_box.setInformativeText(self.fit_report)
+        message_box.setStandardButtons(QtWidgets.QMessageBox.Ok)
+        spacer = QtWidgets.QSpacerItem(500, 0, 
+                                   QtWidgets.QSizePolicy.Minimum, 
+                                   QtWidgets.QSizePolicy.Expanding)
+        layout = message_box.layout()
+        layout.addItem(spacer, layout.rowCount(), 0, 1, layout.columnCount())
+        message_box.exec_()
 
     def restore_parameters(self):
-        for p in self.values():
-            p.value = p.init_value
+        for p in [p for p in self if self[p].vary]:
+            self[p].value = self[p].init_value
 
     def save(self):
-        for p in self.values():
-            p.save()
+        for p in self:
+            self[p].save()
 
 
 class GridParameter(object):
@@ -570,9 +764,9 @@ class GridParameter(object):
             self.box.setAlignment(QtCore.Qt.AlignRight)
             if value is not None:
                 if isinstance(value, NXfield):
-                    if value.shape == ():
+                    if value.shape == () or value.shape == (1,):
                         self.field = value
-                        self.value = self.field.nxdata
+                        self.value = self.field.nxvalue
                     else:
                         raise NeXusError(
                             "Cannot set a grid parameter to an array")
@@ -664,6 +858,16 @@ class GridParameter(object):
                 self.checkbox.setCheckState(QtCore.Qt.Checked)
             else:
                 self.checkbox.setCheckState(QtCore.Qt.Unchecked)
+
+    def disable(self, vary=None):
+        if vary is not None:
+            self.vary = vary
+        self.checkbox.setEnabled(False)
+
+    def enable(self, vary=None):
+        if vary is not None:
+            self.vary = vary
+        self.checkbox.setEnabled(True)
 
 
 class PlotDialog(BaseDialog):
@@ -1026,11 +1230,11 @@ class CustomizeDialog(BaseDialog):
         else:
             for curve in self.curves:
                 p = self.parameters[curve]
-                p.grid_layout.addWidget(p['linecolor'].color_button, 2, 2, 
+                p.grid_layout.addWidget(p['linecolor'].color_button, 4, 2, 
                                         alignment=QtCore.Qt.AlignCenter)
-                p.grid_layout.addWidget(p['facecolor'].color_button, 5, 2, 
+                p.grid_layout.addWidget(p['facecolor'].color_button, 7, 2, 
                                         alignment=QtCore.Qt.AlignCenter)
-                p.grid_layout.addWidget(p['edgecolor'].color_button, 6, 2, 
+                p.grid_layout.addWidget(p['edgecolor'].color_button, 8, 2, 
                                         alignment=QtCore.Qt.AlignCenter)
 
     def select_curve(self):
@@ -1064,7 +1268,7 @@ class CustomizeDialog(BaseDialog):
             _nameonly = False
         else:
             _nameonly = True
-        if legend_location == 'None' or self.is_empty_legend():
+        if legend_location == 'none' or self.is_empty_legend():
             self.plotview.remove_legend()
         else:
             curves = []
@@ -2220,9 +2424,8 @@ class ManageBackupsDialog(BaseDialog):
             if self.checkbox[backup].isChecked():
                 backups.append(backup)
         if backups:
-            ret = self.confirm_action("Delete selected backups?",
-                                      "\n".join(backups))
-            if ret == QtWidgets.QMessageBox.Ok:
+            if self.confirm_action("Delete selected backups?", 
+                                   "\n".join(backups)):
                 for backup in backups:
                     if (os.path.exists(backup) and 
                         os.path.realpath(backup).startswith(self.backup_dir)):
@@ -2276,10 +2479,8 @@ class InstallPluginDialog(BaseDialog):
             plugin_path = self.nexpy_directory
         installed_path = os.path.join(plugin_path, plugin_name)
         if os.path.exists(installed_path):
-            ret = self.confirm_action("Overwrite plugin?", 
-                                      "Plugin '%s' already exists" 
-                                      % plugin_name)
-            if ret == QtWidgets.QMessageBox.Ok:
+            if self.confirm_action("Overwrite plugin?", 
+                                   "Plugin '%s' already exists" % plugin_name):
                 backup = os.path.join(self.backup_dir, timestamp())
                 os.mkdir(backup)
                 shutil.move(installed_path, backup)
@@ -2353,9 +2554,8 @@ class RemovePluginDialog(BaseDialog):
         if plugin_menu_name is None:
             raise NeXusError("This directory does not contain a valid plugin")
         if os.path.exists(plugin_directory):
-            ret = self.confirm_action("Remove '%s'?" % plugin_directory, 
-                                      "This cannot be reversed")
-            if ret == QtWidgets.QMessageBox.Ok:
+            if self.confirm_action("Remove '%s'?" % plugin_directory, 
+                                   "This cannot be reversed"):
                 backup = os.path.join(self.backup_dir, timestamp())
                 os.mkdir(backup)
                 shutil.move(plugin_directory, backup)
@@ -2452,10 +2652,8 @@ class RestorePluginDialog(BaseDialog):
             plugin_path = self.nexpy_directory
         restored_path = os.path.join(plugin_path, plugin_name)
         if os.path.exists(restored_path):
-            ret = self.confirm_action("Overwrite plugin?", 
-                                      "Plugin '%s' already exists" 
-                                      % plugin_name)
-            if ret == QtWidgets.QMessageBox.Ok:
+            if self.confirm_action("Overwrite plugin?", 
+                                   "Plugin '%s' already exists" % plugin_name):
                 backup = os.path.join(self.backup_dir, timestamp())
                 os.mkdir(backup)
                 shutil.move(restored_path, backup)

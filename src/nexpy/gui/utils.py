@@ -18,14 +18,20 @@ try:
 except ImportError:
     from ConfigParser import ConfigParser
 import numpy as np
-from .pyqt import QtWidgets
+from .pyqt import QtWidgets, getOpenFileName
 from matplotlib.colors import hex2color, rgb2hex
+import matplotlib.image as img
 
 try:
     from astropy.convolution import Kernel
 except ImportError:
     Kernel = object
+try:
+    import fabio
+except ImportError:
+    fabio = None
 
+from nexusformat.nexus import *
 
 ansi_re = re.compile('\x1b' + r'\[([\dA-Fa-f;]*?)m')
 
@@ -42,7 +48,7 @@ def report_error(context, error):
     return message_box.exec_()
 
 
-def confirm_action(query, information=None, answer=None):
+def confirm_action(query, information=None, answer=None, icon=None):
     """Display a message box requesting confirmation"""
     message_box = QtWidgets.QMessageBox()
     message_box.setText(query)
@@ -58,8 +64,15 @@ def confirm_action(query, information=None, answer=None):
     else:
         message_box.setStandardButtons(QtWidgets.QMessageBox.Ok | 
                                        QtWidgets.QMessageBox.Cancel)
-    return message_box.exec_()
+    if icon:
+        message_box.setIconPixmap(icon)
 
+    response = message_box.exec_()
+    if (response == QtWidgets.QMessageBox.Yes or 
+        response == QtWidgets.QMessageBox.Ok):
+        return True
+    else:
+        return False
 
 def display_message(message, information=None):
     """Display a message box with an error message"""
@@ -182,6 +195,26 @@ def convertHTML(text):
     except ImportError:
         return ansi_re.sub('', text)
 
+
+def get_name(filename, entries=[]):
+    """Return a valid object name from a filename."""
+    name = os.path.splitext(os.path.basename(filename))[0].replace(' ','_')
+    name = "".join([c for c in name.replace('-','_') 
+                    if c.isalpha() or c.isdigit() or c=='_'])
+    if name in entries:
+        ind = []
+        for key in entries:
+            try:
+                if key.startswith(name+'_'): 
+                    ind.append(int(key[len(name)+1:]))
+            except ValueError:
+                pass
+        if ind == []: 
+            ind = [0]
+        name = name+'_'+str(sorted(ind)[-1]+1)
+    return name
+
+
 def get_colors(n, first='#1f77b4', last='#d62728'):
     """Return a list of colors interpolating between the first and last.
 
@@ -209,6 +242,47 @@ def get_colors(n, first='#1f77b4', last='#d62728'):
     return [rgb2hex((first[0]+(last[0]-first[0])*i/(n-1), 
                      first[1]+(last[1]-first[1])*i/(n-1),
                      first[2]+(last[2]-first[2])*i/(n-1))) for i in range(n)]
+
+def load_image(filename):
+    if os.path.splitext(filename.lower())[1] in ['.png', '.jpg', '.jpeg',
+                                                 '.gif']:
+        im = img.imread(filename)
+        z = NXfield(im, name='z')
+        y = NXfield(range(z.shape[0]), name='y')
+        x = NXfield(range(z.shape[1]), name='x')
+        if z.ndim > 2:
+            rgba = NXfield(range(z.shape[2]), name='rgba')
+            data = NXdata(z, (y,x,rgba))
+        else:        
+            data = NXdata(z, (y,x))
+    else:
+        try:
+            im = fabio.open(filename)
+        except Exception as error:
+            if fabio:
+                raise NeXusError("Unable to open image")
+            else:
+                raise NeXusError(
+                    "Unable to open image. Please install the 'fabio' module")
+        z = NXfield(im.data, name='z')
+        y = NXfield(range(z.shape[0]), name='y')
+        x = NXfield(range(z.shape[1]), name='x')
+        data = NXdata(z,(y,x))
+        if im.header:
+            header = NXcollection()
+            for k, v in im.header.items():
+                if v or v == 0:
+                    header[k] = v
+            data.header = header
+        if im.getclassname() == 'CbfImage':
+            note = NXnote(type='text/plain', file_name=filename)
+            note.data = im.header.pop('_array_data.header_contents', '')
+            note.description = im.header.pop(
+                '_array_data.header_convention', '')
+            data.CBF_header = note
+    data.title = filename
+    return data
+
 
 class NXimporter(object):
     def __init__(self, paths):
