@@ -9,11 +9,13 @@ try:
 except ImportError:
     pass
 
-from qtpy import QtCore, QtGui, QtWidgets
+from matplotlib.backends.qt_compat import QtCore, QtGui, QtWidgets
 if QtCore.__name__.lower().startswith('pyqt5'):
     os.environ['QT_API'] = 'pyqt5'
     QtVersion = 'Qt5Agg'
 else:
+    QtCore.QSortFilterProxyModel = QtGui.QSortFilterProxyModel
+    QtCore.QItemSelectionModel = QtGui.QItemSelectionModel
     QtVersion = 'Qt4Agg'
     if QtCore.__name__.lower().startswith('pyqt4'):
         os.environ['QT_API'] = 'pyqt'
