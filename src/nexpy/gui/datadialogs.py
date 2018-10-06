@@ -68,6 +68,9 @@ class BaseDialog(QtWidgets.QDialog):
         self.confirm_action = confirm_action
         self.display_message = display_message
         self.report_error = report_error
+        self.thread = None
+        self.bold_font =  QtGui.QFont()
+        self.bold_font.setBold(True)
         if parent is None:
             parent = self.mainwindow
         super(BaseDialog, self).__init__(parent)
@@ -133,6 +136,16 @@ class BaseDialog(QtWidgets.QDialog):
     def set_title(self, title):
         self.setWindowTitle(title)
 
+    def close_layout(self, message=None, save=False, close=False):
+        layout = QtWidgets.QHBoxLayout()
+        self.status_message = QtWidgets.QLabel()
+        if message:
+            self.status_message.setText(message)
+        layout.addWidget(self.status_message)
+        layout.addStretch()
+        layout.addWidget(self.close_buttons(save=save, close=close))
+        return layout
+
     def close_buttons(self, save=False, close=False):
         """
         Creates a box containing the standard Cancel and OK buttons.
@@ -172,7 +185,10 @@ class BaseDialog(QtWidgets.QDialog):
             horizontal_layout = QtWidgets.QHBoxLayout()
             if align == 'center' or align == 'right':
                 horizontal_layout.addStretch()
-            horizontal_layout.addWidget(QtWidgets.QLabel(six.text_type(label)))
+            label_widget = QtWidgets.QLabel(six.text_type(label))
+            if 'header' in opts:
+                label_widget.setFont(self.bold_font)        
+            horizontal_layout.addWidget(label_widget)
             if align == 'center' or align == 'left':
                 horizontal_layout.addStretch()
             layout.addLayout(horizontal_layout)
@@ -235,6 +251,13 @@ class BaseDialog(QtWidgets.QDialog):
              group.addButton(self.radiobutton[label])
         return layout
 
+    def editor(self, text=None, *opts):
+        editbox = QtWidgets.QTextEdit()
+        if text:
+            editbox.setText(text)
+        editbox.setFocusPolicy(QtCore.Qt.StrongFocus)
+        return editbox
+
     def filebox(self, text="Choose File", slot=None):
         """
         Creates a text box and button for selecting a file.
@@ -250,7 +273,7 @@ class BaseDialog(QtWidgets.QDialog):
         filebox.addWidget(self.filename)
         return filebox
  
-    def directorybox(self, text="Choose Directory", slot=None):
+    def directorybox(self, text="Choose Directory", slot=None, default=True):
         """
         Creates a text box and button for selecting a directory.
         """
@@ -260,9 +283,9 @@ class BaseDialog(QtWidgets.QDialog):
             self.directorybutton =  NXPushButton(text, self.choose_directory)
         self.directoryname = QtWidgets.QLineEdit(self)
         self.directoryname.setMinimumWidth(300)
-        default = self.get_default_directory()
-        if default:
-            self.directoryname.setText(default)
+        default_directory = self.get_default_directory()
+        if default and default_directory:
+            self.directoryname.setText(default_directory)
         directorybox = QtWidgets.QHBoxLayout()
         directorybox.addWidget(self.directorybutton)
         directorybox.addWidget(self.directoryname)
@@ -358,6 +381,8 @@ class BaseDialog(QtWidgets.QDialog):
         roots = []
         for root in self.tree.NXroot:
             roots.append(root.nxname)
+        if not roots:
+            raise NeXusError("No files loaded in the NeXus tree")
         for root in sorted(roots):
             box.addItem(root)
         if not other:
@@ -368,10 +393,9 @@ class BaseDialog(QtWidgets.QDialog):
                     box.setCurrentIndex(idx)
             except Exception:
                 box.setCurrentIndex(0)
-        if slot:
-            box.currentIndexChanged.connect(slot)
-        layout.addWidget(QtWidgets.QLabel(text))
         layout.addWidget(box)
+        if slot:
+            layout.addWidget(NXPushButton(text, slot))
         layout.addStretch()
         if not other:
             self.root_box = box
@@ -444,6 +468,36 @@ class BaseDialog(QtWidgets.QDialog):
         except NeXusError:
             return None 
 
+    def hide_grid(self, grid):
+        for row in range(grid.rowCount()):
+            for column in range(grid.columnCount()):
+                item = grid.itemAtPosition(row, column)
+                if item is not None:
+                    widget = item.widget()
+                    if widget is not None:
+                        widget.setVisible(False)
+
+    def show_grid(self, grid):
+        for row in range(grid.rowCount()):
+            for column in range(grid.columnCount()):
+                item = grid.itemAtPosition(row, column)
+                if item is not None:
+                    widget = item.widget()
+                    if widget is not None:
+                        widget.setVisible(True)
+
+    def delete_grid(self, grid):
+        for row in range(grid.rowCount()):
+            for column in range(grid.columnCount()):
+                item = grid.itemAtPosition(row, column)
+                if item is not None:
+                    widget = item.widget()
+                    if widget is not None:
+                        widget.setVisible(False)
+                        grid.removeWidget(widget)
+                        widget.deleteLater()
+        grid.deleteLater()        
+
     def accept(self):
         """
         Accepts the result.
@@ -460,20 +514,33 @@ class BaseDialog(QtWidgets.QDialog):
         self.accepted = False
         QtWidgets.QDialog.reject(self)
 
-    def update_progress(self):
+    def start_progress(self, limits):
+        start, stop = limits
+        if self.progress_bar:
+            self.progress_bar.setVisible(True)
+            self.progress_bar.setRange(start, stop)
+            self.progress_bar.setValue(start)
+
+    def update_progress(self, value=None):
         """
         Call the main QApplication.processEvents
         
         This ensures that GUI items like progress bars get updated
         """
+        if self.progress_bar and value is not None:
+            self.progress_bar.setValue(value)
         self.mainwindow._app.processEvents()
 
-    def progress_layout(self, save=False):
+    def stop_progress(self):
+        if self.progress_bar:
+            self.progress_bar.setVisible(False)
+
+    def progress_layout(self, save=False, close=False):
         layout = QtWidgets.QHBoxLayout()
         self.progress_bar = QtWidgets.QProgressBar()
         layout.addWidget(self.progress_bar)
         layout.addStretch()
-        layout.addWidget(self.close_buttons(save))
+        layout.addWidget(self.close_buttons(save=save, close=close))
         return layout
 
     def get_node(self):
@@ -482,6 +549,23 @@ class BaseDialog(QtWidgets.QDialog):
         """
         return self.treeview.get_node()
 
+    def start_thread(self):
+        if self.thread:
+            self.stop_thread()
+        self.thread = QtCore.QThread()
+        return self.thread
+
+    def stop_thread(self):
+        if isinstance(self.thread, QtCore.QThread):
+            self.thread.exit()
+            self.thread.wait()
+            self.thread.deleteLater()
+        self.thread = None
+
+    def closeEvent(self, event):
+        self.stop_thread()
+        super(BaseDialog, self).closeEvent(event)
+            
 
 class GridParameters(OrderedDict):
     """
@@ -601,7 +685,7 @@ class GridParameters(OrderedDict):
             self[p].value = parameters[p].value
 
     def refine_parameters(self, residuals, **opts):
-        from lmfit import minimize, Parameters, fit_report
+        from lmfit import minimize, fit_report
         self.set_parameters()
         if self.status_layout:
             self.status_message.setText('Fitting...')
@@ -774,6 +858,16 @@ class GridParameter(object):
                 self.checkbox.setCheckState(QtCore.Qt.Checked)
             else:
                 self.checkbox.setCheckState(QtCore.Qt.Unchecked)
+
+    def disable(self, vary=None):
+        if vary is not None:
+            self.vary = vary
+        self.checkbox.setEnabled(False)
+
+    def enable(self, vary=None):
+        if vary is not None:
+            self.vary = vary
+        self.checkbox.setEnabled(True)
 
 
 class PlotDialog(BaseDialog):

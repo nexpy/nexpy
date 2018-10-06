@@ -366,6 +366,7 @@ def main(filename=None):
     app = NXConsoleApp()
     app.initialize(filename=filename)
     app.start()
+    sys.exit(0)
 
 
 if __name__ == '__main__':

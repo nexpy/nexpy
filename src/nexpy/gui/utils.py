@@ -244,8 +244,26 @@ def get_colors(n, first='#1f77b4', last='#d62728'):
                      first[2]+(last[2]-first[2])*i/(n-1))) for i in range(n)]
 
 def load_image(filename):
-    try:
-        im = fabio.open(filename)
+    if os.path.splitext(filename.lower())[1] in ['.png', '.jpg', '.jpeg',
+                                                 '.gif']:
+        im = img.imread(filename)
+        z = NXfield(im, name='z')
+        y = NXfield(range(z.shape[0]), name='y')
+        x = NXfield(range(z.shape[1]), name='x')
+        if z.ndim > 2:
+            rgba = NXfield(range(z.shape[2]), name='rgba')
+            data = NXdata(z, (y,x,rgba))
+        else:        
+            data = NXdata(z, (y,x))
+    else:
+        try:
+            im = fabio.open(filename)
+        except Exception as error:
+            if fabio:
+                raise NeXusError("Unable to open image")
+            else:
+                raise NeXusError(
+                    "Unable to open image. Please install the 'fabio' module")
         z = NXfield(im.data, name='z')
         y = NXfield(range(z.shape[0]), name='y')
         x = NXfield(range(z.shape[1]), name='x')
@@ -262,25 +280,9 @@ def load_image(filename):
             note.description = im.header.pop(
                 '_array_data.header_convention', '')
             data.CBF_header = note
-    except Exception:
-        try:
-            im = img.imread(filename)
-        except Exception as error:
-            if fabio:
-                raise NeXusError("Unable to open image")
-            else:
-                raise NeXusError(
-            "Unable to open image. Please install the 'fabio' module")
-        z = NXfield(im, name='z')
-        y = NXfield(range(z.shape[0]), name='y')
-        x = NXfield(range(z.shape[1]), name='x')
-        if z.ndim > 2:
-            rgba = NXfield(range(z.shape[2]), name='rgba')
-            data = NXdata(z, (y,x,rgba))
-        else:        
-            data = NXdata(z, (y,x))
     data.title = filename
     return data
+
 
 class NXimporter(object):
     def __init__(self, paths):
