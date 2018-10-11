@@ -1380,10 +1380,13 @@ class MainWindow(QtWidgets.QMainWindow):
                         return
                     except (KeyError, NeXusError):
                         pass
-                if node.is_plottable():
-                    dialog = PlotDialog(node, parent=self, fmt='o')
-                    dialog.show()
-                else:
+                try:
+                    if node.is_plottable():
+                        dialog = PlotDialog(node, parent=self, fmt='o')
+                        dialog.show()
+                    else:
+                        raise NeXusError("Data not plottable")
+                except AttributeError:
                     raise NeXusError("Data not plottable")
         except NeXusError as error:
             report_error("Plotting Data", error)
@@ -1643,8 +1646,10 @@ class MainWindow(QtWidgets.QMainWindow):
                         self.tree[name] = nxload(fname)
                     self.treeview.select_node(self.tree[name][node.nxtarget])
                     self.treeview.setFocus()
-                else:
+                elif node.nxlink is not None:
                     self.treeview.select_node(node.nxlink)
+                else:
+                    raise NeXusError("Cannot resolve link")
                 self.treeview.update()
         except NeXusError as error:
             report_error("Showing Link", error)

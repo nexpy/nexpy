@@ -364,7 +364,8 @@ class NXTreeView(QtWidgets.QTreeView):
         except Exception:
             pass
         menu.addAction(self.view_action)
-        menu.addAction(self.add_action)
+        if not isinstance(node, NXlink):
+            menu.addAction(self.add_action)
         if not isinstance(node, NXroot):
             if isinstance(node, NXgroup):
                 menu.addAction(self.initialize_action)
@@ -388,7 +389,7 @@ class NXTreeView(QtWidgets.QTreeView):
             if isinstance(node, NXgroup):
                 menu.addAction(self.fit_action)
                 menu.addSeparator()
-            menu.addAction(self.signal_action)
+                menu.addAction(self.signal_action)
         if isinstance(node, NXentry) or isinstance(node, NXdata):
             menu.addAction(self.default_action)
         menu.addSeparator()
