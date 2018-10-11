@@ -1380,10 +1380,13 @@ class MainWindow(QtWidgets.QMainWindow):
                         return
                     except (KeyError, NeXusError):
                         pass
-                if node.is_plottable():
-                    dialog = PlotDialog(node, parent=self, fmt='o')
-                    dialog.show()
-                else:
+                try:
+                    if node.is_plottable():
+                        dialog = PlotDialog(node, parent=self, fmt='o')
+                        dialog.show()
+                    else:
+                        raise NeXusError("Data not plottable")
+                except AttributeError:
                     raise NeXusError("Data not plottable")
         except NeXusError as error:
             report_error("Plotting Data", error)
