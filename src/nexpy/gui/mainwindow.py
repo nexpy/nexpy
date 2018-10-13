@@ -1373,20 +1373,17 @@ class MainWindow(QtWidgets.QMainWindow):
                     raise NeXusError("'%s' does not exist" % 
                                      os.path.abspath(node.nxfilename))
                 self.treeview.status_message(node)
-                if isinstance(node, NXgroup):
+                if isinstance(node, NXgroup) and node.nxsignal is not None:
                     try:
                         node.plot(fmt='o')
                         self.plotview.make_active()
                         return
-                    except (KeyError, NeXusError):
+                    except KeyError:
                         pass
-                try:
-                    if node.is_plottable():
-                        dialog = PlotDialog(node, parent=self, fmt='o')
-                        dialog.show()
-                    else:
-                        raise NeXusError("Data not plottable")
-                except AttributeError:
+                elif node.is_plottable():
+                    dialog = PlotDialog(node, parent=self, fmt='o')
+                    dialog.show()
+                else:
                     raise NeXusError("Data not plottable")
         except NeXusError as error:
             report_error("Plotting Data", error)
