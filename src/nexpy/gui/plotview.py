@@ -754,11 +754,12 @@ class NXPlotView(QtWidgets.QDialog):
             If True, the signal and axes values are updated without
             creating a new NXPlotAxis instance.
         """
+        signal_group = self.signal_group
         if not over:
-            self._primary_signal_group = self.signal_group
+            self._primary_signal_group = signal_group
 
-        if (over and self.signal_group == self._primary_signal_group and
-            self.data.nxsignal.valid_axes(self.plotdata.nxaxes)):
+        if (over and signal_group and signal_group == self._primary_signal_group 
+            and self.data.nxsignal.valid_axes(self.plotdata.nxaxes)):
             axes = self.plotdata.nxaxes
         elif self.data.plot_axes is not None:
             axes = self.data.plot_axes
