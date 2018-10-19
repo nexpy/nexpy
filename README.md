@@ -115,6 +115,7 @@ Jupyter QtConsole, which has replaced the old IPython QtConsole.
 * [jupyter](http://jupyter.org/)
 * [IPython v4.0.0](http://ipython.org/)
 * [matplotlib v1.4.0](http://matplotlib.sourceforge.net/)
+* [pillow](https://pillow.readthedocs.io/)
 
 Some people have reported that NeXpy crashes on launch on some Linux systems.
 We believe that this may be due to both PyQt4 and PyQt5 being installed,
@@ -147,8 +148,7 @@ changed in the shell by setting `plotview.smooth`.
 The following packages are recommended.
 
 * Least-squares fitting: [lmfit](http://newville.github.io/lmfit-py/)
-* TIFF file imports: [tifffile](https://pypi.python.org/pypi/tifffile)
-* CBF file imports: [pycbf](http://sourceforge.net/projects/cbflib/files/cbflib/pycbf/)
+* TIFF/CBF file imports: [fabio](https://github.com/silx-kit/fabio)
 * SPEC file imports: [spec2nexus](http://spec2nexus.readthedocs.org/)
 * Log file colorization: [ansi2html](https://pypi.python.org/pypi/ansi2html/)
 * Gaussian smoothing: [astropy](http://www.astropy.org)
