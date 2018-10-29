@@ -1006,9 +1006,9 @@ class PlotDialog(BaseDialog):
                 signal_path = self.signal.nxroot.nxname + self.signal.nxpath
             else:
                 signal_path = self.signal.nxpath
-            self.signal.attrs['signal_path'] = signal_path
             data = NXdata(self.signal, self.get_axes(), 
                           title=self.signal.nxtitle)
+            data.nxsignal.attrs['signal_path'] = signal_path
             data.plot(fmt=self.fmt)
             super(PlotDialog, self).accept()
         except NeXusError as error:
