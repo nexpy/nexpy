@@ -1055,11 +1055,14 @@ class MainWindow(QtWidgets.QMainWindow):
             directory = self.default_directory
             directory = QtWidgets.QFileDialog.getExistingDirectory(self, 
                         'Choose Directory', directory)
+            tree_files = [self.tree[root].nxfilename for root in self.tree]
             nxfiles = sorted([f for f in os.listdir(directory) 
-                               if (f.endswith('.nxs') or f.endswith('.nx5') or
-                               f.endswith('.h5') or f.endswith('hdf5') or
-                               f.endswith('hdf') or f.endswith('.cxi'))],
-                               key=natural_sort)	
+                              if ((f.endswith('.nxs') or f.endswith('.nx5') or
+                                   f.endswith('.h5') or f.endswith('hdf5') or
+                                   f.endswith('hdf') or f.endswith('.cxi')) and
+                              os.path.join(directory,f) not in tree_files and
+                              not os.path.islink(os.path.join(directory,f)))],
+                             key=natural_sort)
             if len(nxfiles) == 0:
                 raise NeXusError("No NeXus files found in directory")
             if confirm_action("Open %s NeXus files" % len(nxfiles),

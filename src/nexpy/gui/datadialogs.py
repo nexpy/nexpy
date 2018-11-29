@@ -984,12 +984,14 @@ class PlotDialog(BaseDialog):
             return False
 
     def get_axis(self, axis):
+        def plot_axis(axis):
+            return NXfield(axis.nxvalue, name=axis.nxname, attrs=axis.attrs) 
         axis_name = self.axis_boxes[axis].currentText()
         if axis_name == 'NXfield index':
             return NXfield(range(self.signal.shape[axis]), 
                            name='index_%s' % axis)
         else:
-            return self.group[axis_name]
+            return plot_axis(self.group[axis_name])
 
     def get_axes(self):
         axes = [self.get_axis(axis) for axis in range(self.ndim)]
@@ -1004,9 +1006,9 @@ class PlotDialog(BaseDialog):
                 signal_path = self.signal.nxroot.nxname + self.signal.nxpath
             else:
                 signal_path = self.signal.nxpath
-            self.signal.attrs['signal_path'] = signal_path
             data = NXdata(self.signal, self.get_axes(), 
                           title=self.signal.nxtitle)
+            data.nxsignal.attrs['signal_path'] = signal_path
             data.plot(fmt=self.fmt)
             super(PlotDialog, self).accept()
         except NeXusError as error:

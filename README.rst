@@ -105,6 +105,7 @@ Library            URL
 jupyter            http://jupyter.org/
 IPython v4.0.0     http://ipython.org/
 matplotlib v1.4.0  http://matplotlib.sourceforge.net/
+pillow             https://pillow.readthedocs.io/
 ansi2html          https://pypi.python.org/pypi/ansi2html/
 =================  =================================================
 
@@ -155,8 +156,7 @@ changed in the shell by setting ``plotview.smooth``.
 Library            URL
 =================  ==========================================================
 lmfit              http://newville.github.io/lmfit-py/
-tifffile           https://pypi.python.org/pypi/tifffile
-pycbf              http://sourceforge.net/projects/cbflib/files/cbflib/pycbf/
+fabio              https://github.com/silx-kit/fabio
 spec2nexus         http://spec2nexus.readthedocs.org/
 astropy            http://www.astropy.org
 =================  ==========================================================

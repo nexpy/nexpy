@@ -11,7 +11,7 @@
 #-----------------------------------------------------------------------------
 
 pkg_requirements = [
-    'nexusformat>=0.4.17',
+    'nexusformat>=0.4.18',
     'numpy>=1.6.0',
     'scipy',
     'h5py',
@@ -19,7 +19,7 @@ pkg_requirements = [
     'ipython>=4.0.0',
     'matplotlib>=1.5.0',
     'ansi2html',
-    'qtpy'
+    'pillow'
 ]
 extra_requirements = {
     'spec': ['spec2nexus>=2017.901.4',],
