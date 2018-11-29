@@ -254,7 +254,7 @@ class BaseDialog(QtWidgets.QDialog):
         return layout
 
     def editor(self, text=None, *opts):
-        editbox = QtWidgets.QTextEdit()
+        editbox = QtWidgets.QPlainTextEdit()
         if text:
             editbox.setText(text)
         editbox.setFocusPolicy(QtCore.Qt.StrongFocus)
