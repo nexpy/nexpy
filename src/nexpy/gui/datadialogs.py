@@ -39,7 +39,8 @@ from .utils import natural_sort, wrap, human_size
 from .utils import timestamp, format_timestamp, restore_timestamp
 from .plotview import NXCheckBox, NXComboBox, NXPushButton, NXColorButton
 
-from nexusformat.nexus import (NeXusError, NXgroup, NXfield, NXattr, NXlink,
+from nexusformat.nexus import (NeXusError, NXgroup, NXfield, NXattr, 
+                               NXlink, NXlinkgroup, NXlinkfield,
                                NXroot, NXentry, NXdata, NXparameters, nxload)
 
 
@@ -922,7 +923,11 @@ class PlotDialog(BaseDialog):
     def signal(self):
         signal = self.group[self.signal_combo.currentText()]
         if isinstance(signal, NXlink):
-            return signal.nxlink
+            if signal.is_external():
+                return NXlinkfield(target=signal.nxtarget, 
+                                   file=signal.nxfilename)
+            else:
+                return signal.nxlink
         else:
             return signal
 
