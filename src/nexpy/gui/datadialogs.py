@@ -226,10 +226,10 @@ class BaseDialog(QtWidgets.QDialog):
         if align != 'left':
             layout.addStretch()
         for label, text, checked in items:
-             self.checkbox[label] = NXCheckBox(text)
-             self.checkbox[label].setChecked(checked)
-             layout.addWidget(self.checkbox[label])
-             layout.addStretch()
+            self.checkbox[label] = NXCheckBox(text)
+            self.checkbox[label].setChecked(checked)
+            layout.addWidget(self.checkbox[label])
+            layout.addStretch()
         return layout
 
     def radiobuttons(self, *items, **opts):
@@ -377,7 +377,7 @@ class BaseDialog(QtWidgets.QDialog):
         box.setSizeAdjustPolicy(QtWidgets.QComboBox.AdjustToContents)
         return box
 
-    def select_root(self, slot=None, text='Select Root :', other=False):
+    def select_root(self, slot=None, text='Select Root', other=False):
         layout = QtWidgets.QHBoxLayout()
         box = NXComboBox()
         roots = []
