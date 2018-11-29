@@ -887,7 +887,7 @@ class PlotDialog(BaseDialog):
         if self.group.nxaxes is not None:
             self.default_axes = [axis.nxname for axis in self.group.nxaxes]
         else:
-            self.default_axes = None
+            self.default_axes = []
 
         self.fmt = fmt
 
@@ -953,9 +953,12 @@ class PlotDialog(BaseDialog):
         if box.count() > 0:
             box.insertSeparator(0)
         box.insertItem(0,'NXfield index')
-        if self.default_axes is not None and self.default_axes[axis] in axes:
-            box.setCurrentIndex(box.findText(self.default_axes[axis]))
-        else:
+        try:
+            if self.default_axes[axis] in axes:
+                box.setCurrentIndex(box.findText(self.default_axes[axis]))
+            else:
+                box.setCurrentIndex(0)
+        except Exception:
             box.setCurrentIndex(0)
         return box
 
