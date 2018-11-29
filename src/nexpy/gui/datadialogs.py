@@ -2132,7 +2132,7 @@ class RenameDialog(BaseDialog):
 
     def accept(self):
         name = self.get_name()
-        if name:
+        if name and name != self.node.nxname:
             self.node.rename(name)
         if isinstance(self.node, NXgroup):
             if self.combo_box is not None:
