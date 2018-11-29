@@ -39,7 +39,8 @@ from .utils import natural_sort, wrap, human_size
 from .utils import timestamp, format_timestamp, restore_timestamp
 from .plotview import NXCheckBox, NXComboBox, NXPushButton, NXColorButton
 
-from nexusformat.nexus import (NeXusError, NXgroup, NXfield, NXattr, NXlink,
+from nexusformat.nexus import (NeXusError, NXgroup, NXfield, NXattr, 
+                               NXlink, NXlinkgroup, NXlinkfield,
                                NXroot, NXentry, NXdata, NXparameters, nxload)
 
 
@@ -61,6 +62,7 @@ class BaseDialog(QtWidgets.QDialog):
              "NeXus Files (*.nxs *.nx5 *.h5 *.hdf *.hdf5)",
              "Any Files (*.* *)"))
         self.textbox = {}
+        self.pushbutton = {}
         self.checkbox = {}
         self.radiobutton = {}
         self.radiogroup = []
@@ -170,8 +172,8 @@ class BaseDialog(QtWidgets.QDialog):
         layout = QtWidgets.QHBoxLayout()
         layout.addStretch()
         for label, action in items:
-             button = NXPushButton(label, action)
-             layout.addWidget(button)
+             self.pushbutton[label] = NXPushButton(label, action)
+             layout.addWidget(self.pushbutton[label])
              layout.addStretch()
         return layout
 
@@ -224,10 +226,10 @@ class BaseDialog(QtWidgets.QDialog):
         if align != 'left':
             layout.addStretch()
         for label, text, checked in items:
-             self.checkbox[label] = NXCheckBox(text)
-             self.checkbox[label].setChecked(checked)
-             layout.addWidget(self.checkbox[label])
-             layout.addStretch()
+            self.checkbox[label] = NXCheckBox(text)
+            self.checkbox[label].setChecked(checked)
+            layout.addWidget(self.checkbox[label])
+            layout.addStretch()
         return layout
 
     def radiobuttons(self, *items, **opts):
@@ -252,7 +254,7 @@ class BaseDialog(QtWidgets.QDialog):
         return layout
 
     def editor(self, text=None, *opts):
-        editbox = QtWidgets.QTextEdit()
+        editbox = QtWidgets.QPlainTextEdit()
         if text:
             editbox.setText(text)
         editbox.setFocusPolicy(QtCore.Qt.StrongFocus)
@@ -375,7 +377,7 @@ class BaseDialog(QtWidgets.QDialog):
         box.setSizeAdjustPolicy(QtWidgets.QComboBox.AdjustToContents)
         return box
 
-    def select_root(self, slot=None, text='Select Root :', other=False):
+    def select_root(self, slot=None, text='Select Root', other=False):
         layout = QtWidgets.QHBoxLayout()
         box = NXComboBox()
         roots = []
@@ -887,7 +889,7 @@ class PlotDialog(BaseDialog):
         if self.group.nxaxes is not None:
             self.default_axes = [axis.nxname for axis in self.group.nxaxes]
         else:
-            self.default_axes = None
+            self.default_axes = []
 
         self.fmt = fmt
 
@@ -922,9 +924,21 @@ class PlotDialog(BaseDialog):
     def signal(self):
         signal = self.group[self.signal_combo.currentText()]
         if isinstance(signal, NXlink):
-            return signal.nxlink
+            if signal.is_external():
+                return NXlinkfield(target=signal.nxtarget, 
+                                   file=signal.nxfilename)
+            else:
+                return signal.nxlink
         else:
             return signal
+
+    @property
+    def signal_path(self):
+        signal = self.group[self.signal_combo.currentText()]
+        if signal.nxroot.nxclass == "NXroot":
+            return signal.nxroot.nxname + signal.nxpath
+        else:
+            return signal.nxpath
 
     @property
     def ndim(self):
@@ -953,9 +967,12 @@ class PlotDialog(BaseDialog):
         if box.count() > 0:
             box.insertSeparator(0)
         box.insertItem(0,'NXfield index')
-        if self.default_axes is not None and self.default_axes[axis] in axes:
-            box.setCurrentIndex(box.findText(self.default_axes[axis]))
-        else:
+        try:
+            if self.default_axes[axis] in axes:
+                box.setCurrentIndex(box.findText(self.default_axes[axis]))
+            else:
+                box.setCurrentIndex(0)
+        except Exception:
             box.setCurrentIndex(0)
         return box
 
@@ -989,7 +1006,7 @@ class PlotDialog(BaseDialog):
         axis_name = self.axis_boxes[axis].currentText()
         if axis_name == 'NXfield index':
             return NXfield(range(self.signal.shape[axis]), 
-                           name='index_%s' % axis)
+                           name='Axis%s' % axis)
         else:
             return plot_axis(self.group[axis_name])
 
@@ -1002,13 +1019,9 @@ class PlotDialog(BaseDialog):
 
     def accept(self):
         try:
-            if self.signal.nxroot.nxclass == "NXroot":
-                signal_path = self.signal.nxroot.nxname + self.signal.nxpath
-            else:
-                signal_path = self.signal.nxpath
             data = NXdata(self.signal, self.get_axes(), 
-                          title=self.signal.nxtitle)
-            data.nxsignal.attrs['signal_path'] = signal_path
+                          title=self.signal_path)
+            data.nxsignal.attrs['signal_path'] = self.signal_path
             data.plot(fmt=self.fmt)
             super(PlotDialog, self).accept()
         except NeXusError as error:
@@ -2132,7 +2145,7 @@ class RenameDialog(BaseDialog):
 
     def accept(self):
         name = self.get_name()
-        if name:
+        if name and name != self.node.nxname:
             self.node.rename(name)
         if isinstance(self.node, NXgroup):
             if self.combo_box is not None:
