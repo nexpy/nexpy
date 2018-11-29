@@ -62,6 +62,7 @@ class BaseDialog(QtWidgets.QDialog):
              "NeXus Files (*.nxs *.nx5 *.h5 *.hdf *.hdf5)",
              "Any Files (*.* *)"))
         self.textbox = {}
+        self.pushbutton = {}
         self.checkbox = {}
         self.radiobutton = {}
         self.radiogroup = []
@@ -171,8 +172,8 @@ class BaseDialog(QtWidgets.QDialog):
         layout = QtWidgets.QHBoxLayout()
         layout.addStretch()
         for label, action in items:
-             button = NXPushButton(label, action)
-             layout.addWidget(button)
+             self.pushbutton[label] = NXPushButton(label, action)
+             layout.addWidget(self.pushbutton[label])
              layout.addStretch()
         return layout
 
