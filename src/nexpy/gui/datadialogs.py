@@ -927,6 +927,14 @@ class PlotDialog(BaseDialog):
             return signal
 
     @property
+    def signal_path(self):
+        signal = self.group[self.signal_combo.currentText()]
+        if signal.nxroot.nxclass == "NXroot":
+            return signal.nxroot.nxname + signal.nxpath
+        else:
+            return signal.nxpath
+
+    @property
     def ndim(self):
         return self.signal.ndim
 
@@ -992,7 +1000,7 @@ class PlotDialog(BaseDialog):
         axis_name = self.axis_boxes[axis].currentText()
         if axis_name == 'NXfield index':
             return NXfield(range(self.signal.shape[axis]), 
-                           name='index_%s' % axis)
+                           name='Axis%s' % axis)
         else:
             return plot_axis(self.group[axis_name])
 
@@ -1005,13 +1013,9 @@ class PlotDialog(BaseDialog):
 
     def accept(self):
         try:
-            if self.signal.nxroot.nxclass == "NXroot":
-                signal_path = self.signal.nxroot.nxname + self.signal.nxpath
-            else:
-                signal_path = self.signal.nxpath
             data = NXdata(self.signal, self.get_axes(), 
-                          title=self.signal.nxtitle)
-            data.nxsignal.attrs['signal_path'] = signal_path
+                          title=self.signal_path)
+            data.nxsignal.attrs['signal_path'] = self.signal_path
             data.plot(fmt=self.fmt)
             super(PlotDialog, self).accept()
         except NeXusError as error:
