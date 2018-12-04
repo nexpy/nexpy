@@ -136,15 +136,12 @@ Additional functionality is provided by other external Python packages.
 Least-squares fitting requires Matt Newville's least-squares fitting package, 
 `lmfit-py <http://newville.github.io/lmfit-py>`_. Importers may also require 
 libraries to read the imported files in their native format, *e.g.*, `spec2nexus 
-<http://spec2nexus.readthedocs.org/>`_ for reading SPEC files. 
+<http://spec2nexus.readthedocs.org/>`_ for reading SPEC files and 
+`fabio <https://github.com/silx-kit/fabio>`_ for importing TIFF and CBF images. 
 
 .. warning:: As of v0.7.1, NeXpy no longer includes the `tifffile module 
              <https://pypi.python.org/pypi/tifffile>`_. This can now be 
              installed with ``pip install tifffile``.
-
-From v0.1.5, we now have an importer for `Crystallographic Binary Files 
-<http://www.bernstein-plus-sons.com/software/CBF/>`_, using PyCBF, which must
-be separately installed.
 
 From v0.9.1, a new 2D smoothing option is available in the list of 
 interpolations in the signal tab if `astropy <http://www.astropy.org>`_
