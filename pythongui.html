@@ -1,17 +1,20 @@
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Python Graphical User Interface &#8212; NeXpy 0.10.10 documentation</title>
+    
+    <title>Python Graphical User Interface &#8212; NeXpy 0.10.11 documentation</title>
+    
     <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.10.10',
+        VERSION:     '0.10.11',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -21,14 +24,14 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="shortcut icon" href="_static/favicon.ico"/>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="NeXus Tree API Modules" href="treeapi.html" />
     <link rel="prev" title="Python Interface to NeXus" href="pythonshell.html" /> 
   </head>
-  <body>
+  <body role="document">
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
@@ -44,7 +47,7 @@
         <li class="right" >
           <a href="pythonshell.html" title="Python Interface to NeXus"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.10.10 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.10.11 documentation</a> &#187;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -118,7 +121,7 @@ line by:</p>
 </div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">This assumes that the Python ‘bin’ directory is in your standard shell
+<p class="last">This assumes that the Python &#8216;bin&#8217; directory is in your standard shell
 path.</p>
 </div>
 <a class="reference internal image-reference" href="_images/nexpy-gui.png"><img alt="_images/nexpy-gui.png" class="align-center" src="_images/nexpy-gui.png" style="width: 90%;" /></a>
@@ -154,12 +157,12 @@ NeXus attributes and tooltips containing module docstrings when you open the
 module parentheses.</dd>
 <dt><strong>4) Axis Panels</strong></dt>
 <dd>The tabbed panels below the plot can be used to modify the plots. The
-number of panels depends on the rank of the original data. The ‘signal’,
-‘x’ and ‘y’ panels have text boxes and sliders for adjusting the plotting
+number of panels depends on the rank of the original data. The &#8216;signal&#8217;,
+&#8216;x&#8217; and &#8216;y&#8217; panels have text boxes and sliders for adjusting the plotting
 limits. For rank two or more, a projection panel allows the plotting of
 projections along different directions, using the current axis limits. For
-ranks greater than two, a ‘z’ panel allows the other dimensions to be
-varied. Finally, the ‘options’ panel provides access to the standard
+ranks greater than two, a &#8216;z&#8217; panel allows the other dimensions to be
+varied. Finally, the &#8216;options&#8217; panel provides access to the standard
 Matplotlib tools for modifying the plots.</dd>
 <dt><strong>5) Status Bar</strong></dt>
 <dd>The values and attributes of the currently selected item in the tree are
@@ -173,7 +176,7 @@ a tooltip when the cursor hovers over it.</dd>
 <div class="section" id="file-menu">
 <h3>File Menu<a class="headerlink" href="#file-menu" title="Permalink to this headline">¶</a></h3>
 <dl class="docutils">
-<dt><strong>New…</strong></dt>
+<dt><strong>New...</strong></dt>
 <dd>Creates a new workspace in the tree.</dd>
 <dt><strong>Open</strong></dt>
 <dd><p class="first">Opens a new NeXus file as read-only. It is possible unlock the file to
@@ -186,7 +189,7 @@ that any changes to the file tree, using either the shell or GUI
 commands, will be automatically updated in the file.</p>
 </div>
 </dd>
-<dt><strong>Save as…</strong></dt>
+<dt><strong>Save as...</strong></dt>
 <dd><p class="first">Saves the selected tree item to a new NeXus file. If the selected item is
 not a NXroot group, it will be wrapped in one to form a valid NeXus file.</p>
 <div class="last admonition warning">
@@ -196,7 +199,7 @@ to saving the whole tree. Only the object and its children will
 be saved to a new file.</p>
 </div>
 </dd>
-<dt><strong>Duplicate…</strong></dt>
+<dt><strong>Duplicate...</strong></dt>
 <dd>Makes a copy of the NeXus file or tree, leaving the original untouched.
 If any field in the original tree is too large to be stored in memory, its
 data is stored in an HDF5 memory-mapped file until the tree is saved to a
@@ -217,7 +220,7 @@ deleted.</p>
 </dd>
 <dt><strong>Import</strong></dt>
 <dd><p class="first">Imports data from other formats. Some importers are provided with the NeXpy
-distribution, but others will be loaded from the user’s <code class="docutils literal"><span class="pre">~/.nexpy/readers</span></code>
+distribution, but others will be loaded from the user&#8217;s <code class="docutils literal"><span class="pre">~/.nexpy/readers</span></code>
 directory.</p>
 <div class="last admonition seealso">
 <p class="first admonition-title">See also</p>
@@ -241,11 +244,11 @@ necessary.</p>
 </div>
 </dd>
 <dt><strong>Backup File</strong></dt>
-<dd>Creates a backup of the selected file. The backup is stored in the user’s
+<dd>Creates a backup of the selected file. The backup is stored in the user&#8217;s
 home directory in <code class="docutils literal"><span class="pre">~/.nexpy/backups</span></code> and may be restored if changes to
 the currently open file need to be reversed. Backups are saved for three
 days before being automatically deleted.</dd>
-<dt><strong>Restore File…</strong></dt>
+<dt><strong>Restore File...</strong></dt>
 <dd><p class="first">Restores the backup of this file. The user is prompted to confirm that the
 currently open file should be overwritten.</p>
 <div class="last admonition note">
@@ -255,32 +258,32 @@ Previously saved backups can be restored using the <code class="docutils literal
 <span class="pre">Backups</span></code> menu item.</p>
 </div>
 </dd>
-<dt><strong>Manage Backups…</strong></dt>
+<dt><strong>Manage Backups...</strong></dt>
 <dd>Provides the ability to restore or delete an existing backup stored in
 <code class="docutils literal"><span class="pre">~/.nexpy/backups</span></code>. Restoring the backup is equivalent to opening the
 existing backup file. It is necessary to save it to a new location to
 prevent its automatic deletion after five days.</dd>
-<dt><strong>Open Scratch File…</strong></dt>
+<dt><strong>Open Scratch File...</strong></dt>
 <dd>Saved projections and fits are stored in a scratch file called <code class="docutils literal"><span class="pre">w0.nxs</span></code>,
-which is stored in the user’s NeXpy directory, <code class="docutils literal"><span class="pre">``~/.nexpy</span></code>. This file
+which is stored in the user&#8217;s NeXpy directory, <code class="docutils literal"><span class="pre">``~/.nexpy</span></code>. This file
 is automatically opened when new data is saved, but this menu item allows
 it to be opened at any time.</dd>
-<dt><strong>Purge Scratch File…</strong></dt>
+<dt><strong>Purge Scratch File...</strong></dt>
 <dd>Previously saved items can be manually removed from the scratch file when
 they are no longer needed. This menu item purges all the items in one go.</dd>
-<dt><strong>Close Scratch File…</strong></dt>
+<dt><strong>Close Scratch File...</strong></dt>
 <dd>Closes the scratch file.</dd>
 <dt><strong>Install Plugin</strong></dt>
 <dd><blockquote class="first">
 <div>A directory containing a NeXpy plugin module can be installed either in the
-user’s NeXpy directory (<code class="docutils literal"><span class="pre">~/.nexpy/plugins</span></code>) or in the package directory
+user&#8217;s NeXpy directory (<code class="docutils literal"><span class="pre">~/.nexpy/plugins</span></code>) or in the package directory
 if the user has the necessary privilege. The plugin menu is appended to
 the existing menus, but will be loaded in alphabetical order of the other
 plugins when NeXpy is restarted.</div></blockquote>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">If a plugin of the same name exists in both directories, the
-user’s plugin is loaded.</p>
+user&#8217;s plugin is loaded.</p>
 </div>
 <div class="last admonition seealso">
 <p class="first admonition-title">See also</p>
@@ -288,7 +291,7 @@ user’s plugin is loaded.</p>
 </div>
 </dd>
 <dt><strong>Remove Plugin</strong></dt>
-<dd>The selected NeXpy plugin module is removed from either the user’s
+<dd>The selected NeXpy plugin module is removed from either the user&#8217;s
 NeXpy directory (<code class="docutils literal"><span class="pre">~/.nexpy/plugins</span></code>) or the package directory.</dd>
 <dt><strong>Restore Plugin</strong></dt>
 <dd>If a plugin is overwritten by installing another version, it is backed up
@@ -350,7 +353,7 @@ tooltip gives a description of its use.</p>
 data type, but without a predefined value. This is useful when creating
 large arrays that have to be entered as slabs. The shape box must contain
 a single integer, for a one-dimensional array, or a tuple (or list) of
-integers, for a multidimensional array. As with the ‘Add Data’ dialog,
+integers, for a multidimensional array. As with the &#8216;Add Data&#8217; dialog,
 dropdown menus show the field names defined by the NeXus standard.</dd>
 <dt><strong>Rename Data</strong></dt>
 <dd><p class="first">Renames the selected tree item. If the item is a group, its class can also
@@ -377,7 +380,7 @@ to the group as an external link.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">External links can only be modified through the parent file, which
-can be opened using the ‘Show Link’ menu item (see below).</p>
+can be opened using the &#8216;Show Link&#8217; menu item (see below).</p>
 </div>
 <div class="last admonition warning">
 <p class="first admonition-title">Warning</p>
@@ -410,7 +413,7 @@ within the selected group. A dialog box allows the user to specify axes with
 compatible dimensions to plot the data against.</p>
 <div class="last admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">The use of the ‘Add Data’ and ‘Set Signal’ menu items allows, in
+<p class="last">The use of the &#8216;Add Data&#8217; and &#8216;Set Signal&#8217; menu items allows, in
 principle, an entire NeXus data tree to be constructed using menu
 calls.</p>
 </div>
@@ -473,7 +476,7 @@ be rendered in the terminal using <code class="docutils literal"><span class="pr
 </dd>
 <dt><strong>Show Projection Panel</strong></dt>
 <dd>Shows the projection panel for the currently active plotting window. This is
-equivalent to clicking on ‘Show Panel’ in the projection tab (see below).
+equivalent to clicking on &#8216;Show Panel&#8217; in the projection tab (see below).
 All the open projection panels are displayed as tabs in a single window.</dd>
 <dt><strong>Show Script Editor</strong></dt>
 <dd>Shows the script editor. If multiple scripts are open, they are displayed as
@@ -502,12 +505,12 @@ axis limits but does not reset the signal limits.</p>
 <dd>Opens a new NeXpy plotting window, consisting of a Matplotlib plot pane and
 its associated axis panels. NeXpy plot commands will be directed to the
 currently active window. Clicking on the plot pane makes it active. All
-open windows are listed in the Window menu, along with their labels (‘Main’,
-‘Figure 1’, ‘Figure 2’, <em>etc</em>.). These are used to switch the focus for
+open windows are listed in the Window menu, along with their labels (&#8216;Main&#8217;,
+&#8216;Figure 1&#8217;, &#8216;Figure 2&#8217;, <em>etc</em>.). These are used to switch the focus for
 subsequent plots.</dd>
 <dt><strong>Equalize Plot Sizes</strong></dt>
 <dd>All plot windows are resized to match the main window.</dd>
-<dt><strong>Main, Figure 1, Figure 2…</strong></dt>
+<dt><strong>Main, Figure 1, Figure 2...</strong></dt>
 <dd>These menu items set the selected plotting window to be active. As
 new windows are created, they are dynamically added to this list.</dd>
 </dl>
@@ -523,9 +526,9 @@ accessible without further imports.</p>
 <p>The scripts can be saved for future use from within NeXpy or from the
 terminal command line. They can therefore be formatted as a Python
 standalone script to be either run as <code class="docutils literal"><span class="pre">python</span> <span class="pre">script.py</span></code> or run in the
-console (similar to the IPython ‘run magic’, <em>i.e.</em>, <code class="docutils literal"><span class="pre">%run</span> <span class="pre">-i</span> <span class="pre">script.py</span></code>).
+console (similar to the IPython &#8216;run magic&#8217;, <em>i.e.</em>, <code class="docutils literal"><span class="pre">%run</span> <span class="pre">-i</span> <span class="pre">script.py</span></code>).
 Script arguments can be entered in a separate text window at the bottom of
-the window and accessed within the script in the ‘sys.argv’ list.</p>
+the window and accessed within the script in the &#8216;sys.argv&#8217; list.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">Script arguments are just text strings, so if the argument is a
@@ -554,8 +557,8 @@ shell text.</p>
 <div class="section" id="adding-nexus-data-to-the-tree">
 <h2>Adding NeXus Data to the Tree<a class="headerlink" href="#adding-nexus-data-to-the-tree" title="Permalink to this headline">¶</a></h2>
 <p>NXroot groups that are displayed in the tree pane are all children of a group
-of class NXtree, known as ‘tree’. If you create a NeXus group dynamically in the
-IPython shell, it can be added to the tree pane using the tree’s add method:</p>
+of class NXtree, known as &#8216;tree&#8217;. If you create a NeXus group dynamically in the
+IPython shell, it can be added to the tree pane using the tree&#8217;s add method:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">=</span><span class="n">NXroot</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">entry</span> <span class="o">=</span> <span class="n">NXentry</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">nxtree</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
@@ -563,7 +566,7 @@ IPython shell, it can be added to the tree pane using the tree’s add method:</
 </div>
 <p>If the group is an NXroot group, it will have the name used in the shell.
 If the group is not an NXroot group, the data will be wrapped automatically in
-an NXroot group and given a default name that doesn’t conflict with existing
+an NXroot group and given a default name that doesn&#8217;t conflict with existing
 tree nodes, <em>e.g.</em>, w4.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
@@ -582,7 +585,7 @@ different name. The object in the tree can be renamed.</p>
 <div class="section" id="plotting-nexus-data">
 <h2>Plotting NeXus Data<a class="headerlink" href="#plotting-nexus-data" title="Permalink to this headline">¶</a></h2>
 <p>NXdata, NXmonitor, and NXlog data can be plotted by selecting a group on the
-tree and choosing “Plot Data” from the Data menu or by double-clicking the item
+tree and choosing &#8220;Plot Data&#8221; from the Data menu or by double-clicking the item
 on the tree (or right-clicking for over-plots). Below the plot pane, a series of
 tabs allow manipulation of the plot limits and parameters using text boxes
 and sliders.</p>
@@ -655,10 +658,10 @@ limits are set to their minimum value.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">Projections are now averaged over the summed bins by default. To
-restore the previous behavior, click the ‘Sum’ checkbox in the
+restore the previous behavior, click the &#8216;Sum&#8217; checkbox in the
 Projection Tab.</p>
 </div>
-<p>When ‘Lock’ is checked, the difference between the limits of the selected
+<p>When &#8216;Lock&#8217; is checked, the difference between the limits of the selected
 z-axis is fixed. This allows successive images along the z-axis to be
 plotted by clicking the text-box arrows in increments of the difference
 between the two limits. If you use the text-box arrows or the terminal arrow
@@ -669,22 +672,22 @@ a replot using the toolbar (see below).</p>
 <p class="first admonition-title">Note</p>
 <p class="last">Make sure that the value of both limit boxes is entered, <em>e.g.</em>,
 by pressing return after editing their values, before clicking on
-the ‘lock’ checkbox.</p>
+the &#8216;lock&#8217; checkbox.</p>
 </div>
-<p>When stepping through the z-values, the ‘Autoscale’ checkbox determines
+<p>When stepping through the z-values, the &#8216;Autoscale&#8217; checkbox determines
 whether the plot automatically scales the signal to the maximum intensity of
 the slice or is set to the current signal limits.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">When ‘Autoscale’ is checked, it is not possible to adjust the
+<p class="last">When &#8216;Autoscale&#8217; is checked, it is not possible to adjust the
 limits in the Signal Tab.</p>
 </div>
 <img alt="_images/z-toolbar.png" class="align-right" src="_images/z-toolbar.png" />
 <p>The toolbar on the right provides further controls for replotting data as
 a function of z. The first button on the left forces a replot, <em>e.g.</em>, when
 you have changed z-axis limits or turned on auto-scaling. The other buttons
-are for stepping through the z-values automatically, with ‘back’, ‘pause’,
-and ‘forward’ controls. The default speed is one frame per second, but after
+are for stepping through the z-values automatically, with &#8216;back&#8217;, &#8216;pause&#8217;,
+and &#8216;forward&#8217; controls. The default speed is one frame per second, but after
 the first click on the play button, subsequent clicks will reduce the frame
 interval by a factor two.</p>
 </div></blockquote>
@@ -694,9 +697,9 @@ interval by a factor two.</p>
 <p>The projection tab allows the data to be projected along one or two
 dimensions. The limits are set by the x, y, and z-tabs, while the projection
 axes are selected using the dropdown boxes. For a one-dimensional
-projection, select ‘None’ from the y box. The projections may be plotted in
-a separate window, using the ‘Plot’ button or saved to a scratch NXdata
-group on the tree. If ‘Sum’ is checked, the projection contains the sum over
+projection, select &#8216;None&#8217; from the y box. The projections may be plotted in
+a separate window, using the &#8216;Plot&#8217; button or saved to a scratch NXdata
+group on the tree. If &#8216;Sum&#8217; is checked, the projection contains the sum over
 all the summed pixels; if not, the projection contains the average, <em>i.e.</em>,
 the sum divided by the number of pixels in each orthogonal dimension. If a
 one-dimensional projection is plotted, a checkbox appears allowing
@@ -705,13 +708,13 @@ additional one-dimensional projections to be plotted over it.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">Projections are now averaged over the summed bins by default. To
-restore the previous behavior, click the ‘Sum’ checkbox.</p>
+restore the previous behavior, click the &#8216;Sum&#8217; checkbox.</p>
 </div>
 <p>The projection tab also contains a button to open a separate projection
 panel. The panel is more convenient when making a systematic exploration of
 different projections limits and provides pixel accuracy in computing
 projections. The x and y limits of the plot are displayed as a dashed
-rectangle, which can be hidden if preferred. If ‘Sum Projections’ is
+rectangle, which can be hidden if preferred. If &#8216;Sum Projections&#8217; is
 checked, the projection contains the sum over the axes orthogonal to the
 plotting axes. Otherwise, it contains the average.</p>
 <a class="reference internal image-reference" href="_images/projection-panel.png"><img alt="_images/projection-panel.png" class="align-center" src="_images/projection-panel.png" style="width: 90%;" /></a>
@@ -743,7 +746,7 @@ This is only valid if the units of the x and y axes are identical.</li>
 <li><strong>Subplot</strong> - configures the spacing around the plot.</li>
 <li><strong>Save</strong> - saves plot to PNG file.</li>
 <li><strong>Add</strong> - adds plotted data to the tree pane as an NXdata group within the
-scratch workspace ‘w0’.</li>
+scratch workspace &#8216;w0&#8217;.</li>
 <li><strong>Edit</strong> - opens dialog to customize both image and point plots. Use this
 to change the title and axis labels, modify the image aspect ratio and
 skew angles, turn axis grids on or off and set their styles, modify the
@@ -755,7 +758,7 @@ updated to the values under the current mouse location.</p>
 <p class="first admonition-title">See also</p>
 <p class="last">See the <a class="reference external" href="http://matplotlib.org/users/navigation_toolbar.html">Matplotlib documentation</a> for
 more detailed descriptions of the standard toolbar, including
-keyboard shortcuts. The ‘Aspect’ and ‘Add’ buttons are unique
+keyboard shortcuts. The &#8216;Aspect&#8217; and &#8216;Add&#8217; buttons are unique
 to NeXpy.</p>
 </div>
 <div class="admonition note">
@@ -784,10 +787,10 @@ menu, <em>e.g.</em>, &lt;Ctrl&gt;+2 (⌘+2 on a Mac) to select Figure 2.</p>
 </pre></div>
 </div>
 <p><code class="docutils literal"><span class="pre">&lt;aspect&gt;</span></code> can be any of the values allowed by the <a class="reference external" href="http://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes.set_aspect">Matplotlib set_aspect</a>
-function, <em>i.e.</em>, ‘auto’, ‘equal’, or the numerical value of the
+function, <em>i.e.</em>, &#8216;auto&#8217;, &#8216;equal&#8217;, or the numerical value of the
 ratio between the height and the width (if the units are identical). The
-‘Aspect’ button (see above) toggles between ‘auto’ and ‘equal’. This can also
-be set using the ‘Edit Parameters’ button on the Options tab.</p>
+&#8216;Aspect&#8217; button (see above) toggles between &#8216;auto&#8217; and &#8216;equal&#8217;. This can also
+be set using the &#8216;Edit Parameters&#8217; button on the Options tab.</p>
 </li>
 <li><p class="first">Set Skew Angle:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">plotview</span><span class="o">.</span><span class="n">skew</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">angle</span><span class="o">&gt;</span>
@@ -795,10 +798,10 @@ be set using the ‘Edit Parameters’ button on the Options tab.</p>
 </div>
 <p>This sets the angle between the x and y-axes in degrees. If set to <code class="docutils literal"><span class="pre">None</span></code>,
 the axes are plotted as orthogonal. If <code class="docutils literal"><span class="pre">plotview.aspect</span></code> is currently set to
-‘auto’, this command will automatically set it to 1.0 (equivalent to ‘equal’),
+&#8216;auto&#8217;, this command will automatically set it to 1.0 (equivalent to &#8216;equal&#8217;),
 <em>i.e.</em>, assuming the units of the x and y-axes are the same. If they are not,
 <code class="docutils literal"><span class="pre">plotview.aspect</span></code> should be set to the ratio of their units. This can also
-be set using the ‘Edit Parameters’ button on the Options tab.</p>
+be set using the &#8216;Edit Parameters&#8217; button on the Options tab.</p>
 </li>
 </ul>
 <a class="reference internal image-reference" href="_images/skewed-axis.png"><img alt="_images/skewed-axis.png" class="align-center" src="_images/skewed-axis.png" style="width: 75%;" /></a>
@@ -808,7 +811,7 @@ be set using the ‘Edit Parameters’ button on the Options tab.</p>
 </pre></div>
 </div>
 <p>This sets the standard deviation in pixels for the Gaussian smoothing of the
-data performed when the ‘convolve’ option is selected in the Signal tab. The
+data performed when the &#8216;convolve&#8217; option is selected in the Signal tab. The
 default value is 2.</p>
 </li>
 <li><p class="first">Set Offsets:</p>
@@ -907,7 +910,7 @@ various plotting options.</p>
 <p class="first admonition-title">Note</p>
 <p class="last">Keyboard focus can be switched to a particular plotting window by
 (a) clicking within the window, (b) using the Window menu, or (c)
-typing Ctrl+’n’ (⌘+’n’ on a Mac), where ‘n’ is the plot window
+typing Ctrl+&#8217;n&#8217; (⌘+&#8217;n&#8217; on a Mac), where &#8216;n&#8217; is the plot window
 number.</p>
 </div>
 <ul class="simple">
@@ -922,7 +925,7 @@ number.</p>
 <li><strong>G</strong> - toggle display of major grid.</li>
 <li><strong>P</strong> - toggle panning mode (if enabled, zoom mode is disabled).</li>
 <li><strong>Z</strong> - toggle zoom mode (if enabled, pan mode is disabled).</li>
-<li><strong>E</strong> - toggle the aspect ratio between ‘equal’ and ‘automatic’.</li>
+<li><strong>E</strong> - toggle the aspect ratio between &#8216;equal&#8217; and &#8216;automatic&#8217;.</li>
 <li><strong>S</strong> - save plot to a graphics file.</li>
 <li><strong>A</strong> - add plotted data to the tree pane.</li>
 <li><strong>O</strong> - open dialog to customize plots.</li>
@@ -933,7 +936,7 @@ number.</p>
 <h2>Fitting NeXus Data<a class="headerlink" href="#fitting-nexus-data" title="Permalink to this headline">¶</a></h2>
 <p>It is possible to fit one-dimensional data using the non-linear least-squares
 fitting package, <a class="reference external" href="http://newville.github.io/lmfit-py">lmfit-py</a>, by selecting
-a group on the tree and choosing “Fit Data” from the Data menu or by
+a group on the tree and choosing &#8220;Fit Data&#8221; from the Data menu or by
 right-clicking on the group. This opens a dialog window that allows multiple
 functions to be combined, with the option of fixing or limiting parameters.</p>
 <a class="reference internal image-reference" href="_images/nexpy-fits.png"><img alt="_images/nexpy-fits.png" class="align-center" src="_images/nexpy-fits.png" style="width: 90%;" /></a>
@@ -948,14 +951,14 @@ fits if required, or reset to the overall range of the data using the
 </div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">With v0.10.6, the keyboard shortcuts ‘l’ and ‘r’ can
+<p class="last">With v0.10.6, the keyboard shortcuts &#8216;l&#8217; and &#8216;r&#8217; can
 be used to set the X-axis limits in the fit dialog to the current
 cursor position in the canvas.</p>
 </div>
 <p>The original data, the fitted data, constituent functions, and the parameters
 can all be saved to an NXentry group in the Tree Pane for subsequent plotting,
 refitting, or saving to a NeXus file. The group is an NXentry group, with name
-‘f1’, ‘f2’, etc., stored in the default scratch NXroot group, w0. If you choose
+&#8216;f1&#8217;, &#8216;f2&#8217;, etc., stored in the default scratch NXroot group, w0. If you choose
 to fit this entry again, it will load the functions and parameters from the
 saved fit.</p>
 <div class="section" id="defining-a-function">
@@ -983,7 +986,7 @@ starting parameters, respectively.</p>
     <span class="k">return</span> <span class="n">integral</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">center</span>
 </pre></div>
 </div>
-<p>NeXpy uses the function’s ‘guess’ module to produce starting parameters
+<p>NeXpy uses the function&#8217;s &#8216;guess&#8217; module to produce starting parameters
 automatically when the function is loaded. When each function is added to the
 model, the estimated y-values produced by that function will be subtracted from
 the data before the next function estimate. It is useful therefore to choose the
@@ -1000,12 +1003,12 @@ values that do not trigger an exception.</p>
 </div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">The X-range used in ‘guessing’ the parameters can be adjusted by
+<p class="last">The X-range used in &#8216;guessing&#8217; the parameters can be adjusted by
 setting the X-axis limits in the Fit Dialog.</p>
 </div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">With v0.10.6, the keyboard shortcuts ‘l’ and ‘r’ can
+<p class="last">With v0.10.6, the keyboard shortcuts &#8216;l&#8217; and &#8216;r&#8217; can
 be used to set the X-axis limits in the fit dialog to the current
 cursor position in the canvas.</p>
 </div>
@@ -1127,7 +1130,7 @@ pre-defined methods.</p>
 with sub-menus that open dialog boxes for operations that are specific to a
 particular domain. These will be automatically loaded from either the
 <code class="docutils literal"><span class="pre">nexpy.plugins</span></code> directory within the installed NeXpy distribution or from the
-users’ <code class="docutils literal"><span class="pre">~/.nexpy/plugins</span></code> directory.</p>
+users&#8217; <code class="docutils literal"><span class="pre">~/.nexpy/plugins</span></code> directory.</p>
 <p>The new menu should be defined as a Python package, <em>i.e.</em>, by creating a
 sub-directory within the plugins directory that contains <code class="docutils literal"><span class="pre">__init__.py</span></code> to
 define the menu actions.</p>
@@ -1295,12 +1298,12 @@ required code in ~/.nexpy/config.py.</p>
         <li class="right" >
           <a href="pythonshell.html" title="Python Interface to NeXus"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.10.10 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.10.11 documentation</a> &#187;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2013-2015, Ray Osborn.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.6.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.6.
     </div>
   </body>
 </html>

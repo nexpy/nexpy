@@ -1,17 +1,20 @@
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Python Interface to NeXus &#8212; NeXpy 0.10.10 documentation</title>
+    
+    <title>Python Interface to NeXus &#8212; NeXpy 0.10.11 documentation</title>
+    
     <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.10.10',
+        VERSION:     '0.10.11',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -21,14 +24,14 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="shortcut icon" href="_static/favicon.ico"/>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Python Graphical User Interface" href="pythongui.html" />
     <link rel="prev" title="Installation" href="includeme.html" /> 
   </head>
-  <body>
+  <body role="document">
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
@@ -44,7 +47,7 @@
         <li class="right" >
           <a href="includeme.html" title="Installation"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.10.10 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.10.11 documentation</a> &#187;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -148,7 +151,7 @@ Type &quot;help&quot;, &quot;copyright&quot;, &quot;credits&quot; or &quot;licen
 <p class="first admonition-title">Note</p>
 <p class="last">Although wildcard imports are usually discouraged in Python, there
 should not be any name clashes using it here because all the
-imported functions and variables start with ‘nx’ or ‘NX’.</p>
+imported functions and variables start with &#8216;nx&#8217; or &#8216;NX&#8217;.</p>
 </div>
 <div class="section" id="loading-nexus-data">
 <h2>Loading NeXus Data<a class="headerlink" href="#loading-nexus-data" title="Permalink to this headline">¶</a></h2>
@@ -157,7 +160,7 @@ imported functions and variables start with ‘nx’ or ‘NX’.</p>
 </pre></div>
 </div>
 <p>The assigned variable now contains the entire tree structure of the file, which
-can be displayed by printing the ‘tree’ property:</p>
+can be displayed by printing the &#8216;tree&#8217; property:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">tree</span><span class="p">)</span>
 <span class="go">root:NXroot</span>
 <span class="go"> @HDF5_Version = &#39;1.8.2&#39;</span>
@@ -208,14 +211,14 @@ read/write mode:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">=</span><span class="n">nxload</span><span class="p">(</span><span class="s1">&#39;chopper.nxs&#39;</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;rw&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>The default mode is ‘r’, <em>i.e.</em>, readonly access.</p>
+<p>The default mode is &#8216;r&#8217;, <em>i.e.</em>, readonly access.</p>
 <div class="admonition warning">
 <p class="first admonition-title">Warning</p>
 <p class="last">If the file is opened in read/write mode, any changes are made
 automatically to the file itself. In particular, any deletions of
 file objects will be irreversible. Make sure you have a backup
 if you open a mission-critical file. In the <a class="reference internal" href="pythongui.html"><span class="doc">Python Graphical User Interface</span></a>, this
-can be achieved using the ‘Duplicate…’ menu item.</p>
+can be achieved using the &#8216;Duplicate...&#8217; menu item.</p>
 </div>
 </div>
 </div>
@@ -264,7 +267,7 @@ system. NeXus data structures consist of groups, with base class NXgroup, which
 can contain fields, with base class NXfield, and/or other groups.</p>
 <div class="section" id="nexus-fields">
 <h3>NeXus Fields<a class="headerlink" href="#nexus-fields" title="Permalink to this headline">¶</a></h3>
-<p>NeXus data values are stored in NeXus objects of class ‘NXfield’. The NXfield
+<p>NeXus data values are stored in NeXus objects of class &#8216;NXfield&#8217;. The NXfield
 class wraps standard Numpy arrays, scalars, and Python strings so that
 additional metadata (or attributes) and methods can be associated with them.</p>
 <p>There are three ways to create an NXfield.</p>
@@ -316,8 +319,8 @@ example, a float64 array can be converted to float32 on assignment:</p>
 </div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">Numeric dtypes can be defined either as a string, <em>e.g.</em>, ‘int16’,
-‘float32’, or using the Numpy dtypes, <em>e.g.</em>, np.int16, np.float32.</p>
+<p class="last">Numeric dtypes can be defined either as a string, <em>e.g.</em>, &#8216;int16&#8217;,
+&#8216;float32&#8217;, or using the Numpy dtypes, <em>e.g.</em>, np.int16, np.float32.</p>
 </div>
 <div class="admonition warning">
 <p class="first admonition-title">Warning</p>
@@ -325,8 +328,8 @@ example, a float64 array can be converted to float32 on assignment:</p>
 the HDF5 file. These use a special object dtype defined by h5py
 (see the <a class="reference external" href="http://docs.h5py.org/en/latest/special.html#variable-length-strings">h5py documentation</a>).
 As of v0.3.0, if you wish to store fixed length strings, specify
-a dtype of kind ‘S’, <em>e.g.</em>, ‘S10’ when creating the NXfield. Any
-dtype of kind ‘U’ (for unicode string in Python 3), will be
+a dtype of kind &#8216;S&#8217;, <em>e.g.</em>, &#8216;S10&#8217; when creating the NXfield. Any
+dtype of kind &#8216;U&#8217; (for unicode string in Python 3), will be
 automatically converted to the variable-length string dtype since
 HDF5 cannot convert them.</p>
 </div>
@@ -360,15 +363,15 @@ contain metadata</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">entry</span><span class="o">.</span><span class="n">sample</span><span class="o">.</span><span class="n">temperature</span><span class="o">.</span><span class="n">units</span><span class="o">=</span><span class="s1">&#39;K&#39;</span>
 </pre></div>
 </div>
-<p>These have a class of NXattr. They can be defined using the ‘attrs’ dictionary
+<p>These have a class of NXattr. They can be defined using the &#8216;attrs&#8217; dictionary
 if necessary to avoid name clashes:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">entry</span><span class="o">.</span><span class="n">sample</span><span class="o">.</span><span class="n">temperature</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;units&#39;</span><span class="p">]</span><span class="o">=</span><span class="s1">&#39;K&#39;</span>
 </pre></div>
 </div>
-<p>Other common attributes include the ‘signal’ and ‘axes’ attributes used to
+<p>Other common attributes include the &#8216;signal&#8217; and &#8216;axes&#8217; attributes used to
 define the plottable signal and independent axes, respectively, in a NXdata
 group.</p>
-<p>When a NeXus tree is printed, the attributes are prefixed by ‘&#64;’:</p>
+<p>When a NeXus tree is printed, the attributes are prefixed by &#8216;&#64;&#8217;:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">entry</span><span class="o">.</span><span class="n">sample</span><span class="o">.</span><span class="n">tree</span><span class="p">)</span>
 <span class="go">sample:NXsample</span>
 <span class="go">  temperature = 40.0</span>
@@ -406,7 +409,7 @@ to remove a mask if you have modified the unmasked values.</p>
 as in Numpy arrays. However, if the NXfield has a parent group, the mask is
 stored in a separate NXfield that is generated automatically by the mask
 assignment or whenever the masked NXfield is assigned to a group. The mask is
-identified by the ‘mask’ attribute of the masked NXfield.</p>
+identified by the &#8216;mask&#8217; attribute of the masked NXfield.</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">NXlog</span><span class="p">(</span><span class="n">z</span><span class="p">)</span><span class="o">.</span><span class="n">tree</span><span class="p">)</span>
 <span class="go">log:NXlog</span>
 <span class="go">z = [1 2 3 4 -- 6]</span>
@@ -499,7 +502,7 @@ group with other predefined NeXus objects, either groups or fields:</p>
 </pre></div>
 </div>
 <p>In this example, it was necessary to use the keyword form to add the NXfield
-‘temperature’ since its name is otherwise undefined within the NXsample group.
+&#8216;temperature&#8217; since its name is otherwise undefined within the NXsample group.
 However, the name is set automatically if the NXfield is added as an attribute
 or dictionary assignment:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">sample</span> <span class="o">=</span> <span class="n">NXsample</span><span class="p">()</span>
@@ -519,10 +522,10 @@ dictionary items:</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">It is also possible to reference objects by their complete paths with
-respect to the root object, <em>e.g.</em>, root[‘/entry/sample/temperature’].</p>
+respect to the root object, <em>e.g.</em>, root[&#8216;/entry/sample/temperature&#8217;].</p>
 </div>
 <p>If a group is not created as another group attribute, its internal name defaults
-to the class name without the ‘NX’ prefix. This can be useful in automatically
+to the class name without the &#8216;NX&#8217; prefix. This can be useful in automatically
 creating nested groups with minimal typing:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">=</span><span class="n">NXentry</span><span class="p">(</span><span class="n">NXsample</span><span class="p">(</span><span class="n">temperature</span><span class="o">=</span><span class="mf">40.0</span><span class="p">),</span><span class="n">NXinstrument</span><span class="p">(</span><span class="n">NXdetector</span><span class="p">(</span><span class="n">distance</span><span class="o">=</span><span class="mf">10.8</span><span class="p">)))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">tree</span><span class="p">)</span>
@@ -569,21 +572,21 @@ NXfield so default names were assigned:</p>
 </div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">The plottable signal and axes are identified by the ‘signal’
-and ‘axes’ attributes of the NXdata group. The ‘axes’ attribute
+<p class="last">The plottable signal and axes are identified by the &#8216;signal&#8217;
+and &#8216;axes&#8217; attributes of the NXdata group. The &#8216;axes&#8217; attribute
 defines the axes as a list of NXfield names The NXdata constructor
 sets these attributes automatically.</p>
 </div>
 <div class="admonition warning">
 <p class="first admonition-title">Warning</p>
 <p class="last">Numpy stores arrays by default in C, or row-major, order, <em>i.e.</em>,
-in the array ‘signal(axis1,axis2)’, axis2 is the fastest to vary.
+in the array &#8216;signal(axis1,axis2)&#8217;, axis2 is the fastest to vary.
 In most image formats, <em>e.g.</em>, TIFF files, the x-axis is assumed
 to be the fastest varying axis, so we are adopting the same
-convention and plotting as ‘signal(y,x)’. The <a class="reference internal" href="pythongui.html"><span class="doc">Python Graphical User Interface</span></a>
+convention and plotting as &#8216;signal(y,x)&#8217;. The <a class="reference internal" href="pythongui.html"><span class="doc">Python Graphical User Interface</span></a>
 allows the x and y axes to be swapped.</p>
 </div>
-<p>Names can be assigned explicitly when creating the NXfield through the ‘name’
+<p>Names can be assigned explicitly when creating the NXfield through the &#8216;name&#8217;
 attribute:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">phi</span><span class="o">=</span><span class="n">NXfield</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span><span class="mi">101</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;polar_angle&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="o">=</span><span class="n">NXfield</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">phi</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;intensity&#39;</span><span class="p">)</span>
@@ -598,14 +601,14 @@ attribute:</p>
 </div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">In the above example, the x-axis, ‘phi’, was defined as a tuple in the
+<p class="last">In the above example, the x-axis, &#8216;phi&#8217;, was defined as a tuple in the
 second positional argument of the NXdata call. It could also have been
 defined as a list. However, in the case of one-dimensional signals, it
 would also have been acceptable just to call NXdata(data, phi),
 <em>i.e.</em>, without embedding the axis in a tuple or list.</p>
 </div>
 <p>It is also possible to define the plottable signal and/or axes using the
-‘nxsignal’ and ‘nxaxes’ properties, respectively:</p>
+&#8216;nxsignal&#8217; and &#8216;nxaxes&#8217; properties, respectively:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">phi</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span><span class="mi">101</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">=</span><span class="n">NXdata</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">nxsignal</span><span class="o">=</span><span class="n">NXfield</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">phi</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;intensity&#39;</span><span class="p">)</span>
@@ -624,8 +627,8 @@ would also have been acceptable just to call NXdata(data, phi),
 <h3>NeXus Links<a class="headerlink" href="#nexus-links" title="Permalink to this headline">¶</a></h3>
 <p>NeXus allows groups and fields to be assigned to multiple locations through the
 use of links. These objects have the class NXlink and contain the attribute
-‘target’, which identifies the parent object. It is also possible to link to
-fields in another NeXus file (see ‘External Links’ below).</p>
+&#8216;target&#8217;, which identifies the parent object. It is also possible to link to
+fields in another NeXus file (see &#8216;External Links&#8217; below).</p>
 <p>For example, the polar angle and time-of-flight arrays may logically be stored
 with the detector information in a NXdetector group that is one of the
 NXinstrument subgroups:</p>
@@ -666,7 +669,7 @@ parents, but this restriction has now been lifted.</p>
 not need to worry if the object is parent or child. The data values and NeXus
 attributes of the parent to the NXlink object can be accessed directly through
 the child object. The parent object can be referenced directly, if required,
-using the ‘nxlink’ attribute:</p>
+using the &#8216;nxlink&#8217; attribute:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">entry</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">time_of_flight</span>
 <span class="go">NXlink(&#39;/entry/instrument/detector/time_of_flight&#39;)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">entry</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">time_of_flight</span><span class="o">.</span><span class="n">nxdata</span>
@@ -723,7 +726,7 @@ parent object and, optionally, a new name as arguments:</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">After creating the link, both the parent and target objects have an
-additional attribute, ‘target’, showing the absolute path of the
+additional attribute, &#8216;target&#8217;, showing the absolute path of the
 parent.</p>
 </div>
 <div class="admonition seealso">
@@ -772,7 +775,7 @@ will work for one-dimensional or two-dimensional data. If you plot
 higher-dimensional data, the top two-dimensional slice is plotted. Alternative
 two-dimensional slices can be specified using slice indices on the NXdata group.</p>
 <p>If the data is one-dimensional, it is possible to overplot more than one data
-set using ‘over=True’. By default, each plot has a new color, but conventional
+set using &#8216;over=True&#8217;. By default, each plot has a new color, but conventional
 Matplotlib keywords can be used to change markers and colors:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">log</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="s1">&#39;r-&#39;</span><span class="p">)</span>
@@ -782,7 +785,7 @@ Matplotlib keywords can be used to change markers and colors:</p>
 <p>If the NXdata group contains RGB(A) image data, <em>i.e.</em>, the signal is a
 three-dimensional array, in which the fastest varying dimension, which should be
 of size 3 or 4, contains the RGB(A) values for each two-dimensional pixel, then
-the image can be plotted using the ‘image=True’.</p>
+the image can be plotted using the &#8216;image=True&#8217;.</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">image</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -803,7 +806,7 @@ keywords.</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="o">.</span><span class="n">implot</span><span class="p">()</span>
 </pre></div>
 </div>
-<p>These are equivalent to setting the ‘over’, ‘log’, and ‘image’ keywords to True
+<p>These are equivalent to setting the &#8216;over&#8217;, &#8216;log&#8217;, and &#8216;image&#8217; keywords to True
 when invoking the plot method.</p>
 </div>
 </div>
@@ -841,7 +844,7 @@ in numerical operations as if they were Numpy ndarrays:</p>
 </pre></div>
 </div>
 <p>Such operations return valid NXfield objects containing the same attributes
-as the first NXobject in the expression. The ‘reshape’ and ‘transpose’ methods
+as the first NXobject in the expression. The &#8216;reshape&#8217; and &#8216;transpose&#8217; methods
 also return NXfield objects.</p>
 <p>NXfields can be compared to other NXfields (this is a comparison of their Numpy
 arrays):</p>
@@ -928,7 +931,7 @@ must match (although the names could be different):</p>
 </pre></div>
 </div>
 <p>If data errors are included in the NXdata group (with an additional array named
-‘errors’), then the errors are propagated according to the operand:</p>
+&#8216;errors&#8217;), then the errors are propagated according to the operand:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">tree</span><span class="p">)</span>
 <span class="go">data:NXdata</span>
 <span class="go">  @axes = &#39;x&#39;</span>
@@ -1154,7 +1157,7 @@ a new file specified by the filename argument.</p>
 selected object and its children. A filename <em>must</em> be specified. Saving
 non-NXroot data allows parts of a NeXus tree to be saved for later use, <em>e.g.</em>,
 to store an NXsample group that will be added to other files. The saved NeXus
-object is wrapped in an NXroot group and an NXentry group (with name ‘entry’),
+object is wrapped in an NXroot group and an NXentry group (with name &#8216;entry&#8217;),
 if necessary, in order to produce a valid NeXus file.</p>
 </div>
 </div>
@@ -1181,12 +1184,12 @@ if necessary, in order to produce a valid NeXus file.</p>
         <li class="right" >
           <a href="includeme.html" title="Installation"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.10.10 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.10.11 documentation</a> &#187;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2013-2015, Ray Osborn.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.6.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.6.
     </div>
   </body>
 </html>
