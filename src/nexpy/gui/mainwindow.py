@@ -130,7 +130,11 @@ class MainWindow(QtWidgets.QMainWindow):
         if 'input_sep' not in self.config['JupyterWidget']:
             self.console.input_sep = ''
 
-        self.shell = self.console.kernel_manager.kernel.shell
+        self.kernel = self.console.kernel_manager.kernel
+        def _abort_queues(kernel):
+            pass
+        self.kernel._abort_queues = _abort_queues
+        self.shell = self.kernel.shell
         self.user_ns = self.console.kernel_manager.kernel.shell.user_ns
         self.shell.ask_exit = self.close
         self.shell._old_stb = self.shell._showtraceback
