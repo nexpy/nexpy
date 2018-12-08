@@ -192,9 +192,8 @@ Hovering over one of the files in the list shows its absolute path.</dd>
 <dt><strong>Open Image…</strong></dt>
 <dd>Opens an image file and imports the image and any stored metadata into an
 NXdata group within a root tree item, called <code class="docutils literal"><span class="pre">images</span></code>. This will read TIFF
-and CBF files if the <a class="reference external" href="https://github.com/silx-kit/fabio">FabIO</a> library
-is installed. JPEG, PNG, and GIF files are imported using the
-<a class="reference external" href="https://pillow.readthedocs.io/">Pillow</a> library.</dd>
+and CBF files if <a class="reference external" href="https://github.com/silx-kit/fabio">FabIO</a> is installed.
+JPEG, PNG, and GIF files are imported using <a class="reference external" href="https://pillow.readthedocs.io/">Pillow</a>.</dd>
 <dt><strong>Open Directory…</strong></dt>
 <dd>Opens all the HDF5 files stored in the selected directory. It does not
 reopen files already loaded into the tree.</dd>
@@ -1048,13 +1047,13 @@ example of a module that reads the original format and returns NeXus data:</p>
 <p>NeXpy is currently distributed with readers for the following format:</p>
 <p><strong>TIFF Images</strong></p>
 <p>This reader will import most TIFF images, including those with floating
-point pixels. This currently uses the <a class="reference external" href="https://pypi.python.org/pypi/tifffile">tifffile</a> module. Use the <cite>Open Image…</cite>
-dialog to use the <a class="reference external" href="https://github.com/silx-kit/fabio">FabIO</a> library.</p>
+point pixels. This currently uses the <a class="reference external" href="https://pypi.python.org/pypi/tifffile">tifffile</a> module. Use the <code class="docutils literal"><span class="pre">Open</span> <span class="pre">Image...</span></code>
+dialog to use the <a class="reference external" href="https://github.com/silx-kit/fabio">FabIO library</a>.</p>
 <p><strong>CBF Files</strong></p>
-<p>This reader will read files stored in the <a class="reference external" href="http://www.iucr.org/resources/cif/software/cbflib">Crystallographic Binary Format</a>, using the <a class="reference external" href="https://github.com/silx-kit/fabio">FabIO</a> library. Header information is stored in
+<p>This reader will read files stored in the <a class="reference external" href="http://www.iucr.org/resources/cif/software/cbflib">Crystallographic Binary Format</a>, using the <a class="reference external" href="https://github.com/silx-kit/fabio">FabIO library</a>. Header information is stored in
 a NXnote.</p>
 <p><strong>Image Stack</strong></p>
-<p>This reader will read a stack of images, which are readable by the <a class="reference external" href="https://github.com/silx-kit/fabio">FabIO</a> library, <em>e.g.</em>, TIFF or CBF, into a
+<p>This reader will read a stack of images, which are readable by <a class="reference external" href="https://github.com/silx-kit/fabio">FabIO</a>, <em>e.g.</em>, TIFF or CBF, into a
 three-dimensional NXdata group. The image stack must be stored in separate files
 in a single directory, that are grouped with a common prefix followed by an
 integer defining the stack sequence.</p>
