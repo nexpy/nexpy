@@ -1,16 +1,13 @@
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
     <title>Installation &#8212; NeXpy 0.10.12 documentation</title>
-    
     <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
@@ -24,14 +21,14 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="shortcut icon" href="_static/favicon.ico"/>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Python Interface to NeXus" href="pythonshell.html" />
     <link rel="prev" title="NeXpy: A Python GUI to analyze NeXus data" href="index.html" /> 
   </head>
-  <body role="document">
+  <body>
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
@@ -200,7 +197,7 @@ with v0.10.0, PyQt5, and should load whichever library it finds. None are
 listed as a dependency but one or other must be installed. PyQt5 is included
 in the
 <a class="reference external" href="https://store.continuum.io/cshop/anaconda/">Anaconda default distribution</a>
-while PySide is included in the <a class="reference external" href="http://www.enthought.com">Enthought Python Distribution</a> or within Enthought&#8217;s <a class="reference external" href="https://www.enthought.com/products/canopy/">Canopy Application</a>.</p>
+while PySide is included in the <a class="reference external" href="http://www.enthought.com">Enthought Python Distribution</a> or within Enthought’s <a class="reference external" href="https://www.enthought.com/products/canopy/">Canopy Application</a>.</p>
 <p>The GUI includes an <a class="reference external" href="http://ipython.org/">IPython shell</a> and a <a class="reference external" href="http://matplotlib.sourceforge.net">Matplotlib
 plotting pane</a>. The IPython shell is
 embedded in the Qt GUI using an implementation based on the newly-released
@@ -237,10 +234,10 @@ Jupyter QtConsole, which has replaced the old IPython QtConsole.</p>
 <p class="first admonition-title">Warning</p>
 <p>Some people have reported that NeXpy crashes on launch on some
 Linux systems. We believe that this may be due to both PyQt4 and
-PyQt5 being installed, although that doesn&#8217;t cause a problem on
+PyQt5 being installed, although that doesn’t cause a problem on
 all systems. If NeXpy crashes on launch, please try setting the
-environment variable QT_API to either &#8216;pyqt&#8217;, for the PyQt4
-library, &#8216;pyqt5&#8217; for the PyQt5 library, or &#8216;pyside&#8217;, for the
+environment variable QT_API to either ‘pyqt’, for the PyQt4
+library, ‘pyqt5’ for the PyQt5 library, or ‘pyside’, for the
 PySide library, depending on what you have installed, <em>e.g.</em>, in
 BASH, type</p>
 <div class="last highlight-default"><div class="highlight"><pre><span></span><span class="n">export</span> <span class="n">QT_API</span><span class="o">=</span><span class="n">pyqt</span>
@@ -265,7 +262,7 @@ PySide, <em>i.e.</em>, <code class="docutils literal"><span class="pre">python</
 <div class="section" id="additional-packages">
 <h2>Additional Packages<a class="headerlink" href="#additional-packages" title="Permalink to this headline">¶</a></h2>
 <p>Additional functionality is provided by other external Python packages.
-Least-squares fitting requires Matt Newville&#8217;s least-squares fitting package,
+Least-squares fitting requires Matt Newville’s least-squares fitting package,
 <a class="reference external" href="http://newville.github.io/lmfit-py">lmfit-py</a>. Importers may also require
 libraries to read the imported files in their native format, <em>e.g.</em>, <a class="reference external" href="http://spec2nexus.readthedocs.org/">spec2nexus</a> for reading SPEC files and
 <a class="reference external" href="https://github.com/silx-kit/fabio">fabio</a> for importing TIFF and CBF images.</p>
@@ -276,7 +273,7 @@ installed with <code class="docutils literal"><span class="pre">pip</span> <span
 </div>
 <p>From v0.9.1, a new 2D smoothing option is available in the list of
 interpolations in the signal tab if <a class="reference external" href="http://www.astropy.org">astropy</a>
-is installed. It is labelled &#8216;convolve&#8217; and provides, by default, a
+is installed. It is labelled ‘convolve’ and provides, by default, a
 2-pixel Gaussian smoothing of the data. The number of pixels can be
 changed in the shell by setting <code class="docutils literal"><span class="pre">plotview.smooth</span></code>.</p>
 <table border="1" class="docutils">
@@ -361,7 +358,7 @@ for the current PyQt version.</p>
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2013-2015, Ray Osborn.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.6.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.6.
     </div>
   </body>
 </html>

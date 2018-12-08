@@ -1,16 +1,13 @@
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
     <title>NeXpy BaseDialog Class &#8212; NeXpy 0.10.12 documentation</title>
-    
     <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
@@ -24,14 +21,14 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="shortcut icon" href="_static/favicon.ico"/>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Example data" href="example_data.html" />
     <link rel="prev" title="Adding a File Importer" href="readers.html" /> 
   </head>
-  <body role="document">
+  <body>
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
@@ -169,14 +166,14 @@
 <dd><p>Returns a list of files in the selected directory.</p>
 <p>The files are sorted using a natural sort algorithm that preserves the
 numeric order when a file name consists of text and index so that, e.g., 
-&#8216;data2.tif&#8217; comes before &#8216;data10.tif&#8217;.</p>
+‘data2.tif’ comes before ‘data10.tif’.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="nexpy.gui.datadialogs.BaseDialog.read_parameter">
 <code class="descname">read_parameter</code><span class="sig-paren">(</span><em>root</em>, <em>path</em><span class="sig-paren">)</span><a class="headerlink" href="#nexpy.gui.datadialogs.BaseDialog.read_parameter" title="Permalink to this definition">¶</a></dt>
 <dd><p>Read the value from the NeXus path.</p>
-<p>It will return &#8216;None&#8217; if the path is not valid.</p>
+<p>It will return ‘None’ if the path is not valid.</p>
 </dd></dl>
 
 <dl class="method">
@@ -218,9 +215,9 @@ must be of class GridParameter.</p>
 <code class="descname">add</code><span class="sig-paren">(</span><em>name</em>, <em>value=None</em>, <em>label=None</em>, <em>vary=None</em>, <em>slot=None</em>, <em>field=None</em><span class="sig-paren">)</span><a class="headerlink" href="#nexpy.gui.datadialogs.GridParameters.add" title="Permalink to this definition">¶</a></dt>
 <dd><p>Convenience function for adding a Parameter:</p>
 <p>p = GridParameters()
-p.add(name, value=XX, ...)</p>
+p.add(name, value=XX, …)</p>
 <p>is equivalent to:
-p[name] = GridParameter(name=name, value=XX, ....</p>
+p[name] = GridParameter(name=name, value=XX, ….</p>
 </dd></dl>
 
 </dd></dl>
@@ -438,14 +435,14 @@ Must define self.import_file as file name</p>
 <dd><p>Returns a list of files in the selected directory.</p>
 <p>The files are sorted using a natural sort algorithm that preserves the
 numeric order when a file name consists of text and index so that, e.g., 
-&#8216;data2.tif&#8217; comes before &#8216;data10.tif&#8217;.</p>
+‘data2.tif’ comes before ‘data10.tif’.</p>
 </dd></dl>
 
 <dl class="method">
 <dt>
 <code class="descname">read_parameter</code><span class="sig-paren">(</span><em>root</em>, <em>path</em><span class="sig-paren">)</span></dt>
 <dd><p>Read the value from the NeXus path.</p>
-<p>It will return &#8216;None&#8217; if the path is not valid.</p>
+<p>It will return ‘None’ if the path is not valid.</p>
 </dd></dl>
 
 <dl class="method">
@@ -487,9 +484,9 @@ must be of class GridParameter.</p>
 <code class="descname">add</code><span class="sig-paren">(</span><em>name</em>, <em>value=None</em>, <em>label=None</em>, <em>vary=None</em>, <em>slot=None</em>, <em>field=None</em><span class="sig-paren">)</span></dt>
 <dd><p>Convenience function for adding a Parameter:</p>
 <p>p = GridParameters()
-p.add(name, value=XX, ...)</p>
+p.add(name, value=XX, …)</p>
 <p>is equivalent to:
-p[name] = GridParameter(name=name, value=XX, ....</p>
+p[name] = GridParameter(name=name, value=XX, ….</p>
 </dd></dl>
 
 </dd></dl>
@@ -656,7 +653,7 @@ Must define self.import_file as file name</p>
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2013-2015, Ray Osborn.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.6.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.6.
     </div>
   </body>
 </html>
