@@ -193,8 +193,10 @@ Hovering over one of the files in the list shows its absolute path.</dd>
 <dd>Opens an image file and imports the image and any stored metadata into an
 NXdata group within a root tree item, called <code class="docutils literal"><span class="pre">images</span></code>. This will read TIFF
 and CBF files if <a class="reference external" href="https://github.com/silx-kit/fabio">FabIO</a> is installed.
-JPEG, PNG, and GIF files are imported using <a class="reference external" href="https://pillow.readthedocs.io/">Pillow</a>. RGBA images can be displayed using
-<code class="docutils literal"><span class="pre">Plot</span> <span class="pre">RGBA</span> <span class="pre">Image</span></code>.</dd>
+JPEG, PNG, and GIF files are imported using <a class="reference external" href="https://pillow.readthedocs.io/">Pillow</a>. RGB(A) images contain three-dimensional
+arrays, including color (and transparency) layers, which can be displayed as
+two-dimensional images, with the y-axis inverted according to the usual
+image convention, using <code class="docutils literal"><span class="pre">Plot</span> <span class="pre">RGB(A)</span> <span class="pre">Image</span></code>.</dd>
 <dt><strong>Open Directory…</strong></dt>
 <dd>Opens all the HDF5 files stored in the selected directory. It does not
 reopen files already loaded into the tree.</dd>
