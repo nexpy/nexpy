@@ -72,7 +72,7 @@ File Menu
 **New...**
     Creates a new workspace in the tree.
 
-**Open**
+**Open...**
     Opens a new NeXus file as read-only. It is possible unlock the file to 
     allow modifications to the file (see below).
 
@@ -80,6 +80,24 @@ File Menu
               the keyboard shortcut Ctrl+Shift+O (⌘+⇧+O on a Mac). Note 
               that any changes to the file tree, using either the shell or GUI 
               commands, will be automatically updated in the file.
+
+**Open Recent...**
+    Allows one of the 20 most recently opened or saved files to be opened. 
+    Hovering over one of the files in the list shows its absolute path.
+
+**Open Image...**
+    Opens an image file and imports the image and any stored metadata into an 
+    NXdata group within a root tree item, called ``images``. This will read TIFF
+    and CBF files if `FabIO <https://github.com/silx-kit/fabio>`_ is installed. 
+    JPEG, PNG, and GIF files are imported using `Pillow 
+    <https://pillow.readthedocs.io/>`_. RGB(A) images contain three-dimensional
+    arrays, including color (and transparency) layers, which can be displayed as 
+    two-dimensional images, with the y-axis inverted according to the usual 
+    image convention, using ``Plot RGB(A) Image``.
+
+**Open Directory...**
+    Opens all the HDF5 files stored in the selected directory. It does not 
+    reopen files already loaded into the tree.
 
 **Save as...**
     Saves the selected tree item to a new NeXus file. If the selected item is
@@ -107,6 +125,9 @@ File Menu
                  shell. However, if it had previously been assigned to another
                  variable with a different name, that variable will not be 
                  deleted. 
+
+**Collapse Tree**
+    Collapses all expanded items in the tree.
 
 **Import**
     Imports data from other formats. Some importers are provided with the NeXpy
@@ -145,30 +166,30 @@ File Menu
               Backups`` menu item.
     
 **Manage Backups...**
-     Provides the ability to restore or delete an existing backup stored in
-     ``~/.nexpy/backups``. Restoring the backup is equivalent to opening the
-     existing backup file. It is necessary to save it to a new location to 
-     prevent its automatic deletion after five days.
+    Provides the ability to restore or delete an existing backup stored in
+    ``~/.nexpy/backups``. Restoring the backup is equivalent to opening the
+    existing backup file. It is necessary to save it to a new location to 
+    prevent its automatic deletion after five days.
 
 **Open Scratch File...**
-     Saved projections and fits are stored in a scratch file called ``w0.nxs``,
-     which is stored in the user's NeXpy directory, ````~/.nexpy``. This file 
-     is automatically opened when new data is saved, but this menu item allows
-     it to be opened at any time.
+    Saved projections and fits are stored in a scratch file called ``w0.nxs``,
+    which is stored in the user's NeXpy directory, ``~/.nexpy``. This file 
+    is automatically opened when new data is saved, but this menu item allows
+    it to be opened at any time.
 
 **Purge Scratch File...**
-     Previously saved items can be manually removed from the scratch file when 
-     they are no longer needed. This menu item purges all the items in one go.
+    Previously saved items can be manually removed from the scratch file when 
+    they are no longer needed. This menu item purges all the items in one go.
 
 **Close Scratch File...**
-     Closes the scratch file.
+    Closes the scratch file.
      
 **Install Plugin**
-     A directory containing a NeXpy plugin module can be installed either in the
-     user's NeXpy directory (``~/.nexpy/plugins``) or in the package directory
-     if the user has the necessary privilege. The plugin menu is appended to
-     the existing menus, but will be loaded in alphabetical order of the other
-     plugins when NeXpy is restarted.
+    A directory containing a NeXpy plugin module can be installed either in the
+    user's NeXpy directory (``~/.nexpy/plugins``) or in the package directory
+    if the user has the necessary privilege. The plugin menu is appended to
+    the existing menus, but will be loaded in alphabetical order of the other
+    plugins when NeXpy is restarted.
 
     .. note:: If a plugin of the same name exists in both directories, the 
               user's plugin is loaded.
@@ -176,12 +197,12 @@ File Menu
     .. seealso:: `NeXpy Plugins`_
     
 **Remove Plugin**
-     The selected NeXpy plugin module is removed from either the user's
-     NeXpy directory (``~/.nexpy/plugins``) or the package directory.
+    The selected NeXpy plugin module is removed from either the user's
+    NeXpy directory (``~/.nexpy/plugins``) or the package directory.
 
 **Restore Plugin**
-     If a plugin is overwritten by installing another version, it is backed up
-     in ``~/.nexpy/backups``). This allows the old version to be restored.
+    If a plugin is overwritten by installing another version, it is backed up
+    in ``~/.nexpy/backups``). This allows the old version to be restored.
 
 **Print Shell**
     Prints the contents of the iPython shell.
@@ -892,17 +913,21 @@ NeXpy is currently distributed with readers for the following format:
 **TIFF Images**
 
 This reader will import most TIFF images, including those with floating
-point pixels.
+point pixels. This currently uses the `tifffile  
+<https://pypi.python.org/pypi/tifffile>`_ module. Use the ``Open Image...``
+dialog to use the `FabIO library <https://github.com/silx-kit/fabio>`_.
 
 **CBF Files**
 
 This reader will read files stored in the `Crystallographic Binary Format 
-<http://www.iucr.org/resources/cif/software/cbflib>`_, using the PyCBF library. 
-Header information is stored in a NXnote.
+<http://www.iucr.org/resources/cif/software/cbflib>`_, using the `FabIO library
+<https://github.com/silx-kit/fabio>`_. Header information is stored in 
+a NXnote.
 
 **Image Stack**
 
-This reader will read a stack of images, currently either TIFF or CBF, into a
+This reader will read a stack of images, which are readable by `FabIO 
+<https://github.com/silx-kit/fabio>`_, *e.g.*, TIFF or CBF, into a
 three-dimensional NXdata group. The image stack must be stored in separate files 
 in a single directory, that are grouped with a common prefix followed by an 
 integer defining the stack sequence.
