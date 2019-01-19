@@ -68,7 +68,7 @@ from .utils import report_error, report_exception, find_nearest, iterable
 
 plotview = None
 plotviews = {}
-colors = ['b', 'g', 'r', 'c', 'm', 'y', 'k', 'w']
+colors = mpl.rcParams['axes.prop_cycle']
 cmaps = ['viridis', 'inferno', 'magma', 'plasma', #perceptually uniform
          'spring', 'summer', 'autumn', 'winter', 'cool', 'hot', #sequential
          'bone', 'copper', 'gray', 'pink', 
@@ -681,7 +681,7 @@ class NXPlotView(QtWidgets.QDialog):
                     logy = True
                 self._nameonly = False
             if fmt == '':
-                fmt = colors[self.num%len(colors)] + 'o'
+                fmt = 'C'+str(self.num%len(colors))+'o'
 
             self.x, self.y, self.e = self.get_points()
             self.plot_points(fmt, over, **opts)
