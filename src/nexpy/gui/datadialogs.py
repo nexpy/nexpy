@@ -25,7 +25,6 @@ from posixpath import basename
 from .pyqt import QtCore, QtGui, QtWidgets, getOpenFileName
 import numpy as np
 from matplotlib.colors import rgb2hex, colorConverter
-from matplotlib.backends.qt_editor.formlayout import ColorButton, to_qcolor
 from matplotlib.legend import Legend
 
 try:
@@ -37,7 +36,7 @@ from .utils import confirm_action, display_message, report_error
 from .utils import import_plugin, convertHTML
 from .utils import natural_sort, wrap, human_size
 from .utils import timestamp, format_timestamp, restore_timestamp
-from .plotview import NXCheckBox, NXComboBox, NXPushButton, NXColorButton
+from .widgets import NXCheckBox, NXComboBox, NXColorBox, NXPushButton
 
 from nexusformat.nexus import (NeXusError, NXgroup, NXfield, NXattr, 
                                NXlink, NXlinkgroup, NXlinkfield,
@@ -1155,9 +1154,7 @@ class CustomizeDialog(BaseDialog):
             p['grid'].value = 'Off'
         p['gridcolor'].value = rgb2hex(
             colorConverter.to_rgb(self.plotview._gridcolor))
-        p['gridcolor'].color_button = NXColorButton(p['gridcolor'])
-        p['gridcolor'].color_button.set_color(
-            to_qcolor(self.plotview._gridcolor))
+        p['gridcolor'].color_box = NXColorBox(p['gridcolor'])
         p['gridstyle'].value = self.linestyles[self.plotview._gridstyle]
 
     @property
@@ -1222,35 +1219,30 @@ class CustomizeDialog(BaseDialog):
         p['linestyle'].value = self.linestyles[c.get_linestyle()]
         p['linewidth'].value = c.get_linewidth()
         p['linecolor'].value = rgb2hex(colorConverter.to_rgb(c.get_color()))
-        p['linecolor'].color_button = NXColorButton(p['linecolor'])
-        p['linecolor'].color_button.set_color(to_qcolor(c.get_color()))
+        p['linecolor'].color_box = NXColorBox(p['linecolor'])
         p['marker'].value = self.markers[c.get_marker()]
         p['markersize'].value = c.get_markersize()
         p['facecolor'].value = rgb2hex(
             colorConverter.to_rgb(c.get_markerfacecolor()))
-        p['facecolor'].color_button = NXColorButton(p['facecolor'])
-        p['facecolor'].color_button.set_color(
-            to_qcolor(c.get_markerfacecolor()))
+        p['facecolor'].color_box = NXColorBox(p['facecolor'])
         p['edgecolor'].value = rgb2hex(
             colorConverter.to_rgb(c.get_markeredgecolor()))
-        p['edgecolor'].color_button = NXColorButton(p['edgecolor'])
-        p['edgecolor'].color_button.set_color(
-            to_qcolor(c.get_markeredgecolor()))
+        p['edgecolor'].color_box = NXColorBox(p['edgecolor'])
 
     def update_colors(self):
         if self.plotview.image is not None:
             p = self.parameters['image']
-            p.grid_layout.addWidget(p['gridcolor'].color_button, 4, 2, 
+            p.grid_layout.addWidget(p['gridcolor'].color_box, 4, 2, 
                                     alignment=QtCore.Qt.AlignCenter)
         else:
             for curve in self.curves:
                 p = self.parameters[curve]
-                p.grid_layout.addWidget(p['linecolor'].color_button, 4, 2, 
-                                        alignment=QtCore.Qt.AlignCenter)
-                p.grid_layout.addWidget(p['facecolor'].color_button, 7, 2, 
-                                        alignment=QtCore.Qt.AlignCenter)
-                p.grid_layout.addWidget(p['edgecolor'].color_button, 8, 2, 
-                                        alignment=QtCore.Qt.AlignCenter)
+                p.grid_layout.addWidget(p['linecolor'].color_box.colorbtn, 
+                                        4, 2, alignment=QtCore.Qt.AlignCenter)
+                p.grid_layout.addWidget(p['facecolor'].color_box.colorbtn, 
+                                        7, 2, alignment=QtCore.Qt.AlignCenter)
+                p.grid_layout.addWidget(p['edgecolor'].color_box.colorbtn, 
+                                        8, 2, alignment=QtCore.Qt.AlignCenter)
 
     def select_curve(self):
         for curve in self.curves:
@@ -1429,7 +1421,7 @@ class LimitDialog(BaseDialog):
         self.setWindowTitle("Limit axes")
 
     def limitbox(self):
-        from .plotview import NXTextBox
+        from .widgets import NXTextBox
         textbox = NXTextBox()
         textbox.setAlignment(QtCore.Qt.AlignRight)
         textbox.setFixedWidth(75)
