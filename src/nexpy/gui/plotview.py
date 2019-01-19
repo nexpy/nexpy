@@ -90,7 +90,10 @@ except ImportError:
     pass
 linestyles = {'-': 'Solid', '--': 'Dashed', '-.': 'DashDot', ':': 'Dotted',
               'None': 'None'}
-markers = markers.MarkerStyle.markers
+markers = {'.': 'point', ',': 'pixel', '+': 'plus', 'x': 'x', 
+           'o': 'circle', 's': 'square', 'D': 'diamond', 'H': 'hexagon', 
+           'v': 'triangle_down', '^': 'triangle_up', '<': 'triangle_left', 
+           '>': 'triangle_right', 'None': 'None'}
 logo = mpl.image.imread(pkg_resources.resource_filename(
            'nexpy.gui', 'resources/icon/NeXpy.png'))[180:880,50:1010]
 warnings.filterwarnings("ignore", category=mplDeprecation)
