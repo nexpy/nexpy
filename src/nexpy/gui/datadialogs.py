@@ -26,16 +26,17 @@ from .pyqt import QtCore, QtGui, QtWidgets, getOpenFileName
 import numpy as np
 from matplotlib.colors import rgb2hex, colorConverter
 from matplotlib.legend import Legend
+from matplotlib.rcsetup import (validate_float, validate_int, validate_color,
+                                validate_aspect)
 
 try:
     from collections import OrderedDict
 except ImportError:
     from ordereddict import OrderedDict
 
-from .utils import confirm_action, display_message, report_error
-from .utils import import_plugin, convertHTML
-from .utils import natural_sort, wrap, human_size
-from .utils import timestamp, format_timestamp, restore_timestamp
+from .utils import (confirm_action, display_message, report_error,
+                    import_plugin, convertHTML, natural_sort, wrap, human_size,
+                    timestamp, format_timestamp, restore_timestamp)
 from .widgets import NXCheckBox, NXComboBox, NXColorBox, NXPushButton
 
 from nexusformat.nexus import (NeXusError, NXgroup, NXfield, NXattr, 
@@ -588,7 +589,7 @@ class GridParameters(OrderedDict):
         value.name = key
 
     def add(self, name, value=None, label=None, vary=None, slot=None,
-            field=None):
+            color=False, validate=None):
         """
         Convenience function for adding a Parameter:
 
@@ -601,7 +602,9 @@ class GridParameters(OrderedDict):
         p[name] = GridParameter(name=name, value=XX, ....
         """
         self.__setitem__(name, GridParameter(value=value, name=name, 
-                                             label=label, vary=vary, slot=slot))
+                                             label=label, vary=vary, 
+                                             slot=slot, color=color,
+                                             validate=validate))
 
     def grid(self, header=True, title=None, width=None):
         grid = QtWidgets.QGridLayout()
@@ -737,7 +740,8 @@ class GridParameter(object):
     """
     A Parameter is an object to be set in a dialog box grid.
     """
-    def __init__(self, name=None, value=None, label=None, vary=None, slot=None):
+    def __init__(self, name=None, value=None, label=None, vary=None, slot=None,
+                 color=False, validate=None):
         """
         Parameters
         ----------
@@ -750,7 +754,11 @@ class GridParameter(object):
         vary : bool or None, optional
             Whether the Parameter is fixed during a fit. 
         slot : function or None, optional
-            Function to be called when the parameter is changed. 
+            Function to be called when the parameter is changed.
+        color : bool, optional
+            Whether the field contains a color value
+        validate : function, optional
+            Function to be used to validate the value
         """
         self.name = name
         self._value = value
@@ -760,6 +768,8 @@ class GridParameter(object):
                 self.box.addItem(str(v))
             if slot is not None:
                 self.box.currentIndexChanged.connect(slot)
+        elif color:
+            self.box = NXColorBox()
         else:
             self.box = QtWidgets.QLineEdit()
             self.box.setAlignment(QtCore.Qt.AlignRight)
@@ -1297,15 +1307,14 @@ class CustomizeDialog(BaseDialog):
         self.plotview.ax.set_ylabel(self.plotview.yaxis.label)
         if self.plotview.image is not None:
             pi = self.parameters['image']
-            _aspect = pi['aspect'].value
             try:
-                self.plotview._aspect = np.float(_aspect)
+                self.plotview._aspect = validate_aspect(pi['aspect'].value)
             except ValueError:
-                if _aspect in ['auto', 'equal']:
-                    self.plotview._aspect = _aspect
-                else:
-                    pi['aspect'].value = self.plotview._aspect = 'auto'
-            _skew_angle = pi['skew'].value
+                pi['aspect'].value = self.plotview._aspect
+            try:
+                _skew_angle = validate_float(pi['skew'].value)
+            except ValueError:
+                pi['skew'].value = self.plotview.skew
             if pi['grid'].value == 'On':
                 self.plotview._grid =True
             else:
