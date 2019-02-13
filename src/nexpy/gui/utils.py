@@ -19,7 +19,7 @@ except ImportError:
     from ConfigParser import ConfigParser
 import numpy as np
 from .pyqt import QtWidgets, getOpenFileName
-from matplotlib.colors import hex2color, rgb2hex
+from matplotlib.colors import hex2color, rgb2hex, colorConverter
 import matplotlib.image as img
 
 try:
@@ -215,6 +215,10 @@ def get_name(filename, entries=[]):
     return name
 
 
+def get_color(color):
+    return rgb2hex(colorConverter.to_rgb(color))
+
+
 def get_colors(n, first='#1f77b4', last='#d62728'):
     """Return a list of colors interpolating between the first and last.
 
@@ -242,6 +246,7 @@ def get_colors(n, first='#1f77b4', last='#d62728'):
     return [rgb2hex((first[0]+(last[0]-first[0])*i/(n-1), 
                      first[1]+(last[1]-first[1])*i/(n-1),
                      first[2]+(last[2]-first[2])*i/(n-1))) for i in range(n)]
+
 
 def load_image(filename):
     if os.path.splitext(filename.lower())[1] in ['.png', '.jpg', '.jpeg',

@@ -26,10 +26,15 @@ import warnings
 import matplotlib as mpl
 from matplotlib.cbook import mplDeprecation
 from matplotlib.patches import Circle, Ellipse, Rectangle, Polygon
-from formlayout import ColorLayout, text_to_qcolor
-
+try:
+    from formlayout import ColorLayout, text_to_qcolor
+except ImportError:
+    from matplotlib.backends.qt_editor.formlayout import ColorLayout
+    from matplotlib.backends.qt_editor.formlayout import to_qcolor as text_to_qcolor
 
 warnings.filterwarnings("ignore", category=mplDeprecation)
+
+from .utils import get_color
 
 
 class NXTextBox(QtWidgets.QLineEdit):
@@ -268,21 +273,22 @@ class NXPushButton(QtWidgets.QPushButton):
             self.parent().keyPressEvent(event)
 
 
-class NXColorBox(ColorLayout):
+class NXColorBox(QtWidgets.QWidget):
 
-    def __init__(self, parameter):
-        color = text_to_qcolor(parameter.value)
-        super(NXColorBox, self).__init__(color)
-        self.parameter = parameter
-        self.lineedit = self.parameter.box
-        self.lineedit.textChanged.connect(self.update_color)
+    def __init__(self, color='#ffffff', parent=None):
+        super(NXColorBox, self).__init__(parent)
+        color = text_to_qcolor(color)
+        self.layout = ColorLayout(color)
+        self.layout.setContentsMargins(0,0,0,0)
+        self.box = self.layout.lineedit
+        self.box.editingFinished.connect(self.update_color)
+        self.button = self.layout.colorbtn
+        self.setLayout(self.layout)        
 
-    def update_text(self, color):
-        super(NXColorBox, self).update_text(color)
-        self.parameter.value = color.name()
-
-    def text(self):
-        return self.parameter.value
+    def update_color(self):
+        color = text_to_qcolor(get_color(self.box.text()))
+        if color.isValid():
+            self.button.color = color
 
 
 class NXpatch(object):

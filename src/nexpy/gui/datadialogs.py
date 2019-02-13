@@ -24,7 +24,6 @@ from posixpath import basename
 
 from .pyqt import QtCore, QtGui, QtWidgets, getOpenFileName
 import numpy as np
-from matplotlib.colors import rgb2hex, colorConverter
 from matplotlib.legend import Legend
 from matplotlib.rcsetup import (validate_float, validate_int, validate_color,
                                 validate_aspect)
@@ -36,7 +35,7 @@ except ImportError:
 
 from .utils import (confirm_action, display_message, report_error,
                     import_plugin, convertHTML, natural_sort, wrap, human_size,
-                    timestamp, format_timestamp, restore_timestamp)
+                    timestamp, format_timestamp, restore_timestamp, get_color)
 from .widgets import NXCheckBox, NXComboBox, NXColorBox, NXPushButton
 
 from nexusformat.nexus import (NeXusError, NXgroup, NXfield, NXattr, 
@@ -632,9 +631,15 @@ class GridParameters(OrderedDict):
         for p in self.values():
             label, value, checkbox = p.label, p.value, p.vary
             grid.addWidget(p.label, row, 0)
-            grid.addWidget(p.box, row, 1, QtCore.Qt.AlignHCenter)
+            if p.colorbox:
+                grid.addWidget(p.colorbox, row, 1, QtCore.Qt.AlignHCenter)
+            else:
+                grid.addWidget(p.box, row, 1, QtCore.Qt.AlignHCenter)
             if width:
-                p.box.setFixedWidth(width)
+                if p.colorbox:
+                    p.colorbox.setFixedWidth(width)
+                else:
+                    p.box.setFixedWidth(width)
             if checkbox is not None:
                 grid.addWidget(p.checkbox, row, 2, QtCore.Qt.AlignHCenter)
                 vary = True
@@ -763,15 +768,19 @@ class GridParameter(object):
         self.name = name
         self._value = value
         if isinstance(value, list) or isinstance(value, tuple):
+            self.colorbox = None
             self.box = NXComboBox()
             for v in value:
                 self.box.addItem(str(v))
             if slot is not None:
                 self.box.currentIndexChanged.connect(slot)
-        elif color:
-            self.box = NXColorBox()
         else:
-            self.box = QtWidgets.QLineEdit()
+            if color:
+                self.colorbox = NXColorBox(value)
+                self.box = self.colorbox.box
+            else:
+                self.box = QtWidgets.QLineEdit()
+                self.colorbox = None
             self.box.setAlignment(QtCore.Qt.AlignRight)
             if value is not None:
                 if isinstance(value, NXfield):
@@ -1144,10 +1153,10 @@ class CustomizeDialog(BaseDialog):
         parameters.add('aspect', 'auto', 'Aspect Ratio')
         parameters.add('skew', 90.0, 'Skew Angle')
         parameters.add('grid', ['On', 'Off'], 'Grid')
-        parameters.add('gridcolor', '#ffffff', 'Grid Color')
+        parameters.add('gridcolor', '#ffffff', 'Grid Color', color=True)
         parameters.add('gridstyle', list(self.linestyles.values()), 
                        'Grid Style')
-        parameters.grid(title='Image Parameters', header=False)
+        parameters.grid(title='Image Parameters', header=False, width=125)
         return parameters
 
     def update_image_parameters(self):
@@ -1162,9 +1171,7 @@ class CustomizeDialog(BaseDialog):
             p['grid'].value = 'On'
         else:
             p['grid'].value = 'Off'
-        p['gridcolor'].value = rgb2hex(
-            colorConverter.to_rgb(self.plotview._gridcolor))
-        p['gridcolor'].color_box = NXColorBox(p['gridcolor'])
+        p['gridcolor'].value = get_color(self.plotview._gridcolor)
         p['gridstyle'].value = self.linestyles[self.plotview._gridstyle]
 
     @property
@@ -1206,12 +1213,12 @@ class CustomizeDialog(BaseDialog):
         parameters.add('linestyle', list(self.linestyles.values()), 
                        'Line Style')
         parameters.add('linewidth', 1.0, 'Line Width')
-        parameters.add('linecolor', '#000000', 'Line Color')
+        parameters.add('linecolor', '#000000', 'Line Color', color=True)
         parameters.add('marker', list(self.markers.values()), 'Marker Style')
         parameters.add('markersize', 1.0, 'Marker Size')
-        parameters.add('facecolor', '#000000', 'Face Color')
-        parameters.add('edgecolor', '#000000', 'Edge Color')
-        parameters.grid(title='Curve Parameters', header=False)
+        parameters.add('facecolor', '#000000', 'Face Color', color=True)
+        parameters.add('edgecolor', '#000000', 'Edge Color', color=True)
+        parameters.grid(title='Curve Parameters', header=False, width=125)
         return parameters
 
     def update_curve_parameters(self, curve):
@@ -1228,31 +1235,18 @@ class CustomizeDialog(BaseDialog):
                 p['legend'].value = 'No'
         p['linestyle'].value = self.linestyles[c.get_linestyle()]
         p['linewidth'].value = c.get_linewidth()
-        p['linecolor'].value = rgb2hex(colorConverter.to_rgb(c.get_color()))
-        p['linecolor'].color_box = NXColorBox(p['linecolor'])
+        p['linecolor'].value = get_color(c.get_color())
         p['marker'].value = self.markers[c.get_marker()]
         p['markersize'].value = c.get_markersize()
-        p['facecolor'].value = rgb2hex(
-            colorConverter.to_rgb(c.get_markerfacecolor()))
-        p['facecolor'].color_box = NXColorBox(p['facecolor'])
-        p['edgecolor'].value = rgb2hex(
-            colorConverter.to_rgb(c.get_markeredgecolor()))
-        p['edgecolor'].color_box = NXColorBox(p['edgecolor'])
+        p['facecolor'].value = get_color(c.get_markerfacecolor())
+        p['edgecolor'].value = get_color(c.get_markeredgecolor())
 
     def update_colors(self):
         if self.plotview.image is not None:
             p = self.parameters['image']
-            p.grid_layout.addWidget(p['gridcolor'].color_box, 4, 2, 
-                                    alignment=QtCore.Qt.AlignCenter)
         else:
             for curve in self.curves:
                 p = self.parameters[curve]
-                p.grid_layout.addWidget(p['linecolor'].color_box.colorbtn, 
-                                        4, 2, alignment=QtCore.Qt.AlignCenter)
-                p.grid_layout.addWidget(p['facecolor'].color_box.colorbtn, 
-                                        7, 2, alignment=QtCore.Qt.AlignCenter)
-                p.grid_layout.addWidget(p['edgecolor'].color_box.colorbtn, 
-                                        8, 2, alignment=QtCore.Qt.AlignCenter)
 
     def select_curve(self):
         for curve in self.curves:
