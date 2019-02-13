@@ -29,8 +29,8 @@ from matplotlib.patches import Circle, Ellipse, Rectangle, Polygon
 try:
     from formlayout import ColorLayout, text_to_qcolor
 except ImportError:
-    from matplotlib.backends.qt_editor.formlayout import ColorLayout
-    from matplotlib.backends.qt_editor.formlayout import to_qcolor as text_to_qcolor
+    from matplotlib.backends.qt_editor.formlayout import (ColorLayout,
+                                                          to_qcolor as text_to_qcolor)
 
 warnings.filterwarnings("ignore", category=mplDeprecation)
 
@@ -283,12 +283,17 @@ class NXColorBox(QtWidgets.QWidget):
         self.box = self.layout.lineedit
         self.box.editingFinished.connect(self.update_color)
         self.button = self.layout.colorbtn
-        self.setLayout(self.layout)        
+        self.button.colorChanged.connect(self.update_text)
+        self.setLayout(self.layout)
+        self.update_color()
 
     def update_color(self):
         color = text_to_qcolor(get_color(self.box.text()))
         if color.isValid():
             self.button.color = color
+
+    def update_text(self, color):
+        self.box.setText(mpl.colors.to_hex(color.getRgbF()))
 
 
 class NXpatch(object):
