@@ -2131,21 +2131,36 @@ class MainWindow(QtWidgets.QMainWindow):
         self.confirm_restart_kernel_action.setChecked(widget.confirm_restart)
 
     def cut_console(self):
-        widget = self.console
-        if widget.can_cut():
-            widget.cut()
+        widget = self.app.app.focusWidget()
+        if widget == self.console._control:
+            widget = self.console
+        try:
+            if widget.can_cut():
+                widget.cut()
+        except Exception:
+            pass
 
     def copy_console(self):
-        widget = self.console
-        widget.copy()
+        widget = self.app.app.focusWidget()
+        if widget == self.console._control:
+            widget = self.console
+        try:
+            widget.copy()
+        except Exception:
+            pass
 
     def copy_raw_console(self):
         self.console._copy_raw_action.trigger()
 
     def paste_console(self):
-        widget = self.console
-        if widget.can_paste():
-            widget.paste()
+        widget = self.app.app.focusWidget()
+        if widget == self.console._control:
+            widget = self.console
+        try:
+            if widget.can_paste():
+                widget.paste()
+        except Exception:
+            pass
 
     def undo_console(self):
         self.console.undo()
