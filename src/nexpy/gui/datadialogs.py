@@ -1048,6 +1048,18 @@ class PlotDialog(BaseDialog):
             report_error("Plotting data", error)
 
     
+class PreferencesDialog(BaseDialog):
+
+    def __init__(self, parent):
+        super(PreferencesDialog, self).__init__(parent, default=True)
+
+        categories = ['axes', 'errorbar', 'font', 'grid', 'image', 'lines',
+                      'xticks', 'yticks', 'scatter']
+        self.parameters = {}
+        for category in categories:
+            self.parameters[category] = GridParameters()
+
+
 class CustomizeDialog(BaseDialog):
 
     legend_location = {v: k for k, v in Legend.codes.items()}            
