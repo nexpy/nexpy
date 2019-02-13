@@ -863,6 +863,8 @@ class GridParameter(object):
                         self.box.setText('%.6g' % value)
                     except TypeError:
                         self.box.setText(six.text_type(value))
+            if self.colorbox:
+                self.colorbox.update_color()
 
     @property
     def vary(self):
