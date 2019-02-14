@@ -1926,9 +1926,10 @@ class MainWindow(QtWidgets.QMainWindow):
             self.plotview.close()
 
     def equalize_windows(self):
-        if 'Main' in self.plotviews:
-            for label in [label for label in self.plotviews if label != 'Main']:
-                self.plotviews[label].resize(self.plotviews['Main'].size())
+        from .plotview import plotview
+        for label in [label for label in self.plotviews 
+                      if (label != 'Main' and label != plotview.label)]:
+            self.plotviews[label].resize(plotview.size())
 
     def update_active(self, number):
         for num in self.active_action:
