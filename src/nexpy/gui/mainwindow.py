@@ -1442,8 +1442,7 @@ class MainWindow(QtWidgets.QMainWindow):
                                      os.path.abspath(node.nxfilename))
                 self.treeview.status_message(node)
                 node.oplot(fmt='-')
-                from .plotview import plotview
-                plotview.make_active()
+                self.plotview.make_active()
         except NeXusError as error:
             report_error("Overplotting Data", error)
 
@@ -1512,8 +1511,7 @@ class MainWindow(QtWidgets.QMainWindow):
                                      os.path.abspath(node.nxfilename))
                 self.treeview.status_message(node)
                 node.implot()
-                from .plotview import plotview
-                plotview.make_active()
+                self.plotview.make_active()
         except NeXusError as error:
             report_error("Plotting RGB(A) Image Data", error)
 
@@ -1928,10 +1926,9 @@ class MainWindow(QtWidgets.QMainWindow):
             self.plotview.close()
 
     def equalize_windows(self):
-        from .plotview import plotview
         for label in [label for label in self.plotviews 
-                      if (label != 'Main' and label != plotview.label)]:
-            self.plotviews[label].resize(plotview.size())
+                      if (label != 'Main' and label != self.plotview.label)]:
+            self.plotviews[label].resize(self.plotview.size())
 
     def update_active(self, number):
         for num in self.active_action:
@@ -1983,9 +1980,8 @@ class MainWindow(QtWidgets.QMainWindow):
             report_error("Showing Log File", error)
 
     def show_projection_panel(self):
-        from .plotview import plotview
-        if plotview.label != 'Projection' and plotview.ndim > 1:
-            plotview.ptab.open_panel()
+        if self.plotview.label != 'Projection' and self.plotview.ndim > 1:
+            self.plotview.ptab.open_panel()
         elif self.panels.tabs.count() != 0:
             self.panels.raise_()
 
