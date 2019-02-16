@@ -63,8 +63,8 @@ from scipy.spatial import Voronoi, voronoi_plot_2d
 from nexusformat.nexus import NXfield, NXdata, NXroot, NeXusError, nxload
 
 from .. import __version__
-from .widgets import NXSpinBox, NXDoubleSpinBox
-from .widgets import NXComboBox, NXCheckBox, NXPushButton
+from .widgets import (NXSpinBox, NXDoubleSpinBox, NXComboBox, NXCheckBox, NXPushButton,
+                      NXcircle, NXellipse, NXrectangle, NXpolygon)
 from .utils import (report_error, report_exception, boundaries, centers, find_nearest, 
                     iterable)
 
@@ -1924,6 +1924,77 @@ class NXPlotView(QtWidgets.QDialog):
 
     yline = ylines
 
+    def circle(self, x, y, radius, **opts):
+        """Plot circle.
+        
+        Parameters
+        ----------
+        x, y : float
+            x and y values of center of circle.
+        radius : float
+            radius of circle.
+        opts : dict
+            Valid options for displaying shapes.
+
+        Returns
+        -------
+        circle : Circle
+            Matplotlib circle object.
+
+        Notes
+        -----
+        This assumes that the unit lengths of the x and y axes are the 
+        same. The circle will be skewed if the plot is skewed.
+        """
+        if self.skew is not None:
+            x, y = self.transform(x, y)
+        if 'linewidth' not in opts:
+            opts['linewidth'] = 1.0
+        if 'facecolor' not in opts:
+            opts['facecolor'] = 'r'
+        if 'edgecolor' not in opts:
+            opts['edgecolor'] = 'k'
+        circle = NXcircle(float(x), float(y), radius, **opts)
+        circle.connect()
+        self.canvas.draw()
+        self.shapes.append(circle)
+        return circle
+
+    def ellipse(self, x, y, dx, dy, **opts):
+        """Plot ellipse.
+        
+        Parameters
+        ----------
+        x, y : float
+            x and y values of ellipse center
+        dx, dy : float
+            x and y widths of ellipse
+        opts : dict
+            Valid options for displaying shapes.
+
+        Returns
+        -------
+        ellipse : Ellipse
+            Matplotlib ellipse object.
+
+        Notes
+        -----
+        The ellipse will be skewed if the plot is skewed.        
+        """
+        if self.skew is not None:
+            x, y = self.transform(x, y)
+        if 'linewidth' not in opts:
+            opts['linewidth'] = 1.0
+        if 'facecolor' not in opts:
+            opts['facecolor'] = 'r'
+        if 'edgecolor' not in opts:
+            opts['edgecolor'] = 'k'
+        ellipse = NXellipse(float(x), float(y), float(dx), float(dy), **opts)
+        ellipse.connect()
+        self.canvas.draw()
+        self.shapes.append(ellipse)
+        return ellipse
+
     def rectangle(self, x, y, dx, dy, **opts):
         """Plot rectangle.
         
@@ -1945,17 +2016,19 @@ class NXPlotView(QtWidgets.QDialog):
         rectangle : Polygon
             Matplotlib polygon object.
         """
+        if 'linewidth' not in opts:
+            opts['linewidth'] = 1.0
+        if 'facecolor' not in opts:
+            opts['facecolor'] = 'none'
+        if 'edgecolor' not in opts:
+            opts['edgecolor'] = 'k'
         if self.skew is None:
-            rectangle = self.ax.add_patch(Rectangle((float(x),float(y)),
-                                          float(dx), float(dy), **opts))
+            rectangle = NXrectangle(float(x), float(y), float(dx), float(dy), **opts)
         else:
             xc, yc = [x, x, x+dx, x+dx], [y, y+dy, y+dy, y]
             xy = [self.transform(_x, _y) for _x,_y in zip(xc,yc)]
-            rectangle = self.ax.add_patch(Polygon(xy, True, **opts))
-        if 'linewidth' not in opts:
-            rectangle.set_linewidth(1.0)
-        if 'facecolor' not in opts:
-            rectangle.set_facecolor('none')
+            rectangle = NXpolygon(xy, True, **opts)
+        rectangle.connect()
         self.canvas.draw()
         self.shapes.append(rectangle)
         return rectangle
@@ -1983,83 +2056,17 @@ class NXPlotView(QtWidgets.QDialog):
         """
         if self.skew is not None:
             xy = [self.transform(_x, _y) for _x,_y in xy]
-        polygon = self.ax.add_patch(Polygon(xy, closed, **opts))
         if 'linewidth' not in opts:
-            polygon.set_linewidth(1.0)
+            opts['linewidth'] = 1.0
         if 'facecolor' not in opts:
-            polygon.set_facecolor('none')
+            opts['facecolor'] = 'r'
+        if 'edgecolor' not in opts:
+            opts['edgecolor'] = 'k'
+        polygon = NXpolygon(xy, closed, **opts)
+        polygon.connect()
         self.canvas.draw()
         self.shapes.append(polygon)
         return polygon
-
-    def ellipse(self, x, y, dx, dy, **opts):
-        """Plot ellipse.
-        
-        Parameters
-        ----------
-        x, y : float
-            x and y values of ellipse center
-        dx, dy : float
-            x and y widths of ellipse
-        opts : dict
-            Valid options for displaying shapes.
-
-        Returns
-        -------
-        ellipse : Ellipse
-            Matplotlib ellipse object.
-
-        Notes
-        -----
-        The ellipse will be skewed if the plot is skewed.        
-        """
-        if self.skew is not None:
-            x, y = self.transform(x, y)
-        ellipse = self.ax.add_patch(Ellipse((float(x),float(y)), 
-                                             float(dx), float(dy), **opts))
-        if 'linewidth' not in opts:
-            ellipse.set_linewidth(1.0)
-        if 'facecolor' not in opts:
-            ellipse.set_facecolor('none')
-        self.canvas.draw()
-        self.shapes.append(ellipse)
-        return ellipse
-
-    def circle(self, x, y, radius, **opts):
-        """Plot circle.
-        
-        Parameters
-        ----------
-        x, y : float
-            x and y values of center of circle.
-        radius : float
-            radius of circle.
-        opts : dict
-            Valid options for displaying shapes.
-
-        Returns
-        -------
-        circle : Circle
-            Matplotlib circle object.
-
-        Notes
-        -----
-        This assumes that the unit lengths of the x and y axes are the 
-        same. The circle will be skewed if the plot is skewed.
-        """
-        if self.skew is not None:
-            x, y = self.transform(x, y)
-        circle = self.ax.add_patch(Circle((float(x),float(y)), radius,
-                                              **opts))
-        if 'linewidth' not in opts:
-            circle.set_linewidth(1.0)
-        if 'facecolor' not in opts:
-            circle.set_facecolor('r')
-        if 'edgecolor' not in opts:
-            circle.set_edgecolor('k')
-        self.canvas.draw()
-        self.shapes.append(circle)
-        return circle
 
     def voronoi(self, x, y, z, **opts):
         """Output Voronoi plot based z(x,y) where x and y are pixel centers.

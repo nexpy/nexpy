@@ -300,7 +300,7 @@ class NXpatch(object):
     """Class for a draggable shape on the NXPlotView canvas"""
     lock = None
      
-    def __init__(self, shape, border_tol=0.1, plotview=None):
+    def __init__(self, shape, border_tol=0.1, resize=True, plotview=None):
         if plotview:
             self.plotview = plotview
         else:
@@ -311,7 +311,7 @@ class NXpatch(object):
         self.border_tol = border_tol
         self.press = None
         self.background = None
-        self.allow_resize = True
+        self.allow_resize = resize
         self._active = None
         self.plotview.ax.add_patch(self.shape)
 
@@ -375,52 +375,198 @@ class NXpatch(object):
         self.shape.remove()
         self.plotview.draw()
 
+    def set_facecolor(self, color):
+        self.shape.set_facecolor(color)
+        self.plotview.draw()
+
+    def set_edgecolor(self, color):
+        self.shape.set_edgecolor(color)
+        self.plotview.draw()
+
+    def set_color(self, color):
+        self.shape.set_facecolor(color)
+        self.shape.set_edgecolor(color)
+        self.plotview.draw()
+
 
 class NXcircle(NXpatch):
 
-    def __init__(self, x, y, radius, border_tol=0.1, plotview=None, **opts):
-        shape = Circle((float(x),float(y)), radius, **opts)
+    def __init__(self, x, y, r, border_tol=0.1, resize=True, plotview=None, **opts):
+        x, y, r = float(x), float(y), float(r)
+        shape = Ellipse((x,y), r, r, **opts)
         if 'linewidth' not in opts:
             shape.set_linewidth(1.0)
         if 'facecolor' not in opts:
             shape.set_facecolor('r')
-        super(NXcircle, self).__init__(shape, border_tol, plotview)
+        super(NXcircle, self).__init__(shape, border_tol, resize, plotview)
         self.shape.set_label('Circle')
         self.circle = self.shape
+        self.circle.height = self.height
+
+    def __repr__(self):
+        x, y = self.circle.center
+        r = self.circle.width / 2
+        return 'NXcircle(%g, %g, %g)' % (x, y, r)
+
+    @property
+    def transform(self):
+        return self.plotview.ax.transData.transform
+
+    @property
+    def inverse_transform(self):
+        return self.plotview.ax.transData.inverted().transform
+
+    @property
+    def radius(self):
+        return self.circle.width / 2.0
+
+    @property
+    def pixel_radius(self):
+        return (self.transform((self.radius,0)) - self.transform((0,0)))[0]
+
+    def pixel_shift(self, x, y, x0, y0):
+        return tuple(self.transform((x,y)) - self.transform((x0,y0)))
+    
+    @property
+    def width(self):
+        return self.circle.width
+
+    @property
+    def height(self):
+        return 2 * (self.inverse_transform((0,self.pixel_radius)) - 
+                    self.inverse_transform((0,0)))[1]
+
+    def set_center(self, x, y):
+        self.circle.center = x, y
+        self.plotview.draw()
+
+    def set_radius(self, radius):
+        self.circle.width = 2.0 * radius
+        self.circle.height = self.height
+        self.plotview.draw()
 
     def initialize(self, xp, yp):
         x0, y0 = self.circle.center
-        r0 = self.circle.radius
+        w0, h0 = self.width, self.height
+        xt, yt, rt = *self.pixel_shift(xp, yp, x0, y0), self.pixel_radius
         if (self.allow_resize and
-            (np.sqrt((xp-x0)**2 + (yp-y0)**2) > r0 * (1-self.border_tol))):
+            (np.sqrt(xt**2 + yt**2) > rt * (1-self.border_tol))):
             expand = True
         else:
             expand = False
-        return x0, y0, r0, xp, yp, expand   
+        return x0, y0, w0, h0, xp, yp, expand   
 
     def update(self, x, y):
-        x0, y0, r0, xp, yp, expand = self.press
+        x0, y0, w0, h0, xp, yp, expand = self.press
         dx, dy = (x-xp, y-yp)
         bt = self.border_tol
         if expand:
-            radius = np.sqrt((xp + dx - x0)**2 + (yp + dy - y0)**2)
-            self.shape.set_radius(radius)
+            self.circle.width = self.width + dx
+            self.circle.height = self.height
         else:
-            self.circle.center = (x0 + dx, y0 + dy)
-            self.circle.set_radius(r0)
+            self.circle.center = (x0+dx, y0+dy)
+
+
+class NXellipse(NXpatch):
+
+    def __init__(self, x, y, dx, dy, border_tol=0.2, resize=True, plotview=None, **opts):
+        shape = Ellipse((float(x),float(y)), dx, dy, **opts)
+        if 'linewidth' not in opts:
+            shape.set_linewidth(1.0)
+        if 'facecolor' not in opts:
+            shape.set_facecolor('r')
+        super(NXellipse, self).__init__(shape, border_tol, resize, plotview)
+        self.shape.set_label('Ellipse')
+        self.ellipse = self.shape
+
+    def __repr__(self):
+        x, y = self.ellipse.center
+        w, h = self.ellipse.width, self.ellipse.height
+        return 'NXellipse(%g, %g, %g, %g)' % (x, y, w, h)
+
+    def set_center(self, x, y):
+        self.ellipse.set_center((x, y))
+        self.plotview.draw()
+
+    def set_width(self, width):
+        self.ellipse.width = width
+        self.plotview.draw()
+
+    def set_height(self, height):
+        self.ellipse.height = height
+        self.plotview.draw()
+
+    def initialize(self, xp, yp):
+        x0, y0 = self.ellipse.center
+        w0, h0 = self.ellipse.width, self.ellipse.height
+        bt = self.border_tol
+        if (self.allow_resize and
+            ((abs(x0-xp) < bt*w0 and abs(y0+np.true_divide(h0,2)-yp) < bt*h0) or
+             (abs(x0-xp) < bt*w0 and abs(y0-np.true_divide(h0,2)-yp) < bt*h0) or
+             (abs(y0-yp) < bt*h0 and abs(x0+np.true_divide(w0,2)-xp) < bt*w0) or
+             (abs(y0-yp) < bt*h0 and abs(x0-np.true_divide(w0,2)-xp) < bt*w0))):
+            expand = True
+        else:
+            expand = False
+        return x0, y0, w0, h0, xp, yp, expand   
+
+    def update(self, x, y):
+        x0, y0, w0, h0, xp, yp, expand = self.press
+        dx, dy = (x-xp, y-yp)
+        bt = self.border_tol
+        if expand:
+            if (abs(x0-xp) < bt*w0 and abs(y0+np.true_divide(h0,2)-yp) < bt*h0):
+                self.ellipse.height = h0 + dy
+            elif (abs(x0-xp) < bt*w0 and abs(y0-np.true_divide(h0,2)-yp) < bt*h0):
+                self.ellipse.height = h0 - dy
+            elif (abs(y0-yp) < bt*h0 and abs(x0+np.true_divide(w0,2)-xp) < bt*w0):
+                self.ellipse.width = w0 + dx
+            elif (abs(y0-yp) < bt*h0 and abs(x0-np.true_divide(w0,2)-xp) < bt*w0):
+                self.ellipse.width = w0 - dx
+        else:
+            self.ellipse.set_center((x0+dx, y0+dy))
 
 
 class NXrectangle(NXpatch):
 
-    def __init__(self, x, y, dx, dy, border_tol=0.1, plotview=None, **opts):
+    def __init__(self, x, y, dx, dy, border_tol=0.1, resize=True, plotview=None, **opts):
         shape = Rectangle((float(x),float(y)), float(dx), float(dy), **opts)
         if 'linewidth' not in opts:
             shape.set_linewidth(1.0)
         if 'facecolor' not in opts:
             shape.set_facecolor('r')
-        super(NXrectangle, self).__init__(shape, border_tol, plotview)
+        super(NXrectangle, self).__init__(shape, border_tol, resize, plotview)
         self.shape.set_label('Rectangle')
         self.rectangle = self.shape
+
+    def __repr__(self):
+        x, y = self.rectangle.xy
+        w, h = self.rectangle.get_width(), self.rectangle.get_height()
+        return 'NXrectangle(%g, %g, %s, %s)' % (x, y, w, h)
+
+    def set_left(self, left):
+        self.rectangle.set_x(left)
+        self.plotview.draw()
+
+    def set_right(self, right):
+        self.rectangle.set_x(right - self.rectangle.get_width())
+        self.plotview.draw()
+
+    def set_bottom(self, bottom):
+        self.rectangle.set_y(bottom)
+        self.plotview.draw()
+
+    def set_top(self, top):
+        self.rectangle.set_y(top - self.rectangle.get_height())
+        self.plotview.draw()
+
+    def set_width(self, width):
+        self.rectangle.set_width(width)
+        self.plotview.draw()
+
+    def set_height(self, height):
+        self.rectangle.set_height(height)
+        self.plotview.draw()
 
     def initialize(self, xp, yp):
         x0, y0 = self.rectangle.xy
@@ -442,7 +588,7 @@ class NXrectangle(NXpatch):
             if abs(x0 - xp) < bt * w0:
                 self.rectangle.set_x(x0+dx)
                 self.rectangle.set_width(w0-dx)
-            if abs(x0 + w0 - xp) < bt * w0:
+            elif abs(x0 + w0 - xp) < bt * w0:
                 self.rectangle.set_width(w0+dx)
             elif abs(y0 - yp) < bt * h0:
                 self.rectangle.set_y(y0+dy)
@@ -452,4 +598,31 @@ class NXrectangle(NXpatch):
         else:
             self.rectangle.set_x(x0+dx)
             self.rectangle.set_y(y0+dy)
+
+
+class NXpolygon(NXpatch):
+
+    def __init__(self, xy, closed=True, plotview=None, **opts):
+        shape = Polygon(xy, closed, **opts)
+        if 'linewidth' not in opts:
+            shape.set_linewidth(1.0)
+        if 'facecolor' not in opts:
+            shape.set_facecolor('r')
+        super(NXpolygon, self).__init__(shape, resize=False, plotview=plotview)
+        self.shape.set_label('Polygon')
+        self.polygon = self.shape
+
+    def __repr__(self):
+        xy = self.polygon.xy
+        v = xy.shape[0] - 1
+        return 'NXpolygon(%g, %g, vertices=%s)' % (xy[0][0], xy[0][1], v)
+
+    def initialize(self, xp, yp):
+        xy0 = self.polygon.xy
+        return xy0, xp, yp 
+
+    def update(self, x, y):
+        xy0, xp, yp = self.press
+        dxy = (x-xp, y-yp)        
+        self.polygon.set_xy(xy0+dxy)
 
