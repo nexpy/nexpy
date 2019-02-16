@@ -792,12 +792,14 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.limit_action=QtWidgets.QAction("Change Plot Limits",
             self,
+            shortcut="Ctrl+Alt+L",
             triggered=self.limit_axes
             )
         self.add_menu_action(self.window_menu, self.limit_action)
 
         self.reset_limit_action=QtWidgets.QAction("Reset Plot Limits",
             self,
+            shortcut="Ctrl+Alt+Shift+L",
             triggered=self.reset_axes
             )
         self.add_menu_action(self.window_menu, self.reset_limit_action)
@@ -1946,7 +1948,6 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def limit_axes(self):
         try:
-            from .plotview import plotview
             dialog = LimitDialog(parent=self)
             dialog.exec_()
         except NeXusError as error:
@@ -1954,8 +1955,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def reset_axes(self):
         try:
-            from .plotview import plotview
-            plotview.reset_plot_limits()
+            self.plotview.reset_plot_limits()
         except NeXusError as error:
             report_error("Resetting Plot Limits", error)
 
