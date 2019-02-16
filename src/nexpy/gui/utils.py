@@ -134,9 +134,54 @@ def natural_sort(key):
     return [int(t) if t.isdigit() else t for t in re.split(r'(\d+)', key)]    
 
 
+def centers(axis, dimlen):
+    """Return the centers of the axis bins.
+
+    This works regardless if the axis contains bin boundaries or 
+    centers.
+    
+    Parameters
+    ----------
+    dimlen : int
+        Size of the signal dimension. If this one more than the axis 
+        size, it is assumed the axis contains bin boundaries.
+    """
+    ax = axis.astype(np.float32)
+    if ax.shape[0] == dimlen+1:
+        return (ax[:-1] + ax[1:])/2
+    else:
+        assert ax.shape[0] == dimlen
+        return ax
+
+
+def boundaries(axis, dimlen):
+    """Return the boundaries of the axis bins.
+
+    This works regardless if the axis contains bin boundaries or 
+    centers.
+    
+    Parameters
+    ----------
+    dimlen : int
+        Size of the signal dimension. If this one more than the axis 
+        size, it is assumed the axis contains bin boundaries.
+    """
+    ax = axis.astype(np.float32)
+    if ax.shape[0] == dimlen:
+        start = ax[0] - (ax[1] - ax[0])/2
+        end = ax[-1] + (ax[-1] - ax[-2])/2
+        return np.concatenate((np.atleast_1d(start),
+                               (ax[:-1] + ax[1:])/2,
+                               np.atleast_1d(end)))
+    else:
+        assert ax.shape[0] == dimlen + 1
+        return ax
+
+
 def find_nearest(array, value):
     idx = (np.abs(array-value)).argmin()
     return array[idx]
+
 
 def find_nearest_index(array, value):
     return (np.abs(array-value)).argmin()

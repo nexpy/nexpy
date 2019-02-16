@@ -34,7 +34,7 @@ except ImportError:
 
 warnings.filterwarnings("ignore", category=mplDeprecation)
 
-from .utils import get_color
+from .utils import get_color, boundaries
 
 
 class NXTextBox(QtWidgets.QLineEdit):

@@ -66,6 +66,8 @@ from .. import __version__
 from .widgets import NXSpinBox, NXDoubleSpinBox
 from .widgets import NXComboBox, NXCheckBox, NXPushButton
 from .utils import report_error, report_exception, find_nearest, iterable
+from .utils import (report_error, report_exception, boundaries, centers, find_nearest, 
+                    iterable)
 
 plotview = None
 plotviews = {}
@@ -3943,47 +3945,6 @@ def keep_data(data):
     data.nxname = 's'+six.text_type(sorted(ind)[-1]+1)
     _tree['w0'][data.nxname] = data
 
-def centers(axis, dimlen):
-    """Return the centers of the axis bins.
-
-    This works regardless if the axis contains bin boundaries or 
-    centers.
-    
-    Parameters
-    ----------
-    dimlen : int
-        Size of the signal dimension. If this one more than the axis 
-        size, it is assumed the axis contains bin boundaries.
-    """
-    ax = axis.astype(np.float32)
-    if ax.shape[0] == dimlen+1:
-        return (ax[:-1] + ax[1:])/2
-    else:
-        assert ax.shape[0] == dimlen
-        return ax
-
-def boundaries(axis, dimlen):
-    """Return the boundaries of the axis bins.
-
-    This works regardless if the axis contains bin boundaries or 
-    centers.
-    
-    Parameters
-    ----------
-    dimlen : int
-        Size of the signal dimension. If this one more than the axis 
-        size, it is assumed the axis contains bin boundaries.
-    """
-    ax = axis.astype(np.float32)
-    if ax.shape[0] == dimlen:
-        start = ax[0] - (ax[1] - ax[0])/2
-        end = ax[-1] + (ax[-1] - ax[-2])/2
-        return np.concatenate((np.atleast_1d(start),
-                               (ax[:-1] + ax[1:])/2,
-                               np.atleast_1d(end)))
-    else:
-        assert ax.shape[0] == dimlen + 1
-        return ax
 
 def fix_projection(shape, axes, limits):
     """Fix the axes and limits for data with dimension sizes of 1.    
