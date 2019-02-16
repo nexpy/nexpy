@@ -388,6 +388,10 @@ class NXpatch(object):
         self.shape.set_edgecolor(color)
         self.plotview.draw()
 
+    def set_alpha(self, alpha):
+        self.shape.set_alpha(alpha)
+        self.plotview.draw()
+
 
 class NXcircle(NXpatch):
 
