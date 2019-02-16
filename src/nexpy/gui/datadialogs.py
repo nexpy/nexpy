@@ -54,6 +54,7 @@ class BaseDialog(QtWidgets.QDialog):
         self.mainwindow.current_dialog = self
         self.treeview = self.mainwindow.treeview
         self.tree = self.treeview.tree
+        self.plotview = self.mainwindow.plotview
         self.plotviews = self.mainwindow.plotviews
         self.default_directory = self.mainwindow.default_directory
         self.import_file = None     # must define in subclass
@@ -1383,78 +1384,39 @@ class LimitDialog(BaseDialog):
 
         super(LimitDialog, self).__init__(parent)
  
-        from .plotview import plotview
-
-        self.plotview = plotview
+        self.parameters = GridParameters()
+        self.parameters.add('xmin', self.plotview.xaxis.min, 'Minimum X')
+        self.parameters.add('xmax', self.plotview.xaxis.max, 'Maximum X')
+        self.parameters.add('ymin', self.plotview.yaxis.min, 'Minimum Y')
+        self.parameters.add('ymax', self.plotview.yaxis.max, 'Maximum Y')
         
-        layout = QtWidgets.QVBoxLayout()
+        if self.plotview.ndim > 1:
+            self.parameters.add('vmin', self.plotview.vaxis.min, 'Minimum Signal')
+            self.parameters.add('vmax', self.plotview.vaxis.max, 'Maximum Signal')
 
-        xmin_layout = QtWidgets.QHBoxLayout()
-        xmin_layout.addWidget(QtWidgets.QLabel('xmin'))
-        self.xmin_box = self.limitbox()
-        self.xmin_box.setValue(plotview.xaxis.min)
-        xmin_layout.addWidget(self.xmin_box)
-        layout.addLayout(xmin_layout)
+        if self.plotview.label != 'Main':
+            xsize, ysize = self.plotview.size().width(), self.plotview.size().height()
+            self.parameters.add('xsize', xsize, 'Window Size (H)')
+            self.parameters.add('ysize', ysize, 'Window Size (V)')
+        self.set_layout(self.parameters.grid(), self.close_buttons()) 
 
-        xmax_layout = QtWidgets.QHBoxLayout()
-        xmax_layout.addWidget(QtWidgets.QLabel('xmax'))
-        self.xmax_box = self.limitbox()
-        self.xmax_box.setValue(plotview.xaxis.max)
-        xmax_layout.addWidget(self.xmax_box)
-        layout.addLayout(xmax_layout)
-
-        ymin_layout = QtWidgets.QHBoxLayout()
-        ymin_layout.addWidget(QtWidgets.QLabel('ymin'))
-        self.ymin_box = self.limitbox()
-        self.ymin_box.setValue(plotview.yaxis.min)
-        ymin_layout.addWidget(self.ymin_box)
-        layout.addLayout(ymin_layout)
-
-        ymax_layout = QtWidgets.QHBoxLayout()
-        ymax_layout.addWidget(QtWidgets.QLabel('ymax'))
-        self.ymax_box = self.limitbox()
-        self.ymax_box.setValue(plotview.yaxis.max)
-        ymax_layout.addWidget(self.ymax_box)
-        layout.addLayout(ymax_layout)
-
-        if plotview.ndim > 1:
-            vmin_layout = QtWidgets.QHBoxLayout()
-            vmin_layout.addWidget(QtWidgets.QLabel('vmin'))
-            self.vmin_box = self.limitbox()
-            self.vmin_box.setValue(plotview.vaxis.min)
-            vmin_layout.addWidget(self.vmin_box)
-            layout.addLayout(vmin_layout)
-
-            vmax_layout = QtWidgets.QHBoxLayout()
-            vmax_layout.addWidget(QtWidgets.QLabel('vmax'))
-            self.vmax_box = self.limitbox()
-            self.vmax_box.setValue(plotview.vaxis.max)
-            vmax_layout.addWidget(self.vmax_box)
-            layout.addLayout(vmax_layout)
-
-        layout.addWidget(self.close_buttons()) 
-        self.setLayout(layout)
-
-        self.setWindowTitle("Limit axes")
-
-    def limitbox(self):
-        from .widgets import NXTextBox
-        textbox = NXTextBox()
-        textbox.setAlignment(QtCore.Qt.AlignRight)
-        textbox.setFixedWidth(75)
-        return textbox
+        self.set_title("Limit axes")
 
     def accept(self):
         try:
-            xmin, xmax = self.xmin_box.value(), self.xmax_box.value() 
-            ymin, ymax = self.ymin_box.value(), self.ymax_box.value()
+            xmin, xmax = self.parameters['xmin'].value, self.parameters['xmax'].value 
+            ymin, ymax = self.parameters['ymin'].value, self.parameters['ymax'].value 
             if self.plotview.ndim > 1:
-                vmin, vmax = self.vmin_box.value(), self.vmax_box.value()
+                vmin, vmax = self.parameters['vmin'].value, self.parameters['vmax'].value 
                 self.plotview.autoscale = False
                 self.plotview.set_plot_limits(xmin, xmax, ymin, ymax, 
                                               vmin, vmax)
             else:
                 self.plotview.set_plot_limits(xmin, xmax, ymin, ymax)
+            if self.plotview.label != 'Main':
+                xsize, ysize = (self.parameters['xsize'].value, 
+                                self.parameters['ysize'].value)
+                self.plotview.resize(QtCore.QSize(xsize, ysize))
             super(LimitDialog, self).accept()
         except NeXusError as error:
             report_error("Setting plot limits", error)
