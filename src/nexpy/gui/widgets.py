@@ -371,6 +371,10 @@ class NXpatch(object):
         self.canvas.mpl_disconnect(self.cidmotion)
         self.plotview.activate()
 
+    def remove(self):
+        self.shape.remove()
+        self.plotview.draw()
+
 
 class NXcircle(NXpatch):
 

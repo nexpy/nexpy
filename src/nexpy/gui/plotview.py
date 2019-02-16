@@ -65,7 +65,6 @@ from nexusformat.nexus import NXfield, NXdata, NXroot, NeXusError, nxload
 from .. import __version__
 from .widgets import NXSpinBox, NXDoubleSpinBox
 from .widgets import NXComboBox, NXCheckBox, NXPushButton
-from .utils import report_error, report_exception, find_nearest, iterable
 from .utils import (report_error, report_exception, boundaries, centers, find_nearest, 
                     iterable)
 
