@@ -1607,6 +1607,14 @@ class NXPlotView(QtWidgets.QDialog):
         except Exception:
             return False
 
+    def get_size(self):
+        return tuple(self.figure.get_size_inches())
+
+    def set_size(self, width, height):
+        if self.label == 'Main':
+            raise NeXusError("Cannot change the size of the main window programmatically")
+        self.figure.set_size_inches(width, height)
+
     @property
     def ax(self):
         """The current Matplotlib axes instance."""
