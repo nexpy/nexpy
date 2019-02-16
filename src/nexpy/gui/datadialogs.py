@@ -1395,9 +1395,10 @@ class LimitDialog(BaseDialog):
             self.parameters.add('vmax', self.plotview.vaxis.max, 'Maximum Signal')
 
         if self.plotview.label != 'Main':
-            xsize, ysize = self.plotview.size().width(), self.plotview.size().height()
-            self.parameters.add('xsize', xsize, 'Window Size (H)')
-            self.parameters.add('ysize', ysize, 'Window Size (V)')
+            figure_size = self.plotview.figure.get_size_inches()
+            xsize, ysize = figure_size[0], figure_size[1]
+            self.parameters.add('xsize', xsize, 'Figure Size (H)')
+            self.parameters.add('ysize', ysize, 'Figure Size (V)')
         self.set_layout(self.parameters.grid(), self.close_buttons()) 
 
         self.set_title("Limit axes")
@@ -1416,7 +1417,7 @@ class LimitDialog(BaseDialog):
             if self.plotview.label != 'Main':
                 xsize, ysize = (self.parameters['xsize'].value, 
                                 self.parameters['ysize'].value)
-                self.plotview.resize(QtCore.QSize(xsize, ysize))
+                self.plotview.figure.set_size_inches(xsize, ysize)
             super(LimitDialog, self).accept()
         except NeXusError as error:
             report_error("Setting plot limits", error)
