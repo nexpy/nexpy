@@ -409,7 +409,7 @@ class NXcircle(NXpatch):
 
     def __repr__(self):
         x, y = self.circle.center
-        r = self.circle.width / 2
+        r = abs(self.circle.width) / 2
         return 'NXcircle(%g, %g, %g)' % (x, y, r)
 
     @property
@@ -422,7 +422,7 @@ class NXcircle(NXpatch):
 
     @property
     def radius(self):
-        return self.circle.width / 2.0
+        return abs(self.circle.width) / 2.0
 
     @property
     def pixel_radius(self):
@@ -430,10 +430,17 @@ class NXcircle(NXpatch):
 
     def pixel_shift(self, x, y, x0, y0):
         return tuple(self.transform((x,y)) - self.transform((x0,y0)))
+
+    def radius_shift(self, x, y, xp, yp, x0, y0):
+        xt, yt = self.pixel_shift(x, y, x0, y0)
+        r = np.sqrt(xt**2 + yt**2)
+        xt, yt = self.pixel_shift(xp, yp, x0, y0)
+        r0 = np.sqrt(xt**2 + yt**2)
+        return (self.inverse_transform((r,0)) - self.inverse_transform((r0,0)))[0]
     
     @property
     def width(self):
-        return self.circle.width
+        return abs(self.circle.width)
 
     @property
     def height(self):
@@ -462,13 +469,11 @@ class NXcircle(NXpatch):
 
     def update(self, x, y):
         x0, y0, w0, h0, xp, yp, expand = self.press
-        dx, dy = (x-xp, y-yp)
-        bt = self.border_tol
         if expand:
-            self.circle.width = self.width + dx
+            self.circle.width = self.width + self.radius_shift(x, y, xp, yp, x0, y0)
             self.circle.height = self.height
         else:
-            self.circle.center = (x0+dx, y0+dy)
+            self.circle.center = (x0+x-xp, y0+y-yp)
 
 
 class NXellipse(NXpatch):
