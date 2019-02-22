@@ -468,7 +468,21 @@ class BaseDialog(QtWidgets.QDialog):
             else:
                 return value
         except NeXusError:
-            return None 
+            return None
+
+    def parameter_stack(self, parameters):
+        """Initialize layouts containing a grid selection box and each grid."""
+        widget = QtWidgets.QWidget(parent=self)
+        layout = QtWidgets.QVBoxLayout()
+        stack = QtWidgets.QStackedWidget(self)
+        for p in parameters:
+            stack.addWidget(parameters[p].widget(header=False))
+        box = self.select_box([p for p in parameters],     
+                              slot=stack.setCurrentIndex)
+        layout.addWidget(box)
+        layout.addWidget(stack)
+        widget.setLayout(layout)
+        return widget
 
     def hide_grid(self, grid):
         for row in range(grid.rowCount()):
@@ -576,11 +590,11 @@ class GridParameters(OrderedDict):
     All keys must be strings, and valid Python symbol names, and all values
     must be of class GridParameter.
     """
-    def __init__(self, *args, **kwds):
+    def __init__(self, **kwds):
         super(GridParameters, self).__init__(self)
         self.result = None
         self.status_layout = None
-        self.update(*args, **kwds)
+        self.update(**kwds)
 
     def __setitem__(self, key, value):
         if value is not None and not isinstance(value, GridParameter):
@@ -651,6 +665,11 @@ class GridParameters(OrderedDict):
             grid.addWidget(fit_label, 0, 2, QtCore.Qt.AlignHCenter)
         self.grid_layout = grid
         return grid
+
+    def widget(self, header=True, title=None, width=None):
+        w = QtWidgets.QWidget()
+        w.setLayout(self.grid(header=header, title=title, width=width))
+        return w
 
     def hide_grid(self):
         grid = self.grid_layout
@@ -1085,42 +1104,26 @@ class CustomizeDialog(BaseDialog):
         pl['ylabel'].box.setMinimumWidth(200)
         pl['ylabel'].box.setAlignment(QtCore.Qt.AlignLeft)
         if self.plotview.image is not None:
-            image_grid = QtWidgets.QVBoxLayout()
-            self.parameters['image'] = self.image_parameters()
+            pi = self.parameters['image'] = self.image_parameters()
             self.update_image_parameters()
-            image_grid.addLayout(self.parameters['image'].grid_layout)
             self.set_layout(pl.grid(header=False),
-                            image_grid,
+                            pi.grid(header=False),
                             self.close_buttons())
         else:
             self.curves = self.get_curves()
-            self.curve_grids = QtWidgets.QWidget(parent=self)
-            self.curve_layout = QtWidgets.QVBoxLayout()
-            self.curve_layout.setContentsMargins(0, 20, 0, 0)
-            self.curve_box = self.select_box(list(self.curves),
-                                             slot=self.select_curve)
-            self.curve_box.setMinimumWidth(200)
-            layout = QtWidgets.QHBoxLayout()
-            layout.addStretch()
-            layout.addWidget(self.curve_box)
-            layout.addStretch()
-            self.curve_layout.addLayout(layout)
+            pc = {}          
             for curve in self.curves:
-                self.parameters[curve] = self.curve_parameters(curve)
+                pc[curve] = self.parameters[curve] = self.curve_parameters(curve)
                 self.update_curve_parameters(curve)
-                self.initialize_curve(curve)
-            self.curve_grids.setLayout(self.curve_layout)
             pg = self.parameters['legend'] = GridParameters()
             pg.add('legend', ['None'] + [key.title() for key in Legend.codes], 
                    'Legend')
             pg.add('label', ['Full Path', 'Name Only'], 'Label')
             self.update_legend_parameters()
             self.set_layout(pl.grid(header=False),
-                            self.curve_grids,
+                            self.parameter_stack(pc),
                             pg.grid(header=False),
                             self.close_buttons())
-            self.setTabOrder(self.parameters['labels']['ylabel'].box, 
-                             self.curve_box)
         self.update_colors()
         self.set_title('Customize %s' % self.plotview.label)
         self.setFocusPolicy(QtCore.Qt.StrongFocus)
@@ -1152,7 +1155,6 @@ class CustomizeDialog(BaseDialog):
         if self.plotview.image is not None:
             self.update_image_parameters()
         else:
-            self.update_curves()
             for curve in self.curves:
                 self.update_curve_parameters(curve)
         self.update_colors()
@@ -1210,17 +1212,6 @@ class CustomizeDialog(BaseDialog):
             self.initialize_curve(curve)
             self.curve_box.addItem(curve)
 
-    def initialize_curve(self, curve):
-        pc = self.parameters[curve]
-        pc.widget = QtWidgets.QWidget(parent=self.curve_grids)
-        pc.widget.setLayout(pc.grid(header=False))
-        pc.widget.setVisible(False)
-        self.curve_layout.addWidget(pc.widget)
-        if curve == self.curve:
-            pc.widget.setVisible(True)
-        else:
-            pc.widget.setVisible(False)
-
     def curve_parameters(self, curve):
         parameters = GridParameters()
         parameters.add('label', 'Label', 'Label')
@@ -1262,11 +1253,6 @@ class CustomizeDialog(BaseDialog):
         else:
             for curve in self.curves:
                 p = self.parameters[curve]
-
-    def select_curve(self):
-        for curve in self.curves:
-            self.parameters[curve].widget.setVisible(False)
-        self.parameters[self.curve].widget.setVisible(True)
 
     def update_legend_parameters(self):
         p = self.parameters['legend']
