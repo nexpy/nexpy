@@ -37,6 +37,37 @@ warnings.filterwarnings("ignore", category=mplDeprecation)
 from .utils import get_color, boundaries
 
 
+class NXStack(QtWidgets.QWidget):
+    """Widget containing a stack of widgets selected by a QComboBox"""
+    def __init__(self, labels, widgets, parent=None):
+        super(NXStack, self).__init__(parent=parent)
+        self.layout = QtWidgets.QVBoxLayout()
+        self.stack = QtWidgets.QStackedWidget(self)
+        self.box = NXComboBox(slot=self.stack.setCurrentIndex, items=labels)
+        for widget in widgets:
+            self.stack.addWidget(widget)
+        self.layout.addWidget(self.box)
+        self.layout.addWidget(self.stack)
+        self.setLayout(self.layout)
+
+    def add(self, label, widget):
+        self.box.addItem(label)
+        self.stack.addWidget(widget)
+
+
+class NXTabs(QtWidgets.QTabWidget):
+    """Widget containing a stack of widgets selected by a QComboBox"""
+    
+    def __init__(self, labels, widgets, parent=None):
+        super(NXTabs, self).__init__(parent=parent)
+        for label, widget in zip(labels, widgets):
+            self.addTab(widget, label)
+
+    def add(self, label, widget):
+        self.addTab(widget, label)
+        self.setCurrentWidget(widget)
+
+
 class NXTextBox(QtWidgets.QLineEdit):
     """Subclass of QLineEdit with floating values."""
     def value(self):
@@ -44,6 +75,93 @@ class NXTextBox(QtWidgets.QLineEdit):
 
     def setValue(self, value):
         self.setText(six.text_type(float('%.4g' % value)))
+
+
+class NXComboBox(QtWidgets.QComboBox):
+
+    def __init__(self, slot=None, items=[], default=None):
+        super(NXComboBox, self).__init__()
+        self.setSizeAdjustPolicy(QtWidgets.QComboBox.AdjustToContents)
+        self.setFocusPolicy(QtCore.Qt.StrongFocus)
+        self.setMinimumWidth(100)
+        if items:
+            self.addItems(items)
+            if default:
+                self.setCurrentIndex(self.findText(default))
+        if slot:
+            self.activated.connect(slot)
+
+    def keyPressEvent(self, event):
+        if (event.key() == QtCore.Qt.Key_Up or 
+            event.key() == QtCore.Qt.Key_Down):
+            super(NXComboBox, self).keyPressEvent(event)
+        elif (event.key() == QtCore.Qt.Key_Right or 
+              event.key() == QtCore.Qt.Key_Left):
+            self.showPopup()
+        else:
+            self.parent().keyPressEvent(event)
+
+
+class NXCheckBox(QtWidgets.QCheckBox):
+
+    def __init__(self, label=None, slot=None, checked=False):
+        super(NXCheckBox, self).__init__(label)
+        self.setFocusPolicy(QtCore.Qt.StrongFocus)
+        self.setChecked(checked)
+        if slot:
+            self.stateChanged.connect(slot)
+
+    def keyPressEvent(self, event):
+        if (event.key() == QtCore.Qt.Key_Up or 
+            event.key() == QtCore.Qt.Key_Down):
+            if self.isChecked():
+                self.setCheckState(QtCore.Qt.Unchecked)
+            else:
+                self.setCheckState(QtCore.Qt.Checked)
+        else:
+            self.parent().keyPressEvent(event)
+
+
+class NXPushButton(QtWidgets.QPushButton):
+
+    def __init__(self, label, slot, parent=None):
+        """Return a QPushButton with the specified label and slot."""
+        super(NXPushButton, self).__init__(label, parent)
+        self.setFocusPolicy(QtCore.Qt.StrongFocus)
+        self.setDefault(False)
+        self.setAutoDefault(False)
+        self.clicked.connect(slot)
+
+    def keyPressEvent(self, event):
+        if (event.key() == QtCore.Qt.Key_Return or 
+            event.key() == QtCore.Qt.Key_Enter or
+            event.key() == QtCore.Qt.Key_Space):
+            self.clicked.emit()
+        else:
+            self.parent().keyPressEvent(event)
+
+
+class NXColorBox(QtWidgets.QWidget):
+
+    def __init__(self, color='#ffffff', parent=None):
+        super(NXColorBox, self).__init__(parent)
+        color = text_to_qcolor(color)
+        self.layout = ColorLayout(color)
+        self.layout.setContentsMargins(0,0,0,0)
+        self.box = self.layout.lineedit
+        self.box.editingFinished.connect(self.update_color)
+        self.button = self.layout.colorbtn
+        self.button.colorChanged.connect(self.update_text)
+        self.setLayout(self.layout)
+        self.update_color()
+
+    def update_color(self):
+        color = text_to_qcolor(get_color(self.box.text()))
+        if color.isValid():
+            self.button.color = color
+
+    def update_text(self, color):
+        self.box.setText(mpl.colors.to_hex(color.getRgbF()))
 
 
 class NXSpinBox(QtWidgets.QSpinBox):
@@ -207,93 +325,6 @@ class NXDoubleSpinBox(QtWidgets.QDoubleSpinBox):
         elif value < self.minimum():
             self.setMinimum(value)
         super(NXDoubleSpinBox, self).setValue(value)
-
-
-class NXComboBox(QtWidgets.QComboBox):
-
-    def __init__(self, slot=None, items=[], default=None):
-        super(NXComboBox, self).__init__()
-        self.setSizeAdjustPolicy(QtWidgets.QComboBox.AdjustToContents)
-        self.setFocusPolicy(QtCore.Qt.StrongFocus)
-        self.setMinimumWidth(100)
-        if items:
-            self.addItems(items)
-            if default:
-                self.setCurrentIndex(self.findText(default))
-        if slot:
-            self.activated.connect(slot)
-
-    def keyPressEvent(self, event):
-        if (event.key() == QtCore.Qt.Key_Up or 
-            event.key() == QtCore.Qt.Key_Down):
-            super(NXComboBox, self).keyPressEvent(event)
-        elif (event.key() == QtCore.Qt.Key_Right or 
-              event.key() == QtCore.Qt.Key_Left):
-            self.showPopup()
-        else:
-            self.parent().keyPressEvent(event)
-
-
-class NXCheckBox(QtWidgets.QCheckBox):
-
-    def __init__(self, label=None, slot=None, checked=False):
-        super(NXCheckBox, self).__init__(label)
-        self.setFocusPolicy(QtCore.Qt.StrongFocus)
-        self.setChecked(checked)
-        if slot:
-            self.stateChanged.connect(slot)
-
-    def keyPressEvent(self, event):
-        if (event.key() == QtCore.Qt.Key_Up or 
-            event.key() == QtCore.Qt.Key_Down):
-            if self.isChecked():
-                self.setCheckState(QtCore.Qt.Unchecked)
-            else:
-                self.setCheckState(QtCore.Qt.Checked)
-        else:
-            self.parent().keyPressEvent(event)
-
-
-class NXPushButton(QtWidgets.QPushButton):
-
-    def __init__(self, label, slot, parent=None):
-        """Return a QPushButton with the specified label and slot."""
-        super(NXPushButton, self).__init__(label, parent)
-        self.setFocusPolicy(QtCore.Qt.StrongFocus)
-        self.setDefault(False)
-        self.setAutoDefault(False)
-        self.clicked.connect(slot)
-
-    def keyPressEvent(self, event):
-        if (event.key() == QtCore.Qt.Key_Return or 
-            event.key() == QtCore.Qt.Key_Enter or
-            event.key() == QtCore.Qt.Key_Space):
-            self.clicked.emit()
-        else:
-            self.parent().keyPressEvent(event)
-
-
-class NXColorBox(QtWidgets.QWidget):
-
-    def __init__(self, color='#ffffff', parent=None):
-        super(NXColorBox, self).__init__(parent)
-        color = text_to_qcolor(color)
-        self.layout = ColorLayout(color)
-        self.layout.setContentsMargins(0,0,0,0)
-        self.box = self.layout.lineedit
-        self.box.editingFinished.connect(self.update_color)
-        self.button = self.layout.colorbtn
-        self.button.colorChanged.connect(self.update_text)
-        self.setLayout(self.layout)
-        self.update_color()
-
-    def update_color(self):
-        color = text_to_qcolor(get_color(self.box.text()))
-        if color.isValid():
-            self.button.color = color
-
-    def update_text(self, color):
-        self.box.setText(mpl.colors.to_hex(color.getRgbF()))
 
 
 class NXpatch(object):
