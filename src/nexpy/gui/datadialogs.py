@@ -36,7 +36,7 @@ except ImportError:
 from .utils import (confirm_action, display_message, report_error,
                     import_plugin, convertHTML, natural_sort, wrap, human_size,
                     timestamp, format_timestamp, restore_timestamp, get_color)
-from .widgets import NXCheckBox, NXComboBox, NXColorBox, NXPushButton
+from .widgets import NXCheckBox, NXComboBox, NXColorBox, NXPushButton, NXStack, NXTabs
 
 from nexusformat.nexus import (NeXusError, NXgroup, NXfield, NXattr, 
                                NXlink, NXlinkgroup, NXlinkfield,
@@ -374,7 +374,6 @@ class BaseDialog(QtWidgets.QDialog):
             box.setCurrentIndex(0)
         if slot:
             box.currentIndexChanged.connect(slot)
-        box.setSizeAdjustPolicy(QtWidgets.QComboBox.AdjustToContents)
         return box
 
     def select_root(self, slot=None, text='Select Root', other=False):
@@ -472,17 +471,8 @@ class BaseDialog(QtWidgets.QDialog):
 
     def parameter_stack(self, parameters):
         """Initialize layouts containing a grid selection box and each grid."""
-        widget = QtWidgets.QWidget(parent=self)
-        layout = QtWidgets.QVBoxLayout()
-        stack = QtWidgets.QStackedWidget(self)
-        for p in parameters:
-            stack.addWidget(parameters[p].widget(header=False))
-        box = self.select_box([p for p in parameters],     
-                              slot=stack.setCurrentIndex)
-        layout.addWidget(box)
-        layout.addWidget(stack)
-        widget.setLayout(layout)
-        return widget
+        return NXStack([p for p in parameters], 
+                       [parameters[p].widget(header=False) for p in parameters])
 
     def hide_grid(self, grid):
         for row in range(grid.rowCount()):
@@ -1120,11 +1110,11 @@ class CustomizeDialog(BaseDialog):
                    'Legend')
             pg.add('label', ['Full Path', 'Name Only'], 'Label')
             self.update_legend_parameters()
+            self.curve_stack = self.parameter_stack(pc)
             self.set_layout(pl.grid(header=False),
-                            self.parameter_stack(pc),
+                            self.curve_stack,
                             pg.grid(header=False),
                             self.close_buttons())
-        self.update_colors()
         self.set_title('Customize %s' % self.plotview.label)
         self.setFocusPolicy(QtCore.Qt.StrongFocus)
         self.setTabOrder(self.apply_button, self.cancel_button)
@@ -1155,9 +1145,12 @@ class CustomizeDialog(BaseDialog):
         if self.plotview.image is not None:
             self.update_image_parameters()
         else:
+            self.curves = self.get_curves()
             for curve in self.curves:
+                if curve not in self.parameters:
+                    pc = self.parameters[curve] = self.curve_parameters(curve)
+                    self.curve_stack.add(curve, pc.widget(header=False))
                 self.update_curve_parameters(curve)
-        self.update_colors()
 
     def update_labels(self):
         pl = self.parameters['labels']
@@ -1191,26 +1184,12 @@ class CustomizeDialog(BaseDialog):
         p['gridcolor'].value = get_color(self.plotview._gridcolor)
         p['gridstyle'].value = self.linestyles[self.plotview._gridstyle]
 
-    @property
-    def curve(self):
-        return self.curve_box.currentText()
-
     def get_curves(self):
         lines = self.plotview.ax.get_lines()
         labels = [line.get_label() for line in lines]
         for (i,label) in enumerate(labels):
             labels[i] = '%d: ' % (i+1) + labels[i]
         return dict(zip(labels, lines))
-
-    def update_curves(self):
-        curves = self.get_curves()
-        new_curves = list(set(curves) - set(self.curves))
-        for curve in new_curves:
-            self.curves[curve] = curves[curve]
-            self.parameters[curve] = self.curve_parameters(curve)
-            self.update_curve_parameters(curve)
-            self.initialize_curve(curve)
-            self.curve_box.addItem(curve)
 
     def curve_parameters(self, curve):
         parameters = GridParameters()
@@ -1246,13 +1225,6 @@ class CustomizeDialog(BaseDialog):
         p['markersize'].value = c.get_markersize()
         p['facecolor'].value = get_color(c.get_markerfacecolor())
         p['edgecolor'].value = get_color(c.get_markeredgecolor())
-
-    def update_colors(self):
-        if self.plotview.image is not None:
-            p = self.parameters['image']
-        else:
-            for curve in self.curves:
-                p = self.parameters[curve]
 
     def update_legend_parameters(self):
         p = self.parameters['legend']
