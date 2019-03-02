@@ -3401,7 +3401,10 @@ class NXProjectionPanel(QtWidgets.QWidget):
 
         row += 1
         self.sumbox = NXCheckBox("Sum Projections")
-        grid.addWidget(self.sumbox, row, 1, 1, 2, 
+        grid.addWidget(self.sumbox, row, 0, 1, 2, 
+                       alignment=QtCore.Qt.AlignHCenter)
+        self.linebox = NXCheckBox("Plot Lines")
+        grid.addWidget(self.linebox, row, 2, 1, 2, 
                        alignment=QtCore.Qt.AlignHCenter)
 
         layout.addLayout(grid)
@@ -3566,6 +3569,8 @@ class NXProjectionPanel(QtWidgets.QWidget):
             self.minbox[axis].setValue(panel.minbox[axis].value())
             self.maxbox[axis].setValue(panel.maxbox[axis].value())
             self.lockbox[axis].setCheckState(panel.lockbox[axis].checkState())
+        self.summed = panel.summed
+        self.lines = panel.lines
         self.xbox.setCurrentIndex(panel.xbox.currentIndex())
         if self.ndim > 1:
             self.ybox.setCurrentIndex(panel.ybox.currentIndex())
@@ -3589,6 +3594,21 @@ class NXProjectionPanel(QtWidgets.QWidget):
             return self.sumbox.isChecked()
         except:
             return False
+
+    @summed.setter
+    def summed(self, value):
+        self.sumbox.setChecked(value)
+
+    @property
+    def lines(self):
+        try:
+            return self.linebox.isChecked()
+        except:
+            return False
+
+    @lines.setter
+    def lines(self, value):
+        self.linebox.setChecked(value)
 
     def get_projection(self):
         x = self.get_axes().index(self.xaxis)
@@ -3626,9 +3646,13 @@ class NXProjectionPanel(QtWidgets.QWidget):
                 over = True
             else:
                 over = False
+            if self.lines:
+                fmt = '-'
+            else:
+                fmt = 'o'
             projection.plot(self.plotview.data.project(axes, limits, 
                                                        summed=self.summed),
-                            over=over, fmt='o')
+                            over=over, fmt=fmt)
             if len(axes) == 1:
                 self.overplot_box.setVisible(True)
             else:
