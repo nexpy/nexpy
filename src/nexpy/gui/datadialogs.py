@@ -100,15 +100,19 @@ class BaseDialog(QtWidgets.QDialog):
                 self.layout.addWidget(item)
         self.setLayout(self.layout)
 
-    def make_layout(self, *items):
-        layout = QtWidgets.QHBoxLayout()
-        layout.addStretch()
+    def make_layout(self, *items, vertical=False):
+        if vertical:
+            layout = QtWidgets.QVBoxLayout()
+        else:
+            layout = QtWidgets.QHBoxLayout()
+            layout.addStretch()
         for item in items:
             if isinstance(item, QtWidgets.QLayout):
                 layout.addLayout(item)
             elif isinstance(item, QtWidgets.QWidget):
                 layout.addWidget(item)
-            layout.addStretch()
+            if not vertical:
+                layout.addStretch()
         return layout
 
     def add_layout(self, *items):
