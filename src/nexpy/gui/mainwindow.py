@@ -593,6 +593,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.fit_action=QtWidgets.QAction("Fit Data",
             self,
+            shortcut=QtGui.QKeySequence("Ctrl+Shift+F"),
             triggered=self.fit_data
             )
         self.add_menu_action(self.data_menu, self.fit_action)
