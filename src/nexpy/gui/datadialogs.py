@@ -36,7 +36,7 @@ except ImportError:
 from .utils import (confirm_action, display_message, report_error,
                     import_plugin, convertHTML, natural_sort, wrap, human_size,
                     timestamp, format_timestamp, restore_timestamp, get_color)
-from .widgets import NXCheckBox, NXComboBox, NXColorBox, NXPushButton, NXStack, NXTabs
+from .widgets import NXCheckBox, NXComboBox, NXColorBox, NXPushButton, NXStack
 
 from nexusformat.nexus import (NeXusError, NXgroup, NXfield, NXattr, 
                                NXlink, NXlinkgroup, NXlinkfield,
