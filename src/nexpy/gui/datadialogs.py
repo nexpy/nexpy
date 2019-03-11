@@ -809,12 +809,12 @@ class GridParameter(object):
                     self.value = value
             if slot is not None:
                 self.box.editingFinished.connect(slot)
+        self.init_value = self.value
         if vary is not None:
             self.checkbox = NXCheckBox()
             self.vary = vary
-            self.init_value = self.value
         else:
-            self.checkbox = self.vary = self.init_value = None
+            self.checkbox = self.vary = None
         self.label = QtWidgets.QLabel(label)
 
     def set(self, value=None, vary=None):
