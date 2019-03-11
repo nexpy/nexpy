@@ -1,19 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Plotting modules.
-
-This module contains the NXPlotView class, which defines plotting
-windows and their associated tabs for modifying the axis limits and 
-plotting options. 
-
-Attributes
-----------
-plotview : NXPlotView
-    The currently active NXPlotView window
-plotviews : dict
-    A dictionary containing all the existing NXPlotView windows. The
-    keys are defined by the 
-    
+This module contains a set of customized widgets both for dialogs and plot objects. 
 """
 from __future__ import (absolute_import, division, unicode_literals)
 import six
@@ -53,19 +40,6 @@ class NXStack(QtWidgets.QWidget):
     def add(self, label, widget):
         self.box.addItem(label)
         self.stack.addWidget(widget)
-
-
-class NXTabs(QtWidgets.QTabWidget):
-    """Widget containing a stack of widgets selected by a QComboBox"""
-    
-    def __init__(self, labels, widgets, parent=None):
-        super(NXTabs, self).__init__(parent=parent)
-        for label, widget in zip(labels, widgets):
-            self.addTab(widget, label)
-
-    def add(self, label, widget):
-        self.addTab(widget, label)
-        self.setCurrentWidget(widget)
 
 
 class NXTextBox(QtWidgets.QLineEdit):
