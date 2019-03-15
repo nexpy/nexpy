@@ -139,26 +139,6 @@ class NXWidget(QtWidgets.QWidget):
         layout.addWidget(self.close_buttons(save=save, close=close))
         return layout
 
-    def close_buttons(self, save=False, close=False):
-        """
-        Creates a box containing the standard Cancel and OK buttons.
-        """
-        self.close_box = QtWidgets.QDialogButtonBox(self)
-        self.close_box.setOrientation(QtCore.Qt.Horizontal)
-        if save:
-            self.close_box.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel|
-                                              QtWidgets.QDialogButtonBox.Save)
-        elif close:
-            self.close_box.setStandardButtons(QtWidgets.QDialogButtonBox.Close)
-        else:
-            self.close_box.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel|
-                                              QtWidgets.QDialogButtonBox.Ok)
-        self.close_box.accepted.connect(self.accept)
-        self.close_box.rejected.connect(self.reject)
-        return self.close_box
-
-    buttonbox = close_buttons #For backward compatibility
-
     def action_buttons(self, *items):
         layout = QtWidgets.QHBoxLayout()
         layout.addStretch()
@@ -445,6 +425,22 @@ class NXWidget(QtWidgets.QWidget):
     def other_entry(self):
         return self.tree[self.other_entry_box.currentText()]
 
+    def copy_layout(self, text="Copy"):
+        self.copywidget = QtWidgets.QWidget()
+        copylayout = QtWidgets.QHBoxLayout()
+        self.copybox = NXComboBox()
+        self.copy_button = NXPushButton(text, self.copy, self)
+        copylayout.addStretch()
+        copylayout.addWidget(self.copybox)
+        copylayout.addWidget(self.copy_button)
+        copylayout.addStretch()
+        self.copywidget.setLayout(copylayout)
+        self.copywidget.setVisible(False)
+        return self.copywidget    
+
+    def copy(self):
+        pass
+
     def read_parameter(self, root, path):
         """
         Read the value from the NeXus path.
@@ -543,6 +539,9 @@ class NXWidget(QtWidgets.QWidget):
             self.thread.deleteLater()
         self.thread = None
 
+    def update(self):
+        pass
+
     def closeEvent(self, event):
         self.stop_thread()
         super(NXWidget, self).closeEvent(event)
@@ -609,6 +608,119 @@ class NXDialog(QtWidgets.QDialog, NXWidget):
 
 BaseDialog = NXDialog
             
+
+class NXPanel(NXDialog):
+
+    def __init__(self, panel, title='title', tabs={}, apply=True, reset=True, 
+                 parent=None):
+        super(NXPanel, self).__init__(parent)
+        self.tabwidget = QtWidgets.QTabWidget()
+        self.tabwidget.currentChanged.connect(self.update)
+        self.tabwidget.setElideMode(QtCore.Qt.ElideLeft)
+        self.tabs = {}
+        self.labels = {}        
+        self.panel = panel
+        self.title = title
+        for label in tabs:
+            self.tabs[label] = tabs[label]
+            self.labels[tabs[label]] = label
+        self.set_layout(self.tabwidget, self.close_buttons(apply, reset))
+        self.set_title(title)
+        self.setVisible(True)
+
+    def __repr__(self):
+        return 'NXPanel("%s")' % self.panel
+
+    def add(self, label, tab=None, idx=None):
+        if label in self.tabs:
+            raise NeXusError("'%s' already in %s" % (label, self.title))
+        self.tabs[label] = tab
+        self.labels[tab] = label
+        tab.panel = self
+        if idx is not None:
+            self.tabwidget.insertTab(idx, tab, label)
+        else:
+            self.tabwidget.addTab(tab, label)
+        self.tabwidget.setCurrentWidget(tab)
+        self.tabwidget.tabBar().setTabToolTip(self.tabwidget.indexOf(tab), label)
+        self.setVisible(True)
+
+    def remove(self, label):
+        if label in self.tabs:
+            self.tabwidget.removeTab(self.tabwidget.indexOf(self.tabs[label]))
+            del self.labels[self.tabs[label]]
+            self.tabs[label].deleteLater()
+            del self.tabs[label]
+        self.update()
+
+    def __contains__(self, label):
+        """Implements 'k in d' test"""
+        return label in self.tabs
+
+    @property
+    def tab(self):
+        return self.tabwidget.currentWidget()
+
+    def close_buttons(self, apply=True, reset=True):
+        """
+        Creates a box containing the standard Apply, Reset and Close buttons.
+        """
+        box = QtWidgets.QDialogButtonBox(self)
+        box.setOrientation(QtCore.Qt.Horizontal)
+        if apply and reset:
+            box.setStandardButtons(QtWidgets.QDialogButtonBox.Apply|
+                                   QtWidgets.QDialogButtonBox.Reset|
+                                   QtWidgets.QDialogButtonBox.Close)
+        elif apply:
+            box.setStandardButtons(QtWidgets.QDialogButtonBox.Apply|
+                                   QtWidgets.QDialogButtonBox.Close)
+        elif reset:
+            box.setStandardButtons(QtWidgets.QDialogButtonBox.Reset|
+                                   QtWidgets.QDialogButtonBox.Close)
+        else:
+            box.setStandardButtons(QtWidgets.QDialogButtonBox.Close)        
+        box.setFocusPolicy(QtCore.Qt.NoFocus)
+        if apply:
+            self.apply_button = box.button(QtWidgets.QDialogButtonBox.Apply)
+            self.apply_button.setFocusPolicy(QtCore.Qt.StrongFocus)
+            self.apply_button.setDefault(True)
+            self.apply_button.clicked.connect(self.apply)
+        if reset:
+            self.reset_button = box.button(QtWidgets.QDialogButtonBox.Reset)
+            self.reset_button.setFocusPolicy(QtCore.Qt.StrongFocus)
+            self.reset_button.clicked.connect(self.reset)
+        self.close_button = box.button(QtWidgets.QDialogButtonBox.Close)
+        self.close_button.setFocusPolicy(QtCore.Qt.StrongFocus)
+        self.close_button.clicked.connect(self.close)
+        self.close_box = box
+        return self.close_box
+
+    def activate(self, label):
+        if label not in self.tabs:
+            tab = NXWidget(parent=self)
+            self.addTab(tab, label)
+        self.setVisible(True)
+
+    def update(self):
+        if self.tabwidget.count() == 0:
+            self.setVisible(False)
+        else:
+            self.tab.update()
+        self.adjustSize()
+
+    def copy(self):
+        self.tab.copy()
+
+    def reset(self):
+        self.tab.reset()
+
+    def apply(self):
+        self.tab.apply()
+
+    def close(self):
+        tab = self.tab
+        self.remove(self.labels[tab])
+
 
 class GridParameters(OrderedDict):
     """
