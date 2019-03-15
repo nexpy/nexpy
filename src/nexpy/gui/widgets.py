@@ -75,6 +75,17 @@ class NXComboBox(QtWidgets.QComboBox):
         else:
             self.parent().keyPressEvent(event)
 
+    def add(self, *items):
+        for item in items:
+            self.addItem(item)
+
+    def select(self, item):
+        self.setCurrentIndex(self.findText(item))
+
+    @property
+    def selected(self):
+        return self.currentText()
+
 
 class NXCheckBox(QtWidgets.QCheckBox):
 
