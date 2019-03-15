@@ -1051,7 +1051,7 @@ class GridParameter(object):
         self.checkbox.setEnabled(True)
 
 
-class PlotDialog(BaseDialog):
+class PlotDialog(NXDialog):
     """Dialog to plot arbitrary NeXus data in one or two dimensions"""
  
     def __init__(self, node, parent=None, fmt='o'):
@@ -1207,7 +1207,7 @@ class PlotDialog(BaseDialog):
             report_error("Plotting data", error)
 
     
-class PreferencesDialog(BaseDialog):
+class PreferencesDialog(NXDialog):
 
     def __init__(self, parent):
         super(PreferencesDialog, self).__init__(parent, default=True)
@@ -1531,7 +1531,7 @@ class LimitDialog(BaseDialog):
             super(LimitDialog, self).reject()
 
     
-class ViewDialog(BaseDialog):
+class ViewDialog(NXDialog):
     """Dialog to view a NeXus field"""
 
     def __init__(self, node, parent=None):
@@ -1759,7 +1759,7 @@ class ViewTableModel(QtCore.QAbstractTableModel):
         self.headerDataChanged.emit(QtCore.Qt.Vertical, 0, min(9, self.rows-1))
 
   
-class RemoteDialog(BaseDialog):
+class RemoteDialog(NXDialog):
     """Dialog to open a remote file.
     """ 
     def __init__(self, parent=None):
@@ -1798,7 +1798,7 @@ class RemoteDialog(BaseDialog):
             super(RemoteDialog, self).reject()
 
 
-class AddDialog(BaseDialog):
+class AddDialog(NXDialog):
     """Dialog to add a NeXus node"""
 
     data_types = ['char', 'float32', 'float64', 'int8', 'uint8', 'int16', 
@@ -2009,7 +2009,7 @@ class AddDialog(BaseDialog):
         super(AddDialog, self).accept()
 
     
-class InitializeDialog(BaseDialog):
+class InitializeDialog(NXDialog):
     """Dialog to initialize a NeXus field node"""
 
     data_types = ['float32', 'float64', 'int8', 'uint8', 'int16', 
@@ -2132,7 +2132,7 @@ class InitializeDialog(BaseDialog):
             report_error("Initializing Data", error)
 
     
-class RenameDialog(BaseDialog):
+class RenameDialog(NXDialog):
     """Dialog to rename a NeXus node"""
 
     def __init__(self, node, parent=None):
@@ -2232,7 +2232,7 @@ class RenameDialog(BaseDialog):
         super(RenameDialog, self).accept()
 
     
-class SignalDialog(BaseDialog):
+class SignalDialog(NXDialog):
     """Dialog to set the signal of NXdata"""
  
     def __init__(self, node, parent=None):
@@ -2371,7 +2371,7 @@ class SignalDialog(BaseDialog):
             super(SignalDialog, self).reject()
 
     
-class LogDialog(BaseDialog):
+class LogDialog(NXDialog):
     """Dialog to display a NeXpy log file"""
  
     def __init__(self, parent=None):
@@ -2424,7 +2424,7 @@ class LogDialog(BaseDialog):
         self.mainwindow.log_window = None
 
 
-class UnlockDialog(BaseDialog):
+class UnlockDialog(NXDialog):
     """Dialog to unlock a file"""
 
     def __init__(self, node, parent=None):
@@ -2467,7 +2467,7 @@ class UnlockDialog(BaseDialog):
             report_error("Unlocking file", error)
 
 
-class ManageBackupsDialog(BaseDialog):
+class ManageBackupsDialog(NXDialog):
     """Dialog to restore or purge backup files"""
 
     def __init__(self, parent=None):
@@ -2533,7 +2533,7 @@ class ManageBackupsDialog(BaseDialog):
                 self.mainwindow.settings.save()
 
 
-class InstallPluginDialog(BaseDialog):
+class InstallPluginDialog(NXDialog):
     """Dialog to install a NeXus plugin"""
 
     def __init__(self, parent=None):
@@ -2599,7 +2599,7 @@ class InstallPluginDialog(BaseDialog):
             report_error("Installing plugin", error)
 
 
-class RemovePluginDialog(BaseDialog):
+class RemovePluginDialog(NXDialog):
     """Dialog to remove a NeXus plugin"""
 
     def __init__(self, parent=None):
@@ -2671,7 +2671,7 @@ class RemovePluginDialog(BaseDialog):
         except NeXusError as error:
             report_error("Removing plugin", error)
 
-class RestorePluginDialog(BaseDialog):
+class RestorePluginDialog(NXDialog):
     """Dialog to restore plugins from backups"""
 
     def __init__(self, parent=None):
