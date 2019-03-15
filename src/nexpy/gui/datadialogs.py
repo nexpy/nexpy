@@ -43,15 +43,15 @@ from nexusformat.nexus import (NeXusError, NXgroup, NXfield, NXattr,
                                NXroot, NXentry, NXdata, NXparameters, nxload)
 
 
-class BaseDialog(QtWidgets.QDialog):
-    """Base dialog class for NeXpy dialogs"""
+class NXWidget(QtWidgets.QWidget):
+    """Customized widget for NeXpy widgets"""
  
-    def __init__(self, parent=None, default=False):
+    def __init__(self, parent=None):
 
-        self.accepted = False
+        super(NXWidget, self).__init__(parent)
         from .consoleapp import _mainwindow
         self.mainwindow = _mainwindow
-        self.mainwindow.current_dialog = self
+        self.mainwindow.current_widget = self
         self.treeview = self.mainwindow.treeview
         self.tree = self.treeview.tree
         self.plotview = self.mainwindow.plotview
@@ -75,21 +75,7 @@ class BaseDialog(QtWidgets.QDialog):
         self.bold_font.setBold(True)
         if parent is None:
             parent = self.mainwindow
-        super(BaseDialog, self).__init__(parent)
-        if not default:
-            self.installEventFilter(self)
-
-    def eventFilter(self, widget, event):
-        """Prevent closure of dialog when pressing [Return] or [Enter]"""
-        if event.type() == QtCore.QEvent.KeyPress:
-            key = event.key()
-            if key == QtCore.Qt.Key_Return or key == QtCore.Qt.Key_Enter:
-                event = QtGui.QKeyEvent(QtCore.QEvent.KeyPress, 
-                                        QtCore.Qt.Key_Tab,
-                                        QtCore.Qt.NoModifier)
-                QtCore.QCoreApplication.postEvent(widget, event)
-                return True
-        return QtWidgets.QWidget.eventFilter(self, widget, event)
+        self.accepted = False
 
     def set_layout(self, *items):
         self.layout = QtWidgets.QVBoxLayout()
@@ -98,6 +84,7 @@ class BaseDialog(QtWidgets.QDialog):
                 self.layout.addLayout(item)
             elif isinstance(item, QtWidgets.QWidget):
                 self.layout.addWidget(item)
+        self.layout.addStretch()
         self.setLayout(self.layout)
 
     def make_layout(self, *items, vertical=False):
@@ -508,22 +495,6 @@ class BaseDialog(QtWidgets.QDialog):
                         widget.deleteLater()
         grid.deleteLater()        
 
-    def accept(self):
-        """
-        Accepts the result.
-        
-        This usually needs to be subclassed in each dialog.
-        """
-        self.accepted = True
-        QtWidgets.QDialog.accept(self)
-        
-    def reject(self):
-        """
-        Cancels the dialog without saving the result.
-        """
-        self.accepted = False
-        QtWidgets.QDialog.reject(self)
-
     def start_progress(self, limits):
         start, stop = limits
         if self.progress_bar:
@@ -574,7 +545,69 @@ class BaseDialog(QtWidgets.QDialog):
 
     def closeEvent(self, event):
         self.stop_thread()
-        super(BaseDialog, self).closeEvent(event)
+        super(NXWidget, self).closeEvent(event)
+
+
+class NXDialog(QtWidgets.QDialog, NXWidget):
+    """Base dialog class for NeXpy dialogs"""
+    
+    def __init__(self, parent=None, default=False):
+        QtWidgets.QDialog.__init__(self, parent)
+        NXWidget.__init__(self, parent)
+        self.mainwindow.current_dialog = self
+        if not default:
+            self.installEventFilter(self)
+ 
+    def close_buttons(self, save=False, close=False):
+        """
+        Creates a box containing the standard Cancel and OK buttons.
+        """
+        self.close_box = QtWidgets.QDialogButtonBox(self)
+        self.close_box.setOrientation(QtCore.Qt.Horizontal)
+        if save:
+            self.close_box.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel|
+                                              QtWidgets.QDialogButtonBox.Save)
+        elif close:
+            self.close_box.setStandardButtons(QtWidgets.QDialogButtonBox.Close)
+        else:
+            self.close_box.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel|
+                                              QtWidgets.QDialogButtonBox.Ok)
+        self.close_box.accepted.connect(self.accept)
+        self.close_box.rejected.connect(self.reject)
+        return self.close_box
+
+    buttonbox = close_buttons #For backward compatibility
+
+    def eventFilter(self, widget, event):
+        """Prevent closure of dialog when pressing [Return] or [Enter]"""
+        if event.type() == QtCore.QEvent.KeyPress:
+            key = event.key()
+            if key == QtCore.Qt.Key_Return or key == QtCore.Qt.Key_Enter:
+                event = QtGui.QKeyEvent(QtCore.QEvent.KeyPress, 
+                                        QtCore.Qt.Key_Tab,
+                                        QtCore.Qt.NoModifier)
+                QtCore.QCoreApplication.postEvent(widget, event)
+                return True
+        return QtWidgets.QWidget.eventFilter(self, widget, event)
+
+    def accept(self):
+        """
+        Accepts the result.
+        
+        This usually needs to be subclassed in each dialog.
+        """
+        self.accepted = True
+        QtWidgets.QDialog.accept(self)
+        
+    def reject(self):
+        """
+        Cancels the dialog without saving the result.
+        """
+        self.accepted = False
+        QtWidgets.QDialog.reject(self)
+
+
+BaseDialog = NXDialog
             
 
 class GridParameters(OrderedDict):
