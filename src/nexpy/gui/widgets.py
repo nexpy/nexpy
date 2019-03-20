@@ -79,6 +79,9 @@ class NXComboBox(QtWidgets.QComboBox):
         for item in items:
             self.addItem(item)
 
+    def items(self):
+        return [self.itemText(idx) for idx in range(self.count())]
+
     def select(self, item):
         self.setCurrentIndex(self.findText(item))
 
