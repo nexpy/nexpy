@@ -1232,14 +1232,33 @@ class PreferencesDialog(NXDialog):
             self.parameters[category] = GridParameters()
 
 
-class CustomizeDialog(BaseDialog):
+class CustomizeDialog(NXPanel):
+
+    def __init__(self, parent=None):
+        super(CustomizeDialog, self).__init__('customize', title='Customize Plot', 
+                                              parent=parent)
+
+    def activate(self, label):
+        if label not in self.tabs:
+            tab = CustomizeTab(parent=self)
+            if label in self.plotviews:
+                tab.plotview = self.plotviews[label]
+                numbers = sorted([t.plotview.number-1 for t in self.labels])
+                idx = bisect.bisect_left(numbers, tab.plotview.number)
+            else:
+                raise NeXusError("Invalid plot label")
+            self.add(label, tab, idx)
+        else:
+            tab = self.tabs[label]
+            tab.update()
+
+
+class CustomizeTab(NXWidget):
 
     legend_location = {v: k for k, v in Legend.codes.items()}            
 
-    def __init__(self, parent):
-        super(CustomizeDialog, self).__init__(parent, default=True)
-
-        self.plotview = parent
+    def __init__(self, parent=None):
+        super(CustomizeTab, self).__init__(parent=parent)
 
         from .plotview import markers, linestyles
         self.markers, self.linestyles = markers, linestyles
@@ -1259,8 +1278,7 @@ class CustomizeDialog(BaseDialog):
             pi = self.parameters['image'] = self.image_parameters()
             self.update_image_parameters()
             self.set_layout(pl.grid(header=False),
-                            pi.grid(header=False),
-                            self.close_buttons())
+                           pi.grid(header=False))
         else:
             self.curves = self.get_curves()
             pc = {}          
@@ -1274,33 +1292,9 @@ class CustomizeDialog(BaseDialog):
             self.update_legend_parameters()
             self.curve_stack = self.parameter_stack(pc)
             self.set_layout(pl.grid(header=False),
-                            self.curve_stack,
-                            pg.grid(header=False),
-                            self.close_buttons())
-        self.set_title('Customize %s' % self.plotview.label)
-        self.setFocusPolicy(QtCore.Qt.StrongFocus)
-        self.setTabOrder(self.apply_button, self.cancel_button)
-        self.setTabOrder(self.cancel_button, self.save_button)
+                           self.curve_stack,
+                           pg.grid(header=False))
         self.parameters['labels']['title'].box.setFocus()
-
-    def close_buttons(self):
-        buttonbox = QtWidgets.QDialogButtonBox(self)
-        buttonbox.setOrientation(QtCore.Qt.Horizontal)
-        buttonbox.setStandardButtons(QtWidgets.QDialogButtonBox.Apply|
-                                     QtWidgets.QDialogButtonBox.Cancel|
-                                     QtWidgets.QDialogButtonBox.Save)
-        buttonbox.setFocusPolicy(QtCore.Qt.NoFocus)
-        self.apply_button = buttonbox.button(QtWidgets.QDialogButtonBox.Apply)
-        self.apply_button.setFocusPolicy(QtCore.Qt.StrongFocus)
-        self.apply_button.setDefault(True)
-        self.cancel_button = buttonbox.button(QtWidgets.QDialogButtonBox.Cancel)
-        self.cancel_button.setFocusPolicy(QtCore.Qt.StrongFocus)
-        self.save_button = buttonbox.button(QtWidgets.QDialogButtonBox.Save)
-        self.save_button.setFocusPolicy(QtCore.Qt.StrongFocus)
-        buttonbox.accepted.connect(self.accept)
-        buttonbox.rejected.connect(self.reject)
-        self.apply_button.clicked.connect(self.apply)
-        return buttonbox
 
     def update(self):
         self.update_labels()
@@ -1322,10 +1316,11 @@ class CustomizeDialog(BaseDialog):
 
     def image_parameters(self):
         parameters = GridParameters()
-        parameters.add('aspect', 'auto', 'Aspect Ratio')
-        parameters.add('skew', 90.0, 'Skew Angle')
+        parameters.add('aspect', self.plotview._aspect, 'Aspect Ratio')
+        parameters.add('skew', self.plotview._skew_angle, 'Skew Angle')
         parameters.add('grid', ['On', 'Off'], 'Grid')
-        parameters.add('gridcolor', '#ffffff', 'Grid Color', color=True)
+        parameters.add('gridcolor', get_color(self.plotview._gridcolor), 'Grid Color', 
+                       color=True)
         parameters.add('gridstyle', list(self.linestyles.values()), 
                        'Grid Style')
         parameters.grid(title='Image Parameters', header=False, width=125)
@@ -1354,17 +1349,20 @@ class CustomizeDialog(BaseDialog):
         return dict(zip(labels, lines))
 
     def curve_parameters(self, curve):
+        c = self.curves[curve]
         parameters = GridParameters()
-        parameters.add('label', 'Label', 'Label')
+        parameters.add('label', c.get_label(), 'Label')
         parameters.add('legend', ['Yes', 'No'], 'Add to Legend')
         parameters.add('linestyle', list(self.linestyles.values()), 
                        'Line Style')
-        parameters.add('linewidth', 1.0, 'Line Width')
-        parameters.add('linecolor', '#000000', 'Line Color', color=True)
+        parameters.add('linewidth', c.get_linewidth(), 'Line Width')
+        parameters.add('linecolor', get_color(c.get_color()), 'Line Color', color=True)
         parameters.add('marker', list(self.markers.values()), 'Marker Style')
-        parameters.add('markersize', 1.0, 'Marker Size')
-        parameters.add('facecolor', '#000000', 'Face Color', color=True)
-        parameters.add('edgecolor', '#000000', 'Edge Color', color=True)
+        parameters.add('markersize', c.get_markersize(), 'Marker Size')
+        parameters.add('facecolor', get_color(c.get_markerfacecolor()), 'Face Color', 
+                       color=True)
+        parameters.add('edgecolor', get_color(c.get_markeredgecolor()), 'Edge Color', 
+                       color=True)
         parameters.grid(title='Curve Parameters', header=False, width=125)
         return parameters
 
@@ -1424,7 +1422,10 @@ class CustomizeDialog(BaseDialog):
                     curves.append(self.curves[curve])
                     labels.append(self.parameters[curve]['label'].value)
             self.plotview.legend(curves, labels, nameonly=_nameonly,
-                                 loc=legend_location)         
+                                loc=legend_location)         
+
+    def reset(self):
+        self.update()
 
     def apply(self):
         pl = self.parameters['labels']
@@ -1455,10 +1456,6 @@ class CustomizeDialog(BaseDialog):
             self.plotview.grid(self.plotview._grid)
             self.plotview.skew = _skew_angle
             self.plotview.aspect = self.plotview._aspect
-            if (self.plotview.projection_panel is not None and
-                    self.plotview.projection_panel._rectangle is not None):
-                self.plotview.projection_panel._rectangle.set_edgecolor(
-                    self.plotview._gridcolor)
         else:
             for curve in self.curves:
                 c, pc = self.curves[curve], self.parameters[curve]
@@ -1476,14 +1473,7 @@ class CustomizeDialog(BaseDialog):
             self.set_legend()
         self.plotview.draw()
 
-    def accept(self):
-        self.apply()
-        self.plotview.customize_panel = None
-        super(CustomizeDialog, self).accept()
 
-    def reject(self):
-        self.plotview.customize_panel = None
-        super(CustomizeDialog, self).reject()
 
     def closeEvent(self, event):
         self.close()
