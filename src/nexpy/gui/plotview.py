@@ -371,7 +371,6 @@ class NXPlotView(QtWidgets.QDialog):
         self.plotviews = plotviews
 
         self.panels = self.mainwindow.panels
-        self.projection_panel = None
         self.shapes = []
 
         if self.label != "Main":
@@ -2164,8 +2163,6 @@ class NXPlotView(QtWidgets.QDialog):
                 self.tab_widget.removeTab(self.tab_widget.indexOf(self.vtab))
             else:
                 self.vtab.flipbox.setVisible(False)
-        if self.projection_panel:
-            self.projection_panel.close()
         for panel in self.panels:
             if self.label in self.panels[panel].tabs:
                 self.panels[panel].remove(self.label)
@@ -2245,8 +2242,6 @@ class NXPlotView(QtWidgets.QDialog):
             self.aspect = 'auto'
             self.skew = None
             self.replot_data(newaxis=True)
-            if self.projection_panel:
-                self.projection_panel.update_limits()
         self.update_panels()
         self.otab.update()
 
@@ -2282,8 +2277,6 @@ class NXPlotView(QtWidgets.QDialog):
         Gcf.destroy(self.number)
         if self.label in plotviews:
             del plotviews[self.label]
-        if self.projection_panel:
-            self.projection_panel.close()
         for panel in self.panels:
             if self.label in self.panels[panel].tabs:
                 self.panels[panel].remove(self.label)
@@ -3346,10 +3339,6 @@ class NXNavigationToolbar(NavigationToolbar):
                 xmin, xmax = sorted([event.xdata, self.plotview.xdata])
                 ymin, ymax = sorted([event.ydata, self.plotview.ydata])
                 xp, yp = self.plotview.xaxis.dim, self.plotview.yaxis.dim
-                self.plotview.projection_panel.maxbox[xp].setValue(str(xmax))
-                self.plotview.projection_panel.minbox[xp].setValue(str(xmin))
-                self.plotview.projection_panel.maxbox[yp].setValue(str(ymax))
-                self.plotview.projection_panel.minbox[yp].setValue(str(ymin))
         self.release(event)
 
     def release_pan(self, event):
