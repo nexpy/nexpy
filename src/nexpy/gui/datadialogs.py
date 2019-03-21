@@ -2202,6 +2202,7 @@ class LimitTab(NXWidget):
                         self.plotview.ztab.axiscombo.select(axis_name)
                         names = [self.plotview.axis[i].name for i in range(self.ndim)]
                         idx = names.index(self.plotview.ztab.axiscombo.selected)
+                        self.plotview.ztab.set_axis(self.plotview.axis[idx])
                         self.plotview.ztab.set_limits(self.minbox[idx].value(),
                                                       self.maxbox[idx].value())
                 self.plotview.replot_data()
