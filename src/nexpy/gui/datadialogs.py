@@ -720,8 +720,18 @@ class NXPanel(NXDialog):
     def apply(self):
         self.tab.apply()
 
+    def closeEvent(self, event):
+        super(NXPanel, self).closeEvent(event)
+        if not self.isVisible():
+            for tab in self.tabs:
+                self.tabs[tab].close()
+            self.deleteLater()
+            if self.panel in self.mainwindow.panels:
+                del self.mainwindow.panels[self.panel]
+
     def close(self):
         tab = self.tab
+        tab.close()
         self.remove(self.labels[tab])
 
 
