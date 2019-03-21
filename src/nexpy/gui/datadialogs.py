@@ -1265,6 +1265,8 @@ class CustomizeTab(NXWidget):
         from .plotview import markers, linestyles
         self.markers, self.linestyles = markers, linestyles
 
+        self.name = self.plotview.label
+
         self.parameters = {}
         pl = self.parameters['labels'] = GridParameters()
         pl.add('title', self.plotview.title, 'Title')
@@ -1297,6 +1299,9 @@ class CustomizeTab(NXWidget):
                            self.curve_stack,
                            pg.grid(header=False))
         self.parameters['labels']['title'].box.setFocus()
+
+    def __repr__(self):
+        return 'CustomizeTab("%s")' % self.name
 
     def update(self):
         self.update_labels()
@@ -1508,6 +1513,7 @@ class ProjectionTab(NXWidget):
             self.tabs = parent.tabs
             self.labels = parent.labels
 
+        self.name = self.plotview.label
         self.ndim = self.plotview.ndim
 
         self.xlabel, self.xbox = self.label('X-Axis'), NXComboBox(self.set_xaxis)
@@ -1587,6 +1593,9 @@ class ProjectionTab(NXWidget):
         self.update()
 
         self.xbox.setFocus()
+
+    def __repr__(self):
+        return 'ProjectionTab("%s")' % self.name
 
     def get_axes(self):
         return self.plotview.xtab.get_axes()
@@ -1899,6 +1908,7 @@ class LimitTab(NXWidget):
             self.tabs = parent.tabs
             self.labels = parent.labels
 
+        self.name = self.plotview.label
         self.ndim = self.plotview.ndim
         
         if self.ndim > 1:
@@ -1964,16 +1974,11 @@ class LimitTab(NXWidget):
             self.checkbox["hide"].stateChanged.connect(self.hide_rectangle)                        
 
         self._rectangle = None
-        if self.ndim > 1:
-            self.copied_properties = {'aspect': self.plotview.aspect,
-                                      'cmap': self.plotview.cmap,
-                                      'interpolation': self.plotview.interpolation,
-                                      'logv': self.plotview.logv,
-                                      'logx': self.plotview.logx,
-                                      'logy': self.plotview.logy,
-                                      'skew': self.plotview.skew}
 
         self.initialize()
+
+    def __repr__(self):
+        return 'LimitTab("%s")' % self.name
 
     def initialize(self):
         for axis in range(self.ndim):
@@ -1993,6 +1998,14 @@ class LimitTab(NXWidget):
         self.minbox['signal'].setValue(vaxis.lo)
         self.maxbox['signal'].setValue(vaxis.hi)
         self.draw_rectangle()
+        if self.ndim > 1:
+            self.copied_properties = {'aspect': self.plotview.aspect,
+                                      'cmap': self.plotview.cmap,
+                                      'interpolation': self.plotview.interpolation,
+                                      'logv': self.plotview.logv,
+                                      'logx': self.plotview.logx,
+                                      'logy': self.plotview.logy,
+                                      'skew': self.plotview.skew}
         self.copywidget.setVisible(False)
         self.copybox.clear()
         for tab in [self.tabs[label] for label in self.tabs 
@@ -2116,6 +2129,7 @@ class LimitTab(NXWidget):
         if self.ndim > 1:
             self.rectangle.set_xy(self.get_rectangle())
             self.plotview.draw()
+            self.hide_rectangle()
 
     def rectangle_visible(self):
         return not self.checkbox["hide"].isChecked()
@@ -2165,6 +2179,14 @@ class LimitTab(NXWidget):
         if self.plotview.label != 'Main':
             self.parameters['xsize'].value = self.parameters['xsize'].init_value
             self.parameters['ysize'].value = self.parameters['ysize'].init_value
+        if self.ndim > 1:
+            self.copied_properties = {'aspect': self.plotview.aspect,
+                                      'cmap': self.plotview.cmap,
+                                      'interpolation': self.plotview.interpolation,
+                                      'logv': self.plotview.logv,
+                                      'logx': self.plotview.logx,
+                                      'logy': self.plotview.logy,
+                                      'skew': self.plotview.skew}
         self.update()
 
     def apply(self):
