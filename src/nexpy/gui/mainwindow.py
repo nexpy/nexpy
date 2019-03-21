@@ -41,7 +41,7 @@ from nexusformat.nexus import *
 
 from .. import __version__
 from .treeview import NXTreeView
-from .plotview import NXPlotView, NXProjectionPanels
+from .plotview import NXPlotView
 from .datadialogs import *
 from .scripteditor import NXScriptWindow, NXScriptEditor
 from .utils import confirm_action, report_error, display_message, natural_sort
@@ -101,9 +101,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
         rightpane = QtWidgets.QWidget()
 
+        self.panels = {}
         main_plotview = NXPlotView(label="Main", parent=self)
-        self.panels = NXProjectionPanels(self)
-        self.panels.setVisible(False)
         self.editors = NXScriptWindow(self)
         self.editors.setVisible(False)
         self.log_window = None
@@ -1945,8 +1944,11 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def limit_axes(self):
         try:
-            dialog = LimitDialog(parent=self)
-            dialog.exec_()
+            if 'limit' not in self.panels:
+                self.panels['limit'] = LimitDialog(parent=self)
+            self.panels['limit'].activate(self.plotview.label)
+            self.panels['limit'].setVisible(True)
+            self.panels['limit'].raise_()
         except NeXusError as error:
             report_error("Changing Plot Limits", error)
 
@@ -1980,10 +1982,16 @@ class MainWindow(QtWidgets.QMainWindow):
             report_error("Showing Log File", error)
 
     def show_projection_panel(self):
-        if self.plotview.label != 'Projection' and self.plotview.ndim > 1:
-            self.plotview.ptab.open_panel()
-        elif self.panels.tabs.count() != 0:
-            self.panels.raise_()
+        if self.plotview.label == 'Projection' or self.plotview.ndim == 1:
+            return
+        try:
+            if 'projection' not in self.panels:
+                self.panels['projection'] = ProjectionDialog(parent=self)
+            self.panels['projection'].activate(self.plotview.label)
+            self.panels['projection'].setVisible(True)
+            self.panels['projection'].raise_()
+        except NeXusError as error:
+            report_error("Showing Projection Panel", error)
 
     def show_script_window(self):
         if self.editors.tabs.count() == 0:

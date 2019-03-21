@@ -370,9 +370,8 @@ class NXPlotView(QtWidgets.QDialog):
         plotviews[self.label] = self
         self.plotviews = plotviews
 
+        self.panels = self.mainwindow.panels
         self.projection_panel = None
-        self.customize_panel = None
-        self.mask_panel = None
         self.shapes = []
 
         if self.label != "Main":
@@ -1428,7 +1427,7 @@ class NXPlotView(QtWidgets.QDialog):
             self.canvas.draw()
         except:
             pass
-        self.update_customize_panel()
+        self.update_tabs()
 
     aspect = property(_aspect, _set_aspect, "Property: Aspect ratio value")
 
@@ -1478,7 +1477,7 @@ class NXPlotView(QtWidgets.QDialog):
             self.ax.set_aspect(self._aspect)
         if self.image is not None:
             self.replot_data(newaxis=True)
-            self.update_customize_panel()
+            self.update_tabs()
 
     skew = property(_skew, _set_skew, "Property: Axis skew angle")
 
@@ -1708,7 +1707,7 @@ class NXPlotView(QtWidgets.QDialog):
             if self.skew:
                 self.remove_skewed_grid()
         self.draw()
-        self.update_customize_panel()
+        self.update_tabs()
 
     def draw_skewed_grid(self, minor=False, **opts):
         self.remove_skewed_grid()
@@ -2167,10 +2166,9 @@ class NXPlotView(QtWidgets.QDialog):
                 self.vtab.flipbox.setVisible(False)
         if self.projection_panel:
             self.projection_panel.close()
-        if self.customize_panel:
-            self.customize_panel.close()
-        if self.mask_panel:
-            self.mask_panel.close()
+        for panel in self.panels:
+            if self.label in self.panels[panel].tabs:
+                self.panels[panel].remove(self.label)
 
     def update_tabs(self):
         """Update tabs when limits have changed."""
@@ -2184,7 +2182,7 @@ class NXPlotView(QtWidgets.QDialog):
             self.vtab.set_range()
             self.vtab.set_limits(self.vaxis.lo, self.vaxis.hi)
             self.vtab.set_sliders(self.vaxis.lo, self.vaxis.hi)
-        self.update_customize_panel()
+#        self.update_customize_panel()
 
     def change_axis(self, tab, axis):
         """Replace the axis in a plot tab.
@@ -2249,13 +2247,14 @@ class NXPlotView(QtWidgets.QDialog):
             self.replot_data(newaxis=True)
             if self.projection_panel:
                 self.projection_panel.update_limits()
-        self.update_customize_panel()
+        self.update_panels()
         self.otab.update()
 
-    def update_customize_panel(self):
-        """Update the customize panel."""
-        if self.customize_panel:
-            self.customize_panel.update()
+    def update_panels(self):
+        """Update the option panels."""
+        for panel in self.panels:
+            if self.label in self.panels[panel].tabs:
+                self.panels[panel].tabs[self.label].update()
 
     def format_coord(self, x, y):
         """Return the x, y, and signal values for the selected pixel."""
@@ -2285,12 +2284,9 @@ class NXPlotView(QtWidgets.QDialog):
             del plotviews[self.label]
         if self.projection_panel:
             self.projection_panel.close()
-        if self.customize_panel:
-            self.customize_panel.close()
-        if self.mask_panel:
-            self.mask_panel.close()
-        if self.mainwindow.panels.tabs.count() == 0:
-            self.mainwindow.panels.setVisible(False)
+        for panel in self.panels:
+            if self.label in self.panels[panel].tabs:
+                self.panels[panel].remove(self.label)
 
     def closeEvent(self, event):
         """Close this widget and mark it for deletion."""
@@ -3249,516 +3245,10 @@ class NXProjectionTab(QtWidgets.QWidget):
             self.overplot_box.setVisible(False)
             self.overplot_box.setChecked(False)
         plotviews[projection.label].raise_()
-        self.plotview.mainwindow.panels.update()
+        self.plotview.mainwindow.panels['projection'].update()
 
     def open_panel(self):
-        if not self.plotview.projection_panel:
-            self.plotview.projection_panel = NXProjectionPanel(
-                                                 plotview=self.plotview)
-        self.plotview.projection_panel.panels.setVisible(True)
-        self.plotview.projection_panel.panels.tabs.setCurrentWidget(
-                                                 self.plotview.projection_panel)
-        self.plotview.projection_panel.panels.update()
-        self.plotview.projection_panel.panels.raise_()
-
-
-class NXProjectionPanels(QtWidgets.QDialog):
-
-    def __init__(self, parent=None):
-        super(NXProjectionPanels, self).__init__(parent)
-        layout = QtWidgets.QVBoxLayout()
-        self.tabs = QtWidgets.QTabWidget(self)
-        layout.addWidget(self.tabs)
-        self.setLayout(layout)
-        self.setWindowTitle('Projection Panel')
-        self.tabs.currentChanged.connect(self.update)
-
-    def __repr__(self):
-        return 'NXProjectionPanels()'
-
-    def __getitem__(self, key):
-        try:
-            return [panel for panel in self.panels if panel.label == key][0]
-        except Exception as error:
-            return None
-
-    def __contains__(self, key):
-        """Implements 'k in d' test"""
-        return key in [panel for panel in self.panels if panel.label == key]
-
-    @property
-    def panels(self):
-        return [self.tabs.widget(idx) for idx in range(self.tabs.count())]
-
-    @property
-    def labels(self):
-        return [panel.plotview.label for panel in self.panels]
-
-    def update(self):
-        for panel in self.panels:
-            panel.adjustSize()
-            if 'Projection' in plotviews and plotviews['Projection'].ndim == 1:
-                panel.overplot_box.setVisible(True)
-            else:
-                panel.overplot_box.setVisible(False)
-            panel.update_panels()
-        if self.tabs.count() == 0:
-            self.setVisible(False)
-
-    def closeEvent(self, event):
-        self.close()
-        event.accept()
-
-    def close(self):
-        for panel in self.panels:
-            panel.close()
-        self.setVisible(False)
-
-
-class NXProjectionPanel(QtWidgets.QWidget):
-
-    def __init__(self, plotview=None):
-
-        self.plotview = plotview
-        self.ndim = self.plotview.ndim
-        self.label = self.plotview.label
-        self.panels = self.plotview.mainwindow.panels
-
-        QtWidgets.QWidget.__init__(self, parent=self.panels.tabs)
-
-        layout = QtWidgets.QVBoxLayout()
-
-        axisbox = QtWidgets.QHBoxLayout()
-        widgets = []
-
-        self.xbox = NXComboBox(self.set_xaxis)
-        widgets.append(QtWidgets.QLabel('X-Axis:'))
-        widgets.append(self.xbox)
-
-        self.ybox = NXComboBox(self.set_yaxis)
-        self.ylabel = QtWidgets.QLabel('Y-Axis:')
-        widgets.append(self.ylabel)
-        widgets.append(self.ybox)
-
-        self.set_axes()
-
-        axisbox.addStretch()
-        for w in widgets:
-            axisbox.addWidget(w)
-            axisbox.setAlignment(w, QtCore.Qt.AlignVCenter)
-        axisbox.addStretch()
-
-        layout.addLayout(axisbox)
-
-        grid = QtWidgets.QGridLayout()
-        grid.setSpacing(10)
-        headers = ['Axis', 'Minimum', 'Maximum', 'Lock']
-        width = [50, 100, 100, 25]
-        column = 0
-        header_font = QtGui.QFont()
-        header_font.setBold(True)
-        for header in headers:
-            label = QtWidgets.QLabel()
-            label.setAlignment(QtCore.Qt.AlignHCenter)
-            label.setText(header)
-            label.setFont(header_font)
-            grid.addWidget(label, 0, column)
-            grid.setColumnMinimumWidth(column, width[column])
-            column += 1
-
-        row = 0
-        self.minbox = {}
-        self.maxbox = {}
-        self.lockbox = {}
-        for axis in range(self.ndim):
-            row += 1
-            self.minbox[axis] = self.spinbox()
-            self.maxbox[axis] = self.spinbox()
-            self.lockbox[axis] = NXCheckBox(slot=self.set_lock)
-            grid.addWidget(QtWidgets.QLabel(self.plotview.axis[axis].name), 
-                                            row, 0)
-            grid.addWidget(self.minbox[axis], row, 1)
-            grid.addWidget(self.maxbox[axis], row, 2)
-            grid.addWidget(self.lockbox[axis], row, 3,
-                           alignment=QtCore.Qt.AlignHCenter)
-
-        row += 1
-        self.save_button = NXPushButton("Save", self.save_projection, self)
-        grid.addWidget(self.save_button, row, 1)
-        self.plot_button = NXPushButton("Plot", self.plot_projection, self)
-        grid.addWidget(self.plot_button, row, 2)
-        self.overplot_box = NXCheckBox()
-        if 'Projection' not in plotviews:
-            self.overplot_box.setVisible(False)
-        grid.addWidget(self.overplot_box, row, 3,
-                       alignment=QtCore.Qt.AlignHCenter)
-
-        row += 1
-        self.mask_button = NXPushButton("Mask", self.mask_data, self)
-        grid.addWidget(self.mask_button, row, 1)
-        self.unmask_button = NXPushButton("Unmask", self.unmask_data, self)
-        grid.addWidget(self.unmask_button, row, 2)
-
-        row += 1
-        self.sumbox = NXCheckBox("Sum Projections")
-        grid.addWidget(self.sumbox, row, 0, 1, 2, 
-                       alignment=QtCore.Qt.AlignHCenter)
-        self.linebox = NXCheckBox("Plot Lines")
-        grid.addWidget(self.linebox, row, 2, 1, 2, 
-                       alignment=QtCore.Qt.AlignHCenter)
-
-        layout.addLayout(grid)
-
-        self.copy_row = QtWidgets.QWidget()
-        copy_layout = QtWidgets.QHBoxLayout()
-        self.copy_box = NXComboBox()
-        self.copy_button = NXPushButton("Copy Limits", self.copy_limits, self)
-        copy_layout.addStretch()
-        copy_layout.addWidget(self.copy_box)
-        copy_layout.addWidget(self.copy_button)
-        copy_layout.addStretch()
-        self.copy_row.setLayout(copy_layout)
-        layout.addWidget(self.copy_row)
-
-        button_layout = QtWidgets.QHBoxLayout()
-        self.reset_button = NXPushButton("Reset Limits", self.reset_limits, 
-                                         self)
-        self.rectangle_button = NXPushButton("Hide Limits", 
-                                             self.toggle_rectangle, self)
-        self.close_button = NXPushButton("Close Panel", self.close, self)
-        button_layout.addStretch()
-        button_layout.addWidget(self.reset_button)
-        button_layout.addWidget(self.rectangle_button)
-        button_layout.addWidget(self.close_button)
-        button_layout.addStretch()
-        layout.addLayout(button_layout)
-        layout.addStretch()
-
-        self.setLayout(layout)
-        self.panels.tabs.insertTab(self.plotview.number-1, self,
-                                   self.plotview.label)
-        self.panels.tabs.adjustSize()
-        self.panels.tabs.setCurrentWidget(self)
-
-        for axis in range(self.ndim):
-            self.minbox[axis].data = self.maxbox[axis].data = \
-                self.plotview.axis[axis].centers
-            self.minbox[axis].setMaximum(self.minbox[axis].data.size-1)
-            self.maxbox[axis].setMaximum(self.maxbox[axis].data.size-1)
-            self.minbox[axis].diff = self.maxbox[axis].diff = None
-            self.block_signals(True)
-            self.minbox[axis].setValue(self.minbox[axis].data.min())
-            self.maxbox[axis].setValue(self.maxbox[axis].data.max())
-            self.block_signals(False)
-
-        self._rectangle = None
-
-        self.update_limits()
-        self.update_panels()
-
-        self.xbox.setFocus()
-
-    def __repr__(self):
-        return 'NXProjectionPanel("%s")' % self.plotview.label
-
-    def get_axes(self):
-        return self.plotview.xtab.get_axes()
-
-    def set_axes(self):
-        axes = self.get_axes()
-        self.xbox.clear()
-        self.xbox.addItems(axes)
-        self.xbox.setCurrentIndex(self.xbox.findText(self.plotview.xaxis.name))
-        if self.ndim <= 2:
-            self.ylabel.setVisible(False)
-            self.ybox.setVisible(False)
-        else:
-            self.ylabel.setVisible(True)
-            self.ybox.setVisible(True)
-            self.ybox.clear()
-            axes.insert(0,'None')
-            self.ybox.addItems(axes)
-            self.ybox.setCurrentIndex(
-                self.ybox.findText(self.plotview.yaxis.name))
-
-    @property
-    def xaxis(self):
-        return self.xbox.currentText()
-
-    def set_xaxis(self):
-        if self.xaxis == self.yaxis:
-            self.ybox.setCurrentIndex(self.ybox.findText('None'))
-
-    @property
-    def yaxis(self):
-        if self.ndim <= 2:
-            return 'None'
-        else:
-            return self.ybox.currentText()
-
-    def set_yaxis(self):
-        if self.yaxis == self.xaxis:
-            for idx in range(self.xbox.count()):
-                if self.xbox.itemText(idx) != self.yaxis:
-                    self.xbox.setCurrentIndex(idx)
-                    break
-
-    def set_limits(self):
-        self.block_signals(True)
-        for axis in range(self.ndim):
-            if self.lockbox[axis].isChecked():
-                min_value = self.maxbox[axis].value() - self.maxbox[axis].diff
-                self.minbox[axis].setValue(min_value)
-            elif self.minbox[axis].value() > self.maxbox[axis].value():
-                self.maxbox[axis].setValue(self.minbox[axis].value())
-        self.block_signals(False)
-        self.draw_rectangle()
-
-    def get_limits(self, axis=None):
-        def get_indices(minbox, maxbox):
-            start, stop = minbox.index, maxbox.index+1
-            if minbox.reversed:
-                start, stop = len(maxbox.data)-stop, len(minbox.data)-start
-            return start, stop
-        if axis:
-            return get_indices(self.minbox[axis], self.maxbox[axis])
-        else:
-            return [get_indices(self.minbox[axis], self.maxbox[axis]) 
-                    for axis in range(self.ndim)]
-
-    def reset_limits(self):
-        self.block_signals(True)
-        for axis in range(self.ndim):
-            self.minbox[axis].setValue(self.minbox[axis].data.min())
-            self.maxbox[axis].setValue(self.maxbox[axis].data.max())
-        self.block_signals(False)
-        self.update_limits()
-
-    def update_limits(self):
-        self.block_signals(True)
-        for axis in range(self.ndim):
-            lo, hi = self.plotview.axis[axis].get_limits()
-            minbox, maxbox = self.minbox[axis], self.maxbox[axis]
-            ilo, ihi = minbox.indexFromValue(lo), maxbox.indexFromValue(hi)
-            if (self.plotview.axis[axis] is self.plotview.xaxis or 
-                   self.plotview.axis[axis] is self.plotview.yaxis):
-                ilo = ilo + 1
-                ihi = max(ilo, ihi-1)
-                if lo > minbox.value():
-                    minbox.setValue(minbox.valueFromIndex(ilo))
-                if  hi < maxbox.value():
-                    maxbox.setValue(maxbox.valueFromIndex(ihi))
-            else:
-                minbox.setValue(minbox.valueFromIndex(ilo))
-                maxbox.setValue(maxbox.valueFromIndex(ihi))
-        self.block_signals(False)
-        self.draw_rectangle()
-
-    def update_panels(self):
-        self.copy_row.setVisible(False)
-        self.copy_box.clear()
-        for panel in self.panels.panels:
-            if panel is not self and panel.ndim == self.ndim:
-                self.copy_row.setVisible(True)
-                self.copy_box.addItem(panel.label)
-
-    def copy_limits(self):
-        self.block_signals(True)
-        panel = self.panels[self.copy_box.currentText()]
-        for axis in range(self.ndim):
-            self.minbox[axis].setValue(panel.minbox[axis].value())
-            self.maxbox[axis].setValue(panel.maxbox[axis].value())
-            self.lockbox[axis].setCheckState(panel.lockbox[axis].checkState())
-        self.summed = panel.summed
-        self.lines = panel.lines
-        self.xbox.setCurrentIndex(panel.xbox.currentIndex())
-        if self.ndim > 1:
-            self.ybox.setCurrentIndex(panel.ybox.currentIndex())
-        self.block_signals(False)
-        self.draw_rectangle()              
-
-    def set_lock(self):
-        for axis in range(self.ndim):
-            if self.lockbox[axis].isChecked():
-                lo, hi = self.minbox[axis].value(), self.maxbox[axis].value()
-                self.minbox[axis].diff = self.maxbox[axis].diff = max(hi - lo, 
-                                                                      0.0)
-                self.minbox[axis].setDisabled(True)
-            else:
-                self.minbox[axis].diff = self.maxbox[axis].diff = None
-                self.minbox[axis].setDisabled(False)
-
-    @property
-    def summed(self):
-        try:
-            return self.sumbox.isChecked()
-        except:
-            return False
-
-    @summed.setter
-    def summed(self, value):
-        self.sumbox.setChecked(value)
-
-    @property
-    def lines(self):
-        try:
-            return self.linebox.isChecked()
-        except:
-            return False
-
-    @lines.setter
-    def lines(self, value):
-        self.linebox.setChecked(value)
-
-    def get_projection(self):
-        x = self.get_axes().index(self.xaxis)
-        if self.yaxis == 'None':
-            axes = [x]
-        else:
-            y = self.get_axes().index(self.yaxis)
-            axes = [y,x]
-        limits = self.get_limits()
-        shape = self.plotview.data.nxsignal.shape
-        if (len(shape)-len(limits) > 0 and 
-            len(shape)-len(limits) == shape.count(1)):
-            axes, limits = fix_projection(shape, axes, limits)
-        if self.plotview.rgb_image:
-            limits.append((None, None))
-        return axes, limits
-
-    def save_projection(self):
-        try:
-            axes, limits = self.get_projection()
-            keep_data(self.plotview.data.project(axes, limits,
-                                                 summed=self.summed))
-        except NeXusError as error:
-            report_error("Saving Projection", error)
-
-    def plot_projection(self):
-        try:
-            if 'Projection' in plotviews:
-                projection = plotviews['Projection']
-            else:
-                projection = NXPlotView('Projection')
-                self.overplot_box.setChecked(False)
-            axes, limits = self.get_projection()
-            if len(axes) == 1 and self.overplot_box.isChecked():
-                over = True
-            else:
-                over = False
-            if self.lines:
-                fmt = '-'
-            else:
-                fmt = 'o'
-            projection.plot(self.plotview.data.project(axes, limits, 
-                                                       summed=self.summed),
-                            over=over, fmt=fmt)
-            if len(axes) == 1:
-                self.overplot_box.setVisible(True)
-            else:
-                self.overplot_box.setVisible(False)
-                self.overplot_box.setChecked(False)
-            projection.make_active()
-            projection.raise_()
-            self.panels.update()
-        except NeXusError as error:
-            report_error("Plotting Projection", error)
-
-    def mask_data(self):
-        try:
-            limits = tuple(slice(x,y) for x,y in self.get_limits())
-            self.plotview.data.nxsignal[limits] = np.ma.masked
-            self.plotview.replot_data()
-        except NeXusError as error:
-            report_error("Masking Data", error)
-
-    def unmask_data(self):
-        try:
-            limits = tuple(slice(x,y) for x,y in self.get_limits())
-            self.plotview.data.nxsignal.mask[limits] = np.ma.nomask
-            if not self.plotview.data.nxsignal.mask.any():
-                self.plotview.data.mask = np.ma.nomask
-            self.plotview.replot_data()
-        except NeXusError as error:
-            report_error("Masking Data", error)
-
-    def spinbox(self):
-        spinbox = NXSpinBox()
-        spinbox.setAlignment(QtCore.Qt.AlignRight)
-        spinbox.setFixedWidth(100)
-        spinbox.setKeyboardTracking(False)
-        spinbox.setAccelerated(True)
-        spinbox.valueChanged[six.text_type].connect(self.set_limits)
-        return spinbox
-
-    def block_signals(self, block=True):
-        for axis in range(self.ndim):
-            self.minbox[axis].blockSignals(block)
-            self.maxbox[axis].blockSignals(block)
-
-    @property
-    def rectangle(self):
-        if self._rectangle not in self.plotview.ax.patches:
-            self._rectangle = self.plotview.ax.add_patch(
-                                  Polygon(self.get_rectangle(), closed=True))
-            self._rectangle.set_edgecolor(self.plotview._gridcolor)
-            self._rectangle.set_facecolor('none')
-            self._rectangle.set_linestyle('dashed')
-            self._rectangle.set_linewidth(2)
-        return self._rectangle
-
-    def get_rectangle(self):
-        xp = self.plotview.xaxis.dim
-        yp = self.plotview.yaxis.dim
-        x0 = self.minbox[xp].minBoundaryValue(self.minbox[xp].index)
-        x1 = self.maxbox[xp].maxBoundaryValue(self.maxbox[xp].index)
-        y0 = self.minbox[yp].minBoundaryValue(self.minbox[yp].index)
-        y1 = self.maxbox[yp].maxBoundaryValue(self.maxbox[yp].index)
-        xy = [(x0,y0), (x0,y1), (x1,y1), (x1,y0)]
-        if self.plotview.skew is not None:
-            return [self.plotview.transform(_x, _y) for _x,_y in xy]
-        else:
-            return xy
-
-    def draw_rectangle(self):
-        self.rectangle.set_xy(self.get_rectangle())
-        self.plotview.draw()
-        self.rectangle_button.setText("Hide Limits")
-
-    def rectangle_visible(self):
-        return self.rectangle_button.text() == "Hide Limits"
-
-    def hide_rectangle(self):
-        self.rectangle.set_visible(False)
-        self.plotview.draw()
-        self.rectangle_button.setText("Show Limits")
-
-    def show_rectangle(self):
-        self.rectangle.set_visible(True)
-        self.plotview.draw()
-        self.rectangle_button.setText("Hide Limits")
-
-    def toggle_rectangle(self):
-        if self.rectangle_visible():
-            self.hide_rectangle()
-        else:
-            self.show_rectangle()
-
-    def closeEvent(self, event):
-        self.close()
-        event.accept()
-
-    def close(self):
-        try:
-            self._rectangle.remove()
-        except Exception as error:
-            pass
-        self._rectangle = None
-        self.plotview.draw()
-        self.panels.tabs.removeTab(self.panels.tabs.indexOf(self))
-        self.plotview.projection_panel = None
-        self.deleteLater()
-        self.panels.update()
+        self.plotview.mainwindow.show_projection_panel()
 
 
 class NXNavigationToolbar(NavigationToolbar):
@@ -3813,13 +3303,12 @@ class NXNavigationToolbar(NavigationToolbar):
             self.plotview.grid(self.plotview._grid, self.plotview._minorgrid)
 
     def edit_parameters(self):
-        if self.plotview.customize_panel is None:
+        if 'customize' not in self.plotview.panels:
             from .datadialogs import CustomizeDialog
-            self.plotview.customize_panel = CustomizeDialog(
-                parent=self.plotview)
-            self.plotview.customize_panel.show()
-        else:
-            self.plotview.customize_panel.raise_()
+            self.plotview.panels['customize'] = CustomizeDialog(parent=self)
+        self.plotview.panels['customize'].activate(self.plotview.label)
+        self.plotview.panels['customize'].setVisible(True)
+        self.plotview.panels['customize'].raise_()
 
     def add_data(self):
         keep_data(self.plotview.plotdata)
