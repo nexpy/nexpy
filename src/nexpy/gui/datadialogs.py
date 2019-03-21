@@ -1956,7 +1956,7 @@ class LimitTab(NXWidget):
 
         self.set_layout(axis_layout, grid, 
                         self.parameters.grid(header=False), 
-                        self.checkboxes(("hide", "Hide Limits", False)),
+                        self.checkboxes(("hide", "Hide Limits", True)),
                         self.copy_layout("Copy Limits"))
         if self.ndim == 1:
             self.checkbox["hide"].setVisible(False)
