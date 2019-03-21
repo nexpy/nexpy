@@ -148,6 +148,9 @@ class NXWidget(QtWidgets.QWidget):
              layout.addStretch()
         return layout
 
+    def label(self, label):
+        return QtWidgets.QLabel(six.text_type(label))
+
     def labels(self, *labels, **opts):
         if 'align' in opts:
             align = opts['align']
