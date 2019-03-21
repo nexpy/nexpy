@@ -2155,6 +2155,7 @@ class LimitTab(NXWidget):
             self.parameters['ysize'].value = tab.parameters['ysize'].value
 
     def reset(self):
+        self.set_axes()
         for axis in range(self.ndim):
             self.lockbox[axis].setChecked(False)
             self.minbox[axis].setValue(self.plotview.axis[axis].lo)
