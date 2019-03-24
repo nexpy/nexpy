@@ -1763,7 +1763,8 @@ class NXPlotView(QtWidgets.QDialog):
         if self.skew is not None and y is not None:
             x, _ = self.transform(x, y)
         lines = self.ax.vlines(x, ymin, ymax, **opts)
-        self.canvas.draw()
+        self.ax.set_ylim(ymin, ymax)
+        self.draw()
         self.shapes.append(lines)
         return lines
 
@@ -1800,7 +1801,8 @@ class NXPlotView(QtWidgets.QDialog):
         if self.skew is not None and x is not None:
             _, y = self.transform(x, y)
         lines = self.ax.hlines(y, xmin, xmax, **opts)
-        self.canvas.draw()
+        self.ax.set_xlim(xmin, xmax)
+        self.draw()
         self.shapes.append(lines)
         return lines
 
