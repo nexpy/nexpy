@@ -804,6 +804,13 @@ class MainWindow(QtWidgets.QMainWindow):
             )
         self.add_menu_action(self.window_menu, self.reset_limit_action)
 
+        self.customize_action=QtWidgets.QAction("Customize Plot",
+            self,
+            shortcut="Ctrl+Alt+C",
+            triggered=self.customize_plot
+            )
+        self.add_menu_action(self.window_menu, self.customize_action)
+
         self.window_menu.addSeparator()
 
         self.newplot_action=QtWidgets.QAction("New Plot Window",
@@ -1957,6 +1964,16 @@ class MainWindow(QtWidgets.QMainWindow):
             self.plotview.reset_plot_limits()
         except NeXusError as error:
             report_error("Resetting Plot Limits", error)
+
+    def customize_plot(self):
+        try:
+            if 'customize' not in self.panels:
+                self.panels['customize'] = CustomizeDialog(parent=self)
+            self.panels['customize'].activate(self.plotview.label)
+            self.panels['customize'].setVisible(True)
+            self.panels['customize'].raise_()
+        except NeXusError as error:
+            report_error("Customizing Plot", error)
 
     def show_tree(self):
         self.raise_()
