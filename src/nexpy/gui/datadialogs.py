@@ -1370,6 +1370,7 @@ class CustomizeTab(NXWidget):
                        color=True)
         parameters.add('edgecolor', get_color(c.get_markeredgecolor()), 'Edge Color', 
                        color=True)
+        parameters.add('zorder', c.get_zorder(), 'Z-Order')
         parameters.grid(title='Curve Parameters', header=False, width=125)
         return parameters
 
@@ -1392,6 +1393,7 @@ class CustomizeTab(NXWidget):
         p['markersize'].value = c.get_markersize()
         p['facecolor'].value = get_color(c.get_markerfacecolor())
         p['edgecolor'].value = get_color(c.get_markeredgecolor())
+        p['zorder'].value = c.get_zorder()
 
     def update_legend_parameters(self):
         p = self.parameters['legend']
@@ -1477,6 +1479,7 @@ class CustomizeTab(NXWidget):
                 c.set_markersize(pc['markersize'].value)
                 c.set_markerfacecolor(pc['facecolor'].value)
                 c.set_markeredgecolor(pc['edgecolor'].value)
+                c.set_zorder(pc['zorder'].value)
             self.set_legend()
         self.plotview.draw()
 
