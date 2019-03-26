@@ -35,6 +35,7 @@ class NXStack(QtWidgets.QWidget):
             self.stack.addWidget(widget)
         self.layout.addWidget(self.box)
         self.layout.addWidget(self.stack)
+        self.layout.addStretch()
         self.setLayout(self.layout)
 
     def add(self, label, widget):

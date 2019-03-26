@@ -822,7 +822,10 @@ class GridParameters(OrderedDict):
 
     def widget(self, header=True, title=None, width=None):
         w = QtWidgets.QWidget()
-        w.setLayout(self.grid(header=header, title=title, width=width))
+        layout = QtWidgets.QVBoxLayout()
+        layout.addLayout(self.grid(header=header, title=title, width=width))
+        layout.addStretch()
+        w.setLayout(layout)
         return w
 
     def hide_grid(self):
