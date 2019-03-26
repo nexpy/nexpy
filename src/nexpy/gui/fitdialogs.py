@@ -254,10 +254,10 @@ class FitDialog(BaseDialog):
             report_error('Fitting data', error)
 
     def compressed_name(self, name):
-        return re.sub(r'([a-zA-Z]*) # (\d*)', r'\1\2', name)
+        return re.sub(r'([a-zA-Z]*) # (\d*)', r'\1\2', name, count=1)
 
     def expanded_name(self, name):
-        return re.sub(r'([a-zA-Z]*)(\d*)', r'\1 # \2', name)
+        return re.sub(r'([a-zA-Z]*)(\d*)', r'\1 # \2', name, count=1)
     
     def parse_function_name(self, name):
         match = re.match(r'([a-zA-Z]*)(\d*)', name)
