@@ -811,6 +811,13 @@ class MainWindow(QtWidgets.QMainWindow):
             )
         self.add_menu_action(self.window_menu, self.customize_action)
 
+        self.preferences_action=QtWidgets.QAction("Edit Preferences",
+            self,
+            shortcut="Ctrl+Alt+E",
+            triggered=self.edit_preferences
+            )
+        self.add_menu_action(self.window_menu, self.preferences_action)
+
         self.window_menu.addSeparator()
 
         self.newplot_action=QtWidgets.QAction("New Plot Window",
@@ -1974,6 +1981,13 @@ class MainWindow(QtWidgets.QMainWindow):
             self.panels['customize'].raise_()
         except NeXusError as error:
             report_error("Customizing Plot", error)
+
+    def edit_preferences(self):
+        try:
+            dialog = PreferencesDialog(parent=self)
+            dialog.show()
+        except NeXusError as error:
+            report_error("Editing Preferences", error)
 
     def show_tree(self):
         self.raise_()

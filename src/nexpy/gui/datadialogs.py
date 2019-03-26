@@ -25,9 +25,10 @@ from posixpath import basename
 
 from .pyqt import QtCore, QtGui, QtWidgets, getOpenFileName
 import numpy as np
+from matplotlib import rcParams, rcParamsDefault
 from matplotlib.legend import Legend
-from matplotlib.rcsetup import (validate_float, validate_int, validate_color,
-                                validate_aspect)
+from matplotlib.rcsetup import (defaultParams, validate_float, validate_int, 
+                                validate_color, validate_aspect)
 
 try:
     from collections import OrderedDict
@@ -461,10 +462,11 @@ class NXWidget(QtWidgets.QWidget):
         except NeXusError:
             return None
 
-    def parameter_stack(self, parameters):
+    def parameter_stack(self, parameters, width=None):
         """Initialize layouts containing a grid selection box and each grid."""
         return NXStack([p for p in parameters], 
-                       [parameters[p].widget(header=False) for p in parameters])
+                       [parameters[p].widget(header=False, width=width) 
+                        for p in parameters])
 
     def hide_grid(self, grid):
         for row in range(grid.rowCount()):
@@ -1230,11 +1232,22 @@ class PreferencesDialog(NXDialog):
     def __init__(self, parent):
         super(PreferencesDialog, self).__init__(parent, default=True)
 
-        categories = ['axes', 'errorbar', 'font', 'grid', 'image', 'lines',
-                      'xticks', 'yticks', 'scatter']
+        categories = ['axes', 'font', 'grid', 'image', 'lines', 'xtick', 'ytick']
         self.parameters = {}
         for category in categories:
-            self.parameters[category] = GridParameters()
+            pc = self.parameters[category] = GridParameters()
+            for p in [p for p in rcParams if p.startswith(category)]:
+                dp = defaultParams[p]
+                if 'color' in p:
+                    try:
+                        pc.add(p, rcParams[p], p, color=True, validate=dp[1])
+                    except Exception:
+                        pc.add(p, rcParams[p], p, validate=dp[1])
+                else:
+                    pc.add(p, rcParams[p], p, validate=dp[1])
+            
+        self.preferences_stack = self.parameter_stack(self.parameters, width=200)
+        self.set_layout(self.preferences_stack, self.close_layout(save=True))
 
 
 class CustomizeDialog(NXPanel):
@@ -1285,7 +1298,7 @@ class CustomizeTab(NXWidget):
             pi = self.parameters['image'] = self.image_parameters()
             self.update_image_parameters()
             self.set_layout(pl.grid(header=False),
-                           pi.grid(header=False))
+                            pi.grid(header=False))
         else:
             self.curves = self.get_curves()
             pc = {}          
@@ -1433,8 +1446,7 @@ class CustomizeTab(NXWidget):
                 if self.parameters[curve]['legend'].value == 'Yes':
                     curves.append(self.curves[curve])
                     labels.append(self.parameters[curve]['label'].value)
-            self.plotview.legend(curves, labels, nameonly=_nameonly,
-                                loc=legend_location)         
+            self.plotview.legend(curves, labels, nameonly=_nameonly, loc=legend_location)         
 
     def reset(self):
         self.update()
