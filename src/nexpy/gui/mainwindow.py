@@ -816,7 +816,7 @@ class MainWindow(QtWidgets.QMainWindow):
             shortcut="Ctrl+Alt+E",
             triggered=self.edit_preferences
             )
-        self.add_menu_action(self.window_menu, self.preferences_action)
+#        self.add_menu_action(self.window_menu, self.preferences_action)
 
         self.window_menu.addSeparator()
 
