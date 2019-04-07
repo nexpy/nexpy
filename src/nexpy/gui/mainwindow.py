@@ -41,7 +41,7 @@ from nexusformat.nexus import *
 
 from .. import __version__
 from .treeview import NXTreeView
-from .plotview import NXPlotView, NXProjectionPanels
+from .plotview import NXPlotView
 from .datadialogs import *
 from .scripteditor import NXScriptWindow, NXScriptEditor
 from .utils import confirm_action, report_error, display_message, natural_sort
@@ -101,9 +101,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
         rightpane = QtWidgets.QWidget()
 
+        self.panels = {}
         main_plotview = NXPlotView(label="Main", parent=self)
-        self.panels = NXProjectionPanels(self)
-        self.panels.setVisible(False)
         self.editors = NXScriptWindow(self)
         self.editors.setVisible(False)
         self.log_window = None
@@ -593,6 +592,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.fit_action=QtWidgets.QAction("Fit Data",
             self,
+            shortcut=QtGui.QKeySequence("Ctrl+Shift+F"),
             triggered=self.fit_data
             )
         self.add_menu_action(self.data_menu, self.fit_action)
@@ -792,15 +792,31 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.limit_action=QtWidgets.QAction("Change Plot Limits",
             self,
+            shortcut="Ctrl+Alt+L",
             triggered=self.limit_axes
             )
         self.add_menu_action(self.window_menu, self.limit_action)
 
         self.reset_limit_action=QtWidgets.QAction("Reset Plot Limits",
             self,
+            shortcut="Ctrl+Alt+Shift+L",
             triggered=self.reset_axes
             )
         self.add_menu_action(self.window_menu, self.reset_limit_action)
+
+        self.customize_action=QtWidgets.QAction("Customize Plot",
+            self,
+            shortcut="Ctrl+Alt+C",
+            triggered=self.customize_plot
+            )
+        self.add_menu_action(self.window_menu, self.customize_action)
+
+        self.preferences_action=QtWidgets.QAction("Edit Preferences",
+            self,
+            shortcut="Ctrl+Alt+E",
+            triggered=self.edit_preferences
+            )
+#        self.add_menu_action(self.window_menu, self.preferences_action)
 
         self.window_menu.addSeparator()
 
@@ -1380,7 +1396,7 @@ class MainWindow(QtWidgets.QMainWindow):
                     raise NeXusError("'%s' does not exist" % 
                                      os.path.abspath(node.nxfilename))
                 self.treeview.status_message(node)
-                if isinstance(node, NXgroup) and node.nxsignal is not None:
+                if isinstance(node, NXgroup) and node.plottable_data:
                     try:
                         node.plot(fmt='o')
                         self.plotview.make_active()
@@ -1416,14 +1432,13 @@ class MainWindow(QtWidgets.QMainWindow):
                     raise NeXusError("'%s' does not exist" % 
                                      os.path.abspath(node.nxfilename))
                 self.treeview.status_message(node)
-                if isinstance(node, NXgroup):
+                if isinstance(node, NXgroup) and node.plottable_data:
                     try:
                         node.plot(fmt='-')
                         self.plotview.make_active()
-                        return
                     except (KeyError, NeXusError):
                         pass
-                if node.is_plottable():
+                elif node.is_plottable():
                     dialog = PlotDialog(node, parent=self, fmt='-')
                     dialog.show()
                 else:
@@ -1440,8 +1455,7 @@ class MainWindow(QtWidgets.QMainWindow):
                                      os.path.abspath(node.nxfilename))
                 self.treeview.status_message(node)
                 node.oplot(fmt='-')
-                from .plotview import plotview
-                plotview.make_active()
+                self.plotview.make_active()
         except NeXusError as error:
             report_error("Overplotting Data", error)
 
@@ -1510,8 +1524,7 @@ class MainWindow(QtWidgets.QMainWindow):
                                      os.path.abspath(node.nxfilename))
                 self.treeview.status_message(node)
                 node.implot()
-                from .plotview import plotview
-                plotview.make_active()
+                self.plotview.make_active()
         except NeXusError as error:
             report_error("Plotting RGB(A) Image Data", error)
 
@@ -1926,9 +1939,9 @@ class MainWindow(QtWidgets.QMainWindow):
             self.plotview.close()
 
     def equalize_windows(self):
-        if 'Main' in self.plotviews:
-            for label in [label for label in self.plotviews if label != 'Main']:
-                self.plotviews[label].resize(self.plotviews['Main'].size())
+        for label in [label for label in self.plotviews 
+                      if (label != 'Main' and label != self.plotview.label)]:
+            self.plotviews[label].resize(self.plotview.size())
 
     def update_active(self, number):
         for num in self.active_action:
@@ -1945,18 +1958,36 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def limit_axes(self):
         try:
-            from .plotview import plotview
-            dialog = LimitDialog(parent=self)
-            dialog.exec_()
+            if 'limit' not in self.panels:
+                self.panels['limit'] = LimitDialog(parent=self)
+            self.panels['limit'].activate(self.plotview.label)
+            self.panels['limit'].setVisible(True)
+            self.panels['limit'].raise_()
         except NeXusError as error:
             report_error("Changing Plot Limits", error)
 
     def reset_axes(self):
         try:
-            from .plotview import plotview
-            plotview.reset_plot_limits()
+            self.plotview.reset_plot_limits()
         except NeXusError as error:
             report_error("Resetting Plot Limits", error)
+
+    def customize_plot(self):
+        try:
+            if 'customize' not in self.panels:
+                self.panels['customize'] = CustomizeDialog(parent=self)
+            self.panels['customize'].activate(self.plotview.label)
+            self.panels['customize'].setVisible(True)
+            self.panels['customize'].raise_()
+        except NeXusError as error:
+            report_error("Customizing Plot", error)
+
+    def edit_preferences(self):
+        try:
+            dialog = PreferencesDialog(parent=self)
+            dialog.show()
+        except NeXusError as error:
+            report_error("Editing Preferences", error)
 
     def show_tree(self):
         self.raise_()
@@ -1982,11 +2013,16 @@ class MainWindow(QtWidgets.QMainWindow):
             report_error("Showing Log File", error)
 
     def show_projection_panel(self):
-        from .plotview import plotview
-        if plotview.label != 'Projection' and plotview.ndim > 1:
-            plotview.ptab.open_panel()
-        elif self.panels.tabs.count() != 0:
-            self.panels.raise_()
+        if self.plotview.label == 'Projection' or self.plotview.ndim == 1:
+            return
+        try:
+            if 'projection' not in self.panels:
+                self.panels['projection'] = ProjectionDialog(parent=self)
+            self.panels['projection'].activate(self.plotview.label)
+            self.panels['projection'].setVisible(True)
+            self.panels['projection'].raise_()
+        except NeXusError as error:
+            report_error("Showing Projection Panel", error)
 
     def show_script_window(self):
         if self.editors.tabs.count() == 0:
@@ -2131,21 +2167,36 @@ class MainWindow(QtWidgets.QMainWindow):
         self.confirm_restart_kernel_action.setChecked(widget.confirm_restart)
 
     def cut_console(self):
-        widget = self.console
-        if widget.can_cut():
-            widget.cut()
+        widget = self.app.app.focusWidget()
+        if widget == self.console._control:
+            widget = self.console
+        try:
+            if widget.can_cut():
+                widget.cut()
+        except Exception:
+            pass
 
     def copy_console(self):
-        widget = self.console
-        widget.copy()
+        widget = self.app.app.focusWidget()
+        if widget == self.console._control:
+            widget = self.console
+        try:
+            widget.copy()
+        except Exception:
+            pass
 
     def copy_raw_console(self):
         self.console._copy_raw_action.trigger()
 
     def paste_console(self):
-        widget = self.console
-        if widget.can_paste():
-            widget.paste()
+        widget = self.app.app.focusWidget()
+        if widget == self.console._control:
+            widget = self.console
+        try:
+            if widget.can_paste():
+                widget.paste()
+        except Exception:
+            pass
 
     def undo_console(self):
         self.console.undo()

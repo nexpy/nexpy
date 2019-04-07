@@ -19,7 +19,7 @@ except ImportError:
     from ConfigParser import ConfigParser
 import numpy as np
 from .pyqt import QtWidgets, getOpenFileName
-from matplotlib.colors import hex2color, rgb2hex
+from matplotlib.colors import hex2color, rgb2hex, colorConverter
 import matplotlib.image as img
 
 try:
@@ -134,9 +134,54 @@ def natural_sort(key):
     return [int(t) if t.isdigit() else t for t in re.split(r'(\d+)', key)]    
 
 
+def centers(axis, dimlen):
+    """Return the centers of the axis bins.
+
+    This works regardless if the axis contains bin boundaries or 
+    centers.
+    
+    Parameters
+    ----------
+    dimlen : int
+        Size of the signal dimension. If this one more than the axis 
+        size, it is assumed the axis contains bin boundaries.
+    """
+    ax = axis.astype(np.float32)
+    if ax.shape[0] == dimlen+1:
+        return (ax[:-1] + ax[1:])/2
+    else:
+        assert ax.shape[0] == dimlen
+        return ax
+
+
+def boundaries(axis, dimlen):
+    """Return the boundaries of the axis bins.
+
+    This works regardless if the axis contains bin boundaries or 
+    centers.
+    
+    Parameters
+    ----------
+    dimlen : int
+        Size of the signal dimension. If this one more than the axis 
+        size, it is assumed the axis contains bin boundaries.
+    """
+    ax = axis.astype(np.float32)
+    if ax.shape[0] == dimlen:
+        start = ax[0] - (ax[1] - ax[0])/2
+        end = ax[-1] + (ax[-1] - ax[-2])/2
+        return np.concatenate((np.atleast_1d(start),
+                               (ax[:-1] + ax[1:])/2,
+                               np.atleast_1d(end)))
+    else:
+        assert ax.shape[0] == dimlen + 1
+        return ax
+
+
 def find_nearest(array, value):
     idx = (np.abs(array-value)).argmin()
     return array[idx]
+
 
 def find_nearest_index(array, value):
     return (np.abs(array-value)).argmin()
@@ -215,6 +260,10 @@ def get_name(filename, entries=[]):
     return name
 
 
+def get_color(color):
+    return rgb2hex(colorConverter.to_rgb(color))
+
+
 def get_colors(n, first='#1f77b4', last='#d62728'):
     """Return a list of colors interpolating between the first and last.
 
@@ -242,6 +291,7 @@ def get_colors(n, first='#1f77b4', last='#d62728'):
     return [rgb2hex((first[0]+(last[0]-first[0])*i/(n-1), 
                      first[1]+(last[1]-first[1])*i/(n-1),
                      first[2]+(last[2]-first[2])*i/(n-1))) for i in range(n)]
+
 
 def load_image(filename):
     if os.path.splitext(filename.lower())[1] in ['.png', '.jpg', '.jpeg',

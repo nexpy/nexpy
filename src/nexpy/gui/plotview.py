@@ -41,7 +41,6 @@ else:
     from matplotlib.backends.backend_qt4 import FigureManagerQT as FigureManager
     from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
     from matplotlib.backends.backend_qt4agg import NavigationToolbar2QT as NavigationToolbar
-from matplotlib.backends.qt_editor.formlayout import ColorButton, to_qcolor
 from matplotlib.figure import Figure
 from matplotlib.image import NonUniformImage
 from matplotlib.colors import LogNorm, Normalize, SymLogNorm
@@ -64,11 +63,14 @@ from scipy.spatial import Voronoi, voronoi_plot_2d
 from nexusformat.nexus import NXfield, NXdata, NXroot, NeXusError, nxload
 
 from .. import __version__
-from .utils import report_error, report_exception, find_nearest, iterable
+from .widgets import (NXSpinBox, NXDoubleSpinBox, NXComboBox, NXCheckBox, NXPushButton,
+                      NXcircle, NXellipse, NXrectangle, NXpolygon)
+from .utils import (report_error, report_exception, boundaries, centers, find_nearest, 
+                    iterable)
 
 plotview = None
 plotviews = {}
-colors = ['b', 'g', 'r', 'c', 'm', 'y', 'k', 'w']
+colors = mpl.rcParams['axes.prop_cycle']
 cmaps = ['viridis', 'inferno', 'magma', 'plasma', #perceptually uniform
          'spring', 'summer', 'autumn', 'winter', 'cool', 'hot', #sequential
          'bone', 'copper', 'gray', 'pink', 
@@ -90,7 +92,10 @@ except ImportError:
     pass
 linestyles = {'-': 'Solid', '--': 'Dashed', '-.': 'DashDot', ':': 'Dotted',
               'None': 'None'}
-markers = markers.MarkerStyle.markers
+markers = {'.': 'point', ',': 'pixel', '+': 'plus', 'x': 'x', 
+           'o': 'circle', 's': 'square', 'D': 'diamond', 'H': 'hexagon', 
+           'v': 'triangle_down', '^': 'triangle_up', '<': 'triangle_left', 
+           '>': 'triangle_right', 'None': 'None'}
 logo = mpl.image.imread(pkg_resources.resource_filename(
            'nexpy.gui', 'resources/icon/NeXpy.png'))[180:880,50:1010]
 warnings.filterwarnings("ignore", category=mplDeprecation)
@@ -365,9 +370,7 @@ class NXPlotView(QtWidgets.QDialog):
         plotviews[self.label] = self
         self.plotviews = plotviews
 
-        self.projection_panel = None
-        self.customize_panel = None
-        self.mask_panel = None
+        self.panels = self.mainwindow.panels
         self.shapes = []
 
         if self.label != "Main":
@@ -681,7 +684,7 @@ class NXPlotView(QtWidgets.QDialog):
                     logy = True
                 self._nameonly = False
             if fmt == '':
-                fmt = colors[self.num%len(colors)] + 'o'
+                fmt = 'C'+str(self.num%len(colors))+'o'
 
             self.x, self.y, self.e = self.get_points()
             self.plot_points(fmt, over, **opts)
@@ -1423,7 +1426,7 @@ class NXPlotView(QtWidgets.QDialog):
             self.canvas.draw()
         except:
             pass
-        self.update_customize_panel()
+        self.update_tabs()
 
     aspect = property(_aspect, _set_aspect, "Property: Aspect ratio value")
 
@@ -1473,7 +1476,7 @@ class NXPlotView(QtWidgets.QDialog):
             self.ax.set_aspect(self._aspect)
         if self.image is not None:
             self.replot_data(newaxis=True)
-            self.update_customize_panel()
+            self.update_tabs()
 
     skew = property(_skew, _set_skew, "Property: Axis skew angle")
 
@@ -1602,6 +1605,14 @@ class NXPlotView(QtWidgets.QDialog):
         except Exception:
             return False
 
+    def get_size(self):
+        return tuple(self.figure.get_size_inches())
+
+    def set_size(self, width, height):
+        if self.label == 'Main':
+            raise NeXusError("Cannot change the size of the main window programmatically")
+        self.figure.set_size_inches(width, height)
+
     @property
     def ax(self):
         """The current Matplotlib axes instance."""
@@ -1695,7 +1706,7 @@ class NXPlotView(QtWidgets.QDialog):
             if self.skew:
                 self.remove_skewed_grid()
         self.draw()
-        self.update_customize_panel()
+        self.update_tabs()
 
     def draw_skewed_grid(self, minor=False, **opts):
         self.remove_skewed_grid()
@@ -1752,7 +1763,8 @@ class NXPlotView(QtWidgets.QDialog):
         if self.skew is not None and y is not None:
             x, _ = self.transform(x, y)
         lines = self.ax.vlines(x, ymin, ymax, **opts)
-        self.canvas.draw()
+        self.ax.set_ylim(ymin, ymax)
+        self.draw()
         self.shapes.append(lines)
         return lines
 
@@ -1789,7 +1801,8 @@ class NXPlotView(QtWidgets.QDialog):
         if self.skew is not None and x is not None:
             _, y = self.transform(x, y)
         lines = self.ax.hlines(y, xmin, xmax, **opts)
-        self.canvas.draw()
+        self.ax.set_xlim(xmin, xmax)
+        self.draw()
         self.shapes.append(lines)
         return lines
 
@@ -1911,6 +1924,77 @@ class NXPlotView(QtWidgets.QDialog):
 
     yline = ylines
 
+    def circle(self, x, y, radius, **opts):
+        """Plot circle.
+        
+        Parameters
+        ----------
+        x, y : float
+            x and y values of center of circle.
+        radius : float
+            radius of circle.
+        opts : dict
+            Valid options for displaying shapes.
+
+        Returns
+        -------
+        circle : Circle
+            Matplotlib circle object.
+
+        Notes
+        -----
+        This assumes that the unit lengths of the x and y axes are the 
+        same. The circle will be skewed if the plot is skewed.
+        """
+        if self.skew is not None:
+            x, y = self.transform(x, y)
+        if 'linewidth' not in opts:
+            opts['linewidth'] = 1.0
+        if 'facecolor' not in opts:
+            opts['facecolor'] = 'r'
+        if 'edgecolor' not in opts:
+            opts['edgecolor'] = 'k'
+        circle = NXcircle(float(x), float(y), radius, **opts)
+        circle.connect()
+        self.canvas.draw()
+        self.shapes.append(circle)
+        return circle
+
+    def ellipse(self, x, y, dx, dy, **opts):
+        """Plot ellipse.
+        
+        Parameters
+        ----------
+        x, y : float
+            x and y values of ellipse center
+        dx, dy : float
+            x and y widths of ellipse
+        opts : dict
+            Valid options for displaying shapes.
+
+        Returns
+        -------
+        ellipse : Ellipse
+            Matplotlib ellipse object.
+
+        Notes
+        -----
+        The ellipse will be skewed if the plot is skewed.        
+        """
+        if self.skew is not None:
+            x, y = self.transform(x, y)
+        if 'linewidth' not in opts:
+            opts['linewidth'] = 1.0
+        if 'facecolor' not in opts:
+            opts['facecolor'] = 'r'
+        if 'edgecolor' not in opts:
+            opts['edgecolor'] = 'k'
+        ellipse = NXellipse(float(x), float(y), float(dx), float(dy), **opts)
+        ellipse.connect()
+        self.canvas.draw()
+        self.shapes.append(ellipse)
+        return ellipse
+
     def rectangle(self, x, y, dx, dy, **opts):
         """Plot rectangle.
         
@@ -1932,17 +2016,19 @@ class NXPlotView(QtWidgets.QDialog):
         rectangle : Polygon
             Matplotlib polygon object.
         """
+        if 'linewidth' not in opts:
+            opts['linewidth'] = 1.0
+        if 'facecolor' not in opts:
+            opts['facecolor'] = 'none'
+        if 'edgecolor' not in opts:
+            opts['edgecolor'] = 'k'
         if self.skew is None:
-            rectangle = self.ax.add_patch(Rectangle((float(x),float(y)),
-                                          float(dx), float(dy), **opts))
+            rectangle = NXrectangle(float(x), float(y), float(dx), float(dy), **opts)
         else:
             xc, yc = [x, x, x+dx, x+dx], [y, y+dy, y+dy, y]
             xy = [self.transform(_x, _y) for _x,_y in zip(xc,yc)]
-            rectangle = self.ax.add_patch(Polygon(xy, True, **opts))
-        if 'linewidth' not in opts:
-            rectangle.set_linewidth(1.0)
-        if 'facecolor' not in opts:
-            rectangle.set_facecolor('none')
+            rectangle = NXpolygon(xy, True, **opts)
+        rectangle.connect()
         self.canvas.draw()
         self.shapes.append(rectangle)
         return rectangle
@@ -1970,83 +2056,17 @@ class NXPlotView(QtWidgets.QDialog):
         """
         if self.skew is not None:
             xy = [self.transform(_x, _y) for _x,_y in xy]
-        polygon = self.ax.add_patch(Polygon(xy, closed, **opts))
         if 'linewidth' not in opts:
-            polygon.set_linewidth(1.0)
+            opts['linewidth'] = 1.0
         if 'facecolor' not in opts:
-            polygon.set_facecolor('none')
+            opts['facecolor'] = 'r'
+        if 'edgecolor' not in opts:
+            opts['edgecolor'] = 'k'
+        polygon = NXpolygon(xy, closed, **opts)
+        polygon.connect()
         self.canvas.draw()
         self.shapes.append(polygon)
         return polygon
-
-    def ellipse(self, x, y, dx, dy, **opts):
-        """Plot ellipse.
-        
-        Parameters
-        ----------
-        x, y : float
-            x and y values of ellipse center
-        dx, dy : float
-            x and y widths of ellipse
-        opts : dict
-            Valid options for displaying shapes.
-
-        Returns
-        -------
-        ellipse : Ellipse
-            Matplotlib ellipse object.
-
-        Notes
-        -----
-        The ellipse will be skewed if the plot is skewed.        
-        """
-        if self.skew is not None:
-            x, y = self.transform(x, y)
-        ellipse = self.ax.add_patch(Ellipse((float(x),float(y)), 
-                                             float(dx), float(dy), **opts))
-        if 'linewidth' not in opts:
-            ellipse.set_linewidth(1.0)
-        if 'facecolor' not in opts:
-            ellipse.set_facecolor('none')
-        self.canvas.draw()
-        self.shapes.append(ellipse)
-        return ellipse
-
-    def circle(self, x, y, radius, **opts):
-        """Plot circle.
-        
-        Parameters
-        ----------
-        x, y : float
-            x and y values of center of circle.
-        radius : float
-            radius of circle.
-        opts : dict
-            Valid options for displaying shapes.
-
-        Returns
-        -------
-        circle : Circle
-            Matplotlib circle object.
-
-        Notes
-        -----
-        This assumes that the unit lengths of the x and y axes are the 
-        same. The circle will be skewed if the plot is skewed.
-        """
-        if self.skew is not None:
-            x, y = self.transform(x, y)
-        circle = self.ax.add_patch(Circle((float(x),float(y)), radius,
-                                              **opts))
-        if 'linewidth' not in opts:
-            circle.set_linewidth(1.0)
-        if 'facecolor' not in opts:
-            circle.set_facecolor('r')
-        if 'edgecolor' not in opts:
-            circle.set_edgecolor('k')
-        self.canvas.draw()
-        self.shapes.append(circle)
-        return circle
 
     def voronoi(self, x, y, z, **opts):
         """Output Voronoi plot based z(x,y) where x and y are pixel centers.
@@ -2145,12 +2165,9 @@ class NXPlotView(QtWidgets.QDialog):
                 self.tab_widget.removeTab(self.tab_widget.indexOf(self.vtab))
             else:
                 self.vtab.flipbox.setVisible(False)
-        if self.projection_panel:
-            self.projection_panel.close()
-        if self.customize_panel:
-            self.customize_panel.close()
-        if self.mask_panel:
-            self.mask_panel.close()
+        for panel in self.panels:
+            if self.label in self.panels[panel].tabs:
+                self.panels[panel].remove(self.label)
 
     def update_tabs(self):
         """Update tabs when limits have changed."""
@@ -2164,7 +2181,7 @@ class NXPlotView(QtWidgets.QDialog):
             self.vtab.set_range()
             self.vtab.set_limits(self.vaxis.lo, self.vaxis.hi)
             self.vtab.set_sliders(self.vaxis.lo, self.vaxis.hi)
-        self.update_customize_panel()
+#        self.update_customize_panel()
 
     def change_axis(self, tab, axis):
         """Replace the axis in a plot tab.
@@ -2227,15 +2244,14 @@ class NXPlotView(QtWidgets.QDialog):
             self.aspect = 'auto'
             self.skew = None
             self.replot_data(newaxis=True)
-            if self.projection_panel:
-                self.projection_panel.update_limits()
-        self.update_customize_panel()
+        self.update_panels()
         self.otab.update()
 
-    def update_customize_panel(self):
-        """Update the customize panel."""
-        if self.customize_panel:
-            self.customize_panel.update()
+    def update_panels(self):
+        """Update the option panels."""
+        for panel in self.panels:
+            if self.label in self.panels[panel].tabs:
+                self.panels[panel].tabs[self.label].update()
 
     def format_coord(self, x, y):
         """Return the x, y, and signal values for the selected pixel."""
@@ -2263,14 +2279,9 @@ class NXPlotView(QtWidgets.QDialog):
         Gcf.destroy(self.number)
         if self.label in plotviews:
             del plotviews[self.label]
-        if self.projection_panel:
-            self.projection_panel.close()
-        if self.customize_panel:
-            self.customize_panel.close()
-        if self.mask_panel:
-            self.mask_panel.close()
-        if self.mainwindow.panels.tabs.count() == 0:
-            self.mainwindow.panels.setVisible(False)
+        for panel in self.panels:
+            if self.label in self.panels[panel].tabs:
+                self.panels[panel].remove(self.label)
 
     def closeEvent(self, event):
         """Close this widget and mark it for deletion."""
@@ -3067,262 +3078,6 @@ class NXPlotTab(QtWidgets.QWidget):
             six.reraise(*sys.exc_info())            
             
 
-class NXTextBox(QtWidgets.QLineEdit):
-    """Subclass of QLineEdit with floating values."""
-    def value(self):
-        return float(six.text_type(self.text()))
-
-    def setValue(self, value):
-        self.setText(six.text_type(float('%.4g' % value)))
-
-
-class NXSpinBox(QtWidgets.QSpinBox):
-    """Subclass of QSpinBox with floating values.
-
-    Parameters
-    ----------
-    data : ndarray
-        Values of data to be adjusted by the spin box.
-
-    Attributes
-    ----------
-    data : array
-        Data values.
-    validator : QDoubleValidator
-        Function to ensure only floating point values are entered.
-    old_value : float
-        Previously stored value.
-    diff : float
-        Difference between maximum and minimum values when the box is
-        locked.
-    pause : bool
-        Used when playing a movie with changing z-values.
-    """
-    def __init__(self, data=None):
-        super(NXSpinBox, self).__init__()
-        self.data = data
-        self.validator = QtGui.QDoubleValidator()
-        self.old_value = None
-        self.diff = None
-        self.pause = False
-
-    def value(self):
-        if self.data is not None:
-            return float(self.centers[self.index])
-        else:
-            return 0.0
-
-    @property
-    def centers(self):
-        if self.data is None:
-            return None
-        elif self.reversed:
-            return self.data[::-1]
-        else:
-            return self.data
-
-    @property
-    def boundaries(self):
-        if self.data is None:
-            return None
-        else:
-            return boundaries(self.centers, self.data.shape[0])
-
-    @property
-    def index(self):
-        return super(NXSpinBox, self).value()
-
-    @property
-    def reversed(self):
-        if self.data[-1] < self.data[0]:
-            return True
-        else:
-            return False
-
-    def setValue(self, value):
-        super(NXSpinBox, self).setValue(self.valueFromText(value))
-
-    def valueFromText(self, text):
-        return self.indexFromValue(float(six.text_type(text)))
-
-    def textFromValue(self, value):
-        try:
-            return six.text_type(float('%.4g' % self.centers[value]))
-        except:
-            return ''
-
-    def valueFromIndex(self, idx):
-        if idx < 0:
-            return self.centers[0]
-        elif idx > self.maximum():
-            return self.centers[-1]
-        else:
-            return self.centers[idx]
-
-    def indexFromValue(self, value):
-        return (np.abs(self.centers - value)).argmin()
-
-    def minBoundaryValue(self, idx):
-        if idx <= 0:
-            return self.boundaries[0]
-        elif idx >= len(self.centers) - 1:
-            return self.boundaries[-2]
-        else:
-            return self.boundaries[idx]
-
-    def maxBoundaryValue(self, idx):
-        if idx <= 0:
-            return self.boundaries[1]
-        elif idx >= len(self.centers) - 1:
-            return self.boundaries[-1]
-        else:
-            return self.boundaries[idx+1]
-
-    def validate(self, input_value, pos):
-        return self.validator.validate(input_value, pos)
-
-    @property
-    def tolerance(self):
-        return self.diff / 100.0
-
-    def stepBy(self, steps):
-        self.pause = False
-        if self.diff:
-            value = self.value() + steps * self.diff
-            if (value <= self.centers[-1] + self.tolerance) and \
-               (value - self.diff >= self.centers[0] - self.tolerance):
-                self.setValue(value)
-            else:
-                self.pause = True
-        else:
-            if self.index + steps <= self.maximum() and \
-               self.index + steps >= 0:
-                super(NXSpinBox, self).stepBy(steps)
-            else:
-                self.pause = True
-        self.valueChanged.emit(1)
-
-
-class NXDoubleSpinBox(QtWidgets.QDoubleSpinBox):
-
-    def __init__(self, data=None):
-        super(NXDoubleSpinBox, self).__init__()
-        self.validator = QtGui.QDoubleValidator()
-        self.validator.setRange(-np.inf, np.inf)
-        self.validator.setDecimals(1000)
-        self.old_value = None
-        self.diff = None
-
-    def validate(self, input_value, pos):
-        return self.validator.validate(input_value, pos)
-
-    def stepBy(self, steps):
-        if self.diff:
-            self.setValue(self.value() + steps * self.diff)
-        else:
-            super(NXDoubleSpinBox, self).stepBy(steps)
-        self.editingFinished.emit()
-
-    def valueFromText(self, text):
-        value = np.float32(text)
-        if value > self.maximum():
-            self.setMaximum(value)
-        elif value < self.minimum():
-            self.setMinimum(value)
-        return value
-
-    def setValue(self, value):
-        if value > self.maximum():
-            self.setMaximum(value)
-        elif value < self.minimum():
-            self.setMinimum(value)
-        super(NXDoubleSpinBox, self).setValue(value)
-
-
-class NXComboBox(QtWidgets.QComboBox):
-
-    def __init__(self, slot=None, items=[], default=None):
-        super(NXComboBox, self).__init__()
-        self.setSizeAdjustPolicy(QtWidgets.QComboBox.AdjustToContents)
-        self.setFocusPolicy(QtCore.Qt.StrongFocus)
-        self.setMinimumWidth(100)
-        if items:
-            self.addItems(items)
-            if default:
-                self.setCurrentIndex(self.findText(default))
-        if slot:
-            self.activated.connect(slot)
-
-    def keyPressEvent(self, event):
-        if (event.key() == QtCore.Qt.Key_Up or 
-            event.key() == QtCore.Qt.Key_Down):
-            super(NXComboBox, self).keyPressEvent(event)
-        elif (event.key() == QtCore.Qt.Key_Right or 
-              event.key() == QtCore.Qt.Key_Left):
-            self.showPopup()
-        else:
-            self.parent().keyPressEvent(event)
-
-
-class NXCheckBox(QtWidgets.QCheckBox):
-
-    def __init__(self, label=None, slot=None, checked=False):
-        super(NXCheckBox, self).__init__(label)
-        self.setFocusPolicy(QtCore.Qt.StrongFocus)
-        self.setChecked(checked)
-        if slot:
-            self.stateChanged.connect(slot)
-
-    def keyPressEvent(self, event):
-        if (event.key() == QtCore.Qt.Key_Up or 
-            event.key() == QtCore.Qt.Key_Down):
-            if self.isChecked():
-                self.setCheckState(QtCore.Qt.Unchecked)
-            else:
-                self.setCheckState(QtCore.Qt.Checked)
-        else:
-            self.parent().keyPressEvent(event)
-
-
-class NXPushButton(QtWidgets.QPushButton):
-
-    def __init__(self, label, slot, parent=None):
-        """Return a QPushButton with the specified label and slot."""
-        super(NXPushButton, self).__init__(label, parent)
-        self.setFocusPolicy(QtCore.Qt.StrongFocus)
-        self.setDefault(False)
-        self.setAutoDefault(False)
-        self.clicked.connect(slot)
-
-    def keyPressEvent(self, event):
-        if (event.key() == QtCore.Qt.Key_Return or 
-            event.key() == QtCore.Qt.Key_Enter or
-            event.key() == QtCore.Qt.Key_Space):
-            self.clicked.emit()
-        else:
-            self.parent().keyPressEvent(event)
-
-
-class NXColorButton(ColorButton):
-
-    def __init__(self, parameter):
-        super(NXColorButton, self).__init__()
-        self.parameter = parameter
-        self.parameter.box.editingFinished.connect(self.update_color)
-        self.colorChanged.connect(self.update_text)
-
-    def update_color(self):
-        color = self.text()
-        qcolor = to_qcolor(color)
-        self.color = qcolor  # defaults to black if not qcolor.isValid()
-
-    def update_text(self, color):
-        self.parameter.value = color.name()
-
-    def text(self):
-        return self.parameter.value
-
-
 class NXProjectionTab(QtWidgets.QWidget):
 
     def __init__(self, plotview=None):
@@ -3485,492 +3240,10 @@ class NXProjectionTab(QtWidgets.QWidget):
             self.overplot_box.setVisible(False)
             self.overplot_box.setChecked(False)
         plotviews[projection.label].raise_()
-        self.plotview.mainwindow.panels.update()
+        self.plotview.mainwindow.panels['projection'].update()
 
     def open_panel(self):
-        if not self.plotview.projection_panel:
-            self.plotview.projection_panel = NXProjectionPanel(
-                                                 plotview=self.plotview)
-        self.plotview.projection_panel.panels.setVisible(True)
-        self.plotview.projection_panel.panels.tabs.setCurrentWidget(
-                                                 self.plotview.projection_panel)
-        self.plotview.projection_panel.panels.update()
-        self.plotview.projection_panel.panels.raise_()
-
-
-class NXProjectionPanels(QtWidgets.QDialog):
-
-    def __init__(self, parent=None):
-        super(NXProjectionPanels, self).__init__(parent)
-        layout = QtWidgets.QVBoxLayout()
-        self.tabs = QtWidgets.QTabWidget(self)
-        layout.addWidget(self.tabs)
-        self.setLayout(layout)
-        self.setWindowTitle('Projection Panel')
-        self.tabs.currentChanged.connect(self.update)
-
-    def __repr__(self):
-        return 'NXProjectionPanels()'
-
-    def __getitem__(self, key):
-        try:
-            return [panel for panel in self.panels if panel.label == key][0]
-        except Exception as error:
-            return None
-
-    def __contains__(self, key):
-        """Implements 'k in d' test"""
-        return key in [panel for panel in self.panels if panel.label == key]
-
-    @property
-    def panels(self):
-        return [self.tabs.widget(idx) for idx in range(self.tabs.count())]
-
-    @property
-    def labels(self):
-        return [panel.plotview.label for panel in self.panels]
-
-    def update(self):
-        for panel in self.panels:
-            panel.adjustSize()
-            if 'Projection' in plotviews and plotviews['Projection'].ndim == 1:
-                panel.overplot_box.setVisible(True)
-            else:
-                panel.overplot_box.setVisible(False)
-            panel.update_panels()
-        if self.tabs.count() == 0:
-            self.setVisible(False)
-
-    def closeEvent(self, event):
-        self.close()
-        event.accept()
-
-    def close(self):
-        for panel in self.panels:
-            panel.close()
-        self.setVisible(False)
-
-
-class NXProjectionPanel(QtWidgets.QWidget):
-
-    def __init__(self, plotview=None):
-
-        self.plotview = plotview
-        self.ndim = self.plotview.ndim
-        self.label = self.plotview.label
-        self.panels = self.plotview.mainwindow.panels
-
-        QtWidgets.QWidget.__init__(self, parent=self.panels.tabs)
-
-        layout = QtWidgets.QVBoxLayout()
-
-        axisbox = QtWidgets.QHBoxLayout()
-        widgets = []
-
-        self.xbox = NXComboBox(self.set_xaxis)
-        widgets.append(QtWidgets.QLabel('X-Axis:'))
-        widgets.append(self.xbox)
-
-        self.ybox = NXComboBox(self.set_yaxis)
-        self.ylabel = QtWidgets.QLabel('Y-Axis:')
-        widgets.append(self.ylabel)
-        widgets.append(self.ybox)
-
-        self.set_axes()
-
-        axisbox.addStretch()
-        for w in widgets:
-            axisbox.addWidget(w)
-            axisbox.setAlignment(w, QtCore.Qt.AlignVCenter)
-        axisbox.addStretch()
-
-        layout.addLayout(axisbox)
-
-        grid = QtWidgets.QGridLayout()
-        grid.setSpacing(10)
-        headers = ['Axis', 'Minimum', 'Maximum', 'Lock']
-        width = [50, 100, 100, 25]
-        column = 0
-        header_font = QtGui.QFont()
-        header_font.setBold(True)
-        for header in headers:
-            label = QtWidgets.QLabel()
-            label.setAlignment(QtCore.Qt.AlignHCenter)
-            label.setText(header)
-            label.setFont(header_font)
-            grid.addWidget(label, 0, column)
-            grid.setColumnMinimumWidth(column, width[column])
-            column += 1
-
-        row = 0
-        self.minbox = {}
-        self.maxbox = {}
-        self.lockbox = {}
-        for axis in range(self.ndim):
-            row += 1
-            self.minbox[axis] = self.spinbox()
-            self.maxbox[axis] = self.spinbox()
-            self.lockbox[axis] = NXCheckBox(slot=self.set_lock)
-            grid.addWidget(QtWidgets.QLabel(self.plotview.axis[axis].name), 
-                                            row, 0)
-            grid.addWidget(self.minbox[axis], row, 1)
-            grid.addWidget(self.maxbox[axis], row, 2)
-            grid.addWidget(self.lockbox[axis], row, 3,
-                           alignment=QtCore.Qt.AlignHCenter)
-
-        row += 1
-        self.save_button = NXPushButton("Save", self.save_projection, self)
-        grid.addWidget(self.save_button, row, 1)
-        self.plot_button = NXPushButton("Plot", self.plot_projection, self)
-        grid.addWidget(self.plot_button, row, 2)
-        self.overplot_box = NXCheckBox()
-        if 'Projection' not in plotviews:
-            self.overplot_box.setVisible(False)
-        grid.addWidget(self.overplot_box, row, 3,
-                       alignment=QtCore.Qt.AlignHCenter)
-
-        row += 1
-        self.mask_button = NXPushButton("Mask", self.mask_data, self)
-        grid.addWidget(self.mask_button, row, 1)
-        self.unmask_button = NXPushButton("Unmask", self.unmask_data, self)
-        grid.addWidget(self.unmask_button, row, 2)
-
-        row += 1
-        self.sumbox = NXCheckBox("Sum Projections")
-        grid.addWidget(self.sumbox, row, 1, 1, 2, 
-                       alignment=QtCore.Qt.AlignHCenter)
-
-        layout.addLayout(grid)
-
-        self.copy_row = QtWidgets.QWidget()
-        copy_layout = QtWidgets.QHBoxLayout()
-        self.copy_box = NXComboBox()
-        self.copy_button = NXPushButton("Copy Limits", self.copy_limits, self)
-        copy_layout.addStretch()
-        copy_layout.addWidget(self.copy_box)
-        copy_layout.addWidget(self.copy_button)
-        copy_layout.addStretch()
-        self.copy_row.setLayout(copy_layout)
-        layout.addWidget(self.copy_row)
-
-        button_layout = QtWidgets.QHBoxLayout()
-        self.reset_button = NXPushButton("Reset Limits", self.reset_limits, 
-                                         self)
-        self.rectangle_button = NXPushButton("Hide Limits", 
-                                             self.toggle_rectangle, self)
-        self.close_button = NXPushButton("Close Panel", self.close, self)
-        button_layout.addStretch()
-        button_layout.addWidget(self.reset_button)
-        button_layout.addWidget(self.rectangle_button)
-        button_layout.addWidget(self.close_button)
-        button_layout.addStretch()
-        layout.addLayout(button_layout)
-        layout.addStretch()
-
-        self.setLayout(layout)
-        self.panels.tabs.insertTab(self.plotview.number-1, self,
-                                   self.plotview.label)
-        self.panels.tabs.adjustSize()
-        self.panels.tabs.setCurrentWidget(self)
-
-        for axis in range(self.ndim):
-            self.minbox[axis].data = self.maxbox[axis].data = \
-                self.plotview.axis[axis].centers
-            self.minbox[axis].setMaximum(self.minbox[axis].data.size-1)
-            self.maxbox[axis].setMaximum(self.maxbox[axis].data.size-1)
-            self.minbox[axis].diff = self.maxbox[axis].diff = None
-            self.block_signals(True)
-            self.minbox[axis].setValue(self.minbox[axis].data.min())
-            self.maxbox[axis].setValue(self.maxbox[axis].data.max())
-            self.block_signals(False)
-
-        self._rectangle = None
-
-        self.update_limits()
-        self.update_panels()
-
-        self.xbox.setFocus()
-
-    def __repr__(self):
-        return 'NXProjectionPanel("%s")' % self.plotview.label
-
-    def get_axes(self):
-        return self.plotview.xtab.get_axes()
-
-    def set_axes(self):
-        axes = self.get_axes()
-        self.xbox.clear()
-        self.xbox.addItems(axes)
-        self.xbox.setCurrentIndex(self.xbox.findText(self.plotview.xaxis.name))
-        if self.ndim <= 2:
-            self.ylabel.setVisible(False)
-            self.ybox.setVisible(False)
-        else:
-            self.ylabel.setVisible(True)
-            self.ybox.setVisible(True)
-            self.ybox.clear()
-            axes.insert(0,'None')
-            self.ybox.addItems(axes)
-            self.ybox.setCurrentIndex(
-                self.ybox.findText(self.plotview.yaxis.name))
-
-    @property
-    def xaxis(self):
-        return self.xbox.currentText()
-
-    def set_xaxis(self):
-        if self.xaxis == self.yaxis:
-            self.ybox.setCurrentIndex(self.ybox.findText('None'))
-
-    @property
-    def yaxis(self):
-        if self.ndim <= 2:
-            return 'None'
-        else:
-            return self.ybox.currentText()
-
-    def set_yaxis(self):
-        if self.yaxis == self.xaxis:
-            for idx in range(self.xbox.count()):
-                if self.xbox.itemText(idx) != self.yaxis:
-                    self.xbox.setCurrentIndex(idx)
-                    break
-
-    def set_limits(self):
-        self.block_signals(True)
-        for axis in range(self.ndim):
-            if self.lockbox[axis].isChecked():
-                min_value = self.maxbox[axis].value() - self.maxbox[axis].diff
-                self.minbox[axis].setValue(min_value)
-            elif self.minbox[axis].value() > self.maxbox[axis].value():
-                self.maxbox[axis].setValue(self.minbox[axis].value())
-        self.block_signals(False)
-        self.draw_rectangle()
-
-    def get_limits(self, axis=None):
-        def get_indices(minbox, maxbox):
-            start, stop = minbox.index, maxbox.index+1
-            if minbox.reversed:
-                start, stop = len(maxbox.data)-stop, len(minbox.data)-start
-            return start, stop
-        if axis:
-            return get_indices(self.minbox[axis], self.maxbox[axis])
-        else:
-            return [get_indices(self.minbox[axis], self.maxbox[axis]) 
-                    for axis in range(self.ndim)]
-
-    def reset_limits(self):
-        self.block_signals(True)
-        for axis in range(self.ndim):
-            self.minbox[axis].setValue(self.minbox[axis].data.min())
-            self.maxbox[axis].setValue(self.maxbox[axis].data.max())
-        self.block_signals(False)
-        self.update_limits()
-
-    def update_limits(self):
-        self.block_signals(True)
-        for axis in range(self.ndim):
-            lo, hi = self.plotview.axis[axis].get_limits()
-            minbox, maxbox = self.minbox[axis], self.maxbox[axis]
-            ilo, ihi = minbox.indexFromValue(lo), maxbox.indexFromValue(hi)
-            if (self.plotview.axis[axis] is self.plotview.xaxis or 
-                   self.plotview.axis[axis] is self.plotview.yaxis):
-                ilo = ilo + 1
-                ihi = max(ilo, ihi-1)
-                if lo > minbox.value():
-                    minbox.setValue(minbox.valueFromIndex(ilo))
-                if  hi < maxbox.value():
-                    maxbox.setValue(maxbox.valueFromIndex(ihi))
-            else:
-                minbox.setValue(minbox.valueFromIndex(ilo))
-                maxbox.setValue(maxbox.valueFromIndex(ihi))
-        self.block_signals(False)
-        self.draw_rectangle()
-
-    def update_panels(self):
-        self.copy_row.setVisible(False)
-        self.copy_box.clear()
-        for panel in self.panels.panels:
-            if panel is not self and panel.ndim == self.ndim:
-                self.copy_row.setVisible(True)
-                self.copy_box.addItem(panel.label)
-
-    def copy_limits(self):
-        self.block_signals(True)
-        panel = self.panels[self.copy_box.currentText()]
-        for axis in range(self.ndim):
-            self.minbox[axis].setValue(panel.minbox[axis].value())
-            self.maxbox[axis].setValue(panel.maxbox[axis].value())
-            self.lockbox[axis].setCheckState(panel.lockbox[axis].checkState())
-        self.xbox.setCurrentIndex(panel.xbox.currentIndex())
-        if self.ndim > 1:
-            self.ybox.setCurrentIndex(panel.ybox.currentIndex())
-        self.block_signals(False)
-        self.draw_rectangle()              
-
-    def set_lock(self):
-        for axis in range(self.ndim):
-            if self.lockbox[axis].isChecked():
-                lo, hi = self.minbox[axis].value(), self.maxbox[axis].value()
-                self.minbox[axis].diff = self.maxbox[axis].diff = max(hi - lo, 
-                                                                      0.0)
-                self.minbox[axis].setDisabled(True)
-            else:
-                self.minbox[axis].diff = self.maxbox[axis].diff = None
-                self.minbox[axis].setDisabled(False)
-
-    @property
-    def summed(self):
-        try:
-            return self.sumbox.isChecked()
-        except:
-            return False
-
-    def get_projection(self):
-        x = self.get_axes().index(self.xaxis)
-        if self.yaxis == 'None':
-            axes = [x]
-        else:
-            y = self.get_axes().index(self.yaxis)
-            axes = [y,x]
-        limits = self.get_limits()
-        shape = self.plotview.data.nxsignal.shape
-        if (len(shape)-len(limits) > 0 and 
-            len(shape)-len(limits) == shape.count(1)):
-            axes, limits = fix_projection(shape, axes, limits)
-        if self.plotview.rgb_image:
-            limits.append((None, None))
-        return axes, limits
-
-    def save_projection(self):
-        try:
-            axes, limits = self.get_projection()
-            keep_data(self.plotview.data.project(axes, limits,
-                                                 summed=self.summed))
-        except NeXusError as error:
-            report_error("Saving Projection", error)
-
-    def plot_projection(self):
-        try:
-            if 'Projection' in plotviews:
-                projection = plotviews['Projection']
-            else:
-                projection = NXPlotView('Projection')
-                self.overplot_box.setChecked(False)
-            axes, limits = self.get_projection()
-            if len(axes) == 1 and self.overplot_box.isChecked():
-                over = True
-            else:
-                over = False
-            projection.plot(self.plotview.data.project(axes, limits, 
-                                                       summed=self.summed),
-                            over=over, fmt='o')
-            if len(axes) == 1:
-                self.overplot_box.setVisible(True)
-            else:
-                self.overplot_box.setVisible(False)
-                self.overplot_box.setChecked(False)
-            projection.make_active()
-            projection.raise_()
-            self.panels.update()
-        except NeXusError as error:
-            report_error("Plotting Projection", error)
-
-    def mask_data(self):
-        try:
-            limits = tuple(slice(x,y) for x,y in self.get_limits())
-            self.plotview.data.nxsignal[limits] = np.ma.masked
-            self.plotview.replot_data()
-        except NeXusError as error:
-            report_error("Masking Data", error)
-
-    def unmask_data(self):
-        try:
-            limits = tuple(slice(x,y) for x,y in self.get_limits())
-            self.plotview.data.nxsignal.mask[limits] = np.ma.nomask
-            if not self.plotview.data.nxsignal.mask.any():
-                self.plotview.data.mask = np.ma.nomask
-            self.plotview.replot_data()
-        except NeXusError as error:
-            report_error("Masking Data", error)
-
-    def spinbox(self):
-        spinbox = NXSpinBox()
-        spinbox.setAlignment(QtCore.Qt.AlignRight)
-        spinbox.setFixedWidth(100)
-        spinbox.setKeyboardTracking(False)
-        spinbox.setAccelerated(True)
-        spinbox.valueChanged[six.text_type].connect(self.set_limits)
-        return spinbox
-
-    def block_signals(self, block=True):
-        for axis in range(self.ndim):
-            self.minbox[axis].blockSignals(block)
-            self.maxbox[axis].blockSignals(block)
-
-    @property
-    def rectangle(self):
-        if self._rectangle not in self.plotview.ax.patches:
-            self._rectangle = self.plotview.ax.add_patch(
-                                  Polygon(self.get_rectangle(), closed=True))
-            self._rectangle.set_edgecolor(self.plotview._gridcolor)
-            self._rectangle.set_facecolor('none')
-            self._rectangle.set_linestyle('dashed')
-            self._rectangle.set_linewidth(2)
-        return self._rectangle
-
-    def get_rectangle(self):
-        xp = self.plotview.xaxis.dim
-        yp = self.plotview.yaxis.dim
-        x0 = self.minbox[xp].minBoundaryValue(self.minbox[xp].index)
-        x1 = self.maxbox[xp].maxBoundaryValue(self.maxbox[xp].index)
-        y0 = self.minbox[yp].minBoundaryValue(self.minbox[yp].index)
-        y1 = self.maxbox[yp].maxBoundaryValue(self.maxbox[yp].index)
-        xy = [(x0,y0), (x0,y1), (x1,y1), (x1,y0)]
-        if self.plotview.skew is not None:
-            return [self.plotview.transform(_x, _y) for _x,_y in xy]
-        else:
-            return xy
-
-    def draw_rectangle(self):
-        self.rectangle.set_xy(self.get_rectangle())
-        self.plotview.draw()
-        self.rectangle_button.setText("Hide Limits")
-
-    def rectangle_visible(self):
-        return self.rectangle_button.text() == "Hide Limits"
-
-    def hide_rectangle(self):
-        self.rectangle.set_visible(False)
-        self.plotview.draw()
-        self.rectangle_button.setText("Show Limits")
-
-    def show_rectangle(self):
-        self.rectangle.set_visible(True)
-        self.plotview.draw()
-        self.rectangle_button.setText("Hide Limits")
-
-    def toggle_rectangle(self):
-        if self.rectangle_visible():
-            self.hide_rectangle()
-        else:
-            self.show_rectangle()
-
-    def closeEvent(self, event):
-        self.close()
-        event.accept()
-
-    def close(self):
-        try:
-            self._rectangle.remove()
-        except Exception as error:
-            pass
-        self._rectangle = None
-        self.plotview.draw()
-        self.panels.tabs.removeTab(self.panels.tabs.indexOf(self))
-        self.plotview.projection_panel = None
-        self.deleteLater()
-        self.panels.update()
+        self.plotview.mainwindow.show_projection_panel()
 
 
 class NXNavigationToolbar(NavigationToolbar):
@@ -4025,13 +3298,12 @@ class NXNavigationToolbar(NavigationToolbar):
             self.plotview.grid(self.plotview._grid, self.plotview._minorgrid)
 
     def edit_parameters(self):
-        if self.plotview.customize_panel is None:
+        if 'customize' not in self.plotview.panels:
             from .datadialogs import CustomizeDialog
-            self.plotview.customize_panel = CustomizeDialog(
-                parent=self.plotview)
-            self.plotview.customize_panel.show()
-        else:
-            self.plotview.customize_panel.raise_()
+            self.plotview.panels['customize'] = CustomizeDialog(parent=self)
+        self.plotview.panels['customize'].activate(self.plotview.label)
+        self.plotview.panels['customize'].setVisible(True)
+        self.plotview.panels['customize'].raise_()
 
     def add_data(self):
         keep_data(self.plotview.plotdata)
@@ -4069,10 +3341,6 @@ class NXNavigationToolbar(NavigationToolbar):
                 xmin, xmax = sorted([event.xdata, self.plotview.xdata])
                 ymin, ymax = sorted([event.ydata, self.plotview.ydata])
                 xp, yp = self.plotview.xaxis.dim, self.plotview.yaxis.dim
-                self.plotview.projection_panel.maxbox[xp].setValue(str(xmax))
-                self.plotview.projection_panel.minbox[xp].setValue(str(xmin))
-                self.plotview.projection_panel.maxbox[yp].setValue(str(ymax))
-                self.plotview.projection_panel.minbox[yp].setValue(str(ymin))
         self.release(event)
 
     def release_pan(self, event):
@@ -4166,157 +3434,6 @@ class NXNavigationToolbar(NavigationToolbar):
             self.set_message('')
 
 
-class NXpatch(object):
-    """Class for a draggable shape on the NXPlotView canvas"""
-    lock = None
-     
-    def __init__(self, shape, border_tol=0.1, plotview=None):
-        if plotview:
-            self.plotview = get_plotview()
-        self.canvas = self.plotview.canvas
-        self.shape = shape
-        self.border_tol = border_tol
-        self.press = None
-        self.background = None
-        self.allow_resize = True
-        self._active = None
-        self.plotview.ax.add_patch(self.shape)
-
-    def connect(self):
-        'connect to all the events we need'
-        self.plotview.deactivate()
-        self.cidpress = self.canvas.mpl_connect(
-            'button_press_event', self.on_press)
-        self.cidrelease = self.canvas.mpl_connect(
-            'button_release_event', self.on_release)
-        self.cidmotion = self.canvas.mpl_connect(
-            'motion_notify_event', self.on_motion)
-
-    def is_inside(self, event):
-        if event.inaxes != self.shape.axes: 
-            return False
-        contains, attrd = self.shape.contains(event)
-        if contains:
-            return True
-        else:
-            return False
-
-    def initialize(self, xp, yp):
-        """Function to be overridden by shape sub-class."""
-
-    def update(self, x, y):
-        """Function to be overridden by shape sub-class"""
-
-    def on_press(self, event):
-        'on button press we will see if the mouse is over us and store some data'
-        if not self.is_inside(event):
-            self.press = None
-            return
-        self.press = self.initialize(event.xdata, event.ydata)
-        self.canvas.draw()
-
-    def on_motion(self, event):
-        """on motion we will move the rect if the mouse is over us"""
-        if self.press is None: 
-            return
-        if event.inaxes != self.shape.axes: 
-            return
-        self.update(event.xdata, event.ydata)
-        self.canvas.draw()
-
-    def on_release(self, event):
-        'on release we reset the press data'
-        if self.press is None:
-            return
-        self.press = None
-        self.canvas.draw()
-
-    def disconnect(self):
-        'disconnect all the stored connection ids'
-        self.canvas.mpl_disconnect(self.cidpress)
-        self.canvas.mpl_disconnect(self.cidrelease)
-        self.canvas.mpl_disconnect(self.cidmotion)
-        self.plotview.activate()
-
-
-class NXcircle(NXpatch):
-
-    def __init__(self, x, y, radius, border_tol=0.1, plotview=None, **opts):
-        shape = Circle((float(x),float(y)), radius, **opts)
-        if 'linewidth' not in opts:
-            shape.set_linewidth(1.0)
-        if 'facecolor' not in opts:
-            shape.set_facecolor('r')
-        super(NXcircle, self).__init__(shape, border_tol, plotview)
-        self.shape.set_label('Circle')
-        self.circle = self.shape
-
-    def initialize(self, xp, yp):
-        x0, y0 = self.circle.center
-        r0 = self.circle.radius
-        if (self.allow_resize and
-            (np.sqrt((xp-x0)**2 + (yp-y0)**2) > r0 * (1-self.border_tol))):
-            expand = True
-        else:
-            expand = False
-        return x0, y0, r0, xp, yp, expand   
-
-    def update(self, x, y):
-        x0, y0, r0, xp, yp, expand = self.press
-        dx, dy = (x-xp, y-yp)
-        bt = self.border_tol
-        if expand:
-            radius = np.sqrt((xp + dx - x0)**2 + (yp + dy - y0)**2)
-            self.shape.set_radius(radius)
-        else:
-            self.circle.center = (x0 + dx, y0 + dy)
-            self.circle.set_radius(r0)
-
-
-class NXrectangle(NXpatch):
-
-    def __init__(self, x, y, dx, dy, border_tol=0.1, plotview=None, **opts):
-        shape = Rectangle((float(x),float(y)), float(dx), float(dy), **opts)
-        if 'linewidth' not in opts:
-            shape.set_linewidth(1.0)
-        if 'facecolor' not in opts:
-            shape.set_facecolor('r')
-        super(NXrectangle, self).__init__(shape, border_tol, plotview)
-        self.shape.set_label('Rectangle')
-        self.rectangle = self.shape
-
-    def initialize(self, xp, yp):
-        x0, y0 = self.rectangle.xy
-        w0, h0 = self.rectangle.get_width(), self.rectangle.get_height()
-        bt = self.border_tol
-        if (self.allow_resize and
-            (abs(x0+np.true_divide(w0,2)-xp)>np.true_divide(w0,2)-bt*w0 or
-             abs(y0+np.true_divide(h0,2)-yp)>np.true_divide(h0,2)-bt*h0)):
-            expand = True
-        else:
-            expand = False
-        return x0, y0, w0, h0, xp, yp, expand   
-
-    def update(self, x, y):
-        x0, y0, w0, h0, xp, yp, expand = self.press
-        dx, dy = (x-xp, y-yp)
-        bt = self.border_tol
-        if expand:
-            if abs(x0 - xp) < bt * w0:
-                self.rectangle.set_x(x0+dx)
-                self.rectangle.set_width(w0-dx)
-            if abs(x0 + w0 - xp) < bt * w0:
-                self.rectangle.set_width(w0+dx)
-            elif abs(y0 - yp) < bt * h0:
-                self.rectangle.set_y(y0+dy)
-                self.rectangle.set_height(h0-dy)
-            elif abs(y0 + h0 - yp) < bt * h0:
-                self.rectangle.set_height(h0+dy)
-        else:
-            self.rectangle.set_x(x0+dx)
-            self.rectangle.set_y(y0+dy)
-
-
 class NXSymLogNorm(SymLogNorm):
     """
     A subclass of Matplotlib SymLogNorm containing a bug fix
@@ -4346,47 +3463,6 @@ def keep_data(data):
     data.nxname = 's'+six.text_type(sorted(ind)[-1]+1)
     _tree['w0'][data.nxname] = data
 
-def centers(axis, dimlen):
-    """Return the centers of the axis bins.
-
-    This works regardless if the axis contains bin boundaries or 
-    centers.
-    
-    Parameters
-    ----------
-    dimlen : int
-        Size of the signal dimension. If this one more than the axis 
-        size, it is assumed the axis contains bin boundaries.
-    """
-    ax = axis.astype(np.float32)
-    if ax.shape[0] == dimlen+1:
-        return (ax[:-1] + ax[1:])/2
-    else:
-        assert ax.shape[0] == dimlen
-        return ax
-
-def boundaries(axis, dimlen):
-    """Return the boundaries of the axis bins.
-
-    This works regardless if the axis contains bin boundaries or 
-    centers.
-    
-    Parameters
-    ----------
-    dimlen : int
-        Size of the signal dimension. If this one more than the axis 
-        size, it is assumed the axis contains bin boundaries.
-    """
-    ax = axis.astype(np.float32)
-    if ax.shape[0] == dimlen:
-        start = ax[0] - (ax[1] - ax[0])/2
-        end = ax[-1] + (ax[-1] - ax[-2])/2
-        return np.concatenate((np.atleast_1d(start),
-                               (ax[:-1] + ax[1:])/2,
-                               np.atleast_1d(end)))
-    else:
-        assert ax.shape[0] == dimlen + 1
-        return ax
 
 def fix_projection(shape, axes, limits):
     """Fix the axes and limits for data with dimension sizes of 1.    
