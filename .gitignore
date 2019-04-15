@@ -55,3 +55,6 @@ Icon?
 
 # emacs
 *~
+
+# Virtual Studio Code
+.vscode
