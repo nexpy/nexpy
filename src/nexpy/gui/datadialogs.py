@@ -87,7 +87,6 @@ class NXWidget(QtWidgets.QWidget):
                 self.layout.addLayout(item)
             elif isinstance(item, QtWidgets.QWidget):
                 self.layout.addWidget(item)
-        self.layout.addStretch()
         self.setLayout(self.layout)
 
     def make_layout(self, *items, vertical=False):
@@ -118,6 +117,9 @@ class NXWidget(QtWidgets.QWidget):
                 self.layout.insertLayout(index, item)
             elif isinstance(item, QtWidgets.QWidget):
                 self.layout.insertWidget(index, item)
+
+    def spacer(self, width=0, height=0):
+        return QtWidgets.QSpacerItem(width, height)
 
     def widget(self, item):
         widget = QtWidgets.QWidget()
@@ -552,6 +554,24 @@ class NXWidget(QtWidgets.QWidget):
     def closeEvent(self, event):
         self.stop_thread()
         super(NXWidget, self).closeEvent(event)
+        
+
+class NXTab(NXWidget):
+    """Subclass of NXWidget for use as the main widget in a tab.
+    
+    This adds a stretch to the bottom of the QVBoxLayout to improve the layout of 
+    differently sized tabs.
+    """
+
+    def set_layout(self, *items):
+        self.layout = QtWidgets.QVBoxLayout()
+        for item in items:
+            if isinstance(item, QtWidgets.QLayout):
+                self.layout.addLayout(item)
+            elif isinstance(item, QtWidgets.QWidget):
+                self.layout.addWidget(item)
+        self.layout.addStretch()
+        self.setLayout(self.layout)
 
 
 class NXDialog(QtWidgets.QDialog, NXWidget):
@@ -707,7 +727,7 @@ class NXPanel(NXDialog):
 
     def activate(self, label):
         if label not in self.tabs:
-            tab = NXWidget(parent=self)
+            tab = NXTab(parent=self)
             self.addTab(tab, label)
         self.setVisible(True)
 
@@ -1274,7 +1294,7 @@ class CustomizeDialog(NXPanel):
             tab.update()
 
 
-class CustomizeTab(NXWidget):
+class CustomizeTab(NXTab):
 
     legend_location = {v: k for k, v in Legend.codes.items()}            
 
@@ -1524,7 +1544,7 @@ class ProjectionDialog(NXPanel):
             tab.update()
 
     
-class ProjectionTab(NXWidget):
+class ProjectionTab(NXTab):
     """Tab to set plot window limits"""
  
     def __init__(self, parent=None):
@@ -1919,7 +1939,7 @@ class LimitDialog(NXPanel):
             tab.update()
 
     
-class LimitTab(NXWidget):
+class LimitTab(NXTab):
     """Tab to set plot window limits"""
 
     def __init__(self, parent=None):
