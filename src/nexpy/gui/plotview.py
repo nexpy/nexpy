@@ -65,8 +65,8 @@ from nexusformat.nexus import NXfield, NXdata, NXroot, NeXusError, nxload
 from .. import __version__
 from .widgets import (NXSpinBox, NXDoubleSpinBox, NXComboBox, NXCheckBox, NXPushButton,
                       NXcircle, NXellipse, NXrectangle, NXpolygon)
-from .utils import (report_error, report_exception, boundaries, centers, find_nearest, 
-                    iterable)
+from .utils import (report_error, report_exception, boundaries, centers, keep_data, 
+                    fix_projection, find_nearest, iterable)
 
 plotview = None
 plotviews = {}
@@ -3446,55 +3446,3 @@ class NXSymLogNorm(SymLogNorm):
         if (not hasattr(self, '_upper') and 
                 vmin is not None and vmax is not None):
             self._transform_vmin_vmax()
-
-
-def keep_data(data):
-    from .consoleapp import _nexpy_dir, _tree
-    if 'w0' not in _tree:
-        _tree['w0'] = nxload(os.path.join(_nexpy_dir, 'w0.nxs'), 'rw')
-    ind = []
-    for key in _tree['w0']:
-        try:
-            if key.startswith('s'):
-                ind.append(int(key[1:]))
-        except ValueError:
-            pass
-    if ind == []: ind = [0]
-    data.nxname = 's'+six.text_type(sorted(ind)[-1]+1)
-    _tree['w0'][data.nxname] = data
-
-
-def fix_projection(shape, axes, limits):
-    """Fix the axes and limits for data with dimension sizes of 1.    
-
-    If the shape contains dimensions of size 1, they need to be added 
-    back to the list of axis dimensions and slice limits before calling 
-    the origina NXdata 'project' function.
-
-    Parameters
-    ----------
-    shape : tuple or list
-        Shape of the signal.
-    axes : list
-        Original list of axis dimensions.
-    limits : list
-        Original list of slice limits.
-
-    Returns
-    -------
-    fixed_axes : list
-        List of axis dimensions restoring dimensions of size 1.
-    fixed_limits : list
-        List of slice limits with (0,0) added for dimensions of size 1.
-    """
-    fixed_limits = []
-    fixed_axes = axes
-    for s in shape:
-        if s == 1:
-            fixed_limits.append((0,0))
-        else:
-            fixed_limits.append(limits.pop(0))
-    for (i,s) in enumerate(shape):
-        if s==1:
-            fixed_axes=[a+1 if a>=i else a for a in fixed_axes]
-    return fixed_axes, fixed_limits

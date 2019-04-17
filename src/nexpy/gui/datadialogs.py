@@ -37,7 +37,8 @@ except ImportError:
 
 from .utils import (confirm_action, display_message, report_error,
                     import_plugin, convertHTML, natural_sort, wrap, human_size,
-                    timestamp, format_timestamp, restore_timestamp, get_color)
+                    timestamp, format_timestamp, restore_timestamp, get_color,
+                    keep_data, fix_projection)
 from .widgets import (NXCheckBox, NXComboBox, NXColorBox, NXPushButton, NXStack,
                       NXDoubleSpinBox, NXSpinBox, NXpolygon)
 
