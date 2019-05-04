@@ -732,6 +732,8 @@ class NXPlotView(QtWidgets.QDialog):
             self.replot_axes(draw=False)
 
         self.offsets = False
+        if cmap:
+            self.cmap = cmap
         self.aspect = self._aspect
 
         if self.ndim > 1:
@@ -2400,7 +2402,7 @@ class NXPlotAxis(object):
         if lo > hi:
             lo, hi = hi, lo
         self.lo, self.hi = lo, hi
-        self.diff = hi - lo
+        self.diff = float(hi) - float(lo)
 
     def get_limits(self):
         """Return the low and high values for the axis."""
@@ -2756,6 +2758,7 @@ class NXPlotTab(QtWidgets.QWidget):
         self.block_signals(False)
 
     def set_sliders(self, lo, hi):
+        lo, hi = float(lo), float(hi)
         self.block_signals(True)
         _range = max(hi-self.axis.min, self.axis.min_range)
         try:
