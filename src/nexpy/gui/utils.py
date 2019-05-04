@@ -134,6 +134,25 @@ def natural_sort(key):
     return [int(t) if t.isdigit() else t for t in re.split(r'(\d+)', key)]    
 
 
+def clamp(value, min_value, max_value):
+    """Return value constrained to be within defined limits
+    
+    Parameters
+    ----------
+    value : int or float
+        Original value
+    min_value : int or float
+        Allowed minimum value
+    max_value : int or float
+        Allowed maximum value
+    
+    Returns
+    -------
+    int or float
+        Value constrained to be within defined limits
+    """
+    return max(min_value, min(value, max_value))
+
 def centers(axis, dimlen):
     """Return the centers of the axis bins.
 
