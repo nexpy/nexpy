@@ -824,7 +824,6 @@ class GridParameters(OrderedDict):
             row += 1
         vary = False
         for p in self.values():
-            label, value, checkbox = p.label, p.value, p.vary
             grid.addWidget(p.label, row, 0)
             if p.colorbox:
                 grid.addWidget(p.colorbox, row, 1, QtCore.Qt.AlignHCenter)
@@ -835,7 +834,7 @@ class GridParameters(OrderedDict):
                     p.colorbox.setFixedWidth(width)
                 else:
                     p.box.setFixedWidth(width)
-            if checkbox is not None:
+            if p.vary is not None:
                 grid.addWidget(p.checkbox, row, 2, QtCore.Qt.AlignHCenter)
                 vary = True
             row += 1
@@ -1913,7 +1912,7 @@ class ProjectionTab(NXTab):
     def close(self):
         try:
             self._rectangle.remove()
-        except Exception as error:
+        except Exception:
             pass
         self._rectangle = None
         self.plotview.draw()
@@ -2284,7 +2283,7 @@ class LimitTab(NXTab):
     def close(self):
         try:
             self._rectangle.remove()
-        except Exception as error:
+        except Exception:
             pass
         self._rectangle = None
         self.plotview.draw()
@@ -3317,7 +3316,7 @@ class InstallPluginDialog(NXDialog):
             plugin_module = import_plugin(plugin_name, [plugin_path])
             name, _ = plugin_module.plugin_menu()
             return name
-        except Exception as error:
+        except Exception:
             return None
 
     def install_plugin(self):        
@@ -3479,12 +3478,11 @@ class RestorePluginDialog(NXDialog):
             plugin_module = import_plugin(plugin_name, [plugin_path])
             name, _ = plugin_module.plugin_menu()
             return name
-        except Exception as error:
+        except Exception:
             return None
 
     def remove_backup(self, backup):
         shutil.rmtree(os.path.dirname(os.path.realpath(backup)))
-        backups = self.mainwindow.settings.options('plugins')
         self.mainwindow.settings.remove_option('plugins', backup)
         self.mainwindow.settings.save()
 
