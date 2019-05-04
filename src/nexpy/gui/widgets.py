@@ -2,17 +2,19 @@
 """
 This module contains a set of customized widgets both for dialogs and plot objects. 
 """
-from __future__ import (absolute_import, division, unicode_literals)
-import six
+from __future__ import absolute_import, division, unicode_literals
 
-from .pyqt import QtCore, QtGui, QtWidgets
-
-import numpy as np
 import warnings
 
 import matplotlib as mpl
+import numpy as np
+import six
 from matplotlib.cbook import mplDeprecation
-from matplotlib.patches import Circle, Ellipse, Rectangle, Polygon
+from matplotlib.patches import Circle, Ellipse, Polygon, Rectangle
+
+from .pyqt import QtCore, QtGui, QtWidgets
+from .utils import boundaries, get_color
+
 try:
     from formlayout import ColorLayout, text_to_qcolor
 except ImportError:
@@ -21,12 +23,33 @@ except ImportError:
 
 warnings.filterwarnings("ignore", category=mplDeprecation)
 
-from .utils import get_color, boundaries
-
 
 class NXStack(QtWidgets.QWidget):
-    """Widget containing a stack of widgets selected by a QComboBox"""
+    """Widget containing a stack of widgets selected by a dropdown menu.
+    
+    Attributes
+    ----------
+    layout : QtWidgets.QVBoxLayout
+        Layout of the entire stack
+    stack : QtWidgets.QStackedWidget
+        Widget containing the stacked widgets
+    box : QtWidgets.QComboBox
+        Pull-down menu containing the 
+    
+    """
     def __init__(self, labels, widgets, parent=None):
+        """Initialize the widget stack.
+        
+        Parameters
+        ----------
+        labels : list of str
+            List of labels to be used in the QComboBox
+        widgets : list of QWidgets
+            List of QWidgets to be stacked
+        parent : QObject, optional
+            Parent of the NXStack instance (the default is None)
+        
+        """
         super(NXStack, self).__init__(parent=parent)
         self.layout = QtWidgets.QVBoxLayout()
         self.stack = QtWidgets.QStackedWidget(self)
@@ -39,22 +62,62 @@ class NXStack(QtWidgets.QWidget):
         self.setLayout(self.layout)
 
     def add(self, label, widget):
+        """Add a widget to the stack.
+        
+        Parameters
+        ----------
+        label : str
+            Label used to select the widget in the QComboBox
+        widget : QtWidgets.QWidget
+            Widget to be added to the stack
+        
+        """
         self.box.addItem(label)
         self.stack.addWidget(widget)
 
 
 class NXTextBox(QtWidgets.QLineEdit):
-    """Subclass of QLineEdit with floating values."""
+    """Subclass of QLineEdit with floating point values."""
+
     def value(self):
+        """Return the text box value as a floating point number.
+        
+        Returns
+        -------
+        float
+            Value of text box converted to a floating point number
+
+        """
         return float(six.text_type(self.text()))
 
     def setValue(self, value):
+        """Set the value of the text box string formatted as a float.
+        
+        Parameters
+        ----------
+        value : str or int or float
+            Text box value to be formatted as a float
+        
+        """
         self.setText(six.text_type(float('%.4g' % value)))
 
 
 class NXComboBox(QtWidgets.QComboBox):
+    """Dropdown menu for selecting a set of options."""
 
     def __init__(self, slot=None, items=[], default=None):
+        """Initialize the dropdown menu with an initial list of items
+        
+        Parameters
+        ----------
+        slot : func, optional
+            A function to be called when a selection is made
+        items : list of str, optional
+            A list of options to initialize the dropdown menu
+        default : str, optional
+            The option to be set as default when the menu is initialized
+        
+        """
         super(NXComboBox, self).__init__()
         self.setSizeAdjustPolicy(QtWidgets.QComboBox.AdjustToContents)
         self.setFocusPolicy(QtCore.Qt.StrongFocus)
@@ -67,6 +130,18 @@ class NXComboBox(QtWidgets.QComboBox):
             self.activated.connect(slot)
 
     def keyPressEvent(self, event):
+        """Function to enable the use of cursor keys to make selections.
+
+        `Up` and `Down` keys are used to select options in the dropdown menu.
+        `Left` and `Right` keys ar used to expand the dropdown menu to 
+        display the options.
+        
+        Parameters
+        ----------
+        event : QtCore.QEvent
+            Keypress event that triggered the function
+        
+        """
         if (event.key() == QtCore.Qt.Key_Up or 
             event.key() == QtCore.Qt.Key_Down):
             super(NXComboBox, self).keyPressEvent(event)
@@ -77,23 +152,66 @@ class NXComboBox(QtWidgets.QComboBox):
             self.parent().keyPressEvent(event)
 
     def add(self, *items):
+        """Add the arguments to the list of options.
+
+        Parameters
+        ----------
+        *items : list of str
+            List of options to be added to the dropdown menu.
+        
+        """
         for item in items:
             self.addItem(item)
 
     def items(self):
+        """Return a list of the dropdown menu options.
+        
+        Returns
+        -------
+        list of str
+            The options currently listed in the dropdown menu
+        """
         return [self.itemText(idx) for idx in range(self.count())]
 
     def select(self, item):
+        """Select the option matching the text
+        
+        Parameters
+        ----------
+        item : str
+            The option to be selected in the dropdown menu
+        
+        """
         self.setCurrentIndex(self.findText(item))
 
     @property
     def selected(self):
+        """Return the currently selected option
+        
+        Returns
+        -------
+        str
+            Currently selected option in the dropdown menu
+        """
         return self.currentText()
 
 
 class NXCheckBox(QtWidgets.QCheckBox):
-
+    """A checkbox with associated label and slot function."""
+ 
     def __init__(self, label=None, slot=None, checked=False):
+        """Initialize the checkbox.
+        
+        Parameters
+        ----------
+        label : str, optional
+            Text describing the checkbox
+        slot : func, optional
+            Function to be called when the checkbox state is changed.
+        checked : bool, optional
+            Initial checkbox state (the default is False)
+        
+        """
         super(NXCheckBox, self).__init__(label)
         self.setFocusPolicy(QtCore.Qt.StrongFocus)
         self.setChecked(checked)
@@ -101,6 +219,16 @@ class NXCheckBox(QtWidgets.QCheckBox):
             self.stateChanged.connect(slot)
 
     def keyPressEvent(self, event):
+        """Function to enable the use of cursor keys to change the state.
+
+        `Up` and `Down` keys are used to toggle the checkbox state.
+        
+        Parameters
+        ----------
+        event : QtCore.QEvent
+            Keypress event that triggered the function
+        
+        """
         if (event.key() == QtCore.Qt.Key_Up or 
             event.key() == QtCore.Qt.Key_Down):
             if self.isChecked():
@@ -112,9 +240,21 @@ class NXCheckBox(QtWidgets.QCheckBox):
 
 
 class NXPushButton(QtWidgets.QPushButton):
+    """A button with associated label and slot function."""
 
     def __init__(self, label, slot, parent=None):
-        """Return a QPushButton with the specified label and slot."""
+        """Initialize button
+        
+        Parameters
+        ----------
+        label : str
+            Text describing the button
+        slot : func
+            Function to be called when the button is pressed
+        parent : QObject, optional
+            Parent of button
+        
+        """
         super(NXPushButton, self).__init__(label, parent)
         self.setFocusPolicy(QtCore.Qt.StrongFocus)
         self.setDefault(False)
@@ -122,6 +262,16 @@ class NXPushButton(QtWidgets.QPushButton):
         self.clicked.connect(slot)
 
     def keyPressEvent(self, event):
+        """Function to enable the use of keys to press the button.
+
+        `Return`, Enter`, and `Space` keys activate the slot function.
+        
+        Parameters
+        ----------
+        event : QtCore.QEvent
+            Keypress event that triggered the function
+        
+        """
         if (event.key() == QtCore.Qt.Key_Return or 
             event.key() == QtCore.Qt.Key_Enter or
             event.key() == QtCore.Qt.Key_Space):
@@ -131,8 +281,37 @@ class NXPushButton(QtWidgets.QPushButton):
 
 
 class NXColorBox(QtWidgets.QWidget):
+    """Text box and color square for selecting colors.
+
+    This utilizes the ColorButton class in the formlayout package.
+    
+    Attributes
+    ----------
+    layout : QHBoxLayout
+        Layout containing the text and color boxes
+    box : QLineEdit
+        Text box containing the string representation of the color
+    button : QPushbutton 
+        Color button consisting of a colored icon
+    
+    """
 
     def __init__(self, color='#ffffff', parent=None):
+        """Initialize the text and color box.
+
+        The selected color can be changed by entering a valid text string or 
+        by selecting the color using the standard system GUI.
+
+        Valid text strings are HTML hex strings or standard Matplotlib colors.
+        
+        Parameters
+        ----------
+        color : str, optional
+            Initial color (the default is '#ffffff', which represents 'white')
+        parent : QObject, optional
+            Parent of the color box
+        
+        """
         super(NXColorBox, self).__init__(parent)
         color = text_to_qcolor(color)
         self.layout = ColorLayout(color)
@@ -145,11 +324,13 @@ class NXColorBox(QtWidgets.QWidget):
         self.update_color()
 
     def update_color(self):
+        """Set the button color following a change to the text box."""
         color = text_to_qcolor(get_color(self.box.text()))
         if color.isValid():
             self.button.color = color
 
     def update_text(self, color):
+        """Set the text box string following a change to the color button."""
         self.box.setText(mpl.colors.to_hex(color.getRgbF()))
 
 
@@ -158,12 +339,12 @@ class NXSpinBox(QtWidgets.QSpinBox):
 
     Parameters
     ----------
-    data : ndarray
+    data : array-like
         Values of data to be adjusted by the spin box.
 
     Attributes
     ----------
-    data : array
+    data : array-like
         Data values.
     validator : QDoubleValidator
         Function to ensure only floating point values are entered.
@@ -174,8 +355,17 @@ class NXSpinBox(QtWidgets.QSpinBox):
         locked.
     pause : bool
         Used when playing a movie with changing z-values.
+ 
     """
     def __init__(self, data=None):
+        """Initialize the spin box
+        
+        Parameters
+        ----------
+        data : array-like, optional
+            The data to be set by the spin box
+        
+        """
         super(NXSpinBox, self).__init__()
         self.data = data
         self.validator = QtGui.QDoubleValidator()
@@ -184,6 +374,13 @@ class NXSpinBox(QtWidgets.QSpinBox):
         self.pause = False
 
     def value(self):
+        """Return the value of the spin box.
+        
+        Returns
+        -------
+        float
+            Floating point number defined by the spin box value
+        """
         if self.data is not None:
             return float(self.centers[self.index])
         else:
@@ -191,6 +388,13 @@ class NXSpinBox(QtWidgets.QSpinBox):
 
     @property
     def centers(self):
+        """The values of the data points based on bin centers.
+        
+        Returns
+        -------
+        array-like
+            Data points set by the spin box
+        """
         if self.data is None:
             return None
         elif self.reversed:
@@ -207,10 +411,12 @@ class NXSpinBox(QtWidgets.QSpinBox):
 
     @property
     def index(self):
+        """Return the current index of the spin box."""
         return super(NXSpinBox, self).value()
 
     @property
     def reversed(self):
+        """Return `True` if the data are in reverse order."""
         if self.data[-1] < self.data[0]:
             return True
         else:
@@ -348,7 +554,7 @@ class NXpatch(object):
     def is_inside(self, event):
         if event.inaxes != self.shape.axes: 
             return False
-        contains, attrd = self.shape.contains(event)
+        contains, _ = self.shape.contains(event)
         if contains:
             return True
         else:
@@ -654,4 +860,3 @@ class NXpolygon(NXpatch):
         xy0, xp, yp = self.press
         dxy = (x-xp, y-yp)        
         self.polygon.set_xy(xy0+dxy)
-
