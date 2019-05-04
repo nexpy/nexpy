@@ -2333,8 +2333,8 @@ class NXPlotAxis(object):
                 self.centers = None
                 self.boundaries = None
                 try:
-                    self.min = np.min(self.data[np.isfinite(self.data)])
-                    self.max = np.max(self.data[np.isfinite(self.data)])
+                    self.min = float(np.min(self.data[np.isfinite(self.data)]))
+                    self.max = float(np.max(self.data[np.isfinite(self.data)]))
                 except Exception:
                     self.min = 0.0
                     self.max = 0.1
