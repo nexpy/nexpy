@@ -37,7 +37,8 @@ except ImportError:
 
 from .utils import (confirm_action, display_message, report_error,
                     import_plugin, convertHTML, natural_sort, wrap, human_size,
-                    timestamp, format_timestamp, restore_timestamp, get_color)
+                    timestamp, format_timestamp, restore_timestamp, get_color,
+                    keep_data, fix_projection)
 from .widgets import (NXCheckBox, NXComboBox, NXColorBox, NXPushButton, NXStack,
                       NXDoubleSpinBox, NXSpinBox, NXpolygon)
 
@@ -87,7 +88,6 @@ class NXWidget(QtWidgets.QWidget):
                 self.layout.addLayout(item)
             elif isinstance(item, QtWidgets.QWidget):
                 self.layout.addWidget(item)
-        self.layout.addStretch()
         self.setLayout(self.layout)
 
     def make_layout(self, *items, vertical=False):
@@ -118,6 +118,9 @@ class NXWidget(QtWidgets.QWidget):
                 self.layout.insertLayout(index, item)
             elif isinstance(item, QtWidgets.QWidget):
                 self.layout.insertWidget(index, item)
+
+    def spacer(self, width=0, height=0):
+        return QtWidgets.QSpacerItem(width, height)
 
     def widget(self, item):
         widget = QtWidgets.QWidget()
@@ -552,6 +555,24 @@ class NXWidget(QtWidgets.QWidget):
     def closeEvent(self, event):
         self.stop_thread()
         super(NXWidget, self).closeEvent(event)
+        
+
+class NXTab(NXWidget):
+    """Subclass of NXWidget for use as the main widget in a tab.
+    
+    This adds a stretch to the bottom of the QVBoxLayout to improve the layout of 
+    differently sized tabs.
+    """
+
+    def set_layout(self, *items):
+        self.layout = QtWidgets.QVBoxLayout()
+        for item in items:
+            if isinstance(item, QtWidgets.QLayout):
+                self.layout.addLayout(item)
+            elif isinstance(item, QtWidgets.QWidget):
+                self.layout.addWidget(item)
+        self.layout.addStretch()
+        self.setLayout(self.layout)
 
 
 class NXDialog(QtWidgets.QDialog, NXWidget):
@@ -707,7 +728,7 @@ class NXPanel(NXDialog):
 
     def activate(self, label):
         if label not in self.tabs:
-            tab = NXWidget(parent=self)
+            tab = NXTab(parent=self)
             self.addTab(tab, label)
         self.setVisible(True)
 
@@ -803,7 +824,6 @@ class GridParameters(OrderedDict):
             row += 1
         vary = False
         for p in self.values():
-            label, value, checkbox = p.label, p.value, p.vary
             grid.addWidget(p.label, row, 0)
             if p.colorbox:
                 grid.addWidget(p.colorbox, row, 1, QtCore.Qt.AlignHCenter)
@@ -814,7 +834,7 @@ class GridParameters(OrderedDict):
                     p.colorbox.setFixedWidth(width)
                 else:
                     p.box.setFixedWidth(width)
-            if checkbox is not None:
+            if p.vary is not None:
                 grid.addWidget(p.checkbox, row, 2, QtCore.Qt.AlignHCenter)
                 vary = True
             row += 1
@@ -1274,7 +1294,7 @@ class CustomizeDialog(NXPanel):
             tab.update()
 
 
-class CustomizeTab(NXWidget):
+class CustomizeTab(NXTab):
 
     legend_location = {v: k for k, v in Legend.codes.items()}            
 
@@ -1524,7 +1544,7 @@ class ProjectionDialog(NXPanel):
             tab.update()
 
     
-class ProjectionTab(NXWidget):
+class ProjectionTab(NXTab):
     """Tab to set plot window limits"""
  
     def __init__(self, parent=None):
@@ -1892,7 +1912,7 @@ class ProjectionTab(NXWidget):
     def close(self):
         try:
             self._rectangle.remove()
-        except Exception as error:
+        except Exception:
             pass
         self._rectangle = None
         self.plotview.draw()
@@ -1919,7 +1939,7 @@ class LimitDialog(NXPanel):
             tab.update()
 
     
-class LimitTab(NXWidget):
+class LimitTab(NXTab):
     """Tab to set plot window limits"""
 
     def __init__(self, parent=None):
@@ -2263,7 +2283,7 @@ class LimitTab(NXWidget):
     def close(self):
         try:
             self._rectangle.remove()
-        except Exception as error:
+        except Exception:
             pass
         self._rectangle = None
         self.plotview.draw()
@@ -3296,7 +3316,7 @@ class InstallPluginDialog(NXDialog):
             plugin_module = import_plugin(plugin_name, [plugin_path])
             name, _ = plugin_module.plugin_menu()
             return name
-        except Exception as error:
+        except Exception:
             return None
 
     def install_plugin(self):        
@@ -3458,12 +3478,11 @@ class RestorePluginDialog(NXDialog):
             plugin_module = import_plugin(plugin_name, [plugin_path])
             name, _ = plugin_module.plugin_menu()
             return name
-        except Exception as error:
+        except Exception:
             return None
 
     def remove_backup(self, backup):
         shutil.rmtree(os.path.dirname(os.path.realpath(backup)))
-        backups = self.mainwindow.settings.options('plugins')
         self.mainwindow.settings.remove_option('plugins', backup)
         self.mainwindow.settings.save()
 
