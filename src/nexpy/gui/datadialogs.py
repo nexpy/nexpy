@@ -2205,9 +2205,14 @@ class LimitTab(NXTab):
             self.ybox.setCurrentIndex(tab.ybox.currentIndex())
             for p in self.copied_properties:
                 self.copied_properties[p] = getattr(tab.plotview, p)
-        if self.plotview.label != 'Main' and tab.plotview.label != 'Main':
-            self.parameters['xsize'].value = tab.parameters['xsize'].value
-            self.parameters['ysize'].value = tab.parameters['ysize'].value
+        if self.plotview.label != 'Main':
+            if tab.plotview.label == 'Main':
+                figure_size = tab.plotview.figure.get_size_inches()
+                self.parameters['xsize'].value = figure_size[0]
+                self.parameters['ysize'].value = figure_size[1]
+            else:
+                self.parameters['xsize'].value = tab.parameters['xsize'].value
+                self.parameters['ysize'].value = tab.parameters['ysize'].value
 
     def reset(self):
         self.set_axes()
