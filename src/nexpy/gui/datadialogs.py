@@ -2218,8 +2218,9 @@ class LimitTab(NXTab):
         self.minbox['signal'].setValue(self.plotview.axis['signal'].lo)
         self.maxbox['signal'].setValue(self.plotview.axis['signal'].hi)
         if self.plotview.label != 'Main':
-            self.parameters['xsize'].value = self.parameters['xsize'].init_value
-            self.parameters['ysize'].value = self.parameters['ysize'].init_value
+            figure_size = self.plotview.figure.get_size_inches()
+            self.parameters['xsize'].value = figure_size[0]
+            self.parameters['ysize'].value = figure_size[1]
         if self.ndim > 1:
             self.copied_properties = {'aspect': self.plotview.aspect,
                                       'cmap': self.plotview.cmap,
