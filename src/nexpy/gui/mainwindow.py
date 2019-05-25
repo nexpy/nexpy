@@ -875,7 +875,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.script_menu.addSeparator()
 
         self.scripts = {}
-        files = os.listdir(self.script_dir)
+        files = sorted(os.listdir(self.script_dir))
         for file_name in files:
             if file_name.endswith('.py'):
                 self.add_script_action(os.path.join(self.script_dir, file_name))
