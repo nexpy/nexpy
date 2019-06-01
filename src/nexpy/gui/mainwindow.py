@@ -181,7 +181,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.init_menu_bar()
 
         self.file_filter = ';;'.join((
-            "NeXus Files (*.nxs *.nx5 *.h5 *.hdf *.hdf5 *.cxi)",
+            "NeXus Files (*.nxs *.nx5 *.nxspe *.h5 *.hdf *.hdf5 *.cxi)",
             "Any Files (*.* *)"))
         self.max_recent_files = 20
 
@@ -1079,7 +1079,8 @@ class MainWindow(QtWidgets.QMainWindow):
             nxfiles = sorted([f for f in os.listdir(directory) 
                               if ((f.endswith('.nxs') or f.endswith('.nx5') or
                                    f.endswith('.h5') or f.endswith('hdf5') or
-                                   f.endswith('hdf') or f.endswith('.cxi')) and
+                                   f.endswith('hdf') or f.endswith('.cxi') or
+                                   f.endswith('nxspe')) and
                               os.path.join(directory,f) not in tree_files and
                               not os.path.islink(os.path.join(directory,f)))],
                              key=natural_sort)
