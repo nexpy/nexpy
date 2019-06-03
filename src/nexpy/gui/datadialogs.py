@@ -90,8 +90,8 @@ class NXWidget(QtWidgets.QWidget):
                 self.layout.addWidget(item)
         self.setLayout(self.layout)
 
-    def make_layout(self, *items, vertical=False):
-        if vertical:
+    def make_layout(self, *items, **opts):
+        if 'vertical' in opts and opts['vertical'] == True:
             layout = QtWidgets.QVBoxLayout()
         else:
             layout = QtWidgets.QHBoxLayout()
