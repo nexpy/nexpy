@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #-----------------------------------------------------------------------------
-# Copyright (c) 2013, NeXpy Development Team.
+# Copyright (c) 2013-2019, NeXpy Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -895,6 +895,11 @@ class MainWindow(QtWidgets.QMainWindow):
             self,
             triggered=self._open_nexpy_online_help)
         self.add_menu_action(self.help_menu, self.nexpyHelpAct)
+
+        self.notebookHelpAct = QtWidgets.QAction("Open NeXus API Tutorial Online",
+            self,
+            triggered=self._open_nexusformat_online_notebook)
+        self.add_menu_action(self.help_menu, self.notebookHelpAct)
 
         self.nexusHelpAct = QtWidgets.QAction(
             "Open NeXus Base Class Definitions Online",
@@ -2081,15 +2086,20 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.script_menu.removeAction(action)
 
     def _open_nexpy_online_help(self):
-        filename = "http://nexpy.github.io/nexpy/"
+        filename = "https://nexpy.github.io/nexpy/"
+        webbrowser.open(filename, new=1, autoraise=True)
+
+    def _open_nexusformat_online_notebook(self):
+        filename = ("https://colab.research.google.com/github/nexpy/nexusformat/blob/" +
+                    "master/src/nexusformat/notebooks/nexusformat.ipynb")
         webbrowser.open(filename, new=1, autoraise=True)
 
     def _open_nexus_online_help(self):
-        filename = "http://download.nexusformat.org/doc/html/classes/base_classes/"
+        filename = "https://download.nexusformat.org/doc/html/classes/base_classes/"
         webbrowser.open(filename, new=1, autoraise=True)
 
     def _open_ipython_online_help(self):
-        filename = "http://ipython.org/ipython-doc/stable/index.html"
+        filename = "https://ipython.org/ipython-doc/stable/index.html"
         webbrowser.open(filename, new=1, autoraise=True)
 
     def open_example_file(self):
