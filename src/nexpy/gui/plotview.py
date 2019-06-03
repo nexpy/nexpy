@@ -1006,11 +1006,14 @@ class NXPlotView(QtWidgets.QDialog):
         ax.set_aspect(self.aspect)
 
         if not over and not self.rgb_image:
-            self.colorbar = self.figure.colorbar(self.image, ax=ax, 
-                                                 norm=self.norm)
+            self.colorbar = self.figure.colorbar(self.image, ax=ax)
             self.colorbar.locator = self.locator
             self.colorbar.formatter = self.formatter
-            self.colorbar.update_bruteforce(self.image)
+            if mpl.__version__ >= '3.1.0':
+                self.colorbar.update_normal(self.image)
+            else:
+                self.colorbar.set_norm(self.norm)
+                self.colorbar.update_bruteforce(self.image)
 
         xlo, ylo = self.transform(self.xaxis.lo, self.yaxis.lo)
         xhi, yhi = self.transform(self.xaxis.hi, self.yaxis.hi)
@@ -1172,8 +1175,11 @@ class NXPlotView(QtWidgets.QDialog):
             if self.colorbar:
                 self.colorbar.locator = self.locator
                 self.colorbar.formatter = self.formatter
-                self.colorbar.set_norm(self.norm)
-                self.colorbar.update_bruteforce(self.image)
+                if mpl.__version__ >= '3.1.0':
+                    self.colorbar.update_normal(self.image)
+                else:
+                    self.colorbar.set_norm(self.norm)
+                    self.colorbar.update_bruteforce(self.image)
             self.image.set_clim(self.vaxis.lo, self.vaxis.hi)
             if self.regular_grid:
                 if self.interpolation == 'convolve':
