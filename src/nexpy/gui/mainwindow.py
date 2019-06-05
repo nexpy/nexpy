@@ -137,10 +137,15 @@ class MainWindow(QtWidgets.QMainWindow):
         self.user_ns = self.console.kernel_manager.kernel.shell.user_ns
         self.shell.ask_exit = self.close
         self.shell._old_stb = self.shell._showtraceback
+        
         def new_stb(etype, evalue, stb):
             self.shell._old_stb(etype, evalue, [stb[-1]])
             self.shell._last_traceback = stb
         self.shell._showtraceback = new_stb
+
+        def enable_matplotlib(gui=None):
+            return
+        self.shell.enable_matplotlib = enable_matplotlib
 
         right_splitter = QtWidgets.QSplitter(rightpane)
         right_splitter.setOrientation(QtCore.Qt.Vertical)
