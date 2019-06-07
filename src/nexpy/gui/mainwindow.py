@@ -1931,9 +1931,11 @@ class MainWindow(QtWidgets.QMainWindow):
                 before_action = self.active_action[num]
             self.active_action[number] = QtWidgets.QAction(label,
                 self,
-                shortcut=QtGui.QKeySequence("Ctrl+%s" % number),
                 triggered=lambda: self.make_active(number),
                 checkable=True)
+            if number < 10:
+                self.active_action[number].setShortcut(
+                    QtGui.QKeySequence("Ctrl+%s" % number))
             self.window_menu.insertAction(before_action,
                                           self.active_action[number])
         self.make_active(number)
