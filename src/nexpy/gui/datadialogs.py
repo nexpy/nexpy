@@ -92,8 +92,10 @@ class NXWidget(QtWidgets.QWidget):
 
     def make_layout(self, *items, **opts):
         if 'vertical' in opts and opts['vertical'] == True:
+            vertical = True
             layout = QtWidgets.QVBoxLayout()
         else:
+            vertical = False
             layout = QtWidgets.QHBoxLayout()
             layout.addStretch()
         for item in items:
