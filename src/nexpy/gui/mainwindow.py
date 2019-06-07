@@ -830,7 +830,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.closewindow_action=QtWidgets.QAction("Close Plot Window",
             self,
-            shortcut=QtGui.QKeySequence("Ctrl+Shift+W"),
+            shortcut=QtGui.QKeySequence("Ctrl+W"),
             triggered=self.close_window
             )
         self.add_menu_action(self.window_menu, self.closewindow_action,)
@@ -1944,8 +1944,9 @@ class MainWindow(QtWidgets.QMainWindow):
         new_plotview = NXPlotView(parent=self)
 
     def close_window(self):
-        if self.plotview.number != 1:
-            self.plotview.close()
+        for w in [w for w in self.app.app.topLevelWidgets() if w.isActiveWindow()]:
+            w.close()
+            break
 
     def equalize_windows(self):
         for label in [label for label in self.plotviews 
