@@ -1972,8 +1972,6 @@ class MainWindow(QtWidgets.QMainWindow):
             if 'limit' not in self.panels:
                 self.panels['limit'] = LimitDialog(parent=self)
             self.panels['limit'].activate(self.plotview.label)
-            self.panels['limit'].setVisible(True)
-            self.panels['limit'].raise_()
         except NeXusError as error:
             report_error("Changing Plot Limits", error)
 
@@ -1988,8 +1986,6 @@ class MainWindow(QtWidgets.QMainWindow):
             if 'customize' not in self.panels:
                 self.panels['customize'] = CustomizeDialog(parent=self)
             self.panels['customize'].activate(self.plotview.label)
-            self.panels['customize'].setVisible(True)
-            self.panels['customize'].raise_()
         except NeXusError as error:
             report_error("Customizing Plot", error)
 
@@ -2030,8 +2026,6 @@ class MainWindow(QtWidgets.QMainWindow):
             if 'projection' not in self.panels:
                 self.panels['projection'] = ProjectionDialog(parent=self)
             self.panels['projection'].activate(self.plotview.label)
-            self.panels['projection'].setVisible(True)
-            self.panels['projection'].raise_()
         except NeXusError as error:
             report_error("Showing Projection Panel", error)
 

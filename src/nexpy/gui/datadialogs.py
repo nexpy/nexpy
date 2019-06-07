@@ -644,6 +644,8 @@ class NXPanel(NXDialog):
     def __init__(self, panel, title='title', tabs={}, apply=True, reset=True, 
                  parent=None):
         super(NXPanel, self).__init__(parent)
+        self.tab_class = NXTab
+        self.plotview_sort = False
         self.tabwidget = QtWidgets.QTabWidget()
         self.tabwidget.currentChanged.connect(self.update)
         self.tabwidget.setElideMode(QtCore.Qt.ElideLeft)
@@ -694,6 +696,10 @@ class NXPanel(NXDialog):
     def tab(self):
         return self.tabwidget.currentWidget()
 
+    @tab.setter
+    def tab(self, label):
+        self.tabwidget.setCurrentWidget(self.tabs[label])
+
     def close_buttons(self, apply=True, reset=True):
         """
         Creates a box containing the standard Apply, Reset and Close buttons.
@@ -730,9 +736,23 @@ class NXPanel(NXDialog):
 
     def activate(self, label):
         if label not in self.tabs:
-            tab = NXTab(parent=self)
-            self.addTab(tab, label)
+            tab = self.tab_class(parent=self)
+            if self.plotview_sort:
+                if label in self.plotviews:
+                    tab.plotview = self.plotviews[label]
+                    numbers = sorted([t.plotview.number-1 for t in self.labels])
+                    idx = bisect.bisect_left(numbers, tab.plotview.number)
+                else:
+                    raise NeXusError("Invalid plot label")
+            else:
+                idx=None
+            self.add(label, tab, idx=idx)
+        else:
+            self.tab = label
+            self.tab.update()
         self.setVisible(True)
+        self.raise_()
+        self.activateWindow()
 
     def update(self):
         if self.tabwidget.count() == 0:
@@ -1281,20 +1301,8 @@ class CustomizeDialog(NXPanel):
     def __init__(self, parent=None):
         super(CustomizeDialog, self).__init__('customize', title='Customize Plot', 
                                               parent=parent)
-
-    def activate(self, label):
-        if label not in self.tabs:
-            tab = CustomizeTab(parent=self)
-            if label in self.plotviews:
-                tab.plotview = self.plotviews[label]
-                numbers = sorted([t.plotview.number-1 for t in self.labels])
-                idx = bisect.bisect_left(numbers, tab.plotview.number)
-            else:
-                raise NeXusError("Invalid plot label")
-            self.add(label, tab, idx)
-        else:
-            tab = self.tabs[label]
-            tab.update()
+        self.tab_class = CustomizeTab
+        self.plotview_sort = True
 
 
 class CustomizeTab(NXTab):
@@ -1531,20 +1539,8 @@ class ProjectionDialog(NXPanel):
     def __init__(self, parent=None):
         super(ProjectionDialog, self).__init__('projection', title='Projection Panel', 
                                                apply=False, parent=parent)
-
-    def activate(self, label):
-        if label not in self.tabs:
-            tab = ProjectionTab(parent=self)
-            if label in self.plotviews:
-                tab.plotview = self.plotviews[label]
-                numbers = sorted([t.plotview.number-1 for t in self.labels])
-                idx = bisect.bisect_left(numbers, tab.plotview.number)
-            else:
-                raise NeXusError("Invalid plot label")
-            self.add(label, tab, idx)
-        else:
-            tab = self.tabs[label]
-            tab.update()
+        self.tab_class = ProjectionTab
+        self.plotview_sort = True
 
     
 class ProjectionTab(NXTab):
@@ -1926,20 +1922,8 @@ class LimitDialog(NXPanel):
  
     def __init__(self, parent=None):
         super(LimitDialog, self).__init__('limit', title='Plot Limits', parent=parent)
-
-    def activate(self, label):
-        if label not in self.tabs:
-            tab = LimitTab(parent=self)
-            if label in self.plotviews:
-                tab.plotview = self.plotviews[label]
-                numbers = sorted([t.plotview.number-1 for t in self.labels])
-                idx = bisect.bisect_left(numbers, tab.plotview.number)
-            else:
-                raise NeXusError("Invalid plot label")
-            self.add(label, tab, idx)
-        else:
-            tab = self.tabs[label]
-            tab.update()
+        self.tab_class = LimitTab
+        self.plotview_sort = True
 
     
 class LimitTab(NXTab):
@@ -3185,6 +3169,9 @@ class LogDialog(NXDialog):
         self.text_box.verticalScrollBar().setValue(
             self.text_box.verticalScrollBar().maximum())
         self.setWindowTitle("Log File: %s" % self.file_name)
+        self.setVisible(True)
+        self.raise_()
+        self.activateWindow()
 
     def reject(self):
         super(LogDialog, self).reject()
