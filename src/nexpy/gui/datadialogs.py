@@ -761,8 +761,9 @@ class NXPanel(NXDialog):
 
     def close(self):
         tab = self.tab
-        tab.close()
-        self.remove(self.labels[tab])
+        if tab:
+            tab.close()
+            self.remove(self.labels[tab])
 
 
 class GridParameters(OrderedDict):
