@@ -143,10 +143,6 @@ class MainWindow(QtWidgets.QMainWindow):
             self.shell._last_traceback = stb
         self.shell._showtraceback = new_stb
 
-        def enable_matplotlib(gui=None):
-            return
-        self.shell.enable_matplotlib = enable_matplotlib
-
         right_splitter = QtWidgets.QSplitter(rightpane)
         right_splitter.setOrientation(QtCore.Qt.Vertical)
         right_splitter.addWidget(main_plotview)

@@ -31,7 +31,6 @@ import warnings
 from posixpath import dirname, basename
 
 import matplotlib as mpl
-from matplotlib._pylab_helpers import Gcf
 from matplotlib.backend_bases import FigureManagerBase, FigureCanvasBase
 if QtVersion == 'Qt5Agg':
     from matplotlib.backends.backend_qt5 import FigureManagerQT as FigureManager
@@ -112,20 +111,19 @@ def new_figure_manager(label=None, *args, **kwargs):
     label : str
         The label used to define 
     """
-    import matplotlib.pyplot as plt
+    global plotviews
     if label is None:
         label = ''
     if label == 'Projection' or label == 'Fit':
-        nums = [num for num in plt.get_fignums() if num > 100]
+        nums = [plotviews[p].number for p in plotviews if plotviews[p].number > 100]
         if nums:
             num = max(nums) + 1
         else:
             num = 101
     else:
-        nums = [num for num in plt.get_fignums() if num < 100]
+        nums = [plotviews[p].number for p in plotviews if plotviews[p].number < 100]
         if nums:
-            missing_nums = sorted(set(range(nums[0], 
-                                  nums[-1]+1)).difference(nums))
+            missing_nums = sorted(set(range(nums[0], nums[-1]+1)).difference(nums))
             if missing_nums:
                 num = missing_nums[0]
             else:
@@ -286,7 +284,6 @@ class NXPlotView(QtWidgets.QDialog):
         self.canvas.setFocusPolicy(QtCore.Qt.ClickFocus)
         self.canvas.callbacks.exception_handler = report_exception
 
-        Gcf.set_active(self.figuremanager)
         self.mpl_connect = self.canvas.mpl_connect
         self.button_press_cid = self.mpl_connect('button_press_event', 
                                                  self.on_button_press)
@@ -561,7 +558,6 @@ class NXPlotView(QtWidgets.QDialog):
         if self.number < 101:
             plotview = self
             self.mainwindow.user_ns['plotview'] = self
-        Gcf.set_active(self.figuremanager)
         self.show()
         if self.label == 'Main':
             self.mainwindow.raise_()
@@ -2284,7 +2280,6 @@ class NXPlotView(QtWidgets.QDialog):
     def close_view(self):
         """Remove this window from menus and close associated panels."""
         self.remove_menu_action()
-        Gcf.destroy(self.number)
         if self.label in plotviews:
             del plotviews[self.label]
         for panel in self.panels:
