@@ -2010,10 +2010,8 @@ class MainWindow(QtWidgets.QMainWindow):
         try:
             if self.log_window:
                 self.log_window.show_log()
-                self.log_window.raise_()
             else:
                 self.log_window = LogDialog(parent=self)
-                self.log_window.show()
         except NeXusError as error:
             report_error("Showing Log File", error)
 
