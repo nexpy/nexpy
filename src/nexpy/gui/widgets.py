@@ -685,7 +685,8 @@ class NXcircle(NXpatch):
     def initialize(self, xp, yp):
         x0, y0 = self.circle.center
         w0, h0 = self.width, self.height
-        xt, yt, rt = *self.pixel_shift(xp, yp, x0, y0), self.pixel_radius
+        xt, yt = self.pixel_shift(xp, yp, x0, y0)
+        rt = self.pixel_radius
         if (self.allow_resize and
             (np.sqrt(xt**2 + yt**2) > rt * (1-self.border_tol))):
             expand = True

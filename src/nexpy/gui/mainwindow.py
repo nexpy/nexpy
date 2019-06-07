@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #-----------------------------------------------------------------------------
-# Copyright (c) 2013, NeXpy Development Team.
+# Copyright (c) 2013-2019, NeXpy Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -137,6 +137,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.user_ns = self.console.kernel_manager.kernel.shell.user_ns
         self.shell.ask_exit = self.close
         self.shell._old_stb = self.shell._showtraceback
+        
         def new_stb(etype, evalue, stb):
             self.shell._old_stb(etype, evalue, [stb[-1]])
             self.shell._last_traceback = stb
@@ -181,7 +182,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.init_menu_bar()
 
         self.file_filter = ';;'.join((
-            "NeXus Files (*.nxs *.nx5 *.h5 *.hdf *.hdf5 *.cxi)",
+            "NeXus Files (*.nxs *.nx5 *.nxspe *.h5 *.hdf *.hdf5 *.cxi)",
             "Any Files (*.* *)"))
         self.max_recent_files = 20
 
@@ -829,7 +830,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.closewindow_action=QtWidgets.QAction("Close Plot Window",
             self,
-            shortcut=QtGui.QKeySequence("Ctrl+Shift+W"),
+            shortcut=QtGui.QKeySequence("Ctrl+W"),
             triggered=self.close_window
             )
         self.add_menu_action(self.window_menu, self.closewindow_action,)
@@ -875,7 +876,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.script_menu.addSeparator()
 
         self.scripts = {}
-        files = os.listdir(self.script_dir)
+        files = sorted(os.listdir(self.script_dir))
         for file_name in files:
             if file_name.endswith('.py'):
                 self.add_script_action(os.path.join(self.script_dir, file_name))
@@ -895,6 +896,11 @@ class MainWindow(QtWidgets.QMainWindow):
             self,
             triggered=self._open_nexpy_online_help)
         self.add_menu_action(self.help_menu, self.nexpyHelpAct)
+
+        self.notebookHelpAct = QtWidgets.QAction("Open NeXus API Tutorial Online",
+            self,
+            triggered=self._open_nexusformat_online_notebook)
+        self.add_menu_action(self.help_menu, self.notebookHelpAct)
 
         self.nexusHelpAct = QtWidgets.QAction(
             "Open NeXus Base Class Definitions Online",
@@ -1079,7 +1085,8 @@ class MainWindow(QtWidgets.QMainWindow):
             nxfiles = sorted([f for f in os.listdir(directory) 
                               if ((f.endswith('.nxs') or f.endswith('.nx5') or
                                    f.endswith('.h5') or f.endswith('hdf5') or
-                                   f.endswith('hdf') or f.endswith('.cxi')) and
+                                   f.endswith('hdf') or f.endswith('.cxi') or
+                                   f.endswith('nxspe')) and
                               os.path.join(directory,f) not in tree_files and
                               not os.path.islink(os.path.join(directory,f)))],
                              key=natural_sort)
@@ -1924,9 +1931,11 @@ class MainWindow(QtWidgets.QMainWindow):
                 before_action = self.active_action[num]
             self.active_action[number] = QtWidgets.QAction(label,
                 self,
-                shortcut=QtGui.QKeySequence("Ctrl+%s" % number),
                 triggered=lambda: self.make_active(number),
                 checkable=True)
+            if number < 10:
+                self.active_action[number].setShortcut(
+                    QtGui.QKeySequence("Ctrl+%s" % number))
             self.window_menu.insertAction(before_action,
                                           self.active_action[number])
         self.make_active(number)
@@ -1935,8 +1944,9 @@ class MainWindow(QtWidgets.QMainWindow):
         new_plotview = NXPlotView(parent=self)
 
     def close_window(self):
-        if self.plotview.number != 1:
-            self.plotview.close()
+        for w in [w for w in self.app.app.topLevelWidgets() if w.isActiveWindow()]:
+            w.close()
+            break
 
     def equalize_windows(self):
         for label in [label for label in self.plotviews 
@@ -1961,8 +1971,6 @@ class MainWindow(QtWidgets.QMainWindow):
             if 'limit' not in self.panels:
                 self.panels['limit'] = LimitDialog(parent=self)
             self.panels['limit'].activate(self.plotview.label)
-            self.panels['limit'].setVisible(True)
-            self.panels['limit'].raise_()
         except NeXusError as error:
             report_error("Changing Plot Limits", error)
 
@@ -1977,8 +1985,6 @@ class MainWindow(QtWidgets.QMainWindow):
             if 'customize' not in self.panels:
                 self.panels['customize'] = CustomizeDialog(parent=self)
             self.panels['customize'].activate(self.plotview.label)
-            self.panels['customize'].setVisible(True)
-            self.panels['customize'].raise_()
         except NeXusError as error:
             report_error("Customizing Plot", error)
 
@@ -2005,10 +2011,8 @@ class MainWindow(QtWidgets.QMainWindow):
         try:
             if self.log_window:
                 self.log_window.show_log()
-                self.log_window.raise_()
             else:
                 self.log_window = LogDialog(parent=self)
-                self.log_window.show()
         except NeXusError as error:
             report_error("Showing Log File", error)
 
@@ -2019,8 +2023,6 @@ class MainWindow(QtWidgets.QMainWindow):
             if 'projection' not in self.panels:
                 self.panels['projection'] = ProjectionDialog(parent=self)
             self.panels['projection'].activate(self.plotview.label)
-            self.panels['projection'].setVisible(True)
-            self.panels['projection'].raise_()
         except NeXusError as error:
             report_error("Showing Projection Panel", error)
 
@@ -2080,15 +2082,20 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.script_menu.removeAction(action)
 
     def _open_nexpy_online_help(self):
-        filename = "http://nexpy.github.io/nexpy/"
+        filename = "https://nexpy.github.io/nexpy/"
+        webbrowser.open(filename, new=1, autoraise=True)
+
+    def _open_nexusformat_online_notebook(self):
+        filename = ("https://colab.research.google.com/github/nexpy/nexusformat/blob/" +
+                    "master/src/nexusformat/notebooks/nexusformat.ipynb")
         webbrowser.open(filename, new=1, autoraise=True)
 
     def _open_nexus_online_help(self):
-        filename = "http://download.nexusformat.org/doc/html/classes/base_classes/"
+        filename = "https://download.nexusformat.org/doc/html/classes/base_classes/"
         webbrowser.open(filename, new=1, autoraise=True)
 
     def _open_ipython_online_help(self):
-        filename = "http://ipython.org/ipython-doc/stable/index.html"
+        filename = "https://ipython.org/ipython-doc/stable/index.html"
         webbrowser.open(filename, new=1, autoraise=True)
 
     def open_example_file(self):

@@ -90,10 +90,12 @@ class NXWidget(QtWidgets.QWidget):
                 self.layout.addWidget(item)
         self.setLayout(self.layout)
 
-    def make_layout(self, *items, vertical=False):
-        if vertical:
+    def make_layout(self, *items, **opts):
+        if 'vertical' in opts and opts['vertical'] == True:
+            vertical = True
             layout = QtWidgets.QVBoxLayout()
         else:
+            vertical = False
             layout = QtWidgets.QHBoxLayout()
             layout.addStretch()
         for item in items:
@@ -642,6 +644,8 @@ class NXPanel(NXDialog):
     def __init__(self, panel, title='title', tabs={}, apply=True, reset=True, 
                  parent=None):
         super(NXPanel, self).__init__(parent)
+        self.tab_class = NXTab
+        self.plotview_sort = False
         self.tabwidget = QtWidgets.QTabWidget()
         self.tabwidget.currentChanged.connect(self.update)
         self.tabwidget.setElideMode(QtCore.Qt.ElideLeft)
@@ -692,6 +696,10 @@ class NXPanel(NXDialog):
     def tab(self):
         return self.tabwidget.currentWidget()
 
+    @tab.setter
+    def tab(self, label):
+        self.tabwidget.setCurrentWidget(self.tabs[label])
+
     def close_buttons(self, apply=True, reset=True):
         """
         Creates a box containing the standard Apply, Reset and Close buttons.
@@ -728,9 +736,23 @@ class NXPanel(NXDialog):
 
     def activate(self, label):
         if label not in self.tabs:
-            tab = NXTab(parent=self)
-            self.addTab(tab, label)
+            tab = self.tab_class(parent=self)
+            if self.plotview_sort:
+                if label in self.plotviews:
+                    tab.plotview = self.plotviews[label]
+                    numbers = sorted([t.plotview.number-1 for t in self.labels])
+                    idx = bisect.bisect_left(numbers, tab.plotview.number)
+                else:
+                    raise NeXusError("Invalid plot label")
+            else:
+                idx=None
+            self.add(label, tab, idx=idx)
+        else:
+            self.tab = label
+            self.tab.update()
         self.setVisible(True)
+        self.raise_()
+        self.activateWindow()
 
     def update(self):
         if self.tabwidget.count() == 0:
@@ -759,8 +781,9 @@ class NXPanel(NXDialog):
 
     def close(self):
         tab = self.tab
-        tab.close()
-        self.remove(self.labels[tab])
+        if tab:
+            tab.close()
+            self.remove(self.labels[tab])
 
 
 class GridParameters(OrderedDict):
@@ -1278,20 +1301,8 @@ class CustomizeDialog(NXPanel):
     def __init__(self, parent=None):
         super(CustomizeDialog, self).__init__('customize', title='Customize Plot', 
                                               parent=parent)
-
-    def activate(self, label):
-        if label not in self.tabs:
-            tab = CustomizeTab(parent=self)
-            if label in self.plotviews:
-                tab.plotview = self.plotviews[label]
-                numbers = sorted([t.plotview.number-1 for t in self.labels])
-                idx = bisect.bisect_left(numbers, tab.plotview.number)
-            else:
-                raise NeXusError("Invalid plot label")
-            self.add(label, tab, idx)
-        else:
-            tab = self.tabs[label]
-            tab.update()
+        self.tab_class = CustomizeTab
+        self.plotview_sort = True
 
 
 class CustomizeTab(NXTab):
@@ -1528,20 +1539,8 @@ class ProjectionDialog(NXPanel):
     def __init__(self, parent=None):
         super(ProjectionDialog, self).__init__('projection', title='Projection Panel', 
                                                apply=False, parent=parent)
-
-    def activate(self, label):
-        if label not in self.tabs:
-            tab = ProjectionTab(parent=self)
-            if label in self.plotviews:
-                tab.plotview = self.plotviews[label]
-                numbers = sorted([t.plotview.number-1 for t in self.labels])
-                idx = bisect.bisect_left(numbers, tab.plotview.number)
-            else:
-                raise NeXusError("Invalid plot label")
-            self.add(label, tab, idx)
-        else:
-            tab = self.tabs[label]
-            tab.update()
+        self.tab_class = ProjectionTab
+        self.plotview_sort = True
 
     
 class ProjectionTab(NXTab):
@@ -1923,20 +1922,8 @@ class LimitDialog(NXPanel):
  
     def __init__(self, parent=None):
         super(LimitDialog, self).__init__('limit', title='Plot Limits', parent=parent)
-
-    def activate(self, label):
-        if label not in self.tabs:
-            tab = LimitTab(parent=self)
-            if label in self.plotviews:
-                tab.plotview = self.plotviews[label]
-                numbers = sorted([t.plotview.number-1 for t in self.labels])
-                idx = bisect.bisect_left(numbers, tab.plotview.number)
-            else:
-                raise NeXusError("Invalid plot label")
-            self.add(label, tab, idx)
-        else:
-            tab = self.tabs[label]
-            tab.update()
+        self.tab_class = LimitTab
+        self.plotview_sort = True
 
     
 class LimitTab(NXTab):
@@ -2205,9 +2192,14 @@ class LimitTab(NXTab):
             self.ybox.setCurrentIndex(tab.ybox.currentIndex())
             for p in self.copied_properties:
                 self.copied_properties[p] = getattr(tab.plotview, p)
-        if self.plotview.label != 'Main' and tab.plotview.label != 'Main':
-            self.parameters['xsize'].value = tab.parameters['xsize'].value
-            self.parameters['ysize'].value = tab.parameters['ysize'].value
+        if self.plotview.label != 'Main':
+            if tab.plotview.label == 'Main':
+                figure_size = tab.plotview.figure.get_size_inches()
+                self.parameters['xsize'].value = figure_size[0]
+                self.parameters['ysize'].value = figure_size[1]
+            else:
+                self.parameters['xsize'].value = tab.parameters['xsize'].value
+                self.parameters['ysize'].value = tab.parameters['ysize'].value
 
     def reset(self):
         self.set_axes()
@@ -2218,8 +2210,9 @@ class LimitTab(NXTab):
         self.minbox['signal'].setValue(self.plotview.axis['signal'].lo)
         self.maxbox['signal'].setValue(self.plotview.axis['signal'].hi)
         if self.plotview.label != 'Main':
-            self.parameters['xsize'].value = self.parameters['xsize'].init_value
-            self.parameters['ysize'].value = self.parameters['ysize'].init_value
+            figure_size = self.plotview.figure.get_size_inches()
+            self.parameters['xsize'].value = figure_size[0]
+            self.parameters['ysize'].value = figure_size[1]
         if self.ndim > 1:
             self.copied_properties = {'aspect': self.plotview.aspect,
                                       'cmap': self.plotview.cmap,
@@ -3176,6 +3169,9 @@ class LogDialog(NXDialog):
         self.text_box.verticalScrollBar().setValue(
             self.text_box.verticalScrollBar().maximum())
         self.setWindowTitle("Log File: %s" % self.file_name)
+        self.setVisible(True)
+        self.raise_()
+        self.activateWindow()
 
     def reject(self):
         super(LogDialog, self).reject()
