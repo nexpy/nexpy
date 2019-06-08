@@ -2046,14 +2046,11 @@ class LimitTab(NXTab):
         return self.plotview.xtab.get_axes()
 
     def set_axes(self):
-        axes = self.get_axes()
-        self.xbox.clear()
-        self.xbox.add(*axes)
-        self.xbox.select(self.plotview.xaxis.name)
-        if self.ndim < 2:
-            self.ylabel.setVisible(False)
-            self.ybox.setVisible(False)
-        else:
+        if self.ndim > 1:        
+            axes = self.get_axes()
+            self.xbox.clear()
+            self.xbox.add(*axes)
+            self.xbox.select(self.plotview.xaxis.name)
             self.ylabel.setVisible(True)
             self.ybox.setVisible(True)
             self.ybox.clear()
