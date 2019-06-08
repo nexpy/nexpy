@@ -1637,7 +1637,10 @@ class NXPlotView(QtWidgets.QDialog):
         if self._nameonly:
             labels = [basename(label) for label in labels]
         self._legend = self.ax.legend(handles, labels, **opts)
-        self._legend.draggable(True)
+        try:
+            self._legend.set_draggable(True)
+        except AttributeError:
+            self._legend.draggable(True)
         self.draw()
         return self._legend
 
