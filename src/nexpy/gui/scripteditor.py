@@ -20,7 +20,6 @@ from pygments.formatter import Formatter
 
 from .pyqt import QtCore, QtGui, QtWidgets, getSaveFileName
 
-from .datadialogs import BaseDialog
 from .utils import confirm_action
 
 
@@ -55,7 +54,6 @@ class QFormatter(Formatter):
             self.styles[str(token)] = qtf
     
     def format(self, tokensource, outfile):
-        global styles
         self.data=[]
         for ttype, value in tokensource:
             l=len(value)

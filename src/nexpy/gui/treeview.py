@@ -337,6 +337,9 @@ class NXTreeView(QtWidgets.QTreeView):
         self.collapse_action=QtWidgets.QAction("Collapse Tree", self,
                                     triggered=self.collapse)
 
+    def __repr__(self):
+        return 'NXTreeView("nxtree")'
+
     def popMenu(self, node):
         menu = QtWidgets.QMenu(self)
         from .plotview import plotview
