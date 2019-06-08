@@ -152,7 +152,7 @@ class NXScriptWindow(QtWidgets.QDialog):
         
     def close(self):
         self.editor.close()
-        if self.editors == []:
+        if self.tabs.count() == 0:
             self.setVisible(False)
 
 
