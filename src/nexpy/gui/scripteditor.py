@@ -136,6 +136,10 @@ class NXScriptWindow(QtWidgets.QDialog):
     def editors(self):
         return [self.tabs.widget(idx) for idx in range(self.tabs.count())]
 
+    @property
+    def editor(self):
+        return self.tabs.currentWidget()
+
     def update(self):
         for editor in self.editors:
             editor.adjustSize()
@@ -147,9 +151,9 @@ class NXScriptWindow(QtWidgets.QDialog):
         event.accept()
         
     def close(self):
-        for editor in self.editors:
-            editor.close()
-        self.setVisible(False)
+        self.editor.close()
+        if self.editors == []:
+            self.setVisible(False)
 
 
 class NXScriptEditor(QtWidgets.QWidget):
