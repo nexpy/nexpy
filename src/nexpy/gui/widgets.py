@@ -13,7 +13,7 @@ from matplotlib.cbook import mplDeprecation
 from matplotlib.patches import Circle, Ellipse, Polygon, Rectangle
 
 from .pyqt import QtCore, QtGui, QtWidgets
-from .utils import boundaries, get_color
+from .utils import report_error, boundaries, get_color
 
 try:
     from formlayout import ColorLayout, text_to_qcolor
@@ -313,7 +313,8 @@ class NXColorBox(QtWidgets.QWidget):
         
         """
         super(NXColorBox, self).__init__(parent)
-        color = text_to_qcolor(color)
+        self.color_text = color
+        color = text_to_qcolor(self.color_text)
         self.layout = ColorLayout(color)
         self.layout.setContentsMargins(0,0,0,0)
         self.box = self.layout.lineedit
@@ -325,13 +326,19 @@ class NXColorBox(QtWidgets.QWidget):
 
     def update_color(self):
         """Set the button color following a change to the text box."""
-        color = text_to_qcolor(get_color(self.box.text()))
-        if color.isValid():
-            self.button.color = color
+        try:
+            color = text_to_qcolor(get_color(self.box.text()))
+            if color.isValid():
+                self.button.color = color
+                self.color_text = self.box.text()
+        except ValueError as error:
+            report_error('Invalid color', error)
+            self.box.setText(self.color_text)
 
     def update_text(self, color):
         """Set the text box string following a change to the color button."""
-        self.box.setText(mpl.colors.to_hex(color.getRgbF()))
+        self.color_text = mpl.colors.to_hex(color.getRgbF())
+        self.box.setText(self.color_text)
 
 
 class NXSpinBox(QtWidgets.QSpinBox):
