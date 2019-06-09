@@ -927,12 +927,6 @@ class MainWindow(QtWidgets.QMainWindow):
             )
         self.add_menu_action(self.help_menu, self.quickref_console_action)
 
-        self.guiref_console_action = QtWidgets.QAction("&Qt Console",
-            self,
-            triggered=self.guiref_console
-            )
-        self.add_menu_action(self.help_menu, self.guiref_console_action)
-
         self.help_menu.addSeparator()
 
         self.example_file_action=QtWidgets.QAction("Open Example File",
@@ -2091,11 +2085,11 @@ class MainWindow(QtWidgets.QMainWindow):
         webbrowser.open(filename, new=1, autoraise=True)
 
     def _open_nexus_online_help(self):
-        filename = "https://download.nexusformat.org/doc/html/classes/base_classes/"
+        filename = "http://download.nexusformat.org/doc/html/classes/base_classes/"
         webbrowser.open(filename, new=1, autoraise=True)
 
     def _open_ipython_online_help(self):
-        filename = "https://ipython.org/ipython-doc/stable/index.html"
+        filename = "https://ipython.readthedocs.io/en/stable/"
         webbrowser.open(filename, new=1, autoraise=True)
 
     def open_example_file(self):
@@ -2249,9 +2243,6 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def reset_font_size_console(self):
         self.console.reset_font_size.trigger()
-
-    def guiref_console(self):
-        self.console.execute("%guiref")
 
     def intro_console(self):
         self.console.execute("?")

@@ -111,7 +111,6 @@ def new_figure_manager(label=None, *args, **kwargs):
     label : str
         The label used to define 
     """
-    global plotviews
     if label is None:
         label = ''
     if label == 'Projection' or label == 'Fit':
@@ -144,7 +143,7 @@ def change_plotview(label):
     label : str
         The label of the plotting window to be activated.
     """
-    global plotview, plotviews
+    global plotview
     if label in plotviews:
         if plotviews[label].number < 101:
             plotviews[label].make_active()
@@ -156,7 +155,6 @@ def change_plotview(label):
 
 def get_plotview():
     """Return the currently active plotting window."""
-    global plotview
     return plotview
 
 
@@ -273,7 +271,6 @@ class NXPlotView(QtWidgets.QDialog):
                            QtWidgets.QSizePolicy.MinimumExpanding)
         self.setFocusPolicy(QtCore.Qt.ClickFocus)
 
-        global plotview, plotviews
         if label in plotviews:
             plotviews[label].close()
 
@@ -362,6 +359,7 @@ class NXPlotView(QtWidgets.QDialog):
                 if shortcut in mpl.rcParams[key]:
                     mpl.rcParams[key].remove(shortcut)
 
+        global plotview
         if self.number < 101:
             plotview = self
         plotviews[self.label] = self
@@ -1639,7 +1637,10 @@ class NXPlotView(QtWidgets.QDialog):
         if self._nameonly:
             labels = [basename(label) for label in labels]
         self._legend = self.ax.legend(handles, labels, **opts)
-        self._legend.draggable(True)
+        try:
+            self._legend.set_draggable(True)
+        except AttributeError:
+            self._legend.draggable(True)
         self.draw()
         return self._legend
 
