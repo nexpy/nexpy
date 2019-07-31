@@ -530,6 +530,7 @@ class NXWidget(QtWidgets.QWidget):
         layout.addWidget(self.progress_bar)
         layout.addStretch()
         layout.addWidget(self.close_buttons(save=save, close=close))
+        self.progress_bar.setVisible(False)
         return layout
 
     def get_node(self):
