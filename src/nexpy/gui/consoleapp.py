@@ -247,6 +247,10 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
         self.tree = NXtree()
         _tree = self.tree
 
+    def init_config(self):
+        self.config.ConsoleWidget.input_sep = ''
+        self.config.Completer.use_jedi = False
+
     def init_gui(self):
         """Initialize the GUI."""
         self.app = QtWidgets.QApplication.instance()
@@ -268,7 +272,6 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
                 self.app.icon.pixmap(QtCore.QSize(64,64)))
         except Exception:
             self.icon_pixmap = None
-        self.config.Completer.use_jedi = False
         self.window = MainWindow(self, self.tree, self.settings, self.config)
         self.window.log = self.log
         global _mainwindow
@@ -344,6 +347,7 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
         self.init_settings()
         self.init_log()
         self.init_tree()
+        self.init_config()
         self.init_gui()
         self.init_shell(filename)
         self.init_colors()

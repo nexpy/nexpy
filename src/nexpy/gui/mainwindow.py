@@ -124,11 +124,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.shellview = self.console._control
         self.shellview.setFocusPolicy(QtCore.Qt.ClickFocus)
 
-        if 'gui_completion' not in self.config['ConsoleWidget']:
-            self.console.gui_completion = 'droplist'
-        if 'input_sep' not in self.config['JupyterWidget']:
-            self.console.input_sep = ''
-
         self.kernel = self.console.kernel_manager.kernel
         def _abort_queues(kernel):
             pass
