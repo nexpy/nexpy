@@ -268,6 +268,7 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
                 self.app.icon.pixmap(QtCore.QSize(64,64)))
         except Exception:
             self.icon_pixmap = None
+        self.config.Completer.use_jedi = False
         self.window = MainWindow(self, self.tree, self.settings, self.config)
         self.window.log = self.log
         global _mainwindow
