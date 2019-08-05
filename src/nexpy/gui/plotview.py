@@ -2580,7 +2580,7 @@ class NXPlotTab(QtWidgets.QWidget):
         self.maxbox.old_value = axis.hi
         if not self.zaxis:
             self.axis.locked = False
-            if np.all(self.axis.data <= 0.0):
+            if np.all(self.axis.data[np.isfinite(self.axis.data)] <= 0.0):
                 self.logbox.setChecked(False)
                 self.logbox.setEnabled(False)
             else:
@@ -2791,7 +2791,7 @@ class NXPlotTab(QtWidgets.QWidget):
             return False
 
     def _set_log(self, value):
-        if value and np.all(self.axis.data <= 0.0):
+        if value and np.all(self.axis.data[np.isfinite(self.axis.data)] <= 0.0):
             raise NeXusError("Cannot set log axis when all values are <= 0")
         try:
             if value != self.log:
