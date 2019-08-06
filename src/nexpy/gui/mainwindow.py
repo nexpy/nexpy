@@ -134,7 +134,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.shell._old_stb = self.shell._showtraceback
         try:
             self.shell.set_hook('complete_command', nxcompleter, 
-                                re_key=r"(?:.*\=)?(.+?)\[")
+                                re_key=r"(?:.*\=)?(?:.*\()?(?:.*,)?(.+?)\[")
         except NameError:
             pass
         def new_stb(etype, evalue, stb):
