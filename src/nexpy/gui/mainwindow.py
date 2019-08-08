@@ -124,11 +124,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.shellview = self.console._control
         self.shellview.setFocusPolicy(QtCore.Qt.ClickFocus)
 
-        if 'gui_completion' not in self.config['ConsoleWidget']:
-            self.console.gui_completion = 'droplist'
-        if 'input_sep' not in self.config['JupyterWidget']:
-            self.console.input_sep = ''
-
         self.kernel = self.console.kernel_manager.kernel
         def _abort_queues(kernel):
             pass
@@ -137,7 +132,11 @@ class MainWindow(QtWidgets.QMainWindow):
         self.user_ns = self.console.kernel_manager.kernel.shell.user_ns
         self.shell.ask_exit = self.close
         self.shell._old_stb = self.shell._showtraceback
-        
+        try:
+            self.shell.set_hook('complete_command', nxcompleter, 
+                                re_key=r"(?:.*\=)?(?:.*\()?(?:.*,)?(.+?)\[")
+        except NameError:
+            pass
         def new_stb(etype, evalue, stb):
             self.shell._old_stb(etype, evalue, [stb[-1]])
             self.shell._last_traceback = stb
