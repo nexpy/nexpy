@@ -1132,9 +1132,9 @@ class PlotDialog(NXDialog):
             self.group = node
             signal_name = None
         
-        if self.group.nxaxes is not None:
+        try:
             self.default_axes = [axis.nxname for axis in self.group.nxaxes]
-        else:
+        except Exception:
             self.default_axes = []
 
         self.fmt = fmt
