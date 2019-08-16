@@ -298,8 +298,8 @@ class NXWidget(QtWidgets.QWidget):
         """
         dirname = self.get_default_directory()
         dirname = QtWidgets.QFileDialog.getExistingDirectory(self, 
-                                                         'Choose Directory', 
-                                                         dirname)
+                                                             'Choose Directory', 
+                                                             dirname)
         if os.path.exists(dirname):  # avoids problems if <Cancel> was selected
             self.directoryname.setText(str(dirname))
             self.set_default_directory(dirname)
@@ -2320,28 +2320,16 @@ class ViewDialog(NXDialog):
                 self.properties.add('value', six.text_type(node), 'Value')
             self.properties.add('dtype', node.dtype, 'Dtype')
             self.properties.add('shape', six.text_type(node.shape), 'Shape')
-            try:
-                self.properties.add('maxshape', 
-                                    six.text_type(node.maxshape), 
-                                    'Maximum Shape')
-            except (AttributeError, OSError):
-                pass
-            try:
-                self.properties.add('compression', 
-                                    six.text_type(node.compression), 
-                                    'Compression')
-            except (AttributeError, OSError):
-                pass
-            try:
-                self.properties.add('chunks', six.text_type(node.chunks), 
-                                    'Chunk Size')
-            except (AttributeError, OSError):
-                pass
-            try:
-                self.properties.add('fillvalue', six.text_type(node.fillvalue), 
-                                    'Fill Value')
-            except (AttributeError, OSError):
-                pass
+            self.properties.add('maxshape', six.text_type(node.maxshape), 'Maximum Shape')
+            self.properties.add('fillvalue', six.text_type(node.fillvalue), 'Fill Value')
+            self.properties.add('chunks', six.text_type(node.chunks), 'Chunk Size')
+            self.properties.add('compression', six.text_type(node.compression), 
+                                'Compression')
+            self.properties.add('compression_opts', six.text_type(node.compression_opts), 
+                                'Compression Options')
+            self.properties.add('shuffle', six.text_type(node.shuffle), 'Shuffle Filter')
+            self.properties.add('fletcher32', six.text_type(node.fillvalue), 
+                                'Fletcher32 Filter')
         elif isinstance(node, NXgroup):
             self.properties.add('entries', len(node.entries), 'No. of Entries')
         layout.addLayout(self.properties.grid(header=False, 
