@@ -2334,7 +2334,7 @@ class ViewDialog(NXDialog):
             self.properties.add('compression_opts', six.text_type(node.compression_opts), 
                                 'Compression Options')
             self.properties.add('shuffle', six.text_type(node.shuffle), 'Shuffle Filter')
-            self.properties.add('fletcher32', six.text_type(node.fillvalue), 
+            self.properties.add('fletcher32', six.text_type(node.fletcher32), 
                                 'Fletcher32 Filter')
         elif isinstance(node, NXgroup):
             self.properties.add('entries', len(node.entries), 'No. of Entries')
