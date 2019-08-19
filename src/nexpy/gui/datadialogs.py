@@ -2298,22 +2298,28 @@ class ViewDialog(NXDialog):
         self.properties.add('path', node.nxpath, 'Path')
         if node.nxroot.nxfilename:
             self.properties.add('file', node.nxroot.nxfilename, 'File')
-        if node.exists():
-            target_label = 'Target File'
+        target_path_label = 'Target Path'
+        target_error = None
+        if node.file_exists():
+            target_file_label = 'Target File'
+            if not node.path_exists():
+                target_path_label = 'Target Path*'
+                target_error = '* Target path does not exist'
         else:
-            target_label = 'Target File*'
+            target_file_label = 'Target File*'
+            target_error = '* Target file does not exist'
         if isinstance(node, NXlink):
-            self.properties.add('target', node._target, 'Target Path')
+            self.properties.add('target', node._target, target_path_label)
             if node._filename:
-                self.properties.add('linkfile', node._filename, target_label)
+                self.properties.add('linkfile', node._filename, target_file_label)
             elif node.nxfilename and node.nxfilename != node.nxroot.nxfilename:
-                self.properties.add('linkfile', node.nxfilename, target_label)
+                self.properties.add('linkfile', node.nxfilename, target_file_label)
         elif node.nxfilename and node.nxfilename != node.nxroot.nxfilename:
             self.properties.add('target', node.nxfilepath, 'Target Path')
-            self.properties.add('linkfile', node.nxfilename, target_label)
+            self.properties.add('linkfile', node.nxfilename, target_file_label)
         if node.nxfilemode:
             self.properties.add('filemode', node.nxfilemode, 'Mode')
-        if not node.exists():
+        if target_error:
             pass
         elif isinstance(node, NXfield) and node.shape is not None:
             if node.shape == () or node.shape == (1,):
@@ -2335,8 +2341,8 @@ class ViewDialog(NXDialog):
         layout.addLayout(self.properties.grid(header=False, 
                                               title='Properties', 
                                               width=200))
-        if not node.exists():
-            layout.addWidget(QtWidgets.QLabel("*Target file does not exist"))
+        if target_error:
+            layout.addWidget(QtWidgets.QLabel(target_error))
         
         layout.addStretch()
 
