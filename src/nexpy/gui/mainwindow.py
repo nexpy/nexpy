@@ -1033,7 +1033,7 @@ class MainWindow(QtWidgets.QMainWindow):
         try:
             fname = self.recent_file_actions[self.sender()][1]
             if not os.path.exists(fname):
-                raise NeXusError("'%s' does not exist" % fname)
+                raise NeXusError("%s does not exist" % fname)
             name = self.tree.get_name(fname)
             self.tree[name] = nxload(fname)
             self.treeview.select_node(self.tree[name])
@@ -1144,7 +1144,7 @@ class MainWindow(QtWidgets.QMainWindow):
             node = self.treeview.get_node()
             if node is None or not isinstance(node, NXroot):
                 raise NeXusError("Only NXroot groups can be saved")
-            if node.nxfilemode and node.exists():
+            if node.nxfilemode and node.file_exists():
                 name = self.tree.get_new_name()
                 existing = True
             else:
@@ -1207,9 +1207,8 @@ class MainWindow(QtWidgets.QMainWindow):
     def reload(self):
         try:
             node = self.treeview.get_node()
-            if not node.exists():
-                raise NeXusError("'%s' does not exist" % 
-                                 os.path.abspath(node.nxfilename))
+            if not node.file_exists():
+                raise NeXusError("%s does not exist" % node.nxfilename)
             path = node.nxpath
             root = node.nxroot
             name = root.nxname
@@ -1298,9 +1297,8 @@ class MainWindow(QtWidgets.QMainWindow):
     def backup_file(self):
         try:
             node = self.treeview.get_node()
-            if node is not None and not node.exists():
-                raise NeXusError("'%s' does not exist" % 
-                                 os.path.abspath(node.nxfilename))
+            if node is not None and not node.file_exists():
+                raise NeXusError("%s does not exist" % node.nxfilename)
             if isinstance(node, NXroot):
                 dir = os.path.join(self.nexpy_dir, 'backups', timestamp())
                 os.mkdir(dir)
@@ -1393,8 +1391,7 @@ class MainWindow(QtWidgets.QMainWindow):
             node = self.treeview.get_node()
             if node is not None:
                 if not node.exists():
-                    raise NeXusError("'%s' does not exist" % 
-                                     os.path.abspath(node.nxfilename))
+                    raise NeXusError("%s does not exist" % node.nxfullpath)
                 self.treeview.status_message(node)
                 if isinstance(node, NXgroup) and node.plottable_data:
                     try:
@@ -1416,8 +1413,7 @@ class MainWindow(QtWidgets.QMainWindow):
             node = self.treeview.get_node()
             if node is not None:
                 if not node.exists():
-                    raise NeXusError("'%s' does not exist" % 
-                                     os.path.abspath(node.nxfilename))
+                    raise NeXusError("%s does not exist" % node.nxfullpath)
                 self.treeview.status_message(node)
                 node.oplot(fmt='o')
                 self.plotview.make_active()
@@ -1429,8 +1425,7 @@ class MainWindow(QtWidgets.QMainWindow):
             node = self.treeview.get_node()
             if node is not None:
                 if not node.exists():
-                    raise NeXusError("'%s' does not exist" % 
-                                     os.path.abspath(node.nxfilename))
+                    raise NeXusError("%s does not exist" % node.nxfullpath)
                 self.treeview.status_message(node)
                 if isinstance(node, NXgroup) and node.plottable_data:
                     try:
@@ -1451,8 +1446,7 @@ class MainWindow(QtWidgets.QMainWindow):
             node = self.treeview.get_node()
             if node is not None:
                 if not node.exists():
-                    raise NeXusError("'%s' does not exist" % 
-                                     os.path.abspath(node.nxfilename))
+                    raise NeXusError("%s does not exist" % node.nxfullpath)
                 self.treeview.status_message(node)
                 node.oplot(fmt='-')
                 self.plotview.make_active()
@@ -1464,8 +1458,7 @@ class MainWindow(QtWidgets.QMainWindow):
             node = self.treeview.get_node()
             if node is not None:
                 if not node.exists():
-                    raise NeXusError("'%s' does not exist" % 
-                                     os.path.abspath(node.nxfilename))
+                    raise NeXusError("%s does not exist" % node.nxfullpath)
                 elif not isinstance(node, NXgroup):
                     raise NeXusError("Multiplots only available for groups.")
                 elif 'auxiliary_signals' not in node.attrs:
@@ -1492,8 +1485,7 @@ class MainWindow(QtWidgets.QMainWindow):
             node = self.treeview.get_node()
             if node is not None:
                 if not node.exists():
-                    raise NeXusError("'%s' does not exist" % 
-                                     os.path.abspath(node.nxfilename))
+                    raise NeXusError("%s does not exist" % node.nxfullpath)
                 elif not isinstance(node, NXgroup):
                     raise NeXusError("Multiplots only available for groups.")
                 elif 'auxiliary_signals' not in node.attrs:
@@ -1520,8 +1512,7 @@ class MainWindow(QtWidgets.QMainWindow):
             node = self.treeview.get_node()
             if node is not None:
                 if not node.exists():
-                    raise NeXusError("'%s' does not exist" % 
-                                     os.path.abspath(node.nxfilename))
+                    raise NeXusError("%s does not exist" % node.nxfullpath)
                 self.treeview.status_message(node)
                 node.implot()
                 self.plotview.make_active()
@@ -1541,8 +1532,7 @@ class MainWindow(QtWidgets.QMainWindow):
             node = self.treeview.get_node()
             if node is not None:
                 if not node.exists():
-                    raise NeXusError("'%s' does not exist" % 
-                                     os.path.abspath(node.nxfilename))
+                    raise NeXusError("%s does not exist" % node.nxfullpath)
                 elif node.nxfilemode == 'r':
                     raise NeXusError("NeXus file is locked")
                 dialog = AddDialog(node, parent=self)
@@ -1557,8 +1547,7 @@ class MainWindow(QtWidgets.QMainWindow):
             node = self.treeview.get_node()
             if node is not None:
                 if not node.exists():
-                    raise NeXusError("'%s' does not exist" % 
-                                     os.path.abspath(node.nxfilename))
+                    raise NeXusError("%s does not exist" % node.nxfullpath)
                 elif node.nxfilemode == 'r':
                     raise NeXusError("NeXus file is locked")
                 elif isinstance(node, NXgroup):
@@ -1575,8 +1564,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 node = self.treeview.get_node()
                 if node is not None:
                     if not node.exists():
-                        raise NeXusError("'%s' does not exist" % 
-                                         os.path.abspath(node.nxfilename))
+                        raise NeXusError("%s does not exist" % node.nxfullpath)
                     elif (isinstance(node, NXroot) or 
                            node.nxgroup.nxfilemode != 'r'):
                         path = node.nxpath
