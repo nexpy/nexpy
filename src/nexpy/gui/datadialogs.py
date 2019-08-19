@@ -298,8 +298,8 @@ class NXWidget(QtWidgets.QWidget):
         """
         dirname = self.get_default_directory()
         dirname = QtWidgets.QFileDialog.getExistingDirectory(self, 
-                                                         'Choose Directory', 
-                                                         dirname)
+                                                             'Choose Directory', 
+                                                             dirname)
         if os.path.exists(dirname):  # avoids problems if <Cancel> was selected
             self.directoryname.setText(str(dirname))
             self.set_default_directory(dirname)
@@ -2298,57 +2298,51 @@ class ViewDialog(NXDialog):
         self.properties.add('path', node.nxpath, 'Path')
         if node.nxroot.nxfilename:
             self.properties.add('file', node.nxroot.nxfilename, 'File')
-        if node.exists():
-            target_label = 'Target File'
+        target_path_label = 'Target Path'
+        target_error = None
+        if node.file_exists():
+            target_file_label = 'Target File'
+            if not node.path_exists():
+                target_path_label = 'Target Path*'
+                target_error = '* Target path does not exist'
         else:
-            target_label = 'Target File*'
+            target_file_label = 'Target File*'
+            target_error = '* Target file does not exist'
         if isinstance(node, NXlink):
-            self.properties.add('target', node._target, 'Target Path')
+            self.properties.add('target', node._target, target_path_label)
             if node._filename:
-                self.properties.add('linkfile', node._filename, target_label)
+                self.properties.add('linkfile', node._filename, target_file_label)
             elif node.nxfilename and node.nxfilename != node.nxroot.nxfilename:
-                self.properties.add('linkfile', node.nxfilename, target_label)
+                self.properties.add('linkfile', node.nxfilename, target_file_label)
         elif node.nxfilename and node.nxfilename != node.nxroot.nxfilename:
             self.properties.add('target', node.nxfilepath, 'Target Path')
-            self.properties.add('linkfile', node.nxfilename, target_label)
+            self.properties.add('linkfile', node.nxfilename, target_file_label)
         if node.nxfilemode:
             self.properties.add('filemode', node.nxfilemode, 'Mode')
-        if not node.exists():
+        if target_error:
             pass
         elif isinstance(node, NXfield) and node.shape is not None:
             if node.shape == () or node.shape == (1,):
                 self.properties.add('value', six.text_type(node), 'Value')
             self.properties.add('dtype', node.dtype, 'Dtype')
             self.properties.add('shape', six.text_type(node.shape), 'Shape')
-            try:
-                self.properties.add('maxshape', 
-                                    six.text_type(node.maxshape), 
-                                    'Maximum Shape')
-            except (AttributeError, OSError):
-                pass
-            try:
-                self.properties.add('compression', 
-                                    six.text_type(node.compression), 
-                                    'Compression')
-            except (AttributeError, OSError):
-                pass
-            try:
-                self.properties.add('chunks', six.text_type(node.chunks), 
-                                    'Chunk Size')
-            except (AttributeError, OSError):
-                pass
-            try:
-                self.properties.add('fillvalue', six.text_type(node.fillvalue), 
-                                    'Fill Value')
-            except (AttributeError, OSError):
-                pass
+            self.properties.add('maxshape', six.text_type(node.maxshape), 'Maximum Shape')
+            self.properties.add('fillvalue', six.text_type(node.fillvalue), 'Fill Value')
+            self.properties.add('chunks', six.text_type(node.chunks), 'Chunk Size')
+            self.properties.add('compression', six.text_type(node.compression), 
+                                'Compression')
+            self.properties.add('compression_opts', six.text_type(node.compression_opts), 
+                                'Compression Options')
+            self.properties.add('shuffle', six.text_type(node.shuffle), 'Shuffle Filter')
+            self.properties.add('fletcher32', six.text_type(node.fletcher32), 
+                                'Fletcher32 Filter')
         elif isinstance(node, NXgroup):
             self.properties.add('entries', len(node.entries), 'No. of Entries')
         layout.addLayout(self.properties.grid(header=False, 
                                               title='Properties', 
                                               width=200))
-        if not node.exists():
-            layout.addWidget(QtWidgets.QLabel("*Target file does not exist"))
+        if target_error:
+            layout.addWidget(QtWidgets.QLabel(target_error))
         
         layout.addStretch()
 
