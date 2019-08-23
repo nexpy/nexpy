@@ -472,5 +472,7 @@ class NXTreeView(QtWidgets.QTreeView):
             self.setCurrentIndex(self.model().index(0,0))
 
     def on_context_menu(self, point):
-        self.popMenu(self.get_node()).exec_(self.mapToGlobal(point))
+        node = self.get_node()
+        if node:
+            self.popMenu(self.get_node()).exec_(self.mapToGlobal(point))
 
