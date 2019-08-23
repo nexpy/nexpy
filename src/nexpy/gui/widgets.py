@@ -13,7 +13,7 @@ from matplotlib.cbook import mplDeprecation
 from matplotlib.patches import Circle, Ellipse, Polygon, Rectangle
 
 from .pyqt import QtCore, QtGui, QtWidgets
-from .utils import report_error, boundaries, get_color
+from .utils import report_error, boundaries, get_color, format_float
 
 try:
     from formlayout import ColorLayout, text_to_qcolor
@@ -437,7 +437,7 @@ class NXSpinBox(QtWidgets.QSpinBox):
 
     def textFromValue(self, value):
         try:
-            return six.text_type(float('%.4g' % self.centers[value]))
+            return format_float(float('%.4g' % self.centers[value]))
         except:
             return ''
 
@@ -503,8 +503,8 @@ class NXDoubleSpinBox(QtWidgets.QDoubleSpinBox):
         self.old_value = None
         self.diff = None
 
-    def validate(self, input_value, pos):
-        return self.validator.validate(input_value, pos)
+    def validate(self, input_value, position):
+        return self.validator.validate(input_value, position)
 
     def stepBy(self, steps):
         if self.diff:
@@ -520,6 +520,9 @@ class NXDoubleSpinBox(QtWidgets.QDoubleSpinBox):
         elif value < self.minimum():
             self.setMinimum(value)
         return value
+
+    def textFromValue(self, value):
+        return format_float(value)
 
     def setValue(self, value):
         if value > self.maximum():
