@@ -96,6 +96,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.script_dir = self.app.script_dir
         self.function_dir = self.app.function_dir
         self.scratch_file = self.app.scratch_file
+        self.settings_file = self.app.settings_file
 
         mainwindow = QtWidgets.QWidget()
 

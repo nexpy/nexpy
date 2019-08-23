@@ -3221,7 +3221,7 @@ class ManageBackupsDialog(NXDialog):
         super(ManageBackupsDialog, self).__init__(parent, default=True)
  
         self.backup_dir = self.mainwindow.backup_dir
-
+        self.mainwindow.settings.read(self.mainwindow.settings_file)
         options = reversed(self.mainwindow.settings.options('backups'))
         backups = []
         for backup in options:
