@@ -1073,16 +1073,7 @@ class NXPlotView(QtWidgets.QDialog):
         elif self.vaxis.lo is None or self.autoscale:
             self.vaxis.lo = self.vaxis.min = np.min(self.finite_v)
         if self.vtab.log and not self.vtab.symmetric:
-            try:
-                self.vaxis.hi = max(self.vaxis.hi, 
-                                    self.finite_v[self.finite_v>0.0].min())
-            except ValueError:
-                self.vaxis.lo = max(self.vaxis.lo, 0.01)
-            try:
-                self.vaxis.lo = max(self.vaxis.lo, 
-                                    self.finite_v[self.finite_v>0.0].min())
-            except ValueError:
-                self.vaxis.lo = max(self.vaxis.lo, 0.01)
+            self.vtab.set_limits(*self.vaxis.log_limits())
 
     def set_data_norm(self):
         """Set the normalization for 2D plots."""
@@ -1624,6 +1615,11 @@ class NXPlotView(QtWidgets.QDialog):
         """Redraw the current plot."""
         self.canvas.draw_idle()
 
+    def clear(self):
+        """Clear the NXPlotView figure."""
+        self.figure.clear()
+        self.draw()
+
     def legend(self, *items, **opts):
         """Add a legend to the plot."""
         if len(items) == 0:
@@ -1943,8 +1939,8 @@ class NXPlotView(QtWidgets.QDialog):
 
         Returns
         -------
-        circle : Circle
-            Matplotlib circle object.
+        circle : NXcircle
+            NeXpy NXcircle object.
 
         Notes
         -----
@@ -1979,8 +1975,8 @@ class NXPlotView(QtWidgets.QDialog):
 
         Returns
         -------
-        ellipse : Ellipse
-            Matplotlib ellipse object.
+        ellipse : NXellipse
+            NeXpy NXellipse object.
 
         Notes
         -----
@@ -2018,8 +2014,8 @@ class NXPlotView(QtWidgets.QDialog):
 
         Returns
         -------
-        rectangle : Polygon
-            Matplotlib polygon object.
+        rectangle : NXrectangle or NXpolygon
+            NeXpy NXrectangle object of NXpolygon object if the axes are skewed.
         """
         if 'linewidth' not in opts:
             opts['linewidth'] = 1.0
@@ -2056,8 +2052,8 @@ class NXPlotView(QtWidgets.QDialog):
 
         Returns
         -------
-        rectangle : Polygon
-            Matplotlib polygon object.
+        rectangle : NXpolygon
+            NeXpy NXpolygon object.
         """
         if self.skew is not None:
             xy = [self.transform(_x, _y) for _x,_y in xy]
@@ -2415,9 +2411,8 @@ class NXPlotAxis(object):
         try:
             minpos = min(self.data[self.data>0.0])
         except ValueError:
-            minpos = 1e-300
-        return (minpos if self.lo <= 0 else self.lo,
-                minpos if self.hi <= 0 else self.hi)
+            minpos = 0.01
+        return (minpos if self.lo <= 0 else self.lo, minpos if self.hi <= 0 else self.hi)
 
     @property
     def min_range(self):
@@ -2623,7 +2618,7 @@ class NXPlotTab(QtWidgets.QWidget):
         doublespinbox.setAlignment(QtCore.Qt.AlignRight)
         doublespinbox.setFixedWidth(100)
         doublespinbox.setKeyboardTracking(False)
-        doublespinbox.editingFinished.connect(slot)
+        doublespinbox.valueChanged[six.text_type].connect(slot)
         return doublespinbox
 
     def slider(self, slot):
@@ -2659,7 +2654,9 @@ class NXPlotTab(QtWidgets.QWidget):
                     self.minbox.old_value = self.axis.lo
             self.axis.max = self.axis.hi
             self.axis.min = self.axis.lo
+            self.block_signals(True)
             self.set_range()
+            self.block_signals(False)
             self.set_sliders(self.axis.lo, self.axis.hi)
             if self.name == 'v':
                 self.plotview.autoscale = False
@@ -2697,7 +2694,9 @@ class NXPlotTab(QtWidgets.QWidget):
                 self.maxbox.setValue(self.axis.hi)
                 self.maxbox.old_value = self.axis.hi
             self.axis.min = self.axis.lo
+            self.block_signals(True)
             self.set_range()
+            self.block_signals(False)
             self.set_sliders(self.axis.lo, self.axis.hi)
             if self.name == 'v':
                 self.plotview.autoscale = False
@@ -2867,11 +2866,8 @@ class NXPlotTab(QtWidgets.QWidget):
         self.minbox.setRange(self.axis.min, self.axis.max)
         self.maxbox.setRange(self.axis.min, self.axis.max)
         range = self.axis.max - self.axis.min
-        decimals = int(max(0, 2-np.rint(np.log10(range)))) + 1
         self.minbox.setSingleStep((range)/100)
         self.maxbox.setSingleStep((range)/100)
-        self.minbox.setDecimals(decimals)
-        self.maxbox.setDecimals(decimals)
 
     def get_limits(self):
         """Return the minbox and maxbox values."""
@@ -2879,6 +2875,7 @@ class NXPlotTab(QtWidgets.QWidget):
 
     def set_limits(self, lo, hi):
         """Set the minbox and maxbox limits and sliders."""
+        self.block_signals(True)
         if lo > hi:
             lo, hi = hi, lo
         self.axis.set_limits(lo, hi)
@@ -2886,6 +2883,7 @@ class NXPlotTab(QtWidgets.QWidget):
         self.maxbox.setValue(hi)
         if not self.zaxis:
             self.set_sliders(lo, hi)
+        self.block_signals(False)
 
     def change_axis(self):
         """Change the axis for the current tab."""

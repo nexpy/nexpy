@@ -153,6 +153,7 @@ def clamp(value, min_value, max_value):
     """
     return max(min_value, min(value, max_value))
 
+
 def centers(axis, dimlen):
     """Return the centers of the axis bins.
 
@@ -264,6 +265,11 @@ def find_nearest(array, value):
 
 def find_nearest_index(array, value):
     return (np.abs(array-value)).argmin()
+
+
+def format_float(value):
+    """Modified form of the 'g' format specifier."""
+    return re.sub("e(-?)0*(\d+)", r"e\1\2", ("%g" % value).replace("e+", "e"))
 
 
 def human_size(bytes):
