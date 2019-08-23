@@ -1615,6 +1615,11 @@ class NXPlotView(QtWidgets.QDialog):
         """Redraw the current plot."""
         self.canvas.draw_idle()
 
+    def clear(self):
+        """Clear the NXPlotView figure."""
+        self.figure.clear()
+        self.draw()
+
     def legend(self, *items, **opts):
         """Add a legend to the plot."""
         if len(items) == 0:
@@ -1934,8 +1939,8 @@ class NXPlotView(QtWidgets.QDialog):
 
         Returns
         -------
-        circle : Circle
-            Matplotlib circle object.
+        circle : NXcircle
+            NeXpy NXcircle object.
 
         Notes
         -----
@@ -1970,8 +1975,8 @@ class NXPlotView(QtWidgets.QDialog):
 
         Returns
         -------
-        ellipse : Ellipse
-            Matplotlib ellipse object.
+        ellipse : NXellipse
+            NeXpy NXellipse object.
 
         Notes
         -----
@@ -2009,8 +2014,8 @@ class NXPlotView(QtWidgets.QDialog):
 
         Returns
         -------
-        rectangle : Polygon
-            Matplotlib polygon object.
+        rectangle : NXrectangle or NXpolygon
+            NeXpy NXrectangle object of NXpolygon object if the axes are skewed.
         """
         if 'linewidth' not in opts:
             opts['linewidth'] = 1.0
@@ -2047,8 +2052,8 @@ class NXPlotView(QtWidgets.QDialog):
 
         Returns
         -------
-        rectangle : Polygon
-            Matplotlib polygon object.
+        rectangle : NXpolygon
+            NeXpy NXpolygon object.
         """
         if self.skew is not None:
             xy = [self.transform(_x, _y) for _x,_y in xy]
