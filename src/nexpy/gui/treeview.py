@@ -44,7 +44,7 @@ class NXtree(NXgroup):
                 value._name = key
                 self._entries[key] = value
                 self._shell[key] = self._entries[key]
-                self.set_changed()
+                value.set_changed()
             else:
                 raise NeXusError("'"+key+"' already in the tree")
         else:
@@ -187,9 +187,15 @@ class NXTreeItem(QtGui.QStandardItem):
             self._locked = QtGui.QIcon(
                 pkg_resources.resource_filename('nexpy.gui',
                                                 'resources/lock-icon.png'))
+            self._locked_modified = QtGui.QIcon(
+                pkg_resources.resource_filename('nexpy.gui',
+                                                'resources/lock-red-icon.png'))
             self._unlocked = QtGui.QIcon(
                 pkg_resources.resource_filename('nexpy.gui',
                                                 'resources/unlock-icon.png'))
+            self._unlocked_modified = QtGui.QIcon(
+                pkg_resources.resource_filename('nexpy.gui',
+                                                'resources/unlock-red-icon.png'))
         super(NXTreeItem, self).__init__(self.node.nxname)
 
     def text(self):
@@ -208,10 +214,17 @@ class NXTreeItem(QtGui.QStandardItem):
             else:
                 return tree
         elif role == QtCore.Qt.DecorationRole:
-            if isinstance(self.node, NXroot) and self.node.nxfilemode == 'r':
-                return self._locked
-            elif isinstance(self.node, NXroot) and self.node.nxfilemode == 'rw':
-                return self._unlocked
+            if isinstance(self.node, NXroot):
+                if self.node.nxfilemode == 'r':
+                    if self.node._file_modified:
+                        return self._locked_modified
+                    else:
+                        return self._locked
+                elif self.node.nxfilemode == 'rw':
+                    if self.node._file_modified:
+                        return self._unlocked_modified
+                    else:
+                        return self._unlocked
             elif isinstance(self.node, NXlink):
                 return self._linked
             else:
@@ -273,6 +286,10 @@ class NXTreeView(QtWidgets.QTreeView):
         self.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
         self.setExpandsOnDoubleClick(False)
         self.doubleClicked.connect(self.mainwindow.plot_data)
+
+        self.timer = QtCore.QTimer(self)
+        self.timer.timeout.connect(self.check_modified_files)
+        self.timer.start(1000)
 
         # Popup Menu
         self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
@@ -429,6 +446,18 @@ class NXTreeView(QtWidgets.QTreeView):
         else:
             text = str(message)
         self.mainwindow.statusBar().showMessage(text.replace('\n','; '))
+
+    def check_modified_files(self):
+        for key in self.tree._entries:
+            node = self.tree._entries[key]
+            try:
+                _mtime = os.path.getmtime(node.nxfilename)
+                if _mtime > node._mtime:
+                    node._file_modified = True
+                else:
+                    node._file_modified = False                    
+            except (TypeError, FileNotFoundError):
+                pass
 
     @property
     def node(self):
