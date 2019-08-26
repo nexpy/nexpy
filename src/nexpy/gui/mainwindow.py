@@ -96,6 +96,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.script_dir = self.app.script_dir
         self.function_dir = self.app.function_dir
         self.scratch_file = self.app.scratch_file
+        self.settings_file = self.app.settings_file
 
         mainwindow = QtWidgets.QWidget()
 
@@ -1144,12 +1145,7 @@ class MainWindow(QtWidgets.QMainWindow):
             node = self.treeview.get_node()
             if node is None or not isinstance(node, NXroot):
                 raise NeXusError("Only NXroot groups can be saved")
-            if node.nxfilemode and node.file_exists():
-                name = self.tree.get_new_name()
-                existing = True
-            else:
-                name = node.nxname
-                existing = False
+            name = node.nxname
             default_name = os.path.join(self.default_directory, name)
             fname = getSaveFileName(self, "Choose a Filename", default_name,
                                     self.file_filter)

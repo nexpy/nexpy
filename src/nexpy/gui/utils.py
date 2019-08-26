@@ -2,6 +2,7 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 import six
 
+import datetime
 import importlib
 import io
 import logging
@@ -314,6 +315,13 @@ def is_timestamp(time_string):
         return isinstance(read_timestamp(time_string), datetime)
     except ValueError:
         return False
+
+
+def modification_time(filename):
+    try:
+        return datetime.datetime.fromtimestamp(os.path.getmtime(filename))
+    except FileNotFoundError:
+        return None
 
 
 def convertHTML(text):

@@ -190,8 +190,8 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
 
     def init_settings(self):
         """Initialize access to the NeXpy settings file."""
-        self.settings = NXConfigParser(os.path.join(self.nexpy_dir, 
-                                                    'settings.ini'))
+        self.settings_file = os.path.join(self.nexpy_dir, 'settings.ini')
+        self.settings = NXConfigParser(self.settings_file)
         def backup_age(backup):
             try:
                 return timestamp_age(os.path.basename(os.path.dirname(backup)))
