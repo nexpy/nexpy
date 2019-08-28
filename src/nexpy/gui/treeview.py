@@ -1,23 +1,25 @@
 #!/usr/bin/env python 
 # -*- coding: utf-8 -*-
-
+# The full license is in the file COPYING, distributed with this software.
+#-----------------------------------------------------------------------------
 #-----------------------------------------------------------------------------
 # Copyright (c) 2013, NeXpy Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
-# The full license is in the file COPYING, distributed with this software.
-#-----------------------------------------------------------------------------
+
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
-import six
 
 import os
+
 import pkg_resources
+import six
+from nexusformat.nexus import (NeXusError, NXdata, NXentry, NXfield, NXgroup,
+                               NXlink, NXroot, nxload)
 
 from .pyqt import QtCore, QtGui, QtWidgets
 from .utils import natural_sort
-from nexusformat.nexus import *
 
 
 class NXtree(NXgroup):
@@ -29,7 +31,7 @@ class NXtree(NXgroup):
     _model = None
     _view = None
     _item = None
-    _shell = None
+    _shell = {}
     _attrs = {}
 
     def __init__(self):
@@ -504,4 +506,3 @@ class NXTreeView(QtWidgets.QTreeView):
         node = self.get_node()
         if node:
             self.popMenu(self.get_node()).exec_(self.mapToGlobal(point))
-
