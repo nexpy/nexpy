@@ -1,6 +1,5 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
-import six
 
 import datetime
 import importlib
@@ -9,19 +8,23 @@ import logging
 import os
 import re
 import sys
-
+import traceback as tb
 from collections import OrderedDict
 from datetime import datetime
+
+import matplotlib.image as img
+import numpy as np
+import six
 from IPython.core.ultratb import ColorTB
-import traceback as tb
+from matplotlib.colors import colorConverter, hex2color, rgb2hex
+from nexusformat.nexus import *
+
+from .pyqt import QtWidgets, getOpenFileName
+
 try:
     from configparser import ConfigParser
 except ImportError:
     from ConfigParser import ConfigParser
-import numpy as np
-from .pyqt import QtWidgets, getOpenFileName
-from matplotlib.colors import hex2color, rgb2hex, colorConverter
-import matplotlib.image as img
 
 try:
     from astropy.convolution import Kernel
@@ -32,7 +35,8 @@ try:
 except ImportError:
     fabio = None
 
-from nexusformat.nexus import *
+if six.PY2:
+    FileNotFoundError = IOError
 
 ansi_re = re.compile('\x1b' + r'\[([\dA-Fa-f;]*?)m')
 

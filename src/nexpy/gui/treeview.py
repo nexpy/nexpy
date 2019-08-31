@@ -21,6 +21,9 @@ from nexusformat.nexus import (NeXusError, NXdata, NXentry, NXfield, NXgroup,
 from .pyqt import QtCore, QtGui, QtWidgets
 from .utils import natural_sort
 
+if six.PY2:
+    FileNotFoundError = IOError
+
 
 class NXtree(NXgroup):
     """
@@ -504,5 +507,5 @@ class NXTreeView(QtWidgets.QTreeView):
 
     def on_context_menu(self, point):
         node = self.get_node()
-        if node:
+        if node is not None:
             self.popMenu(self.get_node()).exec_(self.mapToGlobal(point))
