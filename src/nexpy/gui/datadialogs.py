@@ -38,7 +38,7 @@ except ImportError:
 from .utils import (confirm_action, display_message, report_error,
                     import_plugin, convertHTML, natural_sort, wrap, human_size,
                     timestamp, format_timestamp, restore_timestamp, get_color,
-                    keep_data, fix_projection)
+                    keep_data, fix_projection, modification_time)
 from .widgets import (NXCheckBox, NXComboBox, NXColorBox, NXPushButton, NXStack,
                       NXDoubleSpinBox, NXSpinBox, NXpolygon)
 
@@ -3189,6 +3189,14 @@ class UnlockDialog(NXDialog):
             self.node.unlock()
             raise NeXusError("'%s' does not exist" % 
                              os.path.abspath(self.nxfilename))
+        nxfile = self.node.nxfile
+        if nxfile.is_locked():
+            lock_time = modification_time(nxfile.lock_file)
+            if self.confirm_action("File already locked. Do you want to clear the lock?",
+                                   "Lock file created: "+lock_time, answer="no"):
+                nxfile.release_lock()
+            else:
+                self.reject()
         self.set_layout(self.labels(
                             "<b>Are you sure you want to unlock the file?</b>"),
                         self.checkboxes(('backup', 'Backup file (%s)' 

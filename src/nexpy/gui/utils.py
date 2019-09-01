@@ -319,9 +319,10 @@ def is_timestamp(time_string):
 
 def modification_time(filename):
     try:
-        return datetime.datetime.fromtimestamp(os.path.getmtime(filename))
+        _mtime = os.path.getmtime(filename)
+        return datetime.fromtimestamp(_mtime).strftime("%Y-%m-%d %H:%M:%S")
     except FileNotFoundError:
-        return None
+        return ''
 
 
 def convertHTML(text):
