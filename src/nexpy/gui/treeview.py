@@ -16,7 +16,7 @@ import os
 import pkg_resources
 
 from .pyqt import QtCore, QtGui, QtWidgets
-from .utils import natural_sort
+from .utils import display_message, natural_sort, modification_time
 from nexusformat.nexus import *
 
 
@@ -92,6 +92,7 @@ class NXtree(NXgroup):
                 node.nxname = shell_names[0]
             if isinstance(node, NXroot):
                 self[node.nxname] = node
+                self[node.nxname]._file_modified = False
             elif isinstance(node, NXentry):
                 group = NXroot(node)
                 name = self.get_new_name()
@@ -114,10 +115,8 @@ class NXtree(NXgroup):
 
     def reload(self, name):
         if name in self:
-            root = nxload(self[name].nxfilename, self[name].nxfilemode)
-            if isinstance(root, NXroot):
-                del self[name]
-                self[name] = root
+            if isinstance(self[name], NXroot):
+                self[name].reload()
             return self[name]
         else:
             raise NeXusError('%s not in the tree')
@@ -450,14 +449,17 @@ class NXTreeView(QtWidgets.QTreeView):
     def check_modified_files(self):
         for key in self.tree._entries:
             node = self.tree._entries[key]
-            try:
-                _mtime = os.path.getmtime(node.nxfilename)
-                if _mtime > node._mtime:
-                    node._file_modified = True
-                else:
-                    node._file_modified = False                    
-            except (TypeError, FileNotFoundError):
-                pass
+            if node.is_modified():
+                if node.nxfilemode == 'rw':
+                    node.lock()
+                node.nxfile.lock = True
+            nxfile = node.nxfile
+            if node.nxfilemode == 'rw' and nxfile.is_locked() and nxfile.locked is False:
+                node.lock()
+                lock_time = modification_time(nxfile.lock_file) 
+                display_message("'%s' has been locked by an external process" 
+                                % node.nxname, "Lock file created: "+lock_time)
+                node.nxfile.lock = True
 
     @property
     def node(self):
