@@ -3180,23 +3180,12 @@ class UnlockDialog(NXDialog):
         self.setWindowTitle("Unlock File")
         self.node = node
 
-        default = False
-        if self.node.exists():
-            file_size = os.path.getsize(self.node.nxfilename)
-            if file_size < 10000000:
-                default = True
+        file_size = os.path.getsize(self.node.nxfilename)
+        if file_size < 10000000:
+            default = True
         else:
-            self.node.unlock()
-            raise NeXusError("'%s' does not exist" % 
-                             os.path.abspath(self.nxfilename))
-        nxfile = self.node.nxfile
-        if nxfile.is_locked():
-            lock_time = modification_time(nxfile.lock_file)
-            if self.confirm_action("File already locked. Do you want to clear the lock?",
-                                   "Lock file created: "+lock_time, answer="no"):
-                nxfile.release_lock()
-            else:
-                self.reject()
+            default = False
+
         self.set_layout(self.labels(
                             "<b>Are you sure you want to unlock the file?</b>"),
                         self.checkboxes(('backup', 'Backup file (%s)' 
