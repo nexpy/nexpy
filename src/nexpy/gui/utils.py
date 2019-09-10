@@ -317,10 +317,14 @@ def is_timestamp(time_string):
         return False
 
 
+def format_mtime(mtime):
+    return datetime.fromtimestamp(mtime).strftime("%Y-%m-%d %H:%M:%S.%f")
+
+
 def modification_time(filename):
     try:
         _mtime = os.path.getmtime(filename)
-        return datetime.fromtimestamp(_mtime).strftime("%Y-%m-%d %H:%M:%S")
+        return datetime.fromtimestamp(_mtime).strftime("%Y-%m-%d %H:%M:%S.%f")
     except FileNotFoundError:
         return ''
 
