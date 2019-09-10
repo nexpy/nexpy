@@ -307,7 +307,8 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
                  "import scipy as sp\n"
                  "import matplotlib as mpl\n"
                  "from matplotlib import pylab, mlab, pyplot\n"
-                 "plt = pyplot")
+                 "plt = pyplot\n"
+                 "os.chdir(os.path.expanduser('~'))")
             six.exec_(s,  self.window.user_ns)
         if filename is not None:
             try:
