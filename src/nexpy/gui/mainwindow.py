@@ -44,8 +44,9 @@ from .treeview import NXTreeView
 from .plotview import NXPlotView
 from .datadialogs import *
 from .scripteditor import NXScriptWindow, NXScriptEditor
-from .utils import confirm_action, report_error, display_message, natural_sort
-from .utils import import_plugin, timestamp, get_name, get_colors, load_image
+from .utils import confirm_action, report_error, display_message, is_file_locked
+from .utils import natural_sort, import_plugin, timestamp
+from .utils import get_name, get_colors, load_image
 
 
 class NXRichJupyterWidget(RichJupyterWidget):
@@ -1002,7 +1003,7 @@ class MainWindow(QtWidgets.QMainWindow):
             fname = getOpenFileName(self, 'Open File (Read Only)',
                                     self.default_directory,  self.file_filter)
             if fname:
-                if self.file_locked(fname):
+                if self.is_file_locked(fname):
                     logging.info("NeXus file '%s' is locked by an external process."
                                  % fname)
                     return
@@ -1022,7 +1023,7 @@ class MainWindow(QtWidgets.QMainWindow):
             fname = getOpenFileName(self, 'Open File (Read/Write)',
                                     self.default_directory, self.file_filter)
             if fname:
-                if self.file_locked(fname):
+                if self.is_file_locked(fname):
                     return
                 name = self.tree.get_name(fname)
                 self.tree[name] = nxload(fname, 'rw')
@@ -1041,7 +1042,7 @@ class MainWindow(QtWidgets.QMainWindow):
             fname = self.recent_file_actions[self.sender()][1]
             if not os.path.exists(fname):
                 raise NeXusError("%s does not exist" % fname)
-            elif self.file_locked(fname):
+            elif self.is_file_locked(fname):
                 return
             name = self.tree.get_name(fname)
             self.tree[name] = nxload(fname)
@@ -1098,7 +1099,7 @@ class MainWindow(QtWidgets.QMainWindow):
                               '\n'.join(nxfiles)):
                 for nxfile in nxfiles:
                     fname = os.path.join(directory, nxfile)
-                    if self.file_locked(fname, wait=1):
+                    if self.is_file_locked(fname, wait=1):
                         continue
                     name = self.tree.get_name(fname)
                     self.tree[name] = nxload(fname)
@@ -1184,7 +1185,7 @@ class MainWindow(QtWidgets.QMainWindow):
                     fname = getSaveFileName(self, "Choose a Filename",
                                             default_name, self.file_filter)
                     if fname:
-                        if self.file_locked(fname):
+                        if self.is_file_locked(fname):
                             return
                         with NXFile(fname, 'w') as f:
                             f.copyfile(node.nxfile)
@@ -1313,23 +1314,7 @@ class MainWindow(QtWidgets.QMainWindow):
             report_error("Unlocking File", error)
 
     def nodefile_locked(self, node):
-        return self.file_locked(node.nxfile.filename)
-
-    def file_locked(self, filename, wait=10):
-        _lock = NXLock(filename)
-        try:
-            _lock.wait(wait)
-            return False
-        except NXLockException:
-            lock_time = modification_time(_lock.lock_file)
-            if confirm_action("File locked. Do you want to clear the lock?",
-                              "%s\nLock file created: "%filename+lock_time, answer="no"):
-                _lock.clear()
-                return False
-            else:
-                return True           
-        else:
-            return False
+        return self.is_file_locked(node.nxfile.filename)
 
     def backup_file(self):
         try:
