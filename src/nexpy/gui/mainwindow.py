@@ -1003,7 +1003,7 @@ class MainWindow(QtWidgets.QMainWindow):
             fname = getOpenFileName(self, 'Open File (Read Only)',
                                     self.default_directory,  self.file_filter)
             if fname:
-                if self.is_file_locked(fname):
+                if is_file_locked(fname):
                     logging.info("NeXus file '%s' is locked by an external process."
                                  % fname)
                     return
@@ -1023,7 +1023,7 @@ class MainWindow(QtWidgets.QMainWindow):
             fname = getOpenFileName(self, 'Open File (Read/Write)',
                                     self.default_directory, self.file_filter)
             if fname:
-                if self.is_file_locked(fname):
+                if is_file_locked(fname):
                     return
                 name = self.tree.get_name(fname)
                 self.tree[name] = nxload(fname, 'rw')
@@ -1042,7 +1042,7 @@ class MainWindow(QtWidgets.QMainWindow):
             fname = self.recent_file_actions[self.sender()][1]
             if not os.path.exists(fname):
                 raise NeXusError("%s does not exist" % fname)
-            elif self.is_file_locked(fname):
+            elif is_file_locked(fname):
                 return
             name = self.tree.get_name(fname)
             self.tree[name] = nxload(fname)
@@ -1099,7 +1099,7 @@ class MainWindow(QtWidgets.QMainWindow):
                               '\n'.join(nxfiles)):
                 for nxfile in nxfiles:
                     fname = os.path.join(directory, nxfile)
-                    if self.is_file_locked(fname, wait=1):
+                    if is_file_locked(fname, wait=1):
                         continue
                     name = self.tree.get_name(fname)
                     self.tree[name] = nxload(fname)
@@ -1185,7 +1185,7 @@ class MainWindow(QtWidgets.QMainWindow):
                     fname = getSaveFileName(self, "Choose a Filename",
                                             default_name, self.file_filter)
                     if fname:
-                        if self.is_file_locked(fname):
+                        if is_file_locked(fname):
                             return
                         with NXFile(fname, 'w') as f:
                             f.copyfile(node.nxfile)
@@ -1314,7 +1314,7 @@ class MainWindow(QtWidgets.QMainWindow):
             report_error("Unlocking File", error)
 
     def nodefile_locked(self, node):
-        return self.is_file_locked(node.nxfile.filename)
+        return is_file_locked(node.nxfile.filename)
 
     def backup_file(self):
         try:
