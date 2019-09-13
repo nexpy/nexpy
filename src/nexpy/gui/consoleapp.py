@@ -295,22 +295,22 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
 
         config_file = os.path.join(self.nexpy_dir, 'config.py')
         if not os.path.exists(config_file):
-            s = ("import sys\n"
-                 "import os\n"
-                 "import h5py as h5\n"
-                 "import numpy as np\n"
-                 "import numpy.ma as ma\n"
-                 "import scipy as sp\n"
-                 "import matplotlib as mpl\n"
-                 "from matplotlib import pylab, mlab, pyplot\n"
-                 "plt = pyplot\n"
-                 "os.chdir(os.path.expanduser('~'))")
+            s = ["import sys\n",
+                 "import os\n",
+                 "import h5py as h5\n",
+                 "import numpy as np\n",
+                 "import numpy.ma as ma\n",
+                 "import scipy as sp\n",
+                 "import matplotlib as mpl\n",
+                 "from matplotlib import pylab, mlab, pyplot\n",
+                 "plt = pyplot\n",
+                 "os.chdir(os.path.expanduser('~'))\n"]
             with open(config_file, 'w') as f:
-                f.write(s)
+                f.writelines(s)
         else:
             with open(config_file) as f:
-                s = f.read()
-        six.exec_(s, self.window.user_ns)
+                s = f.readlines()
+        six.exec_('\n'.join(s), self.window.user_ns)
         if filename is not None:
             try:
                 fname = os.path.expanduser(filename)
