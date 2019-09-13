@@ -1168,15 +1168,11 @@ class PlotDialog(NXDialog):
 
     @property
     def signal(self):
-        signal = self.group[self.signal_combo.currentText()]
-        if isinstance(signal, NXlink):
-            if signal.is_external():
-                return NXlinkfield(target=signal.nxtarget, 
-                                   file=signal.nxfilename)
-            else:
-                return signal.nxlink
+        _signal = self.group[self.signal_combo.currentText()]
+        if isinstance(_signal, NXlink):
+            return _signal.nxlink
         else:
-            return signal
+            return _signal
 
     @property
     def signal_path(self):
