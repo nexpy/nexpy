@@ -1,0 +1,8 @@
+h5py
+ipython
+numpy
+scipy
+matplotlib
+ansi2html
+pillow
+nexusformat
