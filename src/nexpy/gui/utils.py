@@ -287,43 +287,47 @@ def human_size(bytes):
 
 
 def timestamp():
-    """Return a datestamp valid for use in directory names"""
+    """Return a time stamp valid for use in backup directory names"""
     return datetime.now().strftime('%Y%m%d%H%M%S')
 
 
-def read_timestamp(time_string):
-    """Return a datetime object from the timestamp string"""
-    return datetime.strptime(time_string, '%Y%m%d%H%M%S')
+def read_timestamp(timestamp):
+    """Return a datetime object from the directory time stamp."""
+    return datetime.strptime(timestamp, '%Y%m%d%H%M%S')
 
 
-def format_timestamp(time_string):
-    """Return the timestamp as a formatted string."""
-    return datetime.strptime(time_string, 
-                             '%Y%m%d%H%M%S').isoformat().replace('T', ' ')
+def format_timestamp(timestamp):
+    """Return the directory time stamp as a formatted string."""
+    return str(read_timestamp(timestamp))
 
 
-def restore_timestamp(time_string):
+def restore_timestamp(formatted_timestamp):
     """Return a timestamp from a formatted string."""
-    return datetime.strptime(time_string, 
-                             "%Y-%m-%d %H:%M:%S").strftime('%Y%m%d%H%M%S')
+    return datetime.fromisoformat(formatted_timestamp).strftime('%Y%m%d%H%M%S')
 
 
-def timestamp_age(time_string):
+def timestamp_age(timestamp):
     """Return the number of days since the timestamp"""
-    return (datetime.now() - read_timestamp(time_string)).days
+    return (datetime.now() - read_timestamp(timestamp)).days
 
 
-def is_timestamp(time_string):
-    """Return true if the string is formatted as a timestamp"""
+def is_timestamp(timestamp):
+    """Return true if the string is formatted as a directory timestamp."""
     try:
-        return isinstance(read_timestamp(time_string), datetime)
+        return isinstance(read_timestamp(timestamp), datetime)
     except ValueError:
         return False
 
 
+def format_mtime(mtime):
+    """Return the modification time as a formatted string."""
+    return str(datetime.fromtimestamp(mtime))
+
+
 def modification_time(filename):
     try:
-        return datetime.datetime.fromtimestamp(os.path.getmtime(filename))
+        _mtime = os.path.getmtime(filename)
+        return str(datetime.fromtimestamp(_mtime))
     except FileNotFoundError:
         return None
 
