@@ -458,7 +458,7 @@ class NXTreeView(QtWidgets.QTreeView):
                 node.nxfile.lock = True
             nxfile = node.nxfile
             if (node.nxfilemode == 'rw' and nxfile.is_locked() and 
-                nxfile.locked is False:
+                nxfile.locked is False):
                 node.lock()
                 lock_time = modification_time(nxfile.lock_file) 
                 display_message("'%s' has been locked by an external process" 
