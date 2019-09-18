@@ -347,7 +347,7 @@ def modification_time(filename):
         _mtime = os.path.getmtime(filename)
         return str(datetime.fromtimestamp(_mtime))
     except FileNotFoundError:
-        return None
+        return ''
 
 
 def convertHTML(text):

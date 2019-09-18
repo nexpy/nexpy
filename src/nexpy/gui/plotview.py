@@ -59,7 +59,7 @@ from mpl_toolkits.axisartist import Subplot
 from mpl_toolkits.axisartist.grid_finder import MaxNLocator
 from scipy.spatial import Voronoi, voronoi_plot_2d
 
-from nexusformat.nexus import NXfield, NXdata, NXroot, NeXusError, nxload
+from nexusformat.nexus import NXfield, NXdata, NXroot, NeXusError
 
 from .. import __version__
 from .widgets import (NXSpinBox, NXDoubleSpinBox, NXComboBox, NXCheckBox, NXPushButton,

@@ -44,8 +44,9 @@ from .treeview import NXTreeView
 from .plotview import NXPlotView
 from .datadialogs import *
 from .scripteditor import NXScriptWindow, NXScriptEditor
-from .utils import confirm_action, report_error, display_message, natural_sort
-from .utils import import_plugin, timestamp, get_name, get_colors, load_image
+from .utils import confirm_action, report_error, display_message, is_file_locked
+from .utils import natural_sort, import_plugin, timestamp
+from .utils import get_name, get_colors, load_image
 
 
 class NXRichJupyterWidget(RichJupyterWidget):
@@ -1002,6 +1003,10 @@ class MainWindow(QtWidgets.QMainWindow):
             fname = getOpenFileName(self, 'Open File (Read Only)',
                                     self.default_directory,  self.file_filter)
             if fname:
+                if is_file_locked(fname):
+                    logging.info("NeXus file '%s' is locked by an external process."
+                                 % fname)
+                    return
                 name = self.tree.get_name(fname)
                 self.tree[name] = nxload(fname)
                 self.treeview.select_node(self.tree[name])
@@ -1018,6 +1023,8 @@ class MainWindow(QtWidgets.QMainWindow):
             fname = getOpenFileName(self, 'Open File (Read/Write)',
                                     self.default_directory, self.file_filter)
             if fname:
+                if is_file_locked(fname):
+                    return
                 name = self.tree.get_name(fname)
                 self.tree[name] = nxload(fname, 'rw')
                 self.treeview.select_node(self.tree[name])
@@ -1035,6 +1042,8 @@ class MainWindow(QtWidgets.QMainWindow):
             fname = self.recent_file_actions[self.sender()][1]
             if not os.path.exists(fname):
                 raise NeXusError("%s does not exist" % fname)
+            elif is_file_locked(fname):
+                return
             name = self.tree.get_name(fname)
             self.tree[name] = nxload(fname)
             self.treeview.select_node(self.tree[name])
@@ -1090,6 +1099,8 @@ class MainWindow(QtWidgets.QMainWindow):
                               '\n'.join(nxfiles)):
                 for nxfile in nxfiles:
                     fname = os.path.join(directory, nxfile)
+                    if is_file_locked(fname, wait=1):
+                        continue
                     name = self.tree.get_name(fname)
                     self.tree[name] = nxload(fname)
                 self.treeview.select_node(self.tree[name])
@@ -1174,6 +1185,8 @@ class MainWindow(QtWidgets.QMainWindow):
                     fname = getSaveFileName(self, "Choose a Filename",
                                             default_name, self.file_filter)
                     if fname:
+                        if is_file_locked(fname):
+                            return
                         with NXFile(fname, 'w') as f:
                             f.copyfile(node.nxfile)
                         name = self.tree.get_name(fname)
@@ -1205,11 +1218,13 @@ class MainWindow(QtWidgets.QMainWindow):
             node = self.treeview.get_node()
             if not node.file_exists():
                 raise NeXusError("%s does not exist" % node.nxfilename)
+            elif self.nodefile_locked(node):
+                return
             path = node.nxpath
             root = node.nxroot
             name = root.nxname
             if confirm_action("Are you sure you want to reload '%s'?" % name):
-                self.tree.reload(name)
+                root.reload()
                 logging.info("Workspace '%s' reloaded" % name)
                 try:
                     self.treeview.select_node(self.tree[name][path])
@@ -1281,14 +1296,25 @@ class MainWindow(QtWidgets.QMainWindow):
     def unlock_file(self):
         try:
             node = self.treeview.get_node()
-            if isinstance(node, NXroot) and node.nxfilemode:
-                dialog = UnlockDialog(node, parent=self)
-                dialog.show()
-                self.treeview.update()
-            else:
+            if not (isinstance(node, NXroot) and node.nxfilemode):
                 raise NeXusError("Can only unlock a saved NXroot group")
+            elif not node.file_exists():
+                raise NeXusError("'%s' does not exist" % node.nfilename)
+            elif node.is_modified():
+                if confirm_action("File has been modified. Reload?"):
+                    node.reload()
+                else:
+                    return
+            elif self.nodefile_locked(node):
+                return
+            dialog = UnlockDialog(node, parent=self)
+            dialog.show()
+            self.treeview.update()
         except NeXusError as error:
             report_error("Unlocking File", error)
+
+    def nodefile_locked(self, node):
+        return is_file_locked(node.nxfile.filename)
 
     def backup_file(self):
         try:

@@ -38,7 +38,7 @@ except ImportError:
 from .utils import (confirm_action, display_message, report_error,
                     import_plugin, convertHTML, natural_sort, wrap, human_size,
                     timestamp, format_timestamp, restore_timestamp, get_color,
-                    keep_data, fix_projection)
+                    keep_data, fix_projection, modification_time)
 from .widgets import (NXCheckBox, NXComboBox, NXColorBox, NXPushButton, NXStack,
                       NXDoubleSpinBox, NXSpinBox, NXpolygon)
 
@@ -1168,15 +1168,11 @@ class PlotDialog(NXDialog):
 
     @property
     def signal(self):
-        signal = self.group[self.signal_combo.currentText()]
-        if isinstance(signal, NXlink):
-            if signal.is_external():
-                return NXlinkfield(target=signal.nxtarget, 
-                                   file=signal.nxfilename)
-            else:
-                return signal.nxlink
+        _signal = self.group[self.signal_combo.currentText()]
+        if isinstance(_signal, NXlink):
+            return _signal.nxlink
         else:
-            return signal
+            return _signal
 
     @property
     def signal_path(self):
@@ -3180,15 +3176,12 @@ class UnlockDialog(NXDialog):
         self.setWindowTitle("Unlock File")
         self.node = node
 
-        default = False
-        if self.node.exists():
-            file_size = os.path.getsize(self.node.nxfilename)
-            if file_size < 10000000:
-                default = True
+        file_size = os.path.getsize(self.node.nxfilename)
+        if file_size < 10000000:
+            default = True
         else:
-            self.node.unlock()
-            raise NeXusError("'%s' does not exist" % 
-                             os.path.abspath(self.nxfilename))
+            default = False
+
         self.set_layout(self.labels(
                             "<b>Are you sure you want to unlock the file?</b>"),
                         self.checkboxes(('backup', 'Backup file (%s)' 
