@@ -321,8 +321,8 @@ def format_timestamp(timestamp):
 
 def restore_timestamp(formatted_timestamp):
     """Return a timestamp from a formatted string."""
-    return datetime.fromisoformat(formatted_timestamp).strftime('%Y%m%d%H%M%S')
-
+    return datetime.strptime(formatted_timestamp, 
+                             "%Y-%m-%d %H:%M:%S").strftime('%Y%m%d%H%M%S')
 
 def timestamp_age(timestamp):
     """Return the number of days since the timestamp"""
