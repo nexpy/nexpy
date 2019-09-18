@@ -110,6 +110,24 @@ def report_exception(*args):
     return message_box.exec_()
 
 
+def is_file_locked(filename, wait=10):
+    _lock = NXLock(filename)
+    try:
+        _lock.wait(wait)
+        return False
+    except NXLockException:
+        lock_time = modification_time(_lock.lock_file)
+        if confirm_action("File locked. Do you want to clear the lock?",
+                          "%s\nLock file created: "%filename+lock_time, 
+                          answer="no"):
+            _lock.clear()
+            return False
+        else:
+            return True           
+    else:
+        return False
+
+
 def iterable(obj):
     """Return true if the argument is iterable"""
     try:
