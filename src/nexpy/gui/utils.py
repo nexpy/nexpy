@@ -1,6 +1,5 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
-import six
 
 import datetime
 import importlib
@@ -9,19 +8,23 @@ import logging
 import os
 import re
 import sys
-
+import traceback as tb
 from collections import OrderedDict
 from datetime import datetime
+
+import matplotlib.image as img
+import numpy as np
+import six
 from IPython.core.ultratb import ColorTB
-import traceback as tb
+from matplotlib.colors import colorConverter, hex2color, rgb2hex
+from nexusformat.nexus import *
+
+from .pyqt import QtWidgets, getOpenFileName
+
 try:
     from configparser import ConfigParser
 except ImportError:
     from ConfigParser import ConfigParser
-import numpy as np
-from .pyqt import QtWidgets, getOpenFileName
-from matplotlib.colors import hex2color, rgb2hex, colorConverter
-import matplotlib.image as img
 
 try:
     from astropy.convolution import Kernel
@@ -32,7 +35,8 @@ try:
 except ImportError:
     fabio = None
 
-from nexusformat.nexus import *
+if six.PY2:
+    FileNotFoundError = IOError
 
 ansi_re = re.compile('\x1b' + r'\[([\dA-Fa-f;]*?)m')
 
@@ -114,7 +118,8 @@ def is_file_locked(filename, wait=10):
     except NXLockException:
         lock_time = modification_time(_lock.lock_file)
         if confirm_action("File locked. Do you want to clear the lock?",
-                          "%s\nLock file created: "%filename+lock_time, answer="no"):
+                          "%s\nLock file created: "%filename+lock_time, 
+                          answer="no"):
             _lock.clear()
             return False
         else:
@@ -300,48 +305,47 @@ def human_size(bytes):
 
 
 def timestamp():
-    """Return a datestamp valid for use in directory names"""
+    """Return a time stamp valid for use in backup directory names"""
     return datetime.now().strftime('%Y%m%d%H%M%S')
 
 
-def read_timestamp(time_string):
-    """Return a datetime object from the timestamp string"""
-    return datetime.strptime(time_string, '%Y%m%d%H%M%S')
+def read_timestamp(timestamp):
+    """Return a datetime object from the directory time stamp."""
+    return datetime.strptime(timestamp, '%Y%m%d%H%M%S')
 
 
-def format_timestamp(time_string):
-    """Return the timestamp as a formatted string."""
-    return datetime.strptime(time_string, 
-                             '%Y%m%d%H%M%S').isoformat().replace('T', ' ')
+def format_timestamp(timestamp):
+    """Return the directory time stamp as a formatted string."""
+    return str(read_timestamp(timestamp))
 
 
-def restore_timestamp(time_string):
+def restore_timestamp(formatted_timestamp):
     """Return a timestamp from a formatted string."""
-    return datetime.strptime(time_string, 
+    return datetime.strptime(formatted_timestamp, 
                              "%Y-%m-%d %H:%M:%S").strftime('%Y%m%d%H%M%S')
 
-
-def timestamp_age(time_string):
+def timestamp_age(timestamp):
     """Return the number of days since the timestamp"""
-    return (datetime.now() - read_timestamp(time_string)).days
+    return (datetime.now() - read_timestamp(timestamp)).days
 
 
-def is_timestamp(time_string):
-    """Return true if the string is formatted as a timestamp"""
+def is_timestamp(timestamp):
+    """Return true if the string is formatted as a directory timestamp."""
     try:
-        return isinstance(read_timestamp(time_string), datetime)
+        return isinstance(read_timestamp(timestamp), datetime)
     except ValueError:
         return False
 
 
 def format_mtime(mtime):
-    return datetime.fromtimestamp(mtime).strftime("%Y-%m-%d %H:%M:%S.%f")
+    """Return the modification time as a formatted string."""
+    return str(datetime.fromtimestamp(mtime))
 
 
 def modification_time(filename):
     try:
         _mtime = os.path.getmtime(filename)
-        return datetime.fromtimestamp(_mtime).strftime("%Y-%m-%d %H:%M:%S.%f")
+        return str(datetime.fromtimestamp(_mtime))
     except FileNotFoundError:
         return ''
 

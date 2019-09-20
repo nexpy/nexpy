@@ -1,19 +1,22 @@
 #!/usr/bin/env python 
 # -*- coding: utf-8 -*-
-
+# The full license is in the file COPYING, distributed with this software.
+#-----------------------------------------------------------------------------
 #-----------------------------------------------------------------------------
 # Copyright (c) 2013, NeXpy Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
-# The full license is in the file COPYING, distributed with this software.
-#-----------------------------------------------------------------------------
+
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
-import six
 
 import os
+
 import pkg_resources
+import six
+from nexusformat.nexus import (NeXusError, NXdata, NXentry, NXfield, NXgroup,
+                               NXlink, NXroot, nxload)
 
 from .pyqt import QtCore, QtGui, QtWidgets
 from .utils import display_message, natural_sort, modification_time
@@ -29,7 +32,7 @@ class NXtree(NXgroup):
     _model = None
     _view = None
     _item = None
-    _shell = None
+    _shell = {}
     _attrs = {}
 
     def __init__(self):
@@ -194,7 +197,7 @@ class NXTreeItem(QtGui.QStandardItem):
                                                 'resources/unlock-icon.png'))
             self._unlocked_modified = QtGui.QIcon(
                 pkg_resources.resource_filename('nexpy.gui',
-                                                'resources/unlock-red-icon.png'))
+                                            'resources/unlock-red-icon.png'))
         super(NXTreeItem, self).__init__(self.node.nxname)
 
     def text(self):
@@ -454,7 +457,8 @@ class NXTreeView(QtWidgets.QTreeView):
                     node.lock()
                 node.nxfile.lock = True
             nxfile = node.nxfile
-            if node.nxfilemode == 'rw' and nxfile.is_locked() and nxfile.locked is False:
+            if (node.nxfilemode == 'rw' and nxfile.is_locked() and 
+                nxfile.locked is False):
                 node.lock()
                 lock_time = modification_time(nxfile.lock_file) 
                 display_message("'%s' has been locked by an external process" 
@@ -506,4 +510,3 @@ class NXTreeView(QtWidgets.QTreeView):
         node = self.get_node()
         if node is not None:
             self.popMenu(self.get_node()).exec_(self.mapToGlobal(point))
-
