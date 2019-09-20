@@ -1,7 +1,7 @@
 import os
 import pytest
 
-os.environ("QT_API") = "pyqt5"
+os.environ["QT_API"] = "pyqt5"
 
 
 def test_api_imports():
