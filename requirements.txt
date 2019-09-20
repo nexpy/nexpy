@@ -1,9 +1,11 @@
 h5py
 ipython
+lmfit
 numpy
 scipy
 pyqt5
 matplotlib
 ansi2html
 pillow
+spec2nexus
 nexusformat
