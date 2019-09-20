@@ -1,8 +1,8 @@
 import os
 import pytest
 
-os.environ["QT_API"] = "pyqt5"
-
+import matplotlib as mpl
+mpl.use('qt5agg') 
 
 def test_api_imports():
     try:
