@@ -190,6 +190,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.setWindowTitle('NeXpy v'+__version__)
         self.statusBar().showMessage('Ready')
 
+        self.treeview.selection_changed()
         self.shellview.setFocus()
 
     @property
@@ -502,6 +503,11 @@ class MainWindow(QtWidgets.QMainWindow):
             )
         self.add_menu_action(self.data_menu, self.plot_data_action)
 
+        self.plot_line_action=QtWidgets.QAction("Plot Line",
+            self,
+            triggered=self.plot_line
+            )
+
         self.overplot_data_action=QtWidgets.QAction("Overplot Data",
             self,
             shortcut="Ctrl+Alt+P",
@@ -509,11 +515,22 @@ class MainWindow(QtWidgets.QMainWindow):
             )
         self.add_menu_action(self.data_menu, self.overplot_data_action)
 
+        self.overplot_line_action=QtWidgets.QAction("Overplot Line",
+            self,
+            triggered=self.overplot_line
+            )
+
         self.multiplot_data_action=QtWidgets.QAction("Plot All Signals",
             self,
             triggered=self.multiplot_data
             )
         self.add_menu_action(self.data_menu, self.multiplot_data_action)
+
+        self.multiplot_lines_action=QtWidgets.QAction(
+            "Plot All Signals as Lines",
+            self,
+            triggered=self.multiplot_lines
+            )
 
         self.plot_image_action=QtWidgets.QAction("Plot RGB(A) Image",
             self,

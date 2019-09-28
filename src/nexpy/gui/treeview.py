@@ -288,6 +288,7 @@ class NXTreeView(QtWidgets.QTreeView):
         self.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
         self.setExpandsOnDoubleClick(False)
         self.doubleClicked.connect(self.mainwindow.plot_data)
+        self.selectionModel().selectionChanged.connect(self.selection_changed)
 
         self.timer = QtCore.QTimer(self)
         self.timer.timeout.connect(self.check_modified_files)
@@ -297,148 +298,155 @@ class NXTreeView(QtWidgets.QTreeView):
         self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(self.on_context_menu)
 
-
-        self.plot_data_action=QtWidgets.QAction("Plot", self, 
-                                    triggered=self.mainwindow.plot_data)
-        self.plot_line_action=QtWidgets.QAction("Plot Line", self, 
-                                    triggered=self.mainwindow.plot_line)
-        self.overplot_data_action=QtWidgets.QAction("Overplot", self, 
-                                    triggered=self.mainwindow.overplot_data)
-        self.overplot_line_action=QtWidgets.QAction("Overplot Line", self, 
-                                    triggered=self.mainwindow.overplot_line)
-        self.multiplot_data_action=QtWidgets.QAction("Plot All Signals", self, 
-                                    triggered=self.mainwindow.multiplot_data)
-        self.multiplot_lines_action=QtWidgets.QAction(
-                                    "Plot All Signals as Lines", self, 
-                                    triggered=self.mainwindow.multiplot_lines)
-        self.plot_image_action=QtWidgets.QAction("Plot RGB(A) Image", self, 
-                                    triggered=self.mainwindow.plot_image)
-        self.view_action=QtWidgets.QAction("View...", self, 
-                                    triggered=self.mainwindow.view_data)
-        self.add_action=QtWidgets.QAction("Add...", self, 
-                                    triggered=self.mainwindow.add_data)
-        self.initialize_action=QtWidgets.QAction("Initialize...", self, 
-                                    triggered=self.mainwindow.initialize_data)
-        self.rename_action=QtWidgets.QAction("Rename...", self, 
-                                    triggered=self.mainwindow.rename_data)
-        self.copy_action=QtWidgets.QAction("Copy", self, 
-                                    triggered=self.mainwindow.copy_data)
-        self.paste_action=QtWidgets.QAction("Paste", self, 
-                                    triggered=self.mainwindow.paste_data)
-        self.pastelink_action=QtWidgets.QAction("Paste As Link", self, 
-                                    triggered=self.mainwindow.paste_link)
-        self.delete_action=QtWidgets.QAction("Delete...", self, 
-                                    triggered=self.mainwindow.delete_data)
-        self.link_action=QtWidgets.QAction("Show Link", self, 
-                                    triggered=self.mainwindow.show_link)
-        self.signal_action=QtWidgets.QAction("Set Signal...", self, 
-                                    triggered=self.mainwindow.set_signal)
-        self.default_action=QtWidgets.QAction("Set Default", self, 
-                                    triggered=self.mainwindow.set_default)
-        self.fit_action=QtWidgets.QAction("Fit...", self, 
-                                    triggered=self.mainwindow.fit_data)
-        self.savefile_action=QtWidgets.QAction("Save as...", self, 
-                                    triggered=self.mainwindow.save_file)
-        self.duplicate_action=QtWidgets.QAction("Duplicate...", self, 
-                                    triggered=self.mainwindow.duplicate)
-        self.reload_action=QtWidgets.QAction("Reload...", self, 
-                                    triggered=self.mainwindow.reload)
-        self.remove_action=QtWidgets.QAction("Remove...", self, 
-                                    triggered=self.mainwindow.remove)
-        self.lockfile_action=QtWidgets.QAction("Lock", self, 
-                                    triggered=self.mainwindow.lock_file)
-        self.unlockfile_action=QtWidgets.QAction("Unlock...", self, 
-                                     triggered=self.mainwindow.unlock_file)
-        self.backup_action=QtWidgets.QAction("Backup", self, 
-                                    triggered=self.mainwindow.backup_file)
-        self.restore_action=QtWidgets.QAction("Restore...", self, 
-                                    triggered=self.mainwindow.restore_file)
-        self.collapse_action=QtWidgets.QAction("Collapse Tree", self,
-                                    triggered=self.collapse)
-
     def __repr__(self):
         return 'NXTreeView("nxtree")'
 
-    def popMenu(self, node):
-        menu = QtWidgets.QMenu(self)
-        from .plotview import plotview
-        try:
-            if node.is_plottable():
-                menu.addAction(self.plot_data_action)
-                if ((isinstance(node, NXgroup) and
-                    node.nxsignal is not None and 
-                    node.nxsignal.plot_rank == 1) or
-                    (isinstance(node, NXfield) and node.plot_rank == 1)):
-                    menu.addAction(self.plot_line_action)
-                    if plotview.ndim == 1:
-                        menu.addAction(self.overplot_data_action)
-                        menu.addAction(self.overplot_line_action)
-                    if 'auxiliary_signals' in node.attrs:
-                        menu.addAction(self.multiplot_data_action)
-                        menu.addAction(self.multiplot_lines_action)
-                if ((isinstance(node, NXgroup) and 
-                     node.plottable_data is not None and
-                     node.plottable_data.nxsignal is not None and
-                     node.plottable_data.nxsignal.plot_rank > 2) or
-                    (isinstance(node, NXfield) and node.plot_rank > 2)):
-                    menu.addAction(self.plot_image_action)
-                menu.addSeparator()
-        except Exception:
-            pass
-        menu.addAction(self.view_action)
-        if not isinstance(node, NXlink):
-            menu.addAction(self.add_action)
-        if not isinstance(node, NXroot):
-            if isinstance(node, NXgroup):
-                menu.addAction(self.initialize_action)
-        menu.addAction(self.rename_action)
-        if isinstance(node, NXroot) and not node.nxfilemode:
-            menu.addAction(self.delete_action)
-        elif not isinstance(node, NXroot):
-            menu.addAction(self.delete_action)
-        menu.addSeparator()
-        if not isinstance(node, NXroot):
-            menu.addAction(self.copy_action)
-        if (isinstance(node, NXgroup) and 
-            self.mainwindow.copied_node is not None):
-            menu.addAction(self.paste_action)
-            menu.addAction(self.pastelink_action)
-        if isinstance(node, NXlink):
-            menu.addSeparator()
-            menu.addAction(self.link_action)
-        if not isinstance(node, NXroot):
-            menu.addSeparator()
-            if isinstance(node, NXgroup):
-                menu.addAction(self.fit_action)
-                menu.addSeparator()
-                menu.addAction(self.signal_action)
-        if isinstance(node, NXentry) or isinstance(node, NXdata):
-            menu.addAction(self.default_action)
-        menu.addSeparator()
+    def update(self):
+        super(NXTreeView, self).update()
+        self.selection_changed()
+
+    def selection_changed(self):
+        """Enable and disable menu actions based on the selection."""
+        node = self.get_node()
+        self.mainwindow.savefile_action.setEnabled(False)
+        self.mainwindow.duplicate_action.setEnabled(False)
+        self.mainwindow.remove_action.setEnabled(False)
+        self.mainwindow.lockfile_action.setEnabled(False)
+        self.mainwindow.unlockfile_action.setEnabled(False)
+        self.mainwindow.backup_action.setEnabled(False)
+        self.mainwindow.restore_action.setEnabled(False)
+        self.mainwindow.plot_data_action.setEnabled(False)
+        self.mainwindow.plot_line_action.setEnabled(False)
+        self.mainwindow.overplot_data_action.setEnabled(False)
+        self.mainwindow.overplot_line_action.setEnabled(False)
+        self.mainwindow.multiplot_data_action.setEnabled(False)
+        self.mainwindow.multiplot_lines_action.setEnabled(False)
+        self.mainwindow.plot_image_action.setEnabled(False)
+        self.mainwindow.export_action.setEnabled(False)
+        self.mainwindow.rename_action.setEnabled(False)
+        self.mainwindow.add_action.setEnabled(False)
+        self.mainwindow.initialize_action.setEnabled(False)
+        self.mainwindow.copydata_action.setEnabled(False)
+        self.mainwindow.pastedata_action.setEnabled(False)
+        self.mainwindow.pastelink_action.setEnabled(False)
+        self.mainwindow.delete_action.setEnabled(False)
+        self.mainwindow.link_action.setEnabled(False)
+        self.mainwindow.signal_action.setEnabled(False)
+        self.mainwindow.default_action.setEnabled(False)
+        self.mainwindow.fit_action.setEnabled(False)
+        if node is None:
+            self.mainwindow.reload_action.setEnabled(False)
+            self.mainwindow.collapse_action.setEnabled(False)
+            self.mainwindow.view_action.setEnabled(False)
+            return
+        else:
+            self.mainwindow.reload_action.setEnabled(True)
+            self.mainwindow.collapse_action.setEnabled(True)
+            self.mainwindow.view_action.setEnabled(True)
+            if node.nxfilemode == 'rw':
+                self.mainwindow.rename_action.setEnabled(True)
         if isinstance(node, NXroot):
-            menu.addAction(self.savefile_action)
+            self.mainwindow.savefile_action.setEnabled(True)
+            self.mainwindow.remove_action.setEnabled(True)
             if node.nxfilemode:
-                menu.addAction(self.duplicate_action)
-            menu.addSeparator()
-        if node.nxfilemode:
-            menu.addAction(self.reload_action)
-        if isinstance(node, NXroot) and node.nxfilemode:
-            menu.addAction(self.duplicate_action)
-            menu.addSeparator()
-            menu.addAction(self.remove_action)
-            menu.addSeparator()
-            if node.nxfilemode == 'r':
-                menu.addAction(self.unlockfile_action)
+                self.mainwindow.duplicate_action.setEnabled(True)
+                if node.nxfilemode == 'r':
+                    self.mainwindow.unlockfile_action.setEnabled(True)
+                else:
+                    self.mainwindow.lockfile_action.setEnabled(True)
+                self.mainwindow.backup_action.setEnabled(True)
+                if node.nxbackup:
+                    self.mainwindow.restore_action.setEnabled(True)
             else:
-                menu.addAction(self.lockfile_action)
-            menu.addSeparator()
-            menu.addAction(self.backup_action)
-            if node.nxbackup:
-                menu.addAction(self.restore_action)
-            menu.addSeparator
-        menu.addSeparator()
-        menu.addAction(self.collapse_action)
-        return menu
+                self.mainwindow.delete_action.setEnabled(True)
+        else:
+            self.mainwindow.copydata_action.setEnabled(True)
+            if isinstance(node, NXlink):
+                self.mainwindow.link_action.setEnabled(True)
+            if (isinstance(node, NXdata) and
+                node.plottable_data.nxsignal.plot_rank == 1):
+                self.mainwindow.export_action.setEnabled(True)
+            if node.nxfilemode == 'rw':
+                if not isinstance(node, NXlink):
+                    self.mainwindow.add_action.setEnabled(True)
+                if isinstance(node, NXgroup):
+                    self.mainwindow.initialize_action.setEnabled(True)
+                    if self.mainwindow.copied_node is not None:
+                        self.mainwindow.pastedata_action.setEnabled(True)
+                        self.mainwindow.pastelink_action.setEnabled(True)
+                self.mainwindow.delete_action.setEnabled(True)
+                if isinstance(node, NXentry) or isinstance(node, NXdata):
+                    self.mainwindow.default_action.setEnabled(True)
+                if isinstance(node, NXdata):
+                    self.mainwindow.signal_action.setEnabled(True)
+                    self.mainwindow.fit_action.setEnabled(True)
+        if node.is_plottable():
+            self.mainwindow.plot_data_action.setEnabled(True)
+            if ((isinstance(node, NXgroup) and
+                node.nxsignal is not None and 
+                node.nxsignal.plot_rank == 1) or
+                (isinstance(node, NXfield) and node.plot_rank == 1)):
+                self.mainwindow.plot_line_action.setEnabled(True)
+                if self.mainwindow.plotview.ndim == 1:
+                    self.mainwindow.overplot_data_action.setEnabled(True)
+                    self.mainwindow.overplot_line_action.setEnabled(True)
+                if 'auxiliary_signals' in node.attrs:
+                    self.mainwindow.multiplot_data_action.setEnabled(True)
+                    self.mainwindow.multiplot_lines_action.setEnabled(True)
+            if ((isinstance(node, NXgroup) and 
+                 node.plottable_data is not None and
+                 node.plottable_data.nxsignal is not None and
+                 node.plottable_data.nxsignal.plot_rank > 2) or
+                 (isinstance(node, NXfield) and node.plot_rank > 2)):
+                self.mainwindow.plot_image_action.setEnabled(True)
+
+    def addMenu(self, action):
+        if action.isEnabled():
+            self.menu.addAction(action)
+
+    def popMenu(self, node):
+        self.menu = QtWidgets.QMenu(self)
+        self.addMenu(self.mainwindow.plot_data_action)
+        self.addMenu(self.mainwindow.plot_line_action)
+        self.addMenu(self.mainwindow.overplot_data_action)
+        self.addMenu(self.mainwindow.overplot_line_action)
+        self.addMenu(self.mainwindow.multiplot_data_action)
+        self.addMenu(self.mainwindow.multiplot_lines_action)
+        self.addMenu(self.mainwindow.plot_image_action)
+        self.menu.addSeparator()
+        self.addMenu(self.mainwindow.view_action)
+        self.addMenu(self.mainwindow.add_action)
+        self.addMenu(self.mainwindow.initialize_action)
+        self.addMenu(self.mainwindow.rename_action)
+        self.addMenu(self.mainwindow.delete_action)
+        self.addMenu(self.mainwindow.delete_action)
+        self.menu.addSeparator()
+        self.addMenu(self.mainwindow.copydata_action)
+        self.addMenu(self.mainwindow.pastedata_action)
+        self.addMenu(self.mainwindow.pastelink_action)
+        self.menu.addSeparator()
+        self.addMenu(self.mainwindow.link_action)
+        self.menu.addSeparator()
+        self.addMenu(self.mainwindow.fit_action)
+        self.menu.addSeparator()
+        self.addMenu(self.mainwindow.signal_action)
+        self.addMenu(self.mainwindow.default_action)
+        self.menu.addSeparator()
+        self.addMenu(self.mainwindow.reload_action)
+        self.menu.addSeparator()
+        self.addMenu(self.mainwindow.remove_action)
+        self.menu.addSeparator()
+        self.addMenu(self.mainwindow.unlockfile_action)
+        self.addMenu(self.mainwindow.lockfile_action)
+        self.menu.addSeparator()
+        self.addMenu(self.mainwindow.savefile_action)
+        self.addMenu(self.mainwindow.duplicate_action)
+        self.addMenu(self.mainwindow.export_action)
+        self.addMenu(self.mainwindow.backup_action)
+        self.addMenu(self.mainwindow.restore_action)
+        self.menu.addSeparator()
+        self.addMenu(self.mainwindow.collapse_action)
+        return self.menu
 
     def status_message(self, message):
         if isinstance(message, NXfield) or isinstance(message, NXgroup):
