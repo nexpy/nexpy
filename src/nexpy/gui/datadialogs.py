@@ -23,7 +23,7 @@ import sys
 
 from posixpath import basename
 
-from .pyqt import QtCore, QtGui, QtWidgets, getOpenFileName
+from .pyqt import QtCore, QtGui, QtWidgets, getOpenFileName, getSaveFileName
 import numpy as np
 from matplotlib import rcParams, rcParamsDefault
 from matplotlib.legend import Legend
@@ -563,8 +563,8 @@ class NXWidget(QtWidgets.QWidget):
 class NXTab(NXWidget):
     """Subclass of NXWidget for use as the main widget in a tab.
     
-    This adds a stretch to the bottom of the QVBoxLayout to improve the layout of 
-    differently sized tabs.
+    This adds a stretch to the bottom of the QVBoxLayout to improve the layout 
+    of differently sized tabs.
     """
 
     def set_layout(self, *items):
@@ -1270,12 +1270,81 @@ class PlotDialog(NXDialog):
             report_error("Plotting data", error)
 
     
+class ExportDialog(NXDialog):
+
+    def __init__(self, node, parent=None):
+
+        super(ExportDialog, self).__init__(parent)
+ 
+        self.data = node
+        self.x = node.nxaxes[0]
+        self.y = node.nxsignal
+        self.e = node.nxerrors
+        self.parameters = GridParameters()
+        self.parameters.add('delimiter', '\\t', 'Delimiter')
+        
+        self.set_layout(self.parameters.grid(header=False),
+                        self.checkboxes(('header', 'Header', True),
+                                        ('errors', 'Errors', True)),
+                        self.close_buttons(save=True))
+        if self.e is None:
+            self.checkbox['errors'].setChecked(False)
+            self.checkbox['errors'].setVisible(False)
+        self.set_title('Exporting Data')
+
+    @property
+    def header(self):
+        return self.checkbox['header'].isChecked()
+
+    @property
+    def errors(self):
+        return self.checkbox['errors'].isChecked()
+
+    @property
+    def delimiter(self):
+        delimiter = self.parameters['delimiter'].value.encode('utf-8')
+        return delimiter.decode('unicode_escape')
+
+    def accept(self):
+        fname = getSaveFileName(self, "Choose a Filename", 
+                                self.data.nxname+'.txt')
+        if fname:
+            self.default_directory = os.path.dirname(fname)
+        else:
+            return
+
+        if self.errors:
+            output = np.array([self.x, self.y, self.e]).T
+            if self.header:
+                header = self.delimiter.join([self.x.nxname, 
+                                              self.y.nxname, 
+                                              self.e.nxname])
+                np.savetxt(fname, output, header=header, 
+                           delimiter=self.delimiter,
+                           comments='', fmt=['%g','%g','%g'])
+            else:
+                np.savetxt(fname, output, delimiter=self.delimiter,
+                           comments='', fmt=['%g','%g','%g'])
+        else:
+            output = np.array([self.x, self.y]).T
+            if self.header:
+                header = self.delimiter.join([self.x.nxname, self.y.nxname])
+                np.savetxt(fname, output, header=header, 
+                           delimiter=self.delimiter,
+                           comments='', fmt=['%g','%g'])
+            else:
+                np.savetxt(fname, output, delimiter=self.delimiter,
+                           comments='', fmt=['%g','%g'])
+        super(ExportDialog, self).accept()
+
+
 class PreferencesDialog(NXDialog):
 
     def __init__(self, parent):
         super(PreferencesDialog, self).__init__(parent, default=True)
 
-        categories = ['axes', 'font', 'grid', 'image', 'lines', 'xtick', 'ytick']
+        categories = ['axes', 'font', 'grid', 'image', 'lines', 
+                      'xtick', 'ytick']
         self.parameters = {}
         for category in categories:
             pc = self.parameters[category] = GridParameters()
@@ -1289,14 +1358,16 @@ class PreferencesDialog(NXDialog):
                 else:
                     pc.add(p, rcParams[p], p, validate=dp[1])
             
-        self.preferences_stack = self.parameter_stack(self.parameters, width=200)
+        self.preferences_stack = self.parameter_stack(self.parameters, 
+                                                      width=200)
         self.set_layout(self.preferences_stack, self.close_layout(save=True))
 
 
 class CustomizeDialog(NXPanel):
 
     def __init__(self, parent=None):
-        super(CustomizeDialog, self).__init__('customize', title='Customize Plot', 
+        super(CustomizeDialog, self).__init__('customize', 
+                                              title='Customize Plot', 
                                               parent=parent)
         self.tab_class = CustomizeTab
         self.plotview_sort = True
@@ -1918,7 +1989,8 @@ class LimitDialog(NXPanel):
     """Dialog to set plot window limits"""
  
     def __init__(self, parent=None):
-        super(LimitDialog, self).__init__('limit', title='Plot Limits', parent=parent)
+        super(LimitDialog, self).__init__('limit', title='Plot Limits', 
+              parent=parent)
         self.tab_class = LimitTab
         self.plotview_sort = True
 

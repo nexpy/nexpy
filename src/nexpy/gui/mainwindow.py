@@ -322,6 +322,14 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.file_menu.addSeparator()
 
+        self.export_action=QtWidgets.QAction("Export",
+            self,
+            triggered=self.export_data
+            )
+        self.add_menu_action(self.file_menu, self.export_action)
+
+        self.file_menu.addSeparator()
+
         self.lockfile_action=QtWidgets.QAction("&Lock File",
             self,
             shortcut=QtGui.QKeySequence("Ctrl+L"),
@@ -1274,12 +1282,27 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.treeview.select_node(self.tree[name])
                 self.treeview.setFocus()
                 try:
-                    self.default_directory = os.path.dirname(self.import_dialog.import_file)
+                    self.default_directory = os.path.dirname(
+                                                self.import_dialog.import_file)
                 except Exception:
                     pass
                 logging.info("Workspace '%s' imported" % name)
         except NeXusError as error:
             report_error("Importing File", error)
+
+    def export_data(self):
+        try:
+            node = self.treeview.get_node()
+            if isinstance(node, NXdata):
+                if node.nxsignal.ndim == 1:
+                    dialog = ExportDialog(node, parent=self)
+                    dialog.show()
+                else:
+                    raise NeXusError("Can only export one-dimensional data")
+            else:
+                raise NeXusError("Can only export an NXdata group")                  
+        except NeXusError as error:
+            report_error("Exporting Data", error)
 
     def lock_file(self):
         try:
@@ -1576,7 +1599,8 @@ class MainWindow(QtWidgets.QMainWindow):
                     dialog = InitializeDialog(node, parent=self)
                     dialog.exec_()
                 else:
-                    raise NeXusError("An NXfield can only be added to an NXgroup")
+                    raise NeXusError(
+                                "An NXfield can only be added to an NXgroup")
         except NeXusError as error:
             report_error("Initializing Data", error)
 
