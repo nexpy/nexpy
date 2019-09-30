@@ -406,11 +406,11 @@ class NXPlotView(QtWidgets.QDialog):
         """
         self.make_active()
         if event.inaxes:
-            self.x, self.y = event.x, event.y
+            self.xp, self.yp = event.x, event.y
             self.xdata, self.ydata = self.inverse_transform(event.xdata, 
                                                             event.ydata)
         else:
-            self.x, self.y, self.xdata, self.ydata = None, None, None, None
+            self.xp, self.yp, self.xdata, self.ydata = None, None, None, None
         
     def on_key_press(self, event):
         """Handle key press events in the Matplotlib canvas.
@@ -3324,7 +3324,6 @@ class NXNavigationToolbar(NavigationToolbar):
         self._xypress = None
         self._button_pressed = None
         self._zoom_mode = None
-        self.plotview.x, self.plotview.y = None, None
         super(NXNavigationToolbar, self).release(event)
 
     def release_zoom(self, event):
@@ -3337,15 +3336,14 @@ class NXNavigationToolbar(NavigationToolbar):
         elif event.button == 3:
             if self.plotview.ndim == 1 or not event.inaxes:
                 self.home()
-            elif (self.plotview.x and self.plotview.y and
-                  abs(event.x - self.plotview.x) < 5 and
-                  abs(event.y - self.plotview.y) < 5):
+            elif (self.plotview.xp and self.plotview.yp and
+                  abs(event.x - self.plotview.xp) < 5 and
+                  abs(event.y - self.plotview.yp) < 5):
                 self.home(autoscale=False)
             elif self.plotview.xdata and self.plotview.ydata:
                 self.plotview.ptab.open_panel()
                 xmin, xmax = sorted([event.xdata, self.plotview.xdata])
                 ymin, ymax = sorted([event.ydata, self.plotview.ydata])
-                xp, yp = self.plotview.xaxis.dim, self.plotview.yaxis.dim
         self.release(event)
 
     def release_pan(self, event):
