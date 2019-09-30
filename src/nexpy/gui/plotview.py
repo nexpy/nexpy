@@ -71,10 +71,12 @@ plotview = None
 plotviews = {}
 colors = mpl.rcParams['axes.prop_cycle']
 cmaps = ['viridis', 'inferno', 'magma', 'plasma', #perceptually uniform
+         'cividis', 
          'spring', 'summer', 'autumn', 'winter', 'cool', 'hot', #sequential
          'bone', 'copper', 'gray', 'pink', 
          'jet', 'spectral', 'rainbow', 'hsv', #miscellaneous
-         'seismic', 'coolwarm', 'RdBu', 'RdYlBu', 'RdYlGn'] #diverging
+         'seismic', 'coolwarm', 'twilight', 'RdBu', 'RdYlBu',  #diverging
+         'RdYlGn']
 cmaps = [cm for cm in cmaps if cm in cmap_d]
 if 'viridis' in cmaps:
     default_cmap = 'viridis'
