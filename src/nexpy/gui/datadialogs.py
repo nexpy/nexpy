@@ -1495,7 +1495,9 @@ class CustomizeTab(NXTab):
     def update_curve_parameters(self, curve):
         c, p = self.curves[curve], self.parameters[curve]
         p['label'].value = c.get_label()
-        if self.plotview.ax.get_legend() is None:        
+        if p['label'].value.startswith('_'):
+            p['legend'].value = 'No'
+        elif self.plotview.ax.get_legend() is None:        
             p['legend'].value = 'Yes'
         else:
             labels = [label.get_text() for label in
