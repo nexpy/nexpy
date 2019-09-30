@@ -190,6 +190,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.setWindowTitle('NeXpy v'+__version__)
         self.statusBar().showMessage('Ready')
 
+        self.treeview.selection_changed()
         self.shellview.setFocus()
 
     @property
@@ -319,6 +320,14 @@ class MainWindow(QtWidgets.QMainWindow):
         self.file_menu.addSeparator()
 
         self.init_import_menu()
+
+        self.file_menu.addSeparator()
+
+        self.export_action=QtWidgets.QAction("Export",
+            self,
+            triggered=self.export_data
+            )
+        self.add_menu_action(self.file_menu, self.export_action)
 
         self.file_menu.addSeparator()
 
@@ -494,6 +503,11 @@ class MainWindow(QtWidgets.QMainWindow):
             )
         self.add_menu_action(self.data_menu, self.plot_data_action)
 
+        self.plot_line_action=QtWidgets.QAction("Plot Line",
+            self,
+            triggered=self.plot_line
+            )
+
         self.overplot_data_action=QtWidgets.QAction("Overplot Data",
             self,
             shortcut="Ctrl+Alt+P",
@@ -501,11 +515,22 @@ class MainWindow(QtWidgets.QMainWindow):
             )
         self.add_menu_action(self.data_menu, self.overplot_data_action)
 
+        self.overplot_line_action=QtWidgets.QAction("Overplot Line",
+            self,
+            triggered=self.overplot_line
+            )
+
         self.multiplot_data_action=QtWidgets.QAction("Plot All Signals",
             self,
             triggered=self.multiplot_data
             )
         self.add_menu_action(self.data_menu, self.multiplot_data_action)
+
+        self.multiplot_lines_action=QtWidgets.QAction(
+            "Plot All Signals as Lines",
+            self,
+            triggered=self.multiplot_lines
+            )
 
         self.plot_image_action=QtWidgets.QAction("Plot RGB(A) Image",
             self,
@@ -1274,12 +1299,27 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.treeview.select_node(self.tree[name])
                 self.treeview.setFocus()
                 try:
-                    self.default_directory = os.path.dirname(self.import_dialog.import_file)
+                    self.default_directory = os.path.dirname(
+                                                self.import_dialog.import_file)
                 except Exception:
                     pass
                 logging.info("Workspace '%s' imported" % name)
         except NeXusError as error:
             report_error("Importing File", error)
+
+    def export_data(self):
+        try:
+            node = self.treeview.get_node()
+            if isinstance(node, NXdata):
+                if node.nxsignal.ndim == 1:
+                    dialog = ExportDialog(node, parent=self)
+                    dialog.show()
+                else:
+                    raise NeXusError("Can only export one-dimensional data")
+            else:
+                raise NeXusError("Can only export an NXdata group")                  
+        except NeXusError as error:
+            report_error("Exporting Data", error)
 
     def lock_file(self):
         try:
@@ -1576,7 +1616,8 @@ class MainWindow(QtWidgets.QMainWindow):
                     dialog = InitializeDialog(node, parent=self)
                     dialog.exec_()
                 else:
-                    raise NeXusError("An NXfield can only be added to an NXgroup")
+                    raise NeXusError(
+                                "An NXfield can only be added to an NXgroup")
         except NeXusError as error:
             report_error("Initializing Data", error)
 
