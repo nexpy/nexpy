@@ -57,6 +57,7 @@ from matplotlib.cbook import mplDeprecation
 from mpl_toolkits.axisartist.grid_helper_curvelinear import GridHelperCurveLinear
 from mpl_toolkits.axisartist import Subplot
 from mpl_toolkits.axisartist.grid_finder import MaxNLocator
+from scipy.interpolate import interp1d
 from scipy.spatial import Voronoi, voronoi_plot_2d
 
 from nexusformat.nexus import NXfield, NXdata, NXroot, NeXusError
@@ -339,6 +340,8 @@ class NXPlotView(QtWidgets.QDialog):
         self.zoom = None
         self._active_mode = self.otab._active
         self.rgb_image = False
+        self._smooth_func = None
+        self._smooth_line = None
         self._aspect = 'auto'
         self._skew_angle = None
         self._legend = None
@@ -873,9 +876,13 @@ class NXPlotView(QtWidgets.QDialog):
         ax = self.figure.gca()
 
         if self.e is not None:
-            ax.errorbar(self.x, self.y, self.e, fmt=fmt, **opts)
+            self._plot = ax.errorbar(self.x, self.y, self.e, fmt=fmt, **opts)[0]
         else:
-            ax.plot(self.x, self.y, fmt,  **opts)
+            self._plot = ax.plot(self.x, self.y, fmt,  **opts)[0]
+        self._color = self._plot.get_color()
+        self._linestyle = self._plot.get_linestyle()
+        self._smooth_func = interp1d(self.x, self.y, kind='cubic')
+        self._smooth_line = None
 
         ax.lines[-1].set_label(self.signal_group + self.signal.nxname)
 
@@ -914,7 +921,8 @@ class NXPlotView(QtWidgets.QDialog):
             self.yaxis.min, self.yaxis.max = ax.get_ylim()
             self.xaxis.lo, self.xaxis.hi = self.xaxis.min, self.xaxis.max
             self.yaxis.lo, self.yaxis.hi = self.yaxis.min, self.yaxis.max
-            
+
+        self.plot_smooth(self.ytab.smoothing)            
         self.image = None
         self.colorbar = None
         if six.PY3:
@@ -1197,6 +1205,8 @@ class NXPlotView(QtWidgets.QDialog):
         ax.set_xlabel(self.xaxis.label)
         ax.set_ylabel(self.yaxis.label)
         self.otab.push_current()
+        if self.ndim == 1:
+            self.plot_smooth(self.ytab.smoothing)
         if draw:
             self.draw()
 
@@ -1247,6 +1257,23 @@ class NXPlotView(QtWidgets.QDialog):
                     ax.set_yscale('log')
                 else:
                     ax.set_yscale('linear')
+
+    def plot_smooth(self, smoothing=True):
+        """Add smooth line to 1D plot."""
+        if self._smooth_line:
+            self._smooth_line.remove()
+        if smoothing:
+            self._plot.set_linestyle('None')
+            xs_min, xs_max = self.ax.get_xlim()
+            xs = np.linspace(max(xs_min, self.x.min()), 
+                             min(xs_max, self.x.max()), 1000)        
+            self._smooth_line = self.ax.plot(xs, self._smooth_func(xs), '-')[0]
+            self._smooth_line.set_color(self._color)
+            self._smooth_line.set_label('_smooth_line')
+        else:
+            self._plot.set_linestyle(self._linestyle)
+            self._smooth_line = None
+        self.draw()
 
     def symlog(self, linthresh=None, linscale=None, vmax=None):
         """Use symmetric log normalization in the current plot.
@@ -2133,6 +2160,7 @@ class NXPlotView(QtWidgets.QDialog):
             self.ytab.logbox.setVisible(True)
             self.ytab.axiscombo.setVisible(False)
             self.ytab.flipbox.setVisible(False)
+            self.ytab.smoothbox.setVisible(True)
             self.tab_widget.removeTab(self.tab_widget.indexOf(self.vtab))
             self.tab_widget.removeTab(self.tab_widget.indexOf(self.ztab))
             self.tab_widget.removeTab(self.tab_widget.indexOf(self.ptab))
@@ -2164,6 +2192,7 @@ class NXPlotView(QtWidgets.QDialog):
             self.ytab.logbox.setVisible(True)
             self.ytab.axiscombo.setVisible(True)
             self.ytab.flipbox.setVisible(True)
+            self.ytab.smoothbox.setVisible(False)
             if self.rgb_image:
                 self.tab_widget.removeTab(self.tab_widget.indexOf(self.vtab))
             else:
@@ -2438,7 +2467,7 @@ class NXPlotTab(QtWidgets.QWidget):
     name : str
         Name of the axis.
     axis : bool
-        If True, this tab represents a plotted axis.
+        If True, this tab represents a plot axis.
     log : bool
         If True, a log checkbox should be included.
     zaxis : bool
@@ -2493,7 +2522,8 @@ class NXPlotTab(QtWidgets.QWidget):
             widgets.append(self.lockbox)
             widgets.append(self.scalebox)
             widgets.append(self.toolbar)
-            self.minslider = self.maxslider = self.flipbox = self.logbox = None
+            self.minslider = self.maxslider = None
+            self.flipbox = self.logbox = self.smoothbox = None
         else:
             self.zaxis = False
             self.minbox = self.doublespinbox(self.read_minbox)
@@ -2506,12 +2536,14 @@ class NXPlotTab(QtWidgets.QWidget):
             else:
                 self.logbox = None
             self.flipbox = NXCheckBox("Flip", self.flip_axis)
+            self.smoothbox = NXCheckBox("Smooth", self.toggle_smoothing)
             widgets.append(self.minbox)
             widgets.extend([self.minslider, self.maxslider])
             widgets.append(self.maxbox)
             if log:
                 widgets.append(self.logbox)
             widgets.append(self.flipbox)
+            widgets.append(self.smoothbox)
             self.lockbox = self.scalebox = None
         if image:
             self.cmapcombo = NXComboBox(self.change_cmap, cmaps, default_cmap)
@@ -2585,6 +2617,7 @@ class NXPlotTab(QtWidgets.QWidget):
                     self.logbox.setChecked(False)
                 self.logbox.setEnabled(True)
             self.flipbox.setChecked(False)
+            self.smoothbox.setChecked(False)
             self.set_sliders(axis.lo, axis.hi)
         if self.axiscombo is not None:
             self.axiscombo.clear()
@@ -2990,7 +3023,18 @@ class NXPlotTab(QtWidgets.QWidget):
             self._cached_interpolation = self.interpolation
 
     interpolation = property(_interpolation, _set_interpolation, 
-                             "Property: Image color map")
+                             "Property: Image interpolation")
+
+    def toggle_smoothing(self):
+        self.plotview.plot_smooth(self.smoothing)
+
+    def _smoothing(self):
+        return self.smoothbox.isChecked()
+
+    def _set_smoothing(self, smoothing):
+        self.smoothbox.setChecked(smoothing)
+
+    smoothing = property(_smoothing, _set_smoothing, "Property: Line smoothing")
 
     def init_toolbar(self):
         _backward_icon = QtGui.QIcon(
@@ -3357,6 +3401,8 @@ class NXNavigationToolbar(NavigationToolbar):
         xmax, ymax = self.plotview.inverse_transform(xmax, ymax)
         self.plotview.xtab.set_limits(xmin, xmax)
         self.plotview.ytab.set_limits(ymin, ymax)
+        if self.plotview.ndim == 1:
+            self.plotview.ytab.toggle_smoothing()
         try:
             xdim = self.plotview.xtab.axis.dim
             ydim = self.plotview.ytab.axis.dim
