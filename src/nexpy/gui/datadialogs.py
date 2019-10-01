@@ -1402,36 +1402,44 @@ class CustomizeTab(NXTab):
             self.set_layout(pl.grid(header=False),
                             pi.grid(header=False))
         else:
-            self.curves = self.get_curves()
-            pc = {}          
-            for curve in self.curves:
-                pc[curve] = self.parameters[curve] = self.curve_parameters(curve)
-                self.update_curve_parameters(curve)
+            pp = {}   
+            self.plots = self.plotview.plots       
+            for plot in self.plots:
+                label = self.plot_label(plot)
+                pp[label] = self.parameters[label] = self.plot_parameters(plot)
+                self.update_plot_parameters(plot)
             pg = self.parameters['legend'] = GridParameters()
             pg.add('legend', ['None'] + [key.title() for key in Legend.codes], 
                    'Legend')
             pg.add('label', ['Full Path', 'Name Only'], 'Label')
             self.update_legend_parameters()
-            self.curve_stack = self.parameter_stack(pc)
+            self.plot_stack = self.parameter_stack(pp)
             self.set_layout(pl.grid(header=False),
-                           self.curve_stack,
+                           self.plot_stack,
                            pg.grid(header=False))
         self.parameters['labels']['title'].box.setFocus()
 
     def __repr__(self):
         return 'CustomizeTab("%s")' % self.name
 
+    def plot_label(self, plot):
+        return plot + ': ' + self.plots[plot]['label']
+
+    def label_plot(self, label):
+        return label[:label.index(':')]
+
     def update(self):
         self.update_labels()
         if self.plotview.image is not None:
             self.update_image_parameters()
         else:
-            self.curves = self.get_curves()
-            for curve in self.curves:
-                if curve not in self.parameters:
-                    pc = self.parameters[curve] = self.curve_parameters(curve)
-                    self.curve_stack.add(curve, pc.widget(header=False))
-                self.update_curve_parameters(curve)
+            self.plots = self.plotview.plots
+            for plot in self.plots:
+                label = self.plot_label(plot)
+                if label not in self.parameters:
+                    pp = self.parameters[label] = self.plot_parameters(plot)
+                    self.plot_stack.add(label, pp.widget(header=False))
+                self.update_plot_parameters(plot)
 
     def update_labels(self):
         pl = self.parameters['labels']
@@ -1466,54 +1474,45 @@ class CustomizeTab(NXTab):
         p['gridcolor'].value = get_color(self.plotview._gridcolor)
         p['gridstyle'].value = self.linestyles[self.plotview._gridstyle]
 
-    def get_curves(self):
-        lines = self.plotview.ax.get_lines()
-        labels = [line.get_label() for line in lines]
-        for (i,label) in enumerate(labels):
-            labels[i] = '%d: ' % (i+1) + labels[i]
-        return dict(zip(labels, lines))
-
-    def curve_parameters(self, curve):
-        c = self.curves[curve]
+    def plot_parameters(self, plot):
+        p = self.plots[plot]
         parameters = GridParameters()
-        parameters.add('label', c.get_label(), 'Label')
+        parameters.add('label', p['label'], 'Label')
         parameters.add('legend', ['Yes', 'No'], 'Add to Legend')
+        parameters.add('color', p['color'], 'Color', color=True)
         parameters.add('linestyle', list(self.linestyles.values()), 
                        'Line Style')
-        parameters.add('linewidth', c.get_linewidth(), 'Line Width')
-        parameters.add('linecolor', get_color(c.get_color()), 'Line Color', color=True)
-        parameters.add('marker', list(self.markers.values()), 'Marker Style')
-        parameters.add('markersize', c.get_markersize(), 'Marker Size')
-        parameters.add('facecolor', get_color(c.get_markerfacecolor()), 'Face Color', 
-                       color=True)
-        parameters.add('edgecolor', get_color(c.get_markeredgecolor()), 'Edge Color', 
-                       color=True)
-        parameters.add('zorder', c.get_zorder(), 'Z-Order')
-        parameters.grid(title='Curve Parameters', header=False, width=125)
+        parameters.add('linewidth', p['linewidth'], 'Line Width')
+        parameters.add('marker', list(self.markers.values()), 'Marker')
+        parameters.add('markerstyle', ['closed', 'open'], 'Marker Style')
+        parameters.add('markersize', p['markersize'], 'Marker Size')
+        parameters.add('zorder', p['zorder'], 'Z-Order')
+        parameters.grid(title='Plot Parameters', header=False, width=125)
         return parameters
 
-    def update_curve_parameters(self, curve):
-        c, p = self.curves[curve], self.parameters[curve]
-        p['label'].value = c.get_label()
-        if p['label'].value.startswith('_'):
-            p['legend'].value = 'No'
-        elif self.plotview.ax.get_legend() is None:        
-            p['legend'].value = 'Yes'
+    def update_plot_parameters(self, plot):
+        label = self.plot_label(plot)
+        p, pp = self.plots[plot], self.parameters[label]
+        pp['label'].value = p['label']
+        if self.plotview.ax.get_legend() is None:        
+            pp['legend'].value = 'Yes'
         else:
             labels = [label.get_text() for label in
                       self.plotview.ax.get_legend().texts]
-            if curve.split()[-1] in labels or basename(curve) in labels:
-                p['legend'].value = 'Yes'
+            if label.split()[-1] in labels or basename(label) in labels:
+                pp['legend'].value = 'Yes'
             else:
-                p['legend'].value = 'No'
-        p['linestyle'].value = self.linestyles[c.get_linestyle()]
-        p['linewidth'].value = c.get_linewidth()
-        p['linecolor'].value = get_color(c.get_color())
-        p['marker'].value = self.markers[c.get_marker()]
-        p['markersize'].value = c.get_markersize()
-        p['facecolor'].value = get_color(c.get_markerfacecolor())
-        p['edgecolor'].value = get_color(c.get_markeredgecolor())
-        p['zorder'].value = c.get_zorder()
+                pp['legend'].value = 'No'
+        pp['color'].value = p['color']
+        if p['smooth_line']:
+            pp['linestyle'].value = self.linestyles[p['smooth_linestyle']]
+        else:
+            pp['linestyle'].value = self.linestyles[p['linestyle']]
+        pp['linewidth'].value = p['linewidth']
+        pp['marker'].value = self.markers[p['marker']]
+        pp['markerstyle'].value = p['markerstyle']
+        pp['markersize'].value = p['markersize']
+        pp['zorder'].value = p['zorder']
 
     def update_legend_parameters(self):
         p = self.parameters['legend']
@@ -1531,8 +1530,9 @@ class CustomizeTab(NXTab):
             p['label'].value = 'Full Path'
 
     def is_empty_legend(self):
-        return 'Yes' not in [self.parameters[curve]['legend'].value 
-                             for curve in self.curves]
+        labels = [self.plot_label(plot) for plot in self.plots]
+        return 'Yes' not in [self.parameters[label]['legend'].value 
+                             for label in labels]
 
     def set_legend(self):
         legend_location = self.parameters['legend']['legend'].value.lower()
@@ -1544,13 +1544,15 @@ class CustomizeTab(NXTab):
         if legend_location == 'none' or self.is_empty_legend():
             self.plotview.remove_legend()
         else:
-            curves = []
+            plots = []
             labels = []
-            for curve in self.curves:
-                if self.parameters[curve]['legend'].value == 'Yes':
-                    curves.append(self.curves[curve])
-                    labels.append(self.parameters[curve]['label'].value)
-            self.plotview.legend(curves, labels, nameonly=_nameonly, loc=legend_location)         
+            for plot in self.plots:
+                label = self.plot_label(plot)
+                if self.parameters[label]['legend'].value == 'Yes':
+                    plots.append(self.plots[plot]['plot'])
+                    labels.append(self.plots[plot]['label'])
+            self.plotview.legend(plots, labels, nameonly=_nameonly, 
+                                 loc=legend_location)         
 
     def reset(self):
         self.update()
@@ -1585,21 +1587,46 @@ class CustomizeTab(NXTab):
             self.plotview.skew = _skew_angle
             self.plotview.aspect = self.plotview._aspect
         else:
-            for curve in self.curves:
-                c, pc = self.curves[curve], self.parameters[curve]
+            for plot in self.plots:
+                label = self.plot_label(plot)
+                p, pp = self.plots[plot], self.parameters[label]
+                p['color'] = pp['color'].value
+                p['plot'].set_color(p['color'])
                 linestyle = [k for k, v in self.linestyles.items()
-                             if v == pc['linestyle'].value][0]
-                c.set_linestyle(linestyle)
-                c.set_linewidth(pc['linewidth'].value)
-                c.set_color(pc['linecolor'].value)
+                             if v == pp['linestyle'].value][0]
+                p['linewidth'] = pp['linewidth'].value
+                p['plot'].set_linestyle(linestyle)
+                p['plot'].set_linewidth(p['linewidth'])
                 marker = [k for k, v in self.markers.items()
-                          if v == pc['marker'].value][0]
-                c.set_marker(marker)
-                c.set_markersize(pc['markersize'].value)
-                c.set_markerfacecolor(pc['facecolor'].value)
-                c.set_markeredgecolor(pc['edgecolor'].value)
-                c.set_zorder(pc['zorder'].value)
+                          if v == pp['marker'].value][0]
+                p['marker'] = marker
+                p['plot'].set_marker(marker)
+                p['markersize'] = pp['markersize'].value
+                p['plot'].set_markersize(p['markersize'])
+                p['markerstyle'] = pp['markerstyle'].value
+                if p['markerstyle'] == 'open':
+                    p['plot'].set_markerfacecolor('#ffffff')
+                else:
+                    p['plot'].set_markerfacecolor(p['color'])
+                p['plot'].set_markeredgecolor(p['color'])
+                p['zorder'] = pp['zorder'].value
+                p['plot'].set_zorder(p['zorder'])
+                if p['smooth_line']:
+                    if linestyle == 'None':
+                        p['smooth_linestyle'] = '-'
+                    else:
+                        p['smooth_linestyle'] = linestyle
+                    p['smooth_line'].set_color(p['color'])
+                    p['smooth_line'].set_linewidth(p['linewidth'])
+                else:
+                    p['linestyle'] = linestyle
             self.set_legend()
+            for plot in self.plots:
+                p = self.plots[plot]
+                if p['smooth_line']:
+                    p['plot'].set_linestyle('None')
+                    p['smooth_line'].set_linestyle(p['smooth_linestyle'])
+        self.update()
         self.plotview.draw()
 
 
