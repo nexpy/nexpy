@@ -334,6 +334,7 @@ class NXPlotView(QtWidgets.QDialog):
         self.axis = {}
         self.xaxis = self.yaxis = self.zaxis = None
         self.xmin=self.xmax=self.ymin=self.ymax=self.vmin=self.vmax = None
+        self.plots = {}
 
         self.image = None
         self.colorbar = None
@@ -668,7 +669,7 @@ class NXPlotView(QtWidgets.QDialog):
         #One-dimensional Plot
         if self.ndim == 1:
             if over:
-                self.num = self.num + 1
+                self.num += 1
             else:
                 self.num = 0
                 if xmin:
@@ -682,11 +683,10 @@ class NXPlotView(QtWidgets.QDialog):
                 if log:
                     logy = True
                 self._nameonly = False
-            if fmt == '':
-                fmt = 'C'+str(self.num%len(colors))+'o'
 
             self.x, self.y, self.e = self.get_points()
             self.plot_points(fmt, over, **opts)
+            self.add_plot()
 
         #Higher-dimensional plot
         else:
@@ -873,16 +873,18 @@ class NXPlotView(QtWidgets.QDialog):
         """
         if not over:
             self.figure.clf()
+
         ax = self.figure.gca()
+
+        if fmt == '' and 'color' not in opts:
+            opts['color'] = 'C' + str(self.num%len(colors))
+        if fmt == '' and 'marker' not in opts:
+            opts['marker'] = 'o'
 
         if self.e is not None:
             self._plot = ax.errorbar(self.x, self.y, self.e, fmt=fmt, **opts)[0]
         else:
             self._plot = ax.plot(self.x, self.y, fmt,  **opts)[0]
-        self._color = self._plot.get_color()
-        self._linestyle = self._plot.get_linestyle()
-        self._smooth_func = interp1d(self.x, self.y, kind='cubic')
-        self._smooth_line = None
 
         ax.lines[-1].set_label(self.signal_group + self.signal.nxname)
 
@@ -922,7 +924,6 @@ class NXPlotView(QtWidgets.QDialog):
             self.xaxis.lo, self.xaxis.hi = self.xaxis.min, self.xaxis.max
             self.yaxis.lo, self.yaxis.hi = self.yaxis.min, self.yaxis.max
 
-        self.plot_smooth(self.ytab.smoothing)            
         self.image = None
         self.colorbar = None
         if six.PY3:
@@ -1031,6 +1032,29 @@ class NXPlotView(QtWidgets.QDialog):
             ax.set_title(self.title)
 
         self.vaxis.min, self.vaxis.max = self.image.get_clim()
+
+    def add_plot(self):
+        p = {}
+        p['plot'] = self._plot
+        p['x'] = self.x
+        p['y'] = self.y
+        p['label'] = p['plot'].get_label()
+        p['color'] = p['plot'].get_color()
+        p['marker'] = p['plot'].get_marker()
+        p['markersize'] = p['plot'].get_markersize()
+        p['linestyle'] = p['plot'].get_linestyle()
+        p['linewidth'] = p['plot'].get_linewidth()
+        p['zorder'] = p['plot'].get_zorder()
+        p['smooth_function'] = interp1d(self.x, self.y, kind='cubic')
+        p['smooth_line'] = None
+        p['smoothing'] = False
+        if self.num == 0:
+            self.plots = {}
+            self.ytab.plotcombo.clear()
+        self.plots[str(self.num)] = p
+        self.ytab.plotcombo.addItem(str(self.num))
+        self.ytab.plotcombo.setCurrentIndex(self.num)
+        self.ytab.smoothing = False
 
     @property
     def signal_group(self):
@@ -1206,7 +1230,7 @@ class NXPlotView(QtWidgets.QDialog):
         ax.set_ylabel(self.yaxis.label)
         self.otab.push_current()
         if self.ndim == 1:
-            self.plot_smooth(self.ytab.smoothing)
+            self.plot_smooth()
         if draw:
             self.draw()
 
@@ -1258,21 +1282,30 @@ class NXPlotView(QtWidgets.QDialog):
                 else:
                     ax.set_yscale('linear')
 
-    def plot_smooth(self, smoothing=True):
+    def plot_smooth(self):
         """Add smooth line to 1D plot."""
-        if self._smooth_line:
-            self._smooth_line.remove()
-        if smoothing:
-            self._plot.set_linestyle('None')
-            xs_min, xs_max = self.ax.get_xlim()
-            xs = np.linspace(max(xs_min, self.x.min()), 
-                             min(xs_max, self.x.max()), 1000)        
-            self._smooth_line = self.ax.plot(xs, self._smooth_func(xs), '-')[0]
-            self._smooth_line.set_color(self._color)
-            self._smooth_line.set_label('_smooth_line')
-        else:
-            self._plot.set_linestyle(self._linestyle)
-            self._smooth_line = None
+        self.plots[str(self.num)]['smoothing'] = self.ytab.smoothing
+        for num in self.plots:
+            p = self.plots[num]
+            if p['smooth_line']:
+                p['smooth_line'].remove()
+            if p['smoothing']:
+                p['plot'].set_linestyle('None')
+                xs_min, xs_max = self.ax.get_xlim()
+                xs = np.linspace(max(xs_min, p['x'].min()), 
+                                 min(xs_max, p['x'].max()), 1000)
+                if p['linestyle'] == 'None':
+                    p['smooth_linestyle'] = '-'
+                else:
+                    p['smooth_linestyle'] = p['linestyle']
+                p['smooth_line'] = self.ax.plot(xs, 
+                                                p['smooth_function'](xs), 
+                                                p['smooth_linestyle'])[0]
+                p['smooth_line'].set_color(p['color'])
+                p['smooth_line'].set_label('_smooth_line_' + num)
+            else:
+                p['plot'].set_linestyle(p['linestyle'])
+                p['smooth_line'] = None
         self.draw()
 
     def symlog(self, linthresh=None, linscale=None, vmax=None):
@@ -2157,8 +2190,10 @@ class NXPlotView(QtWidgets.QDialog):
         if self.ndim == 1:
             self.xtab.logbox.setVisible(True)
             self.xtab.axiscombo.setVisible(False)
-            self.ytab.logbox.setVisible(True)
+            self.xtab.smoothbox.setVisible(False)
             self.ytab.axiscombo.setVisible(False)
+            self.ytab.plotcombo.setVisible(True)
+            self.ytab.logbox.setVisible(True)
             self.ytab.flipbox.setVisible(False)
             self.ytab.smoothbox.setVisible(True)
             self.tab_widget.removeTab(self.tab_widget.indexOf(self.vtab))
@@ -2189,8 +2224,10 @@ class NXPlotView(QtWidgets.QDialog):
             self.xtab.logbox.setVisible(True)
             self.xtab.axiscombo.setVisible(True)
             self.xtab.flipbox.setVisible(True)
-            self.ytab.logbox.setVisible(True)
+            self.xtab.smoothbox.setVisible(False)
+            self.ytab.plotcombo.setVisible(False)
             self.ytab.axiscombo.setVisible(True)
+            self.ytab.logbox.setVisible(True)
             self.ytab.flipbox.setVisible(True)
             self.ytab.smoothbox.setVisible(False)
             if self.rgb_image:
@@ -2526,6 +2563,8 @@ class NXPlotTab(QtWidgets.QWidget):
             self.flipbox = self.logbox = self.smoothbox = None
         else:
             self.zaxis = False
+            self.plotcombo = NXComboBox(self.select_plot, ['0'])
+            self.plotcombo.setMinimumWidth(20)
             self.minbox = self.doublespinbox(self.read_minbox)
             self.minslider = self.slider(self.read_minslider)
             self.maxslider = self.slider(self.read_maxslider)
@@ -2537,6 +2576,7 @@ class NXPlotTab(QtWidgets.QWidget):
                 self.logbox = None
             self.flipbox = NXCheckBox("Flip", self.flip_axis)
             self.smoothbox = NXCheckBox("Smooth", self.toggle_smoothing)
+            widgets.append(self.plotcombo)
             widgets.append(self.minbox)
             widgets.extend([self.minslider, self.maxslider])
             widgets.append(self.maxbox)
@@ -2636,6 +2676,11 @@ class NXPlotTab(QtWidgets.QWidget):
                 self.interpcombo.setCurrentIndex(
                     self.interpcombo.findText(default_interpolation))
         self.block_signals(False)
+
+    def select_plot(self):
+        num = self.plotcombo.currentText()
+        self.plotview.num = int(num)
+        self.smoothing = self.plotview.plots[num]['smoothing']    
 
     def spinbox(self, slot):
         """Return a NXSpinBox with a signal slot."""
@@ -3026,7 +3071,7 @@ class NXPlotTab(QtWidgets.QWidget):
                              "Property: Image interpolation")
 
     def toggle_smoothing(self):
-        self.plotview.plot_smooth(self.smoothing)
+        self.plotview.plot_smooth()
 
     def _smoothing(self):
         return self.smoothbox.isChecked()
