@@ -1483,7 +1483,8 @@ class CustomizeTab(NXTab):
         parameters.add('linestyle', list(self.linestyles.values()), 
                        'Line Style')
         parameters.add('linewidth', p['linewidth'], 'Line Width')
-        parameters.add('marker', list(self.markers.values()), 'Marker Style')
+        parameters.add('marker', list(self.markers.values()), 'Marker')
+        parameters.add('markerstyle', ['closed', 'open'], 'Marker Style')
         parameters.add('markersize', p['markersize'], 'Marker Size')
         parameters.add('zorder', p['zorder'], 'Z-Order')
         parameters.grid(title='Plot Parameters', header=False, width=125)
@@ -1509,6 +1510,7 @@ class CustomizeTab(NXTab):
             pp['linestyle'].value = self.linestyles[p['linestyle']]
         pp['linewidth'].value = p['linewidth']
         pp['marker'].value = self.markers[p['marker']]
+        pp['markerstyle'].value = p['markerstyle']
         pp['markersize'].value = p['markersize']
         pp['zorder'].value = p['zorder']
 
@@ -1592,10 +1594,6 @@ class CustomizeTab(NXTab):
                 p['plot'].set_color(p['color'])
                 linestyle = [k for k, v in self.linestyles.items()
                              if v == pp['linestyle'].value][0]
-                if p['smooth_line']:
-                    p['smooth_linestyle'] = linestyle
-                else:
-                    p['linestyle'] = linestyle
                 p['linewidth'] = pp['linewidth'].value
                 p['plot'].set_linestyle(linestyle)
                 p['plot'].set_linewidth(p['linewidth'])
@@ -1605,19 +1603,29 @@ class CustomizeTab(NXTab):
                 p['plot'].set_marker(marker)
                 p['markersize'] = pp['markersize'].value
                 p['plot'].set_markersize(p['markersize'])
-                p['plot'].set_markerfacecolor(p['color'])
+                p['markerstyle'] = pp['markerstyle'].value
+                if p['markerstyle'] == 'open':
+                    p['plot'].set_markerfacecolor('#ffffff')
+                else:
+                    p['plot'].set_markerfacecolor(p['color'])
                 p['plot'].set_markeredgecolor(p['color'])
                 p['zorder'] = pp['zorder'].value
                 p['plot'].set_zorder(p['zorder'])
                 if p['smooth_line']:
+                    if linestyle == 'None':
+                        p['smooth_linestyle'] = '-'
+                    else:
+                        p['smooth_linestyle'] = linestyle
                     p['smooth_line'].set_color(p['color'])
                     p['smooth_line'].set_linewidth(p['linewidth'])
+                else:
+                    p['linestyle'] = linestyle
             self.set_legend()
             for plot in self.plots:
                 p = self.plots[plot]
                 if p['smooth_line']:
                     p['plot'].set_linestyle('None')
-                    p['smooth_line'].set_linestyle(linestyle)
+                    p['smooth_line'].set_linestyle(p['smooth_linestyle'])
         self.update()
         self.plotview.draw()
 
