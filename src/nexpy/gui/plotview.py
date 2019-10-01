@@ -1290,9 +1290,9 @@ class NXPlotView(QtWidgets.QDialog):
             p = self.plots[num]
             if p['smooth_line']:
                 p['smooth_line'].remove()
-            if p['smoothing']:
+            xs_min, xs_max = self.ax.get_xlim()
+            if p['smoothing'] and xs_min < p['x'].max() and xs_max > p['x'].min():
                 p['plot'].set_linestyle('None')
-                xs_min, xs_max = self.ax.get_xlim()
                 xs = np.linspace(max(xs_min, p['x'].min()), 
                                  min(xs_max, p['x'].max()), 1000)
                 if p['linestyle'] == 'None':
