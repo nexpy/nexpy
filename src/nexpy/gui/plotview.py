@@ -2224,6 +2224,7 @@ class NXPlotView(QtWidgets.QDialog):
                 self.tab_widget.removeTab(self.tab_widget.indexOf(self.ztab))
             self.xtab.logbox.setVisible(True)
             self.xtab.axiscombo.setVisible(True)
+            self.xtab.plotcombo.setVisible(False)
             self.xtab.flipbox.setVisible(True)
             self.xtab.smoothbox.setVisible(False)
             self.ytab.plotcombo.setVisible(False)
@@ -2231,6 +2232,8 @@ class NXPlotView(QtWidgets.QDialog):
             self.ytab.logbox.setVisible(True)
             self.ytab.flipbox.setVisible(True)
             self.ytab.smoothbox.setVisible(False)
+            self.vtab.plotcombo.setVisible(False)
+            self.vtab.smoothbox.setVisible(False)
             if self.rgb_image:
                 self.tab_widget.removeTab(self.tab_widget.indexOf(self.vtab))
             else:
