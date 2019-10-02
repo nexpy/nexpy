@@ -1457,13 +1457,13 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.treeview.status_message(node)
                 if isinstance(node, NXgroup) and node.plottable_data:
                     try:
-                        node.plot(fmt='o')
+                        node.plot()
                         self.plotview.make_active()
                         return
                     except KeyError:
                         pass
                 elif node.is_plottable():
-                    dialog = PlotDialog(node, parent=self, fmt='o')
+                    dialog = PlotDialog(node, parent=self)
                     dialog.show()
                 else:
                     raise NeXusError("Data not plottable")
@@ -1477,7 +1477,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 if not node.exists():
                     raise NeXusError("%s does not exist" % node.nxfullpath)
                 self.treeview.status_message(node)
-                node.oplot(fmt='o')
+                node.oplot()
                 self.plotview.make_active()
         except NeXusError as error:
             report_error("Overplotting Data", error)
@@ -1533,9 +1533,9 @@ class MainWindow(QtWidgets.QMainWindow):
                 colors = get_colors(len(signals))
                 for i, signal in enumerate(signals):
                     if i == 0:
-                        signal.plot(fmt='o', color=colors[i])
+                        signal.plot(color=colors[i])
                     else:
-                        signal.oplot(fmt='o', color=colors[i])
+                        signal.oplot(color=colors[i])
                 self.plotview.otab.home()
                 self.plotview.legend(nameonly=True)
                 self.plotview.make_active()

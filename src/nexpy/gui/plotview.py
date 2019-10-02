@@ -70,7 +70,7 @@ from .utils import (report_error, report_exception, boundaries, centers, keep_da
 
 plotview = None
 plotviews = {}
-colors = mpl.rcParams['axes.prop_cycle']
+colors = mpl.rcParams['axes.prop_cycle'].by_key()['color']
 cmaps = ['viridis', 'inferno', 'magma', 'plasma', #perceptually uniform
          'cividis', 
          'spring', 'summer', 'autumn', 'winter', 'cool', 'hot', #sequential
@@ -877,9 +877,11 @@ class NXPlotView(QtWidgets.QDialog):
         ax = self.figure.gca()
 
         if fmt == '' and 'color' not in opts:
-            opts['color'] = 'C' + str(self.num%len(colors))
+            opts['color'] = colors[self.num % len(colors)]
         if fmt == '' and 'marker' not in opts:
             opts['marker'] = 'o'
+        if fmt == '' and 'linestyle' not in opts:
+            opts['linestyle'] = 'None'
 
         if self.e is not None:
             self._plot = ax.errorbar(self.x, self.y, self.e, fmt=fmt, **opts)[0]
