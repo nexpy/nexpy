@@ -1048,8 +1048,12 @@ class NXPlotView(QtWidgets.QDialog):
         p['linestyle'] = p['plot'].get_linestyle()
         p['linewidth'] = p['plot'].get_linewidth()
         p['zorder'] = p['plot'].get_zorder()
-        p['smooth_function'] = interp1d(self.x, self.y, kind='cubic')
+        try:
+            p['smooth_function'] = interp1d(self.x, self.y, kind='cubic')
+        except Exception as error:
+            p['smooth_function'] = None
         p['smooth_line'] = None
+        p['smooth_linestyle'] = 'None'
         p['smoothing'] = False
         if self.num == 0:
             self.plots = {}
@@ -1057,7 +1061,7 @@ class NXPlotView(QtWidgets.QDialog):
         self.plots[str(self.num)] = p
         self.ytab.plotcombo.addItem(str(self.num))
         self.ytab.plotcombo.setCurrentIndex(self.num)
-        self.ytab.smoothing = False
+        self.ytab.reset_smoothing()
 
     @property
     def signal_group(self):
@@ -1233,7 +1237,10 @@ class NXPlotView(QtWidgets.QDialog):
         ax.set_ylabel(self.yaxis.label)
         self.otab.push_current()
         if self.ndim == 1:
-            self.plot_smooth()
+            try:
+                self.plot_smooth()
+            except NeXusError:
+                pass
         if draw:
             self.draw()
 
@@ -1287,13 +1294,18 @@ class NXPlotView(QtWidgets.QDialog):
 
     def plot_smooth(self):
         """Add smooth line to 1D plot."""
-        self.plots[str(self.num)]['smoothing'] = self.ytab.smoothing
+        num = str(self.num)
+        if self.plots[num]['smooth_function']:
+            self.plots[num]['smoothing'] = self.ytab.smoothing
+        else:
+            raise NeXusError("Unable to smooth this data")
         for num in self.plots:
             p = self.plots[num]
             if p['smooth_line']:
                 p['smooth_line'].remove()
             xs_min, xs_max = self.ax.get_xlim()
-            if p['smoothing'] and xs_min < p['x'].max() and xs_max > p['x'].min():
+            if (p['smoothing'] and p['smooth_function'] and
+                xs_min < p['x'].max() and xs_max > p['x'].min()):
                 p['plot'].set_linestyle('None')
                 xs = np.linspace(max(xs_min, p['x'].min()), 
                                  min(xs_max, p['x'].max()), 1000)
@@ -3077,7 +3089,16 @@ class NXPlotTab(QtWidgets.QWidget):
                              "Property: Image interpolation")
 
     def toggle_smoothing(self):
-        self.plotview.plot_smooth()
+        try:
+            self.plotview.plot_smooth()
+        except NeXusError as error:
+            report_error("Smoothing data", error)
+            self.reset_smoothing()
+
+    def reset_smoothing(self):
+        self.smoothbox.blockSignals(True)
+        self.smoothbox.setChecked(False)
+        self.smoothbox.blockSignals(False)
 
     def _smoothing(self):
         return self.smoothbox.isChecked()
