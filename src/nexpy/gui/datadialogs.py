@@ -1484,7 +1484,7 @@ class CustomizeTab(NXTab):
                        'Line Style')
         parameters.add('linewidth', p['linewidth'], 'Line Width')
         parameters.add('marker', list(self.markers.values()), 'Marker')
-        parameters.add('markerstyle', ['closed', 'open'], 'Marker Style')
+        parameters.add('markerstyle', ['filled', 'open'], 'Marker Style')
         parameters.add('markersize', p['markersize'], 'Marker Size')
         parameters.add('zorder', p['zorder'], 'Z-Order')
         parameters.grid(title='Plot Parameters', header=False, width=125)

@@ -1044,7 +1044,7 @@ class NXPlotView(QtWidgets.QDialog):
         p['color'] = p['plot'].get_color()
         p['marker'] = p['plot'].get_marker()
         p['markersize'] = p['plot'].get_markersize()
-        p['markerstyle'] = 'closed'
+        p['markerstyle'] = 'filled'
         p['linestyle'] = p['plot'].get_linestyle()
         p['linewidth'] = p['plot'].get_linewidth()
         p['zorder'] = p['plot'].get_zorder()
