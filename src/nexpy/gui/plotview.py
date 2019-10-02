@@ -1039,6 +1039,8 @@ class NXPlotView(QtWidgets.QDialog):
         p['x'] = self.x
         p['y'] = self.y
         p['label'] = p['plot'].get_label()
+        p['legend_label'] = p['label']
+        p['show_legend'] = True
         p['color'] = p['plot'].get_color()
         p['marker'] = p['plot'].get_marker()
         p['markersize'] = p['plot'].get_markersize()
