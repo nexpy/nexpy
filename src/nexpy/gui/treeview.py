@@ -363,9 +363,12 @@ class NXTreeView(QtWidgets.QTreeView):
             self.mainwindow.copydata_action.setEnabled(True)
             if isinstance(node, NXlink):
                 self.mainwindow.link_action.setEnabled(True)
-            if (isinstance(node, NXdata) and
-                node.plottable_data.nxsignal.plot_rank == 1):
-                self.mainwindow.export_action.setEnabled(True)
+            try:
+                if (isinstance(node, NXdata) and
+                    node.plottable_data.nxsignal.plot_rank == 1):
+                    self.mainwindow.export_action.setEnabled(True)
+            except Exception as error:
+                pass
             if node.nxfilemode == 'rw':
                 if not isinstance(node, NXlink):
                     self.mainwindow.add_action.setEnabled(True)
@@ -382,23 +385,29 @@ class NXTreeView(QtWidgets.QTreeView):
                     self.mainwindow.fit_action.setEnabled(True)
         if node.is_plottable():
             self.mainwindow.plot_data_action.setEnabled(True)
-            if ((isinstance(node, NXgroup) and
-                node.nxsignal is not None and 
-                node.nxsignal.plot_rank == 1) or
-                (isinstance(node, NXfield) and node.plot_rank == 1)):
-                self.mainwindow.plot_line_action.setEnabled(True)
-                if self.mainwindow.plotview.ndim == 1:
-                    self.mainwindow.overplot_data_action.setEnabled(True)
-                    self.mainwindow.overplot_line_action.setEnabled(True)
-                if 'auxiliary_signals' in node.attrs:
-                    self.mainwindow.multiplot_data_action.setEnabled(True)
-                    self.mainwindow.multiplot_lines_action.setEnabled(True)
-            if ((isinstance(node, NXgroup) and 
-                 node.plottable_data is not None and
-                 node.plottable_data.nxsignal is not None and
-                 node.plottable_data.nxsignal.plot_rank > 2) or
-                 (isinstance(node, NXfield) and node.plot_rank > 2)):
-                self.mainwindow.plot_image_action.setEnabled(True)
+            try:
+                if ((isinstance(node, NXgroup) and
+                    node.nxsignal is not None and 
+                    node.nxsignal.plot_rank == 1) or
+                    (isinstance(node, NXfield) and node.plot_rank == 1)):
+                    self.mainwindow.plot_line_action.setEnabled(True)
+                    if self.mainwindow.plotview.ndim == 1:
+                        self.mainwindow.overplot_data_action.setEnabled(True)
+                        self.mainwindow.overplot_line_action.setEnabled(True)
+                    if 'auxiliary_signals' in node.attrs:
+                        self.mainwindow.multiplot_data_action.setEnabled(True)
+                        self.mainwindow.multiplot_lines_action.setEnabled(True)
+            except Exception as error:
+                pass
+            try:
+                if ((isinstance(node, NXgroup) and 
+                     node.plottable_data is not None and
+                    node.plottable_data.nxsignal is not None and
+                    node.plottable_data.nxsignal.plot_rank > 2) or
+                    (isinstance(node, NXfield) and node.plot_rank > 2)):
+                    self.mainwindow.plot_image_action.setEnabled(True)
+            except Exception as error:
+                pass
 
     def addMenu(self, action):
         if action.isEnabled():
