@@ -70,7 +70,7 @@ from .utils import (report_error, report_exception, boundaries, centers, keep_da
 
 plotview = None
 plotviews = {}
-colors = mpl.rcParams['axes.prop_cycle']
+colors = mpl.rcParams['axes.prop_cycle'].by_key()['color']
 cmaps = ['viridis', 'inferno', 'magma', 'plasma', #perceptually uniform
          'cividis', 
          'spring', 'summer', 'autumn', 'winter', 'cool', 'hot', #sequential
@@ -877,9 +877,11 @@ class NXPlotView(QtWidgets.QDialog):
         ax = self.figure.gca()
 
         if fmt == '' and 'color' not in opts:
-            opts['color'] = 'C' + str(self.num%len(colors))
+            opts['color'] = colors[self.num % len(colors)]
         if fmt == '' and 'marker' not in opts:
             opts['marker'] = 'o'
+        if fmt == '' and 'linestyle' not in opts:
+            opts['linestyle'] = 'None'
 
         if self.e is not None:
             self._plot = ax.errorbar(self.x, self.y, self.e, fmt=fmt, **opts)[0]
@@ -1039,15 +1041,21 @@ class NXPlotView(QtWidgets.QDialog):
         p['x'] = self.x
         p['y'] = self.y
         p['label'] = p['plot'].get_label()
+        p['legend_label'] = p['label']
+        p['show_legend'] = True
         p['color'] = p['plot'].get_color()
         p['marker'] = p['plot'].get_marker()
         p['markersize'] = p['plot'].get_markersize()
-        p['markerstyle'] = 'closed'
+        p['markerstyle'] = 'filled'
         p['linestyle'] = p['plot'].get_linestyle()
         p['linewidth'] = p['plot'].get_linewidth()
         p['zorder'] = p['plot'].get_zorder()
-        p['smooth_function'] = interp1d(self.x, self.y, kind='cubic')
+        try:
+            p['smooth_function'] = interp1d(self.x, self.y, kind='cubic')
+        except Exception as error:
+            p['smooth_function'] = None
         p['smooth_line'] = None
+        p['smooth_linestyle'] = 'None'
         p['smoothing'] = False
         if self.num == 0:
             self.plots = {}
@@ -1055,7 +1063,7 @@ class NXPlotView(QtWidgets.QDialog):
         self.plots[str(self.num)] = p
         self.ytab.plotcombo.addItem(str(self.num))
         self.ytab.plotcombo.setCurrentIndex(self.num)
-        self.ytab.smoothing = False
+        self.ytab.reset_smoothing()
 
     @property
     def signal_group(self):
@@ -1231,7 +1239,10 @@ class NXPlotView(QtWidgets.QDialog):
         ax.set_ylabel(self.yaxis.label)
         self.otab.push_current()
         if self.ndim == 1:
-            self.plot_smooth()
+            try:
+                self.plot_smooth()
+            except NeXusError:
+                pass
         if draw:
             self.draw()
 
@@ -1285,13 +1296,18 @@ class NXPlotView(QtWidgets.QDialog):
 
     def plot_smooth(self):
         """Add smooth line to 1D plot."""
-        self.plots[str(self.num)]['smoothing'] = self.ytab.smoothing
+        num = str(self.num)
+        if self.plots[num]['smooth_function']:
+            self.plots[num]['smoothing'] = self.ytab.smoothing
+        else:
+            raise NeXusError("Unable to smooth this data")
         for num in self.plots:
             p = self.plots[num]
             if p['smooth_line']:
                 p['smooth_line'].remove()
             xs_min, xs_max = self.ax.get_xlim()
-            if p['smoothing'] and xs_min < p['x'].max() and xs_max > p['x'].min():
+            if (p['smoothing'] and p['smooth_function'] and
+                xs_min < p['x'].max() and xs_max > p['x'].min()):
                 p['plot'].set_linestyle('None')
                 xs = np.linspace(max(xs_min, p['x'].min()), 
                                  min(xs_max, p['x'].max()), 1000)
@@ -3075,7 +3091,16 @@ class NXPlotTab(QtWidgets.QWidget):
                              "Property: Image interpolation")
 
     def toggle_smoothing(self):
-        self.plotview.plot_smooth()
+        try:
+            self.plotview.plot_smooth()
+        except NeXusError as error:
+            report_error("Smoothing data", error)
+            self.reset_smoothing()
+
+    def reset_smoothing(self):
+        self.smoothbox.blockSignals(True)
+        self.smoothbox.setChecked(False)
+        self.smoothbox.blockSignals(False)
 
     def _smoothing(self):
         return self.smoothbox.isChecked()

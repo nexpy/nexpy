@@ -1477,14 +1477,14 @@ class CustomizeTab(NXTab):
     def plot_parameters(self, plot):
         p = self.plots[plot]
         parameters = GridParameters()
-        parameters.add('label', p['label'], 'Label')
+        parameters.add('legend_label', p['legend_label'], 'Label')
         parameters.add('legend', ['Yes', 'No'], 'Add to Legend')
         parameters.add('color', p['color'], 'Color', color=True)
         parameters.add('linestyle', list(self.linestyles.values()), 
                        'Line Style')
         parameters.add('linewidth', p['linewidth'], 'Line Width')
         parameters.add('marker', list(self.markers.values()), 'Marker')
-        parameters.add('markerstyle', ['closed', 'open'], 'Marker Style')
+        parameters.add('markerstyle', ['filled', 'open'], 'Marker Style')
         parameters.add('markersize', p['markersize'], 'Marker Size')
         parameters.add('zorder', p['zorder'], 'Z-Order')
         parameters.grid(title='Plot Parameters', header=False, width=125)
@@ -1493,16 +1493,11 @@ class CustomizeTab(NXTab):
     def update_plot_parameters(self, plot):
         label = self.plot_label(plot)
         p, pp = self.plots[plot], self.parameters[label]
-        pp['label'].value = p['label']
-        if self.plotview.ax.get_legend() is None:        
+        pp['legend_label'].value = p['legend_label']
+        if p['show_legend']:
             pp['legend'].value = 'Yes'
         else:
-            labels = [label.get_text() for label in
-                      self.plotview.ax.get_legend().texts]
-            if label.split()[-1] in labels or basename(label) in labels:
-                pp['legend'].value = 'Yes'
-            else:
-                pp['legend'].value = 'No'
+            pp['legend'].value = 'No'
         pp['color'].value = p['color']
         if p['smooth_line']:
             pp['linestyle'].value = self.linestyles[p['smooth_linestyle']]
@@ -1550,7 +1545,7 @@ class CustomizeTab(NXTab):
                 label = self.plot_label(plot)
                 if self.parameters[label]['legend'].value == 'Yes':
                     plots.append(self.plots[plot]['plot'])
-                    labels.append(self.plots[plot]['label'])
+                    labels.append(self.plots[plot]['legend_label'])
             self.plotview.legend(plots, labels, nameonly=_nameonly, 
                                  loc=legend_location)         
 
@@ -1590,6 +1585,11 @@ class CustomizeTab(NXTab):
             for plot in self.plots:
                 label = self.plot_label(plot)
                 p, pp = self.plots[plot], self.parameters[label]
+                p['legend_label'] = pp['legend_label'].value
+                if pp['legend'].value == 'Yes':
+                    p['show_legend'] = True
+                else:
+                    p['show_legend'] = False
                 p['color'] = pp['color'].value
                 p['plot'].set_color(p['color'])
                 linestyle = [k for k, v in self.linestyles.items()
