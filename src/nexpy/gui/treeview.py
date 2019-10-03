@@ -383,9 +383,9 @@ class NXTreeView(QtWidgets.QTreeView):
                 if isinstance(node, NXdata):
                     self.mainwindow.signal_action.setEnabled(True)
                     self.mainwindow.fit_action.setEnabled(True)
-        if node.is_plottable():
-            self.mainwindow.plot_data_action.setEnabled(True)
-            try:
+        try:
+            if node.is_plottable():
+                self.mainwindow.plot_data_action.setEnabled(True)
                 if ((isinstance(node, NXgroup) and
                     node.nxsignal is not None and 
                     node.nxsignal.plot_rank == 1) or
@@ -397,17 +397,14 @@ class NXTreeView(QtWidgets.QTreeView):
                     if 'auxiliary_signals' in node.attrs:
                         self.mainwindow.multiplot_data_action.setEnabled(True)
                         self.mainwindow.multiplot_lines_action.setEnabled(True)
-            except Exception as error:
-                pass
-            try:
                 if ((isinstance(node, NXgroup) and 
                      node.plottable_data is not None and
                     node.plottable_data.nxsignal is not None and
                     node.plottable_data.nxsignal.plot_rank > 2) or
                     (isinstance(node, NXfield) and node.plot_rank > 2)):
                     self.mainwindow.plot_image_action.setEnabled(True)
-            except Exception as error:
-                pass
+        except Exception as error:
+            pass
 
     def addMenu(self, action):
         if action.isEnabled():
