@@ -880,7 +880,7 @@ class NXPlotView(QtWidgets.QDialog):
             opts['color'] = colors[self.num % len(colors)]
         if fmt == '' and 'marker' not in opts:
             opts['marker'] = 'o'
-        if fmt == '' and 'linestyle' not in opts:
+        if fmt == '' and 'linestyle' not in opts and 'ls' not in opts:
             opts['linestyle'] = 'None'
 
         if self.e is not None:

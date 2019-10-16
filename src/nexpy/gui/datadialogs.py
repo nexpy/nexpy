@@ -1149,7 +1149,7 @@ class NewDialog(NXDialog):
 class PlotDialog(NXDialog):
     """Dialog to plot arbitrary NeXus data in one or two dimensions"""
  
-    def __init__(self, node, parent=None, fmt='o'):
+    def __init__(self, node, parent=None, **kwargs):
 
         super(PlotDialog, self).__init__(parent)
  
@@ -1165,7 +1165,9 @@ class PlotDialog(NXDialog):
         except Exception:
             self.default_axes = []
 
-        self.fmt = fmt
+        self.kwargs = kwargs
+        if 'marker' not in self.kwargs:
+            self.kwargs['marker'] = 'o'
 
         self.signal_combo =  NXComboBox() 
         for node in self.group.values():
@@ -1292,7 +1294,7 @@ class PlotDialog(NXDialog):
             data = NXdata(self.signal, self.get_axes(), 
                           title=self.signal_path)
             data.nxsignal.attrs['signal_path'] = self.signal_path
-            data.plot(fmt=self.fmt)
+            data.plot(**self.kwargs)
             super(PlotDialog, self).accept()
         except NeXusError as error:
             report_error("Plotting data", error)
