@@ -343,7 +343,7 @@ class NXTreeView(QtWidgets.QTreeView):
             self.mainwindow.reload_action.setEnabled(True)
             self.mainwindow.collapse_action.setEnabled(True)
             self.mainwindow.view_action.setEnabled(True)
-            if node.nxfilemode == 'rw':
+            if node.nxfilemode is None or node.nxfilemode == 'rw':
                 self.mainwindow.rename_action.setEnabled(True)
         if isinstance(node, NXroot):
             self.mainwindow.savefile_action.setEnabled(True)
@@ -369,7 +369,7 @@ class NXTreeView(QtWidgets.QTreeView):
                     self.mainwindow.export_action.setEnabled(True)
             except Exception as error:
                 pass
-            if node.nxfilemode == 'rw':
+            if node.nxfilemode is None or node.nxfilemode == 'rw':
                 if not isinstance(node, NXlink):
                     self.mainwindow.add_action.setEnabled(True)
                 if isinstance(node, NXgroup):
@@ -382,7 +382,8 @@ class NXTreeView(QtWidgets.QTreeView):
                     self.mainwindow.default_action.setEnabled(True)
                 if isinstance(node, NXdata):
                     self.mainwindow.signal_action.setEnabled(True)
-                    self.mainwindow.fit_action.setEnabled(True)
+            if isinstance(node, NXdata) and node.plot_rank == 1:
+                self.mainwindow.fit_action.setEnabled(True)
         try:
             if node.is_plottable():
                 self.mainwindow.plot_data_action.setEnabled(True)
@@ -399,9 +400,8 @@ class NXTreeView(QtWidgets.QTreeView):
                         self.mainwindow.multiplot_lines_action.setEnabled(True)
                 if ((isinstance(node, NXgroup) and 
                      node.plottable_data is not None and
-                    node.plottable_data.nxsignal is not None and
-                    node.plottable_data.nxsignal.plot_rank > 2) or
-                    (isinstance(node, NXfield) and node.plot_rank > 2)):
+                     node.plottable_data.is_image()) or
+                    (isinstance(node, NXfield) and node.is_image())):
                     self.mainwindow.plot_image_action.setEnabled(True)
         except Exception as error:
             pass
