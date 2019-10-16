@@ -1012,14 +1012,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def new_workspace(self):
         try:
-            default_name = self.tree.get_new_name()
-            name, ok = QtWidgets.QInputDialog.getText(self, 'New Workspace',
-                             'Workspace Name:', text=default_name)
-            if name and ok:
-                self.tree[name] = NXroot(NXentry())
-                self.treeview.select_node(self.tree[name].entry)
-                self.treeview.update()
-                logging.info("New workspace '%s' created" % name)
+            dialog = NewDialog(parent=self)
+            dialog.show()
         except NeXusError as error:
             report_error("Creating New Workspace", error)
 
@@ -1029,8 +1023,8 @@ class MainWindow(QtWidgets.QMainWindow):
                                     self.default_directory,  self.file_filter)
             if fname:
                 if is_file_locked(fname):
-                    logging.info("NeXus file '%s' is locked by an external process."
-                                 % fname)
+                    logging.info(
+                    "NeXus file '%s' is locked by an external process." % fname)
                     return
                 name = self.tree.get_name(fname)
                 self.tree[name] = nxload(fname)
