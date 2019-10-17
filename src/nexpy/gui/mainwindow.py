@@ -1490,7 +1490,8 @@ class MainWindow(QtWidgets.QMainWindow):
                     except (KeyError, NeXusError):
                         pass
                 elif node.is_plottable():
-                    dialog = PlotDialog(node, parent=self, linestyle='-')
+                    dialog = PlotDialog(node, parent=self, marker='None', 
+                                        linestyle='-')
                     dialog.show()
                 else:
                     raise NeXusError("Data not plottable")
