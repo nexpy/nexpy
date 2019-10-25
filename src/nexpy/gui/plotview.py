@@ -413,6 +413,10 @@ class NXPlotView(QtWidgets.QDialog):
             self.xp, self.yp = event.x, event.y
             self.xdata, self.ydata = self.inverse_transform(event.xdata, 
                                                             event.ydata)
+            self.coords = [self.xdata if self.axis[i] is self.xaxis else
+                           self.ydata if self.axis[i] is self.yaxis else
+                           0.5 * (self.axis[i].lo +self.axis[i].hi)
+                           for i in range(self.ndim)]
         else:
             self.xp, self.yp, self.xdata, self.ydata = None, None, None, None
         
@@ -886,7 +890,7 @@ class NXPlotView(QtWidgets.QDialog):
         if self.e is not None:
             self._plot = ax.errorbar(self.x, self.y, self.e, fmt=fmt, **opts)[0]
         else:
-            self._plot = ax.plot(self.x, self.y, fmt,  **opts)[0]
+            self._plot = ax.plot(self.x, self.y, fmt, **opts)[0]
 
         ax.lines[-1].set_label(self.signal_group + self.signal.nxname)
 
