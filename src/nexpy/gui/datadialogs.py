@@ -1118,10 +1118,38 @@ class GridParameter(object):
         self.checkbox.setEnabled(True)
 
 
+class NewDialog(NXDialog):
+    """Dialog to produce a new workspace in the tree view."""
+
+    def __init__(self, parent=None):
+
+        super(NewDialog, self).__init__(parent)
+
+        self.names = GridParameters()
+        self.names.add('root', self.tree.get_new_name(), 'Workspace', None)
+        self.names.add('entry', 'entry', 'Entry', True)
+
+        self.set_layout(self.names.grid(header=None), 
+                        self.close_layout(save=True))
+
+    def accept(self):
+        root = self.names['root'].value
+        entry = self.names['entry'].value
+        if self.names['entry'].vary:
+            self.tree[root] = NXroot(NXentry(name=entry))
+            self.treeview.select_node(self.tree[root][entry])
+        else:
+            self.tree[root] = NXroot()
+            self.treeview.select_node(self.tree[root])
+        self.treeview.update()
+        logging.info("New workspace '%s' created" % root)
+        super(NewDialog, self).accept()
+
+
 class PlotDialog(NXDialog):
     """Dialog to plot arbitrary NeXus data in one or two dimensions"""
  
-    def __init__(self, node, parent=None, fmt='o'):
+    def __init__(self, node, parent=None, **kwargs):
 
         super(PlotDialog, self).__init__(parent)
  
@@ -1137,7 +1165,9 @@ class PlotDialog(NXDialog):
         except Exception:
             self.default_axes = []
 
-        self.fmt = fmt
+        self.kwargs = kwargs
+        if 'marker' not in self.kwargs:
+            self.kwargs['marker'] = 'o'
 
         self.signal_combo =  NXComboBox() 
         for node in self.group.values():
@@ -1264,7 +1294,7 @@ class PlotDialog(NXDialog):
             data = NXdata(self.signal, self.get_axes(), 
                           title=self.signal_path)
             data.nxsignal.attrs['signal_path'] = self.signal_path
-            data.plot(fmt=self.fmt)
+            data.plot(**self.kwargs)
             super(PlotDialog, self).accept()
         except NeXusError as error:
             report_error("Plotting data", error)

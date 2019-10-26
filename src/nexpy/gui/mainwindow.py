@@ -1012,14 +1012,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def new_workspace(self):
         try:
-            default_name = self.tree.get_new_name()
-            name, ok = QtWidgets.QInputDialog.getText(self, 'New Workspace',
-                             'Workspace Name:', text=default_name)
-            if name and ok:
-                self.tree[name] = NXroot(NXentry())
-                self.treeview.select_node(self.tree[name].entry)
-                self.treeview.update()
-                logging.info("New workspace '%s' created" % name)
+            dialog = NewDialog(parent=self)
+            dialog.show()
         except NeXusError as error:
             report_error("Creating New Workspace", error)
 
@@ -1029,8 +1023,8 @@ class MainWindow(QtWidgets.QMainWindow):
                                     self.default_directory,  self.file_filter)
             if fname:
                 if is_file_locked(fname):
-                    logging.info("NeXus file '%s' is locked by an external process."
-                                 % fname)
+                    logging.info(
+                    "NeXus file '%s' is locked by an external process." % fname)
                     return
                 name = self.tree.get_name(fname)
                 self.tree[name] = nxload(fname)
@@ -1491,12 +1485,13 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.treeview.status_message(node)
                 if isinstance(node, NXgroup) and node.plottable_data:
                     try:
-                        node.plot(fmt='-')
+                        node.plot(marker='None', linestyle='-')
                         self.plotview.make_active()
                     except (KeyError, NeXusError):
                         pass
                 elif node.is_plottable():
-                    dialog = PlotDialog(node, parent=self, fmt='-')
+                    dialog = PlotDialog(node, parent=self, marker='None', 
+                                        linestyle='-')
                     dialog.show()
                 else:
                     raise NeXusError("Data not plottable")
@@ -1510,7 +1505,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 if not node.exists():
                     raise NeXusError("%s does not exist" % node.nxfullpath)
                 self.treeview.status_message(node)
-                node.oplot(fmt='-')
+                node.oplot(marker='None', linestyle='-')
                 self.plotview.make_active()
         except NeXusError as error:
             report_error("Overplotting Data", error)
@@ -1560,9 +1555,11 @@ class MainWindow(QtWidgets.QMainWindow):
                 colors = get_colors(len(signals))
                 for i, signal in enumerate(signals):
                     if i == 0:
-                        signal.plot(fmt='-', color=colors[i])
+                        signal.plot(marker='None', linestyle='-', 
+                                    color=colors[i])
                     else:
-                        signal.oplot(fmt='-', color=colors[i])
+                        signal.oplot(marker='None', linestyle='-',
+                                     color=colors[i])
                 self.plotview.otab.home()
                 self.plotview.legend(nameonly=True)
                 self.plotview.make_active()

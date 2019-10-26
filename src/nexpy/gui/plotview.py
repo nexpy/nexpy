@@ -413,6 +413,10 @@ class NXPlotView(QtWidgets.QDialog):
             self.xp, self.yp = event.x, event.y
             self.xdata, self.ydata = self.inverse_transform(event.xdata, 
                                                             event.ydata)
+            self.coords = [self.xdata if self.axis[i] is self.xaxis else
+                           self.ydata if self.axis[i] is self.yaxis else
+                           0.5 * (self.axis[i].lo +self.axis[i].hi)
+                           for i in range(self.ndim)]
         else:
             self.xp, self.yp, self.xdata, self.ydata = None, None, None, None
         
@@ -880,13 +884,13 @@ class NXPlotView(QtWidgets.QDialog):
             opts['color'] = colors[self.num % len(colors)]
         if fmt == '' and 'marker' not in opts:
             opts['marker'] = 'o'
-        if fmt == '' and 'linestyle' not in opts:
+        if fmt == '' and 'linestyle' not in opts and 'ls' not in opts:
             opts['linestyle'] = 'None'
 
         if self.e is not None:
             self._plot = ax.errorbar(self.x, self.y, self.e, fmt=fmt, **opts)[0]
         else:
-            self._plot = ax.plot(self.x, self.y, fmt,  **opts)[0]
+            self._plot = ax.plot(self.x, self.y, fmt, **opts)[0]
 
         ax.lines[-1].set_label(self.signal_group + self.signal.nxname)
 
@@ -3363,7 +3367,8 @@ class NXProjectionTab(QtWidgets.QWidget):
             self.overplot_box.setVisible(False)
             self.overplot_box.setChecked(False)
         plotviews[projection.label].raise_()
-        self.plotview.mainwindow.panels['projection'].update()
+        if 'projection' in self.plotview.mainwindow.panels:
+            self.plotview.mainwindow.panels['projection'].update()
 
     def open_panel(self):
         self.plotview.mainwindow.show_projection_panel()
