@@ -3367,7 +3367,8 @@ class NXProjectionTab(QtWidgets.QWidget):
             self.overplot_box.setVisible(False)
             self.overplot_box.setChecked(False)
         plotviews[projection.label].raise_()
-        self.plotview.mainwindow.panels['projection'].update()
+        if 'projection' in self.plotview.mainwindow.panels:
+            self.plotview.mainwindow.panels['projection'].update()
 
     def open_panel(self):
         self.plotview.mainwindow.show_projection_panel()
