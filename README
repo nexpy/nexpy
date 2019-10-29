@@ -43,11 +43,12 @@ This also means that the current version cannot read and write HDF4 or XML
 NeXus files.
 
 If you only intend to utilize the Python API from the command-line, the only 
-other required library is Numpy.
+other required libraries are NumPy and SciPy.
 
 * nexusformat (https://github.com/nexpy/nexusformat)
 * h5py (http://www.h5py.org)
-* numpy (http://numpy.scipy.org/)
+* numpy (http://numpy.org)
+* scipy (http://scipy.org)
 
 NeXpy GUI
 ---------
@@ -85,8 +86,6 @@ Least-squares fitting requires Matt Newville's least-squares fitting package,
 lmfit-py. Importers may also require libraries to read the imported files in
 their native format, e.g., spec2nexus for reading SPEC files.
 
-From v0.4.3, the log window is colorized if ansi2html is installed.
-
 From v0.9.1, a new 2D smoothing option is available in the list of
 interpolations in the signal tab if astropy is installed. It is labelled
 'convolve' and provides, by default, a 2-pixel Gaussian smoothing of the
@@ -114,6 +113,7 @@ matplotlib v1.2.0    http://matplotlib.sourceforge.net
 lmfit                http://newville.github.io/lmfit-py (Fitting only)
 spec2nexus           http://spec2nexus.readthedocs.org  (SPEC reader only)
 pillow               https://pillow.readthedocs.io/
+ansi2html            https://pypi.org/project/ansi2html/
 
 To run with the GUI
 ===================

@@ -23,6 +23,10 @@ reading and writing NeXus files is provided by the `nexusformat
           so please post any issues that you encounter on the `NeXpy GitHub 
           <https://github.com/nexpy/nexpy/issues>`_. 
 
+.. warning:: On January 1, 2020, Python 2 will no longer be supported. NeXpy 
+             v0.11 and nexusformat v0.5 are the last versions to support Python 
+             2. There may be some urgent bug fixes in the meantime, but 
+             NeXpy v0.12 and nexusformat v0.6 will require Python 3.
 
 .. toctree::
    :maxdepth: 2
