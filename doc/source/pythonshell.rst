@@ -83,7 +83,7 @@ The default mode is 'r', *i.e.*, readonly access.
 
 Creating NeXus Data
 ===================
-It is just as easy to create new NeXus data sets from scratch using Numpy 
+It is just as easy to create new NeXus data sets from scratch using NumPy 
 arrays. The following example shows the creation of a simple function, which is 
 then saved to a file::
  
@@ -125,7 +125,7 @@ can contain fields, with base class NXfield, and/or other groups.
 NeXus Fields
 ------------
 NeXus data values are stored in NeXus objects of class 'NXfield'. The NXfield
-class wraps standard Numpy arrays, scalars, and Python strings so that
+class wraps standard NumPy arrays, scalars, and Python strings so that
 additional metadata (or attributes) and methods can be associated with them. 
 
 There are three ways to create an NXfield.
@@ -135,7 +135,7 @@ There are three ways to create an NXfield.
     >>> x = NXfield(np.linspace(0,2*np.pi,101), units='degree')
 
   The data value is given by the first positional argument, and may be a Python
-  scalar or string, or a Numpy array. In this method, keyword arguments can be
+  scalar or string, or a NumPy array. In this method, keyword arguments can be
   used to define NXfield attributes.
 
 # Attribute assignment as the child of a NeXus group::
@@ -175,7 +175,7 @@ example, a float64 array can be converted to float32 on assignment::
   (dtype('O'), ())
 
 .. note:: Numeric dtypes can be defined either as a string, *e.g.*, 'int16', 
-          'float32', or using the Numpy dtypes, *e.g.*, np.int16, np.float32.
+          'float32', or using the NumPy dtypes, *e.g.*, np.int16, np.float32.
 
 .. warning:: By default, Python strings are stored as variable-length strings in
              the HDF5 file. These use a special object dtype defined by h5py 
@@ -198,7 +198,7 @@ example, a float64 array can be converted to float32 on assignment::
                NXfield(array(['a', 'b', 'c', 'd', '\xc3\xa9'], dtype='|S10'))
 
 Similarly, the shape and dimension sizes of an integer or float array is 
-inherited from the assigned Numpy array. It is possible to initialize an NXfield
+inherited from the assigned NumPy array. It is possible to initialize an NXfield
 array without specifying the data values in advance, *e.g.*, if the data has to
 be created in slabs::
 
@@ -233,14 +233,14 @@ When a NeXus tree is printed, the attributes are prefixed by '@'::
 
 Masked Arrays
 ^^^^^^^^^^^^^
-Numpy has the ability to store arrays with masks to remove missing or invalid
+NumPy has the ability to store arrays with masks to remove missing or invalid
 data from computations of, *e.g.*, averages or maxima. Since Matplotlib is able 
 to handle masked arrays and removes masked data from plots, this is a convenient 
 way of preventing bad data from contaminating statistical analyses, while 
 preserving all the data values, good and bad, *i.e.*, masks can be turned on and 
 off. 
 
-NeXpy uses the same syntax as Numpy for masking and unmasking data.
+NeXpy uses the same syntax as NumPy for masking and unmasking data.
 
  >>> z = NXfield([1,2,3,4,5,6], name='z')
  >>> z[3:5] = np.ma.masked
@@ -257,7 +257,7 @@ NeXpy uses the same syntax as Numpy for masking and unmasking data.
              to remove a mask if you have modified the unmasked values. 
 
 If the NXfield does not have a parent group, the mask is stored within the field
-as in Numpy arrays. However, if the NXfield has a parent group, the mask is 
+as in NumPy arrays. However, if the NXfield has a parent group, the mask is 
 stored in a separate NXfield that is generated automatically by the mask
 assignment or whenever the masked NXfield is assigned to a group. The mask is
 identified by the 'mask' attribute of the masked NXfield.
@@ -399,8 +399,8 @@ here::
  >>> z=np.sin(X)*np.sin(Y)
  >>> a=NXdata(z,[y,x])
 
-The first positional argument is an NXfield or Numpy array containing the data,
-while the second is a list containing the axes, again as NXfields or Numpy
+The first positional argument is an NXfield or NumPy array containing the data,
+while the second is a list containing the axes, again as NXfields or NumPy
 arrays. In this example, the names of the arrays have not been defined within an
 NXfield so default names were assigned::
 
@@ -417,7 +417,7 @@ NXfield so default names were assigned::
           defines the axes as a list of NXfield names The NXdata constructor 
           sets these attributes automatically.
 
-.. warning:: Numpy stores arrays by default in C, or row-major, order, *i.e.*, 
+.. warning:: NumPy stores arrays by default in C, or row-major, order, *i.e.*, 
              in the array 'signal(axis1,axis2)', axis2 is the fastest to vary. 
              In most image formats, *e.g.*, TIFF files, the x-axis is assumed
              to be the fastest varying axis, so we are adopting the same
@@ -644,8 +644,8 @@ NXfield
 ^^^^^^^
 NXfields usually consist of arrays of numeric data with associated metadata, the 
 NeXus attributes (the exception is when they contain character strings). This 
-makes them similar to Numpy arrays, and this module allows the use of NXfields 
-in numerical operations as if they were Numpy ndarrays::
+makes them similar to NumPy arrays, and this module allows the use of NXfields 
+in numerical operations as if they were NumPy ndarrays::
 
  >>> x = NXfield((1.0,2.0,3.0,4.0))
  >>> print(x+1)
@@ -673,7 +673,7 @@ Such operations return valid NXfield objects containing the same attributes
 as the first NXobject in the expression. The 'reshape' and 'transpose' methods 
 also return NXfield objects.
 
-NXfields can be compared to other NXfields (this is a comparison of their Numpy 
+NXfields can be compared to other NXfields (this is a comparison of their NumPy 
 arrays)::
 
  >>> y=NXfield(np.array((1.5,2.5,3.5)),name='y')
@@ -681,7 +681,7 @@ arrays)::
  True
 
 NXfields are technically not a sub-class of the ndarray class, but they are cast
-as Numpy arrays when required by Numpy operations, returning either another 
+as NumPy arrays when required by NumPy operations, returning either another 
 NXfield or, in some cases, an ndarray that can easily be converted to an 
 NXfield::
 
@@ -896,7 +896,7 @@ are set by the values of the axis::
 Unless the slice reduces one of the axes to a single item, the rank of the data
 remains the same. To project data along one of the axes, and so reduce the rank
 by one, the data can be summed along that axis using the sum() method. This
-employs the Numpy array sum() method::
+employs the NumPy array sum() method::
 
  >>> x=y=NXfield(np.linspace(0,2*np.pi,41))
  >>> X,Y=np.meshgrid(x,y)

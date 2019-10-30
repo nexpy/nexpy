@@ -38,7 +38,7 @@ The illustration shows the main features of the GUI:
 
 **3) Shell Pane**
     This is an iPython shell, with NeXpy already imported (as * so no prefixes 
-    are necessary), along with Numpy (as np) and Pylab (as plt). Any assignments 
+    are necessary), along with NumPy (as np) and Pylab (as plt). Any assignments 
     to items in the tree pane are automatically reflected in the tree pane, and 
     new NXroot or NXentry objects can be added to the tree from the 
     iPython shell. NeXus data plots commands from the shell will appear in the 
@@ -244,7 +244,7 @@ Data Menu
     type to be specified. A dropdown menu can be used to enter field names 
     that are defined by the NeXus standard, but the user is free to enter 
     alternative names. The value field can be any valid Python expression, 
-    including Numpy functions such as np.linspace().
+    including NumPy functions such as np.linspace().
     
     When adding a group, the Add Data dialog allows the name and class of the
     group to be specified. A dropdown menu display can be used to enter one of 
