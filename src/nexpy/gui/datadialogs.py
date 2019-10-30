@@ -1291,8 +1291,12 @@ class PlotDialog(NXDialog):
 
     def accept(self):
         try:
-            if self.ndim == 1 and 'marker' not in self.kwargs:
-                self.kwargs['marker'] = 'o'
+            if self.ndim == 1:
+                if 'marker' not in self.kwargs:
+                    self.kwargs['marker'] = 'o'
+            else:
+                self.kwargs.pop('marker', None)
+                self.kwargs.pop('linestyle', None)
             data = NXdata(self.signal, self.get_axes(), 
                           title=self.signal_path)
             data.nxsignal.attrs['signal_path'] = self.signal_path
