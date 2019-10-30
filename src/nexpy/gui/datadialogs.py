@@ -1166,8 +1166,6 @@ class PlotDialog(NXDialog):
             self.default_axes = []
 
         self.kwargs = kwargs
-        if 'marker' not in self.kwargs:
-            self.kwargs['marker'] = 'o'
 
         self.signal_combo =  NXComboBox() 
         for node in self.group.values():
@@ -1195,6 +1193,8 @@ class PlotDialog(NXDialog):
         self.setLayout(self.layout)
 
         self.setWindowTitle("Plot NeXus Data")
+
+
 
     @property
     def signal(self):
@@ -1291,6 +1291,8 @@ class PlotDialog(NXDialog):
 
     def accept(self):
         try:
+            if self.ndim == 1 and 'marker' not in self.kwargs:
+                self.kwargs['marker'] = 'o'
             data = NXdata(self.signal, self.get_axes(), 
                           title=self.signal_path)
             data.nxsignal.attrs['signal_path'] = self.signal_path
