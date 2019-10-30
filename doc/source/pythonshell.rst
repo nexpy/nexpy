@@ -63,7 +63,7 @@ a complete array, if memory allows, or as a series of slabs (see below).
 .. note:: The variable NX_MEMORY defines the maximum size in MB of data that 
           will be read from a file. If the NXfield is larger than NX_MEMORY, the
           data will have to be read as a series of slabs. The default value is
-          500.
+          500. Use `nxsetmemory` to change this value.
 
 Load Options
 ------------
@@ -73,13 +73,17 @@ read/write mode::
 
  >>> a=nxload('chopper.nxs', mode='rw')
 
-The default mode is 'r', *i.e.*, readonly access.
+The default mode is 'r', *i.e.*, readonly access. The `nxload` function will 
+accept any mode values allowed when opening h5py files, such as 'r+', 'w', 
+'w-', and 'a' (see the 
+`h5py documentation <http://docs.h5py.org/en/stable/high/file.html>`_ for more 
+details), but once open, the mode values are stored as 'r' or 'rw'.
 
 .. warning:: If the file is opened in read/write mode, any changes are made 
              automatically to the file itself. In particular, any deletions of 
              file objects will be irreversible. Make sure you have a backup
-             if you open a mission-critical file. In the :doc:`pythongui`, this 
-             can be achieved using the 'Duplicate...' menu item.
+             if you open a mission-critical file, for example, using the 
+             `backup` function.
 
 Creating NeXus Data
 ===================
