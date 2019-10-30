@@ -190,8 +190,8 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
 
     def init_settings(self):
         """Initialize access to the NeXpy settings file."""
-        self.settings = NXConfigParser(os.path.join(self.nexpy_dir, 
-                                                    'settings.ini'))
+        self.settings_file = os.path.join(self.nexpy_dir, 'settings.ini')
+        self.settings = NXConfigParser(self.settings_file)
         def backup_age(backup):
             try:
                 return timestamp_age(os.path.basename(os.path.dirname(backup)))
@@ -247,6 +247,10 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
         self.tree = NXtree()
         _tree = self.tree
 
+    def init_config(self):
+        self.config.ConsoleWidget.input_sep = ''
+        self.config.Completer.use_jedi = False
+
     def init_gui(self):
         """Initialize the GUI."""
         self.app = QtWidgets.QApplication.instance()
@@ -289,22 +293,24 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
             s = "%s=nx.%s\n" % (_class,_class) + s
         six.exec_(s, self.window.user_ns)
 
-        try:
-            f = open(os.path.join(os.path.expanduser('~'), '.nexpy',
-                                  'config.py'))
-            s = ''.join(f.readlines())
-            six.exec_(s, self.window.user_ns)
-        except:
-            s = ("import sys\n"
-                 "import os\n"
-                 "import h5py as h5\n"
-                 "import numpy as np\n"
-                 "import numpy.ma as ma\n"
-                 "import scipy as sp\n"
-                 "import matplotlib as mpl\n"
-                 "from matplotlib import pylab, mlab, pyplot\n"
-                 "plt = pyplot")
-            six.exec_(s,  self.window.user_ns)
+        config_file = os.path.join(self.nexpy_dir, 'config.py')
+        if not os.path.exists(config_file):
+            s = ["import sys\n",
+                 "import os\n",
+                 "import h5py as h5\n",
+                 "import numpy as np\n",
+                 "import numpy.ma as ma\n",
+                 "import scipy as sp\n",
+                 "import matplotlib as mpl\n",
+                 "from matplotlib import pylab, mlab, pyplot\n",
+                 "plt = pyplot\n",
+                 "os.chdir(os.path.expanduser('~'))\n"]
+            with open(config_file, 'w') as f:
+                f.writelines(s)
+        else:
+            with open(config_file) as f:
+                s = f.readlines()
+        six.exec_('\n'.join(s), self.window.user_ns)
         if filename is not None:
             try:
                 fname = os.path.expanduser(filename)
@@ -343,6 +349,7 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
         self.init_settings()
         self.init_log()
         self.init_tree()
+        self.init_config()
         self.init_gui()
         self.init_shell(filename)
         self.init_colors()

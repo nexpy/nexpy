@@ -1,26 +1,30 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
-import six
 
+import datetime
 import importlib
 import io
 import logging
 import os
 import re
 import sys
-
+import traceback as tb
 from collections import OrderedDict
 from datetime import datetime
+
+import matplotlib.image as img
+import numpy as np
+import six
 from IPython.core.ultratb import ColorTB
-import traceback as tb
+from matplotlib.colors import colorConverter, hex2color, rgb2hex
+from nexusformat.nexus import *
+
+from .pyqt import QtWidgets, getOpenFileName
+
 try:
     from configparser import ConfigParser
 except ImportError:
     from ConfigParser import ConfigParser
-import numpy as np
-from .pyqt import QtWidgets, getOpenFileName
-from matplotlib.colors import hex2color, rgb2hex
-import matplotlib.image as img
 
 try:
     from astropy.convolution import Kernel
@@ -31,7 +35,8 @@ try:
 except ImportError:
     fabio = None
 
-from nexusformat.nexus import *
+if six.PY2:
+    FileNotFoundError = IOError
 
 ansi_re = re.compile('\x1b' + r'\[([\dA-Fa-f;]*?)m')
 
@@ -105,6 +110,24 @@ def report_exception(*args):
     return message_box.exec_()
 
 
+def is_file_locked(filename, wait=10):
+    _lock = NXLock(filename)
+    try:
+        _lock.wait(wait)
+        return False
+    except NXLockException:
+        lock_time = modification_time(_lock.lock_file)
+        if confirm_action("File locked. Do you want to clear the lock?",
+                          "%s\nLock file created: "%filename+lock_time, 
+                          answer="no"):
+            _lock.clear()
+            return False
+        else:
+            return True           
+    else:
+        return False
+
+
 def iterable(obj):
     """Return true if the argument is iterable"""
     try:
@@ -134,12 +157,142 @@ def natural_sort(key):
     return [int(t) if t.isdigit() else t for t in re.split(r'(\d+)', key)]    
 
 
+def clamp(value, min_value, max_value):
+    """Return value constrained to be within defined limits
+    
+    Parameters
+    ----------
+    value : int or float
+        Original value
+    min_value : int or float
+        Allowed minimum value
+    max_value : int or float
+        Allowed maximum value
+    
+    Returns
+    -------
+    int or float
+        Value constrained to be within defined limits
+    """
+    return max(min_value, min(value, max_value))
+
+
+def centers(axis, dimlen):
+    """Return the centers of the axis bins.
+
+    This works regardless if the axis contains bin boundaries or 
+    centers.
+    
+    Parameters
+    ----------
+    dimlen : int
+        Size of the signal dimension. If this one more than the axis 
+        size, it is assumed the axis contains bin boundaries.
+    """
+    ax = axis.astype(np.float32)
+    if ax.shape[0] == dimlen+1:
+        return (ax[:-1] + ax[1:])/2
+    else:
+        assert ax.shape[0] == dimlen
+        return ax
+
+
+def boundaries(axis, dimlen):
+    """Return the boundaries of the axis bins.
+
+    This works regardless if the axis contains bin boundaries or 
+    centers.
+    
+    Parameters
+    ----------
+    dimlen : int
+        Size of the signal dimension. If this one more than the axis 
+        size, it is assumed the axis contains bin boundaries.
+    """
+    ax = axis.astype(np.float32)
+    if ax.shape[0] == dimlen:
+        start = ax[0] - (ax[1] - ax[0])/2
+        end = ax[-1] + (ax[-1] - ax[-2])/2
+        return np.concatenate((np.atleast_1d(start),
+                               (ax[:-1] + ax[1:])/2,
+                               np.atleast_1d(end)))
+    else:
+        assert ax.shape[0] == dimlen + 1
+        return ax
+
+
+def keep_data(data):
+    """Store the data in the scratch workspace.
+    
+    Parameters
+    ----------
+    data : NXdata
+        NXdata group containing the data to be stored    
+    
+    """
+    from .consoleapp import _nexpy_dir, _tree
+    if 'w0' not in _tree:
+        _tree['w0'] = nxload(os.path.join(_nexpy_dir, 'w0.nxs'), 'rw')
+    ind = []
+    for key in _tree['w0']:
+        try:
+            if key.startswith('s'):
+                ind.append(int(key[1:]))
+        except ValueError:
+            pass
+    if ind == []: ind = [0]
+    data.nxname = 's'+six.text_type(sorted(ind)[-1]+1)
+    _tree['w0'][data.nxname] = data
+
+
+def fix_projection(shape, axes, limits):
+    """Fix the axes and limits for data with dimension sizes of 1.    
+
+    If the shape contains dimensions of size 1, they need to be added 
+    back to the list of axis dimensions and slice limits before calling 
+    the original NXdata 'project' function.
+
+    Parameters
+    ----------
+    shape : tuple or list
+        Shape of the signal.
+    axes : list
+        Original list of axis dimensions.
+    limits : list
+        Original list of slice limits.
+
+    Returns
+    -------
+    fixed_axes : list
+        List of axis dimensions restoring dimensions of size 1.
+    fixed_limits : list
+        List of slice limits with (0,0) added for dimensions of size 1.
+    """
+    fixed_limits = []
+    fixed_axes = axes
+    for s in shape:
+        if s == 1:
+            fixed_limits.append((0,0))
+        else:
+            fixed_limits.append(limits.pop(0))
+    for (i,s) in enumerate(shape):
+        if s==1:
+            fixed_axes=[a+1 if a>=i else a for a in fixed_axes]
+    return fixed_axes, fixed_limits
+
+
 def find_nearest(array, value):
     idx = (np.abs(array-value)).argmin()
     return array[idx]
 
+
 def find_nearest_index(array, value):
     return (np.abs(array-value)).argmin()
+
+
+def format_float(value):
+    """Modified form of the 'g' format specifier."""
+    return re.sub("e(-?)0*(\d+)", r"e\1\2", ("%g" % value).replace("e+", "e"))
 
 
 def human_size(bytes):
@@ -152,38 +305,49 @@ def human_size(bytes):
 
 
 def timestamp():
-    """Return a datestamp valid for use in directory names"""
+    """Return a time stamp valid for use in backup directory names"""
     return datetime.now().strftime('%Y%m%d%H%M%S')
 
 
-def read_timestamp(time_string):
-    """Return a datetime object from the timestamp string"""
-    return datetime.strptime(time_string, '%Y%m%d%H%M%S')
+def read_timestamp(timestamp):
+    """Return a datetime object from the directory time stamp."""
+    return datetime.strptime(timestamp, '%Y%m%d%H%M%S')
 
 
-def format_timestamp(time_string):
-    """Return the timestamp as a formatted string."""
-    return datetime.strptime(time_string, 
-                             '%Y%m%d%H%M%S').isoformat().replace('T', ' ')
+def format_timestamp(timestamp):
+    """Return the directory time stamp as a formatted string."""
+    return str(read_timestamp(timestamp))
 
 
-def restore_timestamp(time_string):
+def restore_timestamp(formatted_timestamp):
     """Return a timestamp from a formatted string."""
-    return datetime.strptime(time_string, 
+    return datetime.strptime(formatted_timestamp, 
                              "%Y-%m-%d %H:%M:%S").strftime('%Y%m%d%H%M%S')
 
-
-def timestamp_age(time_string):
+def timestamp_age(timestamp):
     """Return the number of days since the timestamp"""
-    return (datetime.now() - read_timestamp(time_string)).days
+    return (datetime.now() - read_timestamp(timestamp)).days
 
 
-def is_timestamp(time_string):
-    """Return true if the string is formatted as a timestamp"""
+def is_timestamp(timestamp):
+    """Return true if the string is formatted as a directory timestamp."""
     try:
-        return isinstance(read_timestamp(time_string), datetime)
+        return isinstance(read_timestamp(timestamp), datetime)
     except ValueError:
         return False
+
+
+def format_mtime(mtime):
+    """Return the modification time as a formatted string."""
+    return str(datetime.fromtimestamp(mtime))
+
+
+def modification_time(filename):
+    try:
+        _mtime = os.path.getmtime(filename)
+        return str(datetime.fromtimestamp(_mtime))
+    except FileNotFoundError:
+        return ''
 
 
 def convertHTML(text):
@@ -215,6 +379,10 @@ def get_name(filename, entries=[]):
     return name
 
 
+def get_color(color):
+    return rgb2hex(colorConverter.to_rgb(color))
+
+
 def get_colors(n, first='#1f77b4', last='#d62728'):
     """Return a list of colors interpolating between the first and last.
 
@@ -242,6 +410,7 @@ def get_colors(n, first='#1f77b4', last='#d62728'):
     return [rgb2hex((first[0]+(last[0]-first[0])*i/(n-1), 
                      first[1]+(last[1]-first[1])*i/(n-1),
                      first[2]+(last[2]-first[2])*i/(n-1))) for i in range(n)]
+
 
 def load_image(filename):
     if os.path.splitext(filename.lower())[1] in ['.png', '.jpg', '.jpeg',

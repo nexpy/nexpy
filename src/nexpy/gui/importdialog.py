@@ -18,16 +18,16 @@ from __future__ import (absolute_import, division, print_function,
 import os
 
 from nexusformat.nexus import *
-from .datadialogs import BaseDialog
+from .datadialogs import NXDialog
 
 filetype = "Text File" #Defines the Import Menu label
 
-class BaseImportDialog(BaseDialog):
+class NXImportDialog(NXDialog):
     """Base dialog class for NeXpy import dialogs"""
  
     def __init__(self, parent=None):
 
-        super(BaseImportDialog, self).__init__(parent)
+        super(NXImportDialog, self).__init__(parent)
         self.default_directory = self.mainwindow.default_directory
         self.import_file = None     # must define in subclass
 
@@ -46,5 +46,6 @@ class BaseImportDialog(BaseDialog):
         """
         self.accepted = True
         self.mainwindow.import_data()
-        super(BaseImportDialog, self).accept()
+        super(NXImportDialog, self).accept()
  
+BaseImportDialog = NXImportDialog

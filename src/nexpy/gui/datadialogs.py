@@ -12,6 +12,7 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 import six
 
+import bisect
 import logging
 import numbers
 import os
@@ -22,39 +23,42 @@ import sys
 
 from posixpath import basename
 
-from .pyqt import QtCore, QtGui, QtWidgets, getOpenFileName
+from .pyqt import QtCore, QtGui, QtWidgets, getOpenFileName, getSaveFileName
 import numpy as np
-from matplotlib.colors import rgb2hex, colorConverter
-from matplotlib.backends.qt_editor.formlayout import ColorButton, to_qcolor
+from matplotlib import rcParams, rcParamsDefault
 from matplotlib.legend import Legend
+from matplotlib.rcsetup import (defaultParams, validate_float, validate_int, 
+                                validate_color, validate_aspect)
 
 try:
     from collections import OrderedDict
 except ImportError:
     from ordereddict import OrderedDict
 
-from .utils import confirm_action, display_message, report_error
-from .utils import import_plugin, convertHTML
-from .utils import natural_sort, wrap, human_size
-from .utils import timestamp, format_timestamp, restore_timestamp
-from .plotview import NXCheckBox, NXComboBox, NXPushButton, NXColorButton
+from .utils import (confirm_action, display_message, report_error,
+                    import_plugin, convertHTML, natural_sort, wrap, human_size,
+                    timestamp, format_timestamp, restore_timestamp, get_color,
+                    keep_data, fix_projection, modification_time)
+from .widgets import (NXCheckBox, NXComboBox, NXColorBox, NXPushButton, NXStack,
+                      NXDoubleSpinBox, NXSpinBox, NXpolygon)
 
 from nexusformat.nexus import (NeXusError, NXgroup, NXfield, NXattr, 
                                NXlink, NXlinkgroup, NXlinkfield,
                                NXroot, NXentry, NXdata, NXparameters, nxload)
 
 
-class BaseDialog(QtWidgets.QDialog):
-    """Base dialog class for NeXpy dialogs"""
+class NXWidget(QtWidgets.QWidget):
+    """Customized widget for NeXpy widgets"""
  
-    def __init__(self, parent=None, default=False):
+    def __init__(self, parent=None):
 
-        self.accepted = False
+        super(NXWidget, self).__init__(parent)
         from .consoleapp import _mainwindow
         self.mainwindow = _mainwindow
-        self.mainwindow.current_dialog = self
+        self.mainwindow.current_widget = self
         self.treeview = self.mainwindow.treeview
         self.tree = self.treeview.tree
+        self.plotview = self.mainwindow.plotview
         self.plotviews = self.mainwindow.plotviews
         self.default_directory = self.mainwindow.default_directory
         self.import_file = None     # must define in subclass
@@ -75,21 +79,7 @@ class BaseDialog(QtWidgets.QDialog):
         self.bold_font.setBold(True)
         if parent is None:
             parent = self.mainwindow
-        super(BaseDialog, self).__init__(parent)
-        if not default:
-            self.installEventFilter(self)
-
-    def eventFilter(self, widget, event):
-        """Prevent closure of dialog when pressing [Return] or [Enter]"""
-        if event.type() == QtCore.QEvent.KeyPress:
-            key = event.key()
-            if key == QtCore.Qt.Key_Return or key == QtCore.Qt.Key_Enter:
-                event = QtGui.QKeyEvent(QtCore.QEvent.KeyPress, 
-                                        QtCore.Qt.Key_Tab,
-                                        QtCore.Qt.NoModifier)
-                QtCore.QCoreApplication.postEvent(widget, event)
-                return True
-        return QtWidgets.QWidget.eventFilter(self, widget, event)
+        self.accepted = False
 
     def set_layout(self, *items):
         self.layout = QtWidgets.QVBoxLayout()
@@ -100,15 +90,21 @@ class BaseDialog(QtWidgets.QDialog):
                 self.layout.addWidget(item)
         self.setLayout(self.layout)
 
-    def make_layout(self, *items):
-        layout = QtWidgets.QHBoxLayout()
-        layout.addStretch()
+    def make_layout(self, *items, **opts):
+        if 'vertical' in opts and opts['vertical'] == True:
+            vertical = True
+            layout = QtWidgets.QVBoxLayout()
+        else:
+            vertical = False
+            layout = QtWidgets.QHBoxLayout()
+            layout.addStretch()
         for item in items:
             if isinstance(item, QtWidgets.QLayout):
                 layout.addLayout(item)
             elif isinstance(item, QtWidgets.QWidget):
                 layout.addWidget(item)
-            layout.addStretch()
+            if not vertical:
+                layout.addStretch()
         return layout
 
     def add_layout(self, *items):
@@ -124,6 +120,9 @@ class BaseDialog(QtWidgets.QDialog):
                 self.layout.insertLayout(index, item)
             elif isinstance(item, QtWidgets.QWidget):
                 self.layout.insertWidget(index, item)
+
+    def spacer(self, width=0, height=0):
+        return QtWidgets.QSpacerItem(width, height)
 
     def widget(self, item):
         widget = QtWidgets.QWidget()
@@ -148,26 +147,6 @@ class BaseDialog(QtWidgets.QDialog):
         layout.addWidget(self.close_buttons(save=save, close=close))
         return layout
 
-    def close_buttons(self, save=False, close=False):
-        """
-        Creates a box containing the standard Cancel and OK buttons.
-        """
-        self.close_box = QtWidgets.QDialogButtonBox(self)
-        self.close_box.setOrientation(QtCore.Qt.Horizontal)
-        if save:
-            self.close_box.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel|
-                                              QtWidgets.QDialogButtonBox.Save)
-        elif close:
-            self.close_box.setStandardButtons(QtWidgets.QDialogButtonBox.Close)
-        else:
-            self.close_box.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel|
-                                              QtWidgets.QDialogButtonBox.Ok)
-        self.close_box.accepted.connect(self.accept)
-        self.close_box.rejected.connect(self.reject)
-        return self.close_box
-
-    buttonbox = close_buttons #For backward compatibility
-
     def action_buttons(self, *items):
         layout = QtWidgets.QHBoxLayout()
         layout.addStretch()
@@ -176,6 +155,9 @@ class BaseDialog(QtWidgets.QDialog):
              layout.addWidget(self.pushbutton[label])
              layout.addStretch()
         return layout
+
+    def label(self, label):
+        return QtWidgets.QLabel(six.text_type(label))
 
     def labels(self, *labels, **opts):
         if 'align' in opts:
@@ -316,8 +298,8 @@ class BaseDialog(QtWidgets.QDialog):
         """
         dirname = self.get_default_directory()
         dirname = QtWidgets.QFileDialog.getExistingDirectory(self, 
-                                                         'Choose Directory', 
-                                                         dirname)
+                                                             'Choose Directory', 
+                                                             dirname)
         if os.path.exists(dirname):  # avoids problems if <Cancel> was selected
             self.directoryname.setText(str(dirname))
             self.set_default_directory(dirname)
@@ -374,7 +356,6 @@ class BaseDialog(QtWidgets.QDialog):
             box.setCurrentIndex(0)
         if slot:
             box.currentIndexChanged.connect(slot)
-        box.setSizeAdjustPolicy(QtWidgets.QComboBox.AdjustToContents)
         return box
 
     def select_root(self, slot=None, text='Select Root', other=False):
@@ -455,6 +436,22 @@ class BaseDialog(QtWidgets.QDialog):
     def other_entry(self):
         return self.tree[self.other_entry_box.currentText()]
 
+    def copy_layout(self, text="Copy"):
+        self.copywidget = QtWidgets.QWidget()
+        copylayout = QtWidgets.QHBoxLayout()
+        self.copybox = NXComboBox()
+        self.copy_button = NXPushButton(text, self.copy, self)
+        copylayout.addStretch()
+        copylayout.addWidget(self.copybox)
+        copylayout.addWidget(self.copy_button)
+        copylayout.addStretch()
+        self.copywidget.setLayout(copylayout)
+        self.copywidget.setVisible(False)
+        return self.copywidget    
+
+    def copy(self):
+        pass
+
     def read_parameter(self, root, path):
         """
         Read the value from the NeXus path.
@@ -468,7 +465,13 @@ class BaseDialog(QtWidgets.QDialog):
             else:
                 return value
         except NeXusError:
-            return None 
+            return None
+
+    def parameter_stack(self, parameters, width=None):
+        """Initialize layouts containing a grid selection box and each grid."""
+        return NXStack([p for p in parameters], 
+                       [parameters[p].widget(header=False, width=width) 
+                        for p in parameters])
 
     def hide_grid(self, grid):
         for row in range(grid.rowCount()):
@@ -500,22 +503,6 @@ class BaseDialog(QtWidgets.QDialog):
                         widget.deleteLater()
         grid.deleteLater()        
 
-    def accept(self):
-        """
-        Accepts the result.
-        
-        This usually needs to be subclassed in each dialog.
-        """
-        self.accepted = True
-        QtWidgets.QDialog.accept(self)
-        
-    def reject(self):
-        """
-        Cancels the dialog without saving the result.
-        """
-        self.accepted = False
-        QtWidgets.QDialog.reject(self)
-
     def start_progress(self, limits):
         start, stop = limits
         if self.progress_bar:
@@ -543,6 +530,7 @@ class BaseDialog(QtWidgets.QDialog):
         layout.addWidget(self.progress_bar)
         layout.addStretch()
         layout.addWidget(self.close_buttons(save=save, close=close))
+        self.progress_bar.setVisible(False)
         return layout
 
     def get_node(self):
@@ -564,10 +552,240 @@ class BaseDialog(QtWidgets.QDialog):
             self.thread.deleteLater()
         self.thread = None
 
+    def update(self):
+        pass
+
     def closeEvent(self, event):
         self.stop_thread()
-        super(BaseDialog, self).closeEvent(event)
+        super(NXWidget, self).closeEvent(event)
+        
+
+class NXTab(NXWidget):
+    """Subclass of NXWidget for use as the main widget in a tab.
+    
+    This adds a stretch to the bottom of the QVBoxLayout to improve the layout 
+    of differently sized tabs.
+    """
+
+    def set_layout(self, *items):
+        self.layout = QtWidgets.QVBoxLayout()
+        for item in items:
+            if isinstance(item, QtWidgets.QLayout):
+                self.layout.addLayout(item)
+            elif isinstance(item, QtWidgets.QWidget):
+                self.layout.addWidget(item)
+        self.layout.addStretch()
+        self.setLayout(self.layout)
+
+
+class NXDialog(QtWidgets.QDialog, NXWidget):
+    """Base dialog class for NeXpy dialogs"""
+    
+    def __init__(self, parent=None, default=False):
+        QtWidgets.QDialog.__init__(self, parent)
+        NXWidget.__init__(self, parent)
+        self.mainwindow.current_dialog = self
+        if not default:
+            self.installEventFilter(self)
+ 
+    def close_buttons(self, save=False, close=False):
+        """
+        Creates a box containing the standard Cancel and OK buttons.
+        """
+        self.close_box = QtWidgets.QDialogButtonBox(self)
+        self.close_box.setOrientation(QtCore.Qt.Horizontal)
+        if save:
+            self.close_box.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel|
+                                              QtWidgets.QDialogButtonBox.Save)
+        elif close:
+            self.close_box.setStandardButtons(QtWidgets.QDialogButtonBox.Close)
+        else:
+            self.close_box.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel|
+                                              QtWidgets.QDialogButtonBox.Ok)
+        self.close_box.accepted.connect(self.accept)
+        self.close_box.rejected.connect(self.reject)
+        return self.close_box
+
+    buttonbox = close_buttons #For backward compatibility
+
+    def eventFilter(self, widget, event):
+        """Prevent closure of dialog when pressing [Return] or [Enter]"""
+        if event.type() == QtCore.QEvent.KeyPress:
+            key = event.key()
+            if key == QtCore.Qt.Key_Return or key == QtCore.Qt.Key_Enter:
+                event = QtGui.QKeyEvent(QtCore.QEvent.KeyPress, 
+                                        QtCore.Qt.Key_Tab,
+                                        QtCore.Qt.NoModifier)
+                QtCore.QCoreApplication.postEvent(widget, event)
+                return True
+        return QtWidgets.QWidget.eventFilter(self, widget, event)
+
+    def accept(self):
+        """
+        Accepts the result.
+        
+        This usually needs to be subclassed in each dialog.
+        """
+        self.accepted = True
+        QtWidgets.QDialog.accept(self)
+        
+    def reject(self):
+        """
+        Cancels the dialog without saving the result.
+        """
+        self.accepted = False
+        QtWidgets.QDialog.reject(self)
+
+
+BaseDialog = NXDialog
             
+
+class NXPanel(NXDialog):
+
+    def __init__(self, panel, title='title', tabs={}, apply=True, reset=True, 
+                 parent=None):
+        super(NXPanel, self).__init__(parent)
+        self.tab_class = NXTab
+        self.plotview_sort = False
+        self.tabwidget = QtWidgets.QTabWidget()
+        self.tabwidget.currentChanged.connect(self.update)
+        self.tabwidget.setElideMode(QtCore.Qt.ElideLeft)
+        self.tabs = {}
+        self.labels = {}        
+        self.panel = panel
+        self.title = title
+        for label in tabs:
+            self.tabs[label] = tabs[label]
+            self.labels[tabs[label]] = label
+        self.set_layout(self.tabwidget, self.close_buttons(apply, reset))
+        self.set_title(title)
+        self.setVisible(True)
+
+    def __repr__(self):
+        return 'NXPanel("%s")' % self.panel
+
+    def add(self, label, tab=None, idx=None):
+        if label in self.tabs:
+            raise NeXusError("'%s' already in %s" % (label, self.title))
+        self.tabs[label] = tab
+        self.labels[tab] = label
+        tab.panel = self
+        if idx is not None:
+            self.tabwidget.insertTab(idx, tab, label)
+        else:
+            self.tabwidget.addTab(tab, label)
+        self.tabwidget.setCurrentWidget(tab)
+        self.tabwidget.tabBar().setTabToolTip(self.tabwidget.indexOf(tab), label)
+        self.setVisible(True)
+
+    def remove(self, label):
+        if label in self.tabs:
+            try:
+                self.tabwidget.removeTab(self.tabwidget.indexOf(self.tabs[label]))
+            except RuntimeError:
+                pass
+            del self.labels[self.tabs[label]]
+            self.tabs[label].deleteLater()
+            del self.tabs[label]
+        self.update()
+
+    def __contains__(self, label):
+        """Implements 'k in d' test"""
+        return label in self.tabs
+
+    @property
+    def tab(self):
+        return self.tabwidget.currentWidget()
+
+    @tab.setter
+    def tab(self, label):
+        self.tabwidget.setCurrentWidget(self.tabs[label])
+
+    def close_buttons(self, apply=True, reset=True):
+        """
+        Creates a box containing the standard Apply, Reset and Close buttons.
+        """
+        box = QtWidgets.QDialogButtonBox(self)
+        box.setOrientation(QtCore.Qt.Horizontal)
+        if apply and reset:
+            box.setStandardButtons(QtWidgets.QDialogButtonBox.Apply|
+                                   QtWidgets.QDialogButtonBox.Reset|
+                                   QtWidgets.QDialogButtonBox.Close)
+        elif apply:
+            box.setStandardButtons(QtWidgets.QDialogButtonBox.Apply|
+                                   QtWidgets.QDialogButtonBox.Close)
+        elif reset:
+            box.setStandardButtons(QtWidgets.QDialogButtonBox.Reset|
+                                   QtWidgets.QDialogButtonBox.Close)
+        else:
+            box.setStandardButtons(QtWidgets.QDialogButtonBox.Close)        
+        box.setFocusPolicy(QtCore.Qt.NoFocus)
+        if apply:
+            self.apply_button = box.button(QtWidgets.QDialogButtonBox.Apply)
+            self.apply_button.setFocusPolicy(QtCore.Qt.StrongFocus)
+            self.apply_button.setDefault(True)
+            self.apply_button.clicked.connect(self.apply)
+        if reset:
+            self.reset_button = box.button(QtWidgets.QDialogButtonBox.Reset)
+            self.reset_button.setFocusPolicy(QtCore.Qt.StrongFocus)
+            self.reset_button.clicked.connect(self.reset)
+        self.close_button = box.button(QtWidgets.QDialogButtonBox.Close)
+        self.close_button.setFocusPolicy(QtCore.Qt.StrongFocus)
+        self.close_button.clicked.connect(self.close)
+        self.close_box = box
+        return self.close_box
+
+    def activate(self, label):
+        if label not in self.tabs:
+            tab = self.tab_class(parent=self)
+            if self.plotview_sort:
+                if label in self.plotviews:
+                    tab.plotview = self.plotviews[label]
+                    numbers = sorted([t.plotview.number-1 for t in self.labels])
+                    idx = bisect.bisect_left(numbers, tab.plotview.number)
+                else:
+                    raise NeXusError("Invalid plot label")
+            else:
+                idx=None
+            self.add(label, tab, idx=idx)
+        else:
+            self.tab = label
+            self.tab.update()
+        self.setVisible(True)
+        self.raise_()
+        self.activateWindow()
+
+    def update(self):
+        if self.tabwidget.count() == 0:
+            self.setVisible(False)
+        else:
+            self.tab.update()
+        self.adjustSize()
+
+    def copy(self):
+        self.tab.copy()
+
+    def reset(self):
+        self.tab.reset()
+
+    def apply(self):
+        self.tab.apply()
+
+    def closeEvent(self, event):
+        super(NXPanel, self).closeEvent(event)
+        if not self.isVisible():
+            for tab in self.tabs:
+                self.tabs[tab].close()
+            self.deleteLater()
+            if self.panel in self.mainwindow.panels:
+                del self.mainwindow.panels[self.panel]
+
+    def close(self):
+        tab = self.tab
+        if tab:
+            tab.close()
+            self.remove(self.labels[tab])
+
 
 class GridParameters(OrderedDict):
     """
@@ -576,11 +794,11 @@ class GridParameters(OrderedDict):
     All keys must be strings, and valid Python symbol names, and all values
     must be of class GridParameter.
     """
-    def __init__(self, *args, **kwds):
+    def __init__(self, **kwds):
         super(GridParameters, self).__init__(self)
         self.result = None
         self.status_layout = None
-        self.update(*args, **kwds)
+        self.update(**kwds)
 
     def __setitem__(self, key, value):
         if value is not None and not isinstance(value, GridParameter):
@@ -589,7 +807,7 @@ class GridParameters(OrderedDict):
         value.name = key
 
     def add(self, name, value=None, label=None, vary=None, slot=None,
-            field=None):
+            color=False, validate=None):
         """
         Convenience function for adding a Parameter:
 
@@ -602,7 +820,9 @@ class GridParameters(OrderedDict):
         p[name] = GridParameter(name=name, value=XX, ....
         """
         self.__setitem__(name, GridParameter(value=value, name=name, 
-                                             label=label, vary=vary, slot=slot))
+                                             label=label, vary=vary, 
+                                             slot=slot, color=color,
+                                             validate=validate))
 
     def grid(self, header=True, title=None, width=None):
         grid = QtWidgets.QGridLayout()
@@ -628,12 +848,17 @@ class GridParameters(OrderedDict):
             row += 1
         vary = False
         for p in self.values():
-            label, value, checkbox = p.label, p.value, p.vary
             grid.addWidget(p.label, row, 0)
-            grid.addWidget(p.box, row, 1, QtCore.Qt.AlignHCenter)
+            if p.colorbox:
+                grid.addWidget(p.colorbox, row, 1, QtCore.Qt.AlignHCenter)
+            else:
+                grid.addWidget(p.box, row, 1, QtCore.Qt.AlignHCenter)
             if width:
-                p.box.setFixedWidth(width)
-            if checkbox is not None:
+                if p.colorbox:
+                    p.colorbox.setFixedWidth(width)
+                else:
+                    p.box.setFixedWidth(width)
+            if p.vary is not None:
                 grid.addWidget(p.checkbox, row, 2, QtCore.Qt.AlignHCenter)
                 vary = True
             row += 1
@@ -643,6 +868,14 @@ class GridParameters(OrderedDict):
             grid.addWidget(fit_label, 0, 2, QtCore.Qt.AlignHCenter)
         self.grid_layout = grid
         return grid
+
+    def widget(self, header=True, title=None, width=None):
+        w = QtWidgets.QWidget()
+        layout = QtWidgets.QVBoxLayout()
+        layout.addLayout(self.grid(header=header, title=title, width=width))
+        layout.addStretch()
+        w.setLayout(layout)
+        return w
 
     def hide_grid(self):
         grid = self.grid_layout
@@ -738,7 +971,8 @@ class GridParameter(object):
     """
     A Parameter is an object to be set in a dialog box grid.
     """
-    def __init__(self, name=None, value=None, label=None, vary=None, slot=None):
+    def __init__(self, name=None, value=None, label=None, vary=None, slot=None,
+                 color=False, validate=None):
         """
         Parameters
         ----------
@@ -751,18 +985,28 @@ class GridParameter(object):
         vary : bool or None, optional
             Whether the Parameter is fixed during a fit. 
         slot : function or None, optional
-            Function to be called when the parameter is changed. 
+            Function to be called when the parameter is changed.
+        color : bool, optional
+            Whether the field contains a color value
+        validate : function, optional
+            Function to be used to validate the value
         """
         self.name = name
         self._value = value
         if isinstance(value, list) or isinstance(value, tuple):
+            self.colorbox = None
             self.box = NXComboBox()
             for v in value:
                 self.box.addItem(str(v))
             if slot is not None:
                 self.box.currentIndexChanged.connect(slot)
         else:
-            self.box = QtWidgets.QLineEdit()
+            if color:
+                self.colorbox = NXColorBox(value)
+                self.box = self.colorbox.box
+            else:
+                self.box = QtWidgets.QLineEdit()
+                self.colorbox = None
             self.box.setAlignment(QtCore.Qt.AlignRight)
             if value is not None:
                 if isinstance(value, NXfield):
@@ -777,12 +1021,12 @@ class GridParameter(object):
                     self.value = value
             if slot is not None:
                 self.box.editingFinished.connect(slot)
+        self.init_value = self.value
         if vary is not None:
             self.checkbox = NXCheckBox()
             self.vary = vary
-            self.init_value = self.value
         else:
-            self.checkbox = self.vary = self.init_value = None
+            self.checkbox = self.vary = None
         self.label = QtWidgets.QLabel(label)
 
     def set(self, value=None, vary=None):
@@ -845,6 +1089,8 @@ class GridParameter(object):
                         self.box.setText('%.6g' % value)
                     except TypeError:
                         self.box.setText(six.text_type(value))
+            if self.colorbox:
+                self.colorbox.update_color()
 
     @property
     def vary(self):
@@ -872,10 +1118,38 @@ class GridParameter(object):
         self.checkbox.setEnabled(True)
 
 
-class PlotDialog(BaseDialog):
+class NewDialog(NXDialog):
+    """Dialog to produce a new workspace in the tree view."""
+
+    def __init__(self, parent=None):
+
+        super(NewDialog, self).__init__(parent)
+
+        self.names = GridParameters()
+        self.names.add('root', self.tree.get_new_name(), 'Workspace', None)
+        self.names.add('entry', 'entry', 'Entry', True)
+
+        self.set_layout(self.names.grid(header=None), 
+                        self.close_layout(save=True))
+
+    def accept(self):
+        root = self.names['root'].value
+        entry = self.names['entry'].value
+        if self.names['entry'].vary:
+            self.tree[root] = NXroot(NXentry(name=entry))
+            self.treeview.select_node(self.tree[root][entry])
+        else:
+            self.tree[root] = NXroot()
+            self.treeview.select_node(self.tree[root])
+        self.treeview.update()
+        logging.info("New workspace '%s' created" % root)
+        super(NewDialog, self).accept()
+
+
+class PlotDialog(NXDialog):
     """Dialog to plot arbitrary NeXus data in one or two dimensions"""
  
-    def __init__(self, node, parent=None, fmt='o'):
+    def __init__(self, node, parent=None, **kwargs):
 
         super(PlotDialog, self).__init__(parent)
  
@@ -886,12 +1160,14 @@ class PlotDialog(BaseDialog):
             self.group = node
             signal_name = None
         
-        if self.group.nxaxes is not None:
+        try:
             self.default_axes = [axis.nxname for axis in self.group.nxaxes]
-        else:
+        except Exception:
             self.default_axes = []
 
-        self.fmt = fmt
+        self.kwargs = kwargs
+        if 'marker' not in self.kwargs:
+            self.kwargs['marker'] = 'o'
 
         self.signal_combo =  NXComboBox() 
         for node in self.group.values():
@@ -922,15 +1198,11 @@ class PlotDialog(BaseDialog):
 
     @property
     def signal(self):
-        signal = self.group[self.signal_combo.currentText()]
-        if isinstance(signal, NXlink):
-            if signal.is_external():
-                return NXlinkfield(target=signal.nxtarget, 
-                                   file=signal.nxfilename)
-            else:
-                return signal.nxlink
+        _signal = self.group[self.signal_combo.currentText()]
+        if isinstance(_signal, NXlink):
+            return _signal.nxlink
         else:
-            return signal
+            return _signal
 
     @property
     def signal_path(self):
@@ -1022,23 +1294,126 @@ class PlotDialog(BaseDialog):
             data = NXdata(self.signal, self.get_axes(), 
                           title=self.signal_path)
             data.nxsignal.attrs['signal_path'] = self.signal_path
-            data.plot(fmt=self.fmt)
+            data.plot(**self.kwargs)
             super(PlotDialog, self).accept()
         except NeXusError as error:
             report_error("Plotting data", error)
 
     
-class CustomizeDialog(BaseDialog):
+class ExportDialog(NXDialog):
+
+    def __init__(self, node, parent=None):
+
+        super(ExportDialog, self).__init__(parent)
+ 
+        self.data = node
+        self.x = node.nxaxes[0]
+        self.y = node.nxsignal
+        self.e = node.nxerrors
+        self.parameters = GridParameters()
+        self.parameters.add('delimiter', '\\t', 'Delimiter')
+        
+        self.set_layout(self.parameters.grid(header=False),
+                        self.checkboxes(('header', 'Header', True),
+                                        ('errors', 'Errors', True)),
+                        self.close_buttons(save=True))
+        if self.e is None:
+            self.checkbox['errors'].setChecked(False)
+            self.checkbox['errors'].setVisible(False)
+        self.set_title('Exporting Data')
+
+    @property
+    def header(self):
+        return self.checkbox['header'].isChecked()
+
+    @property
+    def errors(self):
+        return self.checkbox['errors'].isChecked()
+
+    @property
+    def delimiter(self):
+        delimiter = self.parameters['delimiter'].value.encode('utf-8')
+        return delimiter.decode('unicode_escape')
+
+    def accept(self):
+        fname = getSaveFileName(self, "Choose a Filename", 
+                                self.data.nxname+'.txt')
+        if fname:
+            self.default_directory = os.path.dirname(fname)
+        else:
+            return
+
+        if self.errors:
+            output = np.array([self.x, self.y, self.e]).T
+            if self.header:
+                header = self.delimiter.join([self.x.nxname, 
+                                              self.y.nxname, 
+                                              self.e.nxname])
+                np.savetxt(fname, output, header=header, 
+                           delimiter=self.delimiter,
+                           comments='', fmt=['%g','%g','%g'])
+            else:
+                np.savetxt(fname, output, delimiter=self.delimiter,
+                           comments='', fmt=['%g','%g','%g'])
+        else:
+            output = np.array([self.x, self.y]).T
+            if self.header:
+                header = self.delimiter.join([self.x.nxname, self.y.nxname])
+                np.savetxt(fname, output, header=header, 
+                           delimiter=self.delimiter,
+                           comments='', fmt=['%g','%g'])
+            else:
+                np.savetxt(fname, output, delimiter=self.delimiter,
+                           comments='', fmt=['%g','%g'])
+        super(ExportDialog, self).accept()
+
+
+class PreferencesDialog(NXDialog):
+
+    def __init__(self, parent):
+        super(PreferencesDialog, self).__init__(parent, default=True)
+
+        categories = ['axes', 'font', 'grid', 'image', 'lines', 
+                      'xtick', 'ytick']
+        self.parameters = {}
+        for category in categories:
+            pc = self.parameters[category] = GridParameters()
+            for p in [p for p in rcParams if p.startswith(category)]:
+                dp = defaultParams[p]
+                if 'color' in p:
+                    try:
+                        pc.add(p, rcParams[p], p, color=True, validate=dp[1])
+                    except Exception:
+                        pc.add(p, rcParams[p], p, validate=dp[1])
+                else:
+                    pc.add(p, rcParams[p], p, validate=dp[1])
+            
+        self.preferences_stack = self.parameter_stack(self.parameters, 
+                                                      width=200)
+        self.set_layout(self.preferences_stack, self.close_layout(save=True))
+
+
+class CustomizeDialog(NXPanel):
+
+    def __init__(self, parent=None):
+        super(CustomizeDialog, self).__init__('customize', 
+                                              title='Customize Plot', 
+                                              parent=parent)
+        self.tab_class = CustomizeTab
+        self.plotview_sort = True
+
+
+class CustomizeTab(NXTab):
 
     legend_location = {v: k for k, v in Legend.codes.items()}            
 
-    def __init__(self, parent):
-        super(CustomizeDialog, self).__init__(parent, default=True)
-
-        self.plotview = parent
+    def __init__(self, parent=None):
+        super(CustomizeTab, self).__init__(parent=parent)
 
         from .plotview import markers, linestyles
         self.markers, self.linestyles = markers, linestyles
+
+        self.name = self.plotview.label
 
         self.parameters = {}
         pl = self.parameters['labels'] = GridParameters()
@@ -1052,77 +1427,49 @@ class CustomizeDialog(BaseDialog):
         pl['ylabel'].box.setMinimumWidth(200)
         pl['ylabel'].box.setAlignment(QtCore.Qt.AlignLeft)
         if self.plotview.image is not None:
-            image_grid = QtWidgets.QVBoxLayout()
-            self.parameters['image'] = self.image_parameters()
+            pi = self.parameters['image'] = self.image_parameters()
             self.update_image_parameters()
-            image_grid.addLayout(self.parameters['image'].grid_layout)
             self.set_layout(pl.grid(header=False),
-                            image_grid,
-                            self.close_buttons())
+                            pi.grid(header=False))
         else:
-            self.curves = self.get_curves()
-            self.curve_grids = QtWidgets.QWidget(parent=self)
-            self.curve_layout = QtWidgets.QVBoxLayout()
-            self.curve_layout.setContentsMargins(0, 20, 0, 0)
-            self.curve_box = self.select_box(list(self.curves),
-                                             slot=self.select_curve)
-            self.curve_box.setMinimumWidth(200)
-            layout = QtWidgets.QHBoxLayout()
-            layout.addStretch()
-            layout.addWidget(self.curve_box)
-            layout.addStretch()
-            self.curve_layout.addLayout(layout)
-            for curve in self.curves:
-                self.parameters[curve] = self.curve_parameters(curve)
-                self.update_curve_parameters(curve)
-                self.initialize_curve(curve)
-            self.curve_grids.setLayout(self.curve_layout)
+            pp = {}   
+            self.plots = self.plotview.plots       
+            for plot in self.plots:
+                label = self.plot_label(plot)
+                pp[label] = self.parameters[label] = self.plot_parameters(plot)
+                self.update_plot_parameters(plot)
             pg = self.parameters['legend'] = GridParameters()
             pg.add('legend', ['None'] + [key.title() for key in Legend.codes], 
                    'Legend')
             pg.add('label', ['Full Path', 'Name Only'], 'Label')
             self.update_legend_parameters()
+            self.plot_stack = self.parameter_stack(pp)
             self.set_layout(pl.grid(header=False),
-                            self.curve_grids,
-                            pg.grid(header=False),
-                            self.close_buttons())
-            self.setTabOrder(self.parameters['labels']['ylabel'].box, 
-                             self.curve_box)
-        self.update_colors()
-        self.set_title('Customize %s' % self.plotview.label)
-        self.setFocusPolicy(QtCore.Qt.StrongFocus)
-        self.setTabOrder(self.apply_button, self.cancel_button)
-        self.setTabOrder(self.cancel_button, self.save_button)
+                           self.plot_stack,
+                           pg.grid(header=False))
         self.parameters['labels']['title'].box.setFocus()
 
-    def close_buttons(self):
-        buttonbox = QtWidgets.QDialogButtonBox(self)
-        buttonbox.setOrientation(QtCore.Qt.Horizontal)
-        buttonbox.setStandardButtons(QtWidgets.QDialogButtonBox.Apply|
-                                     QtWidgets.QDialogButtonBox.Cancel|
-                                     QtWidgets.QDialogButtonBox.Save)
-        buttonbox.setFocusPolicy(QtCore.Qt.NoFocus)
-        self.apply_button = buttonbox.button(QtWidgets.QDialogButtonBox.Apply)
-        self.apply_button.setFocusPolicy(QtCore.Qt.StrongFocus)
-        self.apply_button.setDefault(True)
-        self.cancel_button = buttonbox.button(QtWidgets.QDialogButtonBox.Cancel)
-        self.cancel_button.setFocusPolicy(QtCore.Qt.StrongFocus)
-        self.save_button = buttonbox.button(QtWidgets.QDialogButtonBox.Save)
-        self.save_button.setFocusPolicy(QtCore.Qt.StrongFocus)
-        buttonbox.accepted.connect(self.accept)
-        buttonbox.rejected.connect(self.reject)
-        self.apply_button.clicked.connect(self.apply)
-        return buttonbox
+    def __repr__(self):
+        return 'CustomizeTab("%s")' % self.name
+
+    def plot_label(self, plot):
+        return plot + ': ' + self.plots[plot]['label']
+
+    def label_plot(self, label):
+        return label[:label.index(':')]
 
     def update(self):
         self.update_labels()
         if self.plotview.image is not None:
             self.update_image_parameters()
         else:
-            self.update_curves()
-            for curve in self.curves:
-                self.update_curve_parameters(curve)
-        self.update_colors()
+            self.plots = self.plotview.plots
+            for plot in self.plots:
+                label = self.plot_label(plot)
+                if label not in self.parameters:
+                    pp = self.parameters[label] = self.plot_parameters(plot)
+                    self.plot_stack.add(label, pp.widget(header=False))
+                self.update_plot_parameters(plot)
 
     def update_labels(self):
         pl = self.parameters['labels']
@@ -1132,13 +1479,14 @@ class CustomizeDialog(BaseDialog):
 
     def image_parameters(self):
         parameters = GridParameters()
-        parameters.add('aspect', 'auto', 'Aspect Ratio')
-        parameters.add('skew', 90.0, 'Skew Angle')
+        parameters.add('aspect', self.plotview._aspect, 'Aspect Ratio')
+        parameters.add('skew', self.plotview._skew_angle, 'Skew Angle')
         parameters.add('grid', ['On', 'Off'], 'Grid')
-        parameters.add('gridcolor', '#ffffff', 'Grid Color')
+        parameters.add('gridcolor', get_color(self.plotview._gridcolor), 'Grid Color', 
+                       color=True)
         parameters.add('gridstyle', list(self.linestyles.values()), 
                        'Grid Style')
-        parameters.grid(title='Image Parameters', header=False)
+        parameters.grid(title='Image Parameters', header=False, width=125)
         return parameters
 
     def update_image_parameters(self):
@@ -1153,109 +1501,43 @@ class CustomizeDialog(BaseDialog):
             p['grid'].value = 'On'
         else:
             p['grid'].value = 'Off'
-        p['gridcolor'].value = rgb2hex(
-            colorConverter.to_rgb(self.plotview._gridcolor))
-        p['gridcolor'].color_button = NXColorButton(p['gridcolor'])
-        p['gridcolor'].color_button.set_color(
-            to_qcolor(self.plotview._gridcolor))
+        p['gridcolor'].value = get_color(self.plotview._gridcolor)
         p['gridstyle'].value = self.linestyles[self.plotview._gridstyle]
 
-    @property
-    def curve(self):
-        return self.curve_box.currentText()
-
-    def get_curves(self):
-        lines = self.plotview.ax.get_lines()
-        labels = [line.get_label() for line in lines]
-        for (i,label) in enumerate(labels):
-            labels[i] = '%d: ' % (i+1) + labels[i]
-        return dict(zip(labels, lines))
-
-    def update_curves(self):
-        curves = self.get_curves()
-        new_curves = list(set(curves) - set(self.curves))
-        for curve in new_curves:
-            self.curves[curve] = curves[curve]
-            self.parameters[curve] = self.curve_parameters(curve)
-            self.update_curve_parameters(curve)
-            self.initialize_curve(curve)
-            self.curve_box.addItem(curve)
-
-    def initialize_curve(self, curve):
-        pc = self.parameters[curve]
-        pc.widget = QtWidgets.QWidget(parent=self.curve_grids)
-        pc.widget.setLayout(pc.grid(header=False))
-        pc.widget.setVisible(False)
-        self.curve_layout.addWidget(pc.widget)
-        if curve == self.curve:
-            pc.widget.setVisible(True)
-        else:
-            pc.widget.setVisible(False)
-
-    def curve_parameters(self, curve):
+    def plot_parameters(self, plot):
+        p = self.plots[plot]
         parameters = GridParameters()
-        parameters.add('label', 'Label', 'Label')
+        parameters.add('legend_label', p['legend_label'], 'Label')
         parameters.add('legend', ['Yes', 'No'], 'Add to Legend')
+        parameters.add('color', p['color'], 'Color', color=True)
         parameters.add('linestyle', list(self.linestyles.values()), 
                        'Line Style')
-        parameters.add('linewidth', 1.0, 'Line Width')
-        parameters.add('linecolor', '#000000', 'Line Color')
-        parameters.add('marker', list(self.markers.values()), 'Marker Style')
-        parameters.add('markersize', 1.0, 'Marker Size')
-        parameters.add('facecolor', '#000000', 'Face Color')
-        parameters.add('edgecolor', '#000000', 'Edge Color')
-        parameters.grid(title='Curve Parameters', header=False)
+        parameters.add('linewidth', p['linewidth'], 'Line Width')
+        parameters.add('marker', list(self.markers.values()), 'Marker')
+        parameters.add('markerstyle', ['filled', 'open'], 'Marker Style')
+        parameters.add('markersize', p['markersize'], 'Marker Size')
+        parameters.add('zorder', p['zorder'], 'Z-Order')
+        parameters.grid(title='Plot Parameters', header=False, width=125)
         return parameters
 
-    def update_curve_parameters(self, curve):
-        c, p = self.curves[curve], self.parameters[curve]
-        p['label'].value = c.get_label()
-        if self.plotview.ax.get_legend() is None:        
-            p['legend'].value = 'Yes'
+    def update_plot_parameters(self, plot):
+        label = self.plot_label(plot)
+        p, pp = self.plots[plot], self.parameters[label]
+        pp['legend_label'].value = p['legend_label']
+        if p['show_legend']:
+            pp['legend'].value = 'Yes'
         else:
-            labels = [label.get_text() for label in
-                      self.plotview.ax.get_legend().texts]
-            if curve.split()[-1] in labels or basename(curve) in labels:
-                p['legend'].value = 'Yes'
-            else:
-                p['legend'].value = 'No'
-        p['linestyle'].value = self.linestyles[c.get_linestyle()]
-        p['linewidth'].value = c.get_linewidth()
-        p['linecolor'].value = rgb2hex(colorConverter.to_rgb(c.get_color()))
-        p['linecolor'].color_button = NXColorButton(p['linecolor'])
-        p['linecolor'].color_button.set_color(to_qcolor(c.get_color()))
-        p['marker'].value = self.markers[c.get_marker()]
-        p['markersize'].value = c.get_markersize()
-        p['facecolor'].value = rgb2hex(
-            colorConverter.to_rgb(c.get_markerfacecolor()))
-        p['facecolor'].color_button = NXColorButton(p['facecolor'])
-        p['facecolor'].color_button.set_color(
-            to_qcolor(c.get_markerfacecolor()))
-        p['edgecolor'].value = rgb2hex(
-            colorConverter.to_rgb(c.get_markeredgecolor()))
-        p['edgecolor'].color_button = NXColorButton(p['edgecolor'])
-        p['edgecolor'].color_button.set_color(
-            to_qcolor(c.get_markeredgecolor()))
-
-    def update_colors(self):
-        if self.plotview.image is not None:
-            p = self.parameters['image']
-            p.grid_layout.addWidget(p['gridcolor'].color_button, 4, 2, 
-                                    alignment=QtCore.Qt.AlignCenter)
+            pp['legend'].value = 'No'
+        pp['color'].value = p['color']
+        if p['smooth_line']:
+            pp['linestyle'].value = self.linestyles[p['smooth_linestyle']]
         else:
-            for curve in self.curves:
-                p = self.parameters[curve]
-                p.grid_layout.addWidget(p['linecolor'].color_button, 4, 2, 
-                                        alignment=QtCore.Qt.AlignCenter)
-                p.grid_layout.addWidget(p['facecolor'].color_button, 7, 2, 
-                                        alignment=QtCore.Qt.AlignCenter)
-                p.grid_layout.addWidget(p['edgecolor'].color_button, 8, 2, 
-                                        alignment=QtCore.Qt.AlignCenter)
-
-    def select_curve(self):
-        for curve in self.curves:
-            self.parameters[curve].widget.setVisible(False)
-        self.parameters[self.curve].widget.setVisible(True)
+            pp['linestyle'].value = self.linestyles[p['linestyle']]
+        pp['linewidth'].value = p['linewidth']
+        pp['marker'].value = self.markers[p['marker']]
+        pp['markerstyle'].value = p['markerstyle']
+        pp['markersize'].value = p['markersize']
+        pp['zorder'].value = p['zorder']
 
     def update_legend_parameters(self):
         p = self.parameters['legend']
@@ -1273,8 +1555,9 @@ class CustomizeDialog(BaseDialog):
             p['label'].value = 'Full Path'
 
     def is_empty_legend(self):
-        return 'Yes' not in [self.parameters[curve]['legend'].value 
-                             for curve in self.curves]
+        labels = [self.plot_label(plot) for plot in self.plots]
+        return 'Yes' not in [self.parameters[label]['legend'].value 
+                             for label in labels]
 
     def set_legend(self):
         legend_location = self.parameters['legend']['legend'].value.lower()
@@ -1286,14 +1569,18 @@ class CustomizeDialog(BaseDialog):
         if legend_location == 'none' or self.is_empty_legend():
             self.plotview.remove_legend()
         else:
-            curves = []
+            plots = []
             labels = []
-            for curve in self.curves:
-                if self.parameters[curve]['legend'].value == 'Yes':
-                    curves.append(self.curves[curve])
-                    labels.append(self.parameters[curve]['label'].value)
-            self.plotview.legend(curves, labels, nameonly=_nameonly,
+            for plot in self.plots:
+                label = self.plot_label(plot)
+                if self.parameters[label]['legend'].value == 'Yes':
+                    plots.append(self.plots[plot]['plot'])
+                    labels.append(self.plots[plot]['legend_label'])
+            self.plotview.legend(plots, labels, nameonly=_nameonly, 
                                  loc=legend_location)         
+
+    def reset(self):
+        self.update()
 
     def apply(self):
         pl = self.parameters['labels']
@@ -1305,15 +1592,14 @@ class CustomizeDialog(BaseDialog):
         self.plotview.ax.set_ylabel(self.plotview.yaxis.label)
         if self.plotview.image is not None:
             pi = self.parameters['image']
-            _aspect = pi['aspect'].value
             try:
-                self.plotview._aspect = np.float(_aspect)
+                self.plotview._aspect = validate_aspect(pi['aspect'].value)
             except ValueError:
-                if _aspect in ['auto', 'equal']:
-                    self.plotview._aspect = _aspect
-                else:
-                    pi['aspect'].value = self.plotview._aspect = 'auto'
-            _skew_angle = pi['skew'].value
+                pi['aspect'].value = self.plotview._aspect
+            try:
+                _skew_angle = validate_float(pi['skew'].value)
+            except ValueError:
+                pi['skew'].value = self.plotview.skew
             if pi['grid'].value == 'On':
                 self.plotview._grid =True
             else:
@@ -1325,134 +1611,803 @@ class CustomizeDialog(BaseDialog):
             self.plotview.grid(self.plotview._grid)
             self.plotview.skew = _skew_angle
             self.plotview.aspect = self.plotview._aspect
-            if (self.plotview.projection_panel is not None and
-                    self.plotview.projection_panel._rectangle is not None):
-                self.plotview.projection_panel._rectangle.set_edgecolor(
-                    self.plotview._gridcolor)
         else:
-            for curve in self.curves:
-                c, pc = self.curves[curve], self.parameters[curve]
+            for plot in self.plots:
+                label = self.plot_label(plot)
+                p, pp = self.plots[plot], self.parameters[label]
+                p['legend_label'] = pp['legend_label'].value
+                if pp['legend'].value == 'Yes':
+                    p['show_legend'] = True
+                else:
+                    p['show_legend'] = False
+                p['color'] = pp['color'].value
+                p['plot'].set_color(p['color'])
                 linestyle = [k for k, v in self.linestyles.items()
-                             if v == pc['linestyle'].value][0]
-                c.set_linestyle(linestyle)
-                c.set_linewidth(pc['linewidth'].value)
-                c.set_color(pc['linecolor'].value)
+                             if v == pp['linestyle'].value][0]
+                p['linewidth'] = pp['linewidth'].value
+                p['plot'].set_linestyle(linestyle)
+                p['plot'].set_linewidth(p['linewidth'])
                 marker = [k for k, v in self.markers.items()
-                          if v == pc['marker'].value][0]
-                c.set_marker(marker)
-                c.set_markersize(pc['markersize'].value)
-                c.set_markerfacecolor(pc['facecolor'].value)
-                c.set_markeredgecolor(pc['edgecolor'].value)
+                          if v == pp['marker'].value][0]
+                p['marker'] = marker
+                p['plot'].set_marker(marker)
+                p['markersize'] = pp['markersize'].value
+                p['plot'].set_markersize(p['markersize'])
+                p['markerstyle'] = pp['markerstyle'].value
+                if p['markerstyle'] == 'open':
+                    p['plot'].set_markerfacecolor('#ffffff')
+                else:
+                    p['plot'].set_markerfacecolor(p['color'])
+                p['plot'].set_markeredgecolor(p['color'])
+                p['zorder'] = pp['zorder'].value
+                p['plot'].set_zorder(p['zorder'])
+                if p['smooth_line']:
+                    if linestyle == 'None':
+                        p['smooth_linestyle'] = '-'
+                    else:
+                        p['smooth_linestyle'] = linestyle
+                    p['smooth_line'].set_color(p['color'])
+                    p['smooth_line'].set_linewidth(p['linewidth'])
+                else:
+                    p['linestyle'] = linestyle
             self.set_legend()
+            for plot in self.plots:
+                p = self.plots[plot]
+                if p['smooth_line']:
+                    p['plot'].set_linestyle('None')
+                    p['smooth_line'].set_linestyle(p['smooth_linestyle'])
+        self.update()
         self.plotview.draw()
 
-    def accept(self):
-        self.apply()
-        self.plotview.customize_panel = None
-        super(CustomizeDialog, self).accept()
 
-    def reject(self):
-        self.plotview.customize_panel = None
-        super(CustomizeDialog, self).reject()
+class ProjectionDialog(NXPanel):
+    """Dialog to set plot window limits"""
+ 
+    def __init__(self, parent=None):
+        super(ProjectionDialog, self).__init__('projection', title='Projection Panel', 
+                                               apply=False, parent=parent)
+        self.tab_class = ProjectionTab
+        self.plotview_sort = True
 
-    def closeEvent(self, event):
-        self.close()
-
-    def close(self):
-        self.plotview.customize_panel = None
-        super(CustomizeDialog, self).close()
-        self.deleteLater()
-
-
-class LimitDialog(BaseDialog):
-    """Dialog to set plot window limits
     
-    This is useful when it is desired to set the limits outside the data limits. 
-    """
+class ProjectionTab(NXTab):
+    """Tab to set plot window limits"""
  
     def __init__(self, parent=None):
 
-        super(LimitDialog, self).__init__(parent)
- 
-        from .plotview import plotview
+        super(ProjectionTab, self).__init__(parent=parent)
+        if parent:
+            self.tabs = parent.tabs
+            self.labels = parent.labels
 
-        self.plotview = plotview
-        
-        layout = QtWidgets.QVBoxLayout()
+        self.name = self.plotview.label
+        self.ndim = self.plotview.ndim
 
-        xmin_layout = QtWidgets.QHBoxLayout()
-        xmin_layout.addWidget(QtWidgets.QLabel('xmin'))
-        self.xmin_box = self.limitbox()
-        self.xmin_box.setValue(plotview.xaxis.min)
-        xmin_layout.addWidget(self.xmin_box)
-        layout.addLayout(xmin_layout)
+        self.xlabel, self.xbox = self.label('X-Axis'), NXComboBox(self.set_xaxis)
+        self.ylabel, self.ybox = self.label('Y-Axis'), NXComboBox(self.set_yaxis)
+        axis_layout = self.make_layout(self.xlabel, self.xbox, self.ylabel, self.ybox)
+                                       
+        self.set_axes()
 
-        xmax_layout = QtWidgets.QHBoxLayout()
-        xmax_layout.addWidget(QtWidgets.QLabel('xmax'))
-        self.xmax_box = self.limitbox()
-        self.xmax_box.setValue(plotview.xaxis.max)
-        xmax_layout.addWidget(self.xmax_box)
-        layout.addLayout(xmax_layout)
+        grid = QtWidgets.QGridLayout()
+        grid.setSpacing(10)
+        headers = ['Axis', 'Minimum', 'Maximum', 'Lock']
+        width = [50, 100, 100, 25]
+        column = 0
+        header_font = QtGui.QFont()
+        header_font.setBold(True)
+        for header in headers:
+            label = QtWidgets.QLabel()
+            label.setAlignment(QtCore.Qt.AlignHCenter)
+            label.setText(header)
+            label.setFont(header_font)
+            grid.addWidget(label, 0, column)
+            grid.setColumnMinimumWidth(column, width[column])
+            column += 1
 
-        ymin_layout = QtWidgets.QHBoxLayout()
-        ymin_layout.addWidget(QtWidgets.QLabel('ymin'))
-        self.ymin_box = self.limitbox()
-        self.ymin_box.setValue(plotview.yaxis.min)
-        ymin_layout.addWidget(self.ymin_box)
-        layout.addLayout(ymin_layout)
+        row = 0
+        self.minbox = {}
+        self.maxbox = {}
+        self.lockbox = {}
+        for axis in range(self.ndim):
+            row += 1
+            self.minbox[axis] = self.spinbox()
+            self.maxbox[axis] = self.spinbox()
+            self.lockbox[axis] = NXCheckBox(slot=self.set_lock)
+            grid.addWidget(self.label(self.plotview.axis[axis].name), row, 0)
+            grid.addWidget(self.minbox[axis], row, 1)
+            grid.addWidget(self.maxbox[axis], row, 2)
+            grid.addWidget(self.lockbox[axis], row, 3,
+                           alignment=QtCore.Qt.AlignHCenter)
 
-        ymax_layout = QtWidgets.QHBoxLayout()
-        ymax_layout.addWidget(QtWidgets.QLabel('ymax'))
-        self.ymax_box = self.limitbox()
-        self.ymax_box.setValue(plotview.yaxis.max)
-        ymax_layout.addWidget(self.ymax_box)
-        layout.addLayout(ymax_layout)
+        row += 1
+        self.save_button = NXPushButton("Save", self.save_projection, self)
+        grid.addWidget(self.save_button, row, 1)
+        self.plot_button = NXPushButton("Plot", self.plot_projection, self)
+        grid.addWidget(self.plot_button, row, 2)
+        self.overplot_box = NXCheckBox()
+        if 'Projection' not in self.plotviews:
+            self.overplot_box.setVisible(False)
+        grid.addWidget(self.overplot_box, row, 3,
+                       alignment=QtCore.Qt.AlignHCenter)
 
-        if plotview.ndim > 1:
-            vmin_layout = QtWidgets.QHBoxLayout()
-            vmin_layout.addWidget(QtWidgets.QLabel('vmin'))
-            self.vmin_box = self.limitbox()
-            self.vmin_box.setValue(plotview.vaxis.min)
-            vmin_layout.addWidget(self.vmin_box)
-            layout.addLayout(vmin_layout)
+        row += 1
+        self.mask_button = NXPushButton("Mask", self.mask_data, self)
+        grid.addWidget(self.mask_button, row, 1)
+        self.unmask_button = NXPushButton("Unmask", self.unmask_data, self)
+        grid.addWidget(self.unmask_button, row, 2)
 
-            vmax_layout = QtWidgets.QHBoxLayout()
-            vmax_layout.addWidget(QtWidgets.QLabel('vmax'))
-            self.vmax_box = self.limitbox()
-            self.vmax_box.setValue(plotview.vaxis.max)
-            vmax_layout.addWidget(self.vmax_box)
-            layout.addLayout(vmax_layout)
+        self.set_layout(axis_layout, grid, 
+                        self.checkboxes(("sum", "Sum Projections", False),
+                                        ("lines", "Plot Lines", False),
+                                        ("hide", "Hide Limits", False)),
+                        self.copy_layout("Copy Limits"))
+        self.checkbox["hide"].stateChanged.connect(self.hide_rectangle)                        
 
-        layout.addWidget(self.close_buttons()) 
-        self.setLayout(layout)
+        for axis in range(self.ndim):
+            self.minbox[axis].data = self.maxbox[axis].data = \
+                self.plotview.axis[axis].centers
+            self.minbox[axis].setMaximum(self.minbox[axis].data.size-1)
+            self.maxbox[axis].setMaximum(self.maxbox[axis].data.size-1)
+            self.minbox[axis].diff = self.maxbox[axis].diff = None
+            self.block_signals(True)
+            self.minbox[axis].setValue(self.minbox[axis].data.min())
+            self.maxbox[axis].setValue(self.maxbox[axis].data.max())
+            self.block_signals(False)
 
-        self.setWindowTitle("Limit axes")
+        self._rectangle = None
 
-    def limitbox(self):
-        from .plotview import NXTextBox
-        textbox = NXTextBox()
-        textbox.setAlignment(QtCore.Qt.AlignRight)
-        textbox.setFixedWidth(75)
-        return textbox
+        self.update()
 
-    def accept(self):
-        try:
-            xmin, xmax = self.xmin_box.value(), self.xmax_box.value() 
-            ymin, ymax = self.ymin_box.value(), self.ymax_box.value()
-            if self.plotview.ndim > 1:
-                vmin, vmax = self.vmin_box.value(), self.vmax_box.value()
-                self.plotview.autoscale = False
-                self.plotview.set_plot_limits(xmin, xmax, ymin, ymax, 
-                                              vmin, vmax)
+        self.xbox.setFocus()
+
+    def __repr__(self):
+        return 'ProjectionTab("%s")' % self.name
+
+    def get_axes(self):
+        return self.plotview.xtab.get_axes()
+
+    def set_axes(self):
+        axes = self.get_axes()
+        self.xbox.clear()
+        self.xbox.add(*axes)
+        self.xbox.select(self.plotview.xaxis.name)
+        if self.ndim <= 2:
+            self.ylabel.setVisible(False)
+            self.ybox.setVisible(False)
+        else:
+            self.ylabel.setVisible(True)
+            self.ybox.setVisible(True)
+            self.ybox.clear()
+            axes.insert(0,'None')
+            self.ybox.add(*axes)
+            self.ybox.select(self.plotview.yaxis.name)
+
+    @property
+    def xaxis(self):
+        return self.xbox.currentText()
+
+    def set_xaxis(self):
+        if self.xaxis == self.yaxis:
+            self.ybox.select('None')
+
+    @property
+    def yaxis(self):
+        if self.ndim <= 2:
+            return 'None'
+        else:
+            return self.ybox.selected
+
+    def set_yaxis(self):
+        if self.yaxis == self.xaxis:
+            for idx in range(self.xbox.count()):
+                if self.xbox.itemText(idx) != self.yaxis:
+                    self.xbox.setCurrentIndex(idx)
+                    break
+
+    def set_limits(self):
+        self.block_signals(True)
+        for axis in range(self.ndim):
+            if self.lockbox[axis].isChecked():
+                min_value = self.maxbox[axis].value() - self.maxbox[axis].diff
+                self.minbox[axis].setValue(min_value)
+            elif self.minbox[axis].value() > self.maxbox[axis].value():
+                self.maxbox[axis].setValue(self.minbox[axis].value())
+        self.block_signals(False)
+        self.draw_rectangle()
+
+    def get_limits(self, axis=None):
+        def get_indices(minbox, maxbox):
+            start, stop = minbox.index, maxbox.index+1
+            if minbox.reversed:
+                start, stop = len(maxbox.data)-stop, len(minbox.data)-start
+            return start, stop
+        if axis:
+            return get_indices(self.minbox[axis], self.maxbox[axis])
+        else:
+            return [get_indices(self.minbox[axis], self.maxbox[axis]) 
+                    for axis in range(self.ndim)]
+
+    def set_lock(self):
+        for axis in range(self.ndim):
+            if self.lockbox[axis].isChecked():
+                lo, hi = self.minbox[axis].value(), self.maxbox[axis].value()
+                self.minbox[axis].diff = self.maxbox[axis].diff = max(hi - lo, 
+                                                                      0.0)
+                self.minbox[axis].setDisabled(True)
             else:
-                self.plotview.set_plot_limits(xmin, xmax, ymin, ymax)
-            super(LimitDialog, self).accept()
+                self.minbox[axis].diff = self.maxbox[axis].diff = None
+                self.minbox[axis].setDisabled(False)
+
+    @property
+    def summed(self):
+        try:
+            return self.checkbox["sum"].isChecked()
+        except:
+            return False
+
+    @summed.setter
+    def summed(self, value):
+        self.checkbox["sum"].setChecked(value)
+
+    @property
+    def lines(self):
+        try:
+            return self.checkbox["lines"].isChecked()
+        except:
+            return False
+
+    @lines.setter
+    def lines(self, value):
+        self.checkbox["lines"].setChecked(value)
+
+    def get_projection(self):
+        x = self.get_axes().index(self.xaxis)
+        if self.yaxis == 'None':
+            axes = [x]
+        else:
+            y = self.get_axes().index(self.yaxis)
+            axes = [y,x]
+        limits = self.get_limits()
+        shape = self.plotview.data.nxsignal.shape
+        if (len(shape)-len(limits) > 0 and 
+            len(shape)-len(limits) == shape.count(1)):
+            axes, limits = fix_projection(shape, axes, limits)
+        if self.plotview.rgb_image:
+            limits.append((None, None))
+        return axes, limits
+
+    def save_projection(self):
+        try:
+            axes, limits = self.get_projection()
+            keep_data(self.plotview.data.project(axes, limits,
+                                                 summed=self.summed))
         except NeXusError as error:
-            report_error("Setting plot limits", error)
-            super(LimitDialog, self).reject()
+            report_error("Saving Projection", error)
+
+    def plot_projection(self):
+        try:
+            if 'Projection' in self.plotviews:
+                projection = self.plotviews['Projection']
+            else:
+                from .plotview import NXPlotView
+                projection = NXPlotView('Projection')
+                self.overplot_box.setChecked(False)
+            axes, limits = self.get_projection()
+            if len(axes) == 1 and self.overplot_box.isChecked():
+                over = True
+            else:
+                over = False
+            if self.lines:
+                fmt = '-'
+            else:
+                fmt = 'o'
+            projection.plot(self.plotview.data.project(axes, limits, 
+                                                       summed=self.summed),
+                            over=over, fmt=fmt)
+            if len(axes) == 1:
+                self.overplot_box.setVisible(True)
+            else:
+                self.overplot_box.setVisible(False)
+                self.overplot_box.setChecked(False)
+            projection.make_active()
+            projection.raise_()
+            self.tabs.update()
+        except NeXusError as error:
+            report_error("Plotting Projection", error)
+
+    def mask_data(self):
+        try:
+            limits = tuple(slice(x,y) for x,y in self.get_limits())
+            self.plotview.data.nxsignal[limits] = np.ma.masked
+            self.plotview.replot_data()
+        except NeXusError as error:
+            report_error("Masking Data", error)
+
+    def unmask_data(self):
+        try:
+            limits = tuple(slice(x,y) for x,y in self.get_limits())
+            self.plotview.data.nxsignal.mask[limits] = np.ma.nomask
+            if not self.plotview.data.nxsignal.mask.any():
+                self.plotview.data.mask = np.ma.nomask
+            self.plotview.replot_data()
+        except NeXusError as error:
+            report_error("Masking Data", error)
+
+    def spinbox(self):
+        spinbox = NXSpinBox()
+        spinbox.setAlignment(QtCore.Qt.AlignRight)
+        spinbox.setFixedWidth(100)
+        spinbox.setKeyboardTracking(False)
+        spinbox.setAccelerated(True)
+        spinbox.valueChanged[six.text_type].connect(self.set_limits)
+        return spinbox
+
+    def block_signals(self, block=True):
+        for axis in range(self.ndim):
+            self.minbox[axis].blockSignals(block)
+            self.maxbox[axis].blockSignals(block)
+
+    @property
+    def rectangle(self):
+        if self._rectangle not in self.plotview.ax.patches:
+            self._rectangle = NXpolygon(self.get_rectangle(), closed=True).shape
+            self._rectangle.set_edgecolor(self.plotview._gridcolor)
+            self._rectangle.set_facecolor('none')
+            self._rectangle.set_linestyle('dashed')
+            self._rectangle.set_linewidth(2)
+        return self._rectangle
+
+    def get_rectangle(self):
+        xp = self.plotview.xaxis.dim
+        yp = self.plotview.yaxis.dim
+        x0 = self.minbox[xp].minBoundaryValue(self.minbox[xp].index)
+        x1 = self.maxbox[xp].maxBoundaryValue(self.maxbox[xp].index)
+        y0 = self.minbox[yp].minBoundaryValue(self.minbox[yp].index)
+        y1 = self.maxbox[yp].maxBoundaryValue(self.maxbox[yp].index)
+        xy = [(x0,y0), (x0,y1), (x1,y1), (x1,y0)]
+        if self.plotview.skew is not None:
+            return [self.plotview.transform(_x, _y) for _x,_y in xy]
+        else:
+            return xy
+
+    def draw_rectangle(self):
+        self.rectangle.set_xy(self.get_rectangle())
+        self.plotview.draw()
+
+    def rectangle_visible(self):
+        return not self.checkbox["hide"].isChecked()
+
+    def hide_rectangle(self):
+        if self.checkbox["hide"].isChecked():
+            self.rectangle.set_visible(False)
+        else:
+            self.rectangle.set_visible(True)
+        self.plotview.draw()
+
+    def update(self):
+        self.block_signals(True)
+        for axis in range(self.ndim):
+            lo, hi = self.plotview.axis[axis].get_limits()
+            minbox, maxbox = self.minbox[axis], self.maxbox[axis]
+            ilo, ihi = minbox.indexFromValue(lo), maxbox.indexFromValue(hi)
+            if (self.plotview.axis[axis] is self.plotview.xaxis or 
+                   self.plotview.axis[axis] is self.plotview.yaxis):
+                ilo = ilo + 1
+                ihi = max(ilo, ihi-1)
+                if lo > minbox.value():
+                    minbox.setValue(minbox.valueFromIndex(ilo))
+                if  hi < maxbox.value():
+                    maxbox.setValue(maxbox.valueFromIndex(ihi))
+            else:
+                minbox.setValue(minbox.valueFromIndex(ilo))
+                maxbox.setValue(maxbox.valueFromIndex(ihi))
+        self.block_signals(False)
+        self.draw_rectangle()
+        self.copywidget.setVisible(False)
+        self.copybox.clear()
+        for tab in [self.tabs[label] for label in self.tabs 
+                    if self.tabs[label] is not self]:
+            if self.plotview.ndim == tab.plotview.ndim:
+                self.copywidget.setVisible(True)
+                self.copybox.add(self.labels[tab])
+
+    def copy(self):
+        self.block_signals(True)
+        tab = self.tabs[self.copybox.selected]
+        for axis in range(self.ndim):
+            self.minbox[axis].setValue(tab.minbox[axis].value())
+            self.maxbox[axis].setValue(tab.maxbox[axis].value())
+            self.lockbox[axis].setCheckState(tab.lockbox[axis].checkState())
+        self.summed = tab.summed
+        self.lines = tab.lines
+        self.xbox.setCurrentIndex(tab.xbox.currentIndex())
+        if self.ndim > 1:
+            self.ybox.setCurrentIndex(tab.ybox.currentIndex())
+        self.block_signals(False)
+        self.draw_rectangle()              
+
+    def reset(self):
+        self.block_signals(True)
+        for axis in range(self.ndim):
+            self.minbox[axis].setValue(self.minbox[axis].data.min())
+            self.maxbox[axis].setValue(self.maxbox[axis].data.max())
+        self.block_signals(False)
+        self.update()
+
+    def close(self):
+        try:
+            self._rectangle.remove()
+        except Exception:
+            pass
+        self._rectangle = None
+        self.plotview.draw()
+
+
+class LimitDialog(NXPanel):
+    """Dialog to set plot window limits"""
+ 
+    def __init__(self, parent=None):
+        super(LimitDialog, self).__init__('limit', title='Plot Limits', 
+              parent=parent)
+        self.tab_class = LimitTab
+        self.plotview_sort = True
 
     
-class ViewDialog(BaseDialog):
+class LimitTab(NXTab):
+    """Tab to set plot window limits"""
+
+    def __init__(self, parent=None):
+
+        super(LimitTab, self).__init__(parent=parent)
+        if parent:
+            self.tabs = parent.tabs
+            self.labels = parent.labels
+
+        self.name = self.plotview.label
+        self.ndim = self.plotview.ndim
+        
+        if self.ndim > 1:
+            self.xlabel, self.xbox = self.label('X-Axis'), NXComboBox(self.set_xaxis)
+            self.ylabel, self.ybox = self.label('Y-Axis'), NXComboBox(self.set_yaxis)
+            axis_layout = self.make_layout(self.xlabel, self.xbox, self.ylabel, self.ybox)                                     
+            self.set_axes()
+        else:
+            axis_layout = None
+
+        grid = QtWidgets.QGridLayout()
+        grid.setSpacing(10)
+        headers = ['Axis', 'Minimum', 'Maximum', 'Lock']
+        width = [50, 100, 100, 25]
+        column = 0
+        header_font = QtGui.QFont()
+        header_font.setBold(True)
+        for header in headers:
+            label = QtWidgets.QLabel()
+            label.setAlignment(QtCore.Qt.AlignHCenter)
+            label.setText(header)
+            label.setFont(header_font)
+            grid.addWidget(label, 0, column)
+            grid.setColumnMinimumWidth(column, width[column])
+            column += 1
+
+        row = 0
+        self.minbox = {}
+        self.maxbox = {}
+        self.lockbox = {}
+        for axis in range(self.ndim):
+            row += 1
+            self.minbox[axis] = NXSpinBox()
+            self.maxbox[axis] = NXSpinBox()
+            self.lockbox[axis] = NXCheckBox(slot=self.set_lock)
+            grid.addWidget(self.label(self.plotview.axis[axis].name), row, 0)
+            grid.addWidget(self.minbox[axis], row, 1)
+            grid.addWidget(self.maxbox[axis], row, 2)
+            grid.addWidget(self.lockbox[axis], row, 3,
+                           alignment=QtCore.Qt.AlignHCenter)
+
+        row += 1
+        self.minbox['signal'] = NXDoubleSpinBox()
+        self.maxbox['signal'] = NXDoubleSpinBox()
+        grid.addWidget(self.label(self.plotview.axis['signal'].name), row, 0)
+        grid.addWidget(self.minbox['signal'], row, 1)
+        grid.addWidget(self.maxbox['signal'], row, 2)        
+
+        self.parameters = GridParameters()
+        if self.plotview.label != 'Main':
+            figure_size = self.plotview.figure.get_size_inches()
+            xsize, ysize = figure_size[0], figure_size[1]
+            self.parameters.add('xsize', xsize, 'Figure Size (H)')
+            self.parameters.add('ysize', ysize, 'Figure Size (V)')
+
+        self.set_layout(axis_layout, grid, 
+                        self.parameters.grid(header=False), 
+                        self.checkboxes(("hide", "Hide Limits", True)),
+                        self.copy_layout("Copy Limits"))
+        if self.ndim == 1:
+            self.checkbox["hide"].setVisible(False)
+        else:
+            self.checkbox["hide"].stateChanged.connect(self.hide_rectangle)                        
+
+        self._rectangle = None
+
+        self.initialize()
+
+    def __repr__(self):
+        return 'LimitTab("%s")' % self.name
+
+    def initialize(self):
+        for axis in range(self.ndim):
+            self.minbox[axis].data = self.maxbox[axis].data = \
+                self.plotview.axis[axis].centers
+            self.minbox[axis].setMaximum(self.minbox[axis].data.size-1)
+            self.maxbox[axis].setMaximum(self.maxbox[axis].data.size-1)
+            self.minbox[axis].diff = self.maxbox[axis].diff = None
+            self.minbox[axis].setValue(self.plotview.axis[axis].lo)
+            self.maxbox[axis].setValue(self.plotview.axis[axis].hi)
+            self.minbox[axis].valueChanged[six.text_type].connect(self.set_limits)
+            self.maxbox[axis].valueChanged[six.text_type].connect(self.set_limits)
+        vaxis = self.plotview.axis['signal']
+        self.minbox['signal'].data = self.maxbox['signal'].data = vaxis.data
+        self.minbox['signal'].setRange(vaxis.min, vaxis.max)
+        self.maxbox['signal'].setRange(vaxis.min, vaxis.max)
+        self.minbox['signal'].setValue(vaxis.lo)
+        self.maxbox['signal'].setValue(vaxis.hi)
+        self.draw_rectangle()
+        if self.ndim > 1:
+            self.copied_properties = {'aspect': self.plotview.aspect,
+                                      'cmap': self.plotview.cmap,
+                                      'interpolation': self.plotview.interpolation,
+                                      'logv': self.plotview.logv,
+                                      'logx': self.plotview.logx,
+                                      'logy': self.plotview.logy,
+                                      'skew': self.plotview.skew}
+        self.copywidget.setVisible(False)
+        self.copybox.clear()
+        for tab in [self.tabs[label] for label in self.tabs 
+                    if self.tabs[label] is not self]:
+            if self.plotview.ndim == tab.plotview.ndim:
+                self.copywidget.setVisible(True)
+                self.copybox.add(self.labels[tab])
+
+    def get_axes(self):
+        return self.plotview.xtab.get_axes()
+
+    def set_axes(self):
+        if self.ndim > 1:        
+            axes = self.get_axes()
+            self.xbox.clear()
+            self.xbox.add(*axes)
+            self.xbox.select(self.plotview.xaxis.name)
+            self.ylabel.setVisible(True)
+            self.ybox.setVisible(True)
+            self.ybox.clear()
+            self.ybox.add(*axes)
+            self.ybox.select(self.plotview.yaxis.name)
+
+    @property
+    def xaxis(self):
+        return self.xbox.selected
+
+    def set_xaxis(self):
+        if self.xaxis == self.yaxis:
+            if self.yaxis == self.plotview.yaxis.name:
+                self.ybox.select(self.plotview.xaxis.name)
+            else:
+                self.ybox.select(self.plotview.yaxis.name)            
+
+    @property
+    def yaxis(self):
+        return self.ybox.selected
+
+    def set_yaxis(self):
+        if self.yaxis == self.xaxis:
+            if self.xaxis == self.plotview.xaxis.name:
+                self.xbox.select(self.plotview.yaxis.name)
+            else:
+                self.xbox.select(self.plotview.xaxis.name)            
+
+    def set_limits(self):
+        for axis in range(self.ndim):
+            if self.lockbox[axis].isChecked():
+                min_value = self.maxbox[axis].value() - self.maxbox[axis].diff
+                self.minbox[axis].setValue(min_value)
+            elif self.minbox[axis].value() > self.maxbox[axis].value():
+                self.maxbox[axis].setValue(self.minbox[axis].value())
+        self.draw_rectangle()
+
+    def get_limits(self, axis=None):
+        def get_indices(minbox, maxbox):
+            start, stop = minbox.index, maxbox.index+1
+            if minbox.reversed:
+                start, stop = len(maxbox.data)-stop, len(minbox.data)-start
+            return start, stop
+        if axis:
+            return get_indices(self.minbox[axis], self.maxbox[axis])
+        else:
+            return [get_indices(self.minbox[axis], self.maxbox[axis]) 
+                    for axis in range(self.ndim)]
+
+    def set_lock(self):
+        for axis in range(self.ndim):
+            if self.lockbox[axis].isChecked():
+                lo, hi = self.minbox[axis].value(), self.maxbox[axis].value()
+                self.minbox[axis].diff = self.maxbox[axis].diff = max(hi - lo, 
+                                                                      0.0)
+                self.minbox[axis].setDisabled(True)
+            else:
+                self.minbox[axis].diff = self.maxbox[axis].diff = None
+                self.minbox[axis].setDisabled(False)
+
+    def get_projection(self):
+        x = self.get_axes().index(self.xaxis)
+        if self.yaxis == 'None':
+            axes = [x]
+        else:
+            y = self.get_axes().index(self.yaxis)
+            axes = [y,x]
+        limits = self.get_limits()
+        shape = self.plotview.data.nxsignal.shape
+        if (len(shape)-len(limits) > 0 and 
+            len(shape)-len(limits) == shape.count(1)):
+            axes, limits = fix_projection(shape, axes, limits)
+        if self.plotview.rgb_image:
+            limits.append((None, None))
+        return axes, limits
+
+    @property
+    def rectangle(self):
+        if self._rectangle not in self.plotview.ax.patches:
+            self._rectangle = NXpolygon(self.get_rectangle(), closed=True).shape
+            self._rectangle.set_edgecolor(self.plotview._gridcolor)
+            self._rectangle.set_facecolor('none')
+            self._rectangle.set_linestyle('dashed')
+            self._rectangle.set_linewidth(2)
+        return self._rectangle
+
+    def get_rectangle(self):
+        xp = self.plotview.xaxis.dim
+        yp = self.plotview.yaxis.dim
+        x0 = self.minbox[xp].minBoundaryValue(self.minbox[xp].index)
+        x1 = self.maxbox[xp].maxBoundaryValue(self.maxbox[xp].index)
+        y0 = self.minbox[yp].minBoundaryValue(self.minbox[yp].index)
+        y1 = self.maxbox[yp].maxBoundaryValue(self.maxbox[yp].index)
+        xy = [(x0,y0), (x0,y1), (x1,y1), (x1,y0)]
+        if self.plotview.skew is not None:
+            return [self.plotview.transform(_x, _y) for _x,_y in xy]
+        else:
+            return xy
+
+    def draw_rectangle(self):
+        if self.ndim > 1:
+            self.rectangle.set_xy(self.get_rectangle())
+            self.plotview.draw()
+            self.hide_rectangle()
+
+    def rectangle_visible(self):
+        return not self.checkbox["hide"].isChecked()
+
+    def hide_rectangle(self):
+        if self.checkbox["hide"].isChecked():
+            self.rectangle.set_visible(False)
+        else:
+            self.rectangle.set_visible(True)
+        self.plotview.draw()
+
+    def update(self):
+        self.copywidget.setVisible(False)
+        self.copybox.clear()
+        for tab in [self.tabs[label] for label in self.tabs 
+                    if self.tabs[label] is not self]:
+            if self.plotview.ndim == tab.plotview.ndim:
+                self.copywidget.setVisible(True)
+                self.copybox.add(self.labels[tab])
+        self.draw_rectangle()
+
+    def copy(self):
+        tab = self.tabs[self.copybox.selected]
+        for axis in range(self.ndim):
+            self.minbox[axis].setValue(tab.minbox[axis].value())
+            self.maxbox[axis].setValue(tab.maxbox[axis].value())
+            self.lockbox[axis].setCheckState(tab.lockbox[axis].checkState())
+        self.minbox['signal'].setValue(tab.minbox['signal'].value())
+        self.maxbox['signal'].setValue(tab.maxbox['signal'].value())
+        if self.ndim > 1:
+            self.xbox.setCurrentIndex(tab.xbox.currentIndex())
+            self.ybox.setCurrentIndex(tab.ybox.currentIndex())
+            for p in self.copied_properties:
+                self.copied_properties[p] = getattr(tab.plotview, p)
+        if self.plotview.label != 'Main':
+            if tab.plotview.label == 'Main':
+                figure_size = tab.plotview.figure.get_size_inches()
+                self.parameters['xsize'].value = figure_size[0]
+                self.parameters['ysize'].value = figure_size[1]
+            else:
+                self.parameters['xsize'].value = tab.parameters['xsize'].value
+                self.parameters['ysize'].value = tab.parameters['ysize'].value
+
+    def reset(self):
+        self.set_axes()
+        for axis in range(self.ndim):
+            self.lockbox[axis].setChecked(False)
+            self.minbox[axis].setValue(self.plotview.axis[axis].lo)
+            self.maxbox[axis].setValue(self.plotview.axis[axis].hi)
+        self.minbox['signal'].setValue(self.plotview.axis['signal'].lo)
+        self.maxbox['signal'].setValue(self.plotview.axis['signal'].hi)
+        if self.plotview.label != 'Main':
+            figure_size = self.plotview.figure.get_size_inches()
+            self.parameters['xsize'].value = figure_size[0]
+            self.parameters['ysize'].value = figure_size[1]
+        if self.ndim > 1:
+            self.copied_properties = {'aspect': self.plotview.aspect,
+                                      'cmap': self.plotview.cmap,
+                                      'interpolation': self.plotview.interpolation,
+                                      'logv': self.plotview.logv,
+                                      'logx': self.plotview.logx,
+                                      'logy': self.plotview.logy,
+                                      'skew': self.plotview.skew}
+        self.update()
+
+    def apply(self):
+        try:
+            if self.ndim == 1:
+                xmin, xmax = self.minbox[0].value(), self.maxbox[0].value()
+                ymin, ymax = self.minbox['signal'].value(), self.maxbox['signal'].value()
+                if np.isclose(xmin, xmax):
+                    raise NeXusError('X-axis has zero range')
+                elif np.isclose(ymin, ymax):
+                    raise NeXusError('Y-axis has zero range')
+                self.plotview.xtab.set_limits(xmin, xmax)
+                self.plotview.ytab.set_limits(ymin, ymax)
+                self.plotview.replot_axes()
+            else:
+                x = self.get_axes().index(self.xaxis)
+                xmin, xmax = self.minbox[x].value(), self.maxbox[x].value()
+                y = self.get_axes().index(self.yaxis)
+                ymin, ymax = self.minbox[y].value(), self.maxbox[y].value()
+                vmin, vmax = self.minbox['signal'].value(), self.maxbox['signal'].value()
+                if np.isclose(xmin, xmax):
+                    raise NeXusError('X-axis has zero range')
+                elif np.isclose(ymin, ymax):
+                    raise NeXusError('Y-axis has zero range')
+                elif np.isclose(vmin, vmax):
+                    raise NeXusError('Signal has zero range')
+                self.plotview.change_axis(self.plotview.xtab, self.plotview.axis[x])
+                self.plotview.change_axis(self.plotview.ytab, self.plotview.axis[y])
+                self.plotview.xtab.set_limits(xmin, xmax)
+                self.plotview.ytab.set_limits(ymin, ymax)
+                self.plotview.autoscale = False
+                self.plotview.vtab.set_limits(vmin, vmax)
+                if self.ndim > 2:
+                    self.plotview.ztab.locked = False
+                    for axis_name in self.plotview.ztab.axiscombo.items():
+                        self.plotview.ztab.axiscombo.select(axis_name)
+                        names = [self.plotview.axis[i].name for i in range(self.ndim)]
+                        idx = names.index(self.plotview.ztab.axiscombo.selected)
+                        self.plotview.ztab.set_axis(self.plotview.axis[idx])
+                        self.plotview.ztab.set_limits(self.minbox[idx].value(),
+                                                      self.maxbox[idx].value())
+                self.plotview.replot_data()
+                for p in self.copied_properties:
+                    setattr(self.plotview, p, self.copied_properties[p])
+            if self.plotview.label != 'Main':
+                xsize, ysize = (self.parameters['xsize'].value, 
+                                self.parameters['ysize'].value)
+                self.plotview.figure.set_size_inches(xsize, ysize)
+        except NeXusError as error:
+            report_error("Setting plot limits", error)
+            self.reset()
+
+    def close(self):
+        try:
+            self._rectangle.remove()
+        except Exception:
+            pass
+        self._rectangle = None
+        self.plotview.draw()
+ 
+    
+class ViewDialog(NXDialog):
     """Dialog to view a NeXus field"""
 
     def __init__(self, node, parent=None):
@@ -1470,57 +2425,51 @@ class ViewDialog(BaseDialog):
         self.properties.add('path', node.nxpath, 'Path')
         if node.nxroot.nxfilename:
             self.properties.add('file', node.nxroot.nxfilename, 'File')
-        if node.exists():
-            target_label = 'Target File'
+        target_path_label = 'Target Path'
+        target_error = None
+        if node.file_exists():
+            target_file_label = 'Target File'
+            if not node.path_exists():
+                target_path_label = 'Target Path*'
+                target_error = '* Target path does not exist'
         else:
-            target_label = 'Target File*'
+            target_file_label = 'Target File*'
+            target_error = '* Target file does not exist'
         if isinstance(node, NXlink):
-            self.properties.add('target', node._target, 'Target Path')
+            self.properties.add('target', node._target, target_path_label)
             if node._filename:
-                self.properties.add('linkfile', node._filename, target_label)
+                self.properties.add('linkfile', node._filename, target_file_label)
             elif node.nxfilename and node.nxfilename != node.nxroot.nxfilename:
-                self.properties.add('linkfile', node.nxfilename, target_label)
+                self.properties.add('linkfile', node.nxfilename, target_file_label)
         elif node.nxfilename and node.nxfilename != node.nxroot.nxfilename:
             self.properties.add('target', node.nxfilepath, 'Target Path')
-            self.properties.add('linkfile', node.nxfilename, target_label)
+            self.properties.add('linkfile', node.nxfilename, target_file_label)
         if node.nxfilemode:
             self.properties.add('filemode', node.nxfilemode, 'Mode')
-        if not node.exists():
+        if target_error:
             pass
         elif isinstance(node, NXfield) and node.shape is not None:
             if node.shape == () or node.shape == (1,):
                 self.properties.add('value', six.text_type(node), 'Value')
             self.properties.add('dtype', node.dtype, 'Dtype')
             self.properties.add('shape', six.text_type(node.shape), 'Shape')
-            try:
-                self.properties.add('maxshape', 
-                                    six.text_type(node.maxshape), 
-                                    'Maximum Shape')
-            except (AttributeError, OSError):
-                pass
-            try:
-                self.properties.add('compression', 
-                                    six.text_type(node.compression), 
-                                    'Compression')
-            except (AttributeError, OSError):
-                pass
-            try:
-                self.properties.add('chunks', six.text_type(node.chunks), 
-                                    'Chunk Size')
-            except (AttributeError, OSError):
-                pass
-            try:
-                self.properties.add('fillvalue', six.text_type(node.fillvalue), 
-                                    'Fill Value')
-            except (AttributeError, OSError):
-                pass
+            self.properties.add('maxshape', six.text_type(node.maxshape), 'Maximum Shape')
+            self.properties.add('fillvalue', six.text_type(node.fillvalue), 'Fill Value')
+            self.properties.add('chunks', six.text_type(node.chunks), 'Chunk Size')
+            self.properties.add('compression', six.text_type(node.compression), 
+                                'Compression')
+            self.properties.add('compression_opts', six.text_type(node.compression_opts), 
+                                'Compression Options')
+            self.properties.add('shuffle', six.text_type(node.shuffle), 'Shuffle Filter')
+            self.properties.add('fletcher32', six.text_type(node.fletcher32), 
+                                'Fletcher32 Filter')
         elif isinstance(node, NXgroup):
             self.properties.add('entries', len(node.entries), 'No. of Entries')
         layout.addLayout(self.properties.grid(header=False, 
                                               title='Properties', 
                                               width=200))
-        if not node.exists():
-            layout.addWidget(QtWidgets.QLabel("*Target file does not exist"))
+        if target_error:
+            layout.addWidget(QtWidgets.QLabel(target_error))
         
         layout.addStretch()
 
@@ -1680,7 +2629,7 @@ class ViewTableModel(QtCore.QAbstractTableModel):
         self.headerDataChanged.emit(QtCore.Qt.Vertical, 0, min(9, self.rows-1))
 
   
-class RemoteDialog(BaseDialog):
+class RemoteDialog(NXDialog):
     """Dialog to open a remote file.
     """ 
     def __init__(self, parent=None):
@@ -1719,7 +2668,7 @@ class RemoteDialog(BaseDialog):
             super(RemoteDialog, self).reject()
 
 
-class AddDialog(BaseDialog):
+class AddDialog(NXDialog):
     """Dialog to add a NeXus node"""
 
     data_types = ['char', 'float32', 'float64', 'int8', 'uint8', 'int16', 
@@ -1930,7 +2879,7 @@ class AddDialog(BaseDialog):
         super(AddDialog, self).accept()
 
     
-class InitializeDialog(BaseDialog):
+class InitializeDialog(NXDialog):
     """Dialog to initialize a NeXus field node"""
 
     data_types = ['float32', 'float64', 'int8', 'uint8', 'int16', 
@@ -2053,7 +3002,7 @@ class InitializeDialog(BaseDialog):
             report_error("Initializing Data", error)
 
     
-class RenameDialog(BaseDialog):
+class RenameDialog(NXDialog):
     """Dialog to rename a NeXus node"""
 
     def __init__(self, node, parent=None):
@@ -2153,7 +3102,7 @@ class RenameDialog(BaseDialog):
         super(RenameDialog, self).accept()
 
     
-class SignalDialog(BaseDialog):
+class SignalDialog(NXDialog):
     """Dialog to set the signal of NXdata"""
  
     def __init__(self, node, parent=None):
@@ -2292,7 +3241,7 @@ class SignalDialog(BaseDialog):
             super(SignalDialog, self).reject()
 
     
-class LogDialog(BaseDialog):
+class LogDialog(NXDialog):
     """Dialog to display a NeXpy log file"""
  
     def __init__(self, parent=None):
@@ -2305,7 +3254,8 @@ class LogDialog(BaseDialog):
         self.text_box = QtWidgets.QTextEdit()
         self.text_box.setMinimumWidth(800)
         self.text_box.setMinimumHeight(600)
-        self.text_box.setFocusPolicy(QtCore.Qt.NoFocus)
+        self.text_box.setFocusPolicy(QtCore.Qt.StrongFocus)
+        self.text_box.setReadOnly(True)
         layout.addWidget(self.text_box)
         footer_layout = QtWidgets.QHBoxLayout()
         self.file_combo = NXComboBox(self.show_log)
@@ -2338,13 +3288,16 @@ class LogDialog(BaseDialog):
         self.text_box.verticalScrollBar().setValue(
             self.text_box.verticalScrollBar().maximum())
         self.setWindowTitle("Log File: %s" % self.file_name)
+        self.setVisible(True)
+        self.raise_()
+        self.activateWindow()
 
     def reject(self):
         super(LogDialog, self).reject()
         self.mainwindow.log_window = None
 
 
-class UnlockDialog(BaseDialog):
+class UnlockDialog(NXDialog):
     """Dialog to unlock a file"""
 
     def __init__(self, node, parent=None):
@@ -2354,15 +3307,12 @@ class UnlockDialog(BaseDialog):
         self.setWindowTitle("Unlock File")
         self.node = node
 
-        default = False
-        if self.node.exists():
-            file_size = os.path.getsize(self.node.nxfilename)
-            if file_size < 10000000:
-                default = True
+        file_size = os.path.getsize(self.node.nxfilename)
+        if file_size < 10000000:
+            default = True
         else:
-            self.node.unlock()
-            raise NeXusError("'%s' does not exist" % 
-                             os.path.abspath(self.nxfilename))
+            default = False
+
         self.set_layout(self.labels(
                             "<b>Are you sure you want to unlock the file?</b>"),
                         self.checkboxes(('backup', 'Backup file (%s)' 
@@ -2387,7 +3337,7 @@ class UnlockDialog(BaseDialog):
             report_error("Unlocking file", error)
 
 
-class ManageBackupsDialog(BaseDialog):
+class ManageBackupsDialog(NXDialog):
     """Dialog to restore or purge backup files"""
 
     def __init__(self, parent=None):
@@ -2395,7 +3345,7 @@ class ManageBackupsDialog(BaseDialog):
         super(ManageBackupsDialog, self).__init__(parent, default=True)
  
         self.backup_dir = self.mainwindow.backup_dir
-
+        self.mainwindow.settings.read(self.mainwindow.settings_file)
         options = reversed(self.mainwindow.settings.options('backups'))
         backups = []
         for backup in options:
@@ -2453,7 +3403,7 @@ class ManageBackupsDialog(BaseDialog):
                 self.mainwindow.settings.save()
 
 
-class InstallPluginDialog(BaseDialog):
+class InstallPluginDialog(NXDialog):
     """Dialog to install a NeXus plugin"""
 
     def __init__(self, parent=None):
@@ -2478,7 +3428,7 @@ class InstallPluginDialog(BaseDialog):
             plugin_module = import_plugin(plugin_name, [plugin_path])
             name, _ = plugin_module.plugin_menu()
             return name
-        except Exception as error:
+        except Exception:
             return None
 
     def install_plugin(self):        
@@ -2519,7 +3469,7 @@ class InstallPluginDialog(BaseDialog):
             report_error("Installing plugin", error)
 
 
-class RemovePluginDialog(BaseDialog):
+class RemovePluginDialog(NXDialog):
     """Dialog to remove a NeXus plugin"""
 
     def __init__(self, parent=None):
@@ -2591,7 +3541,7 @@ class RemovePluginDialog(BaseDialog):
         except NeXusError as error:
             report_error("Removing plugin", error)
 
-class RestorePluginDialog(BaseDialog):
+class RestorePluginDialog(NXDialog):
     """Dialog to restore plugins from backups"""
 
     def __init__(self, parent=None):
@@ -2640,12 +3590,11 @@ class RestorePluginDialog(BaseDialog):
             plugin_module = import_plugin(plugin_name, [plugin_path])
             name, _ = plugin_module.plugin_menu()
             return name
-        except Exception as error:
+        except Exception:
             return None
 
     def remove_backup(self, backup):
         shutil.rmtree(os.path.dirname(os.path.realpath(backup)))
-        backups = self.mainwindow.settings.options('plugins')
         self.mainwindow.settings.remove_option('plugins', backup)
         self.mainwindow.settings.save()
 

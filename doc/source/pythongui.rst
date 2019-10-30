@@ -363,7 +363,9 @@ Window Menu
 **Show Projection Panel**
     Shows the projection panel for the currently active plotting window. This is
     equivalent to clicking on 'Show Panel' in the projection tab (see below). 
-    All the open projection panels are displayed as tabs in a single window.
+    All the open projection panels are displayed as tabs in a single window, with the
+    option of copying projection values from one tab to the other if the plots are
+    compatible.
 
 **Show Script Editor**
     Shows the script editor. If multiple scripts are open, they are displayed as
@@ -371,12 +373,19 @@ Window Menu
     script.
 
 **Change Plot Limits**
-    This gives a dialog box that allows the axis limits of the currently active
-    plot to be changed. This is useful if you want to expand the limits beyond 
-    the data values or if you want to narrow the limits to improve the 
-    sensitivity of the sliders.
+    This opens a panel for the currently active plotting window that allows the axes and 
+    axis limits of the currently active plot to be changed, as well as the plot size on 
+    the screen. All the panels are displayed as tabs in a single window, with the option 
+    of copying values from one tab to the other if the plots are compatible.
 
-    .. note:: This is equivalent to editing the values in the axis text boxes.
+    .. note:: When the settings in one tab are copied to another and the Apply button is
+              clicked, other settins, such as the aspect ratio, skew angle, color map, 
+              and log settings are also copied. This is therefore a very quick way of 
+              making direct comparisons between different data sets. 
+
+    .. note:: The plotting pane in the main window cannot be resized this way, because of
+              the constraints of the other panes. Other plotting windows will copy the 
+              main window plotting size if requested.
 
 **Reset Plot Limits**
     This restores the axis and signal limits to the original values.
@@ -384,6 +393,15 @@ Window Menu
     .. note:: This is equivalent to clicking on the Home button in the Options 
               Tab (see below). Right-clicking within the plot restores the 
               axis limits but does not reset the signal limits.
+
+**Customize Plot**
+    This opens a panel for the currently active plotting window that allows aspects of 
+    the plot, such as titles, axis labels, aspect ratios, skew angles, marker and line 
+    colors, and legends to be customized. All the open panels are displayed as tabs in a 
+    single window.
+
+    .. note:: This is equivalent to clicking the Edit button in the Options Tab (see 
+              below).
 
 **New Plot Window**
     Opens a new NeXpy plotting window, consisting of a Matplotlib plot pane and 

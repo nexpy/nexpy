@@ -3,8 +3,16 @@ Python Interface to NeXus
 *************************
 The Python interface to NeXus is provided by the `nexusformat 
 <https://github.com/nexpy/nexusformat>`_ package, which is distributed 
-separately from NeXpy. It can be used within a standard Python or IPython 
-shell:: 
+separately from NeXpy. 
+
+.. seealso:: The source code includes a 
+             `Jupyter notebook 
+             <https://github.com/nexpy/nexusformat/blob/master/src/nexusformat/notebooks/nexusformat.ipynb>`_ 
+             that provides a tutorial for the Python API. It can be run in
+             `Google Colaboratory 
+             <https://colab.research.google.com/github/nexpy/nexusformat/blob/master/src/nexusformat/notebooks/nexusformat.ipynb>`_.
+
+The Python API can be used within a standard Python or IPython shell:: 
 
  $ python
  Python 3.6.1 |Anaconda custom (x86_64)| (default, May 11 2017, 13:04:09) 
@@ -15,6 +23,7 @@ shell::
 .. note:: Although wildcard imports are usually discouraged in Python, there
           should not be any name clashes using it here because all the 
           imported functions and variables start with 'nx' or 'NX'.
+
 
 Loading NeXus Data
 ==================

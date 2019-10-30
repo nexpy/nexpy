@@ -20,7 +20,6 @@ from pygments.formatter import Formatter
 
 from .pyqt import QtCore, QtGui, QtWidgets, getSaveFileName
 
-from .datadialogs import BaseDialog
 from .utils import confirm_action
 
 
@@ -55,7 +54,6 @@ class QFormatter(Formatter):
             self.styles[str(token)] = qtf
     
     def format(self, tokensource, outfile):
-        global styles
         self.data=[]
         for ttype, value in tokensource:
             l=len(value)
@@ -138,6 +136,10 @@ class NXScriptWindow(QtWidgets.QDialog):
     def editors(self):
         return [self.tabs.widget(idx) for idx in range(self.tabs.count())]
 
+    @property
+    def editor(self):
+        return self.tabs.currentWidget()
+
     def update(self):
         for editor in self.editors:
             editor.adjustSize()
@@ -149,9 +151,9 @@ class NXScriptWindow(QtWidgets.QDialog):
         event.accept()
         
     def close(self):
-        for editor in self.editors:
-            editor.close()
-        self.setVisible(False)
+        self.editor.close()
+        if self.tabs.count() == 0:
+            self.setVisible(False)
 
 
 class NXScriptEditor(QtWidgets.QWidget):

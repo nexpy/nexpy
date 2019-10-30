@@ -45,13 +45,13 @@ class FitDialog(BaseDialog):
         self._data = self.initialize_data(entry.data)
 
         if 'Fit' not in self.plotviews:
-            self._plotview = NXPlotView('Fit')
-        self.plotview.plot(self._data, fmt='o')
+            self._fitview = NXPlotView('Fit')
+        self.fitview.plot(self._data, fmt='o')
         for key in [key for key in mpl.rcParams if key.startswith('keymap')]:
             for shortcut in 'lr':
                 if shortcut in mpl.rcParams[key]:
                     mpl.rcParams[key].remove(shortcut)
-        self.plotview.canvas.mpl_connect('key_press_event', self.on_key_press)
+        self.fitview.canvas.mpl_connect('key_press_event', self.on_key_press)
         self.functions = []
         self.parameters = []
 
@@ -101,8 +101,8 @@ class FitDialog(BaseDialog):
         self.plotcombo.setMinimumWidth(100)
         self.plotcombo.setVisible(False)
         plot_label = QtWidgets.QLabel('X-axis:')
-        self.plot_min = self.plotview.xaxis.min
-        self.plot_max = self.plotview.xaxis.max 
+        self.plot_min = self.fitview.xaxis.min
+        self.plot_max = self.fitview.xaxis.max 
         self.plot_minbox = QtWidgets.QLineEdit(str(self.plot_min))
         self.plot_minbox.setAlignment(QtCore.Qt.AlignRight)
         plot_tolabel = QtWidgets.QLabel(' to ')
@@ -164,9 +164,9 @@ class FitDialog(BaseDialog):
         self.load_entry(entry)
 
     @property
-    def plotview(self):
+    def fitview(self):
         if 'Fit' not in self.plotviews:
-            self._plotview = NXPlotView('Fit')
+            self._fitview = NXPlotView('Fit')
         return self.plotviews['Fit']
 
     def initialize_data(self, data):
@@ -254,10 +254,10 @@ class FitDialog(BaseDialog):
             report_error('Fitting data', error)
 
     def compressed_name(self, name):
-        return re.sub(r'([a-zA-Z]*) # (\d*)', r'\1\2', name)
+        return re.sub(r'([a-zA-Z]*) # (\d*)', r'\1\2', name, count=1)
 
     def expanded_name(self, name):
-        return re.sub(r'([a-zA-Z]*)(\d*)', r'\1 # \2', name)
+        return re.sub(r'([a-zA-Z]*)(\d*)', r'\1 # \2', name, count=1)
     
     def parse_function_name(self, name):
         match = re.match(r'([a-zA-Z]*)(\d*)', name)
@@ -461,18 +461,18 @@ class FitDialog(BaseDialog):
         self.plot_maxbox.setText(str(self.plot_max))
 
     def plot_data(self):
-        self.plotview.plot(self.data, fmt='o')
-        self.plotview.raise_()
+        self.fitview.plot(self.data, fmt='o')
+        self.fitview.raise_()
 
     def plot_model(self):
         plot_function = self.plotcombo.currentText()
         if plot_function == 'All':
-            self.plotview.plot(self.get_model(), fmt='-', over=True)
+            self.fitview.plot(self.get_model(), fmt='-', over=True)
         else:
             name = self.compressed_name(plot_function)
             f = list(filter(lambda x: x.name == name, self.functions))[0]
-            self.plotview.plot(self.get_model(f), fmt='--', over=True)
-        self.plotview.raise_()
+            self.fitview.plot(self.get_model(f), fmt='--', over=True)
+        self.fitview.raise_()
 
     def define_errors(self):
         if self.fit_checkbox.isChecked():
@@ -594,15 +594,15 @@ class FitDialog(BaseDialog):
    
     def accept(self):
         if 'Fit' in self.plotviews:
-            self.plotview.close()
+            self.fitview.close()
         super(FitDialog, self).accept()
         
     def reject(self):
         if 'Fit' in self.plotviews:
-            self.plotview.close()
+            self.fitview.close()
         super(FitDialog, self).reject()
 
     def closeEvent(self, event):
         if 'Fit' in self.plotviews:
-            self.plotview.close()
+            self.fitview.close()
         event.accept()

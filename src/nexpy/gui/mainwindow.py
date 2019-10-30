@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #-----------------------------------------------------------------------------
-# Copyright (c) 2013, NeXpy Development Team.
+# Copyright (c) 2013-2019, NeXpy Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -41,11 +41,12 @@ from nexusformat.nexus import *
 
 from .. import __version__
 from .treeview import NXTreeView
-from .plotview import NXPlotView, NXProjectionPanels
+from .plotview import NXPlotView
 from .datadialogs import *
 from .scripteditor import NXScriptWindow, NXScriptEditor
-from .utils import confirm_action, report_error, display_message, natural_sort
-from .utils import import_plugin, timestamp, get_name, get_colors, load_image
+from .utils import confirm_action, report_error, display_message, is_file_locked
+from .utils import natural_sort, import_plugin, timestamp
+from .utils import get_name, get_colors, load_image
 
 
 class NXRichJupyterWidget(RichJupyterWidget):
@@ -96,14 +97,14 @@ class MainWindow(QtWidgets.QMainWindow):
         self.script_dir = self.app.script_dir
         self.function_dir = self.app.function_dir
         self.scratch_file = self.app.scratch_file
+        self.settings_file = self.app.settings_file
 
         mainwindow = QtWidgets.QWidget()
 
         rightpane = QtWidgets.QWidget()
 
+        self.panels = {}
         main_plotview = NXPlotView(label="Main", parent=self)
-        self.panels = NXProjectionPanels(self)
-        self.panels.setVisible(False)
         self.editors = NXScriptWindow(self)
         self.editors.setVisible(False)
         self.log_window = None
@@ -125,11 +126,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.shellview = self.console._control
         self.shellview.setFocusPolicy(QtCore.Qt.ClickFocus)
 
-        if 'gui_completion' not in self.config['ConsoleWidget']:
-            self.console.gui_completion = 'droplist'
-        if 'input_sep' not in self.config['JupyterWidget']:
-            self.console.input_sep = ''
-
         self.kernel = self.console.kernel_manager.kernel
         def _abort_queues(kernel):
             pass
@@ -138,6 +134,11 @@ class MainWindow(QtWidgets.QMainWindow):
         self.user_ns = self.console.kernel_manager.kernel.shell.user_ns
         self.shell.ask_exit = self.close
         self.shell._old_stb = self.shell._showtraceback
+        try:
+            self.shell.set_hook('complete_command', nxcompleter, 
+                                re_key=r"(?:.*\=)?(?:.*\()?(?:.*,)?(.+?)\[")
+        except NameError:
+            pass
         def new_stb(etype, evalue, stb):
             self.shell._old_stb(etype, evalue, [stb[-1]])
             self.shell._last_traceback = stb
@@ -182,13 +183,14 @@ class MainWindow(QtWidgets.QMainWindow):
         self.init_menu_bar()
 
         self.file_filter = ';;'.join((
-            "NeXus Files (*.nxs *.nx5 *.h5 *.hdf *.hdf5 *.cxi)",
+            "NeXus Files (*.nxs *.nx5 *.nxspe *.h5 *.hdf *.hdf5 *.cxi)",
             "Any Files (*.* *)"))
         self.max_recent_files = 20
 
         self.setWindowTitle('NeXpy v'+__version__)
         self.statusBar().showMessage('Ready')
 
+        self.treeview.selection_changed()
         self.shellview.setFocus()
 
     @property
@@ -318,6 +320,14 @@ class MainWindow(QtWidgets.QMainWindow):
         self.file_menu.addSeparator()
 
         self.init_import_menu()
+
+        self.file_menu.addSeparator()
+
+        self.export_action=QtWidgets.QAction("Export",
+            self,
+            triggered=self.export_data
+            )
+        self.add_menu_action(self.file_menu, self.export_action)
 
         self.file_menu.addSeparator()
 
@@ -493,6 +503,11 @@ class MainWindow(QtWidgets.QMainWindow):
             )
         self.add_menu_action(self.data_menu, self.plot_data_action)
 
+        self.plot_line_action=QtWidgets.QAction("Plot Line",
+            self,
+            triggered=self.plot_line
+            )
+
         self.overplot_data_action=QtWidgets.QAction("Overplot Data",
             self,
             shortcut="Ctrl+Alt+P",
@@ -500,11 +515,22 @@ class MainWindow(QtWidgets.QMainWindow):
             )
         self.add_menu_action(self.data_menu, self.overplot_data_action)
 
+        self.overplot_line_action=QtWidgets.QAction("Overplot Line",
+            self,
+            triggered=self.overplot_line
+            )
+
         self.multiplot_data_action=QtWidgets.QAction("Plot All Signals",
             self,
             triggered=self.multiplot_data
             )
         self.add_menu_action(self.data_menu, self.multiplot_data_action)
+
+        self.multiplot_lines_action=QtWidgets.QAction(
+            "Plot All Signals as Lines",
+            self,
+            triggered=self.multiplot_lines
+            )
 
         self.plot_image_action=QtWidgets.QAction("Plot RGB(A) Image",
             self,
@@ -593,6 +619,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.fit_action=QtWidgets.QAction("Fit Data",
             self,
+            shortcut=QtGui.QKeySequence("Ctrl+Shift+F"),
             triggered=self.fit_data
             )
         self.add_menu_action(self.data_menu, self.fit_action)
@@ -792,15 +819,31 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.limit_action=QtWidgets.QAction("Change Plot Limits",
             self,
+            shortcut="Ctrl+Alt+L",
             triggered=self.limit_axes
             )
         self.add_menu_action(self.window_menu, self.limit_action)
 
         self.reset_limit_action=QtWidgets.QAction("Reset Plot Limits",
             self,
+            shortcut="Ctrl+Alt+Shift+L",
             triggered=self.reset_axes
             )
         self.add_menu_action(self.window_menu, self.reset_limit_action)
+
+        self.customize_action=QtWidgets.QAction("Customize Plot",
+            self,
+            shortcut="Ctrl+Alt+C",
+            triggered=self.customize_plot
+            )
+        self.add_menu_action(self.window_menu, self.customize_action)
+
+        self.preferences_action=QtWidgets.QAction("Edit Preferences",
+            self,
+            shortcut="Ctrl+Alt+E",
+            triggered=self.edit_preferences
+            )
+#        self.add_menu_action(self.window_menu, self.preferences_action)
 
         self.window_menu.addSeparator()
 
@@ -813,7 +856,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.closewindow_action=QtWidgets.QAction("Close Plot Window",
             self,
-            shortcut=QtGui.QKeySequence("Ctrl+Shift+W"),
+            shortcut=QtGui.QKeySequence("Ctrl+W"),
             triggered=self.close_window
             )
         self.add_menu_action(self.window_menu, self.closewindow_action,)
@@ -859,7 +902,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.script_menu.addSeparator()
 
         self.scripts = {}
-        files = os.listdir(self.script_dir)
+        files = sorted(os.listdir(self.script_dir))
         for file_name in files:
             if file_name.endswith('.py'):
                 self.add_script_action(os.path.join(self.script_dir, file_name))
@@ -879,6 +922,11 @@ class MainWindow(QtWidgets.QMainWindow):
             self,
             triggered=self._open_nexpy_online_help)
         self.add_menu_action(self.help_menu, self.nexpyHelpAct)
+
+        self.notebookHelpAct = QtWidgets.QAction("Open NeXus API Tutorial Online",
+            self,
+            triggered=self._open_nexusformat_online_notebook)
+        self.add_menu_action(self.help_menu, self.notebookHelpAct)
 
         self.nexusHelpAct = QtWidgets.QAction(
             "Open NeXus Base Class Definitions Online",
@@ -904,12 +952,6 @@ class MainWindow(QtWidgets.QMainWindow):
             triggered=self.quickref_console
             )
         self.add_menu_action(self.help_menu, self.quickref_console_action)
-
-        self.guiref_console_action = QtWidgets.QAction("&Qt Console",
-            self,
-            triggered=self.guiref_console
-            )
-        self.add_menu_action(self.help_menu, self.guiref_console_action)
 
         self.help_menu.addSeparator()
 
@@ -970,14 +1012,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def new_workspace(self):
         try:
-            default_name = self.tree.get_new_name()
-            name, ok = QtWidgets.QInputDialog.getText(self, 'New Workspace',
-                             'Workspace Name:', text=default_name)
-            if name and ok:
-                self.tree[name] = NXroot(NXentry())
-                self.treeview.select_node(self.tree[name].entry)
-                self.treeview.update()
-                logging.info("New workspace '%s' created" % name)
+            dialog = NewDialog(parent=self)
+            dialog.show()
         except NeXusError as error:
             report_error("Creating New Workspace", error)
 
@@ -986,6 +1022,10 @@ class MainWindow(QtWidgets.QMainWindow):
             fname = getOpenFileName(self, 'Open File (Read Only)',
                                     self.default_directory,  self.file_filter)
             if fname:
+                if is_file_locked(fname):
+                    logging.info(
+                    "NeXus file '%s' is locked by an external process." % fname)
+                    return
                 name = self.tree.get_name(fname)
                 self.tree[name] = nxload(fname)
                 self.treeview.select_node(self.tree[name])
@@ -1002,6 +1042,8 @@ class MainWindow(QtWidgets.QMainWindow):
             fname = getOpenFileName(self, 'Open File (Read/Write)',
                                     self.default_directory, self.file_filter)
             if fname:
+                if is_file_locked(fname):
+                    return
                 name = self.tree.get_name(fname)
                 self.tree[name] = nxload(fname, 'rw')
                 self.treeview.select_node(self.tree[name])
@@ -1018,7 +1060,9 @@ class MainWindow(QtWidgets.QMainWindow):
         try:
             fname = self.recent_file_actions[self.sender()][1]
             if not os.path.exists(fname):
-                raise NeXusError("'%s' does not exist" % fname)
+                raise NeXusError("%s does not exist" % fname)
+            elif is_file_locked(fname):
+                return
             name = self.tree.get_name(fname)
             self.tree[name] = nxload(fname)
             self.treeview.select_node(self.tree[name])
@@ -1063,7 +1107,8 @@ class MainWindow(QtWidgets.QMainWindow):
             nxfiles = sorted([f for f in os.listdir(directory) 
                               if ((f.endswith('.nxs') or f.endswith('.nx5') or
                                    f.endswith('.h5') or f.endswith('hdf5') or
-                                   f.endswith('hdf') or f.endswith('.cxi')) and
+                                   f.endswith('hdf') or f.endswith('.cxi') or
+                                   f.endswith('nxspe')) and
                               os.path.join(directory,f) not in tree_files and
                               not os.path.islink(os.path.join(directory,f)))],
                              key=natural_sort)
@@ -1073,6 +1118,8 @@ class MainWindow(QtWidgets.QMainWindow):
                               '\n'.join(nxfiles)):
                 for nxfile in nxfiles:
                     fname = os.path.join(directory, nxfile)
+                    if is_file_locked(fname, wait=1):
+                        continue
                     name = self.tree.get_name(fname)
                     self.tree[name] = nxload(fname)
                 self.treeview.select_node(self.tree[name])
@@ -1128,12 +1175,7 @@ class MainWindow(QtWidgets.QMainWindow):
             node = self.treeview.get_node()
             if node is None or not isinstance(node, NXroot):
                 raise NeXusError("Only NXroot groups can be saved")
-            if node.nxfilemode and node.exists():
-                name = self.tree.get_new_name()
-                existing = True
-            else:
-                name = node.nxname
-                existing = False
+            name = node.nxname
             default_name = os.path.join(self.default_directory, name)
             fname = getSaveFileName(self, "Choose a Filename", default_name,
                                     self.file_filter)
@@ -1162,6 +1204,8 @@ class MainWindow(QtWidgets.QMainWindow):
                     fname = getSaveFileName(self, "Choose a Filename",
                                             default_name, self.file_filter)
                     if fname:
+                        if is_file_locked(fname):
+                            return
                         with NXFile(fname, 'w') as f:
                             f.copyfile(node.nxfile)
                         name = self.tree.get_name(fname)
@@ -1191,14 +1235,15 @@ class MainWindow(QtWidgets.QMainWindow):
     def reload(self):
         try:
             node = self.treeview.get_node()
-            if not node.exists():
-                raise NeXusError("'%s' does not exist" % 
-                                 os.path.abspath(node.nxfilename))
+            if not node.file_exists():
+                raise NeXusError("%s does not exist" % node.nxfilename)
+            elif self.nodefile_locked(node):
+                return
             path = node.nxpath
             root = node.nxroot
             name = root.nxname
             if confirm_action("Are you sure you want to reload '%s'?" % name):
-                self.tree.reload(name)
+                root.reload()
                 logging.info("Workspace '%s' reloaded" % name)
                 try:
                     self.treeview.select_node(self.tree[name][path])
@@ -1248,12 +1293,27 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.treeview.select_node(self.tree[name])
                 self.treeview.setFocus()
                 try:
-                    self.default_directory = os.path.dirname(self.import_dialog.import_file)
+                    self.default_directory = os.path.dirname(
+                                                self.import_dialog.import_file)
                 except Exception:
                     pass
                 logging.info("Workspace '%s' imported" % name)
         except NeXusError as error:
             report_error("Importing File", error)
+
+    def export_data(self):
+        try:
+            node = self.treeview.get_node()
+            if isinstance(node, NXdata):
+                if node.nxsignal.ndim == 1:
+                    dialog = ExportDialog(node, parent=self)
+                    dialog.show()
+                else:
+                    raise NeXusError("Can only export one-dimensional data")
+            else:
+                raise NeXusError("Can only export an NXdata group")                  
+        except NeXusError as error:
+            report_error("Exporting Data", error)
 
     def lock_file(self):
         try:
@@ -1270,21 +1330,31 @@ class MainWindow(QtWidgets.QMainWindow):
     def unlock_file(self):
         try:
             node = self.treeview.get_node()
-            if isinstance(node, NXroot) and node.nxfilemode:
-                dialog = UnlockDialog(node, parent=self)
-                dialog.show()
-                self.treeview.update()
-            else:
+            if not (isinstance(node, NXroot) and node.nxfilemode):
                 raise NeXusError("Can only unlock a saved NXroot group")
+            elif not node.file_exists():
+                raise NeXusError("'%s' does not exist" % node.nfilename)
+            elif node.is_modified():
+                if confirm_action("File has been modified. Reload?"):
+                    node.reload()
+                else:
+                    return
+            elif self.nodefile_locked(node):
+                return
+            dialog = UnlockDialog(node, parent=self)
+            dialog.show()
+            self.treeview.update()
         except NeXusError as error:
             report_error("Unlocking File", error)
+
+    def nodefile_locked(self, node):
+        return is_file_locked(node.nxfile.filename)
 
     def backup_file(self):
         try:
             node = self.treeview.get_node()
-            if node is not None and not node.exists():
-                raise NeXusError("'%s' does not exist" % 
-                                 os.path.abspath(node.nxfilename))
+            if node is not None and not node.file_exists():
+                raise NeXusError("%s does not exist" % node.nxfilename)
             if isinstance(node, NXroot):
                 dir = os.path.join(self.nexpy_dir, 'backups', timestamp())
                 os.mkdir(dir)
@@ -1377,18 +1447,17 @@ class MainWindow(QtWidgets.QMainWindow):
             node = self.treeview.get_node()
             if node is not None:
                 if not node.exists():
-                    raise NeXusError("'%s' does not exist" % 
-                                     os.path.abspath(node.nxfilename))
+                    raise NeXusError("%s does not exist" % node.nxfullpath)
                 self.treeview.status_message(node)
-                if isinstance(node, NXgroup) and node.nxsignal is not None:
+                if isinstance(node, NXgroup) and node.plottable_data:
                     try:
-                        node.plot(fmt='o')
+                        node.plot()
                         self.plotview.make_active()
                         return
                     except KeyError:
                         pass
                 elif node.is_plottable():
-                    dialog = PlotDialog(node, parent=self, fmt='o')
+                    dialog = PlotDialog(node, parent=self)
                     dialog.show()
                 else:
                     raise NeXusError("Data not plottable")
@@ -1400,10 +1469,9 @@ class MainWindow(QtWidgets.QMainWindow):
             node = self.treeview.get_node()
             if node is not None:
                 if not node.exists():
-                    raise NeXusError("'%s' does not exist" % 
-                                     os.path.abspath(node.nxfilename))
+                    raise NeXusError("%s does not exist" % node.nxfullpath)
                 self.treeview.status_message(node)
-                node.oplot(fmt='o')
+                node.oplot()
                 self.plotview.make_active()
         except NeXusError as error:
             report_error("Overplotting Data", error)
@@ -1413,18 +1481,17 @@ class MainWindow(QtWidgets.QMainWindow):
             node = self.treeview.get_node()
             if node is not None:
                 if not node.exists():
-                    raise NeXusError("'%s' does not exist" % 
-                                     os.path.abspath(node.nxfilename))
+                    raise NeXusError("%s does not exist" % node.nxfullpath)
                 self.treeview.status_message(node)
-                if isinstance(node, NXgroup):
+                if isinstance(node, NXgroup) and node.plottable_data:
                     try:
-                        node.plot(fmt='-')
+                        node.plot(marker='None', linestyle='-')
                         self.plotview.make_active()
-                        return
                     except (KeyError, NeXusError):
                         pass
-                if node.is_plottable():
-                    dialog = PlotDialog(node, parent=self, fmt='-')
+                elif node.is_plottable():
+                    dialog = PlotDialog(node, parent=self, marker='None', 
+                                        linestyle='-')
                     dialog.show()
                 else:
                     raise NeXusError("Data not plottable")
@@ -1436,12 +1503,10 @@ class MainWindow(QtWidgets.QMainWindow):
             node = self.treeview.get_node()
             if node is not None:
                 if not node.exists():
-                    raise NeXusError("'%s' does not exist" % 
-                                     os.path.abspath(node.nxfilename))
+                    raise NeXusError("%s does not exist" % node.nxfullpath)
                 self.treeview.status_message(node)
-                node.oplot(fmt='-')
-                from .plotview import plotview
-                plotview.make_active()
+                node.oplot(marker='None', linestyle='-')
+                self.plotview.make_active()
         except NeXusError as error:
             report_error("Overplotting Data", error)
 
@@ -1450,8 +1515,7 @@ class MainWindow(QtWidgets.QMainWindow):
             node = self.treeview.get_node()
             if node is not None:
                 if not node.exists():
-                    raise NeXusError("'%s' does not exist" % 
-                                     os.path.abspath(node.nxfilename))
+                    raise NeXusError("%s does not exist" % node.nxfullpath)
                 elif not isinstance(node, NXgroup):
                     raise NeXusError("Multiplots only available for groups.")
                 elif 'auxiliary_signals' not in node.attrs:
@@ -1464,9 +1528,9 @@ class MainWindow(QtWidgets.QMainWindow):
                 colors = get_colors(len(signals))
                 for i, signal in enumerate(signals):
                     if i == 0:
-                        signal.plot(fmt='o', color=colors[i])
+                        signal.plot(color=colors[i])
                     else:
-                        signal.oplot(fmt='o', color=colors[i])
+                        signal.oplot(color=colors[i])
                 self.plotview.otab.home()
                 self.plotview.legend(nameonly=True)
                 self.plotview.make_active()
@@ -1478,8 +1542,7 @@ class MainWindow(QtWidgets.QMainWindow):
             node = self.treeview.get_node()
             if node is not None:
                 if not node.exists():
-                    raise NeXusError("'%s' does not exist" % 
-                                     os.path.abspath(node.nxfilename))
+                    raise NeXusError("%s does not exist" % node.nxfullpath)
                 elif not isinstance(node, NXgroup):
                     raise NeXusError("Multiplots only available for groups.")
                 elif 'auxiliary_signals' not in node.attrs:
@@ -1492,9 +1555,11 @@ class MainWindow(QtWidgets.QMainWindow):
                 colors = get_colors(len(signals))
                 for i, signal in enumerate(signals):
                     if i == 0:
-                        signal.plot(fmt='-', color=colors[i])
+                        signal.plot(marker='None', linestyle='-', 
+                                    color=colors[i])
                     else:
-                        signal.oplot(fmt='-', color=colors[i])
+                        signal.oplot(marker='None', linestyle='-',
+                                     color=colors[i])
                 self.plotview.otab.home()
                 self.plotview.legend(nameonly=True)
                 self.plotview.make_active()
@@ -1506,12 +1571,10 @@ class MainWindow(QtWidgets.QMainWindow):
             node = self.treeview.get_node()
             if node is not None:
                 if not node.exists():
-                    raise NeXusError("'%s' does not exist" % 
-                                     os.path.abspath(node.nxfilename))
+                    raise NeXusError("%s does not exist" % node.nxfullpath)
                 self.treeview.status_message(node)
                 node.implot()
-                from .plotview import plotview
-                plotview.make_active()
+                self.plotview.make_active()
         except NeXusError as error:
             report_error("Plotting RGB(A) Image Data", error)
 
@@ -1528,8 +1591,7 @@ class MainWindow(QtWidgets.QMainWindow):
             node = self.treeview.get_node()
             if node is not None:
                 if not node.exists():
-                    raise NeXusError("'%s' does not exist" % 
-                                     os.path.abspath(node.nxfilename))
+                    raise NeXusError("%s does not exist" % node.nxfullpath)
                 elif node.nxfilemode == 'r':
                     raise NeXusError("NeXus file is locked")
                 dialog = AddDialog(node, parent=self)
@@ -1544,15 +1606,15 @@ class MainWindow(QtWidgets.QMainWindow):
             node = self.treeview.get_node()
             if node is not None:
                 if not node.exists():
-                    raise NeXusError("'%s' does not exist" % 
-                                     os.path.abspath(node.nxfilename))
+                    raise NeXusError("%s does not exist" % node.nxfullpath)
                 elif node.nxfilemode == 'r':
                     raise NeXusError("NeXus file is locked")
                 elif isinstance(node, NXgroup):
                     dialog = InitializeDialog(node, parent=self)
                     dialog.exec_()
                 else:
-                    raise NeXusError("An NXfield can only be added to an NXgroup")
+                    raise NeXusError(
+                                "An NXfield can only be added to an NXgroup")
         except NeXusError as error:
             report_error("Initializing Data", error)
 
@@ -1562,8 +1624,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 node = self.treeview.get_node()
                 if node is not None:
                     if not node.exists():
-                        raise NeXusError("'%s' does not exist" % 
-                                         os.path.abspath(node.nxfilename))
+                        raise NeXusError("%s does not exist" % node.nxfullpath)
                     elif (isinstance(node, NXroot) or 
                            node.nxgroup.nxfilemode != 'r'):
                         path = node.nxpath
@@ -1911,9 +1972,11 @@ class MainWindow(QtWidgets.QMainWindow):
                 before_action = self.active_action[num]
             self.active_action[number] = QtWidgets.QAction(label,
                 self,
-                shortcut=QtGui.QKeySequence("Ctrl+%s" % number),
                 triggered=lambda: self.make_active(number),
                 checkable=True)
+            if number < 10:
+                self.active_action[number].setShortcut(
+                    QtGui.QKeySequence("Ctrl+%s" % number))
             self.window_menu.insertAction(before_action,
                                           self.active_action[number])
         self.make_active(number)
@@ -1922,13 +1985,14 @@ class MainWindow(QtWidgets.QMainWindow):
         new_plotview = NXPlotView(parent=self)
 
     def close_window(self):
-        if self.plotview.number != 1:
-            self.plotview.close()
+        for w in [w for w in self.app.app.topLevelWidgets() if w.isActiveWindow()]:
+            w.close()
+            break
 
     def equalize_windows(self):
-        if 'Main' in self.plotviews:
-            for label in [label for label in self.plotviews if label != 'Main']:
-                self.plotviews[label].resize(self.plotviews['Main'].size())
+        for label in [label for label in self.plotviews 
+                      if (label != 'Main' and label != self.plotview.label)]:
+            self.plotviews[label].resize(self.plotview.size())
 
     def update_active(self, number):
         for num in self.active_action:
@@ -1945,18 +2009,32 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def limit_axes(self):
         try:
-            from .plotview import plotview
-            dialog = LimitDialog(parent=self)
-            dialog.exec_()
+            if 'limit' not in self.panels:
+                self.panels['limit'] = LimitDialog(parent=self)
+            self.panels['limit'].activate(self.plotview.label)
         except NeXusError as error:
             report_error("Changing Plot Limits", error)
 
     def reset_axes(self):
         try:
-            from .plotview import plotview
-            plotview.reset_plot_limits()
+            self.plotview.reset_plot_limits()
         except NeXusError as error:
             report_error("Resetting Plot Limits", error)
+
+    def customize_plot(self):
+        try:
+            if 'customize' not in self.panels:
+                self.panels['customize'] = CustomizeDialog(parent=self)
+            self.panels['customize'].activate(self.plotview.label)
+        except NeXusError as error:
+            report_error("Customizing Plot", error)
+
+    def edit_preferences(self):
+        try:
+            dialog = PreferencesDialog(parent=self)
+            dialog.show()
+        except NeXusError as error:
+            report_error("Editing Preferences", error)
 
     def show_tree(self):
         self.raise_()
@@ -1974,19 +2052,20 @@ class MainWindow(QtWidgets.QMainWindow):
         try:
             if self.log_window:
                 self.log_window.show_log()
-                self.log_window.raise_()
             else:
                 self.log_window = LogDialog(parent=self)
-                self.log_window.show()
         except NeXusError as error:
             report_error("Showing Log File", error)
 
     def show_projection_panel(self):
-        from .plotview import plotview
-        if plotview.label != 'Projection' and plotview.ndim > 1:
-            plotview.ptab.open_panel()
-        elif self.panels.tabs.count() != 0:
-            self.panels.raise_()
+        if self.plotview.label == 'Projection' or self.plotview.ndim == 1:
+            return
+        try:
+            if 'projection' not in self.panels:
+                self.panels['projection'] = ProjectionDialog(parent=self)
+            self.panels['projection'].activate(self.plotview.label)
+        except NeXusError as error:
+            report_error("Showing Projection Panel", error)
 
     def show_script_window(self):
         if self.editors.tabs.count() == 0:
@@ -2044,7 +2123,12 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.script_menu.removeAction(action)
 
     def _open_nexpy_online_help(self):
-        filename = "http://nexpy.github.io/nexpy/"
+        filename = "https://nexpy.github.io/nexpy/"
+        webbrowser.open(filename, new=1, autoraise=True)
+
+    def _open_nexusformat_online_notebook(self):
+        filename = ("https://colab.research.google.com/github/nexpy/nexusformat/blob/" +
+                    "master/src/nexusformat/notebooks/nexusformat.ipynb")
         webbrowser.open(filename, new=1, autoraise=True)
 
     def _open_nexus_online_help(self):
@@ -2052,7 +2136,7 @@ class MainWindow(QtWidgets.QMainWindow):
         webbrowser.open(filename, new=1, autoraise=True)
 
     def _open_ipython_online_help(self):
-        filename = "http://ipython.org/ipython-doc/stable/index.html"
+        filename = "https://ipython.readthedocs.io/en/stable/"
         webbrowser.open(filename, new=1, autoraise=True)
 
     def open_example_file(self):
@@ -2131,21 +2215,36 @@ class MainWindow(QtWidgets.QMainWindow):
         self.confirm_restart_kernel_action.setChecked(widget.confirm_restart)
 
     def cut_console(self):
-        widget = self.console
-        if widget.can_cut():
-            widget.cut()
+        widget = self.app.app.focusWidget()
+        if widget == self.console._control:
+            widget = self.console
+        try:
+            if widget.can_cut():
+                widget.cut()
+        except Exception:
+            pass
 
     def copy_console(self):
-        widget = self.console
-        widget.copy()
+        widget = self.app.app.focusWidget()
+        if widget == self.console._control:
+            widget = self.console
+        try:
+            widget.copy()
+        except Exception:
+            pass
 
     def copy_raw_console(self):
         self.console._copy_raw_action.trigger()
 
     def paste_console(self):
-        widget = self.console
-        if widget.can_paste():
-            widget.paste()
+        widget = self.app.app.focusWidget()
+        if widget == self.console._control:
+            widget = self.console
+        try:
+            if widget.can_paste():
+                widget.paste()
+        except Exception:
+            pass
 
     def undo_console(self):
         self.console.undo()
@@ -2191,9 +2290,6 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def reset_font_size_console(self):
         self.console.reset_font_size.trigger()
-
-    def guiref_console(self):
-        self.console.execute("%guiref")
 
     def intro_console(self):
         self.console.execute("?")

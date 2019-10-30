@@ -1,0 +1,12 @@
+h5py
+ipython
+lmfit
+numpy
+scipy
+pyqt5
+matplotlib
+formlayout
+ansi2html
+pillow
+spec2nexus
+nexusformat
