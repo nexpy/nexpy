@@ -41,10 +41,18 @@
   <h3><a href="index.html">Table of Contents</a></h3>
   <ul>
 <li><a class="reference internal" href="#">NeXus Tree API Modules</a><ul>
+<li><a class="reference internal" href="#module-nexusformat.nexus.tree">NeXus Tree Module</a><ul>
 <li><a class="reference internal" href="#example-1-loading-a-nexus-file">Example 1: Loading a NeXus file</a></li>
 <li><a class="reference internal" href="#example-2-creating-a-nexus-file-dynamically">Example 2: Creating a NeXus file dynamically</a></li>
 <li><a class="reference internal" href="#notes">Notes</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-nexusformat.nexus.plot">NeXus Plot Module</a></li>
+<li><a class="reference internal" href="#module-nexusformat.nexus.lock">NeXus Lock Module</a></li>
+<li><a class="reference internal" href="#module-nexusformat.nexus.completer">NeXus Completer Module</a><ul>
 <li><a class="reference internal" href="#examples">Examples</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -80,8 +88,10 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <div class="section" id="module-nexusformat.nexus.tree">
-<span id="nexus-tree-api-modules"></span><h1>NeXus Tree API Modules<a class="headerlink" href="#module-nexusformat.nexus.tree" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="nexus-tree-api-modules">
+<h1>NeXus Tree API Modules<a class="headerlink" href="#nexus-tree-api-modules" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-nexusformat.nexus.tree">
+<span id="nexus-tree-module"></span><h2>NeXus Tree Module<a class="headerlink" href="#module-nexusformat.nexus.tree" title="Permalink to this headline">¶</a></h2>
 <p>Module to read, write, analyze, manipulate, and visualize NeXus data.</p>
 <p>This is designed to accomplish two goals:</p>
 <blockquote>
@@ -98,7 +108,7 @@ NeXus data has been loaded from an existing NeXus file or created dynamically
 within the Python session. This provides a natural scripting interface for the 
 creation, manipulation, and visualization of NeXus data.</p>
 <div class="section" id="example-1-loading-a-nexus-file">
-<h2>Example 1: Loading a NeXus file<a class="headerlink" href="#example-1-loading-a-nexus-file" title="Permalink to this headline">¶</a></h2>
+<h3>Example 1: Loading a NeXus file<a class="headerlink" href="#example-1-loading-a-nexus-file" title="Permalink to this headline">¶</a></h3>
 <p>The following commands loads NeXus data from a file, displays the contents as a 
 tree, and then accesses individual data items. Note that all the classes and 
 functions returned by the wildcard import in the example start with ‘NX’ or 
@@ -146,7 +156,7 @@ returns a (possibly empty) list.</p>
 <a class="reference internal" href="#nexusformat.nexus.tree.NXFile" title="nexusformat.nexus.tree.NXFile"><code class="xref py py-class docutils literal notranslate"><span class="pre">NXFile</span></code></a> class, a subclass of <code class="xref py py-class docutils literal notranslate"><span class="pre">h5py.File</span></code>.</p>
 </div>
 <div class="section" id="example-2-creating-a-nexus-file-dynamically">
-<h2>Example 2: Creating a NeXus file dynamically<a class="headerlink" href="#example-2-creating-a-nexus-file-dynamically" title="Permalink to this headline">¶</a></h2>
+<h3>Example 2: Creating a NeXus file dynamically<a class="headerlink" href="#example-2-creating-a-nexus-file-dynamically" title="Permalink to this headline">¶</a></h3>
 <p>The second example shows how to create NeXus data dynamically and saves it to a
 file. The data are first created as Numpy arrays</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
@@ -203,7 +213,7 @@ determined by the Numpy array type and shape.</p>
 </div>
 </div>
 <div class="section" id="notes">
-<h2>Notes<a class="headerlink" href="#notes" title="Permalink to this headline">¶</a></h2>
+<h3>Notes<a class="headerlink" href="#notes" title="Permalink to this headline">¶</a></h3>
 <p>Properties of the entry in the tree are referenced by attributes that depend
 on the object type, different nx attributes may be available.</p>
 <dl class="simple">
@@ -2985,7 +2995,10 @@ such as Numpy. <cite>nxload</cite> is the version included in wild card imports.
 </dd></dl>
 
 </div>
-<span class="target" id="module-nexusformat.nexus.plot"></span><p>Module to provide standard Matplotlib plotting to the NeXus Python API.</p>
+</div>
+<div class="section" id="module-nexusformat.nexus.plot">
+<span id="nexus-plot-module"></span><h2>NeXus Plot Module<a class="headerlink" href="#module-nexusformat.nexus.plot" title="Permalink to this headline">¶</a></h2>
+<p>Module to provide standard Matplotlib plotting to the NeXus Python API.</p>
 <dl class="function">
 <dt id="nexusformat.nexus.plot.centers">
 <code class="sig-prename descclassname">nexusformat.nexus.plot.</code><code class="sig-name descname">centers</code><span class="sig-paren">(</span><em class="sig-param">axis</em>, <em class="sig-param">dimlen</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.plot.centers" title="Permalink to this definition">¶</a></dt>
@@ -3073,7 +3086,10 @@ with the same call signature for use outside NeXpy.</p>
 
 </dd></dl>
 
-<span class="target" id="module-nexusformat.nexus.lock"></span><dl class="exception">
+</div>
+<div class="section" id="module-nexusformat.nexus.lock">
+<span id="nexus-lock-module"></span><h2>NeXus Lock Module<a class="headerlink" href="#module-nexusformat.nexus.lock" title="Permalink to this headline">¶</a></h2>
+<dl class="exception">
 <dt id="nexusformat.nexus.lock.NXLockException">
 <em class="property">exception </em><code class="sig-prename descclassname">nexusformat.nexus.lock.</code><code class="sig-name descname">NXLockException</code><a class="headerlink" href="#nexusformat.nexus.lock.NXLockException" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -3153,13 +3169,16 @@ by default <cite>self.check_interval</cite>.</p>
 
 </dd></dl>
 
-<span class="target" id="module-nexusformat.nexus.completer"></span><p>IPython extension to allow autocompletion of NeXus object names.</p>
+</div>
+<div class="section" id="module-nexusformat.nexus.completer">
+<span id="nexus-completer-module"></span><h2>NeXus Completer Module<a class="headerlink" href="#module-nexusformat.nexus.completer" title="Permalink to this headline">¶</a></h2>
+<p>IPython extension to allow autocompletion of NeXus object names.</p>
 <p>This modifies h5py.ipy_completer, written by Darren Dale, to accommodate 
 the completion of NeXus paths defined as nested dictionaries. It will also 
 autocomplete attributes at the end of a dictionary path. The NeXus objects 
 can follow an assignment or be embedded in function arguments.</p>
 <div class="section" id="examples">
-<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<h3>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h3>
 <p>Autocompletion works on each component of the following commands:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">signal</span> <span class="o">=</span> <span class="n">root</span><span class="p">[</span><span class="n">entry</span><span class="o">/</span><span class="n">data</span><span class="o">/</span><span class="n">signal</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">units</span> <span class="o">=</span> <span class="n">root</span><span class="p">[</span><span class="n">entry</span><span class="o">/</span><span class="n">data</span><span class="o">/</span><span class="n">signal</span><span class="p">]</span><span class="o">.</span><span class="n">units</span>
@@ -3236,6 +3255,7 @@ which is currently incompatible with the nexusformat classes.</p>
 </dl>
 </dd></dl>
 
+</div>
 </div>
 </div>
 

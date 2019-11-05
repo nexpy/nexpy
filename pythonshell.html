@@ -1155,8 +1155,9 @@ employs the NumPy array sum() method:</p>
 <span class="go">    @long_name = &#39;Integral from 0.0 to 6.28318530718 &#39;</span>
 </pre></div>
 </div>
-<dl>
-<dt>NXdata.project(axes, limits):</dt><dd><p>The project() method projects the data along a specified 1D axis or 2D axes
+<ul>
+<li><dl>
+<dt><code class="docutils literal notranslate"><span class="pre">NXdata.project(axes,</span> <span class="pre">limits)</span></code>:</dt><dd><p>The project() method projects the data along a specified 1D axis or 2D axes
 summing over the limits, which are specified as a list of tuples for each
 dimension. If the axis is not to be limited, then specify the limit as
 <em>None</em>. The data should be at least two-dimensional and the values are
@@ -1191,6 +1192,8 @@ assumed to be floating point.</p>
 of data projections.</p>
 </dd>
 </dl>
+</li>
+</ul>
 </div>
 </div>
 </div>
@@ -1335,7 +1338,7 @@ process is also using the <code class="docutils literal notranslate"><span class
 behavior. These may be read and/or modified using the following functions.</p>
 <ul class="simple">
 <li><dl class="simple">
-<dt>nxgetmemory(), nxsetmemory(value)</dt><dd><p>This sets the memory limit (in MB) for loading arrays into memory. If a
+<dt><code class="docutils literal notranslate"><span class="pre">nxgetmemory(),</span> <span class="pre">nxsetmemory(value)</span></code>:</dt><dd><p>This sets the memory limit (in MB) for loading arrays into memory. If a
 field contains data that is larger than this limit, it can only be
 accessed as a series of smaller slabs using the standard slicing syntax.
 The default is 2000 MB.</p>
@@ -1343,25 +1346,25 @@ The default is 2000 MB.</p>
 </dl>
 </li>
 <li><dl class="simple">
-<dt>nxgetmaxsize(), nxsetmaxsize(value)</dt><dd><p>This sets the maximum size of an array before HDF5 chunking and compression
+<dt><code class="docutils literal notranslate"><span class="pre">nxgetmaxsize(),</span> <span class="pre">nxsetmaxsize(value)</span></code>:</dt><dd><p>This sets the maximum size of an array before HDF5 chunking and compression
 is turned on by default. The default is 10000.</p>
 </dd>
 </dl>
 </li>
 <li><dl class="simple">
-<dt>nxgetlock(), nxsetlock(value=10)</dt><dd><p>This sets the number of seconds before an attempted file lock acquisition
+<dt><code class="docutils literal notranslate"><span class="pre">nxgetlock(),</span> <span class="pre">nxsetlock(value=10)</span></code>:</dt><dd><p>This sets the number of seconds before an attempted file lock acquisition
 times out. If the value is 0, file locking is disabled. If <code class="docutils literal notranslate"><span class="pre">nxsetlock</span></code> is
 called without an argument, the default is 10 seconds.</p>
 </dd>
 </dl>
 </li>
 <li><dl class="simple">
-<dt>nxgetcompression(), nxsetcompression()</dt><dd><p>This sets the default HDF5 compression filter. The default is ‘gzip’.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">nxgetcompression(),</span> <span class="pre">nxsetcompression()</span></code>:</dt><dd><p>This sets the default HDF5 compression filter. The default is ‘gzip’.</p>
 </dd>
 </dl>
 </li>
 <li><dl class="simple">
-<dt>nxgetencoding(), nxsetencoding()</dt><dd><p>This sets the default encoding for input strings. This is usually ‘utf-8’
+<dt><code class="docutils literal notranslate"><span class="pre">nxgetencoding(),</span> <span class="pre">nxsetencoding()</span></code>:</dt><dd><p>This sets the default encoding for input strings. This is usually ‘utf-8’
 but the default is set to the system default, defined by
 <code class="docutils literal notranslate"><span class="pre">sys.getfilesystemencoding()</span></code>.</p>
 </dd>
