@@ -1046,17 +1046,20 @@ to 'w'. Any keywords accepted by
 `h5py.File <http://docs.h5py.org/en/stable/high/file.html>`_ can be used to 
 customize the new HDF5 file, *e.g.*, to turn on SWMR mode.
 
-.. warning:: It is not usually required to call the ``nxfile`` attribute. If 
-             it is referenced, the underlying ``h5py.File`` object is left
-             open. It should be explicitly closed by calling
-            ``root.nxfile.close()``.
+.. warning:: There is usually no need to call the ``nxfile`` attribute except
+             to invoke the context manager (see next section). If it is 
+             referenced, the underlying ``h5py.File`` object is left open. It 
+             should be explicitly closed by calling ``root.nxfile.close()``. 
+             The current status of the file can be determined by calling
+             ``root.nxfile.is_open()``.
 
-Combining operations
---------------------
-Usually, the NeXus file is closed after loading and subsquent updates, to 
-ensure that any changes are flushed to the file and other processes can read 
-the file if necessary. When writing or modifying multiple items in the file, it
-is possible to use a context manager to prevent multiple open/close operations::
+Multiple operations
+-------------------
+When a change is made to a NeXus file, which is open with read/write access, it 
+is automatically opened, updated, and then closed to ensure that any changes 
+are flushed to the file and other processes can read the file if necessary. 
+When writing or modifying multiple items in the file, it is possible to use a 
+context manager to prevent multiple open/close operations::
 
   >>> with root.nxfile:
   >>>     root['entry/sample'] = NXsample()
@@ -1066,19 +1069,32 @@ is possible to use a context manager to prevent multiple open/close operations::
 The file will be opened at the start of the of the ``with`` clause and 
 closed automatically at the end.
 
+.. note:: This context manager can be nested so it is safe to add a ``with``
+          clause within a function that might, in some implementations, be 
+          embedded in another ``with`` clause. The file is only closed when the
+          outermost context manager is exited.
+
 File Locking
 ------------
 The context manager can also be used to lock the NeXus file to prevent other
 processes from accessing the file. According to the `HDF5 documentation 
 <https://support.hdfgroup.org/HDF5/hdf5-quest.html#gconc>`_, concurrent read 
 access is supported if the HDF5 library has been built as thread-safe. This
-appears to be the default with conda installations. However, concurrent read 
-and write access is only allowed when using SWMR mode, which has a number of 
-restrictions. To prevent issues with multiple processes accessing the same
-file, the ``nexusformat`` contains a simple file-locking mechanism, which is 
-designed to work even when the processes are running on separate nodes and 
-when other file-locking mechanisms might prove unreliable (*e.g.*, on 
-NFS-mounted disks). 
+appears to be the default with conda installations, for example. However, 
+concurrent read and write access is only allowed when using SWMR mode, which 
+has a number of restrictions. To prevent issues with multiple processes 
+accessing the same file, the ``nexusformat`` contains a simple file-locking 
+mechanism, which is designed to work even when the processes are running on 
+separate nodes and when other file-locking mechanisms might prove unreliable 
+(*e.g.*, on NFS-mounted disks).
+
+.. warning:: Unfortunately, the word 'lock' can cause confusion because it is 
+             commonly used to refer to two different operations. The other one 
+             is to switch a file from read/write to read-only mode, *e.g.*, ::
+
+               >>> root.lock()
+
+             This operation does *not* add a file lock. 
 
 To turn on file-locking, call ``nxsetlock`` with the argument set to the 
 number of seconds before an attempt to acquire a lock times out. A typical
@@ -1102,8 +1118,8 @@ stale lock is encountered, it may be cleared by calling ``clear_lock``::
   >>> root.nxfile.is_locked()
   False
 
-
-    
+.. note:: This lock is advisory. It is only guaranteed to work if the external 
+          process is also using the ``nexusformat`` API.     
 
 
 
