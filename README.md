@@ -15,16 +15,10 @@ Released versions of NeXpy can be installed using either
     $ pip install nexpy
 ```
 
-or
-
-```
-    $ easy_install nexpy 
-```
-
 If you have an Anaconda installation, use::
 
 ```
-    $ conda install -c nexpy nexpy
+    $ conda install -c conda-forge nexpy
 ```
 
 The source code can be downloaded from the NeXpy Git repository:
@@ -57,16 +51,10 @@ shell. It may be installed using::
     $ pip install nexusformat
 ```
 
-or:: 
-
-```
-    $ easy_install nexusformat 
-```
-
 or::
 
 ```
-    $ conda install -c nexpy nexusformat
+    $ conda install -c conda-forge nexusformat
 ```
 
 The package can also be installed from the source code using the setup commands
@@ -90,8 +78,8 @@ This also means that the current version cannot read and write HDF4 or XML
 NeXus files.
 
 If you only intend to utilize the Python API from the command-line, the only 
-other required libraries are [NumPy](http://numpy.org) and, with v0.5.0 
-[SciPy](http://scipy.org).
+other required libraries are [NumPy](http://numpy.org) and, if you want
+autocompletion within an IPython shell, [SciPy](http://scipy.org).
 
 * [nexusformat](https://github.com/nexpy/nexusformat)
 * [h5py](http://www.h5py.org)

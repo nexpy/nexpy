@@ -9,15 +9,11 @@ installed, then you can install using either::
 
     $ pip install nexpy
 
-or:: 
-
-    $ easy_install nexpy 
-
 If you have an Anaconda installation, use::
 
-    $ conda install -c https://conda.anaconda.org/nexpy nexpy
+    $ conda install -c conda-forge nexpy
 
-If you have trouble with the pip or easy_install installations, you can install
+If you have trouble with the pip installations, you can install
 the package from the source code either by downloading one of the 
 `Github releases <https://github.com/nexpy/nexpy/releases>`_ or by cloning the
 latest development version in the `NeXpy Git 
@@ -33,9 +29,9 @@ To install in an alternate location::
 
     $ python setup.py install --prefix=/path/to/installation/dir
 
-As of v0.6.0, the Python API for reading and writing NeXus files is in a 
-separate package, `nexusformat <https://github.com/nexpy/nexusformat>`_, which 
-is also available on `PyPI <https://pypi.python.org/pypi/nexusformat/>`_ and 
+The Python API for reading and writing NeXus files is in a separate package, 
+`nexusformat <https://github.com/nexpy/nexusformat>`_, which is also available 
+on `PyPI <https://pypi.python.org/pypi/nexusformat/>`_ and 
 will be automatically installed as a NeXpy dependency if you use pip. 
 
 If the NeXpy GUI is not required, the package may be used in a regular Python
@@ -43,13 +39,9 @@ shell. It may be installed using::
 
     $ pip install nexusformat
 
-or:: 
-
-    $ easy_install nexusformat 
-
 or::
 
-    $ conda install -c https://conda.anaconda.org/nexpy nexusformat
+    $ conda install -c conda-forge nexusformat
 
 The package can also be installed from the source code using the setup commands
 described above. The source code is available either by downloading one of the 
@@ -71,8 +63,8 @@ converted to HDF5 file using the NeXus command-line utility
 `nxconvert <http://download.nexusformat.org/doc/html/utilities.html>`_`.
 
 If you only intend to utilize the Python API from the command-line, the only 
-other required libraries iare `NumPy <https://numpy.org>`_ and, since
-v0.5.0, `NumPy <http://numpy.scipy.org>`_.
+other required libraries iare `NumPy <https://numpy.org>`_ and, if you want
+autocompletion within an IPython shell,  `SciPy <http://numpy.scipy.org>`_.
 
 =================  =================================================
 Library            URL
@@ -116,8 +108,8 @@ pillow             https://pillow.readthedocs.io/
 ansi2html          https://pypi.python.org/pypi/ansi2html/
 =================  =================================================
 
-.. warning:: Version 0.11.0 is the last version to be compatible with Python 2.
-             There may be urgent bug fixes but from v0.12, Python 3 will be 
+.. warning:: Version 0.12.0 is the last version to be compatible with Python 2.
+             There may be urgent bug fixes but from v0.13, Python 3 will be 
              required.
 
 .. warning:: Some people have reported that NeXpy crashes on launch on some
@@ -187,4 +179,5 @@ The Python tree API used in NeXpy was originally developed by Paul Kienzle, who
 also wrote the standard Python interface to the NeXus C-API. The original 
 version of NeXpy was initially developed by Boyana Norris, Jason Sarich, and 
 Daniel Lowell, and Ray Osborn using wxPython, and formed the inspiration
-for the current PyQt version.
+for the current PyQt version. I am grateful to Tom Schoonjans for installing
+the packages on conda-forge.
