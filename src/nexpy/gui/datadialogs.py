@@ -2747,6 +2747,7 @@ class AddDialog(NXDialog):
             grid.addWidget(self.combo_box, 0, 1)
             grid.addWidget(name_label, 1, 0)
             grid.addWidget(self.name_box, 1, 1)
+            self.select_combo()
         elif class_name == "NXfield":
             combo_label = QtWidgets.QLabel()
             combo_label.setAlignment(QtCore.Qt.AlignLeft)
@@ -2858,7 +2859,9 @@ class AddDialog(NXDialog):
             if name:
                 self.node[name] = NXgroup(nxclass=nxclass)
             else:
-                self.node.insert(NXgroup(nxclass=nxclass))
+                group = NXgroup(nxclass=nxclass)
+                name = group.nxname
+                self.node.insert(group)
             logging.info("'%s' added to '%s'" 
                          % (self.node[name], self.node.nxpath)) 
         elif name:
