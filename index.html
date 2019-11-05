@@ -1,33 +1,22 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>NeXpy: A Python GUI to analyze NeXus data &#8212; NeXpy 0.10.12 documentation</title>
+    <meta charset="utf-8" />
+    <title>NeXpy: A Python GUI to analyze NeXus data &#8212; NeXpy 0.12.0 documentation</title>
     <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    './',
-        VERSION:     '0.10.12',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true,
-        SOURCELINK_SUFFIX: '.txt'
-      };
-    </script>
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
     <link rel="shortcut icon" href="_static/favicon.ico"/>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Installation" href="includeme.html" /> 
-  </head>
-  <body>
+  </head><body>
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
@@ -40,12 +29,12 @@
         <li class="right" >
           <a href="includeme.html" title="Installation"
              accesskey="N">next</a> |</li>
-        <li class="nav-item nav-item-0"><a href="#">NeXpy 0.10.12 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="#">NeXpy 0.12.0 documentation</a> &#187;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
-  <h3><a href="#">Table Of Contents</a></h3>
+  <h3><a href="#">Table of Contents</a></h3>
   <ul>
 <li><a class="reference internal" href="#">NeXpy: A Python GUI to analyze NeXus data</a></li>
 <li><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
@@ -62,13 +51,13 @@
     </ul>
    </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <div><input type="text" name="q" /></div>
-      <div><input type="submit" value="Go" /></div>
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
     </form>
+    </div>
 </div>
 <script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
@@ -90,9 +79,16 @@ without expert knowledge of the file format. The underlying Python API for
 reading and writing NeXus files is provided by the <a class="reference external" href="https://github.com/nexpy/nexusformat">nexusformat</a> package, which utilizes
 <a class="reference external" href="http://www.h5py.org/">h5py</a>. The Python API is also described here.</p>
 <div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">NeXpy v0.10.12 is now available for <a class="reference external" href="https://pypi.python.org/pypi/NeXpy/">download</a> (<a class="reference external" href="https://github.com/nexpy/nexpy/releases">Release Notes</a>). This is a beta-release
+<p class="admonition-title">Note</p>
+<p>NeXpy v0.12.0 is now available for <a class="reference external" href="https://pypi.python.org/pypi/NeXpy/">download</a> (<a class="reference external" href="https://github.com/nexpy/nexpy/releases">Release Notes</a>). This is a beta-release
 so please post any issues that you encounter on the <a class="reference external" href="https://github.com/nexpy/nexpy/issues">NeXpy GitHub</a>.</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>On January 1, 2020, Python 2 will no longer be supported. NeXpy
+v0.12 and nexusformat v0.5 are the last versions to support Python
+2. There may be some urgent bug fixes in the meantime, but
+NeXpy v0.13 and nexusformat v0.6 will require Python 3.</p>
 </div>
 <div class="toctree-wrapper compound">
 <ul>
@@ -113,25 +109,25 @@ so please post any issues that you encounter on the <a class="reference external
 <li class="toctree-l2"><a class="reference internal" href="pythonshell.html#plotting-nexus-data">Plotting NeXus Data</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pythonshell.html#manipulating-nexus-data">Manipulating NeXus Data</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pythonshell.html#saving-nexus-data">Saving NeXus Data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pythonshell.html#nexus-file-operations">NeXus File Operations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pythonshell.html#configuration-parameters">Configuration Parameters</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="pythongui.html">Python Graphical User Interface</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="pythongui.html#nexpy-menu-bar">NeXpy Menu Bar</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pythongui.html#adding-nexus-data-to-the-tree">Adding NeXus Data to the Tree</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pythongui.html#plotting-nexus-data">Plotting NeXus Data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pythongui.html#configuring-nexpy">Configuring NeXpy</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pythongui.html#fitting-nexus-data">Fitting NeXus Data</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pythongui.html#importing-nexus-data">Importing NeXus Data</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pythongui.html#nexpy-plugins">NeXpy Plugins</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pythongui.html#configuring-nexpy">Configuring NeXpy</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="treeapi.html">NeXus Tree API Modules</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="treeapi.html#example-1-loading-a-nexus-file">Example 1: Loading a NeXus file</a></li>
 <li class="toctree-l2"><a class="reference internal" href="treeapi.html#example-2-creating-a-nexus-file-dynamically">Example 2: Creating a NeXus file dynamically</a></li>
-<li class="toctree-l2"><a class="reference internal" href="treeapi.html#nexus-objects">NeXus Objects</a></li>
-<li class="toctree-l2"><a class="reference internal" href="treeapi.html#unit-conversion">Unit Conversion</a></li>
-<li class="toctree-l2"><a class="reference internal" href="treeapi.html#reading-and-writing-slabs">Reading and Writing Slabs</a></li>
-<li class="toctree-l2"><a class="reference internal" href="treeapi.html#plotting-nexus-data">Plotting NeXus data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="treeapi.html#notes">Notes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="treeapi.html#examples">Examples</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="readers.html">Adding a File Importer</a><ul>
@@ -162,9 +158,9 @@ so please post any issues that you encounter on the <a class="reference external
 <div class="section" id="indices-and-tables">
 <h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
 <ul class="simple">
-<li><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></li>
-<li><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></li>
-<li><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></li>
+<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
+<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
+<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
 </ul>
 </div>
 
@@ -186,12 +182,12 @@ so please post any issues that you encounter on the <a class="reference external
         <li class="right" >
           <a href="includeme.html" title="Installation"
              >next</a> |</li>
-        <li class="nav-item nav-item-0"><a href="#">NeXpy 0.10.12 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="#">NeXpy 0.12.0 documentation</a> &#187;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2013-2015, Ray Osborn.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.6.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.
     </div>
   </body>
 </html>

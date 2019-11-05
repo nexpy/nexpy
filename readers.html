@@ -1,34 +1,23 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Adding a File Importer &#8212; NeXpy 0.10.12 documentation</title>
+    <meta charset="utf-8" />
+    <title>Adding a File Importer &#8212; NeXpy 0.12.0 documentation</title>
     <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    './',
-        VERSION:     '0.10.12',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true,
-        SOURCELINK_SUFFIX: '.txt'
-      };
-    </script>
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
     <link rel="shortcut icon" href="_static/favicon.ico"/>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="NeXpy BaseDialog Class" href="importdialog.html" />
     <link rel="prev" title="NeXus Tree API Modules" href="treeapi.html" /> 
-  </head>
-  <body>
+  </head><body>
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
@@ -44,12 +33,12 @@
         <li class="right" >
           <a href="treeapi.html" title="NeXus Tree API Modules"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.10.12 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.12.0 documentation</a> &#187;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
-  <h3><a href="index.html">Table Of Contents</a></h3>
+  <h3><a href="index.html">Table of Contents</a></h3>
   <ul>
 <li><a class="reference internal" href="#">Adding a File Importer</a><ul>
 <li><a class="reference internal" href="#required-content">Required Content</a></li>
@@ -73,13 +62,13 @@
     </ul>
    </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <div><input type="text" name="q" /></div>
-      <div><input type="submit" value="Go" /></div>
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
     </form>
+    </div>
 </div>
 <script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
@@ -93,32 +82,32 @@
   <div class="section" id="adding-a-file-importer">
 <h1>Adding a File Importer<a class="headerlink" href="#adding-a-file-importer" title="Permalink to this headline">¶</a></h1>
 <div class="admonition caution">
-<p class="first admonition-title">Caution</p>
-<p class="last">This section is under development</p>
+<p class="admonition-title">Caution</p>
+<p>This section is under development</p>
 </div>
 <p>These are the basic steps to add a new file format importer to NeXpy.</p>
 <ol class="arabic simple">
-<li>Create a Python source code module named <em>readabcde.py</em>
+<li><p>Create a Python source code module named <em>readabcde.py</em>
 where <em>abcde</em> is the name of the new support and does not
-conflict with existing names.</li>
-<li>Place that file in the source code tree, in path
-<em>&lt;nexpy&gt;/src/nexpy/readers/</em></li>
-<li>Inside that file, create several required structures
-as described below.</li>
-<li>Create other structure as necessary to support the reader.</li>
-<li>Provide an example data file (or files) in the
+conflict with existing names.</p></li>
+<li><p>Place that file in the source code tree, in path
+<em>&lt;nexpy&gt;/src/nexpy/readers/</em></p></li>
+<li><p>Inside that file, create several required structures
+as described below.</p></li>
+<li><p>Create other structure as necessary to support the reader.</p></li>
+<li><p>Provide an example data file (or files) in the
 <em>&lt;nexpy&gt;/src/nexpy/examples/</em> directory and update
-the README.rst file there, describing the new example(s).</li>
+the README.rst file there, describing the new example(s).</p></li>
 </ol>
 <div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">All new file format importers must be placed
+<p class="admonition-title">Note</p>
+<p>All new file format importers must be placed
 in the NeXpy source code tree in the <em>readers</em> subdirectory.</p>
 </div>
 <div class="section" id="required-content">
 <h2>Required Content<a class="headerlink" href="#required-content" title="Permalink to this headline">¶</a></h2>
 <p>Start with this basic template:</p>
-<div class="highlight-python"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+<div class="highlight-python notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
  2
  3
  4
@@ -196,7 +185,7 @@ an <em>NXroot</em> or <em>NXentry</em> object. This will be added to the NeXpy t
 <div class="section" id="features-from-the-superclass">
 <h2>Features from the Superclass<a class="headerlink" href="#features-from-the-superclass" title="Permalink to this headline">¶</a></h2>
 <p>Three GUI convenience elements are provided from the superclass
-<a class="reference internal" href="importdialog.html#nexpy.gui.importdialog.BaseImportDialog" title="nexpy.gui.importdialog.BaseImportDialog"><code class="xref py py-class docutils literal"><span class="pre">nexpy.gui.importdialog.BaseImportDialog</span></code></a>:</p>
+<a class="reference internal" href="importdialog.html#nexpy.gui.importdialog.BaseImportDialog" title="nexpy.gui.importdialog.BaseImportDialog"><code class="xref py py-class docutils literal notranslate"><span class="pre">nexpy.gui.importdialog.BaseImportDialog</span></code></a>:</p>
 <p><em>ImportDialog.filebox</em>:
 Contains a “Choose File” button and a text box. Both can be
 used to set the path to the imported file. This can be
@@ -228,12 +217,12 @@ This should be placed at the bottom of all import dialogs.</p>
         <li class="right" >
           <a href="treeapi.html" title="NeXus Tree API Modules"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.10.12 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.12.0 documentation</a> &#187;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2013-2015, Ray Osborn.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.6.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.
     </div>
   </body>
 </html>
