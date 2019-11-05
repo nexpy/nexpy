@@ -929,7 +929,7 @@ employs the NumPy array sum() method::
    signal = float64(41)
      @long_name = 'Integral from 0.0 to 6.28318530718 '
 
-NXdata.project(axes, limits):
+* ``NXdata.project(axes, limits)``:
     The project() method projects the data along a specified 1D axis or 2D axes 
     summing over the limits, which are specified as a list of tuples for each 
     dimension. If the axis is not to be limited, then specify the limit as 
@@ -987,4 +987,133 @@ non-NXroot data allows parts of a NeXus tree to be saved for later use, *e.g.*,
 to store an NXsample group that will be added to other files. The saved NeXus 
 object is wrapped in an NXroot group and an NXentry group (with name 'entry'), 
 if necessary, in order to produce a valid NeXus file.
-     
+
+NeXus File Operations
+=====================
+Changes to a NeXus tree that has been loaded from disk or saved to a file are 
+automatically updated in the HDF5 file, assuming that it is opened with 
+read/write permissions. This means that the tree is always an accurate 
+representation of the current state of the NeXus file, unless it has been 
+modified by an external process, in which case, the file should be reloaded. 
+
+.. note:: In the :doc:`pythongui`, the lock icon color for an externally 
+          modified file changes to red.
+
+When a file is loaded, using the ``nxload`` function, the ``nxfile`` attribute
+of the root group is an ``NXFile`` object, which is thin wrapper over the 
+underlying `h5py.File <http://docs.h5py.org/en/stable/high/file.html>`_ 
+object::
+
+  >>> root = nxload('chopper.nxs', 'r')
+  >>> root['entry']
+  NXentry('entry')
+  >>> root.nxfile['/entry']
+  <HDF5 group "/entry" (10 members)>
+
+The ``nxload`` function can also be used to create a new file with the mode set 
+to 'w'. Any keywords accepted by 
+`h5py.File <http://docs.h5py.org/en/stable/high/file.html>`_ can be used to 
+customize the new HDF5 file, *e.g.*, to turn on SWMR mode.
+
+.. warning:: There is usually no need to call the ``nxfile`` attribute except
+             to invoke the context manager (see next section). If it is 
+             referenced, the underlying ``h5py.File`` object is left open. It 
+             should be explicitly closed by calling ``root.nxfile.close()``. 
+             The current status of the file can be determined by calling
+             ``root.nxfile.is_open()``.
+
+Multiple operations
+-------------------
+When a change is made to a NeXus file, which is open with read/write access, it 
+is automatically opened, updated, and then closed to ensure that any changes 
+are flushed to the file and other processes can read the file if necessary. 
+When writing or modifying multiple items in the file, it is possible to use a 
+context manager to prevent multiple open/close operations::
+
+  >>> with root.nxfile:
+  >>>     root['entry/sample'] = NXsample()
+  >>>     root['entry/sample/temperature'] = NXfield(40.0, units='K')
+  >>>     root['entry/sample/mass'] = NXfield(5.0, units='g')
+
+The file will be opened at the start of the of the ``with`` clause and 
+closed automatically at the end.
+
+.. note:: This context manager can be nested so it is safe to add a ``with``
+          clause within a function that might, in some implementations, be 
+          embedded in another ``with`` clause. The file is only closed when the
+          outermost context manager is exited.
+
+File Locking
+------------
+The context manager can also be used to lock the NeXus file to prevent other
+processes from accessing the file. According to the `HDF5 documentation 
+<https://support.hdfgroup.org/HDF5/hdf5-quest.html#gconc>`_, concurrent read 
+access is supported if the HDF5 library has been built as thread-safe. This
+appears to be the default with conda installations, for example. However, 
+concurrent read and write access is only allowed when using SWMR mode, which 
+has a number of restrictions. To prevent issues with multiple processes 
+accessing the same file, the ``nexusformat`` contains a simple file-locking 
+mechanism, which is designed to work even when the processes are running on 
+separate nodes and when other file-locking mechanisms might prove unreliable 
+(*e.g.*, on NFS-mounted disks).
+
+.. warning:: Unfortunately, the word 'lock' can cause confusion because it is 
+             commonly used to refer to two different operations. The other one 
+             is to switch a file from read/write to read-only mode, *e.g.*, ::
+
+               >>> root.lock()
+
+             This operation does *not* add a file lock. 
+
+To turn on file-locking, call ``nxsetlock`` with the argument set to the 
+number of seconds before an attempt to acquire a lock times out. A typical
+value is 10s and the current value can be read using ``nxgetlock``. Then, 
+the same context manager described above will also create and remove the 
+lock file at the beginning and end of the ``with`` clause, respectively.
+
+  >>> nxgetlock()
+  0
+  >>> nxsetlock(10)
+  >>> with root.nxfile:
+  >>>     root['entry/sample'] = NXsample()
+  >>>     root['entry/sample/temperature'] = NXfield(40.0, units='K')
+
+The lock file name is the name of the NeXus file with ``.lock`` appended. If a
+stale lock is encountered, it may be cleared by calling ``clear_lock``::
+
+  >>> root.nxfile.is_locked()
+  True
+  >>> root.nxfile.clear_lock()
+  >>> root.nxfile.is_locked()
+  False
+
+.. note:: This lock is advisory. It is only guaranteed to work if the external 
+          process is also using the ``nexusformat`` API.
+
+Configuration Parameters
+========================
+The nexusformat package uses a number of parameters to configure its default
+behavior. These may be read and/or modified using the following functions.
+
+* ``nxgetmemory(), nxsetmemory(value)``:
+    This sets the memory limit (in MB) for loading arrays into memory. If a 
+    field contains data that is larger than this limit, it can only be 
+    accessed as a series of smaller slabs using the standard slicing syntax. 
+    The default is 2000 MB.
+
+* ``nxgetmaxsize(), nxsetmaxsize(value)``:
+    This sets the maximum size of an array before HDF5 chunking and compression
+    is turned on by default. The default is 10000.
+    
+* ``nxgetlock(), nxsetlock(value=10)``:
+    This sets the number of seconds before an attempted file lock acquisition 
+    times out. If the value is 0, file locking is disabled. If ``nxsetlock`` is
+    called without an argument, the default is 10 seconds.
+
+* ``nxgetcompression(), nxsetcompression()``:
+    This sets the default HDF5 compression filter. The default is 'gzip'.
+
+* ``nxgetencoding(), nxsetencoding()``:
+    This sets the default encoding for input strings. This is usually 'utf-8'
+    but the default is set to the system default, defined by 
+    ``sys.getfilesystemencoding()``.
