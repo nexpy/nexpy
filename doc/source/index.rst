@@ -17,16 +17,16 @@ reading and writing NeXus files is provided by the `nexusformat
 <https://github.com/nexpy/nexusformat>`_ package, which utilizes 
 `h5py <http://www.h5py.org/>`_. The Python API is also described here.
 
-.. note:: NeXpy v0.11.0 is now available for `download 
+.. note:: NeXpy v0.12.0 is now available for `download 
           <https://pypi.python.org/pypi/NeXpy/>`_ (`Release Notes 
           <https://github.com/nexpy/nexpy/releases>`_). This is a beta-release 
           so please post any issues that you encounter on the `NeXpy GitHub 
           <https://github.com/nexpy/nexpy/issues>`_. 
 
 .. warning:: On January 1, 2020, Python 2 will no longer be supported. NeXpy 
-             v0.11 and nexusformat v0.5 are the last versions to support Python 
+             v0.12 and nexusformat v0.5 are the last versions to support Python 
              2. There may be some urgent bug fixes in the meantime, but 
-             NeXpy v0.12 and nexusformat v0.6 will require Python 3.
+             NeXpy v0.13 and nexusformat v0.6 will require Python 3.
 
 .. toctree::
    :maxdepth: 2

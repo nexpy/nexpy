@@ -116,8 +116,8 @@ pillow             https://pillow.readthedocs.io/
 ansi2html          https://pypi.python.org/pypi/ansi2html/
 =================  =================================================
 
-.. warning:: Version 0.11.0 is the last version to be compatible with Python 2.
-             There may be urgent bug fixes but from v0.12, Python 3 will be 
+.. warning:: Version 0.12.0 is the last version to be compatible with Python 2.
+             There may be urgent bug fixes but from v0.13, Python 3 will be 
              required.
 
 .. warning:: Some people have reported that NeXpy crashes on launch on some
