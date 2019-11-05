@@ -81,7 +81,11 @@ read/write mode::
 
  >>> a=nxload('chopper.nxs', mode='rw')
 
-The default mode is 'r', *i.e.*, readonly access. 
+The default mode is 'r', *i.e.*, readonly access. The `nxload` function will 
+accept any mode values allowed when opening h5py files, such as 'r+', 'w', 
+'w-', and 'a' (see the 
+`h5py documentation <http://docs.h5py.org/en/stable/high/file.html>`_ for more 
+details), but once open, the mode values are stored as 'r' or 'rw'.
 
 .. warning:: If the file is opened in read/write mode, any changes are made 
              automatically to the file itself. In particular, any deletions of 
@@ -90,10 +94,9 @@ The default mode is 'r', *i.e.*, readonly access.
 
 .. seealso:: :mod:`nexusformat.nexus.tree.NXroot.backup`
 
-
 Creating NeXus Data
 ===================
-It is just as easy to create new NeXus data sets from scratch using Numpy 
+It is just as easy to create new NeXus data sets from scratch using NumPy 
 arrays. The following example shows the creation of a simple function, which is 
 then saved to a file::
  
