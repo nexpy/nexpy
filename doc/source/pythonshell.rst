@@ -15,8 +15,8 @@ separately from NeXpy.
 The Python API can be used within a standard Python or IPython shell:: 
 
  $ python
- Python 3.6.1 |Anaconda custom (x86_64)| (default, May 11 2017, 13:04:09) 
- [GCC 4.2.1 Compatible Apple LLVM 6.0 (clang-600.0.57)] on darwin
+ Python 3.7.2 (default, Dec 29 2018, 00:00:04) 
+ [Clang 4.0.1 (tags/RELEASE_401/final)] :: Anaconda, Inc. on darwin
  Type "help", "copyright", "credits" or "license" for more information.
  >>> from nexusformat.nexus import *
 
@@ -69,13 +69,12 @@ the types and dimensions of the larger data sets are displayed in the tree.
 Data is loaded only when it is needed, for plotting or calculations, either as 
 a complete array, if memory allows, or as a series of slabs (see below).
 
-.. note:: The variable NX_MEMORY defines the maximum size in MB of data that 
-          will be read from a file. If the NXfield is larger than NX_MEMORY, the
-          data will have to be read as a series of slabs. The default value is
-          500. Use `nxsetmemory` to change this value.
+.. note:: The maximum size in MB of data that will be read from a file can
+          be determined by calling ``nxgetmemory()``. If the NXfield is larger 
+          than this value, the data will have to be read as a series of slabs. 
+          The default value is 2000, but it may be increased by calling
+          ``nxsetmemory`` with the new value.
 
-Load Options
-------------
 There is a second optional argument to the load module that defines the access
 mode for the existing data. For example, the following opens the file in 
 read/write mode::
@@ -90,9 +89,10 @@ details), but once open, the mode values are stored as 'r' or 'rw'.
 
 .. warning:: If the file is opened in read/write mode, any changes are made 
              automatically to the file itself. In particular, any deletions of 
-             file objects will be irreversible. Make sure you have a backup
-             if you open a mission-critical file, for example, using the 
-             `backup` function.
+             file objects will be irreversible. If necessary, a backup of the
+             file can be made using the ``backup`` function.
+
+.. seealso:: :mod:`nexusformat.nexus.tree.NXroot.backup`
 
 Creating NeXus Data
 ===================
@@ -143,7 +143,7 @@ additional metadata (or attributes) and methods can be associated with them.
 
 There are three ways to create an NXfield.
 
-# Direct assignment::
+1. Direct assignment::
 
     >>> x = NXfield(np.linspace(0,2*np.pi,101), units='degree')
 
@@ -151,7 +151,7 @@ There are three ways to create an NXfield.
   scalar or string, or a NumPy array. In this method, keyword arguments can be
   used to define NXfield attributes.
 
-# Attribute assignment as the child of a NeXus group::
+2. Attribute assignment as the child of a NeXus group::
 
     >>> a.entry.sample.temperature=40.0
 
@@ -160,9 +160,9 @@ There are three ways to create an NXfield.
     >>> a.entry.sample.temperature
     NXfield(40.0)
 
-# Dictionary assignment to the NeXus group::
+3. Dictionary assignment to the NeXus group::
 
-    >>> a.entry.sample["temperature"]=40.0
+    >>> a['entry/sample/temperature']=40.0
 
   This is equivalent to the second method, but should be used if there is a 
   danger of a name clash with an NXfield method, *e.g.*, if the NXfield is 
@@ -170,7 +170,11 @@ There are three ways to create an NXfield.
   
 .. note:: When using the NeXpy GUI shell (see :doc:`pythongui`), it is possible 
           to use tab completion to check for possible name clashes with NXfield 
-          methods. To avoid name clashes in scripts, use dictionary assignments.
+          methods. Autocompletion can be added as an extension to other IPython 
+          sessions::
+          
+            >>> from nexusformat.nexus.completer import load_ipython_extension
+            >>> load_ipython_extension(get_ipython()) 
 
 The data in an NXfield can be of type integer, float, or character. The type is
 normally inherited automatically from the data type of the Python object, 
@@ -202,13 +206,14 @@ example, a float64 array can be converted to float32 on assignment::
 
 .. warning:: If you wish to store an array of strings containing Unicode
              characters as fixed-length strings, convert them to byte strings
-             first using UTF-8 encoding, *e.g.* (in Python 2.7)::
+             first using UTF-8 encoding, *e.g.*::
              
-               >>> t = [u'a', u'b', u'c', u'd', u'é']
-               >>> a=NXfield(np.array(np.core.defchararray.encode(t, 'utf-8')), 
-                             dtype='S10')
+               >>> text_array = ['a', 'b', 'c', 'd', 'é']
+               >>> a=NXfield([t.encode('utf8') for t in text_array], dtype='S')
                >>> a
-               NXfield(array(['a', 'b', 'c', 'd', '\xc3\xa9'], dtype='|S10'))
+               NXfield(['a', 'b', 'c', 'd', 'é'])
+               >>> a.dtype
+               dtype('S2')
 
 Similarly, the shape and dimension sizes of an integer or float array is 
 inherited from the assigned NumPy array. It is possible to initialize an NXfield
@@ -226,12 +231,12 @@ NeXus attributes
 The NeXus standard allows additional attributes to be attached to NXfields to
 contain metadata ::
 
- >>> a.entry.sample.temperature.units='K'
+ >>> a['entry/sample/temperature'].units='K'
 
 These have a class of NXattr. They can be defined using the 'attrs' dictionary 
 if necessary to avoid name clashes::
 
- >>> a.entry.sample.temperature.attrs['units']='K'
+ >>> a['entry/sample/temperature'].attrs['units']='K'
 
 Other common attributes include the 'signal' and 'axes' attributes used to 
 define the plottable signal and independent axes, respectively, in a NXdata 
@@ -258,12 +263,16 @@ NeXpy uses the same syntax as NumPy for masking and unmasking data.
  >>> z = NXfield([1,2,3,4,5,6], name='z')
  >>> z[3:5] = np.ma.masked
  >>> z
- NXfield([1 2 3 -- -- 6])
+ NXfield(masked_array(data=[1, 2, 3, --, --, 6],
+              mask=[False, False, False,  True,  True, False],
+        fill_value=999999))
  >>> z.mask
- array([False, False, False,  True,  True, False], dtype=bool)
+ array([False, False, False,  True,  True, False])
  >>> z.mask[3] = np.ma.nomask
  >>> z
- NXfield([1 2 3 4 -- 6])
+ NXfield(masked_array(data=[1, 2, 3, 4, --, 6],
+              mask=[False, False, False, False,  True, False],
+        fill_value=999999))
  
 .. warning:: If you perform any operations on a masked array, those operations 
              are not performed on the masked values. It is not advisable
@@ -291,9 +300,9 @@ Masks can also be set using the Projection panel in the :doc:`pythongui`.
 
 Large Arrays
 ^^^^^^^^^^^^
-If the size of an array is too large to be loaded into memory (as defined by 
-NX_MEMORY), the NXfield can be created without any initial values, and then
-filled incrementally as slabs::
+If the size of an array is too large to be loaded into memory (see 
+`Loading NeXus Data`_), the NXfield can be created without any initial values, 
+and then filled incrementally as slabs::
 
  >>> entry.data.z = NXfield(shape=(1000,1000,1000), dtype=np.float32)
  >>> for i in range(1000):
@@ -319,14 +328,22 @@ attributes that specify how the data are stored.
 
     >>> z = NXfield(shape=(1000,1000,1000), dtype=np.float32, chunks=(1,100,100))
 
-  If chunk sizes are not specified, HDF5 will choose default sizes.
+  If chunk sizes are not specified, *e.g.*, with ``chunks=True``, HDF5 will choose    
+  default sizes.
 
 * Maximum array shape::
 
     >>> z = NXfield(shape=(10,1000,1000), dtype=np.float32, maxshape=(1000,1000,1000))
 
   The initial shape is defined by the ``shape`` attribute, but it will be 
-  automatically expanded up to a limit of ``maxshape`` if necessary.
+  automatically expanded up to a limit of ``maxshape`` if necessary using the 
+  NXfield ``resize`` function.
+
+    >>> z.resize((100,1000,1000))
+    >>> z.shape
+    (100, 1000, 1000)
+
+.. seealso:: :mod:`nexusformat.nexus.tree.NXfield.resize`
 
 * Fill value::
 
@@ -341,9 +358,6 @@ been written, whether to a file or in core memory, using the ``compression``,
 
  >>> z = NXfield(shape=(1000,1000,1000), dtype=np.float32)
  >>> z.compression = 'lzf'
-
-.. warning :: Setting the HDF5 attributes on an NXfield that is not stored
-              in a NeXus file requires v0.3.0.
 
 NeXus Groups
 ------------
@@ -374,9 +388,9 @@ or dictionary assignment::
 The NeXus objects in a group (NXfields or NXgroups) can be accessed as  
 dictionary items::
 
- >>> sample["temperature"] = 40.0
+ >>> sample['temperature'] = 40.0
  >>> sample.keys()
- ['temperature']
+ dict_keys(['temperature'])
  
 .. note:: It is also possible to reference objects by their complete paths with
           respect to the root object, *e.g.*, root['/entry/sample/temperature'].
@@ -400,7 +414,7 @@ creating nested groups with minimal typing::
 NXdata Groups
 ^^^^^^^^^^^^^
 NXdata groups contain data ready to be plotted. That means that the group should
-consist of an NXfield containing the data and one or more NXfields containing
+consist of an NXfield containing the signal and one or more NXfields containing
 the axes. NeXus defines a method of associating axes with the appropriate
 dimension, but NeXpy provides a simple constructor that implements this method
 automatically. This was already demonstrated in the example above, reproduced
@@ -427,14 +441,14 @@ NXfield so default names were assigned::
 
 .. note:: The plottable signal and axes are identified by the 'signal'
           and 'axes' attributes of the NXdata group. The 'axes' attribute 
-          defines the axes as a list of NXfield names The NXdata constructor 
+          defines the axes as a list of NXfield names. The NXdata constructor 
           sets these attributes automatically.
 
 .. warning:: NumPy stores arrays by default in C, or row-major, order, *i.e.*, 
              in the array 'signal(axis1,axis2)', axis2 is the fastest to vary. 
              In most image formats, *e.g.*, TIFF files, the x-axis is assumed
              to be the fastest varying axis, so we are adopting the same
-             convention and plotting as 'signal(y,x)'. The :doc:`pythongui` 
+             convention and plotting as ``signal[y,x]``. The :doc:`pythongui` 
              allows the x and y axes to be swapped.
 
 Names can be assigned explicitly when creating the NXfield through the 'name' 
@@ -450,14 +464,14 @@ attribute::
    intensity = float64(101)
    polar_angle = float64(101)
 
-.. note:: In the above example, the x-axis, 'phi', was defined as a tuple in the
+.. note:: In the above example, the x-axis, ``phi``, was defined as a tuple in the
           second positional argument of the NXdata call. It could also have been
           defined as a list. However, in the case of one-dimensional signals, it
           would also have been acceptable just to call NXdata(data, phi), 
           *i.e.*, without embedding the axis in a tuple or list. 
 
-It is also possible to define the plottable signal and/or axes using the 
-'nxsignal' and 'nxaxes' properties, respectively::
+It is also possible to define the plottable signal and axes using the 
+``nxsignal`` and ``nxaxes`` properties, respectively::
 
  >>> phi=np.linspace(0,2*np.pi,101)
  >>> a=NXdata()
@@ -470,13 +484,25 @@ It is also possible to define the plottable signal and/or axes using the
    intensity = float64(101)
    polar_angle = float64(101)
 
+Similarly, signal errors can be added using the ``nxerrors`` property::
+
+ >>> a.nxerrors = np.sqrt(np.abs(np.sin(phi)))
+ >>> print(a.tree)
+ data:NXdata
+   @axes = 'polar_angle'
+   @signal = 'intensity'
+   intensity = float64(101)
+     @uncertainties = 'intensity_errors'
+   intensity_errors = float64(101)
+   polar_angle = float64(101)
+
 
 NeXus Links
 -----------
 NeXus allows groups and fields to be assigned to multiple locations through the
 use of links. These objects have the class NXlink and contain the attribute 
-'target', which identifies the parent object. It is also possible to link to
-fields in another NeXus file (see 'External Links' below).
+``target``, which identifies the parent object. It is also possible to link to
+fields in another NeXus file (see `External Links`_ below).
 
 For example, the polar angle and time-of-flight arrays may logically be stored 
 with the detector information in a NXdetector group that is one of the 
@@ -517,7 +543,7 @@ In the Python API, the user who is only interested in accessing the data does
 not need to worry if the object is parent or child. The data values and NeXus 
 attributes of the parent to the NXlink object can be accessed directly through
 the child object. The parent object can be referenced directly, if required,
-using the 'nxlink' attribute::
+using the ``nxlink`` attribute::
 
  >>> entry.data.time_of_flight
  NXlink('/entry/instrument/detector/time_of_flight')
@@ -632,10 +658,10 @@ the image can be plotted using the 'image=True'.
 By convention, the first pixel of an image is in the upper-left corner, rather 
 than the lower-left used in other two-dimensional plots.
 
-..note:: The plot method also works on NXroot and NXentry groups, if they are 
-         able to identify plottable data. If the ``default`` attribute is set, 
-         the default NXentry and/or NXdata groups are used. Otherwise, the first
-         valid NXdata group found in an iterative search is used.
+.. note:: The plot method also works on NXroot and NXentry groups, if they are 
+          able to identify plottable data. If the ``default`` attribute is set, 
+          the default NXentry and/or NXdata groups are used. Otherwise, the 
+          first valid NXdata group found in an iterative search is used.
  
 Additional Plot Methods
 -----------------------
@@ -693,9 +719,9 @@ arrays)::
  >>> x == y
  True
 
-NXfields are technically not a sub-class of the ndarray class, but they are cast
-as NumPy arrays when required by NumPy operations, returning either another 
-NXfield or, in some cases, an ndarray that can easily be converted to an 
+NXfields are technically not a sub-class of the NumPy ``ndarray`` class, but they 
+are cast as NumPy arrays when required by NumPy operations, returning either 
+another NXfield or, in some cases, an array that can easily be converted to an 
 NXfield::
 
  >>> x = NXfield((1.0,2.0,3.0,4.0)) 
@@ -722,10 +748,16 @@ NXfield::
    signal = [ 0.84147098  0.90929743  0.14112001 -0.7568025 ]
    x = [ 1.  2.  3.  4.]
 
+.. note:: If a function will only accept a NumPy array, use the
+          ``nxvalue`` attribute, which returns the stored NumPy array.
+
+            >>> x.nxvalue
+            array([1., 2., 3., 4.])
+
 NXdata
 ^^^^^^
 Similar operations can also be performed on whole NXdata groups. If two NXdata
-groups are to be added, the rank and dimension sizes of the main signal array
+groups are to be added, the rank and dimensions of the main signal array
 must match (although the names could be different)::
 
  >>> y=NXfield(np.sin(x),name='y')
@@ -789,7 +821,7 @@ If data errors are included in the NXdata group (with an additional array named
 
 Some statistical operations can be performed on the NXdata group.
 
-NXdata.sum(axis=None):
+* ``NXdata.sum(axis=None)``:
     Returns the sum of the NXdata signal data. If the axis is not specifed, the
     total is returned. Otherwise, it is summed along the specified axis. The 
     result is a new NXdata group containing a copy of all the metadata contained 
@@ -817,7 +849,7 @@ NXdata.sum(axis=None):
      >>> a.sum(1).nxsignal
      NXfield([  0.   6.  12.])   
 
-NXdata.average(axis=None):
+* ``NXdata.average(axis=None)``:
     Returns the average of the NXdata signal data. This is identical to the sum
     method, but the result is divided by the number of data elements in the 
     summation::
@@ -829,10 +861,9 @@ NXdata.average(axis=None):
      >>> a.average(1).nxsignal
      NXfield([ 0. ,  1.5,  3. ])   
 
-NXdata.moment(order=1):
+* ``NXdata.moment(order=1)``:
     Returns an NXfield containing the first moment of the NXdata group assuming 
-    the signal is one-dimensional. Currently, only the first moment has been 
-    defined::
+    the signal is one-dimensional::
     
      >>> x=np.linspace(0, 10., 11)
      >>> y=np.exp(-(x-3)**2)

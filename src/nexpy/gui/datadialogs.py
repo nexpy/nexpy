@@ -1166,8 +1166,6 @@ class PlotDialog(NXDialog):
             self.default_axes = []
 
         self.kwargs = kwargs
-        if 'marker' not in self.kwargs:
-            self.kwargs['marker'] = 'o'
 
         self.signal_combo =  NXComboBox() 
         for node in self.group.values():
@@ -1195,6 +1193,8 @@ class PlotDialog(NXDialog):
         self.setLayout(self.layout)
 
         self.setWindowTitle("Plot NeXus Data")
+
+
 
     @property
     def signal(self):
@@ -1291,6 +1291,12 @@ class PlotDialog(NXDialog):
 
     def accept(self):
         try:
+            if self.ndim == 1:
+                if 'marker' not in self.kwargs:
+                    self.kwargs['marker'] = 'o'
+            else:
+                self.kwargs.pop('marker', None)
+                self.kwargs.pop('linestyle', None)
             data = NXdata(self.signal, self.get_axes(), 
                           title=self.signal_path)
             data.nxsignal.attrs['signal_path'] = self.signal_path
@@ -2747,6 +2753,7 @@ class AddDialog(NXDialog):
             grid.addWidget(self.combo_box, 0, 1)
             grid.addWidget(name_label, 1, 0)
             grid.addWidget(self.name_box, 1, 1)
+            self.select_combo()
         elif class_name == "NXfield":
             combo_label = QtWidgets.QLabel()
             combo_label.setAlignment(QtCore.Qt.AlignLeft)
@@ -2858,7 +2865,9 @@ class AddDialog(NXDialog):
             if name:
                 self.node[name] = NXgroup(nxclass=nxclass)
             else:
-                self.node.insert(NXgroup(nxclass=nxclass))
+                group = NXgroup(nxclass=nxclass)
+                name = group.nxname
+                self.node.insert(group)
             logging.info("'%s' added to '%s'" 
                          % (self.node[name], self.node.nxpath)) 
         elif name:

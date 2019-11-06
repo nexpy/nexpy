@@ -37,15 +37,15 @@ The illustration shows the main features of the GUI:
     switch between them using the Window menu or keyboard shortcuts (see below).
 
 **3) Shell Pane**
-    This is an iPython shell, with NeXpy already imported (as * so no prefixes 
+    This is an IPython shell, with NeXpy already imported (as * so no prefixes 
     are necessary), along with NumPy (as np) and Pylab (as plt). Any assignments 
     to items in the tree pane are automatically reflected in the tree pane, and 
     new NXroot or NXentry objects can be added to the tree from the 
-    iPython shell. NeXus data plots commands from the shell will appear in the 
+    IPython shell. NeXus data plots commands from the shell will appear in the 
     plot pane, and Matplotlib commands can be used to modify the plot 
     characteristics. The shell has enhanced features such as autocompletion of
-    NeXus attributes and tooltips containing module docstrings when you open the 
-    module parentheses.
+    NeXus dictionaries and attributes and tooltips containing module docstrings 
+    when you open the module parentheses.
     
 **4) Axis Panels**
     The tabbed panels below the plot can be used to modify the plots. The 
@@ -100,23 +100,21 @@ File Menu
     reopen files already loaded into the tree.
 
 **Save as...**
-    Saves the selected tree item to a new NeXus file. If the selected item is
-    not a NXroot group, it will be wrapped in one to form a valid NeXus file.
-
-    .. warning:: Saving a NeXus object embedded within a tree is not equivalent 
-                 to saving the whole tree. Only the object and its children will 
-                 be saved to a new file. 
+    Saves the selected tree item to a new NeXus file. 
 
 **Duplicate...**
-    Makes a copy of the NeXus file or tree, leaving the original untouched. 
-    If any field in the original tree is too large to be stored in memory, its
-    data is stored in an HDF5 memory-mapped file until the tree is saved to a 
-    file. 
+    Makes a copy of the NeXus tree, leaving the original untouched. If any 
+    field in the original tree is too large to be stored in memory, its data 
+    is stored in an HDF5 core memory file until the tree is saved to a file. 
 
 **Reload**
     Reloads the NeXus file. This is useful if another application has modified
-    the data since originally opening the file. Such modifications are not 
-    detected by NeXpy.
+    the data since originally opening the file.
+
+    .. note:: If an external process has modified the currently loaded file, 
+              the lock icon color is changed to red. If the file was 
+              previously unlocked, its mode is automatically changed to 
+              read-only when the modification is detected.
 
 **Remove**
     Removes the root item from the tree.
@@ -136,6 +134,9 @@ File Menu
  
     .. seealso:: `Importing NeXus Data`_
 
+**Export**
+    Exports one-dimensional data to a multi-column ASCII file.
+
 **Lock File**
     Changes the file access mode to read-only. This will prevent further changes
     to the tree using either the GUI or the shell. Locked files are displayed
@@ -154,7 +155,7 @@ File Menu
 **Backup File**
     Creates a backup of the selected file. The backup is stored in the user's
     home directory in ``~/.nexpy/backups`` and may be restored if changes to
-    the currently open file need to be reversed. Backups are saved for three
+    the currently open file need to be reversed. Backups are saved for five
     days before being automatically deleted.
 
 **Restore File...**
@@ -205,7 +206,7 @@ File Menu
     in ``~/.nexpy/backups``). This allows the old version to be restored.
 
 **Print Shell**
-    Prints the contents of the iPython shell.
+    Prints the contents of the IPython shell.
 
 Data Menu
 ^^^^^^^^^
@@ -233,20 +234,20 @@ Data Menu
     Provides a tabular view of the selected item, whether it is a group or a 
     field. All the metadata associated with the item, including any attributes,
     are displayed. For multidimensional data, a 10 x 10 slab of values is
-    displayed, with spin boxes to select the slab coordinates.
+    displayed, with spin boxes to select the slab offsets.
 
 **Add Data**
     Adds data to the selected tree item. If the selected item is a group, the
     added data can be a group or field. If the selected item is a field, the 
     added data must be a field attribute. 
     
-    When adding a field, the Add Data dialog allows the name, value and data 
+    When adding a field, the 'Add Data' dialog allows the name, value and data 
     type to be specified. A dropdown menu can be used to enter field names 
     that are defined by the NeXus standard, but the user is free to enter 
     alternative names. The value field can be any valid Python expression, 
     including NumPy functions such as np.linspace().
     
-    When adding a group, the Add Data dialog allows the name and class of the
+    When adding a group, the 'Add Data' dialog allows the name and class of the
     group to be specified. A dropdown menu display can be used to enter one of 
     the defined NeXus classes. Those above the dashed line are valid in the 
     context of the selected tree item, but any of the other classes can also be 
@@ -268,9 +269,6 @@ Data Menu
     be changed. Dropdown menus provide a list of valid group classes or field
     names defined by the NeXus standard.
 
-    .. warning:: This action will be automatically saved to the NeXus file if
-                 it has been opened as read/write. 
-
 **Copy Data**
     Copies the selected tree item to a copy buffer. 
 
@@ -286,8 +284,8 @@ Data Menu
     node and the selected group have different roots, the copied node is added
     to the group as an external link.
     
-    .. note:: External links can only be modified through the parent file, which
-              can be opened using the 'Show Link' menu item (see below).
+    .. note:: External links can only be modified through the parent file, 
+              which can be opened using the 'Show Link' menu item (see below).
 
     .. warning:: The file containing the external link is referenced using the 
                  file path to the parent file. If the files are moved without 
@@ -301,7 +299,7 @@ Data Menu
 
     .. warning:: If the NeXus tree was loaded from a file with read/write 
                  access, the data will be immediately deleted from the file. 
-                 This action is irreversible, so ensure you have a backup.
+                 This action is irreversible.
 
 **Show Link**
     Selects the field or group to which the selected item is linked, if it is
@@ -361,11 +359,11 @@ Window Menu
               be rendered in the terminal using ``less -r``.
 
 **Show Projection Panel**
-    Shows the projection panel for the currently active plotting window. This is
-    equivalent to clicking on 'Show Panel' in the projection tab (see below). 
-    All the open projection panels are displayed as tabs in a single window, with the
-    option of copying projection values from one tab to the other if the plots are
-    compatible.
+    Shows the projection panel for the currently active plotting window. This 
+    is equivalent to clicking on 'Show Panel' in the projection tab (see below). 
+    All the open projection panels are displayed as tabs in a single window, 
+    with the option of copying projection values from one tab to the other if 
+    the plots are compatible.
 
 **Show Script Editor**
     Shows the script editor. If multiple scripts are open, they are displayed as
@@ -373,19 +371,21 @@ Window Menu
     script.
 
 **Change Plot Limits**
-    This opens a panel for the currently active plotting window that allows the axes and 
-    axis limits of the currently active plot to be changed, as well as the plot size on 
-    the screen. All the panels are displayed as tabs in a single window, with the option 
-    of copying values from one tab to the other if the plots are compatible.
+    This opens a panel for the currently active plotting window that allows the 
+    axes and axis limits of the currently active plot to be changed, as well as 
+    the plot size on the screen. All the panels are displayed as tabs in a 
+    single window, with the option of copying values from one tab to the other 
+    if the plots are compatible.
 
-    .. note:: When the settings in one tab are copied to another and the Apply button is
-              clicked, other settins, such as the aspect ratio, skew angle, color map, 
-              and log settings are also copied. This is therefore a very quick way of 
-              making direct comparisons between different data sets. 
+    .. note:: When the settings in one tab are copied to another and the Apply 
+              button is clicked, other settings, such as the aspect ratio, 
+              skew angle, color map, and log settings are also copied. This is 
+              therefore a very quick way of making direct comparisons between 
+              different data sets. 
 
-    .. note:: The plotting pane in the main window cannot be resized this way, because of
-              the constraints of the other panes. Other plotting windows will copy the 
-              main window plotting size if requested.
+    .. note:: The plotting pane in the main window cannot be resized this way, 
+              because of the constraints of the other panes. Other plotting 
+              windows will copy the main window plotting size if requested.
 
 **Reset Plot Limits**
     This restores the axis and signal limits to the original values.
@@ -395,13 +395,13 @@ Window Menu
               axis limits but does not reset the signal limits.
 
 **Customize Plot**
-    This opens a panel for the currently active plotting window that allows aspects of 
-    the plot, such as titles, axis labels, aspect ratios, skew angles, marker and line 
-    colors, and legends to be customized. All the open panels are displayed as tabs in a 
-    single window.
+    This opens a panel for the currently active plotting window that allows 
+    aspects of the plot, such as titles, axis labels, aspect ratios, skew 
+    angles, marker and line colors, and legends to be customized. All the open 
+    panels are displayed as tabs in a single window.
 
-    .. note:: This is equivalent to clicking the Edit button in the Options Tab (see 
-              below).
+    .. note:: This is equivalent to clicking the Edit button in the Options Tab 
+              (see below).
 
 **New Plot Window**
     Opens a new NeXpy plotting window, consisting of a Matplotlib plot pane and 
@@ -410,6 +410,11 @@ Window Menu
     open windows are listed in the Window menu, along with their labels ('Main',
     'Figure 1', 'Figure 2', *etc*.). These are used to switch the focus for
     subsequent plots.
+
+    .. note:: If Matplotlib windows are opened from the IPython shell using
+              the standard Pyplot commands, *e.g.*, ``plt.figure()``, they are
+              numbered independently and will not be added to the NeXpy menu.
+              They can be modified using the standard Pyplot commands.
 
 **Equalize Plot Sizes**
     All plot windows are resized to match the main window.
@@ -540,6 +545,10 @@ and sliders.
     
     .. warning:: Flipping the axis directions does not flip the direction of the 
                  sliders.
+
+    The y-tab also contains an option to smoothly interpolate one-dimensional
+    data. This uses the `SciPy interp1d function 
+    <https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.interp1d.html>`_.
 
 **Z Tab**
 
@@ -779,7 +788,8 @@ and sliders.
   full path to each plotted field, but setting the keyword argument, 
   ``nameonly=True`` will restrict the label to the field name.
   
-  .. note:: Legends are supported in the Customize Dialog since v0.10.9.
+  .. note:: Legend labels, positions, and other attributes can be modified in 
+            the Customize Dialog.
 
 * Convert to Symmetric Log Plot:
 
@@ -802,9 +812,9 @@ and sliders.
 
 **Keyboard Shortcuts**
 
-    With v0.10.6, a number of keyboard shortcuts are defined when focus is on
-    the plotting window. These can be used to switch between tabs or set
-    various plotting options.
+    A number of keyboard shortcuts are defined when focus is on the plotting 
+    window. These can be used to switch between tabs or set various plotting 
+    options.
 
     .. note:: Keyboard focus can be switched to a particular plotting window by 
               (a) clicking within the window, (b) using the Window menu, or (c) 
@@ -826,6 +836,41 @@ and sliders.
     * **S** - save plot to a graphics file.
     * **A** - add plotted data to the tree pane.
     * **O** - open dialog to customize plots. 
+
+Configuring NeXpy
+-----------------
+When NeXpy if first launched, a private directory is created in the home
+directory, ~/.nexpy/. This is used to store log files, backups, plugins,
+and scripts. A configuration file, ~/.nexpy/config.py, is created to contain
+Python commands that should be run at the start of every session. 
+
+By default, the configuration file contains a number of imports, including all 
+the functions and classes defined by the nexusformat package. ::
+
+ import nexpy
+ import nexusformat.nexus as nx
+ from nexusformat.nexus import *
+
+This file could also be used to change the default parameters used by the 
+nexusformat package to define, *e.g.*, memory limits, maximum loaded array
+sizes, file locking, default HDF5 compression, and default string encodings.
+See :doc:`pythonshell` for more details. 
+
+For convenience, the configuration file also imports a number of other modules 
+that are commonly used::
+
+ import sys
+ import os
+ import h5py as h5
+ import numpy as np
+ import numpy.ma as ma
+ import scipy as sp
+ import matplotlib as mpl
+ from matplotlib import pylab, mlab, pyplot
+ plt = pyplot
+
+If you require a different set of imports or prefer alternative abbreviations,
+edit the configuration file in ~/.nexpy/config.py.
 
 Fitting NeXus Data
 ------------------
@@ -1156,33 +1201,4 @@ Here is the code::
           except NeXusError as error:
               report_error("Getting Incident Energy", error)
           super(EnergyDialog, self).accept()
-
- 
-Configuring NeXpy
------------------
-The NeXpy shell imports the following NeXus classes::
-
- import nexpy
- import nexusformat.nexus as nx
- from nexusformat.nexus import NXFile, NXgroup, NXfield, NXattr, NXlink
-
-along with all the currently defined NeXus group classes (NXentry, NXdata, 
-NXsample, *etc*). 
-
-For convenience, the NeXpy shell also imports a number of other modules that are 
-commonly used::
-
- import sys
- import os
- import h5py as h5
- import numpy as np
- import numpy.ma as ma
- import scipy as sp
- import matplotlib as mpl
- from matplotlib import pylab, mlab, pyplot
- plt = pyplot
-
-If you require a different set of imports or prefer alternative abbreviations,
-you can replace the default startup script with your own by placing the 
-required code in ~/.nexpy/config.py.
 
