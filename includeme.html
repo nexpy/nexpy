@@ -87,19 +87,24 @@
 <h1>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h1>
 <p>Released versions of NeXpy are available on <a class="reference external" href="https://pypi.python.org/pypi/NeXpy/">PyPI</a> and as a <a class="reference external" href="https://anaconda.org/nexpy">Conda installation</a>.</p>
 <p>If you have the <a class="reference external" href="https://pypi.python.org/pypi/setuptools">Python Setup Tools</a>
-installed, then you can install using either:</p>
+installed, then you can either install using ‘pip’:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ pip install nexpy
 </pre></div>
 </div>
-<p>If you have an Anaconda installation, use:</p>
+<p>or, if you have an Anaconda installation, NeXpy is now available on the
+conda-forge channel:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ conda install -c conda-forge nexpy
 </pre></div>
 </div>
-<p>If you have trouble with the pip installations, you can install
-the package from the source code either by downloading one of the
-<a class="reference external" href="https://github.com/nexpy/nexpy/releases">Github releases</a> or by cloning the
-latest development version in the <a class="reference external" href="https://github.com/nexpy/nexpy">NeXpy Git
-repository</a>:</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>You can add conda-forge to your default channels so that it is
+automatically searched when doing an install. Just type
+<code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">config</span> <span class="pre">--add</span> <span class="pre">channels</span> <span class="pre">conda-forge</span></code>.</p>
+</div>
+<p>You can install the package from the source code either by downloading one of
+the <a class="reference external" href="https://github.com/nexpy/nexpy/releases">Github releases</a> or by cloning
+the latest development version in the <a class="reference external" href="https://github.com/nexpy/nexpy">NeXpy Git repository</a>:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ git clone https://github.com/nexpy/nexpy.git
 </pre></div>
 </div>
@@ -113,8 +118,7 @@ repository</a>:</p>
 </div>
 <p>The Python API for reading and writing NeXus files is in a separate package,
 <a class="reference external" href="https://github.com/nexpy/nexusformat">nexusformat</a>, which is also available
-on <a class="reference external" href="https://pypi.python.org/pypi/nexusformat/">PyPI</a> and
-will be automatically installed as a NeXpy dependency if you use pip.</p>
+on <a class="reference external" href="https://pypi.python.org/pypi/nexusformat/">PyPI</a> and conda-forge.</p>
 <p>If the NeXpy GUI is not required, the package may be used in a regular Python
 shell. It may be installed using:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ pip install nexusformat
