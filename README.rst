@@ -5,19 +5,22 @@ Released versions of NeXpy are available on `PyPI
 <https://anaconda.org/nexpy>`_. 
 
 If you have the `Python Setup Tools <https://pypi.python.org/pypi/setuptools>`_ 
-installed, then you can install using either::
+installed, then you can either install using 'pip'::
 
     $ pip install nexpy
 
-If you have an Anaconda installation, use::
+or, if you have an Anaconda installation, NeXpy is now available on the 
+conda-forge channel::
 
     $ conda install -c conda-forge nexpy
 
-If you have trouble with the pip installations, you can install
-the package from the source code either by downloading one of the 
-`Github releases <https://github.com/nexpy/nexpy/releases>`_ or by cloning the
-latest development version in the `NeXpy Git 
-repository <https://github.com/nexpy/nexpy>`_::
+.. note:: You can add conda-forge to your default channels so that it is 
+          automatically searched when doing an install. Just type 
+          ``conda config --add channels conda-forge``. 
+
+You can install the package from the source code either by downloading one of 
+the `Github releases <https://github.com/nexpy/nexpy/releases>`_ or by cloning 
+the latest development version in the `NeXpy Git repository <https://github.com/nexpy/nexpy>`_::
 
     $ git clone https://github.com/nexpy/nexpy.git
 
@@ -31,8 +34,7 @@ To install in an alternate location::
 
 The Python API for reading and writing NeXus files is in a separate package, 
 `nexusformat <https://github.com/nexpy/nexusformat>`_, which is also available 
-on `PyPI <https://pypi.python.org/pypi/nexusformat/>`_ and 
-will be automatically installed as a NeXpy dependency if you use pip. 
+on `PyPI <https://pypi.python.org/pypi/nexusformat/>`_ and conda-forge. 
 
 If the NeXpy GUI is not required, the package may be used in a regular Python
 shell. It may be installed using:: 

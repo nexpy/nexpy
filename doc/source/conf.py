@@ -166,7 +166,7 @@ html_static_path = ['_static']
 #html_file_suffix = None
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = nexpy.__package_name__ + u'doc'
+htmlhelp_basename = nexpy.__package_name__+'doc'
 
 
 # -- Options for LaTeX output --------------------------------------------------
@@ -187,7 +187,7 @@ latex_elements = {
 latex_documents = [
   ('index', 
    nexpy.__package_name__+'.tex', 
-   nexpy.__package_name__+u' Documentation',
+   nexpy.__package_name__+' Documentation',
    nexpy.__documentation_author__, 
    'manual'),
 ]
@@ -220,7 +220,7 @@ latex_documents = [
 man_pages = [
     ('index', 
      nexpy.__package_name__.lower(), 
-     nexpy.__package_name__+u' Documentation',
+     nexpy.__package_name__+' Documentation',
      [nexpy.__documentation_author__], 1)
 ]
 
@@ -236,7 +236,7 @@ man_pages = [
 texinfo_documents = [
   ('index', 
    nexpy.__package_name__, 
-   nexpy.__package_name__+u' Documentation',
+   nexpy.__package_name__+' Documentation',
    nexpy.__documentation_author__, 
    nexpy.__package_name__, 
    nexpy.__description__,
