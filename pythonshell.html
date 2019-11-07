@@ -1287,12 +1287,11 @@ outermost context manager is exited.</p>
 processes from accessing the file. According to the <a class="reference external" href="https://support.hdfgroup.org/HDF5/hdf5-quest.html#gconc">HDF5 documentation</a>, concurrent read
 access is supported if the HDF5 library has been built as thread-safe. This
 appears to be the default with conda installations, for example. However,
-concurrent read and write access is only allowed when using SWMR mode, which
-has a number of restrictions. To prevent issues with multiple processes
-accessing the same file, the <code class="docutils literal notranslate"><span class="pre">nexusformat</span></code> contains a simple file-locking
-mechanism, which is designed to work even when the processes are running on
-separate nodes and when other file-locking mechanisms might prove unreliable
-(<em>e.g.</em>, on NFS-mounted disks).</p>
+concurrent read and write access is only allowed when using SWMR mode. To
+prevent issues with multiple processes accessing the same file, <em>nexusformat</em>
+contains a simple file-locking mechanism, which is designed to work even when
+the processes are running on separate nodes and when other file-locking
+mechanisms might prove unreliable (<em>e.g.</em>, on NFS-mounted disks).</p>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
 <p>Unfortunately, the word ‘lock’ can cause confusion because it is
@@ -1328,7 +1327,7 @@ stale lock is encountered, it may be cleared by calling <code class="docutils li
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>This lock is advisory. It is only guaranteed to work if the external
-process is also using the <code class="docutils literal notranslate"><span class="pre">nexusformat</span></code> API.</p>
+process is also using <em>nexusformat</em>.</p>
 </div>
 </div>
 </div>
@@ -1400,7 +1399,7 @@ but the default is set to the system default, defined by
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2013-2015, Ray Osborn.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.1.
     </div>
   </body>
 </html>

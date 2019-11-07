@@ -136,7 +136,7 @@
 <code class="sig-name descname">get_filesindirectory</code><span class="sig-paren">(</span><em class="sig-param">prefix=''</em>, <em class="sig-param">extension='.*'</em>, <em class="sig-param">directory=None</em><span class="sig-paren">)</span><a class="headerlink" href="#nexpy.gui.datadialogs.NXWidget.get_filesindirectory" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a list of files in the selected directory.</p>
 <p>The files are sorted using a natural sort algorithm that preserves the
-numeric order when a file name consists of text and index so that, e.g., 
+numeric order when a file name consists of text and index so that, e.g.,
 ‘data2.tif’ comes before ‘data10.tif’.</p>
 </dd></dl>
 
@@ -185,7 +185,7 @@ update(self, int, int, int, int)</p>
 <dt id="nexpy.gui.datadialogs.NXTab">
 <em class="property">class </em><code class="sig-prename descclassname">nexpy.gui.datadialogs.</code><code class="sig-name descname">NXTab</code><span class="sig-paren">(</span><em class="sig-param">parent=None</em><span class="sig-paren">)</span><a class="headerlink" href="#nexpy.gui.datadialogs.NXTab" title="Permalink to this definition">¶</a></dt>
 <dd><p>Subclass of NXWidget for use as the main widget in a tab.</p>
-<p>This adds a stretch to the bottom of the QVBoxLayout to improve the layout 
+<p>This adds a stretch to the bottom of the QVBoxLayout to improve the layout
 of differently sized tabs.</p>
 </dd></dl>
 
@@ -271,6 +271,7 @@ must be of class GridParameter.</p>
 <dt id="nexpy.gui.datadialogs.GridParameters.add">
 <code class="sig-name descname">add</code><span class="sig-paren">(</span><em class="sig-param">name</em>, <em class="sig-param">value=None</em>, <em class="sig-param">label=None</em>, <em class="sig-param">vary=None</em>, <em class="sig-param">slot=None</em>, <em class="sig-param">color=False</em>, <em class="sig-param">validate=None</em><span class="sig-paren">)</span><a class="headerlink" href="#nexpy.gui.datadialogs.GridParameters.add" title="Permalink to this definition">¶</a></dt>
 <dd><p>Convenience function for adding a Parameter:</p>
+<p class="rubric">Example</p>
 <p>p = GridParameters()
 p.add(name, value=XX, …)</p>
 <p>is equivalent to:
@@ -287,10 +288,12 @@ p[name] = GridParameter(name=name, value=XX, ….</p>
 <dt id="nexpy.gui.datadialogs.GridParameter.set">
 <code class="sig-name descname">set</code><span class="sig-paren">(</span><em class="sig-param">value=None</em>, <em class="sig-param">vary=None</em><span class="sig-paren">)</span><a class="headerlink" href="#nexpy.gui.datadialogs.GridParameter.set" title="Permalink to this definition">¶</a></dt>
 <dd><p>Set or update Parameter attributes.</p>
-<dl class="simple">
-<dt>value<span class="classifier">float, optional</span></dt><dd><p>Numerical Parameter value.</p>
-</dd>
-<dt>vary<span class="classifier">bool, optional</span></dt><dd><p>Whether the Parameter is fixed during a fit.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>value</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a><em>, </em><em>optional</em>) – Numerical Parameter value.</p></li>
+<li><p><strong>vary</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a><em>, </em><em>optional</em>) – Whether the Parameter is fixed during a fit.</p></li>
+</ul>
 </dd>
 </dl>
 </dd></dl>
@@ -666,7 +669,7 @@ Must define self.import_file as file name</p>
 <code class="sig-name descname">get_filesindirectory</code><span class="sig-paren">(</span><em class="sig-param">prefix=''</em>, <em class="sig-param">extension='.*'</em>, <em class="sig-param">directory=None</em><span class="sig-paren">)</span></dt>
 <dd><p>Returns a list of files in the selected directory.</p>
 <p>The files are sorted using a natural sort algorithm that preserves the
-numeric order when a file name consists of text and index so that, e.g., 
+numeric order when a file name consists of text and index so that, e.g.,
 ‘data2.tif’ comes before ‘data10.tif’.</p>
 </dd></dl>
 
@@ -715,7 +718,7 @@ update(self, int, int, int, int)</p>
 <dt>
 <em class="property">class </em><code class="sig-prename descclassname">nexpy.gui.datadialogs.</code><code class="sig-name descname">NXTab</code><span class="sig-paren">(</span><em class="sig-param">parent=None</em><span class="sig-paren">)</span></dt>
 <dd><p>Subclass of NXWidget for use as the main widget in a tab.</p>
-<p>This adds a stretch to the bottom of the QVBoxLayout to improve the layout 
+<p>This adds a stretch to the bottom of the QVBoxLayout to improve the layout
 of differently sized tabs.</p>
 </dd></dl>
 
@@ -801,6 +804,7 @@ must be of class GridParameter.</p>
 <dt>
 <code class="sig-name descname">add</code><span class="sig-paren">(</span><em class="sig-param">name</em>, <em class="sig-param">value=None</em>, <em class="sig-param">label=None</em>, <em class="sig-param">vary=None</em>, <em class="sig-param">slot=None</em>, <em class="sig-param">color=False</em>, <em class="sig-param">validate=None</em><span class="sig-paren">)</span></dt>
 <dd><p>Convenience function for adding a Parameter:</p>
+<p class="rubric">Example</p>
 <p>p = GridParameters()
 p.add(name, value=XX, …)</p>
 <p>is equivalent to:
@@ -817,10 +821,12 @@ p[name] = GridParameter(name=name, value=XX, ….</p>
 <dt>
 <code class="sig-name descname">set</code><span class="sig-paren">(</span><em class="sig-param">value=None</em>, <em class="sig-param">vary=None</em><span class="sig-paren">)</span></dt>
 <dd><p>Set or update Parameter attributes.</p>
-<dl class="simple">
-<dt>value<span class="classifier">float, optional</span></dt><dd><p>Numerical Parameter value.</p>
-</dd>
-<dt>vary<span class="classifier">bool, optional</span></dt><dd><p>Whether the Parameter is fixed during a fit.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>value</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a><em>, </em><em>optional</em>) – Numerical Parameter value.</p></li>
+<li><p><strong>vary</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a><em>, </em><em>optional</em>) – Whether the Parameter is fixed during a fit.</p></li>
+</ul>
 </dd>
 </dl>
 </dd></dl>
@@ -1164,7 +1170,7 @@ Must define self.import_file as file name</p>
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2013-2015, Ray Osborn.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.1.
     </div>
   </body>
 </html>
