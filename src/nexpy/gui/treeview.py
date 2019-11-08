@@ -382,8 +382,11 @@ class NXTreeView(QtWidgets.QTreeView):
                     self.mainwindow.default_action.setEnabled(True)
                 if isinstance(node, NXdata):
                     self.mainwindow.signal_action.setEnabled(True)
-            if isinstance(node, NXdata) and node.plot_rank == 1:
-                self.mainwindow.fit_action.setEnabled(True)
+            try:
+                if isinstance(node, NXdata) and node.plot_rank == 1:
+                    self.mainwindow.fit_action.setEnabled(True)
+            except Exception as error:
+                pass
         try:
             if node.is_plottable():
                 self.mainwindow.plot_data_action.setEnabled(True)

@@ -574,10 +574,10 @@ class NXpatch(object):
         """Function to be overridden by shape sub-class."""
 
     def update(self, x, y):
-        """Function to be overridden by shape sub-class"""
+        """Function to be overridden by shape sub-class."""
 
     def on_press(self, event):
-        'on button press we will see if the mouse is over us and store some data'
+        """Store coordinates on button press if over the object."""
         if not self.is_inside(event):
             self.press = None
             return
@@ -585,7 +585,7 @@ class NXpatch(object):
         self.canvas.draw()
 
     def on_motion(self, event):
-        """on motion we will move the rect if the mouse is over us"""
+        """Move the object if motion activated over the object."""
         if self.press is None: 
             return
         if event.inaxes != self.shape.axes: 
@@ -594,14 +594,14 @@ class NXpatch(object):
         self.canvas.draw()
 
     def on_release(self, event):
-        'on release we reset the press data'
+        """Reset the data when the button is released."""
         if self.press is None:
             return
         self.press = None
         self.canvas.draw()
 
     def disconnect(self):
-        'disconnect all the stored connection ids'
+        """Disconnect all the stored connection ids."""
         self.canvas.mpl_disconnect(self.cidpress)
         self.canvas.mpl_disconnect(self.cidrelease)
         self.canvas.mpl_disconnect(self.cidmotion)
@@ -631,7 +631,8 @@ class NXpatch(object):
 
 class NXcircle(NXpatch):
 
-    def __init__(self, x, y, r, border_tol=0.1, resize=True, plotview=None, **opts):
+    def __init__(self, x, y, r, border_tol=0.1, resize=True, plotview=None, 
+                 **opts):
         x, y, r = float(x), float(y), float(r)
         shape = Ellipse((x,y), r, r, **opts)
         if 'linewidth' not in opts:
@@ -657,8 +658,21 @@ class NXcircle(NXpatch):
         return self.plotview.ax.transData.inverted().transform
 
     @property
+    def center(self):
+        return self.circle.center
+
+    @property
     def radius(self):
         return abs(self.circle.width) / 2.0
+
+    @property
+    def width(self):
+        return abs(self.circle.width)
+
+    @property
+    def height(self):
+        return 2 * (self.inverse_transform((0,self.pixel_radius)) - 
+                    self.inverse_transform((0,0)))[1]
 
     @property
     def pixel_radius(self):
@@ -672,17 +686,9 @@ class NXcircle(NXpatch):
         r = np.sqrt(xt**2 + yt**2)
         xt, yt = self.pixel_shift(xp, yp, x0, y0)
         r0 = np.sqrt(xt**2 + yt**2)
-        return (self.inverse_transform((r,0)) - self.inverse_transform((r0,0)))[0]
+        return (self.inverse_transform((r,0)) - 
+                self.inverse_transform((r0,0)))[0]
     
-    @property
-    def width(self):
-        return abs(self.circle.width)
-
-    @property
-    def height(self):
-        return 2 * (self.inverse_transform((0,self.pixel_radius)) - 
-                    self.inverse_transform((0,0)))[1]
-
     def set_center(self, x, y):
         self.circle.center = x, y
         self.plotview.draw()
@@ -729,6 +735,18 @@ class NXellipse(NXpatch):
         x, y = self.ellipse.center
         w, h = self.ellipse.width, self.ellipse.height
         return 'NXellipse(%g, %g, %g, %g)' % (x, y, w, h)
+
+    @property
+    def center(self):
+        return self.ellipse.center
+
+    @property
+    def width(self):
+        return self.ellipse.width
+
+    @property
+    def height(self):
+        return self.ellipse.height
 
     def set_center(self, x, y):
         self.ellipse.set_center((x, y))
@@ -789,6 +807,18 @@ class NXrectangle(NXpatch):
         x, y = self.rectangle.xy
         w, h = self.rectangle.get_width(), self.rectangle.get_height()
         return 'NXrectangle(%g, %g, %s, %s)' % (x, y, w, h)
+
+    @property
+    def width(self):
+        return self.rectangle.get_width()
+
+    @property
+    def height(self):
+        return self.rectangle.get_height()
+
+    @property
+    def xy(self):
+        return self.rectangle.xy
 
     def set_left(self, left):
         self.rectangle.set_x(left)
@@ -862,6 +892,10 @@ class NXpolygon(NXpatch):
         xy = self.polygon.xy
         v = xy.shape[0] - 1
         return 'NXpolygon(%g, %g, vertices=%s)' % (xy[0][0], xy[0][1], v)
+
+    @property
+    def xy(self):
+        return self.polygon.xy
 
     def initialize(self, xp, yp):
         xy0 = self.polygon.xy
