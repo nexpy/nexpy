@@ -15,7 +15,7 @@ conda-forge channel::
     $ conda install -c conda-forge nexpy
 
 .. note:: You can add conda-forge to your default channels so that it is 
-          automatically searched when doing an install. Just type 
+          automatically searched when installing. Just type 
           ``conda config --add channels conda-forge``. 
 
 You can install the package from the source code either by downloading one of 

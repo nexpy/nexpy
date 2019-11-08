@@ -1081,12 +1081,11 @@ processes from accessing the file. According to the `HDF5 documentation
 <https://support.hdfgroup.org/HDF5/hdf5-quest.html#gconc>`_, concurrent read 
 access is supported if the HDF5 library has been built as thread-safe. This
 appears to be the default with conda installations, for example. However, 
-concurrent read and write access is only allowed when using SWMR mode, which 
-has a number of restrictions. To prevent issues with multiple processes 
-accessing the same file, the ``nexusformat`` contains a simple file-locking 
-mechanism, which is designed to work even when the processes are running on 
-separate nodes and when other file-locking mechanisms might prove unreliable 
-(*e.g.*, on NFS-mounted disks).
+concurrent read and write access is only allowed when using SWMR mode. To 
+prevent issues with multiple processes accessing the same file, *nexusformat*
+contains a simple file-locking mechanism, which is designed to work even when 
+the processes are running on separate nodes and when other file-locking 
+mechanisms might prove unreliable (*e.g.*, on NFS-mounted disks).
 
 .. warning:: Unfortunately, the word 'lock' can cause confusion because it is 
              commonly used to refer to two different operations. The other one 
@@ -1119,7 +1118,7 @@ stale lock is encountered, it may be cleared by calling ``clear_lock``::
   False
 
 .. note:: This lock is advisory. It is only guaranteed to work if the external 
-          process is also using the ``nexusformat`` API.
+          process is also using *nexusformat*.
 
 Configuration Parameters
 ========================
