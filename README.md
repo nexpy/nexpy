@@ -15,16 +15,10 @@ Released versions of NeXpy can be installed using either
     $ pip install nexpy
 ```
 
-or
-
-```
-    $ easy_install nexpy 
-```
-
 If you have an Anaconda installation, use::
 
 ```
-    $ conda install -c nexpy nexpy
+    $ conda install -c conda-forge nexpy
 ```
 
 The source code can be downloaded from the NeXpy Git repository:
@@ -45,7 +39,7 @@ To install in an alternate location:
     $ python setup.py install --prefix=/path/to/installation/dir
 ```
 
-As of v0.6.0, the Python API for reading and writing NeXus files is in a 
+As of NeXpy v0.6.0, the Python API for reading and writing NeXus files is in a 
 separate package, [nexusformat](https://github.com/nexpy/nexusformat), which 
 is also available on [PyPI](https://pypi.python.org/pypi/nexusformat/) and 
 will be automatically installed as a NeXpy dependency if you use pip. 
@@ -57,16 +51,10 @@ shell. It may be installed using::
     $ pip install nexusformat
 ```
 
-or:: 
-
-```
-    $ easy_install nexusformat 
-```
-
 or::
 
 ```
-    $ conda install -c nexpy nexusformat
+    $ conda install -c conda-forge nexusformat
 ```
 
 The package can also be installed from the source code using the setup commands
@@ -90,11 +78,13 @@ This also means that the current version cannot read and write HDF4 or XML
 NeXus files.
 
 If you only intend to utilize the Python API from the command-line, the only 
-other required library is [Numpy](http://numpy.scipy.org).
+other required libraries are [NumPy](http://numpy.org) and, if you want
+autocompletion within an IPython shell, [SciPy](http://scipy.org).
 
 * [nexusformat](https://github.com/nexpy/nexusformat)
 * [h5py](http://www.h5py.org)
-* [numpy](http://numpy.scipy.org/)
+* [numpy](https://numpy.org/)
+* [scipy](https://scipy.org/)
 
 NeXpy GUI
 ---------
@@ -116,6 +106,7 @@ Jupyter QtConsole, which has replaced the old IPython QtConsole.
 * [IPython v4.0.0](http://ipython.org/)
 * [matplotlib v1.4.0](http://matplotlib.sourceforge.net/)
 * [pillow](https://pillow.readthedocs.io/)
+* [ansi2html](https://pypi.org/project/ansi2html/)
 
 Some people have reported that NeXpy crashes on launch on some Linux systems.
 We believe that this may be due to both PyQt4 and PyQt5 being installed,
@@ -135,9 +126,6 @@ Least-squares fitting requires Matt Newville's least-squares fitting package,
 [lmfit-py](http://newville.github.io/lmfit-py). Importers may also require 
 libraries to read the imported files in their native format, e.g., 
 [spec2nexus](http://spec2nexus.readthedocs.org/) for reading SPEC files. 
-
-From v0.4.3, the log window is colorized if 
-[ansi2html](https://pypi.python.org/pypi/ansi2html/) is installed.
 
 From v0.9.1, a new 2D smoothing option is available in the list of 
 interpolations in the signal tab if [astropy](<http://www.astropy.org>)

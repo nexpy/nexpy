@@ -345,6 +345,8 @@ class NXTreeView(QtWidgets.QTreeView):
             self.mainwindow.view_action.setEnabled(True)
             if node.nxfilemode is None or node.nxfilemode == 'rw':
                 self.mainwindow.rename_action.setEnabled(True)
+                if not isinstance(node, NXlink):
+                    self.mainwindow.add_action.setEnabled(True)
         if isinstance(node, NXroot):
             self.mainwindow.savefile_action.setEnabled(True)
             self.mainwindow.remove_action.setEnabled(True)
@@ -370,8 +372,6 @@ class NXTreeView(QtWidgets.QTreeView):
             except Exception as error:
                 pass
             if node.nxfilemode is None or node.nxfilemode == 'rw':
-                if not isinstance(node, NXlink):
-                    self.mainwindow.add_action.setEnabled(True)
                 if isinstance(node, NXgroup):
                     self.mainwindow.initialize_action.setEnabled(True)
                     if self.mainwindow.copied_node is not None:

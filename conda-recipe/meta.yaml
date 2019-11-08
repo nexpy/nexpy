@@ -28,8 +28,8 @@ requirements:
 
   run:
     - python
-    - nexusformat
-    - numpy
+    - nexusformat >=0.5.0
+    - numpy >=1.6.0
     - scipy
     - h5py
     - jupyter
