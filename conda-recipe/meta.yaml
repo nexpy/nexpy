@@ -10,6 +10,7 @@ build:
   entry_points:
     - nexpy = nexpy.nexpygui:main
   number: 0
+  noarch: "python"
 
 requirements:
   build:
@@ -29,7 +30,7 @@ requirements:
   run:
     - python
     - nexusformat >=0.5.0
-    - numpy >=1.6.0
+    - numpy
     - scipy
     - h5py
     - jupyter
@@ -53,6 +54,10 @@ test:
     - nexpy --help
 
 about:
-  home: http://nexpy.github.io/nexpy/
-  license: BSD License
-  summary: 'NeXpy: A Python GUI to analyze NeXus data'
+  home: "http://nexpy.github.io/nexpy/"
+  license: "BSD-3-Clause"
+  license_family: "BSD"
+  license_file: "COPYING"
+  summary: "NeXpy: A Python GUI to analyze NeXus data"
+  doc_url: "https://nexpy.github.io/nexpy/"
+  dev_url: "https://github.com/nexpy/nexpy"
