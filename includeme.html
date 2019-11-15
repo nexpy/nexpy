@@ -233,15 +233,13 @@ Jupyter QtConsole, which has replaced the old IPython QtConsole.</p>
 </table>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
-<dl>
-<dt>On Mac OS there is a serious issue with PyQt5, which started in</dt><dd><p>v5.11 and has still not been fixed in v5.13. Widgets in Dialog
+<p>On Mac OS there is a serious issue with PyQt5, which started in
+v5.11 and has still not been fixed in v5.13. Widgets in Dialog
 boxes are not repainted until clicking outside the window. It is
 necessary to downgrade to v5.10 or lower.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ pip install PyQt5==5.10.1
 </pre></div>
 </div>
-</dd>
-</dl>
 <p>or</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ conda install pyqt=5.9
 </pre></div>
