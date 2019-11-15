@@ -3641,9 +3641,9 @@ autocomplete attributes at the end of a dictionary path. The NeXus objects
 can follow an assignment or be embedded in function arguments.</p>
 <p class="rubric">Examples</p>
 <p>Autocompletion works on each component of the following commands:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">signal</span> <span class="o">=</span> <span class="n">root</span><span class="p">[</span><span class="s1">&#39;entry/data/signal&#39;</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">units</span> <span class="o">=</span> <span class="n">root</span><span class="p">[</span><span class="s1">&#39;entry/data/signal&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">units</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="n">NXdata</span><span class="p">(</span><span class="n">root</span><span class="p">[</span><span class="s1">&#39;entry/data/signal&#39;</span><span class="p">])</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">signal</span> <span class="o">=</span> <span class="n">root</span><span class="p">[</span><span class="n">entry</span><span class="o">/</span><span class="n">data</span><span class="o">/</span><span class="n">signal</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">units</span> <span class="o">=</span> <span class="n">root</span><span class="p">[</span><span class="n">entry</span><span class="o">/</span><span class="n">data</span><span class="o">/</span><span class="n">signal</span><span class="p">]</span><span class="o">.</span><span class="n">units</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="n">NXdata</span><span class="p">(</span><span class="n">root</span><span class="p">[</span><span class="n">entry</span><span class="o">/</span><span class="n">data</span><span class="o">/</span><span class="n">signal</span><span class="p">])</span>
 </pre></div>
 </div>
 <dl class="function">
