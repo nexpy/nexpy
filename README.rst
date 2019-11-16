@@ -95,6 +95,10 @@ while PySide is included in the `Enthought Python Distribution
 <http://www.enthought.com>`_ or within Enthought's `Canopy Application
 <https://www.enthought.com/products/canopy/>`_.
 
+.. warning:: Version 0.12.0 is the last version to be compatible with Python 2.
+             There may be urgent bug fixes but from v0.13, Python 3 will be 
+             required.
+
 The GUI includes an `IPython shell <http://ipython.org/>`_ and a `Matplotlib
 plotting pane <http://matplotlib.sourceforge.net>`_. The IPython shell is
 embedded in the Qt GUI using an implementation based on the newly-released
@@ -110,9 +114,16 @@ pillow             https://pillow.readthedocs.io/
 ansi2html          https://pypi.python.org/pypi/ansi2html/
 =================  =================================================
 
-.. warning:: Version 0.12.0 is the last version to be compatible with Python 2.
-             There may be urgent bug fixes but from v0.13, Python 3 will be 
-             required.
+.. warning:: On Mac OS there is a serious issue with PyQt5, which started in 
+             v5.11 and has still not been fixed in v5.13. Widgets in QDialog 
+             boxes are not repainted until clicking outside the window. To fix
+             this, it is necessary to downgrade to v5.10 or lower. ::
+
+                $ pip install PyQt5==5.10.1
+            
+             or ::
+
+                $ conda install pyqt=5.9
 
 .. warning:: Some people have reported that NeXpy crashes on launch on some
              Linux systems. We believe that this may be due to both PyQt4 and
