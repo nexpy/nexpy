@@ -436,7 +436,7 @@ class NXWidget(QtWidgets.QWidget):
     def other_entry(self):
         return self.tree[self.other_entry_box.currentText()]
 
-    def copy_layout(self, text="Copy"):
+    def copy_layout(self, text="Copy", sync=None):
         self.copywidget = QtWidgets.QWidget()
         copylayout = QtWidgets.QHBoxLayout()
         self.copybox = NXComboBox()
@@ -444,6 +444,8 @@ class NXWidget(QtWidgets.QWidget):
         copylayout.addStretch()
         copylayout.addWidget(self.copybox)
         copylayout.addWidget(self.copy_button)
+        if sync:
+            copylayout.addLayout(self.checkboxes(('sync', sync, False)))
         copylayout.addStretch()
         self.copywidget.setLayout(copylayout)
         self.copywidget.setVisible(False)
@@ -735,19 +737,18 @@ class NXPanel(NXDialog):
         self.close_box = box
         return self.close_box
 
+    def idx(self, label):
+        if self.plotview_sort and label in self.plotviews:
+            pv = self.plotviews[label]
+            numbers = sorted([t.plotview.number for t in self.labels])
+            return bisect.bisect_left(numbers, pv.number)
+        else:
+            return sorted(self.tabs.keys()).index(label)
+
     def activate(self, label):
         if label not in self.tabs:
             tab = self.tab_class(parent=self)
-            if self.plotview_sort:
-                if label in self.plotviews:
-                    tab.plotview = self.plotviews[label]
-                    numbers = sorted([t.plotview.number-1 for t in self.labels])
-                    idx = bisect.bisect_left(numbers, tab.plotview.number)
-                else:
-                    raise NeXusError("Invalid plot label")
-            else:
-                idx=None
-            self.add(label, tab, idx=idx)
+            self.add(label, tab, idx=self.idx(label))
         else:
             self.tab = label
             self.tab.update()
@@ -759,7 +760,8 @@ class NXPanel(NXDialog):
         if self.tabwidget.count() == 0:
             self.setVisible(False)
         else:
-            self.tab.update()
+            for tab in self.tabs:
+                self.tabs[tab].update()
         self.adjustSize()
 
     def copy(self):
@@ -1091,6 +1093,7 @@ class GridParameter(object):
                         self.box.setText(six.text_type(value))
             if self.colorbox:
                 self.colorbox.update_color()
+        self.box.repaint()
 
     @property
     def vary(self):
@@ -1732,7 +1735,7 @@ class ProjectionTab(NXTab):
         self.plot_button = NXPushButton("Plot", self.plot_projection, self)
         grid.addWidget(self.plot_button, row, 2)
         self.overplot_box = NXCheckBox()
-        if 'Projection' not in self.plotviews:
+        if self.ndim > 1 or self.plot is None or self.plot.ndim > 1:
             self.overplot_box.setVisible(False)
         grid.addWidget(self.overplot_box, row, 3,
                        alignment=QtCore.Qt.AlignHCenter)
@@ -1810,6 +1813,11 @@ class ProjectionTab(NXTab):
                 if self.xbox.itemText(idx) != self.yaxis:
                     self.xbox.setCurrentIndex(idx)
                     break
+        if self.plot and self.plot.ndim == 1 and self.yaxis == 'None':
+            self.overplot_box.setVisible(True)
+        else:
+            self.overplot_box.setChecked(False)
+            self.overplot_box.setVisible(False)
 
     def set_limits(self):
         self.block_signals(True)
@@ -1893,8 +1901,8 @@ class ProjectionTab(NXTab):
 
     def plot_projection(self):
         try:
-            if 'Projection' in self.plotviews:
-                projection = self.plotviews['Projection']
+            if self.plot:
+                projection = self.plot
             else:
                 from .plotview import NXPlotView
                 projection = NXPlotView('Projection')
@@ -1909,8 +1917,8 @@ class ProjectionTab(NXTab):
             else:
                 fmt = 'o'
             projection.plot(self.plotview.data.project(axes, limits, 
-                                                       summed=self.summed),
-                            over=over, fmt=fmt)
+                                                      summed=self.summed),
+                           over=over, fmt=fmt)
             if len(axes) == 1:
                 self.overplot_box.setVisible(True)
             else:
@@ -1918,9 +1926,16 @@ class ProjectionTab(NXTab):
                 self.overplot_box.setChecked(False)
             projection.make_active()
             projection.raise_()
-            self.tabs.update()
+            self.panel.update()
         except NeXusError as error:
             report_error("Plotting Projection", error)
+
+    @property
+    def plot(self):
+        if 'Projection' in self.plotviews:
+            return self.plotviews['Projection']
+        else:
+            return None
 
     def mask_data(self):
         try:
@@ -2017,6 +2032,13 @@ class ProjectionTab(NXTab):
             if self.plotview.ndim == tab.plotview.ndim:
                 self.copywidget.setVisible(True)
                 self.copybox.add(self.labels[tab])
+            tab.copybox.model().sort(0)
+        self.copybox.model().sort(0)
+        if self.plot and self.plot.ndim == 1 and self.yaxis == 'None':
+            self.overplot_box.setVisible(True)
+        else:
+            self.overplot_box.setVisible(False)
+            self.overplot_box.setChecked(False)
 
     def copy(self):
         self.block_signals(True)
@@ -2103,8 +2125,8 @@ class LimitTab(NXTab):
         self.lockbox = {}
         for axis in range(self.ndim):
             row += 1
-            self.minbox[axis] = NXSpinBox()
-            self.maxbox[axis] = NXSpinBox()
+            self.minbox[axis] = self.spinbox()
+            self.maxbox[axis] = self.spinbox()
             self.lockbox[axis] = NXCheckBox(slot=self.set_lock)
             grid.addWidget(self.label(self.plotview.axis[axis].name), row, 0)
             grid.addWidget(self.minbox[axis], row, 1)
@@ -2115,6 +2137,8 @@ class LimitTab(NXTab):
         row += 1
         self.minbox['signal'] = NXDoubleSpinBox()
         self.maxbox['signal'] = NXDoubleSpinBox()
+        self.minbox['signal'].setAlignment(QtCore.Qt.AlignRight)
+        self.maxbox['signal'].setAlignment(QtCore.Qt.AlignRight)
         grid.addWidget(self.label(self.plotview.axis['signal'].name), row, 0)
         grid.addWidget(self.minbox['signal'], row, 1)
         grid.addWidget(self.maxbox['signal'], row, 2)        
@@ -2128,15 +2152,10 @@ class LimitTab(NXTab):
 
         self.set_layout(axis_layout, grid, 
                         self.parameters.grid(header=False), 
-                        self.checkboxes(("hide", "Hide Limits", True)),
-                        self.copy_layout("Copy Limits"))
-        if self.ndim == 1:
-            self.checkbox["hide"].setVisible(False)
-        else:
-            self.checkbox["hide"].stateChanged.connect(self.hide_rectangle)                        
+                        self.copy_layout("Copy Limits", 'sync'))
 
-        self._rectangle = None
-
+        self.checkbox['sync'].stateChanged.connect(self.choose_sync)
+ 
         self.initialize()
 
     def __repr__(self):
@@ -2149,17 +2168,16 @@ class LimitTab(NXTab):
             self.minbox[axis].setMaximum(self.minbox[axis].data.size-1)
             self.maxbox[axis].setMaximum(self.maxbox[axis].data.size-1)
             self.minbox[axis].diff = self.maxbox[axis].diff = None
+            self.block_signals(True)
             self.minbox[axis].setValue(self.plotview.axis[axis].lo)
             self.maxbox[axis].setValue(self.plotview.axis[axis].hi)
-            self.minbox[axis].valueChanged[six.text_type].connect(self.set_limits)
-            self.maxbox[axis].valueChanged[six.text_type].connect(self.set_limits)
+            self.block_signals(False)
         vaxis = self.plotview.axis['signal']
         self.minbox['signal'].data = self.maxbox['signal'].data = vaxis.data
         self.minbox['signal'].setRange(vaxis.min, vaxis.max)
         self.maxbox['signal'].setRange(vaxis.min, vaxis.max)
         self.minbox['signal'].setValue(vaxis.lo)
         self.maxbox['signal'].setValue(vaxis.hi)
-        self.draw_rectangle()
         if self.ndim > 1:
             self.copied_properties = {'aspect': self.plotview.aspect,
                                       'cmap': self.plotview.cmap,
@@ -2169,12 +2187,16 @@ class LimitTab(NXTab):
                                       'logy': self.plotview.logy,
                                       'skew': self.plotview.skew}
         self.copywidget.setVisible(False)
-        self.copybox.clear()
         for tab in [self.tabs[label] for label in self.tabs 
                     if self.tabs[label] is not self]:
             if self.plotview.ndim == tab.plotview.ndim:
                 self.copywidget.setVisible(True)
                 self.copybox.add(self.labels[tab])
+                tab.copybox.add(self.name)
+                if not tab.copywidget.isVisible():
+                    tab.copywidget.setVisible(True)
+            tab.copybox.model().sort(0)
+        self.copybox.model().sort(0)
 
     def get_axes(self):
         return self.plotview.xtab.get_axes()
@@ -2214,13 +2236,14 @@ class LimitTab(NXTab):
                 self.xbox.select(self.plotview.xaxis.name)            
 
     def set_limits(self):
+        self.block_signals(True)
         for axis in range(self.ndim):
             if self.lockbox[axis].isChecked():
                 min_value = self.maxbox[axis].value() - self.maxbox[axis].diff
                 self.minbox[axis].setValue(min_value)
             elif self.minbox[axis].value() > self.maxbox[axis].value():
                 self.maxbox[axis].setValue(self.minbox[axis].value())
-        self.draw_rectangle()
+        self.block_signals(False)
 
     def get_limits(self, axis=None):
         def get_indices(minbox, maxbox):
@@ -2245,70 +2268,57 @@ class LimitTab(NXTab):
                 self.minbox[axis].diff = self.maxbox[axis].diff = None
                 self.minbox[axis].setDisabled(False)
 
-    def get_projection(self):
-        x = self.get_axes().index(self.xaxis)
-        if self.yaxis == 'None':
-            axes = [x]
-        else:
-            y = self.get_axes().index(self.yaxis)
-            axes = [y,x]
-        limits = self.get_limits()
-        shape = self.plotview.data.nxsignal.shape
-        if (len(shape)-len(limits) > 0 and 
-            len(shape)-len(limits) == shape.count(1)):
-            axes, limits = fix_projection(shape, axes, limits)
-        if self.plotview.rgb_image:
-            limits.append((None, None))
-        return axes, limits
+    def spinbox(self):
+        spinbox = NXSpinBox()
+        spinbox.setAlignment(QtCore.Qt.AlignRight)
+        spinbox.setFixedWidth(100)
+        spinbox.setKeyboardTracking(False)
+        spinbox.setAccelerated(True)
+        spinbox.valueChanged[six.text_type].connect(self.set_limits)
+        return spinbox
 
-    @property
-    def rectangle(self):
-        if self._rectangle not in self.plotview.ax.patches:
-            self._rectangle = NXpolygon(self.get_rectangle(), closed=True).shape
-            self._rectangle.set_edgecolor(self.plotview._gridcolor)
-            self._rectangle.set_facecolor('none')
-            self._rectangle.set_linestyle('dashed')
-            self._rectangle.set_linewidth(2)
-        return self._rectangle
+    def block_signals(self, block=True):
+        for axis in range(self.ndim):
+            self.minbox[axis].blockSignals(block)
+            self.maxbox[axis].blockSignals(block)
+        self.minbox['signal'].blockSignals(block)
+        self.maxbox['signal'].blockSignals(block)
 
-    def get_rectangle(self):
-        xp = self.plotview.xaxis.dim
-        yp = self.plotview.yaxis.dim
-        x0 = self.minbox[xp].minBoundaryValue(self.minbox[xp].index)
-        x1 = self.maxbox[xp].maxBoundaryValue(self.maxbox[xp].index)
-        y0 = self.minbox[yp].minBoundaryValue(self.minbox[yp].index)
-        y1 = self.maxbox[yp].maxBoundaryValue(self.maxbox[yp].index)
-        xy = [(x0,y0), (x0,y1), (x1,y1), (x1,y0)]
-        if self.plotview.skew is not None:
-            return [self.plotview.transform(_x, _y) for _x,_y in xy]
-        else:
-            return xy
-
-    def draw_rectangle(self):
-        if self.ndim > 1:
-            self.rectangle.set_xy(self.get_rectangle())
-            self.plotview.draw()
-            self.hide_rectangle()
-
-    def rectangle_visible(self):
-        return not self.checkbox["hide"].isChecked()
-
-    def hide_rectangle(self):
-        if self.checkbox["hide"].isChecked():
-            self.rectangle.set_visible(False)
-        else:
-            self.rectangle.set_visible(True)
-        self.plotview.draw()
+    def choose_sync(self):
+        if self.checkbox['sync'].isChecked():
+            tab = self.tabs[self.copybox.selected]
+            tab.checkbox['sync'].setChecked(False)
 
     def update(self):
-        self.copywidget.setVisible(False)
-        self.copybox.clear()
+        if not self.checkbox['sync'].isChecked():
+            self.update_limits()
         for tab in [self.tabs[label] for label in self.tabs 
                     if self.tabs[label] is not self]:
-            if self.plotview.ndim == tab.plotview.ndim:
-                self.copywidget.setVisible(True)
-                self.copybox.add(self.labels[tab])
-        self.draw_rectangle()
+            if (tab.copybox.selected == self.name and
+                tab.checkbox['sync'].isChecked()):
+                tab.copy()
+                tab.apply()
+
+    def update_limits(self):
+        self.set_axes()
+        for axis in range(self.ndim):
+            self.lockbox[axis].setChecked(False)
+            self.minbox[axis].setValue(self.plotview.axis[axis].lo)
+            self.maxbox[axis].setValue(self.plotview.axis[axis].hi)
+        self.minbox['signal'].setValue(self.plotview.axis['signal'].lo)
+        self.maxbox['signal'].setValue(self.plotview.axis['signal'].hi)
+        if self.plotview.label != 'Main':
+            figure_size = self.plotview.figure.get_size_inches()
+            self.parameters['xsize'].value = figure_size[0]
+            self.parameters['ysize'].value = figure_size[1]
+        if self.ndim > 1:
+            self.copied_properties = {'aspect': self.plotview.aspect,
+                                      'cmap': self.plotview.cmap,
+                                      'interpolation': self.plotview.interpolation,
+                                      'logv': self.plotview.logv,
+                                      'logx': self.plotview.logx,
+                                      'logy': self.plotview.logy,
+                                      'skew': self.plotview.skew}
 
     def copy(self):
         tab = self.tabs[self.copybox.selected]
@@ -2333,25 +2343,7 @@ class LimitTab(NXTab):
                 self.parameters['ysize'].value = tab.parameters['ysize'].value
 
     def reset(self):
-        self.set_axes()
-        for axis in range(self.ndim):
-            self.lockbox[axis].setChecked(False)
-            self.minbox[axis].setValue(self.plotview.axis[axis].lo)
-            self.maxbox[axis].setValue(self.plotview.axis[axis].hi)
-        self.minbox['signal'].setValue(self.plotview.axis['signal'].lo)
-        self.maxbox['signal'].setValue(self.plotview.axis['signal'].hi)
-        if self.plotview.label != 'Main':
-            figure_size = self.plotview.figure.get_size_inches()
-            self.parameters['xsize'].value = figure_size[0]
-            self.parameters['ysize'].value = figure_size[1]
-        if self.ndim > 1:
-            self.copied_properties = {'aspect': self.plotview.aspect,
-                                      'cmap': self.plotview.cmap,
-                                      'interpolation': self.plotview.interpolation,
-                                      'logv': self.plotview.logv,
-                                      'logx': self.plotview.logx,
-                                      'logy': self.plotview.logy,
-                                      'skew': self.plotview.skew}
+        self.plotview.otab.home()
         self.update()
 
     def apply(self):
@@ -2402,14 +2394,17 @@ class LimitTab(NXTab):
                 self.plotview.figure.set_size_inches(xsize, ysize)
         except NeXusError as error:
             report_error("Setting plot limits", error)
-            self.reset()
 
     def close(self):
-        try:
-            self._rectangle.remove()
-        except Exception:
-            pass
-        self._rectangle = None
+        for tab in [self.tabs[label] for label in self.tabs 
+                    if self.tabs[label] is not self]:
+            if (tab.copybox.selected == self.name and 
+                tab.checkbox['sync'].isChecked()):
+                tab.checkbox['sync'].setChecked(False)
+            if self.name in tab.copybox:
+                tab.copybox.remove(self.name)
+            if len(tab.copybox.items()) == 0:
+                tab.copywidget.setVisible(False)
         self.plotview.draw()
  
     
