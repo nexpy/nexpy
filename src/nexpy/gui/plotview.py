@@ -3468,6 +3468,12 @@ class NXNavigationToolbar(NavigationToolbar):
                 self.plotview.ptab.open_panel()
                 xmin, xmax = sorted([event.xdata, self.plotview.xdata])
                 ymin, ymax = sorted([event.ydata, self.plotview.ydata])
+                panel = self.plotview.panels['projection']
+                tab = panel.tabs[self.plotview.label]
+                tab.minbox[self.plotview.xaxis.dim].setValue(xmin)
+                tab.maxbox[self.plotview.xaxis.dim].setValue(xmax)
+                tab.minbox[self.plotview.yaxis.dim].setValue(ymin)
+                tab.maxbox[self.plotview.yaxis.dim].setValue(ymax)
         self.release(event)
 
     def release_pan(self, event):
