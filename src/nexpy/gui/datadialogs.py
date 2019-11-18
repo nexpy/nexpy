@@ -2128,14 +2128,7 @@ class LimitTab(NXTab):
 
         self.set_layout(axis_layout, grid, 
                         self.parameters.grid(header=False), 
-                        self.checkboxes(("hide", "Hide Limits", True)),
-                        self.copy_layout("Copy Limits"))
-        if self.ndim == 1:
-            self.checkbox["hide"].setVisible(False)
-        else:
-            self.checkbox["hide"].stateChanged.connect(self.hide_rectangle)                        
-
-        self._rectangle = None
+                        self.copy_layout("Copy Limits", 'sync'))
 
         self.initialize()
 
@@ -2159,7 +2152,6 @@ class LimitTab(NXTab):
         self.maxbox['signal'].setRange(vaxis.min, vaxis.max)
         self.minbox['signal'].setValue(vaxis.lo)
         self.maxbox['signal'].setValue(vaxis.hi)
-        self.draw_rectangle()
         if self.ndim > 1:
             self.copied_properties = {'aspect': self.plotview.aspect,
                                       'cmap': self.plotview.cmap,
@@ -2220,7 +2212,6 @@ class LimitTab(NXTab):
                 self.minbox[axis].setValue(min_value)
             elif self.minbox[axis].value() > self.maxbox[axis].value():
                 self.maxbox[axis].setValue(self.minbox[axis].value())
-        self.draw_rectangle()
 
     def get_limits(self, axis=None):
         def get_indices(minbox, maxbox):
@@ -2245,60 +2236,8 @@ class LimitTab(NXTab):
                 self.minbox[axis].diff = self.maxbox[axis].diff = None
                 self.minbox[axis].setDisabled(False)
 
-    def get_projection(self):
-        x = self.get_axes().index(self.xaxis)
-        if self.yaxis == 'None':
-            axes = [x]
-        else:
-            y = self.get_axes().index(self.yaxis)
-            axes = [y,x]
-        limits = self.get_limits()
-        shape = self.plotview.data.nxsignal.shape
-        if (len(shape)-len(limits) > 0 and 
-            len(shape)-len(limits) == shape.count(1)):
-            axes, limits = fix_projection(shape, axes, limits)
-        if self.plotview.rgb_image:
-            limits.append((None, None))
-        return axes, limits
 
-    @property
-    def rectangle(self):
-        if self._rectangle not in self.plotview.ax.patches:
-            self._rectangle = NXpolygon(self.get_rectangle(), closed=True).shape
-            self._rectangle.set_edgecolor(self.plotview._gridcolor)
-            self._rectangle.set_facecolor('none')
-            self._rectangle.set_linestyle('dashed')
-            self._rectangle.set_linewidth(2)
-        return self._rectangle
 
-    def get_rectangle(self):
-        xp = self.plotview.xaxis.dim
-        yp = self.plotview.yaxis.dim
-        x0 = self.minbox[xp].minBoundaryValue(self.minbox[xp].index)
-        x1 = self.maxbox[xp].maxBoundaryValue(self.maxbox[xp].index)
-        y0 = self.minbox[yp].minBoundaryValue(self.minbox[yp].index)
-        y1 = self.maxbox[yp].maxBoundaryValue(self.maxbox[yp].index)
-        xy = [(x0,y0), (x0,y1), (x1,y1), (x1,y0)]
-        if self.plotview.skew is not None:
-            return [self.plotview.transform(_x, _y) for _x,_y in xy]
-        else:
-            return xy
-
-    def draw_rectangle(self):
-        if self.ndim > 1:
-            self.rectangle.set_xy(self.get_rectangle())
-            self.plotview.draw()
-            self.hide_rectangle()
-
-    def rectangle_visible(self):
-        return not self.checkbox["hide"].isChecked()
-
-    def hide_rectangle(self):
-        if self.checkbox["hide"].isChecked():
-            self.rectangle.set_visible(False)
-        else:
-            self.rectangle.set_visible(True)
-        self.plotview.draw()
 
     def update(self):
         self.copywidget.setVisible(False)
@@ -2308,7 +2247,6 @@ class LimitTab(NXTab):
             if self.plotview.ndim == tab.plotview.ndim:
                 self.copywidget.setVisible(True)
                 self.copybox.add(self.labels[tab])
-        self.draw_rectangle()
 
     def copy(self):
         tab = self.tabs[self.copybox.selected]
@@ -2405,11 +2343,6 @@ class LimitTab(NXTab):
             self.reset()
 
     def close(self):
-        try:
-            self._rectangle.remove()
-        except Exception:
-            pass
-        self._rectangle = None
         self.plotview.draw()
  
     
