@@ -760,7 +760,8 @@ class NXPanel(NXDialog):
         if self.tabwidget.count() == 0:
             self.setVisible(False)
         else:
-            self.tab.update()
+            for tab in self.tabs:
+                self.tabs[tab].update()
         self.adjustSize()
 
     def copy(self):
@@ -1734,7 +1735,7 @@ class ProjectionTab(NXTab):
         self.plot_button = NXPushButton("Plot", self.plot_projection, self)
         grid.addWidget(self.plot_button, row, 2)
         self.overplot_box = NXCheckBox()
-        if 'Projection' not in self.plotviews:
+        if self.ndim > 1 or self.plot is None or self.plot.ndim > 1:
             self.overplot_box.setVisible(False)
         grid.addWidget(self.overplot_box, row, 3,
                        alignment=QtCore.Qt.AlignHCenter)
@@ -1812,6 +1813,11 @@ class ProjectionTab(NXTab):
                 if self.xbox.itemText(idx) != self.yaxis:
                     self.xbox.setCurrentIndex(idx)
                     break
+        if self.plot and self.plot.ndim == 1 and self.yaxis == 'None':
+            self.overplot_box.setVisible(True)
+        else:
+            self.overplot_box.setChecked(False)
+            self.overplot_box.setVisible(False)
 
     def set_limits(self):
         self.block_signals(True)
@@ -1895,8 +1901,8 @@ class ProjectionTab(NXTab):
 
     def plot_projection(self):
         try:
-            if 'Projection' in self.plotviews:
-                projection = self.plotviews['Projection']
+            if self.plot:
+                projection = self.plot
             else:
                 from .plotview import NXPlotView
                 projection = NXPlotView('Projection')
@@ -1911,8 +1917,8 @@ class ProjectionTab(NXTab):
             else:
                 fmt = 'o'
             projection.plot(self.plotview.data.project(axes, limits, 
-                                                       summed=self.summed),
-                            over=over, fmt=fmt)
+                                                      summed=self.summed),
+                           over=over, fmt=fmt)
             if len(axes) == 1:
                 self.overplot_box.setVisible(True)
             else:
@@ -1920,9 +1926,16 @@ class ProjectionTab(NXTab):
                 self.overplot_box.setChecked(False)
             projection.make_active()
             projection.raise_()
-            self.tabs.update()
+            self.panel.update()
         except NeXusError as error:
             report_error("Plotting Projection", error)
+
+    @property
+    def plot(self):
+        if 'Projection' in self.plotviews:
+            return self.plotviews['Projection']
+        else:
+            return None
 
     def mask_data(self):
         try:
@@ -2021,6 +2034,11 @@ class ProjectionTab(NXTab):
                 self.copybox.add(self.labels[tab])
             tab.copybox.model().sort(0)
         self.copybox.model().sort(0)
+        if self.plot and self.plot.ndim == 1 and self.yaxis == 'None':
+            self.overplot_box.setVisible(True)
+        else:
+            self.overplot_box.setVisible(False)
+            self.overplot_box.setChecked(False)
 
     def copy(self):
         self.block_signals(True)
@@ -2071,7 +2089,6 @@ class LimitTab(NXTab):
 
         super(LimitTab, self).__init__(parent=parent)
         if parent:
-            self.panel = parent
             self.tabs = parent.tabs
             self.labels = parent.labels
 
