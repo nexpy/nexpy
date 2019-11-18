@@ -2379,6 +2379,15 @@ class LimitTab(NXTab):
             report_error("Setting plot limits", error)
 
     def close(self):
+        for tab in [self.tabs[label] for label in self.tabs 
+                    if self.tabs[label] is not self]:
+            if (tab.copybox.selected == self.name and 
+                tab.checkbox['sync'].isChecked()):
+                tab.checkbox['sync'].setChecked(False)
+            if self.name in tab.copybox:
+                tab.copybox.remove(self.name)
+            if len(tab.copybox.items()) == 0:
+                tab.copywidget.setVisible(False)
         self.plotview.draw()
  
     

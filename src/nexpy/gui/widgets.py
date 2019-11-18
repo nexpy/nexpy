@@ -156,7 +156,7 @@ class NXComboBox(QtWidgets.QComboBox):
             self.parent().keyPressEvent(event)
 
     def add(self, *items):
-        """Add the arguments to the list of options.
+        """Add items to the list of options.
 
         Parameters
         ----------
@@ -166,6 +166,16 @@ class NXComboBox(QtWidgets.QComboBox):
         for item in items:
             if item not in self:
                 self.addItem(item)
+
+    def remove(self, item):
+        """Remove item from the list of options.
+
+        Parameters
+        ----------
+        item : str
+            Option to be removed from the dropdown menu. 
+        """
+        self.removeItem(self.findText(item))
 
     def items(self):
         """Return a list of the dropdown menu options.
