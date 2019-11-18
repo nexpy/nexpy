@@ -436,7 +436,7 @@ class NXWidget(QtWidgets.QWidget):
     def other_entry(self):
         return self.tree[self.other_entry_box.currentText()]
 
-    def copy_layout(self, text="Copy"):
+    def copy_layout(self, text="Copy", sync=None):
         self.copywidget = QtWidgets.QWidget()
         copylayout = QtWidgets.QHBoxLayout()
         self.copybox = NXComboBox()
@@ -444,6 +444,8 @@ class NXWidget(QtWidgets.QWidget):
         copylayout.addStretch()
         copylayout.addWidget(self.copybox)
         copylayout.addWidget(self.copy_button)
+        if sync:
+            copylayout.addLayout(self.checkboxes(('sync', sync, False)))
         copylayout.addStretch()
         self.copywidget.setLayout(copylayout)
         self.copywidget.setVisible(False)
@@ -735,19 +737,18 @@ class NXPanel(NXDialog):
         self.close_box = box
         return self.close_box
 
+    def idx(self, label):
+        if self.plotview_sort and label in self.plotviews:
+            pv = self.plotviews[label]
+            numbers = sorted([t.plotview.number for t in self.labels])
+            return bisect.bisect_left(numbers, pv.number)
+        else:
+            return sorted(self.tabs.keys()).index(label)
+
     def activate(self, label):
         if label not in self.tabs:
             tab = self.tab_class(parent=self)
-            if self.plotview_sort:
-                if label in self.plotviews:
-                    tab.plotview = self.plotviews[label]
-                    numbers = sorted([t.plotview.number-1 for t in self.labels])
-                    idx = bisect.bisect_left(numbers, tab.plotview.number)
-                else:
-                    raise NeXusError("Invalid plot label")
-            else:
-                idx=None
-            self.add(label, tab, idx=idx)
+            self.add(label, tab, idx=self.idx(label))
         else:
             self.tab = label
             self.tab.update()
@@ -1091,6 +1092,7 @@ class GridParameter(object):
                         self.box.setText(six.text_type(value))
             if self.colorbox:
                 self.colorbox.update_color()
+        self.box.repaint()
 
     @property
     def vary(self):
@@ -2017,6 +2019,8 @@ class ProjectionTab(NXTab):
             if self.plotview.ndim == tab.plotview.ndim:
                 self.copywidget.setVisible(True)
                 self.copybox.add(self.labels[tab])
+            tab.copybox.model().sort(0)
+        self.copybox.model().sort(0)
 
     def copy(self):
         self.block_signals(True)
@@ -2067,6 +2071,7 @@ class LimitTab(NXTab):
 
         super(LimitTab, self).__init__(parent=parent)
         if parent:
+            self.panel = parent
             self.tabs = parent.tabs
             self.labels = parent.labels
 
@@ -2103,8 +2108,8 @@ class LimitTab(NXTab):
         self.lockbox = {}
         for axis in range(self.ndim):
             row += 1
-            self.minbox[axis] = NXSpinBox()
-            self.maxbox[axis] = NXSpinBox()
+            self.minbox[axis] = self.spinbox()
+            self.maxbox[axis] = self.spinbox()
             self.lockbox[axis] = NXCheckBox(slot=self.set_lock)
             grid.addWidget(self.label(self.plotview.axis[axis].name), row, 0)
             grid.addWidget(self.minbox[axis], row, 1)
@@ -2115,6 +2120,8 @@ class LimitTab(NXTab):
         row += 1
         self.minbox['signal'] = NXDoubleSpinBox()
         self.maxbox['signal'] = NXDoubleSpinBox()
+        self.minbox['signal'].setAlignment(QtCore.Qt.AlignRight)
+        self.maxbox['signal'].setAlignment(QtCore.Qt.AlignRight)
         grid.addWidget(self.label(self.plotview.axis['signal'].name), row, 0)
         grid.addWidget(self.minbox['signal'], row, 1)
         grid.addWidget(self.maxbox['signal'], row, 2)        
@@ -2130,6 +2137,8 @@ class LimitTab(NXTab):
                         self.parameters.grid(header=False), 
                         self.copy_layout("Copy Limits", 'sync'))
 
+        self.checkbox['sync'].stateChanged.connect(self.choose_sync)
+ 
         self.initialize()
 
     def __repr__(self):
@@ -2142,10 +2151,10 @@ class LimitTab(NXTab):
             self.minbox[axis].setMaximum(self.minbox[axis].data.size-1)
             self.maxbox[axis].setMaximum(self.maxbox[axis].data.size-1)
             self.minbox[axis].diff = self.maxbox[axis].diff = None
+            self.block_signals(True)
             self.minbox[axis].setValue(self.plotview.axis[axis].lo)
             self.maxbox[axis].setValue(self.plotview.axis[axis].hi)
-            self.minbox[axis].valueChanged[six.text_type].connect(self.set_limits)
-            self.maxbox[axis].valueChanged[six.text_type].connect(self.set_limits)
+            self.block_signals(False)
         vaxis = self.plotview.axis['signal']
         self.minbox['signal'].data = self.maxbox['signal'].data = vaxis.data
         self.minbox['signal'].setRange(vaxis.min, vaxis.max)
@@ -2161,12 +2170,16 @@ class LimitTab(NXTab):
                                       'logy': self.plotview.logy,
                                       'skew': self.plotview.skew}
         self.copywidget.setVisible(False)
-        self.copybox.clear()
         for tab in [self.tabs[label] for label in self.tabs 
                     if self.tabs[label] is not self]:
             if self.plotview.ndim == tab.plotview.ndim:
                 self.copywidget.setVisible(True)
                 self.copybox.add(self.labels[tab])
+                tab.copybox.add(self.name)
+                if not tab.copywidget.isVisible():
+                    tab.copywidget.setVisible(True)
+            tab.copybox.model().sort(0)
+        self.copybox.model().sort(0)
 
     def get_axes(self):
         return self.plotview.xtab.get_axes()
@@ -2206,12 +2219,14 @@ class LimitTab(NXTab):
                 self.xbox.select(self.plotview.xaxis.name)            
 
     def set_limits(self):
+        self.block_signals(True)
         for axis in range(self.ndim):
             if self.lockbox[axis].isChecked():
                 min_value = self.maxbox[axis].value() - self.maxbox[axis].diff
                 self.minbox[axis].setValue(min_value)
             elif self.minbox[axis].value() > self.maxbox[axis].value():
                 self.maxbox[axis].setValue(self.minbox[axis].value())
+        self.block_signals(False)
 
     def get_limits(self, axis=None):
         def get_indices(minbox, maxbox):
@@ -2236,17 +2251,57 @@ class LimitTab(NXTab):
                 self.minbox[axis].diff = self.maxbox[axis].diff = None
                 self.minbox[axis].setDisabled(False)
 
+    def spinbox(self):
+        spinbox = NXSpinBox()
+        spinbox.setAlignment(QtCore.Qt.AlignRight)
+        spinbox.setFixedWidth(100)
+        spinbox.setKeyboardTracking(False)
+        spinbox.setAccelerated(True)
+        spinbox.valueChanged[six.text_type].connect(self.set_limits)
+        return spinbox
 
+    def block_signals(self, block=True):
+        for axis in range(self.ndim):
+            self.minbox[axis].blockSignals(block)
+            self.maxbox[axis].blockSignals(block)
+        self.minbox['signal'].blockSignals(block)
+        self.maxbox['signal'].blockSignals(block)
 
+    def choose_sync(self):
+        if self.checkbox['sync'].isChecked():
+            tab = self.tabs[self.copybox.selected]
+            tab.checkbox['sync'].setChecked(False)
 
     def update(self):
-        self.copywidget.setVisible(False)
-        self.copybox.clear()
+        if not self.checkbox['sync'].isChecked():
+            self.update_limits()
         for tab in [self.tabs[label] for label in self.tabs 
                     if self.tabs[label] is not self]:
-            if self.plotview.ndim == tab.plotview.ndim:
-                self.copywidget.setVisible(True)
-                self.copybox.add(self.labels[tab])
+            if (tab.copybox.selected == self.name and
+                tab.checkbox['sync'].isChecked()):
+                tab.copy()
+                tab.apply()
+
+    def update_limits(self):
+        self.set_axes()
+        for axis in range(self.ndim):
+            self.lockbox[axis].setChecked(False)
+            self.minbox[axis].setValue(self.plotview.axis[axis].lo)
+            self.maxbox[axis].setValue(self.plotview.axis[axis].hi)
+        self.minbox['signal'].setValue(self.plotview.axis['signal'].lo)
+        self.maxbox['signal'].setValue(self.plotview.axis['signal'].hi)
+        if self.plotview.label != 'Main':
+            figure_size = self.plotview.figure.get_size_inches()
+            self.parameters['xsize'].value = figure_size[0]
+            self.parameters['ysize'].value = figure_size[1]
+        if self.ndim > 1:
+            self.copied_properties = {'aspect': self.plotview.aspect,
+                                      'cmap': self.plotview.cmap,
+                                      'interpolation': self.plotview.interpolation,
+                                      'logv': self.plotview.logv,
+                                      'logx': self.plotview.logx,
+                                      'logy': self.plotview.logy,
+                                      'skew': self.plotview.skew}
 
     def copy(self):
         tab = self.tabs[self.copybox.selected]
@@ -2271,25 +2326,7 @@ class LimitTab(NXTab):
                 self.parameters['ysize'].value = tab.parameters['ysize'].value
 
     def reset(self):
-        self.set_axes()
-        for axis in range(self.ndim):
-            self.lockbox[axis].setChecked(False)
-            self.minbox[axis].setValue(self.plotview.axis[axis].lo)
-            self.maxbox[axis].setValue(self.plotview.axis[axis].hi)
-        self.minbox['signal'].setValue(self.plotview.axis['signal'].lo)
-        self.maxbox['signal'].setValue(self.plotview.axis['signal'].hi)
-        if self.plotview.label != 'Main':
-            figure_size = self.plotview.figure.get_size_inches()
-            self.parameters['xsize'].value = figure_size[0]
-            self.parameters['ysize'].value = figure_size[1]
-        if self.ndim > 1:
-            self.copied_properties = {'aspect': self.plotview.aspect,
-                                      'cmap': self.plotview.cmap,
-                                      'interpolation': self.plotview.interpolation,
-                                      'logv': self.plotview.logv,
-                                      'logx': self.plotview.logx,
-                                      'logy': self.plotview.logy,
-                                      'skew': self.plotview.skew}
+        self.plotview.otab.home()
         self.update()
 
     def apply(self):
@@ -2340,7 +2377,6 @@ class LimitTab(NXTab):
                 self.plotview.figure.set_size_inches(xsize, ysize)
         except NeXusError as error:
             report_error("Setting plot limits", error)
-            self.reset()
 
     def close(self):
         self.plotview.draw()

@@ -1242,6 +1242,7 @@ class NXPlotView(QtWidgets.QDialog):
         ax.set_xlabel(self.xaxis.label)
         ax.set_ylabel(self.yaxis.label)
         self.otab.push_current()
+        self.update_panels()
         if self.ndim == 1:
             try:
                 self.plot_smooth()
@@ -3489,6 +3490,7 @@ class NXNavigationToolbar(NavigationToolbar):
             return
         self.plotview.zoom = {'x': (xdim, xmin, xmax),
                               'y': (ydim, ymin, ymax)}
+        self.plotview.update_panels()
 
     def _update_view(self):
         super(NXNavigationToolbar, self)._update_view()
@@ -3528,6 +3530,7 @@ class NXNavigationToolbar(NavigationToolbar):
         self.plotview.ytab.maxbox.setValue(ymax)
         self.plotview.ytab.set_sliders(ymin, ymax)
         self.plotview.ytab.block_signals(False)
+        self.plotview.update_panels()
 
     def toggle_aspect(self):
         try:
