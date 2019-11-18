@@ -129,6 +129,10 @@ class NXComboBox(QtWidgets.QComboBox):
         if slot:
             self.activated.connect(slot)
 
+    def __contains__(self, item):
+        """True if the item is one of the options."""
+        return item in self.items()
+
     def keyPressEvent(self, event):
         """Function to enable the use of cursor keys to make selections.
 
@@ -157,11 +161,11 @@ class NXComboBox(QtWidgets.QComboBox):
         Parameters
         ----------
         *items : list of str
-            List of options to be added to the dropdown menu.
-        
+            List of options to be added to the dropdown menu. 
         """
         for item in items:
-            self.addItem(item)
+            if item not in self:
+                self.addItem(item)
 
     def items(self):
         """Return a list of the dropdown menu options.
