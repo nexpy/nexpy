@@ -21,6 +21,7 @@ from pygments.formatter import Formatter
 from .pyqt import QtCore, QtGui, QtWidgets, getSaveFileName
 
 from .utils import confirm_action
+from .widgets import NXLabel, NXLineEdit
 
 
 def hex2QColor(c):
@@ -176,7 +177,7 @@ class NXScriptEditor(QtWidgets.QWidget):
         layout = QtWidgets.QVBoxLayout()
         self.text_layout = QtWidgets.QHBoxLayout()
         if sys.platform == 'darwin':
-            self.number_box = QtWidgets.QLabel('1')
+            self.number_box = NXLabel('1')
             self.number_box.setFont(QtGui.QFont('Courier'))
             self.number_box.setAlignment(QtCore.Qt.AlignTop | 
                                          QtCore.Qt.AlignRight)
@@ -189,7 +190,7 @@ class NXScriptEditor(QtWidgets.QWidget):
         run_button = QtWidgets.QPushButton('Run Script')
         run_button.clicked.connect(self.run_script)
         run_button.setAutoDefault(False)
-        self.argument_box = QtWidgets.QLineEdit()
+        self.argument_box = NXLineEdit()
         self.argument_box.setMinimumWidth(200)
         save_button = QtWidgets.QPushButton('Save')
         save_button.clicked.connect(self.save_script)

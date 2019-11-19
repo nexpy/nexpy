@@ -63,7 +63,8 @@ from scipy.spatial import Voronoi, voronoi_plot_2d
 from nexusformat.nexus import NXfield, NXdata, NXroot, NeXusError
 
 from .. import __version__
-from .widgets import (NXSpinBox, NXDoubleSpinBox, NXComboBox, NXCheckBox, NXPushButton,
+from .widgets import (NXSpinBox, NXDoubleSpinBox, NXComboBox, NXCheckBox, 
+                      NXLabel, NXPushButton,
                       NXcircle, NXellipse, NXrectangle, NXpolygon)
 from .utils import (report_error, report_exception, boundaries, centers, keep_data, 
                     fix_projection, find_nearest, iterable)
@@ -3218,11 +3219,11 @@ class NXProjectionTab(QtWidgets.QWidget):
         widgets = []
 
         self.xbox = NXComboBox(self.set_xaxis)
-        widgets.append(QtWidgets.QLabel('X-Axis:'))
+        widgets.append(NXLabel('X-Axis:'))
         widgets.append(self.xbox)
 
         self.ybox = NXComboBox(self.set_yaxis)
-        self.ylabel = QtWidgets.QLabel('Y-Axis:')
+        self.ylabel = NXLabel('Y-Axis:')
         widgets.append(self.ylabel)
         widgets.append(self.ybox)
 

@@ -30,6 +30,7 @@ from nexusformat.nexus import (NeXusError, NXgroup, NXfield, NXattr,
 from .datadialogs import BaseDialog
 from .plotview import NXPlotView
 from .utils import report_error
+from .widgets import NXLineEdit
 
 from ..api.frills.fit import Fit, Function, Parameter
 
@@ -103,10 +104,10 @@ class FitDialog(BaseDialog):
         plot_label = QtWidgets.QLabel('X-axis:')
         self.plot_min = self.fitview.xaxis.min
         self.plot_max = self.fitview.xaxis.max 
-        self.plot_minbox = QtWidgets.QLineEdit(str(self.plot_min))
+        self.plot_minbox = NXLineEdit(str(self.plot_min))
         self.plot_minbox.setAlignment(QtCore.Qt.AlignRight)
         plot_tolabel = QtWidgets.QLabel(' to ')
-        self.plot_maxbox = QtWidgets.QLineEdit(str(self.plot_max))
+        self.plot_maxbox = NXLineEdit(str(self.plot_max))
         self.plot_maxbox.setAlignment(QtCore.Qt.AlignRight)
         self.plot_checkbox = QtWidgets.QCheckBox('Use Data Points')
         self.plot_checkbox.setVisible(False)
@@ -377,12 +378,12 @@ class FitDialog(BaseDialog):
         for p in f.parameters:
             p.parameter_index = row
             p.parameter_box = QtWidgets.QLabel(str(p.parameter_index))
-            p.value_box = QtWidgets.QLineEdit()
+            p.value_box = NXLineEdit()
             p.value_box.setAlignment(QtCore.Qt.AlignRight)
             p.error_box = QtWidgets.QLabel()
-            p.min_box = QtWidgets.QLineEdit('-inf')
+            p.min_box = NXLineEdit('-inf')
             p.min_box.setAlignment(QtCore.Qt.AlignRight)
-            p.max_box = QtWidgets.QLineEdit('inf')
+            p.max_box = NXLineEdit('inf')
             p.max_box.setAlignment(QtCore.Qt.AlignRight)
             p.fixed_box = QtWidgets.QCheckBox()
             self.parameter_grid.addWidget(p.parameter_box, row, 1,

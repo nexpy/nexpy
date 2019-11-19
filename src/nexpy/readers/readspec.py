@@ -24,6 +24,7 @@ from nexpy.gui.pyqt import QtCore, QtWidgets, getOpenFileName
 from nexusformat.nexus.tree import NeXusError
 from nexusformat.nexus.tree import NXroot, NXentry, NXfield, NXdata, NXlog
 from nexpy.gui.importdialog import BaseImportDialog
+from nexpy.gui.widgets import NXLabel, NXLineEdit
 
 filetype = "SPEC File"
 
@@ -63,12 +64,12 @@ class ImportDialog(BaseImportDialog):
  
     def scanbox(self):
         '''create widgets for specifying scan range to import'''
-        scanminlabel = QtWidgets.QLabel("Min. Scan")
-        self.scanmin = QtWidgets.QLineEdit()
+        scanminlabel = NXLabel("Min. Scan")
+        self.scanmin = NXLineEdit()
         self.scanmin.setFixedWidth(100)
         self.scanmin.setAlignment(QtCore.Qt.AlignRight)
-        scanmaxlabel = QtWidgets.QLabel("Max. Scan")
-        self.scanmax = QtWidgets.QLineEdit()
+        scanmaxlabel = NXLabel("Max. Scan")
+        self.scanmax = NXLineEdit()
         self.scanmax.setFixedWidth(100)
         self.scanmax.setAlignment(QtCore.Qt.AlignRight)
 

@@ -22,6 +22,7 @@ import numpy as np
 from nexusformat.nexus import *
 from nexpy.gui.pyqt import QtCore, QtWidgets
 from nexpy.gui.importdialog import BaseImportDialog
+from nexpy.gui.widgets import NXLabel, NXLineEdit
 
 filetype = "Image Stack"
 maximum = 0.0
@@ -65,14 +66,14 @@ class ImportDialog(BaseImportDialog):
         filterbox = QtWidgets.QWidget()
         layout = QtWidgets.QGridLayout()
         layout.setSpacing(10)
-        prefix_label = QtWidgets.QLabel('File Prefix')
-        self.prefix_box = QtWidgets.QLineEdit()
+        prefix_label = NXLabel('File Prefix')
+        self.prefix_box = NXLineEdit()
         self.prefix_box.editingFinished.connect(self.set_range)
-        suffix_label = QtWidgets.QLabel('File Suffix')
-        self.suffix_box = QtWidgets.QLineEdit('')
+        suffix_label = NXLabel('File Suffix')
+        self.suffix_box = NXLineEdit('')
         self.suffix_box.editingFinished.connect(self.get_prefixes)
-        extension_label = QtWidgets.QLabel('File Extension')
-        self.extension_box = QtWidgets.QLineEdit()
+        extension_label = NXLabel('File Extension')
+        self.extension_box = NXLineEdit()
         self.extension_box.editingFinished.connect(self.set_extension)
         layout.addWidget(prefix_label, 0, 0)
         layout.addWidget(self.prefix_box, 0, 1)
@@ -99,12 +100,12 @@ class ImportDialog(BaseImportDialog):
     def make_rangebox(self):
         rangebox = QtWidgets.QWidget()
         layout = QtWidgets.QHBoxLayout()
-        rangeminlabel = QtWidgets.QLabel("Min. index")
-        self.rangemin = QtWidgets.QLineEdit()
+        rangeminlabel = NXLabel("Min. index")
+        self.rangemin = NXLineEdit()
         self.rangemin.setFixedWidth(150)
         self.rangemin.setAlignment(QtCore.Qt.AlignRight)
-        rangemaxlabel = QtWidgets.QLabel("Max. index")
-        self.rangemax = QtWidgets.QLineEdit()
+        rangemaxlabel = NXLabel("Max. index")
+        self.rangemax = NXLineEdit()
         self.rangemax.setFixedWidth(150)
         self.rangemax.setAlignment(QtCore.Qt.AlignRight)
         layout.addWidget(rangeminlabel)
