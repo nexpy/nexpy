@@ -385,6 +385,7 @@ class NXColorBox(QtWidgets.QWidget):
         self.color_text = color
         color = self.qcolor(self.color_text)
         self.layout = QtWidgets.QHBoxLayout()
+        self.layout.setContentsMargins(0, 0, 0, 0)
         self.textbox = NXLineEdit(colors.to_hex(color.getRgbF(),
                                   keep_alpha=True), parent)
         self.textbox.editingFinished.connect(self.update_color)
