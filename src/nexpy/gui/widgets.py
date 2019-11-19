@@ -76,8 +76,8 @@ class NXStack(QtWidgets.QWidget):
         self.stack.addWidget(widget)
 
 
-class NXTextBox(QtWidgets.QLineEdit):
-    """Subclass of QLineEdit with floating point values."""
+class NXTextBox(NXLineEdit):
+    """Subclass of NXLineEdit with floating point values."""
 
     def value(self):
         """Return the text box value as a floating point number.
@@ -294,6 +294,27 @@ class NXPushButton(QtWidgets.QPushButton):
             self.parent().keyPressEvent(event)
 
 
+class NXLineEdit(QtWidgets.QLineEdit):
+    """An editable text box.
+    
+    This is being subclassed from the PyQt QLineEdit class because of a bug in
+    recent versions of PyQt5 (>11) that requires the box to be repainted 
+    after any programmatic changes.
+    """
+
+    def setText(self, text):
+        """Function to set the text in the box.
+
+        Parameters
+        ----------
+        text : str
+            Text to replace the text box contents.
+        
+        """
+        super(NXLineEdit, self).setText(text)
+        self.repaint()
+
+
 class NXColorBox(QtWidgets.QWidget):
     """Text box and color square for selecting colors.
 
@@ -303,7 +324,7 @@ class NXColorBox(QtWidgets.QWidget):
     ----------
     layout : QHBoxLayout
         Layout containing the text and color boxes
-    box : QLineEdit
+    box : NXLineEdit
         Text box containing the string representation of the color
     button : QPushbutton 
         Color button consisting of a colored icon
