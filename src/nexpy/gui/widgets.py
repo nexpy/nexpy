@@ -9,19 +9,15 @@ import warnings
 import matplotlib as mpl
 import numpy as np
 import six
-from matplotlib.cbook import mplDeprecation
+from matplotlib import colors
+from matplotlib import cbook
 from matplotlib.patches import Circle, Ellipse, Polygon, Rectangle
 
 from .pyqt import QtCore, QtGui, QtWidgets
 from .utils import report_error, boundaries, get_color, format_float
 
-try:
-    from formlayout import ColorLayout, text_to_qcolor
-except ImportError:
-    from matplotlib.backends.qt_editor.formlayout import (ColorLayout,
-                                                          to_qcolor as text_to_qcolor)
 
-warnings.filterwarnings("ignore", category=mplDeprecation)
+warnings.filterwarnings("ignore", category=cbook.mplDeprecation)
 
 
 class NXStack(QtWidgets.QWidget):
@@ -322,6 +318,39 @@ class NXPushButton(QtWidgets.QPushButton):
             self.parent().keyPressEvent(event)
 
 
+class NXColorButton(QtWidgets.QPushButton):
+    """Push button for selecting colors."""
+
+    colorChanged = QtCore.Signal(QtGui.QColor)
+
+    def __init__(self, parent=None):
+        super(NXColorButton, self).__init__(parent)
+        self.setFixedSize(20, 20)
+        self.setIconSize(QtCore.QSize(12, 12))
+        self.clicked.connect(self.choose_color)
+        self._color = QtGui.QColor()
+
+    def choose_color(self):
+        color = QtWidgets.QColorDialog.getColor(self._color, self.parentWidget())
+        if color.isValid():
+            self.set_color(color)
+
+    def get_color(self):
+        return self._color
+
+    @QtCore.Slot(QtGui.QColor)
+    def set_color(self, color):
+        if color != self._color:
+            self._color = color
+            self.colorChanged.emit(self._color)
+            pixmap = QtGui.QPixmap(self.iconSize())
+            pixmap.fill(color)
+            self.setIcon(QtGui.QIcon(pixmap))
+            self.repaint()
+
+    color = QtCore.Property(QtGui.QColor, get_color, set_color)
+
+
 class NXColorBox(QtWidgets.QWidget):
     """Text box and color square for selecting colors.
 
@@ -354,31 +383,48 @@ class NXColorBox(QtWidgets.QWidget):
         """
         super(NXColorBox, self).__init__(parent)
         self.color_text = color
-        color = text_to_qcolor(self.color_text)
-        self.layout = ColorLayout(color)
-        self.layout.setContentsMargins(0,0,0,0)
-        self.box = self.layout.lineedit
-        self.box.editingFinished.connect(self.update_color)
-        self.button = self.layout.colorbtn
+        color = self.qcolor(self.color_text)
+        self.layout = QtWidgets.QHBoxLayout()
+        self.textbox = NXLineEdit(colors.to_hex(color.getRgbF(),
+                                  keep_alpha=True), parent)
+        self.textbox.editingFinished.connect(self.update_color)
+        self.layout.addWidget(self.textbox)
+        self.button = NXColorButton(parent)
+        self.button.color = color
         self.button.colorChanged.connect(self.update_text)
+        self.layout.addWidget(self.button)
         self.setLayout(self.layout)
         self.update_color()
 
     def update_color(self):
         """Set the button color following a change to the text box."""
         try:
-            color = text_to_qcolor(get_color(self.box.text()))
+            color = self.qcolor(get_color(self.textbox.text()))
             if color.isValid():
                 self.button.color = color
-                self.color_text = self.box.text()
+                self.color_text = self.textbox.text()
         except ValueError as error:
             report_error('Invalid color', error)
-            self.box.setText(self.color_text)
+            self.textbox.setText(self.color_text)
 
     def update_text(self, color):
         """Set the text box string following a change to the color button."""
-        self.color_text = mpl.colors.to_hex(color.getRgbF())
-        self.box.setText(self.color_text)
+        self.color_text = colors.to_hex(color.getRgbF(), keep_alpha=True)
+        self.textbox.setText(self.color_text)
+
+    def qcolor(self, text):
+        """Create a QColor from a Matplotlib color."""
+        qcolor = QtGui.QColor()
+        text = str(text)
+        if text.startswith('#') and len(text)==7:
+            correct = '#0123456789abcdef'
+            for char in text:
+                if char.lower() not in correct:
+                    return qcolor
+        elif text not in list(QColor.colorNames()):
+            return qcolor
+        qcolor.setNamedColor(text)
+        return qcolor
 
 
 class NXSpinBox(QtWidgets.QSpinBox):

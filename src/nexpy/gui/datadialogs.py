@@ -1005,7 +1005,7 @@ class GridParameter(object):
         else:
             if color:
                 self.colorbox = NXColorBox(value)
-                self.box = self.colorbox.box
+                self.box = self.colorbox.textbox
             else:
                 self.box = NXLineEdit()
                 self.colorbox = None
