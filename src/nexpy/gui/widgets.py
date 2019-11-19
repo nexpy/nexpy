@@ -30,12 +30,11 @@ class NXStack(QtWidgets.QWidget):
     Attributes
     ----------
     layout : QtWidgets.QVBoxLayout
-        Layout of the entire stack
+        Layout of the entire stack.
     stack : QtWidgets.QStackedWidget
-        Widget containing the stacked widgets
+        Widget containing the stacked widgets.
     box : QtWidgets.QComboBox
-        Pull-down menu containing the 
-    
+        Pull-down menu containing the stack options.
     """
     def __init__(self, labels, widgets, parent=None):
         """Initialize the widget stack.
@@ -43,12 +42,11 @@ class NXStack(QtWidgets.QWidget):
         Parameters
         ----------
         labels : list of str
-            List of labels to be used in the QComboBox
+            List of labels to be used in the QComboBox.
         widgets : list of QWidgets
-            List of QWidgets to be stacked
+            List of QWidgets to be stacked.
         parent : QObject, optional
-            Parent of the NXStack instance (the default is None)
-        
+            Parent of the NXStack instance (the default is None).
         """
         super(NXStack, self).__init__(parent=parent)
         self.layout = QtWidgets.QVBoxLayout()
@@ -69,11 +67,50 @@ class NXStack(QtWidgets.QWidget):
         label : str
             Label used to select the widget in the QComboBox
         widget : QtWidgets.QWidget
-            Widget to be added to the stack
-        
+            Widget to be added to the stack    
         """
         self.box.addItem(label)
         self.stack.addWidget(widget)
+
+
+class NXLabel(QtWidgets.QLabel):
+    """A text label.
+    
+    This is being subclassed from the PyQt QLabel class because of a bug in
+    recent versions of PyQt5 (>11) that requires the box to be repainted 
+    after any programmatic changes.
+    """
+
+    def setText(self, text):
+        """Function to set the text in the box.
+
+        Parameters
+        ----------
+        text : str
+            Text to replace the text box contents.
+        """
+        super(NXLabel, self).setText(text)
+        self.repaint()
+
+
+class NXLineEdit(QtWidgets.QLineEdit):
+    """An editable text box.
+    
+    This is being subclassed from the PyQt QLineEdit class because of a bug in
+    recent versions of PyQt5 (>11) that requires the box to be repainted 
+    after any programmatic changes.
+    """
+
+    def setText(self, text):
+        """Function to set the text in the box.
+
+        Parameters
+        ----------
+        text : str
+            Text to replace the text box contents.        
+        """
+        super(NXLineEdit, self).setText(text)
+        self.repaint()
 
 
 class NXTextBox(NXLineEdit):
@@ -86,7 +123,6 @@ class NXTextBox(NXLineEdit):
         -------
         float
             Value of text box converted to a floating point number
-
         """
         return float(six.text_type(self.text()))
 
@@ -96,8 +132,7 @@ class NXTextBox(NXLineEdit):
         Parameters
         ----------
         value : str or int or float
-            Text box value to be formatted as a float
-        
+            Text box value to be formatted as a float        
         """
         self.setText(six.text_type(float('%.4g' % value)))
 
@@ -115,8 +150,7 @@ class NXComboBox(QtWidgets.QComboBox):
         items : list of str, optional
             A list of options to initialize the dropdown menu
         default : str, optional
-            The option to be set as default when the menu is initialized
-        
+            The option to be set as default when the menu is initialized        
         """
         super(NXComboBox, self).__init__()
         self.setSizeAdjustPolicy(QtWidgets.QComboBox.AdjustToContents)
@@ -143,8 +177,7 @@ class NXComboBox(QtWidgets.QComboBox):
         Parameters
         ----------
         event : QtCore.QEvent
-            Keypress event that triggered the function
-        
+            Keypress event that triggered the function.  
         """
         if (event.key() == QtCore.Qt.Key_Up or 
             event.key() == QtCore.Qt.Key_Down):
@@ -193,8 +226,7 @@ class NXComboBox(QtWidgets.QComboBox):
         Parameters
         ----------
         item : str
-            The option to be selected in the dropdown menu
-        
+            The option to be selected in the dropdown menu.
         """
         self.setCurrentIndex(self.findText(item))
 
@@ -205,7 +237,7 @@ class NXComboBox(QtWidgets.QComboBox):
         Returns
         -------
         str
-            Currently selected option in the dropdown menu
+            Currently selected option in the dropdown menu.
         """
         return self.currentText()
 
@@ -223,8 +255,7 @@ class NXCheckBox(QtWidgets.QCheckBox):
         slot : func, optional
             Function to be called when the checkbox state is changed.
         checked : bool, optional
-            Initial checkbox state (the default is False)
-        
+            Initial checkbox state (the default is False).
         """
         super(NXCheckBox, self).__init__(label)
         self.setFocusPolicy(QtCore.Qt.StrongFocus)
@@ -240,8 +271,7 @@ class NXCheckBox(QtWidgets.QCheckBox):
         Parameters
         ----------
         event : QtCore.QEvent
-            Keypress event that triggered the function
-        
+            Keypress event that triggered the function.
         """
         if (event.key() == QtCore.Qt.Key_Up or 
             event.key() == QtCore.Qt.Key_Down):
@@ -266,8 +296,7 @@ class NXPushButton(QtWidgets.QPushButton):
         slot : func
             Function to be called when the button is pressed
         parent : QObject, optional
-            Parent of button
-        
+            Parent of button.
         """
         super(NXPushButton, self).__init__(label, parent)
         self.setFocusPolicy(QtCore.Qt.StrongFocus)
@@ -283,8 +312,7 @@ class NXPushButton(QtWidgets.QPushButton):
         Parameters
         ----------
         event : QtCore.QEvent
-            Keypress event that triggered the function
-        
+            Keypress event that triggered the function.
         """
         if (event.key() == QtCore.Qt.Key_Return or 
             event.key() == QtCore.Qt.Key_Enter or
@@ -292,27 +320,6 @@ class NXPushButton(QtWidgets.QPushButton):
             self.clicked.emit()
         else:
             self.parent().keyPressEvent(event)
-
-
-class NXLineEdit(QtWidgets.QLineEdit):
-    """An editable text box.
-    
-    This is being subclassed from the PyQt QLineEdit class because of a bug in
-    recent versions of PyQt5 (>11) that requires the box to be repainted 
-    after any programmatic changes.
-    """
-
-    def setText(self, text):
-        """Function to set the text in the box.
-
-        Parameters
-        ----------
-        text : str
-            Text to replace the text box contents.
-        
-        """
-        super(NXLineEdit, self).setText(text)
-        self.repaint()
 
 
 class NXColorBox(QtWidgets.QWidget):
@@ -323,12 +330,11 @@ class NXColorBox(QtWidgets.QWidget):
     Attributes
     ----------
     layout : QHBoxLayout
-        Layout containing the text and color boxes
+        Layout containing the text and color boxes.
     box : NXLineEdit
-        Text box containing the string representation of the color
+        Text box containing the string representation of the color.
     button : QPushbutton 
-        Color button consisting of a colored icon
-    
+        Color button consisting of a colored icon.
     """
 
     def __init__(self, color='#ffffff', parent=None):
@@ -344,8 +350,7 @@ class NXColorBox(QtWidgets.QWidget):
         color : str, optional
             Initial color (the default is '#ffffff', which represents 'white')
         parent : QObject, optional
-            Parent of the color box
-        
+            Parent of the color box.
         """
         super(NXColorBox, self).__init__(parent)
         self.color_text = color
@@ -397,7 +402,6 @@ class NXSpinBox(QtWidgets.QSpinBox):
         locked.
     pause : bool
         Used when playing a movie with changing z-values.
- 
     """
     def __init__(self, data=None):
         """Initialize the spin box
@@ -405,8 +409,7 @@ class NXSpinBox(QtWidgets.QSpinBox):
         Parameters
         ----------
         data : array-like, optional
-            The data to be set by the spin box
-        
+            The data to be set by the spin box.   
         """
         super(NXSpinBox, self).__init__()
         self.data = data
@@ -568,7 +571,7 @@ class NXDoubleSpinBox(QtWidgets.QDoubleSpinBox):
 
 
 class NXpatch(object):
-    """Class for a draggable shape on the NXPlotView canvas"""
+    """Class for a draggable shape on the NXPlotView canvas."""
     lock = None
      
     def __init__(self, shape, border_tol=0.1, resize=True, plotview=None):
