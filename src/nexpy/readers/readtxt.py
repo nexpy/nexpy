@@ -34,6 +34,7 @@ from nexpy.gui.pyqt import QtWidgets
 
 from nexusformat.nexus import *
 from nexpy.gui.importdialog import BaseImportDialog
+from nexpy.gui.widgets import NXLabel, NXLineEdit
 
 filetype = "Text File"
 
@@ -45,8 +46,8 @@ class ImportDialog(BaseImportDialog):
         super(ImportDialog, self).__init__(parent)
         
         skippedbox = QtWidgets.QHBoxLayout()
-        skippedlabel = QtWidgets.QLabel("No. of skipped rows")
-        self.skiprows = QtWidgets.QLineEdit()
+        skippedlabel = NXLabel("No. of skipped rows")
+        self.skiprows = NXLineEdit()
         self.skiprows.setText('0')
         self.skiprows.setFixedWidth(20)
         skippedbox.addWidget(skippedlabel)
