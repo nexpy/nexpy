@@ -2084,18 +2084,15 @@ class ProjectionTab(NXTab):
         self.update()
 
     def close(self):
-        try:
-            self._rectangle.remove()
-        except Exception:
-            pass
-        self._rectangle = None
+        if self._rectangle:
+            self._rectangle.set_visible(False)
+        self.plotview.draw()
         for tab in [self.tabs[label] for label in self.tabs 
                     if self.tabs[label] is not self]:
             if self.name in tab.copybox:
                 tab.copybox.remove(self.name)
             if len(tab.copybox.items()) == 0:
                 tab.copywidget.setVisible(False)
-        self.plotview.draw()
 
 
 class LimitDialog(NXPanel):
