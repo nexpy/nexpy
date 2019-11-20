@@ -21,6 +21,7 @@ import re
 import shutil
 import sys
 
+from operator import attrgetter
 from posixpath import basename
 
 from .pyqt import QtCore, QtGui, QtWidgets, getOpenFileName, getSaveFileName
@@ -667,6 +668,17 @@ class NXPanel(NXDialog):
     def __repr__(self):
         return 'NXPanel("%s")' % self.panel
 
+    def __contains__(self, label):
+        """Implements 'k in d' test"""
+        return label in self.tabs
+
+    def tab_list(self):
+        if self.plotview_sort:
+            return [tab.name for tab in 
+                    sorted(self.labels, key=attrgetter('plotview.number'))]
+        else:
+            return sorted(self.tabs)
+
     def add(self, label, tab=None, idx=None):
         if label in self.tabs:
             raise NeXusError("'%s' already in %s" % (label, self.title))
@@ -691,10 +703,6 @@ class NXPanel(NXDialog):
             self.tabs[label].deleteLater()
             del self.tabs[label]
         self.update()
-
-    def __contains__(self, label):
-        """Implements 'k in d' test"""
-        return label in self.tabs
 
     @property
     def tab(self):
@@ -1685,6 +1693,7 @@ class ProjectionTab(NXTab):
 
         super(ProjectionTab, self).__init__(parent=parent)
         if parent:
+            self.panel = parent
             self.tabs = parent.tabs
             self.labels = parent.labels
 
@@ -1750,8 +1759,18 @@ class ProjectionTab(NXTab):
                                         ("lines", "Plot Lines", False),
                                         ("hide", "Hide Limits", False)),
                         self.copy_layout("Copy Limits"))
-        self.checkbox["hide"].stateChanged.connect(self.hide_rectangle)                        
+        self.checkbox["hide"].stateChanged.connect(self.hide_rectangle)
 
+        self.initialize()
+
+        self._rectangle = None
+
+        self.xbox.setFocus()
+
+    def __repr__(self):
+        return 'ProjectionTab("%s")' % self.name
+
+    def initialize(self):
         for axis in range(self.ndim):
             self.minbox[axis].data = self.maxbox[axis].data = \
                 self.plotview.axis[axis].centers
@@ -1759,18 +1778,19 @@ class ProjectionTab(NXTab):
             self.maxbox[axis].setMaximum(self.maxbox[axis].data.size-1)
             self.minbox[axis].diff = self.maxbox[axis].diff = None
             self.block_signals(True)
-            self.minbox[axis].setValue(self.minbox[axis].data.min())
-            self.maxbox[axis].setValue(self.maxbox[axis].data.max())
+            self.minbox[axis].setValue(self.plotview.axis[axis].lo)
+            self.maxbox[axis].setValue(self.plotview.axis[axis].hi)
             self.block_signals(False)
 
-        self._rectangle = None
-
-        self.update()
-
-        self.xbox.setFocus()
-
-    def __repr__(self):
-        return 'ProjectionTab("%s")' % self.name
+        self.copywidget.setVisible(False)
+        for tab in [self.tabs[label] for label in self.tabs 
+                    if self.tabs[label] is not self]:
+            if self.plotview.ndim == tab.plotview.ndim:
+                self.copywidget.setVisible(True)
+                self.copybox.add(self.labels[tab])
+                tab.copybox.add(self.name)
+                if not tab.copywidget.isVisible():
+                    tab.copywidget.setVisible(True)
 
     def get_axes(self):
         return self.plotview.xtab.get_axes()
@@ -2005,6 +2025,15 @@ class ProjectionTab(NXTab):
             self.rectangle.set_visible(True)
         self.plotview.draw()
 
+    def sort_copybox(self):
+        selected = self.copybox.selected
+        tabs = self.copybox.items()
+        self.copybox.clear()
+        for tab in [tab for tab in self.panel.tab_list() if tab in tabs]:
+            self.copybox.add(tab)
+        if selected in self.copybox:
+            self.copybox.select(selected)
+
     def update(self):
         self.block_signals(True)
         for axis in range(self.ndim):
@@ -2024,15 +2053,7 @@ class ProjectionTab(NXTab):
                 maxbox.setValue(maxbox.valueFromIndex(ihi))
         self.block_signals(False)
         self.draw_rectangle()
-        self.copywidget.setVisible(False)
-        self.copybox.clear()
-        for tab in [self.tabs[label] for label in self.tabs 
-                    if self.tabs[label] is not self]:
-            if self.plotview.ndim == tab.plotview.ndim:
-                self.copywidget.setVisible(True)
-                self.copybox.add(self.labels[tab])
-            tab.copybox.model().sort(0)
-        self.copybox.model().sort(0)
+        self.sort_copybox()
         if self.plot and self.plot.ndim == 1 and self.yaxis == 'None':
             self.overplot_box.setVisible(True)
         else:
@@ -2068,6 +2089,12 @@ class ProjectionTab(NXTab):
         except Exception:
             pass
         self._rectangle = None
+        for tab in [self.tabs[label] for label in self.tabs 
+                    if self.tabs[label] is not self]:
+            if self.name in tab.copybox:
+                tab.copybox.remove(self.name)
+            if len(tab.copybox.items()) == 0:
+                tab.copywidget.setVisible(False)
         self.plotview.draw()
 
 
@@ -2088,6 +2115,7 @@ class LimitTab(NXTab):
 
         super(LimitTab, self).__init__(parent=parent)
         if parent:
+            self.panel = parent
             self.tabs = parent.tabs
             self.labels = parent.labels
 
@@ -2194,8 +2222,6 @@ class LimitTab(NXTab):
                 tab.copybox.add(self.name)
                 if not tab.copywidget.isVisible():
                     tab.copywidget.setVisible(True)
-            tab.copybox.model().sort(0)
-        self.copybox.model().sort(0)
 
     def get_axes(self):
         return self.plotview.xtab.get_axes()
@@ -2288,6 +2314,15 @@ class LimitTab(NXTab):
             tab = self.tabs[self.copybox.selected]
             tab.checkbox['sync'].setChecked(False)
 
+    def sort_copybox(self):
+        selected = self.copybox.selected
+        tabs = self.copybox.items()
+        self.copybox.clear()
+        for tab in [tab for tab in self.panel.tab_list() if tab in tabs]:
+            self.copybox.add(tab)
+        if selected in self.copybox:
+            self.copybox.select(selected)
+
     def update(self):
         if not self.checkbox['sync'].isChecked():
             self.update_limits()
@@ -2297,6 +2332,7 @@ class LimitTab(NXTab):
                 tab.checkbox['sync'].isChecked()):
                 tab.copy()
                 tab.apply()
+        self.sort_copybox()
 
     def update_limits(self):
         self.set_axes()
