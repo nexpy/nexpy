@@ -808,6 +808,13 @@ class MainWindow(QtWidgets.QMainWindow):
             )
         self.add_menu_action(self.window_menu, self.panel_action)
 
+        self.scan_action=QtWidgets.QAction("Show Scan Panel",
+            self,
+            shortcut="Ctrl+Alt+S",
+            triggered=self.show_scan_panel
+            )
+        self.add_menu_action(self.window_menu, self.scan_action)
+
         self.script_window_action=QtWidgets.QAction("Show Script Editor",
             self,
             shortcut=QtGui.QKeySequence("Ctrl+Shift+S"),
@@ -1954,6 +1961,13 @@ class MainWindow(QtWidgets.QMainWindow):
                 triggered=lambda: self.plotviews[label].make_active(),
                 checkable=False)
             self.window_menu.addAction(self.active_action[number])
+        elif label == 'Scan':
+            self.active_action[number] = QtWidgets.QAction(label,
+                self,
+                shortcut=QtGui.QKeySequence("Ctrl+Shift+Alt+S"),
+                triggered=lambda: self.plotviews[label].make_active(),
+                checkable=False)
+            self.window_menu.addAction(self.active_action[number])
         elif label == 'Fit':
             self.active_action[number] = QtWidgets.QAction(label,
                 self,
@@ -2066,6 +2080,16 @@ class MainWindow(QtWidgets.QMainWindow):
             self.panels['projection'].activate(self.plotview.label)
         except NeXusError as error:
             report_error("Showing Projection Panel", error)
+
+    def show_scan_panel(self):
+        if self.plotview.label == 'Projection' or self.plotview.ndim == 1:
+            return
+        try:
+            if 'scan' not in self.panels:
+                self.panels['scan'] = ScanDialog(parent=self)
+            self.panels['scan'].activate(self.plotview.label)
+        except NeXusError as error:
+            report_error("Showing Scan Panel", error)
 
     def show_script_window(self):
         if self.editors.tabs.count() == 0:

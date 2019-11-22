@@ -117,7 +117,7 @@ def new_figure_manager(label=None, *args, **kwargs):
     """
     if label is None:
         label = ''
-    if label == 'Projection' or label == 'Fit':
+    if label == 'Projection' or label == 'Scan' or label == 'Fit':
         nums = [plotviews[p].number for p in plotviews if plotviews[p].number > 100]
         if nums:
             num = max(nums) + 1
