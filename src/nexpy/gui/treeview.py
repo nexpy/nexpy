@@ -360,7 +360,11 @@ class NXTreeView(QtWidgets.QTreeView):
                 self.mainwindow.backup_action.setEnabled(True)
                 if node.nxbackup:
                     self.mainwindow.restore_action.setEnabled(True)
-            else:
+            if node.nxfilemode is None or node.nxfilemode == 'rw':
+                if self.mainwindow.copied_node is not None:
+                    self.mainwindow.pastedata_action.setEnabled(True)
+                    self.mainwindow.pastelink_action.setEnabled(True)
+            if node.nxfilemode is None:
                 self.mainwindow.delete_action.setEnabled(True)
         else:
             self.mainwindow.copydata_action.setEnabled(True)
@@ -433,6 +437,7 @@ class NXTreeView(QtWidgets.QTreeView):
         self.addMenu(self.mainwindow.delete_action)
         self.menu.addSeparator()
         self.addMenu(self.mainwindow.copydata_action)
+        self.addMenu(self.mainwindow.cutdata_action)
         self.addMenu(self.mainwindow.pastedata_action)
         self.addMenu(self.mainwindow.pastelink_action)
         self.menu.addSeparator()

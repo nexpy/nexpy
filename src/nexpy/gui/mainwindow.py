@@ -1654,12 +1654,19 @@ class MainWindow(QtWidgets.QMainWindow):
         except NeXusError as error:
             report_error("Renaming Data", error)
 
+    def copy_node(self, node):
+        import tempfile
+        self._memroot = nxload(tempfile.mkstemp(suffix='.nxs')[1], mode='w',
+                               driver='core', backing_store=False)
+        self._memroot[node.nxname] = node
+        return self._memroot[node.nxname]
+
     def copy_data(self):
         try:
             node = self.treeview.get_node()
             if not isinstance(node, NXroot):
-                self.copied_node = deepcopy(self.treeview.get_node())
-                logging.info("'%s' copied" % self.copied_node.nxpath)
+                self.copied_node = self.copy_node(node)
+                logging.info("'%s' copied" % node.nxpath)
             else:
                 raise NeXusError("Use 'Duplicate File' to copy an NXroot group")
         except NeXusError as error:
@@ -1668,7 +1675,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def cut_data(self):
         try:
             node = self.treeview.get_node()
-            if node.nxfilemode == 'r':
+            if node.nxfilemode and node.nxfilemode == 'r':
                 raise NeXusError("NeXus file is locked")
             elif node.is_external():
                 raise NeXusError(
@@ -1676,9 +1683,9 @@ class MainWindow(QtWidgets.QMainWindow):
             if not isinstance(node, NXroot):
                 if confirm_action("Are you sure you want to cut '%s'?"
                                   % (node.nxroot.nxname+node.nxpath)):
-                    self.copied_node = deepcopy(self.treeview.get_node())
+                    self.copied_node = self.copy_node(node)
+                    logging.info("'%s' cut" % node.nxpath)
                     del node.nxgroup[node.nxname]
-                    logging.info("'%s' cut" % self.copied_node.nxpath)
             else:
                 raise NeXusError("Cannot cut an NXroot group")
         except NeXusError as error:
@@ -1687,11 +1694,11 @@ class MainWindow(QtWidgets.QMainWindow):
     def paste_data(self):
         try:
             node = self.treeview.get_node()
-            if node.nxfilemode == 'r':
+            if node.nxfilemode and node.nxfilemode == 'r':
                 raise NeXusError("NeXus file is locked")
             elif isinstance(node, NXgroup) and self.copied_node is not None:
                 if self.copied_node.nxname in node:
-            
+                    self.copied_node.nxname = self.copied_node.nxname + '_copy'
                 if node.nxfilemode != 'r':
                     node.insert(self.copied_node)
                     logging.info("'%s' pasted to '%s'"
