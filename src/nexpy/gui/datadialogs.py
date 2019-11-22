@@ -1918,8 +1918,11 @@ class ProjectionTab(NXTab):
     def save_projection(self):
         try:
             axes, limits = self.get_projection()
-            keep_data(self.plotview.data.project(axes, limits,
-                                                 summed=self.summed))
+            try:
+                keep_data(self.plotview.data.project(axes, limits,
+                                                     summed=self.summed))
+            except Exception as error:
+                raise NeXusError("Invalid projection limits")
         except NeXusError as error:
             report_error("Saving Projection", error)
 
@@ -1940,9 +1943,12 @@ class ProjectionTab(NXTab):
                 fmt = '-'
             else:
                 fmt = 'o'
-            projection.plot(self.plotview.data.project(axes, limits, 
-                                                      summed=self.summed),
-                           over=over, fmt=fmt)
+            try:
+                projection.plot(self.plotview.data.project(axes, limits, 
+                                                           summed=self.summed),
+                                over=over, fmt=fmt)
+            except Exception as error:
+                raise NeXusError("Invalid projection limits")
             if len(axes) == 1:
                 self.overplot_box.setVisible(True)
             else:
@@ -2746,8 +2752,11 @@ class ScanTab(NXTab):
         return axes, limits
 
     def get_scan(self):
-        axes, limits = self.get_projection()
-        data = self.plotview.data.project(axes, limits, summed=self.summed)
+        try:
+            axes, limits = self.get_projection()
+            data = self.plotview.data.project(axes, limits, summed=self.summed)
+        except Exception as error:
+            raise NeXusError("Invalid projection limits")
         data_signal = data.nxsignal
         data_axes = data.nxaxes
         scan_axis = self.scan_axis()
