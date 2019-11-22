@@ -2580,20 +2580,26 @@ class ScanTab(NXTab):
         return self.plotview.data.nxroot[self.scan_path]
 
     def scan_axis(self):
-        _variable = self.scan_variable
-        _axis = NXfield([self.files[f].value for f in self.files 
-                         if self.files[f].vary], 
-                        dtype=_variable.dtype, 
-                        name=_variable.nxname)
-        if 'long_name' in _variable.attrs:
-            _axis.attrs['long_name'] = _variable.attrs['long_name']
-        if 'units' in _variable.attrs:
-            _axis.attrs['units'] = _variable.attrs['units']
-        return _axis
+        try:
+            _variable = self.scan_variable
+            _axis = NXfield([self.files[f].value for f in self.files 
+                             if self.files[f].vary], 
+                            dtype=_variable.dtype, 
+                            name=_variable.nxname)
+            if 'long_name' in _variable.attrs:
+                _axis.attrs['long_name'] = _variable.attrs['long_name']
+            if 'units' in _variable.attrs:
+                _axis.attrs['units'] = _variable.attrs['units']
+            return _axis
+        except Exception as error:
+            raise NeXusError("Files not selected")
  
     def scan_files(self):
-        return [self.tree[self.files[f].name] for f in self.files 
-                if self.files[f].vary]
+        try:
+            return [self.tree[self.files[f].name] for f in self.files 
+                    if self.files[f].vary]
+        except Exception as error:
+            raise NeXusError("Files not selected")
 
     def select_files(self):
         if self.scan_path == '':
@@ -2745,53 +2751,56 @@ class ScanTab(NXTab):
         data_signal = data.nxsignal
         data_axes = data.nxaxes
         scan_axis = self.scan_axis()
-        self.scan_shape = [len(scan_axis)] + list(data_signal.shape)
-        self.scan_field = NXfield(shape=self.scan_shape, 
-                                  dtype=data_signal.dtype, 
-                                  name=data_signal.nxname)
+        scan_shape = [len(scan_axis)] + list(data_signal.shape)
+        scan_field = NXfield(shape=scan_shape, dtype=data_signal.dtype, 
+                             name=data_signal.nxname)
         for i, f in enumerate(self.scan_files()):
-            self.scan_field[i] = f[self.data_path].project(axes, limits, 
-                                                summed=self.summed).nxsignal
-        return NXdata(self.scan_field, (scan_axis, *data_axes))
+            scan_field[i] = f[self.data_path].project(axes, limits, 
+                                                   summed=self.summed).nxsignal
+        del data[data_signal.nxname]
+        data.nxsignal = scan_field
+        data.nxaxes = [scan_axis, *data_axes]
+        data.title = self.data_path
+        return data
 
     def save_scan(self):
         try:
             keep_data(self.get_scan())
         except NeXusError as error:
-            report_error("Scan Panel", error)
+            report_error("Saving Scan", error)
 
     def plot_scan(self):
         try:
-            if self.plot:
-                scan = self.plot
+            scan_data = self.get_scan()
+            if self.scanview:
+                scanview = self.scanview
             else:
                 from .plotview import NXPlotView
-                scan = NXPlotView('Scan')
+                scanview = NXPlotView('Scan')
                 self.overplot_box.setChecked(False)
             axes, limits = self.get_projection()
-            if len(axes) == 1 and self.overplot_box.isChecked():
+            if len(axes) == 0 and self.overplot_box.isChecked():
                 over = True
             else:
                 over = False
+            opts = {}
             if self.lines:
-                fmt = '-'
-            else:
-                fmt = 'o'
-
-            scan.plot(self.get_scan(), over=over, fmt=fmt)
+                opts['marker'] = 'None'
+                opts['linestyle'] = '-'
+            scanview.plot(scan_data, over=over, **opts)
             if len(axes) == 1:
                 self.overplot_box.setVisible(True)
             else:
                 self.overplot_box.setVisible(False)
                 self.overplot_box.setChecked(False)
-            scan.make_active()
-            scan.raise_()
+            scanview.make_active()
+            scanview.raise_()
             self.panel.update()
         except NeXusError as error:
             report_error("Plotting Scan", error)
 
     @property
-    def plot(self):
+    def scanview(self):
         if 'Scan' in self.plotviews:
             return self.plotviews['Scan']
         else:
@@ -2877,7 +2886,7 @@ class ScanTab(NXTab):
         self.block_signals(False)
         self.draw_rectangle()
         self.sort_copybox()
-        if self.plot and self.plot.ndim == 1 and self.yaxis == 'None':
+        if self.scanview and self.scanview.ndim == 1:
             self.overplot_box.setVisible(True)
         else:
             self.overplot_box.setVisible(False)
@@ -2909,6 +2918,7 @@ class ScanTab(NXTab):
     def close(self):
         if self._rectangle:
             self._rectangle.set_visible(False)
+        self.file_box.close()
         self.plotview.draw()
         for tab in [self.tabs[label] for label in self.tabs 
                     if self.tabs[label] is not self]:
