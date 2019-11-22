@@ -2226,7 +2226,7 @@ class NXPlotView(QtWidgets.QDialog):
             self.vtab.set_axis(self.vaxis)
             if self.tab_widget.indexOf(self.vtab) == -1:
                 self.tab_widget.insertTab(0,self.vtab,'signal')
-            if self.number < 101:
+            if self.label != 'Projection':
                 if self.tab_widget.indexOf(self.ptab) == -1:
                     self.tab_widget.insertTab(
                         self.tab_widget.indexOf(self.otab),
