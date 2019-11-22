@@ -801,9 +801,32 @@ class MainWindow(QtWidgets.QMainWindow):
             )
         self.add_menu_action(self.window_menu, self.log_action)
 
+        self.script_window_action=QtWidgets.QAction("Show Script Editor",
+            self,
+            shortcut=QtGui.QKeySequence("Ctrl+Shift+S"),
+            triggered=self.show_script_window
+            )
+        self.add_menu_action(self.window_menu, self.script_window_action)
+
+        self.window_menu.addSeparator()
+
+        self.customize_action=QtWidgets.QAction("Show Customize Panel",
+            self,
+            shortcut="Ctrl+Alt+C",
+            triggered=self.customize_plot
+            )
+        self.add_menu_action(self.window_menu, self.customize_action)
+
+        self.limit_action=QtWidgets.QAction("Show Limits Panel",
+            self,
+            shortcut="Ctrl+Alt+L",
+            triggered=self.limit_axes
+            )
+        self.add_menu_action(self.window_menu, self.limit_action)
+
         self.panel_action=QtWidgets.QAction("Show Projection Panel",
             self,
-            shortcut=QtGui.QKeySequence("Ctrl+Shift+P"),
+            shortcut=QtGui.QKeySequence("Ctrl+Alt+P"),
             triggered=self.show_projection_panel
             )
         self.add_menu_action(self.window_menu, self.panel_action)
@@ -815,21 +838,7 @@ class MainWindow(QtWidgets.QMainWindow):
             )
         self.add_menu_action(self.window_menu, self.scan_action)
 
-        self.script_window_action=QtWidgets.QAction("Show Script Editor",
-            self,
-            shortcut=QtGui.QKeySequence("Ctrl+Shift+S"),
-            triggered=self.show_script_window
-            )
-        self.add_menu_action(self.window_menu, self.script_window_action)
-
         self.window_menu.addSeparator()
-
-        self.limit_action=QtWidgets.QAction("Change Plot Limits",
-            self,
-            shortcut="Ctrl+Alt+L",
-            triggered=self.limit_axes
-            )
-        self.add_menu_action(self.window_menu, self.limit_action)
 
         self.reset_limit_action=QtWidgets.QAction("Reset Plot Limits",
             self,
@@ -837,13 +846,6 @@ class MainWindow(QtWidgets.QMainWindow):
             triggered=self.reset_axes
             )
         self.add_menu_action(self.window_menu, self.reset_limit_action)
-
-        self.customize_action=QtWidgets.QAction("Customize Plot",
-            self,
-            shortcut="Ctrl+Alt+C",
-            triggered=self.customize_plot
-            )
-        self.add_menu_action(self.window_menu, self.customize_action)
 
         self.preferences_action=QtWidgets.QAction("Edit Preferences",
             self,
