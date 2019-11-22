@@ -2225,8 +2225,8 @@ class NXPlotView(QtWidgets.QDialog):
         elif self.ndim >= 2:
             self.vtab.set_axis(self.vaxis)
             if self.tab_widget.indexOf(self.vtab) == -1:
-                self.tab_widget.insertTab(0,self.vtab,'signal')
-            if self.label != 'Projection':
+                self.tab_widget.insertTab(0, self.vtab, 'signal')
+            if self.number < 100:
                 if self.tab_widget.indexOf(self.ptab) == -1:
                     self.tab_widget.insertTab(
                         self.tab_widget.indexOf(self.otab),
@@ -2239,9 +2239,11 @@ class NXPlotView(QtWidgets.QDialog):
                 self.ztab.pause()
                 self.ztab.scalebox.setChecked(True)
                 if self.tab_widget.indexOf(self.ztab) == -1:
-                    self.tab_widget.insertTab(
-                        self.tab_widget.indexOf(self.ptab),
-                        self.ztab, 'z')
+                    if self.tab_widget.indexOf(self.ptab) == -1:
+                        idx = self.tab_widget.indexOf(self.otab)
+                    else:
+                        idx = self.tab_widget.indexOf(self.ptab)
+                    self.tab_widget.insertTab(idx, self.ztab, 'z')
             else:
                 self.tab_widget.removeTab(self.tab_widget.indexOf(self.ztab))
             self.xtab.logbox.setVisible(True)
