@@ -327,6 +327,7 @@ class NXTreeView(QtWidgets.QTreeView):
         self.mainwindow.add_action.setEnabled(False)
         self.mainwindow.initialize_action.setEnabled(False)
         self.mainwindow.copydata_action.setEnabled(False)
+        self.mainwindow.cutdata_action.setEnabled(False)
         self.mainwindow.pastedata_action.setEnabled(False)
         self.mainwindow.pastelink_action.setEnabled(False)
         self.mainwindow.delete_action.setEnabled(False)
@@ -363,6 +364,7 @@ class NXTreeView(QtWidgets.QTreeView):
                 self.mainwindow.delete_action.setEnabled(True)
         else:
             self.mainwindow.copydata_action.setEnabled(True)
+            self.mainwindow.cutdata_action.setEnabled(True)
             if isinstance(node, NXlink):
                 self.mainwindow.link_action.setEnabled(True)
             try:
