@@ -2606,7 +2606,8 @@ class ScanTab(NXTab):
         i = 0
         for name in sorted(self.tree, key=natural_sort):
             root = self.tree[name]
-            if self.scan_path in root:
+            if (self.scan_path in root and self.data_path in root and
+                root[self.data_path].nxsignal.exists()):
                 i += 1
                 self.files.add(name, root[self.scan_path], name, vary=True)
         self.file_box.set_layout(
