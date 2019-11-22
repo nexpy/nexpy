@@ -2518,8 +2518,7 @@ class ScanTab(NXTab):
         self.plot_button = NXPushButton("Plot", self.plot_scan, self)
         grid.addWidget(self.plot_button, row, 2)
         self.overplot_box = NXCheckBox()
-        if self.ndim > 1 or self.plot is None or self.plot.ndim > 1:
-            self.overplot_box.setVisible(False)
+        self.overplot_box.setVisible(False)
         grid.addWidget(self.overplot_box, row, 3,
                        alignment=QtCore.Qt.AlignHCenter)
 
@@ -2670,11 +2669,6 @@ class ScanTab(NXTab):
         elif self.ybox.selected != 'None' and self.xbox.selected == 'None':
             self.xbox.select(self.ybox.selected)
             self.ybox.select('None')
-        if self.plot and self.plot.ndim == 1 and self.yaxis == 'None':
-            self.overplot_box.setVisible(True)
-        else:
-            self.overplot_box.setChecked(False)
-            self.overplot_box.setVisible(False)
 
     def set_limits(self):
         self.block_signals(True)
@@ -2781,30 +2775,22 @@ class ScanTab(NXTab):
     def plot_scan(self):
         try:
             scan_data = self.get_scan()
-            if self.scanview:
-                scanview = self.scanview
-            else:
-                from .plotview import NXPlotView
-                scanview = NXPlotView('Scan')
-                self.overplot_box.setChecked(False)
             axes, limits = self.get_projection()
-            if len(axes) == 0 and self.overplot_box.isChecked():
-                over = True
+            over = False
+            if len(axes) == 0:
+                self.overplot_box.setVisible(True)
+                if self.overplot_box.isChecked():
+                    over = True
             else:
-                over = False
+                self.overplot_box.setVisible(False)
+                self.overplot_box.setChecked(False)
             opts = {}
             if self.lines:
                 opts['marker'] = 'None'
                 opts['linestyle'] = '-'
-            scanview.plot(scan_data, over=over, **opts)
-            if len(axes) == 1:
-                self.overplot_box.setVisible(True)
-            else:
-                self.overplot_box.setVisible(False)
-                self.overplot_box.setChecked(False)
-            scanview.make_active()
-            scanview.raise_()
-            self.panel.update()
+            self.scanview.plot(scan_data, over=over, **opts)
+            self.scanview.make_active()
+            self.scanview.raise_()
         except NeXusError as error:
             report_error("Plotting Scan", error)
 
@@ -2813,7 +2799,8 @@ class ScanTab(NXTab):
         if 'Scan' in self.plotviews:
             return self.plotviews['Scan']
         else:
-            return None
+            from .plotview import NXPlotView
+            return NXPlotView('Scan')
 
     def spinbox(self):
         spinbox = NXSpinBox()
@@ -2895,11 +2882,6 @@ class ScanTab(NXTab):
         self.block_signals(False)
         self.draw_rectangle()
         self.sort_copybox()
-        if self.scanview and self.scanview.ndim == 1:
-            self.overplot_box.setVisible(True)
-        else:
-            self.overplot_box.setVisible(False)
-            self.overplot_box.setChecked(False)
 
     def copy(self):
         self.block_signals(True)
@@ -2927,7 +2909,10 @@ class ScanTab(NXTab):
     def close(self):
         if self._rectangle:
             self._rectangle.set_visible(False)
-        self.file_box.close()
+        try:
+            self.file_box.close()
+        except Exception:
+            pass
         self.plotview.draw()
         for tab in [self.tabs[label] for label in self.tabs 
                     if self.tabs[label] is not self]:
