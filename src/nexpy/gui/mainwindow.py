@@ -1658,8 +1658,18 @@ class MainWindow(QtWidgets.QMainWindow):
         import tempfile
         self._memroot = nxload(tempfile.mkstemp(suffix='.nxs')[1], mode='w',
                                driver='core', backing_store=False)
-        self._memroot[node.nxname] = node
-        return self._memroot[node.nxname]
+        self._memroot['entry'] = NXentry()
+        self._memroot['entry'][node.nxname] = node
+        self._memroot['entry'].attrs['link'] = [node.nxname, node.nxpath, 
+                                                str(node.nxfilename)]
+        return self._memroot['entry'][node.nxname]
+
+    @property
+    def copied_link(self):
+        try:
+            return self._memroot['entry'].attrs['link']
+        except Exception:
+            return None
 
     def copy_data(self):
         try:
@@ -1711,9 +1721,15 @@ class MainWindow(QtWidgets.QMainWindow):
     def paste_link(self):
         try:
             node = self.treeview.get_node()
-            if isinstance(node, NXgroup) and self.copied_node is not None:
+            if isinstance(node, NXgroup) and self.copied_link is not None:
                 if node.nxfilemode != 'r':
-                    node.makelink(self.copied_node)
+                    _name, _target, _filename = self.copied_link
+                    if _name in node:
+                        _name = _name + '_copy'
+                    if _filename == 'None' or node.nxfilename == _filename:
+                        node[_name] = NXlink(_target)
+                    else:
+                        node[_name] = NXlink(_target, _filename)
                     logging.info("'%s' pasted as link to '%s'"
                                  % (self.copied_node.nxpath, node.nxpath))
                 else:
