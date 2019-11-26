@@ -2513,10 +2513,10 @@ class ScanTab(NXTab):
                            alignment=QtCore.Qt.AlignHCenter)
 
         row += 1
-        self.save_button = NXPushButton("Save", self.save_scan, self)
-        grid.addWidget(self.save_button, row, 1)
         self.plot_button = NXPushButton("Plot", self.plot_scan, self)
-        grid.addWidget(self.plot_button, row, 2)
+        grid.addWidget(self.plot_button, row, 1)
+        self.save_button = NXPushButton("Save", self.save_scan, self)
+        grid.addWidget(self.save_button, row, 2)
         self.overplot_box = NXCheckBox()
         self.overplot_box.setVisible(False)
         grid.addWidget(self.overplot_box, row, 3,
@@ -2766,15 +2766,9 @@ class ScanTab(NXTab):
         data.title = self.data_path
         return data
 
-    def save_scan(self):
-        try:
-            keep_data(self.get_scan())
-        except NeXusError as error:
-            report_error("Saving Scan", error)
-
     def plot_scan(self):
         try:
-            scan_data = self.get_scan()
+            self.scan_data = self.get_scan()
             axes, limits = self.get_projection()
             over = False
             if len(axes) == 0:
@@ -2788,11 +2782,21 @@ class ScanTab(NXTab):
             if self.lines:
                 opts['marker'] = 'None'
                 opts['linestyle'] = '-'
-            self.scanview.plot(scan_data, over=over, **opts)
+            self.scanview.plot(self.scan_data, over=over, **opts)
             self.scanview.make_active()
             self.scanview.raise_()
         except NeXusError as error:
             report_error("Plotting Scan", error)
+
+    def save_scan(self):
+        try:
+            if self.scan_data:
+                data = self.scan_data
+            else:
+                data = self.get_scan()
+            keep_data(data)
+        except NeXusError as error:
+            report_error("Saving Scan", error)
 
     @property
     def scanview(self):

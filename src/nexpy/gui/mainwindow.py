@@ -109,6 +109,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.editors = NXScriptWindow(self)
         self.editors.setVisible(False)
         self.log_window = None
+        self._memroot = None
 
         self.console = NXRichJupyterWidget(config=self.config, parent=rightpane)
         self.console.setMinimumSize(700, 100)
