@@ -1956,7 +1956,6 @@ class ProjectionTab(NXTab):
                 self.overplot_box.setChecked(False)
             projection.make_active()
             projection.raise_()
-            self.panel.update()
         except NeXusError as error:
             report_error("Plotting Projection", error)
 
