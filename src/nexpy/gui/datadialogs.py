@@ -1956,7 +1956,6 @@ class ProjectionTab(NXTab):
                 self.overplot_box.setChecked(False)
             projection.make_active()
             projection.raise_()
-            self.panel.update()
         except NeXusError as error:
             report_error("Plotting Projection", error)
 
@@ -2513,10 +2512,10 @@ class ScanTab(NXTab):
                            alignment=QtCore.Qt.AlignHCenter)
 
         row += 1
-        self.save_button = NXPushButton("Save", self.save_scan, self)
-        grid.addWidget(self.save_button, row, 1)
         self.plot_button = NXPushButton("Plot", self.plot_scan, self)
-        grid.addWidget(self.plot_button, row, 2)
+        grid.addWidget(self.plot_button, row, 1)
+        self.save_button = NXPushButton("Save", self.save_scan, self)
+        grid.addWidget(self.save_button, row, 2)
         self.overplot_box = NXCheckBox()
         self.overplot_box.setVisible(False)
         grid.addWidget(self.overplot_box, row, 3,
@@ -2766,15 +2765,9 @@ class ScanTab(NXTab):
         data.title = self.data_path
         return data
 
-    def save_scan(self):
-        try:
-            keep_data(self.get_scan())
-        except NeXusError as error:
-            report_error("Saving Scan", error)
-
     def plot_scan(self):
         try:
-            scan_data = self.get_scan()
+            self.scan_data = self.get_scan()
             axes, limits = self.get_projection()
             over = False
             if len(axes) == 0:
@@ -2788,11 +2781,21 @@ class ScanTab(NXTab):
             if self.lines:
                 opts['marker'] = 'None'
                 opts['linestyle'] = '-'
-            self.scanview.plot(scan_data, over=over, **opts)
+            self.scanview.plot(self.scan_data, over=over, **opts)
             self.scanview.make_active()
             self.scanview.raise_()
         except NeXusError as error:
             report_error("Plotting Scan", error)
+
+    def save_scan(self):
+        try:
+            if self.scan_data:
+                data = self.scan_data
+            else:
+                data = self.get_scan()
+            keep_data(data)
+        except NeXusError as error:
+            report_error("Saving Scan", error)
 
     @property
     def scanview(self):
@@ -3653,6 +3656,11 @@ class SignalDialog(NXDialog):
             self.signal_combo.setCurrentIndex(0)
         self.signal_combo.currentIndexChanged.connect(self.choose_signal)
 
+        try:
+            self.default_axes = [axis.nxname for axis in self.group.nxaxes]
+        except Exception:
+            self.default_axes = []
+
         self.grid = QtWidgets.QGridLayout()
         self.grid.setSpacing(10)
         self.grid.addWidget(NXLabel('Signal :'), 0, 0)
@@ -3689,29 +3697,31 @@ class SignalDialog(NXDialog):
             row += 1   
 
     def axis_box(self, axis=0):
-        box = NXComboBox()
+        box = NXComboBox(self.choose_axis)
+        axes = []
         for node in self.group.values():
-            if node is not self.signal and self.check_axis(node, axis):
-                box.addItem(node.nxname)
-        if box.count() == 0:
-            return None
-        if 'axes' in self.signal.attrs:
-            from nexusformat.nexus.tree import _readaxes
-            default_axis = _readaxes(self.signal.axes)[axis]
-        else:
-            axes = self.group.nxaxes
-            if axes is not None:
-                default_axis = self.group.nxaxes[axis].nxname
+            if isinstance(node, NXfield) and node is not self.signal:
+                if self.check_axis(node, axis):
+                    axes.append(node.nxname)
+                    box.addItem(node.nxname)
+        if box.count() > 0:
+            box.insertSeparator(0)
+        box.insertItem(0, 'None')
+        try:
+            if self.default_axes[axis] in axes:
+                box.setCurrentIndex(box.findText(self.default_axes[axis]))
             else:
-                default_axis = None
-        if default_axis:
-            try:
-                box.setCurrentIndex(box.findText(default_axis))
-            except Exception:
-                pass
-        else:
+                box.setCurrentIndex(0)
+        except Exception:
             box.setCurrentIndex(0)
         return box
+
+    def choose_axis(self):
+        axes = [self.axis_boxes[axis].currentText() 
+                for axis in range(self.ndim)]
+        axes = [axis_name for axis_name in axes if axis_name != 'None']
+        if len(set(axes)) < len(axes):
+            display_message("Cannot have duplicate axes")
 
     def remove_axis(self, axis):
         row = axis + 1
@@ -3736,23 +3746,19 @@ class SignalDialog(NXDialog):
         return False
 
     def get_axis(self, axis):
-        try:
-            return self.group[self.axis_boxes[axis].currentText()]
-        except Exception:
+        axis_name = self.axis_boxes[axis].currentText()
+        if axis_name == 'None':
             return None
+        else:
+            return self.group[axis_name]
 
     def get_axes(self):
         return [self.get_axis(axis) for axis in range(self.ndim)]
 
     def accept(self):
         try:
-            axes = self.get_axes()
-            if None in axes:
-                raise NeXusError("Unable to set axes")
-            if len(set([axis.nxname for axis in axes])) < len(axes):
-                raise NeXusError("Cannot have duplicate axes")
             self.group.nxsignal = self.signal
-            self.group.nxaxes = axes
+            self.group.nxaxes = self.get_axes()
             super(SignalDialog, self).accept()
         except NeXusError as error:
             report_error("Setting signal", error)

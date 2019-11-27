@@ -30,6 +30,7 @@ import re
 import sys
 import webbrowser
 import xml.etree.ElementTree as ET
+from copy import deepcopy
 from threading import Thread
 
 from .pyqt import QtCore, QtGui, QtWidgets, getOpenFileName, getSaveFileName
@@ -108,6 +109,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.editors = NXScriptWindow(self)
         self.editors.setVisible(False)
         self.log_window = None
+        self._memroot = None
 
         self.console = NXRichJupyterWidget(config=self.config, parent=rightpane)
         self.console.setMinimumSize(700, 100)
@@ -572,6 +574,13 @@ class MainWindow(QtWidgets.QMainWindow):
             )
         self.add_menu_action(self.data_menu, self.copydata_action)
 
+        self.cutdata_action=QtWidgets.QAction("Cut Data",
+            self,
+            shortcut=QtGui.QKeySequence("Ctrl+Shift+X"),
+            triggered=self.cut_data
+            )
+        self.add_menu_action(self.data_menu, self.cutdata_action)
+
         self.pastedata_action=QtWidgets.QAction("Paste Data",
             self,
             shortcut=QtGui.QKeySequence("Ctrl+Shift+V"),
@@ -588,7 +597,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.delete_action=QtWidgets.QAction("Delete Data",
             self,
-            shortcut=QtGui.QKeySequence("Ctrl+Shift+X"),
+            shortcut=QtGui.QKeySequence("Ctrl+Shift+Alt+X"),
             triggered=self.delete_data
             )
         self.add_menu_action(self.data_menu, self.delete_action)
@@ -1646,21 +1655,63 @@ class MainWindow(QtWidgets.QMainWindow):
         except NeXusError as error:
             report_error("Renaming Data", error)
 
+    def copy_node(self, node):
+        import tempfile
+        self._memroot = nxload(tempfile.mkstemp(suffix='.nxs')[1], mode='w',
+                               driver='core', backing_store=False)
+        self._memroot['entry'] = NXentry()
+        if isinstance(node, NXlink):
+            node = node.nxlink
+        self._memroot['entry'][node.nxname] = node
+        self._memroot['entry'].attrs['link'] = [node.nxname, node.nxpath, 
+                                                str(node.nxfilename)]
+        return self._memroot['entry'][node.nxname]
+
+    @property
+    def copied_link(self):
+        try:
+            return self._memroot['entry'].attrs['link']
+        except Exception:
+            return None
+
     def copy_data(self):
         try:
             node = self.treeview.get_node()
             if not isinstance(node, NXroot):
-                self.copied_node = self.treeview.get_node()
-                logging.info("'%s' copied" % self.copied_node.nxpath)
+                self.copied_node = self.copy_node(node)
+                logging.info("'%s' copied" % node.nxpath)
             else:
                 raise NeXusError("Use 'Duplicate File' to copy an NXroot group")
         except NeXusError as error:
             report_error("Copying Data", error)
 
+    def cut_data(self):
+        try:
+            node = self.treeview.get_node()
+            if isinstance(node, NXroot):
+                raise NeXusError("Cannot cut an NXroot group")
+            elif node.nxgroup.is_external():
+                raise NeXusError(
+                    "Cannot cut object in an externally linked group")
+            elif node.nxgroup.nxfilemode and node.nxgroup.nxfilemode == 'r':
+                raise NeXusError("NeXus file is locked")
+            else:
+                if confirm_action("Are you sure you want to cut '%s'?"
+                                  % (node.nxroot.nxname+node.nxpath)):
+                    self.copied_node = self.copy_node(node)
+                    logging.info("'%s' cut" % node.nxpath)
+                    del node.nxgroup[node.nxname]
+        except NeXusError as error:
+            report_error("Cutting Data", error)
+
     def paste_data(self):
         try:
             node = self.treeview.get_node()
-            if isinstance(node, NXgroup) and self.copied_node is not None:
+            if node.nxfilemode and node.nxfilemode == 'r':
+                raise NeXusError("NeXus file is locked")
+            elif isinstance(node, NXgroup) and self.copied_node is not None:
+                if self.copied_node.nxname in node:
+                    self.copied_node.nxname = self.copied_node.nxname + '_copy'
                 if node.nxfilemode != 'r':
                     node.insert(self.copied_node)
                     logging.info("'%s' pasted to '%s'"
@@ -1673,9 +1724,15 @@ class MainWindow(QtWidgets.QMainWindow):
     def paste_link(self):
         try:
             node = self.treeview.get_node()
-            if isinstance(node, NXgroup) and self.copied_node is not None:
+            if isinstance(node, NXgroup) and self.copied_link is not None:
                 if node.nxfilemode != 'r':
-                    node.makelink(self.copied_node)
+                    _name, _target, _filename = self.copied_link
+                    if _name in node:
+                        _name = _name + '_copy'
+                    if _filename == 'None' or node.nxfilename == _filename:
+                        node[_name] = NXlink(_target)
+                    else:
+                        node[_name] = NXlink(_target, _filename)
                     logging.info("'%s' pasted as link to '%s'"
                                  % (self.copied_node.nxpath, node.nxpath))
                 else:
@@ -1686,18 +1743,17 @@ class MainWindow(QtWidgets.QMainWindow):
     def delete_data(self):
         try:
             node = self.treeview.get_node()
-            if node is not None:
-                if node.nxfilemode != 'r':
-                    if confirm_action("Are you sure you want to delete '%s'?"
-                                      % (node.nxroot.nxname+node.nxpath)):
-                        del node.nxgroup[node.nxname]
-                        logging.info("'%s' deleted" % 
-                                     (node.nxroot.nxname+node.nxpath))
-                elif node.is_external():
-                    raise NeXusError(
-                        "Cannot delete object in an externally linked group")
-                else:
-                    raise NeXusError("NeXus file is locked")
+            if isinstance(node, NXroot) and node.nxfilemode:
+                raise NeXusError("Cannot delete a NeXus file")
+            elif node.nxgroup.is_external():
+                raise NeXusError(
+                    "Cannot delete object in an externally linked group")
+            elif node.nxgroup.nxfilemode and node.nxgroup.nxfilemode == 'r':
+                raise NeXusError("NeXus file is locked")
+            elif confirm_action("Are you sure you want to delete '%s'?"
+                                % (node.nxroot.nxname+node.nxpath)):
+                del node.nxgroup[node.nxname]
+                logging.info("'%s' deleted" % (node.nxroot.nxname+node.nxpath))
         except NeXusError as error:
             report_error("Deleting Data", error)
 
