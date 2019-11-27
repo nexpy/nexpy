@@ -1733,8 +1733,8 @@ class ProjectionTab(NXTab):
         self.lockbox = {}
         for axis in range(self.ndim):
             row += 1
-            self.minbox[axis] = self.spinbox()
-            self.maxbox[axis] = self.spinbox()
+            self.minbox[axis] = NXSpinBox(self.set_limits)
+            self.maxbox[axis] = NXSpinBox(self.set_limits)
             self.lockbox[axis] = NXCheckBox(slot=self.set_lock)
             grid.addWidget(self.label(self.plotview.axis[axis].name), row, 0)
             grid.addWidget(self.minbox[axis], row, 1)
@@ -1767,9 +1767,7 @@ class ProjectionTab(NXTab):
         self.checkbox["hide"].stateChanged.connect(self.hide_rectangle)
 
         self.initialize()
-
         self._rectangle = None
-
         self.xbox.setFocus()
 
     def __repr__(self):
@@ -1984,15 +1982,6 @@ class ProjectionTab(NXTab):
         except NeXusError as error:
             report_error("Masking Data", error)
 
-    def spinbox(self):
-        spinbox = NXSpinBox()
-        spinbox.setAlignment(QtCore.Qt.AlignRight)
-        spinbox.setFixedWidth(100)
-        spinbox.setKeyboardTracking(False)
-        spinbox.setAccelerated(True)
-        spinbox.valueChanged[six.text_type].connect(self.set_limits)
-        return spinbox
-
     def block_signals(self, block=True):
         for axis in range(self.ndim):
             self.minbox[axis].blockSignals(block)
@@ -2159,8 +2148,8 @@ class LimitTab(NXTab):
         self.lockbox = {}
         for axis in range(self.ndim):
             row += 1
-            self.minbox[axis] = self.spinbox()
-            self.maxbox[axis] = self.spinbox()
+            self.minbox[axis] = NXSpinBox(self.set_limits)
+            self.maxbox[axis] = NXSpinBox(self.set_limits)
             self.lockbox[axis] = NXCheckBox(slot=self.set_lock)
             grid.addWidget(self.label(self.plotview.axis[axis].name), row, 0)
             grid.addWidget(self.minbox[axis], row, 1)
@@ -2299,15 +2288,6 @@ class LimitTab(NXTab):
             else:
                 self.minbox[axis].diff = self.maxbox[axis].diff = None
                 self.minbox[axis].setDisabled(False)
-
-    def spinbox(self):
-        spinbox = NXSpinBox()
-        spinbox.setAlignment(QtCore.Qt.AlignRight)
-        spinbox.setFixedWidth(100)
-        spinbox.setKeyboardTracking(False)
-        spinbox.setAccelerated(True)
-        spinbox.valueChanged[six.text_type].connect(self.set_limits)
-        return spinbox
 
     def block_signals(self, block=True):
         for axis in range(self.ndim):
@@ -2502,8 +2482,8 @@ class ScanTab(NXTab):
         self.lockbox = {}
         for axis in range(self.ndim):
             row += 1
-            self.minbox[axis] = self.spinbox()
-            self.maxbox[axis] = self.spinbox()
+            self.minbox[axis] = NXSpinBox(self.set_limits)
+            self.maxbox[axis] = NXSpinBox(self.set_limits)
             self.lockbox[axis] = NXCheckBox(slot=self.set_lock)
             grid.addWidget(self.label(self.plotview.axis[axis].name), row, 0)
             grid.addWidget(self.minbox[axis], row, 1)
@@ -2804,15 +2784,6 @@ class ScanTab(NXTab):
         else:
             from .plotview import NXPlotView
             return NXPlotView('Scan')
-
-    def spinbox(self):
-        spinbox = NXSpinBox()
-        spinbox.setAlignment(QtCore.Qt.AlignRight)
-        spinbox.setFixedWidth(100)
-        spinbox.setKeyboardTracking(False)
-        spinbox.setAccelerated(True)
-        spinbox.valueChanged[six.text_type].connect(self.set_limits)
-        return spinbox
 
     def block_signals(self, block=True):
         for axis in range(self.ndim):

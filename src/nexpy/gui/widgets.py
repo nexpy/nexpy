@@ -433,7 +433,9 @@ class NXSpinBox(QtWidgets.QSpinBox):
 
     Parameters
     ----------
-    data : array-like
+    slot : function
+        PyQt slot triggered by changing values  
+    data : array-like, optional
         Values of data to be adjusted by the spin box.
 
     Attributes
@@ -450,20 +452,20 @@ class NXSpinBox(QtWidgets.QSpinBox):
     pause : bool
         Used when playing a movie with changing z-values.
     """
-    def __init__(self, data=None):
-        """Initialize the spin box
-        
-        Parameters
-        ----------
-        data : array-like, optional
-            The data to be set by the spin box.   
-        """
+    def __init__(self, slot=None, data=None):
         super(NXSpinBox, self).__init__()
         self.data = data
         self.validator = QtGui.QDoubleValidator()
         self.old_value = None
         self.diff = None
         self.pause = False
+        if slot:
+            self.valueChanged[six.text_type].connect(slot)
+
+        self.setAlignment(QtCore.Qt.AlignRight)
+        self.setFixedWidth(100)
+        self.setKeyboardTracking(False)
+        self.setAccelerated(False)
 
     def value(self):
         """Return the value of the spin box.
@@ -579,14 +581,36 @@ class NXSpinBox(QtWidgets.QSpinBox):
 
 
 class NXDoubleSpinBox(QtWidgets.QDoubleSpinBox):
+    """Subclass of QDoubleSpinBox.
 
-    def __init__(self, data=None):
+    Parameters
+    ----------
+    slot : function
+        PyQt slot triggered by changing values  
+
+    Attributes
+    ----------
+    validator : QDoubleValidator
+        Function to ensure only floating point values are entered.
+    old_value : float
+        Previously stored value.
+    diff : float
+        Difference between maximum and minimum values when the box is
+        locked.
+    """
+    def __init__(self, slot=None):
         super(NXDoubleSpinBox, self).__init__()
         self.validator = QtGui.QDoubleValidator()
         self.validator.setRange(-np.inf, np.inf)
         self.validator.setDecimals(1000)
         self.old_value = None
         self.diff = None
+        if slot:
+            self.valueChanged[six.text_type].connect(slot)    
+
+        self.setAlignment(QtCore.Qt.AlignRight)
+        self.setFixedWidth(100)
+        self.setKeyboardTracking(False)
 
     def validate(self, input_value, position):
         return self.validator.validate(input_value, position)
@@ -615,6 +639,31 @@ class NXDoubleSpinBox(QtWidgets.QDoubleSpinBox):
         elif value < self.minimum():
             self.setMinimum(value)
         super(NXDoubleSpinBox, self).setValue(value)
+
+
+class NXSlider(QtWidgets.QSlider):
+    """Subclass of QSlider.
+
+    Parameters
+    ----------
+    slot : function
+        PyQt slot triggered by changing values
+    move : bool
+        True if the slot is triggered by moving the slider. Otherwise, 
+        it is only triggered on release.
+    """
+    def __init__(self, slot=None, move=True):
+        super(NXSlider, self).__init__(QtCore.Qt.Horizontal)
+        self.setFocusPolicy(QtCore.Qt.NoFocus)
+        self.setMinimumWidth(100)
+        self.setRange(0, 1000)
+        self.setSingleStep(5)
+        self.setValue(0)
+        self.setTracking(True)
+        if slot:
+            self.sliderReleased.connect(slot)
+            if move:    
+                self.sliderMoved.connect(slot)
 
 
 class NXpatch(object):
