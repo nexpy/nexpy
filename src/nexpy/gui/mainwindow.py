@@ -1660,6 +1660,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self._memroot = nxload(tempfile.mkstemp(suffix='.nxs')[1], mode='w',
                                driver='core', backing_store=False)
         self._memroot['entry'] = NXentry()
+        if isinstance(node, NXlink):
+            node = node.nxlink
         self._memroot['entry'][node.nxname] = node
         self._memroot['entry'].attrs['link'] = [node.nxname, node.nxpath, 
                                                 str(node.nxfilename)]
