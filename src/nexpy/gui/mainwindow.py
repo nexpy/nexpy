@@ -1743,8 +1743,8 @@ class MainWindow(QtWidgets.QMainWindow):
     def delete_data(self):
         try:
             node = self.treeview.get_node()
-            if isinstance(node, NXroot):
-                raise NeXusError("Cannot delete an NXroot group")
+            if isinstance(node, NXroot) and node.nxfilemode:
+                raise NeXusError("Cannot delete a NeXus file")
             elif node.nxgroup.is_external():
                 raise NeXusError(
                     "Cannot delete object in an externally linked group")
