@@ -1686,19 +1686,19 @@ class MainWindow(QtWidgets.QMainWindow):
     def cut_data(self):
         try:
             node = self.treeview.get_node()
-            if node.nxfilemode and node.nxfilemode == 'r':
-                raise NeXusError("NeXus file is locked")
-            elif node.is_external():
+            if isinstance(node, NXroot):
+                raise NeXusError("Cannot cut an NXroot group")
+            elif node.nxgroup.is_external():
                 raise NeXusError(
                     "Cannot cut object in an externally linked group")
-            if not isinstance(node, NXroot):
+            elif node.nxgroup.nxfilemode and node.nxgroup.nxfilemode == 'r':
+                raise NeXusError("NeXus file is locked")
+            else:
                 if confirm_action("Are you sure you want to cut '%s'?"
                                   % (node.nxroot.nxname+node.nxpath)):
                     self.copied_node = self.copy_node(node)
                     logging.info("'%s' cut" % node.nxpath)
                     del node.nxgroup[node.nxname]
-            else:
-                raise NeXusError("Cannot cut an NXroot group")
         except NeXusError as error:
             report_error("Cutting Data", error)
 
@@ -1741,18 +1741,17 @@ class MainWindow(QtWidgets.QMainWindow):
     def delete_data(self):
         try:
             node = self.treeview.get_node()
-            if node is not None:
-                if node.nxfilemode != 'r':
-                    if confirm_action("Are you sure you want to delete '%s'?"
-                                      % (node.nxroot.nxname+node.nxpath)):
-                        del node.nxgroup[node.nxname]
-                        logging.info("'%s' deleted" % 
-                                     (node.nxroot.nxname+node.nxpath))
-                elif node.is_external():
-                    raise NeXusError(
-                        "Cannot delete object in an externally linked group")
-                else:
-                    raise NeXusError("NeXus file is locked")
+            if isinstance(node, NXroot):
+                raise NeXusError("Cannot delete an NXroot group")
+            elif node.nxgroup.is_external():
+                raise NeXusError(
+                    "Cannot delete object in an externally linked group")
+            elif node.nxgroup.nxfilemode and node.nxgroup.nxfilemode == 'r':
+                raise NeXusError("NeXus file is locked")
+            elif confirm_action("Are you sure you want to delete '%s'?"
+                                % (node.nxroot.nxname+node.nxpath)):
+                del node.nxgroup[node.nxname]
+                logging.info("'%s' deleted" % (node.nxroot.nxname+node.nxpath))
         except NeXusError as error:
             report_error("Deleting Data", error)
 
