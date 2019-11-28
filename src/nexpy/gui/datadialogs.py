@@ -2829,7 +2829,7 @@ class ScanTab(NXTab):
             self._rectangle = NXpolygon(self.get_rectangle(), closed=True).shape
             self._rectangle.set_edgecolor(self.plotview._gridcolor)
             self._rectangle.set_facecolor('none')
-            self._rectangle.set_linestyle('dashed')
+            self._rectangle.set_linestyle('dotted')
             self._rectangle.set_linewidth(2)
         return self._rectangle
 
