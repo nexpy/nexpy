@@ -2633,6 +2633,7 @@ class ScanTab(NXTab):
         self.file_box = NXDialog()
         self.file_box.setWindowTitle('Select Files')
         self.file_box.setMinimumWidth(300)
+        scroll_area = QtWidgets.QScrollArea()
         self.files = GridParameters()
         i = 0
         for name in sorted(self.tree, key=natural_sort):
@@ -2641,9 +2642,12 @@ class ScanTab(NXTab):
                 root[self.data_path].nxsignal.exists()):
                 i += 1
                 self.files.add(name, root[self.scan_path], name, vary=True)
-        self.file_box.set_layout(
-            self.files.grid(header=('File', self.scan_variable.nxname, '')),
-            self.file_box.close_layout(close=True))
+        scroll_widget = NXWidget()
+        scroll_widget.set_layout(
+            self.files.grid(header=('File', self.scan_variable.nxname, '')))
+        scroll_area.setWidget(scroll_widget)
+        self.file_box.set_layout(scroll_area, 
+                                 self.file_box.close_layout(close=True))
         self.file_box.show()
 
     def get_axes(self):
