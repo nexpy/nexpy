@@ -2109,8 +2109,16 @@ class ProjectionTab(NXTab):
     def reset(self):
         self.block_signals(True)
         for axis in range(self.ndim):
-            self.minbox[axis].setValue(self.minbox[axis].data.min())
-            self.maxbox[axis].setValue(self.maxbox[axis].data.max())
+            if (self.plotview.axis[axis] is self.plotview.xaxis or 
+                   self.plotview.axis[axis] is self.plotview.yaxis):
+                self.minbox[axis].setValue(self.minbox[axis].data.min())
+                self.maxbox[axis].setValue(self.maxbox[axis].data.max())
+            else:
+                lo, hi = self.plotview.axis[axis].get_limits()
+                minbox, maxbox = self.minbox[axis], self.maxbox[axis]
+                ilo, ihi = minbox.indexFromValue(lo), maxbox.indexFromValue(hi)
+                minbox.setValue(minbox.valueFromIndex(ilo))
+                maxbox.setValue(maxbox.valueFromIndex(ihi))
         self.block_signals(False)
         self.update()
 
@@ -2902,8 +2910,16 @@ class ScanTab(NXTab):
     def reset(self):
         self.block_signals(True)
         for axis in range(self.ndim):
-            self.minbox[axis].setValue(self.minbox[axis].data.min())
-            self.maxbox[axis].setValue(self.maxbox[axis].data.max())
+            if (self.plotview.axis[axis] is self.plotview.xaxis or 
+                   self.plotview.axis[axis] is self.plotview.yaxis):
+                self.minbox[axis].setValue(self.minbox[axis].data.min())
+                self.maxbox[axis].setValue(self.maxbox[axis].data.max())
+            else:
+                lo, hi = self.plotview.axis[axis].get_limits()
+                minbox, maxbox = self.minbox[axis], self.maxbox[axis]
+                ilo, ihi = minbox.indexFromValue(lo), maxbox.indexFromValue(hi)
+                minbox.setValue(minbox.valueFromIndex(ilo))
+                maxbox.setValue(maxbox.valueFromIndex(ihi))
         self.block_signals(False)
         self.update()
 
