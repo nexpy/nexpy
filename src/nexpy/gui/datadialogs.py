@@ -36,10 +36,11 @@ try:
 except ImportError:
     from ordereddict import OrderedDict
 
-from .utils import (confirm_action, display_message, report_error,
+from .utils import (confirm_action, display_message, report_error, 
                     import_plugin, convertHTML, natural_sort, wrap, human_size,
                     timestamp, format_timestamp, restore_timestamp, get_color,
-                    keep_data, fix_projection, modification_time)
+                    keep_data, fix_projection, modification_time,
+                    is_file_locked)
 from .widgets import (NXCheckBox, NXComboBox, NXColorBox, NXPushButton, 
                       NXLabel, NXLineEdit, NXStack, NXDoubleSpinBox, NXSpinBox, 
                       NXpolygon)
@@ -327,7 +328,7 @@ class NXWidget(QtWidgets.QWidget):
         if os.path.exists(suggestion):
             if not os.path.isdir(suggestion):
                 suggestion = os.path.dirname(suggestion)
-            self.default_directory = suggestion
+            self.mainwindow.default_directory = self.default_directory = suggestion
 
     def get_filesindirectory(self, prefix='', extension='.*', directory=None):
         """
@@ -1175,6 +1176,41 @@ class NewDialog(NXDialog):
         super(NewDialog, self).accept()
 
 
+class DirectoryDialog(NXDialog):
+    """Dialog to select files in a directory to be opened."""
+
+    def __init__(self, files, directory=None, parent=None):
+
+        super(DirectoryDialog, self).__init__(parent)
+
+        self.directory = directory
+        grid = QtWidgets.QGridLayout()
+        items = []
+        for i, f in enumerate(files):
+            self.checkbox[f] = NXCheckBox(checked=True)
+            grid.addWidget(NXLabel(f), i, 0)
+            grid.addWidget(self.checkbox[f], i, 1)
+        self.set_layout(self.make_layout(grid), self.close_layout())
+
+    @property
+    def files(self):
+        return [f for f in self.checkbox if self.checkbox[f].isChecked()]
+
+    def accept(self):
+        for f in self.files:
+            fname = os.path.join(self.directory, f)
+            if is_file_locked(fname, wait=1):
+                continue
+            name = self.tree.get_name(fname)
+            self.tree[name] = nxload(fname)
+        self.treeview.select_node(self.tree[name])
+        self.treeview.setFocus()
+        self.set_default_directory(os.path.dirname(fname))
+        logging.info("%s NeXus files opened from %s" 
+                      % (len(self.files), self.directory))
+        super(DirectoryDialog, self).accept()
+
+ 
 class PlotDialog(NXDialog):
     """Dialog to plot arbitrary NeXus data in one or two dimensions"""
  
@@ -1222,6 +1258,7 @@ class PlotDialog(NXDialog):
         self.setLayout(self.layout)
 
         self.setWindowTitle("Plot NeXus Data")
+
 
     @property
     def signal(self):
@@ -1372,7 +1409,7 @@ class ExportDialog(NXDialog):
         fname = getSaveFileName(self, "Choose a Filename", 
                                 self.data.nxname+'.txt')
         if fname:
-            self.default_directory = os.path.dirname(fname)
+            self.set_default_directory(os.path.dirname(fname))
         else:
             return
 

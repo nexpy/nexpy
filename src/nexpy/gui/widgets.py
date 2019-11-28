@@ -247,7 +247,7 @@ class NXCheckBox(QtWidgets.QCheckBox):
         Parameters
         ----------
         label : str, optional
-            Text describing the checkbox
+            Text describing the checkbox.
         slot : func, optional
             Function to be called when the checkbox state is changed.
         checked : bool, optional

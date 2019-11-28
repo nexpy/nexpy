@@ -1132,19 +1132,8 @@ class MainWindow(QtWidgets.QMainWindow):
                              key=natural_sort)
             if len(nxfiles) == 0:
                 raise NeXusError("No NeXus files found in directory")
-            if confirm_action("Open %s NeXus files" % len(nxfiles),
-                              '\n'.join(nxfiles)):
-                for nxfile in nxfiles:
-                    fname = os.path.join(directory, nxfile)
-                    if is_file_locked(fname, wait=1):
-                        continue
-                    name = self.tree.get_name(fname)
-                    self.tree[name] = nxload(fname)
-                self.treeview.select_node(self.tree[name])
-                self.treeview.setFocus()
-                self.default_directory = os.path.dirname(fname)
-                logging.info(
-                    "%s NeXus files opened from %s" % (len(nxfiles), directory))
+            dialog = DirectoryDialog(nxfiles, directory)
+            dialog.show()
         except NeXusError as error:
             report_error("Opening Directory", error)
 
