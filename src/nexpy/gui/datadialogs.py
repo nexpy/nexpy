@@ -2548,7 +2548,10 @@ class ScanTab(NXTab):
                                         ("lines", "Plot Lines", False),
                                         ("hide", "Hide Limits", False)),
                         self.copy_layout("Copy Limits"))
-        self.checkbox["hide"].stateChanged.connect(self.hide_rectangle)
+        if self.ndim == 1:
+            self.checkbox["hide"].setVisible(False)
+        else:
+            self.checkbox["hide"].stateChanged.connect(self.hide_rectangle)
 
         self.initialize()
         self._rectangle = None
@@ -2852,8 +2855,9 @@ class ScanTab(NXTab):
             return xy
 
     def draw_rectangle(self):
-        self.rectangle.set_xy(self.get_rectangle())
-        self.plotview.draw()
+        if self.ndim > 1:
+            self.rectangle.set_xy(self.get_rectangle())
+            self.plotview.draw()
 
     def rectangle_visible(self):
         return not self.checkbox["hide"].isChecked()

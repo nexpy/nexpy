@@ -2140,7 +2140,7 @@ class MainWindow(QtWidgets.QMainWindow):
             report_error("Showing Projection Panel", error)
 
     def show_scan_panel(self):
-        if self.plotview.label == 'Projection' or self.plotview.ndim == 1:
+        if self.plotview.label == 'Projection':
             return
         try:
             if 'scan' not in self.panels:
