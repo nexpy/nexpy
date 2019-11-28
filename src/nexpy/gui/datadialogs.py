@@ -592,6 +592,7 @@ class NXDialog(QtWidgets.QDialog, NXWidget):
     def __init__(self, parent=None, default=False):
         QtWidgets.QDialog.__init__(self, parent)
         NXWidget.__init__(self, parent)
+        self.setSizeGripEnabled(True)
         self.mainwindow.current_dialog = self
         if not default:
             self.installEventFilter(self)
@@ -1221,8 +1222,6 @@ class PlotDialog(NXDialog):
         self.setLayout(self.layout)
 
         self.setWindowTitle("Plot NeXus Data")
-
-
 
     @property
     def signal(self):
