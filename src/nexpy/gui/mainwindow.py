@@ -1466,6 +1466,10 @@ class MainWindow(QtWidgets.QMainWindow):
                 elif node.is_plottable():
                     dialog = PlotDialog(node, parent=self)
                     dialog.show()
+                elif (isinstance(node, NXfield) and 
+                      node.size == 1 and not node.is_string()):
+                    dialog = PlotScalarDialog(node, parent=self)
+                    dialog.show()
                 else:
                     raise NeXusError("Data not plottable")
         except NeXusError as error:

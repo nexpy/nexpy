@@ -1374,6 +1374,127 @@ class PlotDialog(NXDialog):
             report_error("Plotting data", error)
 
     
+class PlotScalarDialog(NXDialog):
+    """Dialog to plot scalar values against values in another tree."""
+ 
+    def __init__(self, node, parent=None, **kwargs):
+
+        super(PlotScalarDialog, self).__init__(parent)
+ 
+        if isinstance(node, NXfield):
+            self.node = node
+            self.group = node.nxgroup
+        
+        self.signal_combo =  NXComboBox()
+        signals = [s for s in self.group if self.group[s].size == 1 and 
+                                            not self.group[s].is_string()]
+        if len(signals) == 0:
+            raise NeXusError("No numeric scalars in group")
+        self.signal_combo.add(*signals)
+        if node.nxname in self.signal_combo:
+            self.signal_combo.select(node.nxname)
+
+        self.set_layout(self.make_layout(self.signal_combo), 
+                        self.textboxes(('Scan', '')), 
+                        self.action_buttons(('Select Scan', self.select_scan),
+                                            ('Select Files', self.select_files)),
+                        self.checkboxes(('lines', 'Plot Lines', False),
+                                        ('over', 'Plot Over', False)),
+                        self.action_buttons(('Plot', self.plot_scan),
+                                            ('Save', self.save_scan)),
+                        self.close_layout())
+
+        self.setWindowTitle("Plot NeXus Field")
+
+        self.kwargs = kwargs
+
+    def select_scan(self):
+        scan_axis = self.treeview.node
+        if not isinstance(scan_axis, NXfield):
+            display_message("Scan Panel", "Scan axis must be a NXfield")
+        elif scan_axis.shape != () and scan_axis.shape != (1,):
+            display_message("Scan Panel", "Scan axis must be a scalar")
+        else:
+            self.textbox['Scan'].setText(self.treeview.node.nxpath)
+
+    def select_files(self):
+        if self.scan_path == '':
+            display_message('Scan Panel', 'No scan axis selected')
+            return
+        self.file_box = NXDialog()
+        self.file_box.setWindowTitle('Select Files')
+        self.file_box.setMinimumWidth(300)
+        scroll_area = QtWidgets.QScrollArea()
+        self.files = GridParameters()
+        i = 0
+        for name in sorted(self.tree, key=natural_sort):
+            root = self.tree[name]
+            if self.scan_path in root and self.data_path in root:
+                i += 1
+                self.files.add(name, root[self.scan_path], name, vary=True)
+        scroll_widget = NXWidget()
+        scroll_widget.set_layout(
+            self.files.grid(header=('File', self.scan_variable.nxname, '')))
+        scroll_area.setWidget(scroll_widget)
+        self.file_box.set_layout(scroll_area, 
+                                 self.file_box.close_layout(close=True))
+        self.file_box.show()
+
+    @property
+    def data_path(self):
+        return self.group[self.signal_combo.selected].nxpath
+
+    @property
+    def scan_path(self):
+        return self.textbox['Scan'].text()
+
+    @property
+    def scan_variable(self):
+        return self.group.nxroot[self.scan_path]
+
+    def scan_axis(self):
+        try:
+            _variable = self.scan_variable
+            _axis = NXfield([self.files[f].value for f in self.files 
+                             if self.files[f].vary], 
+                            dtype=_variable.dtype, 
+                            name=_variable.nxname)
+            if 'long_name' in _variable.attrs:
+                _axis.attrs['long_name'] = _variable.attrs['long_name']
+            if 'units' in _variable.attrs:
+                _axis.attrs['units'] = _variable.attrs['units']
+            return _axis
+        except Exception as error:
+            raise NeXusError("Files not selected")
+ 
+    def scan_files(self):
+        try:
+            return [self.tree[self.files[f].name] for f in self.files 
+                    if self.files[f].vary]
+        except Exception as error:
+            raise NeXusError("Files not selected")
+
+    def get_scan(self):
+        signal = self.group[self.data_path]
+        axis = self.scan_axis()
+        shape = [len(axis)]
+        field = NXfield(shape=shape, dtype=signal.dtype, name=signal.nxname)
+        for i, f in enumerate(self.scan_files()):
+            field[i] = f[self.data_path]
+        return NXdata(field, axis, title=self.data_path)
+
+    def plot_scan(self):
+        opts = {}
+        if self.checkbox['lines'].isChecked():
+            opts['marker'] = 'None'
+            opts['linestyle'] = '-'
+        opts['over'] = self.checkbox['over'].isChecked()
+        self.get_scan().plot(**opts)
+
+    def save_scan(self):
+        keep_data(self.get_scan())
+
+    
 class ExportDialog(NXDialog):
 
     def __init__(self, node, parent=None):
