@@ -2082,9 +2082,6 @@ class ProjectionTab(NXTab):
                     minbox.setValue(minbox.valueFromIndex(ilo))
                 if  hi < maxbox.value():
                     maxbox.setValue(maxbox.valueFromIndex(ihi))
-            else:
-                minbox.setValue(minbox.valueFromIndex(ilo))
-                maxbox.setValue(maxbox.valueFromIndex(ihi))
         self.block_signals(False)
         self.draw_rectangle()
         self.sort_copybox()
@@ -2883,9 +2880,6 @@ class ScanTab(NXTab):
                     minbox.setValue(minbox.valueFromIndex(ilo))
                 if  hi < maxbox.value():
                     maxbox.setValue(maxbox.valueFromIndex(ihi))
-            else:
-                minbox.setValue(minbox.valueFromIndex(ilo))
-                maxbox.setValue(maxbox.valueFromIndex(ihi))
         self.block_signals(False)
         self.draw_rectangle()
         self.sort_copybox()
