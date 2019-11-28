@@ -724,6 +724,7 @@ class NXPlotView(QtWidgets.QDialog):
 
         if over:
             self.update_tabs()
+            self.update_panels()
         else:
             self.init_tabs()
 
@@ -1055,6 +1056,8 @@ class NXPlotView(QtWidgets.QDialog):
         p['linestyle'] = p['plot'].get_linestyle()
         p['linewidth'] = p['plot'].get_linewidth()
         p['zorder'] = p['plot'].get_zorder()
+        p['scale'] = 1.0
+        p['offset'] = 0.0
         try:
             p['smooth_function'] = interp1d(self.x, self.y, kind='cubic')
         except Exception as error:

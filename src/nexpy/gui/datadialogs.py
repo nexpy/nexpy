@@ -581,6 +581,10 @@ class NXTab(NXWidget):
         self.layout.addStretch()
         self.setLayout(self.layout)
 
+    def close(self):
+        self.update()
+        super(NXTab, self).close()
+
 
 class NXDialog(QtWidgets.QDialog, NXWidget):
     """Base dialog class for NeXpy dialogs"""
@@ -818,7 +822,7 @@ class GridParameters(OrderedDict):
         value.name = key
 
     def add(self, name, value=None, label=None, vary=None, slot=None,
-            color=False, validate=None):
+            color=False, spinbox=None):
         """
         Convenience function for adding a Parameter:
 
@@ -833,7 +837,7 @@ class GridParameters(OrderedDict):
         self.__setitem__(name, GridParameter(value=value, name=name, 
                                              label=label, vary=vary, 
                                              slot=slot, color=color,
-                                             validate=validate))
+                                             spinbox=spinbox))
 
     def grid(self, header=True, title=None, width=None):
         grid = QtWidgets.QGridLayout()
@@ -987,7 +991,7 @@ class GridParameter(object):
     A Parameter is an object to be set in a dialog box grid.
     """
     def __init__(self, name=None, value=None, label=None, vary=None, slot=None,
-                 color=False, validate=None):
+                 color=False, spinbox=False):
         """
         Parameters
         ----------
@@ -1002,9 +1006,9 @@ class GridParameter(object):
         slot : function or None, optional
             Function to be called when the parameter is changed.
         color : bool, optional
-            Whether the field contains a color value
-        validate : function, optional
-            Function to be used to validate the value
+            Whether the field contains a color value, default False.
+        spinbox : bool, optional
+            Whether the field should be a spin box, default False.
         """
         self.name = name
         self._value = value
@@ -1019,11 +1023,17 @@ class GridParameter(object):
             if color:
                 self.colorbox = NXColorBox(value)
                 self.box = self.colorbox.textbox
+            elif spinbox:
+                self.box = NXDoubleSpinBox(slot=slot) 
+                self.colorbox = None              
             else:
                 self.box = NXLineEdit()
                 self.colorbox = None
+                if slot:
+                    self.box.editingFinished.connect(slot)
             self.box.setAlignment(QtCore.Qt.AlignRight)
             if value is not None:
+                self.box.blockSignals(True)
                 if isinstance(value, NXfield):
                     if value.shape == () or value.shape == (1,):
                         self.field = value
@@ -1034,8 +1044,7 @@ class GridParameter(object):
                 else:
                     self.field = None
                     self.value = value
-            if slot is not None:
-                self.box.editingFinished.connect(slot)
+                self.box.blockSignals(False)
         self.init_value = self.value
         if vary is not None:
             self.checkbox = NXCheckBox()
@@ -1076,6 +1085,8 @@ class GridParameter(object):
     def value(self):
         if isinstance(self.box, NXComboBox):
             return self.box.currentText()
+        elif isinstance(self.box, NXDoubleSpinBox):
+            return self.box.value()
         else:
             _value = self.box.text()
             try:
@@ -1094,6 +1105,8 @@ class GridParameter(object):
                 idx = self.box.findText(value)
                 if idx >= 0:
                     self.box.setCurrentIndex(idx)
+            elif isinstance(self.box, NXDoubleSpinBox):
+                self.box.setValue(value)
             else:
                 if isinstance(value, NXfield):
                     value = value.nxdata
@@ -1458,13 +1471,14 @@ class CustomizeTab(NXTab):
             for plot in self.plots:
                 label = self.plot_label(plot)
                 pp[label] = self.parameters[label] = self.plot_parameters(plot)
+            self.plot_stack = self.parameter_stack(pp)
+            for plot in self.plots:
                 self.update_plot_parameters(plot)
             pg = self.parameters['legend'] = GridParameters()
             pg.add('legend', ['None'] + [key.title() for key in Legend.codes], 
                    'Legend')
             pg.add('label', ['Full Path', 'Name Only'], 'Label')
             self.update_legend_parameters()
-            self.plot_stack = self.parameter_stack(pp)
             self.set_layout(pl.grid(header=False),
                            self.plot_stack,
                            pg.grid(header=False))
@@ -1538,6 +1552,12 @@ class CustomizeTab(NXTab):
         parameters.add('markerstyle', ['filled', 'open'], 'Marker Style')
         parameters.add('markersize', p['markersize'], 'Marker Size')
         parameters.add('zorder', p['zorder'], 'Z-Order')
+        parameters.add('scale', 1.0, 'Scale', slot=self.scale_plot,
+                       spinbox=True)
+        parameters['scale'].box.setSingleStep(0.01)
+        parameters.add('offset', 0.0, 'Offset', slot=self.scale_plot,
+                       spinbox=True)
+        parameters['offset'].box.setSingleStep(10)
         parameters.grid(title='Plot Parameters', header=False, width=125)
         return parameters
 
@@ -1559,6 +1579,19 @@ class CustomizeTab(NXTab):
         pp['markerstyle'].value = p['markerstyle']
         pp['markersize'].value = p['markersize']
         pp['zorder'].value = p['zorder']
+        pp['scale'].value = p['scale']
+        pp['offset'].value = p['offset']
+
+    def scale_plot(self):
+        plot = self.label_plot(self.plot_stack.box.selected)
+        label = self.plot_label(plot)
+        scale = self.parameters[label]['scale'].value
+        self.parameters[label]['scale'].box.setSingleStep(scale/100.0)
+        offset = self.parameters[label]['offset'].value
+        self.parameters[label]['offset'].box.setSingleStep(max(offset/100.0, 1))
+        y = self.plotview.plots[plot]['y']
+        self.plotview.plots[plot]['plot'].set_ydata((y * scale) + offset)
+        self.plotview.draw()
 
     def update_legend_parameters(self):
         p = self.parameters['legend']
@@ -1662,6 +1695,8 @@ class CustomizeTab(NXTab):
                 p['plot'].set_markeredgecolor(p['color'])
                 p['zorder'] = pp['zorder'].value
                 p['plot'].set_zorder(p['zorder'])
+                p['scale'] = pp['scale'].value
+                p['offset'] = pp['offset'].value
                 if p['smooth_line']:
                     if linestyle == 'None':
                         p['smooth_linestyle'] = '-'
@@ -2160,11 +2195,9 @@ class LimitTab(NXTab):
         row += 1
         self.minbox['signal'] = NXDoubleSpinBox()
         self.maxbox['signal'] = NXDoubleSpinBox()
-        self.minbox['signal'].setAlignment(QtCore.Qt.AlignRight)
-        self.maxbox['signal'].setAlignment(QtCore.Qt.AlignRight)
         grid.addWidget(self.label(self.plotview.axis['signal'].name), row, 0)
         grid.addWidget(self.minbox['signal'], row, 1)
-        grid.addWidget(self.maxbox['signal'], row, 2)        
+        grid.addWidget(self.maxbox['signal'], row, 2)
 
         self.parameters = GridParameters()
         if self.plotview.label != 'Main':
@@ -3003,9 +3036,8 @@ class ViewDialog(NXDialog):
         if [s for s in self.node.shape if s > 10]:
             idx = []
             for i, s in enumerate(self.node.shape):
-                spinbox = QtWidgets.QSpinBox()
+                spinbox = NXSpinBox(self.choose_data)
                 spinbox.setRange(0, s-1)   
-                spinbox.valueChanged[six.text_type].connect(self.choose_data)
                 if len(self.node.shape) - i > 2:
                     idx.append(0)
                 else:
