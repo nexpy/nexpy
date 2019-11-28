@@ -1190,7 +1190,11 @@ class DirectoryDialog(NXDialog):
             self.checkbox[f] = NXCheckBox(checked=True)
             grid.addWidget(NXLabel(f), i, 0)
             grid.addWidget(self.checkbox[f], i, 1)
-        self.set_layout(self.make_layout(grid), self.close_layout())
+        scroll_widget = NXWidget()
+        scroll_widget.set_layout(grid)
+        scroll_area = QtWidgets.QScrollArea()
+        scroll_area.setWidget(scroll_widget)
+        self.set_layout(self.make_layout(scroll_area), self.close_layout())
 
     @property
     def files(self):
