@@ -110,12 +110,14 @@ class NXWidget(QtWidgets.QWidget):
                 layout.addStretch()
         return layout
 
-    def add_layout(self, *items):
+    def add_layout(self, *items, stretch=False):
         for item in items:
             if isinstance(item, QtWidgets.QLayout):
                 self.layout.addLayout(item)
             elif isinstance(item, QtWidgets.QWidget):
                 self.layout.addWidget(item)
+        if stretch:
+            self.layout.addStretch()
 
     def insert_layout(self, index, *items):
         for item in reversed(list(items)):
@@ -1184,6 +1186,10 @@ class DirectoryDialog(NXDialog):
         super(DirectoryDialog, self).__init__(parent)
 
         self.directory = directory
+        self.prefix_box = NXLineEdit()
+        self.prefix_box.textChanged.connect(self.select_prefix)
+        prefix_layout = self.make_layout(NXLabel('Prefix'), 
+                                         self.prefix_box)
         grid = QtWidgets.QGridLayout()
         items = []
         for i, f in enumerate(files):
@@ -1194,11 +1200,21 @@ class DirectoryDialog(NXDialog):
         scroll_widget.set_layout(grid)
         scroll_area = QtWidgets.QScrollArea()
         scroll_area.setWidget(scroll_widget)
-        self.set_layout(self.make_layout(scroll_area), self.close_layout())
+        self.set_layout(prefix_layout, self.make_layout(scroll_area), 
+                        self.close_layout())
+        self.prefix_box.setFocus()
 
     @property
     def files(self):
         return [f for f in self.checkbox if self.checkbox[f].isChecked()]
+
+    def select_prefix(self):
+        prefix = self.prefix_box.text()
+        for f in self.checkbox:
+            if f.startswith(prefix):
+                self.checkbox[f].setChecked(True)
+            else:
+                self.checkbox[f].setChecked(False)
 
     def accept(self):
         for f in self.files:
@@ -1424,7 +1440,11 @@ class PlotScalarDialog(NXDialog):
         self.file_box = NXDialog()
         self.file_box.setWindowTitle('Select Files')
         self.file_box.setMinimumWidth(300)
-        scroll_area = QtWidgets.QScrollArea()
+        self.prefix_box = NXLineEdit()
+        self.prefix_box.textChanged.connect(self.select_prefix)
+        prefix_layout = self.make_layout(NXLabel('Prefix'), 
+                                         self.prefix_box)
+        self.scroll_area = QtWidgets.QScrollArea()
         self.files = GridParameters()
         i = 0
         for name in sorted(self.tree, key=natural_sort):
@@ -1432,13 +1452,31 @@ class PlotScalarDialog(NXDialog):
             if self.scan_path in root and self.data_path in root:
                 i += 1
                 self.files.add(name, root[self.scan_path], name, vary=True)
-        scroll_widget = NXWidget()
-        scroll_widget.set_layout(
-            self.files.grid(header=('File', self.scan_variable.nxname, '')))
-        scroll_area.setWidget(scroll_widget)
-        self.file_box.set_layout(scroll_area, 
+        self.file_grid = self.files.grid(header=('File', 
+                                         self.scan_variable.nxname, ''))
+        self.scroll_widget = NXWidget()
+        self.scroll_widget.set_layout(self.file_grid)
+        self.scroll_area.setWidget(self.scroll_widget)
+        self.file_box.set_layout(prefix_layout, self.scroll_area, 
                                  self.file_box.close_layout(close=True))
         self.file_box.show()
+
+    def select_prefix(self):
+        prefix = self.prefix_box.text()
+        self.files = GridParameters()
+        i = 0
+        for name in [n for n in sorted(self.tree, key=natural_sort)
+                     if n.startswith(prefix)]:
+            root = self.tree[name]
+            if self.scan_path in root and self.data_path in root:
+                i += 1
+                self.files.add(name, root[self.scan_path], name, vary=True)
+        self.file_grid = self.files.grid(header=('File', 
+                                         self.scan_variable.nxname, ''))
+        self.scroll_widget.deleteLater()
+        self.scroll_widget = NXWidget()
+        self.scroll_widget.set_layout(self.make_layout(self.file_grid))
+        self.scroll_area.setWidget(self.scroll_widget)
 
     @property
     def data_path(self):
@@ -2753,6 +2791,53 @@ class ScanTab(NXTab):
         else:
             self.textbox['Scan'].setText(self.treeview.node.nxpath)
 
+    def select_files(self):
+        if self.scan_path == '':
+            display_message('Scan Panel', 'No scan axis selected')
+            return
+        self.file_box = NXDialog()
+        self.file_box.setWindowTitle('Select Files')
+        self.file_box.setMinimumWidth(300)
+        self.prefix_box = NXLineEdit()
+        self.prefix_box.textChanged.connect(self.select_prefix)
+        prefix_layout = self.make_layout(NXLabel('Prefix'), 
+                                         self.prefix_box)
+        self.scroll_area = QtWidgets.QScrollArea()
+        self.files = GridParameters()
+        i = 0
+        for name in sorted(self.tree, key=natural_sort):
+            root = self.tree[name]
+            if (self.scan_path in root and self.data_path in root and
+                root[self.data_path].nxsignal.exists()):
+                i += 1
+                self.files.add(name, root[self.scan_path], name, vary=True)
+        self.file_grid = self.files.grid(header=('File', 
+                                         self.scan_variable.nxname, ''))
+        self.scroll_widget = NXWidget()
+        self.scroll_widget.set_layout(self.file_grid)
+        self.scroll_area.setWidget(self.scroll_widget)
+        self.file_box.set_layout(prefix_layout, self.scroll_area, 
+                                 self.file_box.close_layout(close=True))
+        self.file_box.show()
+
+    def select_prefix(self):
+        prefix = self.prefix_box.text()
+        self.files = GridParameters()
+        i = 0
+        for name in [n for n in sorted(self.tree, key=natural_sort)
+                     if n.startswith(prefix)]:
+            root = self.tree[name]
+            if (self.scan_path in root and self.data_path in root and
+                root[self.data_path].nxsignal.exists()):
+                i += 1
+                self.files.add(name, root[self.scan_path], name, vary=True)
+        self.file_grid = self.files.grid(header=('File', 
+                                         self.scan_variable.nxname, ''))
+        self.scroll_widget.deleteLater()
+        self.scroll_widget = NXWidget()
+        self.scroll_widget.set_layout(self.make_layout(self.file_grid))
+        self.scroll_area.setWidget(self.scroll_widget)
+
     @property
     def data_path(self):
         return self.plotview.data.nxpath
@@ -2786,30 +2871,6 @@ class ScanTab(NXTab):
                     if self.files[f].vary]
         except Exception as error:
             raise NeXusError("Files not selected")
-
-    def select_files(self):
-        if self.scan_path == '':
-            display_message('Scan Panel', 'No scan axis selected')
-            return
-        self.file_box = NXDialog()
-        self.file_box.setWindowTitle('Select Files')
-        self.file_box.setMinimumWidth(300)
-        scroll_area = QtWidgets.QScrollArea()
-        self.files = GridParameters()
-        i = 0
-        for name in sorted(self.tree, key=natural_sort):
-            root = self.tree[name]
-            if (self.scan_path in root and self.data_path in root and
-                root[self.data_path].nxsignal.exists()):
-                i += 1
-                self.files.add(name, root[self.scan_path], name, vary=True)
-        scroll_widget = NXWidget()
-        scroll_widget.set_layout(
-            self.files.grid(header=('File', self.scan_variable.nxname, '')))
-        scroll_area.setWidget(scroll_widget)
-        self.file_box.set_layout(scroll_area, 
-                                 self.file_box.close_layout(close=True))
-        self.file_box.show()
 
     def get_axes(self):
         return self.plotview.xtab.get_axes()
