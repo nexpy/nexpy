@@ -1403,7 +1403,7 @@ class PlotScalarDialog(NXDialog):
         
         self.signal_combo =  NXComboBox()
         signals = [s for s in self.group if self.group[s].size == 1 and 
-                                            not self.group[s].is_string()]
+                                            self.group[s].is_numeric()]
         if len(signals) == 0:
             raise NeXusError("No numeric scalars in group")
         self.signal_combo.add(*signals)

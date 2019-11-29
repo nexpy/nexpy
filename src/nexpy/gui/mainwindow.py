@@ -1467,7 +1467,7 @@ class MainWindow(QtWidgets.QMainWindow):
                     dialog = PlotDialog(node, parent=self)
                     dialog.show()
                 elif (isinstance(node, NXfield) and 
-                      node.size == 1 and not node.is_string()):
+                      node.size == 1 and node.is_numeric()):
                     dialog = PlotScalarDialog(node, parent=self)
                     dialog.show()
                 else:
