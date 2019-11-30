@@ -69,6 +69,32 @@ class NXStack(QtWidgets.QWidget):
         self.stack.addWidget(widget)
 
 
+class NXScrollArea(QtWidgets.QScrollArea):
+    """Scroll area embedding a widget."""
+
+    def __init__(self, widget=None, parent=None):
+        """Initialize the scroll area.
+        
+        Parameters
+        ----------
+        widget : QtWidgets.QWidget
+            Widget contained within the scroll area.
+        horizontal : bool
+            True if a horizontal scroll bar is enabled, default False.
+        """
+        super(NXScrollArea, self).__init__(parent=parent)
+        if widget:
+            self.setWidget(widget)
+        self.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+
+    def setWidget(self, widget):
+        super(NXScrollArea, self).setWidget(widget)
+        widget.setMinimumWidth(widget.sizeHint().width() +
+                               self.verticalScrollBar().sizeHint().width())
+        widget.setSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding,
+                             QtWidgets.QSizePolicy.Preferred)
+    
+
 class NXLabel(QtWidgets.QLabel):
     """A text label.
     
