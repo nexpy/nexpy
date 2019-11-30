@@ -327,6 +327,7 @@ class NXTreeView(QtWidgets.QTreeView):
         self.mainwindow.add_action.setEnabled(False)
         self.mainwindow.initialize_action.setEnabled(False)
         self.mainwindow.copydata_action.setEnabled(False)
+        self.mainwindow.cutdata_action.setEnabled(False)
         self.mainwindow.pastedata_action.setEnabled(False)
         self.mainwindow.pastelink_action.setEnabled(False)
         self.mainwindow.delete_action.setEnabled(False)
@@ -359,10 +360,15 @@ class NXTreeView(QtWidgets.QTreeView):
                 self.mainwindow.backup_action.setEnabled(True)
                 if node.nxbackup:
                     self.mainwindow.restore_action.setEnabled(True)
-            else:
+            if node.nxfilemode is None or node.nxfilemode == 'rw':
+                if self.mainwindow.copied_node is not None:
+                    self.mainwindow.pastedata_action.setEnabled(True)
+                    self.mainwindow.pastelink_action.setEnabled(True)
+            if node.nxfilemode is None:
                 self.mainwindow.delete_action.setEnabled(True)
         else:
             self.mainwindow.copydata_action.setEnabled(True)
+            self.mainwindow.cutdata_action.setEnabled(True)
             if isinstance(node, NXlink):
                 self.mainwindow.link_action.setEnabled(True)
             try:
@@ -388,7 +394,7 @@ class NXTreeView(QtWidgets.QTreeView):
             except Exception as error:
                 pass
         try:
-            if node.is_plottable():
+            if node.is_plottable() or node.is_numeric():
                 self.mainwindow.plot_data_action.setEnabled(True)
                 if ((isinstance(node, NXgroup) and
                     node.nxsignal is not None and 
@@ -431,6 +437,7 @@ class NXTreeView(QtWidgets.QTreeView):
         self.addMenu(self.mainwindow.delete_action)
         self.menu.addSeparator()
         self.addMenu(self.mainwindow.copydata_action)
+        self.addMenu(self.mainwindow.cutdata_action)
         self.addMenu(self.mainwindow.pastedata_action)
         self.addMenu(self.mainwindow.pastelink_action)
         self.menu.addSeparator()

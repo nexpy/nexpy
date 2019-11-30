@@ -23,6 +23,7 @@ from nexpy.gui.pyqt import QtWidgets
 from nexusformat.nexus import *
 from nexusformat.nexus.tree import convert_index, centers
 from nexpy.gui.importdialog import BaseImportDialog
+from nexpy.gui.widgets import NXLabel, NXLineEdit
 
 filetype = "SPE/NXSPE File"
 
@@ -39,15 +40,15 @@ class ImportDialog(BaseImportDialog):
         layout.addLayout(self.filebox())
 
         title_layout = QtWidgets.QHBoxLayout()
-        title_label = QtWidgets.QLabel('Title')
-        self.title_box = QtWidgets.QLineEdit()
+        title_label = NXLabel('Title')
+        self.title_box = NXLineEdit()
         title_layout.addWidget(title_label)
         title_layout.addWidget(self.title_box)
         layout.addLayout(title_layout)
         
         energy_layout = QtWidgets.QHBoxLayout()
-        energy_label = QtWidgets.QLabel('Incident Energy')
-        self.energy_box = QtWidgets.QLineEdit()
+        energy_label = NXLabel('Incident Energy')
+        self.energy_box = NXLineEdit()
         self.energy_box.setFixedWidth(150)
         energy_layout.addWidget(energy_label)
         energy_layout.addWidget(self.energy_box)
@@ -55,11 +56,11 @@ class ImportDialog(BaseImportDialog):
         layout.addLayout(energy_layout)
 
         step_layout = QtWidgets.QHBoxLayout()
-        Q_label = QtWidgets.QLabel('dQ')
-        self.Q_box = QtWidgets.QLineEdit()
+        Q_label = NXLabel('dQ')
+        self.Q_box = NXLineEdit()
         self.Q_box.setFixedWidth(75)
-        E_label = QtWidgets.QLabel('dE')
-        self.E_box = QtWidgets.QLineEdit()
+        E_label = NXLabel('dE')
+        self.E_box = NXLineEdit()
         self.E_box.setFixedWidth(75)
         self.convert_box = QtWidgets.QCheckBox('Convert to S(Q,E)')
         self.convert_box.setChecked(False)

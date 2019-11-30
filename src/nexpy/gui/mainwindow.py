@@ -30,6 +30,7 @@ import re
 import sys
 import webbrowser
 import xml.etree.ElementTree as ET
+from copy import deepcopy
 from threading import Thread
 
 from .pyqt import QtCore, QtGui, QtWidgets, getOpenFileName, getSaveFileName
@@ -108,6 +109,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.editors = NXScriptWindow(self)
         self.editors.setVisible(False)
         self.log_window = None
+        self._memroot = None
 
         self.console = NXRichJupyterWidget(config=self.config, parent=rightpane)
         self.console.setMinimumSize(700, 100)
@@ -572,6 +574,13 @@ class MainWindow(QtWidgets.QMainWindow):
             )
         self.add_menu_action(self.data_menu, self.copydata_action)
 
+        self.cutdata_action=QtWidgets.QAction("Cut Data",
+            self,
+            shortcut=QtGui.QKeySequence("Ctrl+Shift+X"),
+            triggered=self.cut_data
+            )
+        self.add_menu_action(self.data_menu, self.cutdata_action)
+
         self.pastedata_action=QtWidgets.QAction("Paste Data",
             self,
             shortcut=QtGui.QKeySequence("Ctrl+Shift+V"),
@@ -588,7 +597,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.delete_action=QtWidgets.QAction("Delete Data",
             self,
-            shortcut=QtGui.QKeySequence("Ctrl+Shift+X"),
+            shortcut=QtGui.QKeySequence("Ctrl+Shift+Alt+X"),
             triggered=self.delete_data
             )
         self.add_menu_action(self.data_menu, self.delete_action)
@@ -801,13 +810,6 @@ class MainWindow(QtWidgets.QMainWindow):
             )
         self.add_menu_action(self.window_menu, self.log_action)
 
-        self.panel_action=QtWidgets.QAction("Show Projection Panel",
-            self,
-            shortcut=QtGui.QKeySequence("Ctrl+Shift+P"),
-            triggered=self.show_projection_panel
-            )
-        self.add_menu_action(self.window_menu, self.panel_action)
-
         self.script_window_action=QtWidgets.QAction("Show Script Editor",
             self,
             shortcut=QtGui.QKeySequence("Ctrl+Shift+S"),
@@ -817,12 +819,35 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.window_menu.addSeparator()
 
-        self.limit_action=QtWidgets.QAction("Change Plot Limits",
+        self.customize_action=QtWidgets.QAction("Show Customize Panel",
+            self,
+            shortcut="Ctrl+Alt+C",
+            triggered=self.customize_plot
+            )
+        self.add_menu_action(self.window_menu, self.customize_action)
+
+        self.limit_action=QtWidgets.QAction("Show Limits Panel",
             self,
             shortcut="Ctrl+Alt+L",
             triggered=self.limit_axes
             )
         self.add_menu_action(self.window_menu, self.limit_action)
+
+        self.panel_action=QtWidgets.QAction("Show Projection Panel",
+            self,
+            shortcut=QtGui.QKeySequence("Ctrl+Alt+P"),
+            triggered=self.show_projection_panel
+            )
+        self.add_menu_action(self.window_menu, self.panel_action)
+
+        self.scan_action=QtWidgets.QAction("Show Scan Panel",
+            self,
+            shortcut="Ctrl+Alt+S",
+            triggered=self.show_scan_panel
+            )
+        self.add_menu_action(self.window_menu, self.scan_action)
+
+        self.window_menu.addSeparator()
 
         self.reset_limit_action=QtWidgets.QAction("Reset Plot Limits",
             self,
@@ -830,13 +855,6 @@ class MainWindow(QtWidgets.QMainWindow):
             triggered=self.reset_axes
             )
         self.add_menu_action(self.window_menu, self.reset_limit_action)
-
-        self.customize_action=QtWidgets.QAction("Customize Plot",
-            self,
-            shortcut="Ctrl+Alt+C",
-            triggered=self.customize_plot
-            )
-        self.add_menu_action(self.window_menu, self.customize_action)
 
         self.preferences_action=QtWidgets.QAction("Edit Preferences",
             self,
@@ -1114,19 +1132,8 @@ class MainWindow(QtWidgets.QMainWindow):
                              key=natural_sort)
             if len(nxfiles) == 0:
                 raise NeXusError("No NeXus files found in directory")
-            if confirm_action("Open %s NeXus files" % len(nxfiles),
-                              '\n'.join(nxfiles)):
-                for nxfile in nxfiles:
-                    fname = os.path.join(directory, nxfile)
-                    if is_file_locked(fname, wait=1):
-                        continue
-                    name = self.tree.get_name(fname)
-                    self.tree[name] = nxload(fname)
-                self.treeview.select_node(self.tree[name])
-                self.treeview.setFocus()
-                self.default_directory = os.path.dirname(fname)
-                logging.info(
-                    "%s NeXus files opened from %s" % (len(nxfiles), directory))
+            dialog = DirectoryDialog(nxfiles, directory)
+            dialog.show()
         except NeXusError as error:
             report_error("Opening Directory", error)
 
@@ -1459,6 +1466,10 @@ class MainWindow(QtWidgets.QMainWindow):
                 elif node.is_plottable():
                     dialog = PlotDialog(node, parent=self)
                     dialog.show()
+                elif (isinstance(node, NXfield) and 
+                      node.size == 1 and node.is_numeric()):
+                    dialog = PlotScalarDialog(node, parent=self)
+                    dialog.show()
                 else:
                     raise NeXusError("Data not plottable")
         except NeXusError as error:
@@ -1637,21 +1648,63 @@ class MainWindow(QtWidgets.QMainWindow):
         except NeXusError as error:
             report_error("Renaming Data", error)
 
+    def copy_node(self, node):
+        import tempfile
+        self._memroot = nxload(tempfile.mkstemp(suffix='.nxs')[1], mode='w',
+                               driver='core', backing_store=False)
+        self._memroot['entry'] = NXentry()
+        if isinstance(node, NXlink):
+            node = node.nxlink
+        self._memroot['entry'][node.nxname] = node
+        self._memroot['entry'].attrs['link'] = [node.nxname, node.nxpath, 
+                                                str(node.nxfilename)]
+        return self._memroot['entry'][node.nxname]
+
+    @property
+    def copied_link(self):
+        try:
+            return self._memroot['entry'].attrs['link']
+        except Exception:
+            return None
+
     def copy_data(self):
         try:
             node = self.treeview.get_node()
             if not isinstance(node, NXroot):
-                self.copied_node = self.treeview.get_node()
-                logging.info("'%s' copied" % self.copied_node.nxpath)
+                self.copied_node = self.copy_node(node)
+                logging.info("'%s' copied" % node.nxpath)
             else:
                 raise NeXusError("Use 'Duplicate File' to copy an NXroot group")
         except NeXusError as error:
             report_error("Copying Data", error)
 
+    def cut_data(self):
+        try:
+            node = self.treeview.get_node()
+            if isinstance(node, NXroot):
+                raise NeXusError("Cannot cut an NXroot group")
+            elif node.nxgroup.is_external():
+                raise NeXusError(
+                    "Cannot cut object in an externally linked group")
+            elif node.nxgroup.nxfilemode and node.nxgroup.nxfilemode == 'r':
+                raise NeXusError("NeXus file is locked")
+            else:
+                if confirm_action("Are you sure you want to cut '%s'?"
+                                  % (node.nxroot.nxname+node.nxpath)):
+                    self.copied_node = self.copy_node(node)
+                    logging.info("'%s' cut" % node.nxpath)
+                    del node.nxgroup[node.nxname]
+        except NeXusError as error:
+            report_error("Cutting Data", error)
+
     def paste_data(self):
         try:
             node = self.treeview.get_node()
-            if isinstance(node, NXgroup) and self.copied_node is not None:
+            if node.nxfilemode and node.nxfilemode == 'r':
+                raise NeXusError("NeXus file is locked")
+            elif isinstance(node, NXgroup) and self.copied_node is not None:
+                if self.copied_node.nxname in node:
+                    self.copied_node.nxname = self.copied_node.nxname + '_copy'
                 if node.nxfilemode != 'r':
                     node.insert(self.copied_node)
                     logging.info("'%s' pasted to '%s'"
@@ -1664,9 +1717,15 @@ class MainWindow(QtWidgets.QMainWindow):
     def paste_link(self):
         try:
             node = self.treeview.get_node()
-            if isinstance(node, NXgroup) and self.copied_node is not None:
+            if isinstance(node, NXgroup) and self.copied_link is not None:
                 if node.nxfilemode != 'r':
-                    node.makelink(self.copied_node)
+                    _name, _target, _filename = self.copied_link
+                    if _name in node:
+                        _name = _name + '_copy'
+                    if _filename == 'None' or node.nxfilename == _filename:
+                        node[_name] = NXlink(_target)
+                    else:
+                        node[_name] = NXlink(_target, _filename)
                     logging.info("'%s' pasted as link to '%s'"
                                  % (self.copied_node.nxpath, node.nxpath))
                 else:
@@ -1677,18 +1736,17 @@ class MainWindow(QtWidgets.QMainWindow):
     def delete_data(self):
         try:
             node = self.treeview.get_node()
-            if node is not None:
-                if node.nxfilemode != 'r':
-                    if confirm_action("Are you sure you want to delete '%s'?"
-                                      % (node.nxroot.nxname+node.nxpath)):
-                        del node.nxgroup[node.nxname]
-                        logging.info("'%s' deleted" % 
-                                     (node.nxroot.nxname+node.nxpath))
-                elif node.is_external():
-                    raise NeXusError(
-                        "Cannot delete object in an externally linked group")
-                else:
-                    raise NeXusError("NeXus file is locked")
+            if isinstance(node, NXroot) and node.nxfilemode:
+                raise NeXusError("Cannot delete a NeXus file")
+            elif node.nxgroup.is_external():
+                raise NeXusError(
+                    "Cannot delete object in an externally linked group")
+            elif node.nxgroup.nxfilemode and node.nxgroup.nxfilemode == 'r':
+                raise NeXusError("NeXus file is locked")
+            elif confirm_action("Are you sure you want to delete '%s'?"
+                                % (node.nxroot.nxname+node.nxpath)):
+                del node.nxgroup[node.nxname]
+                logging.info("'%s' deleted" % (node.nxroot.nxname+node.nxpath))
         except NeXusError as error:
             report_error("Deleting Data", error)
 
@@ -1954,6 +2012,13 @@ class MainWindow(QtWidgets.QMainWindow):
                 triggered=lambda: self.plotviews[label].make_active(),
                 checkable=False)
             self.window_menu.addAction(self.active_action[number])
+        elif label == 'Scan':
+            self.active_action[number] = QtWidgets.QAction(label,
+                self,
+                shortcut=QtGui.QKeySequence("Ctrl+Shift+Alt+S"),
+                triggered=lambda: self.plotviews[label].make_active(),
+                checkable=False)
+            self.window_menu.addAction(self.active_action[number])
         elif label == 'Fit':
             self.active_action[number] = QtWidgets.QAction(label,
                 self,
@@ -2066,6 +2131,16 @@ class MainWindow(QtWidgets.QMainWindow):
             self.panels['projection'].activate(self.plotview.label)
         except NeXusError as error:
             report_error("Showing Projection Panel", error)
+
+    def show_scan_panel(self):
+        if self.plotview.label == 'Projection':
+            return
+        try:
+            if 'scan' not in self.panels:
+                self.panels['scan'] = ScanDialog(parent=self)
+            self.panels['scan'].activate(self.plotview.label)
+        except NeXusError as error:
+            report_error("Showing Scan Panel", error)
 
     def show_script_window(self):
         if self.editors.tabs.count() == 0:

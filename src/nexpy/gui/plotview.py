@@ -63,7 +63,8 @@ from scipy.spatial import Voronoi, voronoi_plot_2d
 from nexusformat.nexus import NXfield, NXdata, NXroot, NeXusError
 
 from .. import __version__
-from .widgets import (NXSpinBox, NXDoubleSpinBox, NXComboBox, NXCheckBox, NXPushButton,
+from .widgets import (NXSpinBox, NXDoubleSpinBox, NXSlider, NXComboBox, 
+                      NXCheckBox, NXLabel, NXPushButton,
                       NXcircle, NXellipse, NXrectangle, NXpolygon)
 from .utils import (report_error, report_exception, boundaries, centers, keep_data, 
                     fix_projection, find_nearest, iterable)
@@ -116,7 +117,7 @@ def new_figure_manager(label=None, *args, **kwargs):
     """
     if label is None:
         label = ''
-    if label == 'Projection' or label == 'Fit':
+    if label == 'Projection' or label == 'Scan' or label == 'Fit':
         nums = [plotviews[p].number for p in plotviews if plotviews[p].number > 100]
         if nums:
             num = max(nums) + 1
@@ -723,6 +724,7 @@ class NXPlotView(QtWidgets.QDialog):
 
         if over:
             self.update_tabs()
+            self.update_panels()
         else:
             self.init_tabs()
 
@@ -1054,6 +1056,8 @@ class NXPlotView(QtWidgets.QDialog):
         p['linestyle'] = p['plot'].get_linestyle()
         p['linewidth'] = p['plot'].get_linewidth()
         p['zorder'] = p['plot'].get_zorder()
+        p['scale'] = 1.0
+        p['offset'] = 0.0
         try:
             p['smooth_function'] = interp1d(self.x, self.y, kind='cubic')
         except Exception as error:
@@ -1242,6 +1246,7 @@ class NXPlotView(QtWidgets.QDialog):
         ax.set_xlabel(self.xaxis.label)
         ax.set_ylabel(self.yaxis.label)
         self.otab.push_current()
+        self.update_panels()
         if self.ndim == 1:
             try:
                 self.plot_smooth()
@@ -2223,8 +2228,8 @@ class NXPlotView(QtWidgets.QDialog):
         elif self.ndim >= 2:
             self.vtab.set_axis(self.vaxis)
             if self.tab_widget.indexOf(self.vtab) == -1:
-                self.tab_widget.insertTab(0,self.vtab,'signal')
-            if self.number < 101:
+                self.tab_widget.insertTab(0, self.vtab, 'signal')
+            if self.number < 100:
                 if self.tab_widget.indexOf(self.ptab) == -1:
                     self.tab_widget.insertTab(
                         self.tab_widget.indexOf(self.otab),
@@ -2237,9 +2242,11 @@ class NXPlotView(QtWidgets.QDialog):
                 self.ztab.pause()
                 self.ztab.scalebox.setChecked(True)
                 if self.tab_widget.indexOf(self.ztab) == -1:
-                    self.tab_widget.insertTab(
-                        self.tab_widget.indexOf(self.ptab),
-                        self.ztab, 'z')
+                    if self.tab_widget.indexOf(self.ptab) == -1:
+                        idx = self.tab_widget.indexOf(self.otab)
+                    else:
+                        idx = self.tab_widget.indexOf(self.ptab)
+                    self.tab_widget.insertTab(idx, self.ztab, 'z')
             else:
                 self.tab_widget.removeTab(self.tab_widget.indexOf(self.ztab))
             self.xtab.logbox.setVisible(True)
@@ -2571,8 +2578,8 @@ class NXPlotTab(QtWidgets.QWidget):
             self.axiscombo = None
         if zaxis:
             self.zaxis = True
-            self.minbox = self.spinbox(self.read_minbox)
-            self.maxbox = self.spinbox(self.read_maxbox)
+            self.minbox = NXSpinBox(self.read_minbox)
+            self.maxbox = NXSpinBox(self.read_maxbox)
             self.lockbox = NXCheckBox("Lock", self.change_lock)
             self.lockbox.setChecked(True)
             self.scalebox = NXCheckBox("Autoscale", self.plotview.replot_image)
@@ -2589,10 +2596,14 @@ class NXPlotTab(QtWidgets.QWidget):
             self.zaxis = False
             self.plotcombo = NXComboBox(self.select_plot, ['0'])
             self.plotcombo.setMinimumWidth(20)
-            self.minbox = self.doublespinbox(self.read_minbox)
-            self.minslider = self.slider(self.read_minslider)
-            self.maxslider = self.slider(self.read_maxslider)
-            self.maxbox = self.doublespinbox(self.read_maxbox)
+            self.minbox = NXDoubleSpinBox(self.read_minbox)
+            if self.name == 'v':
+                self.minslider = NXSlider(self.read_minslider, move=False)
+                self.maxslider = NXSlider(self.read_maxslider, move=False)
+            else:
+                self.minslider = NXSlider(self.read_minslider)
+                self.maxslider = NXSlider(self.read_maxslider)
+            self.maxbox = NXDoubleSpinBox(self.read_maxbox)
             if log:
                 self.logbox = NXCheckBox("Log", self.change_log)
                 self.logbox.setChecked(False)
@@ -2705,39 +2716,6 @@ class NXPlotTab(QtWidgets.QWidget):
         num = self.plotcombo.currentText()
         self.plotview.num = int(num)
         self.smoothing = self.plotview.plots[num]['smoothing']    
-
-    def spinbox(self, slot):
-        """Return a NXSpinBox with a signal slot."""
-        spinbox = NXSpinBox()
-        spinbox.setAlignment(QtCore.Qt.AlignRight)
-        spinbox.setFixedWidth(100)
-        spinbox.setKeyboardTracking(False)
-        spinbox.setAccelerated(False)
-        spinbox.valueChanged[six.text_type].connect(slot)
-        return spinbox
-
-    def doublespinbox(self, slot):
-        """Return a NXDoubleSpinBox with a signal slot."""
-        doublespinbox = NXDoubleSpinBox()
-        doublespinbox.setAlignment(QtCore.Qt.AlignRight)
-        doublespinbox.setFixedWidth(100)
-        doublespinbox.setKeyboardTracking(False)
-        doublespinbox.valueChanged[six.text_type].connect(slot)
-        return doublespinbox
-
-    def slider(self, slot):
-        """Return a QSlider with a signal slot."""
-        slider = QtWidgets.QSlider(QtCore.Qt.Horizontal)
-        slider.setFocusPolicy(QtCore.Qt.NoFocus)
-        slider.setMinimumWidth(100)
-        slider.setRange(0, 1000)
-        slider.setSingleStep(5)
-        slider.setValue(0)
-        slider.setTracking(True)
-        slider.sliderReleased.connect(slot)
-        if self.name != 'v':
-            slider.sliderMoved.connect(slot)
-        return slider
 
     @QtCore.Slot()
     def read_maxbox(self):
@@ -3217,11 +3195,11 @@ class NXProjectionTab(QtWidgets.QWidget):
         widgets = []
 
         self.xbox = NXComboBox(self.set_xaxis)
-        widgets.append(QtWidgets.QLabel('X-Axis:'))
+        widgets.append(NXLabel('X-Axis:'))
         widgets.append(self.xbox)
 
         self.ybox = NXComboBox(self.set_yaxis)
-        self.ylabel = QtWidgets.QLabel('Y-Axis:')
+        self.ylabel = NXLabel('Y-Axis:')
         widgets.append(self.ylabel)
         widgets.append(self.ybox)
 
@@ -3467,6 +3445,12 @@ class NXNavigationToolbar(NavigationToolbar):
                 self.plotview.ptab.open_panel()
                 xmin, xmax = sorted([event.xdata, self.plotview.xdata])
                 ymin, ymax = sorted([event.ydata, self.plotview.ydata])
+                panel = self.plotview.panels['projection']
+                tab = panel.tabs[self.plotview.label]
+                tab.minbox[self.plotview.xaxis.dim].setValue(xmin)
+                tab.maxbox[self.plotview.xaxis.dim].setValue(xmax)
+                tab.minbox[self.plotview.yaxis.dim].setValue(ymin)
+                tab.maxbox[self.plotview.yaxis.dim].setValue(ymax)
         self.release(event)
 
     def release_pan(self, event):
@@ -3489,6 +3473,7 @@ class NXNavigationToolbar(NavigationToolbar):
             return
         self.plotview.zoom = {'x': (xdim, xmin, xmax),
                               'y': (ydim, ymin, ymax)}
+        self.plotview.update_panels()
 
     def _update_view(self):
         super(NXNavigationToolbar, self)._update_view()
@@ -3528,6 +3513,7 @@ class NXNavigationToolbar(NavigationToolbar):
         self.plotview.ytab.maxbox.setValue(ymax)
         self.plotview.ytab.set_sliders(ymin, ymax)
         self.plotview.ytab.block_signals(False)
+        self.plotview.update_panels()
 
     def toggle_aspect(self):
         try:
