@@ -41,9 +41,9 @@ from .utils import (confirm_action, display_message, report_error,
                     timestamp, format_timestamp, restore_timestamp, get_color,
                     keep_data, fix_projection, modification_time,
                     is_file_locked)
-from .widgets import (NXCheckBox, NXComboBox, NXColorBox, NXPushButton, 
-                      NXLabel, NXLineEdit, NXStack, NXDoubleSpinBox, NXSpinBox, 
-                      NXpolygon)
+from .widgets import (NXStack, NXScrollArea, NXCheckBox, NXComboBox, NXColorBox, 
+                      NXPushButton, NXLabel, NXLineEdit, 
+                      NXDoubleSpinBox, NXSpinBox, NXpolygon)
 
 from nexusformat.nexus import (NeXusError, NXgroup, NXfield, NXattr, 
                                NXlink, NXlinkgroup, NXlinkfield,
@@ -1198,8 +1198,7 @@ class DirectoryDialog(NXDialog):
             grid.addWidget(self.checkbox[f], i, 1)
         scroll_widget = NXWidget()
         scroll_widget.set_layout(grid)
-        scroll_area = QtWidgets.QScrollArea()
-        scroll_area.setWidget(scroll_widget)
+        scroll_area = NXScrollArea(scroll_widget)
         self.set_layout(prefix_layout, self.make_layout(scroll_area), 
                         self.close_layout())
         self.prefix_box.setFocus()
@@ -1444,7 +1443,7 @@ class PlotScalarDialog(NXDialog):
         self.prefix_box.textChanged.connect(self.select_prefix)
         prefix_layout = self.make_layout(NXLabel('Prefix'), 
                                          self.prefix_box)
-        self.scroll_area = QtWidgets.QScrollArea()
+        self.scroll_area = NXScrollArea()
         self.files = GridParameters()
         i = 0
         for name in sorted(self.tree, key=natural_sort):
@@ -2806,7 +2805,7 @@ class ScanTab(NXTab):
         self.prefix_box.textChanged.connect(self.select_prefix)
         prefix_layout = self.make_layout(NXLabel('Prefix'), 
                                          self.prefix_box)
-        self.scroll_area = QtWidgets.QScrollArea()
+        self.scroll_area = NXScrollArea()
         self.files = GridParameters()
         i = 0
         for name in sorted(self.tree, key=natural_sort):
