@@ -3465,7 +3465,10 @@ class NXNavigationToolbar(NavigationToolbar):
         self.plotview.xtab.set_limits(xmin, xmax)
         self.plotview.ytab.set_limits(ymin, ymax)
         if self.plotview.ndim == 1:
-            self.plotview.ytab.toggle_smoothing()
+            try:
+                self.plotview.plot_smooth()
+            except NeXusError:
+                pass
         try:
             xdim = self.plotview.xtab.axis.dim
             ydim = self.plotview.ytab.axis.dim
