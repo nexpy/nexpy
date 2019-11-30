@@ -36,10 +36,11 @@ try:
 except ImportError:
     from ordereddict import OrderedDict
 
-from .utils import (confirm_action, display_message, report_error,
+from .utils import (confirm_action, display_message, report_error, 
                     import_plugin, convertHTML, natural_sort, wrap, human_size,
                     timestamp, format_timestamp, restore_timestamp, get_color,
-                    keep_data, fix_projection, modification_time)
+                    keep_data, fix_projection, modification_time,
+                    is_file_locked)
 from .widgets import (NXCheckBox, NXComboBox, NXColorBox, NXPushButton, 
                       NXLabel, NXLineEdit, NXStack, NXDoubleSpinBox, NXSpinBox, 
                       NXpolygon)
@@ -109,12 +110,14 @@ class NXWidget(QtWidgets.QWidget):
                 layout.addStretch()
         return layout
 
-    def add_layout(self, *items):
+    def add_layout(self, *items, stretch=False):
         for item in items:
             if isinstance(item, QtWidgets.QLayout):
                 self.layout.addLayout(item)
             elif isinstance(item, QtWidgets.QWidget):
                 self.layout.addWidget(item)
+        if stretch:
+            self.layout.addStretch()
 
     def insert_layout(self, index, *items):
         for item in reversed(list(items)):
@@ -327,7 +330,7 @@ class NXWidget(QtWidgets.QWidget):
         if os.path.exists(suggestion):
             if not os.path.isdir(suggestion):
                 suggestion = os.path.dirname(suggestion)
-            self.default_directory = suggestion
+            self.mainwindow.default_directory = self.default_directory = suggestion
 
     def get_filesindirectory(self, prefix='', extension='.*', directory=None):
         """
@@ -581,6 +584,10 @@ class NXTab(NXWidget):
         self.layout.addStretch()
         self.setLayout(self.layout)
 
+    def close(self):
+        self.update()
+        super(NXTab, self).close()
+
 
 class NXDialog(QtWidgets.QDialog, NXWidget):
     """Base dialog class for NeXpy dialogs"""
@@ -588,6 +595,7 @@ class NXDialog(QtWidgets.QDialog, NXWidget):
     def __init__(self, parent=None, default=False):
         QtWidgets.QDialog.__init__(self, parent)
         NXWidget.__init__(self, parent)
+        self.setSizeGripEnabled(True)
         self.mainwindow.current_dialog = self
         if not default:
             self.installEventFilter(self)
@@ -818,7 +826,7 @@ class GridParameters(OrderedDict):
         value.name = key
 
     def add(self, name, value=None, label=None, vary=None, slot=None,
-            color=False, validate=None):
+            color=False, spinbox=None):
         """
         Convenience function for adding a Parameter:
 
@@ -833,7 +841,7 @@ class GridParameters(OrderedDict):
         self.__setitem__(name, GridParameter(value=value, name=name, 
                                              label=label, vary=vary, 
                                              slot=slot, color=color,
-                                             validate=validate))
+                                             spinbox=spinbox))
 
     def grid(self, header=True, title=None, width=None):
         grid = QtWidgets.QGridLayout()
@@ -987,7 +995,7 @@ class GridParameter(object):
     A Parameter is an object to be set in a dialog box grid.
     """
     def __init__(self, name=None, value=None, label=None, vary=None, slot=None,
-                 color=False, validate=None):
+                 color=False, spinbox=False):
         """
         Parameters
         ----------
@@ -1002,9 +1010,9 @@ class GridParameter(object):
         slot : function or None, optional
             Function to be called when the parameter is changed.
         color : bool, optional
-            Whether the field contains a color value
-        validate : function, optional
-            Function to be used to validate the value
+            Whether the field contains a color value, default False.
+        spinbox : bool, optional
+            Whether the field should be a spin box, default False.
         """
         self.name = name
         self._value = value
@@ -1019,11 +1027,17 @@ class GridParameter(object):
             if color:
                 self.colorbox = NXColorBox(value)
                 self.box = self.colorbox.textbox
+            elif spinbox:
+                self.box = NXDoubleSpinBox(slot=slot) 
+                self.colorbox = None              
             else:
                 self.box = NXLineEdit()
                 self.colorbox = None
+                if slot:
+                    self.box.editingFinished.connect(slot)
             self.box.setAlignment(QtCore.Qt.AlignRight)
             if value is not None:
+                self.box.blockSignals(True)
                 if isinstance(value, NXfield):
                     if value.shape == () or value.shape == (1,):
                         self.field = value
@@ -1034,8 +1048,7 @@ class GridParameter(object):
                 else:
                     self.field = None
                     self.value = value
-            if slot is not None:
-                self.box.editingFinished.connect(slot)
+                self.box.blockSignals(False)
         self.init_value = self.value
         if vary is not None:
             self.checkbox = NXCheckBox()
@@ -1076,6 +1089,8 @@ class GridParameter(object):
     def value(self):
         if isinstance(self.box, NXComboBox):
             return self.box.currentText()
+        elif isinstance(self.box, NXDoubleSpinBox):
+            return self.box.value()
         else:
             _value = self.box.text()
             try:
@@ -1094,6 +1109,8 @@ class GridParameter(object):
                 idx = self.box.findText(value)
                 if idx >= 0:
                     self.box.setCurrentIndex(idx)
+            elif isinstance(self.box, NXDoubleSpinBox):
+                self.box.setValue(value)
             else:
                 if isinstance(value, NXfield):
                     value = value.nxdata
@@ -1161,6 +1178,59 @@ class NewDialog(NXDialog):
         super(NewDialog, self).accept()
 
 
+class DirectoryDialog(NXDialog):
+    """Dialog to select files in a directory to be opened."""
+
+    def __init__(self, files, directory=None, parent=None):
+
+        super(DirectoryDialog, self).__init__(parent)
+
+        self.directory = directory
+        self.prefix_box = NXLineEdit()
+        self.prefix_box.textChanged.connect(self.select_prefix)
+        prefix_layout = self.make_layout(NXLabel('Prefix'), 
+                                         self.prefix_box)
+        grid = QtWidgets.QGridLayout()
+        items = []
+        for i, f in enumerate(files):
+            self.checkbox[f] = NXCheckBox(checked=True)
+            grid.addWidget(NXLabel(f), i, 0)
+            grid.addWidget(self.checkbox[f], i, 1)
+        scroll_widget = NXWidget()
+        scroll_widget.set_layout(grid)
+        scroll_area = QtWidgets.QScrollArea()
+        scroll_area.setWidget(scroll_widget)
+        self.set_layout(prefix_layout, self.make_layout(scroll_area), 
+                        self.close_layout())
+        self.prefix_box.setFocus()
+
+    @property
+    def files(self):
+        return [f for f in self.checkbox if self.checkbox[f].isChecked()]
+
+    def select_prefix(self):
+        prefix = self.prefix_box.text()
+        for f in self.checkbox:
+            if f.startswith(prefix):
+                self.checkbox[f].setChecked(True)
+            else:
+                self.checkbox[f].setChecked(False)
+
+    def accept(self):
+        for f in self.files:
+            fname = os.path.join(self.directory, f)
+            if is_file_locked(fname, wait=1):
+                continue
+            name = self.tree.get_name(fname)
+            self.tree[name] = nxload(fname)
+        self.treeview.select_node(self.tree[name])
+        self.treeview.setFocus()
+        self.set_default_directory(os.path.dirname(fname))
+        logging.info("%s NeXus files opened from %s" 
+                      % (len(self.files), self.directory))
+        super(DirectoryDialog, self).accept()
+
+ 
 class PlotDialog(NXDialog):
     """Dialog to plot arbitrary NeXus data in one or two dimensions"""
  
@@ -1208,7 +1278,6 @@ class PlotDialog(NXDialog):
         self.setLayout(self.layout)
 
         self.setWindowTitle("Plot NeXus Data")
-
 
 
     @property
@@ -1321,6 +1390,149 @@ class PlotDialog(NXDialog):
             report_error("Plotting data", error)
 
     
+class PlotScalarDialog(NXDialog):
+    """Dialog to plot scalar values against values in another tree."""
+ 
+    def __init__(self, node, parent=None, **kwargs):
+
+        super(PlotScalarDialog, self).__init__(parent)
+ 
+        if isinstance(node, NXfield):
+            self.node = node
+            self.group = node.nxgroup
+        
+        self.signal_combo =  NXComboBox()
+        signals = [s for s in self.group if self.group[s].size == 1 and 
+                                            self.group[s].is_numeric()]
+        if len(signals) == 0:
+            raise NeXusError("No numeric scalars in group")
+        self.signal_combo.add(*signals)
+        if node.nxname in self.signal_combo:
+            self.signal_combo.select(node.nxname)
+
+        self.set_layout(self.make_layout(self.signal_combo), 
+                        self.textboxes(('Scan', '')), 
+                        self.action_buttons(('Select Scan', self.select_scan),
+                                            ('Select Files', self.select_files)),
+                        self.checkboxes(('lines', 'Plot Lines', False),
+                                        ('over', 'Plot Over', False)),
+                        self.action_buttons(('Plot', self.plot_scan),
+                                            ('Save', self.save_scan)),
+                        self.close_layout())
+
+        self.setWindowTitle("Plot NeXus Field")
+
+        self.kwargs = kwargs
+
+    def select_scan(self):
+        scan_axis = self.treeview.node
+        if not isinstance(scan_axis, NXfield):
+            display_message("Scan Panel", "Scan axis must be a NXfield")
+        elif scan_axis.shape != () and scan_axis.shape != (1,):
+            display_message("Scan Panel", "Scan axis must be a scalar")
+        else:
+            self.textbox['Scan'].setText(self.treeview.node.nxpath)
+
+    def select_files(self):
+        if self.scan_path == '':
+            display_message('Scan Panel', 'No scan axis selected')
+            return
+        self.file_box = NXDialog()
+        self.file_box.setWindowTitle('Select Files')
+        self.file_box.setMinimumWidth(300)
+        self.prefix_box = NXLineEdit()
+        self.prefix_box.textChanged.connect(self.select_prefix)
+        prefix_layout = self.make_layout(NXLabel('Prefix'), 
+                                         self.prefix_box)
+        self.scroll_area = QtWidgets.QScrollArea()
+        self.files = GridParameters()
+        i = 0
+        for name in sorted(self.tree, key=natural_sort):
+            root = self.tree[name]
+            if self.scan_path in root and self.data_path in root:
+                i += 1
+                self.files.add(name, root[self.scan_path], name, vary=True)
+        self.file_grid = self.files.grid(header=('File', 
+                                         self.scan_variable.nxname, ''))
+        self.scroll_widget = NXWidget()
+        self.scroll_widget.set_layout(self.file_grid)
+        self.scroll_area.setWidget(self.scroll_widget)
+        self.file_box.set_layout(prefix_layout, self.scroll_area, 
+                                 self.file_box.close_layout(close=True))
+        self.file_box.show()
+
+    def select_prefix(self):
+        prefix = self.prefix_box.text()
+        self.files = GridParameters()
+        i = 0
+        for name in [n for n in sorted(self.tree, key=natural_sort)
+                     if n.startswith(prefix)]:
+            root = self.tree[name]
+            if self.scan_path in root and self.data_path in root:
+                i += 1
+                self.files.add(name, root[self.scan_path], name, vary=True)
+        self.file_grid = self.files.grid(header=('File', 
+                                         self.scan_variable.nxname, ''))
+        self.scroll_widget.deleteLater()
+        self.scroll_widget = NXWidget()
+        self.scroll_widget.set_layout(self.make_layout(self.file_grid))
+        self.scroll_area.setWidget(self.scroll_widget)
+
+    @property
+    def data_path(self):
+        return self.group[self.signal_combo.selected].nxpath
+
+    @property
+    def scan_path(self):
+        return self.textbox['Scan'].text()
+
+    @property
+    def scan_variable(self):
+        return self.group.nxroot[self.scan_path]
+
+    def scan_axis(self):
+        try:
+            _variable = self.scan_variable
+            _axis = NXfield([self.files[f].value for f in self.files 
+                             if self.files[f].vary], 
+                            dtype=_variable.dtype, 
+                            name=_variable.nxname)
+            if 'long_name' in _variable.attrs:
+                _axis.attrs['long_name'] = _variable.attrs['long_name']
+            if 'units' in _variable.attrs:
+                _axis.attrs['units'] = _variable.attrs['units']
+            return _axis
+        except Exception as error:
+            raise NeXusError("Files not selected")
+ 
+    def scan_files(self):
+        try:
+            return [self.tree[self.files[f].name] for f in self.files 
+                    if self.files[f].vary]
+        except Exception as error:
+            raise NeXusError("Files not selected")
+
+    def get_scan(self):
+        signal = self.group[self.data_path]
+        axis = self.scan_axis()
+        shape = [len(axis)]
+        field = NXfield(shape=shape, dtype=signal.dtype, name=signal.nxname)
+        for i, f in enumerate(self.scan_files()):
+            field[i] = f[self.data_path]
+        return NXdata(field, axis, title=self.data_path)
+
+    def plot_scan(self):
+        opts = {}
+        if self.checkbox['lines'].isChecked():
+            opts['marker'] = 'None'
+            opts['linestyle'] = '-'
+        opts['over'] = self.checkbox['over'].isChecked()
+        self.get_scan().plot(**opts)
+
+    def save_scan(self):
+        keep_data(self.get_scan())
+
+    
 class ExportDialog(NXDialog):
 
     def __init__(self, node, parent=None):
@@ -1360,7 +1572,7 @@ class ExportDialog(NXDialog):
         fname = getSaveFileName(self, "Choose a Filename", 
                                 self.data.nxname+'.txt')
         if fname:
-            self.default_directory = os.path.dirname(fname)
+            self.set_default_directory(os.path.dirname(fname))
         else:
             return
 
@@ -1458,13 +1670,14 @@ class CustomizeTab(NXTab):
             for plot in self.plots:
                 label = self.plot_label(plot)
                 pp[label] = self.parameters[label] = self.plot_parameters(plot)
+            self.plot_stack = self.parameter_stack(pp)
+            for plot in self.plots:
                 self.update_plot_parameters(plot)
             pg = self.parameters['legend'] = GridParameters()
             pg.add('legend', ['None'] + [key.title() for key in Legend.codes], 
                    'Legend')
             pg.add('label', ['Full Path', 'Name Only'], 'Label')
             self.update_legend_parameters()
-            self.plot_stack = self.parameter_stack(pp)
             self.set_layout(pl.grid(header=False),
                            self.plot_stack,
                            pg.grid(header=False))
@@ -1538,6 +1751,12 @@ class CustomizeTab(NXTab):
         parameters.add('markerstyle', ['filled', 'open'], 'Marker Style')
         parameters.add('markersize', p['markersize'], 'Marker Size')
         parameters.add('zorder', p['zorder'], 'Z-Order')
+        parameters.add('scale', 1.0, 'Scale', slot=self.scale_plot,
+                       spinbox=True)
+        parameters['scale'].box.setSingleStep(0.01)
+        parameters.add('offset', 0.0, 'Offset', slot=self.scale_plot,
+                       spinbox=True)
+        parameters['offset'].box.setSingleStep(10)
         parameters.grid(title='Plot Parameters', header=False, width=125)
         return parameters
 
@@ -1559,6 +1778,19 @@ class CustomizeTab(NXTab):
         pp['markerstyle'].value = p['markerstyle']
         pp['markersize'].value = p['markersize']
         pp['zorder'].value = p['zorder']
+        pp['scale'].value = p['scale']
+        pp['offset'].value = p['offset']
+
+    def scale_plot(self):
+        plot = self.label_plot(self.plot_stack.box.selected)
+        label = self.plot_label(plot)
+        scale = self.parameters[label]['scale'].value
+        self.parameters[label]['scale'].box.setSingleStep(scale/100.0)
+        offset = self.parameters[label]['offset'].value
+        self.parameters[label]['offset'].box.setSingleStep(max(offset/100.0, 1))
+        y = self.plotview.plots[plot]['y']
+        self.plotview.plots[plot]['plot'].set_ydata((y * scale) + offset)
+        self.plotview.draw()
 
     def update_legend_parameters(self):
         p = self.parameters['legend']
@@ -1662,6 +1894,8 @@ class CustomizeTab(NXTab):
                 p['plot'].set_markeredgecolor(p['color'])
                 p['zorder'] = pp['zorder'].value
                 p['plot'].set_zorder(p['zorder'])
+                p['scale'] = pp['scale'].value
+                p['offset'] = pp['offset'].value
                 if p['smooth_line']:
                     if linestyle == 'None':
                         p['smooth_linestyle'] = '-'
@@ -1733,8 +1967,8 @@ class ProjectionTab(NXTab):
         self.lockbox = {}
         for axis in range(self.ndim):
             row += 1
-            self.minbox[axis] = self.spinbox()
-            self.maxbox[axis] = self.spinbox()
+            self.minbox[axis] = NXSpinBox(self.set_limits)
+            self.maxbox[axis] = NXSpinBox(self.set_limits)
             self.lockbox[axis] = NXCheckBox(slot=self.set_lock)
             grid.addWidget(self.label(self.plotview.axis[axis].name), row, 0)
             grid.addWidget(self.minbox[axis], row, 1)
@@ -1767,9 +2001,7 @@ class ProjectionTab(NXTab):
         self.checkbox["hide"].stateChanged.connect(self.hide_rectangle)
 
         self.initialize()
-
         self._rectangle = None
-
         self.xbox.setFocus()
 
     def __repr__(self):
@@ -1984,15 +2216,6 @@ class ProjectionTab(NXTab):
         except NeXusError as error:
             report_error("Masking Data", error)
 
-    def spinbox(self):
-        spinbox = NXSpinBox()
-        spinbox.setAlignment(QtCore.Qt.AlignRight)
-        spinbox.setFixedWidth(100)
-        spinbox.setKeyboardTracking(False)
-        spinbox.setAccelerated(True)
-        spinbox.valueChanged[six.text_type].connect(self.set_limits)
-        return spinbox
-
     def block_signals(self, block=True):
         for axis in range(self.ndim):
             self.minbox[axis].blockSignals(block)
@@ -2058,9 +2281,6 @@ class ProjectionTab(NXTab):
                     minbox.setValue(minbox.valueFromIndex(ilo))
                 if  hi < maxbox.value():
                     maxbox.setValue(maxbox.valueFromIndex(ihi))
-            else:
-                minbox.setValue(minbox.valueFromIndex(ilo))
-                maxbox.setValue(maxbox.valueFromIndex(ihi))
         self.block_signals(False)
         self.draw_rectangle()
         self.sort_copybox()
@@ -2082,14 +2302,26 @@ class ProjectionTab(NXTab):
         self.xbox.setCurrentIndex(tab.xbox.currentIndex())
         if self.ndim > 1:
             self.ybox.setCurrentIndex(tab.ybox.currentIndex())
+        if self.plot and self.plot.ndim == 1 and self.yaxis == 'None':
+            self.overplot_box.setVisible(True)
+        else:
+            self.overplot_box.setVisible(False)
         self.block_signals(False)
         self.draw_rectangle()              
 
     def reset(self):
         self.block_signals(True)
         for axis in range(self.ndim):
-            self.minbox[axis].setValue(self.minbox[axis].data.min())
-            self.maxbox[axis].setValue(self.maxbox[axis].data.max())
+            if (self.plotview.axis[axis] is self.plotview.xaxis or 
+                   self.plotview.axis[axis] is self.plotview.yaxis):
+                self.minbox[axis].setValue(self.minbox[axis].data.min())
+                self.maxbox[axis].setValue(self.maxbox[axis].data.max())
+            else:
+                lo, hi = self.plotview.axis[axis].get_limits()
+                minbox, maxbox = self.minbox[axis], self.maxbox[axis]
+                ilo, ihi = minbox.indexFromValue(lo), maxbox.indexFromValue(hi)
+                minbox.setValue(minbox.valueFromIndex(ilo))
+                maxbox.setValue(maxbox.valueFromIndex(ihi))
         self.block_signals(False)
         self.update()
 
@@ -2159,8 +2391,8 @@ class LimitTab(NXTab):
         self.lockbox = {}
         for axis in range(self.ndim):
             row += 1
-            self.minbox[axis] = self.spinbox()
-            self.maxbox[axis] = self.spinbox()
+            self.minbox[axis] = NXSpinBox(self.set_limits)
+            self.maxbox[axis] = NXSpinBox(self.set_limits)
             self.lockbox[axis] = NXCheckBox(slot=self.set_lock)
             grid.addWidget(self.label(self.plotview.axis[axis].name), row, 0)
             grid.addWidget(self.minbox[axis], row, 1)
@@ -2171,11 +2403,9 @@ class LimitTab(NXTab):
         row += 1
         self.minbox['signal'] = NXDoubleSpinBox()
         self.maxbox['signal'] = NXDoubleSpinBox()
-        self.minbox['signal'].setAlignment(QtCore.Qt.AlignRight)
-        self.maxbox['signal'].setAlignment(QtCore.Qt.AlignRight)
         grid.addWidget(self.label(self.plotview.axis['signal'].name), row, 0)
         grid.addWidget(self.minbox['signal'], row, 1)
-        grid.addWidget(self.maxbox['signal'], row, 2)        
+        grid.addWidget(self.maxbox['signal'], row, 2)
 
         self.parameters = GridParameters()
         if self.plotview.label != 'Main':
@@ -2299,15 +2529,6 @@ class LimitTab(NXTab):
             else:
                 self.minbox[axis].diff = self.maxbox[axis].diff = None
                 self.minbox[axis].setDisabled(False)
-
-    def spinbox(self):
-        spinbox = NXSpinBox()
-        spinbox.setAlignment(QtCore.Qt.AlignRight)
-        spinbox.setFixedWidth(100)
-        spinbox.setKeyboardTracking(False)
-        spinbox.setAccelerated(True)
-        spinbox.valueChanged[six.text_type].connect(self.set_limits)
-        return spinbox
 
     def block_signals(self, block=True):
         for axis in range(self.ndim):
@@ -2502,8 +2723,8 @@ class ScanTab(NXTab):
         self.lockbox = {}
         for axis in range(self.ndim):
             row += 1
-            self.minbox[axis] = self.spinbox()
-            self.maxbox[axis] = self.spinbox()
+            self.minbox[axis] = NXSpinBox(self.set_limits)
+            self.maxbox[axis] = NXSpinBox(self.set_limits)
             self.lockbox[axis] = NXCheckBox(slot=self.set_lock)
             grid.addWidget(self.label(self.plotview.axis[axis].name), row, 0)
             grid.addWidget(self.minbox[axis], row, 1)
@@ -2530,7 +2751,10 @@ class ScanTab(NXTab):
                                         ("lines", "Plot Lines", False),
                                         ("hide", "Hide Limits", False)),
                         self.copy_layout("Copy Limits"))
-        self.checkbox["hide"].stateChanged.connect(self.hide_rectangle)
+        if self.ndim == 1:
+            self.checkbox["hide"].setVisible(False)
+        else:
+            self.checkbox["hide"].stateChanged.connect(self.hide_rectangle)
 
         self.initialize()
         self._rectangle = None
@@ -2571,6 +2795,53 @@ class ScanTab(NXTab):
         else:
             self.textbox['Scan'].setText(self.treeview.node.nxpath)
 
+    def select_files(self):
+        if self.scan_path == '':
+            display_message('Scan Panel', 'No scan axis selected')
+            return
+        self.file_box = NXDialog()
+        self.file_box.setWindowTitle('Select Files')
+        self.file_box.setMinimumWidth(300)
+        self.prefix_box = NXLineEdit()
+        self.prefix_box.textChanged.connect(self.select_prefix)
+        prefix_layout = self.make_layout(NXLabel('Prefix'), 
+                                         self.prefix_box)
+        self.scroll_area = QtWidgets.QScrollArea()
+        self.files = GridParameters()
+        i = 0
+        for name in sorted(self.tree, key=natural_sort):
+            root = self.tree[name]
+            if (self.scan_path in root and self.data_path in root and
+                root[self.data_path].nxsignal.exists()):
+                i += 1
+                self.files.add(name, root[self.scan_path], name, vary=True)
+        self.file_grid = self.files.grid(header=('File', 
+                                         self.scan_variable.nxname, ''))
+        self.scroll_widget = NXWidget()
+        self.scroll_widget.set_layout(self.file_grid)
+        self.scroll_area.setWidget(self.scroll_widget)
+        self.file_box.set_layout(prefix_layout, self.scroll_area, 
+                                 self.file_box.close_layout(close=True))
+        self.file_box.show()
+
+    def select_prefix(self):
+        prefix = self.prefix_box.text()
+        self.files = GridParameters()
+        i = 0
+        for name in [n for n in sorted(self.tree, key=natural_sort)
+                     if n.startswith(prefix)]:
+            root = self.tree[name]
+            if (self.scan_path in root and self.data_path in root and
+                root[self.data_path].nxsignal.exists()):
+                i += 1
+                self.files.add(name, root[self.scan_path], name, vary=True)
+        self.file_grid = self.files.grid(header=('File', 
+                                         self.scan_variable.nxname, ''))
+        self.scroll_widget.deleteLater()
+        self.scroll_widget = NXWidget()
+        self.scroll_widget.set_layout(self.make_layout(self.file_grid))
+        self.scroll_area.setWidget(self.scroll_widget)
+
     @property
     def data_path(self):
         return self.plotview.data.nxpath
@@ -2604,26 +2875,6 @@ class ScanTab(NXTab):
                     if self.files[f].vary]
         except Exception as error:
             raise NeXusError("Files not selected")
-
-    def select_files(self):
-        if self.scan_path == '':
-            display_message('Scan Panel', 'No scan axis selected')
-            return
-        self.file_box = NXDialog()
-        self.file_box.setWindowTitle('Select Files')
-        self.file_box.setMinimumWidth(300)
-        self.files = GridParameters()
-        i = 0
-        for name in sorted(self.tree, key=natural_sort):
-            root = self.tree[name]
-            if (self.scan_path in root and self.data_path in root and
-                root[self.data_path].nxsignal.exists()):
-                i += 1
-                self.files.add(name, root[self.scan_path], name, vary=True)
-        self.file_box.set_layout(
-            self.files.grid(header=('File', self.scan_variable.nxname, '')),
-            self.file_box.close_layout(close=True))
-        self.file_box.show()
 
     def get_axes(self):
         return self.plotview.xtab.get_axes()
@@ -2805,15 +3056,6 @@ class ScanTab(NXTab):
             from .plotview import NXPlotView
             return NXPlotView('Scan')
 
-    def spinbox(self):
-        spinbox = NXSpinBox()
-        spinbox.setAlignment(QtCore.Qt.AlignRight)
-        spinbox.setFixedWidth(100)
-        spinbox.setKeyboardTracking(False)
-        spinbox.setAccelerated(True)
-        spinbox.valueChanged[six.text_type].connect(self.set_limits)
-        return spinbox
-
     def block_signals(self, block=True):
         for axis in range(self.ndim):
             self.minbox[axis].blockSignals(block)
@@ -2825,7 +3067,7 @@ class ScanTab(NXTab):
             self._rectangle = NXpolygon(self.get_rectangle(), closed=True).shape
             self._rectangle.set_edgecolor(self.plotview._gridcolor)
             self._rectangle.set_facecolor('none')
-            self._rectangle.set_linestyle('dashed')
+            self._rectangle.set_linestyle('dotted')
             self._rectangle.set_linewidth(2)
         return self._rectangle
 
@@ -2843,8 +3085,9 @@ class ScanTab(NXTab):
             return xy
 
     def draw_rectangle(self):
-        self.rectangle.set_xy(self.get_rectangle())
-        self.plotview.draw()
+        if self.ndim > 1:
+            self.rectangle.set_xy(self.get_rectangle())
+            self.plotview.draw()
 
     def rectangle_visible(self):
         return not self.checkbox["hide"].isChecked()
@@ -2879,9 +3122,6 @@ class ScanTab(NXTab):
                     minbox.setValue(minbox.valueFromIndex(ilo))
                 if  hi < maxbox.value():
                     maxbox.setValue(maxbox.valueFromIndex(ihi))
-            else:
-                minbox.setValue(minbox.valueFromIndex(ilo))
-                maxbox.setValue(maxbox.valueFromIndex(ihi))
         self.block_signals(False)
         self.draw_rectangle()
         self.sort_copybox()
@@ -2904,8 +3144,16 @@ class ScanTab(NXTab):
     def reset(self):
         self.block_signals(True)
         for axis in range(self.ndim):
-            self.minbox[axis].setValue(self.minbox[axis].data.min())
-            self.maxbox[axis].setValue(self.maxbox[axis].data.max())
+            if (self.plotview.axis[axis] is self.plotview.xaxis or 
+                   self.plotview.axis[axis] is self.plotview.yaxis):
+                self.minbox[axis].setValue(self.minbox[axis].data.min())
+                self.maxbox[axis].setValue(self.maxbox[axis].data.max())
+            else:
+                lo, hi = self.plotview.axis[axis].get_limits()
+                minbox, maxbox = self.minbox[axis], self.maxbox[axis]
+                ilo, ihi = minbox.indexFromValue(lo), maxbox.indexFromValue(hi)
+                minbox.setValue(minbox.valueFromIndex(ilo))
+                maxbox.setValue(maxbox.valueFromIndex(ihi))
         self.block_signals(False)
         self.update()
 
@@ -3032,9 +3280,8 @@ class ViewDialog(NXDialog):
         if [s for s in self.node.shape if s > 10]:
             idx = []
             for i, s in enumerate(self.node.shape):
-                spinbox = QtWidgets.QSpinBox()
+                spinbox = NXSpinBox(self.choose_data)
                 spinbox.setRange(0, s-1)   
-                spinbox.valueChanged[six.text_type].connect(self.choose_data)
                 if len(self.node.shape) - i > 2:
                     idx.append(0)
                 else:

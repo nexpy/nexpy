@@ -63,8 +63,8 @@ from scipy.spatial import Voronoi, voronoi_plot_2d
 from nexusformat.nexus import NXfield, NXdata, NXroot, NeXusError
 
 from .. import __version__
-from .widgets import (NXSpinBox, NXDoubleSpinBox, NXComboBox, NXCheckBox, 
-                      NXLabel, NXPushButton,
+from .widgets import (NXSpinBox, NXDoubleSpinBox, NXSlider, NXComboBox, 
+                      NXCheckBox, NXLabel, NXPushButton,
                       NXcircle, NXellipse, NXrectangle, NXpolygon)
 from .utils import (report_error, report_exception, boundaries, centers, keep_data, 
                     fix_projection, find_nearest, iterable)
@@ -724,6 +724,7 @@ class NXPlotView(QtWidgets.QDialog):
 
         if over:
             self.update_tabs()
+            self.update_panels()
         else:
             self.init_tabs()
 
@@ -1055,6 +1056,8 @@ class NXPlotView(QtWidgets.QDialog):
         p['linestyle'] = p['plot'].get_linestyle()
         p['linewidth'] = p['plot'].get_linewidth()
         p['zorder'] = p['plot'].get_zorder()
+        p['scale'] = 1.0
+        p['offset'] = 0.0
         try:
             p['smooth_function'] = interp1d(self.x, self.y, kind='cubic')
         except Exception as error:
@@ -2575,8 +2578,8 @@ class NXPlotTab(QtWidgets.QWidget):
             self.axiscombo = None
         if zaxis:
             self.zaxis = True
-            self.minbox = self.spinbox(self.read_minbox)
-            self.maxbox = self.spinbox(self.read_maxbox)
+            self.minbox = NXSpinBox(self.read_minbox)
+            self.maxbox = NXSpinBox(self.read_maxbox)
             self.lockbox = NXCheckBox("Lock", self.change_lock)
             self.lockbox.setChecked(True)
             self.scalebox = NXCheckBox("Autoscale", self.plotview.replot_image)
@@ -2593,10 +2596,14 @@ class NXPlotTab(QtWidgets.QWidget):
             self.zaxis = False
             self.plotcombo = NXComboBox(self.select_plot, ['0'])
             self.plotcombo.setMinimumWidth(20)
-            self.minbox = self.doublespinbox(self.read_minbox)
-            self.minslider = self.slider(self.read_minslider)
-            self.maxslider = self.slider(self.read_maxslider)
-            self.maxbox = self.doublespinbox(self.read_maxbox)
+            self.minbox = NXDoubleSpinBox(self.read_minbox)
+            if self.name == 'v':
+                self.minslider = NXSlider(self.read_minslider, move=False)
+                self.maxslider = NXSlider(self.read_maxslider, move=False)
+            else:
+                self.minslider = NXSlider(self.read_minslider)
+                self.maxslider = NXSlider(self.read_maxslider)
+            self.maxbox = NXDoubleSpinBox(self.read_maxbox)
             if log:
                 self.logbox = NXCheckBox("Log", self.change_log)
                 self.logbox.setChecked(False)
@@ -2709,39 +2716,6 @@ class NXPlotTab(QtWidgets.QWidget):
         num = self.plotcombo.currentText()
         self.plotview.num = int(num)
         self.smoothing = self.plotview.plots[num]['smoothing']    
-
-    def spinbox(self, slot):
-        """Return a NXSpinBox with a signal slot."""
-        spinbox = NXSpinBox()
-        spinbox.setAlignment(QtCore.Qt.AlignRight)
-        spinbox.setFixedWidth(100)
-        spinbox.setKeyboardTracking(False)
-        spinbox.setAccelerated(False)
-        spinbox.valueChanged[six.text_type].connect(slot)
-        return spinbox
-
-    def doublespinbox(self, slot):
-        """Return a NXDoubleSpinBox with a signal slot."""
-        doublespinbox = NXDoubleSpinBox()
-        doublespinbox.setAlignment(QtCore.Qt.AlignRight)
-        doublespinbox.setFixedWidth(100)
-        doublespinbox.setKeyboardTracking(False)
-        doublespinbox.valueChanged[six.text_type].connect(slot)
-        return doublespinbox
-
-    def slider(self, slot):
-        """Return a QSlider with a signal slot."""
-        slider = QtWidgets.QSlider(QtCore.Qt.Horizontal)
-        slider.setFocusPolicy(QtCore.Qt.NoFocus)
-        slider.setMinimumWidth(100)
-        slider.setRange(0, 1000)
-        slider.setSingleStep(5)
-        slider.setValue(0)
-        slider.setTracking(True)
-        slider.sliderReleased.connect(slot)
-        if self.name != 'v':
-            slider.sliderMoved.connect(slot)
-        return slider
 
     @QtCore.Slot()
     def read_maxbox(self):

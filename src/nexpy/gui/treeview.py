@@ -394,7 +394,7 @@ class NXTreeView(QtWidgets.QTreeView):
             except Exception as error:
                 pass
         try:
-            if node.is_plottable():
+            if node.is_plottable() or node.is_numeric():
                 self.mainwindow.plot_data_action.setEnabled(True)
                 if ((isinstance(node, NXgroup) and
                     node.nxsignal is not None and 
