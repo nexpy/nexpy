@@ -2302,6 +2302,10 @@ class ProjectionTab(NXTab):
         self.xbox.setCurrentIndex(tab.xbox.currentIndex())
         if self.ndim > 1:
             self.ybox.setCurrentIndex(tab.ybox.currentIndex())
+        if self.plot and self.plot.ndim == 1 and self.yaxis == 'None':
+            self.overplot_box.setVisible(True)
+        else:
+            self.overplot_box.setVisible(False)
         self.block_signals(False)
         self.draw_rectangle()              
 
