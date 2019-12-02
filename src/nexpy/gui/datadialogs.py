@@ -1470,7 +1470,7 @@ class PlotScalarDialog(NXDialog):
         for name in [n for n in sorted(self.tree, key=natural_sort)
                      if n.startswith(prefix)]:
             root = self.tree[name]
-            if self.scan_path in root and self.data_path in root:
+            if self.data_path in root:
                 i += 1
                 if self.scan_path:
                     self.files.add(name, root[self.scan_path], name, True)
@@ -2863,7 +2863,7 @@ class ScanTab(NXTab):
         for name in [n for n in sorted(self.tree, key=natural_sort)
                      if n.startswith(prefix)]:
             root = self.tree[name]
-            if (self.scan_path in root and self.data_path in root and
+            if (self.data_path in root and
                 root[self.data_path].nxsignal.exists()):
                 i += 1
                 if self.scan_path:
