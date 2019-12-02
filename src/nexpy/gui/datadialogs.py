@@ -1662,7 +1662,7 @@ class CustomizeDialog(NXPanel):
 
     def __init__(self, parent=None):
         super(CustomizeDialog, self).__init__('customize', 
-                                              title='Customize Plot', 
+                                              title='Customize Panel', 
                                               parent=parent)
         self.tab_class = CustomizeTab
         self.plotview_sort = True
@@ -2373,7 +2373,7 @@ class LimitDialog(NXPanel):
     """Dialog to set plot window limits"""
  
     def __init__(self, parent=None):
-        super(LimitDialog, self).__init__('limit', title='Plot Limits', 
+        super(LimitDialog, self).__init__('limit', title='Limits Panel', 
               parent=parent)
         self.tab_class = LimitTab
         self.plotview_sort = True
