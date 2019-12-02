@@ -1491,7 +1491,7 @@ class PlotScalarDialog(NXDialog):
                     i += 1
                     self.files[f].value = i
                 else:
-                    self.files[f].value = 0
+                    self.files[f].value = ''
 
     @property
     def data_path(self):
@@ -2885,7 +2885,7 @@ class ScanTab(NXTab):
                     i += 1
                     self.files[f].value = i
                 else:
-                    self.files[f].value = 0
+                    self.files[f].value = ''
 
     @property
     def data_path(self):
