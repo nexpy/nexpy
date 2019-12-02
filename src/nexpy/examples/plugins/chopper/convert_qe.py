@@ -1,5 +1,5 @@
 import numpy as np
-from nexpy.gui.datadialogs import BaseDialog, GridParameters
+from nexpy.gui.datadialogs import NXDialog, GridParameters
 from nexpy.gui.utils import report_error
 from nexusformat.nexus import NXfield, NXdata, NeXusError
 from nexusformat.nexus.tree import centers
@@ -13,7 +13,7 @@ def show_dialog():
         report_error("Converting to (Q,E)", error)
         
 
-class ConvertDialog(BaseDialog):
+class ConvertDialog(NXDialog):
 
     def __init__(self, parent=None):
         super(ConvertDialog, self).__init__(parent)
