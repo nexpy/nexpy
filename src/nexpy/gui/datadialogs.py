@@ -1439,6 +1439,7 @@ class PlotScalarDialog(NXDialog):
         self.file_box = NXDialog(parent=self)
         self.file_box.setWindowTitle('Select Files')
         self.file_box.setMinimumWidth(300)
+        self.setAttribute(QtCore.Qt.WA_DeleteOnClose, True)
         self.prefix_box = NXLineEdit()
         self.prefix_box.textChanged.connect(self.select_prefix)
         prefix_layout = self.make_layout(NXLabel('Prefix'), 
