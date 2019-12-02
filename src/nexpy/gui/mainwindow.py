@@ -1100,7 +1100,7 @@ class MainWindow(QtWidgets.QMainWindow):
                                      "JPEG/PNG Files (*.jpg *.jpeg *.png)"))
             fname = getOpenFileName(self, 'Open Image File',
                                     self.default_directory, file_filter)
-            if fname is None:
+            if fname is None or not os.path.exists(fname):
                 return
             data = load_image(fname)
             if 'images' not in self.tree:
@@ -1121,14 +1121,16 @@ class MainWindow(QtWidgets.QMainWindow):
             directory = self.default_directory
             directory = QtWidgets.QFileDialog.getExistingDirectory(self, 
                         'Choose Directory', directory)
+            if directory is None or not os.path.exists(directory):
+                return
             tree_files = [self.tree[root].nxfilename for root in self.tree]
             nxfiles = sorted([f for f in os.listdir(directory) 
                               if ((f.endswith('.nxs') or f.endswith('.nx5') or
                                    f.endswith('.h5') or f.endswith('hdf5') or
                                    f.endswith('hdf') or f.endswith('.cxi') or
                                    f.endswith('nxspe')) and
-                              os.path.join(directory,f) not in tree_files and
-                              not os.path.islink(os.path.join(directory,f)))],
+                              os.path.join(directory, f) not in tree_files and
+                              not os.path.islink(os.path.join(directory, f)))],
                              key=natural_sort)
             if len(nxfiles) == 0:
                 raise NeXusError("No NeXus files found in directory")
