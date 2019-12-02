@@ -1458,7 +1458,7 @@ class PlotScalarDialog(NXDialog):
                     self.files[name].checkbox.stateChanged.connect(self.update_files)
         self.file_grid = self.files.grid(header=('File', self.scan_header, ''))
         self.scroll_widget = NXWidget()
-        self.scroll_widget.set_layout(self.file_grid)
+        self.scroll_widget.set_layout(self.make_layout(self.file_grid))
         self.scroll_area.setWidget(self.scroll_widget)
         self.file_box.set_layout(prefix_layout, self.scroll_area, 
                                  self.file_box.close_layout(close=True))
@@ -2851,7 +2851,7 @@ class ScanTab(NXTab):
                     self.files[name].checkbox.stateChanged.connect(self.update_files)
         self.file_grid = self.files.grid(header=('File', self.scan_header, ''))
         self.scroll_widget = NXWidget()
-        self.scroll_widget.set_layout(self.file_grid)
+        self.scroll_widget.set_layout(self.make_layout(self.file_grid))
         self.scroll_area.setWidget(self.scroll_widget)
         self.file_box.set_layout(prefix_layout, self.scroll_area, 
                                  self.file_box.close_layout(close=True))
