@@ -358,24 +358,29 @@ Window Menu
     .. note:: The log files contain ANSI markup to colorize the text, which can
               be rendered in the terminal using ``less -r``.
 
-**Show Projection Panel**
-    Shows the projection panel for the currently active plotting window. This 
-    is equivalent to clicking on 'Show Panel' in the projection tab (see below). 
-    All the open projection panels are displayed as tabs in a single window, 
-    with the option of copying projection values from one tab to the other if 
-    the plots are compatible.
-
 **Show Script Editor**
     Shows the script editor. If multiple scripts are open, they are displayed as
     tabs in a single window. If no scripts are open, this will open a new 
     script.
 
-**Change Plot Limits**
+**Show Customize Panel**
+    This opens a panel for the currently active plotting window that allows 
+    aspects of the plot, such as titles, axis labels, aspect ratios, skew 
+    angles, marker and line colors, and legends to be customized. All the open 
+    panels are displayed as tabs in a single window.
+
+    .. note:: This is equivalent to clicking the Edit button in the Options Tab 
+              (see below).
+
+**Show Limits Panel**
     This opens a panel for the currently active plotting window that allows the 
     axes and axis limits of the currently active plot to be changed, as well as 
     the plot size on the screen. All the panels are displayed as tabs in a 
-    single window, with the option of copying values from one tab to the other 
-    if the plots are compatible.
+    single window, with the option of copying and values from one tab to the 
+    other if the plots are compatible. If the 'sync' button is checked, the
+    limits will be synchronized dynamically to any changes made to the other 
+    plot, whether made on the Limits Panel or directly in the plot. Multiple 
+    plots can be synchronized to a single plot.
 
     .. note:: When the settings in one tab are copied to another and the Apply 
               button is clicked, other settings, such as the aspect ratio, 
@@ -387,21 +392,31 @@ Window Menu
               because of the constraints of the other panes. Other plotting 
               windows will copy the main window plotting size if requested.
 
+**Show Projection Panel**
+    This opens a panel for the currently active plotting window to allow
+    projections along arbitrary axesto be plotted and/or saved. This 
+    is equivalent to clicking on 'Show Panel' in the projection tab (see below). 
+    All the open projection panels are displayed as tabs in a single window, 
+    with the option of copying projection values from one tab to the other if 
+    the plots are compatible.
+
+**Show Scan Panel**
+    This opens a panel for plotting data across multiple files in the NeXpy
+    tree. The limits are used to define projection of the currently plotted 
+    data, which is to be plotted against the variable defined by the path 
+    in the Scan field. This path can either be entered manually, or by
+    selecting a scalar quantity in the tree and clicking the 'Select Scan'
+    button. The 'Select Files' button is then used to define the loaded files
+    to be included in the scan. Values of the scanned variable are 
+    automatically read from the file and entered in the box by the 
+    corresponding file, where they can be edited if necessary. 
+
 **Reset Plot Limits**
     This restores the axis and signal limits to the original values.
 
     .. note:: This is equivalent to clicking on the Home button in the Options 
               Tab (see below). Right-clicking within the plot restores the 
               axis limits but does not reset the signal limits.
-
-**Customize Plot**
-    This opens a panel for the currently active plotting window that allows 
-    aspects of the plot, such as titles, axis labels, aspect ratios, skew 
-    angles, marker and line colors, and legends to be customized. All the open 
-    panels are displayed as tabs in a single window.
-
-    .. note:: This is equivalent to clicking the Edit button in the Options Tab 
-              (see below).
 
 **New Plot Window**
     Opens a new NeXpy plotting window, consisting of a Matplotlib plot pane and 
@@ -660,10 +675,11 @@ and sliders.
     * **Save** - saves plot to PNG file.
     * **Add** - adds plotted data to the tree pane as an NXdata group within the
       scratch workspace 'w0'.
-    * **Edit** - opens dialog to customize both image and point plots. Use this
-      to change the title and axis labels, modify the image aspect ratio and 
-      skew angles, turn axis grids on or off and set their styles, modify the 
-      point plot markers and lines, and draw legends.
+    * **Edit** - opens the Customize Panel to edit both image and point plots. 
+      Use this to change the title and axis labels, modify the image aspect 
+      ratio and skew angles, turn axis grids on or off and set their styles, 
+      modify the point plot markers and lines, scale or add an offset to 1D
+      plots, and draw legends.
 
     On the far right of the toolbar, the data and axis values are dynamically 
     updated to the values under the current mouse location.
