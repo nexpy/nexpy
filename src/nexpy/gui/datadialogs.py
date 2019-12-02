@@ -586,6 +586,7 @@ class NXTab(NXWidget):
 
     def close(self):
         self.update()
+        self.setAttribute(QtCore.Qt.WA_DeleteOnClose, True)
         super(NXTab, self).close()
 
 
@@ -1398,6 +1399,7 @@ class PlotScalarDialog(NXDialog):
     def __init__(self, node, parent=None, **kwargs):
 
         super(PlotScalarDialog, self).__init__(parent)
+        self.setAttribute(QtCore.Qt.WA_DeleteOnClose, True)
  
         if isinstance(node, NXfield):
             self.node = node
@@ -1423,8 +1425,8 @@ class PlotScalarDialog(NXDialog):
                         self.close_layout())
 
         self.setWindowTitle("Plot NeXus Field")
-
         self.kwargs = kwargs
+        self.file_box = None
 
     def select_scan(self):
         scan_axis = self.treeview.node
@@ -1436,6 +1438,8 @@ class PlotScalarDialog(NXDialog):
             self.textbox['Scan'].setText(self.treeview.node.nxpath)
 
     def select_files(self):
+        if self.file_box is not None:
+            self.file_box.close()
         self.file_box = NXDialog(parent=self)
         self.file_box.setWindowTitle('Select Files')
         self.file_box.setMinimumWidth(300)
@@ -1457,7 +1461,7 @@ class PlotScalarDialog(NXDialog):
                     self.files[name].checkbox.stateChanged.connect(self.update_files)
         self.file_grid = self.files.grid(header=('File', self.scan_header, ''))
         self.scroll_widget = NXWidget()
-        self.scroll_widget.set_layout(self.file_grid)
+        self.scroll_widget.set_layout(self.make_layout(self.file_grid))
         self.scroll_area.setWidget(self.scroll_widget)
         self.file_box.set_layout(prefix_layout, self.scroll_area, 
                                  self.file_box.close_layout(close=True))
@@ -2828,6 +2832,8 @@ class ScanTab(NXTab):
             self.textbox['Scan'].setText(self.treeview.node.nxpath)
 
     def select_files(self):
+        if self.file_box is not None:
+            self.file_box.close()
         self.file_box = NXDialog(parent=self)
         self.file_box.setWindowTitle('Select Files')
         self.file_box.setMinimumWidth(300)
@@ -2850,7 +2856,7 @@ class ScanTab(NXTab):
                     self.files[name].checkbox.stateChanged.connect(self.update_files)
         self.file_grid = self.files.grid(header=('File', self.scan_header, ''))
         self.scroll_widget = NXWidget()
-        self.scroll_widget.set_layout(self.file_grid)
+        self.scroll_widget.set_layout(self.make_layout(self.file_grid))
         self.scroll_area.setWidget(self.scroll_widget)
         self.file_box.set_layout(prefix_layout, self.scroll_area, 
                                  self.file_box.close_layout(close=True))
