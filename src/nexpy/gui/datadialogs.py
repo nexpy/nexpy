@@ -586,6 +586,7 @@ class NXTab(NXWidget):
 
     def close(self):
         self.update()
+        self.setAttribute(QtCore.Qt.WA_DeleteOnClose, True)
         super(NXTab, self).close()
 
 
@@ -1398,6 +1399,7 @@ class PlotScalarDialog(NXDialog):
     def __init__(self, node, parent=None, **kwargs):
 
         super(PlotScalarDialog, self).__init__(parent)
+        self.setAttribute(QtCore.Qt.WA_DeleteOnClose, True)
  
         if isinstance(node, NXfield):
             self.node = node
@@ -1423,8 +1425,8 @@ class PlotScalarDialog(NXDialog):
                         self.close_layout())
 
         self.setWindowTitle("Plot NeXus Field")
-
         self.kwargs = kwargs
+        self.file_box = None
 
     def select_scan(self):
         scan_axis = self.treeview.node
@@ -1436,10 +1438,11 @@ class PlotScalarDialog(NXDialog):
             self.textbox['Scan'].setText(self.treeview.node.nxpath)
 
     def select_files(self):
+        if self.file_box is not None:
+            self.file_box.close()
         self.file_box = NXDialog(parent=self)
         self.file_box.setWindowTitle('Select Files')
         self.file_box.setMinimumWidth(300)
-        self.setAttribute(QtCore.Qt.WA_DeleteOnClose, True)
         self.prefix_box = NXLineEdit()
         self.prefix_box.textChanged.connect(self.select_prefix)
         prefix_layout = self.make_layout(NXLabel('Prefix'), 
@@ -2829,6 +2832,8 @@ class ScanTab(NXTab):
             self.textbox['Scan'].setText(self.treeview.node.nxpath)
 
     def select_files(self):
+        if self.file_box is not None:
+            self.file_box.close()
         self.file_box = NXDialog(parent=self)
         self.file_box.setWindowTitle('Select Files')
         self.file_box.setMinimumWidth(300)
