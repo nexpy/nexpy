@@ -705,7 +705,7 @@ class NXPanel(NXDialog):
         if label in self.tabs:
             try:
                 self.tabwidget.removeTab(self.tabwidget.indexOf(self.tabs[label]))
-            except RuntimeError:
+            except Exception:
                 pass
             del self.labels[self.tabs[label]]
             self.tabs[label].deleteLater()
@@ -778,7 +778,10 @@ class NXPanel(NXDialog):
             self.setVisible(False)
         else:
             for tab in self.tabs:
-                self.tabs[tab].update()
+                try:
+                    self.tabs[tab].update()
+                except Exception:
+                    pass
         self.adjustSize()
 
     def copy(self):
