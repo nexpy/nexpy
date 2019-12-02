@@ -1470,7 +1470,7 @@ class PlotScalarDialog(NXDialog):
         for name in [n for n in sorted(self.tree, key=natural_sort)
                      if n.startswith(prefix)]:
             root = self.tree[name]
-            if self.scan_path in root and self.data_path in root:
+            if self.data_path in root:
                 i += 1
                 if self.scan_path:
                     self.files.add(name, root[self.scan_path], name, True)
@@ -1491,7 +1491,7 @@ class PlotScalarDialog(NXDialog):
                     i += 1
                     self.files[f].value = i
                 else:
-                    self.files[f].value = 0
+                    self.files[f].value = ''
 
     @property
     def data_path(self):
@@ -1662,7 +1662,7 @@ class CustomizeDialog(NXPanel):
 
     def __init__(self, parent=None):
         super(CustomizeDialog, self).__init__('customize', 
-                                              title='Customize Plot', 
+                                              title='Customize Panel', 
                                               parent=parent)
         self.tab_class = CustomizeTab
         self.plotview_sort = True
@@ -2373,7 +2373,7 @@ class LimitDialog(NXPanel):
     """Dialog to set plot window limits"""
  
     def __init__(self, parent=None):
-        super(LimitDialog, self).__init__('limit', title='Plot Limits', 
+        super(LimitDialog, self).__init__('limit', title='Limits Panel', 
               parent=parent)
         self.tab_class = LimitTab
         self.plotview_sort = True
@@ -2863,7 +2863,7 @@ class ScanTab(NXTab):
         for name in [n for n in sorted(self.tree, key=natural_sort)
                      if n.startswith(prefix)]:
             root = self.tree[name]
-            if (self.scan_path in root and self.data_path in root and
+            if (self.data_path in root and
                 root[self.data_path].nxsignal.exists()):
                 i += 1
                 if self.scan_path:
@@ -2885,7 +2885,7 @@ class ScanTab(NXTab):
                     i += 1
                     self.files[f].value = i
                 else:
-                    self.files[f].value = 0
+                    self.files[f].value = ''
 
     @property
     def data_path(self):
