@@ -11,13 +11,13 @@
 #-----------------------------------------------------------------------------
 
 pkg_requirements = [
-    'nexusformat>=0.4.18',
-    'numpy>=1.6.0',
+    'nexusformat>=0.5.0',
+    'numpy',
     'scipy',
     'h5py',
-    'jupyter',
-    'ipython>=4.0.0',
-    'matplotlib>=1.5.0',
+    'qtconsole',
+    'ipython',
+    'matplotlib',
     'ansi2html',
     'pillow'
 ]
