@@ -290,7 +290,7 @@ class FitDialog(NXDialog):
                                 else:
                                     parameter.vary = False
                             parameters.append(parameter)
-                    f = Function(group, module, parameters, n)
+                    f = Function(group, module, parameters, int(n))
                     self.functions.append(f)
             self.functions = sorted(self.functions)
             for f in self.functions:
