@@ -45,6 +45,9 @@ class Fit(object):
         self.fit = None
         self.result = None
 
+    def __repr__(self):
+        return 'Fit(%s)' % self.data.nxpath
+
     def set_data(self, data):
         """
         Initialize the data used in the fit
@@ -208,7 +211,10 @@ class Function(object):
         self.function_index = function_index
 
     def __lt__(self, other):
-         return self.function_index < other.function_index
+         return int(self.function_index) < int(other.function_index)
+
+    def __repr__(self):
+        return 'Function(%s)' % self.name
 
     @property
     def parameters(self):

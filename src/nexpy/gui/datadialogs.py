@@ -1547,19 +1547,29 @@ class PlotScalarDialog(NXDialog):
         shape = [len(axis)]
         field = NXfield(shape=shape, dtype=signal.dtype, name=signal.nxname)
         for i, f in enumerate(self.scan_files()):
+            try:
+                field[i] = f[self.data_path]
+            except Exception as error:
+                raise NeXusError("Cannot read '%s'" % f)
             field[i] = f[self.data_path]
         return NXdata(field, axis, title=self.data_path)
 
     def plot_scan(self):
-        opts = {}
-        if self.checkbox['lines'].isChecked():
-            opts['marker'] = 'None'
-            opts['linestyle'] = '-'
-        opts['over'] = self.checkbox['over'].isChecked()
-        self.get_scan().plot(**opts)
+        try:
+            opts = {}
+            if self.checkbox['lines'].isChecked():
+                opts['marker'] = 'None'
+                opts['linestyle'] = '-'
+            opts['over'] = self.checkbox['over'].isChecked()
+            self.get_scan().plot(**opts)
+        except NeXusError as error:
+            report_error("Plotting Scan", error)
 
     def save_scan(self):
-        keep_data(self.get_scan())
+        try:
+            keep_data(self.get_scan())
+        except NeXusError as error:
+            report_error("Saving Scan", error)
 
     def close(self):
         try:
@@ -3069,8 +3079,12 @@ class ScanTab(NXTab):
         scan_field = NXfield(shape=scan_shape, dtype=data_signal.dtype, 
                              name=data_signal.nxname)
         for i, f in enumerate(self.scan_files()):
-            scan_field[i] = f[self.data_path].project(axes, limits, 
+            try:
+                scan_field[i] = f[self.data_path].project(axes, limits, 
                                                    summed=self.summed).nxsignal
+            except Exception as error:
+                raise NeXusError("Cannot read '%s'" % f)
+                return
         del data[data_signal.nxname]
         data.nxsignal = scan_field
         data.nxaxes = [scan_axis, *data_axes]

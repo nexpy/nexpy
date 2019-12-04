@@ -1,10 +1,10 @@
 package:
   name: nexpy
-  version: "0.12.1"
+  version: "0.12.2"
 
 source:
   git_url: https://github.com/nexpy/nexpy.git
-  git_tag: v0.12.1
+  git_tag: v0.12.2
 
 build:
   entry_points:
@@ -15,27 +15,23 @@ requirements:
   build:
     - python
     - setuptools
-    - nexusformat >=0.5.0
+    - nexusformat >=0.5.1
     - numpy
     - scipy
     - h5py
-    - jupyter
-    - ipython
+    - qtconsole
     - matplotlib
-    - pyqt
     - six
     - ansi2html
 
   run:
     - python
-    - nexusformat >=0.5.0
-    - numpy >=1.6.0
+    - nexusformat >=0.5.1
+    - numpy
     - scipy
     - h5py
-    - jupyter
-    - ipython
+    - qtconsole
     - matplotlib
-    - pyqt
     - ansi2html
 
 test:
