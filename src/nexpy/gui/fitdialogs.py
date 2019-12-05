@@ -27,7 +27,7 @@ from .pyqt import QtCore, QtGui, QtWidgets
 from nexusformat.nexus import (NeXusError, NXgroup, NXfield, NXattr,
                                NXroot, NXentry, NXdata, NXparameters, 
                                NXnote, NXprocess, nxload)
-from .datadialogs import BaseDialog
+from .datadialogs import NXDialog
 from .plotview import NXPlotView
 from .utils import report_error
 from .widgets import NXLineEdit
@@ -35,7 +35,7 @@ from .widgets import NXLineEdit
 from ..api.frills.fit import Fit, Function, Parameter
 
     
-class FitDialog(BaseDialog):
+class FitDialog(NXDialog):
     """Dialog to fit one-dimensional NeXus data"""
  
     def __init__(self, entry):
@@ -290,7 +290,7 @@ class FitDialog(BaseDialog):
                                 else:
                                     parameter.vary = False
                             parameters.append(parameter)
-                    f = Function(group, module, parameters, n)
+                    f = Function(group, module, parameters, int(n))
                     self.functions.append(f)
             self.functions = sorted(self.functions)
             for f in self.functions:

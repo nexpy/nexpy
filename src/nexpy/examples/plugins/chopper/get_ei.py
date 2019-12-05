@@ -12,7 +12,7 @@ def show_dialog(parent=None):
         report_error("Getting Incident Energy", error)
         
 
-class EnergyDialog(BaseDialog):
+class EnergyDialog(NXDialog):
 
     def __init__(self, parent=None):
 
