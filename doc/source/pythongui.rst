@@ -372,6 +372,10 @@ Window Menu
     .. note:: This is equivalent to clicking the Edit button in the Options Tab 
               (see below).
 
+.. image:: /images/limits-panel.png
+   :align: center
+   :width: 90%
+
 **Show Limits Panel**
     This opens a panel for the currently active plotting window that allows the 
     axes and axis limits of the currently active plot to be changed, as well as 
@@ -392,13 +396,37 @@ Window Menu
               because of the constraints of the other panes. Other plotting 
               windows will copy the main window plotting size if requested.
 
+.. image:: /images/projection-panel.png
+   :align: center
+   :width: 90%
+
 **Show Projection Panel**
     This opens a panel for the currently active plotting window to allow
-    projections along arbitrary axesto be plotted and/or saved. This 
-    is equivalent to clicking on 'Show Panel' in the projection tab (see below). 
+    projections along arbitrary axes to be plotted and/or saved. The 
+    projections are either two-dimensional or, if the y-box is set to 'None', 
+    one-dimensional. The projections may be plotted in a separate window, using 
+    the 'Plot' button or saved to a scratch NXdata group on the tree. If 'Sum' 
+    is checked, the projection contains the sum over all the summed pixels; if 
+    not, the projection contains the average, *i.e.*, the sum divided by the 
+    number of pixels in each orthogonal dimension. If a one-dimensional 
+    projection is plotted, a checkbox appears allowing additional 
+    one-dimensional projections to be plotted over it.
+
+    The x and y limits of the plot are displayed as a dashed rectangle, which 
+    can be hidden if 'Hide Limits' is checked. Dragging with the right-button
+    depressed can be used to change the limits without replotting. 
+    
     All the open projection panels are displayed as tabs in a single window, 
     with the option of copying projection values from one tab to the other if 
     the plots are compatible.
+
+    .. note:: The projection panel can also be used to mask and unmask data 
+              within the dashed rectangle. See :doc:`pythonshell` for 
+              descriptions of masked arrays.
+
+.. image:: /images/scan-panel.png
+   :align: center
+   :width: 90%
 
 **Show Scan Panel**
     This opens a panel for plotting data across multiple files in the NeXpy
@@ -621,39 +649,8 @@ and sliders.
     The projection tab allows the data to be projected along one or two
     dimensions. The limits are set by the x, y, and z-tabs, while the projection
     axes are selected using the dropdown boxes. For a one-dimensional 
-    projection, select 'None' from the y box. The projections may be plotted in
-    a separate window, using the 'Plot' button or saved to a scratch NXdata 
-    group on the tree. If 'Sum' is checked, the projection contains the sum over
-    all the summed pixels; if not, the projection contains the average, *i.e.*, 
-    the sum divided by the number of pixels in each orthogonal dimension. If a
-    one-dimensional projection is plotted, a checkbox appears allowing
-    additional one-dimensional projections to be plotted over it.
-    
-    .. image:: /images/projection.png
-       :align: center
-       :width: 75%
-
-    .. note:: Projections are now averaged over the summed bins by default. To
-              restore the previous behavior, click the 'Sum' checkbox.
-    
-    The projection tab also contains a button to open a separate projection 
-    panel. The panel is more convenient when making a systematic exploration of 
-    different projections limits and provides pixel accuracy in computing 
-    projections. The x and y limits of the plot are displayed as a dashed 
-    rectangle, which can be hidden if preferred. If 'Sum Projections' is 
-    checked, the projection contains the sum over the axes orthogonal to the 
-    plotting axes. Otherwise, it contains the average.
-  
-    .. image:: /images/projection-panel.png
-       :align: center
-       :width: 90%
-
-    .. note:: The projection panel can also be used to mask and unmask data 
-              within the dashed rectangle. See :doc:`pythonshell` for 
-              descriptions of masked arrays.
-
-    .. note:: Each plotting window can have a separate projection panel in a 
-              tabbed interface. 
+    projection, select 'None' from the y box. This is a short-cut to making
+    projections with the Projection Panel.
   
 **Options Tab**
 
