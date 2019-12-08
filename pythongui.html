@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>Python Graphical User Interface &#8212; NeXpy 0.12.1 documentation</title>
+    <title>Python Graphical User Interface &#8212; NeXpy 0.12.2 documentation</title>
     <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -33,7 +33,7 @@
         <li class="right" >
           <a href="pythonshell.html" title="Python Interface to NeXus"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.12.1 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.12.2 documentation</a> &#187;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -452,21 +452,31 @@ are displayed in the shell to improve readability.</p>
 be rendered in the terminal using <code class="docutils literal notranslate"><span class="pre">less</span> <span class="pre">-r</span></code>.</p>
 </div>
 </dd>
-<dt><strong>Show Projection Panel</strong></dt><dd><p>Shows the projection panel for the currently active plotting window. This
-is equivalent to clicking on ‘Show Panel’ in the projection tab (see below).
-All the open projection panels are displayed as tabs in a single window,
-with the option of copying projection values from one tab to the other if
-the plots are compatible.</p>
-</dd>
 <dt><strong>Show Script Editor</strong></dt><dd><p>Shows the script editor. If multiple scripts are open, they are displayed as
 tabs in a single window. If no scripts are open, this will open a new
 script.</p>
 </dd>
-<dt><strong>Change Plot Limits</strong></dt><dd><p>This opens a panel for the currently active plotting window that allows the
+<dt><strong>Show Customize Panel</strong></dt><dd><p>This opens a panel for the currently active plotting window that allows
+aspects of the plot, such as titles, axis labels, aspect ratios, skew
+angles, marker and line colors, and legends to be customized. All the open
+panels are displayed as tabs in a single window.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This is equivalent to clicking the Edit button in the Options Tab
+(see below).</p>
+</div>
+</dd>
+</dl>
+<a class="reference internal image-reference" href="_images/limits-panel.png"><img alt="_images/limits-panel.png" class="align-center" src="_images/limits-panel.png" style="width: 90%;" /></a>
+<dl>
+<dt><strong>Show Limits Panel</strong></dt><dd><p>This opens a panel for the currently active plotting window that allows the
 axes and axis limits of the currently active plot to be changed, as well as
 the plot size on the screen. All the panels are displayed as tabs in a
-single window, with the option of copying values from one tab to the other
-if the plots are compatible.</p>
+single window, with the option of copying and values from one tab to the
+other if the plots are compatible. If the ‘sync’ button is checked, the
+limits will be synchronized dynamically to any changes made to the other
+plot, whether made on the Limits Panel or directly in the plot. Multiple
+plots can be synchronized to a single plot.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>When the settings in one tab are copied to another and the Apply
@@ -482,22 +492,51 @@ because of the constraints of the other panes. Other plotting
 windows will copy the main window plotting size if requested.</p>
 </div>
 </dd>
+</dl>
+<a class="reference internal image-reference" href="_images/projection-panel.png"><img alt="_images/projection-panel.png" class="align-center" src="_images/projection-panel.png" style="width: 90%;" /></a>
+<dl>
+<dt><strong>Show Projection Panel</strong></dt><dd><p>This opens a panel for the currently active plotting window to allow
+projections along arbitrary axes to be plotted and/or saved. The
+projections are either two-dimensional or, if the y-box is set to ‘None’,
+one-dimensional. The projections may be plotted in a separate window, using
+the ‘Plot’ button or saved to a scratch NXdata group on the tree. If ‘Sum’
+is checked, the projection contains the sum over all the summed pixels; if
+not, the projection contains the average, <em>i.e.</em>, the sum divided by the
+number of pixels in each orthogonal dimension. If a one-dimensional
+projection is plotted, a checkbox appears allowing additional
+one-dimensional projections to be plotted over it.</p>
+<p>The x and y limits of the plot are displayed as a dashed rectangle, which
+can be hidden if ‘Hide Limits’ is checked. Dragging with the right-button
+depressed can be used to change the limits without replotting.</p>
+<p>All the open projection panels are displayed as tabs in a single window,
+with the option of copying projection values from one tab to the other if
+the plots are compatible.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The projection panel can also be used to mask and unmask data
+within the dashed rectangle. See <a class="reference internal" href="pythonshell.html"><span class="doc">Python Interface to NeXus</span></a> for
+descriptions of masked arrays.</p>
+</div>
+</dd>
+</dl>
+<a class="reference internal image-reference" href="_images/scan-panel.png"><img alt="_images/scan-panel.png" class="align-center" src="_images/scan-panel.png" style="width: 90%;" /></a>
+<dl>
+<dt><strong>Show Scan Panel</strong></dt><dd><p>This opens a panel for plotting data across multiple files in the NeXpy
+tree. The limits are used to define projection of the currently plotted
+data, which is to be plotted against the variable defined by the path
+in the Scan field. This path can either be entered manually, or by
+selecting a scalar quantity in the tree and clicking the ‘Select Scan’
+button. The ‘Select Files’ button is then used to define the loaded files
+to be included in the scan. Values of the scanned variable are
+automatically read from the file and entered in the box by the
+corresponding file, where they can be edited if necessary.</p>
+</dd>
 <dt><strong>Reset Plot Limits</strong></dt><dd><p>This restores the axis and signal limits to the original values.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>This is equivalent to clicking on the Home button in the Options
 Tab (see below). Right-clicking within the plot restores the
 axis limits but does not reset the signal limits.</p>
-</div>
-</dd>
-<dt><strong>Customize Plot</strong></dt><dd><p>This opens a panel for the currently active plotting window that allows
-aspects of the plot, such as titles, axis labels, aspect ratios, skew
-angles, marker and line colors, and legends to be customized. All the open
-panels are displayed as tabs in a single window.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>This is equivalent to clicking the Edit button in the Options Tab
-(see below).</p>
 </div>
 </dd>
 <dt><strong>New Plot Window</strong></dt><dd><p>Opens a new NeXpy plotting window, consisting of a Matplotlib plot pane and
@@ -704,38 +743,8 @@ interval by a factor two.</p>
 <p>The projection tab allows the data to be projected along one or two
 dimensions. The limits are set by the x, y, and z-tabs, while the projection
 axes are selected using the dropdown boxes. For a one-dimensional
-projection, select ‘None’ from the y box. The projections may be plotted in
-a separate window, using the ‘Plot’ button or saved to a scratch NXdata
-group on the tree. If ‘Sum’ is checked, the projection contains the sum over
-all the summed pixels; if not, the projection contains the average, <em>i.e.</em>,
-the sum divided by the number of pixels in each orthogonal dimension. If a
-one-dimensional projection is plotted, a checkbox appears allowing
-additional one-dimensional projections to be plotted over it.</p>
-<a class="reference internal image-reference" href="_images/projection.png"><img alt="_images/projection.png" class="align-center" src="_images/projection.png" style="width: 75%;" /></a>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Projections are now averaged over the summed bins by default. To
-restore the previous behavior, click the ‘Sum’ checkbox.</p>
-</div>
-<p>The projection tab also contains a button to open a separate projection
-panel. The panel is more convenient when making a systematic exploration of
-different projections limits and provides pixel accuracy in computing
-projections. The x and y limits of the plot are displayed as a dashed
-rectangle, which can be hidden if preferred. If ‘Sum Projections’ is
-checked, the projection contains the sum over the axes orthogonal to the
-plotting axes. Otherwise, it contains the average.</p>
-<a class="reference internal image-reference" href="_images/projection-panel.png"><img alt="_images/projection-panel.png" class="align-center" src="_images/projection-panel.png" style="width: 90%;" /></a>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>The projection panel can also be used to mask and unmask data
-within the dashed rectangle. See <a class="reference internal" href="pythonshell.html"><span class="doc">Python Interface to NeXus</span></a> for
-descriptions of masked arrays.</p>
-</div>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Each plotting window can have a separate projection panel in a
-tabbed interface.</p>
-</div>
+projection, select ‘None’ from the y box. This is a short-cut to making
+projections with the Projection Panel.</p>
 </div></blockquote>
 <p><strong>Options Tab</strong></p>
 <blockquote>
@@ -754,10 +763,11 @@ This is only valid if the units of the x and y axes are identical.</p></li>
 <li><p><strong>Save</strong> - saves plot to PNG file.</p></li>
 <li><p><strong>Add</strong> - adds plotted data to the tree pane as an NXdata group within the
 scratch workspace ‘w0’.</p></li>
-<li><p><strong>Edit</strong> - opens dialog to customize both image and point plots. Use this
-to change the title and axis labels, modify the image aspect ratio and
-skew angles, turn axis grids on or off and set their styles, modify the
-point plot markers and lines, and draw legends.</p></li>
+<li><p><strong>Edit</strong> - opens the Customize Panel to edit both image and point plots.
+Use this to change the title and axis labels, modify the image aspect
+ratio and skew angles, turn axis grids on or off and set their styles,
+modify the point plot markers and lines, scale or add an offset to 1D
+plots, and draw legends.</p></li>
 </ul>
 <p>On the far right of the toolbar, the data and axis values are dynamically
 updated to the values under the current mouse location.</p>
@@ -1313,12 +1323,12 @@ class.</p>
         <li class="right" >
           <a href="pythonshell.html" title="Python Interface to NeXus"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.12.1 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.12.2 documentation</a> &#187;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2013-2015, Ray Osborn.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.1.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.
     </div>
   </body>
 </html>

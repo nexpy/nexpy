@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>Installation &#8212; NeXpy 0.12.1 documentation</title>
+    <title>Installation &#8212; NeXpy 0.12.2 documentation</title>
     <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -33,7 +33,7 @@
         <li class="right" >
           <a href="index.html" title="NeXpy: A Python GUI to analyze NeXus data"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.12.1 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.12.2 documentation</a> &#187;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -180,7 +180,7 @@ old-master branch (<a class="reference external" href="https://github.com/nexpy/
 </div>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
-<p>Version 0.5.0 is the last version to be compatible with Python 2.
+<p>Version 0.5 is the last version to be compatible with Python 2.
 There may be urgent bug fixes but from v0.6, Python 3 will be
 required.</p>
 </div>
@@ -195,7 +195,7 @@ in the
 while PySide is included in the <a class="reference external" href="http://www.enthought.com">Enthought Python Distribution</a> or within Enthought’s <a class="reference external" href="https://www.enthought.com/products/canopy/">Canopy Application</a>.</p>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
-<p>Version 0.12.0 is the last version to be compatible with Python 2.
+<p>Version 0.12 is the last version to be compatible with Python 2.
 There may be urgent bug fixes but from v0.13, Python 3 will be
 required.</p>
 </div>
@@ -214,14 +214,14 @@ Jupyter QtConsole, which has replaced the old IPython QtConsole.</p>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p>jupyter</p></td>
-<td><p><a class="reference external" href="http://jupyter.org/">http://jupyter.org/</a></p></td>
+<tr class="row-even"><td><p>IPython</p></td>
+<td><p><a class="reference external" href="https://ipython.org/">https://ipython.org/</a></p></td>
 </tr>
-<tr class="row-odd"><td><p>IPython</p></td>
-<td><p><a class="reference external" href="http://ipython.org/">http://ipython.org/</a></p></td>
+<tr class="row-odd"><td><p>qtconsole</p></td>
+<td><p><a class="reference external" href="https://qtconsole.readthedocs.io/">https://qtconsole.readthedocs.io/</a></p></td>
 </tr>
 <tr class="row-even"><td><p>matplotlib</p></td>
-<td><p><a class="reference external" href="http://matplotlib.sourceforge.net/">http://matplotlib.sourceforge.net/</a></p></td>
+<td><p><a class="reference external" href="https://matplotlib.org/">https://matplotlib.org/</a></p></td>
 </tr>
 <tr class="row-odd"><td><p>pillow</p></td>
 <td><p><a class="reference external" href="https://pillow.readthedocs.io/">https://pillow.readthedocs.io/</a></p></td>
@@ -234,16 +234,9 @@ Jupyter QtConsole, which has replaced the old IPython QtConsole.</p>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
 <p>On Mac OS there is a serious issue with PyQt5, which started in
-v5.11 and has still not been fixed in v5.13. Widgets in QDialog
-boxes are not repainted until clicking outside the window. To fix
-this, it is necessary to downgrade to v5.10 or lower.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ pip install PyQt5==5.10.1
-</pre></div>
-</div>
-<p>or</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ conda install pyqt=5.9
-</pre></div>
-</div>
+v5.11 and has still not been fixed in v5.13. It should have been
+fixed in NeXpy v0.12.2, but if you experience any similar issues,
+please report it. The alternative is to downgrade PyQt to &lt;v5.10.</p>
 </div>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
@@ -291,16 +284,16 @@ changed in the shell by setting <code class="docutils literal notranslate"><span
 </thead>
 <tbody>
 <tr class="row-even"><td><p>lmfit</p></td>
-<td><p><a class="reference external" href="http://newville.github.io/lmfit-py/">http://newville.github.io/lmfit-py/</a></p></td>
+<td><p><a class="reference external" href="https://lmfit.github.io/lmfit-py/">https://lmfit.github.io/lmfit-py/</a></p></td>
 </tr>
 <tr class="row-odd"><td><p>fabio</p></td>
-<td><p><a class="reference external" href="https://github.com/silx-kit/fabio">https://github.com/silx-kit/fabio</a></p></td>
+<td><p><a class="reference external" href="https://pythonhosted.org/fabio/">https://pythonhosted.org/fabio/</a></p></td>
 </tr>
 <tr class="row-even"><td><p>spec2nexus</p></td>
 <td><p><a class="reference external" href="http://spec2nexus.readthedocs.org/">http://spec2nexus.readthedocs.org/</a></p></td>
 </tr>
 <tr class="row-odd"><td><p>astropy</p></td>
-<td><p><a class="reference external" href="http://www.astropy.org">http://www.astropy.org</a></p></td>
+<td><p><a class="reference external" href="http://www.astropy.org/">http://www.astropy.org/</a></p></td>
 </tr>
 </tbody>
 </table>
@@ -357,12 +350,12 @@ the packages on conda-forge.</p>
         <li class="right" >
           <a href="index.html" title="NeXpy: A Python GUI to analyze NeXus data"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.12.1 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.12.2 documentation</a> &#187;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2013-2015, Ray Osborn.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.1.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.
     </div>
   </body>
 </html>

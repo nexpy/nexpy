@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>NeXus Tree API Modules &#8212; NeXpy 0.12.1 documentation</title>
+    <title>NeXus Tree API Modules &#8212; NeXpy 0.12.2 documentation</title>
     <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -33,7 +33,7 @@
         <li class="right" >
           <a href="pythongui.html" title="Python Graphical User Interface"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.12.1 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.12.2 documentation</a> &#187;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -1775,6 +1775,18 @@ or if the NXfield array is defined as a masked array.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="nexusformat.nexus.tree.NXfield.is_numeric">
+<code class="sig-name descname">is_numeric</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXfield.is_numeric" title="Permalink to this definition">¶</a></dt>
+<dd><p>True if the NXfield contains numeric data.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nexusformat.nexus.tree.NXfield.is_string">
+<code class="sig-name descname">is_string</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXfield.is_string" title="Permalink to this definition">¶</a></dt>
+<dd><p>True if the NXfield contains strings.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="nexusformat.nexus.tree.NXfield.is_plottable">
 <code class="sig-name descname">is_plottable</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXfield.is_plottable" title="Permalink to this definition">¶</a></dt>
 <dd><p>True if the NXfield is plottable.</p>
@@ -2437,12 +2449,6 @@ is accessible.</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="nexusformat.nexus.tree.NXlinkfield.plot">
-<code class="sig-name descname">plot</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXlinkfield.plot" title="Permalink to this definition">¶</a></dt>
-<dd><p>Plot the target NXfield.</p>
-</dd></dl>
-
 </dd></dl>
 
 <dl class="class">
@@ -2458,26 +2464,6 @@ is accessible.</p>
 <dd class="field-odd"><p><strong>group</strong> (<a class="reference internal" href="#nexusformat.nexus.tree.NXgroup" title="nexusformat.nexus.tree.NXgroup"><em>NXgroup</em></a>) – Group to be copied.</p>
 </dd>
 </dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="nexusformat.nexus.tree.NXlinkgroup.entries">
-<em class="property">property </em><code class="sig-name descname">entries</code><a class="headerlink" href="#nexusformat.nexus.tree.NXlinkgroup.entries" title="Permalink to this definition">¶</a></dt>
-<dd><p>Entries of the target group.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>Target group entries</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>dict of NXfield or <a class="reference internal" href="#nexusformat.nexus.tree.NXgroup" title="nexusformat.nexus.tree.NXgroup">NXgroup</a></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="nexusformat.nexus.tree.NXlinkgroup.plot">
-<code class="sig-name descname">plot</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXlinkgroup.plot" title="Permalink to this definition">¶</a></dt>
-<dd><p>Plot the target group.</p>
 </dd></dl>
 
 </dd></dl>
@@ -3752,12 +3738,12 @@ which is currently incompatible with the nexusformat classes.</p>
         <li class="right" >
           <a href="pythongui.html" title="Python Graphical User Interface"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.12.1 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.12.2 documentation</a> &#187;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2013-2015, Ray Osborn.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.1.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.
     </div>
   </body>
 </html>
