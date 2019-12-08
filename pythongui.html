@@ -466,9 +466,6 @@ panels are displayed as tabs in a single window.</p>
 (see below).</p>
 </div>
 </dd>
-</dl>
-<a class="reference internal image-reference" href="_images/limits-panel.png"><img alt="_images/limits-panel.png" class="align-center" src="_images/limits-panel.png" style="width: 90%;" /></a>
-<dl>
 <dt><strong>Show Limits Panel</strong></dt><dd><p>This opens a panel for the currently active plotting window that allows the
 axes and axis limits of the currently active plot to be changed, as well as
 the plot size on the screen. All the panels are displayed as tabs in a
@@ -477,23 +474,8 @@ other if the plots are compatible. If the ‘sync’ button is checked, the
 limits will be synchronized dynamically to any changes made to the other
 plot, whether made on the Limits Panel or directly in the plot. Multiple
 plots can be synchronized to a single plot.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>When the settings in one tab are copied to another and the Apply
-button is clicked, other settings, such as the aspect ratio,
-skew angle, color map, and log settings are also copied. This is
-therefore a very quick way of making direct comparisons between
-different data sets.</p>
-</div>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>The plotting pane in the main window cannot be resized this way,
-because of the constraints of the other panes. Other plotting
-windows will copy the main window plotting size if requested.</p>
-</div>
 </dd>
 </dl>
-<a class="reference internal image-reference" href="_images/projection-panel.png"><img alt="_images/projection-panel.png" class="align-center" src="_images/projection-panel.png" style="width: 90%;" /></a>
 <dl>
 <dt><strong>Show Projection Panel</strong></dt><dd><p>This opens a panel for the currently active plotting window to allow
 projections along arbitrary axes to be plotted and/or saved. The
@@ -511,16 +493,9 @@ depressed can be used to change the limits without replotting.</p>
 <p>All the open projection panels are displayed as tabs in a single window,
 with the option of copying projection values from one tab to the other if
 the plots are compatible.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>The projection panel can also be used to mask and unmask data
-within the dashed rectangle. See <a class="reference internal" href="pythonshell.html"><span class="doc">Python Interface to NeXus</span></a> for
-descriptions of masked arrays.</p>
-</div>
 </dd>
 </dl>
-<a class="reference internal image-reference" href="_images/scan-panel.png"><img alt="_images/scan-panel.png" class="align-center" src="_images/scan-panel.png" style="width: 90%;" /></a>
-<dl>
+<dl class="simple">
 <dt><strong>Show Scan Panel</strong></dt><dd><p>This opens a panel for plotting data across multiple files in the NeXpy
 tree. The limits are used to define projection of the currently plotted
 data, which is to be plotted against the variable defined by the path
@@ -531,6 +506,9 @@ to be included in the scan. Values of the scanned variable are
 automatically read from the file and entered in the box by the
 corresponding file, where they can be edited if necessary.</p>
 </dd>
+</dl>
+<a class="reference internal image-reference" href="_images/scan-panel.png"><img alt="_images/scan-panel.png" class="align-center" src="_images/scan-panel.png" style="width: 90%;" /></a>
+<dl>
 <dt><strong>Reset Plot Limits</strong></dt><dd><p>This restores the axis and signal limits to the original values.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
