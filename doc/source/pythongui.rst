@@ -369,12 +369,12 @@ Window Menu
     angles, marker and line colors, and legends to be customized. All the open 
     panels are displayed as tabs in a single window.
 
+    .. image:: /images/customize-panel.png
+      :align: center
+      :width: 90%
+
     .. note:: This is equivalent to clicking the Edit button in the Options Tab 
               (see below).
-
-.. image:: /images/limits-panel.png
-   :align: center
-   :width: 90%
 
 **Show Limits Panel**
     This opens a panel for the currently active plotting window that allows the 
@@ -386,6 +386,10 @@ Window Menu
     plot, whether made on the Limits Panel or directly in the plot. Multiple 
     plots can be synchronized to a single plot.
 
+    .. image:: /images/limits-panel.png
+      :align: center
+      :width: 90%
+
     .. note:: When the settings in one tab are copied to another and the Apply 
               button is clicked, other settings, such as the aspect ratio, 
               skew angle, color map, and log settings are also copied. This is 
@@ -395,10 +399,6 @@ Window Menu
     .. note:: The plotting pane in the main window cannot be resized this way, 
               because of the constraints of the other panes. Other plotting 
               windows will copy the main window plotting size if requested.
-
-.. image:: /images/projection-panel.png
-   :align: center
-   :width: 90%
 
 **Show Projection Panel**
     This opens a panel for the currently active plotting window to allow
@@ -420,13 +420,13 @@ Window Menu
     with the option of copying projection values from one tab to the other if 
     the plots are compatible.
 
+    .. image:: /images/projection-panel.png
+       :align: center
+       :width: 90%
+
     .. note:: The projection panel can also be used to mask and unmask data 
               within the dashed rectangle. See :doc:`pythonshell` for 
               descriptions of masked arrays.
-
-.. image:: /images/scan-panel.png
-   :align: center
-   :width: 90%
 
 **Show Scan Panel**
     This opens a panel for plotting data across multiple files in the NeXpy
@@ -438,6 +438,10 @@ Window Menu
     to be included in the scan. Values of the scanned variable are 
     automatically read from the file and entered in the box by the 
     corresponding file, where they can be edited if necessary. 
+
+    .. image:: /images/scan-panel.png
+       :align: center
+       :width: 90%
 
 **Reset Plot Limits**
     This restores the axis and signal limits to the original values.
