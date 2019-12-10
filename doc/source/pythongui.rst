@@ -370,11 +370,11 @@ Window Menu
     panels are displayed as tabs in a single window.
 
     .. image:: /images/customize-panel.png
-      :align: center
-      :width: 90%
+       :align: center
+       :width: 90%
 
-    .. note:: This is equivalent to clicking the Edit button in the Options Tab 
-              (see below).
+    .. note:: This is equivalent to clicking the Edit button in the Options 
+              Tab.
 
 **Show Limits Panel**
     This opens a panel for the currently active plotting window that allows the 
@@ -387,8 +387,8 @@ Window Menu
     plots can be synchronized to a single plot.
 
     .. image:: /images/limits-panel.png
-      :align: center
-      :width: 90%
+       :align: center
+       :width: 90%
 
     .. note:: When the settings in one tab are copied to another and the Apply 
               button is clicked, other settings, such as the aspect ratio, 
