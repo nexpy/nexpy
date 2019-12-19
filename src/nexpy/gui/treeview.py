@@ -200,6 +200,9 @@ class NXTreeItem(QtGui.QStandardItem):
                                             'resources/unlock-red-icon.png'))
         super(NXTreeItem, self).__init__(self.node.nxname)
 
+    def __repr__(self):
+        return "NXTreeItem('%s')" % self.node.nxname
+
     def text(self):
         return self.node.nxname
 
