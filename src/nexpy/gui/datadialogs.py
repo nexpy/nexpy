@@ -4274,8 +4274,8 @@ class InstallPluginDialog(NXDialog):
             plugin_module = import_plugin(plugin_name, [plugin_path])
             name, _ = plugin_module.plugin_menu()
             return name
-        except Exception:
-            return None
+        except Exception as error:
+            report_error("Installing Plugin", error)
 
     def install_plugin(self):        
         plugin_directory = self.get_directory()
