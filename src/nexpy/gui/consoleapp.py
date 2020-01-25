@@ -203,8 +203,11 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
                     os.path.realpath(backup).startswith(self.backup_dir)):
                 self.settings.remove_option('backups', backup)
             elif backup_age(backup) > 5:
-                shutil.rmtree(os.path.dirname(os.path.realpath(backup)))
-                self.settings.remove_option('backups', backup)
+                try:
+                    shutil.rmtree(os.path.dirname(os.path.realpath(backup)))
+                    self.settings.remove_option('backups', backup)
+                except OSError:
+                    pass
         self.settings.save()
 
     def init_log(self):
