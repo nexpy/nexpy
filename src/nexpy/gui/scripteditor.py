@@ -97,8 +97,8 @@ class NXPlainTextEdit(QtWidgets.QPlainTextEdit):
         self.parent = parent
         self.blockCountChanged.connect(self.parent.update_line_numbers)
 
-    def paintEvent(self, event):
-        super(NXPlainTextEdit, self).paintEvent(event)
+    def scrollContentsBy(self, dx, dy):
+        super(NXPlainTextEdit, self).scrollContentsBy(dx, dy)
         self.parent.update_line_numbers(self.blockCount())
 
     def resizeEvent(self, event):
