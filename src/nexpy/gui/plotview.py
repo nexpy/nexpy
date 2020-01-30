@@ -1246,7 +1246,6 @@ class NXPlotView(QtWidgets.QDialog):
         ax.set_xlabel(self.xaxis.label)
         ax.set_ylabel(self.yaxis.label)
         self.otab.push_current()
-        self.update_panels()
         if self.ndim == 1:
             try:
                 self.plot_smooth()
