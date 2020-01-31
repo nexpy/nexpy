@@ -176,13 +176,12 @@ class NXScriptEditor(QtWidgets.QWidget):
 
         layout = QtWidgets.QVBoxLayout()
         self.text_layout = QtWidgets.QHBoxLayout()
-        if sys.platform == 'darwin':
-            self.number_box = NXLabel('1')
-            self.number_box.setFont(QtGui.QFont('Courier'))
-            self.number_box.setAlignment(QtCore.Qt.AlignTop | 
-                                         QtCore.Qt.AlignRight)
-            self.number_box.setStyleSheet("QLabel {padding: 1px 0}")
-            self.text_layout.addWidget(self.number_box)
+        self.number_box = NXLabel('1')
+        self.number_box.setFont(QtGui.QFont('Courier'))
+        self.number_box.setAlignment(QtCore.Qt.AlignTop | 
+                                     QtCore.Qt.AlignRight)
+        self.number_box.setStyleSheet("QLabel {padding: 1px 0}")
+        self.text_layout.addWidget(self.number_box)
         self.text_box = NXPlainTextEdit(self)
         self.text_layout.addWidget(self.text_box)
         layout.addLayout(self.text_layout)
@@ -236,8 +235,6 @@ class NXScriptEditor(QtWidgets.QWidget):
         return self.text_box.document().toPlainText().strip()+'\n'
 
     def update_line_numbers(self, count):
-        if sys.platform != 'darwin':
-            return
         first_block = self.text_box.firstVisibleBlock()
         first_line = first_block.blockNumber() + 1
         lines = min(count - first_line + 1, 
