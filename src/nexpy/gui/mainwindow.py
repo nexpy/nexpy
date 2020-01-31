@@ -517,7 +517,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.overplot_data_action=QtWidgets.QAction("Overplot Data",
             self,
-            shortcut=QtGui.QKeySequence("Ctrl+Alt+P"),
+            shortcut=QtGui.QKeySequence("Ctrl+Shift+P"),
             triggered=self.overplot_data
             )
         self.add_menu_action(self.data_menu, self.overplot_data_action)
