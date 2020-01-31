@@ -200,6 +200,11 @@ class MainWindow(QtWidgets.QMainWindow):
         from .plotview import plotview
         return plotview
         
+    @property
+    def active_plotview(self):
+        from .plotview import active_plotview
+        return active_plotview
+        
     # Populate the menu bar with common actions and shortcuts
     def add_menu_action(self, menu, action, defer_shortcut=False):
         """Add action to menu as well as self
@@ -262,7 +267,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.openimage_action=QtWidgets.QAction("Open Image...",
             self,
-            shortcut="Ctrl+Alt+O",
+            shortcut=QtGui.QKeySequence("Ctrl+Alt+O"),
             triggered=self.open_image
             )
         self.add_menu_action(self.file_menu, self.openimage_action)
@@ -500,7 +505,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.plot_data_action=QtWidgets.QAction("&Plot Data",
             self,
-            shortcut="Ctrl+P",
+            shortcut=QtGui.QKeySequence("Ctrl+P"),
             triggered=self.plot_data
             )
         self.add_menu_action(self.data_menu, self.plot_data_action)
@@ -512,7 +517,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.overplot_data_action=QtWidgets.QAction("Overplot Data",
             self,
-            shortcut="Ctrl+Alt+P",
+            shortcut=QtGui.QKeySequence("Ctrl+Shift+P"),
             triggered=self.overplot_data
             )
         self.add_menu_action(self.data_menu, self.overplot_data_action)
@@ -544,7 +549,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.view_action=QtWidgets.QAction("View Data",
             self,
-            shortcut="Ctrl+Alt+V",
+            shortcut=QtGui.QKeySequence("Ctrl+Alt+V"),
             triggered=self.view_data
             )
         self.add_menu_action(self.data_menu, self.view_action)
@@ -669,7 +674,7 @@ class MainWindow(QtWidgets.QMainWindow):
             # disable on OSX, where there is always a menu bar
             self.toggle_menu_bar_act = QtWidgets.QAction("Toggle &Menu Bar",
                 self,
-                shortcut="Ctrl+Shift+M",
+                shortcut=QtGui.QKeySequence("Ctrl+Shift+M"),
                 statusTip="Toggle visibility of menubar",
                 triggered=self.toggle_menu_bar)
             self.add_menu_action(self.view_menu, self.toggle_menu_bar_act)
@@ -700,7 +705,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.reset_font_size = QtWidgets.QAction("Zoom &Reset",
             self,
-            shortcut="Ctrl+0",
+            shortcut=QtGui.QKeySequence("Ctrl+0"),
             triggered=self.reset_font_size_console
             )
         self.add_menu_action(self.view_menu, self.reset_font_size, True)
@@ -773,13 +778,13 @@ class MainWindow(QtWidgets.QMainWindow):
             # add min/maximize actions to OSX, which lacks default bindings.
             self.minimizeAct = QtWidgets.QAction("Mini&mize",
                 self,
-                shortcut="Ctrl+m",
+                shortcut=QtGui.QKeySequence("Ctrl+m"),
                 statusTip="Minimize the window/Restore Normal Size",
                 triggered=self.toggleMinimized)
             # maximize is called 'Zoom' on OSX for some reason
             self.maximizeAct = QtWidgets.QAction("&Zoom",
                 self,
-                shortcut="Ctrl+Shift+M",
+                shortcut=QtGui.QKeySequence("Ctrl+Shift+M"),
                 statusTip="Maximize the window/Restore Normal Size",
                 triggered=self.toggleMaximized)
 
@@ -821,15 +826,15 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.customize_action=QtWidgets.QAction("Show Customize Panel",
             self,
-            shortcut="Ctrl+Alt+C",
-            triggered=self.customize_plot
+            shortcut=QtGui.QKeySequence("Ctrl+Alt+C"),
+            triggered=self.show_customize_panel
             )
         self.add_menu_action(self.window_menu, self.customize_action)
 
         self.limit_action=QtWidgets.QAction("Show Limits Panel",
             self,
-            shortcut="Ctrl+Alt+L",
-            triggered=self.limit_axes
+            shortcut=QtGui.QKeySequence("Ctrl+Alt+L"),
+            triggered=self.show_limits_panel
             )
         self.add_menu_action(self.window_menu, self.limit_action)
 
@@ -842,7 +847,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.scan_action=QtWidgets.QAction("Show Scan Panel",
             self,
-            shortcut="Ctrl+Alt+S",
+            shortcut=QtGui.QKeySequence("Ctrl+Alt+S"),
             triggered=self.show_scan_panel
             )
         self.add_menu_action(self.window_menu, self.scan_action)
@@ -851,14 +856,14 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.reset_limit_action=QtWidgets.QAction("Reset Plot Limits",
             self,
-            shortcut="Ctrl+Alt+Shift+L",
+            shortcut=QtGui.QKeySequence("Ctrl+Alt+Shift+L"),
             triggered=self.reset_axes
             )
         self.add_menu_action(self.window_menu, self.reset_limit_action)
 
         self.preferences_action=QtWidgets.QAction("Edit Preferences",
             self,
-            shortcut="Ctrl+Alt+E",
+            shortcut=QtGui.QKeySequence("Ctrl+Alt+E"),
             triggered=self.edit_preferences
             )
 #        self.add_menu_action(self.window_menu, self.preferences_action)
@@ -2074,27 +2079,11 @@ class MainWindow(QtWidgets.QMainWindow):
             self.update_active(number)
             self.plotviews[self.active_action[number].text()].make_active()
 
-    def limit_axes(self):
-        try:
-            if 'limit' not in self.panels:
-                self.panels['limit'] = LimitDialog(parent=self)
-            self.panels['limit'].activate(self.plotview.label)
-        except NeXusError as error:
-            report_error("Changing Plot Limits", error)
-
     def reset_axes(self):
         try:
             self.plotview.reset_plot_limits()
         except NeXusError as error:
             report_error("Resetting Plot Limits", error)
-
-    def customize_plot(self):
-        try:
-            if 'customize' not in self.panels:
-                self.panels['customize'] = CustomizeDialog(parent=self)
-            self.panels['customize'].activate(self.plotview.label)
-        except NeXusError as error:
-            report_error("Customizing Plot", error)
 
     def edit_preferences(self):
         try:
@@ -2124,13 +2113,29 @@ class MainWindow(QtWidgets.QMainWindow):
         except NeXusError as error:
             report_error("Showing Log File", error)
 
+    def show_customize_panel(self):
+        try:
+            if 'customize' not in self.panels:
+                self.panels['customize'] = CustomizeDialog(parent=self)
+            self.panels['customize'].activate(self.active_plotview.label)
+        except NeXusError as error:
+            report_error("Showing Customize Panel", error)
+
+    def show_limits_panel(self):
+        try:
+            if 'limit' not in self.panels:
+                self.panels['limit'] = LimitDialog(parent=self)
+            self.panels['limit'].activate(self.active_plotview.label)
+        except NeXusError as error:
+            report_error("Showing Limits Panel", error)
+
     def show_projection_panel(self):
         if self.plotview.label == 'Projection' or self.plotview.ndim == 1:
             return
         try:
             if 'projection' not in self.panels:
                 self.panels['projection'] = ProjectionDialog(parent=self)
-            self.panels['projection'].activate(self.plotview.label)
+            self.panels['projection'].activate(self.active_plotview.label)
         except NeXusError as error:
             report_error("Showing Projection Panel", error)
 

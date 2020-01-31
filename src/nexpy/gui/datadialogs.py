@@ -63,6 +63,7 @@ class NXWidget(QtWidgets.QWidget):
         self.tree = self.treeview.tree
         self.plotview = self.mainwindow.plotview
         self.plotviews = self.mainwindow.plotviews
+        self.active_plotview = self.mainwindow.active_plotview
         self.default_directory = self.mainwindow.default_directory
         self.import_file = None     # must define in subclass
         self.nexus_filter = ';;'.join((
@@ -705,6 +706,7 @@ class NXPanel(NXDialog):
     def remove(self, label):
         if label in self.tabs:
             try:
+                self.tabs[label].close()
                 self.tabwidget.removeTab(self.tabwidget.indexOf(self.tabs[label]))
             except Exception:
                 pass
@@ -1692,6 +1694,7 @@ class CustomizeTab(NXTab):
         from .plotview import markers, linestyles
         self.markers, self.linestyles = markers, linestyles
 
+        self.plotview = self.active_plotview
         self.name = self.plotview.label
 
         self.parameters = {}
@@ -1982,6 +1985,7 @@ class ProjectionTab(NXTab):
             self.tabs = parent.tabs
             self.labels = parent.labels
 
+        self.plotview = self.active_plotview
         self.name = self.plotview.label
         self.ndim = self.plotview.ndim
 
@@ -2270,7 +2274,8 @@ class ProjectionTab(NXTab):
     @property
     def rectangle(self):
         if self._rectangle not in self.plotview.ax.patches:
-            self._rectangle = NXpolygon(self.get_rectangle(), closed=True).shape
+            self._rectangle = NXpolygon(self.get_rectangle(), closed=True,
+                                        plotview=self.plotview).shape
             self._rectangle.set_edgecolor(self.plotview._gridcolor)
             self._rectangle.set_facecolor('none')
             self._rectangle.set_linestyle('dashed')
@@ -2404,6 +2409,7 @@ class LimitTab(NXTab):
             self.tabs = parent.tabs
             self.labels = parent.labels
 
+        self.plotview = self.active_plotview
         self.name = self.plotview.label
         self.ndim = self.plotview.ndim
         
@@ -3139,7 +3145,8 @@ class ScanTab(NXTab):
     @property
     def rectangle(self):
         if self._rectangle not in self.plotview.ax.patches:
-            self._rectangle = NXpolygon(self.get_rectangle(), closed=True).shape
+            self._rectangle = NXpolygon(self.get_rectangle(), closed=True,
+                                        plotview=self.plotview).shape
             self._rectangle.set_edgecolor(self.plotview._gridcolor)
             self._rectangle.set_facecolor('none')
             self._rectangle.set_linestyle('dotted')
