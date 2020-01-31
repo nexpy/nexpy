@@ -200,6 +200,11 @@ class MainWindow(QtWidgets.QMainWindow):
         from .plotview import plotview
         return plotview
         
+    @property
+    def active_plotview(self):
+        from .plotview import active_plotview
+        return active_plotview
+        
     # Populate the menu bar with common actions and shortcuts
     def add_menu_action(self, menu, action, defer_shortcut=False):
         """Add action to menu as well as self

@@ -69,6 +69,7 @@ from .widgets import (NXSpinBox, NXDoubleSpinBox, NXSlider, NXComboBox,
 from .utils import (report_error, report_exception, boundaries, centers, keep_data, 
                     fix_projection, find_nearest, iterable)
 
+active_plotview = None
 plotview = None
 plotviews = {}
 colors = mpl.rcParams['axes.prop_cycle'].by_key()['color']
@@ -563,7 +564,8 @@ class NXPlotView(QtWidgets.QDialog):
 
     def make_active(self):
         """Make this window active for plotting."""
-        global plotview
+        global active_plotview, plotview
+        active_plotview = self
         if self.number < 101:
             plotview = self
             self.mainwindow.user_ns['plotview'] = self
