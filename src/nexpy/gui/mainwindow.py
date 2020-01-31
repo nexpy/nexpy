@@ -2117,7 +2117,7 @@ class MainWindow(QtWidgets.QMainWindow):
         try:
             if 'customize' not in self.panels:
                 self.panels['customize'] = CustomizeDialog(parent=self)
-            self.panels['customize'].activate(self.plotview.label)
+            self.panels['customize'].activate(self.active_plotview.label)
         except NeXusError as error:
             report_error("Showing Customize Panel", error)
 
@@ -2125,7 +2125,7 @@ class MainWindow(QtWidgets.QMainWindow):
         try:
             if 'limit' not in self.panels:
                 self.panels['limit'] = LimitDialog(parent=self)
-            self.panels['limit'].activate(self.plotview.label)
+            self.panels['limit'].activate(self.active_plotview.label)
         except NeXusError as error:
             report_error("Showing Limits Panel", error)
 
@@ -2135,7 +2135,7 @@ class MainWindow(QtWidgets.QMainWindow):
         try:
             if 'projection' not in self.panels:
                 self.panels['projection'] = ProjectionDialog(parent=self)
-            self.panels['projection'].activate(self.plotview.label)
+            self.panels['projection'].activate(self.active_plotview.label)
         except NeXusError as error:
             report_error("Showing Projection Panel", error)
 
