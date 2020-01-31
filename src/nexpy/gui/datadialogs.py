@@ -706,6 +706,7 @@ class NXPanel(NXDialog):
     def remove(self, label):
         if label in self.tabs:
             try:
+                self.tabs[label].close()
                 self.tabwidget.removeTab(self.tabwidget.indexOf(self.tabs[label]))
             except Exception:
                 pass
