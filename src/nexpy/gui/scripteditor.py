@@ -86,6 +86,15 @@ class Highlighter(QtGui.QSyntaxHighlighter):
                 pass
 
 
+class NXScrollBar(QtWidgets.QScrollBar):
+
+    def sliderChange(self, change):
+        if (self.signalsBlocked() and 
+            change == QtWidgets.QAbstractSlider.SliderValueChange):
+            self.blockSignals(False)
+        
+
+
 class NXPlainTextEdit(QtWidgets.QPlainTextEdit):
 
     def __init__(self, parent):
@@ -96,6 +105,8 @@ class NXPlainTextEdit(QtWidgets.QPlainTextEdit):
         self.setWordWrapMode(QtGui.QTextOption.NoWrap)
         self.parent = parent
         self.blockCountChanged.connect(parent.update_line_numbers)
+        self.scrollbar = NXScrollBar(self)
+        self.setVerticalScrollBar(self.scrollbar)
 
     def __repr__(self):
         return 'NXPlainTextEdit()'
@@ -174,8 +185,7 @@ class NXScriptEditor(QtWidgets.QWidget):
         self.number_box.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.text_layout.addWidget(self.number_box)
         self.text_box = NXPlainTextEdit(self)
-        self.text_box.verticalScrollBar().valueChanged.connect(
-            self.scroll_numbers)
+        self.text_box.scrollbar.valueChanged.connect(self.scroll_numbers)
         self.text_layout.addWidget(self.text_box)
         self.text_layout.setSpacing(0)
         layout.addLayout(self.text_layout)
@@ -242,6 +252,7 @@ class NXScriptEditor(QtWidgets.QWidget):
     def scroll_numbers(self):
         self.number_box.verticalScrollBar().setValue(
                             self.text_box.verticalScrollBar().value())
+        self.text_box.scrollbar.update()
 
     def run_script(self):
         text = self.get_text()
