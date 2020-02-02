@@ -103,6 +103,7 @@ class NXPlainTextEdit(QtWidgets.QPlainTextEdit):
         self.setMinimumWidth(700)
         self.setMinimumHeight(600)
         self.setWordWrapMode(QtGui.QTextOption.NoWrap)
+        self.setTabStopWidth(4 * self.fontMetrics().width(' '))
         self.parent = parent
         self.blockCountChanged.connect(parent.update_line_numbers)
         self.scrollbar = NXScrollBar(self)
@@ -239,7 +240,8 @@ class NXScriptEditor(QtWidgets.QWidget):
         return 'NXScriptEditor(%s)' % self.label
         
     def get_text(self):
-        return self.text_box.document().toPlainText().strip()+'\n'
+        text = self.text_box.document().toPlainText().strip()
+        return text.replace('\t', '    ')+'\n'
 
     def update_line_numbers(self):
         count = self.text_box.count
