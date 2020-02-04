@@ -2130,7 +2130,11 @@ class MainWindow(QtWidgets.QMainWindow):
             report_error("Showing Limits Panel", error)
 
     def show_projection_panel(self):
-        if self.plotview.label == 'Projection' or self.plotview.ndim == 1:
+        if self.active_plotview.label == 'Projection' or self.plotview.ndim == 1:
+            if ('projection' in self.panels and 
+                self.panels['projection'].isVisible()):
+                self.panels['projection'].raise_()
+                self.panels['projection'].activateWindow()
             return
         try:
             if 'projection' not in self.panels:
@@ -2141,6 +2145,9 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def show_scan_panel(self):
         if self.plotview.label == 'Projection':
+            if 'scan' in self.panels and self.panels['scan'].isVisible():
+                self.panels['scan'].raise_()
+                self.panels['scan'].activateWindow()
             return
         try:
             if 'scan' not in self.panels:
