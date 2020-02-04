@@ -367,7 +367,8 @@ class NXPlotView(QtWidgets.QDialog):
                 if shortcut in mpl.rcParams[key]:
                     mpl.rcParams[key].remove(shortcut)
 
-        global plotview
+        global active_plotview, plotview
+        active_plotview = self
         if self.number < 101:
             plotview = self
         plotviews[self.label] = self
