@@ -2812,6 +2812,7 @@ class ScanTab(NXTab):
         self._rectangle = None
         self.xbox.setFocus()
         self.file_box = None
+        self.scan_data = None
 
     def __repr__(self):
         return 'ScanTab("%s")' % self.name
