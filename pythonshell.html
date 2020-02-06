@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>Python Interface to NeXus &#8212; NeXpy 0.12.2 documentation</title>
+    <title>Python Interface to NeXus &#8212; NeXpy 0.12.4 documentation</title>
     <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -33,7 +33,7 @@
         <li class="right" >
           <a href="includeme.html" title="Installation"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.12.2 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.12.4 documentation</a> &#187;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -316,7 +316,7 @@ called ‘plot’.</p>
 to use tab completion to check for possible name clashes with NXfield
 methods. Autocompletion can be added as an extension to other IPython
 sessions:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">nexusformat.nexus.completer</span> <span class="k">import</span> <span class="n">load_ipython_extension</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">nexusformat.nexus.completer</span> <span class="kn">import</span> <span class="n">load_ipython_extension</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">load_ipython_extension</span><span class="p">(</span><span class="n">get_ipython</span><span class="p">())</span>
 </pre></div>
 </div>
@@ -408,7 +408,7 @@ way of preventing bad data from contaminating statistical analyses, while
 preserving all the data values, good and bad, <em>i.e.</em>, masks can be turned on and
 off.</p>
 <p>NeXpy uses the same syntax as NumPy for masking and unmasking data.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">z</span> <span class="o">=</span> <span class="n">NXfield</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">6</span><span class="p">],</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;z&#39;</span><span class="p">)</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">z</span> <span class="o">=</span> <span class="n">NXfield</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">6</span><span class="p">],</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;z&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">z</span><span class="p">[</span><span class="mi">3</span><span class="p">:</span><span class="mi">5</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">z</span>
 <span class="go">NXfield(masked_array(data=[1, 2, 3, --, --, 6],</span>
@@ -434,7 +434,7 @@ as in NumPy arrays. However, if the NXfield has a parent group, the mask is
 stored in a separate NXfield that is generated automatically by the mask
 assignment or whenever the masked NXfield is assigned to a group. The mask is
 identified by the ‘mask’ attribute of the masked NXfield.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">NXlog</span><span class="p">(</span><span class="n">z</span><span class="p">)</span><span class="o">.</span><span class="n">tree</span><span class="p">)</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">NXlog</span><span class="p">(</span><span class="n">z</span><span class="p">)</span><span class="o">.</span><span class="n">tree</span><span class="p">)</span>
 <span class="go">log:NXlog</span>
 <span class="go">z = [1 2 3 4 -- 6]</span>
 <span class="go"> @mask = &#39;z_mask&#39;</span>
@@ -489,7 +489,7 @@ default sizes.</p>
 <p>The initial shape is defined by the <code class="docutils literal notranslate"><span class="pre">shape</span></code> attribute, but it will be
 automatically expanded up to a limit of <code class="docutils literal notranslate"><span class="pre">maxshape</span></code> if necessary using the
 NXfield <code class="docutils literal notranslate"><span class="pre">resize</span></code> function.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">z</span><span class="o">.</span><span class="n">resize</span><span class="p">((</span><span class="mi">100</span><span class="p">,</span><span class="mi">1000</span><span class="p">,</span><span class="mi">1000</span><span class="p">))</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">z</span><span class="o">.</span><span class="n">resize</span><span class="p">((</span><span class="mi">100</span><span class="p">,</span><span class="mi">1000</span><span class="p">,</span><span class="mi">1000</span><span class="p">))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">z</span><span class="o">.</span><span class="n">shape</span>
 <span class="go">(100, 1000, 1000)</span>
 </pre></div>
@@ -512,7 +512,7 @@ normally set to zero by default.</p>
 <p>All these values can be adjusted at the command line until the first slab has
 been written, whether to a file or in core memory, using the <code class="docutils literal notranslate"><span class="pre">compression</span></code>,
 <code class="docutils literal notranslate"><span class="pre">chunks</span></code>, <code class="docutils literal notranslate"><span class="pre">maxshape</span></code> or <code class="docutils literal notranslate"><span class="pre">fillvalue</span></code> properties, <em>e.g.</em></p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">z</span> <span class="o">=</span> <span class="n">NXfield</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span><span class="mi">1000</span><span class="p">,</span><span class="mi">1000</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">z</span> <span class="o">=</span> <span class="n">NXfield</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span><span class="mi">1000</span><span class="p">,</span><span class="mi">1000</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">z</span><span class="o">.</span><span class="n">compression</span> <span class="o">=</span> <span class="s1">&#39;lzf&#39;</span>
 </pre></div>
 </div>
@@ -782,7 +782,7 @@ parent.</p>
 <h4>External Links<a class="headerlink" href="#external-links" title="Permalink to this headline">¶</a></h4>
 <p>It is also possible to link to a NeXus field that is stored in another file.
 This is accomplished using a similar syntax to internal links.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">root</span><span class="o">.</span><span class="n">entry</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">NXlink</span><span class="p">(</span><span class="s1">&#39;/counts&#39;</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="s1">&#39;external_counts.nxs&#39;</span><span class="p">)</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">root</span><span class="o">.</span><span class="n">entry</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">NXlink</span><span class="p">(</span><span class="s1">&#39;/counts&#39;</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="s1">&#39;external_counts.nxs&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>In the case of external links, the first argument is the absolute path of the
@@ -791,7 +791,7 @@ absolute or relative file path of the external file.</p>
 <p>By default, the target file path is converted to a relative path with respect
 to the parent file. If it is required to store the absolute file path, add the
 keyword argument, <code class="docutils literal notranslate"><span class="pre">abspath=True</span></code>.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">root</span><span class="o">.</span><span class="n">entry</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">NXlink</span><span class="p">(</span><span class="s1">&#39;/counts&#39;</span><span class="p">,</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">root</span><span class="o">.</span><span class="n">entry</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">NXlink</span><span class="p">(</span><span class="s1">&#39;/counts&#39;</span><span class="p">,</span>
 <span class="go">                                  file=&#39;/home/user/external_counts.nxs&#39;,</span>
 <span class="go">                                  abspath=True)</span>
 </pre></div>
@@ -830,7 +830,7 @@ Matplotlib keywords can be used to change markers and colors:</p>
 three-dimensional array, in which the fastest varying dimension, which should be
 of size 3 or 4, contains the RGB(A) values for each two-dimensional pixel, then
 the image can be plotted using the ‘image=True’.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">image</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">image</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>By convention, the first pixel of an image is in the upper-left corner, rather
@@ -846,7 +846,7 @@ first valid NXdata group found in an iterative search is used.</p>
 <h3>Additional Plot Methods<a class="headerlink" href="#additional-plot-methods" title="Permalink to this headline">¶</a></h3>
 <p>As a convenience, additional plot methods can be used instead of adding extra
 keywords.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="o">.</span><span class="n">oplot</span><span class="p">()</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="o">.</span><span class="n">oplot</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="o">.</span><span class="n">logplot</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="o">.</span><span class="n">implot</span><span class="p">()</span>
 </pre></div>
@@ -931,7 +931,7 @@ NXfield:</p>
 <p class="admonition-title">Note</p>
 <p>If a function will only accept a NumPy array, use the
 <code class="docutils literal notranslate"><span class="pre">nxvalue</span></code> attribute, which returns the stored NumPy array.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">.</span><span class="n">nxvalue</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">.</span><span class="n">nxvalue</span>
 <span class="go">array([1., 2., 3., 4.])</span>
 </pre></div>
 </div>
@@ -1162,7 +1162,7 @@ summing over the limits, which are specified as a list of tuples for each
 dimension. If the axis is not to be limited, then specify the limit as
 <em>None</em>. The data should be at least two-dimensional and the values are
 assumed to be floating point.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">3.</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">3.</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">y</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">2.</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">X</span><span class="p">,</span><span class="n">Y</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">=</span><span class="n">NXdata</span><span class="p">(</span><span class="n">X</span><span class="o">*</span><span class="n">Y</span><span class="p">,(</span><span class="n">y</span><span class="p">,</span><span class="n">x</span><span class="p">))</span>
@@ -1307,7 +1307,7 @@ number of seconds before an attempt to acquire a lock times out. A typical
 value is 10s and the current value can be read using <code class="docutils literal notranslate"><span class="pre">nxgetlock</span></code>. Then,
 the same context manager described above will also create and remove the
 lock file at the beginning and end of the <code class="docutils literal notranslate"><span class="pre">with</span></code> clause, respectively.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">nxgetlock</span><span class="p">()</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">nxgetlock</span><span class="p">()</span>
 <span class="go">0</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">nxsetlock</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">root</span><span class="o">.</span><span class="n">nxfile</span><span class="p">:</span>
@@ -1394,12 +1394,12 @@ but the default is set to the system default, defined by
         <li class="right" >
           <a href="includeme.html" title="Installation"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.12.2 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.12.4 documentation</a> &#187;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2013-2015, Ray Osborn.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.3.1.
     </div>
   </body>
 </html>

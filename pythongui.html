@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>Python Graphical User Interface &#8212; NeXpy 0.12.2 documentation</title>
+    <title>Python Graphical User Interface &#8212; NeXpy 0.12.4 documentation</title>
     <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -33,7 +33,7 @@
         <li class="right" >
           <a href="pythonshell.html" title="Python Interface to NeXus"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.12.2 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.12.4 documentation</a> &#187;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -872,7 +872,7 @@ properties, <em>etc</em>. See the <a class="reference external" href="http://mat
 for more details.</p>
 </li>
 <li><p>Draw Grid:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">plotview</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="o">|</span><span class="kc">False</span><span class="p">)</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">plotview</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="o">|</span><span class="kc">False</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Draws grid lines at the major tick values. Additional keyword arguments can be
@@ -895,7 +895,7 @@ the Customize Dialog.</p>
 </div>
 </li>
 <li><p>Convert to Symmetric Log Plot:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">plotview</span><span class="o">.</span><span class="n">symlog</span><span class="p">(</span><span class="n">linthresh</span><span class="p">,</span> <span class="n">linscale</span><span class="p">,</span> <span class="n">vmax</span><span class="p">)</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">plotview</span><span class="o">.</span><span class="n">symlog</span><span class="p">(</span><span class="n">linthresh</span><span class="p">,</span> <span class="n">linscale</span><span class="p">,</span> <span class="n">vmax</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Plot the data using symmetric logarithms for both positive and negative data.
@@ -955,7 +955,7 @@ Python commands that should be run at the start of every session.</p>
 the functions and classes defined by the nexusformat package.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">nexpy</span>
 <span class="kn">import</span> <span class="nn">nexusformat.nexus</span> <span class="k">as</span> <span class="nn">nx</span>
-<span class="kn">from</span> <span class="nn">nexusformat.nexus</span> <span class="k">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">nexusformat.nexus</span> <span class="kn">import</span> <span class="o">*</span>
 </pre></div>
 </div>
 <p>This file could also be used to change the default parameters used by the
@@ -971,7 +971,7 @@ that are commonly used:</p>
 <span class="kn">import</span> <span class="nn">numpy.ma</span> <span class="k">as</span> <span class="nn">ma</span>
 <span class="kn">import</span> <span class="nn">scipy</span> <span class="k">as</span> <span class="nn">sp</span>
 <span class="kn">import</span> <span class="nn">matplotlib</span> <span class="k">as</span> <span class="nn">mpl</span>
-<span class="kn">from</span> <span class="nn">matplotlib</span> <span class="k">import</span> <span class="n">pylab</span><span class="p">,</span> <span class="n">mlab</span><span class="p">,</span> <span class="n">pyplot</span>
+<span class="kn">from</span> <span class="nn">matplotlib</span> <span class="kn">import</span> <span class="n">pylab</span><span class="p">,</span> <span class="n">mlab</span><span class="p">,</span> <span class="n">pyplot</span>
 <span class="n">plt</span> <span class="o">=</span> <span class="n">pyplot</span>
 </pre></div>
 </div>
@@ -1067,7 +1067,7 @@ TIFF images, and text files, using the <a class="reference external" href="File:
 not currently supported, the user can write their own. The following is an
 example of a module that reads the original format and returns NeXus data:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">get_data</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
-    <span class="kn">from</span> <span class="nn">libtiff</span> <span class="k">import</span> <span class="n">TIFF</span>
+    <span class="kn">from</span> <span class="nn">libtiff</span> <span class="kn">import</span> <span class="n">TIFF</span>
     <span class="n">im</span> <span class="o">=</span> <span class="n">TIFF</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
     <span class="n">z</span> <span class="o">=</span> <span class="n">im</span><span class="o">.</span><span class="n">read_image</span><span class="p">()</span>
     <span class="n">y</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="n">z</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
@@ -1138,15 +1138,15 @@ can be added to their private readers directory in <code class="docutils literal
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">nexusformat.nexus</span> <span class="k">import</span> <span class="o">*</span>
-<span class="kn">from</span> <span class="nn">nexpy.gui.importdialog</span> <span class="k">import</span> <span class="n">BaseImportDialog</span>
+<span class="kn">from</span> <span class="nn">nexusformat.nexus</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">nexpy.gui.importdialog</span> <span class="kn">import</span> <span class="n">BaseImportDialog</span>
 
 <span class="n">filetype</span> <span class="o">=</span> <span class="s2">&quot;TIFF Image&quot;</span> <span class="c1">#Defines the Import Menu label</span>
 
 <span class="k">class</span> <span class="nc">ImportDialog</span><span class="p">(</span><span class="n">BaseImportDialog</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Dialog to import a TIFF image&quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 
         <span class="nb">super</span><span class="p">(</span><span class="n">ImportDialog</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
 
@@ -1155,7 +1155,7 @@ can be added to their private readers directory in <code class="docutils literal
         <span class="bp">self</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">&quot;Import &quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">filetype</span><span class="p">))</span>
 
     <span class="k">def</span> <span class="nf">get_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="kn">from</span> <span class="nn">libtiff</span> <span class="k">import</span> <span class="n">TIFF</span>
+        <span class="kn">from</span> <span class="nn">libtiff</span> <span class="kn">import</span> <span class="n">TIFF</span>
         <span class="n">im</span> <span class="o">=</span> <span class="n">TIFF</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_filename</span><span class="p">())</span>
         <span class="n">z</span> <span class="o">=</span> <span class="n">NXfield</span><span class="p">(</span><span class="n">im</span><span class="o">.</span><span class="n">read_image</span><span class="p">(),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;z&#39;</span><span class="p">)</span>
         <span class="n">y</span> <span class="o">=</span> <span class="n">NXfield</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">z</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;y&#39;</span><span class="p">)</span>
@@ -1186,7 +1186,7 @@ to show how plugins can work. It adds a top-level menu item, <code class="docuti
 has a couple of menu items to perform data analysis on the example file,
 <code class="docutils literal notranslate"><span class="pre">chopper.nxs</span></code>, which is distributed with NeXpy.</p>
 <p>Here is the <code class="docutils literal notranslate"><span class="pre">__init__.py</span></code> file:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">get_ei</span><span class="p">,</span> <span class="n">convert_qe</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">get_ei</span><span class="p">,</span> <span class="n">convert_qe</span>
 
 <span class="k">def</span> <span class="nf">plugin_menu</span><span class="p">():</span>
     <span class="n">menu</span> <span class="o">=</span> <span class="s1">&#39;Chopper&#39;</span>
@@ -1223,9 +1223,9 @@ class.</p>
 </div>
 <p>Here is the code:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">nexpy.gui.datadialogs</span> <span class="k">import</span> <span class="n">BaseDialog</span><span class="p">,</span> <span class="n">GridParameters</span>
-<span class="kn">from</span> <span class="nn">nexpy.gui.mainwindow</span> <span class="k">import</span> <span class="n">report_error</span>
-<span class="kn">from</span> <span class="nn">nexusformat.nexus</span> <span class="k">import</span> <span class="n">NeXusError</span>
+<span class="kn">from</span> <span class="nn">nexpy.gui.datadialogs</span> <span class="kn">import</span> <span class="n">BaseDialog</span><span class="p">,</span> <span class="n">GridParameters</span>
+<span class="kn">from</span> <span class="nn">nexpy.gui.mainwindow</span> <span class="kn">import</span> <span class="n">report_error</span>
+<span class="kn">from</span> <span class="nn">nexusformat.nexus</span> <span class="kn">import</span> <span class="n">NeXusError</span>
 
 
 <span class="k">def</span> <span class="nf">show_dialog</span><span class="p">(</span><span class="n">parent</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -1238,7 +1238,7 @@ class.</p>
 
 <span class="k">class</span> <span class="nc">EnergyDialog</span><span class="p">(</span><span class="n">BaseDialog</span><span class="p">):</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 
         <span class="nb">super</span><span class="p">(</span><span class="n">EnergyDialog</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
 
@@ -1318,12 +1318,12 @@ class.</p>
         <li class="right" >
           <a href="pythonshell.html" title="Python Interface to NeXus"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.12.2 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.12.4 documentation</a> &#187;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2013-2015, Ray Osborn.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.3.1.
     </div>
   </body>
 </html>
