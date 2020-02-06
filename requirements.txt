@@ -2,7 +2,7 @@ h5py
 nexusformat
 numpy
 scipy
-pyqt5
+pyqt5<=5.13
 qtconsole
 matplotlib
 ansi2html

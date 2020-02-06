@@ -86,6 +86,15 @@ class Highlighter(QtGui.QSyntaxHighlighter):
                 pass
 
 
+class NXScrollBar(QtWidgets.QScrollBar):
+
+    def sliderChange(self, change):
+        if (self.signalsBlocked() and 
+            change == QtWidgets.QAbstractSlider.SliderValueChange):
+            self.blockSignals(False)
+        
+
+
 class NXPlainTextEdit(QtWidgets.QPlainTextEdit):
 
     def __init__(self, parent):
@@ -94,29 +103,18 @@ class NXPlainTextEdit(QtWidgets.QPlainTextEdit):
         self.setMinimumWidth(700)
         self.setMinimumHeight(600)
         self.setWordWrapMode(QtGui.QTextOption.NoWrap)
+        self.setTabStopWidth(4 * self.fontMetrics().width(' '))
         self.parent = parent
-        self.blockCountChanged.connect(self.parent.update_line_numbers)
+        self.blockCountChanged.connect(parent.update_line_numbers)
+        self.scrollbar = NXScrollBar(self)
+        self.setVerticalScrollBar(self.scrollbar)
 
-    def paintEvent(self, event):
-        super(NXPlainTextEdit, self).paintEvent(event)
-        self.parent.update_line_numbers(self.blockCount())
-
-    def resizeEvent(self, event):
-        super(NXPlainTextEdit, self).resizeEvent(event)
-        self.parent.update_line_numbers(self.blockCount())
+    def __repr__(self):
+        return 'NXPlainTextEdit()'
 
     @property
     def count(self):
         return self.blockCount()
-
-    @property
-    def line_height(self):
-        return self.fontMetrics().height()
-
-    @property
-    def lines(self):
-        return int(self.viewport().size().height() /
-                   self.line_height)
 
        
 class NXScriptWindow(QtWidgets.QDialog):
@@ -176,15 +174,21 @@ class NXScriptEditor(QtWidgets.QWidget):
 
         layout = QtWidgets.QVBoxLayout()
         self.text_layout = QtWidgets.QHBoxLayout()
-        if sys.platform == 'darwin':
-            self.number_box = NXLabel('1')
-            self.number_box.setFont(QtGui.QFont('Courier'))
-            self.number_box.setAlignment(QtCore.Qt.AlignTop | 
-                                         QtCore.Qt.AlignRight)
-            self.number_box.setStyleSheet("QLabel {padding: 1px 0}")
-            self.text_layout.addWidget(self.number_box)
+        self.number_box = QtWidgets.QPlainTextEdit('1')
+        self.number_box.setFont(QtGui.QFont('Courier'))
+        self.number_box.setStyleSheet(
+            "QPlainTextEdit {background-color: "+
+            self.palette().color(QtGui.QPalette.Window).name()+
+            "; padding: 0; margin: 0; border: 0}")
+        self.number_box.setFixedWidth(35)
+        self.number_box.setHorizontalScrollBarPolicy(
+            QtCore.Qt.ScrollBarAlwaysOff)
+        self.number_box.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        self.text_layout.addWidget(self.number_box)
         self.text_box = NXPlainTextEdit(self)
+        self.text_box.scrollbar.valueChanged.connect(self.scroll_numbers)
         self.text_layout.addWidget(self.text_box)
+        self.text_layout.setSpacing(0)
         layout.addLayout(self.text_layout)
         
         run_button = QtWidgets.QPushButton('Run Script')
@@ -217,7 +221,7 @@ class NXScriptEditor(QtWidgets.QWidget):
                 text = f.read()
             self.text_box.setPlainText(text)
             self.window.tabs.addTab(self, self.label)
-            self.update_line_numbers(self.text_box.count)
+            self.update_line_numbers()
         else:
             self.label = 'Untitled %s' % (self.window.tabs.count()+1)
             self.delete_button.setVisible(False)
@@ -229,27 +233,28 @@ class NXScriptEditor(QtWidgets.QWidget):
 
         self.hl = Highlighter(self.text_box.document())
 
+        self.text_box.setFocus()
+        self.number_box.setFocusPolicy(QtCore.Qt.NoFocus)
+
     def __repr__(self):
         return 'NXScriptEditor(%s)' % self.label
         
     def get_text(self):
-        return self.text_box.document().toPlainText().strip()+'\n'
+        text = self.text_box.document().toPlainText().strip()
+        return text.replace('\t', '    ')+'\n'
 
-    def update_line_numbers(self, count):
-        if sys.platform != 'darwin':
-            return
-        first_block = self.text_box.firstVisibleBlock()
-        first_line = first_block.blockNumber() + 1
-        lines = min(count - first_line + 1, 
-                    int(self.text_box.viewport().size().height() /
-                        self.text_box.line_height))
-        self.number_box.setText('\n'.join([str(i) for i in 
-                                           range(first_line, 
-                                                 first_line+lines)]))
-        if first_line > 1:
-            self.number_box.setStyleSheet("QLabel {padding: 0}")
-        else:
-            self.number_box.setStyleSheet("QLabel {padding: 1px 0}")
+    def update_line_numbers(self):
+        count = self.text_box.count
+        if count >= 1000:
+            self.number_box.setWidth(40)
+        self.number_box.setPlainText('\n'.join([str(i).rjust(len(str(count)))
+                                                for i in range(1,count+1)]))
+        self.scroll_numbers()
+
+    def scroll_numbers(self):
+        self.number_box.verticalScrollBar().setValue(
+                            self.text_box.verticalScrollBar().value())
+        self.text_box.scrollbar.update()
 
     def run_script(self):
         text = self.get_text()

@@ -69,6 +69,7 @@ from .widgets import (NXSpinBox, NXDoubleSpinBox, NXSlider, NXComboBox,
 from .utils import (report_error, report_exception, boundaries, centers, keep_data, 
                     fix_projection, find_nearest, iterable)
 
+active_plotview = None
 plotview = None
 plotviews = {}
 colors = mpl.rcParams['axes.prop_cycle'].by_key()['color']
@@ -366,7 +367,8 @@ class NXPlotView(QtWidgets.QDialog):
                 if shortcut in mpl.rcParams[key]:
                     mpl.rcParams[key].remove(shortcut)
 
-        global plotview
+        global active_plotview, plotview
+        active_plotview = self
         if self.number < 101:
             plotview = self
         plotviews[self.label] = self
@@ -563,7 +565,8 @@ class NXPlotView(QtWidgets.QDialog):
 
     def make_active(self):
         """Make this window active for plotting."""
-        global plotview
+        global active_plotview, plotview
+        active_plotview = self
         if self.number < 101:
             plotview = self
             self.mainwindow.user_ns['plotview'] = self
@@ -1246,7 +1249,6 @@ class NXPlotView(QtWidgets.QDialog):
         ax.set_xlabel(self.xaxis.label)
         ax.set_ylabel(self.yaxis.label)
         self.otab.push_current()
-        self.update_panels()
         if self.ndim == 1:
             try:
                 self.plot_smooth()
@@ -2229,7 +2231,7 @@ class NXPlotView(QtWidgets.QDialog):
             self.vtab.set_axis(self.vaxis)
             if self.tab_widget.indexOf(self.vtab) == -1:
                 self.tab_widget.insertTab(0, self.vtab, 'signal')
-            if self.number < 100:
+            if self.label != 'Projection':
                 if self.tab_widget.indexOf(self.ptab) == -1:
                     self.tab_widget.insertTab(
                         self.tab_widget.indexOf(self.otab),
