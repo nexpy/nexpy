@@ -15,6 +15,7 @@ pkg_requirements = [
     'numpy',
     'scipy',
     'h5py',
+    'qtpy',
     'qtconsole',
     'ipython',
     'matplotlib',

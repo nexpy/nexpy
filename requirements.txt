@@ -2,6 +2,7 @@ h5py
 nexusformat
 numpy
 scipy
+qtpy
 pyqt5<=5.13
 qtconsole
 matplotlib
