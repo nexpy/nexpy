@@ -1,9 +1,6 @@
 import os
 import pytest
 
-import matplotlib as mpl
-mpl.use('qt5agg') 
-
 def test_api_imports():
     try:
         import nexpy.api.frills.fit
