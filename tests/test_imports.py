@@ -11,13 +11,13 @@ def test_api_imports():
 def test_gui_import():
     os.environ['QT_API'] = 'pyqt5'
     try:
+        import nexpy.gui.pyqt
         import nexpy.gui.consoleapp
         import nexpy.gui.datadialogs
         import nexpy.gui.fitdialogs
         import nexpy.gui.importdialog
         import nexpy.gui.mainwindow
         import nexpy.gui.plotview
-        import nexpy.gui.pyqt
         import nexpy.gui.scripteditor
         import nexpy.gui.treeview
         import nexpy.gui.utils
@@ -29,6 +29,7 @@ def test_gui_import():
 def test_reader_import():
     os.environ['QT_API'] = 'pyqt5'
     try:
+        import nexpy.gui.pyqt
         import nexpy.readers.readspe
         import nexpy.readers.readspec
         import nexpy.readers.readstack
