@@ -2863,14 +2863,17 @@ class ScanTab(NXTab):
         i = 0
         for name in sorted(self.tree, key=natural_sort):
             root = self.tree[name]
-            if (self.data_path in root and 
-                root[self.data_path].nxsignal.exists()):
-                i += 1
-                if self.scan_path:
-                    self.files.add(name, root[self.scan_path], name, True)
-                else:
-                    self.files.add(name, i, name, True)
-                    self.files[name].checkbox.stateChanged.connect(self.update_files)
+            try:
+                if (self.data_path in root and 
+                    root[self.data_path].nxsignal.exists()):
+                    i += 1
+                    if self.scan_path:
+                        self.files.add(name, root[self.scan_path], name, True)
+                    else:
+                        self.files.add(name, i, name, True)
+                        self.files[name].checkbox.stateChanged.connect(self.update_files)
+            except Exception as error:
+                pass
         self.file_grid = self.files.grid(header=('File', self.scan_header, ''))
         self.scroll_widget = NXWidget()
         self.scroll_widget.set_layout(self.make_layout(self.file_grid))
