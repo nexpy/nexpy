@@ -3261,7 +3261,7 @@ class ViewDialog(NXDialog):
 
     def __init__(self, node, parent=None):
 
-        super(ViewDialog, self).__init__(parent, default=True)
+        super(ViewDialog, self).__init__(parent)
 
         self.node = node
         self.spinboxes = []
@@ -3363,7 +3363,7 @@ class ViewDialog(NXDialog):
         if [s for s in self.node.shape if s > 10]:
             idx = []
             for i, s in enumerate(self.node.shape):
-                spinbox = NXSpinBox(self.choose_data)
+                spinbox = NXSpinBox(self.choose_data, np.arange(s))
                 spinbox.setRange(0, s-1)   
                 if len(self.node.shape) - i > 2:
                     idx.append(0)
@@ -3397,7 +3397,7 @@ class ViewDialog(NXDialog):
         return layout
 
     def choose_data(self):
-        idx = [s.value() for s in self.spinboxes]
+        idx = [int(s.value()) for s in self.spinboxes]
         if len(idx) > 1:
             origin = [idx[-2], idx[-1]]
             for i in [-2,-1]:
