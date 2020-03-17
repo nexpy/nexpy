@@ -1,5 +1,4 @@
 import os
-import matplotlib
 # this will not work with the newest version of PyQt
 try:
     import sip
@@ -19,7 +18,6 @@ else:
         os.environ['QT_API'] = 'pyqt'
     elif QtCore.__name__.lower().startswith('pyside'):
         os.environ['QT_API'] = 'pyside'
-matplotlib.use(QtVersion, warn=False)
 
 
 def getOpenFileName(*args, **kwargs):
