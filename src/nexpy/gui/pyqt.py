@@ -1,5 +1,4 @@
 import os
-import matplotlib
 try:
     import sip
     for api in ['QString', 'QVariant', 'QDate', 'QDateTime',
@@ -19,7 +18,6 @@ elif QtCore.PYQT4:
 elif QtCore.PYSIDE:
     QtVersion = 'Qt4Agg'
     os.environ['QT_API'] = 'pyside'
-matplotlib.use(QtVersion, warn=False)
 
 
 def getOpenFileName(*args, **kwargs):
