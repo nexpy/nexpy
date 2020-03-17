@@ -347,7 +347,7 @@ class NXTreeView(QtWidgets.QTreeView):
             self.mainwindow.reload_action.setEnabled(True)
             self.mainwindow.collapse_action.setEnabled(True)
             self.mainwindow.view_action.setEnabled(True)
-            if node.nxfilemode is None or node.nxfilemode == 'rw':
+            if node.is_modifiable():
                 self.mainwindow.rename_action.setEnabled(True)
                 if not isinstance(node, NXlink):
                     self.mainwindow.add_action.setEnabled(True)
@@ -371,7 +371,6 @@ class NXTreeView(QtWidgets.QTreeView):
                 self.mainwindow.delete_action.setEnabled(True)
         else:
             self.mainwindow.copydata_action.setEnabled(True)
-            self.mainwindow.cutdata_action.setEnabled(True)
             if isinstance(node, NXlink):
                 self.mainwindow.link_action.setEnabled(True)
             try:
@@ -380,13 +379,15 @@ class NXTreeView(QtWidgets.QTreeView):
                     self.mainwindow.export_action.setEnabled(True)
             except Exception as error:
                 pass
-            if node.nxfilemode is None or node.nxfilemode == 'rw':
+            if node.is_modifiable():
                 if isinstance(node, NXgroup):
                     self.mainwindow.initialize_action.setEnabled(True)
                     if self.mainwindow.copied_node is not None:
                         self.mainwindow.pastedata_action.setEnabled(True)
                         self.mainwindow.pastelink_action.setEnabled(True)
-                self.mainwindow.delete_action.setEnabled(True)
+                self.mainwindow.cutdata_action.setEnabled(True)
+                if not node.is_linked():
+                    self.mainwindow.delete_action.setEnabled(True)
                 if isinstance(node, NXentry) or isinstance(node, NXdata):
                     self.mainwindow.default_action.setEnabled(True)
                 if isinstance(node, NXdata):
