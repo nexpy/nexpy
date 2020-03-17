@@ -9,6 +9,7 @@ def test_api_imports():
 
 
 def test_gui_import():
+    os.environ['QT_API'] = 'pyqt5'
     try:
         import nexpy.gui.consoleapp
         import nexpy.gui.datadialogs
@@ -26,6 +27,7 @@ def test_gui_import():
 
 
 def test_reader_import():
+    os.environ['QT_API'] = 'pyqt5'
     try:
         import nexpy.readers.readspe
         import nexpy.readers.readspec
