@@ -3541,7 +3541,10 @@ class NXNavigationToolbar(NavigationToolbar):
             report_error("Setting Aspect Ratio", error)
 
     def mouse_move(self, event):
-        self._set_cursor(event)
+        try:
+            self._update_cursor(event)
+        except AttributeError:
+            self._set_cursor(event)
         if event.inaxes and event.inaxes.get_navigate():
             try:
                 s = self.plotview.format_coord(event.xdata, event.ydata)
