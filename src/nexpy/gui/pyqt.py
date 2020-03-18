@@ -10,8 +10,11 @@ except ImportError:
 from qtpy import QtCore, QtGui, QtWidgets
 
 if QtCore.PYQT5:
-    os.environ['QT_API'] = 'pyqt5'
     QtVersion = 'Qt5Agg'
+    os.environ['QT_API'] = 'pyqt5'
+elif QtCore.PYSIDE2:
+    QtVersion = 'Qt5Agg'
+    os.environ['QT_API'] = 'pyside2'
 elif QtCore.PYQT4:
     QtVersion = 'Qt4Agg'
     os.environ['QT_API'] = 'pyqt'
