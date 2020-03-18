@@ -3364,7 +3364,7 @@ class NXNavigationToolbar(NavigationToolbar):
     def __repr__(self):
         return 'NXNavigationToolbar("%s")' % self.plotview.label
 
-    def _icon(self, name):
+    def _icon(self, name, color=None):
         return QtGui.QIcon(os.path.join(pkg_resources.resource_filename(
                                         'nexpy.gui', 'resources'), name))
 
