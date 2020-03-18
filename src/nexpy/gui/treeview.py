@@ -180,7 +180,9 @@ class NXTreeItem(QtGui.QStandardItem):
     """
 
     def __init__(self, node=None):
-        self.node = node
+        self.root = node.nxroot
+        self.tree = self.root.nxgroup
+        self.path = self.root.nxname + node.nxpath
         if isinstance(self.node, NXlink):
             self._linked = QtGui.QIcon(
                 pkg_resources.resource_filename('nexpy.gui',
@@ -200,8 +202,12 @@ class NXTreeItem(QtGui.QStandardItem):
                                             'resources/unlock-red-icon.png'))
         super(NXTreeItem, self).__init__(self.node.nxname)
 
+    @property
+    def node(self):
+        return self.tree[self.path]
+
     def __repr__(self):
-        return "NXTreeItem('%s')" % self.node.nxname
+        return "NXTreeItem('%s')" % self.path
 
     def text(self):
         return self.node.nxname
