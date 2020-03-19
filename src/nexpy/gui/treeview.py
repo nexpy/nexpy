@@ -75,17 +75,13 @@ class NXtree(NXgroup):
             if item.hasChildren():
                 for row in range(item.rowCount()):
                     children.append(item.child(row))
-            names = [child.text() for child in children]
+            names = [child.name for child in children]
             for name in item.node:
                 if name not in names:
                     item.appendRow(NXTreeItem(item.node[name]))
             for child in children:
-                name = child.node.nxname
-                if name not in item.node:
+                if child.name not in item.node:
                     item.removeRow(child.row())
-                elif child.node is not item.node[name]:
-                    item.removeRow(child.row())
-                    item.appendRow(NXTreeItem(item.node[name]))
         item.node.set_unchanged()
     
     def add(self, node):
@@ -180,14 +176,15 @@ class NXTreeItem(QtGui.QStandardItem):
     """
 
     def __init__(self, node=None):
+        self.name = node.nxname
         self.root = node.nxroot
         self.tree = self.root.nxgroup
         self.path = self.root.nxname + node.nxpath
-        if isinstance(self.node, NXlink):
+        if isinstance(node, NXlink):
             self._linked = QtGui.QIcon(
                 pkg_resources.resource_filename('nexpy.gui',
                                                 'resources/link-icon.png'))
-        elif isinstance(self.node, NXroot):
+        elif isinstance(node, NXroot):
             self._locked = QtGui.QIcon(
                 pkg_resources.resource_filename('nexpy.gui',
                                                 'resources/lock-icon.png'))
@@ -200,7 +197,7 @@ class NXTreeItem(QtGui.QStandardItem):
             self._unlocked_modified = QtGui.QIcon(
                 pkg_resources.resource_filename('nexpy.gui',
                                             'resources/unlock-red-icon.png'))
-        super(NXTreeItem, self).__init__(self.node.nxname)
+        super(NXTreeItem, self).__init__(node.nxname)
 
     @property
     def node(self):
@@ -210,35 +207,41 @@ class NXTreeItem(QtGui.QStandardItem):
         return "NXTreeItem('%s')" % self.path
 
     def text(self):
-        return self.node.nxname
+        return self.name
 
     def data(self, role=QtCore.Qt.DisplayRole):
         """
         Returns the data to be displayed in the tree.
-        """        
+        """
         if role == QtCore.Qt.DisplayRole or role == QtCore.Qt.EditRole:
-            return self.node.nxname
+            return self.name
         elif role == QtCore.Qt.ToolTipRole:
-            tree = self.node.short_tree
-            if tree.count('\n') > 50:
-                return '\n'.join(tree.split('\n')[0:50])+'\n...'
-            else:
-                return tree
+            try:
+                tree = self.node.short_tree
+                if tree.count('\n') > 50:
+                    return '\n'.join(tree.split('\n')[0:50])+'\n...'
+                else:
+                    return tree
+            except Exception:
+                return ''
         elif role == QtCore.Qt.DecorationRole:
-            if isinstance(self.node, NXroot):
-                if self.node.nxfilemode == 'r':
-                    if self.node._file_modified:
-                        return self._locked_modified
-                    else:
-                        return self._locked
-                elif self.node.nxfilemode == 'rw':
-                    if self.node._file_modified:
-                        return self._unlocked_modified
-                    else:
-                        return self._unlocked
-            elif isinstance(self.node, NXlink):
-                return self._linked
-            else:
+            try:
+                if isinstance(self.node, NXroot):
+                    if self.node.nxfilemode == 'r':
+                        if self.node._file_modified:
+                            return self._locked_modified
+                        else:
+                            return self._locked
+                    elif self.node.nxfilemode == 'rw':
+                        if self.node._file_modified:
+                            return self._unlocked_modified
+                        else:
+                            return self._unlocked
+                elif isinstance(self.node, NXlink):
+                    return self._linked
+                else:
+                    return None
+            except Exception:
                 return None
 
     def children(self):
