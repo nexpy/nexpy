@@ -1,6 +1,4 @@
 import os
-import matplotlib
-# this will not work with the newest version of PyQt
 try:
     import sip
     for api in ['QString', 'QVariant', 'QDate', 'QDateTime',
@@ -10,16 +8,19 @@ except ImportError:
     pass
 
 from qtpy import QtCore, QtGui, QtWidgets
-if QtCore.__name__.lower().startswith('pyqt5'):
-    os.environ['QT_API'] = 'pyqt5'
+
+if QtCore.PYQT5:
     QtVersion = 'Qt5Agg'
-else:
+    os.environ['QT_API'] = 'pyqt5'
+elif QtCore.PYSIDE2:
+    QtVersion = 'Qt5Agg'
+    os.environ['QT_API'] = 'pyside2'
+elif QtCore.PYQT4:
     QtVersion = 'Qt4Agg'
-    if QtCore.__name__.lower().startswith('pyqt4'):
-        os.environ['QT_API'] = 'pyqt'
-    elif QtCore.__name__.lower().startswith('pyside'):
-        os.environ['QT_API'] = 'pyside'
-matplotlib.use(QtVersion, warn=False)
+    os.environ['QT_API'] = 'pyqt'
+elif QtCore.PYSIDE:
+    QtVersion = 'Qt4Agg'
+    os.environ['QT_API'] = 'pyside'
 
 
 def getOpenFileName(*args, **kwargs):

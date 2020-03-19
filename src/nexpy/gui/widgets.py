@@ -72,7 +72,7 @@ class NXStack(QtWidgets.QWidget):
 class NXScrollArea(QtWidgets.QScrollArea):
     """Scroll area embedding a widget."""
 
-    def __init__(self, widget=None, parent=None):
+    def __init__(self, widget=None, horizontal=False, parent=None):
         """Initialize the scroll area.
         
         Parameters
@@ -85,7 +85,8 @@ class NXScrollArea(QtWidgets.QScrollArea):
         super(NXScrollArea, self).__init__(parent=parent)
         if widget:
             self.setWidget(widget)
-        self.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        if not horizontal:
+            self.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
 
     def setWidget(self, widget):
         super(NXScrollArea, self).setWidget(widget)

@@ -2863,14 +2863,17 @@ class ScanTab(NXTab):
         i = 0
         for name in sorted(self.tree, key=natural_sort):
             root = self.tree[name]
-            if (self.data_path in root and 
-                root[self.data_path].nxsignal.exists()):
-                i += 1
-                if self.scan_path:
-                    self.files.add(name, root[self.scan_path], name, True)
-                else:
-                    self.files.add(name, i, name, True)
-                    self.files[name].checkbox.stateChanged.connect(self.update_files)
+            try:
+                if (self.data_path in root and 
+                    root[self.data_path].nxsignal.exists()):
+                    i += 1
+                    if self.scan_path:
+                        self.files.add(name, root[self.scan_path], name, True)
+                    else:
+                        self.files.add(name, i, name, True)
+                        self.files[name].checkbox.stateChanged.connect(self.update_files)
+            except Exception as error:
+                pass
         self.file_grid = self.files.grid(header=('File', self.scan_header, ''))
         self.scroll_widget = NXWidget()
         self.scroll_widget.set_layout(self.make_layout(self.file_grid))
@@ -3261,7 +3264,7 @@ class ViewDialog(NXDialog):
 
     def __init__(self, node, parent=None):
 
-        super(ViewDialog, self).__init__(parent, default=True)
+        super(ViewDialog, self).__init__(parent)
 
         self.node = node
         self.spinboxes = []
@@ -3351,7 +3354,7 @@ class ViewDialog(NXDialog):
         layout = QtWidgets.QVBoxLayout()
 
         title_layout = QtWidgets.QHBoxLayout()
-        title_label = NXLabel('Values')
+        title_label = NXLabel('Indices')
         header_font = QtGui.QFont()
         header_font.setBold(True)
         title_label.setFont(header_font)
@@ -3363,7 +3366,7 @@ class ViewDialog(NXDialog):
         if [s for s in self.node.shape if s > 10]:
             idx = []
             for i, s in enumerate(self.node.shape):
-                spinbox = NXSpinBox(self.choose_data)
+                spinbox = NXSpinBox(self.choose_data, np.arange(s))
                 spinbox.setRange(0, s-1)   
                 if len(self.node.shape) - i > 2:
                     idx.append(0)
@@ -3397,7 +3400,7 @@ class ViewDialog(NXDialog):
         return layout
 
     def choose_data(self):
-        idx = [s.value() for s in self.spinboxes]
+        idx = [int(s.value()) for s in self.spinboxes]
         if len(idx) > 1:
             origin = [idx[-2], idx[-1]]
             for i in [-2,-1]:
