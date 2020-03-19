@@ -212,30 +212,36 @@ class NXTreeItem(QtGui.QStandardItem):
     def data(self, role=QtCore.Qt.DisplayRole):
         """
         Returns the data to be displayed in the tree.
-        """        
+        """
         if role == QtCore.Qt.DisplayRole or role == QtCore.Qt.EditRole:
             return self.name
         elif role == QtCore.Qt.ToolTipRole:
-            tree = self.node.short_tree
-            if tree.count('\n') > 50:
-                return '\n'.join(tree.split('\n')[0:50])+'\n...'
-            else:
-                return tree
+            try:
+                tree = self.node.short_tree
+                if tree.count('\n') > 50:
+                    return '\n'.join(tree.split('\n')[0:50])+'\n...'
+                else:
+                    return tree
+            except Exception:
+                return ''
         elif role == QtCore.Qt.DecorationRole:
-            if isinstance(self.node, NXroot):
-                if self.node.nxfilemode == 'r':
-                    if self.node._file_modified:
-                        return self._locked_modified
-                    else:
-                        return self._locked
-                elif self.node.nxfilemode == 'rw':
-                    if self.node._file_modified:
-                        return self._unlocked_modified
-                    else:
-                        return self._unlocked
-            elif isinstance(self.node, NXlink):
-                return self._linked
-            else:
+            try:
+                if isinstance(self.node, NXroot):
+                    if self.node.nxfilemode == 'r':
+                        if self.node._file_modified:
+                            return self._locked_modified
+                        else:
+                            return self._locked
+                    elif self.node.nxfilemode == 'rw':
+                        if self.node._file_modified:
+                            return self._unlocked_modified
+                        else:
+                            return self._unlocked
+                elif isinstance(self.node, NXlink):
+                    return self._linked
+                else:
+                    return None
+            except Exception:
                 return None
 
     def children(self):
