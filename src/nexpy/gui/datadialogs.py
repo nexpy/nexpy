@@ -3354,7 +3354,7 @@ class ViewDialog(NXDialog):
         layout = QtWidgets.QVBoxLayout()
 
         title_layout = QtWidgets.QHBoxLayout()
-        title_label = NXLabel('Values')
+        title_label = NXLabel('Indices')
         header_font = QtGui.QFont()
         header_font.setBold(True)
         title_label.setFont(header_font)
