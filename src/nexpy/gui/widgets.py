@@ -449,7 +449,7 @@ class NXColorBox(QtWidgets.QWidget):
             for char in text:
                 if char.lower() not in correct:
                     return qcolor
-        elif text not in list(QColor.colorNames()):
+        elif text not in list(QtGui.QColor.colorNames()):
             return qcolor
         qcolor.setNamedColor(text)
         return qcolor
