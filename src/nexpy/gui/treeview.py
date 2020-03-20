@@ -1,20 +1,17 @@
-#!/usr/bin/env python 
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# The full license is in the file COPYING, distributed with this software.
+
 #-----------------------------------------------------------------------------
-#-----------------------------------------------------------------------------
-# Copyright (c) 2013, NeXpy Development Team.
+# Copyright (c) 2013-2020, NeXpy Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
-
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
+# The full license is in the file COPYING, distributed with this software.
+#-----------------------------------------------------------------------------
 
 import os
 
 import pkg_resources
-import six
 from nexusformat.nexus import (NeXusError, NXdata, NXentry, NXfield, NXgroup,
                                NXlink, NXroot, nxload)
 

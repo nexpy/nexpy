@@ -1,14 +1,21 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
+#-----------------------------------------------------------------------------
+# Copyright (c) 2018-2020, NeXpy Development Team.
+#
+# Distributed under the terms of the Modified BSD License.
+#
+# The full license is in the file COPYING, distributed with this software.
+#-----------------------------------------------------------------------------
+
 """
 This module contains a set of customized widgets both for dialogs and plot objects. 
 """
-from __future__ import absolute_import, division, unicode_literals
-
 import warnings
 
 import matplotlib as mpl
 import numpy as np
-import six
 from matplotlib import colors
 from matplotlib import cbook
 from matplotlib.patches import Circle, Ellipse, Polygon, Rectangle
@@ -147,7 +154,7 @@ class NXTextBox(NXLineEdit):
         float
             Value of text box converted to a floating point number
         """
-        return float(six.text_type(self.text()))
+        return float(str(self.text()))
 
     def setValue(self, value):
         """Set the value of the text box string formatted as a float.
@@ -157,7 +164,7 @@ class NXTextBox(NXLineEdit):
         value : str or int or float
             Text box value to be formatted as a float        
         """
-        self.setText(six.text_type(float('%.4g' % value)))
+        self.setText(str(float('%.4g' % value)))
 
 
 class NXComboBox(QtWidgets.QComboBox):
@@ -487,7 +494,7 @@ class NXSpinBox(QtWidgets.QSpinBox):
         self.diff = None
         self.pause = False
         if slot:
-            self.valueChanged[six.text_type].connect(slot)
+            self.valueChanged[str].connect(slot)
 
         self.setAlignment(QtCore.Qt.AlignRight)
         self.setFixedWidth(100)
@@ -547,7 +554,7 @@ class NXSpinBox(QtWidgets.QSpinBox):
         super(NXSpinBox, self).setValue(self.valueFromText(value))
 
     def valueFromText(self, text):
-        return self.indexFromValue(float(six.text_type(text)))
+        return self.indexFromValue(float(str(text)))
 
     def textFromValue(self, value):
         try:
@@ -633,7 +640,7 @@ class NXDoubleSpinBox(QtWidgets.QDoubleSpinBox):
         self.old_value = None
         self.diff = None
         if slot:
-            self.valueChanged[six.text_type].connect(slot)    
+            self.valueChanged[str].connect(slot)    
 
         self.setAlignment(QtCore.Qt.AlignRight)
         self.setFixedWidth(100)

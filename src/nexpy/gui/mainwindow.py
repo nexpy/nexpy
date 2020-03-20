@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #-----------------------------------------------------------------------------
-# Copyright (c) 2013-2019, NeXpy Development Team.
+# Copyright (c) 2013-2020, NeXpy Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -18,10 +18,6 @@ of a Matplotlib plotting pane and a tree view for displaying NeXus data.
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-import six
-
 import glob
 import json
 import logging
@@ -1953,7 +1949,7 @@ class MainWindow(QtWidgets.QMainWindow):
         data = display_data['data'].get('application/json', {})
         if isinstance(data, dict):
             mdict = data
-        elif isinstance(data, six.text_type):
+        elif isinstance(data, str):
             mdict = json.loads(data)
         else:
             return

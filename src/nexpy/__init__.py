@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #-----------------------------------------------------------------------------
-# Copyright (c) 2013-2014, NeXpy Development Team.
+# Copyright (c) 2013-2020, NeXpy Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -15,7 +15,7 @@ __version__ = get_versions()['version']
 del get_versions
 
 __documentation_author__ = u'Ray Osborn'
-__documentation_copyright__ = u'2013-2015, Ray Osborn'
+__documentation_copyright__ = u'2013-2020, Ray Osborn'
 
 __license__ = u'BSD'
 __author_name__ = u'NeXpy Development Team'

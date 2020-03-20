@@ -1,5 +1,13 @@
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+#-----------------------------------------------------------------------------
+# Copyright (c) 2013-2020, NeXpy Development Team.
+#
+# Distributed under the terms of the Modified BSD License.
+#
+# The full license is in the file COPYING, distributed with this software.
+#-----------------------------------------------------------------------------
 
 import datetime
 import importlib
@@ -14,7 +22,6 @@ from datetime import datetime
 
 import matplotlib.image as img
 import numpy as np
-import six
 from IPython.core.ultratb import ColorTB
 from matplotlib.colors import colorConverter, hex2color, rgb2hex
 from nexusformat.nexus import *
@@ -34,9 +41,6 @@ try:
     import fabio
 except ImportError:
     fabio = None
-
-if six.PY2:
-    FileNotFoundError = IOError
 
 ansi_re = re.compile('\x1b' + r'\[([\dA-Fa-f;]*?)m')
 
@@ -93,11 +97,8 @@ def report_exception(*args):
     if len(args) == 3:
         error_type, error, traceback = args[:3]
     elif len(args) == 1:
-        if six.PY3:
-            exc = args[0]
-            error_type, error, traceback = exc.__class__, exc, exc.__traceback__
-        else:
-            error_type, error, traceback = sys.exc_info()
+        exc = args[0]
+        error_type, error, traceback = exc.__class__, exc, exc.__traceback__
     message = ''.join(tb.format_exception_only(error_type, error))
     information = ColorTB(mode="Context").text(error_type, error, traceback)
     logging.error('Exception in GUI event loop\n'+information+'\n')
@@ -241,7 +242,7 @@ def keep_data(data):
         except ValueError:
             pass
     if ind == []: ind = [0]
-    data.nxname = 's'+six.text_type(sorted(ind)[-1]+1)
+    data.nxname = 's'+str(sorted(ind)[-1]+1)
     _tree['w0'][data.nxname] = data
 
 

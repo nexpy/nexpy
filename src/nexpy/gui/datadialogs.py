@@ -2,16 +2,12 @@
 # -*- coding: utf-8 -*-
 
 #-----------------------------------------------------------------------------
-# Copyright (c) 2013, NeXpy Development Team.
+# Copyright (c) 2013-2020, NeXpy Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file COPYING, distributed with this software.
 #-----------------------------------------------------------------------------
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-import six
-
 import bisect
 import logging
 import numbers
@@ -163,7 +159,7 @@ class NXWidget(QtWidgets.QWidget):
         return layout
 
     def label(self, label):
-        return NXLabel(six.text_type(label))
+        return NXLabel(str(label))
 
     def labels(self, *labels, **opts):
         if 'align' in opts:
@@ -175,7 +171,7 @@ class NXWidget(QtWidgets.QWidget):
             horizontal_layout = QtWidgets.QHBoxLayout()
             if align == 'center' or align == 'right':
                 horizontal_layout.addStretch()
-            label_widget = NXLabel(six.text_type(label))
+            label_widget = NXLabel(str(label))
             if 'header' in opts:
                 label_widget.setFont(self.bold_font)        
             horizontal_layout.addWidget(label_widget)
@@ -194,7 +190,7 @@ class NXWidget(QtWidgets.QWidget):
             item_layout = QtWidgets.QHBoxLayout()
             label_box = NXLabel(label)
             label_box.setAlignment(QtCore.Qt.AlignLeft)
-            self.textbox[label] = NXLineEdit(six.text_type(value))
+            self.textbox[label] = NXLineEdit(str(value))
             self.textbox[label].setAlignment(QtCore.Qt.AlignLeft)
             item_layout.addWidget(label_box)
             item_layout.addWidget(self.textbox[label])
@@ -1120,13 +1116,13 @@ class GridParameter(object):
             else:
                 if isinstance(value, NXfield):
                     value = value.nxdata
-                if isinstance(value, six.text_type):
+                if isinstance(value, str):
                     self.box.setText(value)
                 else:
                     try:
                         self.box.setText('%.6g' % value)
                     except TypeError:
-                        self.box.setText(six.text_type(value))
+                        self.box.setText(str(value))
             if self.colorbox:
                 self.colorbox.update_color()
 
@@ -3302,18 +3298,18 @@ class ViewDialog(NXDialog):
             pass
         elif isinstance(node, NXfield) and node.shape is not None:
             if node.shape == () or node.shape == (1,):
-                self.properties.add('value', six.text_type(node), 'Value')
+                self.properties.add('value', str(node), 'Value')
             self.properties.add('dtype', node.dtype, 'Dtype')
-            self.properties.add('shape', six.text_type(node.shape), 'Shape')
-            self.properties.add('maxshape', six.text_type(node.maxshape), 'Maximum Shape')
-            self.properties.add('fillvalue', six.text_type(node.fillvalue), 'Fill Value')
-            self.properties.add('chunks', six.text_type(node.chunks), 'Chunk Size')
-            self.properties.add('compression', six.text_type(node.compression), 
+            self.properties.add('shape', str(node.shape), 'Shape')
+            self.properties.add('maxshape', str(node.maxshape), 'Maximum Shape')
+            self.properties.add('fillvalue', str(node.fillvalue), 'Fill Value')
+            self.properties.add('chunks', str(node.chunks), 'Chunk Size')
+            self.properties.add('compression', str(node.compression), 
                                 'Compression')
-            self.properties.add('compression_opts', six.text_type(node.compression_opts), 
+            self.properties.add('compression_opts', str(node.compression_opts), 
                                 'Compression Options')
-            self.properties.add('shuffle', six.text_type(node.shuffle), 'Shuffle Filter')
-            self.properties.add('fletcher32', six.text_type(node.fletcher32), 
+            self.properties.add('shuffle', str(node.shuffle), 'Shuffle Filter')
+            self.properties.add('fletcher32', str(node.fletcher32), 
                                 'Fletcher32 Filter')
         elif isinstance(node, NXgroup):
             self.properties.add('entries', len(node.entries), 'No. of Entries')
@@ -3328,7 +3324,7 @@ class ViewDialog(NXDialog):
         if node.attrs:
             self.attributes = GridParameters()
             for attr in node.attrs:
-                self.attributes.add(attr, six.text_type(node.attrs[attr]), attr)
+                self.attributes.add(attr, str(node.attrs[attr]), attr)
             layout.addLayout(self.attributes.grid(header=False, 
                                                   title='Attributes', 
                                                   width=200))
@@ -3455,7 +3451,7 @@ class ViewTableModel(QtCore.QAbstractTableModel):
             value = self._data[index.row()][index.column()]
         except IndexError:
             return None
-        text = six.text_type(value).lstrip('[').rstrip(']')
+        text = str(value).lstrip('[').rstrip(']')
         if role == QtCore.Qt.DisplayRole:
             try:
                 return '%.6g' % float(text)
@@ -3468,10 +3464,10 @@ class ViewTableModel(QtCore.QAbstractTableModel):
     def headerData(self, position, orientation, role):
         if (orientation == QtCore.Qt.Horizontal and 
             role == QtCore.Qt.DisplayRole):
-            return six.text_type(self.origin[1] + range(10)[position])
+            return str(self.origin[1] + range(10)[position])
         elif (orientation == QtCore.Qt.Vertical and 
               role == QtCore.Qt.DisplayRole):
-            return six.text_type(self.origin[0] + range(10)[position])
+            return str(self.origin[0] + range(10)[position])
         return None
 
     def choose_data(self, data, origin):

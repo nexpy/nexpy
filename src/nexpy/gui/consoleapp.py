@@ -15,10 +15,6 @@
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-import six
-
 import logging
 import logging.handlers
 import pkg_resources
@@ -289,12 +285,12 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
              "from nexusformat.nexus import *\n"
              "import nexpy\n"
              "from nexpy.gui.plotview import NXPlotView")
-        six.exec_(s, self.window.user_ns)
+        exec_(s, self.window.user_ns)
 
         s = ""
         for _class in nxclasses:
             s = "%s=nx.%s\n" % (_class,_class) + s
-        six.exec_(s, self.window.user_ns)
+        exec_(s, self.window.user_ns)
 
         config_file = os.path.join(self.nexpy_dir, 'config.py')
         if not os.path.exists(config_file):
@@ -313,7 +309,7 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
         else:
             with open(config_file) as f:
                 s = f.readlines()
-        six.exec_('\n'.join(s), self.window.user_ns)
+        exec_('\n'.join(s), self.window.user_ns)
         if filename is not None:
             try:
                 fname = os.path.expanduser(filename)
