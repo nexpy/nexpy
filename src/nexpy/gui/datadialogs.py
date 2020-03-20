@@ -3429,7 +3429,11 @@ class ViewTableModel(QtCore.QAbstractTableModel):
         self.origin = [0, 0]
 
     def get_data(self, data):
-        if len(data.shape) == 1:
+        if len(data.shape) == 0:
+            self.rows = 1
+            self.columns = 1
+            return data.reshape((1,1))
+        elif len(data.shape) == 1:
             self.rows = data.shape[0]
             self.columns = 1
             return data.reshape((data.shape[0],1))
