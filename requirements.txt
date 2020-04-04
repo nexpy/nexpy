@@ -4,6 +4,7 @@ numpy
 scipy
 qtpy
 pyqt5<=5.13
+ipykernel>=5.2.0
 qtconsole
 matplotlib
 ansi2html
