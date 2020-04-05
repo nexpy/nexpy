@@ -2604,7 +2604,7 @@ class NXPlotTab(QtWidgets.QWidget):
                 self.minslider = NXSlider(self.read_minslider, move=False)
                 self.maxslider = NXSlider(self.read_maxslider, move=False)
             else:
-                self.minslider = NXSlider(self.read_minslider)
+                self.minslider = NXSlider(self.read_minslider, inverse=True)
                 self.maxslider = NXSlider(self.read_maxslider)
             self.slider_max = self.maxslider.maximum()
             self.maxbox = NXDoubleSpinBox(self.read_maxbox)
@@ -2819,7 +2819,7 @@ class NXPlotTab(QtWidgets.QWidget):
                 self.minslider.setValue(self.slider_max *
                                         (self.axis.lo - self.axis.min) / _range)
             except (ZeroDivisionError, OverflowError, RuntimeWarning):
-                self.minslider.setValue(1000)
+                self.minslider.setValue(0)
         if self.name == 'x' or self.name == 'y':
             self.plotview.replot_axes()
         else:

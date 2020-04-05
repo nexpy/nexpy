@@ -686,10 +686,30 @@ class NXSlider(QtWidgets.QSlider):
         self.setRange(0, 100)
         self.setSingleStep(5)
         self.setTracking(True)
+        self.inverse = inverse
+        if self.inverse:
+            self.setInvertedAppearance(True)
+            self.setValue(100)
+        else:
+            self.setInvertedAppearance(False)
+            self.setValue(0)
         if slot:
             self.sliderReleased.connect(slot)
             if move:    
                 self.sliderMoved.connect(slot)
+
+    def value(self):
+        _value = super(NXSlider, self).value()
+        if self.inverse:
+            return self.maximum() - _value
+        else:
+            return _value
+
+    def setValue(self, value):
+        if self.inverse:
+            super(NXSlider, self).setValue(self.maximum() - value)
+        else:
+            super(NXSlider, self).setValue(value)
 
 
 class NXpatch(object):
