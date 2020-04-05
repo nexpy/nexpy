@@ -679,13 +679,12 @@ class NXSlider(QtWidgets.QSlider):
         True if the slot is triggered by moving the slider. Otherwise, 
         it is only triggered on release.
     """
-    def __init__(self, slot=None, move=True):
+    def __init__(self, slot=None, move=True, inverse=False):
         super(NXSlider, self).__init__(QtCore.Qt.Horizontal)
         self.setFocusPolicy(QtCore.Qt.NoFocus)
         self.setMinimumWidth(100)
-        self.setRange(0, 1000)
+        self.setRange(0, 100)
         self.setSingleStep(5)
-        self.setValue(0)
         self.setTracking(True)
         if slot:
             self.sliderReleased.connect(slot)

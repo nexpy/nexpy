@@ -2606,6 +2606,7 @@ class NXPlotTab(QtWidgets.QWidget):
             else:
                 self.minslider = NXSlider(self.read_minslider)
                 self.maxslider = NXSlider(self.read_maxslider)
+            self.slider_max = self.maxslider.maximum()
             self.maxbox = NXDoubleSpinBox(self.read_maxbox)
             if log:
                 self.logbox = NXCheckBox("Log", self.change_log)
@@ -2800,22 +2801,23 @@ class NXPlotTab(QtWidgets.QWidget):
         self.block_signals(True)
         if self.name == 'v' and self.symmetric:
             _range = max(self.axis.max, self.axis.min_range)
-            self.axis.hi = max((self.maxslider.value()*_range/1000), 
+            self.axis.hi = max((self.maxslider.value()*_range/self.slider_max), 
                                 self.axis.min_range)
             self.axis.lo = -self.axis.hi
             self.maxbox.setValue(self.axis.hi)
             self.minbox.setValue(self.axis.lo)
-            self.minslider.setValue(1000 - self.maxslider.value())
+            self.minslider.setValue(self.slider_max - self.maxslider.value())
         else:
             self.axis.lo = self.minbox.value()
             _range = max(self.axis.max - self.axis.lo, self.axis.min_range)
             self.axis.hi = self.axis.lo + max(
-                (self.maxslider.value()*_range/1000), self.axis.min_range)
+                (self.maxslider.value() * _range / self.slider_max), 
+                 self.axis.min_range)
             self.maxbox.setValue(self.axis.hi)
             _range = max(self.axis.hi - self.axis.min, self.axis.min_range)
             try:
-                self.minslider.setValue(1000*(self.axis.lo - self.axis.min) / 
-                                        _range)
+                self.minslider.setValue(self.slider_max *
+                                        (self.axis.lo - self.axis.min) / _range)
             except (ZeroDivisionError, OverflowError, RuntimeWarning):
                 self.minslider.setValue(1000)
         if self.name == 'x' or self.name == 'y':
@@ -2829,11 +2831,13 @@ class NXPlotTab(QtWidgets.QWidget):
         self.block_signals(True)
         self.axis.hi = self.maxbox.value()
         _range = max(self.axis.hi - self.axis.min, self.axis.min_range)
-        self.axis.lo = self.axis.min + (self.minslider.value()*_range/1000)
+        self.axis.lo = self.axis.min + (self.minslider.value()*_range / 
+                                        self.slider_max)
         self.minbox.setValue(self.axis.lo)
         _range = max(self.axis.max-self.axis.lo, self.axis.min_range)
         try:
-            self.maxslider.setValue(1000*(self.axis.hi-self.axis.lo)/_range)
+            self.maxslider.setValue(self.slider_max * 
+                                    (self.axis.hi-self.axis.lo)/_range)
         except (ZeroDivisionError, OverflowError, RuntimeWarning):
             self.maxslider.setValue(0)
         if self.name == 'x' or self.name == 'y':
@@ -2848,12 +2852,13 @@ class NXPlotTab(QtWidgets.QWidget):
         self.block_signals(True)
         _range = max(hi-self.axis.min, self.axis.min_range)
         try:
-            self.minslider.setValue(1000*(lo - self.axis.min)/_range)
+            self.minslider.setValue(self.slider_max * 
+                                    (lo - self.axis.min) / _range)
         except (ZeroDivisionError, OverflowError, RuntimeWarning):
-            self.minslider.setValue(1000)
+            self.minslider.setValue(self.slider_max)
         _range = max(self.axis.max - lo, self.axis.min_range)
         try:
-            self.maxslider.setValue(1000*(hi-lo)/_range)
+            self.maxslider.setValue(self.slider_max * (hi-lo) / _range)
         except (ZeroDivisionError, OverflowError, RuntimeWarning):
             self.maxslider.setValue(0)
         self.block_signals(False)
@@ -3051,7 +3056,7 @@ class NXPlotTab(QtWidgets.QWidget):
         self.minbox.setMaximum(0.0)
         self.minbox.setValue(-self.maxbox.value())
         self.minbox.setDisabled(True)
-        self.minslider.setValue(1000-self.maxslider.value())
+        self.minslider.setValue(self.slider_max - self.maxslider.value())
         self.minslider.setDisabled(True)
 
     def change_interpolation(self):
