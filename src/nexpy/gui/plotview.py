@@ -1256,6 +1256,7 @@ class NXPlotView(QtWidgets.QDialog):
                 pass
         if draw:
             self.draw()
+        self.update_panels()
 
     def grid_helper(self):
         """Define the locator used in skew transforms."""
