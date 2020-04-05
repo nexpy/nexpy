@@ -16,7 +16,7 @@ pkg_requirements = [
     'scipy',
     'h5py',
     'qtpy',
-    'ipykernel>=5.2.0'
+    'ipykernel>=5.2.0',
     'qtconsole',
     'ipython',
     'matplotlib',
