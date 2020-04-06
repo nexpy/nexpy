@@ -2599,7 +2599,7 @@ class NXPlotTab(QtWidgets.QWidget):
             self.zaxis = False
             self.plotcombo = NXComboBox(self.select_plot, ['0'])
             self.plotcombo.setMinimumWidth(20)
-            self.minbox = NXDoubleSpinBox(self.read_minbox)
+            self.minbox = NXDoubleSpinBox(self.read_minbox, self.edit_minbox)
             if self.name == 'v':
                 self.minslider = NXSlider(self.read_minslider, move=False,
                                           inverse=True)
@@ -2608,7 +2608,7 @@ class NXPlotTab(QtWidgets.QWidget):
                 self.minslider = NXSlider(self.read_minslider, inverse=True)
                 self.maxslider = NXSlider(self.read_maxslider)
             self.slider_max = self.maxslider.maximum()
-            self.maxbox = NXDoubleSpinBox(self.read_maxbox)
+            self.maxbox = NXDoubleSpinBox(self.read_maxbox, self.edit_maxbox)
             if log:
                 self.logbox = NXCheckBox("Log", self.change_log)
                 self.logbox.setChecked(False)
@@ -2720,27 +2720,25 @@ class NXPlotTab(QtWidgets.QWidget):
         self.plotview.num = int(num)
         self.smoothing = self.plotview.plots[num]['smoothing']    
 
+    def edit_maxbox(self):
+        self.axis.hi = self.axis.max = self.maxbox.value()
+        if self.axis.hi < self.axis.lo:
+            self.axis.lo = self.axis.data.min()
+            self.minbox.setValue(self.axis.lo)
+        self.block_signals(True)
+        self.set_range()
+        self.block_signals(False)
+        self.set_sliders(self.axis.lo, self.axis.hi)
+
     def read_maxbox(self):
         """Update plot based on the maxbox value."""
+        self.block_signals(True)
         hi = self.maxbox.value()
-        if np.isclose(hi, self.maxbox.old_value):
-            return
         if self.name == 'x' or self.name == 'y' or self.name == 'v':
+            self.axis.hi = hi
             if self.name == 'v' and self.symmetric:
-                self.axis.hi = hi
                 self.axis.lo = -self.axis.hi
                 self.minbox.setValue(-hi)
-            else:
-                self.axis.hi = hi
-                if hi < self.axis.lo:
-                    self.axis.lo = self.axis.data.min()
-                    self.minbox.setValue(self.axis.lo)
-                    self.minbox.old_value = self.axis.lo
-            self.axis.max = self.axis.hi
-            self.axis.min = self.axis.lo
-            self.block_signals(True)
-            self.set_range()
-            self.block_signals(False)
             self.set_sliders(self.axis.lo, self.axis.hi)
             if self.name == 'v':
                 self.plotview.autoscale = False
@@ -2751,8 +2749,7 @@ class NXPlotTab(QtWidgets.QWidget):
             if self.axis.locked:
                 self.axis.hi = hi
                 self.axis.lo = self.axis.hi - self.axis.diff
-                if not np.isclose(self.axis.lo, self.minbox.old_value):
-                    self.minbox.setValue(self.axis.lo)
+                self.minbox.setValue(self.axis.lo)
                 self.replotSignal.replot.emit()
             else:
                 self.axis.hi = hi
@@ -2761,22 +2758,23 @@ class NXPlotTab(QtWidgets.QWidget):
                     self.minbox.setValue(self.axis.lo)
                 elif np.isclose(self.axis.lo, self.axis.hi):
                     self.replotSignal.replot.emit()
+        self.block_signals(False)
+
+    def edit_minbox(self):
+        self.axis.lo = self.axis.min = self.minbox.value()
+        if self.axis.lo > self.axis.hi:
+            self.axis.hi = self.axis.max = self.axis.data.max()
+            self.maxbox.setValue(self.axis.hi)
+        self.block_signals(True)
+        self.set_range()
+        self.block_signals(False)
+        self.set_sliders(self.axis.lo, self.axis.hi)
 
     def read_minbox(self):
+        self.block_signals(True)
         lo = self.minbox.value()
-        if not self.minbox.isEnabled() or self.axis.locked or \
-            np.isclose(lo, self.minbox.old_value):
-            return
         if self.name == 'x' or self.name == 'y' or self.name == 'v':
             self.axis.lo = lo
-            if lo > self.axis.hi:
-                self.axis.hi = self.axis.max = self.axis.data.max()
-                self.maxbox.setValue(self.axis.hi)
-                self.maxbox.old_value = self.axis.hi
-            self.axis.min = self.axis.lo
-            self.block_signals(True)
-            self.set_range()
-            self.block_signals(False)
             self.set_sliders(self.axis.lo, self.axis.hi)
             if self.name == 'v':
                 self.plotview.autoscale = False
@@ -2788,6 +2786,7 @@ class NXPlotTab(QtWidgets.QWidget):
             if lo > self.axis.hi:
                 self.axis.hi = self.axis.lo
                 self.maxbox.setValue(self.axis.hi)
+        self.block_signals(False)
 
     def read_maxslider(self):
         self.block_signals(True)
