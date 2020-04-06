@@ -1025,11 +1025,7 @@ class NXPlotView(QtWidgets.QDialog):
             self.colorbar = self.figure.colorbar(self.image, ax=ax)
             self.colorbar.locator = self.locator
             self.colorbar.formatter = self.formatter
-            if mpl.__version__ >= '3.1.0':
-                self.colorbar.update_normal(self.image)
-            else:
-                self.colorbar.set_norm(self.norm)
-                self.colorbar.update_bruteforce(self.image)
+            self.update_colorbar()
 
         xlo, ylo = self.transform(self.xaxis.lo, self.yaxis.lo)
         xhi, yhi = self.transform(self.xaxis.hi, self.yaxis.hi)
@@ -1214,11 +1210,7 @@ class NXPlotView(QtWidgets.QDialog):
             if self.colorbar:
                 self.colorbar.locator = self.locator
                 self.colorbar.formatter = self.formatter
-                if mpl.__version__ >= '3.1.0':
-                    self.colorbar.update_normal(self.image)
-                else:
-                    self.colorbar.set_norm(self.norm)
-                    self.colorbar.update_bruteforce(self.image)
+                self.update_colorbar()
             self.image.set_clim(self.vaxis.lo, self.vaxis.hi)
             if self.regular_grid:
                 if self.interpolation == 'convolve':
@@ -1257,6 +1249,13 @@ class NXPlotView(QtWidgets.QDialog):
         if draw:
             self.draw()
         self.update_panels()
+
+    def update_colorbar(self):
+        if mpl.__version__ >= '3.1.0':
+            self.colorbar.update_normal(self.image)
+        else:
+            self.colorbar.set_norm(self.norm)
+            self.colorbar.update_bruteforce(self.image)
 
     def grid_helper(self):
         """Define the locator used in skew transforms."""
@@ -3515,6 +3514,8 @@ class NXNavigationToolbar(NavigationToolbar):
         self.plotview.ytab.maxbox.setValue(ymax)
         self.plotview.ytab.set_sliders(ymin, ymax)
         self.plotview.ytab.block_signals(False)
+        if self.plotview.image:
+            self.plotview.update_colorbar()
         self.plotview.update_panels()
 
     def toggle_aspect(self):
