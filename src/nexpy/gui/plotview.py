@@ -2601,7 +2601,8 @@ class NXPlotTab(QtWidgets.QWidget):
             self.plotcombo.setMinimumWidth(20)
             self.minbox = NXDoubleSpinBox(self.read_minbox)
             if self.name == 'v':
-                self.minslider = NXSlider(self.read_minslider, move=False)
+                self.minslider = NXSlider(self.read_minslider, move=False,
+                                          inverse=True)
                 self.maxslider = NXSlider(self.read_maxslider, move=False)
             else:
                 self.minslider = NXSlider(self.read_minslider, inverse=True)
