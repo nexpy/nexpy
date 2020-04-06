@@ -1407,12 +1407,12 @@ class NXPlotView(QtWidgets.QDialog):
     def reset_plot_limits(self, autoscale=True):
         """Restore the plot limits to the original values."""
         xmin, xmax, ymin, ymax = self.limits
-        self.xaxis.min = self.xaxis.lo = self.xtab.minbox.old_value = xmin
-        self.xaxis.max = self.xaxis.hi = self.xtab.maxbox.old_value = xmax
+        self.xaxis.min = self.xaxis.lo = xmin
+        self.xaxis.max = self.xaxis.hi = xmax
         if self.logx:
             self.xaxis.lo, self.xaxis.hi = self.xaxis.log_limits()
-        self.yaxis.min = self.yaxis.lo = self.ytab.minbox.old_value = ymin
-        self.yaxis.max = self.yaxis.hi = self.ytab.maxbox.old_value = ymax
+        self.yaxis.min = self.yaxis.lo = ymin
+        self.yaxis.max = self.yaxis.hi = ymax
         if self.logy:
             self.yaxis.lo, self.yaxis.hi = self.yaxis.log_limits()
         if self.ndim == 1:
@@ -2684,8 +2684,6 @@ class NXPlotTab(QtWidgets.QWidget):
         else:
             self.set_range()
             self.set_limits(axis.lo, axis.hi)
-        self.minbox.old_value = axis.lo
-        self.maxbox.old_value = axis.hi
         if not self.zaxis:
             self.axis.locked = False
             if np.all(self.axis.data[np.isfinite(self.axis.data)] <= 0.0):
@@ -2755,17 +2753,14 @@ class NXPlotTab(QtWidgets.QWidget):
                 self.axis.lo = self.axis.hi - self.axis.diff
                 if not np.isclose(self.axis.lo, self.minbox.old_value):
                     self.minbox.setValue(self.axis.lo)
-                    self.minbox.old_value = self.axis.lo
                 self.replotSignal.replot.emit()
             else:
                 self.axis.hi = hi
                 if self.axis.hi < self.axis.lo:
                     self.axis.lo = self.axis.hi
                     self.minbox.setValue(self.axis.lo)
-                    self.minbox.old_value = self.axis.lo
                 elif np.isclose(self.axis.lo, self.axis.hi):
                     self.replotSignal.replot.emit()
-        self.maxbox.old_value = self.axis.hi
 
     @QtCore.Slot()
     def read_minbox(self):
@@ -2794,8 +2789,6 @@ class NXPlotTab(QtWidgets.QWidget):
             if lo > self.axis.hi:
                 self.axis.hi = self.axis.lo
                 self.maxbox.setValue(self.axis.hi)
-                self.maxbox.old_value = self.axis.hi
-        self.minbox.old_value = self.axis.lo
 
     def read_maxslider(self):
         self.block_signals(True)
