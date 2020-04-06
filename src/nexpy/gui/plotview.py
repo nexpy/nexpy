@@ -2719,7 +2719,6 @@ class NXPlotTab(QtWidgets.QWidget):
         self.plotview.num = int(num)
         self.smoothing = self.plotview.plots[num]['smoothing']    
 
-    @QtCore.Slot()
     def read_maxbox(self):
         """Update plot based on the maxbox value."""
         hi = self.maxbox.value()
@@ -2762,7 +2761,6 @@ class NXPlotTab(QtWidgets.QWidget):
                 elif np.isclose(self.axis.lo, self.axis.hi):
                     self.replotSignal.replot.emit()
 
-    @QtCore.Slot()
     def read_minbox(self):
         lo = self.minbox.value()
         if not self.minbox.isEnabled() or self.axis.locked or \
