@@ -625,7 +625,7 @@ class NXDoubleSpinBox(QtWidgets.QDoubleSpinBox):
         Difference between maximum and minimum values when the box is
         locked.
     """
-    def __init__(self, slot=None):
+    def __init__(self, slot=None, editing=None):
         super(NXDoubleSpinBox, self).__init__()
         self.validator = QtGui.QDoubleValidator()
         self.validator.setRange(-np.inf, np.inf)
@@ -633,8 +633,9 @@ class NXDoubleSpinBox(QtWidgets.QDoubleSpinBox):
         self.old_value = None
         self.diff = None
         if slot:
-            self.valueChanged[six.text_type].connect(slot)    
-
+            self.valueChanged.connect(slot)
+        if editing:
+            self.editingFinished.connect(editing)
         self.setAlignment(QtCore.Qt.AlignRight)
         self.setFixedWidth(100)
         self.setKeyboardTracking(False)
@@ -647,7 +648,6 @@ class NXDoubleSpinBox(QtWidgets.QDoubleSpinBox):
             self.setValue(self.value() + steps * self.diff)
         else:
             super(NXDoubleSpinBox, self).stepBy(steps)
-        self.editingFinished.emit()
 
     def valueFromText(self, text):
         value = np.float32(text)
@@ -666,6 +666,14 @@ class NXDoubleSpinBox(QtWidgets.QDoubleSpinBox):
         elif value < self.minimum():
             self.setMinimum(value)
         super(NXDoubleSpinBox, self).setValue(value)
+        self.old_value = value
+
+    def focusOutEvent(self, event):
+        self.blockSignals(True)
+        super(NXDoubleSpinBox, self).focusOutEvent(event)
+        if self.old_value:
+            self.setValue(self.old_value)
+        self.blockSignals(False)
 
 
 class NXSlider(QtWidgets.QSlider):
