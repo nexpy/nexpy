@@ -487,12 +487,12 @@ class NXSpinBox(QtWidgets.QSpinBox):
         self.diff = None
         self.pause = False
         if slot:
-            self.valueChanged[six.text_type].connect(slot)
-
+            self.valueChanged.connect(slot)
         self.setAlignment(QtCore.Qt.AlignRight)
         self.setFixedWidth(100)
         self.setKeyboardTracking(False)
         self.setAccelerated(False)
+        self.app = QtWidgets.QApplication.instance()
 
     def value(self):
         """Return the value of the spin box.
@@ -604,7 +604,11 @@ class NXSpinBox(QtWidgets.QSpinBox):
                 super(NXSpinBox, self).stepBy(steps)
             else:
                 self.pause = True
-        self.valueChanged.emit(1)
+
+    def timerEvent(self, event):
+        self.app.processEvents()
+        if self.app.mouseButtons() & QtCore.Qt.LeftButton:
+            super(NXSpinBox, self).timerEvent(event)
 
 
 class NXDoubleSpinBox(QtWidgets.QDoubleSpinBox):
@@ -625,7 +629,7 @@ class NXDoubleSpinBox(QtWidgets.QDoubleSpinBox):
         Difference between maximum and minimum values when the box is
         locked.
     """
-    def __init__(self, slot=None):
+    def __init__(self, slot=None, editing=None):
         super(NXDoubleSpinBox, self).__init__()
         self.validator = QtGui.QDoubleValidator()
         self.validator.setRange(-np.inf, np.inf)
@@ -633,11 +637,13 @@ class NXDoubleSpinBox(QtWidgets.QDoubleSpinBox):
         self.old_value = None
         self.diff = None
         if slot:
-            self.valueChanged[six.text_type].connect(slot)    
-
+            self.valueChanged.connect(slot)
+        if editing:
+            self.editingFinished.connect(editing)
         self.setAlignment(QtCore.Qt.AlignRight)
         self.setFixedWidth(100)
         self.setKeyboardTracking(False)
+        self.app = QtWidgets.QApplication.instance()
 
     def validate(self, input_value, position):
         return self.validator.validate(input_value, position)
@@ -647,7 +653,7 @@ class NXDoubleSpinBox(QtWidgets.QDoubleSpinBox):
             self.setValue(self.value() + steps * self.diff)
         else:
             super(NXDoubleSpinBox, self).stepBy(steps)
-        self.editingFinished.emit()
+        self.old_value = self.value()
 
     def valueFromText(self, text):
         value = np.float32(text)
@@ -666,6 +672,19 @@ class NXDoubleSpinBox(QtWidgets.QDoubleSpinBox):
         elif value < self.minimum():
             self.setMinimum(value)
         super(NXDoubleSpinBox, self).setValue(value)
+        self.old_value = value
+
+    def focusOutEvent(self, event):
+        self.blockSignals(True)
+        super(NXDoubleSpinBox, self).focusOutEvent(event)
+        if self.old_value:
+            self.setValue(self.old_value)
+        self.blockSignals(False)
+
+    def timerEvent(self, event):
+        self.app.processEvents()
+        if self.app.mouseButtons() & QtCore.Qt.LeftButton:
+            super(NXDoubleSpinBox, self).timerEvent(event)
 
 
 class NXSlider(QtWidgets.QSlider):
@@ -679,18 +698,37 @@ class NXSlider(QtWidgets.QSlider):
         True if the slot is triggered by moving the slider. Otherwise, 
         it is only triggered on release.
     """
-    def __init__(self, slot=None, move=True):
+    def __init__(self, slot=None, move=True, inverse=False):
         super(NXSlider, self).__init__(QtCore.Qt.Horizontal)
         self.setFocusPolicy(QtCore.Qt.NoFocus)
         self.setMinimumWidth(100)
-        self.setRange(0, 1000)
+        self.setRange(0, 100)
         self.setSingleStep(5)
-        self.setValue(0)
         self.setTracking(True)
+        self.inverse = inverse
+        if self.inverse:
+            self.setInvertedAppearance(True)
+            self.setValue(100)
+        else:
+            self.setInvertedAppearance(False)
+            self.setValue(0)
         if slot:
             self.sliderReleased.connect(slot)
             if move:    
                 self.sliderMoved.connect(slot)
+
+    def value(self):
+        _value = super(NXSlider, self).value()
+        if self.inverse:
+            return self.maximum() - _value
+        else:
+            return _value
+
+    def setValue(self, value):
+        if self.inverse:
+            super(NXSlider, self).setValue(self.maximum() - value)
+        else:
+            super(NXSlider, self).setValue(value)
 
 
 class NXpatch(object):
