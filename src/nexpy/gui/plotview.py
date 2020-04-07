@@ -1210,6 +1210,7 @@ class NXPlotView(QtWidgets.QDialog):
             if self.colorbar:
                 self.colorbar.locator = self.locator
                 self.colorbar.formatter = self.formatter
+                self.colorbar.minorticks_off()
                 self.update_colorbar()
             self.image.set_clim(self.vaxis.lo, self.vaxis.hi)
             if self.regular_grid:
