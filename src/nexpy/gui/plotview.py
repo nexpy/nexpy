@@ -2861,6 +2861,42 @@ class NXPlotTab(QtWidgets.QWidget):
             self.maxslider.setValue(0)
         self.block_signals(False)
 
+    def set_range(self):
+        """Set the range and step sizes for the minbox and maxbox."""
+        if np.isclose(self.axis.lo, self.axis.hi):
+            self.axis.min, self.axis.max = nonsingular(self.axis.min, 
+                                                       self.axis.max)
+        self.minbox.setRange(self.axis.min, self.axis.max)
+        self.maxbox.setRange(self.axis.min, self.axis.max)
+        self.set_stepsize(self.axis.min, self.axis.max)
+
+    def set_stepsize(self, lo, hi):
+        """Set the step sizes based on the current minbox and maxbox values."""
+        range = hi - lo
+        self.minbox.setSingleStep((range)/100)
+        self.maxbox.setSingleStep((range)/100)
+
+    def get_limits(self):
+        """Return the minbox and maxbox values."""
+        return self.minbox.value(), self.maxbox.value()
+
+    def set_limits(self, lo, hi):
+        """Set the minbox and maxbox limits and sliders."""
+        self.block_signals(True)
+        if lo > hi:
+            lo, hi = hi, lo
+        self.axis.set_limits(lo, hi)
+        self.minbox.setValue(lo)
+        self.maxbox.setValue(hi)
+        if not self.zaxis:
+            self.set_sliders(lo, hi)
+            self.set_stepsize(lo, hi)
+        self.block_signals(False)
+
+    @QtCore.Slot()
+    def reset(self):
+        self.set_limits(self.axis.min, self.axis.max)
+
     def block_signals(self, block=True):
         self.minbox.blockSignals(block)
         self.maxbox.blockSignals(block)
@@ -2940,41 +2976,6 @@ class NXPlotTab(QtWidgets.QWidget):
             self.plotview.replot_axes()
         except:
             pass
-
-    @QtCore.Slot()
-    def reset(self):
-        self.set_limits(self.axis.min, self.axis.max)
-
-    def set_range(self):
-        """Set the range and step sizes for the minbox and maxbox."""
-        if np.isclose(self.axis.lo, self.axis.hi):
-            self.axis.min, self.axis.max = nonsingular(self.axis.min, 
-                                                       self.axis.max)
-        self.minbox.setRange(self.axis.min, self.axis.max)
-        self.maxbox.setRange(self.axis.min, self.axis.max)
-        self.set_stepsize(self.axis.min, self.axis.max)
-
-    def set_stepsize(self, lo, hi):
-        """Set the step sizes based on the current minbox and maxbox values."""
-        range = hi - lo
-        self.minbox.setSingleStep((range)/100)
-        self.maxbox.setSingleStep((range)/100)
-
-    def get_limits(self):
-        """Return the minbox and maxbox values."""
-        return self.minbox.value(), self.maxbox.value()
-
-    def set_limits(self, lo, hi):
-        """Set the minbox and maxbox limits and sliders."""
-        self.block_signals(True)
-        if lo > hi:
-            lo, hi = hi, lo
-        self.axis.set_limits(lo, hi)
-        self.minbox.setValue(lo)
-        self.maxbox.setValue(hi)
-        if not self.zaxis:
-            self.set_sliders(lo, hi)
-        self.block_signals(False)
 
     def change_axis(self):
         """Change the axis for the current tab."""
