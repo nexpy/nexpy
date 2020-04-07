@@ -648,6 +648,7 @@ class NXDoubleSpinBox(QtWidgets.QDoubleSpinBox):
             self.setValue(self.value() + steps * self.diff)
         else:
             super(NXDoubleSpinBox, self).stepBy(steps)
+        self.old_value = self.value()
 
     def valueFromText(self, text):
         value = np.float32(text)
