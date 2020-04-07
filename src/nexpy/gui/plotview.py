@@ -2729,6 +2729,7 @@ class NXPlotTab(QtWidgets.QWidget):
         self.set_range()
         self.block_signals(False)
         self.set_sliders(self.axis.lo, self.axis.hi)
+        self.set_stepsize(self.axis.lo, self.axis.hi)
 
     def read_maxbox(self):
         """Update plot based on the maxbox value."""
@@ -2745,6 +2746,7 @@ class NXPlotTab(QtWidgets.QWidget):
                 self.plotview.replot_image()
             else:
                 self.plotview.replot_axes()
+            self.set_stepsize(self.axis.lo, self.axis.hi)
         else:
             if self.axis.locked:
                 self.axis.hi = hi
@@ -2770,6 +2772,7 @@ class NXPlotTab(QtWidgets.QWidget):
         self.set_range()
         self.block_signals(False)
         self.set_sliders(self.axis.lo, self.axis.hi)
+        self.set_stepsize(self.axis.lo, self.axis.hi)
 
     def read_minbox(self):
         self.block_signals(True)
@@ -2782,6 +2785,7 @@ class NXPlotTab(QtWidgets.QWidget):
                 self.plotview.replot_image()
             else:
                 self.plotview.replot_axes()
+            self.set_stepsize(self.axis.lo, self.axis.hi)
         else:
             self.axis.lo = lo
             if lo > self.axis.hi:
@@ -2812,6 +2816,7 @@ class NXPlotTab(QtWidgets.QWidget):
                                         (self.axis.lo - self.axis.min) / _range)
             except (ZeroDivisionError, OverflowError, RuntimeWarning):
                 self.minslider.setValue(0)
+        self.set_stepsize(self.axis.lo, self.axis.hi)
         if self.name == 'x' or self.name == 'y':
             self.plotview.replot_axes()
         else:
@@ -2832,6 +2837,7 @@ class NXPlotTab(QtWidgets.QWidget):
                                     (self.axis.hi-self.axis.lo)/_range)
         except (ZeroDivisionError, OverflowError, RuntimeWarning):
             self.maxslider.setValue(0)
+        self.set_stepsize(self.axis.lo, self.axis.hi)
         if self.name == 'x' or self.name == 'y':
             self.plotview.replot_axes()
         else:
@@ -2937,17 +2943,20 @@ class NXPlotTab(QtWidgets.QWidget):
 
     @QtCore.Slot()
     def reset(self):
-        self.set_range()
         self.set_limits(self.axis.min, self.axis.max)
 
     def set_range(self):
         """Set the range and step sizes for the minbox and maxbox."""
-        if np.isclose(self.axis.min, self.axis.max):
+        if np.isclose(self.axis.lo, self.axis.hi):
             self.axis.min, self.axis.max = nonsingular(self.axis.min, 
                                                        self.axis.max)
         self.minbox.setRange(self.axis.min, self.axis.max)
         self.maxbox.setRange(self.axis.min, self.axis.max)
-        range = self.axis.max - self.axis.min
+        self.set_stepsize(self.axis.min, self.axis.max)
+
+    def set_stepsize(self, lo, hi):
+        """Set the step sizes based on the current minbox and maxbox values."""
+        range = hi - lo
         self.minbox.setSingleStep((range)/100)
         self.maxbox.setSingleStep((range)/100)
 
