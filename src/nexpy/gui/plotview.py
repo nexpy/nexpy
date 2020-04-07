@@ -1674,6 +1674,27 @@ class NXPlotView(QtWidgets.QDialog):
     offsets = property(_offsets, _set_offsets, 
                        "Property: Axis offsets property")
 
+    def minorticks_on(self):
+        """Turn on minor ticks on the axes."""
+        self.ax.minorticks_on()
+        self.draw()
+
+    def minorticks_off(self):
+        """Turn off minor ticks on the axes."""
+        self.ax.minorticks_off()
+        self.draw()
+
+    def cb_minorticks_on(self):
+        """Turn on minor ticks on the colorbar."""
+        if self.colorbar:
+            self.colorbar.minorticks_on()
+            self.draw()
+
+    def cb_minorticks_off(self):
+        """Turn off minor ticks on the axes."""
+        self.colorbar.minorticks_off()
+        self.draw()
+
     @property
     def regular_grid(self):
         """Return whether it is possible to use 'imshow'.
