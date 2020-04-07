@@ -487,12 +487,12 @@ class NXSpinBox(QtWidgets.QSpinBox):
         self.diff = None
         self.pause = False
         if slot:
-            self.valueChanged[six.text_type].connect(slot)
-
+            self.valueChanged.connect(slot)
         self.setAlignment(QtCore.Qt.AlignRight)
         self.setFixedWidth(100)
         self.setKeyboardTracking(False)
         self.setAccelerated(False)
+        self.app = QtWidgets.QApplication.instance()
 
     def value(self):
         """Return the value of the spin box.
@@ -604,7 +604,11 @@ class NXSpinBox(QtWidgets.QSpinBox):
                 super(NXSpinBox, self).stepBy(steps)
             else:
                 self.pause = True
-        self.valueChanged.emit(1)
+
+    def timerEvent(self, event):
+        self.app.processEvents()
+        if self.app.mouseButtons() & QtCore.Qt.LeftButton:
+            super(NXSpinBox, self).timerEvent(event)
 
 
 class NXDoubleSpinBox(QtWidgets.QDoubleSpinBox):
@@ -639,6 +643,7 @@ class NXDoubleSpinBox(QtWidgets.QDoubleSpinBox):
         self.setAlignment(QtCore.Qt.AlignRight)
         self.setFixedWidth(100)
         self.setKeyboardTracking(False)
+        self.app = QtWidgets.QApplication.instance()
 
     def validate(self, input_value, position):
         return self.validator.validate(input_value, position)
@@ -675,6 +680,11 @@ class NXDoubleSpinBox(QtWidgets.QDoubleSpinBox):
         if self.old_value:
             self.setValue(self.old_value)
         self.blockSignals(False)
+
+    def timerEvent(self, event):
+        self.app.processEvents()
+        if self.app.mouseButtons() & QtCore.Qt.LeftButton:
+            super(NXDoubleSpinBox, self).timerEvent(event)
 
 
 class NXSlider(QtWidgets.QSlider):
