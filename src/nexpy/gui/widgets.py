@@ -653,7 +653,7 @@ class NXDoubleSpinBox(QtWidgets.QDoubleSpinBox):
             self.setValue(self.value() + steps * self.diff)
         else:
             super(NXDoubleSpinBox, self).stepBy(steps)
-        self.old_value = self.value()
+        self.old_value = self.text()
 
     def valueFromText(self, text):
         value = np.float32(text)
@@ -672,14 +672,7 @@ class NXDoubleSpinBox(QtWidgets.QDoubleSpinBox):
         elif value < self.minimum():
             self.setMinimum(value)
         super(NXDoubleSpinBox, self).setValue(value)
-        self.old_value = value
-
-    def focusOutEvent(self, event):
-        self.blockSignals(True)
-        super(NXDoubleSpinBox, self).focusOutEvent(event)
-        if self.old_value:
-            self.setValue(self.old_value)
-        self.blockSignals(False)
+        self.old_value = self.text()
 
     def timerEvent(self, event):
         self.app.processEvents()

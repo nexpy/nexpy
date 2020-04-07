@@ -2765,8 +2765,11 @@ class NXPlotTab(QtWidgets.QWidget):
         self.smoothing = self.plotview.plots[num]['smoothing']    
 
     def edit_maxbox(self):
+        if self.maxbox.text() == self.maxbox.old_value:
+            return
+        else:
+            self.maxbox.old_value = self.maxbox.text()
         self.axis.hi = self.axis.max = self.maxbox.value()
-        self.maxbox.old_value = self.axis.hi
         if self.axis.hi < self.axis.lo:
             self.axis.lo = self.axis.data.min()
             self.minbox.setValue(self.axis.lo)
@@ -2808,8 +2811,11 @@ class NXPlotTab(QtWidgets.QWidget):
         self.block_signals(False)
 
     def edit_minbox(self):
+        if self.minbox.text() == self.minbox.old_value:
+            return
+        else:
+            self.minbox.old_value = self.minbox.text()
         self.axis.lo = self.axis.min = self.minbox.value()
-        self.minbox.old_value = self.axis.lo
         if self.axis.lo > self.axis.hi:
             self.axis.hi = self.axis.max = self.axis.data.max()
             self.maxbox.setValue(self.axis.hi)
@@ -3535,6 +3541,9 @@ class NXNavigationToolbar(NavigationToolbar):
 
     def _update_view(self):
         super(NXNavigationToolbar, self)._update_view()
+        l = self.plotview.limits
+        self.plotview.xtab.axis.min, self.plotview.xtab.axis.max = l[0], l[1]
+        self.plotview.ytab.axis.min, self.plotview.ytab.axis.max = l[2], l[3]
         xmin, xmax = self.plotview.ax.get_xlim()
         ymin, ymax = self.plotview.ax.get_ylim()
         if xmin > xmax:
