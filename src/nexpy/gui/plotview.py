@@ -3541,6 +3541,9 @@ class NXNavigationToolbar(NavigationToolbar):
 
     def _update_view(self):
         super(NXNavigationToolbar, self)._update_view()
+        l = self.plotview.limits
+        self.plotview.xtab.axis.min, self.plotview.xtab.axis.max = l[0], l[1]
+        self.plotview.ytab.axis.min, self.plotview.ytab.axis.max = l[2], l[3]
         xmin, xmax = self.plotview.ax.get_xlim()
         ymin, ymax = self.plotview.ax.get_ylim()
         if xmin > xmax:
