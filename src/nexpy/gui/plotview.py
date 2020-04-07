@@ -2721,6 +2721,7 @@ class NXPlotTab(QtWidgets.QWidget):
 
     def edit_maxbox(self):
         self.axis.hi = self.axis.max = self.maxbox.value()
+        self.maxbox.old_value = self.axis.hi
         if self.axis.hi < self.axis.lo:
             self.axis.lo = self.axis.data.min()
             self.minbox.setValue(self.axis.lo)
@@ -2761,6 +2762,7 @@ class NXPlotTab(QtWidgets.QWidget):
 
     def edit_minbox(self):
         self.axis.lo = self.axis.min = self.minbox.value()
+        self.minbox.old_value = self.axis.lo
         if self.axis.lo > self.axis.hi:
             self.axis.hi = self.axis.max = self.axis.data.max()
             self.maxbox.setValue(self.axis.hi)
