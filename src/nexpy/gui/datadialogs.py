@@ -1769,6 +1769,8 @@ class CustomizeTab(NXTab):
                        color=True)
         parameters.add('gridstyle', list(self.linestyles.values()), 
                        'Grid Style')
+        parameters.add('minorticks', ['On', 'Off'], 'Minor Ticks')
+        parameters.add('cb_minorticks', ['On', 'Off'], 'Color Bar Minor Ticks')
         parameters.grid(title='Image Parameters', header=False, width=125)
         return parameters
 
@@ -1786,6 +1788,14 @@ class CustomizeTab(NXTab):
             p['grid'].value = 'Off'
         p['gridcolor'].value = get_color(self.plotview._gridcolor)
         p['gridstyle'].value = self.linestyles[self.plotview._gridstyle]
+        if self.plotview._minorticks:
+            p['minorticks'].value = 'On'
+        else:
+            p['minorticks'].value = 'Off'
+        if self.plotview._cb_minorticks:
+            p['cb_minorticks'].value = 'On'
+        else:
+            p['cb_minorticks'].value = 'Off'
 
     def plot_parameters(self, plot):
         p = self.plots[plot]
@@ -1903,9 +1913,9 @@ class CustomizeTab(NXTab):
             except ValueError:
                 pi['skew'].value = self.plotview.skew
             if pi['grid'].value == 'On':
-                self.plotview._grid =True
+                self.plotview._grid = True
             else:
-                self.plotview._grid =False
+                self.plotview._grid = False
             self.plotview._gridcolor = pi['gridcolor'].value
             self.plotview._gridstyle = [k for k, v in self.linestyles.items()
                                         if v == pi['gridstyle'].value][0]
@@ -1913,6 +1923,14 @@ class CustomizeTab(NXTab):
             self.plotview.grid(self.plotview._grid)
             self.plotview.skew = _skew_angle
             self.plotview.aspect = self.plotview._aspect
+            if pi['minorticks'].value == 'On':
+                self.plotview.minorticks_on()
+            else:
+                self.plotview.minorticks_off()
+            if pi['cb_minorticks'].value == 'On':
+                self.plotview.cb_minorticks_on()
+            else:
+                self.plotview.cb_minorticks_off()
         else:
             for plot in self.plots:
                 label = self.plot_label(plot)

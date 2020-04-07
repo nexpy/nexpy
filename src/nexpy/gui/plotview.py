@@ -356,6 +356,8 @@ class NXPlotView(QtWidgets.QDialog):
         self._minorgrid = False
         self._majorlines = []
         self._minorlines = []
+        self._minorticks = False
+        self._cb_minorticks = False
         self._linthresh = None
         self._linscale = None
         self._stddev = 2.0
@@ -750,6 +752,7 @@ class NXPlotView(QtWidgets.QDialog):
         self.logy = logy
 
         self.grid(self._grid, self._minorgrid)
+        self.set_minorticks(default=True)
 
         self.draw()
         self.otab.push_current()
@@ -1210,8 +1213,8 @@ class NXPlotView(QtWidgets.QDialog):
             if self.colorbar:
                 self.colorbar.locator = self.locator
                 self.colorbar.formatter = self.formatter
-                self.colorbar.minorticks_off()
                 self.update_colorbar()
+                self.set_minorticks()
             self.image.set_clim(self.vaxis.lo, self.vaxis.hi)
             if self.regular_grid:
                 if self.interpolation == 'convolve':
@@ -1379,6 +1382,7 @@ class NXPlotView(QtWidgets.QDialog):
             self.image.set_norm(NXSymLogNorm(linthresh, linscale=linscale,
                                              vmin=-vmax, vmax=vmax))
             self.colorbar.update_bruteforce(self.image)
+            self.set_minorticks()
             self.image.set_clim(self.vaxis.lo, self.vaxis.hi)
             self.draw()
             self.vtab.set_axis(self.vaxis)
@@ -1674,26 +1678,45 @@ class NXPlotView(QtWidgets.QDialog):
     offsets = property(_offsets, _set_offsets, 
                        "Property: Axis offsets property")
 
+    def set_minorticks(self, default=False):
+        if default:
+            self._minorticks = (mpl.rcParams['xtick.minor.visible'] or
+                                mpl.rcParams['ytick.minor.visible'])
+            self._cb_minorticks = False
+        if self._minorticks:
+            self.minorticks_on()
+        else:
+            self.minorticks_off()
+        if self._cb_minorticks:
+            self.cb_minorticks_on()
+        else:
+            self.cb_minorticks_off()
+
     def minorticks_on(self):
         """Turn on minor ticks on the axes."""
         self.ax.minorticks_on()
+        self._minorticks = True
         self.draw()
 
     def minorticks_off(self):
         """Turn off minor ticks on the axes."""
         self.ax.minorticks_off()
+        self._minorticks = False
         self.draw()
 
     def cb_minorticks_on(self):
         """Turn on minor ticks on the colorbar."""
         if self.colorbar:
             self.colorbar.minorticks_on()
+            self._cb_minorticks = True
             self.draw()
 
     def cb_minorticks_off(self):
         """Turn off minor ticks on the axes."""
-        self.colorbar.minorticks_off()
-        self.draw()
+        if self.colorbar:
+            self.colorbar.minorticks_off()
+            self._cb_minorticks = False
+            self.draw()
 
     @property
     def regular_grid(self):
@@ -1799,11 +1822,11 @@ class NXPlotView(QtWidgets.QDialog):
             if minor:
                 self.ax.xaxis._gridOnMinor = True
                 self.ax.yaxis._gridOnMinor = True
-                self.ax.minorticks_on()
+                self.minorticks_on()
             else:
                 self.ax.xaxis._gridOnMinor = False
                 self.ax.yaxis._gridOnMinor = False
-                self.ax.minorticks_off()            
+                self.minorticks_off()            
             if self.skew:
                 self.draw_skewed_grid(minor=minor, **opts)
             else:
