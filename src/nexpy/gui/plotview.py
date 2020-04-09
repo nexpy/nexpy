@@ -2708,6 +2708,8 @@ class NXPlotTab(QtWidgets.QWidget):
         self.replotSignal = NXReplotSignal()
         self.replotSignal.replot.connect(self.plotview.replot_data)
 
+        self._axis = None
+        
         self._block_count = 0
 
     def __repr__(self):
@@ -2767,12 +2769,26 @@ class NXPlotTab(QtWidgets.QWidget):
             else:
                 self.interpcombo.setCurrentIndex(
                     self.interpcombo.findText(default_interpolation))
+            self._axis = None
+        elif self.name == 'x':
+            self._axis = self.plotview.ax.xaxis
+        elif self.name == 'y':
+            self._axis = self.plotview.ax.yaxis
+        else:
+            self._axis = None
         self.block_signals(False)
 
     def select_plot(self):
         num = self.plotcombo.currentText()
         self.plotview.num = int(num)
         self.smoothing = self.plotview.plots[num]['smoothing']    
+
+    @property
+    def offset(self):
+        try:
+            return float(self._axis.get_offset_text()._text)
+        except Exception:
+            return 0.0
 
     def edit_maxbox(self):
         if self.maxbox.text() == self.maxbox.old_value:
