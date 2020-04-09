@@ -2669,6 +2669,7 @@ class NXPlotTab(QtWidgets.QWidget):
             widgets.append(self.smoothbox)
             self.lockbox = self.scalebox = None
         if image:
+            self.image = True
             self.cmapcombo = NXComboBox(self.change_cmap, cmaps, default_cmap)
             self._cached_cmap = default_cmap
             if cmaps.index('spring') > 0:
@@ -2683,6 +2684,7 @@ class NXPlotTab(QtWidgets.QWidget):
             self._cached_interpolation = default_interpolation
             widgets.append(self.interpcombo)
         else:
+            self.image = False
             self.cmapcombo = None
             self.interpcombo = None
 
