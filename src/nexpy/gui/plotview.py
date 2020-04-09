@@ -2970,6 +2970,9 @@ class NXPlotTab(QtWidgets.QWidget):
             self.flipbox.blockSignals(block)
             self.logbox.blockSignals(block)
             self.smoothbox.blockSignals(block)
+        if self.image:
+            self.cmapcombo.blockSignals(block)
+            self.interpcombo.blockSignals(block)
 
     def _log(self):
         try:
