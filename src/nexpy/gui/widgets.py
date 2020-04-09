@@ -656,7 +656,7 @@ class NXDoubleSpinBox(QtWidgets.QDoubleSpinBox):
         self.old_value = self.text()
 
     def valueFromText(self, text):
-        value = np.float32(text)
+        value = float(text)
         if value > self.maximum():
             self.setMaximum(value)
         elif value < self.minimum():
