@@ -2951,12 +2951,18 @@ class NXPlotTab(QtWidgets.QWidget):
     def block_signals(self, block=True):
         self.minbox.blockSignals(block)
         self.maxbox.blockSignals(block)
-        if self.minslider: 
+        if self.axiscombo is not None:
+            self.axiscombo.blockSignals(block)
+        if self.zaxis:
+            self.lockbox.blockSignals(block)
+            self.scalebox.blockSignals(block)
+        else:
             self.minslider.blockSignals(block)
-        if self.maxslider: 
             self.maxslider.blockSignals(block)
-        if self.logbox:
+            self.plotcombo.blockSignals(block)
+            self.flipbox.blockSignals(block)
             self.logbox.blockSignals(block)
+            self.smoothbox.blockSignals(block)
 
     def _log(self):
         try:
