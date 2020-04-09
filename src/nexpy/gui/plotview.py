@@ -1308,6 +1308,7 @@ class NXPlotView(QtWidgets.QDialog):
                     ax.set_yscale('log')
                 else:
                     ax.set_yscale('linear')
+            self.draw()
 
     def plot_smooth(self):
         """Add smooth line to 1D plot."""
