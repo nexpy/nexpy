@@ -1319,7 +1319,7 @@ class MainWindow(QtWidgets.QMainWindow):
         try:
             node = self.treeview.get_node()
             if isinstance(node, NXdata):
-                if node.nxsignal.ndim == 1:
+                if node.ndim == 1:
                     dialog = ExportDialog(node, parent=self)
                     dialog.show()
                 else:
