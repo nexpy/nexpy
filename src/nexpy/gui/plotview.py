@@ -737,7 +737,7 @@ class NXPlotView(QtWidgets.QDialog):
             self.ytab.flipped = True
             if self.aspect == 'auto':
                 self.aspect = 'equal'
-        if self.xaxis.reversed or self.yaxis.reversed:
+        elif self.xaxis.reversed or self.yaxis.reversed:
             self.replot_axes(draw=False)
 
         self.offsets = False
