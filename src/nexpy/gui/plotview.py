@@ -740,7 +740,7 @@ class NXPlotView(QtWidgets.QDialog):
         elif self.xaxis.reversed or self.yaxis.reversed:
             self.replot_axes(draw=False)
 
-        self.offsets = False
+        self.offsets = True
         if cmap:
             self.cmap = cmap
         if self.aspect != 'auto':
