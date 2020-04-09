@@ -2709,6 +2709,7 @@ class NXPlotTab(QtWidgets.QWidget):
         self.replotSignal.replot.connect(self.plotview.replot_data)
 
         self._axis = None
+        self._decimals = 2
         
         self._block_count = 0
 
@@ -2977,8 +2978,10 @@ class NXPlotTab(QtWidgets.QWidget):
                 decimals = int(abs(logstep)) + 1
         except Exception:
             pass
-        self.minbox.setDecimals(decimals)
-        self.maxbox.setDecimals(decimals)
+        if decimals != self._decimals:
+            self.minbox.setDecimals(decimals)
+            self.maxbox.setDecimals(decimals)
+            self._decimals = decimals
 
     def get_limits(self):
         """Return the minbox and maxbox values."""
