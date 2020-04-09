@@ -743,14 +743,18 @@ class NXPlotView(QtWidgets.QDialog):
         self.offsets = False
         if cmap:
             self.cmap = cmap
-        self.aspect = self._aspect
+        if self.aspect != 'auto':
+            self.aspect = self._aspect
 
-        if self.ndim > 1:
+        if self.ndim > 1 and log:
             self.logv = log
-        self.logx = logx
-        self.logy = logy
+        if logx:
+            self.logx = logx
+        if logy:
+            self.logy = logy
 
-        self.grid(self._grid, self._minorgrid)
+        if self._grid:
+            self.grid(self._grid, self._minorgrid)
         self.set_minorticks(default=True)
 
         self.draw()
@@ -1798,7 +1802,7 @@ class NXPlotView(QtWidgets.QDialog):
             Valid options for displaying grids. If not set, the default
             Matplotlib styles are used.
         """
-        if display is True or display is False:
+        if display is not None:
             self._grid = display
         elif opts:
             self._grid = True
@@ -1843,7 +1847,6 @@ class NXPlotView(QtWidgets.QDialog):
             if self.skew:
                 self.remove_skewed_grid()
         self.draw()
-        self.update_tabs()
 
     def draw_skewed_grid(self, minor=False, **opts):
         self.remove_skewed_grid()
