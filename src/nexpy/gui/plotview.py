@@ -2699,6 +2699,8 @@ class NXPlotTab(QtWidgets.QWidget):
         self.replotSignal = NXReplotSignal()
         self.replotSignal.replot.connect(self.plotview.replot_data)
 
+        self._block_count = 0
+
     def __repr__(self):
         return 'NXPlotTab("%s")' % self.name
 
@@ -3008,7 +3010,8 @@ class NXPlotTab(QtWidgets.QWidget):
             self.axis.locked = value
             if value:
                 lo, hi = self.get_limits()
-                self.axis.diff = self.maxbox.diff = self.minbox.diff = max(hi - lo, 0.0)
+                self.axis.diff = max(hi - lo, 0.0)
+                self.maxbox.diff = self.minbox.diff = self.axis.diff
                 self.minbox.setDisabled(True)
             else:
                 self.axis.locked = False
