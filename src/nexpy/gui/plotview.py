@@ -2948,6 +2948,14 @@ class NXPlotTab(QtWidgets.QWidget):
         self.set_limits(self.axis.min, self.axis.max)
 
     def block_signals(self, block=True):
+        if block:
+            self._block_count += 1
+            if self._block_count > 1:
+                return
+        else:
+            self._block_count -= 1
+            if self._block_count > 0:
+                return
         self.minbox.blockSignals(block)
         self.maxbox.blockSignals(block)
         if self.axiscombo is not None:
