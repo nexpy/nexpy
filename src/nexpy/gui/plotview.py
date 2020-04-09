@@ -2260,8 +2260,15 @@ class NXPlotView(QtWidgets.QDialog):
         self.draw()
         self.otab.push_current()
 
+    def block_signals(self, block=True):
+        self.xtab.block_signals(block)
+        self.ytab.block_signals(block)
+        self.ztab.block_signals(block)
+        self.vtab.block_signals(block)
+
     def init_tabs(self):
         """Initialize tabs for a new plot."""
+        self.block_signals(True)
         self.xtab.set_axis(self.xaxis)
         self.ytab.set_axis(self.yaxis)
         if self.ndim == 1:
@@ -2319,6 +2326,7 @@ class NXPlotView(QtWidgets.QDialog):
         for panel in self.panels:
             if self.label in self.panels[panel].tabs:
                 self.panels[panel].remove(self.label)
+        self.block_signals(False)
 
     def update_tabs(self):
         """Update tabs when limits have changed."""
