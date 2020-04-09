@@ -735,7 +735,6 @@ class NXPlotView(QtWidgets.QDialog):
 
         if self.rgb_image:
             self.ytab.flipped = True
-            self.replot_axes(draw=False)
             if self.aspect == 'auto':
                 self.aspect = 'equal'
         if self.xaxis.reversed or self.yaxis.reversed:
@@ -1255,11 +1254,12 @@ class NXPlotView(QtWidgets.QDialog):
         self.update_panels()
 
     def update_colorbar(self):
-        if mpl.__version__ >= '3.1.0':
-            self.colorbar.update_normal(self.image)
-        else:
-            self.colorbar.set_norm(self.norm)
-            self.colorbar.update_bruteforce(self.image)
+        if self.colorbar:
+            if mpl.__version__ >= '3.1.0':
+                self.colorbar.update_normal(self.image)
+            else:
+                self.colorbar.set_norm(self.norm)
+                self.colorbar.update_bruteforce(self.image)
 
     def grid_helper(self):
         """Define the locator used in skew transforms."""
@@ -2979,7 +2979,6 @@ class NXPlotTab(QtWidgets.QWidget):
     def change_log(self):
         try:
             self.plotview.set_log_axis(self.name)
-            self.plotview.replot_axes()
         except Exception:
             pass
 
