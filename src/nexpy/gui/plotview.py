@@ -311,7 +311,7 @@ class NXPlotView(QtWidgets.QDialog):
         self.vtab = NXPlotTab('v', axis=False, image=True, plotview=self)
         self.xtab = NXPlotTab('x', plotview=self)
         self.ytab = NXPlotTab('y', plotview=self)
-        self.ztab = NXPlotTab('z', log=False, zaxis=True, plotview=self)
+        self.ztab = NXPlotTab('z', zaxis=True, plotview=self)
         self.ptab = NXProjectionTab(plotview=self)
         self.otab = NXNavigationToolbar(self.canvas, self.tab_widget)
         self.figuremanager.toolbar = self.otab
@@ -2604,7 +2604,7 @@ class NXPlotTab(QtWidgets.QWidget):
     minslider, maxslider : QSlider
         Sliders for adjusting minimum and maximum plot values.
     """
-    def __init__(self, name=None, axis=True, log=True, zaxis=False, image=False,
+    def __init__(self, name=None, axis=True, zaxis=False, image=False,
                  plotview=None):
 
         super(NXPlotTab, self).__init__()
@@ -2653,19 +2653,14 @@ class NXPlotTab(QtWidgets.QWidget):
                 self.maxslider = NXSlider(self.read_maxslider)
             self.slider_max = self.maxslider.maximum()
             self.maxbox = NXDoubleSpinBox(self.read_maxbox, self.edit_maxbox)
-            if log:
-                self.logbox = NXCheckBox("Log", self.change_log)
-                self.logbox.setChecked(False)
-            else:
-                self.logbox = None
+            self.logbox = NXCheckBox("Log", self.change_log)
             self.flipbox = NXCheckBox("Flip", self.flip_axis)
             self.smoothbox = NXCheckBox("Smooth", self.toggle_smoothing)
             widgets.append(self.plotcombo)
             widgets.append(self.minbox)
             widgets.extend([self.minslider, self.maxslider])
             widgets.append(self.maxbox)
-            if log:
-                widgets.append(self.logbox)
+            widgets.append(self.logbox)
             widgets.append(self.flipbox)
             widgets.append(self.smoothbox)
             self.lockbox = self.scalebox = None
