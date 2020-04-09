@@ -2951,9 +2951,18 @@ class NXPlotTab(QtWidgets.QWidget):
 
     def set_stepsize(self, lo, hi):
         """Set the step sizes based on the current minbox and maxbox values."""
-        range = hi - lo
-        self.minbox.setSingleStep((range)/100)
-        self.maxbox.setSingleStep((range)/100)
+        stepsize = (hi - lo) / 100.0
+        self.minbox.setSingleStep(stepsize)
+        self.maxbox.setSingleStep(stepsize)
+        decimals = 2
+        try:
+            logstep = np.log10(stepsize)
+            if logstep < 0:
+                decimals = int(abs(logstep)) + 1
+        except Exception:
+            pass
+        self.minbox.setDecimals(decimals)
+        self.maxbox.setDecimals(decimals)
 
     def get_limits(self):
         """Return the minbox and maxbox values."""
