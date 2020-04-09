@@ -2340,7 +2340,6 @@ class NXPlotView(QtWidgets.QDialog):
             self.vtab.set_range()
             self.vtab.set_limits(self.vaxis.lo, self.vaxis.hi)
             self.vtab.set_sliders(self.vaxis.lo, self.vaxis.hi)
-#        self.update_customize_panel()
 
     def change_axis(self, tab, axis):
         """Replace the axis in a plot tab.
@@ -2778,23 +2777,32 @@ class NXPlotTab(QtWidgets.QWidget):
     def edit_maxbox(self):
         if self.maxbox.text() == self.maxbox.old_value:
             return
+        elif self.maxbox.value() <= self.axis.data.min():
+            self.block_signals(True)
+            self.maxbox.setValue(
+                self.maxbox.valueFromText(self.maxbox.old_value))
+            self.block_signals(False)
+            return
         else:
             self.maxbox.old_value = self.maxbox.text()
         self.axis.hi = self.axis.max = self.maxbox.value()
-        if self.axis.hi < self.axis.lo:
+        if self.axis.hi <= self.axis.lo:
             self.axis.lo = self.axis.data.min()
             self.minbox.setValue(self.axis.lo)
         self.block_signals(True)
         self.set_range()
-        self.block_signals(False)
         self.set_sliders(self.axis.lo, self.axis.hi)
         self.set_stepsize(self.axis.lo, self.axis.hi)
+        self.block_signals(False)
 
     def read_maxbox(self):
         """Update plot based on the maxbox value."""
         self.block_signals(True)
         hi = self.maxbox.value()
         if self.name == 'x' or self.name == 'y' or self.name == 'v':
+            if hi <= self.axis.lo:
+                self.block_signals(False)
+                return
             self.axis.hi = hi
             if self.name == 'v' and self.symmetric:
                 self.axis.lo = -self.axis.hi
@@ -2824,22 +2832,31 @@ class NXPlotTab(QtWidgets.QWidget):
     def edit_minbox(self):
         if self.minbox.text() == self.minbox.old_value:
             return
+        elif self.minbox.value() >= self.axis.data.max():
+            self.block_signals(True)
+            self.minbox.setValue(
+                self.minbox.valueFromText(self.minbox.old_value))
+            self.block_signals(False)
+            return
         else:
             self.minbox.old_value = self.minbox.text()
         self.axis.lo = self.axis.min = self.minbox.value()
-        if self.axis.lo > self.axis.hi:
+        if self.axis.lo >= self.axis.hi:
             self.axis.hi = self.axis.max = self.axis.data.max()
             self.maxbox.setValue(self.axis.hi)
         self.block_signals(True)
         self.set_range()
-        self.block_signals(False)
         self.set_sliders(self.axis.lo, self.axis.hi)
         self.set_stepsize(self.axis.lo, self.axis.hi)
+        self.block_signals(False)
 
     def read_minbox(self):
         self.block_signals(True)
         lo = self.minbox.value()
         if self.name == 'x' or self.name == 'y' or self.name == 'v':
+            if lo >= self.axis.hi:
+                self.block_signals(False)
+                return
             self.axis.lo = lo
             self.set_sliders(self.axis.lo, self.axis.hi)
             if self.name == 'v':
