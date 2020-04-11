@@ -1816,6 +1816,7 @@ class CustomizeTab(NXTab):
         parameters.add('offset', 0.0, 'Offset', slot=self.scale_plot,
                        spinbox=True)
         parameters['offset'].box.setSingleStep(10)
+        parameters['offset'].box.setMinimum(-parameters['offset'].box.maximum())
         parameters.grid(title='Plot Parameters', header=False, width=125)
         return parameters
 
@@ -1844,9 +1845,16 @@ class CustomizeTab(NXTab):
         plot = self.label_plot(self.plot_stack.box.selected)
         label = self.plot_label(plot)
         scale = self.parameters[label]['scale'].value
+        if scale == self.parameters[label]['scale'].box.maximum():
+            self.parameters[label]['scale'].box.setMaximum(10*scale)
         self.parameters[label]['scale'].box.setSingleStep(scale/100.0)
         offset = self.parameters[label]['offset'].value
-        self.parameters[label]['offset'].box.setSingleStep(max(offset/100.0, 1))
+        if offset == self.parameters[label]['offset'].box.maximum():
+            self.parameters[label]['offset'].box.setMaximum(10*abs(offset))
+        self.parameters[label]['offset'].box.setMinimum(
+            -self.parameters[label]['offset'].box.maximum()) 
+        self.parameters[label]['offset'].box.setSingleStep(
+            max(abs(offset)/100.0, 1))
         y = self.plotview.plots[plot]['y']
         self.plotview.plots[plot]['plot'].set_ydata((y * scale) + offset)
         self.plotview.draw()
