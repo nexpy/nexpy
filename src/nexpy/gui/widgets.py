@@ -7,7 +7,9 @@ from __future__ import absolute_import, division, unicode_literals
 import warnings
 
 import matplotlib as mpl
+import math
 import numpy as np
+import re
 import six
 from matplotlib import colors
 from matplotlib import cbook
@@ -643,10 +645,22 @@ class NXDoubleSpinBox(QtWidgets.QDoubleSpinBox):
         self.setAlignment(QtCore.Qt.AlignRight)
         self.setFixedWidth(100)
         self.setKeyboardTracking(False)
+        self.setDecimals(4)
         self.app = QtWidgets.QApplication.instance()
 
     def validate(self, input_value, position):
         return self.validator.validate(input_value, position)
+
+    def setSingleStep(self, value):
+        value = abs(value)
+        try:
+            decimals = int(abs(np.log10(value))) + 1
+        except Exception:
+            decimals = 4
+        self.setDecimals(decimals)
+        multiplier = 10 ** decimals
+        stepsize = math.ceil(value * multiplier) / multiplier
+        super(NXDoubleSpinBox, self).setSingleStep(stepsize)
 
     def stepBy(self, steps):
         if self.diff:
@@ -664,7 +678,9 @@ class NXDoubleSpinBox(QtWidgets.QDoubleSpinBox):
         return value
 
     def textFromValue(self, value):
-        return format_float(value)
+        text = "{:.8g}".format(value)
+        text = re.sub("e(-?)0*(\d+)", r"e\1\2", text.replace("e+", "e"))
+        return text
 
     def setValue(self, value):
         if value > self.maximum():
