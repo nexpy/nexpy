@@ -7,14 +7,17 @@ from __future__ import absolute_import, division, unicode_literals
 import warnings
 
 import matplotlib as mpl
+import math
 import numpy as np
+import re
 import six
 from matplotlib import colors
 from matplotlib import cbook
 from matplotlib.patches import Circle, Ellipse, Polygon, Rectangle
 
 from .pyqt import QtCore, QtGui, QtWidgets
-from .utils import report_error, boundaries, get_color, format_float
+from .utils import (report_error, boundaries, get_color, format_float,
+                    find_nearest)
 
 
 warnings.filterwarnings("ignore", category=cbook.mplDeprecation)
@@ -643,10 +646,27 @@ class NXDoubleSpinBox(QtWidgets.QDoubleSpinBox):
         self.setAlignment(QtCore.Qt.AlignRight)
         self.setFixedWidth(100)
         self.setKeyboardTracking(False)
+        self.setDecimals(2)
+        self.steps = np.array([1, 2, 5, 10])
         self.app = QtWidgets.QApplication.instance()
 
     def validate(self, input_value, position):
         return self.validator.validate(input_value, position)
+
+    def setSingleStep(self, value):
+        value = abs(value)
+        if value == 0:
+            self.setDecimals(2)
+            stepsize = 0.01
+        else:
+            digits = math.floor(math.log10(value))
+            if digits < 0:
+                self.setDecimals(-digits)
+            else:
+                self.setDecimals(2)
+            multiplier = 10**digits
+            stepsize = find_nearest(self.steps, value/multiplier) * multiplier
+        super(NXDoubleSpinBox, self).setSingleStep(stepsize)
 
     def stepBy(self, steps):
         if self.diff:
@@ -664,7 +684,10 @@ class NXDoubleSpinBox(QtWidgets.QDoubleSpinBox):
         return value
 
     def textFromValue(self, value):
-        return format_float(value)
+        if value > 1e6:
+            return format_float(value)
+        else:
+            return format_float(value, width=8)
 
     def setValue(self, value):
         if value > self.maximum():

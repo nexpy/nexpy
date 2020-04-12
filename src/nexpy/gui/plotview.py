@@ -1253,6 +1253,17 @@ class NXPlotView(QtWidgets.QDialog):
                 self.plot_smooth()
             except NeXusError:
                 pass
+        else:
+            if self.autoscale:
+                logv = self.logv
+                try:
+                    self.vaxis.min = self.vaxis.lo = np.min(self.finite_v)
+                    self.vaxis.max = self.vaxis.hi = np.max(self.finite_v)
+                except:
+                    self.vaxis.min = self.vaxis.lo = 0.0
+                    self.vaxis.max = self.vaxis.hi = 0.1
+                self.vtab.set_axis(self.vaxis)
+                self.logv = logv
         if draw:
             self.draw()
         self.update_panels()
@@ -2402,6 +2413,7 @@ class NXPlotView(QtWidgets.QDialog):
             self.aspect = 'auto'
             self.skew = None
             self.replot_data(newaxis=True)
+            self.vtab.set_axis(self.vaxis)
         self.update_panels()
         self.otab.update()
 
@@ -2709,7 +2721,6 @@ class NXPlotTab(QtWidgets.QWidget):
         self.replotSignal.replot.connect(self.plotview.replot_data)
 
         self._axis = None
-        self._decimals = 2
         
         self._block_count = 0
 
@@ -2803,13 +2814,15 @@ class NXPlotTab(QtWidgets.QWidget):
         else:
             self.maxbox.old_value = self.maxbox.text()
         self.axis.hi = self.axis.max = self.maxbox.value()
-        if self.axis.hi <= self.axis.lo:
+        if self.name == 'v' and self.symmetric:
+            self.axis.lo = self.axis.min = -self.axis.hi
+            self.minbox.setValue(-self.axis.hi)
+        elif self.axis.hi <= self.axis.lo:
             self.axis.lo = self.axis.data.min()
             self.minbox.setValue(self.axis.lo)
         self.block_signals(True)
         self.set_range()
         self.set_sliders(self.axis.lo, self.axis.hi)
-        self.set_stepsize(self.axis.lo, self.axis.hi)
         self.block_signals(False)
 
     def read_maxbox(self):
@@ -2817,9 +2830,6 @@ class NXPlotTab(QtWidgets.QWidget):
         self.block_signals(True)
         hi = self.maxbox.value()
         if self.name == 'x' or self.name == 'y' or self.name == 'v':
-            if hi <= self.axis.lo:
-                self.block_signals(False)
-                return
             self.axis.hi = hi
             if self.name == 'v' and self.symmetric:
                 self.axis.lo = -self.axis.hi
@@ -2830,7 +2840,6 @@ class NXPlotTab(QtWidgets.QWidget):
                 self.plotview.replot_image()
             else:
                 self.plotview.replot_axes()
-            self.set_stepsize(self.axis.lo, self.axis.hi)
         else:
             if self.axis.locked:
                 self.axis.hi = hi
@@ -2864,16 +2873,12 @@ class NXPlotTab(QtWidgets.QWidget):
         self.block_signals(True)
         self.set_range()
         self.set_sliders(self.axis.lo, self.axis.hi)
-        self.set_stepsize(self.axis.lo, self.axis.hi)
         self.block_signals(False)
 
     def read_minbox(self):
         self.block_signals(True)
         lo = self.minbox.value()
         if self.name == 'x' or self.name == 'y' or self.name == 'v':
-            if lo >= self.axis.hi:
-                self.block_signals(False)
-                return
             self.axis.lo = lo
             self.set_sliders(self.axis.lo, self.axis.hi)
             if self.name == 'v':
@@ -2881,7 +2886,6 @@ class NXPlotTab(QtWidgets.QWidget):
                 self.plotview.replot_image()
             else:
                 self.plotview.replot_axes()
-            self.set_stepsize(self.axis.lo, self.axis.hi)
         else:
             self.axis.lo = lo
             if lo > self.axis.hi:
@@ -2912,7 +2916,6 @@ class NXPlotTab(QtWidgets.QWidget):
                                         (self.axis.lo - self.axis.min) / _range)
             except (ZeroDivisionError, OverflowError, RuntimeWarning):
                 self.minslider.setValue(0)
-        self.set_stepsize(self.axis.lo, self.axis.hi)
         if self.name == 'x' or self.name == 'y':
             self.plotview.replot_axes()
         else:
@@ -2933,7 +2936,6 @@ class NXPlotTab(QtWidgets.QWidget):
                                     (self.axis.hi-self.axis.lo)/_range)
         except (ZeroDivisionError, OverflowError, RuntimeWarning):
             self.maxslider.setValue(0)
-        self.set_stepsize(self.axis.lo, self.axis.hi)
         if self.name == 'x' or self.name == 'y':
             self.plotview.replot_axes()
         else:
@@ -2943,6 +2945,9 @@ class NXPlotTab(QtWidgets.QWidget):
 
     def set_sliders(self, lo, hi):
         lo, hi = float(lo), float(hi)
+        if np.isclose(lo, hi):
+            lo = lo - self.axis.min_range
+            hi = hi + self.axis.min_range
         self.block_signals(True)
         _range = max(hi-self.axis.min, self.axis.min_range)
         try:
@@ -2964,25 +2969,10 @@ class NXPlotTab(QtWidgets.QWidget):
                                                        self.axis.max)
         self.minbox.setRange(self.axis.min, self.axis.max)
         self.maxbox.setRange(self.axis.min, self.axis.max)
-        self.set_stepsize(self.axis.min, self.axis.max)
-
-    def set_stepsize(self, lo, hi):
-        """Set the step sizes based on the current minbox and maxbox values."""
-        stepsize = (hi - lo) / 100.0
+        stepsize = max((self.axis.max-self.axis.min)/100.0, self.axis.min_range)
         self.minbox.setSingleStep(stepsize)
         self.maxbox.setSingleStep(stepsize)
-        decimals = 2
-        try:
-            logstep = np.log10(stepsize)
-            if logstep < 0:
-                decimals = int(abs(logstep)) + 1
-        except Exception:
-            pass
-        if decimals != self._decimals:
-            self.minbox.setDecimals(decimals)
-            self.maxbox.setDecimals(decimals)
-            self._decimals = decimals
-
+ 
     def get_limits(self):
         """Return the minbox and maxbox values."""
         return self.minbox.value(), self.maxbox.value()
@@ -2997,7 +2987,6 @@ class NXPlotTab(QtWidgets.QWidget):
         self.maxbox.setValue(hi)
         if not self.zaxis:
             self.set_sliders(lo, hi)
-            self.set_stepsize(lo, hi)
         self.block_signals(False)
 
     @QtCore.Slot()
