@@ -2814,7 +2814,10 @@ class NXPlotTab(QtWidgets.QWidget):
         else:
             self.maxbox.old_value = self.maxbox.text()
         self.axis.hi = self.axis.max = self.maxbox.value()
-        if self.axis.hi <= self.axis.lo:
+        if self.name == 'v' and self.symmetric:
+            self.axis.lo = self.axis.min = -self.axis.hi
+            self.minbox.setValue(-self.axis.hi)
+        elif self.axis.hi <= self.axis.lo:
             self.axis.lo = self.axis.data.min()
             self.minbox.setValue(self.axis.lo)
         self.block_signals(True)
