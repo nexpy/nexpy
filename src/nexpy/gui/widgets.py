@@ -695,7 +695,6 @@ class NXDoubleSpinBox(QtWidgets.QDoubleSpinBox):
         elif value < self.minimum():
             self.setMinimum(value)
         super(NXDoubleSpinBox, self).setValue(value)
-        self.old_value = self.text()
 
     def timerEvent(self, event):
         self.app.processEvents()
