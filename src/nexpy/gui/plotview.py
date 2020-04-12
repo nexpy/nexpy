@@ -2830,9 +2830,6 @@ class NXPlotTab(QtWidgets.QWidget):
         self.block_signals(True)
         hi = self.maxbox.value()
         if self.name == 'x' or self.name == 'y' or self.name == 'v':
-            if hi <= self.axis.lo:
-                hi = self.axis.lo + self.axis.min_range
-                self.maxbox.setValue(hi)
             self.axis.hi = hi
             if self.name == 'v' and self.symmetric:
                 self.axis.lo = -self.axis.hi
@@ -2882,9 +2879,6 @@ class NXPlotTab(QtWidgets.QWidget):
         self.block_signals(True)
         lo = self.minbox.value()
         if self.name == 'x' or self.name == 'y' or self.name == 'v':
-            if lo >= self.axis.hi:
-                lo = self.axis.hi - self.axis.min_range
-                self.minbox.setValue(lo)
             self.axis.lo = lo
             self.set_sliders(self.axis.lo, self.axis.hi)
             if self.name == 'v':
