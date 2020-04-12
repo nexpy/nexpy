@@ -684,9 +684,10 @@ class NXDoubleSpinBox(QtWidgets.QDoubleSpinBox):
         return value
 
     def textFromValue(self, value):
-        text = "{:.8g}".format(value)
-        text = re.sub("e(-?)0*(\d+)", r"e\1\2", text.replace("e+", "e"))
-        return text
+        if value > 1e6:
+            return format_float(value)
+        else:
+            return format_float(value, width=8)
 
     def setValue(self, value):
         if value > self.maximum():
