@@ -16,7 +16,8 @@ from matplotlib import cbook
 from matplotlib.patches import Circle, Ellipse, Polygon, Rectangle
 
 from .pyqt import QtCore, QtGui, QtWidgets
-from .utils import report_error, boundaries, get_color, format_float
+from .utils import (report_error, boundaries, get_color, format_float,
+                    find_nearest)
 
 
 warnings.filterwarnings("ignore", category=cbook.mplDeprecation)
@@ -645,7 +646,8 @@ class NXDoubleSpinBox(QtWidgets.QDoubleSpinBox):
         self.setAlignment(QtCore.Qt.AlignRight)
         self.setFixedWidth(100)
         self.setKeyboardTracking(False)
-        self.setDecimals(4)
+        self.setDecimals(2)
+        self.steps = np.array([1, 2, 5, 10])
         self.app = QtWidgets.QApplication.instance()
 
     def validate(self, input_value, position):
@@ -653,13 +655,17 @@ class NXDoubleSpinBox(QtWidgets.QDoubleSpinBox):
 
     def setSingleStep(self, value):
         value = abs(value)
-        try:
-            decimals = int(abs(np.log10(value))) + 1
-        except Exception:
-            decimals = 4
-        self.setDecimals(decimals)
-        multiplier = 10 ** decimals
-        stepsize = math.ceil(value * multiplier) / multiplier
+        if value == 0:
+            self.setDecimals(2)
+            stepsize = 0.01
+        else:
+            digits = math.floor(math.log10(value))
+            if digits < 0:
+                self.setDecimals(-digits)
+            else:
+                self.setDecimals(2)
+            multiplier = 10**digits
+            stepsize = find_nearest(self.steps, value/multiplier) * multiplier
         super(NXDoubleSpinBox, self).setSingleStep(stepsize)
 
     def stepBy(self, steps):
