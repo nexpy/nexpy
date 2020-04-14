@@ -549,6 +549,7 @@ class NXSpinBox(QtWidgets.QSpinBox):
 
     def setValue(self, value):
         super(NXSpinBox, self).setValue(self.valueFromText(value))
+        self.repaint()
 
     def valueFromText(self, text):
         return self.indexFromValue(float(six.text_type(text)))
@@ -698,6 +699,7 @@ class NXDoubleSpinBox(QtWidgets.QDoubleSpinBox):
         elif value < self.minimum():
             self.setMinimum(value)
         super(NXDoubleSpinBox, self).setValue(value)
+        self.repaint()
 
     def timerEvent(self, event):
         self.app.processEvents()
