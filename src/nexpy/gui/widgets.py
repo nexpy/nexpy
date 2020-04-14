@@ -491,6 +491,7 @@ class NXSpinBox(QtWidgets.QSpinBox):
         self.pause = False
         if slot:
             self.valueChanged.connect(slot)
+            self.editingFinished.connect(slot)
         self.setAlignment(QtCore.Qt.AlignRight)
         self.setFixedWidth(100)
         self.setKeyboardTracking(False)
@@ -548,6 +549,7 @@ class NXSpinBox(QtWidgets.QSpinBox):
 
     def setValue(self, value):
         super(NXSpinBox, self).setValue(self.valueFromText(value))
+        self.repaint()
 
     def valueFromText(self, text):
         return self.indexFromValue(float(six.text_type(text)))
@@ -639,10 +641,12 @@ class NXDoubleSpinBox(QtWidgets.QDoubleSpinBox):
         self.validator.setDecimals(1000)
         self.old_value = None
         self.diff = None
-        if slot:
+        if slot and editing:
             self.valueChanged.connect(slot)
-        if editing:
             self.editingFinished.connect(editing)
+        elif slot:
+            self.valueChanged.connect(slot)
+            self.editingFinished.connect(slot)
         self.setAlignment(QtCore.Qt.AlignRight)
         self.setFixedWidth(100)
         self.setKeyboardTracking(False)
@@ -695,6 +699,7 @@ class NXDoubleSpinBox(QtWidgets.QDoubleSpinBox):
         elif value < self.minimum():
             self.setMinimum(value)
         super(NXDoubleSpinBox, self).setValue(value)
+        self.repaint()
 
     def timerEvent(self, event):
         self.app.processEvents()

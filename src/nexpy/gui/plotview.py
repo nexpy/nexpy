@@ -741,10 +741,8 @@ class NXPlotView(QtWidgets.QDialog):
             self.replot_axes(draw=False)
 
         self.offsets = True
-        if cmap:
-            self.cmap = cmap
-        if self.aspect != 'auto':
-            self.aspect = self._aspect
+        self.cmap = cmap
+        self.aspect = self._aspect
 
         if self.ndim > 1 and log:
             self.logv = log
@@ -1525,12 +1523,12 @@ class NXPlotView(QtWidgets.QDialog):
                 self.otab._actions['set_aspect'].setChecked(True)
             else:
                 self._aspect = 'auto'
-        try:
-            self.ax.set_aspect(self._aspect)
-            self.canvas.draw()
-        except:
-            pass
-        self.update_tabs()
+        if self._aspect != self.ax.get_aspect():
+            try:
+                self.ax.set_aspect(self._aspect)
+                self.canvas.draw()
+            except:
+                pass
 
     aspect = property(_aspect, _set_aspect, "Property: Aspect ratio value")
 
@@ -1557,6 +1555,8 @@ class NXPlotView(QtWidgets.QDialog):
         skew_angle : float
             The angle between the x and y axes for a 2D plot.
         """
+        if skew_angle == self._skew_angle:
+            return
         try:
             _skew_angle = float(skew_angle)
             if self.skew is not None and np.isclose(self.skew, _skew_angle):
@@ -1580,7 +1580,6 @@ class NXPlotView(QtWidgets.QDialog):
             self.ax.set_aspect(self._aspect)
         if self.image is not None:
             self.replot_data(newaxis=True)
-            self.update_tabs()
 
     skew = property(_skew, _set_skew, "Property: Axis skew angle")
 
@@ -3119,6 +3118,8 @@ class NXPlotTab(QtWidgets.QWidget):
         If the color map is available but was not included in the 
         default list when NeXpy was launched, it is added to the list.
         """
+        if cmap is None:
+            cmap = self._cached_cmap
         cm = get_cmap(cmap)
         cmap = cm.name
         if cmap != self._cached_cmap:
