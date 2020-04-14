@@ -2262,6 +2262,9 @@ class ProjectionTab(NXTab):
             else:
                 self.overplot_box.setVisible(False)
                 self.overplot_box.setChecked(False)
+                projection.logv = self.plotview.logv
+                projection.cmap = self.plotview.cmap
+                projection.interpolation = self.plotview.interpolation
             projection.make_active()
             projection.raise_()
         except NeXusError as error:
