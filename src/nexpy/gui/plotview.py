@@ -741,8 +741,7 @@ class NXPlotView(QtWidgets.QDialog):
             self.replot_axes(draw=False)
 
         self.offsets = True
-        if cmap:
-            self.cmap = cmap
+        self.cmap = cmap
         self.aspect = self._aspect
 
         if self.ndim > 1 and log:
@@ -3117,6 +3116,8 @@ class NXPlotTab(QtWidgets.QWidget):
         If the color map is available but was not included in the 
         default list when NeXpy was launched, it is added to the list.
         """
+        if cmap is None:
+            cmap = self._cached_cmap
         cm = get_cmap(cmap)
         cmap = cm.name
         if cmap != self._cached_cmap:
