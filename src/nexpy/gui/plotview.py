@@ -1555,6 +1555,8 @@ class NXPlotView(QtWidgets.QDialog):
         skew_angle : float
             The angle between the x and y axes for a 2D plot.
         """
+        if skew_angle == self._skew_angle:
+            return
         try:
             _skew_angle = float(skew_angle)
             if self.skew is not None and np.isclose(self.skew, _skew_angle):
