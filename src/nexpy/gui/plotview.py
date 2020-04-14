@@ -743,8 +743,7 @@ class NXPlotView(QtWidgets.QDialog):
         self.offsets = True
         if cmap:
             self.cmap = cmap
-        if self.aspect != 'auto':
-            self.aspect = self._aspect
+        self.aspect = self._aspect
 
         if self.ndim > 1 and log:
             self.logv = log
@@ -1525,12 +1524,12 @@ class NXPlotView(QtWidgets.QDialog):
                 self.otab._actions['set_aspect'].setChecked(True)
             else:
                 self._aspect = 'auto'
-        try:
-            self.ax.set_aspect(self._aspect)
-            self.canvas.draw()
-        except:
-            pass
-        self.update_tabs()
+        if self._aspect != self.ax.get_aspect():
+            try:
+                self.ax.set_aspect(self._aspect)
+                self.canvas.draw()
+            except:
+                pass
 
     aspect = property(_aspect, _set_aspect, "Property: Aspect ratio value")
 
@@ -1580,7 +1579,6 @@ class NXPlotView(QtWidgets.QDialog):
             self.ax.set_aspect(self._aspect)
         if self.image is not None:
             self.replot_data(newaxis=True)
-            self.update_tabs()
 
     skew = property(_skew, _set_skew, "Property: Axis skew angle")
 
