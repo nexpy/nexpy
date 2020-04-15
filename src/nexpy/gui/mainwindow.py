@@ -1315,7 +1315,7 @@ class MainWindow(QtWidgets.QMainWindow):
         try:
             node = self.treeview.get_node()
             if isinstance(node, NXdata):
-                if node.nxsignal.ndim == 1:
+                if node.ndim == 1:
                     dialog = ExportDialog(node, parent=self)
                     dialog.show()
                 else:
@@ -1800,13 +1800,10 @@ class MainWindow(QtWidgets.QMainWindow):
                 if node.nxfilemode != 'r':
                     if node.nxgroup is None:
                         raise NeXusError("There is no parent group")
-                    if 'default' in node.nxgroup.attrs:
+                    elif node.nxgroup.get_default():
                         if not confirm_action("Override existing default?"):
                             return
-                    node.nxgroup.attrs['default'] = node.nxname
-                    if node.nxgroup in node.nxroot.values():
-                        if 'default' not in node.nxroot.attrs:
-                            node.nxroot.attrs['default'] = node.nxgroup.nxname
+                    node.set_default()
                     logging.info("Default set to '%s'" % node.nxpath)
                 else:
                     raise NeXusError("NeXus file is locked")

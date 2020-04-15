@@ -1765,6 +1765,8 @@ class CustomizeTab(NXTab):
                        color=True)
         parameters.add('gridstyle', list(self.linestyles.values()), 
                        'Grid Style')
+        parameters.add('minorticks', ['On', 'Off'], 'Minor Ticks')
+        parameters.add('cb_minorticks', ['On', 'Off'], 'Color Bar Minor Ticks')
         parameters.grid(title='Image Parameters', header=False, width=125)
         return parameters
 
@@ -1782,6 +1784,14 @@ class CustomizeTab(NXTab):
             p['grid'].value = 'Off'
         p['gridcolor'].value = get_color(self.plotview._gridcolor)
         p['gridstyle'].value = self.linestyles[self.plotview._gridstyle]
+        if self.plotview._minorticks:
+            p['minorticks'].value = 'On'
+        else:
+            p['minorticks'].value = 'Off'
+        if self.plotview._cb_minorticks:
+            p['cb_minorticks'].value = 'On'
+        else:
+            p['cb_minorticks'].value = 'Off'
 
     def plot_parameters(self, plot):
         p = self.plots[plot]
@@ -1802,6 +1812,7 @@ class CustomizeTab(NXTab):
         parameters.add('offset', 0.0, 'Offset', slot=self.scale_plot,
                        spinbox=True)
         parameters['offset'].box.setSingleStep(10)
+        parameters['offset'].box.setMinimum(-parameters['offset'].box.maximum())
         parameters.grid(title='Plot Parameters', header=False, width=125)
         return parameters
 
@@ -1830,9 +1841,16 @@ class CustomizeTab(NXTab):
         plot = self.label_plot(self.plot_stack.box.selected)
         label = self.plot_label(plot)
         scale = self.parameters[label]['scale'].value
+        if scale == self.parameters[label]['scale'].box.maximum():
+            self.parameters[label]['scale'].box.setMaximum(10*scale)
         self.parameters[label]['scale'].box.setSingleStep(scale/100.0)
         offset = self.parameters[label]['offset'].value
-        self.parameters[label]['offset'].box.setSingleStep(max(offset/100.0, 1))
+        if offset == self.parameters[label]['offset'].box.maximum():
+            self.parameters[label]['offset'].box.setMaximum(10*abs(offset))
+        self.parameters[label]['offset'].box.setMinimum(
+            -self.parameters[label]['offset'].box.maximum()) 
+        self.parameters[label]['offset'].box.setSingleStep(
+            max(abs(offset)/100.0, 1))
         y = self.plotview.plots[plot]['y']
         self.plotview.plots[plot]['plot'].set_ydata((y * scale) + offset)
         self.plotview.draw()
@@ -1899,9 +1917,9 @@ class CustomizeTab(NXTab):
             except ValueError:
                 pi['skew'].value = self.plotview.skew
             if pi['grid'].value == 'On':
-                self.plotview._grid =True
+                self.plotview._grid = True
             else:
-                self.plotview._grid =False
+                self.plotview._grid = False
             self.plotview._gridcolor = pi['gridcolor'].value
             self.plotview._gridstyle = [k for k, v in self.linestyles.items()
                                         if v == pi['gridstyle'].value][0]
@@ -1909,6 +1927,14 @@ class CustomizeTab(NXTab):
             self.plotview.grid(self.plotview._grid)
             self.plotview.skew = _skew_angle
             self.plotview.aspect = self.plotview._aspect
+            if pi['minorticks'].value == 'On':
+                self.plotview.minorticks_on()
+            else:
+                self.plotview.minorticks_off()
+            if pi['cb_minorticks'].value == 'On':
+                self.plotview.cb_minorticks_on()
+            else:
+                self.plotview.cb_minorticks_off()
         else:
             for plot in self.plots:
                 label = self.plot_label(plot)
@@ -2232,6 +2258,9 @@ class ProjectionTab(NXTab):
             else:
                 self.overplot_box.setVisible(False)
                 self.overplot_box.setChecked(False)
+                projection.logv = self.plotview.logv
+                projection.cmap = self.plotview.cmap
+                projection.interpolation = self.plotview.interpolation
             projection.make_active()
             projection.raise_()
         except NeXusError as error:
@@ -2389,7 +2418,7 @@ class LimitDialog(NXPanel):
  
     def __init__(self, parent=None):
         super(LimitDialog, self).__init__('limit', title='Limits Panel', 
-              parent=parent)
+                                          apply=False, parent=parent)
         self.tab_class = LimitTab
         self.plotview_sort = True
 
@@ -2490,14 +2519,8 @@ class LimitTab(NXTab):
         self.maxbox['signal'].setRange(vaxis.min, vaxis.max)
         self.minbox['signal'].setValue(vaxis.lo)
         self.maxbox['signal'].setValue(vaxis.hi)
-        if self.ndim > 1:
-            self.copied_properties = {'aspect': self.plotview.aspect,
-                                      'cmap': self.plotview.cmap,
-                                      'interpolation': self.plotview.interpolation,
-                                      'logv': self.plotview.logv,
-                                      'logx': self.plotview.logx,
-                                      'logy': self.plotview.logy,
-                                      'skew': self.plotview.skew}
+        self.copied_properties = ['aspect', 'cmap', 'interpolation', 
+                                  'logv', 'logx', 'logy', 'skew']
         self.copywidget.setVisible(False)
         for tab in [self.tabs[label] for label in self.tabs 
                     if self.tabs[label] is not self]:
@@ -2607,7 +2630,6 @@ class LimitTab(NXTab):
             if (tab.copybox.selected == self.name and
                 tab.checkbox['sync'].isChecked()):
                 tab.copy()
-                tab.apply()
         self.sort_copybox()
 
     def update_limits(self):
@@ -2622,14 +2644,6 @@ class LimitTab(NXTab):
             figure_size = self.plotview.figure.get_size_inches()
             self.parameters['xsize'].value = figure_size[0]
             self.parameters['ysize'].value = figure_size[1]
-        if self.ndim > 1:
-            self.copied_properties = {'aspect': self.plotview.aspect,
-                                      'cmap': self.plotview.cmap,
-                                      'interpolation': self.plotview.interpolation,
-                                      'logv': self.plotview.logv,
-                                      'logx': self.plotview.logx,
-                                      'logy': self.plotview.logy,
-                                      'skew': self.plotview.skew}
 
     def copy(self):
         tab = self.tabs[self.copybox.selected]
@@ -2639,11 +2653,6 @@ class LimitTab(NXTab):
             self.lockbox[axis].setCheckState(tab.lockbox[axis].checkState())
         self.minbox['signal'].setValue(tab.minbox['signal'].value())
         self.maxbox['signal'].setValue(tab.maxbox['signal'].value())
-        if self.ndim > 1:
-            self.xbox.setCurrentIndex(tab.xbox.currentIndex())
-            self.ybox.setCurrentIndex(tab.ybox.currentIndex())
-            for p in self.copied_properties:
-                self.copied_properties[p] = getattr(tab.plotview, p)
         if self.plotview.label != 'Main':
             if tab.plotview.label == 'Main':
                 figure_size = tab.plotview.figure.get_size_inches()
@@ -2652,12 +2661,6 @@ class LimitTab(NXTab):
             else:
                 self.parameters['xsize'].value = tab.parameters['xsize'].value
                 self.parameters['ysize'].value = tab.parameters['ysize'].value
-
-    def reset(self):
-        self.plotview.otab.home()
-        self.update()
-
-    def apply(self):
         try:
             if self.ndim == 1:
                 xmin, xmax = self.minbox[0].value(), self.maxbox[0].value()
@@ -2696,15 +2699,19 @@ class LimitTab(NXTab):
                         self.plotview.ztab.set_axis(self.plotview.axis[idx])
                         self.plotview.ztab.set_limits(self.minbox[idx].value(),
                                                       self.maxbox[idx].value())
-                self.plotview.replot_data()
                 for p in self.copied_properties:
-                    setattr(self.plotview, p, self.copied_properties[p])
+                    setattr(self.plotview, p, getattr(tab.plotview, p))
+                self.plotview.replot_data()
             if self.plotview.label != 'Main':
                 xsize, ysize = (self.parameters['xsize'].value, 
                                 self.parameters['ysize'].value)
                 self.plotview.figure.set_size_inches(xsize, ysize)
         except NeXusError as error:
             report_error("Setting plot limits", error)
+
+    def reset(self):
+        self.plotview.otab.home()
+        self.update()
 
     def close(self):
         for tab in [self.tabs[label] for label in self.tabs 
