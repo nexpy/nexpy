@@ -22,6 +22,9 @@ from .utils import (report_error, boundaries, get_color, format_float,
 
 warnings.filterwarnings("ignore", category=cbook.mplDeprecation)
 
+bold_font = QtGui.QFont()
+bold_font.setBold(True)
+
 
 class NXStack(QtWidgets.QWidget):
     """Widget containing a stack of widgets selected by a dropdown menu.
@@ -128,9 +131,7 @@ class NXLabel(QtWidgets.QLabel):
         if text:
             self.setText(text)
         if bold:
-            font = QtGui.QFont()
-            font.setBold(True)
-            self.setFont(font)
+            self.setFont(bold_font)
         if width:
             self.setFixedWidth(width)
         if align == 'left':
