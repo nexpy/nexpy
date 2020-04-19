@@ -133,10 +133,12 @@ class NXLabel(QtWidgets.QLabel):
             self.setFont(font)
         if width:
             self.setFixedWidth(width)
-        if align == 'center':
-            self.setAlignment(QtCore.Qt.AlignHCenter)            
+        if align == 'left':
+            self.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
+        elif align == 'center':
+            self.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)            
         elif align == 'right':
-            self.setAlignment(QtCore.Qt.AlignRight)
+            self.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
 
     def setText(self, text):
         """Function to set the text in the box.
@@ -180,10 +182,12 @@ class NXLineEdit(QtWidgets.QLineEdit):
             self.setText(text)
         if width:
             self.setFixedWidth(width)
-        if align == 'center':
-            self.setAlignment(QtCore.Qt.AlignHCenter)            
+        if align == 'left':
+            self.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
+        elif align == 'center':
+            self.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)            
         elif align == 'right':
-            self.setAlignment(QtCore.Qt.AlignRight)
+            self.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
 
     def setText(self, text):
         """Function to set the text in the box.
