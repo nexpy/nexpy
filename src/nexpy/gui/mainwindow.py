@@ -1833,7 +1833,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 group = NXentry(data=node, title=node.nxtitle)
             else:
                 raise NeXusError("Select an NXdata group")
-            if len(group.data.nxsignal.shape) == 1:
+            if len(group.data.shape) == 1:
                 self.fitdialog = FitDialog(group)
                 self.fitdialog.show()
                 logging.info("Fitting invoked on'%s'" % node.nxpath)
