@@ -3746,7 +3746,7 @@ class InitializeDialog(NXDialog):
         grid.addWidget(self.shape_box, 3, 1)
         grid.setColumnMinimumWidth(1, 200)
         fill_label = NXLabel("Fill Value:")
-        self.fill_box = NXLineEdit("0")
+        self.fill_box = NXLineEdit(0)
         grid.addWidget(fill_label, 4, 0)
         grid.addWidget(self.fill_box, 4, 1)
         grid.setColumnMinimumWidth(1, 200)

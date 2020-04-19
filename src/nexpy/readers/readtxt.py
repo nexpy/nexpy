@@ -47,7 +47,7 @@ class ImportDialog(BaseImportDialog):
         
         skippedbox = QtWidgets.QHBoxLayout()
         skippedlabel = NXLabel("No. of skipped rows")
-        self.skiprows = NXLineEdit("0", width=20)
+        self.skiprows = NXLineEdit(0, width=20)
         skippedbox.addWidget(skippedlabel)
         skippedbox.addWidget(self.skiprows)
  

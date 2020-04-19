@@ -149,7 +149,7 @@ class NXLabel(QtWidgets.QLabel):
         text : str
             Text to replace the text box contents.
         """
-        super(NXLabel, self).setText(text)
+        super(NXLabel, self).setText(str(text))
         self.repaint()
 
 
@@ -198,7 +198,7 @@ class NXLineEdit(QtWidgets.QLineEdit):
         text : str
             Text to replace the text box contents.        
         """
-        super(NXLineEdit, self).setText(text)
+        super(NXLineEdit, self).setText(str(text))
         self.repaint()
 
 
