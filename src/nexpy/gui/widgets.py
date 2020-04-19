@@ -107,6 +107,37 @@ class NXLabel(QtWidgets.QLabel):
     after any programmatic changes.
     """
 
+    def __init__(self, text=None, parent=None, bold=False, width=None, 
+                 align='left'):
+        """Initialize the edit window and optionally set the alignment
+        
+        Parameters
+        ----------
+        text : str, optional
+            The default text.
+        parent : QWidget
+            Parent of the NXLineEdit box.
+        bold : bool, optional
+            True if the label text is bold, default False.
+        width : int, optional
+            Fixed width of label.
+        align : 'left', 'center', 'right'
+            Alignment of text.
+        """
+        super(NXLabel, self).__init__(parent=parent)
+        if text:
+            self.setText(text)
+        if bold:
+            font = QtGui.QFont()
+            font.setBold(True)
+            self.setFont(font)
+        if width:
+            self.setFixedWidth(width)
+        if align == 'center':
+            self.setAlignment(QtCore.Qt.AlignHCenter)            
+        elif align == 'right':
+            self.setAlignment(QtCore.Qt.AlignRight)
+
     def setText(self, text):
         """Function to set the text in the box.
 
@@ -126,6 +157,33 @@ class NXLineEdit(QtWidgets.QLineEdit):
     recent versions of PyQt5 (>11) that requires the box to be repainted 
     after any programmatic changes.
     """
+
+    def __init__(self, text=None, parent=None, slot=None, width=None, 
+                 align='left'):
+        """Initialize the edit window and optionally set the alignment
+        
+        Parameters
+        ----------
+        text : str, optional
+            The default text.
+        parent : QWidget
+            Parent of the NXLineEdit box.
+        slot: func, optional
+            Slot to be used for editingFinished signals.
+        right : bool, optional
+            If True, make the box text right-aligned.        
+        """
+        super(NXLineEdit, self).__init__(parent=parent)
+        if slot:
+            self.editingFinished.connect(slot)
+        if text:
+            self.setText(text)
+        if width:
+            self.setFixedWidth(width)
+        if align == 'center':
+            self.setAlignment(QtCore.Qt.AlignHCenter)            
+        elif align == 'right':
+            self.setAlignment(QtCore.Qt.AlignRight)
 
     def setText(self, text):
         """Function to set the text in the box.
@@ -417,8 +475,9 @@ class NXColorBox(QtWidgets.QWidget):
         self.layout = QtWidgets.QHBoxLayout()
         self.layout.setContentsMargins(0, 0, 0, 0)
         self.textbox = NXLineEdit(colors.to_hex(color.getRgbF(),
-                                  keep_alpha=True), parent)
-        self.textbox.editingFinished.connect(self.update_color)
+                                                keep_alpha=True), 
+                                  parent=parent, slot=self.update_color, 
+                                  align='right')
         self.layout.addWidget(self.textbox)
         self.button = NXColorButton(parent)
         self.button.color = color
