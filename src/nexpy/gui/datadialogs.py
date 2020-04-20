@@ -111,8 +111,8 @@ class NXWidget(QtWidgets.QWidget):
                 layout.addWidget(item)
             elif item == "stretch":
                 layout.addStretch()
-            if not vertical and not right:
-                layout.addStretch()
+        if not (vertical or right):
+            layout.addStretch()
         return layout
 
     def add_layout(self, *items, stretch=False):
