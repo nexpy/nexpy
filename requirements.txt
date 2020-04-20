@@ -1,5 +1,5 @@
 h5py
-nexusformat
+nexusformat>=0.5.2
 numpy
 scipy
 qtpy
