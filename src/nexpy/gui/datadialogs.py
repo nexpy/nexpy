@@ -95,24 +95,24 @@ class NXWidget(QtWidgets.QWidget):
         self.setLayout(self.layout)
 
     def make_layout(self, *items, **opts):
-        vertical = opts.pop("vertical", False)
-        left = opts.pop("left", False)
-        right = opts.pop("right", False)
+        vertical = opts.pop('vertical', False)
+        align = opts.pop('align', 'center')
         if vertical:
             layout = QtWidgets.QVBoxLayout()
         else:
             layout = QtWidgets.QHBoxLayout()
-            if right or not left:
+            if align == 'center' or align == 'right':
                 layout.addStretch()
         for item in items:
             if isinstance(item, QtWidgets.QLayout):
                 layout.addLayout(item)
             elif isinstance(item, QtWidgets.QWidget):
                 layout.addWidget(item)
-            elif item == "stretch":
+            elif item == 'stretch':
                 layout.addStretch()
-        if not (vertical or right):
-            layout.addStretch()
+        if not vertical:
+            if align == 'left' or align == 'center':
+                layout.addStretch()
         return layout
 
     def add_layout(self, *items, stretch=False):
@@ -1438,8 +1438,7 @@ class PlotScalarDialog(NXDialog):
         self.file_box.setMinimumWidth(300)
         self.prefix_box = NXLineEdit()
         self.prefix_box.textChanged.connect(self.select_prefix)
-        prefix_layout = self.make_layout(NXLabel('Prefix'), 
-                                         self.prefix_box)
+        prefix_layout = self.make_layout(NXLabel('Prefix'), self.prefix_box)
         self.scroll_area = NXScrollArea()
         self.files = GridParameters()
         i = 0
@@ -2008,7 +2007,8 @@ class ProjectionTab(NXTab):
 
         self.xlabel, self.xbox = self.label('X-Axis'), NXComboBox(self.set_xaxis)
         self.ylabel, self.ybox = self.label('Y-Axis'), NXComboBox(self.set_yaxis)
-        axis_layout = self.make_layout(self.xlabel, self.xbox, self.ylabel, self.ybox)
+        axis_layout = self.make_layout(self.xlabel, self.xbox, 
+                                       self.ylabel, self.ybox)
                                        
         self.set_axes()
 
@@ -2431,7 +2431,8 @@ class LimitTab(NXTab):
         if self.ndim > 1:
             self.xlabel, self.xbox = self.label('X-Axis'), NXComboBox(self.set_xaxis)
             self.ylabel, self.ybox = self.label('Y-Axis'), NXComboBox(self.set_yaxis)
-            axis_layout = self.make_layout(self.xlabel, self.xbox, self.ylabel, self.ybox)                                     
+            axis_layout = self.make_layout(self.xlabel, self.xbox, 
+                          self.ylabel, self.ybox)                                     
             self.set_axes()
         else:
             axis_layout = None
@@ -2737,7 +2738,8 @@ class ScanTab(NXTab):
 
         self.xlabel, self.xbox = self.label('X-Axis'), NXComboBox(self.set_xaxis)
         self.ylabel, self.ybox = self.label('Y-Axis'), NXComboBox(self.set_yaxis)
-        axis_layout = self.make_layout(self.xlabel, self.xbox, self.ylabel, self.ybox)
+        axis_layout = self.make_layout(self.xlabel, self.xbox, 
+                                       self.ylabel, self.ybox)
                                        
         self.set_axes()
         
@@ -2839,8 +2841,7 @@ class ScanTab(NXTab):
         self.file_box.setMinimumWidth(300)
         self.prefix_box = NXLineEdit()
         self.prefix_box.textChanged.connect(self.select_prefix)
-        prefix_layout = self.make_layout(NXLabel('Prefix'), 
-                                         self.prefix_box)
+        prefix_layout = self.make_layout(NXLabel('Prefix'), self.prefix_box)
         self.scroll_area = NXScrollArea()
         self.files = GridParameters()
         i = 0

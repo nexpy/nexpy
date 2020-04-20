@@ -66,14 +66,15 @@ class FitDialog(NXDialog):
  
         self.modelcombo = NXComboBox(items=sorted(self.model_list))
         add_button = NXPushButton("Add Model", self.add_model)
-        model_layout = self.make_layout(self.modelcombo, add_button, left=True)
+        model_layout = self.make_layout(self.modelcombo, add_button, 
+                                        align='left')
         
         self.parameter_layout = self.initialize_parameter_grid()
 
         remove_button = NXPushButton("Remove Model", self.remove_model)
         self.removecombo = NXComboBox()
         self.remove_layout = self.make_layout(remove_button, self.removecombo,
-                                              left=True)
+                                              align='left')
 
         self.plot_layout = QtWidgets.QHBoxLayout()
         plot_data_button = NXPushButton('Plot Data', self.plot_data)
@@ -97,10 +98,9 @@ class FitDialog(NXDialog):
                                             self.plot_minbox,
                                             plot_tolabel,
                                             self.plot_maxbox,
-                                            self.plot_checkbox, 
-                                            left=True)
+                                            self.plot_checkbox,
+                                            align='left')
 
-        self.action_layout = QtWidgets.QHBoxLayout()
         fit_button = NXPushButton('Fit', self.fit_data)
         self.fit_label = NXLabel()
         if self._data.nxerrors:
