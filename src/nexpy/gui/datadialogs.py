@@ -92,6 +92,8 @@ class NXWidget(QtWidgets.QWidget):
                 self.layout.addLayout(item)
             elif isinstance(item, QtWidgets.QWidget):
                 self.layout.addWidget(item)
+            elif item == 'stretch':
+                self.layout.addStretch()
         self.setLayout(self.layout)
 
     def make_layout(self, *items, **opts):
