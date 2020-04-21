@@ -1,11 +1,4 @@
 import os
-try:
-    import sip
-    for api in ['QString', 'QVariant', 'QDate', 'QDateTime',
-                'QTextStream', 'QTime', 'QUrl']:
-        sip.setapi(api, 2)
-except ImportError:
-    pass
 
 from qtpy import QtCore, QtGui, QtWidgets
 
