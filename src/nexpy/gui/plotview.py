@@ -2651,7 +2651,7 @@ class NXPlotTab(QtWidgets.QWidget):
             self.maxbox = NXSpinBox(self.read_maxbox)
             self.lockbox = NXCheckBox("Lock", self.change_lock)
             self.lockbox.setChecked(True)
-            self.scalebox = NXCheckBox("Autoscale", self.plotview.replot_image)
+            self.scalebox = NXCheckBox("Autoscale", self.change_scale)
             self.scalebox.setChecked(True)
             self.init_toolbar()
             widgets.append(self.minbox)
@@ -3068,6 +3068,10 @@ class NXPlotTab(QtWidgets.QWidget):
 
     def change_lock(self):
         self._set_locked(self.locked)
+
+    def change_scale(self):
+        if self.scalebox.isChecked():
+            self.plotview.replot_image()
 
     def _flipped(self):
         try:
