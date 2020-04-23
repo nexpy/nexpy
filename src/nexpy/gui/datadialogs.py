@@ -260,7 +260,7 @@ class NXWidget(QtWidgets.QWidget):
             self.filebutton = NXPushButton(text, slot)
         else:
             self.filebutton =  NXPushButton(text, self.choose_file)
-        self.filename = NXLineEdit(self)
+        self.filename = NXLineEdit(parent=self)
         self.filename.setMinimumWidth(300)
         filebox = QtWidgets.QHBoxLayout()
         filebox.addWidget(self.filebutton)
@@ -275,7 +275,7 @@ class NXWidget(QtWidgets.QWidget):
             self.directorybutton = NXPushButton(text, slot)
         else:
             self.directorybutton =  NXPushButton(text, self.choose_directory)
-        self.directoryname = NXLineEdit(self)
+        self.directoryname = NXLineEdit(parent=self)
         self.directoryname.setMinimumWidth(300)
         default_directory = self.get_default_directory()
         if default and default_directory:
