@@ -85,7 +85,7 @@ class NXWidget(QtWidgets.QWidget):
             parent = self.mainwindow
         self.accepted = False
 
-    def set_layout(self, *items):
+    def set_layout(self, *items, **opts):
         self.layout = QtWidgets.QVBoxLayout()
         for item in items:
             if isinstance(item, QtWidgets.QLayout):
@@ -94,11 +94,15 @@ class NXWidget(QtWidgets.QWidget):
                 self.layout.addWidget(item)
             elif item == 'stretch':
                 self.layout.addStretch()
+        spacing = opts.pop('spacing', 10)
+        self.layout.setSpacing(spacing)
         self.setLayout(self.layout)
+        return self.layout
 
     def make_layout(self, *items, **opts):
         vertical = opts.pop('vertical', False)
         align = opts.pop('align', 'center')
+        spacing = opts.pop('spacing', 20)
         if vertical:
             layout = QtWidgets.QVBoxLayout()
         else:
@@ -113,8 +117,9 @@ class NXWidget(QtWidgets.QWidget):
             elif item == 'stretch':
                 layout.addStretch()
         if not vertical:
-            if align == 'left' or align == 'center':
+            if align == 'center':
                 layout.addStretch()
+        layout.setSpacing(spacing)
         return layout
 
     def add_layout(self, *items, stretch=False):
