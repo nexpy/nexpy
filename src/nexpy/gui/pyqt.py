@@ -1,3 +1,13 @@
+#!/usr/bin/env python 
+# -*- coding: utf-8 -*-
+
+#-----------------------------------------------------------------------------
+# Copyright (c) 2013-2020, NeXpy Development Team.
+#
+# Distributed under the terms of the Modified BSD License.
+#
+# The full license is in the file COPYING, distributed with this software.
+#-----------------------------------------------------------------------------
 import os
 
 from qtpy import QtCore, QtGui, QtWidgets
