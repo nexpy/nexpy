@@ -1342,6 +1342,8 @@ class NXPlotView(QtWidgets.QDialog):
                                  min(xs_max, p['x'].max()), 1000)
                 if p['linestyle'] == 'None':
                     p['smooth_linestyle'] = '-'
+                elif p['linestyle'].startswith('steps'):
+                    p['smooth_linestyle'] = '-'
                 else:
                     p['smooth_linestyle'] = p['linestyle']
                 p['smooth_line'] = self.ax.plot(xs, 
