@@ -15,7 +15,7 @@ requirements:
   build:
     - python
     - setuptools
-    - nexusformat >=0.5.1
+    - nexusformat >=0.5.2
     - numpy
     - scipy
     - h5py
@@ -27,7 +27,7 @@ requirements:
 
   run:
     - python
-    - nexusformat >=0.5.1
+    - nexusformat >=0.5.2
     - numpy
     - scipy
     - h5py
