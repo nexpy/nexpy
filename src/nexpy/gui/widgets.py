@@ -917,7 +917,7 @@ class NXcircle(NXpatch):
     def __init__(self, x, y, r, border_tol=0.1, resize=True, plotview=None, 
                  **opts):
         x, y, r = float(x), float(y), float(r)
-        shape = Ellipse((x,y), r, r, **opts)
+        shape = Ellipse((x,y), 2*r, 2*r, **opts)
         if 'linewidth' not in opts:
             shape.set_linewidth(1.0)
         if 'facecolor' not in opts:
