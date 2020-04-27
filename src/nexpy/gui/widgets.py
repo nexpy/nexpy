@@ -418,7 +418,9 @@ class NXColorButton(QtWidgets.QPushButton):
 
     def __init__(self, parent=None):
         super(NXColorButton, self).__init__(parent)
-        self.setFixedSize(20, 20)
+        self.setStyleSheet("width:18px; height:18px; "
+                           "margin: 0px; border: 0px; padding: 0px;"
+                           "background-color: white")
         self.setIconSize(QtCore.QSize(12, 12))
         self.clicked.connect(self.choose_color)
         self._color = QtGui.QColor()
