@@ -9,10 +9,58 @@
 # The full license is in the file COPYING, distributed with this software.
 #-----------------------------------------------------------------------------
 
+import importlib
+import inspect
 import numpy as np
-from lmfit import minimize, Parameters, Parameter, fit_report, __version__
+import os
+import pkg_resources
+import sys
+
+from lmfit import Model, Parameters, Parameter, minimize, fit_report
 
 from nexusformat.nexus import *
+
+def get_functions():
+    """Return a list of available functions and models."""
+
+    filenames = set()
+    private_path = os.path.join(os.path.expanduser('~'), '.nexpy', 'functions')
+    if os.path.isdir(private_path):
+        sys.path.append(private_path)
+        for file_ in os.listdir(private_path):
+            name, ext = os.path.splitext(file_)
+            if name != '__init__' and ext.startswith('.py'):
+                filenames.add(name)
+
+    functions_path = pkg_resources.resource_filename('nexpy.api.frills', 
+                                                     'functions')
+    sys.path.append(functions_path)
+    for file_ in os.listdir(functions_path):
+        name, ext = os.path.splitext(file_)
+        if name != '__init__' and ext.startswith('.py'):
+            filenames.add(name)
+
+    functions = {}
+    models = {}
+    for name in sorted(filenames):
+        try:
+            module = importlib.import_module(name)
+            if hasattr(module, 'function_name'):
+                functions[module.function_name] = module
+            else:
+                models.update(dict((n, m) 
+                    for n, m in inspect.getmembers(module, inspect.isclass) 
+                    if issubclass(m, Model)))
+        except ImportError:
+            pass
+    from lmfit import models as lmfit_models
+    models.update(dict((n, m) 
+                  for n, m in inspect.getmembers(lmfit_models, inspect.isclass) 
+                  if issubclass(m, Model) and n != 'Model'))
+
+    return functions, models
+
+all_functions, all_models = get_functions()
 
 class Fit(object):
     """Class defining the data, parameters, and results of a least-squares fit.
@@ -109,9 +157,8 @@ class Fit(object):
         residuals : ndarray
             Differences between the y-values and the model.
         """
-        if __version__ > '0.8.3':
-            for parameter in parameters:
-                self.parameters[parameter].value = parameters[parameter].value
+        for parameter in parameters:
+            self.parameters[parameter].value = parameters[parameter].value
         if self.e is not None:
              return (self.y - self.get_model()) / self.e
         else:
