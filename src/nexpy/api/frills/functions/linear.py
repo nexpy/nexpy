@@ -10,6 +10,7 @@
 #-----------------------------------------------------------------------------
 function_name = 'Linear'
 parameters = ['Constant', 'Slope']
+hints = [0.0, 1.0]
 
 def values(x, p):
     constant, slope = p

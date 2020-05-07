@@ -12,6 +12,7 @@ import numpy as np
 
 function_name = 'Gaussian'
 parameters = ['Integral', 'Sigma', 'Center']
+hints = [1.0, 0.0, 1.0]
 
 factor = np.sqrt(2*np.pi)
 

@@ -12,6 +12,7 @@ import numpy as np
 
 function_name = 'Lorentzian'
 parameters = ['Integral', 'Gamma', 'Center']
+hints = [1.0, 1.0, 0.0]
 
 def values(x, p):
     integral, gamma, center = p
