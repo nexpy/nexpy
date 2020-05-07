@@ -246,16 +246,23 @@ class Function(object):
     name : str
         name of the function
     module : Python module
-        module containing the function code.
+        module containing function code
     function_index : int
         index of the function
     """
 
-    def __init__(self, name=None, module=None, parameters=None, function_index=0):
+    def __init__(self, name, module=None, parameters=None, function_index=0):        
         self.name = name
         self.module = module
-        self._parameters = parameters
         self.function_index = function_index
+        self._parameters = parameters
+        if module:
+            self.model = NXModel(module)
+        elif name in all_functions:
+            self.module = all_functions[name]
+            self.model = NXModel(self.module)
+        elif name in all_models:
+            self.model = all_models[name]()
 
     def __lt__(self, other):
          return int(self.function_index) < int(other.function_index)
@@ -265,22 +272,49 @@ class Function(object):
 
     @property
     def parameters(self):
-        """List of parameters defining the function."""
         if self._parameters is None:
-            self._parameters = [Parameter(name) 
-                                for name in self.module.parameters]
+            self._parameters = self.model.make_params()
         return self._parameters
 
     def guess_parameters(self, x, y):
         """Return a list of parameters determined by the function's `guess` method."""
-        [setattr(p, 'value', g) for p,g in zip(self.parameters,
-                                               self.module.guess(x, y))]
+        self._parameters = self.model.guess(y, x)
 
     @property
     def parameter_values(self):
         """Return a list of parameter values."""
-        return [p.value for p in self.parameters]
+        return [self.parameters[p].value for p in self.parameters]
 
     def function_values(self, x):
         """Return the calculated values with the current parameters."""
-        return self.module.values(x, self.parameter_values)
+        return self.model.eval(self.parameters)
+
+
+class NXModel(Model):
+
+    def __init__(self, module, **kwargs):
+        self.module = module
+        super(NXModel, self).__init__(self.module.values, **kwargs)
+        self._param_root_names = self.module.parameters
+
+    def _parse_params(self):
+        self._param_names = self.module.parameters
+        self.def_vals = {}
+
+    def make_funcargs(self, params=None, kwargs=None, strip=True):
+        if kwargs is None:
+            kwargs = {}
+        out = {}
+        if 'x' in kwargs:
+            out['x'] = kwargs['x']
+        else:
+            raise NeXusError('Cannot calculate module values without x')
+        out['p'] = [params[p].value for p in params]
+        return out            
+
+    def guess(self, y, x=None, **kwargs):
+        _guess = self.module.guess(x, y)
+        pars = self.make_params()
+        for i, p in enumerate(pars):
+            pars[p].value = _guess[i]
+        return pars
