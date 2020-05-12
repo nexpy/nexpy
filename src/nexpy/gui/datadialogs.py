@@ -894,8 +894,7 @@ class GridParameters(OrderedDict):
                 vary = True
             row += 1
         if header and vary:
-            fit_label = NXLabel(headers[2])
-            fit_label.setFont(header_font)
+            fit_label = NXLabel(headers[2], bold=True)
             grid.addWidget(fit_label, 0, 2, QtCore.Qt.AlignHCenter)
         self.grid_layout = grid
         return grid
@@ -3345,10 +3344,7 @@ class ViewDialog(NXDialog):
         layout = QtWidgets.QVBoxLayout()
 
         title_layout = QtWidgets.QHBoxLayout()
-        title_label = NXLabel('Indices')
-        header_font = QtGui.QFont()
-        header_font.setBold(True)
-        title_label.setFont(header_font)
+        title_label = NXLabel('Indices', bold=True)
         title_layout.addStretch()
         title_layout.addWidget(title_label)
         title_layout.addStretch()
