@@ -41,16 +41,45 @@ def get_functions():
             filenames.add(name)
 
     functions = {}
-    models = {}
     for name in sorted(filenames):
         try:
             module = importlib.import_module(name)
             if hasattr(module, 'function_name'):
                 functions[module.function_name] = module
-            else:
-                models.update(dict((n, m) 
-                    for n, m in inspect.getmembers(module, inspect.isclass) 
-                    if issubclass(m, Model)))
+        except ImportError:
+            pass
+
+    return functions
+
+all_functions = get_functions()
+
+def get_models():
+    """Return a list of available models."""
+
+    filenames = set()
+    private_path = os.path.join(os.path.expanduser('~'), '.nexpy', 'models')
+    if os.path.isdir(private_path):
+        sys.path.append(private_path)
+        for file_ in os.listdir(private_path):
+            name, ext = os.path.splitext(file_)
+            if name != '__init__' and ext.startswith('.py'):
+                filenames.add(name)
+
+    functions_path = pkg_resources.resource_filename('nexpy.api.frills', 
+                                                     'models')
+    sys.path.append(functions_path)
+    for file_ in os.listdir(functions_path):
+        name, ext = os.path.splitext(file_)
+        if name != '__init__' and ext.startswith('.py'):
+            filenames.add(name)
+
+    models = {}
+    for name in sorted(filenames):
+        try:
+            module = importlib.import_module(name)
+            models.update(dict((n, m) 
+                for n, m in inspect.getmembers(module, inspect.isclass) 
+                if issubclass(m, Model)))
         except ImportError:
             pass
     from lmfit import models as lmfit_models
@@ -58,9 +87,10 @@ def get_functions():
                   for n, m in inspect.getmembers(lmfit_models, inspect.isclass) 
                   if issubclass(m, Model) and n != 'Model'))
 
-    return functions, models
+    return models
 
-all_functions, all_models = get_functions()
+all_models = get_models()
+
 
 class Fit(object):
     """Class defining the data, parameters, and results of a least-squares fit.
@@ -261,8 +291,6 @@ class Function(object):
         elif name in all_functions:
             self.module = all_functions[name]
             self.model = NXModel(self.module)
-        elif name in all_models:
-            self.model = all_models[name]()
 
     def __lt__(self, other):
          return int(self.function_index) < int(other.function_index)
@@ -277,7 +305,7 @@ class Function(object):
         return self._parameters
 
     def guess_parameters(self, x, y):
-        """Return a list of parameters determined by the function's `guess` method."""
+        """Return a list of parameters using the function's `guess` method."""
         self._parameters = self.model.guess(y, x)
 
     @property
@@ -287,7 +315,7 @@ class Function(object):
 
     def function_values(self, x):
         """Return the calculated values with the current parameters."""
-        return self.model.eval(self.parameters)
+        return self.model.eval(self.parameters, x=x)
 
 
 class NXModel(Model):
