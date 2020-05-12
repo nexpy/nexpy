@@ -322,23 +322,32 @@ class NXModel(Model):
 
     def __init__(self, module, **kwargs):
         self.module = module
-        super(NXModel, self).__init__(self.module.values, **kwargs)
-        self._param_root_names = self.module.parameters
+        super(NXModel, self).__init__(self.module.values,
+                                      param_names=self.module.parameters,
+                                      independent_vars=self._get_x(),
+                                      **kwargs)
 
     def _parse_params(self):
-        self._param_names = self.module.parameters
+        if self._prefix is None:
+            self._prefix = ''
+        self._param_names = ["%s%s" % (self._prefix, p) 
+                             for p in self._param_root_names]
         self.def_vals = {}
 
+    def _get_x(self):
+        return [key for key in inspect.signature(self.module.values).parameters 
+                if key != 'p']
+
     def make_funcargs(self, params=None, kwargs=None, strip=True):
-        if kwargs is None:
-            kwargs = {}
-        out = {}
-        if 'x' in kwargs:
-            out['x'] = kwargs['x']
-        else:
-            raise NeXusError('Cannot calculate module values without x')
-        out['p'] = [params[p].value for p in params]
-        return out            
+        self._func_allargs = ['x'] + self._param_root_names
+        out = super(NXModel, self).make_funcargs(params=params, kwargs=kwargs, 
+                                                 strip=strip)
+        function_out = {}
+        function_out['p'] = [out[p] for p in out if p in self._param_root_names]
+        for key in out:
+            if key not in self._param_root_names:
+                function_out[key] = out[key]
+        return function_out            
 
     def guess(self, y, x=None, **kwargs):
         _guess = self.module.guess(x, y)
