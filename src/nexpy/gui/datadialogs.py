@@ -117,7 +117,7 @@ class NXWidget(QtWidgets.QWidget):
             elif item == 'stretch':
                 layout.addStretch()
         if not vertical:
-            if align == 'center':
+            if align == 'center' or align == 'left':
                 layout.addStretch()
         layout.setSpacing(spacing)
         return layout
