@@ -86,6 +86,8 @@ def get_models():
     models.update(dict((n, m) 
                   for n, m in inspect.getmembers(lmfit_models, inspect.isclass) 
                   if issubclass(m, Model) and n != 'Model'))
+    if 'DonaichModel' in models:
+        del models['DonaichModel']
 
     return models
 
