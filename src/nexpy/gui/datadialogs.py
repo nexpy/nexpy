@@ -1584,7 +1584,7 @@ class ExportDialog(NXDialog):
         super(ExportDialog, self).__init__(parent)
  
         self.data = node
-        self.x = node.nxaxes[0]
+        self.x = node.nxaxes[0].centers()
         self.y = node.nxsignal
         self.e = node.nxerrors
         self.parameters = GridParameters()
