@@ -9,90 +9,10 @@
 # The full license is in the file COPYING, distributed with this software.
 #-----------------------------------------------------------------------------
 
-import importlib
-import inspect
 import numpy as np
-import os
-import pkg_resources
-import sys
 
-from lmfit import Model, Parameters, Parameter, minimize, fit_report
-
+from lmfit import minimize, Parameters, Parameter, fit_report, __version__
 from nexusformat.nexus import *
-
-def get_functions():
-    """Return a list of available functions and models."""
-
-    filenames = set()
-    private_path = os.path.join(os.path.expanduser('~'), '.nexpy', 'functions')
-    if os.path.isdir(private_path):
-        sys.path.append(private_path)
-        for file_ in os.listdir(private_path):
-            name, ext = os.path.splitext(file_)
-            if name != '__init__' and ext.startswith('.py'):
-                filenames.add(name)
-
-    functions_path = pkg_resources.resource_filename('nexpy.api.frills', 
-                                                     'functions')
-    sys.path.append(functions_path)
-    for file_ in os.listdir(functions_path):
-        name, ext = os.path.splitext(file_)
-        if name != '__init__' and ext.startswith('.py'):
-            filenames.add(name)
-
-    functions = {}
-    for name in sorted(filenames):
-        try:
-            module = importlib.import_module(name)
-            if hasattr(module, 'function_name'):
-                functions[module.function_name] = module
-        except ImportError:
-            pass
-
-    return functions
-
-all_functions = get_functions()
-
-def get_models():
-    """Return a list of available models."""
-
-    filenames = set()
-    private_path = os.path.join(os.path.expanduser('~'), '.nexpy', 'models')
-    if os.path.isdir(private_path):
-        sys.path.append(private_path)
-        for file_ in os.listdir(private_path):
-            name, ext = os.path.splitext(file_)
-            if name != '__init__' and ext.startswith('.py'):
-                filenames.add(name)
-
-    functions_path = pkg_resources.resource_filename('nexpy.api.frills', 
-                                                     'models')
-    sys.path.append(functions_path)
-    for file_ in os.listdir(functions_path):
-        name, ext = os.path.splitext(file_)
-        if name != '__init__' and ext.startswith('.py'):
-            filenames.add(name)
-
-    models = {}
-    for name in sorted(filenames):
-        try:
-            module = importlib.import_module(name)
-            models.update(dict((n, m) 
-                for n, m in inspect.getmembers(module, inspect.isclass) 
-                if issubclass(m, Model)))
-        except ImportError:
-            pass
-    from lmfit import models as lmfit_models
-    models.update(dict((n, m) 
-                  for n, m in inspect.getmembers(lmfit_models, inspect.isclass) 
-                  if issubclass(m, Model) and n != 'Model'))
-    if 'DonaichModel' in models:
-        del models['DonaichModel']
-
-    return models
-
-all_models = get_models()
-
 
 class Fit(object):
     """Class defining the data, parameters, and results of a least-squares fit.
@@ -144,7 +64,7 @@ class Fit(object):
             errors = data.nxerrors
             if len(signal.shape) != 1:
                 raise ValueError("Fit only possible on one-dimensional data")
-            self.x = axes.nxdata.astype(np.float64)
+            self.x = axes.centers().nxdata.astype(np.float64)
             self.y = signal.nxdata.astype(np.float64)
             if errors and self.use_errors:
                 self.e = errors.nxdata.astype(np.float64)
@@ -189,8 +109,9 @@ class Fit(object):
         residuals : ndarray
             Differences between the y-values and the model.
         """
-        for parameter in parameters:
-            self.parameters[parameter].value = parameters[parameter].value
+        if __version__ > '0.8.3':
+            for parameter in parameters:
+                self.parameters[parameter].value = parameters[parameter].value
         if self.e is not None:
              return (self.y - self.get_model()) / self.e
         else:
@@ -278,21 +199,16 @@ class Function(object):
     name : str
         name of the function
     module : Python module
-        module containing function code
+        module containing the function code.
     function_index : int
         index of the function
     """
 
-    def __init__(self, name, module=None, parameters=None, function_index=0):        
+    def __init__(self, name=None, module=None, parameters=None, function_index=0):
         self.name = name
         self.module = module
-        self.function_index = function_index
         self._parameters = parameters
-        if module:
-            self.model = NXModel(module)
-        elif name in all_functions:
-            self.module = all_functions[name]
-            self.model = NXModel(self.module)
+        self.function_index = function_index
 
     def __lt__(self, other):
          return int(self.function_index) < int(other.function_index)
@@ -302,58 +218,22 @@ class Function(object):
 
     @property
     def parameters(self):
+        """List of parameters defining the function."""
         if self._parameters is None:
-            self._parameters = self.model.make_params()
+            self._parameters = [Parameter(name) 
+                                for name in self.module.parameters]
         return self._parameters
 
     def guess_parameters(self, x, y):
-        """Return a list of parameters using the function's `guess` method."""
-        self._parameters = self.model.guess(y, x)
+        """Return a list of parameters determined by the function's `guess` method."""
+        [setattr(p, 'value', g) for p,g in zip(self.parameters,
+                                               self.module.guess(x, y))]
 
     @property
     def parameter_values(self):
         """Return a list of parameter values."""
-        return [self.parameters[p].value for p in self.parameters]
+        return [p.value for p in self.parameters]
 
     def function_values(self, x):
         """Return the calculated values with the current parameters."""
-        return self.model.eval(self.parameters, x=x)
-
-
-class NXModel(Model):
-
-    def __init__(self, module, **kwargs):
-        self.module = module
-        super(NXModel, self).__init__(self.module.values,
-                                      param_names=self.module.parameters,
-                                      independent_vars=self._get_x(),
-                                      **kwargs)
-
-    def _parse_params(self):
-        if self._prefix is None:
-            self._prefix = ''
-        self._param_names = ["%s%s" % (self._prefix, p) 
-                             for p in self._param_root_names]
-        self.def_vals = {}
-
-    def _get_x(self):
-        return [key for key in inspect.signature(self.module.values).parameters 
-                if key != 'p']
-
-    def make_funcargs(self, params=None, kwargs=None, strip=True):
-        self._func_allargs = ['x'] + self._param_root_names
-        out = super(NXModel, self).make_funcargs(params=params, kwargs=kwargs, 
-                                                 strip=strip)
-        function_out = {}
-        function_out['p'] = [out[p] for p in out if p in self._param_root_names]
-        for key in out:
-            if key not in self._param_root_names:
-                function_out[key] = out[key]
-        return function_out            
-
-    def guess(self, y, x=None, **kwargs):
-        _guess = self.module.guess(x, y)
-        pars = self.make_params()
-        for i, p in enumerate(pars):
-            pars[p].value = _guess[i]
-        return pars
+        return self.module.values(x, self.parameter_values)
