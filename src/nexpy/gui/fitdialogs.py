@@ -12,26 +12,139 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 import importlib
+import inspect
 import os
+import pkg_resources
 import re
 import sys
+import types
 from collections import OrderedDict
-from inspect import getmembers, isclass
 
 import matplotlib as mpl
 import numpy as np
-import pkg_resources
 from lmfit import Model, Parameter, Parameters, models
 from nexusformat.nexus import (NeXusError, NXattr, NXdata, NXentry, NXfield,
                                NXgroup, NXnote, NXparameters, NXprocess,
                                NXroot, nxload)
 
-from ..api.frills.fit import Fit, Function, Parameter
 from .datadialogs import NXDialog
 from .plotview import NXPlotView
 from .pyqt import QtCore, QtGui, QtWidgets
 from .utils import report_error
 from .widgets import NXCheckBox, NXComboBox, NXLabel, NXLineEdit, NXPushButton
+
+
+def get_functions():
+    """Return a list of available functions and models."""
+
+    filenames = set()
+    private_path = os.path.join(os.path.expanduser('~'), '.nexpy', 'functions')
+    if os.path.isdir(private_path):
+        sys.path.append(private_path)
+        for file_ in os.listdir(private_path):
+            name, ext = os.path.splitext(file_)
+            if name != '__init__' and ext.startswith('.py'):
+                filenames.add(name)
+
+    functions_path = pkg_resources.resource_filename('nexpy.api.frills', 
+                                                     'functions')
+    sys.path.append(functions_path)
+    for file_ in os.listdir(functions_path):
+        name, ext = os.path.splitext(file_)
+        if name != '__init__' and ext.startswith('.py'):
+            filenames.add(name)
+
+    functions = {}
+    for name in sorted(filenames):
+        try:
+            module = importlib.import_module(name)
+            if hasattr(module, 'function_name'):
+                functions[module.function_name] = module
+        except ImportError:
+            pass
+
+    return functions
+
+all_functions = get_functions()
+
+def get_models():
+    """Return a list of available models."""
+
+    filenames = set()
+    private_path = os.path.join(os.path.expanduser('~'), '.nexpy', 'models')
+    if os.path.isdir(private_path):
+        sys.path.append(private_path)
+        for file_ in os.listdir(private_path):
+            name, ext = os.path.splitext(file_)
+            if name != '__init__' and ext.startswith('.py'):
+                filenames.add(name)
+
+    functions_path = pkg_resources.resource_filename('nexpy.api.frills', 
+                                                     'models')
+    sys.path.append(functions_path)
+    for file_ in os.listdir(functions_path):
+        name, ext = os.path.splitext(file_)
+        if name != '__init__' and ext.startswith('.py'):
+            filenames.add(name)
+
+    models = {}
+    for name in sorted(filenames):
+        try:
+            module = importlib.import_module(name)
+            models.update(dict((n, m) 
+                for n, m in inspect.getmembers(module, inspect.isclass) 
+                if issubclass(m, Model)))
+        except ImportError:
+            pass
+    from lmfit import models as lmfit_models
+    models.update(dict((n, m) 
+                  for n, m in inspect.getmembers(lmfit_models, inspect.isclass) 
+                  if issubclass(m, Model) and n != 'Model'))
+    if 'DonaichModel' in models:
+        del models['DonaichModel']
+
+    return models
+
+all_models = get_models()
+
+
+class NXModel(Model):
+
+    def __init__(self, module, **kwargs):
+        self.module = module
+        super(NXModel, self).__init__(self.module.values,
+                                      param_names=self.module.parameters,
+                                      independent_vars=self._get_x(),
+                                      **kwargs)
+
+    def _parse_params(self):
+        if self._prefix is None:
+            self._prefix = ''
+        self._param_names = ["%s%s" % (self._prefix, p) 
+                             for p in self._param_root_names]
+        self.def_vals = {}
+
+    def _get_x(self):
+        return [key for key in inspect.signature(self.module.values).parameters 
+                if key != 'p']
+
+    def make_funcargs(self, params=None, kwargs=None, strip=True):
+        self._func_allargs = ['x'] + self._param_root_names
+        out = super(NXModel, self).make_funcargs(params=params, kwargs=kwargs, 
+                                                 strip=strip)
+        function_out = {}
+        function_out['p'] = [out[p] for p in out if p in self._param_root_names]
+        for key in out:
+            if key not in self._param_root_names:
+                function_out[key] = out[key]
+        return function_out            
+
+    def guess(self, y, x=None, **kwargs):
+        _guess = self.module.guess(x, y)
+        pars = self.make_params()
+        for i, p in enumerate(pars):
+            pars[p].value = _guess[i]
+        return pars
 
 
 class FitDialog(NXDialog):
@@ -55,16 +168,15 @@ class FitDialog(NXDialog):
         self.fitview.canvas.mpl_connect('key_press_event', self.on_key_press)
 
         self.model = None
-        self.models = OrderedDict()
-        self.parameters = []
-
+        self.models = []
+ 
         self.first_time = True
         self.fitted = False
         self.fit = None
 
         self.initialize_models()
  
-        self.modelcombo = NXComboBox(items=sorted(self.model_list))
+        self.modelcombo = NXComboBox(items=list(self.all_models))
         add_button = NXPushButton("Add Model", self.add_model)
         model_layout = self.make_layout(self.modelcombo, add_button, 
                                         align='left')
@@ -114,16 +226,16 @@ class FitDialog(NXDialog):
                                            self.restore_parameters)
         self.action_layout = self.make_layout(fit_button, self.fit_label,
                                               'stretch', self.fit_checkbox,
-                                              self.spacer(5), self.save_button)
+                                              self.save_button,
+                                              align='left')
 
         self.bottom_layout = QtWidgets.QHBoxLayout()
         reset_button = NXPushButton('Reset Limits', self.reset_limits)
         self.bottom_layout = self.make_layout(reset_button, 'stretch',
-                                              self.close_buttons())
+                                              self.close_buttons(),
+                                              align='left')
 
-        self.layout = self.set_layout(self.spacer(5), model_layout,
-                                      self.plot_layout, self.bottom_layout)
-
+        self.set_layout(model_layout, self.plot_layout, self.bottom_layout)
         self.set_title("Fit NeXus Data")
 
         self.load_entry(entry)
@@ -150,35 +262,8 @@ class FitDialog(NXDialog):
             raise NeXusError("Must be an NXdata group")
 
     def initialize_models(self):
-        self.model_list = [m[0] for m in getmembers(models, isclass) 
-                           if m[0].endswith('Model') and m[0] != 'Model']
-
-#        filenames = set()
-#        private_path = os.path.join(os.path.expanduser('~'), '.nexpy', 
-#                                    'functions')
-#        if os.path.isdir(private_path):
-#            sys.path.append(private_path)
-#            for file_ in os.listdir(private_path):
-#                name, ext = os.path.splitext(file_)
-#                if name != '__init__' and ext.startswith('.py'):
-#                    filenames.add(name)
-#        functions_path = pkg_resources.resource_filename('nexpy.api.frills', 
-#                                                         'functions')
-#        sys.path.append(functions_path)
-
-#        for file_ in os.listdir(functions_path):
-#            name, ext = os.path.splitext(file_)
-#            if name != '__init__' and ext.startswith('.py'):
-#                filenames.add(name)
-#        for name in sorted(filenames):
-#            try:
-#                function_module = importlib.import_module(name)
-#                if hasattr(function_module, 'function_name'):
-#                    self.function_module[function_module.function_name] = \
-#                        function_module
-#            except ImportError:
-#                pass
-                
+        self.all_models = all_functions
+        self.all_models.update(all_models)
 
     def initialize_parameter_grid(self):
         grid_layout = QtWidgets.QVBoxLayout()
@@ -188,8 +273,8 @@ class FitDialog(NXDialog):
 
         self.parameter_grid = QtWidgets.QGridLayout()
         self.parameter_grid.setSpacing(5)
-        headers = ['Model', 'Np', 'Name', 'Value', '', 'Min', 'Max', 'Fixed']
-        width = [100, 50, 100, 100, 100, 100, 100, 50, 100]
+        headers = ['Model', 'Name', 'Value', '', 'Min', 'Max', 'Fixed']
+        width = [100, 100, 100, 100, 100, 100, 50, 100]
         column = 0
         for header in headers:
             label = NXLabel(header, bold=True, align='center')
@@ -219,18 +304,51 @@ class FitDialog(NXDialog):
 
     @property
     def signal(self):
-        return self.data.nxsignal.nxvalue
+        return self.data.nxsignal.nxvalue.astype(np.float64)
+
+    @property
+    def errors(self):
+        if self.data.nxerrors:
+            return self.data.nxerrors.nxvalue.astype(np.float64)
+        else:
+            return None
+
+    @property
+    def weights(self):
+        if self.errors and np.all(self.errors):
+            return 1.0 / self.errors
+        else:
+            return None
 
     @property
     def axis(self):
-        return self.data.nxaxes[0].nxvalue
+        return self.data.nxaxes[0].nxvalue.astype(np.float64)
+
+    @property
+    def parameters(self):
+        _parameters = Parameters()
+        for m in self.models:
+            _parameters += m['parameters']
+        return _parameters
+
+    @parameters.setter
+    def parameters(self, new_parameters):
+        for m in self.models:
+            for p in m['parameters']:
+                if p in new_parameters:
+                    m['parameters'][p].value = new_parameters[p].value
+                    m['parameters'][p].min = new_parameters[p].min
+                    m['parameters'][p].max = new_parameters[p].max
+                    m['parameters'][p].vary = new_parameters[p].vary
+                    m['parameters'][p].stderr = new_parameters[p].stderr
+                    m['parameters'][p].correl = new_parameters[p].correl
+        self.write_parameters()
 
     def compressed_name(self, name):
-        name = re.sub(r'([a-zA-Z]*) # (\d*) ', r'\1\2', name, count=1)
-        return name.capitalize()
+        return re.sub(r'([a-zA-Z]*) # (\d*) ', r'\1\2', name, count=1)
 
     def expanded_name(self, name):
-        return re.sub(r'([a-zA-Z]*)(\d*)', r'\1 # \2 ', name, count=1).title()
+        return re.sub(r'([a-zA-Z]*)(\d*)', r'\1 # \2 ', name, count=1)
     
     def parse_model_name(self, name):
         match = re.match(r'([a-zA-Z]*)(\d*)', name)
@@ -240,7 +358,7 @@ class FitDialog(NXDialog):
         if 'fit' in entry.entries:
             for group in entry.entries:
                 name, n = self.parse_model_name(group)
-                if name in self.model_list:
+                if name in list(self.all_models):
                     parameters = []
                     for p in module.parameters:
                         if p in entry[group].parameters.entries:
@@ -265,37 +383,41 @@ class FitDialog(NXDialog):
                     self.models.append(m)
             self.models = sorted(self.models)
             for m in self.models:
-                self.add_model_rows(m)
+                self.add_model_parameters(m)
             self.write_parameters()
+
+    def get_model_instance(self, model_class, prefix=None):
+        if isinstance(self.all_models[model_class], types.ModuleType):
+            return NXModel(self.all_models[model_class], prefix=prefix)
+        else:
+            return self.all_models[model_class](prefix=prefix)
                
     def add_model(self):
         model_class = self.modelcombo.currentText()
-        model_index = len(self.models) + 1
-        model_name = model_class.replace('Model', '') + str(model_index)
-        model = getattr(models, model_class)(prefix=model_name)
+        model_index = len(self.models)
+        model_name = model_class.replace('Model', '') + str(model_index+1)
+        model = self.get_model_instance(model_class, prefix=model_name)
         try:
-            parameters = model.guess(self.signal, x=self.axis)
+            if self.model:
+                y = self.signal - self.model.eval(self.parameters, x=self.axis)
+            else:
+                y = self.signal
+            parameters = model.guess(y, x=self.axis)
         except NotImplementedError:
             parameters = model.make_params()
-        self.models[model_name] = {'model': model, 'parameters': parameters}
-        self.index_parameters()
-        self.add_model_rows(model_name)
+        self.models.append({'name': model_name,
+                            'class': model_class,
+                            'model': model, 
+                            'parameters': parameters})
+        self.add_model_parameters(model_index)
         self.write_parameters()
         if self.model is None:
             self.model = model
         else:
             self.model = self.model + model
  
-    def index_parameters(self):
-        np = 0
-        for m in sorted(self.models):
-            parameters = self.models[m]['parameters']
-            for p in parameters:
-                np += 1
-                parameters[p].parameter_index = np
-    
-    def add_model_rows(self, model):
-        self.add_parameter_rows(model)
+    def add_model_parameters(self, model_index):
+        self.add_model_rows(model_index)
         if self.first_time:
             self.layout.insertLayout(1, self.parameter_layout)
             self.layout.insertLayout(2, self.remove_layout)
@@ -305,39 +427,72 @@ class FitDialog(NXDialog):
             self.plotcombo.insertSeparator(1)
             self.plotcombo.setVisible(True)
             self.plot_checkbox.setVisible(True)
-        self.removecombo.addItem(self.expanded_name(model))
-        self.plotcombo.addItem(self.expanded_name(model))
+        model_name = self.models[model_index]['name']
+        self.removecombo.addItem(self.expanded_name(model_name))
+        self.plotcombo.addItem(self.expanded_name(model_name))
         self.first_time = False
+
+    def add_model_rows(self, model_index): 
+        model = self.models[model_index]['model']     
+        model_name = self.models[model_index]['name']
+        parameters = self.models[model_index]['parameters']
+        first_row = row = self.parameter_grid.rowCount()
+        name = self.expanded_name(model_name)
+        label_box = NXLabel(name)
+        self.parameter_grid.addWidget(label_box, row, 0)
+        for parameter in parameters:
+            p = parameters[parameter]
+            name = p.name.replace(model_name, '')
+            if name == 'Fwhm':
+                name = 'FWHM'
+            p.value_box = NXLineEdit(align='right')
+            p.error_box = NXLabel()
+            p.min_box = NXLineEdit('-inf', align='right')
+            p.max_box = NXLineEdit('inf', align='right')
+            p.fixed_box = NXCheckBox()
+            self.parameter_grid.addWidget(NXLabel(name), row, 1)
+            self.parameter_grid.addWidget(p.value_box, row, 2)
+            self.parameter_grid.addWidget(p.error_box, row, 3)
+            self.parameter_grid.addWidget(p.min_box, row, 4)
+            self.parameter_grid.addWidget(p.max_box, row, 5)
+            self.parameter_grid.addWidget(p.fixed_box, row, 6,
+                                          alignment=QtCore.Qt.AlignHCenter)
+            row += 1
+        self.models[model_index]['row'] = first_row
+        self.models[model_index]['label_box'] = label_box
+        self.parameter_grid.setRowStretch(self.parameter_grid.rowCount(), 10)
 
     def remove_model(self):
         expanded_name = self.removecombo.currentText()
-        name = self.compressed_name(expanded_name)
-        model = [m for m in self.models if self.models[m]['model'].prefix==name]
-        for row in m.rows:
-            for column in range(8):
+        model_name = self.compressed_name(expanded_name)
+        model_index = [self.models.index(m) for m in self.models 
+                       if m['name'] == model_name][0]
+        parameters = self.models[model_index]['parameters']
+        row = self.models[model_index]['row']
+        for row in range(row, row+len(parameters)):
+            for column in range(7):
                 item = self.parameter_grid.itemAtPosition(row, column)
                 if item is not None:
                     widget = item.widget()
                     if widget is not None:
                         widget.setVisible(False)
                         self.parameter_grid.removeWidget(widget)
-                        widget.deleteLater()           
-        del self.models[name]
+                        widget.deleteLater()
+        self.models.pop(model_index)
         self.plotcombo.removeItem(self.plotcombo.findText(expanded_name))
         self.removecombo.removeItem(self.removecombo.findText(expanded_name))
-        del m
-        nm = 0
-        np = 0
-        for m in sorted(self.models):
-            nm += 1
-            name = '%s%s' % (m.module.model_name, str(nm))
-            self.rename_model(m.name, name)
-            m.name = name
-            m.label_box.setText(self.expanded_name(m.name))
-            for p in f.parameters:
-                np += 1
-                p.parameter_index = np
-                p.parameter_box.setText(str(p.parameter_index))     
+        for i, m in enumerate(self.models):
+            old_name = m['name']
+            m['name'] = m['class'].replace('Model', '') + str(i+1)
+            m['model'].prefix = m['name']
+            m['label_box'].setText(self.expanded_name(m['name']))
+            idx = self.parameter_grid.indexOf(m['label_box'])
+            m['row'] = self.parameter_grid.getItemPosition(idx)[0]
+            if i == 0:
+                self.model = m['model']
+            else:
+                self.model = self.model + m['model']
+            self.rename_model(old_name, m['name'])
 
     def rename_model(self, old_name, new_name):
         old_name, new_name = (self.expanded_name(old_name), 
@@ -347,31 +502,6 @@ class FitDialog(NXDialog):
         remove_index = self.removecombo.findText(old_name)
         self.removecombo.setItemText(remove_index, new_name)
         
-    def add_parameter_rows(self, model):      
-        row = self.parameter_grid.rowCount()
-        name = self.expanded_name(model)
-        label_box = NXLabel(name)
-        self.parameter_grid.addWidget(label_box, row, 0)
-        for p in self.models[model]['parameters']:
-            p.parameter_index = row
-            p.parameter_box = NXLabel(p.parameter_index)
-            p.value_box = NXLineEdit(right=True)
-            p.error_box = NXLabel()
-            p.min_box = NXLineEdit('-inf', align='right')
-            p.max_box = NXLineEdit('inf', align='right')
-            p.fixed_box = NXCheckBox()
-            self.parameter_grid.addWidget(p.parameter_box, row, 1,
-                                          alignment=QtCore.Qt.AlignHCenter)
-            self.parameter_grid.addWidget(QtWidgets.QLabel(p.name), row, 2)
-            self.parameter_grid.addWidget(p.value_box, row, 3)
-            self.parameter_grid.addWidget(p.error_box, row, 4)
-            self.parameter_grid.addWidget(p.min_box, row, 5)
-            self.parameter_grid.addWidget(p.max_box, row, 6)
-            self.parameter_grid.addWidget(p.fixed_box, row, 7,
-                                          alignment=QtCore.Qt.AlignHCenter)
-            row += 1
-        self.parameter_grid.setRowStretch(self.parameter_grid.rowCount(),10)
-
     def read_parameters(self):
         def make_float(value):
             try:
@@ -379,7 +509,8 @@ class FitDialog(NXDialog):
             except Exception:
                 return None
         for m in self.models:
-            for p in self.models[m]['parameters']:
+            for parameter in m['parameters']:
+                p = m['parameters'][parameter]
                 p.value = make_float(p.value_box.text())
                 p.min = make_float(p.min_box.text())
                 p.max = make_float(p.max_box.text())
@@ -395,8 +526,8 @@ class FitDialog(NXDialog):
             except TypeError:
                 box.setText(' ')
         for m in self.models:
-            for p in self.models[m]['parameters']:
-                write_value(p.parameter_box, p.parameter_index)
+            for parameter in m['parameters']:
+                p = m['parameters'][parameter]
                 write_value(p.value_box, p.value)
                 if p.vary:
                     write_value(p.error_box, p.stderr, prefix='+/-')
@@ -406,26 +537,24 @@ class FitDialog(NXDialog):
                     p.fixed_box.setCheckState(QtCore.Qt.Unchecked)
                 else:
                     p.fixed_box.setCheckState(QtCore.Qt.Checked)
+                    if p.expr:
+                        p.fixed_box.setEnabled(False)
 
-    def guess_parameters(self, new_model):
-        model = self.models['model']
-        y = self.signal
-        for m in self.models:
-            if m is new_model:
-                m.guess_parameters(fit.x, y)
-            y = y - m.module.values(fit.x, f.parameter_values)
-
-    def get_model(self, f=None):
-        self.read_parameters()
-        fit = Fit(self.data, self.functions)
+    def get_model(self, name=None):
         if self.plot_checkbox.isChecked():
-            x = fit.x
+            x = self.axis
         else:
             xmin, xmax = self.get_limits()
             x = np.linspace(xmin, xmax, 1001)
-        return NXdata(NXfield(fit.get_model(x, f), name='model'),
-                      NXfield(x, name=fit.data.nxaxes[0].nxname), 
-                      title='Fit Results')
+        model_axis = NXfield(x, name=self.data.nxaxes[0].nxname)
+        self.read_parameters()
+        if name:
+            ys = self.model.eval_components(params=self.parameters, x=x)
+            model_data = NXfield(ys[name], name=name)
+        else:
+            y = self.model.eval(self.parameters, x=x)
+            model_data = NXfield(y, name='Model')
+        return NXdata(model_data, x, title=self.data.nxtitle)
 
     def get_limits(self):
         return float(self.plot_minbox.text()), float(self.plot_maxbox.text())
@@ -440,48 +569,49 @@ class FitDialog(NXDialog):
         self.fitview.raise_()
 
     def plot_model(self):
-        plot_function = self.plotcombo.currentText()
-        if plot_function == 'All':
+        model_name = self.plotcombo.currentText()
+        if model_name == 'All':
             if self.fitted:
                 fmt = '-'
             else:
                 fmt = '--'
-            self.fitview.plot(self.get_model(), fmt=fmtz, over=True, color='C0')
+            self.fitview.plot(self.get_model(), fmt=fmt, over=True, color='C0')
             plot_key = str(len(self.fitview.plots)-1)
             if self.fitted:
                 self.fitview.plots[plot_key]['legend_label'] = 'Fit'
             else:
                 self.fitview.plots[plot_key]['legend_label'] = 'Model'
         else:
-            name = self.compressed_name(plot_function)
-            f = list(filter(lambda x: x.name == name, self.functions))[0]
-            self.fitview.plot(self.get_model(f), fmt='--', over=True)
+            name = self.compressed_name(model_name)
+            self.fitview.plot(self.get_model(name), fmt='--', over=True)
             plot_key = str(len(self.fitview.plots)-1)
             self.fitview.plots[plot_key]['legend_label'] = name
         self.fitview.raise_()
 
     def define_errors(self):
         if self.fit_checkbox.isChecked():
-            self.data.errors = np.sqrt(self.data.nxsignal)
+            self.data.nxerrors = np.sqrt(self.data.nxsignal)
 
     def fit_data(self):
         self.read_parameters()
         if self.fit_checkbox.isChecked():
-            use_errors = True
+            weights = self.weights
         else:
-            use_errors = False
+            weights = None
         try:
-            self.fit = Fit(self.data, self.functions, use_errors)
-            self.fit.fit_data()
+            self.fit = self.model.fit(self.signal, 
+                                      params=self.parameters,
+                                      weights=weights,
+                                      x=self.axis)
         except Exception as error:
             report_error("Fitting Data", error)
-        if self.fit.result.success:
+        if self.fit.success:
             self.fit_label.setText('Fit Successful Chi^2 = %s' 
                                    % self.fit.result.redchi)
         else:
             self.fit_label.setText('Fit Failed Chi^2 = %s' 
                                    % self.fit.result.redchi)
-        self.write_parameters()
+        self.parameters = self.fit.params
         if not self.fitted:
             self.action_layout.addWidget(self.report_button)
             self.action_layout.addWidget(self.restore_button)
@@ -518,10 +648,10 @@ class FitDialog(NXDialog):
         self.read_parameters()
         group = NXprocess()
         group['data'] = self.data
-        for f in self.functions:
-            group[f.name] = self.get_model(f)
+        for m in self.models:
+            group[m.name] = self.get_model(m)
             parameters = NXparameters()
-            for p in f.parameters:
+            for p in m.parameters:
                 parameters[p.name] = NXfield(p.value, error=p.stderr, 
                                              initial_value=p.init_value,
                                              min=str(p.min), max=str(p.max))
@@ -564,12 +694,8 @@ class FitDialog(NXDialog):
         self.tree['w0'][name] = group
 
     def restore_parameters(self):
-        for f in self.functions:
-            for p in f.parameters:
-                p.value = p.init_value
-                p.stderr = None
+        self.parameters = self.fit.init_params
         self.fit_label.setText(' ')
-        self.write_parameters()
 
     def on_key_press(self, event):
         if event.inaxes:
