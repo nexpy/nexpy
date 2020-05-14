@@ -100,8 +100,10 @@ def get_models():
     models.update(dict((n, m) 
                   for n, m in inspect.getmembers(lmfit_models, inspect.isclass) 
                   if issubclass(m, Model) and n != 'Model'))
-    if 'DonaichModel' in models:
-        del models['DonaichModel']
+
+    for model in ['DonaichModel', 'ExpressionModel']:
+        if model in models:
+            del models[model]
 
     return models
 
@@ -390,7 +392,10 @@ class FitDialog(NXDialog):
         if isinstance(self.all_models[model_class], types.ModuleType):
             return NXModel(self.all_models[model_class], prefix=prefix)
         else:
-            return self.all_models[model_class](prefix=prefix)
+            if model_class == 'PolynomialModel':
+                return self.all_models[model_class](7, prefix=prefix)
+            else:
+                return self.all_models[model_class](prefix=prefix)
                
     def add_model(self):
         model_class = self.modelcombo.currentText()
