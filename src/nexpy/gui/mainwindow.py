@@ -1830,7 +1830,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 if not group.data.is_plottable():
                     raise NeXusError("NeXus item not plottable")
             elif isinstance(node, NXdata):
-                group = NXentry(data=node, title=node.nxtitle)
+                group = NXentry(data=node, title=node.nxroot.nxname+node.nxpath)
             else:
                 raise NeXusError("Select an NXdata group")
             if len(group.data.shape) == 1:
