@@ -380,26 +380,31 @@ class FitDialog(NXDialog):
                     'model' in entry[group]['parameters'].attrs):
                     model_class = entry[group]['parameters'].attrs['model']
                 else:
-                    model_class, model_index = self.parse_model_name(model_name)                
-                if model_class in list(self.all_models):
+                    model_class, model_index = self.parse_model_name(model_name)
+                    if (model_class not in self.all_models and 
+                        model_class+'Model' in self.all_models):
+                        model_class = model_class + 'Model'          
+                if model_class in self.all_models:
                     model = self.get_model_instance(model_class, model_name)
                     parameters = model.make_params()
+                    saved_parameters = entry[group]['parameters']
                     for mp in parameters:
                         p = mp.replace(model_name, '')
-                        if p in entry[group].parameters.entries:
+                        p = self.convert_parameter_name(p, saved_parameters)
+                        if p in saved_parameters:
                             parameter = parameters[mp]
-                            parameter.value = entry[group].parameters[p].nxvalue
+                            parameter.value = saved_parameters[p].nxvalue
                             parameter.min = float(
-                                entry[group].parameters[p].attrs['min'])
+                                saved_parameters[p].attrs['min'])
                             parameter.max = float(
-                                entry[group].parameters[p].attrs['max'])
-                            if 'error' in entry[group].parameters[p].attrs:
-                                error = entry[group].parameters[p].attrs[
-                                            'error']
+                                saved_parameters[p].attrs['max'])
+                            if parameter.expr:
+                                parameter.vary = False
+                            elif 'error' in saved_parameters[p].attrs:
+                                error = saved_parameters[p].attrs['error']
                                 if error:
                                     parameter.stderr = float(
-                                        entry[group].parameters[p].attrs[
-                                            'error'])
+                                        saved_parameters[p].attrs['error'])
                                     parameter.vary = True
                                 else:
                                     parameter.vary = False
@@ -417,6 +422,24 @@ class FitDialog(NXDialog):
                     self.model += model['model']
                 self.add_model_parameters(model_index)
             self.write_parameters()
+
+    def convert_parameter_name(self, parameter, saved_parameters):
+        if parameter in saved_parameters:
+            return parameter
+        elif parameter == 'amplitude' and 'Integral' in saved_parameters:
+            return 'Integral'
+        elif parameter == 'center' and 'Center' in saved_parameters:
+            return 'Center'
+        elif parameter == 'sigma' and 'Gamma' in saved_parameters:
+            return 'Gamma'
+        elif parameter == 'sigma' and 'Sigma' in saved_parameters:
+            return 'Sigma'
+        elif parameter == 'slope' and 'Slope' in saved_parameters:
+            return 'Slope'
+        elif parameter == 'intercept' and 'Constant' in saved_parameters:
+            return 'Constant'
+        else:
+            return ''
 
     def get_model_instance(self, model_class, prefix=None):
         if isinstance(self.all_models[model_class], types.ModuleType):
@@ -568,9 +591,9 @@ class FitDialog(NXDialog):
         def write_value(box, value, prefix=None):
             try:
                 if prefix:
-                    box.setText('%s %.6g' % (prefix, value))
+                    box.setText(prefix + ' ' + format_float(value))
                 else:
-                    box.setText('%.6g' % value)
+                    box.setText(format_float(value))
             except TypeError:
                 box.setText(' ')
         for m in self.models:
