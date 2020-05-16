@@ -201,11 +201,11 @@ class FitDialog(NXDialog):
         plot_label = NXLabel('X:')
         self.plot_min = self.fitview.xaxis.min
         self.plot_max = self.fitview.xaxis.max 
-        self.plot_minbox = NXLineEdit(str(self.plot_min), align='right',
-                                      width=100)
+        self.plot_minbox = NXLineEdit(format_float(self.plot_min), 
+                                      align='right', width=100)
         plot_tolabel = NXLabel(' to ')
-        self.plot_maxbox = NXLineEdit(str(self.plot_max), align='right',
-                                      width=100)
+        self.plot_maxbox = NXLineEdit(format_float(self.plot_max), 
+                                      align='right', width=100)
         self.plot_checkbox = NXCheckBox('Use Data Points')
         self.plot_checkbox.setVisible(False)
         self.plot_layout = self.make_layout(plot_data_button, 
@@ -516,7 +516,7 @@ class FitDialog(NXDialog):
         for p in _parameters:
             old_p = p.replace(model['name'], old_name)
             _parameters[p].box = model['parameters'][old_p].box
-            _parameters[p].box['error'].setText()
+            _parameters[p].box['error'].setText('')
         return _parameters
 
     def rename_model(self, old_name, new_name):
@@ -585,8 +585,8 @@ class FitDialog(NXDialog):
         return float(self.plot_minbox.text()), float(self.plot_maxbox.text())
 
     def reset_limits(self):
-        self.plot_minbox.setText(str(self.plot_min))
-        self.plot_maxbox.setText(str(self.plot_max))
+        self.plot_minbox.setText(format_float(self.plot_min))
+        self.plot_maxbox.setText(format_float(self.plot_max))
 
     def plot_data(self):
         self.fitview.plot(self.data, fmt='o')
@@ -724,9 +724,9 @@ class FitDialog(NXDialog):
     def on_key_press(self, event):
         if event.inaxes:
             if event.key == 'l':
-                self.plot_minbox.setText('%g' % event.xdata)
+                self.plot_minbox.setText(format_float(event.xdata))
             elif event.key == 'r':
-                self.plot_maxbox.setText('%g' % event.xdata)
+                self.plot_maxbox.setText(format_float(event.xdata))
    
     def accept(self):
         if 'Fit' in self.plotviews:
