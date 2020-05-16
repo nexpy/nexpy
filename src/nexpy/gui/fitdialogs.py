@@ -31,8 +31,9 @@ from nexusformat.nexus import (NeXusError, NXattr, NXdata, NXentry, NXfield,
 from .datadialogs import NXDialog
 from .plotview import NXPlotView
 from .pyqt import QtCore, QtGui, QtWidgets
-from .utils import report_error
-from .widgets import NXCheckBox, NXComboBox, NXLabel, NXLineEdit, NXPushButton
+from .utils import report_error, format_float
+from .widgets import (NXCheckBox, NXComboBox, NXLabel, NXLineEdit, 
+                      NXMessageBox, NXPushButton)
 
 
 def get_functions():
@@ -643,8 +644,6 @@ class FitDialog(NXDialog):
         self.fitted = True
 
     def report_fit(self):
-        message_box = QtWidgets.QMessageBox()
-        message_box.setText("Fit Results")
         if self.fit.result.errorbars:
             errors = 'Uncertainties estimated'
         else:
@@ -658,7 +657,7 @@ class FitDialog(NXDialog):
                 'No. of Data Points = %s\n' % self.fit.result.ndata +
                 'No. of Degrees of Freedom = %s\n' % self.fit.result.nfree +
                 '%s' % self.fit.fit_report())
-        message_box.setInformativeText(text)
+        message_box = NXMessageBox('Fit Results', text, parent=self)
         message_box.setStandardButtons(QtWidgets.QMessageBox.Ok)
         spacer = QtWidgets.QSpacerItem(500, 0, 
                                    QtWidgets.QSizePolicy.Minimum, 

@@ -226,6 +226,22 @@ class NXTextBox(NXLineEdit):
         self.setText(six.text_type(float('%.4g' % value)))
 
 
+class NXMessageBox(QtWidgets.QMessageBox):
+    """A scrollable message box"""
+
+    def __init__(self, title, text, *args, **kwargs):
+        super(NXMessageBox, self).__init__(*args, **kwargs)
+        scroll = NXScrollArea(parent=self)
+        self.content = QtWidgets.QWidget()
+        scroll.setWidget(self.content)
+        scroll.setWidgetResizable(True)
+        layout = QtWidgets.QVBoxLayout(self.content)
+        layout.addWidget(NXLabel(title, bold=True))
+        layout.addWidget(NXLabel(text, self))
+        self.layout().addWidget(scroll, 0, 0, 1, self.layout().columnCount())
+        self.setStyleSheet("QScrollArea{min-width:300 px; min-height: 400px}")
+
+
 class NXComboBox(QtWidgets.QComboBox):
     """Dropdown menu for selecting a set of options."""
 
