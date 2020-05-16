@@ -23,6 +23,7 @@ from collections import OrderedDict
 import matplotlib as mpl
 import numpy as np
 from lmfit import Model, Parameter, Parameters, models
+from lmfit import __version__ as lmfit_version
 from nexusformat.nexus import (NeXusError, NXattr, NXdata, NXentry, NXfield,
                                NXgroup, NXnote, NXparameters, NXprocess,
                                NXroot, nxload)
@@ -196,12 +197,14 @@ class FitDialog(NXDialog):
         self.plot_model_button.setVisible(False)
         self.plotcombo = NXComboBox()
         self.plotcombo.setVisible(False)
-        plot_label = NXLabel('X-axis:')
+        plot_label = NXLabel('X:')
         self.plot_min = self.fitview.xaxis.min
         self.plot_max = self.fitview.xaxis.max 
-        self.plot_minbox = NXLineEdit(str(self.plot_min), align='right')
+        self.plot_minbox = NXLineEdit(str(self.plot_min), align='right',
+                                      width=100)
         plot_tolabel = NXLabel(' to ')
-        self.plot_maxbox = NXLineEdit(str(self.plot_max), align='right')
+        self.plot_maxbox = NXLineEdit(str(self.plot_max), align='right',
+                                      width=100)
         self.plot_checkbox = NXCheckBox('Use Data Points')
         self.plot_checkbox.setVisible(False)
         self.plot_layout = self.make_layout(plot_data_button, 
@@ -235,7 +238,7 @@ class FitDialog(NXDialog):
         reset_button = NXPushButton('Reset Limits', self.reset_limits)
         self.bottom_layout = self.make_layout(reset_button, 'stretch',
                                               self.close_buttons(),
-                                              align='left')
+                                              align='justified')
 
         self.set_layout(model_layout, self.plot_layout, self.bottom_layout)
         self.set_title("Fit NeXus Data")
@@ -284,7 +287,10 @@ class FitDialog(NXDialog):
             self.parameter_grid.setColumnMinimumWidth(column, width[column])
             column += 1
 
-        scroll_widget.setLayout(self.parameter_grid)
+        scroll_layout = QtWidgets.QVBoxLayout()
+        scroll_layout.addLayout(self.parameter_grid)
+        scroll_layout.addStretch()
+        scroll_widget.setLayout(scroll_layout)
         scroll_area.setWidget(scroll_widget)
         scroll_area.setMinimumHeight(200)
         
@@ -450,22 +456,22 @@ class FitDialog(NXDialog):
             name = p.name.replace(model_name, '')
             if name == 'Fwhm':
                 name = 'FWHM'
-            p.value_box = NXLineEdit(align='right')
-            p.error_box = NXLabel()
-            p.min_box = NXLineEdit('-inf', align='right')
-            p.max_box = NXLineEdit('inf', align='right')
-            p.fixed_box = NXCheckBox()
+            p.box = {}
+            p.box['value'] = NXLineEdit(align='right')
+            p.box['error'] = NXLabel()
+            p.box['min'] = NXLineEdit('-inf', align='right')
+            p.box['max'] = NXLineEdit('inf', align='right')
+            p.box['fixed'] = NXCheckBox()
             self.parameter_grid.addWidget(NXLabel(name), row, 1)
-            self.parameter_grid.addWidget(p.value_box, row, 2)
-            self.parameter_grid.addWidget(p.error_box, row, 3)
-            self.parameter_grid.addWidget(p.min_box, row, 4)
-            self.parameter_grid.addWidget(p.max_box, row, 5)
-            self.parameter_grid.addWidget(p.fixed_box, row, 6,
+            self.parameter_grid.addWidget(p.box['value'], row, 2)
+            self.parameter_grid.addWidget(p.box['error'], row, 3)
+            self.parameter_grid.addWidget(p.box['min'], row, 4)
+            self.parameter_grid.addWidget(p.box['max'], row, 5)
+            self.parameter_grid.addWidget(p.box['fixed'], row, 6,
                                           alignment=QtCore.Qt.AlignHCenter)
             row += 1
         self.models[model_index]['row'] = first_row
         self.models[model_index]['label_box'] = label_box
-        self.parameter_grid.setRowStretch(self.parameter_grid.rowCount(), 10)
 
     def remove_model(self):
         expanded_name = self.removecombo.currentText()
@@ -486,18 +492,31 @@ class FitDialog(NXDialog):
         self.models.pop(model_index)
         self.plotcombo.removeItem(self.plotcombo.findText(expanded_name))
         self.removecombo.removeItem(self.removecombo.findText(expanded_name))
+        self.model = None
         for i, m in enumerate(self.models):
             old_name = m['name']
             m['name'] = m['class'].replace('Model', '') + str(i+1)
             m['model'].prefix = m['name']
+            m['parameters'] = self.rename_parameters(m, old_name)
             m['label_box'].setText(self.expanded_name(m['name']))
             idx = self.parameter_grid.indexOf(m['label_box'])
             m['row'] = self.parameter_grid.getItemPosition(idx)[0]
             if i == 0:
                 self.model = m['model']
             else:
-                self.model = self.model + m['model']
+                self.model +=  m['model']
             self.rename_model(old_name, m['name'])
+
+    def rename_parameters(self, model, old_name):
+        for p in model['parameters']:
+            model['parameters'][p].name = model['parameters'][p].name.replace(
+                old_name, model['name'])
+        _parameters = model['parameters'].copy()
+        for p in _parameters:
+            old_p = p.replace(model['name'], old_name)
+            _parameters[p].box = model['parameters'][old_p].box
+            _parameters[p].box['error'].setText()
+        return _parameters
 
     def rename_model(self, old_name, new_name):
         old_name, new_name = (self.expanded_name(old_name), 
@@ -516,10 +535,10 @@ class FitDialog(NXDialog):
         for m in self.models:
             for parameter in m['parameters']:
                 p = m['parameters'][parameter]
-                p.value = make_float(p.value_box.text())
-                p.min = make_float(p.min_box.text())
-                p.max = make_float(p.max_box.text())
-                p.vary = not p.fixed_box.checkState()
+                p.value = make_float(p.box['value'].text())
+                p.min = make_float(p.box['min'].text())
+                p.max = make_float(p.box['max'].text())
+                p.vary = not p.box['fixed'].checkState()
 
     def write_parameters(self):
         def write_value(box, value, prefix=None):
@@ -533,17 +552,17 @@ class FitDialog(NXDialog):
         for m in self.models:
             for parameter in m['parameters']:
                 p = m['parameters'][parameter]
-                write_value(p.value_box, p.value)
+                write_value(p.box['value'], p.value)
                 if p.vary:
-                    write_value(p.error_box, p.stderr, prefix='+/-')
-                write_value(p.min_box, p.min)
-                write_value(p.max_box, p.max)
+                    write_value(p.box['error'], p.stderr, prefix='+/-')
+                write_value(p.box['min'], p.min)
+                write_value(p.box['max'], p.max)
                 if p.vary:
-                    p.fixed_box.setCheckState(QtCore.Qt.Unchecked)
+                    p.box['fixed'].setCheckState(QtCore.Qt.Unchecked)
                 else:
-                    p.fixed_box.setCheckState(QtCore.Qt.Checked)
+                    p.box['fixed'].setCheckState(QtCore.Qt.Checked)
                     if p.expr:
-                        p.fixed_box.setEnabled(False)
+                        p.box['fixed'].setEnabled(False)
 
     def get_model(self, name=None):
         if self.plot_checkbox.isChecked():
@@ -559,7 +578,7 @@ class FitDialog(NXDialog):
         else:
             y = self.model.eval(self.parameters, x=x)
             model_data = NXfield(y, name='Model')
-        return NXdata(model_data, x, title=self.data.nxtitle)
+        return NXdata(model_data, model_axis, title=self.data.nxtitle)
 
     def get_limits(self):
         return float(self.plot_minbox.text()), float(self.plot_maxbox.text())
@@ -610,7 +629,7 @@ class FitDialog(NXDialog):
                                       x=self.axis)
         except Exception as error:
             report_error("Fitting Data", error)
-        if self.fit.success:
+        if self.fit and self.fit.success:
             self.fit_label.setText('Fit Successful Chi^2 = %s' 
                                    % self.fit.result.redchi)
         else:
@@ -654,16 +673,17 @@ class FitDialog(NXDialog):
         group = NXprocess()
         group['data'] = self.data
         for m in self.models:
-            group[m.name] = self.get_model(m)
+            group[m['name']] = self.get_model(m['name'])
             parameters = NXparameters()
-            for p in m.parameters:
-                parameters[p.name] = NXfield(p.value, error=p.stderr, 
-                                             initial_value=p.init_value,
-                                             min=str(p.min), max=str(p.max))
-            group[f.name].insert(parameters)
+            for n,p in m['parameters'].items():
+                n = n.replace(m['name'], '')
+                parameters[n] = NXfield(p.value, error=p.stderr, 
+                                        initial_value=p.init_value,
+                                        min=str(p.min), max=str(p.max))
+            group[m['name']].insert(parameters)
         if self.fit is not None:
             group['program'] = 'lmfit'
-            group['version'] = lmfit.__version__
+            group['version'] = lmfit_version
             group['title'] = 'Fit Results'
             group['fit'] = self.get_model()
             fit = NXparameters()
