@@ -639,10 +639,10 @@ class FitDialog(NXDialog):
             report_error("Fitting Data", error)
         if self.fit and self.fit.success:
             self.fit_label.setText('Fit Successful Chi^2 = %s' 
-                                   % self.fit.result.redchi)
+                                   % format_float(self.fit.result.redchi))
         else:
             self.fit_label.setText('Fit Failed Chi^2 = %s' 
-                                   % self.fit.result.redchi)
+                                   % format_float(self.fit.result.redchi))
         self.parameters = self.fit.params
         if not self.fitted:
             self.report_button.setVisible(True)
