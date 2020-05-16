@@ -1825,7 +1825,7 @@ class MainWindow(QtWidgets.QMainWindow):
             if node is None:
                 return
             elif ((isinstance(node, NXentry) or isinstance(node, NXprocess)) and 
-                  node.nxtitle == 'Fit Results'):
+                  node.nxtitle.startswith('Fit')):
                 group = node
                 if not group.data.is_plottable():
                     raise NeXusError("NeXus item not plottable")

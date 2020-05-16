@@ -371,14 +371,23 @@ class FitDialog(NXDialog):
         return match.group(1), match.group(2)
 
     def load_entry(self, entry):
-        if 'fit' in entry.entries:
+        self.model = None
+        self.models = []
+        if 'fit' in entry.entries or 'model' in entry.entries:
             for group in entry.entries:
-                name, n = self.parse_model_name(group)
-                if name in list(self.all_models):
-                    parameters = []
-                    for p in module.parameters:
+                model_name = group
+                if ('parameters' in entry[group] and 
+                    'model' in entry[group]['parameters'].attrs):
+                    model_class = entry[group]['parameters'].attrs['model']
+                else:
+                    model_class, model_index = self.parse_model_name(model_name)                
+                if model_class in list(self.all_models):
+                    model = self.get_model_instance(model_class, model_name)
+                    parameters = model.make_params()
+                    for mp in parameters:
+                        p = mp.replace(model_name, '')
                         if p in entry[group].parameters.entries:
-                            parameter = Parameter(p)
+                            parameter = parameters[mp]
                             parameter.value = entry[group].parameters[p].nxvalue
                             parameter.min = float(
                                 entry[group].parameters[p].attrs['min'])
@@ -387,19 +396,26 @@ class FitDialog(NXDialog):
                             if 'error' in entry[group].parameters[p].attrs:
                                 error = entry[group].parameters[p].attrs[
                                             'error']
-                                if error > 0:
+                                if error:
                                     parameter.stderr = float(
                                         entry[group].parameters[p].attrs[
                                             'error'])
                                     parameter.vary = True
                                 else:
                                     parameter.vary = False
-                            parameters.append(parameter)
-                    m = Model(group, module, parameters, int(n))
-                    self.models.append(m)
-            self.models = sorted(self.models)
-            for m in self.models:
-                self.add_model_parameters(m)
+                    self.models.append({'name': model_name,
+                                        'class': model_class,
+                                        'model': model, 
+                                        'parameters': parameters})
+            def idx(model):
+                return int(re.match('.*?([0-9]+)$', model['name']).group(1))
+            self.models = sorted(self.models, key=idx)
+            for model_index, model in enumerate(self.models):
+                if model_index == 0:
+                    self.model = model['model']
+                else:
+                    self.model += model['model']
+                self.add_model_parameters(model_index)
             self.write_parameters()
 
     def get_model_instance(self, model_class, prefix=None):
@@ -680,7 +696,7 @@ class FitDialog(NXDialog):
         group['data'] = self.data
         for m in self.models:
             group[m['name']] = self.get_model(m['name'])
-            parameters = NXparameters()
+            parameters = NXparameters(attrs={'model':m['class']})
             for n,p in m['parameters'].items():
                 n = n.replace(m['name'], '')
                 parameters[n] = NXfield(p.value, error=p.stderr, 
