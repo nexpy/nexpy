@@ -154,9 +154,9 @@ class NXModel(Model):
 class FitDialog(NXDialog):
     """Dialog to fit one-dimensional NeXus data"""
  
-    def __init__(self, entry):
+    def __init__(self, entry, parent=None):
 
-        super(FitDialog, self).__init__()
+        super(FitDialog, self).__init__(parent=parent)
         self.setMinimumWidth(850)        
  
         self._data = self.initialize_data(entry.data)
@@ -760,8 +760,3 @@ class FitDialog(NXDialog):
         if 'Fit' in self.plotviews:
             self.fitview.close()
         super(FitDialog, self).reject()
-
-    def closeEvent(self, event):
-        if 'Fit' in self.plotviews:
-            self.fitview.close()
-        event.accept()

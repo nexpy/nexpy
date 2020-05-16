@@ -1834,7 +1834,7 @@ class MainWindow(QtWidgets.QMainWindow):
             else:
                 raise NeXusError("Select an NXdata group")
             if len(group.data.shape) == 1:
-                self.fitdialog = FitDialog(group)
+                self.fitdialog = FitDialog(group, parent=self)
                 self.fitdialog.show()
                 logging.info("Fitting invoked on'%s'" % node.nxpath)
             else:
