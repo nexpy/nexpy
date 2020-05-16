@@ -211,33 +211,40 @@ class FitDialog(NXDialog):
         self.plot_layout = self.make_layout(plot_data_button, 
                                             self.plot_model_button,
                                             self.plotcombo, 
-                                            self.spacer(5),
+                                            self.plot_checkbox,
+                                            'stretch',
                                             plot_label,
                                             self.plot_minbox,
                                             plot_tolabel,
                                             self.plot_maxbox,
-                                            self.plot_checkbox,
-                                            align='left')
+                                            align='justified')
 
         fit_button = NXPushButton('Fit', self.fit_data)
-        self.fit_label = NXLabel()
+        self.fit_label = NXLabel(width=300)
         if self._data.nxerrors:
             self.fit_checkbox = NXCheckBox('Use Errors', checked=True)
         else:
             self.fit_checkbox = NXCheckBox('Use Poisson Errors', 
                                            self.define_errors)
         self.report_button = NXPushButton("Show Fit Report", self.report_fit)
+        self.report_button.setVisible(False)
         self.save_button = NXPushButton("Save Parameters", self.save_fit)
         self.restore_button = NXPushButton("Restore Parameters", 
                                            self.restore_parameters)
-        self.action_layout = self.make_layout(fit_button, self.fit_label,
-                                              'stretch', self.fit_checkbox,
+        self.restore_button.setVisible(False)
+        reset_button = NXPushButton('Reset Limits', self.reset_limits)
+        self.action_layout = self.make_layout(fit_button, 
+                                              self.fit_checkbox,
+                                              self.fit_label,
+                                              'stretch',
+                                              self.report_button,
                                               self.save_button,
-                                              align='left')
+                                              align='justified')
 
         self.bottom_layout = QtWidgets.QHBoxLayout()
-        reset_button = NXPushButton('Reset Limits', self.reset_limits)
-        self.bottom_layout = self.make_layout(reset_button, 'stretch',
+        self.bottom_layout = self.make_layout(reset_button, 
+                                              self.restore_button,
+                                              'stretch',
                                               self.close_buttons(),
                                               align='justified')
 
@@ -638,8 +645,8 @@ class FitDialog(NXDialog):
                                    % self.fit.result.redchi)
         self.parameters = self.fit.params
         if not self.fitted:
-            self.action_layout.addWidget(self.report_button)
-            self.action_layout.addWidget(self.restore_button)
+            self.report_button.setVisible(True)
+            self.restore_button.setVisible(True)
             self.save_button.setText('Save Fit')
         self.fitted = True
 
