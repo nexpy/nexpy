@@ -403,7 +403,8 @@ class NXTreeView(QtWidgets.QTreeView):
                     self.mainwindow.signal_action.setEnabled(True)
             try:
                 if ((isinstance(node, NXdata) and node.plot_rank == 1) or
-                    (isinstance(node, NXgroup) and 'fit' in node)):
+                    (isinstance(node, NXgroup) and 
+                    ('fit' in node or 'model' in node))):
                     self.mainwindow.fit_action.setEnabled(True)
             except Exception as error:
                 pass

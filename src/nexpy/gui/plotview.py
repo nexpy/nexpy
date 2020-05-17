@@ -95,7 +95,7 @@ try:
 except ImportError:
     pass
 linestyles = {'-': 'Solid', '--': 'Dashed', '-.': 'DashDot', ':': 'Dotted',
-              'None': 'None'}
+              'steps-mid': 'Steps', 'None': 'None'}
 markers = {'.': 'point', ',': 'pixel', '+': 'plus', 'x': 'x', 
            'o': 'circle', 's': 'square', 'D': 'diamond', 'H': 'hexagon', 
            'v': 'triangle_down', '^': 'triangle_up', '<': 'triangle_left', 
@@ -1341,6 +1341,8 @@ class NXPlotView(QtWidgets.QDialog):
                 xs = np.linspace(max(xs_min, p['x'].min()), 
                                  min(xs_max, p['x'].max()), 1000)
                 if p['linestyle'] == 'None':
+                    p['smooth_linestyle'] = '-'
+                elif p['linestyle'].startswith('steps'):
                     p['smooth_linestyle'] = '-'
                 else:
                     p['smooth_linestyle'] = p['linestyle']
@@ -2651,7 +2653,7 @@ class NXPlotTab(QtWidgets.QWidget):
             self.maxbox = NXSpinBox(self.read_maxbox)
             self.lockbox = NXCheckBox("Lock", self.change_lock)
             self.lockbox.setChecked(True)
-            self.scalebox = NXCheckBox("Autoscale", self.plotview.replot_image)
+            self.scalebox = NXCheckBox("Autoscale", self.change_scale)
             self.scalebox.setChecked(True)
             self.init_toolbar()
             widgets.append(self.minbox)
@@ -3068,6 +3070,10 @@ class NXPlotTab(QtWidgets.QWidget):
 
     def change_lock(self):
         self._set_locked(self.locked)
+
+    def change_scale(self):
+        if self.scalebox.isChecked():
+            self.plotview.replot_image()
 
     def _flipped(self):
         try:

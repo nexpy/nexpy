@@ -1825,16 +1825,16 @@ class MainWindow(QtWidgets.QMainWindow):
             if node is None:
                 return
             elif ((isinstance(node, NXentry) or isinstance(node, NXprocess)) and 
-                  node.nxtitle == 'Fit Results'):
+                  node.nxtitle.startswith('Fit')):
                 group = node
                 if not group.data.is_plottable():
                     raise NeXusError("NeXus item not plottable")
             elif isinstance(node, NXdata):
-                group = NXentry(data=node, title=node.nxtitle)
+                group = NXentry(data=node, title=node.nxroot.nxname+node.nxpath)
             else:
                 raise NeXusError("Select an NXdata group")
-            if len(group.data.nxsignal.shape) == 1:
-                self.fitdialog = FitDialog(group)
+            if len(group.data.shape) == 1:
+                self.fitdialog = FitDialog(group, parent=self)
                 self.fitdialog.show()
                 logging.info("Fitting invoked on'%s'" % node.nxpath)
             else:

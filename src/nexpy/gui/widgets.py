@@ -22,6 +22,9 @@ from .utils import (report_error, boundaries, get_color, format_float,
 
 warnings.filterwarnings("ignore", category=cbook.mplDeprecation)
 
+bold_font = QtGui.QFont()
+bold_font.setBold(True)
+
 
 class NXStack(QtWidgets.QWidget):
     """Widget containing a stack of widgets selected by a dropdown menu.
@@ -107,6 +110,37 @@ class NXLabel(QtWidgets.QLabel):
     after any programmatic changes.
     """
 
+    def __init__(self, text=None, parent=None, bold=False, width=None, 
+                 align='left'):
+        """Initialize the edit window and optionally set the alignment
+        
+        Parameters
+        ----------
+        text : str, optional
+            The default text.
+        parent : QWidget
+            Parent of the NXLineEdit box.
+        bold : bool, optional
+            True if the label text is bold, default False.
+        width : int, optional
+            Fixed width of label.
+        align : 'left', 'center', 'right'
+            Alignment of text.
+        """
+        super(NXLabel, self).__init__(parent=parent)
+        if text:
+            self.setText(text)
+        if bold:
+            self.setFont(bold_font)
+        if width:
+            self.setFixedWidth(width)
+        if align == 'left':
+            self.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
+        elif align == 'center':
+            self.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)            
+        elif align == 'right':
+            self.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
+
     def setText(self, text):
         """Function to set the text in the box.
 
@@ -115,7 +149,7 @@ class NXLabel(QtWidgets.QLabel):
         text : str
             Text to replace the text box contents.
         """
-        super(NXLabel, self).setText(text)
+        super(NXLabel, self).setText(str(text))
         self.repaint()
 
 
@@ -127,6 +161,35 @@ class NXLineEdit(QtWidgets.QLineEdit):
     after any programmatic changes.
     """
 
+    def __init__(self, text=None, parent=None, slot=None, width=None, 
+                 align='left'):
+        """Initialize the edit window and optionally set the alignment
+        
+        Parameters
+        ----------
+        text : str, optional
+            The default text.
+        parent : QWidget
+            Parent of the NXLineEdit box.
+        slot: func, optional
+            Slot to be used for editingFinished signals.
+        right : bool, optional
+            If True, make the box text right-aligned.        
+        """
+        super(NXLineEdit, self).__init__(parent=parent)
+        if slot:
+            self.editingFinished.connect(slot)
+        if text:
+            self.setText(text)
+        if width:
+            self.setFixedWidth(width)
+        if align == 'left':
+            self.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
+        elif align == 'center':
+            self.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)            
+        elif align == 'right':
+            self.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
+
     def setText(self, text):
         """Function to set the text in the box.
 
@@ -135,7 +198,7 @@ class NXLineEdit(QtWidgets.QLineEdit):
         text : str
             Text to replace the text box contents.        
         """
-        super(NXLineEdit, self).setText(text)
+        super(NXLineEdit, self).setText(str(text))
         self.repaint()
 
 
@@ -161,6 +224,22 @@ class NXTextBox(NXLineEdit):
             Text box value to be formatted as a float        
         """
         self.setText(six.text_type(float('%.4g' % value)))
+
+
+class NXMessageBox(QtWidgets.QMessageBox):
+    """A scrollable message box"""
+
+    def __init__(self, title, text, *args, **kwargs):
+        super(NXMessageBox, self).__init__(*args, **kwargs)
+        scroll = NXScrollArea(parent=self)
+        self.content = QtWidgets.QWidget()
+        scroll.setWidget(self.content)
+        scroll.setWidgetResizable(True)
+        layout = QtWidgets.QVBoxLayout(self.content)
+        layout.addWidget(NXLabel(title, bold=True))
+        layout.addWidget(NXLabel(text, self))
+        self.layout().addWidget(scroll, 0, 0, 1, self.layout().columnCount())
+        self.setStyleSheet("QScrollArea{min-width:300 px; min-height: 400px}")
 
 
 class NXComboBox(QtWidgets.QComboBox):
@@ -355,7 +434,9 @@ class NXColorButton(QtWidgets.QPushButton):
 
     def __init__(self, parent=None):
         super(NXColorButton, self).__init__(parent)
-        self.setFixedSize(20, 20)
+        self.setStyleSheet("width:18px; height:18px; "
+                           "margin: 0px; border: 0px; padding: 0px;"
+                           "background-color: white")
         self.setIconSize(QtCore.QSize(12, 12))
         self.clicked.connect(self.choose_color)
         self._color = QtGui.QColor()
@@ -417,8 +498,9 @@ class NXColorBox(QtWidgets.QWidget):
         self.layout = QtWidgets.QHBoxLayout()
         self.layout.setContentsMargins(0, 0, 0, 0)
         self.textbox = NXLineEdit(colors.to_hex(color.getRgbF(),
-                                  keep_alpha=True), parent)
-        self.textbox.editingFinished.connect(self.update_color)
+                                                keep_alpha=True), 
+                                  parent=parent, slot=self.update_color, 
+                                  align='right')
         self.layout.addWidget(self.textbox)
         self.button = NXColorButton(parent)
         self.button.color = color
@@ -853,7 +935,7 @@ class NXcircle(NXpatch):
     def __init__(self, x, y, r, border_tol=0.1, resize=True, plotview=None, 
                  **opts):
         x, y, r = float(x), float(y), float(r)
-        shape = Ellipse((x,y), r, r, **opts)
+        shape = Ellipse((x,y), 2*r, 2*r, **opts)
         if 'linewidth' not in opts:
             shape.set_linewidth(1.0)
         if 'facecolor' not in opts:

@@ -85,30 +85,41 @@ class NXWidget(QtWidgets.QWidget):
             parent = self.mainwindow
         self.accepted = False
 
-    def set_layout(self, *items):
+    def set_layout(self, *items, **opts):
         self.layout = QtWidgets.QVBoxLayout()
         for item in items:
             if isinstance(item, QtWidgets.QLayout):
                 self.layout.addLayout(item)
             elif isinstance(item, QtWidgets.QWidget):
                 self.layout.addWidget(item)
+            elif item == 'stretch':
+                self.layout.addStretch()
+        spacing = opts.pop('spacing', 10)
+        self.layout.setSpacing(spacing)
         self.setLayout(self.layout)
+        return self.layout
 
     def make_layout(self, *items, **opts):
-        if 'vertical' in opts and opts['vertical'] == True:
-            vertical = True
+        vertical = opts.pop('vertical', False)
+        align = opts.pop('align', 'center')
+        spacing = opts.pop('spacing', 20)
+        if vertical:
             layout = QtWidgets.QVBoxLayout()
         else:
-            vertical = False
             layout = QtWidgets.QHBoxLayout()
-            layout.addStretch()
+            if align == 'center' or align == 'right':
+                layout.addStretch()
         for item in items:
             if isinstance(item, QtWidgets.QLayout):
                 layout.addLayout(item)
             elif isinstance(item, QtWidgets.QWidget):
                 layout.addWidget(item)
-            if not vertical:
+            elif item == 'stretch':
                 layout.addStretch()
+        if not vertical:
+            if align == 'center' or align == 'left':
+                layout.addStretch()
+        layout.setSpacing(spacing)
         return layout
 
     def add_layout(self, *items, stretch=False):
@@ -193,9 +204,7 @@ class NXWidget(QtWidgets.QWidget):
             label, value = item
             item_layout = QtWidgets.QHBoxLayout()
             label_box = NXLabel(label)
-            label_box.setAlignment(QtCore.Qt.AlignLeft)
             self.textbox[label] = NXLineEdit(six.text_type(value))
-            self.textbox[label].setAlignment(QtCore.Qt.AlignLeft)
             item_layout.addWidget(label_box)
             item_layout.addWidget(self.textbox[label])
             layout.addLayout(item_layout)
@@ -256,7 +265,7 @@ class NXWidget(QtWidgets.QWidget):
             self.filebutton = NXPushButton(text, slot)
         else:
             self.filebutton =  NXPushButton(text, self.choose_file)
-        self.filename = NXLineEdit(self)
+        self.filename = NXLineEdit(parent=self)
         self.filename.setMinimumWidth(300)
         filebox = QtWidgets.QHBoxLayout()
         filebox.addWidget(self.filebutton)
@@ -271,7 +280,7 @@ class NXWidget(QtWidgets.QWidget):
             self.directorybutton = NXPushButton(text, slot)
         else:
             self.directorybutton =  NXPushButton(text, self.choose_directory)
-        self.directoryname = NXLineEdit(self)
+        self.directoryname = NXLineEdit(parent=self)
         self.directoryname.setMinimumWidth(300)
         default_directory = self.get_default_directory()
         if default and default_directory:
@@ -857,23 +866,15 @@ class GridParameters(OrderedDict):
             header = True
         else:
             headers = ['Parameter', 'Value', 'Fit?']
-        header_font = QtGui.QFont()
-        header_font.setBold(True)
         row = 0
         if title:
-            title_label = NXLabel(title)
-            title_label.setFont(header_font)
-            title_label.setAlignment(QtCore.Qt.AlignHCenter)
+            title_label = NXLabel(title, bold=True, align='center')
             grid.addWidget(title_label, row, 0, 1, 2)
             row += 1
         if header:
-            parameter_label = NXLabel(headers[0])
-            parameter_label.setFont(header_font)
-            parameter_label.setAlignment(QtCore.Qt.AlignHCenter)
+            parameter_label = NXLabel(headers[0], bold=True, align='center')
             grid.addWidget(parameter_label, 0, 0)
-            value_label = NXLabel(headers[1])
-            value_label.setFont(header_font)
-            value_label.setAlignment(QtCore.Qt.AlignHCenter)
+            value_label = NXLabel(headers[1], bold=True, align='center')
             grid.addWidget(value_label, row, 1)
             row += 1
         vary = False
@@ -893,8 +894,7 @@ class GridParameters(OrderedDict):
                 vary = True
             row += 1
         if header and vary:
-            fit_label = NXLabel(headers[2])
-            fit_label.setFont(header_font)
+            fit_label = NXLabel(headers[2], bold=True)
             grid.addWidget(fit_label, 0, 2, QtCore.Qt.AlignHCenter)
         self.grid_layout = grid
         return grid
@@ -1037,11 +1037,8 @@ class GridParameter(object):
                 self.box = NXDoubleSpinBox(slot=slot) 
                 self.colorbox = None              
             else:
-                self.box = NXLineEdit()
+                self.box = NXLineEdit(align='right', slot=slot)
                 self.colorbox = None
-                if slot:
-                    self.box.editingFinished.connect(slot)
-            self.box.setAlignment(QtCore.Qt.AlignRight)
             if value is not None:
                 self.box.blockSignals(True)
                 if isinstance(value, NXfield):
@@ -1447,8 +1444,7 @@ class PlotScalarDialog(NXDialog):
         self.file_box.setMinimumWidth(300)
         self.prefix_box = NXLineEdit()
         self.prefix_box.textChanged.connect(self.select_prefix)
-        prefix_layout = self.make_layout(NXLabel('Prefix'), 
-                                         self.prefix_box)
+        prefix_layout = self.make_layout(NXLabel('Prefix'), self.prefix_box)
         self.scroll_area = NXScrollArea()
         self.files = GridParameters()
         i = 0
@@ -1588,7 +1584,7 @@ class ExportDialog(NXDialog):
         super(ExportDialog, self).__init__(parent)
  
         self.data = node
-        self.x = node.nxaxes[0]
+        self.x = node.nxaxes[0].centers()
         self.y = node.nxsignal
         self.e = node.nxerrors
         self.parameters = GridParameters()
@@ -2017,7 +2013,8 @@ class ProjectionTab(NXTab):
 
         self.xlabel, self.xbox = self.label('X-Axis'), NXComboBox(self.set_xaxis)
         self.ylabel, self.ybox = self.label('Y-Axis'), NXComboBox(self.set_yaxis)
-        axis_layout = self.make_layout(self.xlabel, self.xbox, self.ylabel, self.ybox)
+        axis_layout = self.make_layout(self.xlabel, self.xbox, 
+                                       self.ylabel, self.ybox)
                                        
         self.set_axes()
 
@@ -2026,13 +2023,8 @@ class ProjectionTab(NXTab):
         headers = ['Axis', 'Minimum', 'Maximum', 'Lock']
         width = [50, 100, 100, 25]
         column = 0
-        header_font = QtGui.QFont()
-        header_font.setBold(True)
         for header in headers:
-            label = NXLabel()
-            label.setAlignment(QtCore.Qt.AlignHCenter)
-            label.setText(header)
-            label.setFont(header_font)
+            label = NXLabel(header, bold=True, align='center')
             grid.addWidget(label, 0, column)
             grid.setColumnMinimumWidth(column, width[column])
             column += 1
@@ -2445,7 +2437,8 @@ class LimitTab(NXTab):
         if self.ndim > 1:
             self.xlabel, self.xbox = self.label('X-Axis'), NXComboBox(self.set_xaxis)
             self.ylabel, self.ybox = self.label('Y-Axis'), NXComboBox(self.set_yaxis)
-            axis_layout = self.make_layout(self.xlabel, self.xbox, self.ylabel, self.ybox)                                     
+            axis_layout = self.make_layout(self.xlabel, self.xbox, 
+                          self.ylabel, self.ybox)                                     
             self.set_axes()
         else:
             axis_layout = None
@@ -2455,13 +2448,8 @@ class LimitTab(NXTab):
         headers = ['Axis', 'Minimum', 'Maximum', 'Lock']
         width = [50, 100, 100, 25]
         column = 0
-        header_font = QtGui.QFont()
-        header_font.setBold(True)
         for header in headers:
-            label = NXLabel()
-            label.setAlignment(QtCore.Qt.AlignHCenter)
-            label.setText(header)
-            label.setFont(header_font)
+            label = NXLabel(header, bold=True, align='center')
             grid.addWidget(label, 0, column)
             grid.setColumnMinimumWidth(column, width[column])
             column += 1
@@ -2756,7 +2744,8 @@ class ScanTab(NXTab):
 
         self.xlabel, self.xbox = self.label('X-Axis'), NXComboBox(self.set_xaxis)
         self.ylabel, self.ybox = self.label('Y-Axis'), NXComboBox(self.set_yaxis)
-        axis_layout = self.make_layout(self.xlabel, self.xbox, self.ylabel, self.ybox)
+        axis_layout = self.make_layout(self.xlabel, self.xbox, 
+                                       self.ylabel, self.ybox)
                                        
         self.set_axes()
         
@@ -2765,13 +2754,8 @@ class ScanTab(NXTab):
         headers = ['Axis', 'Minimum', 'Maximum', 'Lock']
         width = [50, 100, 100, 25]
         column = 0
-        header_font = QtGui.QFont()
-        header_font.setBold(True)
         for header in headers:
-            label = NXLabel()
-            label.setAlignment(QtCore.Qt.AlignHCenter)
-            label.setText(header)
-            label.setFont(header_font)
+            label = NXLabel(header, bold=True, align='center')
             grid.addWidget(label, 0, column)
             grid.setColumnMinimumWidth(column, width[column])
             column += 1
@@ -2863,8 +2847,7 @@ class ScanTab(NXTab):
         self.file_box.setMinimumWidth(300)
         self.prefix_box = NXLineEdit()
         self.prefix_box.textChanged.connect(self.select_prefix)
-        prefix_layout = self.make_layout(NXLabel('Prefix'), 
-                                         self.prefix_box)
+        prefix_layout = self.make_layout(NXLabel('Prefix'), self.prefix_box)
         self.scroll_area = NXScrollArea()
         self.files = GridParameters()
         i = 0
@@ -3361,10 +3344,7 @@ class ViewDialog(NXDialog):
         layout = QtWidgets.QVBoxLayout()
 
         title_layout = QtWidgets.QHBoxLayout()
-        title_label = NXLabel('Indices')
-        header_font = QtGui.QFont()
-        header_font.setBold(True)
-        title_label.setFont(header_font)
+        title_label = NXLabel('Indices', bold=True)
         title_layout.addStretch()
         title_layout.addWidget(title_label)
         title_layout.addStretch()
@@ -3580,15 +3560,10 @@ class AddDialog(NXDialog):
         grid = QtWidgets.QGridLayout()
         grid.setSpacing(10)
 
-        name_label = NXLabel()
-        name_label.setAlignment(QtCore.Qt.AlignLeft)
-        name_label.setText("Name:")
+        name_label = NXLabel("Name:")
         self.name_box = NXLineEdit()
-        self.name_box.setAlignment(QtCore.Qt.AlignLeft)
         if class_name == "NXgroup":
-            combo_label = NXLabel()
-            combo_label.setAlignment(QtCore.Qt.AlignLeft)
-            combo_label.setText("Group Class:")
+            combo_label = NXLabel("Group Class:")
             self.combo_box = NXComboBox(self.select_combo)
             standard_groups = sorted(list(set([g for g in 
                 self.mainwindow.nxclasses[self.node.nxclass][2]])))
@@ -3612,7 +3587,6 @@ class AddDialog(NXDialog):
             self.select_combo()
         elif class_name == "NXfield":
             combo_label = NXLabel()
-            combo_label.setAlignment(QtCore.Qt.AlignLeft)
             self.combo_box = NXComboBox(self.select_combo)
             fields = sorted(list(set([g for g in 
                             self.mainwindow.nxclasses[self.node.nxclass][1]])))
@@ -3626,23 +3600,15 @@ class AddDialog(NXDialog):
             grid.addWidget(name_label, 0, 0)
             grid.addWidget(self.name_box, 0, 1)
             grid.addWidget(self.combo_box, 0, 2)
-            value_label = NXLabel()
-            value_label.setAlignment(QtCore.Qt.AlignLeft)
-            value_label.setText("Value:")
+            value_label = NXLabel("Value:")
             self.value_box = NXLineEdit()
-            self.value_box.setAlignment(QtCore.Qt.AlignLeft)
             grid.addWidget(value_label, 1, 0)
             grid.addWidget(self.value_box, 1, 1)
-            units_label = NXLabel()
-            units_label.setAlignment(QtCore.Qt.AlignLeft)
-            units_label.setText("Units:")
+            units_label = NXLabel("Units:")
             self.units_box = NXLineEdit()
-            self.units_box.setAlignment(QtCore.Qt.AlignLeft)
             grid.addWidget(units_label, 2, 0)
             grid.addWidget(self.units_box, 2, 1)
-            type_label = NXLabel()
-            type_label.setAlignment(QtCore.Qt.AlignLeft)
-            type_label.setText("Datatype:")
+            type_label = NXLabel("Datatype:")
             self.type_box = NXComboBox()
             for name in self.data_types:
                 self.type_box.addItem(name)
@@ -3654,16 +3620,11 @@ class AddDialog(NXDialog):
         else:
             grid.addWidget(name_label, 0, 0)
             grid.addWidget(self.name_box, 0, 1)
-            value_label = NXLabel()
-            value_label.setAlignment(QtCore.Qt.AlignLeft)
-            value_label.setText("Value:")
+            value_label = NXLabel("Value:")
             self.value_box = NXLineEdit()
-            self.value_box.setAlignment(QtCore.Qt.AlignLeft)
             grid.addWidget(value_label, 1, 0)
             grid.addWidget(self.value_box, 1, 1)
-            type_label = NXLabel()
-            type_label.setAlignment(QtCore.Qt.AlignLeft)
-            type_label.setText("Datatype:")
+            type_label = NXLabel("Datatype:")
             self.type_box = NXComboBox()
             for name in self.data_types:
                 self.type_box.addItem(name)
@@ -3761,11 +3722,8 @@ class InitializeDialog(NXDialog):
         grid = QtWidgets.QGridLayout()
         grid.setSpacing(10)
 
-        name_label = NXLabel()
-        name_label.setAlignment(QtCore.Qt.AlignLeft)
-        name_label.setText("Name:")
+        name_label = NXLabel("Name:")
         self.name_box = NXLineEdit()
-        self.name_box.setAlignment(QtCore.Qt.AlignLeft)
         self.combo_box = NXComboBox(self.select_combo)
         fields = sorted(list(set([g for g in 
                         self.mainwindow.nxclasses[self.node.nxclass][1]])))
@@ -3779,28 +3737,20 @@ class InitializeDialog(NXDialog):
         grid.addWidget(name_label, 0, 0)
         grid.addWidget(self.name_box, 0, 1)
         grid.addWidget(self.combo_box, 0, 2)
-        type_label = NXLabel()
-        type_label.setAlignment(QtCore.Qt.AlignLeft)
-        type_label.setText("Datatype:")
+        type_label = NXLabel("Datatype:")
         self.type_box = NXComboBox()
         for name in self.data_types:
             self.type_box.addItem(name)
         self.type_box.setCurrentIndex(0)
         grid.addWidget(type_label, 2, 0)
         grid.addWidget(self.type_box, 2, 1)
-        shape_label = NXLabel()
-        shape_label.setAlignment(QtCore.Qt.AlignLeft)
-        shape_label.setText("Shape:")
+        shape_label = NXLabel("Shape:")
         self.shape_box = NXLineEdit()
-        self.shape_box.setAlignment(QtCore.Qt.AlignLeft)
         grid.addWidget(shape_label, 3, 0)
         grid.addWidget(self.shape_box, 3, 1)
         grid.setColumnMinimumWidth(1, 200)
-        fill_label = NXLabel()
-        fill_label.setAlignment(QtCore.Qt.AlignLeft)
-        fill_label.setText("Fill Value:")
-        self.fill_box = NXLineEdit('0')
-        self.fill_box.setAlignment(QtCore.Qt.AlignLeft)
+        fill_label = NXLabel("Fill Value:")
+        self.fill_box = NXLineEdit(0)
         grid.addWidget(fill_label, 4, 0)
         grid.addWidget(self.fill_box, 4, 1)
         grid.setColumnMinimumWidth(1, 200)
@@ -3886,20 +3836,15 @@ class RenameDialog(NXDialog):
     def define_grid(self):
         grid = QtWidgets.QGridLayout()
         grid.setSpacing(10)
-        name_label = NXLabel()
-        name_label.setAlignment(QtCore.Qt.AlignLeft)
-        name_label.setText("New Name:")
+        name_label = NXLabel("New Name:")
         self.name_box = NXLineEdit(self.node.nxname)
-        self.name_box.setAlignment(QtCore.Qt.AlignLeft)
         grid.addWidget(name_label, 0, 0)
         grid.addWidget(self.name_box, 0, 1)
         self.combo_box = None
         if (isinstance(self.node, NXgroup) and 
             not isinstance(self.node, NXlink) and 
             self.node.nxclass != 'NXroot'):
-            combo_label = NXLabel()
-            combo_label.setAlignment(QtCore.Qt.AlignLeft)
-            combo_label.setText("New Class:")
+            combo_label = NXLabel("New Class:")
             self.combo_box = NXComboBox()
             parent_class = self.node.nxgroup.nxclass
             standard_groups = sorted(list(set([g for g in 
@@ -3926,9 +3871,7 @@ class RenameDialog(NXDialog):
         else:
             parent_class = self.node.nxgroup.nxclass
             if parent_class != 'NXroot' and parent_class != 'NXtree':
-                combo_label = NXLabel()
-                combo_label.setAlignment(QtCore.Qt.AlignLeft)
-                combo_label.setText("Valid Fields:")
+                combo_label = NXLabel("Valid Fields:")
                 self.combo_box = NXComboBox(self.set_name)
                 fields = sorted(list(set([g for g in 
                                 self.mainwindow.nxclasses[parent_class][1]])))
