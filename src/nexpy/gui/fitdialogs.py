@@ -95,7 +95,7 @@ def get_models():
             module = importlib.import_module(name)
             models.update(dict((n, m) 
                 for n, m in inspect.getmembers(module, inspect.isclass) 
-                if issubclass(m, Model)))
+                if issubclass(m, Model) and n != 'Model'))
         except ImportError:
             pass
     from lmfit import models as lmfit_models
@@ -275,8 +275,8 @@ class FitDialog(NXDialog):
             raise NeXusError("Must be an NXdata group")
 
     def initialize_models(self):
-        self.all_models = all_functions
-        self.all_models.update(all_models)
+        self.all_models = all_models
+        self.all_models.update(all_functions)
 
     def initialize_parameter_grid(self):
         grid_layout = QtWidgets.QVBoxLayout()
@@ -426,16 +426,12 @@ class FitDialog(NXDialog):
     def convert_parameter_name(self, parameter, saved_parameters):
         if parameter in saved_parameters:
             return parameter
+        elif parameter.capitalize() in saved_parameters:
+            return parameter.capitalize()
         elif parameter == 'amplitude' and 'Integral' in saved_parameters:
             return 'Integral'
-        elif parameter == 'center' and 'Center' in saved_parameters:
-            return 'Center'
         elif parameter == 'sigma' and 'Gamma' in saved_parameters:
             return 'Gamma'
-        elif parameter == 'sigma' and 'Sigma' in saved_parameters:
-            return 'Sigma'
-        elif parameter == 'slope' and 'Slope' in saved_parameters:
-            return 'Slope'
         elif parameter == 'intercept' and 'Constant' in saved_parameters:
             return 'Constant'
         else:
