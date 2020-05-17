@@ -224,7 +224,7 @@ class FitDialog(NXDialog):
         if self._data.nxerrors:
             self.fit_checkbox = NXCheckBox('Use Errors', checked=True)
         else:
-            self.fit_checkbox = NXCheckBox('Use Poisson Errors', 
+            self.fit_checkbox = NXCheckBox('Use Poisson Errors',
                                            self.define_errors)
         self.report_button = NXPushButton("Show Fit Report", self.report_fit)
         self.report_button.setVisible(False)
@@ -331,7 +331,7 @@ class FitDialog(NXDialog):
 
     @property
     def weights(self):
-        if self.errors and np.all(self.errors):
+        if self.errors is not None and np.all(self.errors):
             return 1.0 / self.errors
         else:
             return None
@@ -660,8 +660,7 @@ class FitDialog(NXDialog):
         self.fitview.raise_()
 
     def define_errors(self):
-        if self.fit_checkbox.isChecked():
-            self.data.nxerrors = np.sqrt(self.data.nxsignal)
+        self._data.nxerrors = np.sqrt(np.where(self.signal<1, 1, self.signal))
 
     def fit_data(self):
         self.read_parameters()
