@@ -2926,6 +2926,8 @@ class ScanTab(NXTab):
             return 'Variable'
 
     def scan_axis(self):
+        if self.files is None:
+            raise NeXusError("Files not selected")
         _files = [self.files[f].value for f in self.files 
                   if self.files[f].vary]
         if self.scan_variable is not None:
