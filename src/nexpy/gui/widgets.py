@@ -53,6 +53,7 @@ class NXStack(QtWidgets.QWidget):
         super(NXStack, self).__init__(parent=parent)
         self.layout = QtWidgets.QVBoxLayout()
         self.stack = QtWidgets.QStackedWidget(self)
+        self.widgets = dict(zip(labels, widgets))
         self.box = NXComboBox(slot=self.stack.setCurrentIndex, items=labels)
         for widget in widgets:
             self.stack.addWidget(widget)
@@ -73,6 +74,10 @@ class NXStack(QtWidgets.QWidget):
         """
         self.box.addItem(label)
         self.stack.addWidget(widget)
+
+    def remove(self, label):
+        self.stack.removeWidget(self.widgets[label])
+        self.box.remove(label)
 
 
 class NXScrollArea(QtWidgets.QScrollArea):
