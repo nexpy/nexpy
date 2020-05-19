@@ -1749,6 +1749,9 @@ class CustomizeTab(NXTab):
                     pp = self.parameters[label] = self.plot_parameters(plot)
                     self.plot_stack.add(label, pp.widget(header=False))
                 self.update_plot_parameters(plot)
+            for label in self.plot_stack.widgets:
+                if self.label_plot(label) not in self.plots:
+                    self.plot_stack.remove(label)
 
     def update_labels(self):
         pl = self.parameters['labels']
@@ -2061,15 +2064,10 @@ class ProjectionTab(NXTab):
         self.unmask_button = NXPushButton("Unmask", self.unmask_data, self)
         grid.addWidget(self.unmask_button, row, 2)
 
-        self.fit_button = NXPushButton("Fit Data", self.fit_data, self)
-        if self.ndim > 2:
-            self.fit_button.setVisible(False)
-
         self.set_layout(axis_layout, grid, 
                         self.checkboxes(("sum", "Sum Projections", False),
                                         ("lines", "Plot Lines", False),
                                         ("hide", "Hide Limits", False)),
-                        self.make_layout(self.fit_button),
                         self.copy_layout("Copy Limits"))
         self.checkbox["hide"].stateChanged.connect(self.hide_rectangle)
 
@@ -2142,14 +2140,11 @@ class ProjectionTab(NXTab):
                 if self.xbox.itemText(idx) != self.yaxis:
                     self.xbox.setCurrentIndex(idx)
                     break
-        if self.yaxis == 'None':
-            self.fit_button.setVisible(True)
-            if self.plot and self.plot.ndim == 1:
-                self.overplot_box.setVisible(True)
+        if self.yaxis == 'None' and self.plot and self.plot.ndim == 1:
+            self.overplot_box.setVisible(True)
         else:
             self.overplot_box.setChecked(False)
             self.overplot_box.setVisible(False)
-            self.fit_button.setVisible(False)
 
     def set_limits(self):
         self.block_signals(True)
@@ -2259,11 +2254,9 @@ class ProjectionTab(NXTab):
                 raise NeXusError("Invalid projection limits")
             if len(axes) == 1:
                 self.overplot_box.setVisible(True)
-                self.fit_button.setVisible(True)
             else:
                 self.overplot_box.setVisible(False)
                 self.overplot_box.setChecked(False)
-                self.fit_button.setVisible(False)
                 projection.logv = self.plotview.logv
                 projection.cmap = self.plotview.cmap
                 projection.interpolation = self.plotview.interpolation
@@ -2296,15 +2289,6 @@ class ProjectionTab(NXTab):
             self.plotview.replot_data()
         except NeXusError as error:
             report_error("Masking Data", error)
-
-    def fit_data(self):
-        from .fitdialogs import FitDialog
-        axes, limits = self.get_projection()
-        group = NXentry(data=self.plotview.data.project(axes, limits, 
-                                                        summed=self.summed),
-                        title=self.plotview.data.nxtitle)
-        fitdialog = FitDialog(group, parent=self)
-        fitdialog.show()
 
     def block_signals(self, block=True):
         for axis in range(self.ndim):
@@ -2375,14 +2359,11 @@ class ProjectionTab(NXTab):
         self.block_signals(False)
         self.draw_rectangle()
         self.sort_copybox()
-        if self.yaxis == 'None':
-            self.fit_button.setVisible(True)
-            if self.plot and self.plot.ndim == 1:
-                self.overplot_box.setVisible(True)
+        if self.yaxis == 'None' and self.plot and self.plot.ndim == 1:
+            self.overplot_box.setVisible(True)
         else:
             self.overplot_box.setVisible(False)
             self.overplot_box.setChecked(False)
-            self.fit_button.setVisible(False)
 
     def copy(self):
         self.block_signals(True)
@@ -2396,13 +2377,10 @@ class ProjectionTab(NXTab):
         self.xbox.setCurrentIndex(tab.xbox.currentIndex())
         if self.ndim > 1:
             self.ybox.setCurrentIndex(tab.ybox.currentIndex())
-        if self.yaxis == 'None':
-            self.fit_button.setVisible(True)
-            if self.plot and self.plot.ndim == 1:
-                self.overplot_box.setVisible(True)
+        if self.yaxis == 'None' and self.plot and self.plot.ndim == 1:
+            self.overplot_box.setVisible(True)
         else:
             self.overplot_box.setVisible(False)
-            self.fit_button.setVisible(False)
         self.block_signals(False)
         self.draw_rectangle()              
 
@@ -2810,9 +2788,6 @@ class ScanTab(NXTab):
         grid.addWidget(self.overplot_box, row, 3,
                        alignment=QtCore.Qt.AlignHCenter)
 
-        self.fit_button = NXPushButton("Fit Data", self.fit_data, self)
-        self.fit_button.setVisible(False)
-
         self.set_layout(axis_layout, 
                         self.textboxes(('Scan', '')), 
                         self.action_buttons(('Select Scan', self.select_scan),
@@ -2821,7 +2796,6 @@ class ScanTab(NXTab):
                         self.checkboxes(("sum", "Sum Projections", False),
                                         ("lines", "Plot Lines", False),
                                         ("hide", "Hide Limits", False)),
-                        self.make_layout(self.fit_button),
                         self.copy_layout("Copy Limits"))
         if self.ndim == 1:
             self.checkbox["hide"].setVisible(False)
@@ -3132,11 +3106,9 @@ class ScanTab(NXTab):
                 self.overplot_box.setVisible(True)
                 if self.overplot_box.isChecked():
                     over = True
-                self.fit_button.setVisible(True)
             else:
                 self.overplot_box.setVisible(False)
                 self.overplot_box.setChecked(False)
-                self.fit_button.setVisible(False)
             opts = {}
             if self.lines:
                 opts['marker'] = 'None'
@@ -3164,13 +3136,6 @@ class ScanTab(NXTab):
         else:
             from .plotview import NXPlotView
             return NXPlotView('Scan')
-
-    def fit_data(self):
-        from .fitdialogs import FitDialog
-        axes, limits = self.get_projection()
-        group = NXentry(data=self.scan_data)
-        fitdialog = FitDialog(group, parent=self)
-        fitdialog.show()
 
     def block_signals(self, block=True):
         for axis in range(self.ndim):

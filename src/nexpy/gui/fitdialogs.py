@@ -154,16 +154,25 @@ class NXModel(Model):
 class FitDialog(NXDialog):
     """Dialog to fit one-dimensional NeXus data"""
  
-    def __init__(self, entry, parent=None):
+    def __init__(self, data, plotview=None, color='C0', parent=None):
 
         super(FitDialog, self).__init__(parent=parent)
         self.setMinimumWidth(850)        
  
-        self._data = self.initialize_data(entry.data)
+        if ((isinstance(data, NXentry) or isinstance(data, NXprocess))
+             and 'data' in data):
+            group = data
+            self._data = self.initialize_data(group['data'])
+        elif isinstance(data, NXdata):
+            self._data = self.initialize_data(data)
+            group = None
+        else:
+            raise NeXusError("Must be an NXdata group")
 
-        if 'Fit' not in self.plotviews:
-            self._fitview = NXPlotView('Fit')
-        self.fitview.plot(self._data, fmt='o')
+        self.plotview = plotview
+        self.color = color
+        self.plot_nums = []
+        self.fit_num = None
 
         for key in [key for key in mpl.rcParams if key.startswith('keymap')]:
             for shortcut in 'lr':
@@ -251,26 +260,29 @@ class FitDialog(NXDialog):
         self.set_layout(model_layout, self.plot_layout, self.bottom_layout)
         self.set_title("Fit NeXus Data")
 
-        self.load_entry(entry)
+        if group:
+            self.load_group(group)
 
     @property
     def fitview(self):
-        if 'Fit' not in self.plotviews:
+        if self.plotview and self.plotview.label in self.plotviews:
+            self._fitview = self.plotview
+        elif 'Fit' not in self.plotviews:
             self._fitview = NXPlotView('Fit')
-        return self.plotviews['Fit']
+        return self._fitview
 
     def initialize_data(self, data):
         if isinstance(data, NXdata):
             if len(data.shape) > 1:
                 raise NeXusError(
                     "Fitting only possible on one-dimensional arrays")
-            signal, axes = data.nxsignal, data.nxaxes[0]
-            if signal.shape[0] == axes.shape[0] - 1:
-                axes = axes.centers()
-            fit_data = NXdata(signal, axes, title=data.nxtitle)
+            self.signal = data.nxsignal.nxvalue.astype(np.float64)            
+            self.axis = data.nxaxes[0].centers().nxvalue.astype(np.float64)
             if data.nxerrors:
-                fit_data.errors = data.nxerrors
-            return fit_data
+                self.errors = data.nxerrors.centers().nxvalue.astype(np.float64)
+            else:
+                self.errors = None
+            return data
         else:
             raise NeXusError("Must be an NXdata group")
 
@@ -310,8 +322,7 @@ class FitDialog(NXDialog):
     def data(self):
         try:
             xmin, xmax = self.get_limits()
-            axis = self._data.nxaxes[0]
-            if xmin > axis.max() or xmax < axis.min():
+            if xmin > self.axis.max() or xmax < self.axis.min():
                 raise NeXusError('Invalid data range')
             else:
                 return self._data[xmin:xmax]
@@ -319,26 +330,11 @@ class FitDialog(NXDialog):
             report_error('Fitting data', error)
 
     @property
-    def signal(self):
-        return self.data.nxsignal.nxvalue.astype(np.float64)
-
-    @property
-    def errors(self):
-        if self.data.nxerrors:
-            return self.data.nxerrors.nxvalue.astype(np.float64)
-        else:
-            return None
-
-    @property
     def weights(self):
         if self.errors is not None and np.all(self.errors):
             return 1.0 / self.errors
         else:
             return None
-
-    @property
-    def axis(self):
-        return self.data.nxaxes[0].nxvalue.astype(np.float64)
 
     @property
     def parameters(self):
@@ -370,15 +366,14 @@ class FitDialog(NXDialog):
         match = re.match(r'([a-zA-Z]*)(\d*)', name)
         return match.group(1), match.group(2)
 
-    def load_entry(self, entry):
+    def load_group(self, group):
         self.model = None
         self.models = []
-        if 'fit' in entry.entries or 'model' in entry.entries:
-            for group in entry.entries:
-                model_name = group
-                if ('parameters' in entry[group] and 
-                    'model' in entry[group]['parameters'].attrs):
-                    model_class = entry[group]['parameters'].attrs['model']
+        if 'fit' in group.entries or 'model' in group.entries:
+            for model_name in group.entries:
+                if ('parameters' in group[model_name] and 
+                    'model' in group[model_name]['parameters'].attrs):
+                    model_class = group[model_name]['parameters'].attrs['model']
                 else:
                     model_class, model_index = self.parse_model_name(model_name)
                     if (model_class not in self.all_models and 
@@ -387,7 +382,7 @@ class FitDialog(NXDialog):
                 if model_class in self.all_models:
                     model = self.get_model_instance(model_class, model_name)
                     parameters = model.make_params()
-                    saved_parameters = entry[group]['parameters']
+                    saved_parameters = group[model_name]['parameters']
                     for mp in parameters:
                         p = mp.replace(model_name, '')
                         p = self.convert_parameter_name(p, saved_parameters)
@@ -631,9 +626,11 @@ class FitDialog(NXDialog):
         self.plot_maxbox.setText(format_float(self.plot_max))
 
     def plot_data(self):
-        self.fitview.plot(self.data, fmt='o')
-        self.fitview.plots['0']['legend_label'] = 'Data'
+        self.fitview.plot(self.data, fmt='o', color=self.color)
+        if self.plotview is None:
+            self.fitview.plots[0]['legend_label'] = 'Data'
         self.fitview.raise_()
+        self.plot_nums = []
 
     def plot_model(self):
         model_name = self.plotcombo.currentText()
@@ -642,17 +639,20 @@ class FitDialog(NXDialog):
                 fmt = '-'
             else:
                 fmt = '--'
-            self.fitview.plot(self.get_model(), fmt=fmt, over=True, color='C0')
-            plot_key = str(len(self.fitview.plots)-1)
+            self.fitview.plot(self.get_model(), fmt=fmt, over=True, 
+                              color=self.color)
+            num = self.fitview.num
             if self.fitted:
-                self.fitview.plots[plot_key]['legend_label'] = 'Fit'
+                self.fitview.plots[num]['legend_label'] = 'Fit'
             else:
-                self.fitview.plots[plot_key]['legend_label'] = 'Model'
+                self.fitview.plots[num]['legend_label'] = 'Model'
+            self.fit_num = num
         else:
             name = self.compressed_name(model_name)
             self.fitview.plot(self.get_model(name), fmt='--', over=True)
-            plot_key = str(len(self.fitview.plots)-1)
-            self.fitview.plots[plot_key]['legend_label'] = name
+            num = self.fitview.num
+            self.fitview.plots[num]['legend_label'] = name
+        self.plot_nums.append(num)
         self.fitview.raise_()
 
     def define_errors(self):
@@ -708,7 +708,7 @@ class FitDialog(NXDialog):
         message_box.exec_()
 
     def save_fit(self):
-        """Saves fit results to an NXentry"""
+        """Saves fit results to an NXprocess group"""
         self.read_parameters()
         group = NXprocess()
         group['data'] = self.data
@@ -768,13 +768,29 @@ class FitDialog(NXDialog):
                 self.plot_minbox.setText(format_float(event.xdata))
             elif event.key == 'r':
                 self.plot_maxbox.setText(format_float(event.xdata))
+
+    def remove_plots(self):
+        for num in self.plot_nums:
+            if num in self.fitview.plots:
+                self.fitview.plots[num]['plot'].remove()
+                del self.fitview.plots[num]
+                self.fitview.ytab.plotcombo.remove(str(num))
+        self.fitview.ytab.plotcombo.select(0)
+        self.fitview.num = 0
+        self.fitview.draw()
    
     def accept(self):
-        if 'Fit' in self.plotviews:
-            self.fitview.close()
+        if self.plotview:
+            if self.fit_num:
+                self.plot_nums.pop(self.plot_nums.index(self.fit_num))
+            self.remove_plots()
+        elif 'Fit' in self.plotviews:
+            self.plotviews['Fit'].close()
         super(FitDialog, self).accept()
         
     def reject(self):
-        if 'Fit' in self.plotviews:
-            self.fitview.close()
+        if self.plotview:
+            self.remove_plots()
+        elif 'Fit' in self.plotviews:
+            self.plotviews['Fit'].close()
         super(FitDialog, self).reject()

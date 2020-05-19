@@ -1826,20 +1826,20 @@ class MainWindow(QtWidgets.QMainWindow):
                 return
             elif ((isinstance(node, NXentry) or isinstance(node, NXprocess)) and 
                   node.nxtitle.startswith('Fit')):
-                group = node
-                if not group.data.is_plottable():
-                    raise NeXusError("NeXus item not plottable")
+                if 'data' in node and node['data'].ndim > 1:
+                    raise NeXusError(
+                                "Fitting only enabled for one-dimensional data")
+                else:
+                    raise NeXusError("Invalid group for fitting")
             elif isinstance(node, NXdata):
-                group = NXentry(data=node, title=node.nxroot.nxname+node.nxpath)
+                if node.ndim > 1:
+                    raise NeXusError(
+                                "Fitting only enabled for one-dimensional data")
             else:
                 raise NeXusError("Select an NXdata group")
-            if len(group.data.shape) == 1:
-                fitdialog = FitDialog(group, parent=self)
-                fitdialog.show()
-                logging.info("Fitting invoked on'%s'" % node.nxpath)
-            else:
-                raise NeXusError(
-                    "Fitting only enabled for one-dimensional data")
+            fitdialog = FitDialog(node, parent=self)
+            fitdialog.show()
+            logging.info("Fitting invoked on'%s'" % node.nxpath)
         except NeXusError as error:
             report_error("Fitting Data", error)
 
