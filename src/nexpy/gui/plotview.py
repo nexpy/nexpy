@@ -1071,7 +1071,7 @@ class NXPlotView(QtWidgets.QDialog):
         if self.num == 0:
             self.plots = {}
             self.ytab.plotcombo.clear()
-        self.plots[str(self.num)] = p
+        self.plots[self.num] = p
         self.ytab.plotcombo.addItem(str(self.num))
         self.ytab.plotcombo.setCurrentIndex(self.num)
         self.ytab.reset_smoothing()
@@ -1325,7 +1325,7 @@ class NXPlotView(QtWidgets.QDialog):
 
     def plot_smooth(self):
         """Add smooth line to 1D plot."""
-        num = str(self.num)
+        num = self.num
         if self.plots[num]['smooth_function']:
             self.plots[num]['smoothing'] = self.ytab.smoothing
         else:
@@ -1350,7 +1350,7 @@ class NXPlotView(QtWidgets.QDialog):
                                                 p['smooth_function'](xs), 
                                                 p['smooth_linestyle'])[0]
                 p['smooth_line'].set_color(p['color'])
-                p['smooth_line'].set_label('_smooth_line_' + num)
+                p['smooth_line'].set_label('_smooth_line_' + str(num))
             else:
                 p['plot'].set_linestyle(p['linestyle'])
                 p['smooth_line'] = None
@@ -2792,9 +2792,8 @@ class NXPlotTab(QtWidgets.QWidget):
         self.block_signals(False)
 
     def select_plot(self):
-        num = self.plotcombo.currentText()
-        self.plotview.num = int(num)
-        self.smoothing = self.plotview.plots[num]['smoothing']    
+        self.plotview.num = int(self.plotcombo.currentText())
+        self.smoothing = self.plotview.plots[self.plotview.num]['smoothing']    
 
     @property
     def offset(self):

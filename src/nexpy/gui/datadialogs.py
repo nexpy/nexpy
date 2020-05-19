@@ -1732,10 +1732,10 @@ class CustomizeTab(NXTab):
         return 'CustomizeTab("%s")' % self.name
 
     def plot_label(self, plot):
-        return plot + ': ' + self.plots[plot]['label']
+        return str(plot) + ': ' + self.plots[plot]['label']
 
     def label_plot(self, label):
-        return label[:label.index(':')]
+        return int(label[:label.index(':')])
 
     def update(self):
         self.update_labels()

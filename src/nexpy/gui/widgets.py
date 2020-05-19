@@ -313,7 +313,7 @@ class NXComboBox(QtWidgets.QComboBox):
         item : str
             Option to be removed from the dropdown menu. 
         """
-        self.removeItem(self.findText(item))
+        self.removeItem(self.findText(str(item)))
 
     def items(self):
         """Return a list of the dropdown menu options.
@@ -333,7 +333,7 @@ class NXComboBox(QtWidgets.QComboBox):
         item : str
             The option to be selected in the dropdown menu.
         """
-        self.setCurrentIndex(self.findText(item))
+        self.setCurrentIndex(self.findText(str(item)))
 
     @property
     def selected(self):
