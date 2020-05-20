@@ -288,12 +288,6 @@ class FitDialog(NXDialog):
             if len(data.shape) > 1:
                 raise NeXusError(
                     "Fitting only possible on one-dimensional arrays")
-            self.signal = data.nxsignal.nxvalue.astype(np.float64)            
-            self.axis = data.nxaxes[0].centers().nxvalue.astype(np.float64)
-            if data.nxerrors:
-                self.errors = data.nxerrors.centers().nxvalue.astype(np.float64)
-            else:
-                self.errors = None
             return data
         else:
             raise NeXusError("Must be an NXdata group")
@@ -334,12 +328,29 @@ class FitDialog(NXDialog):
     def data(self):
         try:
             xmin, xmax = self.get_limits()
-            if xmin > self.axis.max() or xmax < self.axis.min():
+            axis = self._data.nxaxes[0]
+            if xmin > axis.max() or xmax < axis.min():
                 raise NeXusError('Invalid data range')
             else:
                 return self._data[xmin:xmax]
         except NeXusError as error:
             report_error('Fitting data', error)
+
+    @property
+    def signal(self):
+        return self.data.nxsignal.nxvalue.astype(np.float64)
+
+    @property
+    def axis(self):
+        return self.data.nxaxes[0].nxvalue.astype(np.float64)
+
+    @property
+    def errors(self):
+        _errors = self.data.nxerrors
+        if _errors:
+            return _errors.nxvalue.astype(np.float64)
+        else:
+            return None
 
     @property
     def weights(self):
