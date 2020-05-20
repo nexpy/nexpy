@@ -683,18 +683,19 @@ class FitDialog(NXDialog):
                                       x=self.axis)
         except Exception as error:
             report_error("Fitting Data", error)
-        if self.fit and self.fit.success:
-            self.fit_label.setText('Fit Successful Chi^2 = %s' 
-                                   % format_float(self.fit.result.redchi))
-        else:
-            self.fit_label.setText('Fit Failed Chi^2 = %s' 
-                                   % format_float(self.fit.result.redchi))
-        self.parameters = self.fit.params
-        if not self.fitted:
-            self.report_button.setVisible(True)
-            self.restore_button.setVisible(True)
-            self.save_button.setText('Save Fit')
-        self.fitted = True
+        if self.fit:
+            if self.fit.success:
+                self.fit_label.setText('Fit Successful Chi^2 = %s' 
+                                       % format_float(self.fit.result.redchi))
+            else:
+                self.fit_label.setText('Fit Failed Chi^2 = %s' 
+                                        % format_float(self.fit.result.redchi))
+            self.parameters = self.fit.params
+            if not self.fitted:
+                self.report_button.setVisible(True)
+                self.restore_button.setVisible(True)
+                self.save_button.setText('Save Fit')
+            self.fitted = True
 
     def report_fit(self):
         if self.fit.result.errorbars:
