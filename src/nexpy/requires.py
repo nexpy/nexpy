@@ -21,6 +21,7 @@ pkg_requirements = [
     'ipython',
     'matplotlib',
     'lmfit',
+    'pylatexenc',
     'ansi2html',
     'pillow'
 ]

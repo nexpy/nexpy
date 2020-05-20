@@ -60,7 +60,7 @@ from mpl_toolkits.axisartist.grid_finder import MaxNLocator
 from scipy.interpolate import interp1d
 from scipy.spatial import Voronoi, voronoi_plot_2d
 
-from nexusformat.nexus import NXfield, NXdata, NXroot, NeXusError
+from nexusformat.nexus import NXfield, NXdata, NXentry, NXroot, NeXusError
 
 from .. import __version__
 from .widgets import (NXSpinBox, NXDoubleSpinBox, NXSlider, NXComboBox, 
@@ -679,7 +679,7 @@ class NXPlotView(QtWidgets.QDialog):
         #One-dimensional Plot
         if self.ndim == 1:
             if over:
-                self.num += 1
+                self.num = max(self.plots) + 1
             else:
                 self.num = 0
                 if xmin:
@@ -1049,6 +1049,7 @@ class NXPlotView(QtWidgets.QDialog):
         p['plot'] = self._plot
         p['x'] = self.x
         p['y'] = self.y
+        p['data'] = self.data
         p['label'] = p['plot'].get_label()
         p['legend_label'] = p['label']
         p['show_legend'] = True
@@ -1071,7 +1072,7 @@ class NXPlotView(QtWidgets.QDialog):
         if self.num == 0:
             self.plots = {}
             self.ytab.plotcombo.clear()
-        self.plots[str(self.num)] = p
+        self.plots[self.num] = p
         self.ytab.plotcombo.addItem(str(self.num))
         self.ytab.plotcombo.setCurrentIndex(self.num)
         self.ytab.reset_smoothing()
@@ -1325,7 +1326,7 @@ class NXPlotView(QtWidgets.QDialog):
 
     def plot_smooth(self):
         """Add smooth line to 1D plot."""
-        num = str(self.num)
+        num = self.num
         if self.plots[num]['smooth_function']:
             self.plots[num]['smoothing'] = self.ytab.smoothing
         else:
@@ -1350,11 +1351,18 @@ class NXPlotView(QtWidgets.QDialog):
                                                 p['smooth_function'](xs), 
                                                 p['smooth_linestyle'])[0]
                 p['smooth_line'].set_color(p['color'])
-                p['smooth_line'].set_label('_smooth_line_' + num)
+                p['smooth_line'].set_label('_smooth_line_' + str(num))
             else:
                 p['plot'].set_linestyle(p['linestyle'])
                 p['smooth_line'] = None
         self.draw()
+
+    def fit_data(self):
+        from .fitdialogs import FitDialog
+        fitdialog = FitDialog(self.plots[self.num]['data'], plotview=self,
+                              color=self.plots[self.num]['color'],
+                              parent=self)
+        fitdialog.show()
 
     def symlog(self, linthresh=None, linscale=None, vmax=None):
         """Use symmetric log normalization in the current plot.
@@ -2292,6 +2300,10 @@ class NXPlotView(QtWidgets.QDialog):
             self.ytab.logbox.setVisible(True)
             self.ytab.flipbox.setVisible(False)
             self.ytab.smoothbox.setVisible(True)
+            if self.label != 'Fit':
+                self.ytab.fitbutton.setVisible(True)
+            else:
+                self.ytab.fitbutton.setVisible(False)
             self.tab_widget.removeTab(self.tab_widget.indexOf(self.vtab))
             self.tab_widget.removeTab(self.tab_widget.indexOf(self.ztab))
             self.tab_widget.removeTab(self.tab_widget.indexOf(self.ptab))
@@ -2329,6 +2341,7 @@ class NXPlotView(QtWidgets.QDialog):
             self.ytab.logbox.setVisible(True)
             self.ytab.flipbox.setVisible(True)
             self.ytab.smoothbox.setVisible(False)
+            self.ytab.fitbutton.setVisible(False)
             self.vtab.plotcombo.setVisible(False)
             self.vtab.smoothbox.setVisible(False)
             if self.rgb_image:
@@ -2662,7 +2675,7 @@ class NXPlotTab(QtWidgets.QWidget):
             widgets.append(self.scalebox)
             widgets.append(self.toolbar)
             self.minslider = self.maxslider = None
-            self.flipbox = self.logbox = self.smoothbox = None
+            self.flipbox = self.logbox = self.smoothbox = self.fitbutton = None
         else:
             self.zaxis = False
             self.plotcombo = NXComboBox(self.select_plot, ['0'])
@@ -2680,6 +2693,7 @@ class NXPlotTab(QtWidgets.QWidget):
             self.logbox = NXCheckBox("Log", self.change_log)
             self.flipbox = NXCheckBox("Flip", self.flip_axis)
             self.smoothbox = NXCheckBox("Smooth", self.toggle_smoothing)
+            self.fitbutton = NXPushButton("Fit", self.fit_data)
             widgets.append(self.plotcombo)
             widgets.append(self.minbox)
             widgets.extend([self.minslider, self.maxslider])
@@ -2687,6 +2701,7 @@ class NXPlotTab(QtWidgets.QWidget):
             widgets.append(self.logbox)
             widgets.append(self.flipbox)
             widgets.append(self.smoothbox)
+            widgets.append(self.fitbutton)
             self.lockbox = self.scalebox = None
         if image:
             self.image = True
@@ -2792,9 +2807,8 @@ class NXPlotTab(QtWidgets.QWidget):
         self.block_signals(False)
 
     def select_plot(self):
-        num = self.plotcombo.currentText()
-        self.plotview.num = int(num)
-        self.smoothing = self.plotview.plots[num]['smoothing']    
+        self.plotview.num = int(self.plotcombo.currentText())
+        self.smoothing = self.plotview.plots[self.plotview.num]['smoothing']    
 
     @property
     def offset(self):
@@ -3221,6 +3235,9 @@ class NXPlotTab(QtWidgets.QWidget):
         self.smoothbox.setChecked(smoothing)
 
     smoothing = property(_smoothing, _set_smoothing, "Property: Line smoothing")
+
+    def fit_data(self):
+        self.plotview.fit_data()
 
     def init_toolbar(self):
         _backward_icon = QtGui.QIcon(

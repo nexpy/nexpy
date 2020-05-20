@@ -8,7 +8,6 @@ ipykernel>=5.2.0
 qtconsole
 matplotlib
 lmfit
+pylatexenc
 ansi2html
 pillow
-spec2nexus
-lmfit

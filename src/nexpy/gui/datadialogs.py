@@ -36,6 +36,10 @@ try:
 except ImportError:
     from ordereddict import OrderedDict
 
+from nexusformat.nexus import (NeXusError, NXgroup, NXfield, NXattr, 
+                               NXlink, NXlinkgroup, NXlinkfield,
+                               NXroot, NXentry, NXdata, NXparameters, nxload)
+
 from .utils import (confirm_action, display_message, report_error, 
                     import_plugin, convertHTML, natural_sort, wrap, human_size,
                     timestamp, format_timestamp, restore_timestamp, get_color,
@@ -44,10 +48,6 @@ from .utils import (confirm_action, display_message, report_error,
 from .widgets import (NXStack, NXScrollArea, NXCheckBox, NXComboBox, NXColorBox, 
                       NXPushButton, NXLabel, NXLineEdit, 
                       NXDoubleSpinBox, NXSpinBox, NXpolygon)
-
-from nexusformat.nexus import (NeXusError, NXgroup, NXfield, NXattr, 
-                               NXlink, NXlinkgroup, NXlinkfield,
-                               NXroot, NXentry, NXdata, NXparameters, nxload)
 
 
 class NXWidget(QtWidgets.QWidget):
@@ -1732,10 +1732,10 @@ class CustomizeTab(NXTab):
         return 'CustomizeTab("%s")' % self.name
 
     def plot_label(self, plot):
-        return plot + ': ' + self.plots[plot]['label']
+        return str(plot) + ': ' + self.plots[plot]['label']
 
     def label_plot(self, label):
-        return label[:label.index(':')]
+        return int(label[:label.index(':')])
 
     def update(self):
         self.update_labels()
@@ -1749,6 +1749,9 @@ class CustomizeTab(NXTab):
                     pp = self.parameters[label] = self.plot_parameters(plot)
                     self.plot_stack.add(label, pp.widget(header=False))
                 self.update_plot_parameters(plot)
+            for label in self.plot_stack.widgets:
+                if self.label_plot(label) not in self.plots:
+                    self.plot_stack.remove(label)
 
     def update_labels(self):
         pl = self.parameters['labels']
@@ -2137,7 +2140,7 @@ class ProjectionTab(NXTab):
                 if self.xbox.itemText(idx) != self.yaxis:
                     self.xbox.setCurrentIndex(idx)
                     break
-        if self.plot and self.plot.ndim == 1 and self.yaxis == 'None':
+        if self.yaxis == 'None' and self.plot and self.plot.ndim == 1:
             self.overplot_box.setVisible(True)
         else:
             self.overplot_box.setChecked(False)
@@ -2356,7 +2359,7 @@ class ProjectionTab(NXTab):
         self.block_signals(False)
         self.draw_rectangle()
         self.sort_copybox()
-        if self.plot and self.plot.ndim == 1 and self.yaxis == 'None':
+        if self.yaxis == 'None' and self.plot and self.plot.ndim == 1:
             self.overplot_box.setVisible(True)
         else:
             self.overplot_box.setVisible(False)
@@ -2374,7 +2377,7 @@ class ProjectionTab(NXTab):
         self.xbox.setCurrentIndex(tab.xbox.currentIndex())
         if self.ndim > 1:
             self.ybox.setCurrentIndex(tab.ybox.currentIndex())
-        if self.plot and self.plot.ndim == 1 and self.yaxis == 'None':
+        if self.yaxis == 'None' and self.plot and self.plot.ndim == 1:
             self.overplot_box.setVisible(True)
         else:
             self.overplot_box.setVisible(False)
@@ -2804,6 +2807,7 @@ class ScanTab(NXTab):
         self.xbox.setFocus()
         self.file_box = None
         self.scan_data = None
+        self.files = None
 
     def __repr__(self):
         return 'ScanTab("%s")' % self.name
@@ -2926,6 +2930,8 @@ class ScanTab(NXTab):
             return 'Variable'
 
     def scan_axis(self):
+        if self.files is None:
+            raise NeXusError("Files not selected")
         _files = [self.files[f].value for f in self.files 
                   if self.files[f].vary]
         if self.scan_variable is not None:

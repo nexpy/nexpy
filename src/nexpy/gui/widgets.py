@@ -53,6 +53,7 @@ class NXStack(QtWidgets.QWidget):
         super(NXStack, self).__init__(parent=parent)
         self.layout = QtWidgets.QVBoxLayout()
         self.stack = QtWidgets.QStackedWidget(self)
+        self.widgets = dict(zip(labels, widgets))
         self.box = NXComboBox(slot=self.stack.setCurrentIndex, items=labels)
         for widget in widgets:
             self.stack.addWidget(widget)
@@ -73,6 +74,10 @@ class NXStack(QtWidgets.QWidget):
         """
         self.box.addItem(label)
         self.stack.addWidget(widget)
+
+    def remove(self, label):
+        self.stack.removeWidget(self.widgets[label])
+        self.box.remove(label)
 
 
 class NXScrollArea(QtWidgets.QScrollArea):
@@ -313,7 +318,7 @@ class NXComboBox(QtWidgets.QComboBox):
         item : str
             Option to be removed from the dropdown menu. 
         """
-        self.removeItem(self.findText(item))
+        self.removeItem(self.findText(str(item)))
 
     def items(self):
         """Return a list of the dropdown menu options.
@@ -333,7 +338,7 @@ class NXComboBox(QtWidgets.QComboBox):
         item : str
             The option to be selected in the dropdown menu.
         """
-        self.setCurrentIndex(self.findText(item))
+        self.setCurrentIndex(self.findText(str(item)))
 
     @property
     def selected(self):
