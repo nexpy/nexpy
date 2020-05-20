@@ -184,6 +184,8 @@ class FitDialog(NXDialog):
         self.initialize_models()
  
         self.modelcombo = NXComboBox(items=list(self.all_models))
+        if 'GaussianModel' in self.modelcombo:
+            self.modelcombo.select('GaussianModel')
         try:
             from pylatexenc.latex2text import LatexNodes2Text
             text = LatexNodes2Text().latex_to_text
