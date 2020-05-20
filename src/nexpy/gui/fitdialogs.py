@@ -806,3 +806,7 @@ class FitDialog(NXDialog):
         elif 'Fit' in self.plotviews:
             self.plotviews['Fit'].close()
         super(FitDialog, self).reject()
+
+    def closeEvent(self, event):
+        self.remove_plots()
+        super(FitDialog, self).closeEvent(event)
