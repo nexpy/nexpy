@@ -331,7 +331,7 @@ class FitDialog(NXDialog):
     def data(self):
         try:
             xmin, xmax = self.get_limits()
-            axis = self._data.nxaxes[0]
+            axis = self._data.nxaxes[0].centers()
             if xmin > axis.max() or xmax < axis.min():
                 raise NeXusError('Invalid data range')
             else:
@@ -345,7 +345,7 @@ class FitDialog(NXDialog):
 
     @property
     def axis(self):
-        return self.data.nxaxes[0].nxvalue.astype(np.float64)
+        return self.data.nxaxes[0].centers().nxvalue.astype(np.float64)
 
     @property
     def errors(self):
