@@ -190,6 +190,18 @@ class FitDialog(NXDialog):
         self.initialize_models()
  
         self.modelcombo = NXComboBox(items=list(self.all_models))
+        try:
+            from pylatexenc.latex2text import LatexNodes2Text
+            text = LatexNodes2Text().latex_to_text
+        except ImportError:
+            text = str
+        for i, m in enumerate(self.all_models):
+            tooltip = self.all_models[m].__doc__
+            if tooltip:
+                tooltip = tooltip.replace('.. math::\n\n', '')
+                tooltip = re.sub(r'\:[a-z]*\:', r'', tooltip)
+                self.modelcombo.setItemData(i, text(tooltip), 
+                                            QtCore.Qt.ToolTipRole)
         add_button = NXPushButton("Add Model", self.add_model)
         model_layout = self.make_layout(self.modelcombo, add_button, 
                                         align='left')
