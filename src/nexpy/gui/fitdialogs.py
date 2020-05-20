@@ -174,12 +174,6 @@ class FitDialog(NXDialog):
         self.plot_nums = []
         self.fit_num = None
 
-        for key in [key for key in mpl.rcParams if key.startswith('keymap')]:
-            for shortcut in 'lr':
-                if shortcut in mpl.rcParams[key]:
-                    mpl.rcParams[key].remove(shortcut)
-        self.fitview.canvas.mpl_connect('key_press_event', self.on_key_press)
-
         self.model = None
         self.models = []
  
@@ -212,6 +206,9 @@ class FitDialog(NXDialog):
         self.removecombo = NXComboBox()
         self.remove_layout = self.make_layout(remove_button, self.removecombo,
                                               align='left')
+
+        if self.plotview is None:
+            self.fitview.plot(self._data, fmt='o')
 
         self.plot_layout = QtWidgets.QHBoxLayout()
         plot_data_button = NXPushButton('Plot Data', self.plot_data)
@@ -274,6 +271,12 @@ class FitDialog(NXDialog):
 
         if group:
             self.load_group(group)
+
+        for key in [key for key in mpl.rcParams if key.startswith('keymap')]:
+            for shortcut in 'lr':
+                if shortcut in mpl.rcParams[key]:
+                    mpl.rcParams[key].remove(shortcut)
+        self.fitview.canvas.mpl_connect('key_press_event', self.on_key_press)
 
     @property
     def fitview(self):

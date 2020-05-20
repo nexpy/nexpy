@@ -1829,8 +1829,6 @@ class MainWindow(QtWidgets.QMainWindow):
                 if 'data' in node and node['data'].ndim > 1:
                     raise NeXusError(
                                 "Fitting only enabled for one-dimensional data")
-                else:
-                    raise NeXusError("Invalid group for fitting")
             elif isinstance(node, NXdata):
                 if node.ndim > 1:
                     raise NeXusError(
