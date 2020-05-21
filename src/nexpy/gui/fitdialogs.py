@@ -665,6 +665,7 @@ class FitDialog(NXDialog):
     def plot_data(self):
         key_modifier = QtWidgets.QApplication.keyboardModifiers()
         if key_modifier == QtCore.Qt.ShiftModifier:
+            self.fitview.plot(self.data, fmt='o', color=self.color, over=True)
             self.remove_plots()
         else:
             self.fitview.plot(self.data, fmt='o', color=self.color)
