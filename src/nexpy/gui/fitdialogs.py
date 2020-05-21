@@ -663,9 +663,13 @@ class FitDialog(NXDialog):
         self.plot_maxbox.setText(format_float(self.plot_max))
 
     def plot_data(self):
-        self.fitview.plot(self.data, fmt='o', color=self.color)
+        key_modifier = QtWidgets.QApplication.keyboardModifiers()
+        if key_modifier == QtCore.Qt.ShiftModifier:
+            self.remove_plots()
+        else:
+            self.fitview.plot(self.data, fmt='o', color=self.color)
         if self.plotview is None:
-            self.fitview.plots[0]['legend_label'] = 'Data'
+            self.fitview.plots[self.plotview.num]['legend_label'] = 'Data'
         self.fitview.raise_()
         self.plot_nums = []
 
