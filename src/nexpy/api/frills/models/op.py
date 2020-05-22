@@ -3,15 +3,22 @@ import numpy as np
 from lmfit.model import Model
 
 class OrderParameterModel(Model):
-    """A model to describe the temperature dependence of an order parameter
-    with three Parameters: ``op``, ``Tc``, and ``beta``.
+    r"""to describe the temperature dependence of an order parameter
+    with three Parameters: ``amplitude``, ``Tc``, and ``beta``.
+
+    .. math::
+
+        f(x; A, Tc, \beta) = A ((Tc - x[x<Tc])/ Tc)^\beta
+
+    where the parameter ``amplitude`` corresponds to :math:`A`, ``Tc`` to 
+    :math:`Tc`, and ``beta`` to :math:`\beta`. 
+
     """
     def __init__(self, **kwargs):
 
-        def op(x, op=1.0, Tc=100.0, beta=0.33):
-            beta = 2. * beta
+        def op(x, amplitude=1.0, Tc=100.0, beta=0.5):
             v = np.zeros(x.shape)
-            v[x<Tc] = op * ((Tc - x[x<Tc])/ Tc)**beta
+            v[x<Tc] = amplitude * ((Tc - x[x<Tc])/ Tc)**beta
             v[x>=Tc] = 0.0
             return v
 
@@ -19,4 +26,4 @@ class OrderParameterModel(Model):
 
     def guess(self, data, x=None, negative=False, **kwargs):
         """Estimate initial model parameter values from data."""
-        return self.make_params(op=data.max(), Tc=x.mean(), beta=0.33)
+        return self.make_params(amplitude=data.max(), Tc=x.mean(), beta=0.33)
