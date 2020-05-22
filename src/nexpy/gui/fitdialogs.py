@@ -286,6 +286,10 @@ class FitDialog(NXDialog):
             self._fitview = self.plotview
         elif 'Fit' not in self.plotviews:
             self._fitview = NXPlotView('Fit')
+            try:
+                self.plot_data()
+            except Exception:
+                pass
         return self._fitview
 
     def initialize_data(self, data):
