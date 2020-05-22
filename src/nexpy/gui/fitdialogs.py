@@ -670,7 +670,7 @@ class FitDialog(NXDialog):
         else:
             self.fitview.plot(self.data, fmt='o', color=self.color)
         if self.plotview is None:
-            self.fitview.plots[self.plotview.num]['legend_label'] = 'Data'
+            self.fitview.plots[self.fitview.num]['legend_label'] = 'Data'
         self.fitview.raise_()
         self.plot_nums = []
 
