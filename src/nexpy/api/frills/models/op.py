@@ -3,7 +3,7 @@ import numpy as np
 from lmfit.model import Model
 
 class OrderParameterModel(Model):
-    r"""to describe the temperature dependence of an order parameter
+    r"""A model to describe the temperature dependence of an order parameter
     with three Parameters: ``amplitude``, ``Tc``, and ``beta``.
 
     .. math::
