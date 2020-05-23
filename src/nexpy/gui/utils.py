@@ -293,7 +293,7 @@ def find_nearest_index(array, value):
 def format_float(value, width=6):
     """Modified form of the 'g' format specifier."""
     text = "{:.{width}g}".format(value, width=width)
-    return re.sub("e(-?)0*(\d+)", r"e\1\2", text.replace("e+", "e"))
+    return re.sub(r"e(-?)0*(\d+)", r"e\1\2", text.replace("e+", "e"))
 
 
 def human_size(bytes):
