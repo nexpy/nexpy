@@ -170,9 +170,9 @@ class FitDialog(NXDialog):
             raise NeXusError("Must be an NXdata group")
 
         self.plotview = plotview
+        self.fit_num = None
         self.color = color
         self.plot_nums = []
-        self.fit_num = None
 
         self.model = None
         self.models = []
@@ -211,6 +211,7 @@ class FitDialog(NXDialog):
 
         if self.plotview is None:
             self.fitview.plot(self._data, fmt='o')
+        self.data_label = self.fitview.plots[self.fitview.num]['label']
 
         self.plot_layout = QtWidgets.QHBoxLayout()
         plot_data_button = NXPushButton('Plot Data', self.plot_data)
@@ -219,8 +220,8 @@ class FitDialog(NXDialog):
         self.plotcombo = NXComboBox()
         self.plotcombo.setVisible(False)
         plot_label = NXLabel('X:')
-        self.plot_min = self.fitview.xaxis.min
-        self.plot_max = self.fitview.xaxis.max 
+        self.plot_min = self._data.nxaxes[0].min()
+        self.plot_max = self._data.nxaxes[0].max() 
         self.plot_minbox = NXLineEdit(format_float(self.plot_min), 
                                       align='right', width=100)
         plot_tolabel = NXLabel(' to ')
@@ -284,12 +285,10 @@ class FitDialog(NXDialog):
     def fitview(self):
         if self.plotview and self.plotview.label in self.plotviews:
             self._fitview = self.plotview
-        elif 'Fit' not in self.plotviews:
+        elif 'Fit' in self.plotviews:
+            self._fitview = self.plotviews['Fit']
+        else:
             self._fitview = NXPlotView('Fit')
-            try:
-                self.plot_data()
-            except Exception:
-                pass
         return self._fitview
 
     def initialize_data(self, data):
@@ -666,20 +665,24 @@ class FitDialog(NXDialog):
         self.plot_minbox.setText(format_float(self.plot_min))
         self.plot_maxbox.setText(format_float(self.plot_max))
 
+    def data_not_plotted(self):
+        return self.data_label not in [self.fitview.plots[p]['label'] 
+                                       for p in self.fitview.plots]
+
     def plot_data(self):
-        key_modifier = QtWidgets.QApplication.keyboardModifiers()
-        if key_modifier == QtCore.Qt.ShiftModifier:
-            self.fitview.plot(self.data, fmt='o', color=self.color, over=True)
-            self.remove_plots()
-        else:
-            self.fitview.plot(self.data, fmt='o', color=self.color)
         if self.plotview is None:
-            self.fitview.plots[self.fitview.num]['legend_label'] = 'Data'
+            self.fitview.plot(self.data, fmt='o', color=self.color)
+            self.fitview.plots[self.fitview.num]['label'] = self.data_label
+        elif self.data_not_plotted():
+            self.fitview.plot(self.data, fmt='o', color=self.color, over=True)
+        self.remove_plots()
         self.fitview.raise_()
         self.plot_nums = []
 
     def plot_model(self):
         model_name = self.plotcombo.currentText()
+        if self.data_not_plotted():
+            self.plot_data()
         if model_name == 'All':
             if self.fitted:
                 fmt = '-'
