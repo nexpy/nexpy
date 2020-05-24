@@ -579,23 +579,41 @@ and sliders.
               deviation set by the `smooth` option (see below). The default is 
               2 pixels.
 
-**X/Y Tab**
+**X Tab**
 
     .. image:: /images/x-tab.png
        :align: center
        :width: 75%
 
     The x and y-tabs contains text boxes and sliders to adjust the axis limits 
-    and a dropdown menu to select the axis to be plotted along x and y, 
+    and a dropdown menu to select the axis to be plotted along x or y, 
     respectively. The names correspond to the axis names in the NXdata group. 
     A checkbox allows the direction of the axes to be flipped.
     
     .. warning:: Flipping the axis directions does not flip the direction of the 
                  sliders.
 
-    The y-tab also contains an option to smoothly interpolate one-dimensional
-    data. This uses the `SciPy interp1d function 
-    <https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.interp1d.html>`_.
+**Y Tab**
+
+    .. image:: /images/y-tab.png
+       :align: center
+       :width: 75%
+
+    The y-tab has three additions to the features in the x-tab:
+
+    #. Since multiple one-dimensional data sets can be plotted on the same 
+       figure, an additional pull-down menu is added on the left-hand side to 
+       select them. 
+    #. Selecting the 'smooth' checkbox adds a line that smoothly interpolates 
+       one-dimensional data. This uses the `SciPy interp1d function 
+       <https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.interp1d.html>`_.
+       This option is provided to add guides-to-the-eye, and should be used for
+       numerical analysis with caution.  
+    #. The 'Fit' button will open a panel for fitting the data using the 
+       `LMFIT <https://lmfit.github.io/lmfit-py/>`_` package.
+
+    .. seealso:: `Fitting NeXus Data`_
+
 
 **Z Tab**
 
@@ -892,7 +910,7 @@ edit the configuration file in ~/.nexpy/config.py.
 Fitting NeXus Data
 ------------------
 It is possible to fit one-dimensional data using the non-linear least-squares 
-fitting package, `lmfit-py <http://newville.github.io/lmfit-py>`_, by selecting 
+fitting package, `LMFIT <http://newville.github.io/lmfit-py>`_, by selecting 
 a group on the tree and choosing "Fit Data" from the Data menu or by 
 right-clicking on the group. This opens a dialog window that allows multiple 
 functions to be combined, with the option of fixing or limiting parameters. 
