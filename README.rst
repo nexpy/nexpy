@@ -110,6 +110,8 @@ Library            URL
 IPython            https://ipython.org/
 qtconsole          https://qtconsole.readthedocs.io/
 matplotlib         https://matplotlib.org/
+lmfit              https://lmfit.github.io/lmfit-py/
+pylatexenc         https://pylatexenc.readthedocs.io/
 pillow             https://pillow.readthedocs.io/
 ansi2html          https://pypi.python.org/pypi/ansi2html/
 =================  =================================================
@@ -153,7 +155,6 @@ changed in the shell by setting ``plotview.smooth``.
 =================  ==========================================================
 Library            URL
 =================  ==========================================================
-lmfit              https://lmfit.github.io/lmfit-py/
 fabio              https://pythonhosted.org/fabio/
 spec2nexus         http://spec2nexus.readthedocs.org/
 astropy            http://www.astropy.org/
@@ -164,8 +165,7 @@ astropy            http://www.astropy.org/
 
 Semantic Versioning
 -------------------
-With the release of v0.1.0, NeXpy is using `Semantic Versioning 
-<http://semver.org/spec/v2.0.0.html>`_.
+NeXpy uses `Semantic Versioning <http://semver.org/spec/v2.0.0.html>`_.
 
 User Support
 ------------
