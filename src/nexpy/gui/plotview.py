@@ -1359,10 +1359,11 @@ class NXPlotView(QtWidgets.QDialog):
 
     def fit_data(self):
         from .fitdialogs import FitDialog
-        fitdialog = FitDialog(self.plots[self.num]['data'], plotview=self,
-                              color=self.plots[self.num]['color'],
-                              parent=self)
-        fitdialog.show()
+        if 'fit' not in self.panels:
+            self.panels['fit'] = FitDialog(parent=self.mainwindow)
+        self.panels['fit'].activate(self.plots[self.num]['data'], 
+                                    plotview=self,
+                                    color=self.plots[self.num]['color'])
 
     def symlog(self, linthresh=None, linscale=None, vmax=None):
         """Use symmetric log normalization in the current plot.

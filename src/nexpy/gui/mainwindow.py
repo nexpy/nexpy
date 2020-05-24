@@ -44,6 +44,7 @@ from .. import __version__
 from .treeview import NXTreeView
 from .plotview import NXPlotView
 from .datadialogs import *
+from .fitdialogs import FitDialog
 from .scripteditor import NXScriptWindow, NXScriptEditor
 from .utils import confirm_action, report_error, display_message, is_file_locked
 from .utils import natural_sort, import_plugin, timestamp
@@ -1816,11 +1817,6 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def fit_data(self):
         try:
-            try:
-                from .fitdialogs import FitDialog
-            except ImportError:
-                logging.info("The lmfit module is not installed")
-                raise NeXusError("Please install the 'lmfit' module")
             node = self.treeview.get_node()
             if node is None:
                 return
@@ -1835,8 +1831,9 @@ class MainWindow(QtWidgets.QMainWindow):
                                 "Fitting only enabled for one-dimensional data")
             else:
                 raise NeXusError("Select an NXdata group")
-            fitdialog = FitDialog(node, parent=self)
-            fitdialog.show()
+            if 'fit' not in self.panels:
+                self.panels['fit'] = FitDialog(parent=self)
+            self.panels['fit'].activate(node)
             logging.info("Fitting invoked on'%s'" % node.nxpath)
         except NeXusError as error:
             report_error("Fitting Data", error)

@@ -594,6 +594,9 @@ class NXTab(NXWidget):
         self.layout.addStretch()
         self.setLayout(self.layout)
 
+    def update(self):
+        pass
+
     def close(self):
         self.update()
         self.setAttribute(QtCore.Qt.WA_DeleteOnClose, True)

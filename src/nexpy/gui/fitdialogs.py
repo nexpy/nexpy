@@ -28,7 +28,7 @@ from nexusformat.nexus import (NeXusError, NXattr, NXdata, NXentry, NXfield,
                                NXgroup, NXnote, NXparameters, NXprocess,
                                NXroot, nxload)
 
-from .datadialogs import NXDialog
+from .datadialogs import NXPanel, NXTab
 from .plotview import NXPlotView
 from .pyqt import QtCore, QtGui, QtWidgets
 from .utils import report_error, format_float
@@ -151,13 +151,36 @@ class NXModel(Model):
         return pars
 
 
-class FitDialog(NXDialog):
+class FitDialog(NXPanel):
+
+    def __init__(self, parent=None):
+        super(FitDialog, self).__init__('fit', title='Fit Panel', 
+                                        apply=False, reset=False, parent=parent)
+        self.setMinimumWidth(850)        
+        self.tab_class = FitTab
+
+    def activate(self, data, plotview=None, color=None, parent=None):
+        if plotview:
+            label = plotview.label + ': ' + str(plotview.num) 
+        else:
+            label = data.nxroot.nxname + data.nxpath
+        if label not in self.tabs:
+            tab = FitTab(data, plotview=plotview, color=color, parent=parent)
+            self.add(label, tab)
+        else:
+            self.tab = label
+            self.tab.update()
+        self.setVisible(True)
+        self.raise_()
+        self.activateWindow()
+
+
+class FitTab(NXTab):
     """Dialog to fit one-dimensional NeXus data"""
  
     def __init__(self, data, plotview=None, color='C0', parent=None):
 
-        super(FitDialog, self).__init__(parent=parent)
-        self.setMinimumWidth(850)        
+        super(FitTab, self).__init__(parent=parent)
  
         if ((isinstance(data, NXentry) or isinstance(data, NXprocess))
              and 'data' in data):
@@ -265,11 +288,10 @@ class FitDialog(NXDialog):
         self.bottom_layout = QtWidgets.QHBoxLayout()
         self.bottom_layout = self.make_layout(reset_button, 
                                               self.restore_button,
-                                              'stretch',
-                                              self.close_buttons(),
-                                              align='justified')
+                                              align='left')
 
         self.set_layout(model_layout, self.plot_layout, self.bottom_layout)
+        self.layout.setSpacing(0)
         self.set_title("Fit NeXus Data")
 
         if group:
@@ -280,6 +302,9 @@ class FitDialog(NXDialog):
                 if shortcut in mpl.rcParams[key]:
                     mpl.rcParams[key].remove(shortcut)
         self.fitview.canvas.mpl_connect('key_press_event', self.on_key_press)
+
+    def __repr__(self):
+        return 'FitTab("%s")' % self.data_label
 
     @property
     def fitview(self):
@@ -829,22 +854,22 @@ class FitDialog(NXDialog):
         self.fitview.num = 0
         self.fitview.draw()
    
-    def accept(self):
+    def apply(self):
         if self.plotview:
             if self.fit_num:
                 self.plot_nums.pop(self.plot_nums.index(self.fit_num))
             self.remove_plots()
         elif 'Fit' in self.plotviews:
             self.plotviews['Fit'].close()
-        super(FitDialog, self).accept()
+        super(FitTab, self).accept()
         
-    def reject(self):
+    def reset(self):
         if self.plotview:
             self.remove_plots()
         elif 'Fit' in self.plotviews:
             self.plotviews['Fit'].close()
-        super(FitDialog, self).reject()
+        super(FitTab, self).reject()
 
     def closeEvent(self, event):
         self.remove_plots()
-        super(FitDialog, self).closeEvent(event)
+        super(FitTab, self).closeEvent(event)
