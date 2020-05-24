@@ -75,17 +75,13 @@ class NXtree(NXgroup):
             if item.hasChildren():
                 for row in range(item.rowCount()):
                     children.append(item.child(row))
-            names = [child.text() for child in children]
+            names = [child.name for child in children]
             for name in item.node:
                 if name not in names:
                     item.appendRow(NXTreeItem(item.node[name]))
             for child in children:
-                name = child.node.nxname
-                if name not in item.node:
+                if child.name not in item.node:
                     item.removeRow(child.row())
-                elif child.node is not item.node[name]:
-                    item.removeRow(child.row())
-                    item.appendRow(NXTreeItem(item.node[name]))
         item.node.set_unchanged()
     
     def add(self, node):
@@ -180,12 +176,15 @@ class NXTreeItem(QtGui.QStandardItem):
     """
 
     def __init__(self, node=None):
-        self.node = node
-        if isinstance(self.node, NXlink):
+        self.name = node.nxname
+        self.root = node.nxroot
+        self.tree = self.root.nxgroup
+        self.path = self.root.nxname + node.nxpath
+        if isinstance(node, NXlink):
             self._linked = QtGui.QIcon(
                 pkg_resources.resource_filename('nexpy.gui',
                                                 'resources/link-icon.png'))
-        elif isinstance(self.node, NXroot):
+        elif isinstance(node, NXroot):
             self._locked = QtGui.QIcon(
                 pkg_resources.resource_filename('nexpy.gui',
                                                 'resources/lock-icon.png'))
@@ -198,41 +197,51 @@ class NXTreeItem(QtGui.QStandardItem):
             self._unlocked_modified = QtGui.QIcon(
                 pkg_resources.resource_filename('nexpy.gui',
                                             'resources/unlock-red-icon.png'))
-        super(NXTreeItem, self).__init__(self.node.nxname)
+        super(NXTreeItem, self).__init__(node.nxname)
+
+    @property
+    def node(self):
+        return self.tree[self.path]
 
     def __repr__(self):
-        return "NXTreeItem('%s')" % self.node.nxname
+        return "NXTreeItem('%s')" % self.path
 
     def text(self):
-        return self.node.nxname
+        return self.name
 
     def data(self, role=QtCore.Qt.DisplayRole):
         """
         Returns the data to be displayed in the tree.
-        """        
+        """
         if role == QtCore.Qt.DisplayRole or role == QtCore.Qt.EditRole:
-            return self.node.nxname
+            return self.name
         elif role == QtCore.Qt.ToolTipRole:
-            tree = self.node.short_tree
-            if tree.count('\n') > 50:
-                return '\n'.join(tree.split('\n')[0:50])+'\n...'
-            else:
-                return tree
+            try:
+                tree = self.node.short_tree
+                if tree.count('\n') > 50:
+                    return '\n'.join(tree.split('\n')[0:50])+'\n...'
+                else:
+                    return tree
+            except Exception:
+                return ''
         elif role == QtCore.Qt.DecorationRole:
-            if isinstance(self.node, NXroot):
-                if self.node.nxfilemode == 'r':
-                    if self.node._file_modified:
-                        return self._locked_modified
-                    else:
-                        return self._locked
-                elif self.node.nxfilemode == 'rw':
-                    if self.node._file_modified:
-                        return self._unlocked_modified
-                    else:
-                        return self._unlocked
-            elif isinstance(self.node, NXlink):
-                return self._linked
-            else:
+            try:
+                if isinstance(self.node, NXroot):
+                    if self.node.nxfilemode == 'r':
+                        if self.node._file_modified:
+                            return self._locked_modified
+                        else:
+                            return self._locked
+                    elif self.node.nxfilemode == 'rw':
+                        if self.node._file_modified:
+                            return self._unlocked_modified
+                        else:
+                            return self._unlocked
+                elif isinstance(self.node, NXlink):
+                    return self._linked
+                else:
+                    return None
+            except Exception:
                 return None
 
     def children(self):
@@ -347,7 +356,7 @@ class NXTreeView(QtWidgets.QTreeView):
             self.mainwindow.reload_action.setEnabled(True)
             self.mainwindow.collapse_action.setEnabled(True)
             self.mainwindow.view_action.setEnabled(True)
-            if node.nxfilemode is None or node.nxfilemode == 'rw':
+            if node.is_modifiable():
                 self.mainwindow.rename_action.setEnabled(True)
                 if not isinstance(node, NXlink):
                     self.mainwindow.add_action.setEnabled(True)
@@ -371,7 +380,6 @@ class NXTreeView(QtWidgets.QTreeView):
                 self.mainwindow.delete_action.setEnabled(True)
         else:
             self.mainwindow.copydata_action.setEnabled(True)
-            self.mainwindow.cutdata_action.setEnabled(True)
             if isinstance(node, NXlink):
                 self.mainwindow.link_action.setEnabled(True)
             try:
@@ -380,20 +388,23 @@ class NXTreeView(QtWidgets.QTreeView):
                     self.mainwindow.export_action.setEnabled(True)
             except Exception as error:
                 pass
-            if node.nxfilemode is None or node.nxfilemode == 'rw':
+            if node.is_modifiable():
                 if isinstance(node, NXgroup):
                     self.mainwindow.initialize_action.setEnabled(True)
                     if self.mainwindow.copied_node is not None:
                         self.mainwindow.pastedata_action.setEnabled(True)
                         self.mainwindow.pastelink_action.setEnabled(True)
-                self.mainwindow.delete_action.setEnabled(True)
+                self.mainwindow.cutdata_action.setEnabled(True)
+                if not node.is_linked():
+                    self.mainwindow.delete_action.setEnabled(True)
                 if isinstance(node, NXentry) or isinstance(node, NXdata):
                     self.mainwindow.default_action.setEnabled(True)
                 if isinstance(node, NXdata):
                     self.mainwindow.signal_action.setEnabled(True)
             try:
                 if ((isinstance(node, NXdata) and node.plot_rank == 1) or
-                    (isinstance(node, NXgroup) and 'fit' in node)):
+                    (isinstance(node, NXgroup) and 
+                    ('fit' in node or 'model' in node))):
                     self.mainwindow.fit_action.setEnabled(True)
             except Exception as error:
                 pass

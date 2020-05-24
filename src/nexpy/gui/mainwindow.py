@@ -1319,7 +1319,7 @@ class MainWindow(QtWidgets.QMainWindow):
         try:
             node = self.treeview.get_node()
             if isinstance(node, NXdata):
-                if node.nxsignal.ndim == 1:
+                if node.ndim == 1:
                     dialog = ExportDialog(node, parent=self)
                     dialog.show()
                 else:
@@ -1804,13 +1804,10 @@ class MainWindow(QtWidgets.QMainWindow):
                 if node.nxfilemode != 'r':
                     if node.nxgroup is None:
                         raise NeXusError("There is no parent group")
-                    if 'default' in node.nxgroup.attrs:
+                    elif node.nxgroup.get_default():
                         if not confirm_action("Override existing default?"):
                             return
-                    node.nxgroup.attrs['default'] = node.nxname
-                    if node.nxgroup in node.nxroot.values():
-                        if 'default' not in node.nxroot.attrs:
-                            node.nxroot.attrs['default'] = node.nxgroup.nxname
+                    node.set_default()
                     logging.info("Default set to '%s'" % node.nxpath)
                 else:
                     raise NeXusError("NeXus file is locked")
@@ -1828,21 +1825,19 @@ class MainWindow(QtWidgets.QMainWindow):
             if node is None:
                 return
             elif ((isinstance(node, NXentry) or isinstance(node, NXprocess)) and 
-                  node.nxtitle == 'Fit Results'):
-                group = node
-                if not group.data.is_plottable():
-                    raise NeXusError("NeXus item not plottable")
+                  node.nxtitle.startswith('Fit')):
+                if 'data' in node and node['data'].ndim > 1:
+                    raise NeXusError(
+                                "Fitting only enabled for one-dimensional data")
             elif isinstance(node, NXdata):
-                group = NXentry(data=node, title=node.nxtitle)
+                if node.ndim > 1:
+                    raise NeXusError(
+                                "Fitting only enabled for one-dimensional data")
             else:
                 raise NeXusError("Select an NXdata group")
-            if len(group.data.nxsignal.shape) == 1:
-                self.fitdialog = FitDialog(group)
-                self.fitdialog.show()
-                logging.info("Fitting invoked on'%s'" % node.nxpath)
-            else:
-                raise NeXusError(
-                    "Fitting only enabled for one-dimensional data")
+            fitdialog = FitDialog(node, parent=self)
+            fitdialog.show()
+            logging.info("Fitting invoked on'%s'" % node.nxpath)
         except NeXusError as error:
             report_error("Fitting Data", error)
 

@@ -7,17 +7,23 @@ from __future__ import absolute_import, division, unicode_literals
 import warnings
 
 import matplotlib as mpl
+import math
 import numpy as np
+import re
 import six
 from matplotlib import colors
 from matplotlib import cbook
 from matplotlib.patches import Circle, Ellipse, Polygon, Rectangle
 
 from .pyqt import QtCore, QtGui, QtWidgets
-from .utils import report_error, boundaries, get_color, format_float
+from .utils import (report_error, boundaries, get_color, format_float,
+                    find_nearest)
 
 
 warnings.filterwarnings("ignore", category=cbook.mplDeprecation)
+
+bold_font = QtGui.QFont()
+bold_font.setBold(True)
 
 
 class NXStack(QtWidgets.QWidget):
@@ -47,6 +53,7 @@ class NXStack(QtWidgets.QWidget):
         super(NXStack, self).__init__(parent=parent)
         self.layout = QtWidgets.QVBoxLayout()
         self.stack = QtWidgets.QStackedWidget(self)
+        self.widgets = dict(zip(labels, widgets))
         self.box = NXComboBox(slot=self.stack.setCurrentIndex, items=labels)
         for widget in widgets:
             self.stack.addWidget(widget)
@@ -68,11 +75,15 @@ class NXStack(QtWidgets.QWidget):
         self.box.addItem(label)
         self.stack.addWidget(widget)
 
+    def remove(self, label):
+        self.stack.removeWidget(self.widgets[label])
+        self.box.remove(label)
+
 
 class NXScrollArea(QtWidgets.QScrollArea):
     """Scroll area embedding a widget."""
 
-    def __init__(self, widget=None, parent=None):
+    def __init__(self, widget=None, horizontal=False, parent=None):
         """Initialize the scroll area.
         
         Parameters
@@ -85,7 +96,8 @@ class NXScrollArea(QtWidgets.QScrollArea):
         super(NXScrollArea, self).__init__(parent=parent)
         if widget:
             self.setWidget(widget)
-        self.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        if not horizontal:
+            self.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
 
     def setWidget(self, widget):
         super(NXScrollArea, self).setWidget(widget)
@@ -103,6 +115,37 @@ class NXLabel(QtWidgets.QLabel):
     after any programmatic changes.
     """
 
+    def __init__(self, text=None, parent=None, bold=False, width=None, 
+                 align='left'):
+        """Initialize the edit window and optionally set the alignment
+        
+        Parameters
+        ----------
+        text : str, optional
+            The default text.
+        parent : QWidget
+            Parent of the NXLineEdit box.
+        bold : bool, optional
+            True if the label text is bold, default False.
+        width : int, optional
+            Fixed width of label.
+        align : 'left', 'center', 'right'
+            Alignment of text.
+        """
+        super(NXLabel, self).__init__(parent=parent)
+        if text:
+            self.setText(text)
+        if bold:
+            self.setFont(bold_font)
+        if width:
+            self.setFixedWidth(width)
+        if align == 'left':
+            self.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
+        elif align == 'center':
+            self.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)            
+        elif align == 'right':
+            self.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
+
     def setText(self, text):
         """Function to set the text in the box.
 
@@ -111,7 +154,7 @@ class NXLabel(QtWidgets.QLabel):
         text : str
             Text to replace the text box contents.
         """
-        super(NXLabel, self).setText(text)
+        super(NXLabel, self).setText(str(text))
         self.repaint()
 
 
@@ -123,6 +166,35 @@ class NXLineEdit(QtWidgets.QLineEdit):
     after any programmatic changes.
     """
 
+    def __init__(self, text=None, parent=None, slot=None, width=None, 
+                 align='left'):
+        """Initialize the edit window and optionally set the alignment
+        
+        Parameters
+        ----------
+        text : str, optional
+            The default text.
+        parent : QWidget
+            Parent of the NXLineEdit box.
+        slot: func, optional
+            Slot to be used for editingFinished signals.
+        right : bool, optional
+            If True, make the box text right-aligned.        
+        """
+        super(NXLineEdit, self).__init__(parent=parent)
+        if slot:
+            self.editingFinished.connect(slot)
+        if text:
+            self.setText(text)
+        if width:
+            self.setFixedWidth(width)
+        if align == 'left':
+            self.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
+        elif align == 'center':
+            self.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)            
+        elif align == 'right':
+            self.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
+
     def setText(self, text):
         """Function to set the text in the box.
 
@@ -131,7 +203,7 @@ class NXLineEdit(QtWidgets.QLineEdit):
         text : str
             Text to replace the text box contents.        
         """
-        super(NXLineEdit, self).setText(text)
+        super(NXLineEdit, self).setText(str(text))
         self.repaint()
 
 
@@ -157,6 +229,22 @@ class NXTextBox(NXLineEdit):
             Text box value to be formatted as a float        
         """
         self.setText(six.text_type(float('%.4g' % value)))
+
+
+class NXMessageBox(QtWidgets.QMessageBox):
+    """A scrollable message box"""
+
+    def __init__(self, title, text, *args, **kwargs):
+        super(NXMessageBox, self).__init__(*args, **kwargs)
+        scroll = NXScrollArea(parent=self)
+        self.content = QtWidgets.QWidget()
+        scroll.setWidget(self.content)
+        scroll.setWidgetResizable(True)
+        layout = QtWidgets.QVBoxLayout(self.content)
+        layout.addWidget(NXLabel(title, bold=True))
+        layout.addWidget(NXLabel(text, self))
+        self.layout().addWidget(scroll, 0, 0, 1, self.layout().columnCount())
+        self.setStyleSheet("QScrollArea{min-width:300 px; min-height: 400px}")
 
 
 class NXComboBox(QtWidgets.QComboBox):
@@ -230,7 +318,7 @@ class NXComboBox(QtWidgets.QComboBox):
         item : str
             Option to be removed from the dropdown menu. 
         """
-        self.removeItem(self.findText(item))
+        self.removeItem(self.findText(str(item)))
 
     def items(self):
         """Return a list of the dropdown menu options.
@@ -250,7 +338,7 @@ class NXComboBox(QtWidgets.QComboBox):
         item : str
             The option to be selected in the dropdown menu.
         """
-        self.setCurrentIndex(self.findText(item))
+        self.setCurrentIndex(self.findText(str(item)))
 
     @property
     def selected(self):
@@ -351,7 +439,9 @@ class NXColorButton(QtWidgets.QPushButton):
 
     def __init__(self, parent=None):
         super(NXColorButton, self).__init__(parent)
-        self.setFixedSize(20, 20)
+        self.setStyleSheet("width:18px; height:18px; "
+                           "margin: 0px; border: 0px; padding: 0px;"
+                           "background-color: white")
         self.setIconSize(QtCore.QSize(12, 12))
         self.clicked.connect(self.choose_color)
         self._color = QtGui.QColor()
@@ -413,8 +503,9 @@ class NXColorBox(QtWidgets.QWidget):
         self.layout = QtWidgets.QHBoxLayout()
         self.layout.setContentsMargins(0, 0, 0, 0)
         self.textbox = NXLineEdit(colors.to_hex(color.getRgbF(),
-                                  keep_alpha=True), parent)
-        self.textbox.editingFinished.connect(self.update_color)
+                                                keep_alpha=True), 
+                                  parent=parent, slot=self.update_color, 
+                                  align='right')
         self.layout.addWidget(self.textbox)
         self.button = NXColorButton(parent)
         self.button.color = color
@@ -448,7 +539,7 @@ class NXColorBox(QtWidgets.QWidget):
             for char in text:
                 if char.lower() not in correct:
                     return qcolor
-        elif text not in list(QColor.colorNames()):
+        elif text not in list(QtGui.QColor.colorNames()):
             return qcolor
         qcolor.setNamedColor(text)
         return qcolor
@@ -486,12 +577,13 @@ class NXSpinBox(QtWidgets.QSpinBox):
         self.diff = None
         self.pause = False
         if slot:
-            self.valueChanged[six.text_type].connect(slot)
-
+            self.valueChanged.connect(slot)
+            self.editingFinished.connect(slot)
         self.setAlignment(QtCore.Qt.AlignRight)
         self.setFixedWidth(100)
         self.setKeyboardTracking(False)
         self.setAccelerated(False)
+        self.app = QtWidgets.QApplication.instance()
 
     def value(self):
         """Return the value of the spin box.
@@ -544,6 +636,7 @@ class NXSpinBox(QtWidgets.QSpinBox):
 
     def setValue(self, value):
         super(NXSpinBox, self).setValue(self.valueFromText(value))
+        self.repaint()
 
     def valueFromText(self, text):
         return self.indexFromValue(float(six.text_type(text)))
@@ -603,7 +696,11 @@ class NXSpinBox(QtWidgets.QSpinBox):
                 super(NXSpinBox, self).stepBy(steps)
             else:
                 self.pause = True
-        self.valueChanged.emit(1)
+
+    def timerEvent(self, event):
+        self.app.processEvents()
+        if self.app.mouseButtons() & QtCore.Qt.LeftButton:
+            super(NXSpinBox, self).timerEvent(event)
 
 
 class NXDoubleSpinBox(QtWidgets.QDoubleSpinBox):
@@ -624,32 +721,53 @@ class NXDoubleSpinBox(QtWidgets.QDoubleSpinBox):
         Difference between maximum and minimum values when the box is
         locked.
     """
-    def __init__(self, slot=None):
+    def __init__(self, slot=None, editing=None):
         super(NXDoubleSpinBox, self).__init__()
         self.validator = QtGui.QDoubleValidator()
         self.validator.setRange(-np.inf, np.inf)
         self.validator.setDecimals(1000)
         self.old_value = None
         self.diff = None
-        if slot:
-            self.valueChanged[six.text_type].connect(slot)    
-
+        if slot and editing:
+            self.valueChanged.connect(slot)
+            self.editingFinished.connect(editing)
+        elif slot:
+            self.valueChanged.connect(slot)
+            self.editingFinished.connect(slot)
         self.setAlignment(QtCore.Qt.AlignRight)
         self.setFixedWidth(100)
         self.setKeyboardTracking(False)
+        self.setDecimals(2)
+        self.steps = np.array([1, 2, 5, 10])
+        self.app = QtWidgets.QApplication.instance()
 
     def validate(self, input_value, position):
         return self.validator.validate(input_value, position)
+
+    def setSingleStep(self, value):
+        value = abs(value)
+        if value == 0:
+            self.setDecimals(2)
+            stepsize = 0.01
+        else:
+            digits = math.floor(math.log10(value))
+            if digits < 0:
+                self.setDecimals(-digits)
+            else:
+                self.setDecimals(2)
+            multiplier = 10**digits
+            stepsize = find_nearest(self.steps, value/multiplier) * multiplier
+        super(NXDoubleSpinBox, self).setSingleStep(stepsize)
 
     def stepBy(self, steps):
         if self.diff:
             self.setValue(self.value() + steps * self.diff)
         else:
             super(NXDoubleSpinBox, self).stepBy(steps)
-        self.editingFinished.emit()
+        self.old_value = self.text()
 
     def valueFromText(self, text):
-        value = np.float32(text)
+        value = float(text)
         if value > self.maximum():
             self.setMaximum(value)
         elif value < self.minimum():
@@ -657,7 +775,10 @@ class NXDoubleSpinBox(QtWidgets.QDoubleSpinBox):
         return value
 
     def textFromValue(self, value):
-        return format_float(value)
+        if value > 1e6:
+            return format_float(value)
+        else:
+            return format_float(value, width=8)
 
     def setValue(self, value):
         if value > self.maximum():
@@ -665,6 +786,12 @@ class NXDoubleSpinBox(QtWidgets.QDoubleSpinBox):
         elif value < self.minimum():
             self.setMinimum(value)
         super(NXDoubleSpinBox, self).setValue(value)
+        self.repaint()
+
+    def timerEvent(self, event):
+        self.app.processEvents()
+        if self.app.mouseButtons() & QtCore.Qt.LeftButton:
+            super(NXDoubleSpinBox, self).timerEvent(event)
 
 
 class NXSlider(QtWidgets.QSlider):
@@ -678,18 +805,37 @@ class NXSlider(QtWidgets.QSlider):
         True if the slot is triggered by moving the slider. Otherwise, 
         it is only triggered on release.
     """
-    def __init__(self, slot=None, move=True):
+    def __init__(self, slot=None, move=True, inverse=False):
         super(NXSlider, self).__init__(QtCore.Qt.Horizontal)
         self.setFocusPolicy(QtCore.Qt.NoFocus)
         self.setMinimumWidth(100)
-        self.setRange(0, 1000)
+        self.setRange(0, 100)
         self.setSingleStep(5)
-        self.setValue(0)
         self.setTracking(True)
+        self.inverse = inverse
+        if self.inverse:
+            self.setInvertedAppearance(True)
+            self.setValue(100)
+        else:
+            self.setInvertedAppearance(False)
+            self.setValue(0)
         if slot:
             self.sliderReleased.connect(slot)
             if move:    
                 self.sliderMoved.connect(slot)
+
+    def value(self):
+        _value = super(NXSlider, self).value()
+        if self.inverse:
+            return self.maximum() - _value
+        else:
+            return _value
+
+    def setValue(self, value):
+        if self.inverse:
+            super(NXSlider, self).setValue(self.maximum() - value)
+        else:
+            super(NXSlider, self).setValue(value)
 
 
 class NXpatch(object):
@@ -794,7 +940,7 @@ class NXcircle(NXpatch):
     def __init__(self, x, y, r, border_tol=0.1, resize=True, plotview=None, 
                  **opts):
         x, y, r = float(x), float(y), float(r)
-        shape = Ellipse((x,y), r, r, **opts)
+        shape = Ellipse((x,y), 2*r, 2*r, **opts)
         if 'linewidth' not in opts:
             shape.set_linewidth(1.0)
         if 'facecolor' not in opts:

@@ -10,8 +10,8 @@
 #-----------------------------------------------------------------------------
 
 import numpy as np
-from lmfit import minimize, Parameters, Parameter, fit_report, __version__
 
+from lmfit import minimize, Parameters, Parameter, fit_report, __version__
 from nexusformat.nexus import *
 
 class Fit(object):
@@ -64,7 +64,7 @@ class Fit(object):
             errors = data.nxerrors
             if len(signal.shape) != 1:
                 raise ValueError("Fit only possible on one-dimensional data")
-            self.x = axes.nxdata.astype(np.float64)
+            self.x = axes.centers().nxdata.astype(np.float64)
             self.y = signal.nxdata.astype(np.float64)
             if errors and self.use_errors:
                 self.e = errors.nxdata.astype(np.float64)

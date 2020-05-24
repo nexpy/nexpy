@@ -171,8 +171,8 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
                 nexpy_dir = tempfile.mkdtemp()
             else:
                 os.mkdir(nexpy_dir)
-        for subdirectory in ['backups', 'functions', 'plugins', 'readers', 
-                             'scripts']:
+        for subdirectory in ['backups', 'functions', 'models', 'plugins', 
+                             'readers', 'scripts']:
             directory = os.path.join(nexpy_dir, subdirectory)
             if not os.path.exists(directory):
                 os.mkdir(directory)
@@ -183,6 +183,7 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
         self.reader_dir = os.path.join(self.nexpy_dir, 'readers')
         self.script_dir = os.path.join(self.nexpy_dir, 'scripts')
         self.function_dir = os.path.join(self.nexpy_dir, 'functions')
+        self.model_dir = os.path.join(self.nexpy_dir, 'models')
         sys.path.append(self.function_dir)
         self.scratch_file = os.path.join(self.nexpy_dir, 'w0.nxs')
         if not os.path.exists(self.scratch_file):

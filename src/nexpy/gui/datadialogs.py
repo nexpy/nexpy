@@ -36,6 +36,10 @@ try:
 except ImportError:
     from ordereddict import OrderedDict
 
+from nexusformat.nexus import (NeXusError, NXgroup, NXfield, NXattr, 
+                               NXlink, NXlinkgroup, NXlinkfield,
+                               NXroot, NXentry, NXdata, NXparameters, nxload)
+
 from .utils import (confirm_action, display_message, report_error, 
                     import_plugin, convertHTML, natural_sort, wrap, human_size,
                     timestamp, format_timestamp, restore_timestamp, get_color,
@@ -44,10 +48,6 @@ from .utils import (confirm_action, display_message, report_error,
 from .widgets import (NXStack, NXScrollArea, NXCheckBox, NXComboBox, NXColorBox, 
                       NXPushButton, NXLabel, NXLineEdit, 
                       NXDoubleSpinBox, NXSpinBox, NXpolygon)
-
-from nexusformat.nexus import (NeXusError, NXgroup, NXfield, NXattr, 
-                               NXlink, NXlinkgroup, NXlinkfield,
-                               NXroot, NXentry, NXdata, NXparameters, nxload)
 
 
 class NXWidget(QtWidgets.QWidget):
@@ -85,30 +85,41 @@ class NXWidget(QtWidgets.QWidget):
             parent = self.mainwindow
         self.accepted = False
 
-    def set_layout(self, *items):
+    def set_layout(self, *items, **opts):
         self.layout = QtWidgets.QVBoxLayout()
         for item in items:
             if isinstance(item, QtWidgets.QLayout):
                 self.layout.addLayout(item)
             elif isinstance(item, QtWidgets.QWidget):
                 self.layout.addWidget(item)
+            elif item == 'stretch':
+                self.layout.addStretch()
+        spacing = opts.pop('spacing', 10)
+        self.layout.setSpacing(spacing)
         self.setLayout(self.layout)
+        return self.layout
 
     def make_layout(self, *items, **opts):
-        if 'vertical' in opts and opts['vertical'] == True:
-            vertical = True
+        vertical = opts.pop('vertical', False)
+        align = opts.pop('align', 'center')
+        spacing = opts.pop('spacing', 20)
+        if vertical:
             layout = QtWidgets.QVBoxLayout()
         else:
-            vertical = False
             layout = QtWidgets.QHBoxLayout()
-            layout.addStretch()
+            if align == 'center' or align == 'right':
+                layout.addStretch()
         for item in items:
             if isinstance(item, QtWidgets.QLayout):
                 layout.addLayout(item)
             elif isinstance(item, QtWidgets.QWidget):
                 layout.addWidget(item)
-            if not vertical:
+            elif item == 'stretch':
                 layout.addStretch()
+        if not vertical:
+            if align == 'center' or align == 'left':
+                layout.addStretch()
+        layout.setSpacing(spacing)
         return layout
 
     def add_layout(self, *items, stretch=False):
@@ -193,9 +204,7 @@ class NXWidget(QtWidgets.QWidget):
             label, value = item
             item_layout = QtWidgets.QHBoxLayout()
             label_box = NXLabel(label)
-            label_box.setAlignment(QtCore.Qt.AlignLeft)
             self.textbox[label] = NXLineEdit(six.text_type(value))
-            self.textbox[label].setAlignment(QtCore.Qt.AlignLeft)
             item_layout.addWidget(label_box)
             item_layout.addWidget(self.textbox[label])
             layout.addLayout(item_layout)
@@ -256,7 +265,7 @@ class NXWidget(QtWidgets.QWidget):
             self.filebutton = NXPushButton(text, slot)
         else:
             self.filebutton =  NXPushButton(text, self.choose_file)
-        self.filename = NXLineEdit(self)
+        self.filename = NXLineEdit(parent=self)
         self.filename.setMinimumWidth(300)
         filebox = QtWidgets.QHBoxLayout()
         filebox.addWidget(self.filebutton)
@@ -271,7 +280,7 @@ class NXWidget(QtWidgets.QWidget):
             self.directorybutton = NXPushButton(text, slot)
         else:
             self.directorybutton =  NXPushButton(text, self.choose_directory)
-        self.directoryname = NXLineEdit(self)
+        self.directoryname = NXLineEdit(parent=self)
         self.directoryname.setMinimumWidth(300)
         default_directory = self.get_default_directory()
         if default and default_directory:
@@ -857,23 +866,15 @@ class GridParameters(OrderedDict):
             header = True
         else:
             headers = ['Parameter', 'Value', 'Fit?']
-        header_font = QtGui.QFont()
-        header_font.setBold(True)
         row = 0
         if title:
-            title_label = NXLabel(title)
-            title_label.setFont(header_font)
-            title_label.setAlignment(QtCore.Qt.AlignHCenter)
+            title_label = NXLabel(title, bold=True, align='center')
             grid.addWidget(title_label, row, 0, 1, 2)
             row += 1
         if header:
-            parameter_label = NXLabel(headers[0])
-            parameter_label.setFont(header_font)
-            parameter_label.setAlignment(QtCore.Qt.AlignHCenter)
+            parameter_label = NXLabel(headers[0], bold=True, align='center')
             grid.addWidget(parameter_label, 0, 0)
-            value_label = NXLabel(headers[1])
-            value_label.setFont(header_font)
-            value_label.setAlignment(QtCore.Qt.AlignHCenter)
+            value_label = NXLabel(headers[1], bold=True, align='center')
             grid.addWidget(value_label, row, 1)
             row += 1
         vary = False
@@ -893,8 +894,7 @@ class GridParameters(OrderedDict):
                 vary = True
             row += 1
         if header and vary:
-            fit_label = NXLabel(headers[2])
-            fit_label.setFont(header_font)
+            fit_label = NXLabel(headers[2], bold=True)
             grid.addWidget(fit_label, 0, 2, QtCore.Qt.AlignHCenter)
         self.grid_layout = grid
         return grid
@@ -1037,11 +1037,8 @@ class GridParameter(object):
                 self.box = NXDoubleSpinBox(slot=slot) 
                 self.colorbox = None              
             else:
-                self.box = NXLineEdit()
+                self.box = NXLineEdit(align='right', slot=slot)
                 self.colorbox = None
-                if slot:
-                    self.box.editingFinished.connect(slot)
-            self.box.setAlignment(QtCore.Qt.AlignRight)
             if value is not None:
                 self.box.blockSignals(True)
                 if isinstance(value, NXfield):
@@ -1447,8 +1444,7 @@ class PlotScalarDialog(NXDialog):
         self.file_box.setMinimumWidth(300)
         self.prefix_box = NXLineEdit()
         self.prefix_box.textChanged.connect(self.select_prefix)
-        prefix_layout = self.make_layout(NXLabel('Prefix'), 
-                                         self.prefix_box)
+        prefix_layout = self.make_layout(NXLabel('Prefix'), self.prefix_box)
         self.scroll_area = NXScrollArea()
         self.files = GridParameters()
         i = 0
@@ -1588,7 +1584,7 @@ class ExportDialog(NXDialog):
         super(ExportDialog, self).__init__(parent)
  
         self.data = node
-        self.x = node.nxaxes[0]
+        self.x = node.nxaxes[0].centers()
         self.y = node.nxsignal
         self.e = node.nxerrors
         self.parameters = GridParameters()
@@ -1736,10 +1732,10 @@ class CustomizeTab(NXTab):
         return 'CustomizeTab("%s")' % self.name
 
     def plot_label(self, plot):
-        return plot + ': ' + self.plots[plot]['label']
+        return str(plot) + ': ' + self.plots[plot]['label']
 
     def label_plot(self, label):
-        return label[:label.index(':')]
+        return int(label[:label.index(':')])
 
     def update(self):
         self.update_labels()
@@ -1753,6 +1749,9 @@ class CustomizeTab(NXTab):
                     pp = self.parameters[label] = self.plot_parameters(plot)
                     self.plot_stack.add(label, pp.widget(header=False))
                 self.update_plot_parameters(plot)
+            for label in self.plot_stack.widgets:
+                if self.label_plot(label) not in self.plots:
+                    self.plot_stack.remove(label)
 
     def update_labels(self):
         pl = self.parameters['labels']
@@ -1769,6 +1768,8 @@ class CustomizeTab(NXTab):
                        color=True)
         parameters.add('gridstyle', list(self.linestyles.values()), 
                        'Grid Style')
+        parameters.add('minorticks', ['On', 'Off'], 'Minor Ticks')
+        parameters.add('cb_minorticks', ['On', 'Off'], 'Color Bar Minor Ticks')
         parameters.grid(title='Image Parameters', header=False, width=125)
         return parameters
 
@@ -1786,6 +1787,14 @@ class CustomizeTab(NXTab):
             p['grid'].value = 'Off'
         p['gridcolor'].value = get_color(self.plotview._gridcolor)
         p['gridstyle'].value = self.linestyles[self.plotview._gridstyle]
+        if self.plotview._minorticks:
+            p['minorticks'].value = 'On'
+        else:
+            p['minorticks'].value = 'Off'
+        if self.plotview._cb_minorticks:
+            p['cb_minorticks'].value = 'On'
+        else:
+            p['cb_minorticks'].value = 'Off'
 
     def plot_parameters(self, plot):
         p = self.plots[plot]
@@ -1806,6 +1815,7 @@ class CustomizeTab(NXTab):
         parameters.add('offset', 0.0, 'Offset', slot=self.scale_plot,
                        spinbox=True)
         parameters['offset'].box.setSingleStep(10)
+        parameters['offset'].box.setMinimum(-parameters['offset'].box.maximum())
         parameters.grid(title='Plot Parameters', header=False, width=125)
         return parameters
 
@@ -1834,9 +1844,16 @@ class CustomizeTab(NXTab):
         plot = self.label_plot(self.plot_stack.box.selected)
         label = self.plot_label(plot)
         scale = self.parameters[label]['scale'].value
+        if scale == self.parameters[label]['scale'].box.maximum():
+            self.parameters[label]['scale'].box.setMaximum(10*scale)
         self.parameters[label]['scale'].box.setSingleStep(scale/100.0)
         offset = self.parameters[label]['offset'].value
-        self.parameters[label]['offset'].box.setSingleStep(max(offset/100.0, 1))
+        if offset == self.parameters[label]['offset'].box.maximum():
+            self.parameters[label]['offset'].box.setMaximum(10*abs(offset))
+        self.parameters[label]['offset'].box.setMinimum(
+            -self.parameters[label]['offset'].box.maximum()) 
+        self.parameters[label]['offset'].box.setSingleStep(
+            max(abs(offset)/100.0, 1))
         y = self.plotview.plots[plot]['y']
         self.plotview.plots[plot]['plot'].set_ydata((y * scale) + offset)
         self.plotview.draw()
@@ -1903,9 +1920,9 @@ class CustomizeTab(NXTab):
             except ValueError:
                 pi['skew'].value = self.plotview.skew
             if pi['grid'].value == 'On':
-                self.plotview._grid =True
+                self.plotview._grid = True
             else:
-                self.plotview._grid =False
+                self.plotview._grid = False
             self.plotview._gridcolor = pi['gridcolor'].value
             self.plotview._gridstyle = [k for k, v in self.linestyles.items()
                                         if v == pi['gridstyle'].value][0]
@@ -1913,6 +1930,14 @@ class CustomizeTab(NXTab):
             self.plotview.grid(self.plotview._grid)
             self.plotview.skew = _skew_angle
             self.plotview.aspect = self.plotview._aspect
+            if pi['minorticks'].value == 'On':
+                self.plotview.minorticks_on()
+            else:
+                self.plotview.minorticks_off()
+            if pi['cb_minorticks'].value == 'On':
+                self.plotview.cb_minorticks_on()
+            else:
+                self.plotview.cb_minorticks_off()
         else:
             for plot in self.plots:
                 label = self.plot_label(plot)
@@ -1991,7 +2016,8 @@ class ProjectionTab(NXTab):
 
         self.xlabel, self.xbox = self.label('X-Axis'), NXComboBox(self.set_xaxis)
         self.ylabel, self.ybox = self.label('Y-Axis'), NXComboBox(self.set_yaxis)
-        axis_layout = self.make_layout(self.xlabel, self.xbox, self.ylabel, self.ybox)
+        axis_layout = self.make_layout(self.xlabel, self.xbox, 
+                                       self.ylabel, self.ybox)
                                        
         self.set_axes()
 
@@ -2000,13 +2026,8 @@ class ProjectionTab(NXTab):
         headers = ['Axis', 'Minimum', 'Maximum', 'Lock']
         width = [50, 100, 100, 25]
         column = 0
-        header_font = QtGui.QFont()
-        header_font.setBold(True)
         for header in headers:
-            label = NXLabel()
-            label.setAlignment(QtCore.Qt.AlignHCenter)
-            label.setText(header)
-            label.setFont(header_font)
+            label = NXLabel(header, bold=True, align='center')
             grid.addWidget(label, 0, column)
             grid.setColumnMinimumWidth(column, width[column])
             column += 1
@@ -2119,7 +2140,7 @@ class ProjectionTab(NXTab):
                 if self.xbox.itemText(idx) != self.yaxis:
                     self.xbox.setCurrentIndex(idx)
                     break
-        if self.plot and self.plot.ndim == 1 and self.yaxis == 'None':
+        if self.yaxis == 'None' and self.plot and self.plot.ndim == 1:
             self.overplot_box.setVisible(True)
         else:
             self.overplot_box.setChecked(False)
@@ -2236,6 +2257,9 @@ class ProjectionTab(NXTab):
             else:
                 self.overplot_box.setVisible(False)
                 self.overplot_box.setChecked(False)
+                projection.logv = self.plotview.logv
+                projection.cmap = self.plotview.cmap
+                projection.interpolation = self.plotview.interpolation
             projection.make_active()
             projection.raise_()
         except NeXusError as error:
@@ -2335,7 +2359,7 @@ class ProjectionTab(NXTab):
         self.block_signals(False)
         self.draw_rectangle()
         self.sort_copybox()
-        if self.plot and self.plot.ndim == 1 and self.yaxis == 'None':
+        if self.yaxis == 'None' and self.plot and self.plot.ndim == 1:
             self.overplot_box.setVisible(True)
         else:
             self.overplot_box.setVisible(False)
@@ -2353,7 +2377,7 @@ class ProjectionTab(NXTab):
         self.xbox.setCurrentIndex(tab.xbox.currentIndex())
         if self.ndim > 1:
             self.ybox.setCurrentIndex(tab.ybox.currentIndex())
-        if self.plot and self.plot.ndim == 1 and self.yaxis == 'None':
+        if self.yaxis == 'None' and self.plot and self.plot.ndim == 1:
             self.overplot_box.setVisible(True)
         else:
             self.overplot_box.setVisible(False)
@@ -2393,7 +2417,7 @@ class LimitDialog(NXPanel):
  
     def __init__(self, parent=None):
         super(LimitDialog, self).__init__('limit', title='Limits Panel', 
-              parent=parent)
+                                          apply=False, parent=parent)
         self.tab_class = LimitTab
         self.plotview_sort = True
 
@@ -2416,7 +2440,8 @@ class LimitTab(NXTab):
         if self.ndim > 1:
             self.xlabel, self.xbox = self.label('X-Axis'), NXComboBox(self.set_xaxis)
             self.ylabel, self.ybox = self.label('Y-Axis'), NXComboBox(self.set_yaxis)
-            axis_layout = self.make_layout(self.xlabel, self.xbox, self.ylabel, self.ybox)                                     
+            axis_layout = self.make_layout(self.xlabel, self.xbox, 
+                          self.ylabel, self.ybox)                                     
             self.set_axes()
         else:
             axis_layout = None
@@ -2426,13 +2451,8 @@ class LimitTab(NXTab):
         headers = ['Axis', 'Minimum', 'Maximum', 'Lock']
         width = [50, 100, 100, 25]
         column = 0
-        header_font = QtGui.QFont()
-        header_font.setBold(True)
         for header in headers:
-            label = NXLabel()
-            label.setAlignment(QtCore.Qt.AlignHCenter)
-            label.setText(header)
-            label.setFont(header_font)
+            label = NXLabel(header, bold=True, align='center')
             grid.addWidget(label, 0, column)
             grid.setColumnMinimumWidth(column, width[column])
             column += 1
@@ -2494,14 +2514,8 @@ class LimitTab(NXTab):
         self.maxbox['signal'].setRange(vaxis.min, vaxis.max)
         self.minbox['signal'].setValue(vaxis.lo)
         self.maxbox['signal'].setValue(vaxis.hi)
-        if self.ndim > 1:
-            self.copied_properties = {'aspect': self.plotview.aspect,
-                                      'cmap': self.plotview.cmap,
-                                      'interpolation': self.plotview.interpolation,
-                                      'logv': self.plotview.logv,
-                                      'logx': self.plotview.logx,
-                                      'logy': self.plotview.logy,
-                                      'skew': self.plotview.skew}
+        self.copied_properties = ['aspect', 'cmap', 'interpolation', 
+                                  'logv', 'logx', 'logy', 'skew']
         self.copywidget.setVisible(False)
         for tab in [self.tabs[label] for label in self.tabs 
                     if self.tabs[label] is not self]:
@@ -2611,7 +2625,6 @@ class LimitTab(NXTab):
             if (tab.copybox.selected == self.name and
                 tab.checkbox['sync'].isChecked()):
                 tab.copy()
-                tab.apply()
         self.sort_copybox()
 
     def update_limits(self):
@@ -2626,14 +2639,6 @@ class LimitTab(NXTab):
             figure_size = self.plotview.figure.get_size_inches()
             self.parameters['xsize'].value = figure_size[0]
             self.parameters['ysize'].value = figure_size[1]
-        if self.ndim > 1:
-            self.copied_properties = {'aspect': self.plotview.aspect,
-                                      'cmap': self.plotview.cmap,
-                                      'interpolation': self.plotview.interpolation,
-                                      'logv': self.plotview.logv,
-                                      'logx': self.plotview.logx,
-                                      'logy': self.plotview.logy,
-                                      'skew': self.plotview.skew}
 
     def copy(self):
         tab = self.tabs[self.copybox.selected]
@@ -2643,11 +2648,6 @@ class LimitTab(NXTab):
             self.lockbox[axis].setCheckState(tab.lockbox[axis].checkState())
         self.minbox['signal'].setValue(tab.minbox['signal'].value())
         self.maxbox['signal'].setValue(tab.maxbox['signal'].value())
-        if self.ndim > 1:
-            self.xbox.setCurrentIndex(tab.xbox.currentIndex())
-            self.ybox.setCurrentIndex(tab.ybox.currentIndex())
-            for p in self.copied_properties:
-                self.copied_properties[p] = getattr(tab.plotview, p)
         if self.plotview.label != 'Main':
             if tab.plotview.label == 'Main':
                 figure_size = tab.plotview.figure.get_size_inches()
@@ -2656,12 +2656,6 @@ class LimitTab(NXTab):
             else:
                 self.parameters['xsize'].value = tab.parameters['xsize'].value
                 self.parameters['ysize'].value = tab.parameters['ysize'].value
-
-    def reset(self):
-        self.plotview.otab.home()
-        self.update()
-
-    def apply(self):
         try:
             if self.ndim == 1:
                 xmin, xmax = self.minbox[0].value(), self.maxbox[0].value()
@@ -2700,15 +2694,19 @@ class LimitTab(NXTab):
                         self.plotview.ztab.set_axis(self.plotview.axis[idx])
                         self.plotview.ztab.set_limits(self.minbox[idx].value(),
                                                       self.maxbox[idx].value())
-                self.plotview.replot_data()
                 for p in self.copied_properties:
-                    setattr(self.plotview, p, self.copied_properties[p])
+                    setattr(self.plotview, p, getattr(tab.plotview, p))
+                self.plotview.replot_data()
             if self.plotview.label != 'Main':
                 xsize, ysize = (self.parameters['xsize'].value, 
                                 self.parameters['ysize'].value)
                 self.plotview.figure.set_size_inches(xsize, ysize)
         except NeXusError as error:
             report_error("Setting plot limits", error)
+
+    def reset(self):
+        self.plotview.otab.home()
+        self.update()
 
     def close(self):
         for tab in [self.tabs[label] for label in self.tabs 
@@ -2749,7 +2747,8 @@ class ScanTab(NXTab):
 
         self.xlabel, self.xbox = self.label('X-Axis'), NXComboBox(self.set_xaxis)
         self.ylabel, self.ybox = self.label('Y-Axis'), NXComboBox(self.set_yaxis)
-        axis_layout = self.make_layout(self.xlabel, self.xbox, self.ylabel, self.ybox)
+        axis_layout = self.make_layout(self.xlabel, self.xbox, 
+                                       self.ylabel, self.ybox)
                                        
         self.set_axes()
         
@@ -2758,13 +2757,8 @@ class ScanTab(NXTab):
         headers = ['Axis', 'Minimum', 'Maximum', 'Lock']
         width = [50, 100, 100, 25]
         column = 0
-        header_font = QtGui.QFont()
-        header_font.setBold(True)
         for header in headers:
-            label = NXLabel()
-            label.setAlignment(QtCore.Qt.AlignHCenter)
-            label.setText(header)
-            label.setFont(header_font)
+            label = NXLabel(header, bold=True, align='center')
             grid.addWidget(label, 0, column)
             grid.setColumnMinimumWidth(column, width[column])
             column += 1
@@ -2813,6 +2807,7 @@ class ScanTab(NXTab):
         self.xbox.setFocus()
         self.file_box = None
         self.scan_data = None
+        self.files = None
 
     def __repr__(self):
         return 'ScanTab("%s")' % self.name
@@ -2856,21 +2851,23 @@ class ScanTab(NXTab):
         self.file_box.setMinimumWidth(300)
         self.prefix_box = NXLineEdit()
         self.prefix_box.textChanged.connect(self.select_prefix)
-        prefix_layout = self.make_layout(NXLabel('Prefix'), 
-                                         self.prefix_box)
+        prefix_layout = self.make_layout(NXLabel('Prefix'), self.prefix_box)
         self.scroll_area = NXScrollArea()
         self.files = GridParameters()
         i = 0
         for name in sorted(self.tree, key=natural_sort):
             root = self.tree[name]
-            if (self.data_path in root and 
-                root[self.data_path].nxsignal.exists()):
-                i += 1
-                if self.scan_path:
-                    self.files.add(name, root[self.scan_path], name, True)
-                else:
-                    self.files.add(name, i, name, True)
-                    self.files[name].checkbox.stateChanged.connect(self.update_files)
+            try:
+                if (self.data_path in root and 
+                    root[self.data_path].nxsignal.exists()):
+                    i += 1
+                    if self.scan_path:
+                        self.files.add(name, root[self.scan_path], name, True)
+                    else:
+                        self.files.add(name, i, name, True)
+                        self.files[name].checkbox.stateChanged.connect(self.update_files)
+            except Exception as error:
+                pass
         self.file_grid = self.files.grid(header=('File', self.scan_header, ''))
         self.scroll_widget = NXWidget()
         self.scroll_widget.set_layout(self.make_layout(self.file_grid))
@@ -2933,6 +2930,8 @@ class ScanTab(NXTab):
             return 'Variable'
 
     def scan_axis(self):
+        if self.files is None:
+            raise NeXusError("Files not selected")
         _files = [self.files[f].value for f in self.files 
                   if self.files[f].vary]
         if self.scan_variable is not None:
@@ -3261,7 +3260,7 @@ class ViewDialog(NXDialog):
 
     def __init__(self, node, parent=None):
 
-        super(ViewDialog, self).__init__(parent, default=True)
+        super(ViewDialog, self).__init__(parent)
 
         self.node = node
         self.spinboxes = []
@@ -3351,10 +3350,7 @@ class ViewDialog(NXDialog):
         layout = QtWidgets.QVBoxLayout()
 
         title_layout = QtWidgets.QHBoxLayout()
-        title_label = NXLabel('Values')
-        header_font = QtGui.QFont()
-        header_font.setBold(True)
-        title_label.setFont(header_font)
+        title_label = NXLabel('Indices', bold=True)
         title_layout.addStretch()
         title_layout.addWidget(title_label)
         title_layout.addStretch()
@@ -3363,7 +3359,7 @@ class ViewDialog(NXDialog):
         if [s for s in self.node.shape if s > 10]:
             idx = []
             for i, s in enumerate(self.node.shape):
-                spinbox = NXSpinBox(self.choose_data)
+                spinbox = NXSpinBox(self.choose_data, np.arange(s))
                 spinbox.setRange(0, s-1)   
                 if len(self.node.shape) - i > 2:
                     idx.append(0)
@@ -3397,7 +3393,7 @@ class ViewDialog(NXDialog):
         return layout
 
     def choose_data(self):
-        idx = [s.value() for s in self.spinboxes]
+        idx = [int(s.value()) for s in self.spinboxes]
         if len(idx) > 1:
             origin = [idx[-2], idx[-1]]
             for i in [-2,-1]:
@@ -3426,7 +3422,11 @@ class ViewTableModel(QtCore.QAbstractTableModel):
         self.origin = [0, 0]
 
     def get_data(self, data):
-        if len(data.shape) == 1:
+        if len(data.shape) == 0:
+            self.rows = 1
+            self.columns = 1
+            return data.reshape((1,1))
+        elif len(data.shape) == 1:
             self.rows = data.shape[0]
             self.columns = 1
             return data.reshape((data.shape[0],1))
@@ -3566,15 +3566,10 @@ class AddDialog(NXDialog):
         grid = QtWidgets.QGridLayout()
         grid.setSpacing(10)
 
-        name_label = NXLabel()
-        name_label.setAlignment(QtCore.Qt.AlignLeft)
-        name_label.setText("Name:")
+        name_label = NXLabel("Name:")
         self.name_box = NXLineEdit()
-        self.name_box.setAlignment(QtCore.Qt.AlignLeft)
         if class_name == "NXgroup":
-            combo_label = NXLabel()
-            combo_label.setAlignment(QtCore.Qt.AlignLeft)
-            combo_label.setText("Group Class:")
+            combo_label = NXLabel("Group Class:")
             self.combo_box = NXComboBox(self.select_combo)
             standard_groups = sorted(list(set([g for g in 
                 self.mainwindow.nxclasses[self.node.nxclass][2]])))
@@ -3598,7 +3593,6 @@ class AddDialog(NXDialog):
             self.select_combo()
         elif class_name == "NXfield":
             combo_label = NXLabel()
-            combo_label.setAlignment(QtCore.Qt.AlignLeft)
             self.combo_box = NXComboBox(self.select_combo)
             fields = sorted(list(set([g for g in 
                             self.mainwindow.nxclasses[self.node.nxclass][1]])))
@@ -3612,23 +3606,15 @@ class AddDialog(NXDialog):
             grid.addWidget(name_label, 0, 0)
             grid.addWidget(self.name_box, 0, 1)
             grid.addWidget(self.combo_box, 0, 2)
-            value_label = NXLabel()
-            value_label.setAlignment(QtCore.Qt.AlignLeft)
-            value_label.setText("Value:")
+            value_label = NXLabel("Value:")
             self.value_box = NXLineEdit()
-            self.value_box.setAlignment(QtCore.Qt.AlignLeft)
             grid.addWidget(value_label, 1, 0)
             grid.addWidget(self.value_box, 1, 1)
-            units_label = NXLabel()
-            units_label.setAlignment(QtCore.Qt.AlignLeft)
-            units_label.setText("Units:")
+            units_label = NXLabel("Units:")
             self.units_box = NXLineEdit()
-            self.units_box.setAlignment(QtCore.Qt.AlignLeft)
             grid.addWidget(units_label, 2, 0)
             grid.addWidget(self.units_box, 2, 1)
-            type_label = NXLabel()
-            type_label.setAlignment(QtCore.Qt.AlignLeft)
-            type_label.setText("Datatype:")
+            type_label = NXLabel("Datatype:")
             self.type_box = NXComboBox()
             for name in self.data_types:
                 self.type_box.addItem(name)
@@ -3640,16 +3626,11 @@ class AddDialog(NXDialog):
         else:
             grid.addWidget(name_label, 0, 0)
             grid.addWidget(self.name_box, 0, 1)
-            value_label = NXLabel()
-            value_label.setAlignment(QtCore.Qt.AlignLeft)
-            value_label.setText("Value:")
+            value_label = NXLabel("Value:")
             self.value_box = NXLineEdit()
-            self.value_box.setAlignment(QtCore.Qt.AlignLeft)
             grid.addWidget(value_label, 1, 0)
             grid.addWidget(self.value_box, 1, 1)
-            type_label = NXLabel()
-            type_label.setAlignment(QtCore.Qt.AlignLeft)
-            type_label.setText("Datatype:")
+            type_label = NXLabel("Datatype:")
             self.type_box = NXComboBox()
             for name in self.data_types:
                 self.type_box.addItem(name)
@@ -3747,11 +3728,8 @@ class InitializeDialog(NXDialog):
         grid = QtWidgets.QGridLayout()
         grid.setSpacing(10)
 
-        name_label = NXLabel()
-        name_label.setAlignment(QtCore.Qt.AlignLeft)
-        name_label.setText("Name:")
+        name_label = NXLabel("Name:")
         self.name_box = NXLineEdit()
-        self.name_box.setAlignment(QtCore.Qt.AlignLeft)
         self.combo_box = NXComboBox(self.select_combo)
         fields = sorted(list(set([g for g in 
                         self.mainwindow.nxclasses[self.node.nxclass][1]])))
@@ -3765,28 +3743,20 @@ class InitializeDialog(NXDialog):
         grid.addWidget(name_label, 0, 0)
         grid.addWidget(self.name_box, 0, 1)
         grid.addWidget(self.combo_box, 0, 2)
-        type_label = NXLabel()
-        type_label.setAlignment(QtCore.Qt.AlignLeft)
-        type_label.setText("Datatype:")
+        type_label = NXLabel("Datatype:")
         self.type_box = NXComboBox()
         for name in self.data_types:
             self.type_box.addItem(name)
         self.type_box.setCurrentIndex(0)
         grid.addWidget(type_label, 2, 0)
         grid.addWidget(self.type_box, 2, 1)
-        shape_label = NXLabel()
-        shape_label.setAlignment(QtCore.Qt.AlignLeft)
-        shape_label.setText("Shape:")
+        shape_label = NXLabel("Shape:")
         self.shape_box = NXLineEdit()
-        self.shape_box.setAlignment(QtCore.Qt.AlignLeft)
         grid.addWidget(shape_label, 3, 0)
         grid.addWidget(self.shape_box, 3, 1)
         grid.setColumnMinimumWidth(1, 200)
-        fill_label = NXLabel()
-        fill_label.setAlignment(QtCore.Qt.AlignLeft)
-        fill_label.setText("Fill Value:")
-        self.fill_box = NXLineEdit('0')
-        self.fill_box.setAlignment(QtCore.Qt.AlignLeft)
+        fill_label = NXLabel("Fill Value:")
+        self.fill_box = NXLineEdit(0)
         grid.addWidget(fill_label, 4, 0)
         grid.addWidget(self.fill_box, 4, 1)
         grid.setColumnMinimumWidth(1, 200)
@@ -3872,20 +3842,15 @@ class RenameDialog(NXDialog):
     def define_grid(self):
         grid = QtWidgets.QGridLayout()
         grid.setSpacing(10)
-        name_label = NXLabel()
-        name_label.setAlignment(QtCore.Qt.AlignLeft)
-        name_label.setText("New Name:")
+        name_label = NXLabel("New Name:")
         self.name_box = NXLineEdit(self.node.nxname)
-        self.name_box.setAlignment(QtCore.Qt.AlignLeft)
         grid.addWidget(name_label, 0, 0)
         grid.addWidget(self.name_box, 0, 1)
         self.combo_box = None
         if (isinstance(self.node, NXgroup) and 
             not isinstance(self.node, NXlink) and 
             self.node.nxclass != 'NXroot'):
-            combo_label = NXLabel()
-            combo_label.setAlignment(QtCore.Qt.AlignLeft)
-            combo_label.setText("New Class:")
+            combo_label = NXLabel("New Class:")
             self.combo_box = NXComboBox()
             parent_class = self.node.nxgroup.nxclass
             standard_groups = sorted(list(set([g for g in 
@@ -3912,9 +3877,7 @@ class RenameDialog(NXDialog):
         else:
             parent_class = self.node.nxgroup.nxclass
             if parent_class != 'NXroot' and parent_class != 'NXtree':
-                combo_label = NXLabel()
-                combo_label.setAlignment(QtCore.Qt.AlignLeft)
-                combo_label.setText("Valid Fields:")
+                combo_label = NXLabel("Valid Fields:")
                 self.combo_box = NXComboBox(self.set_name)
                 fields = sorted(list(set([g for g in 
                                 self.mainwindow.nxclasses[parent_class][1]])))

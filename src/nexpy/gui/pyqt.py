@@ -1,27 +1,29 @@
-import os
-import matplotlib
-# this will not work with the newest version of PyQt
-try:
-    import sip
-    for api in ['QString', 'QVariant', 'QDate', 'QDateTime',
-                'QTextStream', 'QTime', 'QUrl']:
-        sip.setapi(api, 2)
-except ImportError:
-    pass
+#!/usr/bin/env python 
+# -*- coding: utf-8 -*-
 
-from matplotlib.backends.qt_compat import QtCore, QtGui, QtWidgets
-if QtCore.__name__.lower().startswith('pyqt5'):
-    os.environ['QT_API'] = 'pyqt5'
+#-----------------------------------------------------------------------------
+# Copyright (c) 2013-2020, NeXpy Development Team.
+#
+# Distributed under the terms of the Modified BSD License.
+#
+# The full license is in the file COPYING, distributed with this software.
+#-----------------------------------------------------------------------------
+import os
+
+from qtpy import QtCore, QtGui, QtWidgets
+
+if QtCore.PYQT5:
     QtVersion = 'Qt5Agg'
-else:
-    QtCore.QSortFilterProxyModel = QtGui.QSortFilterProxyModel
-    QtCore.QItemSelectionModel = QtGui.QItemSelectionModel
+    os.environ['QT_API'] = 'pyqt5'
+elif QtCore.PYSIDE2:
+    QtVersion = 'Qt5Agg'
+    os.environ['QT_API'] = 'pyside2'
+elif QtCore.PYQT4:
     QtVersion = 'Qt4Agg'
-    if QtCore.__name__.lower().startswith('pyqt4'):
-        os.environ['QT_API'] = 'pyqt'
-    elif QtCore.__name__.lower().startswith('pyside'):
-        os.environ['QT_API'] = 'pyside'
-matplotlib.use(QtVersion, warn=False)
+    os.environ['QT_API'] = 'pyqt'
+elif QtCore.PYSIDE:
+    QtVersion = 'Qt4Agg'
+    os.environ['QT_API'] = 'pyside'
 
 
 def getOpenFileName(*args, **kwargs):

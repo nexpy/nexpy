@@ -65,13 +65,9 @@ class ImportDialog(BaseImportDialog):
     def scanbox(self):
         '''create widgets for specifying scan range to import'''
         scanminlabel = NXLabel("Min. Scan")
-        self.scanmin = NXLineEdit()
-        self.scanmin.setFixedWidth(100)
-        self.scanmin.setAlignment(QtCore.Qt.AlignRight)
+        self.scanmin = NXLineEdit(width=100, align='right')
         scanmaxlabel = NXLabel("Max. Scan")
-        self.scanmax = NXLineEdit()
-        self.scanmax.setFixedWidth(100)
-        self.scanmax.setAlignment(QtCore.Qt.AlignRight)
+        self.scanmax = NXLineEdit(width=100, align='right')
 
         scanbox = QtWidgets.QHBoxLayout()
         scanbox.addWidget(scanminlabel)
