@@ -31,8 +31,8 @@ from nexusformat.nexus import (NeXusError, NXattr, NXdata, NXentry, NXfield,
 from .datadialogs import NXPanel, NXTab
 from .plotview import NXPlotView
 from .pyqt import QtCore, QtGui, QtWidgets
-from .utils import report_error, format_float
-from .widgets import (NXCheckBox, NXComboBox, NXLabel, NXLineEdit, 
+from .utils import report_error, format_float, get_color
+from .widgets import (NXCheckBox, NXComboBox, NXLabel, NXLineEdit, NXColorBox,
                       NXMessageBox, NXPushButton)
 
 
@@ -203,7 +203,6 @@ class FitTab(NXTab):
 
         self.plotview = plotview
         self.fit_num = None
-        self.color = color
         self.plot_nums = []
 
         self.model = None
@@ -242,7 +241,8 @@ class FitTab(NXTab):
                                               align='left')
 
         if self.plotview is None:
-            self.fitview.plot(self._data, fmt='o')
+            self.fitview.plot(self._data, fmt='o', color=color)
+        self.data_num = self.fitview.num
         self.data_label = self.fitview.plots[self.fitview.num]['label']
 
         self.plot_layout = QtWidgets.QHBoxLayout()
@@ -272,6 +272,17 @@ class FitTab(NXTab):
                                             self.plot_maxbox,
                                             align='justified')
 
+        self.restore_button = NXPushButton("Restore Parameters", 
+                                           self.restore_parameters)
+        self.restore_button.setVisible(False)
+        self.color_box = NXColorBox(get_color(color), label='Plot Color',
+                                    width=100)
+        reset_button = NXPushButton('Reset Limits', self.reset_limits)
+        self.adjust_layout = QtWidgets.QHBoxLayout()
+        self.adjust_layout = self.make_layout(self.restore_button, 'stretch',
+                                              self.color_box, reset_button, 
+                                              align='justified')
+
         fit_button = NXPushButton('Fit', self.fit_data)
         self.fit_label = NXLabel(width=300)
         if self._data.nxerrors:
@@ -282,10 +293,6 @@ class FitTab(NXTab):
         self.report_button = NXPushButton("Show Fit Report", self.report_fit)
         self.report_button.setVisible(False)
         self.save_button = NXPushButton("Save Parameters", self.save_fit)
-        self.restore_button = NXPushButton("Restore Parameters", 
-                                           self.restore_parameters)
-        self.restore_button.setVisible(False)
-        reset_button = NXPushButton('Reset Limits', self.reset_limits)
         self.action_layout = self.make_layout(fit_button, 
                                               self.fit_checkbox,
                                               self.fit_label,
@@ -294,12 +301,8 @@ class FitTab(NXTab):
                                               self.save_button,
                                               align='justified')
 
-        self.bottom_layout = QtWidgets.QHBoxLayout()
-        self.bottom_layout = self.make_layout(reset_button, 
-                                              self.restore_button,
-                                              align='left')
 
-        self.set_layout(model_layout, self.plot_layout, self.bottom_layout)
+        self.set_layout(model_layout, self.plot_layout, self.adjust_layout)
         self.layout.setSpacing(0)
         self.set_title("Fit NeXus Data")
 
@@ -430,6 +433,10 @@ class FitTab(NXTab):
                     m['parameters'][p].correl = new_parameters[p].correl
         self.write_parameters()
 
+    @property
+    def color(self):
+        return self.color_box.textbox.text()
+
     def compressed_name(self, name):
         return re.sub(r'([a-zA-Z]*) # (\d*) ', r'\1\2', name, count=1)
 
@@ -544,7 +551,7 @@ class FitTab(NXTab):
         if self.first_time:
             self.layout.insertLayout(1, self.parameter_layout)
             self.layout.insertLayout(2, self.remove_layout)
-            self.layout.insertLayout(4, self.action_layout)
+            self.layout.insertLayout(5, self.action_layout)
             self.plot_model_button.setVisible(True)
             self.plotcombo.addItem('All')
             self.plotcombo.insertSeparator(1)
@@ -706,9 +713,14 @@ class FitTab(NXTab):
     def plot_data(self):
         if self.plotview is None:
             self.fitview.plot(self.data, fmt='o', color=self.color)
-            self.fitview.plots[self.fitview.num]['label'] = self.data_label
+            for label in ['label', 'legend_label']:
+                self.fitview.plots[self.fitview.num][label] = self.data_label
         elif self.data_not_plotted():
             self.fitview.plot(self.data, fmt='o', color=self.color, over=True)
+            for label in ['label', 'legend_label']:
+                self.fitview.plots[self.fitview.num][label] = self.data_label
+        else:
+            self.fitview.plots[self.data_num]['plot'].set_color(self.color)
         self.remove_plots()
         self.fitview.raise_()
         self.plot_nums = []
