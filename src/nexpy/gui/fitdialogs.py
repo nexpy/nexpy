@@ -159,7 +159,7 @@ class FitDialog(NXPanel):
         self.setMinimumWidth(850)        
         self.tab_class = FitTab
 
-    def activate(self, data, plotview=None, color=None, parent=None):
+    def activate(self, data, plotview=None, color='C0', parent=None):
         if plotview:
             label = plotview.label + ': ' + str(plotview.num) 
         else:
