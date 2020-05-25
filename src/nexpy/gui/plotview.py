@@ -2466,6 +2466,13 @@ class NXPlotView(QtWidgets.QDialog):
         for panel in self.panels:
             if self.label in self.panels[panel].tabs:
                 self.panels[panel].remove(self.label)
+            if panel == 'fit':
+                removed_tabs = []
+                for tab in self.panels['fit'].tabs:
+                    if tab.startswith(self.label):
+                        removed_tabs.append(tab)
+                for tab in removed_tabs:
+                    self.panels['fit'].remove(tab)
 
     def closeEvent(self, event):
         """Close this widget and mark it for deletion."""
