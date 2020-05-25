@@ -716,15 +716,15 @@ class FitTab(NXTab):
             self.fitview.plot(self.data, fmt='o', color=self.color)
             for label in ['label', 'legend_label']:
                 self.fitview.plots[self.fitview.num][label] = self.data_label
-        elif self.data_not_plotted():
+            self.remove_plots()
+        else:
             self.fitview.plot(self.data, fmt='o', color=self.color, over=True)
             for label in ['label', 'legend_label']:
                 self.fitview.plots[self.fitview.num][label] = self.data_label
-        else:
-            self.fitview.plots[self.data_num]['plot'].set_color(self.color)
-        self.remove_plots()
+            num = self.fitview.num
+            self.remove_plots()
+            self.plot_nums.append(num)
         self.fitview.raise_()
-        self.plot_nums = []
 
     def plot_model(self):
         model_name = self.plotcombo.currentText()
@@ -872,8 +872,9 @@ class FitTab(NXTab):
                 self.fitview.plots[num]['plot'].remove()
                 del self.fitview.plots[num]
                 self.fitview.ytab.plotcombo.remove(str(num))
-        self.fitview.ytab.plotcombo.select(0)
-        self.fitview.num = 0
+        self.plot_nums = []
+        self.fitview.num = self.data_num
+        self.fitview.ytab.plotcombo.select(self.data_num)
         self.fitview.draw()
    
     def apply(self):
