@@ -19,6 +19,7 @@ import re
 import sys
 import types
 from collections import OrderedDict
+from copy import deepcopy
 
 import matplotlib as mpl
 import numpy as np
@@ -194,9 +195,9 @@ class FitTab(NXTab):
         if ((isinstance(data, NXentry) or isinstance(data, NXprocess))
              and 'data' in data):
             group = data
-            self._data = self.initialize_data(group['data'])
+            self.initialize_data(group['data'])
         elif isinstance(data, NXdata):
-            self._data = self.initialize_data(data)
+            self.initialize_data(data)
             group = None
         else:
             raise NeXusError("Must be an NXdata group")
@@ -339,7 +340,7 @@ class FitTab(NXTab):
                 self.boundaries = False
             else:
                 raise NeXusError("Data has invalid axes")
-            return data
+            self._data = deepcopy(data)
         else:
             raise NeXusError("Must be an NXdata group")
 
