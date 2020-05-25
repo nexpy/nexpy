@@ -376,7 +376,6 @@ def main(filename=None):
     app = NXConsoleApp()
     app.initialize(filename=filename)
     app.start()
-    del app.window, app.app
     sys.exit(0)
 
 

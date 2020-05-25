@@ -304,7 +304,7 @@ class FitTab(NXTab):
 
 
         self.set_layout(model_layout, self.plot_layout, self.adjust_layout)
-        self.layout.setSpacing(0)
+        self.layout.setSpacing(10)
         self.set_title("Fit NeXus Data")
 
         if group:
@@ -880,7 +880,7 @@ class FitTab(NXTab):
    
     def apply(self):
         if self.plotview:
-            if self.fit_num:
+            if self.fit_num and self.fit_num in self.plot_nums:
                 self.plot_nums.pop(self.plot_nums.index(self.fit_num))
             self.remove_plots()
         if self.data_num+1 not in self.fitview.plots:

@@ -2378,16 +2378,23 @@ class MainWindow(QtWidgets.QMainWindow):
     def quickref_console(self):
         self.console.execute("%quickref")
 
+    def close_widgets(self):
+        for widget in self._app.allWidgets():
+            try:
+                if id(widget) != id(self):
+                    if widget.parent() is None:
+                        widget.close()
+            except:
+                pass          
+
     def closeEvent(self, event):
         """Customize the close process to confirm request to quit NeXpy."""
         if confirm_action("Are you sure you want to quit NeXpy?", 
                           icon=self.app.icon_pixmap):
-            logging.info('NeXpy closed\n'+80*'-')
             self.console.kernel_client.stop_channels()
             self.console.kernel_manager.shutdown_kernel()
-            for panel in self.panels:
-                self.panels[panel].close()
-            self._app.closeAllWindows()
+            self.close_widgets()
+            logging.info('NeXpy closed\n'+80*'-')
             self._app.quit()
             return event.accept()
         else:
