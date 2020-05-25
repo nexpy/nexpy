@@ -776,7 +776,7 @@ class NXPanel(NXDialog):
             numbers = sorted([t.plotview.number for t in self.labels])
             return bisect.bisect_left(numbers, pv.number)
         else:
-            return sorted(self.tabs.keys()).index(label)
+            return bisect.bisect_left(sorted(list(self.tabs)), label)
 
     def activate(self, label):
         if label not in self.tabs:
