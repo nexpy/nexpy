@@ -719,6 +719,7 @@ class FitTab(NXTab):
             self.remove_plots()
         else:
             self.fitview.plot(self.data, fmt='o', color=self.color, over=True)
+            self.fitview.plots[self.data_num]['plot'].set_color(self.color)
             for label in ['label', 'legend_label']:
                 self.fitview.plots[self.fitview.num][label] = self.data_label
             num = self.fitview.num
