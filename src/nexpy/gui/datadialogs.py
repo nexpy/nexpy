@@ -1762,6 +1762,7 @@ class CustomizeTab(NXTab):
             for label in self.plot_stack.widgets:
                 if self.label_plot(label) not in self.plots:
                     self.plot_stack.remove(label)
+            self.plot_stack.box.sort()
 
     def update_labels(self):
         pl = self.parameters['labels']

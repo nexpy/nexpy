@@ -882,6 +882,12 @@ class FitTab(NXTab):
             if self.fit_num:
                 self.plot_nums.pop(self.plot_nums.index(self.fit_num))
             self.remove_plots()
+        if self.data_num+1 not in self.fitview.plots:
+            num = self.data_num + 1
+            self.fitview.plots[num] = self.fitview.plots[self.fit_num]
+            del self.fitview.plots[self.fit_num]
+            self.fitview.ytab.plotcombo.remove(self.fit_num)
+            self.fitview.ytab.plotcombo.insert(num, num)
         
     def reset(self):
         self.remove_plots()
