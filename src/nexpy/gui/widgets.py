@@ -439,6 +439,7 @@ class NXColorButton(QtWidgets.QPushButton):
 
     def __init__(self, parent=None):
         super(NXColorButton, self).__init__(parent)
+        self.setFixedWidth(18)
         self.setStyleSheet("width:18px; height:18px; "
                            "margin: 0px; border: 0px; padding: 0px;"
                            "background-color: white")
@@ -482,7 +483,7 @@ class NXColorBox(QtWidgets.QWidget):
         Color button consisting of a colored icon.
     """
 
-    def __init__(self, color='#ffffff', parent=None):
+    def __init__(self, color='#ffffff', label=None, width=None, parent=None):
         """Initialize the text and color box.
 
         The selected color can be changed by entering a valid text string or 
@@ -502,10 +503,13 @@ class NXColorBox(QtWidgets.QWidget):
         color = self.qcolor(self.color_text)
         self.layout = QtWidgets.QHBoxLayout()
         self.layout.setContentsMargins(0, 0, 0, 0)
+        if label:
+            self.layout.addStretch()
+            self.layout.addWidget(NXLabel(label))
         self.textbox = NXLineEdit(colors.to_hex(color.getRgbF(),
-                                                keep_alpha=True), 
+                                                keep_alpha=True),
                                   parent=parent, slot=self.update_color, 
-                                  align='right')
+                                  width=width, align='right')
         self.layout.addWidget(self.textbox)
         self.button = NXColorButton(parent)
         self.button.color = color
