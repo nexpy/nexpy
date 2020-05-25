@@ -20,6 +20,7 @@ import pkg_resources
 import re
 import shutil
 import sys
+import time
 
 from operator import attrgetter
 from posixpath import basename
@@ -792,11 +793,17 @@ class NXPanel(NXDialog):
         if self.tabwidget.count() == 0:
             self.setVisible(False)
         else:
-            for tab in self.tabs:
+            for tab in [tab for tab in self.tabs if tab is not self.tab]:
                 try:
+                    self.tabs[tab].setSizePolicy(QtWidgets.QSizePolicy.Ignored, 
+                                                 QtWidgets.QSizePolicy.Ignored)
                     self.tabs[tab].update()
                 except Exception:
                     pass
+            self.tab.setSizePolicy(QtWidgets.QSizePolicy.Preferred,
+                                   QtWidgets.QSizePolicy.Preferred)
+            self.tab.update()
+        self.mainwindow._app.processEvents()
         self.adjustSize()
 
     def copy(self):

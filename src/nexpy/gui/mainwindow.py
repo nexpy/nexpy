@@ -2385,7 +2385,10 @@ class MainWindow(QtWidgets.QMainWindow):
             logging.info('NeXpy closed\n'+80*'-')
             self.console.kernel_client.stop_channels()
             self.console.kernel_manager.shutdown_kernel()
+            for panel in self.panels:
+                self.panels[panel].close()
             self._app.closeAllWindows()
+            self._app.processEvents()
             self._app.quit()
             return event.accept()
         else:
