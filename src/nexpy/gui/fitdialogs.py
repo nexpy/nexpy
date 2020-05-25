@@ -19,6 +19,7 @@ import re
 import sys
 import types
 from collections import OrderedDict
+from copy import deepcopy
 
 import matplotlib as mpl
 import numpy as np
@@ -28,11 +29,11 @@ from nexusformat.nexus import (NeXusError, NXattr, NXdata, NXentry, NXfield,
                                NXgroup, NXnote, NXparameters, NXprocess,
                                NXroot, nxload)
 
-from .datadialogs import NXDialog
+from .datadialogs import NXPanel, NXTab
 from .plotview import NXPlotView
 from .pyqt import QtCore, QtGui, QtWidgets
-from .utils import report_error, format_float
-from .widgets import (NXCheckBox, NXComboBox, NXLabel, NXLineEdit, 
+from .utils import report_error, format_float, get_color
+from .widgets import (NXCheckBox, NXComboBox, NXLabel, NXLineEdit, NXColorBox,
                       NXMessageBox, NXPushButton)
 
 
@@ -151,28 +152,59 @@ class NXModel(Model):
         return pars
 
 
-class FitDialog(NXDialog):
+class FitDialog(NXPanel):
+
+    def __init__(self, parent=None):
+        super(FitDialog, self).__init__('fit', title='Fit Panel', 
+                                        apply=True, reset=True, parent=parent)
+        self.setMinimumWidth(850)        
+        self.tab_class = FitTab
+
+    def activate(self, data, plotview=None, color='C0', parent=None):
+        if plotview:
+            label = plotview.label + ': ' + str(plotview.num) 
+        else:
+            label = data.nxroot.nxname + data.nxpath
+        if label not in self.tabs:
+            tab = FitTab(data, plotview=plotview, color=color, parent=parent)
+            self.add(label, tab, idx=self.idx(label))
+        else:
+            self.tab = label
+            self.tab.update()
+        self.setVisible(True)
+        self.raise_()
+        self.activateWindow()
+
+    def close(self):
+        tab = self.tab
+        if len(self.labels) == 1 and tab.plotview is None:
+            if 'Fit' in self.plotviews:
+                self.plotviews['Fit'].close()
+        if tab:
+            tab.close()
+            self.remove(self.labels[tab])
+
+
+class FitTab(NXTab):
     """Dialog to fit one-dimensional NeXus data"""
  
     def __init__(self, data, plotview=None, color='C0', parent=None):
 
-        super(FitDialog, self).__init__(parent=parent)
-        self.setMinimumWidth(850)        
+        super(FitTab, self).__init__(parent=parent)
  
         if ((isinstance(data, NXentry) or isinstance(data, NXprocess))
              and 'data' in data):
             group = data
-            self._data = self.initialize_data(group['data'])
+            self.initialize_data(group['data'])
         elif isinstance(data, NXdata):
-            self._data = self.initialize_data(data)
+            self.initialize_data(data)
             group = None
         else:
             raise NeXusError("Must be an NXdata group")
 
         self.plotview = plotview
-        self.color = color
-        self.plot_nums = []
         self.fit_num = None
+        self.plot_nums = []
 
         self.model = None
         self.models = []
@@ -210,7 +242,9 @@ class FitDialog(NXDialog):
                                               align='left')
 
         if self.plotview is None:
-            self.fitview.plot(self._data, fmt='o')
+            self.fitview.plot(self._data, fmt='o', color=color)
+        self.data_num = self.fitview.num
+        self.data_label = self.fitview.plots[self.fitview.num]['label']
 
         self.plot_layout = QtWidgets.QHBoxLayout()
         plot_data_button = NXPushButton('Plot Data', self.plot_data)
@@ -219,8 +253,8 @@ class FitDialog(NXDialog):
         self.plotcombo = NXComboBox()
         self.plotcombo.setVisible(False)
         plot_label = NXLabel('X:')
-        self.plot_min = self.fitview.xaxis.min
-        self.plot_max = self.fitview.xaxis.max 
+        self.plot_min = self._data.nxaxes[0].min()
+        self.plot_max = self._data.nxaxes[0].max() 
         self.plot_minbox = NXLineEdit(format_float(self.plot_min), 
                                       align='right', width=100)
         plot_tolabel = NXLabel(' to ')
@@ -239,6 +273,17 @@ class FitDialog(NXDialog):
                                             self.plot_maxbox,
                                             align='justified')
 
+        self.restore_button = NXPushButton("Restore Parameters", 
+                                           self.restore_parameters)
+        self.restore_button.setVisible(False)
+        self.color_box = NXColorBox(get_color(color), label='Plot Color',
+                                    width=100)
+        reset_button = NXPushButton('Reset Limits', self.reset_limits)
+        self.adjust_layout = QtWidgets.QHBoxLayout()
+        self.adjust_layout = self.make_layout(self.restore_button, 'stretch',
+                                              self.color_box, reset_button, 
+                                              align='justified')
+
         fit_button = NXPushButton('Fit', self.fit_data)
         self.fit_label = NXLabel(width=300)
         if self._data.nxerrors:
@@ -249,10 +294,6 @@ class FitDialog(NXDialog):
         self.report_button = NXPushButton("Show Fit Report", self.report_fit)
         self.report_button.setVisible(False)
         self.save_button = NXPushButton("Save Parameters", self.save_fit)
-        self.restore_button = NXPushButton("Restore Parameters", 
-                                           self.restore_parameters)
-        self.restore_button.setVisible(False)
-        reset_button = NXPushButton('Reset Limits', self.reset_limits)
         self.action_layout = self.make_layout(fit_button, 
                                               self.fit_checkbox,
                                               self.fit_label,
@@ -261,14 +302,9 @@ class FitDialog(NXDialog):
                                               self.save_button,
                                               align='justified')
 
-        self.bottom_layout = QtWidgets.QHBoxLayout()
-        self.bottom_layout = self.make_layout(reset_button, 
-                                              self.restore_button,
-                                              'stretch',
-                                              self.close_buttons(),
-                                              align='justified')
 
-        self.set_layout(model_layout, self.plot_layout, self.bottom_layout)
+        self.set_layout(model_layout, self.plot_layout, self.adjust_layout)
+        self.layout.setSpacing(0)
         self.set_title("Fit NeXus Data")
 
         if group:
@@ -280,16 +316,17 @@ class FitDialog(NXDialog):
                     mpl.rcParams[key].remove(shortcut)
         self.fitview.canvas.mpl_connect('key_press_event', self.on_key_press)
 
+    def __repr__(self):
+        return 'FitTab("%s")' % self.data_label
+
     @property
     def fitview(self):
         if self.plotview and self.plotview.label in self.plotviews:
             self._fitview = self.plotview
-        elif 'Fit' not in self.plotviews:
+        elif 'Fit' in self.plotviews:
+            self._fitview = self.plotviews['Fit']
+        else:
             self._fitview = NXPlotView('Fit')
-            try:
-                self.plot_data()
-            except Exception:
-                pass
         return self._fitview
 
     def initialize_data(self, data):
@@ -303,7 +340,7 @@ class FitDialog(NXDialog):
                 self.boundaries = False
             else:
                 raise NeXusError("Data has invalid axes")
-            return data
+            self._data = deepcopy(data)
         else:
             raise NeXusError("Must be an NXdata group")
 
@@ -396,6 +433,10 @@ class FitDialog(NXDialog):
                     m['parameters'][p].stderr = new_parameters[p].stderr
                     m['parameters'][p].correl = new_parameters[p].correl
         self.write_parameters()
+
+    @property
+    def color(self):
+        return self.color_box.textbox.text()
 
     def compressed_name(self, name):
         return re.sub(r'([a-zA-Z]*) # (\d*) ', r'\1\2', name, count=1)
@@ -511,7 +552,7 @@ class FitDialog(NXDialog):
         if self.first_time:
             self.layout.insertLayout(1, self.parameter_layout)
             self.layout.insertLayout(2, self.remove_layout)
-            self.layout.insertLayout(4, self.action_layout)
+            self.layout.insertLayout(5, self.action_layout)
             self.plot_model_button.setVisible(True)
             self.plotcombo.addItem('All')
             self.plotcombo.insertSeparator(1)
@@ -666,20 +707,30 @@ class FitDialog(NXDialog):
         self.plot_minbox.setText(format_float(self.plot_min))
         self.plot_maxbox.setText(format_float(self.plot_max))
 
+    def data_not_plotted(self):
+        return self.data_label not in [self.fitview.plots[p]['label'] 
+                                       for p in self.fitview.plots]
+
     def plot_data(self):
-        key_modifier = QtWidgets.QApplication.keyboardModifiers()
-        if key_modifier == QtCore.Qt.ShiftModifier:
-            self.fitview.plot(self.data, fmt='o', color=self.color, over=True)
+        if self.plotview is None:
+            self.fitview.plot(self.data, fmt='o', color=self.color)
+            for label in ['label', 'legend_label']:
+                self.fitview.plots[self.fitview.num][label] = self.data_label
             self.remove_plots()
         else:
-            self.fitview.plot(self.data, fmt='o', color=self.color)
-        if self.plotview is None:
-            self.fitview.plots[self.fitview.num]['legend_label'] = 'Data'
+            self.fitview.plot(self.data, fmt='o', color=self.color, over=True)
+            self.fitview.plots[self.data_num]['plot'].set_color(self.color)
+            for label in ['label', 'legend_label']:
+                self.fitview.plots[self.fitview.num][label] = self.data_label
+            num = self.fitview.num
+            self.remove_plots()
+            self.plot_nums.append(num)
         self.fitview.raise_()
-        self.plot_nums = []
 
     def plot_model(self):
         model_name = self.plotcombo.currentText()
+        if self.data_not_plotted():
+            self.plot_data()
         if model_name == 'All':
             if self.fitted:
                 fmt = '-'
@@ -822,26 +873,27 @@ class FitDialog(NXDialog):
                 self.fitview.plots[num]['plot'].remove()
                 del self.fitview.plots[num]
                 self.fitview.ytab.plotcombo.remove(str(num))
-        self.fitview.ytab.plotcombo.select(0)
-        self.fitview.num = 0
+        self.plot_nums = []
+        self.fitview.num = self.data_num
+        self.fitview.ytab.plotcombo.select(self.data_num)
         self.fitview.draw()
    
-    def accept(self):
+    def apply(self):
         if self.plotview:
             if self.fit_num:
                 self.plot_nums.pop(self.plot_nums.index(self.fit_num))
             self.remove_plots()
-        elif 'Fit' in self.plotviews:
-            self.plotviews['Fit'].close()
-        super(FitDialog, self).accept()
+        if self.data_num+1 not in self.fitview.plots:
+            num = self.data_num + 1
+            self.fitview.plots[num] = self.fitview.plots[self.fit_num]
+            del self.fitview.plots[self.fit_num]
+            self.fitview.ytab.plotcombo.remove(self.fit_num)
+            self.fitview.ytab.plotcombo.insert(num, num)
         
-    def reject(self):
+    def reset(self):
+        self.remove_plots()
+
+    def close(self):
         if self.plotview:
             self.remove_plots()
-        elif 'Fit' in self.plotviews:
-            self.plotviews['Fit'].close()
-        super(FitDialog, self).reject()
-
-    def closeEvent(self, event):
-        self.remove_plots()
-        super(FitDialog, self).closeEvent(event)
+        super(FitTab, self).close()

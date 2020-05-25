@@ -20,6 +20,7 @@ import pkg_resources
 import re
 import shutil
 import sys
+import time
 
 from operator import attrgetter
 from posixpath import basename
@@ -594,6 +595,9 @@ class NXTab(NXWidget):
         self.layout.addStretch()
         self.setLayout(self.layout)
 
+    def update(self):
+        pass
+
     def close(self):
         self.update()
         self.setAttribute(QtCore.Qt.WA_DeleteOnClose, True)
@@ -772,7 +776,7 @@ class NXPanel(NXDialog):
             numbers = sorted([t.plotview.number for t in self.labels])
             return bisect.bisect_left(numbers, pv.number)
         else:
-            return sorted(self.tabs.keys()).index(label)
+            return bisect.bisect_left(sorted(list(self.tabs)), label)
 
     def activate(self, label):
         if label not in self.tabs:
@@ -789,11 +793,17 @@ class NXPanel(NXDialog):
         if self.tabwidget.count() == 0:
             self.setVisible(False)
         else:
-            for tab in self.tabs:
+            for tab in [tab for tab in self.tabs if tab is not self.tab]:
                 try:
+                    self.tabs[tab].setSizePolicy(QtWidgets.QSizePolicy.Ignored, 
+                                                 QtWidgets.QSizePolicy.Ignored)
                     self.tabs[tab].update()
                 except Exception:
                     pass
+            self.tab.setSizePolicy(QtWidgets.QSizePolicy.Preferred,
+                                   QtWidgets.QSizePolicy.Preferred)
+            self.tab.update()
+        self.mainwindow._app.processEvents()
         self.adjustSize()
 
     def copy(self):
@@ -1752,6 +1762,7 @@ class CustomizeTab(NXTab):
             for label in self.plot_stack.widgets:
                 if self.label_plot(label) not in self.plots:
                     self.plot_stack.remove(label)
+            self.plot_stack.box.sort()
 
     def update_labels(self):
         pl = self.parameters['labels']
