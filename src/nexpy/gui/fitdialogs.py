@@ -155,7 +155,7 @@ class FitDialog(NXPanel):
 
     def __init__(self, parent=None):
         super(FitDialog, self).__init__('fit', title='Fit Panel', 
-                                        apply=False, reset=False, parent=parent)
+                                        apply=True, reset=True, parent=parent)
         self.setMinimumWidth(850)        
         self.tab_class = FitTab
 
@@ -173,6 +173,15 @@ class FitDialog(NXPanel):
         self.setVisible(True)
         self.raise_()
         self.activateWindow()
+
+    def close(self):
+        tab = self.tab
+        if len(self.labels) == 1 and tab.plotview is None:
+            if 'Fit' in self.plotviews:
+                self.plotviews['Fit'].close()
+        if tab:
+            tab.close()
+            self.remove(self.labels[tab])
 
 
 class FitTab(NXTab):
@@ -859,17 +868,11 @@ class FitTab(NXTab):
             if self.fit_num:
                 self.plot_nums.pop(self.plot_nums.index(self.fit_num))
             self.remove_plots()
-        elif 'Fit' in self.plotviews:
-            self.plotviews['Fit'].close()
-        super(FitTab, self).accept()
         
     def reset(self):
+        self.remove_plots()
+
+    def close(self):
         if self.plotview:
             self.remove_plots()
-        elif 'Fit' in self.plotviews:
-            self.plotviews['Fit'].close()
-        super(FitTab, self).reject()
-
-    def closeEvent(self, event):
-        self.remove_plots()
-        super(FitTab, self).closeEvent(event)
+        super(FitTab, self).close()
