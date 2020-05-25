@@ -2388,7 +2388,6 @@ class MainWindow(QtWidgets.QMainWindow):
             for panel in self.panels:
                 self.panels[panel].close()
             self._app.closeAllWindows()
-            self._app.processEvents()
             self._app.quit()
             return event.accept()
         else:
