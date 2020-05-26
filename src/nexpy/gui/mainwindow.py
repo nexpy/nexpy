@@ -1832,7 +1832,7 @@ class MainWindow(QtWidgets.QMainWindow):
             else:
                 raise NeXusError("Select an NXdata group")
             if 'fit' not in self.panels:
-                self.panels['fit'] = FitDialog(parent=self)
+                self.panels['fit'] = FitDialog()
             self.panels['fit'].activate(node)
             logging.info("Fitting invoked on'%s'" % node.nxpath)
         except NeXusError as error:
@@ -2108,7 +2108,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def show_customize_panel(self):
         try:
             if 'customize' not in self.panels:
-                self.panels['customize'] = CustomizeDialog(parent=self)
+                self.panels['customize'] = CustomizeDialog()
             self.panels['customize'].activate(self.active_plotview.label)
         except NeXusError as error:
             report_error("Showing Customize Panel", error)
@@ -2116,7 +2116,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def show_limits_panel(self):
         try:
             if 'limit' not in self.panels:
-                self.panels['limit'] = LimitDialog(parent=self)
+                self.panels['limit'] = LimitDialog()
             self.panels['limit'].activate(self.active_plotview.label)
         except NeXusError as error:
             report_error("Showing Limits Panel", error)
@@ -2130,7 +2130,7 @@ class MainWindow(QtWidgets.QMainWindow):
             return
         try:
             if 'projection' not in self.panels:
-                self.panels['projection'] = ProjectionDialog(parent=self)
+                self.panels['projection'] = ProjectionDialog()
             self.panels['projection'].activate(self.active_plotview.label)
         except NeXusError as error:
             report_error("Showing Projection Panel", error)
@@ -2143,7 +2143,7 @@ class MainWindow(QtWidgets.QMainWindow):
             return
         try:
             if 'scan' not in self.panels:
-                self.panels['scan'] = ScanDialog(parent=self)
+                self.panels['scan'] = ScanDialog()
             self.panels['scan'].activate(self.plotview.label)
         except NeXusError as error:
             report_error("Showing Scan Panel", error)
