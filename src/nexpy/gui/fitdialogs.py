@@ -112,6 +112,29 @@ def get_models():
 
 all_models = get_models()
 
+def get_methods():
+    methods = {'leastsq': 'Levenberg-Marquardt',
+               'least_squares': 'Least-Squares minimization, '
+                                'using Trust Region Reflective method',
+               'differential_evolution': 'differential evolution',
+               'nelder': 'Nelder-Mead',
+               'lbfgsb':' L-BFGS-B',
+               'powell': 'Powell',
+               'cg': 'Conjugate-Gradient',
+               'newton': 'Newton-CG',
+               'cobyla': 'Cobyla',
+               'bfgs': 'BFGS',
+               'tnc': 'Truncated Newton',
+               'trust-ncg': 'Newton-CG trust-region',
+               'trust-exact': 'nearly exact trust-region',
+               'trust-krylov': 'Newton GLTR trust-region',
+               'trust-constr': 'trust-region for constrained optimization',
+               'dogleg': 'Dog-leg trust-region',
+               'slsqp': 'Sequential Linear Squares Programming'}
+    return methods
+
+all_methods = get_methods()
+
 
 class NXModel(Model):
 
@@ -273,6 +296,15 @@ class FitTab(NXTab):
                                             self.plot_maxbox,
                                             align='justified')
 
+        self.methodcombo = NXComboBox(items=list(all_methods))
+        for i, m in enumerate(all_methods):
+            tooltip = all_methods[m]
+            if tooltip:
+                self.methodcombo.setItemData(i, text(tooltip), 
+                                             QtCore.Qt.ToolTipRole)
+        self.methodcombo.sort()
+        self.methodcombo.select('leastsq') 
+        self.methodcombo.setVisible(False)
         self.restore_button = NXPushButton("Restore Parameters", 
                                            self.restore_parameters)
         self.restore_button.setVisible(False)
@@ -280,7 +312,8 @@ class FitTab(NXTab):
                                     width=100)
         reset_button = NXPushButton('Reset Limits', self.reset_limits)
         self.adjust_layout = QtWidgets.QHBoxLayout()
-        self.adjust_layout = self.make_layout(self.restore_button, 'stretch',
+        self.adjust_layout = self.make_layout(self.methodcombo,
+                                              self.restore_button, 'stretch',
                                               self.color_box, reset_button, 
                                               align='justified')
 
@@ -304,7 +337,7 @@ class FitTab(NXTab):
 
 
         self.set_layout(model_layout, self.plot_layout, self.adjust_layout)
-        self.layout.setSpacing(10)
+        self.layout.setSpacing(5)
         self.set_title("Fit NeXus Data")
 
         if group:
@@ -435,6 +468,10 @@ class FitTab(NXTab):
         self.write_parameters()
 
     @property
+    def method(self):
+        return self.methodcombo.selected
+
+    @property
     def color(self):
         return self.color_box.textbox.text()
 
@@ -524,7 +561,7 @@ class FitTab(NXTab):
                 return self.all_models[model_class](prefix=prefix)
                
     def add_model(self):
-        model_class = self.modelcombo.currentText()
+        model_class = self.modelcombo.selected
         model_index = len(self.models)
         model_name = model_class.replace('Model', '') + str(model_index+1)
         model = self.get_model_instance(model_class, prefix=model_name)
@@ -546,6 +583,7 @@ class FitTab(NXTab):
             self.model = model
         else:
             self.model = self.model + model
+        self.methodcombo.setVisible(True)
  
     def add_model_parameters(self, model_index):
         self.add_model_rows(model_index)
@@ -765,7 +803,8 @@ class FitTab(NXTab):
             self.fit = self.model.fit(self.signal, 
                                       params=self.parameters,
                                       weights=weights,
-                                      x=self.axis)
+                                      x=self.axis,
+                                      method=self.method)
         except Exception as error:
             report_error("Fitting Data", error)
         if self.fit:
