@@ -1359,10 +1359,11 @@ class NXPlotView(QtWidgets.QDialog):
 
     def fit_data(self):
         from .fitdialogs import FitDialog
-        fitdialog = FitDialog(self.plots[self.num]['data'], plotview=self,
-                              color=self.plots[self.num]['color'],
-                              parent=self)
-        fitdialog.show()
+        if 'fit' not in self.panels:
+            self.panels['fit'] = FitDialog(parent=self.mainwindow)
+        self.panels['fit'].activate(self.plots[self.num]['data'], 
+                                    plotview=self,
+                                    color=self.plots[self.num]['color'])
 
     def symlog(self, linthresh=None, linscale=None, vmax=None):
         """Use symmetric log normalization in the current plot.
@@ -2465,6 +2466,13 @@ class NXPlotView(QtWidgets.QDialog):
         for panel in self.panels:
             if self.label in self.panels[panel].tabs:
                 self.panels[panel].remove(self.label)
+            if panel == 'fit':
+                removed_tabs = []
+                for tab in self.panels['fit'].tabs:
+                    if tab.startswith(self.label):
+                        removed_tabs.append(tab)
+                for tab in removed_tabs:
+                    self.panels['fit'].remove(tab)
 
     def closeEvent(self, event):
         """Close this widget and mark it for deletion."""
@@ -2679,7 +2687,7 @@ class NXPlotTab(QtWidgets.QWidget):
         else:
             self.zaxis = False
             self.plotcombo = NXComboBox(self.select_plot, ['0'])
-            self.plotcombo.setMinimumWidth(20)
+            self.plotcombo.setMinimumWidth(55)
             self.minbox = NXDoubleSpinBox(self.read_minbox, self.edit_minbox)
             if self.name == 'v':
                 self.minslider = NXSlider(self.read_minslider, move=False,

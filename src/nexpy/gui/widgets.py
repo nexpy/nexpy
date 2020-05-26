@@ -310,12 +310,25 @@ class NXComboBox(QtWidgets.QComboBox):
             if item not in self:
                 self.addItem(item)
 
+    def insert(self, idx, item):
+        """Insert item at the specified index.
+
+        Parameters
+        ----------
+        item : str or int
+            List of options to be added to the dropdown menu. 
+        idx : int
+            Index of position before which to insert item
+        """
+        if item not in self:
+            self.insertItem(idx, str(item))
+
     def remove(self, item):
         """Remove item from the list of options.
 
         Parameters
         ----------
-        item : str
+        item : str or int
             Option to be removed from the dropdown menu. 
         """
         self.removeItem(self.findText(str(item)))
@@ -330,8 +343,12 @@ class NXComboBox(QtWidgets.QComboBox):
         """
         return [self.itemText(idx) for idx in range(self.count())]
 
+    def sort(self):
+        """Sorts the box items in alphabetical order."""
+        self.model().sort(0)
+
     def select(self, item):
-        """Select the option matching the text
+        """Select the option matching the text.
         
         Parameters
         ----------
@@ -342,7 +359,7 @@ class NXComboBox(QtWidgets.QComboBox):
 
     @property
     def selected(self):
-        """Return the currently selected option
+        """Return the currently selected option.
         
         Returns
         -------
@@ -439,6 +456,7 @@ class NXColorButton(QtWidgets.QPushButton):
 
     def __init__(self, parent=None):
         super(NXColorButton, self).__init__(parent)
+        self.setFixedWidth(18)
         self.setStyleSheet("width:18px; height:18px; "
                            "margin: 0px; border: 0px; padding: 0px;"
                            "background-color: white")
@@ -482,7 +500,7 @@ class NXColorBox(QtWidgets.QWidget):
         Color button consisting of a colored icon.
     """
 
-    def __init__(self, color='#ffffff', parent=None):
+    def __init__(self, color='#ffffff', label=None, width=None, parent=None):
         """Initialize the text and color box.
 
         The selected color can be changed by entering a valid text string or 
@@ -502,10 +520,13 @@ class NXColorBox(QtWidgets.QWidget):
         color = self.qcolor(self.color_text)
         self.layout = QtWidgets.QHBoxLayout()
         self.layout.setContentsMargins(0, 0, 0, 0)
+        if label:
+            self.layout.addStretch()
+            self.layout.addWidget(NXLabel(label))
         self.textbox = NXLineEdit(colors.to_hex(color.getRgbF(),
-                                                keep_alpha=True), 
+                                                keep_alpha=True),
                                   parent=parent, slot=self.update_color, 
-                                  align='right')
+                                  width=width, align='right')
         self.layout.addWidget(self.textbox)
         self.button = NXColorButton(parent)
         self.button.color = color
