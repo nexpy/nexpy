@@ -1360,7 +1360,7 @@ class NXPlotView(QtWidgets.QDialog):
     def fit_data(self):
         from .fitdialogs import FitDialog
         if 'fit' not in self.panels:
-            self.panels['fit'] = FitDialog(parent=self.mainwindow)
+            self.panels['fit'] = FitDialog()
         self.panels['fit'].activate(self.plots[self.num]['data'], 
                                     plotview=self,
                                     color=self.plots[self.num]['color'])
@@ -3561,7 +3561,7 @@ class NXNavigationToolbar(NavigationToolbar):
     def edit_parameters(self):
         if 'customize' not in self.plotview.panels:
             from .datadialogs import CustomizeDialog
-            self.plotview.panels['customize'] = CustomizeDialog(parent=self)
+            self.plotview.panels['customize'] = CustomizeDialog()
         self.plotview.panels['customize'].activate(self.plotview.label)
         self.plotview.panels['customize'].setVisible(True)
         self.plotview.panels['customize'].raise_()
