@@ -296,6 +296,8 @@ class FitTab(NXTab):
                                             self.plot_maxbox,
                                             align='justified')
 
+        self.method_label = NXLabel('Method')
+        self.method_label.setVisible(False)
         self.methodcombo = NXComboBox(items=list(all_methods))
         for i, m in enumerate(all_methods):
             tooltip = all_methods[m]
@@ -312,7 +314,8 @@ class FitTab(NXTab):
                                     width=100)
         reset_button = NXPushButton('Reset Limits', self.reset_limits)
         self.adjust_layout = QtWidgets.QHBoxLayout()
-        self.adjust_layout = self.make_layout(self.methodcombo,
+        self.adjust_layout = self.make_layout(self.method_label,
+                                              self.methodcombo,
                                               self.restore_button, 'stretch',
                                               self.color_box, reset_button, 
                                               align='justified')
@@ -583,6 +586,7 @@ class FitTab(NXTab):
             self.model = model
         else:
             self.model = self.model + model
+        self.method_label.setVisible(True)
         self.methodcombo.setVisible(True)
  
     def add_model_parameters(self, model_index):
