@@ -33,8 +33,8 @@ from .datadialogs import NXPanel, NXTab
 from .plotview import NXPlotView
 from .pyqt import QtCore, QtGui, QtWidgets
 from .utils import report_error, format_float, get_color
-from .widgets import (NXCheckBox, NXComboBox, NXLabel, NXLineEdit, NXColorBox,
-                      NXMessageBox, NXPushButton)
+from .widgets import (NXCheckBox, NXColorBox, NXComboBox, NXLabel, NXLineEdit,
+                      NXMessageBox, NXPushButton, NXScrollArea)
 
 
 def get_functions():
@@ -381,10 +381,8 @@ class FitTab(NXTab):
         self.all_models.update(all_functions)
 
     def initialize_parameter_grid(self):
+
         grid_layout = QtWidgets.QVBoxLayout()
-        scroll_area = QtWidgets.QScrollArea()
-        scroll_area.setWidgetResizable(True)
-        scroll_widget = QtWidgets.QWidget()
 
         self.parameter_grid = QtWidgets.QGridLayout()
         self.parameter_grid.setSpacing(5)
@@ -397,12 +395,12 @@ class FitTab(NXTab):
             self.parameter_grid.setColumnMinimumWidth(column, width[column])
             column += 1
 
+        scroll_widget = QtWidgets.QWidget()
+        scroll_area = NXScrollArea(scroll_widget)
         scroll_layout = QtWidgets.QVBoxLayout()
         scroll_layout.addLayout(self.parameter_grid)
         scroll_layout.addStretch()
         scroll_widget.setLayout(scroll_layout)
-        scroll_area.setWidget(scroll_widget)
-        scroll_area.setWidgetResizable(True)
         scroll_area.setMinimumHeight(200)
         scroll_area.setSizePolicy(QtWidgets.QSizePolicy.Minimum,
                                   QtWidgets.QSizePolicy.Expanding)

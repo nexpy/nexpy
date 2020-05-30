@@ -98,13 +98,15 @@ class NXScrollArea(QtWidgets.QScrollArea):
             self.setWidget(widget)
         if not horizontal:
             self.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        self.setWidgetResizable(True)
+        self.setSizePolicy(QtWidgets.QSizePolicy.Minimum,
+                           QtWidgets.QSizePolicy.Expanding)
+
 
     def setWidget(self, widget):
         super(NXScrollArea, self).setWidget(widget)
         widget.setMinimumWidth(widget.sizeHint().width() +
                                self.verticalScrollBar().sizeHint().width())
-        widget.setSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding,
-                             QtWidgets.QSizePolicy.Preferred)
     
 
 class NXLabel(QtWidgets.QLabel):
