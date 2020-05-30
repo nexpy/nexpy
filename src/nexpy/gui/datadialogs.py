@@ -592,7 +592,6 @@ class NXTab(NXWidget):
                 self.layout.addLayout(item)
             elif isinstance(item, QtWidgets.QWidget):
                 self.layout.addWidget(item)
-        self.layout.addStretch()
         self.setLayout(self.layout)
 
     def update(self):

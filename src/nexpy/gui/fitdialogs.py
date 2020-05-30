@@ -335,7 +335,6 @@ class FitTab(NXTab):
                                               self.save_button,
                                               align='justified')
 
-
         self.set_layout(model_layout, self.plot_layout, self.adjust_layout)
         self.layout.setSpacing(5)
         self.set_title("Fit NeXus Data")
@@ -403,7 +402,10 @@ class FitTab(NXTab):
         scroll_layout.addStretch()
         scroll_widget.setLayout(scroll_layout)
         scroll_area.setWidget(scroll_widget)
+        scroll_area.setWidgetResizable(True)
         scroll_area.setMinimumHeight(200)
+        scroll_area.setSizePolicy(QtWidgets.QSizePolicy.Minimum,
+                                  QtWidgets.QSizePolicy.Expanding)
         
         grid_layout.addWidget(scroll_area)
 
