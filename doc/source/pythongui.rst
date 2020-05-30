@@ -909,36 +909,94 @@ edit the configuration file in ~/.nexpy/config.py.
 
 Fitting NeXus Data
 ------------------
-It is possible to fit one-dimensional data using the non-linear least-squares 
-fitting package, `LMFIT <http://newville.github.io/lmfit-py>`_, by selecting 
-a group on the tree and choosing "Fit Data" from the Data menu or by 
-right-clicking on the group. This opens a dialog window that allows multiple 
-functions to be combined, with the option of fixing or limiting parameters. 
+NeXpy makes it easy to fit one-dimensional data using the 
+`LMFIT package <https://lmfit.github.io/lmfit-py/>`_, with a 'Fit' button in
+the Y-Tab of every one-dimensional plot. Alternatively, choosing 'Fit Data' from
+the Data menu or using the keyboard shortcut Ctrl+Shift+F (⌘+⇧+F on a Mac), 
+will fit data selected in the Tree Pane.
+
+Either method opens a dialog window that allows multiple fit models to be 
+combined, with the option of fixing or limiting parameters. To help in 
+selecting a model, click on the pull-down menu and the model description will 
+be displayed as a tooltip when you hover over it.
 
 .. image:: /images/nexpy-fits.png
    :align: center
    :width: 90%
 
-The fit can be plotted, along with the constituent functions, in the main
-plotting window and the fitting parameters displayed in a message window.
+The fit can be plotted, along with the constituent models in the main
+plotting window and the fitting parameters displayed in a message window. 
 
 .. note:: The fit is only performed over the range set by the X-axis limits 
           entered in the Fit Dialog. These values can be changed between
           fits if required, or reset to the overall range of the data using the
           ``Reset Limits`` button.
 
-.. note:: With v0.10.6, the keyboard shortcuts 'l' and 'r' can 
-          be used to set the X-axis limits in the fit dialog to the current 
-          cursor position in the canvas.
+.. note:: When the plotting window is selected, the keyboard shortcuts 'l' and 
+          'r' can be used to set the X-axis limits in the fit dialog to the 
+          current cursor position in the canvas.
 
-The original data, the fitted data, constituent functions, and the parameters
-can all be saved to an NXentry group in the Tree Pane for subsequent plotting, 
-refitting, or saving to a NeXus file. The group is an NXentry group, with name 
-'f1', 'f2', etc., stored in the default scratch NXroot group, w0. If you choose 
-to fit this entry again, it will load the functions and parameters from the 
+Saving the Fit
+^^^^^^^^^^^^^^^^
+The original data, the fitted data, constituent models, and the parameters
+can all be saved to an NXprocess group in the Tree Pane for subsequent plotting, 
+refitting, or saving to a NeXus file. The group, named 'f1', 'f2', etc., 
+is stored in the default scratch NXroot group, w0. If you choose 
+to fit this entry again, it will load the models and parameters from the 
 saved fit.
 
-Defining a function
+Defining a Model
+^^^^^^^^^^^^^^^^
+NeXpy makes available any of the models currently supplied by the `LMFIT 
+package <https://lmfit.github.io/lmfit-py/>`_, as well as a couple of extra
+models added to the NeXpy package, the OrderParameterModel and the 
+PDFdecayModel. If you wish to construct your own model, please refer to the
+LMFIT documentation for more details. 
+
+User-defined models can be added as separate files to their private models 
+directory in ``~/.nexpy/models`` (new to v0.12.6). As an example, here is the 
+code for the OrderParameterModel that is distributed with NeXpy::
+
+    import numpy as np
+
+    from lmfit.model import Model
+
+    class OrderParameterModel(Model):
+        r"""A model to describe the temperature dependence of an order parameter
+        with three Parameters: ``amplitude``, ``Tc``, and ``beta``.
+
+        .. math::
+
+            f(x; A, Tc, \beta) = A ((Tc - x[x<Tc])/ Tc)^\beta
+
+        where the parameter ``amplitude`` corresponds to :math:`A`, ``Tc`` to 
+        :math:`Tc`, and ``beta`` to :math:`\beta`. 
+        """
+        def __init__(self, **kwargs):
+
+            def op(x, amplitude=1.0, Tc=100.0, beta=0.5):
+                v = np.zeros(x.shape)
+                v[x<Tc] = amplitude * ((Tc - x[x<Tc])/ Tc)**beta
+                v[x>=Tc] = 0.0
+                return v
+
+            super().__init__(op, **kwargs)
+
+        def guess(self, data, x=None, negative=False, **kwargs):
+            """Estimate initial model parameter values from data."""
+            return self.make_params(amplitude=data.max(), Tc=x.mean(), beta=0.33)
+
+
+.. warning:: Prior to v0.12.6, NeXpy defined its own system for generating 
+             fitting functions. This system is now deprecated, but legacy 
+             functions are still available at the end of the model list. If you
+             have produced your own functions in the past, they will also be on
+             this list. However, we recommend that all new functions now adhere
+             to LMFIT model definitions. The following description of the old
+             system is retained to help with debugging or migrating to the new
+             system.
+
+Defining a Function
 ^^^^^^^^^^^^^^^^^^^
 User-defined functions can be added to their private functions directory in 
 ``~/.nexpy/functions``. The file must define the name of the function, a list of 
@@ -980,10 +1038,6 @@ be entered manually before the fit in those cases.
 
 .. note:: The X-range used in 'guessing' the parameters can be adjusted by 
           setting the X-axis limits in the Fit Dialog.
-
-.. note:: With v0.10.6, the keyboard shortcuts 'l' and 'r' can 
-          be used to set the X-axis limits in the fit dialog to the current 
-          cursor position in the canvas.
 
 Importing NeXus Data
 --------------------
