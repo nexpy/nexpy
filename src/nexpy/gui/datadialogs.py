@@ -731,7 +731,6 @@ class NXPanel(NXDialog):
             del self.labels[self.tabs[label]]
             self.tabs[label].deleteLater()
             del self.tabs[label]
-        self.update()
 
     def idx(self, label):
         if self.plotview_sort and label in self.plotviews:
@@ -760,8 +759,8 @@ class NXPanel(NXDialog):
                                   QtWidgets.QSizePolicy.Ignored)
             self.tab.setSizePolicy(QtWidgets.QSizePolicy.Preferred,
                                    QtWidgets.QSizePolicy.Preferred)
-        self.mainwindow._app.processEvents()
-        self.adjustSize()
+            self.mainwindow._app.processEvents()
+            self.adjustSize()
 
     def copy(self):
         self.tab.copy()
@@ -2132,6 +2131,7 @@ class ProjectionTab(NXTab):
     def set_xaxis(self):
         if self.xaxis == self.yaxis:
             self.ybox.select('None')
+        self.update_overbox()
 
     @property
     def yaxis(self):
@@ -2139,6 +2139,7 @@ class ProjectionTab(NXTab):
             return 'None'
         else:
             return self.ybox.selected
+        self.update_overbox()
 
     def set_yaxis(self):
         if self.yaxis == self.xaxis:
@@ -2263,9 +2264,8 @@ class ProjectionTab(NXTab):
                               over=self.over, fmt=fmt)
             except Exception as error:
                 raise NeXusError("Invalid projection limits")
-            if plotview.ndim == 1:
-                self.update_overbox()
-            else:
+            self.update_overbox()
+            if plotview.ndim > 1:
                 plotview.logv = self.plotview.logv
                 plotview.cmap = self.plotview.cmap
                 plotview.interpolation = self.plotview.interpolation
@@ -2343,8 +2343,12 @@ class ProjectionTab(NXTab):
         self.plotview.draw()
 
     def update_overbox(self):
+        if 'Projection' in self.plotviews:
+            ndim = self.plotviews['Projection'].ndim
+        else:
+            ndim = 0
         for tab in self.labels:
-            if tab.yaxis == 'None':
+            if ndim == 1 and tab.yaxis == 'None':
                 tab.overbox.setVisible(True)
             else:
                 tab.overbox.setVisible(False)
@@ -2377,11 +2381,11 @@ class ProjectionTab(NXTab):
             self.lockbox[axis].setCheckState(tab.lockbox[axis].checkState())
         self.summed = tab.summed
         self.lines = tab.lines
-        self.xbox.setCurrentIndex(tab.xbox.currentIndex())
-        if self.ndim > 1:
-            self.ybox.setCurrentIndex(tab.ybox.currentIndex())
+        self.xbox.select(tab.xbox.selected)
+        self.ybox.select(tab.ybox.selected)
         self.block_signals(False)
-        self.draw_rectangle()              
+        self.draw_rectangle()
+        self.update_overbox()             
 
     def reset(self):
         self.block_signals(True)
@@ -2401,7 +2405,7 @@ class ProjectionTab(NXTab):
 
     def close(self):
         if self._rectangle:
-            self._rectangle.set_visible(False)
+            self._rectangle.remove()
         self.plotview.draw()
 
 
@@ -2958,6 +2962,7 @@ class ScanTab(NXTab):
         elif self.xbox.selected == 'None':
             self.xbox.select(self.ybox.selected)
             self.ybox.select('None')
+        self.update_overbox()
 
     @property
     def yaxis(self):
@@ -2972,6 +2977,7 @@ class ScanTab(NXTab):
         elif self.ybox.selected != 'None' and self.xbox.selected == 'None':
             self.xbox.select(self.ybox.selected)
             self.ybox.select('None')
+        self.update_overbox()
 
     def set_limits(self):
         self.block_signals(True)
@@ -3088,8 +3094,7 @@ class ScanTab(NXTab):
             self.scanview.plot(self.scan_data, over=self.over, **opts)
             self.scanview.make_active()
             self.scanview.raise_()
-            if self.scanview.ndim == 1:
-                self.update_overbox()
+            self.update_overbox()
         except NeXusError as error:
             report_error("Plotting Scan", error)
 
@@ -3156,8 +3161,12 @@ class ScanTab(NXTab):
         self.plotview.draw()
 
     def update_overbox(self):
+        if 'Scan' in self.plotviews:
+            ndim = self.plotviews['Scan'].ndim
+        else:
+            ndim = 0
         for tab in self.labels:
-            if tab.xaxis == 'None' and tab.yaxis == 'None':
+            if ndim == 1 and tab.xaxis == 'None' and tab.yaxis == 'None':
                 tab.overbox.setVisible(True)
             else:
                 tab.overbox.setVisible(False)
@@ -3214,12 +3223,12 @@ class ScanTab(NXTab):
 
     def close(self):
         if self._rectangle:
-            self._rectangle.set_visible(False)
+            self._rectangle.remove()
+        self.plotview.draw()
         try:
             self.file_box.close()
         except Exception:
             pass
-        self.plotview.draw()
         for tab in [self.tabs[label] for label in self.tabs 
                     if self.tabs[label] is not self]:
             if self.name in tab.copybox:
