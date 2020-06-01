@@ -451,24 +451,6 @@ class NXWidget(QtWidgets.QWidget):
     def other_entry(self):
         return self.tree[self.other_entry_box.currentText()]
 
-    def copy_layout(self, text="Copy", sync=None):
-        self.copywidget = QtWidgets.QWidget()
-        copylayout = QtWidgets.QHBoxLayout()
-        self.copybox = NXComboBox()
-        self.copy_button = NXPushButton(text, self.copy, self)
-        copylayout.addStretch()
-        copylayout.addWidget(self.copybox)
-        copylayout.addWidget(self.copy_button)
-        if sync:
-            copylayout.addLayout(self.checkboxes(('sync', sync, False)))
-        copylayout.addStretch()
-        self.copywidget.setLayout(copylayout)
-        self.copywidget.setVisible(False)
-        return self.copywidget    
-
-    def copy(self):
-        pass
-
     def read_parameter(self, root, path):
         """
         Read the value from the NeXus path.
@@ -576,18 +558,6 @@ class NXWidget(QtWidgets.QWidget):
         self.stop_thread()
         super(NXWidget, self).closeEvent(event)
         
-
-class NXTab(NXWidget):
-    """Subclass of NXWidget for use as the main widget in a tab."""
-
-    def update(self):
-        pass
-
-    def close(self):
-        self.update()
-        self.setAttribute(QtCore.Qt.WA_DeleteOnClose, True)
-        super(NXTab, self).close()
-
 
 class NXDialog(QtWidgets.QDialog, NXWidget):
     """Base dialog class for NeXpy dialogs"""
@@ -815,6 +785,39 @@ class NXPanel(NXDialog):
         if tab:
             tab.close()
             self.remove(self.labels[tab])
+
+        for tab in [self.tabs[label] for label in self.tabs 
+                    if self.tabs[label] is not self]:
+            if self.name in tab.copybox:
+                tab.copybox.remove(self.name)
+            if len(tab.copybox.items()) == 0:
+                tab.copywidget.setVisible(False)
+
+
+class NXTab(NXWidget):
+    """Subclass of NXWidget for use as the main widget in a tab."""
+
+    def copy_layout(self, text="Copy", sync=None):
+        self.copywidget = QtWidgets.QWidget()
+        copylayout = QtWidgets.QHBoxLayout()
+        self.copybox = NXComboBox()
+        self.copy_button = NXPushButton(text, self.copy, self)
+        copylayout.addStretch()
+        copylayout.addWidget(self.copybox)
+        copylayout.addWidget(self.copy_button)
+        if sync:
+            copylayout.addLayout(self.checkboxes(('sync', sync, False)))
+        copylayout.addStretch()
+        self.copywidget.setLayout(copylayout)
+        self.copywidget.setVisible(False)
+        return self.copywidget    
+
+    def update(self):
+        pass
+
+    def close(self):
+        self.update()
+        super(NXTab, self).close()
 
 
 class GridParameters(OrderedDict):
