@@ -1359,9 +1359,9 @@ class NXPlotView(QtWidgets.QDialog):
 
     def fit_data(self):
         from .fitdialogs import FitDialog
-        if 'fit' not in self.panels:
-            self.panels['fit'] = FitDialog()
-        self.panels['fit'].activate(self.plots[self.num]['data'], 
+        if 'Fit' not in self.panels:
+            self.panels['Fit'] = FitDialog()
+        self.panels['Fit'].activate(self.plots[self.num]['data'], 
                                     plotview=self,
                                     color=self.plots[self.num]['color'])
 
@@ -2466,13 +2466,13 @@ class NXPlotView(QtWidgets.QDialog):
         for panel in self.panels:
             if self.label in self.panels[panel].tabs:
                 self.panels[panel].remove(self.label)
-            if panel == 'fit':
+            if panel == 'Fit':
                 removed_tabs = []
-                for tab in self.panels['fit'].tabs:
+                for tab in self.panels['Fit'].tabs:
                     if tab.startswith(self.label):
                         removed_tabs.append(tab)
                 for tab in removed_tabs:
-                    self.panels['fit'].remove(tab)
+                    self.panels['Fit'].remove(tab)
 
     def closeEvent(self, event):
         """Close this widget and mark it for deletion."""
@@ -3500,8 +3500,8 @@ class NXProjectionTab(QtWidgets.QWidget):
             self.overplot_box.setVisible(False)
             self.overplot_box.setChecked(False)
         plotviews[projection.label].raise_()
-        if 'projection' in self.plotview.mainwindow.panels:
-            self.plotview.mainwindow.panels['projection'].update()
+        if 'Projection' in self.plotview.mainwindow.panels:
+            self.plotview.mainwindow.panels['Projection'].update()
 
     def open_panel(self):
         self.plotview.mainwindow.show_projection_panel()
@@ -3600,7 +3600,7 @@ class NXNavigationToolbar(NavigationToolbar):
                 self.plotview.ptab.open_panel()
                 xmin, xmax = sorted([event.xdata, self.plotview.xdata])
                 ymin, ymax = sorted([event.ydata, self.plotview.ydata])
-                panel = self.plotview.panels['projection']
+                panel = self.plotview.panels['Projection']
                 tab = panel.tabs[self.plotview.label]
                 tab.minbox[self.plotview.xaxis.dim].setValue(xmin)
                 tab.maxbox[self.plotview.xaxis.dim].setValue(xmax)

@@ -178,7 +178,7 @@ class NXModel(Model):
 class FitDialog(NXPanel):
 
     def __init__(self, parent=None):
-        super(FitDialog, self).__init__('fit', title='Fit Panel', 
+        super(FitDialog, self).__init__('Fit', title='Fit Panel', 
                                         apply=True, reset=True, parent=parent)
         self.setMinimumWidth(850)        
         self.tab_class = FitTab

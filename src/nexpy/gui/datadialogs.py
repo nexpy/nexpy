@@ -774,6 +774,8 @@ class NXPanel(NXDialog):
     def closeEvent(self, event):
         if self.panel in self.mainwindow.panels:
             del self.mainwindow.panels[self.panel]
+        if self.panel in self.plotviews:
+            self.plotviews[self.panel].close()
         event.accept()
 
     def close(self):
@@ -2003,7 +2005,8 @@ class ProjectionDialog(NXPanel):
     """Dialog to set plot window limits"""
  
     def __init__(self, parent=None):
-        super(ProjectionDialog, self).__init__('projection', title='Projection Panel', 
+        super(ProjectionDialog, self).__init__('Projection', 
+                                               title='Projection Panel', 
                                                apply=False, parent=parent)
         self.tab_class = ProjectionTab
         self.plotview_sort = True
@@ -2413,7 +2416,7 @@ class LimitDialog(NXPanel):
     """Dialog to set plot window limits"""
  
     def __init__(self, parent=None):
-        super(LimitDialog, self).__init__('limit', title='Limits Panel', 
+        super(LimitDialog, self).__init__('Limit', title='Limits Panel', 
                                           apply=False, parent=parent)
         self.tab_class = LimitTab
         self.plotview_sort = True
@@ -2709,7 +2712,7 @@ class ScanDialog(NXPanel):
     """Dialog to set plot window limits"""
  
     def __init__(self, parent=None):
-        super(ScanDialog, self).__init__('scan', title='Scan Panel', 
+        super(ScanDialog, self).__init__('Scan', title='Scan Panel', 
                                                apply=False, parent=parent)
         self.tab_class = ScanTab
         self.plotview_sort = True
