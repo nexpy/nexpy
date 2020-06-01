@@ -939,4 +939,3 @@ class FitTab(NXTab):
     def close(self):
         if self.plotview:
             self.remove_plots()
-        super(FitTab, self).close()
