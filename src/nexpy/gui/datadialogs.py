@@ -641,7 +641,7 @@ class NXPanel(NXDialog):
             self.labels[tabs[label]] = label
         self.set_layout(self.tabwidget, self.close_buttons(apply, reset))
         self.set_title(title)
-        self.setVisible(True)
+        self.setAttribute(QtCore.Qt.WA_DeleteOnClose, True)
 
     def __repr__(self):
         return 'NXPanel("%s")' % self.panel
@@ -649,47 +649,6 @@ class NXPanel(NXDialog):
     def __contains__(self, label):
         """Implements 'k in d' test"""
         return label in self.tabs
-
-    def tab_list(self):
-        if self.plotview_sort:
-            return [tab.name for tab in 
-                    sorted(self.labels, key=attrgetter('plotview.number'))]
-        else:
-            return sorted(self.tabs)
-
-    def add(self, label, tab=None, idx=None):
-        if label in self.tabs:
-            raise NeXusError("'%s' already in %s" % (label, self.title))
-        self.tabs[label] = tab
-        self.labels[tab] = label
-        tab.panel = self
-        if idx is not None:
-            self.tabwidget.insertTab(idx, tab, label)
-        else:
-            self.tabwidget.addTab(tab, label)
-        self.tabwidget.setCurrentWidget(tab)
-        self.tabwidget.tabBar().setTabToolTip(self.tabwidget.indexOf(tab), label)
-        self.setVisible(True)
-
-    def remove(self, label):
-        if label in self.tabs:
-            try:
-                self.tabs[label].close()
-                self.tabwidget.removeTab(self.tabwidget.indexOf(self.tabs[label]))
-            except Exception:
-                pass
-            del self.labels[self.tabs[label]]
-            self.tabs[label].deleteLater()
-            del self.tabs[label]
-        self.update()
-
-    @property
-    def tab(self):
-        return self.tabwidget.currentWidget()
-
-    @tab.setter
-    def tab(self, label):
-        self.tabwidget.setCurrentWidget(self.tabs[label])
 
     def close_buttons(self, apply=True, reset=True):
         """
@@ -725,6 +684,55 @@ class NXPanel(NXDialog):
         self.close_box = box
         return self.close_box
 
+    @property
+    def tab(self):
+        return self.tabwidget.currentWidget()
+
+    @tab.setter
+    def tab(self, label):
+        self.tabwidget.setCurrentWidget(self.tabs[label])
+
+    @property
+    def count(self):
+        return self.tabwidget.count()
+
+    def tab_list(self):
+        if self.plotview_sort:
+            return [tab.name for tab in 
+                    sorted(self.labels, key=attrgetter('plotview.number'))]
+        else:
+            return sorted(self.tabs)
+
+    def add(self, label, tab=None, idx=None):
+        if label in self.tabs:
+            raise NeXusError("'%s' already in %s" % (label, self.title))
+        self.tabs[label] = tab
+        self.labels[tab] = label
+        tab.panel = self
+        if idx is not None:
+            self.tabwidget.insertTab(idx, tab, label)
+        else:
+            self.tabwidget.addTab(tab, label)
+        self.tabwidget.setCurrentWidget(tab)
+        self.tabwidget.tabBar().setTabToolTip(self.tabwidget.indexOf(tab), label)
+
+    def remove(self, label):
+        if label in self.tabs:
+            removed_tab = self.tabs[label]
+            if removed_tab.copybox:    
+                for tab in [tab for tab in self.labels 
+                            if self.labels[tab] != removed_tab]:
+                    if label in tab.copybox:
+                        tab.copybox.remove(label)
+                    if len(tab.copybox.items()) == 0:
+                        tab.copywidget.setVisible(False)
+            removed_tab.close()
+            self.tabwidget.removeTab(self.tabwidget.indexOf(removed_tab))
+            del self.labels[self.tabs[label]]
+            self.tabs[label].deleteLater()
+            del self.tabs[label]
+        self.update()
+
     def idx(self, label):
         if self.plotview_sort and label in self.plotviews:
             pv = self.plotviews[label]
@@ -745,20 +753,16 @@ class NXPanel(NXDialog):
         self.activateWindow()
 
     def update(self):
-        if self.tabwidget.count() == 0:
-            self.setVisible(False)
-        else:
+        if self.count > 0:
             for tab in [tab for tab in self.tabs 
                         if self.tabs[tab] is not self.tab]:
                 try:
                     self.tabs[tab].setSizePolicy(QtWidgets.QSizePolicy.Ignored, 
                                                  QtWidgets.QSizePolicy.Ignored)
-                    self.tabs[tab].update()
                 except Exception:
                     pass
             self.tab.setSizePolicy(QtWidgets.QSizePolicy.Preferred,
                                    QtWidgets.QSizePolicy.Preferred)
-            self.tab.update()
         self.mainwindow._app.processEvents()
         self.adjustSize()
 
@@ -772,30 +776,27 @@ class NXPanel(NXDialog):
         self.tab.apply()
 
     def closeEvent(self, event):
-        super(NXPanel, self).closeEvent(event)
-        if not self.isVisible():
-            for tab in self.tabs:
-                self.tabs[tab].close()
-            self.deleteLater()
-            if self.panel in self.mainwindow.panels:
-                del self.mainwindow.panels[self.panel]
+        if self.panel in self.mainwindow.panels:
+            del self.mainwindow.panels[self.panel]
+        event.accept()
 
     def close(self):
-        tab = self.tab
-        if tab:
-            tab.close()
-            self.remove(self.labels[tab])
-
-        for tab in [self.tabs[label] for label in self.tabs 
-                    if self.tabs[label] is not self]:
-            if self.name in tab.copybox:
-                tab.copybox.remove(self.name)
-            if len(tab.copybox.items()) == 0:
-                tab.copywidget.setVisible(False)
+        if self.count > 0:
+            self.remove(self.labels[self.tab])
+        if self.count == 0:
+            super(NXPanel, self).close()
 
 
 class NXTab(NXWidget):
     """Subclass of NXWidget for use as the main widget in a tab."""
+
+    def __init__(self, parent=None):
+        super(NXTab, self).__init__(parent=parent)
+        if parent:
+            self.panel = parent
+            self.tabs = parent.tabs
+            self.labels = parent.labels
+        self.copybox = None
 
     def copy_layout(self, text="Copy", sync=None):
         self.copywidget = QtWidgets.QWidget()
@@ -815,9 +816,18 @@ class NXTab(NXWidget):
     def update(self):
         pass
 
-    def close(self):
-        self.update()
-        super(NXTab, self).close()
+    def copy(self):
+        pass
+
+    def sort_copybox(self):
+        if self.copybox:
+            selected = self.copybox.selected
+            tabs = self.copybox.items()
+            self.copybox.clear()
+            for tab in [tab for tab in self.panel.tab_list() if tab in tabs]:
+                self.copybox.add(tab)
+            if selected in self.copybox:
+                self.copybox.select(selected)
 
 
 class GridParameters(OrderedDict):
@@ -2005,10 +2015,6 @@ class ProjectionTab(NXTab):
     def __init__(self, parent=None):
 
         super(ProjectionTab, self).__init__(parent=parent)
-        if parent:
-            self.panel = parent
-            self.tabs = parent.tabs
-            self.labels = parent.labels
 
         self.plotview = self.active_plotview
         self.name = self.plotview.label
@@ -2404,12 +2410,6 @@ class ProjectionTab(NXTab):
         if self._rectangle:
             self._rectangle.set_visible(False)
         self.plotview.draw()
-        for tab in [self.tabs[label] for label in self.tabs 
-                    if self.tabs[label] is not self]:
-            if self.name in tab.copybox:
-                tab.copybox.remove(self.name)
-            if len(tab.copybox.items()) == 0:
-                tab.copywidget.setVisible(False)
 
 
 class LimitDialog(NXPanel):
@@ -2428,10 +2428,6 @@ class LimitTab(NXTab):
     def __init__(self, parent=None):
 
         super(LimitTab, self).__init__(parent=parent)
-        if parent:
-            self.panel = parent
-            self.tabs = parent.tabs
-            self.labels = parent.labels
 
         self.plotview = self.active_plotview
         self.name = self.plotview.label
@@ -2737,10 +2733,6 @@ class ScanTab(NXTab):
     def __init__(self, parent=None):
 
         super(ScanTab, self).__init__(parent=parent)
-        if parent:
-            self.panel = parent
-            self.tabs = parent.tabs
-            self.labels = parent.labels
 
         self.name = self.plotview.label
         self.ndim = self.plotview.ndim
@@ -3180,15 +3172,6 @@ class ScanTab(NXTab):
         else:
             self.rectangle.set_visible(True)
         self.plotview.draw()
-
-    def sort_copybox(self):
-        selected = self.copybox.selected
-        tabs = self.copybox.items()
-        self.copybox.clear()
-        for tab in [tab for tab in self.panel.tab_list() if tab in tabs]:
-            self.copybox.add(tab)
-        if selected in self.copybox:
-            self.copybox.select(selected)
 
     def update(self):
         self.block_signals(True)
