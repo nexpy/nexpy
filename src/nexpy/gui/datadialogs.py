@@ -778,7 +778,8 @@ class NXPanel(NXDialog):
         if self.tabwidget.count() == 0:
             self.setVisible(False)
         else:
-            for tab in [tab for tab in self.tabs if tab is not self.tab]:
+            for tab in [tab for tab in self.tabs 
+                        if self.tabs[tab] is not self.tab]:
                 try:
                     self.tabs[tab].setSizePolicy(QtWidgets.QSizePolicy.Ignored, 
                                                  QtWidgets.QSizePolicy.Ignored)
