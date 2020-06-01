@@ -729,8 +729,8 @@ class NXPanel(NXDialog):
             removed_tab.close()
             self.tabwidget.removeTab(self.tabwidget.indexOf(removed_tab))
             del self.labels[self.tabs[label]]
-            self.tabs[label].deleteLater()
             del self.tabs[label]
+            removed_tab.deleteLater()
 
     def idx(self, label):
         if self.plotview_sort and label in self.plotviews:
