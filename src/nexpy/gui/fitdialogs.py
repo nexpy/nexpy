@@ -325,8 +325,7 @@ class FitTab(NXTab):
         if self._data.nxerrors:
             self.fit_checkbox = NXCheckBox('Use Errors', checked=True)
         else:
-            self.fit_checkbox = NXCheckBox('Use Poisson Errors',
-                                           self.define_errors)
+            self.fit_checkbox = NXCheckBox('Use Poisson Errors')
         self.report_button = NXPushButton("Show Fit Report", self.report_fit)
         self.report_button.setVisible(False)
         self.save_button = NXPushButton("Save Parameters", self.save_fit)
@@ -437,9 +436,10 @@ class FitTab(NXTab):
 
     @property
     def errors(self):
-        _errors = self.data.nxerrors
-        if _errors:
-            return _errors.nxvalue.astype(np.float64)
+        if self.fit_checkbox.isChecked():
+            return np.sqrt(np.where(self.signal<1,1,self.signal))
+        elif self.data.nxerrors:
+            return self.data.nxerrors.nxvalue.astype(np.float64)
         else:
             return None
 
@@ -793,9 +793,6 @@ class FitTab(NXTab):
             self.fitview.plots[num]['legend_label'] = name
         self.plot_nums.append(num)
         self.fitview.raise_()
-
-    def define_errors(self):
-        self._data.nxerrors = np.sqrt(np.where(self.signal<1, 1, self.signal))
 
     def fit_data(self):
         self.read_parameters()
