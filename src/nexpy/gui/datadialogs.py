@@ -579,20 +579,7 @@ class NXWidget(QtWidgets.QWidget):
         
 
 class NXTab(NXWidget):
-    """Subclass of NXWidget for use as the main widget in a tab.
-    
-    This adds a stretch to the bottom of the QVBoxLayout to improve the layout 
-    of differently sized tabs.
-    """
-
-    def set_layout(self, *items):
-        self.layout = QtWidgets.QVBoxLayout()
-        for item in items:
-            if isinstance(item, QtWidgets.QLayout):
-                self.layout.addLayout(item)
-            elif isinstance(item, QtWidgets.QWidget):
-                self.layout.addWidget(item)
-        self.setLayout(self.layout)
+    """Subclass of NXWidget for use as the main widget in a tab."""
 
     def update(self):
         pass
