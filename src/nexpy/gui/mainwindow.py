@@ -1831,9 +1831,9 @@ class MainWindow(QtWidgets.QMainWindow):
                                 "Fitting only enabled for one-dimensional data")
             else:
                 raise NeXusError("Select an NXdata group")
-            if 'fit' not in self.panels:
-                self.panels['fit'] = FitDialog()
-            self.panels['fit'].activate(node)
+            if 'Fit' not in self.panels:
+                self.panels['Fit'] = FitDialog()
+            self.panels['Fit'].activate(node)
             logging.info("Fitting invoked on'%s'" % node.nxpath)
         except NeXusError as error:
             report_error("Fitting Data", error)
@@ -2115,36 +2115,36 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def show_limits_panel(self):
         try:
-            if 'limit' not in self.panels:
-                self.panels['limit'] = LimitDialog()
-            self.panels['limit'].activate(self.active_plotview.label)
+            if 'Limit' not in self.panels:
+                self.panels['Limit'] = LimitDialog()
+            self.panels['Limit'].activate(self.active_plotview.label)
         except NeXusError as error:
             report_error("Showing Limits Panel", error)
 
     def show_projection_panel(self):
         if self.active_plotview.label == 'Projection' or self.plotview.ndim == 1:
-            if ('projection' in self.panels and 
-                self.panels['projection'].isVisible()):
-                self.panels['projection'].raise_()
-                self.panels['projection'].activateWindow()
+            if ('Projection' in self.panels and 
+                self.panels['Projection'].isVisible()):
+                self.panels['Projection'].raise_()
+                self.panels['Projection'].activateWindow()
             return
         try:
-            if 'projection' not in self.panels:
-                self.panels['projection'] = ProjectionDialog()
-            self.panels['projection'].activate(self.active_plotview.label)
+            if 'Projection' not in self.panels:
+                self.panels['Projection'] = ProjectionDialog()
+            self.panels['Projection'].activate(self.active_plotview.label)
         except NeXusError as error:
             report_error("Showing Projection Panel", error)
 
     def show_scan_panel(self):
         if self.plotview.label == 'Projection':
-            if 'scan' in self.panels and self.panels['scan'].isVisible():
-                self.panels['scan'].raise_()
-                self.panels['scan'].activateWindow()
+            if 'Scan' in self.panels and self.panels['Scan'].isVisible():
+                self.panels['Scan'].raise_()
+                self.panels['Scan'].activateWindow()
             return
         try:
-            if 'scan' not in self.panels:
-                self.panels['scan'] = ScanDialog()
-            self.panels['scan'].activate(self.plotview.label)
+            if 'Scan' not in self.panels:
+                self.panels['Scan'] = ScanDialog()
+            self.panels['Scan'].activate(self.plotview.label)
         except NeXusError as error:
             report_error("Showing Scan Panel", error)
 

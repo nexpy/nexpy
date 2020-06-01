@@ -33,8 +33,8 @@ from .datadialogs import NXPanel, NXTab
 from .plotview import NXPlotView
 from .pyqt import QtCore, QtGui, QtWidgets
 from .utils import report_error, format_float, get_color
-from .widgets import (NXCheckBox, NXComboBox, NXLabel, NXLineEdit, NXColorBox,
-                      NXMessageBox, NXPushButton)
+from .widgets import (NXCheckBox, NXColorBox, NXComboBox, NXLabel, NXLineEdit,
+                      NXMessageBox, NXPushButton, NXScrollArea)
 
 
 def get_functions():
@@ -178,7 +178,7 @@ class NXModel(Model):
 class FitDialog(NXPanel):
 
     def __init__(self, parent=None):
-        super(FitDialog, self).__init__('fit', title='Fit Panel', 
+        super(FitDialog, self).__init__('Fit', title='Fit Panel', 
                                         apply=True, reset=True, parent=parent)
         self.setMinimumWidth(850)        
         self.tab_class = FitTab
@@ -197,15 +197,6 @@ class FitDialog(NXPanel):
         self.setVisible(True)
         self.raise_()
         self.activateWindow()
-
-    def close(self):
-        tab = self.tab
-        if len(self.labels) == 1 and tab.plotview is None:
-            if 'Fit' in self.plotviews:
-                self.plotviews['Fit'].close()
-        if tab:
-            tab.close()
-            self.remove(self.labels[tab])
 
 
 class FitTab(NXTab):
@@ -296,6 +287,8 @@ class FitTab(NXTab):
                                             self.plot_maxbox,
                                             align='justified')
 
+        self.method_label = NXLabel('Method')
+        self.method_label.setVisible(False)
         self.methodcombo = NXComboBox(items=list(all_methods))
         for i, m in enumerate(all_methods):
             tooltip = all_methods[m]
@@ -312,7 +305,8 @@ class FitTab(NXTab):
                                     width=100)
         reset_button = NXPushButton('Reset Limits', self.reset_limits)
         self.adjust_layout = QtWidgets.QHBoxLayout()
-        self.adjust_layout = self.make_layout(self.methodcombo,
+        self.adjust_layout = self.make_layout(self.method_label,
+                                              self.methodcombo,
                                               self.restore_button, 'stretch',
                                               self.color_box, reset_button, 
                                               align='justified')
@@ -334,7 +328,6 @@ class FitTab(NXTab):
                                               self.report_button,
                                               self.save_button,
                                               align='justified')
-
 
         self.set_layout(model_layout, self.plot_layout, self.adjust_layout)
         self.layout.setSpacing(5)
@@ -373,6 +366,10 @@ class FitTab(NXTab):
                 self.boundaries = False
             else:
                 raise NeXusError("Data has invalid axes")
+            if data.nxerrors:
+                self.poisson_errors = False
+            else:
+                self.poisson_errors = True
             self._data = deepcopy(data)
         else:
             raise NeXusError("Must be an NXdata group")
@@ -382,10 +379,8 @@ class FitTab(NXTab):
         self.all_models.update(all_functions)
 
     def initialize_parameter_grid(self):
+
         grid_layout = QtWidgets.QVBoxLayout()
-        scroll_area = QtWidgets.QScrollArea()
-        scroll_area.setWidgetResizable(True)
-        scroll_widget = QtWidgets.QWidget()
 
         self.parameter_grid = QtWidgets.QGridLayout()
         self.parameter_grid.setSpacing(5)
@@ -398,12 +393,15 @@ class FitTab(NXTab):
             self.parameter_grid.setColumnMinimumWidth(column, width[column])
             column += 1
 
+        scroll_widget = QtWidgets.QWidget()
+        scroll_area = NXScrollArea(scroll_widget)
         scroll_layout = QtWidgets.QVBoxLayout()
         scroll_layout.addLayout(self.parameter_grid)
         scroll_layout.addStretch()
         scroll_widget.setLayout(scroll_layout)
-        scroll_area.setWidget(scroll_widget)
         scroll_area.setMinimumHeight(200)
+        scroll_area.setSizePolicy(QtWidgets.QSizePolicy.Minimum,
+                                  QtWidgets.QSizePolicy.Expanding)
         
         grid_layout.addWidget(scroll_area)
 
@@ -434,9 +432,8 @@ class FitTab(NXTab):
 
     @property
     def errors(self):
-        _errors = self.data.nxerrors
-        if _errors:
-            return _errors.nxvalue.astype(np.float64)
+        if self.data.nxerrors:
+            return self.data.nxerrors.nxvalue.astype(np.float64)
         else:
             return None
 
@@ -446,6 +443,15 @@ class FitTab(NXTab):
             return 1.0 / self.errors
         else:
             return None
+
+    def define_errors(self):
+        if self.poisson_errors:
+            if self.fit_checkbox.isChecked():
+                self._data.nxerrors = np.sqrt(np.where(self._data.nxsignal<1, 
+                                                       1, self._data.nxsignal))
+            else:
+                del self._data[self._data.nxerrors.nxname]
+                del self._data.nxsignal.attrs['uncertainties']
 
     @property
     def parameters(self):
@@ -583,6 +589,7 @@ class FitTab(NXTab):
             self.model = model
         else:
             self.model = self.model + model
+        self.method_label.setVisible(True)
         self.methodcombo.setVisible(True)
  
     def add_model_parameters(self, model_index):
@@ -790,9 +797,6 @@ class FitTab(NXTab):
         self.plot_nums.append(num)
         self.fitview.raise_()
 
-    def define_errors(self):
-        self._data.nxerrors = np.sqrt(np.where(self.signal<1, 1, self.signal))
-
     def fit_data(self):
         self.read_parameters()
         if self.fit_checkbox.isChecked():
@@ -935,4 +939,3 @@ class FitTab(NXTab):
     def close(self):
         if self.plotview:
             self.remove_plots()
-        super(FitTab, self).close()
