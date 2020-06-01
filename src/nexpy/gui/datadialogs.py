@@ -209,7 +209,6 @@ class NXWidget(QtWidgets.QWidget):
             item_layout.addWidget(label_box)
             item_layout.addWidget(self.textbox[label])
             layout.addLayout(item_layout)
-            layout.addStretch()
         return layout            
             
     def checkboxes(self, *items, **opts):
