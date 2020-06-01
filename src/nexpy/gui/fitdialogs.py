@@ -316,7 +316,8 @@ class FitTab(NXTab):
         if self._data.nxerrors:
             self.fit_checkbox = NXCheckBox('Use Errors', checked=True)
         else:
-            self.fit_checkbox = NXCheckBox('Use Poisson Errors')
+            self.fit_checkbox = NXCheckBox('Use Poisson Errors',
+                                           self.define_errors)
         self.report_button = NXPushButton("Show Fit Report", self.report_fit)
         self.report_button.setVisible(False)
         self.save_button = NXPushButton("Save Parameters", self.save_fit)
@@ -365,6 +366,10 @@ class FitTab(NXTab):
                 self.boundaries = False
             else:
                 raise NeXusError("Data has invalid axes")
+            if data.nxerrors:
+                self.poisson_errors = False
+            else:
+                self.poisson_errors = True
             self._data = deepcopy(data)
         else:
             raise NeXusError("Must be an NXdata group")
@@ -427,9 +432,7 @@ class FitTab(NXTab):
 
     @property
     def errors(self):
-        if self.fit_checkbox.isChecked():
-            return np.sqrt(np.where(self.signal<1,1,self.signal))
-        elif self.data.nxerrors:
+        if self.data.nxerrors:
             return self.data.nxerrors.nxvalue.astype(np.float64)
         else:
             return None
@@ -440,6 +443,15 @@ class FitTab(NXTab):
             return 1.0 / self.errors
         else:
             return None
+
+    def define_errors(self):
+        if self.poisson_errors:
+            if self.fit_checkbox.isChecked():
+                self._data.nxerrors = np.sqrt(np.where(self._data.nxsignal<1, 
+                                                       1, self._data.nxsignal))
+            else:
+                del self._data[self._data.nxerrors.nxname]
+                del self._data.nxsignal.attrs['uncertainties']
 
     @property
     def parameters(self):
