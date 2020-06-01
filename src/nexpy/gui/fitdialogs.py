@@ -198,15 +198,6 @@ class FitDialog(NXPanel):
         self.raise_()
         self.activateWindow()
 
-    def close(self):
-        tab = self.tab
-        if len(self.labels) == 1 and tab.plotview is None:
-            if 'Fit' in self.plotviews:
-                self.plotviews['Fit'].close()
-        if tab:
-            tab.close()
-            self.remove(self.labels[tab])
-
 
 class FitTab(NXTab):
     """Dialog to fit one-dimensional NeXus data"""
