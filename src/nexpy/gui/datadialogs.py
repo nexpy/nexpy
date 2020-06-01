@@ -720,8 +720,8 @@ class NXPanel(NXDialog):
         if label in self.tabs:
             removed_tab = self.tabs[label]
             if removed_tab.copybox:    
-                for tab in [tab for tab in self.labels 
-                            if self.labels[tab] != removed_tab]:
+                for tab in [self.tabs[label] for label in self.tabs 
+                            if self.tabs[label] is not removed_tab]:
                     if label in tab.copybox:
                         tab.copybox.remove(label)
                     if len(tab.copybox.items()) == 0:
@@ -754,13 +754,10 @@ class NXPanel(NXDialog):
 
     def update(self):
         if self.count > 0:
-            for tab in [tab for tab in self.tabs 
-                        if self.tabs[tab] is not self.tab]:
-                try:
-                    self.tabs[tab].setSizePolicy(QtWidgets.QSizePolicy.Ignored, 
-                                                 QtWidgets.QSizePolicy.Ignored)
-                except Exception:
-                    pass
+            for tab in [self.tabs[label] for label in self.tabs 
+                        if self.tabs[label] is not self.tab]:
+                tab.setSizePolicy(QtWidgets.QSizePolicy.Ignored, 
+                                  QtWidgets.QSizePolicy.Ignored)
             self.tab.setSizePolicy(QtWidgets.QSizePolicy.Preferred,
                                    QtWidgets.QSizePolicy.Preferred)
         self.mainwindow._app.processEvents()
@@ -796,6 +793,10 @@ class NXTab(NXWidget):
             self.panel = parent
             self.tabs = parent.tabs
             self.labels = parent.labels
+        else:
+            self.panel = None
+            self.tabs = {}
+            self.labels = {}
         self.copybox = None
 
     def copy_layout(self, text="Copy", sync=None):
@@ -2058,11 +2059,10 @@ class ProjectionTab(NXTab):
         grid.addWidget(self.save_button, row, 1)
         self.plot_button = NXPushButton("Plot", self.plot_projection, self)
         grid.addWidget(self.plot_button, row, 2)
-        self.overplot_box = NXCheckBox()
+        self.overbox = NXCheckBox()
         if self.ndim > 1 or self.plot is None or self.plot.ndim > 1:
-            self.overplot_box.setVisible(False)
-        grid.addWidget(self.overplot_box, row, 3,
-                       alignment=QtCore.Qt.AlignHCenter)
+            self.overbox.setVisible(False)
+        grid.addWidget(self.overbox, row, 3, alignment=QtCore.Qt.AlignHCenter)
 
         row += 1
         self.mask_button = NXPushButton("Mask", self.mask_data, self)
@@ -2147,10 +2147,10 @@ class ProjectionTab(NXTab):
                     self.xbox.setCurrentIndex(idx)
                     break
         if self.yaxis == 'None' and self.plot and self.plot.ndim == 1:
-            self.overplot_box.setVisible(True)
+            self.overbox.setVisible(True)
         else:
-            self.overplot_box.setChecked(False)
-            self.overplot_box.setVisible(False)
+            self.overbox.setChecked(False)
+            self.overbox.setVisible(False)
 
     def set_limits(self):
         self.block_signals(True)
@@ -2208,6 +2208,15 @@ class ProjectionTab(NXTab):
     def lines(self, value):
         self.checkbox["lines"].setChecked(value)
 
+    @property
+    def over(self):
+        return self.overbox.isChecked()
+
+    @over.setter
+    def over(self, value):
+        self.overbox.setVisible(True)
+        self.overbox.setChecked(value)
+
     def get_projection(self):
         x = self.get_axes().index(self.xaxis)
         if self.yaxis == 'None':
@@ -2238,36 +2247,30 @@ class ProjectionTab(NXTab):
     def plot_projection(self):
         try:
             if self.plot:
-                projection = self.plot
+                plotview = self.plot
             else:
                 from .plotview import NXPlotView
-                projection = NXPlotView('Projection')
-                self.overplot_box.setChecked(False)
+                plotview = NXPlotView('Projection')
+                self.over = False
             axes, limits = self.get_projection()
-            if len(axes) == 1 and self.overplot_box.isChecked():
-                over = True
-            else:
-                over = False
             if self.lines:
                 fmt = '-'
             else:
                 fmt = 'o'
             try:
-                projection.plot(self.plotview.data.project(axes, limits, 
-                                                           summed=self.summed),
-                                over=over, fmt=fmt)
+                plotview.plot(self.plotview.data.project(axes, limits, 
+                                                         summed=self.summed),
+                              over=self.over, fmt=fmt)
             except Exception as error:
                 raise NeXusError("Invalid projection limits")
-            if len(axes) == 1:
-                self.overplot_box.setVisible(True)
+            if plotview.ndim == 1:
+                self.update_overbox()
             else:
-                self.overplot_box.setVisible(False)
-                self.overplot_box.setChecked(False)
-                projection.logv = self.plotview.logv
-                projection.cmap = self.plotview.cmap
-                projection.interpolation = self.plotview.interpolation
-            projection.make_active()
-            projection.raise_()
+                plotview.logv = self.plotview.logv
+                plotview.cmap = self.plotview.cmap
+                plotview.interpolation = self.plotview.interpolation
+            plotview.make_active()
+            plotview.raise_()
         except NeXusError as error:
             report_error("Plotting Projection", error)
 
@@ -2339,14 +2342,13 @@ class ProjectionTab(NXTab):
             self.rectangle.set_visible(True)
         self.plotview.draw()
 
-    def sort_copybox(self):
-        selected = self.copybox.selected
-        tabs = self.copybox.items()
-        self.copybox.clear()
-        for tab in [tab for tab in self.panel.tab_list() if tab in tabs]:
-            self.copybox.add(tab)
-        if selected in self.copybox:
-            self.copybox.select(selected)
+    def update_overbox(self):
+        for tab in self.labels:
+            if tab.yaxis == 'None':
+                tab.overbox.setVisible(True)
+            else:
+                tab.overbox.setVisible(False)
+                tab.overbox.setChecked(False)
 
     def update(self):
         self.block_signals(True)
@@ -2365,11 +2367,6 @@ class ProjectionTab(NXTab):
         self.block_signals(False)
         self.draw_rectangle()
         self.sort_copybox()
-        if self.yaxis == 'None' and self.plot and self.plot.ndim == 1:
-            self.overplot_box.setVisible(True)
-        else:
-            self.overplot_box.setVisible(False)
-            self.overplot_box.setChecked(False)
 
     def copy(self):
         self.block_signals(True)
@@ -2383,10 +2380,6 @@ class ProjectionTab(NXTab):
         self.xbox.setCurrentIndex(tab.xbox.currentIndex())
         if self.ndim > 1:
             self.ybox.setCurrentIndex(tab.ybox.currentIndex())
-        if self.yaxis == 'None' and self.plot and self.plot.ndim == 1:
-            self.overplot_box.setVisible(True)
-        else:
-            self.overplot_box.setVisible(False)
         self.block_signals(False)
         self.draw_rectangle()              
 
@@ -2604,15 +2597,6 @@ class LimitTab(NXTab):
             tab = self.tabs[self.copybox.selected]
             tab.checkbox['sync'].setChecked(False)
 
-    def sort_copybox(self):
-        selected = self.copybox.selected
-        tabs = self.copybox.items()
-        self.copybox.clear()
-        for tab in [tab for tab in self.panel.tab_list() if tab in tabs]:
-            self.copybox.add(tab)
-        if selected in self.copybox:
-            self.copybox.select(selected)
-
     def update(self):
         if not self.checkbox['sync'].isChecked():
             self.update_limits()
@@ -2775,9 +2759,9 @@ class ScanTab(NXTab):
         grid.addWidget(self.plot_button, row, 1)
         self.save_button = NXPushButton("Save", self.save_scan, self)
         grid.addWidget(self.save_button, row, 2)
-        self.overplot_box = NXCheckBox()
-        self.overplot_box.setVisible(False)
-        grid.addWidget(self.overplot_box, row, 3,
+        self.overbox = NXCheckBox()
+        self.overbox.setVisible(False)
+        grid.addWidget(self.overbox, row, 3,
                        alignment=QtCore.Qt.AlignHCenter)
 
         self.set_layout(axis_layout, 
@@ -3089,25 +3073,23 @@ class ScanTab(NXTab):
         data.title = self.data_path
         return data
 
+    @property
+    def over(self):
+        return self.overbox.isChecked()
+
     def plot_scan(self):
         try:
             self.scan_data = self.get_scan()
             axes, limits = self.get_projection()
-            over = False
-            if len(axes) == 0:
-                self.overplot_box.setVisible(True)
-                if self.overplot_box.isChecked():
-                    over = True
-            else:
-                self.overplot_box.setVisible(False)
-                self.overplot_box.setChecked(False)
             opts = {}
             if self.lines:
                 opts['marker'] = 'None'
                 opts['linestyle'] = '-'
-            self.scanview.plot(self.scan_data, over=over, **opts)
+            self.scanview.plot(self.scan_data, over=self.over, **opts)
             self.scanview.make_active()
             self.scanview.raise_()
+            if self.scanview.ndim == 1:
+                self.update_overbox()
         except NeXusError as error:
             report_error("Plotting Scan", error)
 
@@ -3172,6 +3154,14 @@ class ScanTab(NXTab):
         else:
             self.rectangle.set_visible(True)
         self.plotview.draw()
+
+    def update_overbox(self):
+        for tab in self.labels:
+            if tab.xaxis == 'None' and tab.yaxis == 'None':
+                tab.overbox.setVisible(True)
+            else:
+                tab.overbox.setVisible(False)
+                tab.overbox.setChecked(False)
 
     def update(self):
         self.block_signals(True)
