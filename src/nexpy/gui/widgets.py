@@ -310,7 +310,7 @@ class NXComboBox(QtWidgets.QComboBox):
         """
         for item in items:
             if item not in self:
-                self.addItem(item)
+                self.addItem(str(item))
 
     def insert(self, idx, item):
         """Insert item at the specified index.
