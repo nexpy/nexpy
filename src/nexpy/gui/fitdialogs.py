@@ -599,13 +599,14 @@ class FitTab(NXTab):
             self.layout.insertLayout(2, self.remove_layout)
             self.layout.insertLayout(5, self.action_layout)
             self.plot_model_button.setVisible(True)
-            self.plotcombo.addItem('All')
+            self.plotcombo.add('All')
             self.plotcombo.insertSeparator(1)
             self.plotcombo.setVisible(True)
             self.plot_checkbox.setVisible(True)
         model_name = self.models[model_index]['name']
-        self.removecombo.addItem(self.expanded_name(model_name))
-        self.plotcombo.addItem(self.expanded_name(model_name))
+        self.removecombo.add(self.expanded_name(model_name))
+        self.removecombo.select(self.expanded_name(model_name))
+        self.plotcombo.add(self.expanded_name(model_name))
         self.first_time = False
 
     def add_model_rows(self, model_index): 
@@ -745,12 +746,17 @@ class FitTab(NXTab):
             model_data = NXfield(y, name='Model')
         return NXdata(model_data, model_axis, title=self.data.nxtitle)
 
+    def set_limits(self, xmin, xmax):
+        self.plot_minbox.setText(format_float(xmin))
+        self.plot_maxbox.setText(format_float(xmax))
+
     def get_limits(self):
         return float(self.plot_minbox.text()), float(self.plot_maxbox.text())
 
     def reset_limits(self):
         self.plot_minbox.setText(format_float(self.plot_min))
         self.plot_maxbox.setText(format_float(self.plot_max))
+        self.fitview.reset_plot_limits()
 
     def data_not_plotted(self):
         return self.data_label not in [self.fitview.plots[p]['label'] 
@@ -758,13 +764,15 @@ class FitTab(NXTab):
 
     def plot_data(self):
         if self.plotview is None:
-            self.fitview.plot(self.data, fmt='o', color=self.color)
+            self.fitview.plot(self._data, fmt='o', color=self.color)
+            self.fitview.set_plot_limits(*self.get_limits())
             for label in ['label', 'legend_label']:
                 self.fitview.plots[self.fitview.num][label] = self.data_label
             self.remove_plots()
         else:
             self.fitview.plot(self.data, fmt='o', color=self.color, over=True)
             self.fitview.plots[self.data_num]['plot'].set_color(self.color)
+            self.fitview.set_plot_limits(*self.get_limits())
             for label in ['label', 'legend_label']:
                 self.fitview.plots[self.fitview.num][label] = self.data_label
             num = self.fitview.num
@@ -934,7 +942,8 @@ class FitTab(NXTab):
             self.fitview.ytab.plotcombo.insert(num, num)
         
     def reset(self):
-        self.remove_plots()
+        self.reset_limits()
+        self.plot_data()
 
     def close(self):
         if self.plotview:
