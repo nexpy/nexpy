@@ -745,6 +745,10 @@ class FitTab(NXTab):
             model_data = NXfield(y, name='Model')
         return NXdata(model_data, model_axis, title=self.data.nxtitle)
 
+    def set_limits(self, xmin, xmax):
+        self.plot_minbox.setText(format_float(xmin))
+        self.plot_maxbox.setText(format_float(xmax))
+
     def get_limits(self):
         return float(self.plot_minbox.text()), float(self.plot_maxbox.text())
 
