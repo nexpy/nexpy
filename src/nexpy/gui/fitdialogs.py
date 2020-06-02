@@ -751,6 +751,7 @@ class FitTab(NXTab):
     def reset_limits(self):
         self.plot_minbox.setText(format_float(self.plot_min))
         self.plot_maxbox.setText(format_float(self.plot_max))
+        self.fitview.reset_plot_limits()
 
     def data_not_plotted(self):
         return self.data_label not in [self.fitview.plots[p]['label'] 
@@ -758,13 +759,15 @@ class FitTab(NXTab):
 
     def plot_data(self):
         if self.plotview is None:
-            self.fitview.plot(self.data, fmt='o', color=self.color)
+            self.fitview.plot(self._data, fmt='o', color=self.color)
+            self.fitview.set_plot_limits(*self.get_limits())
             for label in ['label', 'legend_label']:
                 self.fitview.plots[self.fitview.num][label] = self.data_label
             self.remove_plots()
         else:
             self.fitview.plot(self.data, fmt='o', color=self.color, over=True)
             self.fitview.plots[self.data_num]['plot'].set_color(self.color)
+            self.fitview.set_plot_limits(*self.get_limits())
             for label in ['label', 'legend_label']:
                 self.fitview.plots[self.fitview.num][label] = self.data_label
             num = self.fitview.num
