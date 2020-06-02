@@ -934,7 +934,8 @@ class FitTab(NXTab):
             self.fitview.ytab.plotcombo.insert(num, num)
         
     def reset(self):
-        self.remove_plots()
+        self.reset_limits()
+        self.plot_data()
 
     def close(self):
         if self.plotview:
