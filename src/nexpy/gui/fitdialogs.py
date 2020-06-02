@@ -599,13 +599,14 @@ class FitTab(NXTab):
             self.layout.insertLayout(2, self.remove_layout)
             self.layout.insertLayout(5, self.action_layout)
             self.plot_model_button.setVisible(True)
-            self.plotcombo.addItem('All')
+            self.plotcombo.add('All')
             self.plotcombo.insertSeparator(1)
             self.plotcombo.setVisible(True)
             self.plot_checkbox.setVisible(True)
         model_name = self.models[model_index]['name']
-        self.removecombo.addItem(self.expanded_name(model_name))
-        self.plotcombo.addItem(self.expanded_name(model_name))
+        self.removecombo.add(self.expanded_name(model_name))
+        self.removecombo.select(self.expanded_name(model_name))
+        self.plotcombo.add(self.expanded_name(model_name))
         self.first_time = False
 
     def add_model_rows(self, model_index): 
