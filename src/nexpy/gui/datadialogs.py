@@ -3209,6 +3209,8 @@ class ScanTab(NXTab):
         self.draw_rectangle()              
 
     def reset(self):
+        self.xbox.select(self.plotview.xaxis.name)
+        self.ybox.select(self.plotview.yaxis.name)
         self.block_signals(True)
         for axis in range(self.ndim):
             if (self.plotview.axis[axis] is self.plotview.xaxis or 
