@@ -2052,7 +2052,7 @@ class MainWindow(QtWidgets.QMainWindow):
         close_types = (NXDialog, NXPlotView)
         try:
             for w in [w for w in set(self.app.app.topLevelWidgets())
-                      if w.isActiveWindow() and isinstance(w, close_types)]:              
+                      if isinstance(w, close_types) and w.isActiveWindow()]:              
                 w.close()
                 break
         except Exception:
