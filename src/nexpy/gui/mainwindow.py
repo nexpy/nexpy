@@ -2049,9 +2049,14 @@ class MainWindow(QtWidgets.QMainWindow):
         new_plotview = NXPlotView(parent=self)
 
     def close_window(self):
-        for w in [w for w in self.app.app.topLevelWidgets() if w.isActiveWindow()]:
-            w.close()
-            break
+        close_types = (NXDialog, NXPlotView)
+        try:
+            for w in [w for w in set(self.app.app.topLevelWidgets())
+                      if isinstance(w, close_types) and w.isActiveWindow()]:              
+                w.close()
+                break
+        except Exception:
+            pass
 
     def equalize_windows(self):
         for label in [label for label in self.plotviews 

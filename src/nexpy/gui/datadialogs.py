@@ -629,7 +629,7 @@ class NXPanel(NXDialog):
         super(NXPanel, self).__init__(parent)
         self.tab_class = NXTab
         self.plotview_sort = False
-        self.tabwidget = QtWidgets.QTabWidget()
+        self.tabwidget = QtWidgets.QTabWidget(parent=self)
         self.tabwidget.currentChanged.connect(self.update)
         self.tabwidget.setElideMode(QtCore.Qt.ElideLeft)
         self.tabs = {}
@@ -772,6 +772,12 @@ class NXPanel(NXDialog):
         self.tab.apply()
 
     def closeEvent(self, event):
+        try:
+            if self.count > 0:
+                for tab in self.tabs:
+                    self.tabs[tab].close()
+        except Exception:
+            pass
         if self.panel in self.mainwindow.panels:
             del self.mainwindow.panels[self.panel]
         if self.panel in self.plotviews:
@@ -1595,9 +1601,11 @@ class ExportDialog(NXDialog):
         super(ExportDialog, self).__init__(parent)
  
         self.data = node
-        self.x = node.nxaxes[0].centers()
+        self.x = node.nxaxes[0]
         self.y = node.nxsignal
         self.e = node.nxerrors
+        if self.x.shape[0] > self.y.shape[0]:
+            self.x = node.nxaxes[0].centers()
         self.parameters = GridParameters()
         self.parameters.add('delimiter', '\\t', 'Delimiter')
         
@@ -2407,10 +2415,12 @@ class ProjectionTab(NXTab):
         self.update()
 
     def close(self):
-        if self._rectangle:
-            self._rectangle.remove()
-        self.plotview.draw()
-
+        try:
+            if self._rectangle:
+                self._rectangle.remove()
+            self.plotview.draw()
+        except Exception:
+            pass
 
 class LimitDialog(NXPanel):
     """Dialog to set plot window limits"""
@@ -2705,8 +2715,7 @@ class LimitTab(NXTab):
                 tab.copybox.remove(self.name)
             if len(tab.copybox.items()) == 0:
                 tab.copywidget.setVisible(False)
-        self.plotview.draw()
- 
+
     
 class ScanDialog(NXPanel):
     """Dialog to set plot window limits"""
@@ -3209,6 +3218,8 @@ class ScanTab(NXTab):
         self.draw_rectangle()              
 
     def reset(self):
+        self.xbox.select(self.plotview.xaxis.name)
+        self.ybox.select(self.plotview.yaxis.name)
         self.block_signals(True)
         for axis in range(self.ndim):
             if (self.plotview.axis[axis] is self.plotview.xaxis or 
@@ -3225,19 +3236,22 @@ class ScanTab(NXTab):
         self.update()
 
     def close(self):
-        if self._rectangle:
-            self._rectangle.remove()
-        self.plotview.draw()
-        try:
-            self.file_box.close()
-        except Exception:
-            pass
         for tab in [self.tabs[label] for label in self.tabs 
                     if self.tabs[label] is not self]:
             if self.name in tab.copybox:
                 tab.copybox.remove(self.name)
             if len(tab.copybox.items()) == 0:
                 tab.copywidget.setVisible(False)
+        try:
+            if self._rectangle:
+                self._rectangle.remove()
+            self.plotview.draw()
+        except Exception:
+            pass
+        try:
+            self.file_box.close()
+        except Exception:
+            pass
 
 
 class ViewDialog(NXDialog):
