@@ -90,6 +90,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.settings = settings
         self.config = config
         self.copied_node = None
+        self.dialogs = []
 
         self.default_directory = os.path.expanduser('~')
         self.nexpy_dir = self.app.nexpy_dir
@@ -2049,14 +2050,15 @@ class MainWindow(QtWidgets.QMainWindow):
         new_plotview = NXPlotView(parent=self)
 
     def close_window(self):
-        close_types = (NXDialog, NXPlotView)
-        try:
-            for w in [w for w in set(self.app.app.topLevelWidgets())
-                      if isinstance(w, close_types) and w.isActiveWindow()]:              
-                w.close()
-                break
-        except Exception:
-            pass
+        windows = self.dialogs
+        windows += [self.plotviews[pv] for pv in self.plotviews if pv != 'Main']
+        for window in windows:
+            try:
+                if window.isActiveWindow():
+                    window.close()
+                    break
+            except Exception:
+                pass
 
     def equalize_windows(self):
         for label in [label for label in self.plotviews 

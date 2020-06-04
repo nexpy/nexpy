@@ -556,7 +556,7 @@ class NXWidget(QtWidgets.QWidget):
 
     def closeEvent(self, event):
         self.stop_thread()
-        super(NXWidget, self).closeEvent(event)
+        event.accept()
         
 
 class NXDialog(QtWidgets.QDialog, NXWidget):
@@ -565,10 +565,14 @@ class NXDialog(QtWidgets.QDialog, NXWidget):
     def __init__(self, parent=None, default=False):
         QtWidgets.QDialog.__init__(self, parent)
         NXWidget.__init__(self, parent)
+        self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
         self.setSizeGripEnabled(True)
-        self.mainwindow.current_dialog = self
+        self.mainwindow.dialogs.append(self)
         if not default:
             self.installEventFilter(self)
+
+    def __repr__(self):
+        return 'NXDialog(' + self.__class__.__name__  + ')'
  
     def close_buttons(self, save=False, close=False):
         """
@@ -602,6 +606,13 @@ class NXDialog(QtWidgets.QDialog, NXWidget):
                 return True
         return QtWidgets.QWidget.eventFilter(self, widget, event)
 
+    def closeEvent(self, event):
+        try:
+            self.mainwindow.dialogs.remove(self)
+        except Exception as error:
+            pass
+        event.accept()
+
     def accept(self):
         """
         Accepts the result.
@@ -609,6 +620,8 @@ class NXDialog(QtWidgets.QDialog, NXWidget):
         This usually needs to be subclassed in each dialog.
         """
         self.accepted = True
+        if self in self.mainwindow.dialogs:
+            self.mainwindow.dialogs.remove(self)
         QtWidgets.QDialog.accept(self)
         
     def reject(self):
@@ -616,6 +629,8 @@ class NXDialog(QtWidgets.QDialog, NXWidget):
         Cancels the dialog without saving the result.
         """
         self.accepted = False
+        if self in self.mainwindow.dialogs:
+            self.mainwindow.dialogs.remove(self)
         QtWidgets.QDialog.reject(self)
 
 
@@ -641,7 +656,6 @@ class NXPanel(NXDialog):
             self.labels[tabs[label]] = label
         self.set_layout(self.tabwidget, self.close_buttons(apply, reset))
         self.set_title(title)
-        self.setAttribute(QtCore.Qt.WA_DeleteOnClose, True)
 
     def __repr__(self):
         return 'NXPanel("%s")' % self.panel
@@ -782,6 +796,8 @@ class NXPanel(NXDialog):
             del self.mainwindow.panels[self.panel]
         if self.panel in self.plotviews:
             self.plotviews[self.panel].close()
+        if self in self.mainwindow.dialogs:
+            self.mainwindow.dialogs.remove(self)
         event.accept()
 
     def close(self):
