@@ -183,13 +183,13 @@ class FitDialog(NXPanel):
         self.setMinimumWidth(850)        
         self.tab_class = FitTab
 
-    def activate(self, data, plotview=None, color='C0', parent=None):
+    def activate(self, data, plotview=None, color='C0'):
         if plotview:
             label = plotview.label + ': ' + str(plotview.num) 
         else:
             label = data.nxroot.nxname + data.nxpath
         if label not in self.tabs:
-            tab = FitTab(data, plotview=plotview, color=color, parent=parent)
+            tab = FitTab(data, plotview=plotview, color=color, parent=self)
             self.add(label, tab, idx=self.idx(label))
         else:
             self.tab = label
