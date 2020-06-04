@@ -3559,12 +3559,12 @@ class NXNavigationToolbar(NavigationToolbar):
             self.plotview.grid(self.plotview._grid, self.plotview._minorgrid)
 
     def edit_parameters(self):
-        if 'customize' not in self.plotview.panels:
+        if 'Customize' not in self.plotview.panels:
             from .datadialogs import CustomizeDialog
-            self.plotview.panels['customize'] = CustomizeDialog()
-        self.plotview.panels['customize'].activate(self.plotview.label)
-        self.plotview.panels['customize'].setVisible(True)
-        self.plotview.panels['customize'].raise_()
+            self.plotview.panels['Customize'] = CustomizeDialog()
+        self.plotview.panels['Customize'].activate(self.plotview.label)
+        self.plotview.panels['Customize'].setVisible(True)
+        self.plotview.panels['Customize'].raise_()
 
     def add_data(self):
         keep_data(self.plotview.plotdata)

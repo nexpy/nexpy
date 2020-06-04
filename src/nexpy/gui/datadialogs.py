@@ -1708,7 +1708,7 @@ class PreferencesDialog(NXDialog):
 class CustomizeDialog(NXPanel):
 
     def __init__(self, parent=None):
-        super(CustomizeDialog, self).__init__('customize', 
+        super(CustomizeDialog, self).__init__('Customize', 
                                               title='Customize Panel', 
                                               parent=parent)
         self.tab_class = CustomizeTab

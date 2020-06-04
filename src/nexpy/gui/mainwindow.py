@@ -2114,9 +2114,9 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def show_customize_panel(self):
         try:
-            if 'customize' not in self.panels:
-                self.panels['customize'] = CustomizeDialog()
-            self.panels['customize'].activate(self.active_plotview.label)
+            if 'Customize' not in self.panels:
+                self.panels['Customize'] = CustomizeDialog()
+            self.panels['Customize'].activate(self.active_plotview.label)
         except NeXusError as error:
             report_error("Showing Customize Panel", error)
 
