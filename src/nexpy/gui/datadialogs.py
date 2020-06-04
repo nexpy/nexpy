@@ -1601,9 +1601,11 @@ class ExportDialog(NXDialog):
         super(ExportDialog, self).__init__(parent)
  
         self.data = node
-        self.x = node.nxaxes[0].centers()
+        self.x = node.nxaxes[0]
         self.y = node.nxsignal
         self.e = node.nxerrors
+        if self.x.shape[0] > self.y.shape[0]:
+            self.x = node.nxaxes[0].centers()
         self.parameters = GridParameters()
         self.parameters.add('delimiter', '\\t', 'Delimiter')
         
