@@ -1601,8 +1601,9 @@ class MainWindow(QtWidgets.QMainWindow):
     def view_data(self):
         try:
             node = self.treeview.get_node()
-            self.viewdialog = ViewDialog(node, parent=self)
-            self.viewdialog.show()
+            if 'View' not in self.panels:
+                self.panels['View'] = ViewDialog()
+            self.panels['View'].activate(node)
         except NeXusError as error:
             report_error("Viewing Data", error)
 

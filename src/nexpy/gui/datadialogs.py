@@ -3270,12 +3270,32 @@ class ScanTab(NXTab):
             pass
 
 
-class ViewDialog(NXDialog):
+class ViewDialog(NXPanel):
     """Dialog to view a NeXus field"""
+
+    def __init__(self, parent=None):
+        super(ViewDialog, self).__init__('View', title='View Panel', 
+                                         apply=False, reset=False, 
+                                         parent=parent)
+        self.tab_class = ViewTab
+
+    def activate(self, node):
+        label = node.nxroot.nxname + node.nxpath
+        if label not in self.tabs:
+            tab = ViewTab(node, parent=self)
+            self.add(label, tab, idx=self.idx(label))
+        else:
+            self.tab = label
+        self.setVisible(True)
+        self.raise_()
+        self.activateWindow()
+
+
+class ViewTab(NXTab):
 
     def __init__(self, node, parent=None):
 
-        super(ViewDialog, self).__init__(parent)
+        super(ViewTab, self).__init__(parent)
 
         self.node = node
         self.spinboxes = []
@@ -3334,8 +3354,6 @@ class ViewDialog(NXDialog):
         if target_error:
             layout.addWidget(NXLabel(target_error))
         
-        layout.addStretch()
-
         if node.attrs:
             self.attributes = GridParameters()
             for attr in node.attrs:
@@ -3343,21 +3361,15 @@ class ViewDialog(NXDialog):
             layout.addLayout(self.attributes.grid(header=False, 
                                                   title='Attributes', 
                                                   width=200))
-            layout.addStretch()
 
+        hlayout = QtWidgets.QHBoxLayout()
+        hlayout.addStretch()
+        hlayout.addLayout(layout)
         if (isinstance(node, NXfield) and node.shape is not None and 
                node.shape != () and node.shape != (1,)):
-            hlayout = QtWidgets.QHBoxLayout()
-            hlayout.addLayout(layout)
             hlayout.addLayout(self.table())
-            vlayout = QtWidgets.QVBoxLayout()
-            vlayout.addLayout(hlayout)
-            vlayout.addWidget(self.close_buttons(close=True))
-            vlayout.setSizeConstraint(QtWidgets.QLayout.SetFixedSize)
-            self.setLayout(vlayout)          
-        else:
-            layout.addWidget(self.close_buttons(close=True))
-            self.setLayout(layout)
+        hlayout.addStretch()
+        self.setLayout(hlayout)
 
         self.setWindowTitle(node.nxroot.nxname+node.nxpath)
 
