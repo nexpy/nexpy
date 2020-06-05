@@ -59,7 +59,6 @@ class NXWidget(QtWidgets.QWidget):
         super(NXWidget, self).__init__(parent)
         from .consoleapp import _mainwindow
         self.mainwindow = _mainwindow
-        self.mainwindow.current_widget = self
         self.treeview = self.mainwindow.treeview
         self.tree = self.treeview.tree
         self.plotview = self.mainwindow.plotview
@@ -639,8 +638,8 @@ BaseDialog = NXDialog
 
 class NXPanel(NXDialog):
 
-    def __init__(self, panel, title='title', tabs={}, apply=True, reset=True, 
-                 parent=None):
+    def __init__(self, panel, title='title', tabs={}, close=True,
+                 apply=True, reset=True, parent=None):
         super(NXPanel, self).__init__(parent)
         self.tab_class = NXTab
         self.plotview_sort = False
@@ -654,7 +653,10 @@ class NXPanel(NXDialog):
         for label in tabs:
             self.tabs[label] = tabs[label]
             self.labels[tabs[label]] = label
-        self.set_layout(self.tabwidget, self.close_buttons(apply, reset))
+        if close:
+            self.set_layout(self.tabwidget, self.close_buttons(apply, reset))
+        else:
+            self.set_layout(self.tabwidget)
         self.set_title(title)
 
     def __repr__(self):
@@ -754,9 +756,10 @@ class NXPanel(NXDialog):
         else:
             return bisect.bisect_left(sorted(list(self.tabs)), label)
 
-    def activate(self, label):
+    def activate(self, label, *args, **kwargs):
         if label not in self.tabs:
-            tab = self.tab_class(parent=self)
+            kwargs['parent'] = self
+            tab = self.tab_class(*args, **kwargs)
             self.add(label, tab, idx=self.idx(label))
         else:
             self.tab = label
@@ -821,6 +824,33 @@ class NXTab(NXWidget):
             self.tabs = {}
             self.labels = {}
         self.copybox = None
+
+    def __repr__(self):
+        return self.__class__.__name__ + '("' + self.label + '")'
+
+    @property
+    def index(self):
+        if self.panel:
+            return self.panel.tabwidget.indexOf(self)
+        else:
+            return None
+
+    @property
+    def label(self):
+        if self.panel:
+            return self.panel.labels[self]
+        else:
+            return ''
+
+    @label.setter
+    def label(self, value):
+        if self.panel:
+            old_label = self.label
+            label = str(value)
+            self.panel.tabwidget.setTabText(self.index, label)
+            self.panel.labels[self] = label
+            self.panel.tabs[label] = self
+            del self.panel.tabs[old_label]
 
     def copy_layout(self, text="Copy", sync=None):
         self.copywidget = QtWidgets.QWidget()
@@ -2044,7 +2074,6 @@ class ProjectionTab(NXTab):
         super(ProjectionTab, self).__init__(parent=parent)
 
         self.plotview = self.active_plotview
-        self.name = self.plotview.label
         self.ndim = self.plotview.ndim
 
         self.xlabel, self.xbox = self.label('X-Axis'), NXComboBox(self.set_xaxis)
@@ -2107,9 +2136,6 @@ class ProjectionTab(NXTab):
         self._rectangle = None
         self.xbox.setFocus()
 
-    def __repr__(self):
-        return 'ProjectionTab("%s")' % self.name
-
     def initialize(self):
         for axis in range(self.ndim):
             self.minbox[axis].data = self.maxbox[axis].data = \
@@ -2128,7 +2154,7 @@ class ProjectionTab(NXTab):
             if self.plotview.ndim == tab.plotview.ndim:
                 self.copywidget.setVisible(True)
                 self.copybox.add(self.labels[tab])
-                tab.copybox.add(self.name)
+                tab.copybox.add(self.label)
                 if not tab.copywidget.isVisible():
                     tab.copywidget.setVisible(True)
 
@@ -2456,7 +2482,6 @@ class LimitTab(NXTab):
         super(LimitTab, self).__init__(parent=parent)
 
         self.plotview = self.active_plotview
-        self.name = self.plotview.label
         self.ndim = self.plotview.ndim
         
         if self.ndim > 1:
@@ -2516,9 +2541,6 @@ class LimitTab(NXTab):
  
         self.initialize()
 
-    def __repr__(self):
-        return 'LimitTab("%s")' % self.name
-
     def initialize(self):
         for axis in range(self.ndim):
             self.minbox[axis].data = self.maxbox[axis].data = \
@@ -2544,7 +2566,7 @@ class LimitTab(NXTab):
             if self.plotview.ndim == tab.plotview.ndim:
                 self.copywidget.setVisible(True)
                 self.copybox.add(self.labels[tab])
-                tab.copybox.add(self.name)
+                tab.copybox.add(self.label)
                 if not tab.copywidget.isVisible():
                     tab.copywidget.setVisible(True)
 
@@ -2635,7 +2657,7 @@ class LimitTab(NXTab):
             self.update_limits()
         for tab in [self.tabs[label] for label in self.tabs 
                     if self.tabs[label] is not self]:
-            if (tab.copybox.selected == self.name and
+            if (tab.copybox.selected == self.label and
                 tab.checkbox['sync'].isChecked()):
                 tab.copy()
         self.sort_copybox()
@@ -2724,11 +2746,11 @@ class LimitTab(NXTab):
     def close(self):
         for tab in [self.tabs[label] for label in self.tabs 
                     if self.tabs[label] is not self]:
-            if (tab.copybox.selected == self.name and 
+            if (tab.copybox.selected == self.label and 
                 tab.checkbox['sync'].isChecked()):
                 tab.checkbox['sync'].setChecked(False)
-            if self.name in tab.copybox:
-                tab.copybox.remove(self.name)
+            if self.label in tab.copybox:
+                tab.copybox.remove(self.label)
             if len(tab.copybox.items()) == 0:
                 tab.copywidget.setVisible(False)
 
@@ -2750,7 +2772,6 @@ class ScanTab(NXTab):
 
         super(ScanTab, self).__init__(parent=parent)
 
-        self.name = self.plotview.label
         self.ndim = self.plotview.ndim
 
         self.xlabel, self.xbox = self.label('X-Axis'), NXComboBox(self.set_xaxis)
@@ -2817,9 +2838,6 @@ class ScanTab(NXTab):
         self.scan_data = None
         self.files = None
 
-    def __repr__(self):
-        return 'ScanTab("%s")' % self.name
-
     def initialize(self):
         for axis in range(self.ndim):
             self.minbox[axis].data = self.maxbox[axis].data = \
@@ -2838,7 +2856,7 @@ class ScanTab(NXTab):
             if self.plotview.ndim == tab.plotview.ndim:
                 self.copywidget.setVisible(True)
                 self.copybox.add(self.labels[tab])
-                tab.copybox.add(self.name)
+                tab.copybox.add(self.label)
                 if not tab.copywidget.isVisible():
                     tab.copywidget.setVisible(True)
 
@@ -3254,8 +3272,8 @@ class ScanTab(NXTab):
     def close(self):
         for tab in [self.tabs[label] for label in self.tabs 
                     if self.tabs[label] is not self]:
-            if self.name in tab.copybox:
-                tab.copybox.remove(self.name)
+            if self.label in tab.copybox:
+                tab.copybox.remove(self.label)
             if len(tab.copybox.items()) == 0:
                 tab.copywidget.setVisible(False)
         try:

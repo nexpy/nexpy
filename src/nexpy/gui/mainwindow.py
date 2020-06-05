@@ -90,7 +90,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.settings = settings
         self.config = config
         self.copied_node = None
-        self.dialogs = []
 
         self.default_directory = os.path.expanduser('~')
         self.nexpy_dir = self.app.nexpy_dir
@@ -106,10 +105,9 @@ class MainWindow(QtWidgets.QMainWindow):
 
         rightpane = QtWidgets.QWidget()
 
+        self.dialogs = []
         self.panels = {}
         main_plotview = NXPlotView(label="Main", parent=self)
-        self.editors = NXScriptWindow(self)
-        self.editors.setVisible(False)
         self.log_window = None
         self._memroot = None
 
@@ -2145,7 +2143,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def show_scan_panel(self):
         if self.plotview.label == 'Projection':
-            if 'Scan' in self.panels and self.panels['Scan'].isVisible():
+            if 'Scan' in self.panels:
                 self.panels['Scan'].raise_()
                 self.panels['Scan'].activateWindow()
             return
@@ -2157,18 +2155,26 @@ class MainWindow(QtWidgets.QMainWindow):
             report_error("Showing Scan Panel", error)
 
     def show_script_window(self):
-        if self.editors.tabs.count() == 0:
+        if 'Editor' in self.panels:
+            self.panels['Editor'].raise_()
+            self.panels['Editor'].activateWindow()
+            return
+        if 'Editor' not in self.panels:
+            self.panels['Editor'] = NXScriptWindow()
+        if self.panels['Editor'].count == 0:
             self.new_script()
         else:
-            self.editors.setVisible(True)
-            self.editors.raise_()
+            self.panels['Editor'].raise_()    
+
+    def open_script_window(self, file_name):
+        if 'Editor' not in self.panels:
+            self.panels['Editor'] = NXScriptWindow()
+        self.panels['Editor'].activate(file_name)
 
     def new_script(self):
         try:
             file_name = None
-            editor = NXScriptEditor(file_name, parent=self)
-            self.editors.setVisible(True)
-            self.editors.raise_()
+            self.open_script_window(file_name)
             logging.info("Creating new script")
         except NeXusError as error:
             report_error("Editing New Script", error)
@@ -2181,9 +2187,7 @@ class MainWindow(QtWidgets.QMainWindow):
             file_name = getOpenFileName(self, 'Open Script', script_dir,
                                         file_filter)
             if file_name:
-                editor = NXScriptEditor(file_name, self)
-                self.editors.setVisible(True)
-                self.editors.raise_()
+                self.open_script_window(file_name)
                 logging.info("NeXus script '%s' opened" % file_name)
         except NeXusError as error:
             report_error("Editing Script", error)
@@ -2191,10 +2195,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def open_script_file(self):
         try:
             file_name = self.scripts[self.sender()]
-            dialog = NXScriptEditor(file_name, self)
-            dialog.show()
-            self.editors.setVisible(True)
-            self.editors.raise_()
+            self.open_script_window(file_name)
             logging.info("NeXus script '%s' opened" % file_name)
         except NeXusError as error:
             report_error("Opening Script", error)
@@ -2243,9 +2244,11 @@ class MainWindow(QtWidgets.QMainWindow):
         file_name = getOpenFileName(self, 'Open Script', script_dir,
                                     file_filter)
         if file_name:
+            if self.scriptwindow is None:
+                self.scriptwindow = NXScriptWindow(self)
             editor = NXScriptEditor(file_name, self)
-            self.editors.setVisible(True)
-            self.editors.raise_()
+            self.scriptwindow.setVisible(True)
+            self.scriptwindow.raise_()
             logging.info("NeXus script '%s' opened" % file_name)
 
     # minimize/maximize/fullscreen actions:
