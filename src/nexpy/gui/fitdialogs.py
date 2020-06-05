@@ -188,15 +188,8 @@ class FitDialog(NXPanel):
             label = plotview.label + ': ' + str(plotview.num) 
         else:
             label = data.nxroot.nxname + data.nxpath
-        if label not in self.tabs:
-            tab = FitTab(data, plotview=plotview, color=color, parent=self)
-            self.add(label, tab, idx=self.idx(label))
-        else:
-            self.tab = label
-            self.tab.update()
-        self.setVisible(True)
-        self.raise_()
-        self.activateWindow()
+        super(FitDialog, self).activate(label, data, plotview=plotview, 
+                                        color=color)
 
 
 class FitTab(NXTab):
