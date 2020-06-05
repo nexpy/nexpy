@@ -1756,7 +1756,6 @@ class CustomizeTab(NXTab):
         self.markers, self.linestyles = markers, linestyles
 
         self.plotview = self.active_plotview
-        self.name = self.plotview.label
 
         self.parameters = {}
         pl = self.parameters['labels'] = GridParameters()
@@ -1792,9 +1791,6 @@ class CustomizeTab(NXTab):
                            self.plot_stack,
                            pg.grid(header=False))
         self.parameters['labels']['title'].box.setFocus()
-
-    def __repr__(self):
-        return 'CustomizeTab("%s")' % self.name
 
     def plot_label(self, plot):
         return str(plot) + ': ' + self.plots[plot]['label']
