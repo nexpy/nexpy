@@ -925,7 +925,7 @@ class GridParameters(OrderedDict):
 
     def grid(self, header=True, title=None, width=None):
         grid = QtWidgets.QGridLayout()
-        grid.setSpacing(10)
+        grid.setSpacing(2)
         if isinstance(header, list) or isinstance(header, tuple):
             headers = header
             header = True
@@ -1662,8 +1662,11 @@ class ExportDialog(NXDialog):
 
             self.text_options = GridParameters()
             self.text_options.add('delimiter', '\\t', 'Delimiter')
+
+            text_grid = self.text_options.grid(header=False)
+            text_grid.setSpacing(10)
             
-            text_layout = self.make_layout(self.text_options.grid(header=False),
+            text_layout = self.make_layout(text_grid,
                                     self.checkboxes(('title', 'Title', True),
                                                     ('header', 'Headers', True),
                                                     ('errors', 'Errors', True)),
@@ -1679,10 +1682,11 @@ class ExportDialog(NXDialog):
         self.nexus_options.add('entry', 'entry', 'Name of Entry', True)
         self.nexus_options.add('data', self.data.nxname, 'Name of Data')
         
-        nexus_layout = self.nexus_options.grid(header=None)
+        nexus_grid = self.nexus_options.grid(header=None)
+        nexus_grid.setSpacing(10)
 
         self.nexus_tab = NXWidget(parent=self.tabwidget)
-        self.nexus_tab.set_layout(nexus_layout)
+        self.nexus_tab.set_layout(nexus_grid)
 
         self.tabwidget.addTab(self.nexus_tab, 'NeXus File')
         if self.data.ndim == 1:
