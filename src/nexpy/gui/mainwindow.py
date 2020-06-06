@@ -2390,6 +2390,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.console.execute("%quickref")
 
     def close_widgets(self):
+        self._app.processEvents()
         for widget in self._app.allWidgets():
             try:
                 if id(widget) != id(self):
