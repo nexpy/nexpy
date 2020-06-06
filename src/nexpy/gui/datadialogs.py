@@ -1726,6 +1726,7 @@ class ExportDialog(NXDialog):
             if fname:
                 self.set_default_directory(os.path.dirname(fname))
             else:
+                super(ExportDialog, self).reject()
                 return
             entry = self.nexus_options['entry'].value
             if self.nexus_options['entry'].vary:
@@ -1741,6 +1742,7 @@ class ExportDialog(NXDialog):
             if fname:
                 self.set_default_directory(os.path.dirname(fname))
             else:
+                super(ExportDialog, self).reject()
                 return
 
             header = ''
