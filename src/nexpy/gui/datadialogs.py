@@ -731,6 +731,8 @@ class NXPanel(NXDialog):
             del self.labels[self.tabs[label]]
             del self.tabs[label]
             removed_tab.deleteLater()
+        if self.count == 0:
+            self.close()
 
     def idx(self, label):
         if self.plotview_sort and label in self.plotviews:
@@ -1737,6 +1739,7 @@ class CustomizeTab(NXTab):
             self.plot_stack = self.parameter_stack(pp)
             for plot in self.plots:
                 self.update_plot_parameters(plot)
+            self.legend_order = self.get_legend_order()
             pg = self.parameters['legend'] = GridParameters()
             pg.add('legend', ['None'] + [key.title() for key in Legend.codes], 
                    'Legend')
@@ -1751,10 +1754,10 @@ class CustomizeTab(NXTab):
         return 'CustomizeTab("%s")' % self.name
 
     def plot_label(self, plot):
-        return str(plot) + ': ' + self.plots[plot]['label']
+        return str(plot+1) + ': ' + self.plots[plot]['label']
 
     def label_plot(self, label):
-        return int(label[:label.index(':')])
+        return int(label[:label.index(':')]) - 1
 
     def update(self):
         self.update_labels()
@@ -1768,6 +1771,7 @@ class CustomizeTab(NXTab):
                     pp = self.parameters[label] = self.plot_parameters(plot)
                     self.plot_stack.add(label, pp.widget(header=False))
                 self.update_plot_parameters(plot)
+            self.legend_order = self.get_legend_order()
             for label in self.plot_stack.widgets:
                 if self.label_plot(label) not in self.plots:
                     self.plot_stack.remove(label)
@@ -1821,6 +1825,8 @@ class CustomizeTab(NXTab):
         parameters = GridParameters()
         parameters.add('legend_label', p['legend_label'], 'Label')
         parameters.add('legend', ['Yes', 'No'], 'Add to Legend')
+        parameters.add('legend_order', plot+1, 'Legend Order', 
+                       slot=self.update_legend_order)
         parameters.add('color', p['color'], 'Color', color=True)
         parameters.add('linestyle', list(self.linestyles.values()), 
                        'Line Style')
@@ -1847,6 +1853,7 @@ class CustomizeTab(NXTab):
             pp['legend'].value = 'Yes'
         else:
             pp['legend'].value = 'No'
+        pp['legend_order'].value = p['legend_order']
         pp['color'].value = p['color']
         if p['smooth_line']:
             pp['linestyle'].value = self.linestyles[p['smooth_linestyle']]
@@ -1898,6 +1905,35 @@ class CustomizeTab(NXTab):
         return 'Yes' not in [self.parameters[label]['legend'].value 
                              for label in labels]
 
+    def get_legend_order(self):
+        order = []
+        for plot in self.plots:
+            label = self.plot_label(plot)
+            order.append(int(self.parameters[label]['legend_order'].value))
+        return order
+
+    def update_legend_order(self):
+        current_label = self.plot_stack.box.selected
+        current_plot = self.label_plot(current_label)
+        try:
+            current_order = int(
+                self.parameters[current_label]['legend_order'].value)
+            if current_order < 1 or current_order > len(self.plots):
+                self.parameters[current_label]['legend_order'].value = (
+                    self.legend_order[current_plot])
+                raise ValueError('Invalid value for legend order')
+        except ValueError as error:
+            raise NeXusError('Invalid value for legend order')
+        for plot in [p for p in self.plots if p != current_plot]:
+            label = self.plot_label(plot)
+            order = int(self.parameters[label]['legend_order'].value)
+            if (order >= current_order and 
+                order < self.legend_order[current_plot]):
+                self.parameters[label]['legend_order'].value = order + 1
+            elif order == current_order:
+                self.parameters[label]['legend_order'].value = order - 1
+        self.legend_order = self.get_legend_order()
+
     def set_legend(self):
         legend_location = self.parameters['legend']['legend'].value.lower()
         label_selection = self.parameters['legend']['label'].value
@@ -1908,14 +1944,15 @@ class CustomizeTab(NXTab):
         if legend_location == 'none' or self.is_empty_legend():
             self.plotview.remove_legend()
         else:
-            plots = []
+            plots = [i-1 for i in self.get_legend_order()]
+            handles = []
             labels = []
-            for plot in self.plots:
+            for plot in plots:
                 label = self.plot_label(plot)
                 if self.parameters[label]['legend'].value == 'Yes':
-                    plots.append(self.plots[plot]['plot'])
+                    handles.append(self.plots[plot]['plot'])
                     labels.append(self.plots[plot]['legend_label'])
-            self.plotview.legend(plots, labels, nameonly=_nameonly, 
+            self.plotview.legend(handles, labels, nameonly=_nameonly, 
                                  loc=legend_location)         
 
     def reset(self):
@@ -1959,6 +1996,7 @@ class CustomizeTab(NXTab):
             else:
                 self.plotview.cb_minorticks_off()
         else:
+            
             for plot in self.plots:
                 label = self.plot_label(plot)
                 p, pp = self.plots[plot], self.parameters[label]
@@ -1967,6 +2005,7 @@ class CustomizeTab(NXTab):
                     p['show_legend'] = True
                 else:
                     p['show_legend'] = False
+                p['legend_order'] = int(pp['legend_order'].value)
                 p['color'] = pp['color'].value
                 p['plot'].set_color(p['color'])
                 linestyle = [k for k, v in self.linestyles.items()
