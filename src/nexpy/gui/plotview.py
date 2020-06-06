@@ -63,6 +63,7 @@ from scipy.spatial import Voronoi, voronoi_plot_2d
 from nexusformat.nexus import NXfield, NXdata, NXentry, NXroot, NeXusError
 
 from .. import __version__
+from .datadialogs import ExportDialog
 from .widgets import (NXSpinBox, NXDoubleSpinBox, NXSlider, NXComboBox, 
                       NXCheckBox, NXLabel, NXPushButton,
                       NXcircle, NXellipse, NXrectangle, NXpolygon)
@@ -3535,7 +3536,8 @@ class NXNavigationToolbar(NavigationToolbar):
             (None, None, None, None),
             ('Subplots', 'Configure subplots', 'subplots', 
              'configure_subplots'),
-            ('Save', 'Save the figure', 'filesave', 'save_figure'),
+            ('Save', 'Save the figure', 'export-figure', 'save_figure'),
+            ('Export', 'Export data', 'export-data', 'export_data'),
             ('Add', 'Add plot data to tree', 'hand', 'add_data')
                 )
         super(NXNavigationToolbar, self)._init_toolbar()
@@ -3569,6 +3571,14 @@ class NXNavigationToolbar(NavigationToolbar):
 
     def add_data(self):
         keep_data(self.plotview.plotdata)
+
+    def export_data(self):
+        if self.plotview.plotdata.ndim == 1:
+            data = self.plotview.data
+        else:
+            data = self.plotview.plotdata
+        dialog = ExportDialog(data, parent=self)
+        dialog.show()
 
     def release(self, event):
         try:

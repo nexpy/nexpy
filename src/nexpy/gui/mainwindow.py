@@ -2390,6 +2390,13 @@ class MainWindow(QtWidgets.QMainWindow):
         self.console.execute("%quickref")
 
     def close_widgets(self):
+        windows = self.dialogs
+        windows += [self.plotviews[pv] for pv in self.plotviews if pv != 'Main']
+        for window in windows:
+            try:
+                window.close()
+            except:
+                pass        
         self._app.processEvents()
         for widget in self._app.allWidgets():
             try:
