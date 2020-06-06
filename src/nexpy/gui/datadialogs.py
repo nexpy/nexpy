@@ -1867,7 +1867,7 @@ class CustomizeTab(NXTab):
         parameters = GridParameters()
         parameters.add('legend_label', p['legend_label'], 'Label')
         parameters.add('legend', ['Yes', 'No'], 'Add to Legend')
-        parameters.add('legend_order', plot+1, 'Legend Order', 
+        parameters.add('legend_order', p['legend_order'], 'Legend Order', 
                        slot=self.update_legend_order)
         parameters.add('color', p['color'], 'Color', color=True)
         parameters.add('linestyle', list(self.linestyles.values()), 
@@ -1951,7 +1951,7 @@ class CustomizeTab(NXTab):
         order = []
         for plot in self.plots:
             label = self.plot_label(plot)
-            order.append(int(self.parameters[label]['legend_order'].value))
+            order.append(int(self.parameters[label]['legend_order'].value) - 1)
         return order
 
     def update_legend_order(self):
@@ -1959,21 +1959,23 @@ class CustomizeTab(NXTab):
         current_plot = self.label_plot(current_label)
         try:
             current_order = int(
-                self.parameters[current_label]['legend_order'].value)
-            if current_order < 1 or current_order > len(self.plots):
-                self.parameters[current_label]['legend_order'].value = (
-                    self.legend_order[current_plot])
-                raise ValueError('Invalid value for legend order')
-        except ValueError as error:
-            raise NeXusError('Invalid value for legend order')
+                self.parameters[current_label]['legend_order'].value) - 1
+        except Exception:
+            self.parameters[current_label]['legend_order'].value = (
+                self.legend_order[current_plot])
+            return
+        if current_order < 0 or current_order >= len(self.plots):
+            self.parameters[current_label]['legend_order'].value = (
+                self.legend_order[current_plot])
+            return
         for plot in [p for p in self.plots if p != current_plot]:
             label = self.plot_label(plot)
-            order = int(self.parameters[label]['legend_order'].value)
+            order = int(self.parameters[label]['legend_order'].value - 1)
             if (order >= current_order and 
                 order < self.legend_order[current_plot]):
-                self.parameters[label]['legend_order'].value = order + 1
+                self.parameters[label]['legend_order'].value = order + 2
             elif order == current_order:
-                self.parameters[label]['legend_order'].value = order - 1
+                self.parameters[label]['legend_order'].value = order
         self.legend_order = self.get_legend_order()
 
     def set_legend(self):
@@ -1986,16 +1988,16 @@ class CustomizeTab(NXTab):
         if legend_location == 'none' or self.is_empty_legend():
             self.plotview.remove_legend()
         else:
-            plots = [i-1 for i in self.get_legend_order()]
-            handles = []
-            labels = []
-            for plot in plots:
+            handles, labels = [], []
+            for plot in self.plots:
                 label = self.plot_label(plot)
                 if self.parameters[label]['legend'].value == 'Yes':
                     handles.append(self.plots[plot]['plot'])
                     labels.append(self.plots[plot]['legend_label'])
-            self.plotview.legend(handles, labels, nameonly=_nameonly, 
-                                 loc=legend_location)         
+            order = self.get_legend_order()
+            self.plotview.legend(list(zip(*sorted(zip(order,handles))))[1],
+                                 list(zip(*sorted(zip(order,labels))))[1], 
+                                 nameonly=_nameonly, loc=legend_location)         
 
     def reset(self):
         self.update()
