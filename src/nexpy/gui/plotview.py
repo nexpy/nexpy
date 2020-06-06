@@ -1053,6 +1053,7 @@ class NXPlotView(QtWidgets.QDialog):
         p['label'] = p['plot'].get_label()
         p['legend_label'] = p['label']
         p['show_legend'] = True
+        p['legend_order'] = self.num + 1
         p['color'] = p['plot'].get_color()
         p['marker'] = p['plot'].get_marker()
         p['markersize'] = p['plot'].get_markersize()
@@ -2349,7 +2350,7 @@ class NXPlotView(QtWidgets.QDialog):
                 self.tab_widget.removeTab(self.tab_widget.indexOf(self.vtab))
             else:
                 self.vtab.flipbox.setVisible(False)
-        for panel in self.panels:
+        for panel in list(self.panels):
             if self.label in self.panels[panel].tabs:
                 self.panels[panel].remove(self.label)
         self.block_signals(False)
