@@ -925,7 +925,7 @@ class GridParameters(OrderedDict):
 
     def grid(self, header=True, title=None, width=None):
         grid = QtWidgets.QGridLayout()
-        grid.setSpacing(2)
+        grid.setSpacing(10)
         if isinstance(header, list) or isinstance(header, tuple):
             headers = header
             header = True
@@ -1641,29 +1641,56 @@ class PlotScalarDialog(NXDialog):
             pass
         super(PlotScalarDialog, self).close()
 
-    
+
 class ExportDialog(NXDialog):
 
     def __init__(self, node, parent=None):
 
         super(ExportDialog, self).__init__(parent)
  
-        self.data = node
-        self.x = node.nxaxes[0]
-        self.y = node.nxsignal
-        self.e = node.nxerrors
-        if self.x.shape[0] > self.y.shape[0]:
-            self.x = node.nxaxes[0].centers()
-        self.parameters = GridParameters()
-        self.parameters.add('delimiter', '\\t', 'Delimiter')
+        self.tabwidget = QtWidgets.QTabWidget(parent=self)
+        self.tabwidget.setElideMode(QtCore.Qt.ElideLeft)
         
-        self.set_layout(self.parameters.grid(header=False),
-                        self.checkboxes(('header', 'Header', True),
-                                        ('errors', 'Errors', True)),
-                        self.close_buttons(save=True))
-        if self.e is None:
-            self.checkbox['errors'].setChecked(False)
-            self.checkbox['errors'].setVisible(False)
+
+        self.data = node
+        if self.data.ndim == 1:
+            self.x = node.nxaxes[0]
+            self.y = node.nxsignal
+            self.e = node.nxerrors
+            if self.x.shape[0] > self.y.shape[0]:
+                self.x = node.nxaxes[0].centers()
+
+            self.text_options = GridParameters()
+            self.text_options.add('delimiter', '\\t', 'Delimiter')
+            
+            text_layout = self.make_layout(self.text_options.grid(header=False),
+                                    self.checkboxes(('title', 'Title', True),
+                                                    ('header', 'Headers', True),
+                                                    ('errors', 'Errors', True)),
+                                    vertical=True)
+            if self.e is None:
+                self.checkbox['errors'].setChecked(False)
+                self.checkbox['errors'].setVisible(False)
+
+            self.text_tab = NXWidget(parent=self.tabwidget)
+            self.text_tab.set_layout(text_layout)
+
+        self.nexus_options = GridParameters()
+        self.nexus_options.add('entry', 'entry', 'Name of Entry', True)
+        self.nexus_options.add('data', self.data.nxname, 'Name of Data')
+        
+        nexus_layout = self.nexus_options.grid(header=None)
+
+        self.nexus_tab = NXWidget(parent=self.tabwidget)
+        self.nexus_tab.set_layout(nexus_layout)
+
+        self.tabwidget.addTab(self.nexus_tab, 'NeXus File')
+        if self.data.ndim == 1:
+            self.tabwidget.addTab(self.text_tab, 'Text File')
+        self.tabwidget.setCurrentWidget(self.nexus_tab)
+
+        self.set_layout(self.tabwidget, self.close_buttons(save=True))
+
         self.set_title('Exporting Data')
 
     @property
@@ -1671,44 +1698,70 @@ class ExportDialog(NXDialog):
         return self.checkbox['header'].isChecked()
 
     @property
+    def title(self):
+        return self.checkbox['title'].isChecked()
+
+    @property
     def errors(self):
         return self.checkbox['errors'].isChecked()
 
     @property
     def delimiter(self):
-        delimiter = self.parameters['delimiter'].value.encode('utf-8')
+        delimiter = self.text_options['delimiter'].value.encode('utf-8')
         return delimiter.decode('unicode_escape')
 
-    def accept(self):
-        fname = getSaveFileName(self, "Choose a Filename", 
-                                self.data.nxname+'.txt')
-        if fname:
-            self.set_default_directory(os.path.dirname(fname))
-        else:
-            return
+    @property
+    def name(self):
+        return self.nexus_options['data'].value
 
-        if self.errors:
-            output = np.array([self.x, self.y, self.e]).T
-            if self.header:
-                header = self.delimiter.join([self.x.nxname, 
-                                              self.y.nxname, 
-                                              self.e.nxname])
-                np.savetxt(fname, output, header=header, 
-                           delimiter=self.delimiter,
-                           comments='', fmt=['%g','%g','%g'])
+    def accept(self):
+        if self.tabwidget.currentWidget() is self.nexus_tab:
+            fname = getSaveFileName(self, "Choose a Filename", 
+                                    self.data.nxname+'.nxs',
+                                    self.mainwindow.file_filter)
+            if fname:
+                self.set_default_directory(os.path.dirname(fname))
             else:
-                np.savetxt(fname, output, delimiter=self.delimiter,
-                           comments='', fmt=['%g','%g','%g'])
+                return
+            entry = self.nexus_options['entry'].value
+            if self.nexus_options['entry'].vary:
+                root = NXroot(NXentry(name=entry))
+                root[entry][self.name] = self.data
+            else:
+                root = NXroot()
+                root[self.name] = self.data
+            root.save(fname, 'w')
         else:
-            output = np.array([self.x, self.y]).T
-            if self.header:
-                header = self.delimiter.join([self.x.nxname, self.y.nxname])
+            fname = getSaveFileName(self, "Choose a Filename", 
+                                    self.data.nxname+'.txt')
+            if fname:
+                self.set_default_directory(os.path.dirname(fname))
+            else:
+                return
+
+            header = ''
+            if self.title:
+                header += self.data.nxtitle + '\n'
+            
+            if self.errors:
+                output = np.array([self.x, self.y, self.e]).T
+                if self.header:
+                    header += self.delimiter.join([self.x.nxname, 
+                                                   self.y.nxname, 
+                                                   self.e.nxname])
+                np.savetxt(fname, output, header=header, 
+                           delimiter=self.delimiter,
+                           comments='', fmt=['%g','%g','%g'])
+            else:
+                output = np.array([self.x, self.y]).T
+                if self.header:
+                    header += self.delimiter.join([self.x.nxname, 
+                                                   self.y.nxname])
                 np.savetxt(fname, output, header=header, 
                            delimiter=self.delimiter,
                            comments='', fmt=['%g','%g'])
-            else:
-                np.savetxt(fname, output, delimiter=self.delimiter,
-                           comments='', fmt=['%g','%g'])
+
+        logging.info("Data saved as '%s'" % fname)
         super(ExportDialog, self).accept()
 
 

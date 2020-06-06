@@ -3574,8 +3574,11 @@ class NXNavigationToolbar(NavigationToolbar):
 
     def export_data(self):
         if self.plotview.plotdata.ndim == 1:
-            dialog = ExportDialog(self.plotview.plotdata, parent=self)
-            dialog.show()
+            data = self.plotview.data
+        else:
+            data = self.plotview.plotdata
+        dialog = ExportDialog(data, parent=self)
+        dialog.show()
 
     def release(self, event):
         try:
