@@ -59,7 +59,6 @@ class NXWidget(QtWidgets.QWidget):
         super(NXWidget, self).__init__(parent)
         from .consoleapp import _mainwindow
         self.mainwindow = _mainwindow
-        self.mainwindow.current_widget = self
         self.treeview = self.mainwindow.treeview
         self.tree = self.treeview.tree
         self.plotview = self.mainwindow.plotview
@@ -556,7 +555,7 @@ class NXWidget(QtWidgets.QWidget):
 
     def closeEvent(self, event):
         self.stop_thread()
-        super(NXWidget, self).closeEvent(event)
+        event.accept()
         
 
 class NXDialog(QtWidgets.QDialog, NXWidget):
@@ -565,10 +564,14 @@ class NXDialog(QtWidgets.QDialog, NXWidget):
     def __init__(self, parent=None, default=False):
         QtWidgets.QDialog.__init__(self, parent)
         NXWidget.__init__(self, parent)
+        self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
         self.setSizeGripEnabled(True)
-        self.mainwindow.current_dialog = self
+        self.mainwindow.dialogs.append(self)
         if not default:
             self.installEventFilter(self)
+
+    def __repr__(self):
+        return 'NXDialog(' + self.__class__.__name__  + ')'
  
     def close_buttons(self, save=False, close=False):
         """
@@ -602,6 +605,13 @@ class NXDialog(QtWidgets.QDialog, NXWidget):
                 return True
         return QtWidgets.QWidget.eventFilter(self, widget, event)
 
+    def closeEvent(self, event):
+        try:
+            self.mainwindow.dialogs.remove(self)
+        except Exception as error:
+            pass
+        event.accept()
+
     def accept(self):
         """
         Accepts the result.
@@ -609,6 +619,8 @@ class NXDialog(QtWidgets.QDialog, NXWidget):
         This usually needs to be subclassed in each dialog.
         """
         self.accepted = True
+        if self in self.mainwindow.dialogs:
+            self.mainwindow.dialogs.remove(self)
         QtWidgets.QDialog.accept(self)
         
     def reject(self):
@@ -616,6 +628,8 @@ class NXDialog(QtWidgets.QDialog, NXWidget):
         Cancels the dialog without saving the result.
         """
         self.accepted = False
+        if self in self.mainwindow.dialogs:
+            self.mainwindow.dialogs.remove(self)
         QtWidgets.QDialog.reject(self)
 
 
@@ -624,8 +638,8 @@ BaseDialog = NXDialog
 
 class NXPanel(NXDialog):
 
-    def __init__(self, panel, title='title', tabs={}, apply=True, reset=True, 
-                 parent=None):
+    def __init__(self, panel, title='title', tabs={}, close=True,
+                 apply=True, reset=True, parent=None):
         super(NXPanel, self).__init__(parent)
         self.tab_class = NXTab
         self.plotview_sort = False
@@ -639,9 +653,11 @@ class NXPanel(NXDialog):
         for label in tabs:
             self.tabs[label] = tabs[label]
             self.labels[tabs[label]] = label
-        self.set_layout(self.tabwidget, self.close_buttons(apply, reset))
+        if close:
+            self.set_layout(self.tabwidget, self.close_buttons(apply, reset))
+        else:
+            self.set_layout(self.tabwidget)
         self.set_title(title)
-        self.setAttribute(QtCore.Qt.WA_DeleteOnClose, True)
 
     def __repr__(self):
         return 'NXPanel("%s")' % self.panel
@@ -731,6 +747,8 @@ class NXPanel(NXDialog):
             del self.labels[self.tabs[label]]
             del self.tabs[label]
             removed_tab.deleteLater()
+        if self.count == 0:
+            self.setVisible(False)
 
     def idx(self, label):
         if self.plotview_sort and label in self.plotviews:
@@ -740,9 +758,10 @@ class NXPanel(NXDialog):
         else:
             return bisect.bisect_left(sorted(list(self.tabs)), label)
 
-    def activate(self, label):
+    def activate(self, label, *args, **kwargs):
         if label not in self.tabs:
-            tab = self.tab_class(parent=self)
+            kwargs['parent'] = self
+            tab = self.tab_class(*args, **kwargs)
             self.add(label, tab, idx=self.idx(label))
         else:
             self.tab = label
@@ -782,6 +801,8 @@ class NXPanel(NXDialog):
             del self.mainwindow.panels[self.panel]
         if self.panel in self.plotviews:
             self.plotviews[self.panel].close()
+        if self in self.mainwindow.dialogs:
+            self.mainwindow.dialogs.remove(self)
         event.accept()
 
     def close(self):
@@ -805,6 +826,33 @@ class NXTab(NXWidget):
             self.tabs = {}
             self.labels = {}
         self.copybox = None
+
+    def __repr__(self):
+        return self.__class__.__name__ + '("' + self.label + '")'
+
+    @property
+    def index(self):
+        if self.panel:
+            return self.panel.tabwidget.indexOf(self)
+        else:
+            return None
+
+    @property
+    def label(self):
+        if self.panel:
+            return self.panel.labels[self]
+        else:
+            return ''
+
+    @label.setter
+    def label(self, value):
+        if self.panel:
+            old_label = self.label
+            label = str(value)
+            self.panel.tabwidget.setTabText(self.index, label)
+            self.panel.labels[self] = label
+            self.panel.tabs[label] = self
+            del self.panel.tabs[old_label]
 
     def copy_layout(self, text="Copy", sync=None):
         self.copywidget = QtWidgets.QWidget()
@@ -1692,7 +1740,7 @@ class PreferencesDialog(NXDialog):
 class CustomizeDialog(NXPanel):
 
     def __init__(self, parent=None):
-        super(CustomizeDialog, self).__init__('customize', 
+        super(CustomizeDialog, self).__init__('Customize', 
                                               title='Customize Panel', 
                                               parent=parent)
         self.tab_class = CustomizeTab
@@ -1710,7 +1758,6 @@ class CustomizeTab(NXTab):
         self.markers, self.linestyles = markers, linestyles
 
         self.plotview = self.active_plotview
-        self.name = self.plotview.label
 
         self.parameters = {}
         pl = self.parameters['labels'] = GridParameters()
@@ -1737,6 +1784,7 @@ class CustomizeTab(NXTab):
             self.plot_stack = self.parameter_stack(pp)
             for plot in self.plots:
                 self.update_plot_parameters(plot)
+            self.legend_order = self.get_legend_order()
             pg = self.parameters['legend'] = GridParameters()
             pg.add('legend', ['None'] + [key.title() for key in Legend.codes], 
                    'Legend')
@@ -1747,14 +1795,11 @@ class CustomizeTab(NXTab):
                            pg.grid(header=False))
         self.parameters['labels']['title'].box.setFocus()
 
-    def __repr__(self):
-        return 'CustomizeTab("%s")' % self.name
-
     def plot_label(self, plot):
-        return str(plot) + ': ' + self.plots[plot]['label']
+        return str(plot+1) + ': ' + self.plots[plot]['label']
 
     def label_plot(self, label):
-        return int(label[:label.index(':')])
+        return int(label[:label.index(':')]) - 1
 
     def update(self):
         self.update_labels()
@@ -1768,6 +1813,7 @@ class CustomizeTab(NXTab):
                     pp = self.parameters[label] = self.plot_parameters(plot)
                     self.plot_stack.add(label, pp.widget(header=False))
                 self.update_plot_parameters(plot)
+            self.legend_order = self.get_legend_order()
             for label in self.plot_stack.widgets:
                 if self.label_plot(label) not in self.plots:
                     self.plot_stack.remove(label)
@@ -1821,6 +1867,8 @@ class CustomizeTab(NXTab):
         parameters = GridParameters()
         parameters.add('legend_label', p['legend_label'], 'Label')
         parameters.add('legend', ['Yes', 'No'], 'Add to Legend')
+        parameters.add('legend_order', p['legend_order'], 'Legend Order', 
+                       slot=self.update_legend_order)
         parameters.add('color', p['color'], 'Color', color=True)
         parameters.add('linestyle', list(self.linestyles.values()), 
                        'Line Style')
@@ -1847,6 +1895,7 @@ class CustomizeTab(NXTab):
             pp['legend'].value = 'Yes'
         else:
             pp['legend'].value = 'No'
+        pp['legend_order'].value = p['legend_order']
         pp['color'].value = p['color']
         if p['smooth_line']:
             pp['linestyle'].value = self.linestyles[p['smooth_linestyle']]
@@ -1898,6 +1947,37 @@ class CustomizeTab(NXTab):
         return 'Yes' not in [self.parameters[label]['legend'].value 
                              for label in labels]
 
+    def get_legend_order(self):
+        order = []
+        for plot in self.plots:
+            label = self.plot_label(plot)
+            order.append(int(self.parameters[label]['legend_order'].value) - 1)
+        return order
+
+    def update_legend_order(self):
+        current_label = self.plot_stack.box.selected
+        current_plot = self.label_plot(current_label)
+        try:
+            current_order = int(
+                self.parameters[current_label]['legend_order'].value) - 1
+        except Exception:
+            self.parameters[current_label]['legend_order'].value = (
+                self.legend_order[current_plot])
+            return
+        if current_order < 0 or current_order >= len(self.plots):
+            self.parameters[current_label]['legend_order'].value = (
+                self.legend_order[current_plot])
+            return
+        for plot in [p for p in self.plots if p != current_plot]:
+            label = self.plot_label(plot)
+            order = int(self.parameters[label]['legend_order'].value - 1)
+            if (order >= current_order and 
+                order < self.legend_order[current_plot]):
+                self.parameters[label]['legend_order'].value = order + 2
+            elif order == current_order:
+                self.parameters[label]['legend_order'].value = order
+        self.legend_order = self.get_legend_order()
+
     def set_legend(self):
         legend_location = self.parameters['legend']['legend'].value.lower()
         label_selection = self.parameters['legend']['label'].value
@@ -1908,15 +1988,16 @@ class CustomizeTab(NXTab):
         if legend_location == 'none' or self.is_empty_legend():
             self.plotview.remove_legend()
         else:
-            plots = []
-            labels = []
+            handles, labels = [], []
             for plot in self.plots:
                 label = self.plot_label(plot)
                 if self.parameters[label]['legend'].value == 'Yes':
-                    plots.append(self.plots[plot]['plot'])
+                    handles.append(self.plots[plot]['plot'])
                     labels.append(self.plots[plot]['legend_label'])
-            self.plotview.legend(plots, labels, nameonly=_nameonly, 
-                                 loc=legend_location)         
+            order = self.get_legend_order()
+            self.plotview.legend(list(zip(*sorted(zip(order,handles))))[1],
+                                 list(zip(*sorted(zip(order,labels))))[1], 
+                                 nameonly=_nameonly, loc=legend_location)         
 
     def reset(self):
         self.update()
@@ -1959,6 +2040,7 @@ class CustomizeTab(NXTab):
             else:
                 self.plotview.cb_minorticks_off()
         else:
+            
             for plot in self.plots:
                 label = self.plot_label(plot)
                 p, pp = self.plots[plot], self.parameters[label]
@@ -1967,6 +2049,7 @@ class CustomizeTab(NXTab):
                     p['show_legend'] = True
                 else:
                     p['show_legend'] = False
+                p['legend_order'] = int(pp['legend_order'].value)
                 p['color'] = pp['color'].value
                 p['plot'].set_color(p['color'])
                 linestyle = [k for k, v in self.linestyles.items()
@@ -2028,7 +2111,6 @@ class ProjectionTab(NXTab):
         super(ProjectionTab, self).__init__(parent=parent)
 
         self.plotview = self.active_plotview
-        self.name = self.plotview.label
         self.ndim = self.plotview.ndim
 
         self.xlabel, self.xbox = self.label('X-Axis'), NXComboBox(self.set_xaxis)
@@ -2091,9 +2173,6 @@ class ProjectionTab(NXTab):
         self._rectangle = None
         self.xbox.setFocus()
 
-    def __repr__(self):
-        return 'ProjectionTab("%s")' % self.name
-
     def initialize(self):
         for axis in range(self.ndim):
             self.minbox[axis].data = self.maxbox[axis].data = \
@@ -2112,7 +2191,7 @@ class ProjectionTab(NXTab):
             if self.plotview.ndim == tab.plotview.ndim:
                 self.copywidget.setVisible(True)
                 self.copybox.add(self.labels[tab])
-                tab.copybox.add(self.name)
+                tab.copybox.add(self.label)
                 if not tab.copywidget.isVisible():
                     tab.copywidget.setVisible(True)
 
@@ -2440,7 +2519,6 @@ class LimitTab(NXTab):
         super(LimitTab, self).__init__(parent=parent)
 
         self.plotview = self.active_plotview
-        self.name = self.plotview.label
         self.ndim = self.plotview.ndim
         
         if self.ndim > 1:
@@ -2500,9 +2578,6 @@ class LimitTab(NXTab):
  
         self.initialize()
 
-    def __repr__(self):
-        return 'LimitTab("%s")' % self.name
-
     def initialize(self):
         for axis in range(self.ndim):
             self.minbox[axis].data = self.maxbox[axis].data = \
@@ -2528,7 +2603,7 @@ class LimitTab(NXTab):
             if self.plotview.ndim == tab.plotview.ndim:
                 self.copywidget.setVisible(True)
                 self.copybox.add(self.labels[tab])
-                tab.copybox.add(self.name)
+                tab.copybox.add(self.label)
                 if not tab.copywidget.isVisible():
                     tab.copywidget.setVisible(True)
 
@@ -2619,7 +2694,7 @@ class LimitTab(NXTab):
             self.update_limits()
         for tab in [self.tabs[label] for label in self.tabs 
                     if self.tabs[label] is not self]:
-            if (tab.copybox.selected == self.name and
+            if (tab.copybox.selected == self.label and
                 tab.checkbox['sync'].isChecked()):
                 tab.copy()
         self.sort_copybox()
@@ -2708,11 +2783,11 @@ class LimitTab(NXTab):
     def close(self):
         for tab in [self.tabs[label] for label in self.tabs 
                     if self.tabs[label] is not self]:
-            if (tab.copybox.selected == self.name and 
+            if (tab.copybox.selected == self.label and 
                 tab.checkbox['sync'].isChecked()):
                 tab.checkbox['sync'].setChecked(False)
-            if self.name in tab.copybox:
-                tab.copybox.remove(self.name)
+            if self.label in tab.copybox:
+                tab.copybox.remove(self.label)
             if len(tab.copybox.items()) == 0:
                 tab.copywidget.setVisible(False)
 
@@ -2734,7 +2809,6 @@ class ScanTab(NXTab):
 
         super(ScanTab, self).__init__(parent=parent)
 
-        self.name = self.plotview.label
         self.ndim = self.plotview.ndim
 
         self.xlabel, self.xbox = self.label('X-Axis'), NXComboBox(self.set_xaxis)
@@ -2801,9 +2875,6 @@ class ScanTab(NXTab):
         self.scan_data = None
         self.files = None
 
-    def __repr__(self):
-        return 'ScanTab("%s")' % self.name
-
     def initialize(self):
         for axis in range(self.ndim):
             self.minbox[axis].data = self.maxbox[axis].data = \
@@ -2822,7 +2893,7 @@ class ScanTab(NXTab):
             if self.plotview.ndim == tab.plotview.ndim:
                 self.copywidget.setVisible(True)
                 self.copybox.add(self.labels[tab])
-                tab.copybox.add(self.name)
+                tab.copybox.add(self.label)
                 if not tab.copywidget.isVisible():
                     tab.copywidget.setVisible(True)
 
@@ -3238,8 +3309,8 @@ class ScanTab(NXTab):
     def close(self):
         for tab in [self.tabs[label] for label in self.tabs 
                     if self.tabs[label] is not self]:
-            if self.name in tab.copybox:
-                tab.copybox.remove(self.name)
+            if self.label in tab.copybox:
+                tab.copybox.remove(self.label)
             if len(tab.copybox.items()) == 0:
                 tab.copywidget.setVisible(False)
         try:
@@ -3254,12 +3325,32 @@ class ScanTab(NXTab):
             pass
 
 
-class ViewDialog(NXDialog):
+class ViewDialog(NXPanel):
     """Dialog to view a NeXus field"""
+
+    def __init__(self, parent=None):
+        super(ViewDialog, self).__init__('View', title='View Panel', 
+                                         apply=False, reset=False, 
+                                         parent=parent)
+        self.tab_class = ViewTab
+
+    def activate(self, node):
+        label = node.nxroot.nxname + node.nxpath
+        if label not in self.tabs:
+            tab = ViewTab(node, parent=self)
+            self.add(label, tab, idx=self.idx(label))
+        else:
+            self.tab = label
+        self.setVisible(True)
+        self.raise_()
+        self.activateWindow()
+
+
+class ViewTab(NXTab):
 
     def __init__(self, node, parent=None):
 
-        super(ViewDialog, self).__init__(parent)
+        super(ViewTab, self).__init__(parent)
 
         self.node = node
         self.spinboxes = []
@@ -3318,8 +3409,6 @@ class ViewDialog(NXDialog):
         if target_error:
             layout.addWidget(NXLabel(target_error))
         
-        layout.addStretch()
-
         if node.attrs:
             self.attributes = GridParameters()
             for attr in node.attrs:
@@ -3327,21 +3416,15 @@ class ViewDialog(NXDialog):
             layout.addLayout(self.attributes.grid(header=False, 
                                                   title='Attributes', 
                                                   width=200))
-            layout.addStretch()
 
+        hlayout = QtWidgets.QHBoxLayout()
+        hlayout.addStretch()
+        hlayout.addLayout(layout)
         if (isinstance(node, NXfield) and node.shape is not None and 
                node.shape != () and node.shape != (1,)):
-            hlayout = QtWidgets.QHBoxLayout()
-            hlayout.addLayout(layout)
             hlayout.addLayout(self.table())
-            vlayout = QtWidgets.QVBoxLayout()
-            vlayout.addLayout(hlayout)
-            vlayout.addWidget(self.close_buttons(close=True))
-            vlayout.setSizeConstraint(QtWidgets.QLayout.SetFixedSize)
-            self.setLayout(vlayout)          
-        else:
-            layout.addWidget(self.close_buttons(close=True))
-            self.setLayout(layout)
+        hlayout.addStretch()
+        self.setLayout(hlayout)
 
         self.setWindowTitle(node.nxroot.nxname+node.nxpath)
 

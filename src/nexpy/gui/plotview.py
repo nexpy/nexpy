@@ -1053,6 +1053,7 @@ class NXPlotView(QtWidgets.QDialog):
         p['label'] = p['plot'].get_label()
         p['legend_label'] = p['label']
         p['show_legend'] = True
+        p['legend_order'] = self.num + 1
         p['color'] = p['plot'].get_color()
         p['marker'] = p['plot'].get_marker()
         p['markersize'] = p['plot'].get_markersize()
@@ -3559,12 +3560,12 @@ class NXNavigationToolbar(NavigationToolbar):
             self.plotview.grid(self.plotview._grid, self.plotview._minorgrid)
 
     def edit_parameters(self):
-        if 'customize' not in self.plotview.panels:
+        if 'Customize' not in self.plotview.panels:
             from .datadialogs import CustomizeDialog
-            self.plotview.panels['customize'] = CustomizeDialog()
-        self.plotview.panels['customize'].activate(self.plotview.label)
-        self.plotview.panels['customize'].setVisible(True)
-        self.plotview.panels['customize'].raise_()
+            self.plotview.panels['Customize'] = CustomizeDialog()
+        self.plotview.panels['Customize'].activate(self.plotview.label)
+        self.plotview.panels['Customize'].setVisible(True)
+        self.plotview.panels['Customize'].raise_()
 
     def add_data(self):
         keep_data(self.plotview.plotdata)
