@@ -382,12 +382,8 @@ class NXTreeView(QtWidgets.QTreeView):
             self.mainwindow.copydata_action.setEnabled(True)
             if isinstance(node, NXlink):
                 self.mainwindow.link_action.setEnabled(True)
-            try:
-                if (isinstance(node, NXdata) and
-                    node.plottable_data.nxsignal.plot_rank == 1):
-                    self.mainwindow.export_action.setEnabled(True)
-            except Exception as error:
-                pass
+            if isinstance(node, NXdata):
+                self.mainwindow.export_action.setEnabled(True)
             if node.is_modifiable():
                 if isinstance(node, NXgroup):
                     self.mainwindow.initialize_action.setEnabled(True)
