@@ -856,7 +856,7 @@ class NXTab(NXWidget):
     @tab_label.setter
     def tab_label(self, value):
         if self.panel:
-            old_label = self.label
+            old_label = self.tab_label
             label = str(value)
             self.panel.tabwidget.setTabText(self.index, label)
             self.panel.labels[self] = label
