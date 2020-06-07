@@ -828,7 +828,7 @@ class NXTab(NXWidget):
         self.copybox = None
 
     def __repr__(self):
-        return self.__class__.__name__ + '("' + self.label + '")'
+        return self.__class__.__name__ + '("' + self.tab_label + '")'
 
     @property
     def index(self):
@@ -838,14 +838,14 @@ class NXTab(NXWidget):
             return None
 
     @property
-    def label(self):
+    def tab_label(self):
         if self.panel:
             return self.panel.labels[self]
         else:
             return ''
 
-    @label.setter
-    def label(self, value):
+    @tab_label.setter
+    def tab_label(self, value):
         if self.panel:
             old_label = self.label
             label = str(value)
@@ -2260,7 +2260,7 @@ class ProjectionTab(NXTab):
             if self.plotview.ndim == tab.plotview.ndim:
                 self.copywidget.setVisible(True)
                 self.copybox.add(self.labels[tab])
-                tab.copybox.add(self.label)
+                tab.copybox.add(self.tab_label)
                 if not tab.copywidget.isVisible():
                     tab.copywidget.setVisible(True)
 
@@ -2672,7 +2672,7 @@ class LimitTab(NXTab):
             if self.plotview.ndim == tab.plotview.ndim:
                 self.copywidget.setVisible(True)
                 self.copybox.add(self.labels[tab])
-                tab.copybox.add(self.label)
+                tab.copybox.add(self.tab_label)
                 if not tab.copywidget.isVisible():
                     tab.copywidget.setVisible(True)
 
@@ -2763,7 +2763,7 @@ class LimitTab(NXTab):
             self.update_limits()
         for tab in [self.tabs[label] for label in self.tabs 
                     if self.tabs[label] is not self]:
-            if (tab.copybox.selected == self.label and
+            if (tab.copybox.selected == self.tab_label and
                 tab.checkbox['sync'].isChecked()):
                 tab.copy()
         self.sort_copybox()
@@ -2852,11 +2852,11 @@ class LimitTab(NXTab):
     def close(self):
         for tab in [self.tabs[label] for label in self.tabs 
                     if self.tabs[label] is not self]:
-            if (tab.copybox.selected == self.label and 
+            if (tab.copybox.selected == self.tab_label and 
                 tab.checkbox['sync'].isChecked()):
                 tab.checkbox['sync'].setChecked(False)
-            if self.label in tab.copybox:
-                tab.copybox.remove(self.label)
+            if self.tab_label in tab.copybox:
+                tab.copybox.remove(self.tab_label)
             if len(tab.copybox.items()) == 0:
                 tab.copywidget.setVisible(False)
 
@@ -2962,7 +2962,7 @@ class ScanTab(NXTab):
             if self.plotview.ndim == tab.plotview.ndim:
                 self.copywidget.setVisible(True)
                 self.copybox.add(self.labels[tab])
-                tab.copybox.add(self.label)
+                tab.copybox.add(self.tab_label)
                 if not tab.copywidget.isVisible():
                     tab.copywidget.setVisible(True)
 
@@ -3378,8 +3378,8 @@ class ScanTab(NXTab):
     def close(self):
         for tab in [self.tabs[label] for label in self.tabs 
                     if self.tabs[label] is not self]:
-            if self.label in tab.copybox:
-                tab.copybox.remove(self.label)
+            if self.tab_label in tab.copybox:
+                tab.copybox.remove(self.tab_label)
             if len(tab.copybox.items()) == 0:
                 tab.copywidget.setVisible(False)
         try:
