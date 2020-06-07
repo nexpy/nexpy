@@ -1660,8 +1660,9 @@ class ExportDialog(NXDialog):
             if self.x.shape[0] > self.y.shape[0]:
                 self.x = node.nxaxes[0].centers()
 
+            delimiters = ['Tab', 'Space', 'Comma', 'Colon', 'Semicolon']
             self.text_options = GridParameters()
-            self.text_options.add('delimiter', '\\t', 'Delimiter')
+            self.text_options.add('delimiter', delimiters, 'Delimiter')
 
             text_grid = self.text_options.grid(header=False)
             text_grid.setSpacing(10)
@@ -1711,8 +1712,17 @@ class ExportDialog(NXDialog):
 
     @property
     def delimiter(self):
-        delimiter = self.text_options['delimiter'].value.encode('utf-8')
-        return delimiter.decode('unicode_escape')
+        delimiter = self.text_options['delimiter'].value
+        if delimiter == 'Tab':
+            return '\\t'.encode('utf8').decode('unicode_escape')
+        elif delimiter == 'Space':
+            return ' '
+        elif delimiter == 'Comma':
+            return ','
+        elif delimiter == 'Colon':
+            return ':'
+        elif delimiter == 'Semicolon':
+            return ';'
 
     @property
     def name(self):
