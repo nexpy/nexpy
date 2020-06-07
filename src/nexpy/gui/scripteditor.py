@@ -231,7 +231,7 @@ class NXScriptEditor(NXTab):
             with open(file_name, 'w') as f:
                 f.write(self.get_text())
             self.file_name = file_name
-            self.label = os.path.basename(self.file_name)
+            self.tab_label = os.path.basename(self.file_name)
             self.mainwindow.add_script_action(self.file_name)
             self.delete_button.setVisible(True)
 
