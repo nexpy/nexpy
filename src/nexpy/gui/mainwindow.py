@@ -2397,14 +2397,6 @@ class MainWindow(QtWidgets.QMainWindow):
                 window.close()
             except:
                 pass        
-        self._app.processEvents()
-        for widget in self._app.allWidgets():
-            try:
-                if id(widget) != id(self):
-                    if widget.parent() is None:
-                        widget.close()
-            except:
-                pass          
 
     def closeEvent(self, event):
         """Customize the close process to confirm request to quit NeXpy."""

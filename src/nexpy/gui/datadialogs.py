@@ -797,12 +797,21 @@ class NXPanel(NXDialog):
                     self.tabs[tab].close()
         except Exception:
             pass
-        if self.panel in self.mainwindow.panels:
-            del self.mainwindow.panels[self.panel]
-        if self.panel in self.plotviews:
-            self.plotviews[self.panel].close()
-        if self in self.mainwindow.dialogs:
-            self.mainwindow.dialogs.remove(self)
+        try:
+            if self.panel in self.mainwindow.panels:
+                del self.mainwindow.panels[self.panel]
+        except Exception:
+            pass
+        try:
+            if self.panel in self.plotviews:
+                self.plotviews[self.panel].close()
+        except Exception:
+            pass
+        try:
+            if self in self.mainwindow.dialogs:
+                self.mainwindow.dialogs.remove(self)
+        except Exception:
+            pass
         event.accept()
 
     def close(self):
