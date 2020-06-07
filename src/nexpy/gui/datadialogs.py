@@ -1754,11 +1754,11 @@ class ExportDialog(NXDialog):
             else:
                 super(ExportDialog, self).reject()
                 return
-
             header = ''
             if self.title:
-                header += self.data.nxtitle + '\n'
-            
+                header += self.data.nxtitle
+                if self.header:
+                    header += '\n'            
             if self.errors:
                 output = np.array([self.x, self.y, self.e]).T
                 if self.header:
