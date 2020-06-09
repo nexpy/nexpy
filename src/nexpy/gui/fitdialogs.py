@@ -195,9 +195,9 @@ class FitDialog(NXPanel):
 class FitTab(NXTab):
     """Dialog to fit one-dimensional NeXus data"""
  
-    def __init__(self, data, plotview=None, color='C0', parent=None):
+    def __init__(self, label, data, plotview=None, color='C0', parent=None):
 
-        super(FitTab, self).__init__(parent=parent)
+        super(FitTab, self).__init__(label, parent=parent)
  
         if ((isinstance(data, NXentry) or isinstance(data, NXprocess))
              and 'data' in data):

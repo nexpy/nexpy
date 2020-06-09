@@ -761,7 +761,7 @@ class NXPanel(NXDialog):
     def activate(self, label, *args, **kwargs):
         if label not in self.tabs:
             kwargs['parent'] = self
-            tab = self.tab_class(*args, **kwargs)
+            tab = self.tab_class(label, *args, **kwargs)
             self.add(label, tab, idx=self.idx(label))
         else:
             self.tab = label
@@ -824,8 +824,9 @@ class NXPanel(NXDialog):
 class NXTab(NXWidget):
     """Subclass of NXWidget for use as the main widget in a tab."""
 
-    def __init__(self, parent=None):
+    def __init__(self, label, parent=None):
         super(NXTab, self).__init__(parent=parent)
+        self._tab_label = label
         if parent:
             self.panel = parent
             self.tabs = parent.tabs
@@ -848,19 +849,16 @@ class NXTab(NXWidget):
 
     @property
     def tab_label(self):
-        if self.panel:
-            return self.panel.labels[self]
-        else:
-            return ''
+        return self._tab_label
 
     @tab_label.setter
     def tab_label(self, value):
         if self.panel:
             old_label = self.tab_label
-            label = str(value)
-            self.panel.tabwidget.setTabText(self.index, label)
-            self.panel.labels[self] = label
-            self.panel.tabs[label] = self
+            self._tab_label = str(value)
+            self.panel.tabwidget.setTabText(self.index, self._tab_label)
+            self.panel.labels[self] = self._tab_label
+            self.panel.tabs[self._tab_label] = self
             del self.panel.tabs[old_label]
 
     def copy_layout(self, text="Copy", sync=None):
@@ -1829,8 +1827,8 @@ class CustomizeTab(NXTab):
 
     legend_location = {v: k for k, v in Legend.codes.items()}            
 
-    def __init__(self, parent=None):
-        super(CustomizeTab, self).__init__(parent=parent)
+    def __init__(self, label, parent=None):
+        super(CustomizeTab, self).__init__(label, parent=parent)
 
         from .plotview import markers, linestyles
         self.markers, self.linestyles = markers, linestyles
@@ -2184,9 +2182,9 @@ class ProjectionDialog(NXPanel):
 class ProjectionTab(NXTab):
     """Tab to set plot window limits"""
  
-    def __init__(self, parent=None):
+    def __init__(self, label, parent=None):
 
-        super(ProjectionTab, self).__init__(parent=parent)
+        super(ProjectionTab, self).__init__(label, parent=parent)
 
         self.plotview = self.active_plotview
         self.ndim = self.plotview.ndim
@@ -2592,9 +2590,9 @@ class LimitDialog(NXPanel):
 class LimitTab(NXTab):
     """Tab to set plot window limits"""
 
-    def __init__(self, parent=None):
+    def __init__(self, label, parent=None):
 
-        super(LimitTab, self).__init__(parent=parent)
+        super(LimitTab, self).__init__(label, parent=parent)
 
         self.plotview = self.active_plotview
         self.ndim = self.plotview.ndim
@@ -2883,9 +2881,9 @@ class ScanDialog(NXPanel):
 class ScanTab(NXTab):
     """Tab to generate parametric scans."""
  
-    def __init__(self, parent=None):
+    def __init__(self, label, parent=None):
 
-        super(ScanTab, self).__init__(parent=parent)
+        super(ScanTab, self).__init__(label, parent=parent)
 
         self.ndim = self.plotview.ndim
 
@@ -3415,7 +3413,7 @@ class ViewDialog(NXPanel):
     def activate(self, node):
         label = node.nxroot.nxname + node.nxpath
         if label not in self.tabs:
-            tab = ViewTab(node, parent=self)
+            tab = ViewTab(label, node, parent=self)
             self.add(label, tab, idx=self.idx(label))
         else:
             self.tab = label
@@ -3426,9 +3424,9 @@ class ViewDialog(NXPanel):
 
 class ViewTab(NXTab):
 
-    def __init__(self, node, parent=None):
+    def __init__(self, label, node, parent=None):
 
-        super(ViewTab, self).__init__(parent)
+        super(ViewTab, self).__init__(label, parent=parent)
 
         self.node = node
         self.spinboxes = []
