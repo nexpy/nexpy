@@ -714,7 +714,7 @@ class NXPanel(NXDialog):
 
     def tab_list(self):
         if self.plotview_sort:
-            return [tab.name for tab in 
+            return [tab.tab_label for tab in 
                     sorted(self.labels, key=attrgetter('plotview.number'))]
         else:
             return sorted(self.tabs)
