@@ -140,9 +140,9 @@ class NXScriptWindow(NXPanel):
 class NXScriptEditor(NXTab):
     """Dialog to plot arbitrary NeXus data in one or two dimensions"""
  
-    def __init__(self, file_name=None, parent=None):
+    def __init__(self, label, file_name=None, parent=None):
 
-        super(NXScriptEditor, self).__init__(parent=parent)
+        super(NXScriptEditor, self).__init__(label, parent=parent)
  
         self.file_name = file_name
         self.default_directory = self.mainwindow.script_dir
