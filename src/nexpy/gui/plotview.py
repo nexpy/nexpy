@@ -2297,7 +2297,6 @@ class NXPlotView(QtWidgets.QDialog):
         if self.ndim == 1:
             self.xtab.logbox.setVisible(True)
             self.xtab.axiscombo.setVisible(False)
-            self.xtab.smoothbox.setVisible(False)
             self.ytab.axiscombo.setVisible(False)
             self.ytab.plotcombo.setVisible(True)
             self.ytab.logbox.setVisible(True)
@@ -2336,17 +2335,13 @@ class NXPlotView(QtWidgets.QDialog):
                 self.tab_widget.removeTab(self.tab_widget.indexOf(self.ztab))
             self.xtab.logbox.setVisible(True)
             self.xtab.axiscombo.setVisible(True)
-            self.xtab.plotcombo.setVisible(False)
             self.xtab.flipbox.setVisible(True)
-            self.xtab.smoothbox.setVisible(False)
             self.ytab.plotcombo.setVisible(False)
             self.ytab.axiscombo.setVisible(True)
             self.ytab.logbox.setVisible(True)
             self.ytab.flipbox.setVisible(True)
             self.ytab.smoothbox.setVisible(False)
             self.ytab.fitbutton.setVisible(False)
-            self.vtab.plotcombo.setVisible(False)
-            self.vtab.smoothbox.setVisible(False)
             if self.rgb_image:
                 self.tab_widget.removeTab(self.tab_widget.indexOf(self.vtab))
             else:
@@ -2684,12 +2679,16 @@ class NXPlotTab(QtWidgets.QWidget):
             widgets.append(self.lockbox)
             widgets.append(self.scalebox)
             widgets.append(self.toolbar)
-            self.minslider = self.maxslider = None
+            self.minslider = self.maxslider = self.slide_max = None
+            self.plotcombo = None
             self.flipbox = self.logbox = self.smoothbox = self.fitbutton = None
         else:
             self.zaxis = False
-            self.plotcombo = NXComboBox(self.select_plot, ['0'])
-            self.plotcombo.setMinimumWidth(55)
+            if self.name == 'y':
+                self.plotcombo = NXComboBox(self.select_plot, ['0'])
+                self.plotcombo.setMinimumWidth(55)
+            else:
+                self.plotcombo = None
             self.minbox = NXDoubleSpinBox(self.read_minbox, self.edit_minbox)
             if self.name == 'v':
                 self.minslider = NXSlider(self.read_minslider, move=False,
@@ -2702,16 +2701,20 @@ class NXPlotTab(QtWidgets.QWidget):
             self.maxbox = NXDoubleSpinBox(self.read_maxbox, self.edit_maxbox)
             self.logbox = NXCheckBox("Log", self.change_log)
             self.flipbox = NXCheckBox("Flip", self.flip_axis)
-            self.smoothbox = NXCheckBox("Smooth", self.toggle_smoothing)
-            self.fitbutton = NXPushButton("Fit", self.fit_data)
+            if self.name == 'y':
+                self.smoothbox = NXCheckBox("Smooth", self.toggle_smoothing)
+                self.fitbutton = NXPushButton("Fit", self.fit_data)
+            else:
+                self.smoothbox = self.fitbutton = None
             widgets.append(self.plotcombo)
             widgets.append(self.minbox)
             widgets.extend([self.minslider, self.maxslider])
             widgets.append(self.maxbox)
             widgets.append(self.logbox)
             widgets.append(self.flipbox)
-            widgets.append(self.smoothbox)
-            widgets.append(self.fitbutton)
+            if self.name == 'y':
+                widgets.append(self.smoothbox)
+                widgets.append(self.fitbutton)
             self.lockbox = self.scalebox = None
         if image:
             self.image = True
@@ -2789,7 +2792,8 @@ class NXPlotTab(QtWidgets.QWidget):
                     self.logbox.setChecked(False)
                 self.logbox.setEnabled(True)
             self.flipbox.setChecked(False)
-            self.smoothbox.setChecked(False)
+            if self.name == 'y':
+                self.smoothbox.setChecked(False)
             self.set_sliders(axis.lo, axis.hi)
         if self.axiscombo is not None:
             self.axiscombo.clear()
@@ -3037,10 +3041,11 @@ class NXPlotTab(QtWidgets.QWidget):
         else:
             self.minslider.blockSignals(block)
             self.maxslider.blockSignals(block)
-            self.plotcombo.blockSignals(block)
             self.flipbox.blockSignals(block)
             self.logbox.blockSignals(block)
-            self.smoothbox.blockSignals(block)
+            if self.name == 'y':
+                self.plotcombo.blockSignals(block)
+                self.smoothbox.blockSignals(block)
         if self.image:
             self.cmapcombo.blockSignals(block)
             self.interpcombo.blockSignals(block)
@@ -3234,15 +3239,20 @@ class NXPlotTab(QtWidgets.QWidget):
             self.reset_smoothing()
 
     def reset_smoothing(self):
-        self.smoothbox.blockSignals(True)
-        self.smoothbox.setChecked(False)
-        self.smoothbox.blockSignals(False)
+        if self.smoothbox:
+            self.smoothbox.blockSignals(True)
+            self.smoothbox.setChecked(False)
+            self.smoothbox.blockSignals(False)
 
     def _smoothing(self):
-        return self.smoothbox.isChecked()
+        if self.smoothbox:
+            return self.smoothbox.isChecked()
+        else:
+            return False
 
     def _set_smoothing(self, smoothing):
-        self.smoothbox.setChecked(smoothing)
+        if self.smoothbox:
+            self.smoothbox.setChecked(smoothing)
 
     smoothing = property(_smoothing, _set_smoothing, "Property: Line smoothing")
 
