@@ -2708,7 +2708,8 @@ class NXPlotTab(QtWidgets.QWidget):
                 self.fitbutton = NXPushButton("Fit", self.fit_data)
             else:
                 self.smoothbox = self.fitbutton = None
-            widgets.append(self.plotcombo)
+            if self.name == 'y':
+                widgets.append(self.plotcombo)
             widgets.append(self.minbox)
             widgets.extend([self.minslider, self.maxslider])
             widgets.append(self.maxbox)
