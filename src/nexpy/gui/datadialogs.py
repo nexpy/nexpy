@@ -459,7 +459,7 @@ class NXWidget(QtWidgets.QWidget):
         try:
             value = root[path].nxdata
             if isinstance(value, np.ndarray) and value.size == 1:
-                return np.float32(value)
+                return np.float64(value)
             else:
                 return value
         except NeXusError:

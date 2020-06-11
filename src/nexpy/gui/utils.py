@@ -190,7 +190,7 @@ def centers(axis, dimlen):
         Size of the signal dimension. If this one more than the axis 
         size, it is assumed the axis contains bin boundaries.
     """
-    ax = axis.astype(np.float32)
+    ax = axis.astype(np.float64)
     if ax.shape[0] == dimlen+1:
         return (ax[:-1] + ax[1:])/2
     else:
@@ -210,7 +210,7 @@ def boundaries(axis, dimlen):
         Size of the signal dimension. If this one more than the axis 
         size, it is assumed the axis contains bin boundaries.
     """
-    ax = axis.astype(np.float32)
+    ax = axis.astype(np.float64)
     if ax.shape[0] == dimlen:
         start = ax[0] - (ax[1] - ax[0])/2
         end = ax[-1] + (ax[-1] - ax[-2])/2
