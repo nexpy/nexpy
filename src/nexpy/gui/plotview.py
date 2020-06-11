@@ -67,20 +67,22 @@ from .datadialogs import ExportDialog
 from .widgets import (NXSpinBox, NXDoubleSpinBox, NXSlider, NXComboBox, 
                       NXCheckBox, NXLabel, NXPushButton,
                       NXcircle, NXellipse, NXrectangle, NXpolygon)
-from .utils import (report_error, report_exception, boundaries, centers, keep_data, 
-                    fix_projection, find_nearest, iterable)
+from .utils import (report_error, report_exception, boundaries, centers, 
+                    keep_data, fix_projection, find_nearest, iterable,
+                    parula_map)
 
 active_plotview = None
 plotview = None
 plotviews = {}
 colors = mpl.rcParams['axes.prop_cycle'].by_key()['color']
 cmaps = ['viridis', 'inferno', 'magma', 'plasma', #perceptually uniform
-         'cividis', 
+         'cividis', 'parula',
          'spring', 'summer', 'autumn', 'winter', 'cool', 'hot', #sequential
          'bone', 'copper', 'gray', 'pink', 
          'jet', 'spectral', 'rainbow', 'hsv', #miscellaneous
          'seismic', 'coolwarm', 'twilight', 'RdBu', 'RdYlBu',  #diverging
          'RdYlGn']
+cmap_d['parula'] = parula_map()
 cmaps = [cm for cm in cmaps if cm in cmap_d]
 if 'viridis' in cmaps:
     default_cmap = 'viridis'
@@ -3160,12 +3162,8 @@ class NXPlotTab(QtWidgets.QWidget):
         if cmap != self._cached_cmap:
             idx = self.cmapcombo.findText(cmap)
             if idx < 0:
-                if cmap in cmap_d:
-                    self.cmapcombo.insertItem(5, cmap)
-                    self.cmapcombo.setCurrentIndex(
-                        self.cmapcombo.findText(cmap))
-                else:
-                    raise NeXusError("Invalid Color Map")
+                self.cmapcombo.insertItem(5, cmap)
+                self.cmapcombo.setCurrentIndex(self.cmapcombo.findText(cmap))
             else:
                 self.cmapcombo.setCurrentIndex(idx)
             cm.set_bad('k', 1)
