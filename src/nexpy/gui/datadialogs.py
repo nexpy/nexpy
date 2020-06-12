@@ -459,7 +459,7 @@ class NXWidget(QtWidgets.QWidget):
         try:
             value = root[path].nxdata
             if isinstance(value, np.ndarray) and value.size == 1:
-                return np.float64(value)
+                return np.float32(value)
             else:
                 return value
         except NeXusError:
@@ -2582,7 +2582,7 @@ class LimitDialog(NXPanel):
  
     def __init__(self, parent=None):
         super(LimitDialog, self).__init__('Limit', title='Limits Panel', 
-                                          apply=False, parent=parent)
+                                          parent=parent)
         self.tab_class = LimitTab
         self.plotview_sort = True
 
@@ -2640,11 +2640,10 @@ class LimitTab(NXTab):
         grid.addWidget(self.maxbox['signal'], row, 2)
 
         self.parameters = GridParameters()
-        if self.plotview.label != 'Main':
-            figure_size = self.plotview.figure.get_size_inches()
-            xsize, ysize = figure_size[0], figure_size[1]
-            self.parameters.add('xsize', xsize, 'Figure Size (H)')
-            self.parameters.add('ysize', ysize, 'Figure Size (V)')
+        figure_size = self.plotview.figure.get_size_inches()
+        xsize, ysize = figure_size[0], figure_size[1]
+        self.parameters.add('xsize', xsize, 'Figure Size (H)')
+        self.parameters.add('ysize', ysize, 'Figure Size (V)')
 
         self.set_layout(axis_layout, grid, 
                         self.parameters.grid(header=False), 
@@ -2783,28 +2782,35 @@ class LimitTab(NXTab):
             self.maxbox[axis].setValue(self.plotview.axis[axis].hi)
         self.minbox['signal'].setValue(self.plotview.axis['signal'].lo)
         self.maxbox['signal'].setValue(self.plotview.axis['signal'].hi)
-        if self.plotview.label != 'Main':
-            figure_size = self.plotview.figure.get_size_inches()
-            self.parameters['xsize'].value = figure_size[0]
-            self.parameters['ysize'].value = figure_size[1]
+        figure_size = self.plotview.figure.get_size_inches()
+        self.parameters['xsize'].value = figure_size[0]
+        self.parameters['ysize'].value = figure_size[1]
 
     def copy(self):
         tab = self.tabs[self.copybox.selected]
+        for p in self.copied_properties:
+            setattr(self.plotview, p, getattr(tab.plotview, p))
+        self.block_signals()
         for axis in range(self.ndim):
             self.minbox[axis].setValue(tab.minbox[axis].value())
             self.maxbox[axis].setValue(tab.maxbox[axis].value())
             self.lockbox[axis].setCheckState(tab.lockbox[axis].checkState())
         self.minbox['signal'].setValue(tab.minbox['signal'].value())
         self.maxbox['signal'].setValue(tab.maxbox['signal'].value())
-        if self.plotview.label != 'Main':
-            if tab.plotview.label == 'Main':
-                figure_size = tab.plotview.figure.get_size_inches()
-                self.parameters['xsize'].value = figure_size[0]
-                self.parameters['ysize'].value = figure_size[1]
-            else:
-                self.parameters['xsize'].value = tab.parameters['xsize'].value
-                self.parameters['ysize'].value = tab.parameters['ysize'].value
+        self.parameters['xsize'].value = tab.parameters['xsize'].value
+        self.parameters['ysize'].value = tab.parameters['ysize'].value
+        self.apply()
+        self.block_signals(False)
+
+    def reset(self):
+        self.plotview.otab.home()
+        self.update()
+
+    def apply(self):
         try:
+            xsize, ysize = (self.parameters['xsize'].value, 
+                            self.parameters['ysize'].value)
+            self.plotview.figure.set_size_inches(xsize, ysize)
             if self.ndim == 1:
                 xmin, xmax = self.minbox[0].value(), self.maxbox[0].value()
                 ymin, ymax = self.minbox['signal'].value(), self.maxbox['signal'].value()
@@ -2842,19 +2848,9 @@ class LimitTab(NXTab):
                         self.plotview.ztab.set_axis(self.plotview.axis[idx])
                         self.plotview.ztab.set_limits(self.minbox[idx].value(),
                                                       self.maxbox[idx].value())
-                for p in self.copied_properties:
-                    setattr(self.plotview, p, getattr(tab.plotview, p))
                 self.plotview.replot_data()
-            if self.plotview.label != 'Main':
-                xsize, ysize = (self.parameters['xsize'].value, 
-                                self.parameters['ysize'].value)
-                self.plotview.figure.set_size_inches(xsize, ysize)
         except NeXusError as error:
             report_error("Setting plot limits", error)
-
-    def reset(self):
-        self.plotview.otab.home()
-        self.update()
 
     def close(self):
         for tab in [self.tabs[label] for label in self.tabs 
