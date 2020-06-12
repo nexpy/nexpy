@@ -541,6 +541,10 @@ class NXPlotView(QtWidgets.QDialog):
         elif event.key == 'Z':
             self.otab.zoom()
 
+    def resizeEvent(self, event):
+        self.update_panels()
+        super(NXPlotView, self).resizeEvent(event)
+
     def activate(self):
         """Restore original signal connections.
         
