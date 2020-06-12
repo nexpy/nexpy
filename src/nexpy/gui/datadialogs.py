@@ -2775,6 +2775,7 @@ class LimitTab(NXTab):
         self.sort_copybox()
 
     def update_limits(self):
+        self.block_signals(True)
         self.set_axes()
         for axis in range(self.ndim):
             self.lockbox[axis].setChecked(False)
@@ -2785,12 +2786,13 @@ class LimitTab(NXTab):
         figure_size = self.plotview.figure.get_size_inches()
         self.parameters['xsize'].value = figure_size[0]
         self.parameters['ysize'].value = figure_size[1]
+        self.block_signals(False)
 
     def copy(self):
         tab = self.tabs[self.copybox.selected]
         for p in self.copied_properties:
             setattr(self.plotview, p, getattr(tab.plotview, p))
-        self.block_signals()
+        self.block_signals(True)
         for axis in range(self.ndim):
             self.minbox[axis].setValue(tab.minbox[axis].value())
             self.maxbox[axis].setValue(tab.maxbox[axis].value())
@@ -2808,6 +2810,7 @@ class LimitTab(NXTab):
 
     def apply(self):
         try:
+            self.block_signals(True)
             xsize, ysize = (self.parameters['xsize'].value, 
                             self.parameters['ysize'].value)
             self.plotview.figure.set_size_inches(xsize, ysize)
@@ -2849,8 +2852,10 @@ class LimitTab(NXTab):
                         self.plotview.ztab.set_limits(self.minbox[idx].value(),
                                                       self.maxbox[idx].value())
                 self.plotview.replot_data()
+            self.block_signals(False)
         except NeXusError as error:
             report_error("Setting plot limits", error)
+            self.block_signals(False)
 
     def close(self):
         for tab in [self.tabs[label] for label in self.tabs 
