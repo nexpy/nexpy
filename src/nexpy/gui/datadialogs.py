@@ -1884,16 +1884,20 @@ class CustomizeTab(NXTab):
         else:
             self.plots = self.plotview.plots
             for plot in self.plots:
+                if plot in [self.label_plot(p) for p in self.parameters
+                            if p not in ['labels', 'legend']]:
+                    break
                 label = self.plot_label(plot)
                 if label not in self.parameters:
                     pp = self.parameters[label] = self.plot_parameters(plot)
                     self.plot_stack.add(label, pp.widget(header=False))
                 self.update_plot_parameters(plot)
-            self.legend_order = self.get_legend_order()
-            for label in self.plot_stack.widgets:
+            for label in [l for l in self.parameters 
+                          if l not in ['labels', 'legend']]:
                 if self.label_plot(label) not in self.plots:
+                    del self.parameters[label]
                     self.plot_stack.remove(label)
-            self.plot_stack.box.sort()
+            self.legend_order = self.get_legend_order()
 
     def update_labels(self):
         pl = self.parameters['labels']
@@ -2025,8 +2029,8 @@ class CustomizeTab(NXTab):
 
     def get_legend_order(self):
         order = []
-        for plot in self.plots:
-            label = self.plot_label(plot)
+        for label in [p for p in self.parameters 
+                      if p not in ['labels', 'legend']]:
             order.append(int(self.parameters[label]['legend_order'].value) - 1)
         return order
 
