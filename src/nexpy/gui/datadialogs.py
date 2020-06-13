@@ -1872,10 +1872,10 @@ class CustomizeTab(NXTab):
         self.parameters['labels']['title'].box.setFocus()
 
     def plot_label(self, plot):
-        return str(plot+1) + ': ' + self.plots[plot]['label']
+        return str(plot) + ': ' + self.plots[plot]['label']
 
     def label_plot(self, label):
-        return int(label[:label.index(':')]) - 1
+        return int(label[:label.index(':')])
 
     def update(self):
         self.update_labels()

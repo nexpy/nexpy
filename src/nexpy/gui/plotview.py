@@ -335,7 +335,7 @@ class NXPlotView(QtWidgets.QDialog):
         
         self.resize(734, 550)
 
-        self.num = 0
+        self.num = 1
         self.axis = {}
         self.xaxis = self.yaxis = self.zaxis = None
         self.xmin=self.xmax=self.ymin=self.ymax=self.vmin=self.vmax = None
@@ -666,6 +666,7 @@ class NXPlotView(QtWidgets.QDialog):
         logx = opts.pop("logx", False)
         logy = opts.pop("logy", False)
         cmap = opts.pop("cmap", None)
+        num = opts.pop("num", max([p for p in self.plots if p < 100]+[1]) + 1)
         self._aspect = opts.pop("aspect", "auto")
         self._skew_angle = opts.pop("skew", None)
 
@@ -686,9 +687,9 @@ class NXPlotView(QtWidgets.QDialog):
         #One-dimensional Plot
         if self.ndim == 1:
             if over:
-                self.num = max(self.plots) + 1
+                self.num = num
             else:
-                self.num = 0
+                self.num = 1
                 if xmin:
                     self.xaxis.lo = xmin
                 if xmax:
@@ -897,7 +898,7 @@ class NXPlotView(QtWidgets.QDialog):
         ax = self.figure.gca()
 
         if fmt == '' and 'color' not in opts:
-            opts['color'] = colors[self.num % len(colors)]
+            opts['color'] = colors[(self.num-1) % len(colors)]
         if fmt == '' and 'marker' not in opts:
             opts['marker'] = 'o'
         if fmt == '' and 'linestyle' not in opts and 'ls' not in opts:
@@ -1060,7 +1061,7 @@ class NXPlotView(QtWidgets.QDialog):
         p['label'] = p['plot'].get_label()
         p['legend_label'] = p['label']
         p['show_legend'] = True
-        p['legend_order'] = self.num + 1
+        p['legend_order'] = self.num
         p['color'] = p['plot'].get_color()
         p['marker'] = p['plot'].get_marker()
         p['markersize'] = p['plot'].get_markersize()
@@ -1077,12 +1078,12 @@ class NXPlotView(QtWidgets.QDialog):
         p['smooth_line'] = None
         p['smooth_linestyle'] = 'None'
         p['smoothing'] = False
-        if self.num == 0:
+        if self.num == 1:
             self.plots = {}
             self.ytab.plotcombo.clear()
         self.plots[self.num] = p
-        self.ytab.plotcombo.addItem(str(self.num))
-        self.ytab.plotcombo.setCurrentIndex(self.num)
+        self.ytab.plotcombo.add(self.num)
+        self.ytab.plotcombo.select(self.num)
         self.ytab.reset_smoothing()
 
     @property
