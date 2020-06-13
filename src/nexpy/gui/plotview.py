@@ -2359,6 +2359,7 @@ class NXPlotView(QtWidgets.QDialog):
 
     def update_tabs(self):
         """Update tabs when limits have changed."""
+        self.block_signals(True)
         self.xtab.set_range()
         self.xtab.set_limits(self.xaxis.lo, self.xaxis.hi)
         self.xtab.set_sliders(self.xaxis.lo, self.xaxis.hi)
@@ -2369,6 +2370,7 @@ class NXPlotView(QtWidgets.QDialog):
             self.vtab.set_range()
             self.vtab.set_limits(self.vaxis.lo, self.vaxis.hi)
             self.vtab.set_sliders(self.vaxis.lo, self.vaxis.hi)
+        self.block_signals(False)
 
     def change_axis(self, tab, axis):
         """Replace the axis in a plot tab.
