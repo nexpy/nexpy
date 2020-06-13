@@ -20,6 +20,7 @@ from nexusformat.nexus import (NeXusError, NXdata, NXentry, NXfield, NXgroup,
 
 from .pyqt import QtCore, QtGui, QtWidgets
 from .utils import display_message, natural_sort, modification_time
+from .widgets import NXSortModel
 from nexusformat.nexus import *
 
 
@@ -258,17 +259,6 @@ class NXTreeItem(QtGui.QStandardItem):
                 yield item
 
 
-class NXSortModel(QtCore.QSortFilterProxyModel):
-
-    def __init__(self, parent=None):
-        super(NXSortModel, self).__init__(parent)
-
-    def lessThan(self, left, right):
-        left_text = self.sourceModel().itemFromIndex(left).text()
-        right_text = self.sourceModel().itemFromIndex(right).text()
-        return natural_sort(left_text) < natural_sort(right_text)
-
-    
 class NXTreeView(QtWidgets.QTreeView):
 
     def __init__(self, tree, parent):
