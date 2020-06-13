@@ -76,7 +76,9 @@ class NXStack(QtWidgets.QWidget):
         self.stack.addWidget(widget)
 
     def remove(self, label):
-        self.stack.removeWidget(self.widgets[label])
+        if label in self.widgets:
+            self.stack.removeWidget(self.widgets[label])
+            del self.widgets[label]
         self.box.remove(label)
 
 
@@ -344,7 +346,8 @@ class NXComboBox(QtWidgets.QComboBox):
         item : str or int
             Option to be removed from the dropdown menu. 
         """
-        self.removeItem(self.findText(str(item)))
+        if str(item) in self:
+            self.removeItem(self.findText(str(item)))
 
     def items(self):
         """Return a list of the dropdown menu options.
