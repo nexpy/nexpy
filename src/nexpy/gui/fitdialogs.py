@@ -760,8 +760,6 @@ class FitTab(NXTab):
         else:
             self.fitview.plots[self.data_num]['plot'].set_color(self.color)
             self.fitview.set_plot_limits(*self.get_limits())
-            for label in ['label', 'legend_label']:
-                self.fitview.plots[self.fitview.num][label] = self.data_label
             self.remove_plots()
         self.fitview.raise_()
 
