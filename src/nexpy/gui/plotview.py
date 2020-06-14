@@ -1053,6 +1053,9 @@ class NXPlotView(QtWidgets.QDialog):
         self.vaxis.min, self.vaxis.max = self.image.get_clim()
 
     def add_plot(self):
+        if self.num == 1:
+            self.plots = {}
+            self.ytab.plotcombo.clear()
         p = {}
         p['plot'] = self._plot
         p['x'] = self.x
@@ -1061,7 +1064,7 @@ class NXPlotView(QtWidgets.QDialog):
         p['label'] = p['plot'].get_label()
         p['legend_label'] = p['label']
         p['show_legend'] = True
-        p['legend_order'] = self.num
+        p['legend_order'] = len(self.plots) + 1
         p['color'] = p['plot'].get_color()
         p['marker'] = p['plot'].get_marker()
         p['markersize'] = p['plot'].get_markersize()
@@ -1078,9 +1081,6 @@ class NXPlotView(QtWidgets.QDialog):
         p['smooth_line'] = None
         p['smooth_linestyle'] = 'None'
         p['smoothing'] = False
-        if self.num == 1:
-            self.plots = {}
-            self.ytab.plotcombo.clear()
         self.plots[self.num] = p
         self.ytab.plotcombo.add(self.num)
         self.ytab.plotcombo.select(self.num)
