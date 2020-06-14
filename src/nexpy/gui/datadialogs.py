@@ -1886,18 +1886,18 @@ class CustomizeTab(NXTab):
             for plot in self.plots:
                 if plot in [self.label_plot(p) for p in self.parameters
                             if p not in ['labels', 'legend']]:
-                    break
+                    continue
                 label = self.plot_label(plot)
                 if label not in self.parameters:
                     pp = self.parameters[label] = self.plot_parameters(plot)
                     self.plot_stack.add(label, pp.widget(header=False))
                 self.update_plot_parameters(plot)
+            self.legend_order = self.get_legend_order()
             for label in [l for l in self.parameters 
                           if l not in ['labels', 'legend']]:
                 if self.label_plot(label) not in self.plots:
                     del self.parameters[label]
                     self.plot_stack.remove(label)
-            self.legend_order = self.get_legend_order()
 
     def update_labels(self):
         pl = self.parameters['labels']
@@ -1968,6 +1968,7 @@ class CustomizeTab(NXTab):
         return parameters
 
     def update_plot_parameters(self, plot):
+        self.block_signals(True)
         label = self.plot_label(plot)
         p, pp = self.plots[plot], self.parameters[label]
         pp['legend_label'].value = p['legend_label']
@@ -1988,6 +1989,7 @@ class CustomizeTab(NXTab):
         pp['zorder'].value = p['zorder']
         pp['scale'].value = p['scale']
         pp['offset'].value = p['offset']
+        self.block_signals(False)
 
     def scale_plot(self):
         plot = self.label_plot(self.plot_stack.box.selected)
@@ -2029,33 +2031,41 @@ class CustomizeTab(NXTab):
 
     def get_legend_order(self):
         order = []
-        for label in [p for p in self.parameters 
-                      if p not in ['labels', 'legend']]:
-            order.append(int(self.parameters[label]['legend_order'].value) - 1)
+        for plot in self.plots:
+            label = self.plot_label(plot)
+            order.append(int(self.parameters[label]['legend_order'].value - 1))        
         return order
+
+    def plot_index(self, plot):
+        return list(self.plots).index(plot)
 
     def update_legend_order(self):
         current_label = self.plot_stack.box.selected
         current_plot = self.label_plot(current_label)
+        current_order = self.legend_order[self.plot_index(current_plot)]
+        order = self.legend_order
         try:
-            current_order = int(
-                self.parameters[current_label]['legend_order'].value) - 1
+            new_order = int(
+                self.parameters[current_label]['legend_order'].value - 1)
+            if new_order == current_order:
+                return
+            elif new_order < 0 or new_order >= len(self.plots):
+                raise ValueError
         except Exception:
             self.parameters[current_label]['legend_order'].value = (
-                self.legend_order[current_plot])
+                current_order + 1)
             return
-        if current_order < 0 or current_order >= len(self.plots):
-            self.parameters[current_label]['legend_order'].value = (
-                self.legend_order[current_plot])
-            return
+        self.block_signals(True)
         for plot in [p for p in self.plots if p != current_plot]:
             label = self.plot_label(plot)
             order = int(self.parameters[label]['legend_order'].value - 1)
-            if (order >= current_order and 
-                order < self.legend_order[current_plot]):
-                self.parameters[label]['legend_order'].value = order + 2
-            elif order == current_order:
+            if (new_order > current_order and order > current_order and
+                order <= new_order):
                 self.parameters[label]['legend_order'].value = order
+            elif (new_order < current_order and order < current_order and
+                  order >= new_order):
+                self.parameters[label]['legend_order'].value = order + 2
+        self.block_signals(False)
         self.legend_order = self.get_legend_order()
 
     def set_legend(self):
@@ -2077,7 +2087,12 @@ class CustomizeTab(NXTab):
             order = self.get_legend_order()
             self.plotview.legend(list(zip(*sorted(zip(order,handles))))[1],
                                  list(zip(*sorted(zip(order,labels))))[1], 
-                                 nameonly=_nameonly, loc=legend_location)         
+                                 nameonly=_nameonly, loc=legend_location)
+
+    def block_signals(self, block=True):
+        for p in [parameter for parameter in self.parameters if 
+                  parameter not in ['labels', 'legend']]:
+            self.parameters[p]['legend_order'].box.blockSignals(block)                
 
     def reset(self):
         self.update()
@@ -2129,7 +2144,7 @@ class CustomizeTab(NXTab):
                     p['show_legend'] = True
                 else:
                     p['show_legend'] = False
-                p['legend_order'] = int(pp['legend_order'].value)
+                p['legend_order'] = int(pp['legend_order'].value) - 1
                 p['color'] = pp['color'].value
                 p['plot'].set_color(p['color'])
                 linestyle = [k for k, v in self.linestyles.items()
