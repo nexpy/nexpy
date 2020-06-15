@@ -2104,7 +2104,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def show_log(self):
         try:
-            if self.log_window:
+            if self.log_window in self.dialogs:
                 self.log_window.show_log()
             else:
                 self.log_window = LogDialog(parent=self)
