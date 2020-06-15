@@ -2663,7 +2663,9 @@ class LimitTab(NXTab):
         xsize, ysize = figure_size[0], figure_size[1]
         self.parameters.add('xsize', xsize, 'Figure Size (H)')
         self.parameters.add('ysize', ysize, 'Figure Size (V)')
-
+        if self.tab_label == 'Main':
+            self.parameters['xsize'].box.setEnabled(False)
+            self.parameters['ysize'].box.setEnabled(False)
         self.set_layout(axis_layout, grid, 
                         self.parameters.grid(header=False), 
                         self.copy_layout("Copy Limits", 'sync'))
@@ -2818,8 +2820,9 @@ class LimitTab(NXTab):
             self.lockbox[axis].setCheckState(tab.lockbox[axis].checkState())
         self.minbox['signal'].setValue(tab.minbox['signal'].value())
         self.maxbox['signal'].setValue(tab.maxbox['signal'].value())
-        self.parameters['xsize'].value = tab.parameters['xsize'].value
-        self.parameters['ysize'].value = tab.parameters['ysize'].value
+        if self.tab_label != 'Main':
+            self.parameters['xsize'].value = tab.parameters['xsize'].value
+            self.parameters['ysize'].value = tab.parameters['ysize'].value
         self.apply()
         self.block_signals(False)
 
@@ -2830,9 +2833,10 @@ class LimitTab(NXTab):
     def apply(self):
         try:
             self.block_signals(True)
-            xsize, ysize = (self.parameters['xsize'].value, 
-                            self.parameters['ysize'].value)
-            self.plotview.figure.set_size_inches(xsize, ysize)
+            if self.tab_label != 'Main':
+                xsize, ysize = (self.parameters['xsize'].value, 
+                                self.parameters['ysize'].value)
+                self.plotview.figure.set_size_inches(xsize, ysize)
             if self.ndim == 1:
                 xmin, xmax = self.minbox[0].value(), self.maxbox[0].value()
                 ymin, ymax = self.minbox['signal'].value(), self.maxbox['signal'].value()
