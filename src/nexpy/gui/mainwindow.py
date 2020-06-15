@@ -1599,7 +1599,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def view_data(self):
         try:
             node = self.treeview.get_node()
-            if 'View' not in self.panels:
+            if not self.panel_is_running('View'):
                 self.panels['View'] = ViewDialog()
             self.panels['View'].activate(node)
         except NeXusError as error:
@@ -2111,9 +2111,19 @@ class MainWindow(QtWidgets.QMainWindow):
         except NeXusError as error:
             report_error("Showing Log File", error)
 
+    def panel_is_running(self, panel):
+        if panel in self.panels:
+            if self.panels[panel].is_running():
+                return True
+            else:
+                self.panels[panel].close()
+                return False
+        else:
+            return False
+
     def show_customize_panel(self):
         try:
-            if 'Customize' not in self.panels:
+            if not self.panel_is_running('Customize'):
                 self.panels['Customize'] = CustomizeDialog()
             self.panels['Customize'].activate(self.active_plotview.label)
         except NeXusError as error:
@@ -2121,7 +2131,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def show_limits_panel(self):
         try:
-            if 'Limit' not in self.panels:
+            if not self.panel_is_running('Limit'):
                 self.panels['Limit'] = LimitDialog()
             self.panels['Limit'].activate(self.active_plotview.label)
         except NeXusError as error:
@@ -2135,7 +2145,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.panels['Projection'].activateWindow()
             return
         try:
-            if 'Projection' not in self.panels:
+            if not self.panel_is_running('Projection'):
                 self.panels['Projection'] = ProjectionDialog()
             self.panels['Projection'].activate(self.active_plotview.label)
         except NeXusError as error:
@@ -2148,23 +2158,20 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.panels['Scan'].activateWindow()
             return
         try:
-            if 'Scan' not in self.panels:
+            if not self.panel_is_running('Scan'):
                 self.panels['Scan'] = ScanDialog()
             self.panels['Scan'].activate(self.plotview.label)
         except NeXusError as error:
             report_error("Showing Scan Panel", error)
 
     def show_script_window(self):
-        if 'Editor' in self.panels:
-            self.panels['Editor'].raise_()
-            self.panels['Editor'].activateWindow()
-            return
-        if 'Editor' not in self.panels:
+        if not self.panel_is_running('Editor'):
             self.panels['Editor'] = NXScriptWindow()
         if self.panels['Editor'].count == 0:
             self.new_script()
         else:
             self.panels['Editor'].raise_()    
+            self.panels['Editor'].activateWindow()
 
     def open_script_window(self, file_name):
         if 'Editor' not in self.panels:

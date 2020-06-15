@@ -814,10 +814,19 @@ class NXPanel(NXDialog):
             pass
         event.accept()
 
+    def is_running(self):
+        try:
+            return self.count >= 0
+        except RuntimeError as error:
+            return False
+
     def close(self):
-        if self.count > 0:
-            self.remove(self.labels[self.tab])
-        if self.count == 0:
+        try:
+            if self.count > 0:
+                self.remove(self.labels[self.tab])
+            if self.count == 0:
+                super(NXPanel, self).close()
+        except RuntimeError:
             super(NXPanel, self).close()
 
 

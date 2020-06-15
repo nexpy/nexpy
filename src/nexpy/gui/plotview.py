@@ -2353,9 +2353,12 @@ class NXPlotView(QtWidgets.QDialog):
                 self.tab_widget.removeTab(self.tab_widget.indexOf(self.vtab))
             else:
                 self.vtab.flipbox.setVisible(False)
-        for panel in self.panels:
+        for panel in list(self.panels):
             if self.label in self.panels[panel].tabs:
-                self.panels[panel].remove(self.label)
+                try:
+                    self.panels[panel].remove(self.label)
+                except RuntimeError:
+                    self.panels[panel].close()
         self.block_signals(False)
 
     def update_tabs(self):
