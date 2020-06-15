@@ -210,7 +210,6 @@ class FitTab(NXTab):
             raise NeXusError("Must be an NXdata group")
 
         self.plotview = plotview
-        self.fit_num = None
         self.plot_nums = []
 
         self.model = None
@@ -751,10 +750,6 @@ class FitTab(NXTab):
         self.plot_maxbox.setText(format_float(self.plot_max))
         self.fitview.reset_plot_limits()
 
-    def data_not_plotted(self):
-        return self.data_label not in [self.fitview.plots[p]['label'] 
-                                       for p in self.fitview.plots]
-
     def plot_data(self):
         if self.plotview is None:
             self.fitview.plot(self._data, fmt='o', color=self.color)
@@ -763,39 +758,35 @@ class FitTab(NXTab):
                 self.fitview.plots[self.fitview.num][label] = self.data_label
             self.remove_plots()
         else:
-            self.fitview.plot(self.data, fmt='o', color=self.color, over=True)
             self.fitview.plots[self.data_num]['plot'].set_color(self.color)
             self.fitview.set_plot_limits(*self.get_limits())
-            for label in ['label', 'legend_label']:
-                self.fitview.plots[self.fitview.num][label] = self.data_label
-            num = self.fitview.num
             self.remove_plots()
-            self.plot_nums.append(num)
         self.fitview.raise_()
 
     def plot_model(self):
         model_name = self.plotcombo.currentText()
-        if self.data_not_plotted():
-            self.plot_data()
+        if max(self.fitview.plots) < 101:
+            num = 101
+        else:
+            num = max([p for p in self.fitview.plots if p > 100]+[100]) + 1
         if model_name == 'All':
             if self.fitted:
                 fmt = '-'
             else:
                 fmt = '--'
-            self.fitview.plot(self.get_model(), fmt=fmt, over=True, 
+            self.fitview.plot(self.get_model(), fmt=fmt, over=True, num=num,
                               color=self.color)
-            num = self.fitview.num
             if self.fitted:
                 self.fitview.plots[num]['legend_label'] = 'Fit'
             else:
                 self.fitview.plots[num]['legend_label'] = 'Model'
-            self.fit_num = num
         else:
             name = self.compressed_name(model_name)
-            self.fitview.plot(self.get_model(name), fmt='--', over=True)
-            num = self.fitview.num
+            self.fitview.plot(self.get_model(name), fmt='--', over=True, 
+                              num=num)
             self.fitview.plots[num]['legend_label'] = name
         self.plot_nums.append(num)
+        self.fitview.ytab.plotcombo.select(self.data_num)
         self.fitview.raise_()
 
     def fit_data(self):
@@ -912,27 +903,20 @@ class FitTab(NXTab):
                 self.plot_maxbox.setText(format_float(event.xdata))
 
     def remove_plots(self):
-        for num in self.plot_nums:
-            if num in self.fitview.plots:
-                self.fitview.plots[num]['plot'].remove()
-                del self.fitview.plots[num]
-                self.fitview.ytab.plotcombo.remove(str(num))
+        for num in [n for n in self.plot_nums if n in self.fitview.plots]:
+            self.fitview.plots[num]['plot'].remove()
+            del self.fitview.plots[num]
+            self.fitview.ytab.plotcombo.remove(num)
         self.plot_nums = []
         self.fitview.num = self.data_num
         self.fitview.ytab.plotcombo.select(self.data_num)
         self.fitview.draw()
+        self.fitview.update_panels()
    
     def apply(self):
-        if self.plotview:
-            if self.fit_num and self.fit_num in self.plot_nums:
-                self.plot_nums.pop(self.plot_nums.index(self.fit_num))
-            self.remove_plots()
-        if self.data_num+1 not in self.fitview.plots:
-            num = self.data_num + 1
-            self.fitview.plots[num] = self.fitview.plots[self.fit_num]
-            del self.fitview.plots[self.fit_num]
-            self.fitview.ytab.plotcombo.remove(self.fit_num)
-            self.fitview.ytab.plotcombo.insert(num, num)
+        self.remove_plots()
+        self.fitview.plot(self.get_model(), fmt='-', color=self.color, 
+                          over=True)
         
     def reset(self):
         self.reset_limits()

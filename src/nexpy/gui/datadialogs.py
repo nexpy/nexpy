@@ -459,7 +459,7 @@ class NXWidget(QtWidgets.QWidget):
         try:
             value = root[path].nxdata
             if isinstance(value, np.ndarray) and value.size == 1:
-                return np.float64(value)
+                return np.float32(value)
             else:
                 return value
         except NeXusError:
@@ -1872,10 +1872,10 @@ class CustomizeTab(NXTab):
         self.parameters['labels']['title'].box.setFocus()
 
     def plot_label(self, plot):
-        return str(plot+1) + ': ' + self.plots[plot]['label']
+        return str(plot) + ': ' + self.plots[plot]['label']
 
     def label_plot(self, label):
-        return int(label[:label.index(':')]) - 1
+        return int(label[:label.index(':')])
 
     def update(self):
         self.update_labels()
@@ -1884,16 +1884,20 @@ class CustomizeTab(NXTab):
         else:
             self.plots = self.plotview.plots
             for plot in self.plots:
+                if plot in [self.label_plot(p) for p in self.parameters
+                            if p not in ['labels', 'legend']]:
+                    continue
                 label = self.plot_label(plot)
                 if label not in self.parameters:
                     pp = self.parameters[label] = self.plot_parameters(plot)
                     self.plot_stack.add(label, pp.widget(header=False))
                 self.update_plot_parameters(plot)
             self.legend_order = self.get_legend_order()
-            for label in self.plot_stack.widgets:
+            for label in [l for l in self.parameters 
+                          if l not in ['labels', 'legend']]:
                 if self.label_plot(label) not in self.plots:
+                    del self.parameters[label]
                     self.plot_stack.remove(label)
-            self.plot_stack.box.sort()
 
     def update_labels(self):
         pl = self.parameters['labels']
@@ -1964,6 +1968,7 @@ class CustomizeTab(NXTab):
         return parameters
 
     def update_plot_parameters(self, plot):
+        self.block_signals(True)
         label = self.plot_label(plot)
         p, pp = self.plots[plot], self.parameters[label]
         pp['legend_label'].value = p['legend_label']
@@ -1984,6 +1989,7 @@ class CustomizeTab(NXTab):
         pp['zorder'].value = p['zorder']
         pp['scale'].value = p['scale']
         pp['offset'].value = p['offset']
+        self.block_signals(False)
 
     def scale_plot(self):
         plot = self.label_plot(self.plot_stack.box.selected)
@@ -2027,31 +2033,39 @@ class CustomizeTab(NXTab):
         order = []
         for plot in self.plots:
             label = self.plot_label(plot)
-            order.append(int(self.parameters[label]['legend_order'].value) - 1)
+            order.append(int(self.parameters[label]['legend_order'].value - 1))        
         return order
+
+    def plot_index(self, plot):
+        return list(self.plots).index(plot)
 
     def update_legend_order(self):
         current_label = self.plot_stack.box.selected
         current_plot = self.label_plot(current_label)
+        current_order = self.legend_order[self.plot_index(current_plot)]
+        order = self.legend_order
         try:
-            current_order = int(
-                self.parameters[current_label]['legend_order'].value) - 1
+            new_order = int(
+                self.parameters[current_label]['legend_order'].value - 1)
+            if new_order == current_order:
+                return
+            elif new_order < 0 or new_order >= len(self.plots):
+                raise ValueError
         except Exception:
             self.parameters[current_label]['legend_order'].value = (
-                self.legend_order[current_plot])
+                current_order + 1)
             return
-        if current_order < 0 or current_order >= len(self.plots):
-            self.parameters[current_label]['legend_order'].value = (
-                self.legend_order[current_plot])
-            return
+        self.block_signals(True)
         for plot in [p for p in self.plots if p != current_plot]:
             label = self.plot_label(plot)
             order = int(self.parameters[label]['legend_order'].value - 1)
-            if (order >= current_order and 
-                order < self.legend_order[current_plot]):
-                self.parameters[label]['legend_order'].value = order + 2
-            elif order == current_order:
+            if (new_order > current_order and order > current_order and
+                order <= new_order):
                 self.parameters[label]['legend_order'].value = order
+            elif (new_order < current_order and order < current_order and
+                  order >= new_order):
+                self.parameters[label]['legend_order'].value = order + 2
+        self.block_signals(False)
         self.legend_order = self.get_legend_order()
 
     def set_legend(self):
@@ -2073,7 +2087,12 @@ class CustomizeTab(NXTab):
             order = self.get_legend_order()
             self.plotview.legend(list(zip(*sorted(zip(order,handles))))[1],
                                  list(zip(*sorted(zip(order,labels))))[1], 
-                                 nameonly=_nameonly, loc=legend_location)         
+                                 nameonly=_nameonly, loc=legend_location)
+
+    def block_signals(self, block=True):
+        for p in [parameter for parameter in self.parameters if 
+                  parameter not in ['labels', 'legend']]:
+            self.parameters[p]['legend_order'].box.blockSignals(block)                
 
     def reset(self):
         self.update()
@@ -2125,7 +2144,7 @@ class CustomizeTab(NXTab):
                     p['show_legend'] = True
                 else:
                     p['show_legend'] = False
-                p['legend_order'] = int(pp['legend_order'].value)
+                p['legend_order'] = int(pp['legend_order'].value) - 1
                 p['color'] = pp['color'].value
                 p['plot'].set_color(p['color'])
                 linestyle = [k for k, v in self.linestyles.items()
@@ -2582,7 +2601,7 @@ class LimitDialog(NXPanel):
  
     def __init__(self, parent=None):
         super(LimitDialog, self).__init__('Limit', title='Limits Panel', 
-                                          apply=False, parent=parent)
+                                          parent=parent)
         self.tab_class = LimitTab
         self.plotview_sort = True
 
@@ -2640,12 +2659,13 @@ class LimitTab(NXTab):
         grid.addWidget(self.maxbox['signal'], row, 2)
 
         self.parameters = GridParameters()
-        if self.plotview.label != 'Main':
-            figure_size = self.plotview.figure.get_size_inches()
-            xsize, ysize = figure_size[0], figure_size[1]
-            self.parameters.add('xsize', xsize, 'Figure Size (H)')
-            self.parameters.add('ysize', ysize, 'Figure Size (V)')
-
+        figure_size = self.plotview.figure.get_size_inches()
+        xsize, ysize = figure_size[0], figure_size[1]
+        self.parameters.add('xsize', xsize, 'Figure Size (H)')
+        self.parameters.add('ysize', ysize, 'Figure Size (V)')
+        if self.tab_label == 'Main':
+            self.parameters['xsize'].box.setEnabled(False)
+            self.parameters['ysize'].box.setEnabled(False)
         self.set_layout(axis_layout, grid, 
                         self.parameters.grid(header=False), 
                         self.copy_layout("Copy Limits", 'sync'))
@@ -2776,6 +2796,7 @@ class LimitTab(NXTab):
         self.sort_copybox()
 
     def update_limits(self):
+        self.block_signals(True)
         self.set_axes()
         for axis in range(self.ndim):
             self.lockbox[axis].setChecked(False)
@@ -2783,28 +2804,39 @@ class LimitTab(NXTab):
             self.maxbox[axis].setValue(self.plotview.axis[axis].hi)
         self.minbox['signal'].setValue(self.plotview.axis['signal'].lo)
         self.maxbox['signal'].setValue(self.plotview.axis['signal'].hi)
-        if self.plotview.label != 'Main':
-            figure_size = self.plotview.figure.get_size_inches()
-            self.parameters['xsize'].value = figure_size[0]
-            self.parameters['ysize'].value = figure_size[1]
+        figure_size = self.plotview.figure.get_size_inches()
+        self.parameters['xsize'].value = figure_size[0]
+        self.parameters['ysize'].value = figure_size[1]
+        self.block_signals(False)
 
     def copy(self):
         tab = self.tabs[self.copybox.selected]
+        for p in self.copied_properties:
+            setattr(self.plotview, p, getattr(tab.plotview, p))
+        self.block_signals(True)
         for axis in range(self.ndim):
             self.minbox[axis].setValue(tab.minbox[axis].value())
             self.maxbox[axis].setValue(tab.maxbox[axis].value())
             self.lockbox[axis].setCheckState(tab.lockbox[axis].checkState())
         self.minbox['signal'].setValue(tab.minbox['signal'].value())
         self.maxbox['signal'].setValue(tab.maxbox['signal'].value())
-        if self.plotview.label != 'Main':
-            if tab.plotview.label == 'Main':
-                figure_size = tab.plotview.figure.get_size_inches()
-                self.parameters['xsize'].value = figure_size[0]
-                self.parameters['ysize'].value = figure_size[1]
-            else:
-                self.parameters['xsize'].value = tab.parameters['xsize'].value
-                self.parameters['ysize'].value = tab.parameters['ysize'].value
+        if self.tab_label != 'Main':
+            self.parameters['xsize'].value = tab.parameters['xsize'].value
+            self.parameters['ysize'].value = tab.parameters['ysize'].value
+        self.apply()
+        self.block_signals(False)
+
+    def reset(self):
+        self.plotview.otab.home()
+        self.update()
+
+    def apply(self):
         try:
+            self.block_signals(True)
+            if self.tab_label != 'Main':
+                xsize, ysize = (self.parameters['xsize'].value, 
+                                self.parameters['ysize'].value)
+                self.plotview.figure.set_size_inches(xsize, ysize)
             if self.ndim == 1:
                 xmin, xmax = self.minbox[0].value(), self.maxbox[0].value()
                 ymin, ymax = self.minbox['signal'].value(), self.maxbox['signal'].value()
@@ -2842,19 +2874,11 @@ class LimitTab(NXTab):
                         self.plotview.ztab.set_axis(self.plotview.axis[idx])
                         self.plotview.ztab.set_limits(self.minbox[idx].value(),
                                                       self.maxbox[idx].value())
-                for p in self.copied_properties:
-                    setattr(self.plotview, p, getattr(tab.plotview, p))
                 self.plotview.replot_data()
-            if self.plotview.label != 'Main':
-                xsize, ysize = (self.parameters['xsize'].value, 
-                                self.parameters['ysize'].value)
-                self.plotview.figure.set_size_inches(xsize, ysize)
+            self.block_signals(False)
         except NeXusError as error:
             report_error("Setting plot limits", error)
-
-    def reset(self):
-        self.plotview.otab.home()
-        self.update()
+            self.block_signals(False)
 
     def close(self):
         for tab in [self.tabs[label] for label in self.tabs 

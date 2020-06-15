@@ -17,7 +17,7 @@ from matplotlib.patches import Circle, Ellipse, Polygon, Rectangle
 
 from .pyqt import QtCore, QtGui, QtWidgets
 from .utils import (report_error, boundaries, get_color, format_float,
-                    find_nearest)
+                    find_nearest, natural_sort)
 
 
 warnings.filterwarnings("ignore", category=cbook.mplDeprecation)
@@ -76,10 +76,23 @@ class NXStack(QtWidgets.QWidget):
         self.stack.addWidget(widget)
 
     def remove(self, label):
-        self.stack.removeWidget(self.widgets[label])
+        if label in self.widgets:
+            self.stack.removeWidget(self.widgets[label])
+            del self.widgets[label]
         self.box.remove(label)
 
 
+class NXSortModel(QtCore.QSortFilterProxyModel):
+
+    def __init__(self, parent=None):
+        super(NXSortModel, self).__init__(parent)
+
+    def lessThan(self, left, right):
+        left_text = self.sourceModel().itemFromIndex(left).text()
+        right_text = self.sourceModel().itemFromIndex(right).text()
+        return natural_sort(left_text) < natural_sort(right_text)
+
+    
 class NXScrollArea(QtWidgets.QScrollArea):
     """Scroll area embedding a widget."""
 
@@ -333,7 +346,8 @@ class NXComboBox(QtWidgets.QComboBox):
         item : str or int
             Option to be removed from the dropdown menu. 
         """
-        self.removeItem(self.findText(str(item)))
+        if str(item) in self:
+            self.removeItem(self.findText(str(item)))
 
     def items(self):
         """Return a list of the dropdown menu options.
