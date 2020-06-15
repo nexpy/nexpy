@@ -790,7 +790,7 @@ class NXPanel(NXDialog):
     def apply(self):
         self.tab.apply()
 
-    def closeEvent(self, event):
+    def cleanup(self):
         try:
             if self.count > 0:
                 for tab in self.tabs:
@@ -812,6 +812,9 @@ class NXPanel(NXDialog):
                 self.mainwindow.dialogs.remove(self)
         except Exception:
             pass
+
+    def closeEvent(self, event):
+        self.cleanup()
         event.accept()
 
     def is_running(self):
@@ -827,7 +830,11 @@ class NXPanel(NXDialog):
             if self.count == 0:
                 super(NXPanel, self).close()
         except RuntimeError:
-            super(NXPanel, self).close()
+            self.cleanup()
+            try:
+                super(NXPanel, self).close()
+            except Exception:
+                pass
 
 
 class NXTab(NXWidget):
