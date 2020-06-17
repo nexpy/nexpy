@@ -1514,6 +1514,8 @@ class PlotScalarDialog(NXDialog):
         self.setWindowTitle("Plot NeXus Field")
         self.kwargs = kwargs
         self.file_box = None
+        self.scan_files = None
+        self.scan_values = None
 
     def select_scan(self):
         scan_axis = self.treeview.node
@@ -1525,8 +1527,11 @@ class PlotScalarDialog(NXDialog):
             self.textbox['Scan'].setText(self.treeview.node.nxpath)
 
     def select_files(self):
-        if self.file_box is not None:
-            self.file_box.close()
+        if self.file_box in self.mainwindow.dialogs:
+            try:
+                self.file_box.close()
+            except Exception:
+                pass
         self.file_box = NXDialog(parent=self)
         self.file_box.setWindowTitle('Select Files')
         self.file_box.setMinimumWidth(300)
@@ -1550,7 +1555,8 @@ class PlotScalarDialog(NXDialog):
         self.scroll_widget.set_layout(self.make_layout(self.file_grid))
         self.scroll_area.setWidget(self.scroll_widget)
         self.file_box.set_layout(prefix_layout, self.scroll_area, 
-                                 self.file_box.close_layout(close=True))
+                                 self.file_box.close_layout())
+        self.file_box.close_box.accepted.connect(self.choose_files)
         self.file_box.show()
 
     def select_prefix(self):
@@ -1606,11 +1612,12 @@ class PlotScalarDialog(NXDialog):
             return 'Variable'
 
     def scan_axis(self):
-        _files = [self.files[f].value for f in self.files 
-                  if self.files[f].vary]
+        if self.scan_values is None:
+            raise NeXusError("Files not selected")
+        _values = self.scan_values
         if self.scan_variable is not None:
             _variable = self.scan_variable
-            _axis = NXfield(_files, dtype=_variable.dtype, 
+            _axis = NXfield(_values, dtype=_variable.dtype, 
                             name=_variable.nxname)
             if 'long_name' in _variable.attrs:
                 _axis.attrs['long_name'] = _variable.attrs['long_name']
@@ -1620,10 +1627,12 @@ class PlotScalarDialog(NXDialog):
             _axis = NXfield(_files, name='Variable')
         return _axis
  
-    def scan_files(self):
+    def choose_files(self):
         try:
-            return [self.tree[self.files[f].name] for f in self.files 
-                    if self.files[f].vary]
+            self.scan_files = [self.tree[self.files[f].name] for f in self.files 
+                               if self.files[f].vary]
+            self.scan_values = [self.files[f].value for f in self.files 
+                                if self.files[f].vary]
         except Exception as error:
             raise NeXusError("Files not selected")
 
@@ -1632,7 +1641,7 @@ class PlotScalarDialog(NXDialog):
         axis = self.scan_axis()
         shape = [len(axis)]
         field = NXfield(shape=shape, dtype=signal.dtype, name=signal.nxname)
-        for i, f in enumerate(self.scan_files()):
+        for i, f in enumerate(self.scan_files):
             try:
                 field[i] = f[self.data_path]
             except Exception as error:
@@ -2989,6 +2998,8 @@ class ScanTab(NXTab):
         self.xbox.setFocus()
         self.file_box = None
         self.scan_data = None
+        self.scan_files = None
+        self.scan_values = None
         self.files = None
 
     def initialize(self):
@@ -3023,8 +3034,11 @@ class ScanTab(NXTab):
             self.textbox['Scan'].setText(self.treeview.node.nxpath)
 
     def select_files(self):
-        if self.file_box is not None:
-            self.file_box.close()
+        if self.file_box in self.mainwindow.dialogs:
+            try:
+                self.file_box.close()
+            except Exception:
+                pass
         self.file_box = NXDialog(parent=self)
         self.file_box.setWindowTitle('Select Files')
         self.file_box.setMinimumWidth(300)
@@ -3052,7 +3066,8 @@ class ScanTab(NXTab):
         self.scroll_widget.set_layout(self.make_layout(self.file_grid))
         self.scroll_area.setWidget(self.scroll_widget)
         self.file_box.set_layout(prefix_layout, self.scroll_area, 
-                                 self.file_box.close_layout(close=True))
+                                 self.file_box.close_layout())
+        self.file_box.close_box.accepted.connect(self.choose_files)
         self.file_box.show()
 
     def select_prefix(self):
@@ -3109,13 +3124,12 @@ class ScanTab(NXTab):
             return 'Variable'
 
     def scan_axis(self):
-        if self.files is None:
+        if self.scan_files is None:
             raise NeXusError("Files not selected")
-        _files = [self.files[f].value for f in self.files 
-                  if self.files[f].vary]
+        _values = self.scan_values
         if self.scan_variable is not None:
             _variable = self.scan_variable
-            _axis = NXfield(_files, dtype=_variable.dtype, 
+            _axis = NXfield(_values, dtype=_variable.dtype, 
                             name=_variable.nxname)
             if 'long_name' in _variable.attrs:
                 _axis.attrs['long_name'] = _variable.attrs['long_name']
@@ -3125,10 +3139,12 @@ class ScanTab(NXTab):
             _axis = NXfield(_files, name='Variable')
         return _axis
  
-    def scan_files(self):
+    def choose_files(self):
         try:
-            return [self.tree[self.files[f].name] for f in self.files 
-                    if self.files[f].vary]
+            self.scan_files = [self.tree[self.files[f].name] for f in self.files 
+                               if self.files[f].vary]
+            self.scan_values = [self.files[f].value for f in self.files 
+                                if self.files[f].vary]
         except Exception as error:
             raise NeXusError("Files not selected")
 
@@ -3265,7 +3281,7 @@ class ScanTab(NXTab):
         scan_shape = [len(scan_axis)] + list(data_signal.shape)
         scan_field = NXfield(shape=scan_shape, dtype=data_signal.dtype, 
                              name=data_signal.nxname)
-        for i, f in enumerate(self.scan_files()):
+        for i, f in enumerate(self.scan_files):
             try:
                 scan_field[i] = f[self.data_path].project(axes, limits, 
                                                    summed=self.summed).nxsignal
