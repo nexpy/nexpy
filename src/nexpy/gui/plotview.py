@@ -28,7 +28,6 @@ import pkg_resources
 import sys
 import warnings
 
-from packaging import version
 from posixpath import dirname, basename
 
 import matplotlib as mpl
@@ -1280,7 +1279,7 @@ class NXPlotView(QtWidgets.QDialog):
 
     def update_colorbar(self):
         if self.colorbar:
-            if version.parse(mpl.__version__) >= version.parse('3.1.0'):
+            if mpl.__version__ >= '3.1.0':
                 self.colorbar.update_normal(self.image)
             else:
                 self.colorbar.set_norm(self.norm)
@@ -3596,9 +3595,9 @@ class NXNavigationToolbar(NavigationToolbar2QT, QtWidgets.QToolBar):
 
     @property
     def active_mode(self):
-        if version.parse(mpl.__version__) > version.parse('3.2.2'):
+        try:
             return self.mode.value
-        else:
+        except AttributeError:
             return self.mode
 
     def home(self, autoscale=True):
