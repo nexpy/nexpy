@@ -28,6 +28,7 @@ import pkg_resources
 import sys
 import warnings
 
+from packaging import version
 from posixpath import dirname, basename
 
 import matplotlib as mpl
@@ -360,6 +361,7 @@ class NXPlotView(QtWidgets.QDialog):
         self._majorlines = []
         self._minorlines = []
         self._minorticks = False
+        self._active_mode = None
         self._cb_minorticks = False
         self._linthresh = None
         self._linscale = None
@@ -551,17 +553,17 @@ class NXPlotView(QtWidgets.QDialog):
         This assumes a previous call to the deactivate function, which sets the
         current value of _active_mode.
         """
-        if self._active_mode == 'ZOOM':
+        if self._active_mode == 'zoom rect':
             self.otab.zoom()
-        elif self._active_mode == 'PAN':
+        elif self._active_mode == 'pan/zoom':
             self.otab.pan()        
     
     def deactivate(self):
         """Disable usual signal connections."""
-        self._active_mode = self.otab._active
-        if self._active_mode == 'ZOOM':
+        self._active_mode = self.otab.active_mode
+        if self._active_mode == 'zoom rect':
             self.otab.zoom()
-        elif self._active_mode == 'PAN':
+        elif self._active_mode == 'pan/zoom':
             self.otab.pan()
 
     def display_logo(self):
@@ -1278,7 +1280,7 @@ class NXPlotView(QtWidgets.QDialog):
 
     def update_colorbar(self):
         if self.colorbar:
-            if mpl.__version__ >= '3.1.0':
+            if version.parse(mpl.__version__) >= version.parse('3.1.0'):
                 self.colorbar.update_normal(self.image)
             else:
                 self.colorbar.set_norm(self.norm)
@@ -2326,7 +2328,6 @@ class NXPlotView(QtWidgets.QDialog):
                         self.tab_widget.indexOf(self.otab),
                         self.ptab, 'projections')
                 self.ptab.set_axes()
-                self.zoom = None
             if self.ndim > 2:
                 self.ztab.set_axis(self.zaxis)
                 self.ztab.locked = True
@@ -3592,6 +3593,13 @@ class NXNavigationToolbar(NavigationToolbar2QT, QtWidgets.QToolBar):
     def _icon(self, name, color=None):
         return QtGui.QIcon(os.path.join(pkg_resources.resource_filename(
                                         'nexpy.gui', 'resources'), name))
+
+    @property
+    def active_mode(self):
+        if version.parse(mpl.__version__) > version.parse('3.2.2'):
+            return self.mode.value
+        else:
+            return self.mode
 
     def home(self, autoscale=True):
         """Redraw the plot with the original limits.
