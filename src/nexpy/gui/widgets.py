@@ -891,7 +891,6 @@ class NXpatch(object):
         self.press = None
         self.background = None
         self.allow_resize = resize
-        self._active = None
         self.plotview.ax.add_patch(self.shape)
 
     def connect(self):

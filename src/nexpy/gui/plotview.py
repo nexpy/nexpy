@@ -31,15 +31,16 @@ import warnings
 from posixpath import dirname, basename
 
 import matplotlib as mpl
-from matplotlib.backend_bases import FigureManagerBase, FigureCanvasBase
+from matplotlib.backend_bases import (FigureManagerBase, FigureCanvasBase,
+                                      NavigationToolbar2)
 if QtVersion == 'Qt5Agg':
     from matplotlib.backends.backend_qt5 import FigureManagerQT as FigureManager
     from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-    from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
+    from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT
 else:
     from matplotlib.backends.backend_qt4 import FigureManagerQT as FigureManager
     from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
-    from matplotlib.backends.backend_qt4agg import NavigationToolbar2QT as NavigationToolbar
+    from matplotlib.backends.backend_qt4agg import NavigationToolbar2QT
 from matplotlib.figure import Figure
 from matplotlib.image import NonUniformImage
 from matplotlib.colors import LogNorm, Normalize, SymLogNorm
@@ -79,7 +80,7 @@ cmaps = ['viridis', 'inferno', 'magma', 'plasma', #perceptually uniform
          'cividis', 'parula',
          'spring', 'summer', 'autumn', 'winter', 'cool', 'hot', #sequential
          'bone', 'copper', 'gray', 'pink', 
-         'jet', 'spectral', 'rainbow', 'hsv', #miscellaneous
+         'turbo', 'jet', 'spectral', 'rainbow', 'hsv', #miscellaneous
          'seismic', 'coolwarm', 'twilight', 'RdBu', 'RdYlBu',  #diverging
          'RdYlGn']
 cmap_d['parula'] = parula_map()
@@ -344,7 +345,6 @@ class NXPlotView(QtWidgets.QDialog):
         self.image = None
         self.colorbar = None
         self.zoom = None
-        self._active_mode = self.otab._active
         self.rgb_image = False
         self._smooth_func = None
         self._smooth_line = None
@@ -360,6 +360,7 @@ class NXPlotView(QtWidgets.QDialog):
         self._majorlines = []
         self._minorlines = []
         self._minorticks = False
+        self._active_mode = None
         self._cb_minorticks = False
         self._linthresh = None
         self._linscale = None
@@ -551,17 +552,17 @@ class NXPlotView(QtWidgets.QDialog):
         This assumes a previous call to the deactivate function, which sets the
         current value of _active_mode.
         """
-        if self._active_mode == 'ZOOM':
+        if self._active_mode == 'zoom rect':
             self.otab.zoom()
-        elif self._active_mode == 'PAN':
+        elif self._active_mode == 'pan/zoom':
             self.otab.pan()        
     
     def deactivate(self):
         """Disable usual signal connections."""
-        self._active_mode = self.otab._active
-        if self._active_mode == 'ZOOM':
+        self._active_mode = self.otab.active_mode
+        if self._active_mode == 'zoom rect':
             self.otab.zoom()
-        elif self._active_mode == 'PAN':
+        elif self._active_mode == 'pan/zoom':
             self.otab.pan()
 
     def display_logo(self):
@@ -2326,7 +2327,6 @@ class NXPlotView(QtWidgets.QDialog):
                         self.tab_widget.indexOf(self.otab),
                         self.ptab, 'projections')
                 self.ptab.set_axes()
-                self.zoom = None
             if self.ndim > 2:
                 self.ztab.set_axis(self.zaxis)
                 self.ztab.locked = True
@@ -3528,42 +3528,77 @@ class NXProjectionTab(QtWidgets.QWidget):
         self.plotview.mainwindow.show_projection_panel()
 
 
-class NXNavigationToolbar(NavigationToolbar):
+class NXNavigationToolbar(NavigationToolbar2QT, QtWidgets.QToolBar):
 
-    def __init__(self, canvas, parent):
-        super(NXNavigationToolbar, self).__init__(canvas, parent)
+    toolitems = (
+        ('Home', 'Reset original view', 'home', 'home'),
+        ('Back', 'Back to  previous view', 'back', 'back'),
+        ('Forward', 'Forward to next view', 'forward', 'forward'),
+        (None, None, None, None),
+        ('Pan', 'Pan axes with left mouse, zoom with right', 'move', 'pan'),
+        ('Zoom', 'Zoom to rectangle', 'zoom_to_rect', 'zoom'),
+        (None, None, None, None),
+        ('Aspect', 'Set aspect ratio to equal', 'equal', 'set_aspect'),
+        (None, None, None, None),
+        ('Subplots', 'Configure subplots', 'subplots', 'configure_subplots'),
+        ('Customize', 'Customize plot', 'customize', 'edit_parameters'),
+        ('Save', 'Save the figure', 'export-figure', 'save_figure'),
+        ('Export', 'Export data', 'export-data', 'export_data'),
+        ('Add', 'Add plot data to tree', 'hand', 'add_data')
+                )
+
+    def __init__(self, canvas, parent, coordinates=True):
+        QtWidgets.QToolBar.__init__(self, parent)
+        self.setAllowedAreas(QtCore.Qt.BottomToolBarArea)
+
+        self.coordinates = coordinates
+        self._actions = {}  # mapping of toolitem method names to QActions.
+
+        for text, tooltip_text, image_file, callback in self.toolitems:
+            if text is None:
+                self.addSeparator()
+            else:
+                a = self.addAction(self._icon(image_file + '.png'),
+                                   text, getattr(self, callback))
+                self._actions[callback] = a
+                if callback in ['zoom', 'pan', 'set_aspect']:
+                    a.setCheckable(True)
+                if tooltip_text is not None:
+                    a.setToolTip(tooltip_text)
+
+        # Add the (x, y) location widget at the right side of the toolbar
+        # The stretch factor is 1 which means any resizing of the toolbar
+        # will resize this label instead of the buttons.
+        if self.coordinates:
+            self.locLabel = QtWidgets.QLabel("", self)
+            self.locLabel.setAlignment(
+                QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
+            self.locLabel.setSizePolicy(
+                QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding,
+                                      QtWidgets.QSizePolicy.Ignored))
+            labelAction = self.addWidget(self.locLabel)
+            labelAction.setVisible(True)
+
+        NavigationToolbar2.__init__(self, canvas)
         self.plotview = canvas.parent()
         self.zoom()
 
     def __repr__(self):
         return 'NXNavigationToolbar("%s")' % self.plotview.label
 
+    def _init_toolbar(self):
+        pass
+
     def _icon(self, name, color=None):
         return QtGui.QIcon(os.path.join(pkg_resources.resource_filename(
                                         'nexpy.gui', 'resources'), name))
 
-    def _init_toolbar(self):
-        self.toolitems = (
-            ('Home', 'Reset original view', 'home', 'home'),
-            ('Back', 'Back to  previous view', 'back', 'back'),
-            ('Forward', 'Forward to next view', 'forward', 'forward'),
-            (None, None, None, None),
-            ('Pan', 'Pan axes with left mouse, zoom with right', 'move', 'pan'),
-            ('Zoom', 'Zoom to rectangle', 'zoom_to_rect', 'zoom'),
-            (None, None, None, None),
-            ('Aspect', 'Set aspect ratio to equal', 'equal', 'set_aspect'),
-            (None, None, None, None),
-            ('Subplots', 'Configure subplots', 'subplots', 
-             'configure_subplots'),
-            ('Save', 'Save the figure', 'export-figure', 'save_figure'),
-            ('Export', 'Export data', 'export-data', 'export_data'),
-            ('Add', 'Add plot data to tree', 'hand', 'add_data')
-                )
-        super(NXNavigationToolbar, self)._init_toolbar()
-        self._actions['set_aspect'].setCheckable(True)
-        for action in self.findChildren(QtWidgets.QAction):
-            if action.text() == 'Customize':
-                action.setToolTip('Customize plot')
+    @property
+    def active_mode(self):
+        try:
+            return self.mode.value
+        except AttributeError:
+            return self.mode
 
     def home(self, autoscale=True):
         """Redraw the plot with the original limits.
