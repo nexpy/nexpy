@@ -33,8 +33,8 @@ from .datadialogs import NXPanel, NXTab
 from .plotview import NXPlotView
 from .pyqt import QtCore, QtGui, QtWidgets
 from .utils import report_error, format_float, get_color
-from .widgets import (NXCheckBox, NXComboBox, NXLabel, NXLineEdit, NXColorBox,
-                      NXMessageBox, NXPushButton)
+from .widgets import (NXCheckBox, NXColorBox, NXComboBox, NXLabel, NXLineEdit,
+                      NXMessageBox, NXPushButton, NXScrollArea)
 
 
 def get_functions():
@@ -178,42 +178,26 @@ class NXModel(Model):
 class FitDialog(NXPanel):
 
     def __init__(self, parent=None):
-        super(FitDialog, self).__init__('fit', title='Fit Panel', 
+        super(FitDialog, self).__init__('Fit', title='Fit Panel', 
                                         apply=True, reset=True, parent=parent)
         self.setMinimumWidth(850)        
         self.tab_class = FitTab
 
-    def activate(self, data, plotview=None, color='C0', parent=None):
+    def activate(self, data, plotview=None, color='C0'):
         if plotview:
             label = plotview.label + ': ' + str(plotview.num) 
         else:
             label = data.nxroot.nxname + data.nxpath
-        if label not in self.tabs:
-            tab = FitTab(data, plotview=plotview, color=color, parent=parent)
-            self.add(label, tab, idx=self.idx(label))
-        else:
-            self.tab = label
-            self.tab.update()
-        self.setVisible(True)
-        self.raise_()
-        self.activateWindow()
-
-    def close(self):
-        tab = self.tab
-        if len(self.labels) == 1 and tab.plotview is None:
-            if 'Fit' in self.plotviews:
-                self.plotviews['Fit'].close()
-        if tab:
-            tab.close()
-            self.remove(self.labels[tab])
+        super(FitDialog, self).activate(label, data, plotview=plotview, 
+                                        color=color)
 
 
 class FitTab(NXTab):
     """Dialog to fit one-dimensional NeXus data"""
  
-    def __init__(self, data, plotview=None, color='C0', parent=None):
+    def __init__(self, label, data, plotview=None, color='C0', parent=None):
 
-        super(FitTab, self).__init__(parent=parent)
+        super(FitTab, self).__init__(label, parent=parent)
  
         if ((isinstance(data, NXentry) or isinstance(data, NXprocess))
              and 'data' in data):
@@ -226,7 +210,6 @@ class FitTab(NXTab):
             raise NeXusError("Must be an NXdata group")
 
         self.plotview = plotview
-        self.fit_num = None
         self.plot_nums = []
 
         self.model = None
@@ -296,6 +279,8 @@ class FitTab(NXTab):
                                             self.plot_maxbox,
                                             align='justified')
 
+        self.method_label = NXLabel('Method')
+        self.method_label.setVisible(False)
         self.methodcombo = NXComboBox(items=list(all_methods))
         for i, m in enumerate(all_methods):
             tooltip = all_methods[m]
@@ -312,7 +297,8 @@ class FitTab(NXTab):
                                     width=100)
         reset_button = NXPushButton('Reset Limits', self.reset_limits)
         self.adjust_layout = QtWidgets.QHBoxLayout()
-        self.adjust_layout = self.make_layout(self.methodcombo,
+        self.adjust_layout = self.make_layout(self.method_label,
+                                              self.methodcombo,
                                               self.restore_button, 'stretch',
                                               self.color_box, reset_button, 
                                               align='justified')
@@ -334,7 +320,6 @@ class FitTab(NXTab):
                                               self.report_button,
                                               self.save_button,
                                               align='justified')
-
 
         self.set_layout(model_layout, self.plot_layout, self.adjust_layout)
         self.layout.setSpacing(5)
@@ -373,6 +358,10 @@ class FitTab(NXTab):
                 self.boundaries = False
             else:
                 raise NeXusError("Data has invalid axes")
+            if data.nxerrors:
+                self.poisson_errors = False
+            else:
+                self.poisson_errors = True
             self._data = deepcopy(data)
         else:
             raise NeXusError("Must be an NXdata group")
@@ -382,10 +371,8 @@ class FitTab(NXTab):
         self.all_models.update(all_functions)
 
     def initialize_parameter_grid(self):
+
         grid_layout = QtWidgets.QVBoxLayout()
-        scroll_area = QtWidgets.QScrollArea()
-        scroll_area.setWidgetResizable(True)
-        scroll_widget = QtWidgets.QWidget()
 
         self.parameter_grid = QtWidgets.QGridLayout()
         self.parameter_grid.setSpacing(5)
@@ -398,12 +385,15 @@ class FitTab(NXTab):
             self.parameter_grid.setColumnMinimumWidth(column, width[column])
             column += 1
 
+        scroll_widget = QtWidgets.QWidget()
+        scroll_area = NXScrollArea(scroll_widget)
         scroll_layout = QtWidgets.QVBoxLayout()
         scroll_layout.addLayout(self.parameter_grid)
         scroll_layout.addStretch()
         scroll_widget.setLayout(scroll_layout)
-        scroll_area.setWidget(scroll_widget)
         scroll_area.setMinimumHeight(200)
+        scroll_area.setSizePolicy(QtWidgets.QSizePolicy.Minimum,
+                                  QtWidgets.QSizePolicy.Expanding)
         
         grid_layout.addWidget(scroll_area)
 
@@ -434,9 +424,8 @@ class FitTab(NXTab):
 
     @property
     def errors(self):
-        _errors = self.data.nxerrors
-        if _errors:
-            return _errors.nxvalue.astype(np.float64)
+        if self.data.nxerrors:
+            return self.data.nxerrors.nxvalue.astype(np.float64)
         else:
             return None
 
@@ -446,6 +435,15 @@ class FitTab(NXTab):
             return 1.0 / self.errors
         else:
             return None
+
+    def define_errors(self):
+        if self.poisson_errors:
+            if self.fit_checkbox.isChecked():
+                self._data.nxerrors = np.sqrt(np.where(self._data.nxsignal<1, 
+                                                       1, self._data.nxsignal))
+            else:
+                del self._data[self._data.nxerrors.nxname]
+                del self._data.nxsignal.attrs['uncertainties']
 
     @property
     def parameters(self):
@@ -583,6 +581,7 @@ class FitTab(NXTab):
             self.model = model
         else:
             self.model = self.model + model
+        self.method_label.setVisible(True)
         self.methodcombo.setVisible(True)
  
     def add_model_parameters(self, model_index):
@@ -592,13 +591,14 @@ class FitTab(NXTab):
             self.layout.insertLayout(2, self.remove_layout)
             self.layout.insertLayout(5, self.action_layout)
             self.plot_model_button.setVisible(True)
-            self.plotcombo.addItem('All')
+            self.plotcombo.add('All')
             self.plotcombo.insertSeparator(1)
             self.plotcombo.setVisible(True)
             self.plot_checkbox.setVisible(True)
         model_name = self.models[model_index]['name']
-        self.removecombo.addItem(self.expanded_name(model_name))
-        self.plotcombo.addItem(self.expanded_name(model_name))
+        self.removecombo.add(self.expanded_name(model_name))
+        self.removecombo.select(self.expanded_name(model_name))
+        self.plotcombo.add(self.expanded_name(model_name))
         self.first_time = False
 
     def add_model_rows(self, model_index): 
@@ -738,60 +738,56 @@ class FitTab(NXTab):
             model_data = NXfield(y, name='Model')
         return NXdata(model_data, model_axis, title=self.data.nxtitle)
 
+    def set_limits(self, xmin, xmax):
+        self.plot_minbox.setText(format_float(xmin))
+        self.plot_maxbox.setText(format_float(xmax))
+
     def get_limits(self):
         return float(self.plot_minbox.text()), float(self.plot_maxbox.text())
 
     def reset_limits(self):
         self.plot_minbox.setText(format_float(self.plot_min))
         self.plot_maxbox.setText(format_float(self.plot_max))
-
-    def data_not_plotted(self):
-        return self.data_label not in [self.fitview.plots[p]['label'] 
-                                       for p in self.fitview.plots]
+        self.fitview.reset_plot_limits()
 
     def plot_data(self):
         if self.plotview is None:
-            self.fitview.plot(self.data, fmt='o', color=self.color)
+            self.fitview.plot(self._data, fmt='o', color=self.color)
+            self.fitview.set_plot_limits(*self.get_limits())
             for label in ['label', 'legend_label']:
                 self.fitview.plots[self.fitview.num][label] = self.data_label
             self.remove_plots()
         else:
-            self.fitview.plot(self.data, fmt='o', color=self.color, over=True)
             self.fitview.plots[self.data_num]['plot'].set_color(self.color)
-            for label in ['label', 'legend_label']:
-                self.fitview.plots[self.fitview.num][label] = self.data_label
-            num = self.fitview.num
+            self.fitview.set_plot_limits(*self.get_limits())
             self.remove_plots()
-            self.plot_nums.append(num)
         self.fitview.raise_()
 
     def plot_model(self):
         model_name = self.plotcombo.currentText()
-        if self.data_not_plotted():
-            self.plot_data()
+        if max(self.fitview.plots) < 101:
+            num = 101
+        else:
+            num = max([p for p in self.fitview.plots if p > 100]+[100]) + 1
         if model_name == 'All':
             if self.fitted:
                 fmt = '-'
             else:
                 fmt = '--'
-            self.fitview.plot(self.get_model(), fmt=fmt, over=True, 
+            self.fitview.plot(self.get_model(), fmt=fmt, over=True, num=num,
                               color=self.color)
-            num = self.fitview.num
             if self.fitted:
                 self.fitview.plots[num]['legend_label'] = 'Fit'
             else:
                 self.fitview.plots[num]['legend_label'] = 'Model'
-            self.fit_num = num
         else:
             name = self.compressed_name(model_name)
-            self.fitview.plot(self.get_model(name), fmt='--', over=True)
-            num = self.fitview.num
+            self.fitview.plot(self.get_model(name), fmt='--', over=True, 
+                              num=num)
             self.fitview.plots[num]['legend_label'] = name
         self.plot_nums.append(num)
+        self.fitview.ytab.plotcombo.select(self.data_num)
         self.fitview.raise_()
-
-    def define_errors(self):
-        self._data.nxerrors = np.sqrt(np.where(self.signal<1, 1, self.signal))
 
     def fit_data(self):
         self.read_parameters()
@@ -907,32 +903,25 @@ class FitTab(NXTab):
                 self.plot_maxbox.setText(format_float(event.xdata))
 
     def remove_plots(self):
-        for num in self.plot_nums:
-            if num in self.fitview.plots:
-                self.fitview.plots[num]['plot'].remove()
-                del self.fitview.plots[num]
-                self.fitview.ytab.plotcombo.remove(str(num))
+        for num in [n for n in self.plot_nums if n in self.fitview.plots]:
+            self.fitview.plots[num]['plot'].remove()
+            del self.fitview.plots[num]
+            self.fitview.ytab.plotcombo.remove(num)
         self.plot_nums = []
         self.fitview.num = self.data_num
         self.fitview.ytab.plotcombo.select(self.data_num)
         self.fitview.draw()
+        self.fitview.update_panels()
    
     def apply(self):
-        if self.plotview:
-            if self.fit_num and self.fit_num in self.plot_nums:
-                self.plot_nums.pop(self.plot_nums.index(self.fit_num))
-            self.remove_plots()
-        if self.data_num+1 not in self.fitview.plots:
-            num = self.data_num + 1
-            self.fitview.plots[num] = self.fitview.plots[self.fit_num]
-            del self.fitview.plots[self.fit_num]
-            self.fitview.ytab.plotcombo.remove(self.fit_num)
-            self.fitview.ytab.plotcombo.insert(num, num)
+        self.remove_plots()
+        self.fitview.plot(self.get_model(), fmt='-', color=self.color, 
+                          over=True)
         
     def reset(self):
-        self.remove_plots()
+        self.reset_limits()
+        self.plot_data()
 
     def close(self):
         if self.plotview:
             self.remove_plots()
-        super(FitTab, self).close()
