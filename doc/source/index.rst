@@ -35,7 +35,7 @@ reading and writing NeXus files is provided by the `nexusformat
    pythongui
    treeapi
    readers
-   importdialog
+   dialogs
    example_data
    example_scripts
    example_plugins
