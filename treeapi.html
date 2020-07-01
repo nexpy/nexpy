@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>NeXus Tree API Modules &#8212; NeXpy 0.12.4 documentation</title>
+    <title>NeXus Tree API Modules &#8212; NeXpy 0.12.6 documentation</title>
     <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -33,7 +33,7 @@
         <li class="right" >
           <a href="pythongui.html" title="Python Graphical User Interface"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.12.4 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.12.6 documentation</a> &#187;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -1123,6 +1123,12 @@ object in the external file.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="nexusformat.nexus.tree.NXobject.is_linked">
+<code class="sig-name descname">is_linked</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXobject.is_linked" title="Permalink to this definition">¶</a></dt>
+<dd><p>True if the NeXus object is embedded in a link.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="nexusformat.nexus.tree.NXobject.is_external">
 <code class="sig-name descname">is_external</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXobject.is_external" title="Permalink to this definition">¶</a></dt>
 <dd><p>True if the NeXus object is an external link.</p>
@@ -1418,6 +1424,18 @@ operation, <em>e.g.</em>,</p>
 <span class="go">3.16227766]))</span>
 </pre></div>
 </div>
+<dl class="method">
+<dt id="nexusformat.nexus.tree.NXfield.any">
+<code class="sig-name descname">any</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXfield.any" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return False if all values are 0 or False, True otherwise.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nexusformat.nexus.tree.NXfield.all">
+<code class="sig-name descname">all</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXfield.all" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return False if any values are 0 or False, True otherwise.</p>
+</dd></dl>
+
 <dl class="method">
 <dt id="nexusformat.nexus.tree.NXfield.index">
 <code class="sig-name descname">index</code><span class="sig-paren">(</span><em class="sig-param">value</em>, <em class="sig-param">max=False</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXfield.index" title="Permalink to this definition">¶</a></dt>
@@ -2283,6 +2301,28 @@ by default None.</p></li>
 </dd></dl>
 
 <dl class="method">
+<dt id="nexusformat.nexus.tree.NXgroup.get_default">
+<code class="sig-name descname">get_default</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXgroup.get_default" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the default data group if it is defined or None.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Data group to be plotted.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference internal" href="#nexusformat.nexus.tree.NXdata" title="nexusformat.nexus.tree.NXdata">NXdata</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="nexusformat.nexus.tree.NXgroup.set_default">
+<code class="sig-name descname">set_default</code><span class="sig-paren">(</span><em class="sig-param">over=False</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXgroup.set_default" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the current group as the default for plotting.</p>
+<p>This function is overridden by the NXentry and NXdata classes. For all
+other groups, it raises an error.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="nexusformat.nexus.tree.NXgroup.is_plottable">
 <code class="sig-name descname">is_plottable</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXgroup.is_plottable" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return True if the group contains plottable data.</p>
@@ -2399,6 +2439,12 @@ is accessible.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="nexusformat.nexus.tree.NXlink.attrs">
+<em class="property">property </em><code class="sig-name descname">attrs</code><a class="headerlink" href="#nexusformat.nexus.tree.NXlink.attrs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dictionary of object attributes.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="nexusformat.nexus.tree.NXlink.nxfilemode">
 <em class="property">property </em><code class="sig-name descname">nxfilemode</code><a class="headerlink" href="#nexusformat.nexus.tree.NXlink.nxfilemode" title="Permalink to this definition">¶</a></dt>
 <dd><p>Read/write mode of the NeXus file if saved to a file.</p>
@@ -2407,29 +2453,9 @@ is accessible.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="nexusformat.nexus.tree.NXlink.attrs">
-<em class="property">property </em><code class="sig-name descname">attrs</code><a class="headerlink" href="#nexusformat.nexus.tree.NXlink.attrs" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return the target’s NeXus attribute dicionary.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>Dictionary of NeXus attributes.</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>AttrDict</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
 <dt id="nexusformat.nexus.tree.NXlink.abspath">
 <em class="property">property </em><code class="sig-name descname">abspath</code><a class="headerlink" href="#nexusformat.nexus.tree.NXlink.abspath" title="Permalink to this definition">¶</a></dt>
 <dd><p>True if the filename is to be stored as an absolute path.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="nexusformat.nexus.tree.NXlink.is_external">
-<code class="sig-name descname">is_external</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXlink.is_external" title="Permalink to this definition">¶</a></dt>
-<dd><p>True if the linked object is in an external file.</p>
 </dd></dl>
 
 </dd></dl>
@@ -2438,17 +2464,6 @@ is accessible.</p>
 <dt id="nexusformat.nexus.tree.NXlinkfield">
 <em class="property">class </em><code class="sig-prename descclassname">nexusformat.nexus.tree.</code><code class="sig-name descname">NXlinkfield</code><span class="sig-paren">(</span><em class="sig-param">target=None</em>, <em class="sig-param">file=None</em>, <em class="sig-param">name=None</em>, <em class="sig-param">abspath=False</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXlinkfield" title="Permalink to this definition">¶</a></dt>
 <dd><p>Class for NeXus linked fields.</p>
-<dl class="method">
-<dt id="nexusformat.nexus.tree.NXlinkfield.copylink">
-<code class="sig-name descname">copylink</code><span class="sig-paren">(</span><em class="sig-param">field</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXlinkfield.copylink" title="Permalink to this definition">¶</a></dt>
-<dd><p>Copy parameters from the specified NXfield.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>field</strong> (<a class="reference internal" href="#nexusformat.nexus.tree.NXfield" title="nexusformat.nexus.tree.NXfield"><em>NXfield</em></a>) – Field to be copied.</p>
-</dd>
-</dl>
-</dd></dl>
-
 </dd></dl>
 
 <dl class="class">
@@ -2456,12 +2471,15 @@ is accessible.</p>
 <em class="property">class </em><code class="sig-prename descclassname">nexusformat.nexus.tree.</code><code class="sig-name descname">NXlinkgroup</code><span class="sig-paren">(</span><em class="sig-param">target=None</em>, <em class="sig-param">file=None</em>, <em class="sig-param">name=None</em>, <em class="sig-param">abspath=False</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXlinkgroup" title="Permalink to this definition">¶</a></dt>
 <dd><p>Class for NeXus linked groups.</p>
 <dl class="method">
-<dt id="nexusformat.nexus.tree.NXlinkgroup.copylink">
-<code class="sig-name descname">copylink</code><span class="sig-paren">(</span><em class="sig-param">group</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXlinkgroup.copylink" title="Permalink to this definition">¶</a></dt>
-<dd><p>Copy the entries and attributes from the specified NXgroup.</p>
+<dt id="nexusformat.nexus.tree.NXlinkgroup.entries">
+<em class="property">property </em><code class="sig-name descname">entries</code><a class="headerlink" href="#nexusformat.nexus.tree.NXlinkgroup.entries" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dictionary of NeXus objects in the linked group.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>group</strong> (<a class="reference internal" href="#nexusformat.nexus.tree.NXgroup" title="nexusformat.nexus.tree.NXgroup"><em>NXgroup</em></a>) – Group to be copied.</p>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Dictionary of group objects.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>dict of NXfields and/or NXgroups</p>
 </dd>
 </dl>
 </dd></dl>
@@ -2535,6 +2553,17 @@ has been set to True.</p></li>
 </dd></dl>
 
 <dl class="method">
+<dt id="nexusformat.nexus.tree.NXroot.set_default">
+<code class="sig-name descname">set_default</code><span class="sig-paren">(</span><em class="sig-param">over=False</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXroot.set_default" title="Permalink to this definition">¶</a></dt>
+<dd><p>Override function to set default for plotting.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>over</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – True if previous default should be overwritten</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
 <dt id="nexusformat.nexus.tree.NXroot.plottable_data">
 <em class="property">property </em><code class="sig-name descname">plottable_data</code><a class="headerlink" href="#nexusformat.nexus.tree.NXroot.plottable_data" title="Permalink to this definition">¶</a></dt>
 <dd><p>The default data group to be plotted in this tree.</p>
@@ -2576,20 +2605,25 @@ returned.</p>
 <em class="property">class </em><code class="sig-prename descclassname">nexusformat.nexus.tree.</code><code class="sig-name descname">NXentry</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXentry" title="Permalink to this definition">¶</a></dt>
 <dd><p>NXentry group, a subclass of the NXgroup class.</p>
 <dl class="method">
+<dt id="nexusformat.nexus.tree.NXentry.set_default">
+<code class="sig-name descname">set_default</code><span class="sig-paren">(</span><em class="sig-param">over=False</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXentry.set_default" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set group as the default for plotting.</p>
+<p>This will set defaults for parents of the parent group unless they have
+been set previously.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>over</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – True if previous default should be overwritten</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
 <dt id="nexusformat.nexus.tree.NXentry.plottable_data">
 <em class="property">property </em><code class="sig-name descname">plottable_data</code><a class="headerlink" href="#nexusformat.nexus.tree.NXentry.plottable_data" title="Permalink to this definition">¶</a></dt>
 <dd><p>The default data group to be plotted in this entry.</p>
 <p>This will return the default group if the <cite>default</cite> attribute has been
 set. Otherwise, the first NXdata, NXmonitor, or NXlog group will be
 returned.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>Data group to be plotted.</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference internal" href="#nexusformat.nexus.tree.NXdata" title="nexusformat.nexus.tree.NXdata">NXdata</a></p>
-</dd>
-</dl>
 </dd></dl>
 
 </dd></dl>
@@ -2794,6 +2828,23 @@ given by the axis values of the corresponding dimension.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="nexusformat.nexus.tree.NXdata.get_default">
+<code class="sig-name descname">get_default</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXdata.get_default" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return this NXdata group as the default for plotting.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nexusformat.nexus.tree.NXdata.set_default">
+<code class="sig-name descname">set_default</code><span class="sig-paren">(</span><em class="sig-param">over=False</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXdata.set_default" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set group as the default for plotting.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>over</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – True if previous default should be overwritten</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
 <dt id="nexusformat.nexus.tree.NXdata.plottable_data">
 <em class="property">property </em><code class="sig-name descname">plottable_data</code><a class="headerlink" href="#nexusformat.nexus.tree.NXdata.plottable_data" title="Permalink to this definition">¶</a></dt>
 <dd><p>True if the NXdata group is plottable.</p>
@@ -2876,6 +2927,18 @@ are defined</p>
 <dt id="nexusformat.nexus.tree.NXdata.implot">
 <code class="sig-name descname">implot</code><span class="sig-paren">(</span><em class="sig-param">fmt=''</em>, <em class="sig-param">xmin=None</em>, <em class="sig-param">xmax=None</em>, <em class="sig-param">ymin=None</em>, <em class="sig-param">ymax=None</em>, <em class="sig-param">vmin=None</em>, <em class="sig-param">vmax=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXdata.implot" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plot the data intensity as an RGB(A) image.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nexusformat.nexus.tree.NXdata.ndim">
+<em class="property">property </em><code class="sig-name descname">ndim</code><a class="headerlink" href="#nexusformat.nexus.tree.NXdata.ndim" title="Permalink to this definition">¶</a></dt>
+<dd><p>Rank of the NXdata signal.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nexusformat.nexus.tree.NXdata.shape">
+<em class="property">property </em><code class="sig-name descname">shape</code><a class="headerlink" href="#nexusformat.nexus.tree.NXdata.shape" title="Permalink to this definition">¶</a></dt>
+<dd><p>Shape of the NXdata signal.</p>
 </dd></dl>
 
 <dl class="method">
@@ -3738,11 +3801,11 @@ which is currently incompatible with the nexusformat classes.</p>
         <li class="right" >
           <a href="pythongui.html" title="Python Graphical User Interface"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.12.4 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.12.6 documentation</a> &#187;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
-        &#169; Copyright 2013-2015, Ray Osborn.
+        &#169; Copyright 2013-2020, Ray Osborn.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.3.1.
     </div>
   </body>

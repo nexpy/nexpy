@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>Python Graphical User Interface &#8212; NeXpy 0.12.4 documentation</title>
+    <title>Python Graphical User Interface &#8212; NeXpy 0.12.6 documentation</title>
     <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -33,7 +33,7 @@
         <li class="right" >
           <a href="pythonshell.html" title="Python Interface to NeXus"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.12.4 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.12.6 documentation</a> &#187;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -53,7 +53,9 @@
 <li><a class="reference internal" href="#plotting-nexus-data">Plotting NeXus Data</a></li>
 <li><a class="reference internal" href="#configuring-nexpy">Configuring NeXpy</a></li>
 <li><a class="reference internal" href="#fitting-nexus-data">Fitting NeXus Data</a><ul>
-<li><a class="reference internal" href="#defining-a-function">Defining a function</a></li>
+<li><a class="reference internal" href="#saving-the-fit">Saving the Fit</a></li>
+<li><a class="reference internal" href="#defining-a-model">Defining a Model</a></li>
+<li><a class="reference internal" href="#defining-a-function">Defining a Function</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#importing-nexus-data">Importing NeXus Data</a><ul>
@@ -672,11 +674,11 @@ deviation set by the <cite>smooth</cite> option (see below). The default is
 2 pixels.</p>
 </div>
 </div></blockquote>
-<p><strong>X/Y Tab</strong></p>
+<p><strong>X Tab</strong></p>
 <blockquote>
 <div><a class="reference internal image-reference" href="_images/x-tab.png"><img alt="_images/x-tab.png" class="align-center" src="_images/x-tab.png" style="width: 75%;" /></a>
 <p>The x and y-tabs contains text boxes and sliders to adjust the axis limits
-and a dropdown menu to select the axis to be plotted along x and y,
+and a dropdown menu to select the axis to be plotted along x or y,
 respectively. The names correspond to the axis names in the NXdata group.
 A checkbox allows the direction of the axes to be flipped.</p>
 <div class="admonition warning">
@@ -684,8 +686,26 @@ A checkbox allows the direction of the axes to be flipped.</p>
 <p>Flipping the axis directions does not flip the direction of the
 sliders.</p>
 </div>
-<p>The y-tab also contains an option to smoothly interpolate one-dimensional
-data. This uses the <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.interp1d.html">SciPy interp1d function</a>.</p>
+</div></blockquote>
+<p><strong>Y Tab</strong></p>
+<blockquote>
+<div><a class="reference internal image-reference" href="_images/y-tab.png"><img alt="_images/y-tab.png" class="align-center" src="_images/y-tab.png" style="width: 75%;" /></a>
+<p>The y-tab has three additions to the features in the x-tab:</p>
+<ol class="arabic simple">
+<li><p>Since multiple one-dimensional data sets can be plotted on the same
+figure, an additional pull-down menu is added on the left-hand side to
+select them.</p></li>
+<li><p>Selecting the ‘smooth’ checkbox adds a line that smoothly interpolates
+one-dimensional data. This uses the <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.interp1d.html">SciPy interp1d function</a>.
+This option is provided to add guides-to-the-eye, and should be used for
+numerical analysis with caution.</p></li>
+<li><p>The ‘Fit’ button will open a panel for fitting the data using the
+<cite>LMFIT &lt;https://lmfit.github.io/lmfit-py/&gt;`_</cite> package.</p></li>
+</ol>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="#fitting-nexus-data">Fitting NeXus Data</a></p>
+</div>
 </div></blockquote>
 <p><strong>Z Tab</strong></p>
 <blockquote>
@@ -980,13 +1000,17 @@ edit the configuration file in ~/.nexpy/config.py.</p>
 </div>
 <div class="section" id="fitting-nexus-data">
 <h2>Fitting NeXus Data<a class="headerlink" href="#fitting-nexus-data" title="Permalink to this headline">¶</a></h2>
-<p>It is possible to fit one-dimensional data using the non-linear least-squares
-fitting package, <a class="reference external" href="http://newville.github.io/lmfit-py">lmfit-py</a>, by selecting
-a group on the tree and choosing “Fit Data” from the Data menu or by
-right-clicking on the group. This opens a dialog window that allows multiple
-functions to be combined, with the option of fixing or limiting parameters.</p>
+<p>NeXpy makes it easy to fit one-dimensional data using the
+<a class="reference external" href="https://lmfit.github.io/lmfit-py/">LMFIT package</a>, with a ‘Fit’ button in
+the Y-Tab of every one-dimensional plot. Alternatively, choosing ‘Fit Data’ from
+the Data menu or using the keyboard shortcut Ctrl+Shift+F (⌘+⇧+F on a Mac),
+will fit data selected in the Tree Pane.</p>
+<p>Either method opens a dialog window that allows multiple fit models to be
+combined, with the option of fixing or limiting parameters. To help in
+selecting a model, click on the pull-down menu and the model description will
+be displayed as a tooltip when you hover over it.</p>
 <a class="reference internal image-reference" href="_images/nexpy-fits.png"><img alt="_images/nexpy-fits.png" class="align-center" src="_images/nexpy-fits.png" style="width: 90%;" /></a>
-<p>The fit can be plotted, along with the constituent functions, in the main
+<p>The fit can be plotted, along with the constituent models in the main
 plotting window and the fitting parameters displayed in a message window.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -997,18 +1021,73 @@ fits if required, or reset to the overall range of the data using the
 </div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>With v0.10.6, the keyboard shortcuts ‘l’ and ‘r’ can
-be used to set the X-axis limits in the fit dialog to the current
-cursor position in the canvas.</p>
+<p>When the plotting window is selected, the keyboard shortcuts ‘l’ and
+‘r’ can be used to set the X-axis limits in the fit dialog to the
+current cursor position in the canvas.</p>
 </div>
-<p>The original data, the fitted data, constituent functions, and the parameters
-can all be saved to an NXentry group in the Tree Pane for subsequent plotting,
-refitting, or saving to a NeXus file. The group is an NXentry group, with name
-‘f1’, ‘f2’, etc., stored in the default scratch NXroot group, w0. If you choose
-to fit this entry again, it will load the functions and parameters from the
+<div class="section" id="saving-the-fit">
+<h3>Saving the Fit<a class="headerlink" href="#saving-the-fit" title="Permalink to this headline">¶</a></h3>
+<p>The original data, the fitted data, constituent models, and the parameters
+can all be saved to an NXprocess group in the Tree Pane for subsequent plotting,
+refitting, or saving to a NeXus file. The group, named ‘f1’, ‘f2’, etc.,
+is stored in the default scratch NXroot group, w0. If you choose
+to fit this entry again, it will load the models and parameters from the
 saved fit.</p>
+</div>
+<div class="section" id="defining-a-model">
+<h3>Defining a Model<a class="headerlink" href="#defining-a-model" title="Permalink to this headline">¶</a></h3>
+<p>NeXpy makes available any of the models currently supplied by the <a class="reference external" href="https://lmfit.github.io/lmfit-py/">LMFIT
+package</a>, as well as a couple of extra
+models added to the NeXpy package, the OrderParameterModel and the
+PDFdecayModel. If you wish to construct your own model, please refer to the
+LMFIT documentation for more details.</p>
+<p>User-defined models can be added as separate files to their private models
+directory in <code class="docutils literal notranslate"><span class="pre">~/.nexpy/models</span></code> (new to v0.12.6). As an example, here is the
+code for the OrderParameterModel that is distributed with NeXpy:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">lmfit.model</span> <span class="kn">import</span> <span class="n">Model</span>
+
+<span class="k">class</span> <span class="nc">OrderParameterModel</span><span class="p">(</span><span class="n">Model</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;A model to describe the temperature dependence of an order parameter</span>
+<span class="sd">    with three Parameters: ``amplitude``, ``Tc``, and ``beta``.</span>
+
+<span class="sd">    .. math::</span>
+
+<span class="sd">        f(x; A, Tc, \beta) = A ((Tc - x[x&lt;Tc])/ Tc)^\beta</span>
+
+<span class="sd">    where the parameter ``amplitude`` corresponds to :math:`A`, ``Tc`` to</span>
+<span class="sd">    :math:`Tc`, and ``beta`` to :math:`\beta`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+
+        <span class="k">def</span> <span class="nf">op</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">amplitude</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">Tc</span><span class="o">=</span><span class="mf">100.0</span><span class="p">,</span> <span class="n">beta</span><span class="o">=</span><span class="mf">0.5</span><span class="p">):</span>
+            <span class="n">v</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+            <span class="n">v</span><span class="p">[</span><span class="n">x</span><span class="o">&lt;</span><span class="n">Tc</span><span class="p">]</span> <span class="o">=</span> <span class="n">amplitude</span> <span class="o">*</span> <span class="p">((</span><span class="n">Tc</span> <span class="o">-</span> <span class="n">x</span><span class="p">[</span><span class="n">x</span><span class="o">&lt;</span><span class="n">Tc</span><span class="p">])</span><span class="o">/</span> <span class="n">Tc</span><span class="p">)</span><span class="o">**</span><span class="n">beta</span>
+            <span class="n">v</span><span class="p">[</span><span class="n">x</span><span class="o">&gt;=</span><span class="n">Tc</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+            <span class="k">return</span> <span class="n">v</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">op</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">guess</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">negative</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Estimate initial model parameter values from data.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">make_params</span><span class="p">(</span><span class="n">amplitude</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span> <span class="n">Tc</span><span class="o">=</span><span class="n">x</span><span class="o">.</span><span class="n">mean</span><span class="p">(),</span> <span class="n">beta</span><span class="o">=</span><span class="mf">0.33</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Prior to v0.12.6, NeXpy defined its own system for generating
+fitting functions. This system is now deprecated, but legacy
+functions are still available at the end of the model list. If you
+have produced your own functions in the past, they will also be on
+this list. However, we recommend that all new functions now adhere
+to LMFIT model definitions. The following description of the old
+system is retained to help with debugging or migrating to the new
+system.</p>
+</div>
+</div>
 <div class="section" id="defining-a-function">
-<h3>Defining a function<a class="headerlink" href="#defining-a-function" title="Permalink to this headline">¶</a></h3>
+<h3>Defining a Function<a class="headerlink" href="#defining-a-function" title="Permalink to this headline">¶</a></h3>
 <p>User-defined functions can be added to their private functions directory in
 <code class="docutils literal notranslate"><span class="pre">~/.nexpy/functions</span></code>. The file must define the name of the function, a list of
 parameter names, and provide two modules to return the function values and
@@ -1051,12 +1130,6 @@ values that do not trigger an exception.</p>
 <p class="admonition-title">Note</p>
 <p>The X-range used in ‘guessing’ the parameters can be adjusted by
 setting the X-axis limits in the Fit Dialog.</p>
-</div>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>With v0.10.6, the keyboard shortcuts ‘l’ and ‘r’ can
-be used to set the X-axis limits in the fit dialog to the current
-cursor position in the canvas.</p>
 </div>
 </div>
 </div>
@@ -1165,7 +1238,7 @@ can be added to their private readers directory in <code class="docutils literal
 </div>
 <div class="admonition seealso">
 <p class="admonition-title">See also</p>
-<p>See <a class="reference internal" href="importdialog.html#nexpy.gui.importdialog.BaseImportDialog" title="nexpy.gui.importdialog.BaseImportDialog"><code class="xref py py-class docutils literal notranslate"><span class="pre">nexpy.gui.importdialog.BaseImportDialog</span></code></a> and its parent
+<p>See <a class="reference internal" href="dialogs.html#nexpy.gui.importdialog.BaseImportDialog" title="nexpy.gui.importdialog.BaseImportDialog"><code class="xref py py-class docutils literal notranslate"><span class="pre">nexpy.gui.importdialog.BaseImportDialog</span></code></a> and its parent
 <code class="xref py py-class docutils literal notranslate"><span class="pre">nexpy.gui.importdialog.BaseDialog</span></code> for other
 pre-defined methods.</p>
 </div>
@@ -1217,7 +1290,7 @@ buttons to activate different parts of the analysis, and finally the
 functions themselves.</p>
 <div class="admonition seealso">
 <p class="admonition-title">See also</p>
-<p>See <a class="reference internal" href="importdialog.html#nexpy.gui.datadialogs.BaseDialog" title="nexpy.gui.datadialogs.BaseDialog"><code class="xref py py-class docutils literal notranslate"><span class="pre">nexpy.gui.datadialogs.BaseDialog</span></code></a> for a list of
+<p>See <a class="reference internal" href="dialogs.html#nexpy.gui.datadialogs.BaseDialog" title="nexpy.gui.datadialogs.BaseDialog"><code class="xref py py-class docutils literal notranslate"><span class="pre">nexpy.gui.datadialogs.BaseDialog</span></code></a> for a list of
 pre-defined dialog methods if the dialog uses it as the parent
 class.</p>
 </div>
@@ -1318,11 +1391,11 @@ class.</p>
         <li class="right" >
           <a href="pythonshell.html" title="Python Interface to NeXus"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.12.4 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.12.6 documentation</a> &#187;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
-        &#169; Copyright 2013-2015, Ray Osborn.
+        &#169; Copyright 2013-2020, Ray Osborn.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.3.1.
     </div>
   </body>
