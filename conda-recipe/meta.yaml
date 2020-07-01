@@ -23,6 +23,7 @@ requirements:
     - qtpy
     - qtconsole
     - matplotlib
+    - lmfit
     - six
     - ansi2html
 
@@ -35,6 +36,7 @@ requirements:
     - qtpy
     - qtconsole
     - matplotlib
+    - lmfit
     - ansi2html
 
 test:
