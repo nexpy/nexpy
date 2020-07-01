@@ -10,6 +10,7 @@ build:
   entry_points:
     - nexpy = nexpy.nexpygui:main
   number: 0
+  noarch: generic
 
 requirements:
   build:
