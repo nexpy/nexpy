@@ -99,7 +99,7 @@ try:
 except ImportError:
     pass
 linestyles = {'-': 'Solid', '--': 'Dashed', '-.': 'DashDot', ':': 'Dotted',
-              'steps-mid': 'Steps', 'None': 'None'}
+              'None': 'None'}
 markers = {'.': 'point', ',': 'pixel', '+': 'plus', 'x': 'x', 
            'o': 'circle', 's': 'square', 'D': 'diamond', 'H': 'hexagon', 
            'v': 'triangle_down', '^': 'triangle_up', '<': 'triangle_left', 
