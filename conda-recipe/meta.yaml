@@ -26,6 +26,8 @@ requirements:
     - lmfit
     - six
     - ansi2html
+    - pylatexenc
+    - pillow
 
   run:
     - python
@@ -52,6 +54,8 @@ test:
 
   commands:
     - nexpy --help
+    - pylatexenc
+    - pillow
 
 about:
   home: http://nexpy.github.io/nexpy/
