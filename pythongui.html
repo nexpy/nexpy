@@ -225,7 +225,8 @@ directory.</p>
 <p><a class="reference internal" href="#importing-nexus-data">Importing NeXus Data</a></p>
 </div>
 </dd>
-<dt><strong>Export</strong></dt><dd><p>Exports one-dimensional data to a multi-column ASCII file.</p>
+<dt><strong>Export</strong></dt><dd><p>Exports data to a NeXus file or, for one-dimensional data, to a
+multi-column ASCII file.</p>
 </dd>
 <dt><strong>Lock File</strong></dt><dd><p>Changes the file access mode to read-only. This will prevent further changes
 to the tree using either the GUI or the shell. Locked files are displayed
@@ -763,8 +764,7 @@ projections with the Projection Panel.</p>
 </div></blockquote>
 <p><strong>Options Tab</strong></p>
 <blockquote>
-<div><a class="reference internal image-reference" href="_images/options-tab.png"><img alt="_images/options-tab.png" class="align-center" src="_images/options-tab.png" style="width: 90%;" /></a>
-<p>The options tab provides the standard Matplotlib toolbar. You can view with
+<div><p>The options tab provides the standard Matplotlib toolbar. You can view with
 the addition of one extra button. From left to right, the buttons are:</p>
 <ul class="simple">
 <li><p><strong>Home</strong> - restores all plotting limits to their original values.</p></li>
@@ -775,14 +775,16 @@ the addition of one extra button. From left to right, the buttons are:</p>
 to fill the available space or setting the x and y scales to be equal.
 This is only valid if the units of the x and y axes are identical.</p></li>
 <li><p><strong>Subplot</strong> - configures the spacing around the plot.</p></li>
-<li><p><strong>Save</strong> - saves plot to PNG file.</p></li>
-<li><p><strong>Add</strong> - adds plotted data to the tree pane as an NXdata group within the
-scratch workspace ‘w0’.</p></li>
 <li><p><strong>Edit</strong> - opens the Customize Panel to edit both image and point plots.
 Use this to change the title and axis labels, modify the image aspect
 ratio and skew angles, turn axis grids on or off and set their styles,
 modify the point plot markers and lines, scale or add an offset to 1D
 plots, and draw legends.</p></li>
+<li><p><strong>Save</strong> - saves plot to PNG file.</p></li>
+<li><p><strong>Export</strong> - exports plotted data to a NeXus file or, for one-dimensional
+data, a multi-column ASCII file.</p></li>
+<li><p><strong>Add</strong> - adds plotted data to the tree pane as an NXdata group within the
+scratch workspace ‘w0’.</p></li>
 </ul>
 <p>On the far right of the toolbar, the data and axis values are dynamically
 updated to the values under the current mouse location.</p>
