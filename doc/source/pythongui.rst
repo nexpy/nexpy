@@ -135,7 +135,8 @@ File Menu
     .. seealso:: `Importing NeXus Data`_
 
 **Export**
-    Exports one-dimensional data to a multi-column ASCII file.
+    Exports data to a NeXus file or, for one-dimensional data, to a 
+    multi-column ASCII file.
 
 **Lock File**
     Changes the file access mode to read-only. This will prevent further changes
@@ -610,7 +611,7 @@ and sliders.
        This option is provided to add guides-to-the-eye, and should be used for
        numerical analysis with caution.  
     #. The 'Fit' button will open a panel for fitting the data using the 
-       `LMFIT <https://lmfit.github.io/lmfit-py/>`_` package.
+       `LMFIT package <https://lmfit.github.io/lmfit-py/>`_.
 
     .. seealso:: `Fitting NeXus Data`_
 
@@ -676,7 +677,7 @@ and sliders.
   
 **Options Tab**
 
-    .. image:: /images/options-tab.png
+    .. imageRe: [lmfit/lmfit-py] Documentation/docstring updates and code cleanup (#653):: /images/options-tab.png
        :align: center
        :width: 90%
 
@@ -691,14 +692,16 @@ and sliders.
       to fill the available space or setting the x and y scales to be equal. 
       This is only valid if the units of the x and y axes are identical.
     * **Subplot** - configures the spacing around the plot. 
-    * **Save** - saves plot to PNG file.
-    * **Add** - adds plotted data to the tree pane as an NXdata group within the
-      scratch workspace 'w0'.
     * **Edit** - opens the Customize Panel to edit both image and point plots. 
       Use this to change the title and axis labels, modify the image aspect 
       ratio and skew angles, turn axis grids on or off and set their styles, 
       modify the point plot markers and lines, scale or add an offset to 1D
       plots, and draw legends.
+    * **Save** - saves plot to PNG file.
+    * **Export** - exports plotted data to a NeXus file or, for one-dimensional
+      data, a multi-column ASCII file.
+    * **Add** - adds plotted data to the tree pane as an NXdata group within the
+      scratch workspace 'w0'.
 
     On the far right of the toolbar, the data and axis values are dynamically 
     updated to the values under the current mouse location.
@@ -934,7 +937,13 @@ plotting window and the fitting parameters displayed in a message window.
 
 .. note:: When the plotting window is selected, the keyboard shortcuts 'l' and 
           'r' can be used to set the X-axis limits in the fit dialog to the 
-          current cursor position in the canvas.
+          current cursor position in the canvas. Alternatively, the range can 
+          be selected by dragging with the right-mouse button (or with the 
+          Ctrl-key depressed).
+
+.. warning:: Some of the LMFIT functions have an additional option that is 
+             selected with the 'form' keyword. At present, the default 
+             option is automatically selected in NeXpy.
 
 Saving the Fit
 ^^^^^^^^^^^^^^^^
