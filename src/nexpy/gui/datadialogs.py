@@ -2836,11 +2836,11 @@ class LimitTab(NXTab):
 
     def copy(self):
         tab = self.tabs[self.copybox.selected]
-        self.xbox.select(self.get_axes()[tab.get_axes().index(tab.xaxis)])
-        self.ybox.select(self.get_axes()[tab.get_axes().index(tab.yaxis)])
         for p in self.copied_properties:
             setattr(self.plotview, p, getattr(tab.plotview, p))
         self.block_signals(True)
+        self.xbox.select(self.get_axes()[tab.get_axes().index(tab.xaxis)])
+        self.ybox.select(self.get_axes()[tab.get_axes().index(tab.yaxis)])
         for axis in range(self.ndim):
             self.minbox[axis].setValue(tab.minbox[axis].value())
             self.maxbox[axis].setValue(tab.maxbox[axis].value())
