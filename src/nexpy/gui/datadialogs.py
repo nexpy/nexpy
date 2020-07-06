@@ -2894,9 +2894,9 @@ class LimitTab(NXTab):
                 self.plotview.vtab.set_limits(vmin, vmax)
                 if self.ndim > 2:
                     self.plotview.ztab.locked = False
+                    names = [self.plotview.axis[i].name for i in range(self.ndim)]
                     for axis_name in self.plotview.ztab.axiscombo.items():
                         self.plotview.ztab.axiscombo.select(axis_name)
-                        names = [self.plotview.axis[i].name for i in range(self.ndim)]
                         idx = names.index(self.plotview.ztab.axiscombo.selected)
                         self.plotview.ztab.set_axis(self.plotview.axis[idx])
                         self.plotview.ztab.set_limits(self.minbox[idx].value(),
