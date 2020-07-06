@@ -56,9 +56,11 @@ class NXWidget(QtWidgets.QWidget):
  
     def __init__(self, parent=None):
 
-        super(NXWidget, self).__init__(parent)
         from .consoleapp import _mainwindow
         self.mainwindow = _mainwindow
+        if parent is None:
+            parent = self.mainwindow
+        super(NXWidget, self).__init__(parent)
         self.treeview = self.mainwindow.treeview
         self.tree = self.treeview.tree
         self.plotview = self.mainwindow.plotview
@@ -81,8 +83,6 @@ class NXWidget(QtWidgets.QWidget):
         self.thread = None
         self.bold_font =  QtGui.QFont()
         self.bold_font.setBold(True)
-        if parent is None:
-            parent = self.mainwindow
         self.accepted = False
 
     def set_layout(self, *items, **opts):
