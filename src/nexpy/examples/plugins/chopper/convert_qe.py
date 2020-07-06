@@ -65,14 +65,16 @@ class ConvertDialog(NXDialog):
         dQ = self.dQ
         dE = self.dE
 
-        pol, tof = centers(self.entry['data'].nxsignal, self.entry['data'].nxaxes)
+        signal = self.entry['data'].nxsignal
+        pol = centers(self.entry['data/polar_angle'], signal.shape[0])
+        tof = centers(self.entry['data/time_of_flight'], signal.shape[1])
         en = self.convert_tof(tof)
 
         idx_max = min(np.where(np.abs(en-0.75*Ei)<0.1)[0])
 
         en = en[:idx_max]
 
-        data = self.entry['data'].nxsignal.nxdata[:,:idx_max]
+        data = signal.nxdata[:,:idx_max]
         if self.entry['data'].nxerrors:
             errors = self.entry['data'].nxerrors.nxdata[:]
 
