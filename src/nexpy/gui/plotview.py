@@ -1332,6 +1332,7 @@ class NXPlotView(QtWidgets.QDialog):
                     ax.set_yscale('log')
                 else:
                     ax.set_yscale('linear')
+            self.update_panels()            
             self.draw()
 
     def plot_smooth(self):
@@ -1548,6 +1549,7 @@ class NXPlotView(QtWidgets.QDialog):
             try:
                 self.ax.set_aspect(self._aspect)
                 self.canvas.draw()
+                self.update_panels()
             except:
                 pass
 
@@ -1685,6 +1687,7 @@ class NXPlotView(QtWidgets.QDialog):
                 self.image.set_data(self.plotdata.nxsignal.nxdata)
                 self.image.set_interpolation(self.interpolation)
             self.draw()
+            self.update_panels()
 
     def _smooth(self):
         """Return standard deviation in pixels of Gaussian smoothing."""
