@@ -2716,8 +2716,8 @@ class LimitTab(NXTab):
         self.maxbox['signal'].setRange(vaxis.min, vaxis.max)
         self.minbox['signal'].setValue(vaxis.lo)
         self.maxbox['signal'].setValue(vaxis.hi)
-        self.copied_properties = ['aspect', 'cmap', 'interpolation', 
-                                  'logv', 'logx', 'logy', 'skew']
+        self.update_properties()
+        self.copied_properties = {}
         self.copywidget.setVisible(False)
         for tab in [self.tabs[label] for label in self.tabs 
                     if self.tabs[label] is not self]:
@@ -2813,6 +2813,7 @@ class LimitTab(NXTab):
     def update(self):
         if not self.checkbox['sync'].isChecked():
             self.update_limits()
+            self.update_properties()
         for tab in [self.tabs[label] for label in self.tabs 
                     if self.tabs[label] is not self]:
             if (tab.copybox.selected == self.tab_label and
@@ -2834,10 +2835,27 @@ class LimitTab(NXTab):
         self.parameters['ysize'].value = figure_size[1]
         self.block_signals(False)
 
+    def update_properties(self):
+        if self.ndim > 1:
+            self.properties = {'aspect': self.plotview.aspect,
+                               'cmap': self.plotview.cmap,
+                               'interpolation': self.plotview.interpolation,
+                               'logv': self.plotview.logv,
+                               'logx': self.plotview.logx,
+                               'logy': self.plotview.logy,
+                               'skew': self.plotview.skew}
+        else:
+            self.properties = {}
+
+    def copy_properties(self, tab):
+        self.update_properties()
+        for p in self.properties:
+            if self.properties[p] != tab.properties[p]:
+                self.copied_properties[p] = tab.properties[p]    
+
     def copy(self):
         tab = self.tabs[self.copybox.selected]
-        for p in self.copied_properties:
-            setattr(self.plotview, p, getattr(tab.plotview, p))
+        self.copy_properties(tab)
         self.block_signals(True)
         self.xbox.select(self.get_axes()[tab.get_axes().index(tab.xaxis)])
         self.ybox.select(self.get_axes()[tab.get_axes().index(tab.yaxis)])
@@ -2905,6 +2923,9 @@ class LimitTab(NXTab):
                         self.plotview.ztab.set_axis(self.plotview.axis[z])
                         self.plotview.ztab.set_limits(zmin, zmax)
                 self.plotview.replot_data()
+                for p in self.copied_properties:
+                    setattr(self.plotview, p, self.copied_properties[p])
+                self.copied_properties = {}
             self.block_signals(False)
         except NeXusError as error:
             report_error("Setting plot limits", error)
