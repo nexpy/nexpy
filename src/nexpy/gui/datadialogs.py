@@ -2875,10 +2875,13 @@ class LimitTab(NXTab):
                 self.plotview.ytab.set_limits(ymin, ymax)
                 self.plotview.replot_axes()
             else:
+                limits = []
+                for axis in range(self.ndim):
+                    limits.append((self.minbox[axis].value(), self.maxbox[axis].value()))
                 x = self.get_axes().index(self.xaxis)
-                xmin, xmax = self.minbox[x].value(), self.maxbox[x].value()
+                xmin, xmax = limits[x][0], limits[x][1]
                 y = self.get_axes().index(self.yaxis)
-                ymin, ymax = self.minbox[y].value(), self.maxbox[y].value()
+                ymin, ymax = limits[y][0], limits[y][1]
                 vmin, vmax = self.minbox['signal'].value(), self.maxbox['signal'].value()
                 if np.isclose(xmin, xmax):
                     raise NeXusError('X-axis has zero range')
@@ -2897,10 +2900,10 @@ class LimitTab(NXTab):
                     names = [self.plotview.axis[i].name for i in range(self.ndim)]
                     for axis_name in self.plotview.ztab.axiscombo.items():
                         self.plotview.ztab.axiscombo.select(axis_name)
-                        idx = names.index(self.plotview.ztab.axiscombo.selected)
-                        self.plotview.ztab.set_axis(self.plotview.axis[idx])
-                        self.plotview.ztab.set_limits(self.minbox[idx].value(),
-                                                      self.maxbox[idx].value())
+                        z = names.index(self.plotview.ztab.axiscombo.selected)
+                        zmin, zmax = limits[z][0], limits[z][1]
+                        self.plotview.ztab.set_axis(self.plotview.axis[z])
+                        self.plotview.ztab.set_limits(zmin, zmax)
                 self.plotview.replot_data()
             self.block_signals(False)
         except NeXusError as error:
