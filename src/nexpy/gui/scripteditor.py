@@ -98,13 +98,12 @@ class NXScrollBar(QtWidgets.QScrollBar):
 class NXPlainTextEdit(QtWidgets.QPlainTextEdit):
 
     def __init__(self, slot=None, parent=None):
-        super(NXPlainTextEdit, self).__init__()
+        super(NXPlainTextEdit, self).__init__(parent)
         self.setFont(QtGui.QFont('Courier'))
         self.setMinimumWidth(700)
         self.setMinimumHeight(600)
         self.setWordWrapMode(QtGui.QTextOption.NoWrap)
         self.setTabStopWidth(4 * self.fontMetrics().width(' '))
-        self.parent = parent
         self.blockCountChanged.connect(parent.update_line_numbers)
         self.scrollbar = NXScrollBar(self)
         self.setVerticalScrollBar(self.scrollbar)
@@ -157,8 +156,7 @@ class NXScriptEditor(NXTab):
         self.number_box.setHorizontalScrollBarPolicy(
             QtCore.Qt.ScrollBarAlwaysOff)
         self.number_box.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
-        self.text_box = NXPlainTextEdit(slot=self.scroll_numbers,
-                                        parent=self)
+        self.text_box = NXPlainTextEdit(slot=self.scroll_numbers)
         self.text_layout = self.make_layout(self.number_box, self.text_box,
                                             align='justified')
         self.text_layout.setSpacing(0)
