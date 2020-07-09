@@ -1,10 +1,10 @@
 import numpy as np
-from nexpy.gui.datadialogs import BaseDialog, GridParameters
+from nexpy.gui.datadialogs import NXDialog, GridParameters
 from nexpy.gui.utils import report_error
 from nexusformat.nexus import NeXusError
 
 
-def show_dialog(parent=None):
+def show_dialog():
     try:
         dialog = EnergyDialog()
         dialog.show()
@@ -34,7 +34,7 @@ class EnergyDialog(NXDialog):
         self.set_title('Get Incident Energy')
 
         self.m1 = self.entry['monitor1']
-        self.m2 = self.entry['monitor2'] 
+        self.m2 = self.entry['monitor2']
 
     @property
     def m1_distance(self):
@@ -57,7 +57,8 @@ class EnergyDialog(NXDialog):
         m1_time = self.m1[t-200.0:t+200.0].moment()
         t = 2286.26 * self.m2_distance / np.sqrt(self.Ei)
         m2_time = self.m2[t-200.0:t+200.0].moment()
-        self.parameters['Ei'].value = (2286.26 * (self.m2_distance - self.m1_distance) /
+        self.parameters['Ei'].value = (2286.26 * 
+                                       (self.m2_distance - self.m1_distance) /
                                        (m2_time - m1_time))**2
 
     def accept(self):
