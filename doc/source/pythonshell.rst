@@ -960,7 +960,7 @@ employs the NumPy array sum() method::
    signal = float64(41)
      @long_name = 'Integral from 0.0 to 6.28318530718 '
 
-NXdata.project(axes, limits):
+* ``NXdata.project(axes, limits)``:
     The project() method projects the data along a specified 1D axis or 2D axes 
     summing over the limits, which are specified as a list of tuples for each 
     dimension. If the axis is not to be limited, then specify the limit as 
@@ -1081,12 +1081,11 @@ processes from accessing the file. According to the `HDF5 documentation
 <https://support.hdfgroup.org/HDF5/hdf5-quest.html#gconc>`_, concurrent read 
 access is supported if the HDF5 library has been built as thread-safe. This
 appears to be the default with conda installations, for example. However, 
-concurrent read and write access is only allowed when using SWMR mode, which 
-has a number of restrictions. To prevent issues with multiple processes 
-accessing the same file, the ``nexusformat`` contains a simple file-locking 
-mechanism, which is designed to work even when the processes are running on 
-separate nodes and when other file-locking mechanisms might prove unreliable 
-(*e.g.*, on NFS-mounted disks).
+concurrent read and write access is only allowed when using SWMR mode. To 
+prevent issues with multiple processes accessing the same file, *nexusformat*
+contains a simple file-locking mechanism, which is designed to work even when 
+the processes are running on separate nodes and when other file-locking 
+mechanisms might prove unreliable (*e.g.*, on NFS-mounted disks).
 
 .. warning:: Unfortunately, the word 'lock' can cause confusion because it is 
              commonly used to refer to two different operations. The other one 
@@ -1119,32 +1118,32 @@ stale lock is encountered, it may be cleared by calling ``clear_lock``::
   False
 
 .. note:: This lock is advisory. It is only guaranteed to work if the external 
-          process is also using the ``nexusformat`` API.
+          process is also using *nexusformat*.
 
 Configuration Parameters
 ========================
 The nexusformat package uses a number of parameters to configure its default
 behavior. These may be read and/or modified using the following functions.
 
-* nxgetmemory(), nxsetmemory(value)
+* ``nxgetmemory(), nxsetmemory(value)``:
     This sets the memory limit (in MB) for loading arrays into memory. If a 
     field contains data that is larger than this limit, it can only be 
     accessed as a series of smaller slabs using the standard slicing syntax. 
     The default is 2000 MB.
 
-* nxgetmaxsize(), nxsetmaxsize(value)
+* ``nxgetmaxsize(), nxsetmaxsize(value)``:
     This sets the maximum size of an array before HDF5 chunking and compression
     is turned on by default. The default is 10000.
     
-* nxgetlock(), nxsetlock(value=10)
+* ``nxgetlock(), nxsetlock(value=10)``:
     This sets the number of seconds before an attempted file lock acquisition 
     times out. If the value is 0, file locking is disabled. If ``nxsetlock`` is
     called without an argument, the default is 10 seconds.
 
-* nxgetcompression(), nxsetcompression()
+* ``nxgetcompression(), nxsetcompression()``:
     This sets the default HDF5 compression filter. The default is 'gzip'.
 
-* nxgetencoding(), nxsetencoding()
+* ``nxgetencoding(), nxsetencoding()``:
     This sets the default encoding for input strings. This is usually 'utf-8'
     but the default is set to the system default, defined by 
     ``sys.getfilesystemencoding()``.

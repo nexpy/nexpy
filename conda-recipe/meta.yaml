@@ -58,6 +58,10 @@ test:
     - pillow
 
 about:
-  home: http://nexpy.github.io/nexpy/
-  license: BSD License
-  summary: 'NeXpy: A Python GUI to analyze NeXus data'
+  home: "http://nexpy.github.io/nexpy/"
+  license: "BSD-3-Clause"
+  license_family: "BSD"
+  license_file: "COPYING"
+  summary: "NeXpy: A Python GUI to analyze NeXus data"
+  doc_url: "https://nexpy.github.io/nexpy/"
+  dev_url: "https://github.com/nexpy/nexpy"

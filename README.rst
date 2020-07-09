@@ -5,19 +5,22 @@ Released versions of NeXpy are available on `PyPI
 <https://anaconda.org/nexpy>`_. 
 
 If you have the `Python Setup Tools <https://pypi.python.org/pypi/setuptools>`_ 
-installed, then you can install using either::
+installed, then you can either install using 'pip'::
 
     $ pip install nexpy
 
-If you have an Anaconda installation, use::
+or, if you have an Anaconda installation, NeXpy is now available on the 
+conda-forge channel::
 
     $ conda install -c conda-forge nexpy
 
-If you have trouble with the pip installations, you can install
-the package from the source code either by downloading one of the 
-`Github releases <https://github.com/nexpy/nexpy/releases>`_ or by cloning the
-latest development version in the `NeXpy Git 
-repository <https://github.com/nexpy/nexpy>`_::
+.. note:: You can add conda-forge to your default channels so that it is 
+          automatically searched when installing. Just type 
+          ``conda config --add channels conda-forge``. 
+
+You can install the package from the source code either by downloading one of 
+the `Github releases <https://github.com/nexpy/nexpy/releases>`_ or by cloning 
+the latest development version in the `NeXpy Git repository <https://github.com/nexpy/nexpy>`_::
 
     $ git clone https://github.com/nexpy/nexpy.git
 
@@ -31,8 +34,7 @@ To install in an alternate location::
 
 The Python API for reading and writing NeXus files is in a separate package, 
 `nexusformat <https://github.com/nexpy/nexusformat>`_, which is also available 
-on `PyPI <https://pypi.python.org/pypi/nexusformat/>`_ and 
-will be automatically installed as a NeXpy dependency if you use pip. 
+on `PyPI <https://pypi.python.org/pypi/nexusformat/>`_ and conda-forge. 
 
 If the NeXpy GUI is not required, the package may be used in a regular Python
 shell. It may be installed using:: 
@@ -78,7 +80,7 @@ scipy              https://scipy.org/
 .. note:: If you need to read HDF4 or XML files now, please clone the 
           old-master branch (https://github.com/nexpy/nexpy/tree/old-master).
 
-.. warning:: Version 0.5.0 is the last version to be compatible with Python 2.
+.. warning:: Version 0.5 is the last version to be compatible with Python 2.
              There may be urgent bug fixes but from v0.6, Python 3 will be 
              required.
 
@@ -93,6 +95,10 @@ while PySide is included in the `Enthought Python Distribution
 <http://www.enthought.com>`_ or within Enthought's `Canopy Application
 <https://www.enthought.com/products/canopy/>`_.
 
+.. warning:: Version 0.12 is the last version to be compatible with Python 2.
+             There may be urgent bug fixes but from v0.13, Python 3 will be 
+             required.
+
 The GUI includes an `IPython shell <http://ipython.org/>`_ and a `Matplotlib
 plotting pane <http://matplotlib.sourceforge.net>`_. The IPython shell is
 embedded in the Qt GUI using an implementation based on the newly-released
@@ -101,16 +107,19 @@ Jupyter QtConsole, which has replaced the old IPython QtConsole.
 =================  =================================================
 Library            URL
 =================  =================================================
-jupyter            http://jupyter.org/
-IPython            http://ipython.org/
-matplotlib         http://matplotlib.sourceforge.net/
+IPython            https://ipython.org/
+qtconsole          https://qtconsole.readthedocs.io/
+matplotlib         https://matplotlib.org/
+lmfit              https://lmfit.github.io/lmfit-py/
+pylatexenc         https://pylatexenc.readthedocs.io/
 pillow             https://pillow.readthedocs.io/
 ansi2html          https://pypi.python.org/pypi/ansi2html/
 =================  =================================================
 
-.. warning:: Version 0.12.0 is the last version to be compatible with Python 2.
-             There may be urgent bug fixes but from v0.13, Python 3 will be 
-             required.
+.. warning:: On Mac OS there is a serious issue with PyQt5, which started in 
+             v5.11 and has still not been fixed in v5.13. It should have been
+             fixed in NeXpy v0.12.2, but if you experience any similar issues,
+             please report it. The alternative is to downgrade PyQt to <v5.10.
 
 .. warning:: Some people have reported that NeXpy crashes on launch on some
              Linux systems. We believe that this may be due to both PyQt4 and
@@ -146,10 +155,9 @@ changed in the shell by setting ``plotview.smooth``.
 =================  ==========================================================
 Library            URL
 =================  ==========================================================
-lmfit              http://newville.github.io/lmfit-py/
-fabio              https://github.com/silx-kit/fabio
+fabio              https://pythonhosted.org/fabio/
 spec2nexus         http://spec2nexus.readthedocs.org/
-astropy            http://www.astropy.org
+astropy            http://www.astropy.org/
 =================  ==========================================================
 
 .. note:: NeXpy should still run without these additional packages, but invoking
@@ -157,8 +165,7 @@ astropy            http://www.astropy.org
 
 Semantic Versioning
 -------------------
-With the release of v0.1.0, NeXpy is using `Semantic Versioning 
-<http://semver.org/spec/v2.0.0.html>`_.
+NeXpy uses `Semantic Versioning <http://semver.org/spec/v2.0.0.html>`_.
 
 User Support
 ------------

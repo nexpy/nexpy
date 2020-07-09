@@ -11,7 +11,8 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-import sys, os
+import sys
+import os
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -27,7 +28,8 @@ import nexpy
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['sphinx.ext.autodoc', 'sphinx.ext.intersphinx', 'sphinx.ext.mathjax']
+extensions = ['sphinx.ext.autodoc', 'sphinx.ext.intersphinx', 
+              'sphinx.ext.mathjax', 'sphinx.ext.napoleon']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -166,7 +168,7 @@ html_static_path = ['_static']
 #html_file_suffix = None
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = nexpy.__package_name__ + u'doc'
+htmlhelp_basename = nexpy.__package_name__+'doc'
 
 
 # -- Options for LaTeX output --------------------------------------------------
@@ -187,7 +189,7 @@ latex_elements = {
 latex_documents = [
   ('index', 
    nexpy.__package_name__+'.tex', 
-   nexpy.__package_name__+u' Documentation',
+   nexpy.__package_name__+' Documentation',
    nexpy.__documentation_author__, 
    'manual'),
 ]
@@ -220,7 +222,7 @@ latex_documents = [
 man_pages = [
     ('index', 
      nexpy.__package_name__.lower(), 
-     nexpy.__package_name__+u' Documentation',
+     nexpy.__package_name__+' Documentation',
      [nexpy.__documentation_author__], 1)
 ]
 
@@ -236,7 +238,7 @@ man_pages = [
 texinfo_documents = [
   ('index', 
    nexpy.__package_name__, 
-   nexpy.__package_name__+u' Documentation',
+   nexpy.__package_name__+' Documentation',
    nexpy.__documentation_author__, 
    nexpy.__package_name__, 
    nexpy.__description__,
