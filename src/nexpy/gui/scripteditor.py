@@ -156,7 +156,7 @@ class NXScriptEditor(NXTab):
         self.number_box.setHorizontalScrollBarPolicy(
             QtCore.Qt.ScrollBarAlwaysOff)
         self.number_box.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
-        self.text_box = NXPlainTextEdit(slot=self.scroll_numbers)
+        self.text_box = NXPlainTextEdit(slot=self.scroll_numbers, parent=self)
         self.text_layout = self.make_layout(self.number_box, self.text_box,
                                             align='justified')
         self.text_layout.setSpacing(0)
