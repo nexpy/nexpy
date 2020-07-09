@@ -2710,12 +2710,7 @@ class LimitTab(NXTab):
             self.minbox[axis].setValue(self.plotview.axis[axis].lo)
             self.maxbox[axis].setValue(self.plotview.axis[axis].hi)
             self.block_signals(False)
-        vaxis = self.plotview.axis['signal']
-        self.minbox['signal'].data = self.maxbox['signal'].data = vaxis.data
-        self.minbox['signal'].setRange(vaxis.min, vaxis.max)
-        self.maxbox['signal'].setRange(vaxis.min, vaxis.max)
-        self.minbox['signal'].setValue(vaxis.lo)
-        self.maxbox['signal'].setValue(vaxis.hi)
+        self.update_signal()
         self.update_properties()
         self.copied_properties = {}
         self.copywidget.setVisible(False)
@@ -2828,12 +2823,20 @@ class LimitTab(NXTab):
             self.lockbox[axis].setChecked(False)
             self.minbox[axis].setValue(self.plotview.axis[axis].lo)
             self.maxbox[axis].setValue(self.plotview.axis[axis].hi)
-        self.minbox['signal'].setValue(self.plotview.axis['signal'].lo)
-        self.maxbox['signal'].setValue(self.plotview.axis['signal'].hi)
+        self.update_signal()
         figure_size = self.plotview.figure.get_size_inches()
         self.parameters['xsize'].value = figure_size[0]
         self.parameters['ysize'].value = figure_size[1]
         self.block_signals(False)
+
+    def update_signal(self):
+        minbox, maxbox = self.plotview.vtab.minbox, self.plotview.vtab.maxbox
+        self.minbox['signal'].setRange(minbox.minimum(), minbox.maximum())
+        self.maxbox['signal'].setRange(maxbox.minimum(), maxbox.maximum())
+        self.minbox['signal'].setSingleStep(minbox.singleStep())
+        self.maxbox['signal'].setSingleStep(maxbox.singleStep())
+        self.minbox['signal'].setValue(minbox.value())
+        self.maxbox['signal'].setValue(maxbox.value())
 
     def update_properties(self):
         if self.ndim > 1:
@@ -2884,7 +2887,8 @@ class LimitTab(NXTab):
                 self.plotview.figure.set_size_inches(xsize, ysize)
             if self.ndim == 1:
                 xmin, xmax = self.minbox[0].value(), self.maxbox[0].value()
-                ymin, ymax = self.minbox['signal'].value(), self.maxbox['signal'].value()
+                ymin, ymax = (self.minbox['signal'].value(), 
+                              self.maxbox['signal'].value())
                 if np.isclose(xmin, xmax):
                     raise NeXusError('X-axis has zero range')
                 elif np.isclose(ymin, ymax):
@@ -2895,27 +2899,32 @@ class LimitTab(NXTab):
             else:
                 limits = []
                 for axis in range(self.ndim):
-                    limits.append((self.minbox[axis].value(), self.maxbox[axis].value()))
+                    limits.append((self.minbox[axis].value(), 
+                                   self.maxbox[axis].value()))
                 x = self.get_axes().index(self.xaxis)
                 xmin, xmax = limits[x][0], limits[x][1]
                 y = self.get_axes().index(self.yaxis)
                 ymin, ymax = limits[y][0], limits[y][1]
-                vmin, vmax = self.minbox['signal'].value(), self.maxbox['signal'].value()
+                vmin, vmax = (self.minbox['signal'].value(), 
+                              self.maxbox['signal'].value())
                 if np.isclose(xmin, xmax):
                     raise NeXusError('X-axis has zero range')
                 elif np.isclose(ymin, ymax):
                     raise NeXusError('Y-axis has zero range')
                 elif np.isclose(vmin, vmax):
                     raise NeXusError('Signal has zero range')
-                self.plotview.change_axis(self.plotview.xtab, self.plotview.axis[x])
-                self.plotview.change_axis(self.plotview.ytab, self.plotview.axis[y])
+                self.plotview.change_axis(self.plotview.xtab, 
+                                          self.plotview.axis[x])
+                self.plotview.change_axis(self.plotview.ytab, 
+                                          self.plotview.axis[y])
                 self.plotview.xtab.set_limits(xmin, xmax)
                 self.plotview.ytab.set_limits(ymin, ymax)
                 self.plotview.autoscale = False
                 self.plotview.vtab.set_limits(vmin, vmax)
                 if self.ndim > 2:
                     self.plotview.ztab.locked = False
-                    names = [self.plotview.axis[i].name for i in range(self.ndim)]
+                    names = [self.plotview.axis[i].name 
+                             for i in range(self.ndim)]
                     for axis_name in self.plotview.ztab.axiscombo.items():
                         self.plotview.ztab.axiscombo.select(axis_name)
                         z = names.index(self.plotview.ztab.axiscombo.selected)
