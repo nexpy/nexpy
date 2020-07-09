@@ -1139,7 +1139,7 @@ class MainWindow(QtWidgets.QMainWindow):
                              key=natural_sort)
             if len(nxfiles) == 0:
                 raise NeXusError("No NeXus files found in directory")
-            dialog = DirectoryDialog(nxfiles, directory)
+            dialog = DirectoryDialog(nxfiles, directory, parent=self)
             dialog.show()
         except NeXusError as error:
             report_error("Opening Directory", error)

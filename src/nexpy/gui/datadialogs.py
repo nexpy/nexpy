@@ -56,9 +56,11 @@ class NXWidget(QtWidgets.QWidget):
  
     def __init__(self, parent=None):
 
-        super(NXWidget, self).__init__(parent)
         from .consoleapp import _mainwindow
         self.mainwindow = _mainwindow
+        if parent is None:
+            parent = self.mainwindow
+        super(NXWidget, self).__init__(parent)
         self.treeview = self.mainwindow.treeview
         self.tree = self.treeview.tree
         self.plotview = self.mainwindow.plotview
@@ -81,8 +83,6 @@ class NXWidget(QtWidgets.QWidget):
         self.thread = None
         self.bold_font =  QtGui.QFont()
         self.bold_font.setBold(True)
-        if parent is None:
-            parent = self.mainwindow
         self.accepted = False
 
     def set_layout(self, *items, **opts):
@@ -2710,14 +2710,9 @@ class LimitTab(NXTab):
             self.minbox[axis].setValue(self.plotview.axis[axis].lo)
             self.maxbox[axis].setValue(self.plotview.axis[axis].hi)
             self.block_signals(False)
-        vaxis = self.plotview.axis['signal']
-        self.minbox['signal'].data = self.maxbox['signal'].data = vaxis.data
-        self.minbox['signal'].setRange(vaxis.min, vaxis.max)
-        self.maxbox['signal'].setRange(vaxis.min, vaxis.max)
-        self.minbox['signal'].setValue(vaxis.lo)
-        self.maxbox['signal'].setValue(vaxis.hi)
-        self.copied_properties = ['aspect', 'cmap', 'interpolation', 
-                                  'logv', 'logx', 'logy', 'skew']
+        self.update_signal()
+        self.update_properties()
+        self.copied_properties = {}
         self.copywidget.setVisible(False)
         for tab in [self.tabs[label] for label in self.tabs 
                     if self.tabs[label] is not self]:
@@ -2813,6 +2808,7 @@ class LimitTab(NXTab):
     def update(self):
         if not self.checkbox['sync'].isChecked():
             self.update_limits()
+            self.update_properties()
         for tab in [self.tabs[label] for label in self.tabs 
                     if self.tabs[label] is not self]:
             if (tab.copybox.selected == self.tab_label and
@@ -2827,18 +2823,45 @@ class LimitTab(NXTab):
             self.lockbox[axis].setChecked(False)
             self.minbox[axis].setValue(self.plotview.axis[axis].lo)
             self.maxbox[axis].setValue(self.plotview.axis[axis].hi)
-        self.minbox['signal'].setValue(self.plotview.axis['signal'].lo)
-        self.maxbox['signal'].setValue(self.plotview.axis['signal'].hi)
+        self.update_signal()
         figure_size = self.plotview.figure.get_size_inches()
         self.parameters['xsize'].value = figure_size[0]
         self.parameters['ysize'].value = figure_size[1]
         self.block_signals(False)
 
+    def update_signal(self):
+        minbox, maxbox = self.plotview.vtab.minbox, self.plotview.vtab.maxbox
+        self.minbox['signal'].setRange(minbox.minimum(), minbox.maximum())
+        self.maxbox['signal'].setRange(maxbox.minimum(), maxbox.maximum())
+        self.minbox['signal'].setSingleStep(minbox.singleStep())
+        self.maxbox['signal'].setSingleStep(maxbox.singleStep())
+        self.minbox['signal'].setValue(minbox.value())
+        self.maxbox['signal'].setValue(maxbox.value())
+
+    def update_properties(self):
+        if self.ndim > 1:
+            self.properties = {'aspect': self.plotview.aspect,
+                               'cmap': self.plotview.cmap,
+                               'interpolation': self.plotview.interpolation,
+                               'logv': self.plotview.logv,
+                               'logx': self.plotview.logx,
+                               'logy': self.plotview.logy,
+                               'skew': self.plotview.skew}
+        else:
+            self.properties = {}
+
+    def copy_properties(self, tab):
+        self.update_properties()
+        for p in self.properties:
+            if self.properties[p] != tab.properties[p]:
+                self.copied_properties[p] = tab.properties[p]    
+
     def copy(self):
         tab = self.tabs[self.copybox.selected]
-        for p in self.copied_properties:
-            setattr(self.plotview, p, getattr(tab.plotview, p))
+        self.copy_properties(tab)
         self.block_signals(True)
+        self.xbox.select(self.get_axes()[tab.get_axes().index(tab.xaxis)])
+        self.ybox.select(self.get_axes()[tab.get_axes().index(tab.yaxis)])
         for axis in range(self.ndim):
             self.minbox[axis].setValue(tab.minbox[axis].value())
             self.maxbox[axis].setValue(tab.maxbox[axis].value())
@@ -2864,7 +2887,8 @@ class LimitTab(NXTab):
                 self.plotview.figure.set_size_inches(xsize, ysize)
             if self.ndim == 1:
                 xmin, xmax = self.minbox[0].value(), self.maxbox[0].value()
-                ymin, ymax = self.minbox['signal'].value(), self.maxbox['signal'].value()
+                ymin, ymax = (self.minbox['signal'].value(), 
+                              self.maxbox['signal'].value())
                 if np.isclose(xmin, xmax):
                     raise NeXusError('X-axis has zero range')
                 elif np.isclose(ymin, ymax):
@@ -2873,33 +2897,44 @@ class LimitTab(NXTab):
                 self.plotview.ytab.set_limits(ymin, ymax)
                 self.plotview.replot_axes()
             else:
+                limits = []
+                for axis in range(self.ndim):
+                    limits.append((self.minbox[axis].value(), 
+                                   self.maxbox[axis].value()))
                 x = self.get_axes().index(self.xaxis)
-                xmin, xmax = self.minbox[x].value(), self.maxbox[x].value()
+                xmin, xmax = limits[x][0], limits[x][1]
                 y = self.get_axes().index(self.yaxis)
-                ymin, ymax = self.minbox[y].value(), self.maxbox[y].value()
-                vmin, vmax = self.minbox['signal'].value(), self.maxbox['signal'].value()
+                ymin, ymax = limits[y][0], limits[y][1]
+                vmin, vmax = (self.minbox['signal'].value(), 
+                              self.maxbox['signal'].value())
                 if np.isclose(xmin, xmax):
                     raise NeXusError('X-axis has zero range')
                 elif np.isclose(ymin, ymax):
                     raise NeXusError('Y-axis has zero range')
                 elif np.isclose(vmin, vmax):
                     raise NeXusError('Signal has zero range')
-                self.plotview.change_axis(self.plotview.xtab, self.plotview.axis[x])
-                self.plotview.change_axis(self.plotview.ytab, self.plotview.axis[y])
+                self.plotview.change_axis(self.plotview.xtab, 
+                                          self.plotview.axis[x])
+                self.plotview.change_axis(self.plotview.ytab, 
+                                          self.plotview.axis[y])
                 self.plotview.xtab.set_limits(xmin, xmax)
                 self.plotview.ytab.set_limits(ymin, ymax)
                 self.plotview.autoscale = False
                 self.plotview.vtab.set_limits(vmin, vmax)
                 if self.ndim > 2:
                     self.plotview.ztab.locked = False
+                    names = [self.plotview.axis[i].name 
+                             for i in range(self.ndim)]
                     for axis_name in self.plotview.ztab.axiscombo.items():
                         self.plotview.ztab.axiscombo.select(axis_name)
-                        names = [self.plotview.axis[i].name for i in range(self.ndim)]
-                        idx = names.index(self.plotview.ztab.axiscombo.selected)
-                        self.plotview.ztab.set_axis(self.plotview.axis[idx])
-                        self.plotview.ztab.set_limits(self.minbox[idx].value(),
-                                                      self.maxbox[idx].value())
+                        z = names.index(self.plotview.ztab.axiscombo.selected)
+                        zmin, zmax = limits[z][0], limits[z][1]
+                        self.plotview.ztab.set_axis(self.plotview.axis[z])
+                        self.plotview.ztab.set_limits(zmin, zmax)
                 self.plotview.replot_data()
+                for p in self.copied_properties:
+                    setattr(self.plotview, p, self.copied_properties[p])
+                self.copied_properties = {}
             self.block_signals(False)
         except NeXusError as error:
             report_error("Setting plot limits", error)
