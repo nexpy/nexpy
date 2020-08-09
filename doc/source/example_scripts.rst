@@ -1,5 +1,5 @@
 Example scripts
-###############
+===============
 
 .. include:: ../../src/nexpy/examples/scripts/README.rst
 

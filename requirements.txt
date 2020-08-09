@@ -1,5 +1,5 @@
 h5py
-nexusformat
+nexusformat>=0.5.3
 numpy
 scipy
 qtpy
@@ -7,7 +7,7 @@ pyqt5<=5.13
 ipykernel>=5.2.0
 qtconsole
 matplotlib
+lmfit
+pylatexenc
 ansi2html
 pillow
-spec2nexus
-lmfit

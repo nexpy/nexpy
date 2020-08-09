@@ -11,7 +11,7 @@
 #-----------------------------------------------------------------------------
 
 pkg_requirements = [
-    'nexusformat>=0.5.1',
+    'nexusformat>=0.5.3',
     'numpy',
     'scipy',
     'h5py',
@@ -20,6 +20,8 @@ pkg_requirements = [
     'qtconsole',
     'ipython',
     'matplotlib',
+    'lmfit',
+    'pylatexenc',
     'ansi2html',
     'pillow'
 ]

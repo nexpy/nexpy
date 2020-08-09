@@ -1,5 +1,5 @@
 Example plugins
-###############
+===============
 
 .. include:: ../../src/nexpy/examples/plugins/README.rst
 

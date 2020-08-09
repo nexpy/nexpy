@@ -1,11 +1,14 @@
+#!/usr/bin/env python 
+# -*- coding: utf-8 -*-
+
+#-----------------------------------------------------------------------------
+# Copyright (c) 2013-2020, NeXpy Development Team.
+#
+# Distributed under the terms of the Modified BSD License.
+#
+# The full license is in the file COPYING, distributed with this software.
+#-----------------------------------------------------------------------------
 import os
-try:
-    import sip
-    for api in ['QString', 'QVariant', 'QDate', 'QDateTime',
-                'QTextStream', 'QTime', 'QUrl']:
-        sip.setapi(api, 2)
-except ImportError:
-    pass
 
 from qtpy import QtCore, QtGui, QtWidgets
 

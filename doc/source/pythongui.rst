@@ -135,7 +135,8 @@ File Menu
     .. seealso:: `Importing NeXus Data`_
 
 **Export**
-    Exports one-dimensional data to a multi-column ASCII file.
+    Exports data to a NeXus file or, for one-dimensional data, to a 
+    multi-column ASCII file.
 
 **Lock File**
     Changes the file access mode to read-only. This will prevent further changes
@@ -358,24 +359,37 @@ Window Menu
     .. note:: The log files contain ANSI markup to colorize the text, which can
               be rendered in the terminal using ``less -r``.
 
-**Show Projection Panel**
-    Shows the projection panel for the currently active plotting window. This 
-    is equivalent to clicking on 'Show Panel' in the projection tab (see below). 
-    All the open projection panels are displayed as tabs in a single window, 
-    with the option of copying projection values from one tab to the other if 
-    the plots are compatible.
-
 **Show Script Editor**
     Shows the script editor. If multiple scripts are open, they are displayed as
     tabs in a single window. If no scripts are open, this will open a new 
     script.
 
-**Change Plot Limits**
+**Show Customize Panel**
+    This opens a panel for the currently active plotting window that allows 
+    aspects of the plot, such as titles, axis labels, aspect ratios, skew 
+    angles, marker and line colors, and legends to be customized. All the open 
+    panels are displayed as tabs in a single window.
+
+    .. image:: /images/customize-panel.png
+       :align: center
+       :width: 90%
+
+    .. note:: This is equivalent to clicking the Edit button in the Options 
+              Tab.
+
+**Show Limits Panel**
     This opens a panel for the currently active plotting window that allows the 
     axes and axis limits of the currently active plot to be changed, as well as 
     the plot size on the screen. All the panels are displayed as tabs in a 
-    single window, with the option of copying values from one tab to the other 
-    if the plots are compatible.
+    single window, with the option of copying and values from one tab to the 
+    other if the plots are compatible. If the 'sync' button is checked, the
+    limits will be synchronized dynamically to any changes made to the other 
+    plot, whether made on the Limits Panel or directly in the plot. Multiple 
+    plots can be synchronized to a single plot.
+
+    .. image:: /images/limits-panel.png
+       :align: center
+       :width: 90%
 
     .. note:: When the settings in one tab are copied to another and the Apply 
               button is clicked, other settings, such as the aspect ratio, 
@@ -387,21 +401,55 @@ Window Menu
               because of the constraints of the other panes. Other plotting 
               windows will copy the main window plotting size if requested.
 
+**Show Projection Panel**
+    This opens a panel for the currently active plotting window to allow
+    projections along arbitrary axes to be plotted and/or saved. The 
+    projections are either two-dimensional or, if the y-box is set to 'None', 
+    one-dimensional. The projections may be plotted in a separate window, using 
+    the 'Plot' button or saved to a scratch NXdata group on the tree. If 'Sum' 
+    is checked, the projection contains the sum over all the summed pixels; if 
+    not, the projection contains the average, *i.e.*, the sum divided by the 
+    number of pixels in each orthogonal dimension. If a one-dimensional 
+    projection is plotted, a checkbox appears allowing additional 
+    one-dimensional projections to be plotted over it.
+
+    The x and y limits of the plot are displayed as a dashed rectangle, which 
+    can be hidden if 'Hide Limits' is checked. Dragging with the right-button
+    depressed can be used to change the limits without replotting. 
+    
+    All the open projection panels are displayed as tabs in a single window, 
+    with the option of copying projection values from one tab to the other if 
+    the plots are compatible.
+
+    .. image:: /images/projection-panel.png
+       :align: center
+       :width: 90%
+
+    .. note:: The projection panel can also be used to mask and unmask data 
+              within the dashed rectangle. See :doc:`pythonshell` for 
+              descriptions of masked arrays.
+
+**Show Scan Panel**
+    This opens a panel for plotting data across multiple files in the NeXpy
+    tree. The limits are used to define projection of the currently plotted 
+    data, which is to be plotted against the variable defined by the path 
+    in the Scan field. This path can either be entered manually, or by
+    selecting a scalar quantity in the tree and clicking the 'Select Scan'
+    button. The 'Select Files' button is then used to define the loaded files
+    to be included in the scan. Values of the scanned variable are 
+    automatically read from the file and entered in the box by the 
+    corresponding file, where they can be edited if necessary. 
+
+    .. image:: /images/scan-panel.png
+       :align: center
+       :width: 90%
+
 **Reset Plot Limits**
     This restores the axis and signal limits to the original values.
 
     .. note:: This is equivalent to clicking on the Home button in the Options 
               Tab (see below). Right-clicking within the plot restores the 
               axis limits but does not reset the signal limits.
-
-**Customize Plot**
-    This opens a panel for the currently active plotting window that allows 
-    aspects of the plot, such as titles, axis labels, aspect ratios, skew 
-    angles, marker and line colors, and legends to be customized. All the open 
-    panels are displayed as tabs in a single window.
-
-    .. note:: This is equivalent to clicking the Edit button in the Options Tab 
-              (see below).
 
 **New Plot Window**
     Opens a new NeXpy plotting window, consisting of a Matplotlib plot pane and 
@@ -532,23 +580,41 @@ and sliders.
               deviation set by the `smooth` option (see below). The default is 
               2 pixels.
 
-**X/Y Tab**
+**X Tab**
 
     .. image:: /images/x-tab.png
        :align: center
        :width: 75%
 
     The x and y-tabs contains text boxes and sliders to adjust the axis limits 
-    and a dropdown menu to select the axis to be plotted along x and y, 
+    and a dropdown menu to select the axis to be plotted along x or y, 
     respectively. The names correspond to the axis names in the NXdata group. 
     A checkbox allows the direction of the axes to be flipped.
     
     .. warning:: Flipping the axis directions does not flip the direction of the 
                  sliders.
 
-    The y-tab also contains an option to smoothly interpolate one-dimensional
-    data. This uses the `SciPy interp1d function 
-    <https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.interp1d.html>`_.
+**Y Tab**
+
+    .. image:: /images/y-tab.png
+       :align: center
+       :width: 75%
+
+    The y-tab has three additions to the features in the x-tab:
+
+    #. Since multiple one-dimensional data sets can be plotted on the same 
+       figure, an additional pull-down menu is added on the left-hand side to 
+       select them. 
+    #. Selecting the 'smooth' checkbox adds a line that smoothly interpolates 
+       one-dimensional data. This uses the `SciPy interp1d function 
+       <https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.interp1d.html>`_.
+       This option is provided to add guides-to-the-eye, and should be used for
+       numerical analysis with caution.  
+    #. The 'Fit' button will open a panel for fitting the data using the 
+       `LMFIT package <https://lmfit.github.io/lmfit-py/>`_.
+
+    .. seealso:: `Fitting NeXus Data`_
+
 
 **Z Tab**
 
@@ -606,43 +672,12 @@ and sliders.
     The projection tab allows the data to be projected along one or two
     dimensions. The limits are set by the x, y, and z-tabs, while the projection
     axes are selected using the dropdown boxes. For a one-dimensional 
-    projection, select 'None' from the y box. The projections may be plotted in
-    a separate window, using the 'Plot' button or saved to a scratch NXdata 
-    group on the tree. If 'Sum' is checked, the projection contains the sum over
-    all the summed pixels; if not, the projection contains the average, *i.e.*, 
-    the sum divided by the number of pixels in each orthogonal dimension. If a
-    one-dimensional projection is plotted, a checkbox appears allowing
-    additional one-dimensional projections to be plotted over it.
-    
-    .. image:: /images/projection.png
-       :align: center
-       :width: 75%
-
-    .. note:: Projections are now averaged over the summed bins by default. To
-              restore the previous behavior, click the 'Sum' checkbox.
-    
-    The projection tab also contains a button to open a separate projection 
-    panel. The panel is more convenient when making a systematic exploration of 
-    different projections limits and provides pixel accuracy in computing 
-    projections. The x and y limits of the plot are displayed as a dashed 
-    rectangle, which can be hidden if preferred. If 'Sum Projections' is 
-    checked, the projection contains the sum over the axes orthogonal to the 
-    plotting axes. Otherwise, it contains the average.
-  
-    .. image:: /images/projection-panel.png
-       :align: center
-       :width: 90%
-
-    .. note:: The projection panel can also be used to mask and unmask data 
-              within the dashed rectangle. See :doc:`pythonshell` for 
-              descriptions of masked arrays.
-
-    .. note:: Each plotting window can have a separate projection panel in a 
-              tabbed interface. 
+    projection, select 'None' from the y box. This is a short-cut to making
+    projections with the Projection Panel.
   
 **Options Tab**
 
-    .. image:: /images/options-tab.png
+    .. imageRe: [lmfit/lmfit-py] Documentation/docstring updates and code cleanup (#653):: /images/options-tab.png
        :align: center
        :width: 90%
 
@@ -657,13 +692,16 @@ and sliders.
       to fill the available space or setting the x and y scales to be equal. 
       This is only valid if the units of the x and y axes are identical.
     * **Subplot** - configures the spacing around the plot. 
+    * **Edit** - opens the Customize Panel to edit both image and point plots. 
+      Use this to change the title and axis labels, modify the image aspect 
+      ratio and skew angles, turn axis grids on or off and set their styles, 
+      modify the point plot markers and lines, scale or add an offset to 1D
+      plots, and draw legends.
     * **Save** - saves plot to PNG file.
+    * **Export** - exports plotted data to a NeXus file or, for one-dimensional
+      data, a multi-column ASCII file.
     * **Add** - adds plotted data to the tree pane as an NXdata group within the
       scratch workspace 'w0'.
-    * **Edit** - opens dialog to customize both image and point plots. Use this
-      to change the title and axis labels, modify the image aspect ratio and 
-      skew angles, turn axis grids on or off and set their styles, modify the 
-      point plot markers and lines, and draw legends.
 
     On the far right of the toolbar, the data and axis values are dynamically 
     updated to the values under the current mouse location.
@@ -874,36 +912,100 @@ edit the configuration file in ~/.nexpy/config.py.
 
 Fitting NeXus Data
 ------------------
-It is possible to fit one-dimensional data using the non-linear least-squares 
-fitting package, `lmfit-py <http://newville.github.io/lmfit-py>`_, by selecting 
-a group on the tree and choosing "Fit Data" from the Data menu or by 
-right-clicking on the group. This opens a dialog window that allows multiple 
-functions to be combined, with the option of fixing or limiting parameters. 
+NeXpy makes it easy to fit one-dimensional data using the 
+`LMFIT package <https://lmfit.github.io/lmfit-py/>`_, with a 'Fit' button in
+the Y-Tab of every one-dimensional plot. Alternatively, choosing 'Fit Data' from
+the Data menu or using the keyboard shortcut Ctrl+Shift+F (⌘+⇧+F on a Mac), 
+will fit data selected in the Tree Pane.
+
+Either method opens a dialog window that allows multiple fit models to be 
+combined, with the option of fixing or limiting parameters. To help in 
+selecting a model, click on the pull-down menu and the model description will 
+be displayed as a tooltip when you hover over it.
 
 .. image:: /images/nexpy-fits.png
    :align: center
    :width: 90%
 
-The fit can be plotted, along with the constituent functions, in the main
-plotting window and the fitting parameters displayed in a message window.
+The fit can be plotted, along with the constituent models in the main
+plotting window and the fitting parameters displayed in a message window. 
 
 .. note:: The fit is only performed over the range set by the X-axis limits 
           entered in the Fit Dialog. These values can be changed between
           fits if required, or reset to the overall range of the data using the
           ``Reset Limits`` button.
 
-.. note:: With v0.10.6, the keyboard shortcuts 'l' and 'r' can 
-          be used to set the X-axis limits in the fit dialog to the current 
-          cursor position in the canvas.
+.. note:: When the plotting window is selected, the keyboard shortcuts 'l' and 
+          'r' can be used to set the X-axis limits in the fit dialog to the 
+          current cursor position in the canvas. Alternatively, the range can 
+          be selected by dragging with the right-mouse button (or with the 
+          Ctrl-key depressed).
 
-The original data, the fitted data, constituent functions, and the parameters
-can all be saved to an NXentry group in the Tree Pane for subsequent plotting, 
-refitting, or saving to a NeXus file. The group is an NXentry group, with name 
-'f1', 'f2', etc., stored in the default scratch NXroot group, w0. If you choose 
-to fit this entry again, it will load the functions and parameters from the 
+.. warning:: Some of the LMFIT functions have an additional option that is 
+             selected with the 'form' keyword. At present, the default 
+             option is automatically selected in NeXpy.
+
+Saving the Fit
+^^^^^^^^^^^^^^^^
+The original data, the fitted data, constituent models, and the parameters
+can all be saved to an NXprocess group in the Tree Pane for subsequent plotting, 
+refitting, or saving to a NeXus file. The group, named 'f1', 'f2', etc., 
+is stored in the default scratch NXroot group, w0. If you choose 
+to fit this entry again, it will load the models and parameters from the 
 saved fit.
 
-Defining a function
+Defining a Model
+^^^^^^^^^^^^^^^^
+NeXpy makes available any of the models currently supplied by the `LMFIT 
+package <https://lmfit.github.io/lmfit-py/>`_, as well as a couple of extra
+models added to the NeXpy package, the OrderParameterModel and the 
+PDFdecayModel. If you wish to construct your own model, please refer to the
+LMFIT documentation for more details. 
+
+User-defined models can be added as separate files to their private models 
+directory in ``~/.nexpy/models`` (new to v0.12.6). As an example, here is the 
+code for the OrderParameterModel that is distributed with NeXpy::
+
+    import numpy as np
+
+    from lmfit.model import Model
+
+    class OrderParameterModel(Model):
+        r"""A model to describe the temperature dependence of an order parameter
+        with three Parameters: ``amplitude``, ``Tc``, and ``beta``.
+
+        .. math::
+
+            f(x; A, Tc, \beta) = A ((Tc - x[x<Tc])/ Tc)^\beta
+
+        where the parameter ``amplitude`` corresponds to :math:`A`, ``Tc`` to 
+        :math:`Tc`, and ``beta`` to :math:`\beta`. 
+        """
+        def __init__(self, **kwargs):
+
+            def op(x, amplitude=1.0, Tc=100.0, beta=0.5):
+                v = np.zeros(x.shape)
+                v[x<Tc] = amplitude * ((Tc - x[x<Tc])/ Tc)**beta
+                v[x>=Tc] = 0.0
+                return v
+
+            super().__init__(op, **kwargs)
+
+        def guess(self, data, x=None, negative=False, **kwargs):
+            """Estimate initial model parameter values from data."""
+            return self.make_params(amplitude=data.max(), Tc=x.mean(), beta=0.33)
+
+
+.. warning:: Prior to v0.12.6, NeXpy defined its own system for generating 
+             fitting functions. This system is now deprecated, but legacy 
+             functions are still available at the end of the model list. If you
+             have produced your own functions in the past, they will also be on
+             this list. However, we recommend that all new functions now adhere
+             to LMFIT model definitions. The following description of the old
+             system is retained to help with debugging or migrating to the new
+             system.
+
+Defining a Function
 ^^^^^^^^^^^^^^^^^^^
 User-defined functions can be added to their private functions directory in 
 ``~/.nexpy/functions``. The file must define the name of the function, a list of 
@@ -945,10 +1047,6 @@ be entered manually before the fit in those cases.
 
 .. note:: The X-range used in 'guessing' the parameters can be adjusted by 
           setting the X-axis limits in the Fit Dialog.
-
-.. note:: With v0.10.6, the keyboard shortcuts 'l' and 'r' can 
-          be used to set the X-axis limits in the fit dialog to the current 
-          cursor position in the canvas.
 
 Importing NeXus Data
 --------------------

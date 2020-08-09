@@ -12,6 +12,7 @@ import numpy as np
 
 function_name = 'PseudoVoigt'
 parameters = ['Integral', 'Gamma', 'Sigma', 'Center']
+hints = [1.0, 1.0, 1.0, 0.0]
 
 integral_factor = np.sqrt(2*np.pi)
 sigma_factor = np.sqrt(2*np.log(2))

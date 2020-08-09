@@ -1,39 +1,44 @@
 package:
   name: nexpy
-  version: "0.12.4"
+  version: "0.12.7"
 
 source:
   git_url: https://github.com/nexpy/nexpy.git
-  git_tag: v0.12.4
+  git_tag: v0.12.7
 
 build:
   entry_points:
     - nexpy = nexpy.nexpygui:main
   number: 0
+  noarch: generic
 
 requirements:
   build:
     - python
     - setuptools
-    - nexusformat >=0.5.1
+    - nexusformat >=0.5.3
     - numpy
     - scipy
     - h5py
     - qtpy
     - qtconsole
     - matplotlib
+    - lmfit
     - six
     - ansi2html
+    - pylatexenc
+    - pillow
 
   run:
     - python
-    - nexusformat >=0.5.1
+    - nexusformat >=0.5.3
     - numpy
     - scipy
     - h5py
     - qtpy
     - qtconsole
     - matplotlib
+    - lmfit
     - ansi2html
 
 test:
@@ -49,8 +54,14 @@ test:
 
   commands:
     - nexpy --help
+    - pylatexenc
+    - pillow
 
 about:
-  home: http://nexpy.github.io/nexpy/
-  license: BSD License
-  summary: 'NeXpy: A Python GUI to analyze NeXus data'
+  home: "http://nexpy.github.io/nexpy/"
+  license: "BSD-3-Clause"
+  license_family: "BSD"
+  license_file: "COPYING"
+  summary: "NeXpy: A Python GUI to analyze NeXus data"
+  doc_url: "https://nexpy.github.io/nexpy/"
+  dev_url: "https://github.com/nexpy/nexpy"

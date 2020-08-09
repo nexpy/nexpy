@@ -48,8 +48,7 @@ class ImportDialog(BaseImportDialog):
         
         energy_layout = QtWidgets.QHBoxLayout()
         energy_label = NXLabel('Incident Energy')
-        self.energy_box = NXLineEdit()
-        self.energy_box.setFixedWidth(150)
+        self.energy_box = NXLineEdit(width=150)
         energy_layout.addWidget(energy_label)
         energy_layout.addWidget(self.energy_box)
         energy_layout.addStretch()
@@ -57,11 +56,9 @@ class ImportDialog(BaseImportDialog):
 
         step_layout = QtWidgets.QHBoxLayout()
         Q_label = NXLabel('dQ')
-        self.Q_box = NXLineEdit()
-        self.Q_box.setFixedWidth(75)
+        self.Q_box = NXLineEdit(width=75)
         E_label = NXLabel('dE')
-        self.E_box = NXLineEdit()
-        self.E_box.setFixedWidth(75)
+        self.E_box = NXLineEdit(width=75)
         self.convert_box = QtWidgets.QCheckBox('Convert to S(Q,E)')
         self.convert_box.setChecked(False)
         step_layout.addWidget(self.convert_box)

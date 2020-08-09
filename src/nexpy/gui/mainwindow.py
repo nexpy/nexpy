@@ -40,6 +40,7 @@ from .. import __version__
 from .treeview import NXTreeView
 from .plotview import NXPlotView
 from .datadialogs import *
+from .fitdialogs import FitDialog
 from .scripteditor import NXScriptWindow, NXScriptEditor
 from .utils import confirm_action, report_error, display_message, is_file_locked
 from .utils import natural_sort, import_plugin, timestamp
@@ -100,10 +101,9 @@ class MainWindow(QtWidgets.QMainWindow):
 
         rightpane = QtWidgets.QWidget()
 
+        self.dialogs = []
         self.panels = {}
         main_plotview = NXPlotView(label="Main", parent=self)
-        self.editors = NXScriptWindow(self)
-        self.editors.setVisible(False)
         self.log_window = None
         self._memroot = None
 
@@ -1135,7 +1135,7 @@ class MainWindow(QtWidgets.QMainWindow):
                              key=natural_sort)
             if len(nxfiles) == 0:
                 raise NeXusError("No NeXus files found in directory")
-            dialog = DirectoryDialog(nxfiles, directory)
+            dialog = DirectoryDialog(nxfiles, directory, parent=self)
             dialog.show()
         except NeXusError as error:
             report_error("Opening Directory", error)
@@ -1595,8 +1595,9 @@ class MainWindow(QtWidgets.QMainWindow):
     def view_data(self):
         try:
             node = self.treeview.get_node()
-            self.viewdialog = ViewDialog(node, parent=self)
-            self.viewdialog.show()
+            if not self.panel_is_running('View'):
+                self.panels['View'] = ViewDialog()
+            self.panels['View'].activate(node)
         except NeXusError as error:
             report_error("Viewing Data", error)
 
@@ -1812,30 +1813,24 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def fit_data(self):
         try:
-            try:
-                from .fitdialogs import FitDialog
-            except ImportError:
-                logging.info("The lmfit module is not installed")
-                raise NeXusError("Please install the 'lmfit' module")
             node = self.treeview.get_node()
             if node is None:
                 return
             elif ((isinstance(node, NXentry) or isinstance(node, NXprocess)) and 
-                  node.nxtitle == 'Fit Results'):
-                group = node
-                if not group.data.is_plottable():
-                    raise NeXusError("NeXus item not plottable")
+                  node.nxtitle.startswith('Fit')):
+                if 'data' in node and node['data'].ndim > 1:
+                    raise NeXusError(
+                                "Fitting only enabled for one-dimensional data")
             elif isinstance(node, NXdata):
-                group = NXentry(data=node, title=node.nxtitle)
+                if node.ndim > 1:
+                    raise NeXusError(
+                                "Fitting only enabled for one-dimensional data")
             else:
                 raise NeXusError("Select an NXdata group")
-            if len(group.data.nxsignal.shape) == 1:
-                self.fitdialog = FitDialog(group)
-                self.fitdialog.show()
-                logging.info("Fitting invoked on'%s'" % node.nxpath)
-            else:
-                raise NeXusError(
-                    "Fitting only enabled for one-dimensional data")
+            if 'Fit' not in self.panels:
+                self.panels['Fit'] = FitDialog()
+            self.panels['Fit'].activate(node)
+            logging.info("Fitting invoked on'%s'" % node.nxpath)
         except NeXusError as error:
             report_error("Fitting Data", error)
 
@@ -2050,9 +2045,15 @@ class MainWindow(QtWidgets.QMainWindow):
         new_plotview = NXPlotView(parent=self)
 
     def close_window(self):
-        for w in [w for w in self.app.app.topLevelWidgets() if w.isActiveWindow()]:
-            w.close()
-            break
+        windows = self.dialogs
+        windows += [self.plotviews[pv] for pv in self.plotviews if pv != 'Main']
+        for window in windows:
+            try:
+                if window.isActiveWindow():
+                    window.close()
+                    break
+            except Exception:
+                pass
 
     def equalize_windows(self):
         for label in [label for label in self.plotviews 
@@ -2099,69 +2100,84 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def show_log(self):
         try:
-            if self.log_window:
+            if self.log_window in self.dialogs:
                 self.log_window.show_log()
             else:
                 self.log_window = LogDialog(parent=self)
         except NeXusError as error:
             report_error("Showing Log File", error)
 
+    def panel_is_running(self, panel):
+        if panel in self.panels:
+            if self.panels[panel].is_running():
+                return True
+            else:
+                self.panels[panel].close()
+                return False
+        else:
+            return False
+
     def show_customize_panel(self):
         try:
-            if 'customize' not in self.panels:
-                self.panels['customize'] = CustomizeDialog(parent=self)
-            self.panels['customize'].activate(self.active_plotview.label)
+            if not self.panel_is_running('Customize'):
+                self.panels['Customize'] = CustomizeDialog()
+            self.panels['Customize'].activate(self.active_plotview.label)
         except NeXusError as error:
             report_error("Showing Customize Panel", error)
 
     def show_limits_panel(self):
         try:
-            if 'limit' not in self.panels:
-                self.panels['limit'] = LimitDialog(parent=self)
-            self.panels['limit'].activate(self.active_plotview.label)
+            if not self.panel_is_running('Limit'):
+                self.panels['Limit'] = LimitDialog()
+            self.panels['Limit'].activate(self.active_plotview.label)
         except NeXusError as error:
             report_error("Showing Limits Panel", error)
 
     def show_projection_panel(self):
         if self.active_plotview.label == 'Projection' or self.plotview.ndim == 1:
-            if ('projection' in self.panels and 
-                self.panels['projection'].isVisible()):
-                self.panels['projection'].raise_()
-                self.panels['projection'].activateWindow()
+            if ('Projection' in self.panels and 
+                self.panels['Projection'].isVisible()):
+                self.panels['Projection'].raise_()
+                self.panels['Projection'].activateWindow()
             return
         try:
-            if 'projection' not in self.panels:
-                self.panels['projection'] = ProjectionDialog(parent=self)
-            self.panels['projection'].activate(self.active_plotview.label)
+            if not self.panel_is_running('Projection'):
+                self.panels['Projection'] = ProjectionDialog()
+            self.panels['Projection'].activate(self.active_plotview.label)
         except NeXusError as error:
             report_error("Showing Projection Panel", error)
 
     def show_scan_panel(self):
         if self.plotview.label == 'Projection':
-            if 'scan' in self.panels and self.panels['scan'].isVisible():
-                self.panels['scan'].raise_()
-                self.panels['scan'].activateWindow()
+            if 'Scan' in self.panels:
+                self.panels['Scan'].raise_()
+                self.panels['Scan'].activateWindow()
             return
         try:
-            if 'scan' not in self.panels:
-                self.panels['scan'] = ScanDialog(parent=self)
-            self.panels['scan'].activate(self.plotview.label)
+            if not self.panel_is_running('Scan'):
+                self.panels['Scan'] = ScanDialog()
+            self.panels['Scan'].activate(self.plotview.label)
         except NeXusError as error:
             report_error("Showing Scan Panel", error)
 
     def show_script_window(self):
-        if self.editors.tabs.count() == 0:
+        if not self.panel_is_running('Editor'):
+            self.panels['Editor'] = NXScriptWindow()
+        if self.panels['Editor'].count == 0:
             self.new_script()
         else:
-            self.editors.setVisible(True)
-            self.editors.raise_()
+            self.panels['Editor'].raise_()    
+            self.panels['Editor'].activateWindow()
+
+    def open_script_window(self, file_name):
+        if 'Editor' not in self.panels:
+            self.panels['Editor'] = NXScriptWindow()
+        self.panels['Editor'].activate(file_name)
 
     def new_script(self):
         try:
             file_name = None
-            editor = NXScriptEditor(file_name, parent=self)
-            self.editors.setVisible(True)
-            self.editors.raise_()
+            self.open_script_window(file_name)
             logging.info("Creating new script")
         except NeXusError as error:
             report_error("Editing New Script", error)
@@ -2174,9 +2190,7 @@ class MainWindow(QtWidgets.QMainWindow):
             file_name = getOpenFileName(self, 'Open Script', script_dir,
                                         file_filter)
             if file_name:
-                editor = NXScriptEditor(file_name, self)
-                self.editors.setVisible(True)
-                self.editors.raise_()
+                self.open_script_window(file_name)
                 logging.info("NeXus script '%s' opened" % file_name)
         except NeXusError as error:
             report_error("Editing Script", error)
@@ -2184,10 +2198,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def open_script_file(self):
         try:
             file_name = self.scripts[self.sender()]
-            dialog = NXScriptEditor(file_name, self)
-            dialog.show()
-            self.editors.setVisible(True)
-            self.editors.raise_()
+            self.open_script_window(file_name)
             logging.info("NeXus script '%s' opened" % file_name)
         except NeXusError as error:
             report_error("Opening Script", error)
@@ -2236,9 +2247,11 @@ class MainWindow(QtWidgets.QMainWindow):
         file_name = getOpenFileName(self, 'Open Script', script_dir,
                                     file_filter)
         if file_name:
+            if self.scriptwindow is None:
+                self.scriptwindow = NXScriptWindow(self)
             editor = NXScriptEditor(file_name, self)
-            self.editors.setVisible(True)
-            self.editors.raise_()
+            self.scriptwindow.setVisible(True)
+            self.scriptwindow.raise_()
             logging.info("NeXus script '%s' opened" % file_name)
 
     # minimize/maximize/fullscreen actions:
@@ -2379,14 +2392,23 @@ class MainWindow(QtWidgets.QMainWindow):
     def quickref_console(self):
         self.console.execute("%quickref")
 
+    def close_widgets(self):
+        windows = self.dialogs
+        windows += [self.plotviews[pv] for pv in self.plotviews if pv != 'Main']
+        for window in windows:
+            try:
+                window.close()
+            except:
+                pass        
+
     def closeEvent(self, event):
         """Customize the close process to confirm request to quit NeXpy."""
         if confirm_action("Are you sure you want to quit NeXpy?", 
                           icon=self.app.icon_pixmap):
-            logging.info('NeXpy closed\n'+80*'-')
             self.console.kernel_client.stop_channels()
             self.console.kernel_manager.shutdown_kernel()
-            self._app.closeAllWindows()
+            self.close_widgets()
+            logging.info('NeXpy closed\n'+80*'-')
             self._app.quit()
             return event.accept()
         else:

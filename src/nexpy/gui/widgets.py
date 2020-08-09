@@ -23,10 +23,13 @@ from matplotlib.patches import Circle, Ellipse, Polygon, Rectangle
 
 from .pyqt import QtCore, QtGui, QtWidgets
 from .utils import (report_error, boundaries, get_color, format_float,
-                    find_nearest)
+                    find_nearest, natural_sort)
 
 
 warnings.filterwarnings("ignore", category=cbook.mplDeprecation)
+
+bold_font = QtGui.QFont()
+bold_font.setBold(True)
 
 
 class NXStack(QtWidgets.QWidget):
@@ -56,6 +59,7 @@ class NXStack(QtWidgets.QWidget):
         super(NXStack, self).__init__(parent=parent)
         self.layout = QtWidgets.QVBoxLayout()
         self.stack = QtWidgets.QStackedWidget(self)
+        self.widgets = dict(zip(labels, widgets))
         self.box = NXComboBox(slot=self.stack.setCurrentIndex, items=labels)
         for widget in widgets:
             self.stack.addWidget(widget)
@@ -77,7 +81,24 @@ class NXStack(QtWidgets.QWidget):
         self.box.addItem(label)
         self.stack.addWidget(widget)
 
+    def remove(self, label):
+        if label in self.widgets:
+            self.stack.removeWidget(self.widgets[label])
+            del self.widgets[label]
+        self.box.remove(label)
 
+
+class NXSortModel(QtCore.QSortFilterProxyModel):
+
+    def __init__(self, parent=None):
+        super(NXSortModel, self).__init__(parent)
+
+    def lessThan(self, left, right):
+        left_text = self.sourceModel().itemFromIndex(left).text()
+        right_text = self.sourceModel().itemFromIndex(right).text()
+        return natural_sort(left_text) < natural_sort(right_text)
+
+    
 class NXScrollArea(QtWidgets.QScrollArea):
     """Scroll area embedding a widget."""
 
@@ -96,13 +117,15 @@ class NXScrollArea(QtWidgets.QScrollArea):
             self.setWidget(widget)
         if not horizontal:
             self.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        self.setWidgetResizable(True)
+        self.setSizePolicy(QtWidgets.QSizePolicy.Minimum,
+                           QtWidgets.QSizePolicy.Expanding)
+
 
     def setWidget(self, widget):
         super(NXScrollArea, self).setWidget(widget)
         widget.setMinimumWidth(widget.sizeHint().width() +
                                self.verticalScrollBar().sizeHint().width())
-        widget.setSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding,
-                             QtWidgets.QSizePolicy.Preferred)
     
 
 class NXLabel(QtWidgets.QLabel):
@@ -113,6 +136,37 @@ class NXLabel(QtWidgets.QLabel):
     after any programmatic changes.
     """
 
+    def __init__(self, text=None, parent=None, bold=False, width=None, 
+                 align='left'):
+        """Initialize the edit window and optionally set the alignment
+        
+        Parameters
+        ----------
+        text : str, optional
+            The default text.
+        parent : QWidget
+            Parent of the NXLineEdit box.
+        bold : bool, optional
+            True if the label text is bold, default False.
+        width : int, optional
+            Fixed width of label.
+        align : 'left', 'center', 'right'
+            Alignment of text.
+        """
+        super(NXLabel, self).__init__(parent=parent)
+        if text:
+            self.setText(text)
+        if bold:
+            self.setFont(bold_font)
+        if width:
+            self.setFixedWidth(width)
+        if align == 'left':
+            self.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
+        elif align == 'center':
+            self.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)            
+        elif align == 'right':
+            self.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
+
     def setText(self, text):
         """Function to set the text in the box.
 
@@ -121,7 +175,7 @@ class NXLabel(QtWidgets.QLabel):
         text : str
             Text to replace the text box contents.
         """
-        super(NXLabel, self).setText(text)
+        super(NXLabel, self).setText(str(text))
         self.repaint()
 
 
@@ -133,6 +187,35 @@ class NXLineEdit(QtWidgets.QLineEdit):
     after any programmatic changes.
     """
 
+    def __init__(self, text=None, parent=None, slot=None, width=None, 
+                 align='left'):
+        """Initialize the edit window and optionally set the alignment
+        
+        Parameters
+        ----------
+        text : str, optional
+            The default text.
+        parent : QWidget
+            Parent of the NXLineEdit box.
+        slot: func, optional
+            Slot to be used for editingFinished signals.
+        right : bool, optional
+            If True, make the box text right-aligned.        
+        """
+        super(NXLineEdit, self).__init__(parent=parent)
+        if slot:
+            self.editingFinished.connect(slot)
+        if text:
+            self.setText(text)
+        if width:
+            self.setFixedWidth(width)
+        if align == 'left':
+            self.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
+        elif align == 'center':
+            self.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)            
+        elif align == 'right':
+            self.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
+
     def setText(self, text):
         """Function to set the text in the box.
 
@@ -141,7 +224,7 @@ class NXLineEdit(QtWidgets.QLineEdit):
         text : str
             Text to replace the text box contents.        
         """
-        super(NXLineEdit, self).setText(text)
+        super(NXLineEdit, self).setText(str(text))
         self.repaint()
 
 
@@ -167,6 +250,22 @@ class NXTextBox(NXLineEdit):
             Text box value to be formatted as a float        
         """
         self.setText(str(float('%.4g' % value)))
+
+
+class NXMessageBox(QtWidgets.QMessageBox):
+    """A scrollable message box"""
+
+    def __init__(self, title, text, *args, **kwargs):
+        super(NXMessageBox, self).__init__(*args, **kwargs)
+        scroll = NXScrollArea(parent=self)
+        self.content = QtWidgets.QWidget()
+        scroll.setWidget(self.content)
+        scroll.setWidgetResizable(True)
+        layout = QtWidgets.QVBoxLayout(self.content)
+        layout.addWidget(NXLabel(title, bold=True))
+        layout.addWidget(NXLabel(text, self))
+        self.layout().addWidget(scroll, 0, 0, 1, self.layout().columnCount())
+        self.setStyleSheet("QScrollArea{min-width:300 px; min-height: 400px}")
 
 
 class NXComboBox(QtWidgets.QComboBox):
@@ -230,17 +329,31 @@ class NXComboBox(QtWidgets.QComboBox):
         """
         for item in items:
             if item not in self:
-                self.addItem(item)
+                self.addItem(str(item))
+
+    def insert(self, idx, item):
+        """Insert item at the specified index.
+
+        Parameters
+        ----------
+        item : str or int
+            List of options to be added to the dropdown menu. 
+        idx : int
+            Index of position before which to insert item
+        """
+        if item not in self:
+            self.insertItem(idx, str(item))
 
     def remove(self, item):
         """Remove item from the list of options.
 
         Parameters
         ----------
-        item : str
+        item : str or int
             Option to be removed from the dropdown menu. 
         """
-        self.removeItem(self.findText(item))
+        if str(item) in self:
+            self.removeItem(self.findText(str(item)))
 
     def items(self):
         """Return a list of the dropdown menu options.
@@ -252,19 +365,23 @@ class NXComboBox(QtWidgets.QComboBox):
         """
         return [self.itemText(idx) for idx in range(self.count())]
 
+    def sort(self):
+        """Sorts the box items in alphabetical order."""
+        self.model().sort(0)
+
     def select(self, item):
-        """Select the option matching the text
+        """Select the option matching the text.
         
         Parameters
         ----------
         item : str
             The option to be selected in the dropdown menu.
         """
-        self.setCurrentIndex(self.findText(item))
+        self.setCurrentIndex(self.findText(str(item)))
 
     @property
     def selected(self):
-        """Return the currently selected option
+        """Return the currently selected option.
         
         Returns
         -------
@@ -361,7 +478,10 @@ class NXColorButton(QtWidgets.QPushButton):
 
     def __init__(self, parent=None):
         super(NXColorButton, self).__init__(parent)
-        self.setFixedSize(20, 20)
+        self.setFixedWidth(18)
+        self.setStyleSheet("width:18px; height:18px; "
+                           "margin: 0px; border: 0px; padding: 0px;"
+                           "background-color: white")
         self.setIconSize(QtCore.QSize(12, 12))
         self.clicked.connect(self.choose_color)
         self._color = QtGui.QColor()
@@ -402,7 +522,7 @@ class NXColorBox(QtWidgets.QWidget):
         Color button consisting of a colored icon.
     """
 
-    def __init__(self, color='#ffffff', parent=None):
+    def __init__(self, color='#ffffff', label=None, width=None, parent=None):
         """Initialize the text and color box.
 
         The selected color can be changed by entering a valid text string or 
@@ -422,9 +542,13 @@ class NXColorBox(QtWidgets.QWidget):
         color = self.qcolor(self.color_text)
         self.layout = QtWidgets.QHBoxLayout()
         self.layout.setContentsMargins(0, 0, 0, 0)
+        if label:
+            self.layout.addStretch()
+            self.layout.addWidget(NXLabel(label))
         self.textbox = NXLineEdit(colors.to_hex(color.getRgbF(),
-                                  keep_alpha=True), parent)
-        self.textbox.editingFinished.connect(self.update_color)
+                                                keep_alpha=True),
+                                  parent=parent, slot=self.update_color, 
+                                  width=width, align='right')
         self.layout.addWidget(self.textbox)
         self.button = NXColorButton(parent)
         self.button.color = color
@@ -773,7 +897,6 @@ class NXpatch(object):
         self.press = None
         self.background = None
         self.allow_resize = resize
-        self._active = None
         self.plotview.ax.add_patch(self.shape)
 
     def connect(self):
@@ -859,7 +982,7 @@ class NXcircle(NXpatch):
     def __init__(self, x, y, r, border_tol=0.1, resize=True, plotview=None, 
                  **opts):
         x, y, r = float(x), float(y), float(r)
-        shape = Ellipse((x,y), r, r, **opts)
+        shape = Ellipse((x,y), 2*r, 2*r, **opts)
         if 'linewidth' not in opts:
             shape.set_linewidth(1.0)
         if 'facecolor' not in opts:
