@@ -2,13 +2,12 @@
 # -*- coding: utf-8 -*-
 
 #-----------------------------------------------------------------------------
-# Copyright (c) 2013-2014, NeXpy Development Team.
+# Copyright (c) 2013-2020, NeXpy Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file COPYING, distributed with this software.
 #-----------------------------------------------------------------------------
-from __future__ import print_function
 
 def main():
 

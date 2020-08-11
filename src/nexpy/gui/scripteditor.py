@@ -2,16 +2,12 @@
 # -*- coding: utf-8 -*-
 
 #-----------------------------------------------------------------------------
-# Copyright (c) 2013, NeXpy Development Team.
+# Copyright (c) 2013-2020, NeXpy Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file COPYING, distributed with this software.
 #-----------------------------------------------------------------------------
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-import six
-
 import os
 import sys
 import tempfile
@@ -77,10 +73,10 @@ class Highlighter(QtGui.QSyntaxHighlighter):
         Takes a block and applies format to the document. 
         """
         
-        text=six.text_type(self.document().toPlainText())+'\n'
+        text=str(self.document().toPlainText())+'\n'
         pygments.highlight(text, self.lexer, self.formatter)
         p = self.currentBlock().position()
-        for i in range(len(six.text_type(text))):
+        for i in range(len(str(text))):
             try:
                 self.setFormat(i, 1, self.formatter.data[p+i])
             except IndexError:

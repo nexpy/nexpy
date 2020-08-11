@@ -1,4 +1,13 @@
 # -*- coding: utf-8 -*-
+
+#-----------------------------------------------------------------------------
+# Copyright (c) 2013-2020, NeXpy Development Team.
+#
+# Distributed under the terms of the Modified BSD License.
+#
+# The full license is in the file COPYING, distributed with this software.
+#-----------------------------------------------------------------------------
+
 """
 Plotting modules.
 
@@ -15,12 +24,6 @@ plotviews : dict
     keys are defined by the 
     
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-import six
-
-from .pyqt import QtCore, QtGui, QtWidgets, QtVersion
-
 import numbers
 import numpy as np
 import os
@@ -29,6 +32,8 @@ import sys
 import warnings
 
 from posixpath import dirname, basename
+
+from .pyqt import QtCore, QtGui, QtWidgets, QtVersion
 
 import matplotlib as mpl
 from matplotlib.backend_bases import (FigureManagerBase, FigureCanvasBase,
@@ -613,8 +618,8 @@ class NXPlotView(QtWidgets.QDialog):
     def save_plot(self):
         """Open a dialog box for saving the plot as a PNG file."""
         file_choices = "PNG (*.png)|*.png"
-        path = six.text_type(QtWidgets.QFileDialog.getSaveFileName(self,
-                             'Save file', '', file_choices))
+        path = str(QtWidgets.QFileDialog.getSaveFileName(self, 'Save file', '', 
+                                                         file_choices))
         if path:
             self.canvas.print_figure(path, dpi=self.dpi)
             self.statusBar().showMessage('Saved to %s' % path, 2000)
@@ -950,12 +955,11 @@ class NXPlotView(QtWidgets.QDialog):
 
         self.image = None
         self.colorbar = None
-        if six.PY3:
-            try:
-                import mplcursors
-                self.mplcursor = mplcursors.cursor(ax.get_lines())
-            except ImportError:
-                self.mplcursor = None           
+        try:
+            import mplcursors
+            self.mplcursor = mplcursors.cursor(ax.get_lines())
+        except ImportError:
+            self.mplcursor = None           
 
     def get_image(self):
         """Initialize the plot's signal and axis values.
@@ -1197,7 +1201,7 @@ class NXPlotView(QtWidgets.QDialog):
             self.plotdata = self.data.project(axes, limits, summed=self.summed)
         except Exception:
             self.ztab.pause()
-            six.reraise(*sys.exc_info())
+            reraise(*sys.exc_info())
         self.plotdata.title = self.title
         self.x, self.y, self.v = self.get_image()
         if newaxis:
@@ -1587,9 +1591,9 @@ class NXPlotView(QtWidgets.QDialog):
             if np.isclose(_skew_angle, 0.0) or np.isclose(_skew_angle, 90.0):
                 _skew_angle = None
         except (ValueError, TypeError):
-            if (skew_angle is None or six.text_type(skew_angle) == '' or 
-                six.text_type(skew_angle) == 'None' or 
-                six.text_type(skew_angle) == 'none'):
+            if (skew_angle is None or str(skew_angle) == '' or 
+                str(skew_angle) == 'None' or 
+                str(skew_angle) == 'none'):
                 _skew_angle = None
             else:
                 return
@@ -3317,7 +3321,7 @@ class NXPlotTab(QtWidgets.QWidget):
                 self.pause()
         except Exception:
             self.pause()
-            six.reraise(*sys.exc_info())                        
+            reraise(*sys.exc_info())                        
 
     def playback(self):
         if self.plotview.ndim < 3:
@@ -3335,7 +3339,7 @@ class NXPlotTab(QtWidgets.QWidget):
             self.playforward_action.setChecked(False)
         except Exception:
             self.pause()
-            six.reraise(*sys.exc_info())            
+            reraise(*sys.exc_info())            
 
     def pause(self):
         self.playsteps = 0
@@ -3359,7 +3363,7 @@ class NXPlotTab(QtWidgets.QWidget):
             self.playback_action.setChecked(False)
         except Exception:
             self.pause()
-            six.reraise(*sys.exc_info())            
+            reraise(*sys.exc_info())            
             
 
 class NXProjectionTab(QtWidgets.QWidget):
