@@ -11,7 +11,7 @@ directly from the Scripts Menu.
 **example.py**
 
 A simple script to create a NeXus tree containing a two-dimensional function
-of Numpy arrays. A similar example is given in the NeXpy documentation.
+of NumPy arrays. A similar example is given in the NeXpy documentation.
 
 **chopper_plot.py**
 
