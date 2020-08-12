@@ -96,14 +96,9 @@ def get_models():
                 if issubclass(m, Model) and n != 'Model'))
         except ImportError:
             pass
-    from lmfit import models as lmfit_models
-    models.update(dict((n, m) 
-                  for n, m in inspect.getmembers(lmfit_models, inspect.isclass) 
-                  if issubclass(m, Model) and n != 'Model'))
-
-    for model in ['DonaichModel', 'ExpressionModel']:
-        if model in models:
-            del models[model]
+    from lmfit.models import lmfit_models
+    models.update(lmfit_models)
+    del models['Expression']
 
     return models
 
@@ -134,6 +129,8 @@ all_methods = get_methods()
 
 
 class NXModel(Model):
+
+    valid_forms = ()
 
     def __init__(self, module, **kwargs):
         self.module = module
@@ -218,7 +215,9 @@ class FitTab(NXTab):
 
         self.initialize_models()
  
-        self.modelcombo = NXComboBox(items=list(self.all_models))
+        add_button = NXPushButton("Add Model", self.add_model)
+        self.modelcombo = NXComboBox(items=list(self.all_models), 
+                                     slot=self.choose_model)
         if 'GaussianModel' in self.modelcombo:
             self.modelcombo.select('GaussianModel')
         try:
@@ -233,9 +232,10 @@ class FitTab(NXTab):
                 tooltip = re.sub(r'\:[a-z]*\:', r'', tooltip)
                 self.modelcombo.setItemData(i, text(tooltip), 
                                             QtCore.Qt.ToolTipRole)
-        add_button = NXPushButton("Add Model", self.add_model)
-        model_layout = self.make_layout(self.modelcombo, add_button, 
-                                        align='left')
+        self.formcombo = NXComboBox()
+        self.formcombo.setVisible(False)
+        model_layout = self.make_layout(add_button, self.modelcombo, 
+                                        self.formcombo, align='left')
         
         self.parameter_layout = self.initialize_parameter_grid()
 
@@ -549,11 +549,20 @@ class FitTab(NXTab):
     def get_model_instance(self, model_class, prefix=None):
         if isinstance(self.all_models[model_class], types.ModuleType):
             return NXModel(self.all_models[model_class], prefix=prefix)
+        elif self.all_models[model_class].valid_forms:
+            return self.all_models[model_class](prefix=prefix,
+                                                form=self.formcombo.selected)
         else:
-            if model_class == 'PolynomialModel':
-                return self.all_models[model_class](7, prefix=prefix)
-            else:
-                return self.all_models[model_class](prefix=prefix)
+            return self.all_models[model_class](prefix=prefix)
+
+    def choose_model(self):
+        model_class = self.modelcombo.selected
+        if self.all_models[model_class].valid_forms:
+            self.formcombo.setVisible(True)
+            self.formcombo.clear()
+            self.formcombo.add(*self.all_models[model_class].valid_forms)
+        else:
+            self.formcombo.setVisible(False)
                
     def add_model(self):
         model_class = self.modelcombo.selected
