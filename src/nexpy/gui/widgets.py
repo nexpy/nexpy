@@ -205,7 +205,7 @@ class NXLineEdit(QtWidgets.QLineEdit):
         super(NXLineEdit, self).__init__(parent=parent)
         if slot:
             self.editingFinished.connect(slot)
-        if text:
+        if text is not None:
             self.setText(text)
         if width:
             self.setFixedWidth(width)
@@ -288,7 +288,7 @@ class NXComboBox(QtWidgets.QComboBox):
         self.setFocusPolicy(QtCore.Qt.StrongFocus)
         self.setMinimumWidth(100)
         if items:
-            self.addItems(items)
+            self.addItems(list(items))
             if default:
                 self.setCurrentIndex(self.findText(default))
         if slot:
