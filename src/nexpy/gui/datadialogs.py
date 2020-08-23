@@ -110,10 +110,10 @@ class NXWidget(QtWidgets.QWidget):
                 layout.addLayout(item)
             elif isinstance(item, QtWidgets.QWidget):
                 layout.addWidget(item)
-            elif isinstance(item, str):
-                layout.addWidget(NXLabel(item))
             elif item == 'stretch':
                 layout.addStretch()
+            elif isinstance(item, str):
+                layout.addWidget(NXLabel(item))
         if not vertical:
             if align == 'center' or align == 'left':
                 layout.addStretch()
