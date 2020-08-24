@@ -288,12 +288,20 @@ class NXComboBox(QtWidgets.QComboBox):
         self.setFocusPolicy(QtCore.Qt.StrongFocus)
         self.setMinimumWidth(100)
         if items:
-            self.addItems(list(items))
+            self.addItems([str(item) for item in items])
             if default:
                 self.setCurrentIndex(self.findText(default))
         if slot:
             self.activated.connect(slot)
 
+    def __iter__(self):
+        """Implement key iteration."""
+        return self.items().__iter__()
+            
+    def __next__(self):
+        """Implements key iteration."""
+        return self.items().__next__()
+            
     def __contains__(self, item):
         """True if the item is one of the options."""
         return item in self.items()
