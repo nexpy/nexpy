@@ -386,6 +386,7 @@ class NXComboBox(QtWidgets.QComboBox):
             The option to be selected in the dropdown menu.
         """
         self.setCurrentIndex(self.findText(str(item)))
+        self.repaint()
 
     @property
     def selected(self):
