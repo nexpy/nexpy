@@ -158,6 +158,7 @@ class ImportDialog(NXImportDialog):
                                   dtype=None, autostrip=True, encoding='utf8')
         except ValueError as error:
             report_error("Importing Text File", error)
+            self.data = None
             return
         self.data = {}
         for i,_ in enumerate(input[0]):
@@ -175,12 +176,13 @@ class ImportDialog(NXImportDialog):
 
     def customize_data(self):
         self.read_data()
-        self.fieldcombo.add(*list(self.data))
-        self.fieldcombo.select('Col1')
-        self.fieldbox.setText(self.data['Col1']['name'])
-        self.typecombo.select(self.data['Col1']['dtype'])
-        self.signalcombo.select(self.data['Col1']['signal'])
-        self.insert_layout(5, self.field_layout)
+        if self.data is not None:
+            self.fieldcombo.add(*list(self.data))
+            self.fieldcombo.select('Col1')
+            self.fieldbox.setText(self.data['Col1']['name'])
+            self.typecombo.select(self.data['Col1']['dtype'])
+            self.signalcombo.select(self.data['Col1']['signal'])
+            self.insert_layout(5, self.field_layout)
 
     def get_data(self):
         group = NXgroup(name=self.groupbox.text())
