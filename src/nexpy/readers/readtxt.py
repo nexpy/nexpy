@@ -201,7 +201,7 @@ class ImportDialog(NXImportDialog):
             name = self.data[col]['name']
             group[name] = NXfield(self.data[col]['data'], 
                                   dtype=self.data[col]['dtype'])
-            if self.header:
+            if self.header and name != self.headers[i]:
                 group[name].long_name = self.headers[i]
             if isinstance(group, NXdata):
                 if self.data[col]['signal'] == 'signal':
