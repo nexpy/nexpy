@@ -121,6 +121,11 @@ class ImportDialog(NXImportDialog):
 
     def select_class(self):
         self.groupbox.setText(self.groupcombo.selected[2:])
+        if self.groupcombo.selected not in ['NXdata', 'NXmonitor', 'NXlog']:
+            for item in ['signal', 'axis', 'errors']:
+                self.signalcombo.remove(item)
+        else:
+            self.signalcombo.add('signal', 'axis', 'errors')
 
     def select_field(self):
         col = self.fieldcombo.selected
@@ -171,8 +176,12 @@ class ImportDialog(NXImportDialog):
             if dtype not in self.data_types:
                 dtype = 'char'
             data = [c[i] for c in input]
+            signal = 'field'
+            if self.groupcombo.selected in ['NXdata', 'NXmonitor', 'NXlog']:
+                if i <= 2 and dtype != 'char':
+                    signal = ['axis', 'signal', 'errors'][i]          
             self.data['Col'+str(i+1)] = {'name': name, 'dtype': dtype,
-                                         'signal': 'field', 'data': data}
+                                         'signal': signal, 'data': data}
 
     def customize_data(self):
         self.read_data()
