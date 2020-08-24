@@ -106,7 +106,7 @@ class ImportDialog(NXImportDialog):
             self.import_file = self.get_filename()
             with open(self.import_file, 'r') as f:
                 text = f.read()
-                self.textbox.setText(text.replace('\t', ' \t\\t '))
+                self.textbox.setText(text.replace('\t', ' \t\u25B3'))
                 self.textbox.repaint()
                 self.text = []
                 for line in text.splitlines():
