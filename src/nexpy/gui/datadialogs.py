@@ -112,6 +112,8 @@ class NXWidget(QtWidgets.QWidget):
                 layout.addWidget(item)
             elif item == 'stretch':
                 layout.addStretch()
+            elif isinstance(item, str):
+                layout.addWidget(NXLabel(item))
         if not vertical:
             if align == 'center' or align == 'left':
                 layout.addStretch()
@@ -124,6 +126,8 @@ class NXWidget(QtWidgets.QWidget):
                 self.layout.addLayout(item)
             elif isinstance(item, QtWidgets.QWidget):
                 self.layout.addWidget(item)
+            elif isinstance(item, str):
+                self.layout.addWidget(NXLabel(item))
         if stretch:
             self.layout.addStretch()
 
@@ -133,6 +137,8 @@ class NXWidget(QtWidgets.QWidget):
                 self.layout.insertLayout(index, item)
             elif isinstance(item, QtWidgets.QWidget):
                 self.layout.insertWidget(index, item)
+            elif isinstance(item, str):
+                self.layout.addWidget(NXLabel(item))
 
     def spacer(self, width=0, height=0):
         return QtWidgets.QSpacerItem(width, height)
