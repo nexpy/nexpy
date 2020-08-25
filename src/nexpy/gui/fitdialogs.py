@@ -797,7 +797,8 @@ class FitTab(NXTab):
                                       params=self.parameters,
                                       weights=weights,
                                       x=self.axis,
-                                      method=self.method)
+                                      method=self.method,
+                                      nan_policy='omit')
         except Exception as error:
             report_error("Fitting Data", error)
         if self.fit:
