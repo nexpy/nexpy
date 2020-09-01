@@ -125,9 +125,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.shellview.setFocusPolicy(QtCore.Qt.ClickFocus)
 
         self.kernel = self.console.kernel_manager.kernel
-        def _abort_queues(kernel):
-            pass
-        self.kernel._abort_queues = _abort_queues
         self.shell = self.kernel.shell
         self.user_ns = self.console.kernel_manager.kernel.shell.user_ns
         self.shell.ask_exit = self.close
