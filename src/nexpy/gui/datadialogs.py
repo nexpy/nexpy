@@ -1684,15 +1684,16 @@ class ExportDialog(NXDialog):
  
         self.tabwidget = QtWidgets.QTabWidget(parent=self)
         self.tabwidget.setElideMode(QtCore.Qt.ElideLeft)
-        
 
         self.data = node
-        if self.data.ndim == 1:
+        if self.data.ndim == 1 and node.nxsignal is not None:
             self.x = node.nxaxes[0]
             self.y = node.nxsignal
             self.e = node.nxerrors
             if self.x.shape[0] > self.y.shape[0]:
                 self.x = node.nxaxes[0].centers()
+            self.fields = [f for f in [self.x, self.y, self.e] if f is not None]
+            names = [f.nxname for f in self.fields]
 
             delimiters = ['Tab', 'Space', 'Comma', 'Colon', 'Semicolon']
             self.text_options = GridParameters()
@@ -1702,13 +1703,24 @@ class ExportDialog(NXDialog):
             text_grid.setSpacing(10)
             
             text_layout = self.make_layout(text_grid,
-                                    self.checkboxes(('title', 'Title', True),
-                                                    ('header', 'Headers', True),
-                                                    ('errors', 'Errors', True)),
+                                    self.checkboxes(
+                                        ('title', 'Title', True),
+                                        ('header', 'Headers', True),
+                                        ('errors', 'Errors', True),
+                                        ('fields', 'All Fields', True)),
                                     vertical=True)
             if self.e is None:
                 self.checkbox['errors'].setChecked(False)
                 self.checkbox['errors'].setVisible(False)
+            self.all_fields = []
+            for field in [f for f in self.data.NXfield 
+                          if f.nxname not in names and f.shape == self.y.shape]:
+                self.all_fields.append(field)
+            if self.all_fields == []:
+                self.checkbox['fields'].setChecked(False)
+                self.checkbox['fields'].setVisible(False)
+            else:
+                self.all_fields = self.fields + self.all_fields
 
             self.text_tab = NXWidget(parent=self.tabwidget)
             self.text_tab.set_layout(text_layout)
@@ -1743,6 +1755,13 @@ class ExportDialog(NXDialog):
     @property
     def errors(self):
         return self.checkbox['errors'].isChecked()
+
+    @property
+    def export_fields(self):
+        if self.checkbox['fields'].isChecked():
+            return self.all_fields
+        else:
+            return self.fields
 
     @property
     def delimiter(self):
@@ -1793,23 +1812,13 @@ class ExportDialog(NXDialog):
                 header += self.data.nxtitle
                 if self.header:
                     header += '\n'            
-            if self.errors:
-                output = np.array([self.x, self.y, self.e]).T
-                if self.header:
-                    header += self.delimiter.join([self.x.nxname, 
-                                                   self.y.nxname, 
-                                                   self.e.nxname])
-                np.savetxt(fname, output, header=header, 
-                           delimiter=self.delimiter,
-                           comments='', fmt=['%g','%g','%g'])
-            else:
-                output = np.array([self.x, self.y]).T
-                if self.header:
-                    header += self.delimiter.join([self.x.nxname, 
-                                                   self.y.nxname])
-                np.savetxt(fname, output, header=header, 
-                           delimiter=self.delimiter,
-                           comments='', fmt=['%g','%g'])
+            if self.header:
+                header += self.delimiter.join([f.nxname 
+                                               for f in self.export_fields])
+            output = np.array(self.export_fields).T
+            np.set_printoptions(nanstr=' ')
+            np.savetxt(fname, output, header=header, delimiter=self.delimiter,
+                       comments='', fmt=['%s']*len(self.export_fields))
 
         logging.info("Data saved as '%s'" % fname)
         super(ExportDialog, self).accept()
