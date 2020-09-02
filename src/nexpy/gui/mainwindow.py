@@ -1312,11 +1312,8 @@ class MainWindow(QtWidgets.QMainWindow):
         try:
             node = self.treeview.get_node()
             if isinstance(node, NXdata):
-                if node.ndim == 1:
-                    dialog = ExportDialog(node, parent=self)
-                    dialog.show()
-                else:
-                    raise NeXusError("Can only export one-dimensional data")
+                dialog = ExportDialog(node, parent=self)
+                dialog.show()
             else:
                 raise NeXusError("Can only export an NXdata group")                  
         except NeXusError as error:
