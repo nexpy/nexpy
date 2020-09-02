@@ -1816,7 +1816,6 @@ class ExportDialog(NXDialog):
                 header += self.delimiter.join([f.nxname 
                                                for f in self.export_fields])
             output = np.array(self.export_fields).T
-            np.set_printoptions(nanstr=' ')
             np.savetxt(fname, output, header=header, delimiter=self.delimiter,
                        comments='', fmt=['%s']*len(self.export_fields))
 
