@@ -1815,9 +1815,10 @@ class ExportDialog(NXDialog):
             if self.header:
                 header += self.delimiter.join([f.nxname 
                                                for f in self.export_fields])
-            output = np.array(self.export_fields).T
+            output = np.array(self.export_fields).T.astype(str)
+            output[output=='%s'%np.nan] = ''
             np.savetxt(fname, output, header=header, delimiter=self.delimiter,
-                       comments='', fmt=['%s']*len(self.export_fields))
+                       comments='', fmt='%s')
 
         logging.info("Data saved as '%s'" % fname)
         super(ExportDialog, self).accept()
