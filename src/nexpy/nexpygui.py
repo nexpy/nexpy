@@ -15,13 +15,17 @@ def main():
 
     parser = argparse.ArgumentParser(description="Launch NeXpy")
 
-    parser.add_argument('filename', nargs='?', 
-                        help='NeXus file to open on launch (optional)')
+    parser.add_argument('filenames', nargs='*', 
+                        help='NeXus file(s) to open on launch (optional)')
     parser.add_argument('-v', '--version', action='version', 
                         version='%(prog)s v'+nexpy.__version__)
-    args = parser.parse_args()
+    parser.add_argument('-r', '--recover', action='store_true', 
+                        help='open files from previous session')
+    parser.add_argument('-f', '--faulthandler', action='store_true', 
+                        help='enable faulthandler for system crashes')
+    args, extra_args = parser.parse_known_args()
     from nexpy.gui.consoleapp import main
-    main(args.filename)
+    main(args, extra_args)
 
 
 if __name__ == '__main__':
