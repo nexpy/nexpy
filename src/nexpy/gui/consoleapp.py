@@ -314,15 +314,7 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
         for i, filename in enumerate(args.filenames):
             try:
                 fname = os.path.expanduser(filename)
-                name = self.window.treeview.tree.get_name(fname)
-                self.window.treeview.tree[name] = self.window.user_ns[name] \
-                                                = nxload(fname)
-                logging.info("NeXus file '%s' opened as workspace '%s'"
-                              % (fname, name))
-                if i == 0:
-                    self.window.user_ns[name].plot()
-                    self.window.treeview.select_node(
-                        self.window.treeview.tree[name])
+                self.window.load_file(fname)
             except Exception:
                 pass
 

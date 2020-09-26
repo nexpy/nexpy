@@ -1033,6 +1033,18 @@ class MainWindow(QtWidgets.QMainWindow):
         except NeXusError as error:
             report_error("Creating New Workspace", error)
 
+    def load_file(self, fname):
+        if fname in [self.tree[root].nxfilename for root in self.tree]:
+            raise NeXusError('File already open')
+            return
+        name = self.tree.get_name(fname)
+        self.tree[name] = nxload(fname)
+        self.treeview.select_node(self.tree[name])
+        self.treeview.setFocus()
+        self.default_directory = os.path.dirname(fname)
+        logging.info("NeXus file '%s' opened as workspace '%s'" % (fname, name))
+        self.update_files(fname)
+
     def open_file(self):
         try:
             fname = getOpenFileName(self, 'Open File (Read Only)',
@@ -1042,14 +1054,7 @@ class MainWindow(QtWidgets.QMainWindow):
                     logging.info(
                     "NeXus file '%s' is locked by an external process." % fname)
                     return
-                name = self.tree.get_name(fname)
-                self.tree[name] = nxload(fname)
-                self.treeview.select_node(self.tree[name])
-                self.treeview.setFocus()
-                self.default_directory = os.path.dirname(fname)
-                logging.info("NeXus file '%s' opened as workspace '%s'"
-                             % (fname, name))
-                self.update_recent_files(fname)
+                self.load_file(fname)
         except NeXusError as error:
             report_error("Opening File", error)
 
@@ -1060,15 +1065,7 @@ class MainWindow(QtWidgets.QMainWindow):
             if fname:
                 if is_file_locked(fname):
                     return
-                name = self.tree.get_name(fname)
-                self.tree[name] = nxload(fname, 'rw')
-                self.treeview.select_node(self.tree[name])
-                self.treeview.setFocus()
-                self.default_directory = os.path.dirname(fname)
-                logging.info(
-                    "NeXus file '%s' opened (unlocked) as workspace '%s'"
-                    % (fname, name))
-                self.update_recent_files(fname)
+                self.load_file(fname)
         except NeXusError as error:
             report_error("Opening File (Read/Write)", error)
 
@@ -1079,14 +1076,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 raise NeXusError("%s does not exist" % fname)
             elif is_file_locked(fname):
                 return
-            name = self.tree.get_name(fname)
-            self.tree[name] = nxload(fname)
-            self.treeview.select_node(self.tree[name])
-            self.treeview.setFocus()
-            self.default_directory = os.path.dirname(fname)
-            logging.info("NeXus file '%s' opened as workspace '%s'"
-                         % (fname, name))
-            self.update_recent_files(fname)
+            self.load_file(fname)
         except NeXusError as error:
             report_error("Opening Recent File", error)
 
