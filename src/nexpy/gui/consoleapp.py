@@ -311,12 +311,15 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
             with open(config_file) as f:
                 s = f.readlines()
         exec('\n'.join(s), self.window.user_ns)
+        self.window.read_session()
         for i, filename in enumerate(args.filenames):
             try:
                 fname = os.path.expanduser(filename)
                 self.window.load_file(fname)
             except Exception:
                 pass
+        if args.recover:
+            self.window.recover_session()
 
     def init_colors(self):
         """Configure the coloring of the widget"""

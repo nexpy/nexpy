@@ -562,6 +562,8 @@ class NXConfigParser(ConfigParser, object):
         sections = self.sections()
         if 'recent' not in sections:
             self.add_section('recent')
+        if 'session' not in sections:
+            self.add_section('session')
         if 'backups' not in sections:
             self.add_section('backups')
         if 'plugins' not in sections:

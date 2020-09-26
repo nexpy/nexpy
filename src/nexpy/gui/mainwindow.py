@@ -297,6 +297,14 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.file_menu.addSeparator()
 
+        self.recover_action=QtWidgets.QAction("Recover Session",
+            self,
+            triggered=self.recover_session
+            )
+        self.add_menu_action(self.file_menu, self.recover_action)
+
+        self.file_menu.addSeparator()
+
         self.reload_action=QtWidgets.QAction("&Reload",
             self,
             triggered=self.reload
@@ -985,7 +993,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def init_recent_menu(self):
         """Add recent files menu item for recently opened files"""
-        recent_files = self.settings.options("recent")
+        recent_files = self.settings.options('recent')
         self.recent_menu = self.file_menu.addMenu("Open Recent")
         self.recent_menu.hovered.connect(self.hover_recent_menu)
         self.recent_file_actions = {}
@@ -1142,13 +1150,13 @@ class MainWindow(QtWidgets.QMainWindow):
             position, self.recent_file_actions[action][1],
             self.recent_menu, self.recent_menu.actionGeometry(action))
 
-    def update_recent_files(self, recent_file):
-        recent_files = self.settings.options("recent")
+    def update_files(self, filename):
+        recent_files = self.settings.options('recent')
         try:
-            recent_files.remove(recent_file)
+            recent_files.remove(filename)
         except ValueError:
             pass
-        recent_files.insert(0, recent_file)
+        recent_files.insert(0, filename)
         recent_files = recent_files[:self.max_recent_files]
         for i, recent_file in enumerate(recent_files):
             try:
@@ -1162,9 +1170,12 @@ class MainWindow(QtWidgets.QMainWindow):
                 action.setToolTip(recent_file)
                 self.add_menu_action(self.recent_menu, action, self)
             self.recent_file_actions[action] = (i, recent_file)
-        self.settings.purge("recent")
+        self.settings.purge('recent')
         for recent_file in recent_files:
-            self.settings.set("recent", recent_file)
+            self.settings.set('recent', recent_file)
+        self.settings.purge('session')
+        for tree_file in [self.tree[root].nxfilename for root in self.tree]:
+            self.settings.set('session', tree_file)
         self.settings.save()
 
     def save_file(self):
@@ -1185,7 +1196,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.treeview.select_node(self.tree[name])
                 self.treeview.update()
                 self.default_directory = os.path.dirname(fname)
-                self.update_recent_files(fname)
+                self.update_files(fname)
                 logging.info("NeXus workspace '%s' saved as '%s'"
                              % (old_name, fname))
         except NeXusError as error:
@@ -1208,7 +1219,7 @@ class MainWindow(QtWidgets.QMainWindow):
                         name = self.tree.get_name(fname)
                         self.tree[name] = nxload(fname)
                         self.default_directory = os.path.dirname(fname)
-                        self.update_recent_files(fname)
+                        self.update_files(fname)
                         logging.info("Workspace '%s' duplicated in '%s'"
                                      % (node.nxname, fname))
                 else:
@@ -1228,6 +1239,16 @@ class MainWindow(QtWidgets.QMainWindow):
                 raise NeXusError("Only NXroot groups can be duplicated")
         except NeXusError as error:
             report_error("Duplicating File", error)
+
+    def read_session(self):
+        self.previous_session = self.settings.options('session')
+
+    def recover_session(self):
+        for filename in self.previous_session:
+            try:
+                self.load_file(filename)
+            except Exception:
+                pass
 
     def reload(self):
         try:
