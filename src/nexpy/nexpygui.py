@@ -15,8 +15,8 @@ def main():
 
     parser = argparse.ArgumentParser(description="Launch NeXpy")
 
-    parser.add_argument('filename', nargs='?', 
-                        help='NeXus file to open on launch (optional)')
+    parser.add_argument('filenames', nargs='*', 
+                        help='NeXus file(s) to open on launch (optional)')
     parser.add_argument('-v', '--version', action='version', 
                         version='%(prog)s v'+nexpy.__version__)
     parser.add_argument('-f', '--faulthandler', action='store_true', 

@@ -311,17 +311,18 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
             with open(config_file) as f:
                 s = f.readlines()
         exec('\n'.join(s), self.window.user_ns)
-        if filename is not None:
+        for i, filename in enumerate(args.filenames):
             try:
                 fname = os.path.expanduser(filename)
                 name = self.window.treeview.tree.get_name(fname)
                 self.window.treeview.tree[name] = self.window.user_ns[name] \
                                                 = nxload(fname)
-                self.window.treeview.select_node(
-                    self.window.treeview.tree[name])
                 logging.info("NeXus file '%s' opened as workspace '%s'"
                               % (fname, name))
-                self.window.user_ns[name].plot()
+                if i == 0:
+                    self.window.user_ns[name].plot()
+                    self.window.treeview.select_node(
+                        self.window.treeview.tree[name])
             except Exception:
                 pass
 
