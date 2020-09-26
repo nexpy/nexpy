@@ -277,7 +277,7 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
         global _mainwindow
         _mainwindow = self.window
 
-    def init_shell(self, filename):
+    def init_shell(self, args):
         """Initialize imports in the shell."""
         global _shell
         _shell = self.window.user_ns
@@ -343,15 +343,18 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
         self._sigint_timer = timer
 
     @catch_config_error
-    def initialize(self, filename=None, argv=None):
-        super(NXConsoleApp, self).initialize(argv)
+    def initialize(self, args, extra_args):
+        if args.faulthandler:
+            import faulthandler
+            faulthandler.enable(all_threads=False)
+        super(NXConsoleApp, self).initialize(extra_args)
         self.init_dir()
         self.init_settings()
         self.init_log()
         self.init_tree()
         self.init_config()
         self.init_gui()
-        self.init_shell(filename)
+        self.init_shell(args)
         self.init_colors()
         self.init_signal()
 
@@ -368,9 +371,9 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
 # Main entry point
 #-----------------------------------------------------------------------------
 
-def main(filename=None):
+def main(args, extra_args):
     app = NXConsoleApp()
-    app.initialize(filename=filename)
+    app.initialize(args, extra_args)
     app.start()
     sys.exit(0)
 
