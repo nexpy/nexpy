@@ -597,7 +597,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.pastelink_action=QtWidgets.QAction("Paste As Link",
             self,
-            shortcut=QtGui.QKeySequence("Ctrl+Alt+Shift+V"),
+            shortcut=QtGui.QKeySequence("Ctrl+Shift+Alt+V"),
             triggered=self.paste_link
             )
         self.add_menu_action(self.data_menu, self.pastelink_action)
