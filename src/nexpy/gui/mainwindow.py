@@ -300,6 +300,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.recover_action=QtWidgets.QAction("Recover Session",
             self,
+            shortcut=QtGui.QKeySequence("Ctrl+R"),
             triggered=self.recover_session
             )
         self.add_menu_action(self.file_menu, self.recover_action)
