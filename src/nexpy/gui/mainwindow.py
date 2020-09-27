@@ -27,6 +27,7 @@ import sys
 import webbrowser
 import xml.etree.ElementTree as ET
 from copy import deepcopy
+from operator import attrgetter
 from threading import Thread
 
 from .pyqt import QtCore, QtGui, QtWidgets, getOpenFileName, getSaveFileName
@@ -855,9 +856,15 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.window_menu.addSeparator()
 
+        self.show_all_limits_action=QtWidgets.QAction("Show All Limits",
+            self,
+            shortcut=QtGui.QKeySequence("Ctrl+Shift+Alt+L"),
+            triggered=self.show_all_limits
+            )
+        self.add_menu_action(self.window_menu, self.show_all_limits_action)
+
         self.reset_limit_action=QtWidgets.QAction("Reset Plot Limits",
             self,
-            shortcut=QtGui.QKeySequence("Ctrl+Alt+Shift+L"),
             triggered=self.reset_axes
             )
         self.add_menu_action(self.window_menu, self.reset_limit_action)
@@ -2134,6 +2141,20 @@ class MainWindow(QtWidgets.QMainWindow):
         try:
             if not self.panel_is_running('Limit'):
                 self.panels['Limit'] = LimitDialog()
+            self.panels['Limit'].activate(self.active_plotview.label)
+        except NeXusError as error:
+            report_error("Showing Limits Panel", error)
+
+    def show_all_limits(self):
+        try:
+            original_plotview = self.plotview
+            if not self.panel_is_running('Limit'):
+                self.panels['Limit'] = LimitDialog()
+            for pv in sorted(self.plotviews.values(), key=attrgetter('number'),
+                             reverse=True):
+                self.make_active(pv.number)
+                self.panels['Limit'].activate(pv.label)
+            self.make_active(original_plotview.number)
             self.panels['Limit'].activate(self.active_plotview.label)
         except NeXusError as error:
             report_error("Showing Limits Panel", error)
