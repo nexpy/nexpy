@@ -206,7 +206,7 @@ class NXWidget(QtWidgets.QWidget):
             label, value = item
             item_layout = QtWidgets.QHBoxLayout()
             label_box = NXLabel(label)
-            self.textbox[label] = NXLineEdit(six.text_type(value))
+            self.textbox[label] = NXLineEdit(value)
             item_layout.addWidget(label_box)
             item_layout.addWidget(self.textbox[label])
             layout.addLayout(item_layout)
