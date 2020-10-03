@@ -112,7 +112,7 @@ def report_exception(*args):
     return message_box.exec_()
 
 
-def is_file_locked(filename, wait=10):
+def is_file_locked(filename, wait=5):
     _lock = NXLock(filename)
     try:
         _lock.wait(wait)

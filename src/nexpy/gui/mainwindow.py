@@ -1049,9 +1049,15 @@ class MainWindow(QtWidgets.QMainWindow):
         except NeXusError as error:
             report_error("Creating New Workspace", error)
 
-    def load_file(self, fname):
+    def load_file(self, fname, wait=5):
         if fname in [self.tree[root].nxfilename for root in self.tree]:
             raise NeXusError('File already open')
+            return
+        elif not os.path.exists(fname):
+            raise NeXusError("'%s' does not exist" % fname)
+        elif is_file_locked(fname, wait=wait):
+            logging.info("NeXus file '%s' is locked by an external process." 
+                         % fname)
             return
         name = self.tree.get_name(fname)
         self.tree[name] = nxload(fname)
@@ -1066,10 +1072,6 @@ class MainWindow(QtWidgets.QMainWindow):
             fname = getOpenFileName(self, 'Open File (Read Only)',
                                     self.default_directory,  self.file_filter)
             if fname:
-                if is_file_locked(fname):
-                    logging.info(
-                    "NeXus file '%s' is locked by an external process." % fname)
-                    return
                 self.load_file(fname)
         except NeXusError as error:
             report_error("Opening File", error)
@@ -1079,8 +1081,6 @@ class MainWindow(QtWidgets.QMainWindow):
             fname = getOpenFileName(self, 'Open File (Read/Write)',
                                     self.default_directory, self.file_filter)
             if fname:
-                if is_file_locked(fname):
-                    return
                 self.load_file(fname)
         except NeXusError as error:
             report_error("Opening File (Read/Write)", error)
@@ -1088,10 +1088,6 @@ class MainWindow(QtWidgets.QMainWindow):
     def open_recent_file(self):
         try:
             fname = self.recent_file_actions[self.sender()][1]
-            if not os.path.exists(fname):
-                raise NeXusError("%s does not exist" % fname)
-            elif is_file_locked(fname):
-                return
             self.load_file(fname)
         except NeXusError as error:
             report_error("Opening Recent File", error)
@@ -1224,12 +1220,9 @@ class MainWindow(QtWidgets.QMainWindow):
                             return
                         with NXFile(fname, 'w') as f:
                             f.copyfile(node.nxfile)
-                        name = self.tree.get_name(fname)
-                        self.tree[name] = nxload(fname)
-                        self.default_directory = os.path.dirname(fname)
-                        self.update_files(fname)
                         logging.info("Workspace '%s' duplicated in '%s'"
                                      % (node.nxname, fname))
+                        self.load_file(fname)
                 else:
                     default_name = self.tree.get_new_name()
                     name, ok = QtWidgets.QInputDialog.getText(self,
