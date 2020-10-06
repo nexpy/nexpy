@@ -1265,8 +1265,14 @@ class NewDialog(NXDialog):
         else:
             self.tree[root] = NXroot()
             self.treeview.select_node(self.tree[root])
+        dir = os.path.join(self.mainwindow.backup_dir, timestamp())
+        os.mkdir(dir)
+        fname = os.path.join(dir, root+'_backup.nxs')
+        self.tree[root].save(fname, 'w')
         self.treeview.update()
         logging.info("New workspace '%s' created" % root)
+        self.mainwindow.settings.set('backups', fname)
+        self.mainwindow.update_files(fname)
         super(NewDialog, self).accept()
 
 
