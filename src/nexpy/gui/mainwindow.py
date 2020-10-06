@@ -28,7 +28,6 @@ import webbrowser
 import xml.etree.ElementTree as ET
 from copy import deepcopy
 from operator import attrgetter
-from threading import Thread
 
 from .pyqt import QtCore, QtGui, QtWidgets, getOpenFileName, getSaveFileName
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
