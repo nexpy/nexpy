@@ -1061,6 +1061,7 @@ class MainWindow(QtWidgets.QMainWindow):
             return
         name = self.tree.get_name(fname)
         self.tree[name] = nxload(fname)
+        self.treeview.update()
         self.treeview.select_node(self.tree[name])
         self.treeview.setFocus()
         self.default_directory = os.path.dirname(fname)
@@ -1177,9 +1178,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.settings.purge('recent')
         for recent_file in recent_files:
             self.settings.set('recent', recent_file)
-        self.settings.purge('session')
-        for tree_file in [self.tree[root].nxfilename for root in self.tree]:
-            self.settings.set('session', tree_file)
+        self.settings.set('session', filename)
         self.settings.save()
 
     def save_file(self):
@@ -1193,6 +1192,7 @@ class MainWindow(QtWidgets.QMainWindow):
                                     self.file_filter)
             if fname:
                 old_name = node.nxname
+                old_fname = node.nxfilename
                 root = node.save(fname, 'w')
                 del self.tree[old_name]
                 name = self.tree.get_name(fname)
@@ -1200,6 +1200,8 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.treeview.select_node(self.tree[name])
                 self.treeview.update()
                 self.default_directory = os.path.dirname(fname)
+                self.settings.remove_option('recent', old_fname)
+                self.settings.remove_option('session', old_fname)
                 self.update_files(fname)
                 logging.info("NeXus workspace '%s' saved as '%s'"
                              % (old_name, fname))
@@ -1376,6 +1378,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 os.mkdir(dir)
                 node.backup(dir=dir)
                 self.settings.set('backups', node.nxbackup)
+                self.settings.save()
                 display_message("Workspace '%s' backed up" % node.nxname, 
                                 information=node.nxbackup)
                 logging.info("Workspace '%s' backed up to '%s'" 
