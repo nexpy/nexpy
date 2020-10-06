@@ -40,8 +40,7 @@ from nexusformat.nexus import (NeXusError, NXgroup, NXfield, NXattr,
 from .utils import (confirm_action, display_message, report_error, 
                     import_plugin, convertHTML, natural_sort, wrap, human_size,
                     timestamp, format_timestamp, restore_timestamp, get_color,
-                    keep_data, fix_projection, modification_time,
-                    is_file_locked)
+                    keep_data, fix_projection, modification_time)
 from .widgets import (NXStack, NXScrollArea, NXCheckBox, NXComboBox, NXColorBox, 
                       NXPushButton, NXLabel, NXLineEdit, 
                       NXDoubleSpinBox, NXSpinBox, NXpolygon)
@@ -1266,8 +1265,14 @@ class NewDialog(NXDialog):
         else:
             self.tree[root] = NXroot()
             self.treeview.select_node(self.tree[root])
+        dir = os.path.join(self.mainwindow.backup_dir, timestamp())
+        os.mkdir(dir)
+        fname = os.path.join(dir, root+'_backup.nxs')
+        self.tree[root].save(fname, 'w')
         self.treeview.update()
         logging.info("New workspace '%s' created" % root)
+        self.mainwindow.settings.set('backups', fname)
+        self.mainwindow.update_files(fname)
         super(NewDialog, self).accept()
 
 
@@ -1311,15 +1316,7 @@ class DirectoryDialog(NXDialog):
     def accept(self):
         for f in self.files:
             fname = os.path.join(self.directory, f)
-            if is_file_locked(fname, wait=1):
-                continue
-            name = self.tree.get_name(fname)
-            self.tree[name] = nxload(fname)
-        self.treeview.select_node(self.tree[name])
-        self.treeview.setFocus()
-        self.set_default_directory(os.path.dirname(fname))
-        logging.info("%s NeXus files opened from %s" 
-                      % (len(self.files), self.directory))
+            self.mainwindow.load_file(fname, wait=1)
         super(DirectoryDialog, self).accept()
 
  
