@@ -258,8 +258,8 @@ class NXTreeItem(QtGui.QStandardItem):
 
 class NXTreeView(QtWidgets.QTreeView):
 
-    def __init__(self, tree, parent):
-        super(NXTreeView, self).__init__(parent)
+    def __init__(self, tree, parent=None):
+        super(NXTreeView, self).__init__(parent=parent)
 
         self.tree = tree
         self.mainwindow = parent

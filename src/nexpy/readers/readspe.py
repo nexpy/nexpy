@@ -32,7 +32,7 @@ class ImportDialog(BaseImportDialog):
  
     def __init__(self, parent=None):
 
-        super(ImportDialog, self).__init__(parent)
+        super(ImportDialog, self).__init__(parent=parent)
 
         self.file_type = None
 

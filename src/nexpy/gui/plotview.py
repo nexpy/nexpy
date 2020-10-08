@@ -3554,8 +3554,8 @@ class NXNavigationToolbar(NavigationToolbar2QT, QtWidgets.QToolBar):
         ('Add', 'Add plot data to tree', 'hand', 'add_data')
                 )
 
-    def __init__(self, canvas, parent, coordinates=True):
-        QtWidgets.QToolBar.__init__(self, parent)
+    def __init__(self, canvas, parent=None, coordinates=True):
+        QtWidgets.QToolBar.__init__(self, parent=parent)
         self.setAllowedAreas(QtCore.Qt.BottomToolBarArea)
 
         self.coordinates = coordinates

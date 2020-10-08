@@ -33,7 +33,7 @@ class ImportDialog(BaseImportDialog):
 
     def __init__(self, parent=None):
 
-        super(ImportDialog, self).__init__(parent)
+        super(ImportDialog, self).__init__(parent=parent)
 
         token_file = os.path.join(os.path.expanduser('~'),'.nexpy',
                                   'globusonline', 'gotoken.txt')

@@ -55,7 +55,7 @@ class NXWidget(QtWidgets.QWidget):
         self.mainwindow = _mainwindow
         if parent is None:
             parent = self.mainwindow
-        super(NXWidget, self).__init__(parent)
+        super(NXWidget, self).__init__(parent=parent)
         self.treeview = self.mainwindow.treeview
         self.tree = self.treeview.tree
         self.plotview = self.mainwindow.plotview
@@ -563,7 +563,7 @@ class NXDialog(QtWidgets.QDialog, NXWidget):
     """Base dialog class for NeXpy dialogs"""
     
     def __init__(self, parent=None, default=False):
-        QtWidgets.QDialog.__init__(self, parent)
+        QtWidgets.QDialog.__init__(self, parent=parent)
         NXWidget.__init__(self, parent)
         self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
         self.setSizeGripEnabled(True)
@@ -641,7 +641,7 @@ class NXPanel(NXDialog):
 
     def __init__(self, panel, title='title', tabs={}, close=True,
                  apply=True, reset=True, parent=None):
-        super(NXPanel, self).__init__(parent)
+        super(NXPanel, self).__init__(parent=parent)
         self.tab_class = NXTab
         self.plotview_sort = False
         self.tabwidget = QtWidgets.QTabWidget(parent=self)
@@ -1247,7 +1247,7 @@ class NewDialog(NXDialog):
 
     def __init__(self, parent=None):
 
-        super(NewDialog, self).__init__(parent)
+        super(NewDialog, self).__init__(parent=parent)
 
         self.names = GridParameters()
         self.names.add('root', self.tree.get_new_name(), 'Workspace', None)
@@ -1281,7 +1281,7 @@ class DirectoryDialog(NXDialog):
 
     def __init__(self, files, directory=None, parent=None):
 
-        super(DirectoryDialog, self).__init__(parent)
+        super(DirectoryDialog, self).__init__(parent=parent)
 
         self.directory = directory
         self.prefix_box = NXLineEdit()
@@ -1325,7 +1325,7 @@ class PlotDialog(NXDialog):
  
     def __init__(self, node, parent=None, **kwargs):
 
-        super(PlotDialog, self).__init__(parent)
+        super(PlotDialog, self).__init__(parent=parent)
  
         if isinstance(node, NXfield):
             self.group = node.nxgroup
@@ -1484,7 +1484,7 @@ class PlotScalarDialog(NXDialog):
  
     def __init__(self, node, parent=None, **kwargs):
 
-        super(PlotScalarDialog, self).__init__(parent)
+        super(PlotScalarDialog, self).__init__(parent=parent)
         self.setAttribute(QtCore.Qt.WA_DeleteOnClose, True)
  
         if isinstance(node, NXfield):
@@ -1677,7 +1677,7 @@ class ExportDialog(NXDialog):
 
     def __init__(self, node, parent=None):
 
-        super(ExportDialog, self).__init__(parent)
+        super(ExportDialog, self).__init__(parent=parent)
  
         self.tabwidget = QtWidgets.QTabWidget(parent=self)
         self.tabwidget.setElideMode(QtCore.Qt.ElideLeft)
@@ -1823,8 +1823,8 @@ class ExportDialog(NXDialog):
 
 class PreferencesDialog(NXDialog):
 
-    def __init__(self, parent):
-        super(PreferencesDialog, self).__init__(parent, default=True)
+    def __init__(self, parent=None):
+        super(PreferencesDialog, self).__init__(parent=parent, default=True)
 
         categories = ['axes', 'font', 'grid', 'image', 'lines', 
                       'xtick', 'ytick']
@@ -3637,7 +3637,7 @@ class ViewTab(NXTab):
             layout.addLayout(box_layout)
 
         self.table_view = QtWidgets.QTableView()
-        self.table_model = ViewTableModel(self, data)
+        self.table_model = ViewTableModel(data, parent=self)
         self.table_view.setModel(self.table_model)
         self.table_view.setHorizontalScrollBarPolicy(
             QtCore.Qt.ScrollBarAlwaysOff)
@@ -3673,8 +3673,8 @@ class ViewTab(NXTab):
 
 class ViewTableModel(QtCore.QAbstractTableModel):
 
-    def __init__(self, parent, data, *args):
-        super(ViewTableModel, self).__init__(parent, *args)
+    def __init__(self, data, parent=None):
+        super(ViewTableModel, self).__init__(parent=parent)
         self._data = self.get_data(data)
         self.origin = [0, 0]
 
@@ -3781,7 +3781,7 @@ class AddDialog(NXDialog):
  
     def __init__(self, node, parent=None):
 
-        super(AddDialog, self).__init__(parent)
+        super(AddDialog, self).__init__(parent=parent)
 
         self.node = node
 
@@ -3976,7 +3976,7 @@ class InitializeDialog(NXDialog):
  
     def __init__(self, node, parent=None):
 
-        super(InitializeDialog, self).__init__(parent)
+        super(InitializeDialog, self).__init__(parent=parent)
  
         self.node = node
 
@@ -4085,7 +4085,7 @@ class RenameDialog(NXDialog):
 
     def __init__(self, node, parent=None):
 
-        super(RenameDialog, self).__init__(parent)
+        super(RenameDialog, self).__init__(parent=parent)
 
         self.node = node
 
@@ -4178,7 +4178,7 @@ class SignalDialog(NXDialog):
  
     def __init__(self, node, parent=None):
 
-        super(SignalDialog, self).__init__(parent)
+        super(SignalDialog, self).__init__(parent=parent)
 
         if isinstance(node, NXfield):
             self.group = node.nxgroup
@@ -4320,7 +4320,7 @@ class LogDialog(NXDialog):
  
     def __init__(self, parent=None):
 
-        super(LogDialog, self).__init__(parent)
+        super(LogDialog, self).__init__(parent=parent)
  
         self.log_directory = self.mainwindow.nexpy_dir
  
@@ -4376,7 +4376,7 @@ class UnlockDialog(NXDialog):
 
     def __init__(self, node, parent=None):
 
-        super(UnlockDialog, self).__init__(parent)
+        super(UnlockDialog, self).__init__(parent=parent)
 
         self.setWindowTitle("Unlock File")
         self.node = node
@@ -4416,7 +4416,7 @@ class ManageBackupsDialog(NXDialog):
 
     def __init__(self, parent=None):
 
-        super(ManageBackupsDialog, self).__init__(parent, default=True)
+        super(ManageBackupsDialog, self).__init__(parent=parent, default=True)
  
         self.backup_dir = self.mainwindow.backup_dir
         self.mainwindow.settings.read(self.mainwindow.settings_file)
@@ -4482,7 +4482,7 @@ class InstallPluginDialog(NXDialog):
 
     def __init__(self, parent=None):
 
-        super(InstallPluginDialog, self).__init__(parent)
+        super(InstallPluginDialog, self).__init__(parent=parent)
 
         self.local_directory = self.mainwindow.plugin_dir
         self.nexpy_directory = pkg_resources.resource_filename('nexpy', 
@@ -4548,7 +4548,7 @@ class RemovePluginDialog(NXDialog):
 
     def __init__(self, parent=None):
 
-        super(RemovePluginDialog, self).__init__(parent)
+        super(RemovePluginDialog, self).__init__(parent=parent)
  
         self.local_directory = self.mainwindow.plugin_dir
         self.nexpy_directory = pkg_resources.resource_filename('nexpy', 
@@ -4620,7 +4620,7 @@ class RestorePluginDialog(NXDialog):
 
     def __init__(self, parent=None):
 
-        super(RestorePluginDialog, self).__init__(parent, default=True)
+        super(RestorePluginDialog, self).__init__(parent=parent, default=True)
  
         self.local_directory = self.mainwindow.plugin_dir
         self.nexpy_directory = pkg_resources.resource_filename('nexpy', 
