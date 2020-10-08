@@ -1272,7 +1272,8 @@ class NewDialog(NXDialog):
         self.treeview.update()
         logging.info("New workspace '%s' created" % root)
         self.mainwindow.settings.set('backups', fname)
-        self.mainwindow.update_files(fname)
+        self.mainwindow.settings.set('session', fname)
+        self.mainwindow.settings.save()
         super(NewDialog, self).accept()
 
 
