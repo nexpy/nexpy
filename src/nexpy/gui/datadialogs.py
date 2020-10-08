@@ -2966,7 +2966,7 @@ class ScanDialog(NXPanel):
  
     def __init__(self, parent=None):
         super(ScanDialog, self).__init__('Scan', title='Scan Panel', 
-                                               apply=False, parent=parent)
+                                         apply=False, parent=parent)
         self.tab_class = ScanTab
         self.plotview_sort = True
 
