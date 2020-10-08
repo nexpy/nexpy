@@ -1244,6 +1244,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def read_session(self):
         self.previous_session = self.settings.options('session')
+        self.settings.purge('session')
+        self.settings.save()
 
     def recover_session(self):
         for filename in self.previous_session:
