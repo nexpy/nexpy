@@ -91,7 +91,7 @@ class NXStack(QtWidgets.QWidget):
 class NXSortModel(QtCore.QSortFilterProxyModel):
 
     def __init__(self, parent=None):
-        super(NXSortModel, self).__init__(parent)
+        super(NXSortModel, self).__init__(parent=parent)
 
     def lessThan(self, left, right):
         left_text = self.sourceModel().itemFromIndex(left).text()
@@ -456,7 +456,7 @@ class NXPushButton(QtWidgets.QPushButton):
         parent : QObject, optional
             Parent of button.
         """
-        super(NXPushButton, self).__init__(label, parent)
+        super(NXPushButton, self).__init__(label, parent=parent)
         self.setFocusPolicy(QtCore.Qt.StrongFocus)
         self.setDefault(False)
         self.setAutoDefault(False)
@@ -486,7 +486,7 @@ class NXColorButton(QtWidgets.QPushButton):
     colorChanged = QtCore.Signal(QtGui.QColor)
 
     def __init__(self, parent=None):
-        super(NXColorButton, self).__init__(parent)
+        super(NXColorButton, self).__init__(parent=parent)
         self.setFixedWidth(18)
         self.setStyleSheet("width:18px; height:18px; "
                            "margin: 0px; border: 0px; padding: 0px;"
@@ -546,7 +546,7 @@ class NXColorBox(QtWidgets.QWidget):
         parent : QObject, optional
             Parent of the color box.
         """
-        super(NXColorBox, self).__init__(parent)
+        super(NXColorBox, self).__init__(parent=parent)
         self.color_text = color
         color = self.qcolor(self.color_text)
         self.layout = QtWidgets.QHBoxLayout()
@@ -559,7 +559,7 @@ class NXColorBox(QtWidgets.QWidget):
                                   parent=parent, slot=self.update_color, 
                                   width=width, align='right')
         self.layout.addWidget(self.textbox)
-        self.button = NXColorButton(parent)
+        self.button = NXColorButton(parent=parent)
         self.button.color = color
         self.button.colorChanged.connect(self.update_text)
         self.layout.addWidget(self.button)
