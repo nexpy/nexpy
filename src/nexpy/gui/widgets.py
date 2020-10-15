@@ -799,14 +799,9 @@ class NXDoubleSpinBox(QtWidgets.QDoubleSpinBox):
     def setSingleStep(self, value):
         value = abs(value)
         if value == 0:
-            self.setDecimals(2)
             stepsize = 0.01
         else:
             digits = math.floor(math.log10(value))
-            if digits < 0:
-                self.setDecimals(-digits)
-            else:
-                self.setDecimals(2)
             multiplier = 10**digits
             stepsize = find_nearest(self.steps, value/multiplier) * multiplier
         super(NXDoubleSpinBox, self).setSingleStep(stepsize)
@@ -833,6 +828,14 @@ class NXDoubleSpinBox(QtWidgets.QDoubleSpinBox):
             return format_float(value, width=8)
 
     def setValue(self, value):
+        if value == 0:
+            self.setDecimals(2)
+        else:
+            digits = math.floor(math.log10(abs(value)))
+            if digits < 0:
+                self.setDecimals(-digits)
+            else:
+                self.setDecimals(2)
         if value > self.maximum():
             self.setMaximum(value)
         elif value < self.minimum():
