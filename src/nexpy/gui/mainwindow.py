@@ -1244,6 +1244,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def read_session(self):
         self.previous_session = self.settings.options('session')
+        self.settings.purge('session')
+        self.settings.save()
 
     def recover_session(self):
         for filename in self.previous_session:
@@ -1280,6 +1282,8 @@ class MainWindow(QtWidgets.QMainWindow):
                 if confirm_action("Are you sure you want to remove '%s'?" 
                                   % name):
                     del self.tree[name]
+                    self.settings.remove_option('session', node.nxfilename)
+                    self.settings.save()
                     logging.info("Workspace '%s' removed" % name)
         except NeXusError as error:
             report_error("Removing File", error)

@@ -20,6 +20,7 @@ from .utils import display_message, natural_sort, modification_time
 from .widgets import NXSortModel
 from nexusformat.nexus import *
 
+treeitems = []
 
 class NXtree(NXgroup):
     """
@@ -196,6 +197,7 @@ class NXTreeItem(QtGui.QStandardItem):
                 pkg_resources.resource_filename('nexpy.gui',
                                             'resources/unlock-red-icon.png'))
         super(NXTreeItem, self).__init__(node.nxname)
+        treeitems.append(self)
 
     @property
     def node(self):
@@ -258,8 +260,8 @@ class NXTreeItem(QtGui.QStandardItem):
 
 class NXTreeView(QtWidgets.QTreeView):
 
-    def __init__(self, tree, parent):
-        super(NXTreeView, self).__init__(parent)
+    def __init__(self, tree, parent=None):
+        super(NXTreeView, self).__init__(parent=parent)
 
         self.tree = tree
         self.mainwindow = parent
