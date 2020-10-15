@@ -74,12 +74,13 @@ class NXtree(NXgroup):
                 for row in range(item.rowCount()):
                     children.append(item.child(row))
             names = [child.name for child in children]
-            for name in item.node:
-                if name not in names:
-                    item.appendRow(NXTreeItem(item.node[name]))
-            for child in children:
-                if child.name not in item.node:
-                    item.removeRow(child.row())
+            if item.node.entries_loaded:
+                for name in item.node:
+                    if name not in names:
+                        item.appendRow(NXTreeItem(item.node[name]))
+                for child in children:
+                    if child.name not in item.node:
+                        item.removeRow(child.row())
         item.node.set_unchanged()
     
     def add(self, node):
@@ -288,6 +289,7 @@ class NXTreeView(QtWidgets.QTreeView):
         self.setExpandsOnDoubleClick(False)
         self.doubleClicked.connect(self.mainwindow.plot_data)
         self.selectionModel().selectionChanged.connect(self.selection_changed)
+        self.expanded.connect(self.expand_node)
 
         self.timer = QtCore.QTimer(self)
         self.timer.timeout.connect(self.check_modified_files)
@@ -392,7 +394,8 @@ class NXTreeView(QtWidgets.QTreeView):
             except Exception as error:
                 pass
         try:
-            if node.is_plottable() or node.is_numeric():
+            if (isinstance(node, NXdata) or 'default' in node.attrs or 
+                node.is_numeric()):
                 self.mainwindow.plot_data_action.setEnabled(True)
                 if ((isinstance(node, NXgroup) and
                     node.nxsignal is not None and 
@@ -412,6 +415,13 @@ class NXTreeView(QtWidgets.QTreeView):
                     self.mainwindow.plot_image_action.setEnabled(True)
         except Exception as error:
             pass
+
+    def expand_node(self, index):
+        item = self._model.itemFromIndex(self.proxymodel.mapToSource(index))
+        if item and item.node:
+            group = item.node
+            for name in [n for n in group if isinstance(group[n], NXgroup)]:
+                _entries = group[name].entries
 
     def addMenu(self, action):
         if action.isEnabled():
