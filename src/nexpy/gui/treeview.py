@@ -304,7 +304,6 @@ class NXTreeView(QtWidgets.QTreeView):
 
     def update(self):
         super(NXTreeView, self).update()
-        self.selection_changed()
 
     def selection_changed(self):
         """Enable and disable menu actions based on the selection."""
