@@ -522,6 +522,9 @@ class NXTreeView(QtWidgets.QTreeView):
             self.setCurrentIndex(idx)
         self.selectionModel().select(self.currentIndex(),
                                      QtCore.QItemSelectionModel.Select)
+
+    def select_top(self):
+        self.select_node(self.tree[self.tree.__dir__()[0]])
         
     def selectionChanged(self, new, old):
         super(NXTreeView, self).selectionChanged(new, old)
