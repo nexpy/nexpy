@@ -56,6 +56,9 @@ class NXWidget(QtWidgets.QWidget):
         if parent is None:
             parent = self.mainwindow
         super(NXWidget, self).__init__(parent=parent)
+        self.initialize()
+
+    def initialize(self):
         self.treeview = self.mainwindow.treeview
         self.tree = self.treeview.tree
         self.plotview = self.mainwindow.plotview
@@ -563,8 +566,12 @@ class NXDialog(QtWidgets.QDialog, NXWidget):
     """Base dialog class for NeXpy dialogs"""
     
     def __init__(self, parent=None, default=False):
+        from .consoleapp import _mainwindow
+        self.mainwindow = _mainwindow
+        if parent is None:
+            parent = self.mainwindow
         QtWidgets.QDialog.__init__(self, parent=parent)
-        NXWidget.__init__(self, parent)
+        self.initialize()
         self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
         self.setSizeGripEnabled(True)
         self.mainwindow.dialogs.append(self)
