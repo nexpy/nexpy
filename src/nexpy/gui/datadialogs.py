@@ -311,9 +311,7 @@ class NXWidget(QtWidgets.QWidget):
         return self.filename.text()
 
     def choose_directory(self):
-        """
-        Opens a file dialog and sets the directory text box to the chosen path.
-        """
+        """Opens a file dialog and sets the directory text box to the path."""
         dirname = self.get_default_directory()
         dirname = QtWidgets.QFileDialog.getExistingDirectory(self, 
                                                              'Choose Directory', 
@@ -323,13 +321,11 @@ class NXWidget(QtWidgets.QWidget):
             self.set_default_directory(dirname)
 
     def get_directory(self):
-        """
-        Returns the selected directory
-        """
+        """Return the selected directory."""
         return self.directoryname.text()
     
     def get_default_directory(self, suggestion=None):
-        '''return the most recent default directory for open/save dialogs'''
+        """Return the most recent default directory for open/save dialogs."""
         if suggestion is None or not os.path.exists(suggestion):
             suggestion = self.default_directory
         if os.path.exists(suggestion):
@@ -339,7 +335,7 @@ class NXWidget(QtWidgets.QWidget):
         return suggestion
     
     def set_default_directory(self, suggestion):
-        """Defines the default directory to use for open/save dialogs"""
+        """Defines the default directory to use for open/save dialogs."""
         if os.path.exists(suggestion):
             if not os.path.isdir(suggestion):
                 suggestion = os.path.dirname(suggestion)
