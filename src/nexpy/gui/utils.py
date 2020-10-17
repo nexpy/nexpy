@@ -10,6 +10,7 @@
 #-----------------------------------------------------------------------------
 
 import datetime
+import gc
 import importlib
 import io
 import logging
@@ -27,7 +28,7 @@ from matplotlib.colors import (colorConverter, hex2color, rgb2hex,
                                LinearSegmentedColormap)
 from nexusformat.nexus import *
 
-from .pyqt import QtWidgets, getOpenFileName
+from .pyqt import QtCore, QtWidgets, getOpenFileName
 
 try:
     from configparser import ConfigParser
@@ -607,6 +608,34 @@ class NXLogger(io.StringIO):
     def write(self, buffer):
         for line in buffer.rstrip().splitlines():
             self.logger.log(self.log_level, line.rstrip())
+
+
+class NXGarbageCollector(QtCore.QObject):
+    """Perform Python garbage collection manually every 10 seconds.
+
+    This is done to ensure that garbage collection only happens in the GUI
+    thread, as otherwise Qt can crash. It is based on code by Fabio Zadrozny
+    (https://pydev.blogspot.com/2014/03/should-python-garbage-collector-be.html)
+    """
+
+    def __init__(self, parent=None):
+
+        QtCore.QObject.__init__(self, parent=parent)
+        self.timer = QtCore.QTimer(self)
+        self.timer.timeout.connect(self.check)
+
+        self.threshold = gc.get_threshold()
+        gc.disable()
+        self.timer.start(10000)
+
+    def check(self):
+        l0, l1, l2 = gc.get_count()
+        if l0 > self.threshold[0]:
+            gc.collect(0)
+            if l1 > self.threshold[1]:
+                gc.collect(1)
+                if l2 > self.threshold[2]:
+                    gc.collect(2)
 
 
 class Gaussian3DKernel(Kernel):

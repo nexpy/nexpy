@@ -28,7 +28,8 @@ from .pyqt import QtCore, QtGui, QtWidgets
 
 from .mainwindow import MainWindow
 from .treeview import NXtree
-from .utils import NXConfigParser, NXLogger, timestamp_age, report_exception
+from .utils import (NXConfigParser, NXLogger, NXGarbageCollector,
+                    timestamp_age, report_exception)
 
 from nexusformat.nexus import NXroot, nxclasses, nxload, nxversion
 
@@ -274,6 +275,7 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
             self.icon_pixmap = None
         self.window = MainWindow(self, self.tree, self.settings, self.config)
         self.window.log = self.log
+        self.gc = NXGarbageCollector(self.window)
         global _mainwindow
         _mainwindow = self.window
 
