@@ -488,6 +488,13 @@ def parula_map():
                [0.9763, 0.9831, 0.0538]]
     return LinearSegmentedColormap.from_list('parula', cm_data)
 
+def cmyk_to_rgb(c, m, y, k):
+    """Convert CMYK values to RGB values."""
+    r = int(255 * (1.0 - (c + k) / 100.))
+    g = int(255 * (1.0 - (m + k) / 100.))
+    b = int(255 * (1.0 - (y + k) / 100.))
+    return r, g, b
+
 def load_image(filename):
     if os.path.splitext(filename.lower())[1] in ['.png', '.jpg', '.jpeg',
                                                  '.gif']:
@@ -497,9 +504,13 @@ def load_image(filename):
         x = NXfield(range(z.shape[1]), name='x')
         if z.ndim > 2:
             rgba = NXfield(range(z.shape[2]), name='rgba')
-            data = NXdata(z, (y,x,rgba))
+            if len(rgba) == 3:
+                z.interpretation = 'rgb-image'
+            elif len(rgba) == 4:
+                z.interpretation = 'rgba-image'
+            data = NXdata(z, (y, x, rgba))
         else:        
-            data = NXdata(z, (y,x))
+            data = NXdata(z, (y, x))
     else:
         try:
             im = fabio.open(filename)
