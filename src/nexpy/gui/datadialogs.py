@@ -1123,6 +1123,8 @@ class GridParameter(object):
                 self.box.currentIndexChanged.connect(slot)
         else:
             if color:
+                if value == 'auto':
+                    value = None
                 self.colorbox = NXColorBox(value)
                 self.box = self.colorbox.textbox
             elif spinbox:
