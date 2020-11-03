@@ -1097,8 +1097,8 @@ class NXPlotView(QtWidgets.QDialog):
         if self.data.nxroot.nxclass == "NXroot":
             return dirname(self.data.nxroot.nxname +
                            self.data.nxsignal.nxpath) + '/'
-        elif 'signal_path' in self.data.nxsignal.attrs:
-            return dirname(self.data.nxsignal.attrs['signal_path']) + '/'
+        elif 'signal_path' in self.data.attrs:
+            return dirname(self.data.attrs['signal_path']) + '/'
         else:
             return ''
 
