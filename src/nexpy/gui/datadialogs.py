@@ -35,7 +35,12 @@ except ImportError:
 
 from nexusformat.nexus import (NeXusError, NXgroup, NXfield, NXattr, 
                                NXlink, NXlinkgroup, NXlinkfield,
-                               NXroot, NXentry, NXdata, NXparameters, nxload)
+                               NXroot, NXentry, NXdata, NXparameters, nxload,
+                               nxgetmemory, nxsetmemory,
+                               nxgetmaxsize, nxsetmaxsize, 
+                               nxgetcompression, nxsetcompression,
+                               nxgetencoding, nxsetencoding,
+                               nxgetlock, nxsetlock)                              
 
 from .utils import (confirm_action, display_message, report_error, 
                     import_plugin, convertHTML, natural_sort, wrap, human_size,
@@ -1831,25 +1836,39 @@ class PreferencesDialog(NXDialog):
 
     def __init__(self, parent=None):
         super(PreferencesDialog, self).__init__(parent=parent, default=True)
+        self.parameters = GridParameters()
+        self.parameters.add('memory', nxgetmemory(), 'Memory Limit')
+        self.parameters.add('maxsize', nxgetmaxsize(), 'Array Size Limit')
+        self.parameters.add('compression', nxgetcompression(), 
+                            'Compression Filter')
+        self.parameters.add('encoding', nxgetencoding(), 'Text Encoding')
+        self.parameters.add('lock', nxgetlock(), 'Lock Timeout')
+        self.set_layout(self.parameters.grid(), 
+                        self.action_buttons(('Save As Default', 
+                                            self.save_default)),
+                        self.close_layout(save=True))
+        self.set_title('NeXpy Preferences')
 
-        categories = ['axes', 'font', 'grid', 'image', 'lines', 
-                      'xtick', 'ytick']
-        self.parameters = {}
-        for category in categories:
-            pc = self.parameters[category] = GridParameters()
-            for p in [p for p in rcParams if p.startswith(category)]:
-                dp = defaultParams[p]
-                if 'color' in p:
-                    try:
-                        pc.add(p, rcParams[p], p, color=True, validate=dp[1])
-                    except Exception:
-                        pc.add(p, rcParams[p], p, validate=dp[1])
-                else:
-                    pc.add(p, rcParams[p], p, validate=dp[1])
-            
-        self.preferences_stack = self.parameter_stack(self.parameters, 
-                                                      width=200)
-        self.set_layout(self.preferences_stack, self.close_layout(save=True))
+    def save_default(self):
+        self.set_preferences()
+        self.mainwindow.settings.set('preferences', 'memory', nxgetmemory())
+        self.mainwindow.settings.set('preferences', 'maxsize', nxgetmaxsize())
+        self.mainwindow.settings.set('preferences', 'compression', 
+                                     nxgetcompression())
+        self.mainwindow.settings.set('preferences', 'encoding', nxgetencoding())
+        self.mainwindow.settings.set('preferences', 'lock', nxgetlock())
+        self.mainwindow.settings.save()
+
+    def set_preferences(self):
+        nxsetmemory(self.parameters['memory'].value)
+        nxsetmaxsize(self.parameters['maxsize'].value)
+        nxsetcompression(self.parameters['compression'].value)
+        nxsetencoding(self.parameters['encoding'].value)
+        nxsetlock(self.parameters['lock'].value)
+
+    def accept(self):
+        self.set_preferences()
+        super(PreferencesDialog, self).accept()
 
 
 class CustomizeDialog(NXPanel):

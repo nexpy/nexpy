@@ -540,6 +540,30 @@ def load_image(filename):
     return data
 
 
+def initialize_preferences(settings):
+    if settings.has_option('preferences', 'memory'):
+        nxsetmemory(settings.get('preferences', 'memory'))
+    else:
+        settings.set('preferences', 'memory', nxgetmemory())
+    if settings.has_option('preferences', 'maxsize'):
+        nxsetmaxsize(settings.get('preferences', 'maxsize'))
+    else:
+        settings.set('preferences', 'maxsize', nxgetmaxsize())
+    if settings.has_option('preferences', 'compression'):
+        nxsetcompression(settings.get('preferences', 'compression'))
+    else:
+        settings.set('preferences', 'compression', nxgetcompression())
+    if settings.has_option('preferences', 'encoding'):
+        nxsetencoding(settings.get('preferences', 'encoding'))
+    else:
+        settings.set('preferences', 'encoding', nxgetencoding())
+    if settings.has_option('preferences', 'lock'):
+        nxsetlock(settings.get('preferences', 'lock'))
+    else:
+        settings.set('preferences', 'lock', nxgetlock())
+    settings.save()
+
+
 class NXimporter(object):
     def __init__(self, paths):
         self.paths = paths
@@ -572,16 +596,24 @@ class NXConfigParser(ConfigParser, object):
             r"(?P<option>.*?)\s*(?:(?P<vi>=)\s*(?P<value>.*))?$", re.VERBOSE)
         super(NXConfigParser, self).read(self.file)
         sections = self.sections()
-        if 'recent' not in sections:
-            self.add_section('recent')
-        if 'session' not in sections:
-            self.add_section('session')
         if 'backups' not in sections:
             self.add_section('backups')
         if 'plugins' not in sections:
             self.add_section('plugins')
+        if 'preferences' not in sections:
+            self.add_section('preferences')
+        if 'recent' not in sections:
+            self.add_section('recent')
+        if 'session' not in sections:
+            self.add_section('session')
         if 'recentFiles' in self.options('recent'):
             self.fix_recent()
+
+    def set(self, section, option, value=None):
+        if value is not None:
+            super(NXConfigParser, self).set(section, option, str(value))
+        else:
+            super(NXConfigParser, self).set(section, option)            
 
     def optionxform(self, optionstr):
         return optionstr

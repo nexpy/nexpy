@@ -29,7 +29,7 @@ from .pyqt import QtCore, QtGui, QtWidgets
 from .mainwindow import MainWindow
 from .treeview import NXtree
 from .utils import (NXConfigParser, NXLogger, NXGarbageCollector,
-                    timestamp_age, report_exception)
+                    timestamp_age, report_exception, initialize_preferences)
 
 from nexusformat.nexus import NXroot, nxclasses, nxload, nxversion
 
@@ -190,6 +190,7 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
         """Initialize access to the NeXpy settings file."""
         self.settings_file = os.path.join(self.nexpy_dir, 'settings.ini')
         self.settings = NXConfigParser(self.settings_file)
+        initialize_preferences(self.settings)
         def backup_age(backup):
             try:
                 return timestamp_age(os.path.basename(os.path.dirname(backup)))
