@@ -10,6 +10,7 @@
 #-----------------------------------------------------------------------------
 
 import datetime
+import gc
 import importlib
 import io
 import logging
@@ -27,7 +28,7 @@ from matplotlib.colors import (colorConverter, hex2color, rgb2hex,
                                LinearSegmentedColormap)
 from nexusformat.nexus import *
 
-from .pyqt import QtWidgets, getOpenFileName
+from .pyqt import QtCore, QtWidgets, getOpenFileName
 
 try:
     from configparser import ConfigParser
@@ -487,6 +488,13 @@ def parula_map():
                [0.9763, 0.9831, 0.0538]]
     return LinearSegmentedColormap.from_list('parula', cm_data)
 
+def cmyk_to_rgb(c, m, y, k):
+    """Convert CMYK values to RGB values."""
+    r = int(255 * (1.0 - (c + k) / 100.))
+    g = int(255 * (1.0 - (m + k) / 100.))
+    b = int(255 * (1.0 - (y + k) / 100.))
+    return r, g, b
+
 def load_image(filename):
     if os.path.splitext(filename.lower())[1] in ['.png', '.jpg', '.jpeg',
                                                  '.gif']:
@@ -496,9 +504,13 @@ def load_image(filename):
         x = NXfield(range(z.shape[1]), name='x')
         if z.ndim > 2:
             rgba = NXfield(range(z.shape[2]), name='rgba')
-            data = NXdata(z, (y,x,rgba))
+            if len(rgba) == 3:
+                z.interpretation = 'rgb-image'
+            elif len(rgba) == 4:
+                z.interpretation = 'rgba-image'
+            data = NXdata(z, (y, x, rgba))
         else:        
-            data = NXdata(z, (y,x))
+            data = NXdata(z, (y, x))
     else:
         try:
             im = fabio.open(filename)
@@ -526,6 +538,30 @@ def load_image(filename):
             data.CBF_header = note
     data.title = filename
     return data
+
+
+def initialize_preferences(settings):
+    if settings.has_option('preferences', 'memory'):
+        nxsetmemory(settings.get('preferences', 'memory'))
+    else:
+        settings.set('preferences', 'memory', nxgetmemory())
+    if settings.has_option('preferences', 'maxsize'):
+        nxsetmaxsize(settings.get('preferences', 'maxsize'))
+    else:
+        settings.set('preferences', 'maxsize', nxgetmaxsize())
+    if settings.has_option('preferences', 'compression'):
+        nxsetcompression(settings.get('preferences', 'compression'))
+    else:
+        settings.set('preferences', 'compression', nxgetcompression())
+    if settings.has_option('preferences', 'encoding'):
+        nxsetencoding(settings.get('preferences', 'encoding'))
+    else:
+        settings.set('preferences', 'encoding', nxgetencoding())
+    if settings.has_option('preferences', 'lock'):
+        nxsetlock(settings.get('preferences', 'lock'))
+    else:
+        settings.set('preferences', 'lock', nxgetlock())
+    settings.save()
 
 
 class NXimporter(object):
@@ -560,16 +596,24 @@ class NXConfigParser(ConfigParser, object):
             r"(?P<option>.*?)\s*(?:(?P<vi>=)\s*(?P<value>.*))?$", re.VERBOSE)
         super(NXConfigParser, self).read(self.file)
         sections = self.sections()
-        if 'recent' not in sections:
-            self.add_section('recent')
-        if 'session' not in sections:
-            self.add_section('session')
         if 'backups' not in sections:
             self.add_section('backups')
         if 'plugins' not in sections:
             self.add_section('plugins')
+        if 'preferences' not in sections:
+            self.add_section('preferences')
+        if 'recent' not in sections:
+            self.add_section('recent')
+        if 'session' not in sections:
+            self.add_section('session')
         if 'recentFiles' in self.options('recent'):
             self.fix_recent()
+
+    def set(self, section, option, value=None):
+        if value is not None:
+            super(NXConfigParser, self).set(section, option, str(value))
+        else:
+            super(NXConfigParser, self).set(section, option)            
 
     def optionxform(self, optionstr):
         return optionstr
@@ -607,6 +651,34 @@ class NXLogger(io.StringIO):
     def write(self, buffer):
         for line in buffer.rstrip().splitlines():
             self.logger.log(self.log_level, line.rstrip())
+
+
+class NXGarbageCollector(QtCore.QObject):
+    """Perform Python garbage collection manually every 10 seconds.
+
+    This is done to ensure that garbage collection only happens in the GUI
+    thread, as otherwise Qt can crash. It is based on code by Fabio Zadrozny
+    (https://pydev.blogspot.com/2014/03/should-python-garbage-collector-be.html)
+    """
+
+    def __init__(self, parent=None):
+
+        QtCore.QObject.__init__(self, parent=parent)
+        self.timer = QtCore.QTimer(self)
+        self.timer.timeout.connect(self.check)
+
+        self.threshold = gc.get_threshold()
+        gc.disable()
+        self.timer.start(10000)
+
+    def check(self):
+        l0, l1, l2 = gc.get_count()
+        if l0 > self.threshold[0]:
+            gc.collect(0)
+            if l1 > self.threshold[1]:
+                gc.collect(1)
+                if l2 > self.threshold[2]:
+                    gc.collect(2)
 
 
 class Gaussian3DKernel(Kernel):

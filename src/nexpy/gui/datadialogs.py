@@ -35,7 +35,12 @@ except ImportError:
 
 from nexusformat.nexus import (NeXusError, NXgroup, NXfield, NXattr, 
                                NXlink, NXlinkgroup, NXlinkfield,
-                               NXroot, NXentry, NXdata, NXparameters, nxload)
+                               NXroot, NXentry, NXdata, NXparameters, nxload,
+                               nxgetmemory, nxsetmemory,
+                               nxgetmaxsize, nxsetmaxsize, 
+                               nxgetcompression, nxsetcompression,
+                               nxgetencoding, nxsetencoding,
+                               nxgetlock, nxsetlock)                              
 
 from .utils import (confirm_action, display_message, report_error, 
                     import_plugin, convertHTML, natural_sort, wrap, human_size,
@@ -56,6 +61,9 @@ class NXWidget(QtWidgets.QWidget):
         if parent is None:
             parent = self.mainwindow
         super(NXWidget, self).__init__(parent=parent)
+        self.initialize()
+
+    def initialize(self):
         self.treeview = self.mainwindow.treeview
         self.tree = self.treeview.tree
         self.plotview = self.mainwindow.plotview
@@ -308,9 +316,7 @@ class NXWidget(QtWidgets.QWidget):
         return self.filename.text()
 
     def choose_directory(self):
-        """
-        Opens a file dialog and sets the directory text box to the chosen path.
-        """
+        """Opens a file dialog and sets the directory text box to the path."""
         dirname = self.get_default_directory()
         dirname = QtWidgets.QFileDialog.getExistingDirectory(self, 
                                                              'Choose Directory', 
@@ -320,13 +326,11 @@ class NXWidget(QtWidgets.QWidget):
             self.set_default_directory(dirname)
 
     def get_directory(self):
-        """
-        Returns the selected directory
-        """
+        """Return the selected directory."""
         return self.directoryname.text()
     
     def get_default_directory(self, suggestion=None):
-        '''return the most recent default directory for open/save dialogs'''
+        """Return the most recent default directory for open/save dialogs."""
         if suggestion is None or not os.path.exists(suggestion):
             suggestion = self.default_directory
         if os.path.exists(suggestion):
@@ -336,7 +340,7 @@ class NXWidget(QtWidgets.QWidget):
         return suggestion
     
     def set_default_directory(self, suggestion):
-        """Defines the default directory to use for open/save dialogs"""
+        """Defines the default directory to use for open/save dialogs."""
         if os.path.exists(suggestion):
             if not os.path.isdir(suggestion):
                 suggestion = os.path.dirname(suggestion)
@@ -563,8 +567,12 @@ class NXDialog(QtWidgets.QDialog, NXWidget):
     """Base dialog class for NeXpy dialogs"""
     
     def __init__(self, parent=None, default=False):
+        from .consoleapp import _mainwindow
+        self.mainwindow = _mainwindow
+        if parent is None:
+            parent = self.mainwindow
         QtWidgets.QDialog.__init__(self, parent=parent)
-        NXWidget.__init__(self, parent)
+        self.initialize()
         self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
         self.setSizeGripEnabled(True)
         self.mainwindow.dialogs.append(self)
@@ -1120,6 +1128,8 @@ class GridParameter(object):
                 self.box.currentIndexChanged.connect(slot)
         else:
             if color:
+                if value == 'auto':
+                    value = None
                 self.colorbox = NXColorBox(value)
                 self.box = self.colorbox.textbox
             elif spinbox:
@@ -1826,25 +1836,39 @@ class PreferencesDialog(NXDialog):
 
     def __init__(self, parent=None):
         super(PreferencesDialog, self).__init__(parent=parent, default=True)
+        self.parameters = GridParameters()
+        self.parameters.add('memory', nxgetmemory(), 'Memory Limit (MB)')
+        self.parameters.add('maxsize', nxgetmaxsize(), 'Array Size Limit')
+        self.parameters.add('compression', nxgetcompression(), 
+                            'Compression Filter')
+        self.parameters.add('encoding', nxgetencoding(), 'Text Encoding')
+        self.parameters.add('lock', nxgetlock(), 'Lock Timeout (s)')
+        self.set_layout(self.parameters.grid(), 
+                        self.action_buttons(('Save As Default', 
+                                            self.save_default)),
+                        self.close_layout(save=True))
+        self.set_title('NeXpy Preferences')
 
-        categories = ['axes', 'font', 'grid', 'image', 'lines', 
-                      'xtick', 'ytick']
-        self.parameters = {}
-        for category in categories:
-            pc = self.parameters[category] = GridParameters()
-            for p in [p for p in rcParams if p.startswith(category)]:
-                dp = defaultParams[p]
-                if 'color' in p:
-                    try:
-                        pc.add(p, rcParams[p], p, color=True, validate=dp[1])
-                    except Exception:
-                        pc.add(p, rcParams[p], p, validate=dp[1])
-                else:
-                    pc.add(p, rcParams[p], p, validate=dp[1])
-            
-        self.preferences_stack = self.parameter_stack(self.parameters, 
-                                                      width=200)
-        self.set_layout(self.preferences_stack, self.close_layout(save=True))
+    def save_default(self):
+        self.set_preferences()
+        self.mainwindow.settings.set('preferences', 'memory', nxgetmemory())
+        self.mainwindow.settings.set('preferences', 'maxsize', nxgetmaxsize())
+        self.mainwindow.settings.set('preferences', 'compression', 
+                                     nxgetcompression())
+        self.mainwindow.settings.set('preferences', 'encoding', nxgetencoding())
+        self.mainwindow.settings.set('preferences', 'lock', nxgetlock())
+        self.mainwindow.settings.save()
+
+    def set_preferences(self):
+        nxsetmemory(self.parameters['memory'].value)
+        nxsetmaxsize(self.parameters['maxsize'].value)
+        nxsetcompression(self.parameters['compression'].value)
+        nxsetencoding(self.parameters['encoding'].value)
+        nxsetlock(self.parameters['lock'].value)
+
+    def accept(self):
+        self.set_preferences()
+        super(PreferencesDialog, self).accept()
 
 
 class CustomizeDialog(NXPanel):
@@ -4429,6 +4453,7 @@ class ManageBackupsDialog(NXDialog):
             else:
                 self.mainwindow.settings.remove_option('backups', backup)
         self.mainwindow.settings.save()
+        self.scroll_area = NXScrollArea()
         items = []
         for backup in backups:
             date = format_timestamp(os.path.basename(os.path.dirname(backup)))
@@ -4438,11 +4463,14 @@ class ManageBackupsDialog(NXDialog):
                 self.checkboxes((backup, '%s: %s (%s)' 
                                          % (date, name, human_size(size)), 
                                  False), align='left'))
-        items.append(self.action_buttons(('Restore Files', self.restore),
-                                         ('Delete Files', self.delete)))
-        items.append(self.close_buttons(close=True))
+        self.scroll_widget = NXWidget()
+        self.scroll_widget.set_layout(*items)
+        self.scroll_area.setWidget(self.scroll_widget)
 
-        self.set_layout(*items)
+        self.set_layout(self.scroll_area, 
+                        self.action_buttons(('Restore Files', self.restore),
+                                            ('Delete Files', self.delete)),
+                        self.close_buttons(close=True))
 
         self.set_title('Manage Backups')
 

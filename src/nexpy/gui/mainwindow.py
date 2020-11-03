@@ -423,10 +423,11 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.file_menu.addSeparator()
 
-        self.print_action = QtWidgets.QAction("Print Shell",
+        self.preferences_action=QtWidgets.QAction("Edit Preferences",
             self,
-            triggered=self.print_action_console)
-        self.add_menu_action(self.file_menu, self.print_action, True)
+            triggered=self.edit_preferences
+            )
+        self.add_menu_action(self.file_menu, self.preferences_action)
 
         self.quit_action = QtWidgets.QAction("&Quit",
             self,
@@ -501,6 +502,14 @@ class MainWindow(QtWidgets.QMainWindow):
             triggered=self.select_all_console
             )
         self.add_menu_action(self.edit_menu, self.select_all_action, True)
+
+        self.edit_menu.addSeparator()
+
+        self.print_action = QtWidgets.QAction("Print Shell",
+            self,
+            triggered=self.print_action_console)
+        self.add_menu_action(self.edit_menu, self.print_action, True)
+
 
     def init_data_menu(self):
         self.data_menu = self.menu_bar.addMenu("Data")
@@ -868,13 +877,6 @@ class MainWindow(QtWidgets.QMainWindow):
             triggered=self.reset_axes
             )
         self.add_menu_action(self.window_menu, self.reset_limit_action)
-
-        self.preferences_action=QtWidgets.QAction("Edit Preferences",
-            self,
-            shortcut=QtGui.QKeySequence("Ctrl+Alt+E"),
-            triggered=self.edit_preferences
-            )
-#        self.add_menu_action(self.window_menu, self.preferences_action)
 
         self.window_menu.addSeparator()
 
