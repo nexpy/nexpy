@@ -4453,6 +4453,7 @@ class ManageBackupsDialog(NXDialog):
             else:
                 self.mainwindow.settings.remove_option('backups', backup)
         self.mainwindow.settings.save()
+        self.scroll_area = NXScrollArea()
         items = []
         for backup in backups:
             date = format_timestamp(os.path.basename(os.path.dirname(backup)))
@@ -4462,11 +4463,14 @@ class ManageBackupsDialog(NXDialog):
                 self.checkboxes((backup, '%s: %s (%s)' 
                                          % (date, name, human_size(size)), 
                                  False), align='left'))
-        items.append(self.action_buttons(('Restore Files', self.restore),
-                                         ('Delete Files', self.delete)))
-        items.append(self.close_buttons(close=True))
+        self.scroll_widget = NXWidget()
+        self.scroll_widget.set_layout(*items)
+        self.scroll_area.setWidget(self.scroll_widget)
 
-        self.set_layout(*items)
+        self.set_layout(self.scroll_area, 
+                        self.action_buttons(('Restore Files', self.restore),
+                                            ('Delete Files', self.delete)),
+                        self.close_buttons(close=True))
 
         self.set_title('Manage Backups')
 
