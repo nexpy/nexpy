@@ -1837,12 +1837,12 @@ class PreferencesDialog(NXDialog):
     def __init__(self, parent=None):
         super(PreferencesDialog, self).__init__(parent=parent, default=True)
         self.parameters = GridParameters()
-        self.parameters.add('memory', nxgetmemory(), 'Memory Limit')
+        self.parameters.add('memory', nxgetmemory(), 'Memory Limit (MB)')
         self.parameters.add('maxsize', nxgetmaxsize(), 'Array Size Limit')
         self.parameters.add('compression', nxgetcompression(), 
                             'Compression Filter')
         self.parameters.add('encoding', nxgetencoding(), 'Text Encoding')
-        self.parameters.add('lock', nxgetlock(), 'Lock Timeout')
+        self.parameters.add('lock', nxgetlock(), 'Lock Timeout (s)')
         self.set_layout(self.parameters.grid(), 
                         self.action_buttons(('Save As Default', 
                                             self.save_default)),
