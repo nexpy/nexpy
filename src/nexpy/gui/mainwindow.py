@@ -1256,7 +1256,6 @@ class MainWindow(QtWidgets.QMainWindow):
             except Exception:
                 pass
         self.treeview.select_top()
-        self.treeview.setFocus()
 
     def reload(self):
         try:
