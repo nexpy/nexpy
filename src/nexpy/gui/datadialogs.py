@@ -61,9 +61,9 @@ class NXWidget(QtWidgets.QWidget):
         if parent is None:
             parent = self.mainwindow
         super(NXWidget, self).__init__(parent=parent)
-        self.initialize()
+        self.set_attributes()
 
-    def initialize(self):
+    def set_attributes(self):
         self.treeview = self.mainwindow.treeview
         self.tree = self.treeview.tree
         self.plotview = self.mainwindow.plotview
@@ -572,7 +572,7 @@ class NXDialog(QtWidgets.QDialog, NXWidget):
         if parent is None:
             parent = self.mainwindow
         QtWidgets.QDialog.__init__(self, parent=parent)
-        self.initialize()
+        self.set_attributes()
         self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
         self.setSizeGripEnabled(True)
         self.mainwindow.dialogs.append(self)
@@ -1328,6 +1328,7 @@ class DirectoryDialog(NXDialog):
         for f in self.files:
             fname = os.path.join(self.directory, f)
             self.mainwindow.load_file(fname, wait=1)
+        self.treeview.select_top()
         super(DirectoryDialog, self).accept()
 
  
@@ -3786,8 +3787,8 @@ class RemoteDialog(NXDialog):
             domain = self.parameters['domain'].value
             filepath = self.parameters['filepath'].value
             root = nxloadremote(filepath, server=server, domain=domain)
-            name = self.mainwindow.treeview.tree.get_name(filepath)               
-            self.mainwindow.treeview.tree[name] = \
+            name = self.treeview.tree.get_name(filepath)               
+            self.treeview.tree[name] = \
                 self.mainwindow.user_ns[name] = root
             logging.info(
                 "Opening remote NeXus file '%s' on '%s' as workspace '%s'"
