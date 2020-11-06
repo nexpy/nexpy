@@ -523,7 +523,11 @@ class NXTreeView(QtWidgets.QTreeView):
                                      QtCore.QItemSelectionModel.Select)
 
     def select_top(self):
-        self.select_node(self.tree[self.tree.__dir__()[0]])
+        try:
+            self.select_node(self.tree[self.tree.__dir__()[0]])
+            self.setFocus()
+        except Exception:
+            pass
         
     def selectionChanged(self, new, old):
         super(NXTreeView, self).selectionChanged(new, old)

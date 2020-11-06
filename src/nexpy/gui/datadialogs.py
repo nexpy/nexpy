@@ -1328,6 +1328,7 @@ class DirectoryDialog(NXDialog):
         for f in self.files:
             fname = os.path.join(self.directory, f)
             self.mainwindow.load_file(fname, wait=1)
+        self.treeview.select_top()
         super(DirectoryDialog, self).accept()
 
  
