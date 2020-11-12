@@ -561,6 +561,10 @@ def initialize_preferences(settings):
         nxsetlock(settings.get('preferences', 'lock'))
     else:
         settings.set('preferences', 'lock', nxgetlock())
+    if settings.has_option('preferences', 'recursive'):
+        nxsetrecursive(settings.getboolean('preferences', 'recursive'))
+    else:
+        settings.set('preferences', 'recursive', nxgetrecursive())
     settings.save()
 
 
