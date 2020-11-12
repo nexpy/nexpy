@@ -1061,7 +1061,7 @@ class MainWindow(QtWidgets.QMainWindow):
                          % fname)
             return
         name = self.tree.get_name(fname)
-        self.tree[name] = nxload(fname, recursive=False)
+        self.tree[name] = nxload(fname)
         self.treeview.update()
         self.treeview.select_node(self.tree[name])
         self.treeview.setFocus()
