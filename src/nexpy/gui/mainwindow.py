@@ -1050,7 +1050,7 @@ class MainWindow(QtWidgets.QMainWindow):
         except NeXusError as error:
             report_error("Creating New Workspace", error)
 
-    def load_file(self, fname, wait=5):
+    def load_file(self, fname, wait=5, recent=True):
         if fname in [self.tree[root].nxfilename for root in self.tree]:
             raise NeXusError('File already open')
             return
@@ -1067,7 +1067,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.treeview.setFocus()
         self.default_directory = os.path.dirname(fname)
         logging.info("NeXus file '%s' opened as workspace '%s'" % (fname, name))
-        self.update_files(fname)
+        self.update_files(fname, recent=recent)
 
     def open_file(self):
         try:
@@ -1156,29 +1156,31 @@ class MainWindow(QtWidgets.QMainWindow):
             position, self.recent_file_actions[action][1],
             self.recent_menu, self.recent_menu.actionGeometry(action))
 
-    def update_files(self, filename):
-        recent_files = self.settings.options('recent')
-        try:
-            recent_files.remove(filename)
-        except ValueError:
-            pass
-        recent_files.insert(0, filename)
-        recent_files = recent_files[:self.max_recent_files]
-        for i, recent_file in enumerate(recent_files):
+    def update_files(self, filename, recent=True):
+        if recent:
+            recent_files = self.settings.options('recent')
             try:
-                action = [k for k, v in self.recent_file_actions.items()
-                          if v[0] == i][0]
-                action.setText(os.path.basename(recent_file))
-                action.setToolTip(recent_file)
-            except IndexError:
-                action = QtWidgets.QAction(os.path.basename(recent_file), self,
-                                          triggered=self.open_recent_file)
-                action.setToolTip(recent_file)
-                self.add_menu_action(self.recent_menu, action, self)
-            self.recent_file_actions[action] = (i, recent_file)
-        self.settings.purge('recent')
-        for recent_file in recent_files:
-            self.settings.set('recent', recent_file)
+                recent_files.remove(filename)
+            except ValueError:
+                pass
+            recent_files.insert(0, filename)
+            recent_files = recent_files[:self.max_recent_files]
+            for i, recent_file in enumerate(recent_files):
+                try:
+                    action = [k for k, v in self.recent_file_actions.items()
+                              if v[0] == i][0]
+                    action.setText(os.path.basename(recent_file))
+                    action.setToolTip(recent_file)
+                except IndexError:
+                    action = QtWidgets.QAction(os.path.basename(recent_file), 
+                                               self,
+                                               triggered=self.open_recent_file)
+                    action.setToolTip(recent_file)
+                    self.add_menu_action(self.recent_menu, action, self)
+                self.recent_file_actions[action] = (i, recent_file)
+            self.settings.purge('recent')
+            for recent_file in recent_files:
+                self.settings.set('recent', recent_file)
         self.settings.set('session', filename)
         self.settings.save()
 
@@ -1252,7 +1254,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def recover_session(self):
         for filename in self.previous_session:
             try:
-                self.load_file(filename)
+                self.load_file(filename, recent=False)
             except Exception:
                 pass
         self.treeview.select_top()

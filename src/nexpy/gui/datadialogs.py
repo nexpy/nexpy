@@ -1326,9 +1326,12 @@ class DirectoryDialog(NXDialog):
                 self.checkbox[f].setChecked(False)
 
     def accept(self):
-        for f in self.files:
+        for i, f in enumerate(self.files):
             fname = os.path.join(self.directory, f)
-            self.mainwindow.load_file(fname, wait=1)
+            if i == 0:
+                self.mainwindow.load_file(fname, wait=1)
+            else:
+                self.mainwindow.load_file(fname, wait=1, recent=False)
         self.treeview.select_top()
         super(DirectoryDialog, self).accept()
 
