@@ -314,7 +314,6 @@ class NXTreeView(QtWidgets.QTreeView):
         self.mainwindow.lockfile_action.setEnabled(False)
         self.mainwindow.unlockfile_action.setEnabled(False)
         self.mainwindow.backup_action.setEnabled(False)
-        self.mainwindow.restore_action.setEnabled(False)
         self.mainwindow.plot_data_action.setEnabled(False)
         self.mainwindow.plot_line_action.setEnabled(False)
         self.mainwindow.overplot_data_action.setEnabled(False)
@@ -337,11 +336,15 @@ class NXTreeView(QtWidgets.QTreeView):
         self.mainwindow.fit_action.setEnabled(False)
         if node is None:
             self.mainwindow.reload_action.setEnabled(False)
+            self.mainwindow.reload_all_action.setEnabled(False)
+            self.mainwindow.remove_all_action.setEnabled(False)
             self.mainwindow.collapse_action.setEnabled(False)
             self.mainwindow.view_action.setEnabled(False)
             return
         else:
             self.mainwindow.reload_action.setEnabled(True)
+            self.mainwindow.reload_all_action.setEnabled(True)
+            self.mainwindow.remove_all_action.setEnabled(True)
             self.mainwindow.collapse_action.setEnabled(True)
             self.mainwindow.view_action.setEnabled(True)
             if node.is_modifiable():
@@ -466,7 +469,6 @@ class NXTreeView(QtWidgets.QTreeView):
         self.addMenu(self.mainwindow.duplicate_action)
         self.addMenu(self.mainwindow.export_action)
         self.addMenu(self.mainwindow.backup_action)
-        self.addMenu(self.mainwindow.restore_action)
         self.menu.addSeparator()
         self.addMenu(self.mainwindow.collapse_action)
         return self.menu
@@ -481,9 +483,12 @@ class NXTreeView(QtWidgets.QTreeView):
         self.mainwindow.statusBar().showMessage(text.replace('\n','; '))
 
     def check_modified_files(self):
-        for key in self.tree._entries:
+        for key in list(self.tree._entries):
             node = self.tree._entries[key]
-            if node.is_modified():
+            if node.nxfilemode and not node.file_exists():
+                display_message("'%s' no longer exists" % node.nxfilename)
+                del self.tree[key]
+            elif node.is_modified():
                 if node.nxfilemode == 'rw':
                     node.lock()
                 node.nxfile.lock = True

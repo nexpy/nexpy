@@ -321,8 +321,8 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
                 self.window.load_file(fname)
             except Exception:
                 pass
-        if args.recover:
-            self.window.recover_session()
+        if args.restore:
+            self.window.restore_session()
 
     def init_colors(self):
         """Configure the coloring of the widget"""

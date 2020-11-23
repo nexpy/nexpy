@@ -297,12 +297,12 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.file_menu.addSeparator()
 
-        self.recover_action=QtWidgets.QAction("Recover Session",
+        self.restore_action=QtWidgets.QAction("Restore Session",
             self,
             shortcut=QtGui.QKeySequence("Ctrl+R"),
-            triggered=self.recover_session
+            triggered=self.restore_session
             )
-        self.add_menu_action(self.file_menu, self.recover_action)
+        self.add_menu_action(self.file_menu, self.restore_action)
 
         self.file_menu.addSeparator()
 
@@ -312,11 +312,23 @@ class MainWindow(QtWidgets.QMainWindow):
             )
         self.add_menu_action(self.file_menu, self.reload_action)
 
+        self.reload_all_action=QtWidgets.QAction("Reload All",
+            self,
+            triggered=self.reload_all
+            )
+        self.add_menu_action(self.file_menu, self.reload_all_action)
+
         self.remove_action=QtWidgets.QAction("Remove",
             self,
             triggered=self.remove
             )
         self.add_menu_action(self.file_menu, self.remove_action)
+
+        self.remove_all_action=QtWidgets.QAction("Remove All",
+            self,
+            triggered=self.remove_all
+            )
+        self.add_menu_action(self.file_menu, self.remove_all_action)
 
         self.file_menu.addSeparator()
 
@@ -1251,7 +1263,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.settings.purge('session')
         self.settings.save()
 
-    def recover_session(self):
+    def restore_session(self):
         for filename in self.previous_session:
             try:
                 self.load_file(filename, recent=False)
@@ -1279,6 +1291,21 @@ class MainWindow(QtWidgets.QMainWindow):
         except NeXusError as error:
             report_error("Reloading File", error)
 
+    def reload_all(self):
+        try:
+            if not confirm_action("Reload all modified files?"):
+                return
+            for name in self.tree:
+                node = self.tree[name]
+                if node.is_modified():
+                    path = node.nxpath
+                    root = node.nxroot
+                    root.reload()
+                    logging.info("'%s' reloaded" % name)
+                self.treeview.select_top()
+        except NeXusError as error:
+            report_error("Reloading All Modified Files", error)
+
     def remove(self):
         try:
             node = self.treeview.get_node()
@@ -1289,9 +1316,22 @@ class MainWindow(QtWidgets.QMainWindow):
                     del self.tree[name]
                     self.settings.remove_option('session', node.nxfilename)
                     self.settings.save()
-                    logging.info("Workspace '%s' removed" % name)
+                    logging.info("'%s' removed from tree" % name)
         except NeXusError as error:
             report_error("Removing File", error)
+
+    def remove_all(self):
+        try:
+            if not confirm_action("Remove all files?"):
+                return
+            for name in list(self.tree):
+                fname = self.tree[name].nxfilename
+                del self.tree[name]
+                self.settings.remove_option('session', fname)
+                self.settings.save()
+                logging.info("'%s' removed from tree" % name)
+        except NeXusError as error:
+            report_error("Removing All Files", error)
 
     def collapse_tree(self):
         self.treeview.collapse()
