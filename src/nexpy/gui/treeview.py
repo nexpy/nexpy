@@ -483,9 +483,12 @@ class NXTreeView(QtWidgets.QTreeView):
         self.mainwindow.statusBar().showMessage(text.replace('\n','; '))
 
     def check_modified_files(self):
-        for key in self.tree._entries:
+        for key in list(self.tree._entries):
             node = self.tree._entries[key]
-            if node.is_modified():
+            if node.nxfilemode and not node.file_exists():
+                display_message("'%s' no longer exists" % node.nxfilename)
+                del self.tree[key]
+            elif node.is_modified():
                 if node.nxfilemode == 'rw':
                     node.lock()
                 node.nxfile.lock = True
