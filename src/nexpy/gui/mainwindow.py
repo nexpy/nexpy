@@ -297,12 +297,12 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.file_menu.addSeparator()
 
-        self.recover_action=QtWidgets.QAction("Recover Session",
+        self.restore_action=QtWidgets.QAction("Restore Session",
             self,
             shortcut=QtGui.QKeySequence("Ctrl+R"),
-            triggered=self.recover_session
+            triggered=self.restore_session
             )
-        self.add_menu_action(self.file_menu, self.recover_action)
+        self.add_menu_action(self.file_menu, self.restore_action)
 
         self.file_menu.addSeparator()
 
@@ -1251,7 +1251,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.settings.purge('session')
         self.settings.save()
 
-    def recover_session(self):
+    def restore_session(self):
         for filename in self.previous_session:
             try:
                 self.load_file(filename, recent=False)

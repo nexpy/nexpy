@@ -314,7 +314,6 @@ class NXTreeView(QtWidgets.QTreeView):
         self.mainwindow.lockfile_action.setEnabled(False)
         self.mainwindow.unlockfile_action.setEnabled(False)
         self.mainwindow.backup_action.setEnabled(False)
-        self.mainwindow.restore_action.setEnabled(False)
         self.mainwindow.plot_data_action.setEnabled(False)
         self.mainwindow.plot_line_action.setEnabled(False)
         self.mainwindow.overplot_data_action.setEnabled(False)
@@ -466,7 +465,6 @@ class NXTreeView(QtWidgets.QTreeView):
         self.addMenu(self.mainwindow.duplicate_action)
         self.addMenu(self.mainwindow.export_action)
         self.addMenu(self.mainwindow.backup_action)
-        self.addMenu(self.mainwindow.restore_action)
         self.menu.addSeparator()
         self.addMenu(self.mainwindow.collapse_action)
         return self.menu
