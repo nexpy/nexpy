@@ -336,11 +336,15 @@ class NXTreeView(QtWidgets.QTreeView):
         self.mainwindow.fit_action.setEnabled(False)
         if node is None:
             self.mainwindow.reload_action.setEnabled(False)
+            self.mainwindow.reload_all_action.setEnabled(False)
+            self.mainwindow.remove_all_action.setEnabled(False)
             self.mainwindow.collapse_action.setEnabled(False)
             self.mainwindow.view_action.setEnabled(False)
             return
         else:
             self.mainwindow.reload_action.setEnabled(True)
+            self.mainwindow.reload_all_action.setEnabled(True)
+            self.mainwindow.remove_all_action.setEnabled(True)
             self.mainwindow.collapse_action.setEnabled(True)
             self.mainwindow.view_action.setEnabled(True)
             if node.is_modifiable():
