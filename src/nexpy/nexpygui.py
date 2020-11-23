@@ -8,10 +8,12 @@
 #
 # The full license is in the file COPYING, distributed with this software.
 #-----------------------------------------------------------------------------
+import argparse
+import sys
+import nexpy
+
 
 def main():
-
-    import argparse, os, sys, nexpy
 
     parser = argparse.ArgumentParser(description="Launch NeXpy")
 
@@ -24,6 +26,11 @@ def main():
     parser.add_argument('-f', '--faulthandler', action='store_true', 
                         help='enable faulthandler for system crashes')
     args, extra_args = parser.parse_known_args()
+
+    if sys.platform == 'darwin':
+        from nexpy.gui.utils import run_pythonw
+        run_pythonw()
+
     from nexpy.gui.consoleapp import main
     main(args, extra_args)
 
