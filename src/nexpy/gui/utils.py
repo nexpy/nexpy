@@ -113,7 +113,7 @@ def report_exception(*args):
     return message_box.exec_()
 
 
-def run_pythonw():
+def run_pythonw(script_path):
     """Execute the NeXpy startup script using 'pythonw' on MacOS.
 
     This relaunches the script in a subprocess using a framework build of 
@@ -130,7 +130,7 @@ def run_pythonw():
         pythonw_path = os.path.join(sys.exec_prefix, 'bin', 'pythonw')
         if os.path.exists(pythonw_path):
             cwd = os.getcwd()
-            cmd = [pythonw_path, 'nexpygui.py']
+            cmd = [pythonw_path, script_path]
             env = os.environ.copy()
             if len(sys.argv) > 1:
                 cmd.extend(sys.argv[1:])
