@@ -133,7 +133,7 @@ def run_pythonw():
             cmd = [pythonw_path, 'nexpygui.py']
             env = os.environ.copy()
             if len(sys.argv) > 1:
-                cmd.append(*sys.argv[1:])
+                cmd.extend(sys.argv[1:])
             import subprocess
             result = subprocess.run(cmd, env=env, cwd=cwd)
             sys.exit(result.returncode)
