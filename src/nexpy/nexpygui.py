@@ -29,7 +29,7 @@ def main():
 
     if sys.platform == 'darwin':
         from nexpy.gui.utils import run_pythonw
-        run_pythonw()
+        run_pythonw(__file__)
 
     from nexpy.gui.consoleapp import main
     main(args, extra_args)
