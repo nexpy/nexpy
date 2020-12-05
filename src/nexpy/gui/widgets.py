@@ -252,6 +252,33 @@ class NXTextBox(NXLineEdit):
         self.setText(str(float('%.4g' % value)))
 
 
+class NXPlainTextEdit(QtWidgets.QPlainTextEdit):
+    """An editable text window."""
+
+    def __init__(self, text=None, wrap=True, parent=None):
+        super(NXPlainTextEdit, self).__init__(parent=parent)
+        self.setFont(QtGui.QFont('Courier'))
+        if not wrap:
+            self.setLineWrapMode(QtWidgets.QPlainTextEdit.NoWrap)
+        if text:
+            self.setPlainText(text)
+        self.setFocusPolicy(QtCore.Qt.StrongFocus)
+
+    def __repr__(self):
+        return 'NXPlainTextEdit()'
+
+    def setPlainText(self, text):
+        """Function to set the text in the window.
+
+        Parameters
+        ----------
+        text : str
+            Text to replace the text box contents.        
+        """
+        super(NXPlainTextEdit, self).setPlainText(str(text))
+        self.repaint()
+
+
 class NXMessageBox(QtWidgets.QMessageBox):
     """A scrollable message box"""
 
