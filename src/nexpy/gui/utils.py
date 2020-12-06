@@ -333,13 +333,14 @@ def format_float(value, width=6):
     return re.sub(r"e(-?)0*(\d+)", r"e\1\2", text.replace("e+", "e"))
 
 
-def human_size(bytes):
+def human_size(bytes, width=0, decimals=2):
     """Convert a file size to human-readable form"""
     size = np.float(bytes)
-    for suffix in ['kB', 'MB', 'GB', 'TB', 'PB', 'EB']:
-        size /= 1000
-        if size < 1000:
-            return '{0:.0f} {1}'.format(size, suffix)
+    for unit in [' B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB']:
+        if size < 1000.0 or unit == 'EB':
+            break
+        size /= 1000.0
+    return "{0:{1}.{2}f} {3}".format(size, width, decimals, unit)
 
 
 def timestamp():
