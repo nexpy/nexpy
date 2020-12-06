@@ -1302,8 +1302,7 @@ class DirectoryDialog(NXDialog):
         scroll_widget = NXWidget()
         scroll_widget.set_layout(grid)
         scroll_area = NXScrollArea(scroll_widget)
-        self.set_layout(prefix_layout, self.make_layout(scroll_area), 
-                        self.close_layout())
+        self.set_layout(prefix_layout, scroll_area, self.close_layout())
         self.prefix_box.setFocus()
 
     @property

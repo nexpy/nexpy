@@ -118,7 +118,7 @@ class NXScrollArea(QtWidgets.QScrollArea):
         if not horizontal:
             self.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.setWidgetResizable(True)
-        self.setSizePolicy(QtWidgets.QSizePolicy.Minimum,
+        self.setSizePolicy(QtWidgets.QSizePolicy.Expanding,
                            QtWidgets.QSizePolicy.Expanding)
 
 
