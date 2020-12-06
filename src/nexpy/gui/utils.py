@@ -378,7 +378,7 @@ def is_timestamp(timestamp):
 
 def format_mtime(mtime):
     """Return the modification time as a formatted string."""
-    return str(datetime.fromtimestamp(mtime))
+    return str(datetime.fromtimestamp(mtime))[:19]
 
 
 def modification_time(filename):
