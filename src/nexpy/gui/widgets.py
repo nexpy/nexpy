@@ -118,7 +118,7 @@ class NXScrollArea(QtWidgets.QScrollArea):
         if not horizontal:
             self.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.setWidgetResizable(True)
-        self.setSizePolicy(QtWidgets.QSizePolicy.Minimum,
+        self.setSizePolicy(QtWidgets.QSizePolicy.Expanding,
                            QtWidgets.QSizePolicy.Expanding)
 
 
@@ -250,6 +250,33 @@ class NXTextBox(NXLineEdit):
             Text box value to be formatted as a float        
         """
         self.setText(str(float('%.4g' % value)))
+
+
+class NXPlainTextEdit(QtWidgets.QPlainTextEdit):
+    """An editable text window."""
+
+    def __init__(self, text=None, wrap=True, parent=None):
+        super(NXPlainTextEdit, self).__init__(parent=parent)
+        self.setFont(QtGui.QFont('Courier'))
+        if not wrap:
+            self.setLineWrapMode(QtWidgets.QPlainTextEdit.NoWrap)
+        if text:
+            self.setPlainText(text)
+        self.setFocusPolicy(QtCore.Qt.StrongFocus)
+
+    def __repr__(self):
+        return 'NXPlainTextEdit()'
+
+    def setPlainText(self, text):
+        """Function to set the text in the window.
+
+        Parameters
+        ----------
+        text : str
+            Text to replace the text box contents.        
+        """
+        super(NXPlainTextEdit, self).setPlainText(str(text))
+        self.repaint()
 
 
 class NXMessageBox(QtWidgets.QMessageBox):

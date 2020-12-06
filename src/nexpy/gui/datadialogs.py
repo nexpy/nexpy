@@ -48,7 +48,7 @@ from .utils import (confirm_action, display_message, report_error,
                     timestamp, format_timestamp, restore_timestamp, get_color,
                     keep_data, fix_projection, modification_time)
 from .widgets import (NXStack, NXScrollArea, NXCheckBox, NXComboBox, NXColorBox, 
-                      NXPushButton, NXLabel, NXLineEdit, 
+                      NXPushButton, NXLabel, NXLineEdit,
                       NXDoubleSpinBox, NXSpinBox, NXpolygon)
 
 
@@ -258,13 +258,6 @@ class NXWidget(QtWidgets.QWidget):
              layout.addStretch()
              group.addButton(self.radiobutton[label])
         return layout
-
-    def editor(self, text=None, *opts):
-        editbox = QtWidgets.QPlainTextEdit()
-        if text:
-            editbox.setText(text)
-        editbox.setFocusPolicy(QtCore.Qt.StrongFocus)
-        return editbox
 
     def filebox(self, text="Choose File", slot=None):
         """
@@ -1309,8 +1302,7 @@ class DirectoryDialog(NXDialog):
         scroll_widget = NXWidget()
         scroll_widget.set_layout(grid)
         scroll_area = NXScrollArea(scroll_widget)
-        self.set_layout(prefix_layout, self.make_layout(scroll_area), 
-                        self.close_layout())
+        self.set_layout(prefix_layout, scroll_area, self.close_layout())
         self.prefix_box.setFocus()
 
     @property
