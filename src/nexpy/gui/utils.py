@@ -113,19 +113,6 @@ def report_exception(*args):
     return message_box.exec_()
 
 
-def reraise(tp, value, tb=None):
-    """Reraise a trapped exception."""
-    try:
-        if value is None:
-            value = tp()
-        if value.__traceback__ is not tb:
-            raise value.with_traceback(tb)
-        raise value
-    finally:
-        value = None
-        tb = None
-
-
 def run_pythonw(script_path):
     """Execute the NeXpy startup script using 'pythonw' on MacOS.
 

@@ -73,7 +73,7 @@ from .datadialogs import ExportDialog
 from .widgets import (NXSpinBox, NXDoubleSpinBox, NXSlider, NXComboBox, 
                       NXCheckBox, NXLabel, NXPushButton,
                       NXcircle, NXellipse, NXrectangle, NXpolygon)
-from .utils import (report_error, report_exception, reraise, boundaries, centers, 
+from .utils import (report_error, report_exception, boundaries, centers, 
                     keep_data, fix_projection, find_nearest, iterable,
                     parula_map)
 
@@ -1199,9 +1199,9 @@ class NXPlotView(QtWidgets.QDialog):
                                           limits)
         try:
             self.plotdata = self.data.project(axes, limits, summed=self.summed)
-        except Exception:
+        except Exception as e:
             self.ztab.pause()
-            reraise(*sys.exc_info())
+            raise e
         self.plotdata.title = self.title
         self.x, self.y, self.v = self.get_image()
         if newaxis:
@@ -3319,9 +3319,9 @@ class NXPlotTab(QtWidgets.QWidget):
             self.maxbox.stepBy(self.playsteps)
             if self.maxbox.pause:
                 self.pause()
-        except Exception:
+        except Exception as e:
             self.pause()
-            reraise(*sys.exc_info())                        
+            raise e                        
 
     def playback(self):
         if self.plotview.ndim < 3:
@@ -3337,9 +3337,9 @@ class NXPlotTab(QtWidgets.QWidget):
             self.timer.start(self.interval)
             self.playback_action.setChecked(True)
             self.playforward_action.setChecked(False)
-        except Exception:
+        except Exception as e:
             self.pause()
-            reraise(*sys.exc_info())            
+            raise e            
 
     def pause(self):
         self.playsteps = 0
@@ -3361,9 +3361,9 @@ class NXPlotTab(QtWidgets.QWidget):
             self.timer.start(self.interval)
             self.playforward_action.setChecked(True)
             self.playback_action.setChecked(False)
-        except Exception:
+        except Exception as e:
             self.pause()
-            reraise(*sys.exc_info())            
+            raise e            
             
 
 class NXProjectionTab(QtWidgets.QWidget):
