@@ -73,7 +73,7 @@ from .datadialogs import ExportDialog
 from .widgets import (NXSpinBox, NXDoubleSpinBox, NXSlider, NXComboBox, 
                       NXCheckBox, NXLabel, NXPushButton,
                       NXcircle, NXellipse, NXrectangle, NXpolygon)
-from .utils import (report_error, report_exception, boundaries, centers, 
+from .utils import (report_error, report_exception, reraise, boundaries, centers, 
                     keep_data, fix_projection, find_nearest, iterable,
                     parula_map)
 
