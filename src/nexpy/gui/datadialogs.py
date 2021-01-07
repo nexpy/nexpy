@@ -1380,7 +1380,7 @@ class PlotDialog(NXDialog):
     @property
     def signal(self):
         _signal = self.group[self.signal_combo.currentText()]
-        if isinstance(_signal, NXlink):
+        if isinstance(_signal, NXlink) and _signal._filename is None:
             return _signal.nxlink
         else:
             return _signal
