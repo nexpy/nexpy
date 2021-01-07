@@ -354,6 +354,26 @@ class NXComboBox(QtWidgets.QComboBox):
         else:
             self.parent().keyPressEvent(event)
 
+    def findText(self, value, **kwargs):
+        """Function to return the index of a text value.
+        
+        This is needed since h5py now returns byte strings, which will trigger
+        ValueErrors unless they are converted to unicode strings.
+        
+        Parameters
+        ----------
+        value :
+            Searched value.  
+
+        Returns
+        -------
+        int
+            Index of the searched value. 
+        """
+        if isinstance(value, bytes):
+            value = value.decode('utf-8')
+        return super(NXComboBox, self).findText(str(value), **kwargs)
+
     def add(self, *items):
         """Add items to the list of options.
 
