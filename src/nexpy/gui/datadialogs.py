@@ -1331,7 +1331,7 @@ class DirectoryDialog(NXDialog):
 class PlotDialog(NXDialog):
     """Dialog to plot arbitrary NeXus data in one or two dimensions"""
  
-    def __init__(self, node, parent=None, **kwargs):
+    def __init__(self, node, parent=None, lines=False):
 
         super(PlotDialog, self).__init__(parent=parent)
  
@@ -1346,8 +1346,6 @@ class PlotDialog(NXDialog):
             self.default_axes = [axis.nxname for axis in self.group.nxaxes]
         except Exception:
             self.default_axes = []
-
-        self.kwargs = kwargs
 
         self.signal_combo =  NXComboBox() 
         for node in self.group.values():
@@ -1369,12 +1367,18 @@ class PlotDialog(NXDialog):
         self.grid.addWidget(self.signal_combo, 0, 1)
         self.choose_signal()
 
-        self.layout = QtWidgets.QVBoxLayout()
-        self.layout.addLayout(self.grid)
-        self.layout.addWidget(self.close_buttons())
-        self.setLayout(self.layout)
-
-        self.setWindowTitle("Plot NeXus Data")
+        self.set_layout(self.grid, 
+                        self.checkboxes(('lines', 'Plot Lines', lines),
+                                        ('over', 'Plot Over', False)),
+                        self.close_buttons())
+        if self.ndim != 1:
+            self.checkbox['lines'].setVisible(False)
+            self.checkbox['over'].setVisible(False)
+        elif self.plotview.ndim != 1:
+            self.checkbox['over'].setVisible(False)
+            self.checkbox['over'].setEnabled(False)
+            
+        self.set_title("Plot NeXus Data")
 
 
     @property
@@ -1472,16 +1476,18 @@ class PlotDialog(NXDialog):
 
     def accept(self):
         try:
+            kwargs = {}
             if self.ndim == 1:
-                if 'marker' not in self.kwargs:
-                    self.kwargs['marker'] = 'o'
-            else:
-                self.kwargs.pop('marker', None)
-                self.kwargs.pop('linestyle', None)
+                if self.checkbox['lines'].isChecked():
+                    kwargs['marker'] = 'None'
+                    kwargs['linestyle'] = '-'
+                else:
+                    kwargs['marker'] = 'o'
+                kwargs['over'] = self.checkbox['over'].isChecked()
             data = NXdata(self.signal, self.get_axes(), 
                           title=self.signal_path)
             data.nxsignal.attrs['signal_path'] = self.signal_path
-            data.plot(**self.kwargs)
+            data.plot(**kwargs)
             super(PlotDialog, self).accept()
         except NeXusError as error:
             report_error("Plotting data", error)
@@ -1518,7 +1524,7 @@ class PlotScalarDialog(NXDialog):
                                             ('Save', self.save_scan)),
                         self.close_layout())
 
-        self.setWindowTitle("Plot NeXus Field")
+        self.set_title("Plot NeXus Field")
         self.kwargs = kwargs
         self.file_box = None
         self.scan_files = None
@@ -1816,7 +1822,7 @@ class ExportDialog(NXDialog):
             if self.title:
                 header += self.data.nxtitle
                 if self.header:
-                    header += '\n'            
+                    header += '\n'
             if self.header:
                 header += self.delimiter.join([f.nxname 
                                                for f in self.export_fields])
