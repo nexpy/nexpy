@@ -640,6 +640,11 @@ will work for one-dimensional or two-dimensional data. If you plot
 higher-dimensional data, the top two-dimensional slice is plotted. Alternative
 two-dimensional slices can be specified using slice indices on the NXdata group.
 
+.. note:: If the ``interpretation`` attribute is set to 'rgb' or 'rgba' and the
+          final dimension is of size 3 or 4, the NXdata group will be plotted
+          as an image using the colors defined by the final dimension. By
+          default, images are displayed with the origin in the top-left corner.
+ 
 If the data is one-dimensional, it is possible to overplot more than one data
 set using 'over=True'. By default, each plot has a new color, but conventional
 Matplotlib keywords can be used to change markers and colors::
@@ -1125,21 +1130,6 @@ Configuration Parameters
 The nexusformat package uses a number of parameters to configure its default
 behavior. These may be read and/or modified using the following functions.
 
-* ``nxgetmemory(), nxsetmemory(value)``:
-    This sets the memory limit (in MB) for loading arrays into memory. If a 
-    field contains data that is larger than this limit, it can only be 
-    accessed as a series of smaller slabs using the standard slicing syntax. 
-    The default is 2000 MB.
-
-* ``nxgetmaxsize(), nxsetmaxsize(value)``:
-    This sets the maximum size of an array before HDF5 chunking and compression
-    is turned on by default. The default is 10000.
-    
-* ``nxgetlock(), nxsetlock(value=10)``:
-    This sets the number of seconds before an attempted file lock acquisition 
-    times out. If the value is 0, file locking is disabled. If ``nxsetlock`` is
-    called without an argument, the default is 10 seconds.
-
 * ``nxgetcompression(), nxsetcompression()``:
     This sets the default HDF5 compression filter. The default is 'gzip'.
 
@@ -1147,3 +1137,25 @@ behavior. These may be read and/or modified using the following functions.
     This sets the default encoding for input strings. This is usually 'utf-8'
     but the default is set to the system default, defined by 
     ``sys.getfilesystemencoding()``.
+
+* ``nxgetlock(), nxsetlock(value=10)``:
+    This sets the number of seconds before an attempted file lock acquisition 
+    times out. If the value is 0, file locking is disabled. If ``nxsetlock`` is
+    called without an argument, the default is 10 seconds.
+
+* ``nxgetmaxsize(), nxsetmaxsize(value)``:
+    This sets the maximum size of an array before HDF5 chunking and compression
+    is turned on by default. The default is 10000.
+
+* ``nxgetmemory(), nxsetmemory(value)``:
+    This sets the memory limit (in MB) for loading arrays into memory. If a 
+    field contains data that is larger than this limit, it can only be 
+    accessed as a series of smaller slabs using the standard slicing syntax. 
+    The default is 2000 MB.
+
+* ``nxgetrecursive(), nxsetrecursive(value)``:
+    This sets the default method of loading NeXus files. If the value is set 
+    to `True`, all objects in the file are loaded (lazily) into memory. If set
+    to `False`, only the first two levels of hierarchy are initially loaded. 
+    Lower levels are loaded when they are referenced. This includes tests for
+    the existence of object paths in the file. The default is `False`.
