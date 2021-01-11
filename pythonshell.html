@@ -1,17 +1,17 @@
 
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
     <meta charset="utf-8" />
-    <title>Python Interface to NeXus &#8212; NeXpy 0.12.7 documentation</title>
-    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Python Interface to NeXus &#8212; NeXpy 0.13.0 documentation</title>
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-    <script type="text/javascript" src="_static/jquery.js"></script>
-    <script type="text/javascript" src="_static/underscore.js"></script>
-    <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="_static/language_data.js"></script>
+    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
     <link rel="shortcut icon" href="_static/favicon.ico"/>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -33,91 +33,10 @@
         <li class="right" >
           <a href="includeme.html" title="Installation"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.12.7 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.13.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Python Interface to NeXus</a></li> 
       </ul>
-    </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-  <h3><a href="index.html">Table of Contents</a></h3>
-  <ul>
-<li><a class="reference internal" href="#">Python Interface to NeXus</a><ul>
-<li><a class="reference internal" href="#loading-nexus-data">Loading NeXus Data</a></li>
-<li><a class="reference internal" href="#creating-nexus-data">Creating NeXus Data</a></li>
-<li><a class="reference internal" href="#nexus-objects">NeXus Objects</a><ul>
-<li><a class="reference internal" href="#nexus-fields">NeXus Fields</a><ul>
-<li><a class="reference internal" href="#nexus-attributes">NeXus attributes</a></li>
-<li><a class="reference internal" href="#masked-arrays">Masked Arrays</a></li>
-<li><a class="reference internal" href="#large-arrays">Large Arrays</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#nexus-groups">NeXus Groups</a><ul>
-<li><a class="reference internal" href="#nxdata-groups">NXdata Groups</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#nexus-links">NeXus Links</a><ul>
-<li><a class="reference internal" href="#creating-a-link">Creating a Link</a></li>
-<li><a class="reference internal" href="#external-links">External Links</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a class="reference internal" href="#plotting-nexus-data">Plotting NeXus Data</a><ul>
-<li><a class="reference internal" href="#additional-plot-methods">Additional Plot Methods</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#manipulating-nexus-data">Manipulating NeXus Data</a><ul>
-<li><a class="reference internal" href="#arithmetic-operations">Arithmetic Operations</a><ul>
-<li><a class="reference internal" href="#nxfield">NXfield</a></li>
-<li><a class="reference internal" href="#nxdata">NXdata</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#slicing">Slicing</a><ul>
-<li><a class="reference internal" href="#id2">NXfield</a></li>
-<li><a class="reference internal" href="#id3">NXdata</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a class="reference internal" href="#saving-nexus-data">Saving NeXus Data</a><ul>
-<li><a class="reference internal" href="#nxroot-groups">NXroot Groups</a></li>
-<li><a class="reference internal" href="#other-objects">Other Objects</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#nexus-file-operations">NeXus File Operations</a><ul>
-<li><a class="reference internal" href="#multiple-operations">Multiple operations</a></li>
-<li><a class="reference internal" href="#file-locking">File Locking</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#configuration-parameters">Configuration Parameters</a></li>
-</ul>
-</li>
-</ul>
-
-  <h4>Previous topic</h4>
-  <p class="topless"><a href="includeme.html"
-                        title="previous chapter">Installation</a></p>
-  <h4>Next topic</h4>
-  <p class="topless"><a href="pythongui.html"
-                        title="next chapter">Python Graphical User Interface</a></p>
-  <div role="note" aria-label="source link">
-    <h3>This Page</h3>
-    <ul class="this-page-menu">
-      <li><a href="_sources/pythonshell.rst.txt"
-            rel="nofollow">Show Source</a></li>
-    </ul>
-   </div>
-<div id="searchbox" style="display: none" role="search">
-  <h3 id="searchlabel">Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
-      <input type="submit" value="Go" />
-    </form>
-    </div>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
-        </div>
-      </div>
+    </div>  
 
     <div class="document">
       <div class="documentwrapper">
@@ -818,6 +737,13 @@ dimensions are, and which NXfields define the plottable axes. The same command
 will work for one-dimensional or two-dimensional data. If you plot
 higher-dimensional data, the top two-dimensional slice is plotted. Alternative
 two-dimensional slices can be specified using slice indices on the NXdata group.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If the <code class="docutils literal notranslate"><span class="pre">interpretation</span></code> attribute is set to ‘rgb’ or ‘rgba’ and the
+final dimension is of size 3 or 4, the NXdata group will be plotted
+as an image using the colors defined by the final dimension. By
+default, images are displayed with the origin in the top-left corner.</p>
+</div>
 <p>If the data is one-dimensional, it is possible to overplot more than one data
 set using ‘over=True’. By default, each plot has a new color, but conventional
 Matplotlib keywords can be used to change markers and colors:</p>
@@ -1337,27 +1263,6 @@ process is also using <em>nexusformat</em>.</p>
 behavior. These may be read and/or modified using the following functions.</p>
 <ul class="simple">
 <li><dl class="simple">
-<dt><code class="docutils literal notranslate"><span class="pre">nxgetmemory(),</span> <span class="pre">nxsetmemory(value)</span></code>:</dt><dd><p>This sets the memory limit (in MB) for loading arrays into memory. If a
-field contains data that is larger than this limit, it can only be
-accessed as a series of smaller slabs using the standard slicing syntax.
-The default is 2000 MB.</p>
-</dd>
-</dl>
-</li>
-<li><dl class="simple">
-<dt><code class="docutils literal notranslate"><span class="pre">nxgetmaxsize(),</span> <span class="pre">nxsetmaxsize(value)</span></code>:</dt><dd><p>This sets the maximum size of an array before HDF5 chunking and compression
-is turned on by default. The default is 10000.</p>
-</dd>
-</dl>
-</li>
-<li><dl class="simple">
-<dt><code class="docutils literal notranslate"><span class="pre">nxgetlock(),</span> <span class="pre">nxsetlock(value=10)</span></code>:</dt><dd><p>This sets the number of seconds before an attempted file lock acquisition
-times out. If the value is 0, file locking is disabled. If <code class="docutils literal notranslate"><span class="pre">nxsetlock</span></code> is
-called without an argument, the default is 10 seconds.</p>
-</dd>
-</dl>
-</li>
-<li><dl class="simple">
 <dt><code class="docutils literal notranslate"><span class="pre">nxgetcompression(),</span> <span class="pre">nxsetcompression()</span></code>:</dt><dd><p>This sets the default HDF5 compression filter. The default is ‘gzip’.</p>
 </dd>
 </dl>
@@ -1369,12 +1274,125 @@ but the default is set to the system default, defined by
 </dd>
 </dl>
 </li>
+<li><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">nxgetlock(),</span> <span class="pre">nxsetlock(value=10)</span></code>:</dt><dd><p>This sets the number of seconds before an attempted file lock acquisition
+times out. If the value is 0, file locking is disabled. If <code class="docutils literal notranslate"><span class="pre">nxsetlock</span></code> is
+called without an argument, the default is 10 seconds.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">nxgetmaxsize(),</span> <span class="pre">nxsetmaxsize(value)</span></code>:</dt><dd><p>This sets the maximum size of an array before HDF5 chunking and compression
+is turned on by default. The default is 10000.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">nxgetmemory(),</span> <span class="pre">nxsetmemory(value)</span></code>:</dt><dd><p>This sets the memory limit (in MB) for loading arrays into memory. If a
+field contains data that is larger than this limit, it can only be
+accessed as a series of smaller slabs using the standard slicing syntax.
+The default is 2000 MB.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">nxgetrecursive(),</span> <span class="pre">nxsetrecursive(value)</span></code>:</dt><dd><p>This sets the default method of loading NeXus files. If the value is set
+to <cite>True</cite>, all objects in the file are loaded (lazily) into memory. If set
+to <cite>False</cite>, only the first two levels of hierarchy are initially loaded.
+Lower levels are loaded when they are referenced. This includes tests for
+the existence of object paths in the file. The default is <cite>False</cite>.</p>
+</dd>
+</dl>
+</li>
 </ul>
 </div>
 </div>
 
 
+            <div class="clearer"></div>
           </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Python Interface to NeXus</a><ul>
+<li><a class="reference internal" href="#loading-nexus-data">Loading NeXus Data</a></li>
+<li><a class="reference internal" href="#creating-nexus-data">Creating NeXus Data</a></li>
+<li><a class="reference internal" href="#nexus-objects">NeXus Objects</a><ul>
+<li><a class="reference internal" href="#nexus-fields">NeXus Fields</a><ul>
+<li><a class="reference internal" href="#nexus-attributes">NeXus attributes</a></li>
+<li><a class="reference internal" href="#masked-arrays">Masked Arrays</a></li>
+<li><a class="reference internal" href="#large-arrays">Large Arrays</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#nexus-groups">NeXus Groups</a><ul>
+<li><a class="reference internal" href="#nxdata-groups">NXdata Groups</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#nexus-links">NeXus Links</a><ul>
+<li><a class="reference internal" href="#creating-a-link">Creating a Link</a></li>
+<li><a class="reference internal" href="#external-links">External Links</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#plotting-nexus-data">Plotting NeXus Data</a><ul>
+<li><a class="reference internal" href="#additional-plot-methods">Additional Plot Methods</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#manipulating-nexus-data">Manipulating NeXus Data</a><ul>
+<li><a class="reference internal" href="#arithmetic-operations">Arithmetic Operations</a><ul>
+<li><a class="reference internal" href="#nxfield">NXfield</a></li>
+<li><a class="reference internal" href="#nxdata">NXdata</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#slicing">Slicing</a><ul>
+<li><a class="reference internal" href="#id2">NXfield</a></li>
+<li><a class="reference internal" href="#id3">NXdata</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#saving-nexus-data">Saving NeXus Data</a><ul>
+<li><a class="reference internal" href="#nxroot-groups">NXroot Groups</a></li>
+<li><a class="reference internal" href="#other-objects">Other Objects</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#nexus-file-operations">NeXus File Operations</a><ul>
+<li><a class="reference internal" href="#multiple-operations">Multiple operations</a></li>
+<li><a class="reference internal" href="#file-locking">File Locking</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#configuration-parameters">Configuration Parameters</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="includeme.html"
+                        title="previous chapter">Installation</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="pythongui.html"
+                        title="next chapter">Python Graphical User Interface</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/pythonshell.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -1394,12 +1412,13 @@ but the default is set to the system default, defined by
         <li class="right" >
           <a href="includeme.html" title="Installation"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.12.7 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.13.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Python Interface to NeXus</a></li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2013-2020, Ray Osborn.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.3.1.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.4.2.
     </div>
   </body>
 </html>

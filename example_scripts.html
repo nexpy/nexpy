@@ -1,17 +1,17 @@
 
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
     <meta charset="utf-8" />
-    <title>Example scripts &#8212; NeXpy 0.12.7 documentation</title>
-    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Example scripts &#8212; NeXpy 0.13.0 documentation</title>
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-    <script type="text/javascript" src="_static/jquery.js"></script>
-    <script type="text/javascript" src="_static/underscore.js"></script>
-    <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="_static/language_data.js"></script>
+    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
     <link rel="shortcut icon" href="_static/favicon.ico"/>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -33,9 +33,52 @@
         <li class="right" >
           <a href="example_data.html" title="Example data"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.12.7 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.13.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Example scripts</a></li> 
       </ul>
-    </div>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="example-scripts">
+<h1>Example scripts<a class="headerlink" href="#example-scripts" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="about-these-example-scripts">
+<h2>About these example scripts<a class="headerlink" href="#about-these-example-scripts" title="Permalink to this headline">¶</a></h2>
+<p>These files are examples of scripts that can be run from the script editor
+within NeXpy. If they are copied to ~/.nexpy/scripts, they can be opened
+directly from the Scripts Menu.</p>
+<p><strong>example.py</strong></p>
+<p>A simple script to create a NeXus tree containing a two-dimensional function
+of NumPy arrays. A similar example is given in the NeXpy documentation.</p>
+<p><strong>chopper_plot.py</strong></p>
+<p>A script to plot a sequence of cuts, displaced along the y-axis. It assumes
+that <code class="docutils literal notranslate"><span class="pre">chopper.nxs</span></code>, which is one of the example files, has been loaded.</p>
+<p><strong>spefix.py</strong></p>
+<p>This is a more elaborate script that shows how a sequence of cuts in a
+two-dimensional data set can be automatically fitted to a simple function (a
+Gaussian and a Linear function) and then subtracted from the two-dimensional
+data and stored in a new workspace that is added to the tree. This uses the
+Fit class that is normally accessed through the GUI Data Menu.</p>
+<div class="section" id="downloads">
+<h3>Downloads<a class="headerlink" href="#downloads" title="Permalink to this headline">¶</a></h3>
+<p>These downloads are also available online:
+<a class="reference external" href="https://github.com/nexpy/nexpy/tree/master/src/nexpy/examples/scripts">https://github.com/nexpy/nexpy/tree/master/src/nexpy/examples/scripts</a></p>
+<ul class="simple">
+<li><p><a class="reference download internal" download="" href="_downloads/e4bea3995bbf6a97dd93629596c5e529/chopper_plot.py"><code class="xref download docutils literal notranslate"><span class="pre">chopper_plot.py</span></code></a></p></li>
+<li><p><a class="reference download internal" download="" href="_downloads/a40242abcdc3b42455ff28d5a8ce6241/spefix.py"><code class="xref download docutils literal notranslate"><span class="pre">spefix.py</span></code></a></p></li>
+</ul>
+</div>
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
   <h3><a href="index.html">Table of Contents</a></h3>
@@ -71,48 +114,7 @@
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
-        </div>
-      </div>
-
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
-          <div class="body" role="main">
-            
-  <div class="section" id="example-scripts">
-<h1>Example scripts<a class="headerlink" href="#example-scripts" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="about-these-example-scripts">
-<h2>About these example scripts<a class="headerlink" href="#about-these-example-scripts" title="Permalink to this headline">¶</a></h2>
-<p>These files are examples of scripts that can be run from the script editor
-within NeXpy. If they are copied to ~/.nexpy/scripts, they can be opened
-directly from the Scripts Menu.</p>
-<p><strong>example.py</strong></p>
-<p>A simple script to create a NeXus tree containing a two-dimensional function
-of Numpy arrays. A similar example is given in the NeXpy documentation.</p>
-<p><strong>chopper_plot.py</strong></p>
-<p>A script to plot a sequence of cuts, displaced along the y-axis. It assumes
-that <code class="docutils literal notranslate"><span class="pre">chopper.nxs</span></code>, which is one of the example files, has been loaded.</p>
-<p><strong>spefix.py</strong></p>
-<p>This is a more elaborate script that shows how a sequence of cuts in a
-two-dimensional data set can be automatically fitted to a simple function (a
-Gaussian and a Linear function) and then subtracted from the two-dimensional
-data and stored in a new workspace that is added to the tree. This uses the
-Fit class that is normally accessed through the GUI Data Menu.</p>
-<div class="section" id="downloads">
-<h3>Downloads<a class="headerlink" href="#downloads" title="Permalink to this headline">¶</a></h3>
-<p>These downloads are also available online:
-<a class="reference external" href="https://github.com/nexpy/nexpy/tree/master/src/nexpy/examples/scripts">https://github.com/nexpy/nexpy/tree/master/src/nexpy/examples/scripts</a></p>
-<ul class="simple">
-<li><p><a class="reference download internal" download="" href="_downloads/e4bea3995bbf6a97dd93629596c5e529/chopper_plot.py"><code class="xref download docutils literal notranslate"><span class="pre">chopper_plot.py</span></code></a></p></li>
-<li><p><a class="reference download internal" download="" href="_downloads/a40242abcdc3b42455ff28d5a8ce6241/spefix.py"><code class="xref download docutils literal notranslate"><span class="pre">spefix.py</span></code></a></p></li>
-</ul>
-</div>
-</div>
-</div>
-
-
-          </div>
+<script>$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -132,12 +134,13 @@ Fit class that is normally accessed through the GUI Data Menu.</p>
         <li class="right" >
           <a href="example_data.html" title="Example data"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.12.7 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.13.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Example scripts</a></li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2013-2020, Ray Osborn.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.3.1.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.4.2.
     </div>
   </body>
 </html>
