@@ -54,8 +54,6 @@ test:
 
   commands:
     - nexpy --help
-    - pylatexenc
-    - pillow
 
 about:
   home: "http://nexpy.github.io/nexpy/"
