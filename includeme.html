@@ -199,24 +199,10 @@ Jupyter QtConsole, which has replaced the old IPython QtConsole.</p>
 </table>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
-<p>On Mac OS there is a serious issue with PyQt5, which started in
-v5.11 and has still not been fixed in v5.13. It should have been
-fixed in NeXpy v0.12.2, but if you experience any similar issues,
-please report it. The alternative is to downgrade PyQt to &lt;v5.10.</p>
-</div>
-<div class="admonition warning">
-<p class="admonition-title">Warning</p>
-<p>Some people have reported that NeXpy crashes on launch on some
-Linux systems. We believe that this may be due to both PyQt4 and
-PyQt5 being installed, although that doesn’t cause a problem on
-all systems. If NeXpy crashes on launch, please try setting the
-environment variable QT_API to either ‘pyqt’, for the PyQt4
-library, ‘pyqt5’ for the PyQt5 library, or ‘pyside’, for the
-PySide library, depending on what you have installed, <em>e.g.</em>, in
-BASH, type</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">export</span> <span class="n">QT_API</span><span class="o">=</span><span class="n">pyqt</span>
-</pre></div>
-</div>
+<p>In Matplotlib v3.3.3, released in November, a number of changes
+were made that cause an exception when modifying grid lines. This
+will be fixed in NeXpy v0.13.2, but in the meantime, please
+downgrade to Matplotlib v3.3.2 if possible.</p>
 </div>
 <div class="admonition seealso">
 <p class="admonition-title">See also</p>
