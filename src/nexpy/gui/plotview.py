@@ -1845,11 +1845,9 @@ class NXPlotView(QtWidgets.QDialog):
         elif opts:
             self._grid = True
         else:
-            self._grid = not (self.ax.xaxis._gridOnMajor or
-                              self.ax.yaxis._gridOnMajor)
+            self._grid = not self._grid
         self._minorgrid = minor
         if self._grid:
-            self.ax.xaxis._gridOnMajor = self.ax.yaxis._gridOnMajor = True
             if 'linestyle' in opts:
                 self._gridstyle = opts['linestyle']
             else:
@@ -1863,27 +1861,22 @@ class NXPlotView(QtWidgets.QDialog):
             else:
                 opts['color'] = self._gridcolor
             if minor:
-                self.ax.xaxis._gridOnMinor = True
-                self.ax.yaxis._gridOnMinor = True
-                self.minorticks_on()
-            else:
-                self.ax.xaxis._gridOnMinor = False
-                self.ax.yaxis._gridOnMinor = False
-                self.minorticks_off()            
+                self.ax.minorticks_on()
             if self.skew:
                 self.draw_skewed_grid(minor=minor, **opts)
             else:
-                self.ax.grid(self._grid, which='major', axis='both', **opts)
+                self.ax.grid(True, which='major', axis='both', **opts)
                 if minor:
                     opts['linewidth'] = max(self._gridwidth/2, 0.1)
                     self.ax.grid(True, which='minor', axis='both', **opts)
                 self.remove_skewed_grid()
         else:
-            self.ax.xaxis._gridOnMajor = self.ax.yaxis._gridOnMajor = False
-            self.ax.xaxis._gridOnMinor = self.ax.yaxis._gridOnMinor = False
             self.ax.grid(False, which='both', axis='both')
+            if not self._minorticks:
+                self.minorticks_off()
             if self.skew:
                 self.remove_skewed_grid()
+        self.update_panels()
         self.draw()
 
     def draw_skewed_grid(self, minor=False, **opts):
