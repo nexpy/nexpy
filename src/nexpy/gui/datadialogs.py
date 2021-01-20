@@ -1976,8 +1976,8 @@ class CustomizeTab(NXTab):
         parameters.add('aspect', self.plotview._aspect, 'Aspect Ratio')
         parameters.add('skew', self.plotview._skew_angle, 'Skew Angle')
         parameters.add('grid', ['On', 'Off'], 'Grid')
-        parameters.add('gridcolor', get_color(self.plotview._gridcolor), 'Grid Color', 
-                       color=True)
+        parameters.add('gridcolor', get_color(self.plotview._gridcolor), 
+                       'Grid Color', color=True)
         parameters.add('gridstyle', list(self.linestyles.values()), 
                        'Grid Style')
         parameters.add('minorticks', ['On', 'Off'], 'Minor Ticks')
@@ -1991,8 +1991,6 @@ class CustomizeTab(NXTab):
         p['skew'].value = self.plotview._skew_angle
         if self.plotview._skew_angle is None:
             p['skew'].value = 90.0
-        self.plotview._grid = (self.plotview.ax.xaxis._gridOnMajor and
-                               self.plotview.ax.yaxis._gridOnMajor)
         if self.plotview._grid:
             p['grid'].value = 'On'
         else:
@@ -2189,13 +2187,20 @@ class CustomizeTab(NXTab):
             self.plotview._gridstyle = [k for k, v in self.linestyles.items()
                                         if v == pi['gridstyle'].value][0]
             #reset in case plotview.aspect changed by plotview.skew            
-            self.plotview.grid(self.plotview._grid)
             self.plotview.skew = _skew_angle
             self.plotview.aspect = self.plotview._aspect
             if pi['minorticks'].value == 'On':
                 self.plotview.minorticks_on()
+                if self.plotview._grid:
+                    self.plotview.grid(True, minor=True)
+                else:
+                    self.plotview.grid(False)
             else:
                 self.plotview.minorticks_off()
+                if self.plotview._grid:
+                    self.plotview.grid(True, minor=False)
+                else:
+                    self.plotview.grid(False)
             if pi['cb_minorticks'].value == 'On':
                 self.plotview.cb_minorticks_on()
             else:
