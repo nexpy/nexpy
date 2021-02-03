@@ -200,7 +200,7 @@ class Parser(object):
             if scan.T != '':
                 entry['counting_basis'] = NXfield('SPEC scan with constant counting time')
                 entry['T'] = NXfield(float(scan.T))
-                entry['T'].units = 'seconds'
+                entry['T'].units = 's'
                 entry['T'].description = 'SPEC scan with constant counting time'
             elif scan.M != '':
                 entry['counting_basis'] = NXfield('SPEC scan with constant monitor count')
