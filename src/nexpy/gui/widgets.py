@@ -278,6 +278,26 @@ class NXPlainTextEdit(QtWidgets.QPlainTextEdit):
         super(NXPlainTextEdit, self).setPlainText(str(text))
         self.repaint()
 
+    def get_text(self, tab_spaces=4):
+        """Return the text contained in the edit window.
+        
+        Parameters
+        ----------
+        tab_spaces : int, optional
+            Number of spaces to replace tabs (default is 4). If set to 0, tab
+            characters are not replaced.      
+
+        Returns
+        -------
+        str
+            Current text in the edit window.
+        """
+        text = self.document().toPlainText().strip()
+        if tab_spaces > 0:
+            return text.replace('\t', tab_spaces*' ')
+        else:
+            return text + '\n'
+
 
 class NXMessageBox(QtWidgets.QMessageBox):
     """A scrollable message box"""
