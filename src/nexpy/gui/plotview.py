@@ -1097,8 +1097,8 @@ class NXPlotView(QtWidgets.QDialog):
         if self.data.nxroot.nxclass == "NXroot":
             return dirname(self.data.nxroot.nxname +
                            self.data.nxsignal.nxpath) + '/'
-        elif 'signal_path' in self.data.nxsignal.attrs:
-            return dirname(self.data.nxsignal.attrs['signal_path']) + '/'
+        elif 'signal_path' in self.data.attrs:
+            return dirname(self.data.attrs['signal_path']) + '/'
         else:
             return ''
 
@@ -1199,9 +1199,9 @@ class NXPlotView(QtWidgets.QDialog):
                                           limits)
         try:
             self.plotdata = self.data.project(axes, limits, summed=self.summed)
-        except Exception:
+        except Exception as e:
             self.ztab.pause()
-            reraise(*sys.exc_info())
+            raise e
         self.plotdata.title = self.title
         self.x, self.y, self.v = self.get_image()
         if newaxis:
@@ -1845,11 +1845,9 @@ class NXPlotView(QtWidgets.QDialog):
         elif opts:
             self._grid = True
         else:
-            self._grid = not (self.ax.xaxis._gridOnMajor or
-                              self.ax.yaxis._gridOnMajor)
+            self._grid = not self._grid
         self._minorgrid = minor
         if self._grid:
-            self.ax.xaxis._gridOnMajor = self.ax.yaxis._gridOnMajor = True
             if 'linestyle' in opts:
                 self._gridstyle = opts['linestyle']
             else:
@@ -1863,27 +1861,22 @@ class NXPlotView(QtWidgets.QDialog):
             else:
                 opts['color'] = self._gridcolor
             if minor:
-                self.ax.xaxis._gridOnMinor = True
-                self.ax.yaxis._gridOnMinor = True
-                self.minorticks_on()
-            else:
-                self.ax.xaxis._gridOnMinor = False
-                self.ax.yaxis._gridOnMinor = False
-                self.minorticks_off()            
+                self.ax.minorticks_on()
             if self.skew:
                 self.draw_skewed_grid(minor=minor, **opts)
             else:
-                self.ax.grid(self._grid, which='major', axis='both', **opts)
+                self.ax.grid(True, which='major', axis='both', **opts)
                 if minor:
                     opts['linewidth'] = max(self._gridwidth/2, 0.1)
                     self.ax.grid(True, which='minor', axis='both', **opts)
                 self.remove_skewed_grid()
         else:
-            self.ax.xaxis._gridOnMajor = self.ax.yaxis._gridOnMajor = False
-            self.ax.xaxis._gridOnMinor = self.ax.yaxis._gridOnMinor = False
             self.ax.grid(False, which='both', axis='both')
+            if not self._minorticks:
+                self.minorticks_off()
             if self.skew:
                 self.remove_skewed_grid()
+        self.update_panels()
         self.draw()
 
     def draw_skewed_grid(self, minor=False, **opts):
@@ -3319,9 +3312,9 @@ class NXPlotTab(QtWidgets.QWidget):
             self.maxbox.stepBy(self.playsteps)
             if self.maxbox.pause:
                 self.pause()
-        except Exception:
+        except Exception as e:
             self.pause()
-            reraise(*sys.exc_info())                        
+            raise e                        
 
     def playback(self):
         if self.plotview.ndim < 3:
@@ -3337,9 +3330,9 @@ class NXPlotTab(QtWidgets.QWidget):
             self.timer.start(self.interval)
             self.playback_action.setChecked(True)
             self.playforward_action.setChecked(False)
-        except Exception:
+        except Exception as e:
             self.pause()
-            reraise(*sys.exc_info())            
+            raise e            
 
     def pause(self):
         self.playsteps = 0
@@ -3361,9 +3354,9 @@ class NXPlotTab(QtWidgets.QWidget):
             self.timer.start(self.interval)
             self.playforward_action.setChecked(True)
             self.playback_action.setChecked(False)
-        except Exception:
+        except Exception as e:
             self.pause()
-            reraise(*sys.exc_info())            
+            raise e            
             
 
 class NXProjectionTab(QtWidgets.QWidget):
@@ -3554,8 +3547,8 @@ class NXNavigationToolbar(NavigationToolbar2QT, QtWidgets.QToolBar):
         ('Add', 'Add plot data to tree', 'hand', 'add_data')
                 )
 
-    def __init__(self, canvas, parent, coordinates=True):
-        QtWidgets.QToolBar.__init__(self, parent)
+    def __init__(self, canvas, parent=None, coordinates=True):
+        QtWidgets.QToolBar.__init__(self, parent=parent)
         self.setAllowedAreas(QtCore.Qt.BottomToolBarArea)
 
         self.coordinates = coordinates

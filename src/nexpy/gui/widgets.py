@@ -91,7 +91,7 @@ class NXStack(QtWidgets.QWidget):
 class NXSortModel(QtCore.QSortFilterProxyModel):
 
     def __init__(self, parent=None):
-        super(NXSortModel, self).__init__(parent)
+        super(NXSortModel, self).__init__(parent=parent)
 
     def lessThan(self, left, right):
         left_text = self.sourceModel().itemFromIndex(left).text()
@@ -118,7 +118,7 @@ class NXScrollArea(QtWidgets.QScrollArea):
         if not horizontal:
             self.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.setWidgetResizable(True)
-        self.setSizePolicy(QtWidgets.QSizePolicy.Minimum,
+        self.setSizePolicy(QtWidgets.QSizePolicy.Expanding,
                            QtWidgets.QSizePolicy.Expanding)
 
 
@@ -252,6 +252,33 @@ class NXTextBox(NXLineEdit):
         self.setText(str(float('%.4g' % value)))
 
 
+class NXPlainTextEdit(QtWidgets.QPlainTextEdit):
+    """An editable text window."""
+
+    def __init__(self, text=None, wrap=True, parent=None):
+        super(NXPlainTextEdit, self).__init__(parent=parent)
+        self.setFont(QtGui.QFont('Courier'))
+        if not wrap:
+            self.setLineWrapMode(QtWidgets.QPlainTextEdit.NoWrap)
+        if text:
+            self.setPlainText(text)
+        self.setFocusPolicy(QtCore.Qt.StrongFocus)
+
+    def __repr__(self):
+        return 'NXPlainTextEdit()'
+
+    def setPlainText(self, text):
+        """Function to set the text in the window.
+
+        Parameters
+        ----------
+        text : str
+            Text to replace the text box contents.        
+        """
+        super(NXPlainTextEdit, self).setPlainText(str(text))
+        self.repaint()
+
+
 class NXMessageBox(QtWidgets.QMessageBox):
     """A scrollable message box"""
 
@@ -326,6 +353,26 @@ class NXComboBox(QtWidgets.QComboBox):
             self.showPopup()
         else:
             self.parent().keyPressEvent(event)
+
+    def findText(self, value, **kwargs):
+        """Function to return the index of a text value.
+        
+        This is needed since h5py now returns byte strings, which will trigger
+        ValueErrors unless they are converted to unicode strings.
+        
+        Parameters
+        ----------
+        value :
+            Searched value.  
+
+        Returns
+        -------
+        int
+            Index of the searched value. 
+        """
+        if isinstance(value, bytes):
+            value = value.decode('utf-8')
+        return super(NXComboBox, self).findText(str(value), **kwargs)
 
     def add(self, *items):
         """Add items to the list of options.
@@ -456,7 +503,7 @@ class NXPushButton(QtWidgets.QPushButton):
         parent : QObject, optional
             Parent of button.
         """
-        super(NXPushButton, self).__init__(label, parent)
+        super(NXPushButton, self).__init__(label, parent=parent)
         self.setFocusPolicy(QtCore.Qt.StrongFocus)
         self.setDefault(False)
         self.setAutoDefault(False)
@@ -486,7 +533,7 @@ class NXColorButton(QtWidgets.QPushButton):
     colorChanged = QtCore.Signal(QtGui.QColor)
 
     def __init__(self, parent=None):
-        super(NXColorButton, self).__init__(parent)
+        super(NXColorButton, self).__init__(parent=parent)
         self.setFixedWidth(18)
         self.setStyleSheet("width:18px; height:18px; "
                            "margin: 0px; border: 0px; padding: 0px;"
@@ -546,7 +593,7 @@ class NXColorBox(QtWidgets.QWidget):
         parent : QObject, optional
             Parent of the color box.
         """
-        super(NXColorBox, self).__init__(parent)
+        super(NXColorBox, self).__init__(parent=parent)
         self.color_text = color
         color = self.qcolor(self.color_text)
         self.layout = QtWidgets.QHBoxLayout()
@@ -559,7 +606,7 @@ class NXColorBox(QtWidgets.QWidget):
                                   parent=parent, slot=self.update_color, 
                                   width=width, align='right')
         self.layout.addWidget(self.textbox)
-        self.button = NXColorButton(parent)
+        self.button = NXColorButton(parent=parent)
         self.button.color = color
         self.button.colorChanged.connect(self.update_text)
         self.layout.addWidget(self.button)
@@ -799,14 +846,9 @@ class NXDoubleSpinBox(QtWidgets.QDoubleSpinBox):
     def setSingleStep(self, value):
         value = abs(value)
         if value == 0:
-            self.setDecimals(2)
             stepsize = 0.01
         else:
             digits = math.floor(math.log10(value))
-            if digits < 0:
-                self.setDecimals(-digits)
-            else:
-                self.setDecimals(2)
             multiplier = 10**digits
             stepsize = find_nearest(self.steps, value/multiplier) * multiplier
         super(NXDoubleSpinBox, self).setSingleStep(stepsize)
@@ -833,6 +875,14 @@ class NXDoubleSpinBox(QtWidgets.QDoubleSpinBox):
             return format_float(value, width=8)
 
     def setValue(self, value):
+        if value == 0:
+            self.setDecimals(2)
+        else:
+            digits = math.floor(math.log10(abs(value)))
+            if digits < 0:
+                self.setDecimals(-digits)
+            else:
+                self.setDecimals(2)
         if value > self.maximum():
             self.setMaximum(value)
         elif value < self.minimum():

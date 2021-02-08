@@ -46,7 +46,7 @@ class ImportDialog(NXImportDialog):
  
     def __init__(self, parent=None):
 
-        super(ImportDialog, self).__init__(parent)
+        super(ImportDialog, self).__init__(parent=parent)
 
         self.textbox = QtWidgets.QTextEdit()
         self.textbox.setMinimumWidth(400)
@@ -112,12 +112,8 @@ class ImportDialog(NXImportDialog):
                 for line in text.splitlines():
                     if line.split():
                         self.text.append(line)
-            for d in self.delimiters:
-                if '\t' in self.text[0]:
-                    self.delcombo.select('Tab')
-                elif (d is not 'Whitespace' and 
-                    self.delimiters[d] not in self.text[0]):
-                    self.delcombo.remove(d)
+            if [s for s in self.text if '\t' in s]:
+                self.delcombo.select('Tab')
 
     def select_class(self):
         self.groupbox.setText(self.groupcombo.selected[2:])

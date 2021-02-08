@@ -28,7 +28,8 @@ from .pyqt import QtCore, QtGui, QtWidgets
 
 from .mainwindow import MainWindow
 from .treeview import NXtree
-from .utils import NXConfigParser, NXLogger, timestamp_age, report_exception
+from .utils import (NXConfigParser, NXLogger, NXGarbageCollector,
+                    timestamp_age, report_exception, initialize_preferences)
 
 from nexusformat.nexus import NXroot, nxclasses, nxload, nxversion
 
@@ -189,6 +190,7 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
         """Initialize access to the NeXpy settings file."""
         self.settings_file = os.path.join(self.nexpy_dir, 'settings.ini')
         self.settings = NXConfigParser(self.settings_file)
+        initialize_preferences(self.settings)
         def backup_age(backup):
             try:
                 return timestamp_age(os.path.basename(os.path.dirname(backup)))
@@ -274,10 +276,11 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
             self.icon_pixmap = None
         self.window = MainWindow(self, self.tree, self.settings, self.config)
         self.window.log = self.log
+        self.gc = NXGarbageCollector(self.window)
         global _mainwindow
         _mainwindow = self.window
 
-    def init_shell(self, filename):
+    def init_shell(self, args):
         """Initialize imports in the shell."""
         global _shell
         _shell = self.window.user_ns
@@ -311,19 +314,15 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
             with open(config_file) as f:
                 s = f.readlines()
         exec('\n'.join(s), self.window.user_ns)
-        if filename is not None:
+        self.window.read_session()
+        for i, filename in enumerate(args.filenames):
             try:
                 fname = os.path.expanduser(filename)
-                name = self.window.treeview.tree.get_name(fname)
-                self.window.treeview.tree[name] = self.window.user_ns[name] \
-                                                = nxload(fname)
-                self.window.treeview.select_node(
-                    self.window.treeview.tree[name])
-                logging.info("NeXus file '%s' opened as workspace '%s'"
-                              % (fname, name))
-                self.window.user_ns[name].plot()
+                self.window.load_file(fname)
             except Exception:
                 pass
+        if args.restore:
+            self.window.restore_session()
 
     def init_colors(self):
         """Configure the coloring of the widget"""
@@ -343,15 +342,18 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
         self._sigint_timer = timer
 
     @catch_config_error
-    def initialize(self, filename=None, argv=None):
-        super(NXConsoleApp, self).initialize(argv)
+    def initialize(self, args, extra_args):
+        if args.faulthandler:
+            import faulthandler
+            faulthandler.enable(all_threads=False)
+        super(NXConsoleApp, self).initialize(extra_args)
         self.init_dir()
         self.init_settings()
         self.init_log()
         self.init_tree()
         self.init_config()
         self.init_gui()
-        self.init_shell(filename)
+        self.init_shell(args)
         self.init_colors()
         self.init_signal()
 
@@ -368,9 +370,9 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
 # Main entry point
 #-----------------------------------------------------------------------------
 
-def main(filename=None):
+def main(args, extra_args):
     app = NXConsoleApp()
-    app.initialize(filename=filename)
+    app.initialize(args, extra_args)
     app.start()
     sys.exit(0)
 

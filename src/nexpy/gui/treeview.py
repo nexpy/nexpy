@@ -74,12 +74,13 @@ class NXtree(NXgroup):
                 for row in range(item.rowCount()):
                     children.append(item.child(row))
             names = [child.name for child in children]
-            for name in item.node:
-                if name not in names:
-                    item.appendRow(NXTreeItem(item.node[name]))
-            for child in children:
-                if child.name not in item.node:
-                    item.removeRow(child.row())
+            if item.node.entries_loaded:
+                for name in item.node:
+                    if name not in names:
+                        item.appendRow(NXTreeItem(item.node[name]))
+                for child in children:
+                    if child.name not in item.node:
+                        item.removeRow(child.row())
         item.node.set_unchanged()
     
     def add(self, node):
@@ -258,8 +259,8 @@ class NXTreeItem(QtGui.QStandardItem):
 
 class NXTreeView(QtWidgets.QTreeView):
 
-    def __init__(self, tree, parent):
-        super(NXTreeView, self).__init__(parent)
+    def __init__(self, tree, parent=None):
+        super(NXTreeView, self).__init__(parent=parent)
 
         self.tree = tree
         self.mainwindow = parent
@@ -288,6 +289,7 @@ class NXTreeView(QtWidgets.QTreeView):
         self.setExpandsOnDoubleClick(False)
         self.doubleClicked.connect(self.mainwindow.plot_data)
         self.selectionModel().selectionChanged.connect(self.selection_changed)
+        self.expanded.connect(self.expand_node)
 
         self.timer = QtCore.QTimer(self)
         self.timer.timeout.connect(self.check_modified_files)
@@ -302,7 +304,6 @@ class NXTreeView(QtWidgets.QTreeView):
 
     def update(self):
         super(NXTreeView, self).update()
-        self.selection_changed()
 
     def selection_changed(self):
         """Enable and disable menu actions based on the selection."""
@@ -313,7 +314,6 @@ class NXTreeView(QtWidgets.QTreeView):
         self.mainwindow.lockfile_action.setEnabled(False)
         self.mainwindow.unlockfile_action.setEnabled(False)
         self.mainwindow.backup_action.setEnabled(False)
-        self.mainwindow.restore_action.setEnabled(False)
         self.mainwindow.plot_data_action.setEnabled(False)
         self.mainwindow.plot_line_action.setEnabled(False)
         self.mainwindow.overplot_data_action.setEnabled(False)
@@ -336,11 +336,15 @@ class NXTreeView(QtWidgets.QTreeView):
         self.mainwindow.fit_action.setEnabled(False)
         if node is None:
             self.mainwindow.reload_action.setEnabled(False)
+            self.mainwindow.reload_all_action.setEnabled(False)
+            self.mainwindow.remove_all_action.setEnabled(False)
             self.mainwindow.collapse_action.setEnabled(False)
             self.mainwindow.view_action.setEnabled(False)
             return
         else:
             self.mainwindow.reload_action.setEnabled(True)
+            self.mainwindow.reload_all_action.setEnabled(True)
+            self.mainwindow.remove_all_action.setEnabled(True)
             self.mainwindow.collapse_action.setEnabled(True)
             self.mainwindow.view_action.setEnabled(True)
             if node.is_modifiable():
@@ -392,7 +396,8 @@ class NXTreeView(QtWidgets.QTreeView):
             except Exception as error:
                 pass
         try:
-            if node.is_plottable() or node.is_numeric():
+            if (isinstance(node, NXdata) or 'default' in node.attrs or 
+                node.is_numeric()):
                 self.mainwindow.plot_data_action.setEnabled(True)
                 if ((isinstance(node, NXgroup) and
                     node.nxsignal is not None and 
@@ -412,6 +417,13 @@ class NXTreeView(QtWidgets.QTreeView):
                     self.mainwindow.plot_image_action.setEnabled(True)
         except Exception as error:
             pass
+
+    def expand_node(self, index):
+        item = self._model.itemFromIndex(self.proxymodel.mapToSource(index))
+        if item and item.node:
+            group = item.node
+            for name in [n for n in group if isinstance(group[n], NXgroup)]:
+                _entries = group[name].entries
 
     def addMenu(self, action):
         if action.isEnabled():
@@ -457,7 +469,6 @@ class NXTreeView(QtWidgets.QTreeView):
         self.addMenu(self.mainwindow.duplicate_action)
         self.addMenu(self.mainwindow.export_action)
         self.addMenu(self.mainwindow.backup_action)
-        self.addMenu(self.mainwindow.restore_action)
         self.menu.addSeparator()
         self.addMenu(self.mainwindow.collapse_action)
         return self.menu
@@ -472,9 +483,12 @@ class NXTreeView(QtWidgets.QTreeView):
         self.mainwindow.statusBar().showMessage(text.replace('\n','; '))
 
     def check_modified_files(self):
-        for key in self.tree._entries:
+        for key in list(self.tree._entries):
             node = self.tree._entries[key]
-            if node.is_modified():
+            if node.nxfilemode and not node.file_exists():
+                display_message("'%s' no longer exists" % node.nxfilename)
+                del self.tree[key]
+            elif node.is_modified():
                 if node.nxfilemode == 'rw':
                     node.lock()
                 node.nxfile.lock = True
@@ -512,6 +526,13 @@ class NXTreeView(QtWidgets.QTreeView):
             self.setCurrentIndex(idx)
         self.selectionModel().select(self.currentIndex(),
                                      QtCore.QItemSelectionModel.Select)
+
+    def select_top(self):
+        try:
+            self.select_node(self.tree[self.tree.__dir__()[0]])
+            self.setFocus()
+        except Exception:
+            pass
         
     def selectionChanged(self, new, old):
         super(NXTreeView, self).selectionChanged(new, old)

@@ -10,6 +10,7 @@
 #-----------------------------------------------------------------------------
 
 import datetime
+import gc
 import importlib
 import io
 import logging
@@ -27,7 +28,7 @@ from matplotlib.colors import (colorConverter, hex2color, rgb2hex,
                                LinearSegmentedColormap)
 from nexusformat.nexus import *
 
-from .pyqt import QtWidgets, getOpenFileName
+from .pyqt import QtCore, QtWidgets, getOpenFileName
 
 try:
     from configparser import ConfigParser
@@ -112,7 +113,41 @@ def report_exception(*args):
     return message_box.exec_()
 
 
-def is_file_locked(filename, wait=10):
+def run_pythonw(script_path):
+    """Execute the NeXpy startup script using 'pythonw' on MacOS.
+
+    This relaunches the script in a subprocess using a framework build of 
+    Python in order to fix the frozen menubar issue in MacOS 10.15 Catalina.
+    
+    Based on https://github.com/napari/napari/pull/1554.
+    """
+    if 'PYTHONEXECUTABLE' in os.environ:
+        return
+    import platform, warnings
+    from distutils.version import StrictVersion
+    if (StrictVersion(platform.release()) > StrictVersion('19.0.0') and
+        'CONDA_PREFIX' in os.environ):
+        pythonw_path = os.path.join(sys.exec_prefix, 'bin', 'pythonw')
+        if os.path.exists(pythonw_path):
+            cwd = os.getcwd()
+            cmd = [pythonw_path, script_path]
+            env = os.environ.copy()
+            if len(sys.argv) > 1:
+                cmd.extend(sys.argv[1:])
+            import subprocess
+            result = subprocess.run(cmd, env=env, cwd=cwd)
+            sys.exit(result.returncode)
+        else:
+            msg = ("'pythonw' executable not found.\n"
+                   "To unfreeze the menubar on macOS, "
+                   "click away from nexpy to another app, "
+                   "then reactivate nexpy. To avoid this problem, "
+                   "please install python.app in conda using:\n\n"
+                   "conda install -c conda-forge python.app\n")
+            warnings.warn(msg)    
+
+
+def is_file_locked(filename, wait=5):
     _lock = NXLock(filename)
     try:
         _lock.wait(wait)
@@ -298,13 +333,14 @@ def format_float(value, width=6):
     return re.sub(r"e(-?)0*(\d+)", r"e\1\2", text.replace("e+", "e"))
 
 
-def human_size(bytes):
+def human_size(bytes, width=0, decimals=2):
     """Convert a file size to human-readable form"""
     size = np.float(bytes)
-    for suffix in ['kB', 'MB', 'GB', 'TB', 'PB', 'EB']:
-        size /= 1000
-        if size < 1000:
-            return '{0:.0f} {1}'.format(size, suffix)
+    for unit in [' B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB']:
+        if size < 1000.0 or unit == 'EB':
+            break
+        size /= 1000.0
+    return "{0:{1}.{2}f} {3}".format(size, width, decimals, unit)
 
 
 def timestamp():
@@ -342,7 +378,7 @@ def is_timestamp(timestamp):
 
 def format_mtime(mtime):
     """Return the modification time as a formatted string."""
-    return str(datetime.fromtimestamp(mtime))
+    return str(datetime.fromtimestamp(mtime))[:19]
 
 
 def modification_time(filename):
@@ -487,6 +523,13 @@ def parula_map():
                [0.9763, 0.9831, 0.0538]]
     return LinearSegmentedColormap.from_list('parula', cm_data)
 
+def cmyk_to_rgb(c, m, y, k):
+    """Convert CMYK values to RGB values."""
+    r = int(255 * (1.0 - (c + k) / 100.))
+    g = int(255 * (1.0 - (m + k) / 100.))
+    b = int(255 * (1.0 - (y + k) / 100.))
+    return r, g, b
+
 def load_image(filename):
     if os.path.splitext(filename.lower())[1] in ['.png', '.jpg', '.jpeg',
                                                  '.gif']:
@@ -496,9 +539,13 @@ def load_image(filename):
         x = NXfield(range(z.shape[1]), name='x')
         if z.ndim > 2:
             rgba = NXfield(range(z.shape[2]), name='rgba')
-            data = NXdata(z, (y,x,rgba))
+            if len(rgba) == 3:
+                z.interpretation = 'rgb-image'
+            elif len(rgba) == 4:
+                z.interpretation = 'rgba-image'
+            data = NXdata(z, (y, x, rgba))
         else:        
-            data = NXdata(z, (y,x))
+            data = NXdata(z, (y, x))
     else:
         try:
             im = fabio.open(filename)
@@ -526,6 +573,34 @@ def load_image(filename):
             data.CBF_header = note
     data.title = filename
     return data
+
+
+def initialize_preferences(settings):
+    if settings.has_option('preferences', 'memory'):
+        nxsetmemory(settings.get('preferences', 'memory'))
+    else:
+        settings.set('preferences', 'memory', nxgetmemory())
+    if settings.has_option('preferences', 'maxsize'):
+        nxsetmaxsize(settings.get('preferences', 'maxsize'))
+    else:
+        settings.set('preferences', 'maxsize', nxgetmaxsize())
+    if settings.has_option('preferences', 'compression'):
+        nxsetcompression(settings.get('preferences', 'compression'))
+    else:
+        settings.set('preferences', 'compression', nxgetcompression())
+    if settings.has_option('preferences', 'encoding'):
+        nxsetencoding(settings.get('preferences', 'encoding'))
+    else:
+        settings.set('preferences', 'encoding', nxgetencoding())
+    if settings.has_option('preferences', 'lock'):
+        nxsetlock(settings.get('preferences', 'lock'))
+    else:
+        settings.set('preferences', 'lock', nxgetlock())
+    if settings.has_option('preferences', 'recursive'):
+        nxsetrecursive(settings.getboolean('preferences', 'recursive'))
+    else:
+        settings.set('preferences', 'recursive', nxgetrecursive())
+    settings.save()
 
 
 class NXimporter(object):
@@ -560,14 +635,24 @@ class NXConfigParser(ConfigParser, object):
             r"(?P<option>.*?)\s*(?:(?P<vi>=)\s*(?P<value>.*))?$", re.VERBOSE)
         super(NXConfigParser, self).read(self.file)
         sections = self.sections()
-        if 'recent' not in sections:
-            self.add_section('recent')
         if 'backups' not in sections:
             self.add_section('backups')
         if 'plugins' not in sections:
             self.add_section('plugins')
+        if 'preferences' not in sections:
+            self.add_section('preferences')
+        if 'recent' not in sections:
+            self.add_section('recent')
+        if 'session' not in sections:
+            self.add_section('session')
         if 'recentFiles' in self.options('recent'):
             self.fix_recent()
+
+    def set(self, section, option, value=None):
+        if value is not None:
+            super(NXConfigParser, self).set(section, option, str(value))
+        else:
+            super(NXConfigParser, self).set(section, option)            
 
     def optionxform(self, optionstr):
         return optionstr
@@ -605,6 +690,34 @@ class NXLogger(io.StringIO):
     def write(self, buffer):
         for line in buffer.rstrip().splitlines():
             self.logger.log(self.log_level, line.rstrip())
+
+
+class NXGarbageCollector(QtCore.QObject):
+    """Perform Python garbage collection manually every 10 seconds.
+
+    This is done to ensure that garbage collection only happens in the GUI
+    thread, as otherwise Qt can crash. It is based on code by Fabio Zadrozny
+    (https://pydev.blogspot.com/2014/03/should-python-garbage-collector-be.html)
+    """
+
+    def __init__(self, parent=None):
+
+        QtCore.QObject.__init__(self, parent=parent)
+        self.timer = QtCore.QTimer(self)
+        self.timer.timeout.connect(self.check)
+
+        self.threshold = gc.get_threshold()
+        gc.disable()
+        self.timer.start(10000)
+
+    def check(self):
+        l0, l1, l2 = gc.get_count()
+        if l0 > self.threshold[0]:
+            gc.collect(0)
+            if l1 > self.threshold[1]:
+                gc.collect(1)
+                if l2 > self.threshold[2]:
+                    gc.collect(2)
 
 
 class Gaussian3DKernel(Kernel):

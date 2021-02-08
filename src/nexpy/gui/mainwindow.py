@@ -27,7 +27,7 @@ import sys
 import webbrowser
 import xml.etree.ElementTree as ET
 from copy import deepcopy
-from threading import Thread
+from operator import attrgetter
 
 from .pyqt import QtCore, QtGui, QtWidgets, getOpenFileName, getSaveFileName
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
@@ -125,9 +125,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.shellview.setFocusPolicy(QtCore.Qt.ClickFocus)
 
         self.kernel = self.console.kernel_manager.kernel
-        def _abort_queues(kernel):
-            pass
-        self.kernel._abort_queues = _abort_queues
         self.shell = self.kernel.shell
         self.user_ns = self.console.kernel_manager.kernel.shell.user_ns
         self.shell.ask_exit = self.close
@@ -300,17 +297,38 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.file_menu.addSeparator()
 
+        self.restore_action=QtWidgets.QAction("Restore Session",
+            self,
+            shortcut=QtGui.QKeySequence("Ctrl+R"),
+            triggered=self.restore_session
+            )
+        self.add_menu_action(self.file_menu, self.restore_action)
+
+        self.file_menu.addSeparator()
+
         self.reload_action=QtWidgets.QAction("&Reload",
             self,
             triggered=self.reload
             )
         self.add_menu_action(self.file_menu, self.reload_action)
 
+        self.reload_all_action=QtWidgets.QAction("Reload All",
+            self,
+            triggered=self.reload_all
+            )
+        self.add_menu_action(self.file_menu, self.reload_all_action)
+
         self.remove_action=QtWidgets.QAction("Remove",
             self,
             triggered=self.remove
             )
         self.add_menu_action(self.file_menu, self.remove_action)
+
+        self.remove_all_action=QtWidgets.QAction("Remove All",
+            self,
+            triggered=self.remove_all
+            )
+        self.add_menu_action(self.file_menu, self.remove_all_action)
 
         self.file_menu.addSeparator()
 
@@ -417,10 +435,11 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.file_menu.addSeparator()
 
-        self.print_action = QtWidgets.QAction("Print Shell",
+        self.preferences_action=QtWidgets.QAction("Edit Preferences",
             self,
-            triggered=self.print_action_console)
-        self.add_menu_action(self.file_menu, self.print_action, True)
+            triggered=self.edit_preferences
+            )
+        self.add_menu_action(self.file_menu, self.preferences_action)
 
         self.quit_action = QtWidgets.QAction("&Quit",
             self,
@@ -495,6 +514,14 @@ class MainWindow(QtWidgets.QMainWindow):
             triggered=self.select_all_console
             )
         self.add_menu_action(self.edit_menu, self.select_all_action, True)
+
+        self.edit_menu.addSeparator()
+
+        self.print_action = QtWidgets.QAction("Print Shell",
+            self,
+            triggered=self.print_action_console)
+        self.add_menu_action(self.edit_menu, self.print_action, True)
+
 
     def init_data_menu(self):
         self.data_menu = self.menu_bar.addMenu("Data")
@@ -591,7 +618,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.pastelink_action=QtWidgets.QAction("Paste As Link",
             self,
-            shortcut=QtGui.QKeySequence("Ctrl+Alt+Shift+V"),
+            shortcut=QtGui.QKeySequence("Ctrl+Shift+Alt+V"),
             triggered=self.paste_link
             )
         self.add_menu_action(self.data_menu, self.pastelink_action)
@@ -850,19 +877,18 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.window_menu.addSeparator()
 
+        self.show_all_limits_action=QtWidgets.QAction("Show All Limits",
+            self,
+            shortcut=QtGui.QKeySequence("Ctrl+Shift+Alt+L"),
+            triggered=self.show_all_limits
+            )
+        self.add_menu_action(self.window_menu, self.show_all_limits_action)
+
         self.reset_limit_action=QtWidgets.QAction("Reset Plot Limits",
             self,
-            shortcut=QtGui.QKeySequence("Ctrl+Alt+Shift+L"),
             triggered=self.reset_axes
             )
         self.add_menu_action(self.window_menu, self.reset_limit_action)
-
-        self.preferences_action=QtWidgets.QAction("Edit Preferences",
-            self,
-            shortcut=QtGui.QKeySequence("Ctrl+Alt+E"),
-            triggered=self.edit_preferences
-            )
-#        self.add_menu_action(self.window_menu, self.preferences_action)
 
         self.window_menu.addSeparator()
 
@@ -988,7 +1014,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def init_recent_menu(self):
         """Add recent files menu item for recently opened files"""
-        recent_files = self.settings.options("recent")
+        recent_files = self.settings.options('recent')
         self.recent_menu = self.file_menu.addMenu("Open Recent")
         self.recent_menu.hovered.connect(self.hover_recent_menu)
         self.recent_file_actions = {}
@@ -1036,23 +1062,31 @@ class MainWindow(QtWidgets.QMainWindow):
         except NeXusError as error:
             report_error("Creating New Workspace", error)
 
+    def load_file(self, fname, wait=5, recent=True):
+        if fname in [self.tree[root].nxfilename for root in self.tree]:
+            raise NeXusError('File already open')
+            return
+        elif not os.path.exists(fname):
+            raise NeXusError("'%s' does not exist" % fname)
+        elif is_file_locked(fname, wait=wait):
+            logging.info("NeXus file '%s' is locked by an external process." 
+                         % fname)
+            return
+        name = self.tree.get_name(fname)
+        self.tree[name] = nxload(fname)
+        self.treeview.update()
+        self.treeview.select_node(self.tree[name])
+        self.treeview.setFocus()
+        self.default_directory = os.path.dirname(fname)
+        logging.info("NeXus file '%s' opened as workspace '%s'" % (fname, name))
+        self.update_files(fname, recent=recent)
+
     def open_file(self):
         try:
             fname = getOpenFileName(self, 'Open File (Read Only)',
                                     self.default_directory,  self.file_filter)
             if fname:
-                if is_file_locked(fname):
-                    logging.info(
-                    "NeXus file '%s' is locked by an external process." % fname)
-                    return
-                name = self.tree.get_name(fname)
-                self.tree[name] = nxload(fname)
-                self.treeview.select_node(self.tree[name])
-                self.treeview.setFocus()
-                self.default_directory = os.path.dirname(fname)
-                logging.info("NeXus file '%s' opened as workspace '%s'"
-                             % (fname, name))
-                self.update_recent_files(fname)
+                self.load_file(fname)
         except NeXusError as error:
             report_error("Opening File", error)
 
@@ -1061,35 +1095,14 @@ class MainWindow(QtWidgets.QMainWindow):
             fname = getOpenFileName(self, 'Open File (Read/Write)',
                                     self.default_directory, self.file_filter)
             if fname:
-                if is_file_locked(fname):
-                    return
-                name = self.tree.get_name(fname)
-                self.tree[name] = nxload(fname, 'rw')
-                self.treeview.select_node(self.tree[name])
-                self.treeview.setFocus()
-                self.default_directory = os.path.dirname(fname)
-                logging.info(
-                    "NeXus file '%s' opened (unlocked) as workspace '%s'"
-                    % (fname, name))
-                self.update_recent_files(fname)
+                self.load_file(fname)
         except NeXusError as error:
             report_error("Opening File (Read/Write)", error)
 
     def open_recent_file(self):
         try:
             fname = self.recent_file_actions[self.sender()][1]
-            if not os.path.exists(fname):
-                raise NeXusError("%s does not exist" % fname)
-            elif is_file_locked(fname):
-                return
-            name = self.tree.get_name(fname)
-            self.tree[name] = nxload(fname)
-            self.treeview.select_node(self.tree[name])
-            self.treeview.setFocus()
-            self.default_directory = os.path.dirname(fname)
-            logging.info("NeXus file '%s' opened as workspace '%s'"
-                         % (fname, name))
-            self.update_recent_files(fname)
+            self.load_file(fname)
         except NeXusError as error:
             report_error("Opening Recent File", error)
 
@@ -1155,29 +1168,32 @@ class MainWindow(QtWidgets.QMainWindow):
             position, self.recent_file_actions[action][1],
             self.recent_menu, self.recent_menu.actionGeometry(action))
 
-    def update_recent_files(self, recent_file):
-        recent_files = self.settings.options("recent")
-        try:
-            recent_files.remove(recent_file)
-        except ValueError:
-            pass
-        recent_files.insert(0, recent_file)
-        recent_files = recent_files[:self.max_recent_files]
-        for i, recent_file in enumerate(recent_files):
+    def update_files(self, filename, recent=True):
+        if recent:
+            recent_files = self.settings.options('recent')
             try:
-                action = [k for k, v in self.recent_file_actions.items()
-                          if v[0] == i][0]
-                action.setText(os.path.basename(recent_file))
-                action.setToolTip(recent_file)
-            except IndexError:
-                action = QtWidgets.QAction(os.path.basename(recent_file), self,
-                                          triggered=self.open_recent_file)
-                action.setToolTip(recent_file)
-                self.add_menu_action(self.recent_menu, action, self)
-            self.recent_file_actions[action] = (i, recent_file)
-        self.settings.purge("recent")
-        for recent_file in recent_files:
-            self.settings.set("recent", recent_file)
+                recent_files.remove(filename)
+            except ValueError:
+                pass
+            recent_files.insert(0, filename)
+            recent_files = recent_files[:self.max_recent_files]
+            for i, recent_file in enumerate(recent_files):
+                try:
+                    action = [k for k, v in self.recent_file_actions.items()
+                              if v[0] == i][0]
+                    action.setText(os.path.basename(recent_file))
+                    action.setToolTip(recent_file)
+                except IndexError:
+                    action = QtWidgets.QAction(os.path.basename(recent_file), 
+                                               self,
+                                               triggered=self.open_recent_file)
+                    action.setToolTip(recent_file)
+                    self.add_menu_action(self.recent_menu, action, self)
+                self.recent_file_actions[action] = (i, recent_file)
+            self.settings.purge('recent')
+            for recent_file in recent_files:
+                self.settings.set('recent', recent_file)
+        self.settings.set('session', filename)
         self.settings.save()
 
     def save_file(self):
@@ -1191,6 +1207,7 @@ class MainWindow(QtWidgets.QMainWindow):
                                     self.file_filter)
             if fname:
                 old_name = node.nxname
+                old_fname = node.nxfilename
                 root = node.save(fname, 'w')
                 del self.tree[old_name]
                 name = self.tree.get_name(fname)
@@ -1198,7 +1215,9 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.treeview.select_node(self.tree[name])
                 self.treeview.update()
                 self.default_directory = os.path.dirname(fname)
-                self.update_recent_files(fname)
+                self.settings.remove_option('recent', old_fname)
+                self.settings.remove_option('session', old_fname)
+                self.update_files(fname)
                 logging.info("NeXus workspace '%s' saved as '%s'"
                              % (old_name, fname))
         except NeXusError as error:
@@ -1218,12 +1237,9 @@ class MainWindow(QtWidgets.QMainWindow):
                             return
                         with NXFile(fname, 'w') as f:
                             f.copyfile(node.nxfile)
-                        name = self.tree.get_name(fname)
-                        self.tree[name] = nxload(fname)
-                        self.default_directory = os.path.dirname(fname)
-                        self.update_recent_files(fname)
                         logging.info("Workspace '%s' duplicated in '%s'"
                                      % (node.nxname, fname))
+                        self.load_file(fname)
                 else:
                     default_name = self.tree.get_new_name()
                     name, ok = QtWidgets.QInputDialog.getText(self,
@@ -1241,6 +1257,19 @@ class MainWindow(QtWidgets.QMainWindow):
                 raise NeXusError("Only NXroot groups can be duplicated")
         except NeXusError as error:
             report_error("Duplicating File", error)
+
+    def read_session(self):
+        self.previous_session = self.settings.options('session')
+        self.settings.purge('session')
+        self.settings.save()
+
+    def restore_session(self):
+        for filename in self.previous_session:
+            try:
+                self.load_file(filename, recent=False)
+            except Exception:
+                pass
+        self.treeview.select_top()
 
     def reload(self):
         try:
@@ -1262,6 +1291,21 @@ class MainWindow(QtWidgets.QMainWindow):
         except NeXusError as error:
             report_error("Reloading File", error)
 
+    def reload_all(self):
+        try:
+            if not confirm_action("Reload all modified files?"):
+                return
+            for name in self.tree:
+                node = self.tree[name]
+                if node.is_modified():
+                    path = node.nxpath
+                    root = node.nxroot
+                    root.reload()
+                    logging.info("'%s' reloaded" % name)
+                self.treeview.select_top()
+        except NeXusError as error:
+            report_error("Reloading All Modified Files", error)
+
     def remove(self):
         try:
             node = self.treeview.get_node()
@@ -1270,9 +1314,24 @@ class MainWindow(QtWidgets.QMainWindow):
                 if confirm_action("Are you sure you want to remove '%s'?" 
                                   % name):
                     del self.tree[name]
-                    logging.info("Workspace '%s' removed" % name)
+                    self.settings.remove_option('session', node.nxfilename)
+                    self.settings.save()
+                    logging.info("'%s' removed from tree" % name)
         except NeXusError as error:
             report_error("Removing File", error)
+
+    def remove_all(self):
+        try:
+            if not confirm_action("Remove all files?"):
+                return
+            for name in list(self.tree):
+                fname = self.tree[name].nxfilename
+                del self.tree[name]
+                self.settings.remove_option('session', fname)
+                self.settings.save()
+                logging.info("'%s' removed from tree" % name)
+        except NeXusError as error:
+            report_error("Removing All Files", error)
 
     def collapse_tree(self):
         self.treeview.collapse()
@@ -1315,11 +1374,8 @@ class MainWindow(QtWidgets.QMainWindow):
         try:
             node = self.treeview.get_node()
             if isinstance(node, NXdata):
-                if node.ndim == 1:
-                    dialog = ExportDialog(node, parent=self)
-                    dialog.show()
-                else:
-                    raise NeXusError("Can only export one-dimensional data")
+                dialog = ExportDialog(node, parent=self)
+                dialog.show()
             else:
                 raise NeXusError("Can only export an NXdata group")                  
         except NeXusError as error:
@@ -1370,6 +1426,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 os.mkdir(dir)
                 node.backup(dir=dir)
                 self.settings.set('backups', node.nxbackup)
+                self.settings.save()
                 display_message("Workspace '%s' backed up" % node.nxname, 
                                 information=node.nxbackup)
                 logging.info("Workspace '%s' backed up to '%s'" 
@@ -1504,8 +1561,7 @@ class MainWindow(QtWidgets.QMainWindow):
                     except (KeyError, NeXusError):
                         pass
                 elif node.is_plottable():
-                    dialog = PlotDialog(node, parent=self, marker='None', 
-                                        linestyle='-')
+                    dialog = PlotDialog(node, parent=self, lines=True)
                     dialog.show()
                 else:
                     raise NeXusError("Data not plottable")
@@ -2129,6 +2185,20 @@ class MainWindow(QtWidgets.QMainWindow):
         try:
             if not self.panel_is_running('Limit'):
                 self.panels['Limit'] = LimitDialog()
+            self.panels['Limit'].activate(self.active_plotview.label)
+        except NeXusError as error:
+            report_error("Showing Limits Panel", error)
+
+    def show_all_limits(self):
+        try:
+            original_plotview = self.plotview
+            if not self.panel_is_running('Limit'):
+                self.panels['Limit'] = LimitDialog()
+            for pv in sorted(self.plotviews.values(), key=attrgetter('number'),
+                             reverse=True):
+                self.make_active(pv.number)
+                self.panels['Limit'].activate(pv.label)
+            self.make_active(original_plotview.number)
             self.panels['Limit'].activate(self.active_plotview.label)
         except NeXusError as error:
             report_error("Showing Limits Panel", error)
