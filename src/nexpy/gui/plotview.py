@@ -198,6 +198,12 @@ class NXFigureManager(FigureManager):
         extra_height = self.window.height() - self.canvas.height()
         self.window.resize(width+extra_width, height+extra_height)
 
+    def set_window_title(self, title):
+        try:
+            self.window.setWindowTitle(title)
+        except AttributeError as exception:
+            pass
+
 
 class NXPlotView(QtWidgets.QDialog):
     """Qt widget containing a NeXpy plot.
