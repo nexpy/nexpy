@@ -313,7 +313,7 @@ class NXComboBox(QtWidgets.QComboBox):
         super(NXComboBox, self).__init__()
         self.setSizeAdjustPolicy(QtWidgets.QComboBox.AdjustToContents)
         self.setFocusPolicy(QtCore.Qt.StrongFocus)
-        self.setMinimumWidth(100)
+        self.setMinimumWidth(80)
         if items:
             self.addItems([str(item) for item in items])
             if default:

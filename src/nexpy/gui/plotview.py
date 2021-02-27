@@ -69,7 +69,7 @@ from scipy.spatial import Voronoi, voronoi_plot_2d
 from nexusformat.nexus import NXfield, NXdata, NXentry, NXroot, NeXusError
 
 from .. import __version__
-from .datadialogs import ExportDialog
+from .datadialogs import ExportDialog, LimitDialog, ProjectionDialog, ScanDialog
 from .widgets import (NXSpinBox, NXDoubleSpinBox, NXSlider, NXComboBox, 
                       NXCheckBox, NXLabel, NXPushButton,
                       NXcircle, NXellipse, NXrectangle, NXpolygon)
@@ -286,7 +286,7 @@ class NXPlotView(QtWidgets.QDialog):
 
         super(NXPlotView, self).__init__(parent)
 
-        self.setMinimumSize(724, 550)
+        self.setMinimumSize(750, 550)
         self.setSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding,
                            QtWidgets.QSizePolicy.MinimumExpanding)
         self.setFocusPolicy(QtCore.Qt.ClickFocus)
@@ -3404,6 +3404,12 @@ class NXProjectionTab(QtWidgets.QWidget):
         self.panel_button = NXPushButton("Open Panel", self.open_panel, self)
         widgets.append(self.panel_button)
 
+        self.panel_combo = NXComboBox(slot=self.open_panel, 
+                                      items=['Projection', 
+                                             'Limits', 
+                                             'Scan'])
+        widgets.append(self.panel_combo)
+
         hbox.addStretch()
         for w in widgets:
             hbox.addWidget(w)
@@ -3533,7 +3539,14 @@ class NXProjectionTab(QtWidgets.QWidget):
             self.plotview.mainwindow.panels['Projection'].update()
 
     def open_panel(self):
-        self.plotview.mainwindow.show_projection_panel()
+        panel = self.panel_combo.selected
+        dialogs = {'Projection': ProjectionDialog, 'Limits': LimitDialog,
+                   'Scan': ScanDialog}
+        if not self.plotview.mainwindow.panel_is_running(panel):
+            self.plotview.panels[panel] = dialogs[panel]()
+        self.plotview.panels[panel].activate(self.plotview.label)
+        self.plotview.panels[panel].setVisible(True)
+        self.plotview.panels[panel].raise_()
 
 
 class NXNavigationToolbar(NavigationToolbar2QT, QtWidgets.QToolBar):

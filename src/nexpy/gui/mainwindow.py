@@ -108,7 +108,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self._memroot = None
 
         self.console = NXRichJupyterWidget(config=self.config, parent=rightpane)
-        self.console.setMinimumSize(700, 100)
+        self.console.setMinimumSize(750, 100)
         self.console.setSizePolicy(QtWidgets.QSizePolicy.Expanding, 
                                    QtWidgets.QSizePolicy.Fixed)
         self.console._confirm_exit = True
