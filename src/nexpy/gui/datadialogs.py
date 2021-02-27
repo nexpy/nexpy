@@ -1190,7 +1190,7 @@ class GridParameter(object):
         else:
             _value = self.box.text()
             try:
-                return np.asscalar(np.array(_value).astype(self.field.dtype))
+                return np.array(_value).astype(self.field.dtype).item()
             except AttributeError:
                 try:
                     return float(_value)
