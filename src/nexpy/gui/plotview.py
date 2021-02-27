@@ -715,7 +715,7 @@ class NXPlotView(QtWidgets.QDialog):
                 self._nameonly = False
 
             self.x, self.y, self.e = self.get_points()
-            self.plot_points(fmt, over, **opts)
+            self.plot_points(fmt=fmt, over=over, **opts)
             self.add_plot()
 
         #Higher-dimensional plot
@@ -884,7 +884,7 @@ class NXPlotView(QtWidgets.QDialog):
             e = None
         return x, y, e
 
-    def plot_points(self, fmt, over=False, **opts):
+    def plot_points(self, fmt='', over=False, **opts):
         """Plot one-dimensional data.
         
         Parameters
@@ -909,12 +909,14 @@ class NXPlotView(QtWidgets.QDialog):
 
         ax = self.figure.gca()
 
-        if fmt == '' and 'color' not in opts:
-            opts['color'] = colors[(self.num-1) % len(colors)]
-        if fmt == '' and 'marker' not in opts:
-            opts['marker'] = 'o'
-        if fmt == '' and 'linestyle' not in opts and 'ls' not in opts:
-            opts['linestyle'] = 'None'
+        if fmt == '':
+            if 'color' not in opts:
+                opts['color'] = colors[(self.num-1) % len(colors)]
+            if 'marker' not in opts:
+                opts['marker'] = 'o'
+            if 'linestyle' not in opts and 'ls' not in opts:
+                opts['linestyle'] = 'None'
+            fmt = 'none'
 
         if self.e is not None:
             self._plot = ax.errorbar(self.x, self.y, self.e, fmt=fmt, **opts)[0]
