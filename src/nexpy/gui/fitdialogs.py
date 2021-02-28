@@ -557,11 +557,14 @@ class FitTab(NXTab):
 
     def choose_model(self):
         model_class = self.modelcombo.selected
-        if self.all_models[model_class].valid_forms:
-            self.formcombo.setVisible(True)
-            self.formcombo.clear()
-            self.formcombo.add(*self.all_models[model_class].valid_forms)
-        else:
+        try:
+            if self.all_models[model_class].valid_forms:
+                self.formcombo.setVisible(True)
+                self.formcombo.clear()
+                self.formcombo.add(*self.all_models[model_class].valid_forms)
+            else:
+                self.formcombo.setVisible(False)
+        except AttributeError:
             self.formcombo.setVisible(False)
                
     def add_model(self):
