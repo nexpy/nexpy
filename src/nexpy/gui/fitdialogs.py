@@ -79,10 +79,10 @@ def get_models():
             if name != '__init__' and ext.startswith('.py'):
                 filenames.add(name)
 
-    functions_path = pkg_resources.resource_filename('nexpy.api.frills', 
+    models_path = pkg_resources.resource_filename('nexpy.api.frills', 
                                                      'models')
-    sys.path.append(functions_path)
-    for file_ in os.listdir(functions_path):
+    sys.path.append(models_path)
+    for file_ in os.listdir(models_path):
         name, ext = os.path.splitext(file_)
         if name != '__init__' and ext.startswith('.py'):
             filenames.add(name)
@@ -91,7 +91,7 @@ def get_models():
     for name in sorted(filenames):
         try:
             module = importlib.import_module(name)
-            models.update(dict((n, m) 
+            models.update(dict((n.strip('Model'), m) 
                 for n, m in inspect.getmembers(module, inspect.isclass) 
                 if issubclass(m, Model) and n != 'Model'))
         except ImportError:
@@ -218,8 +218,8 @@ class FitTab(NXTab):
         add_button = NXPushButton("Add Model", self.add_model)
         self.modelcombo = NXComboBox(items=list(self.all_models), 
                                      slot=self.choose_model)
-        if 'GaussianModel' in self.modelcombo:
-            self.modelcombo.select('GaussianModel')
+        if 'Gaussian' in self.modelcombo:
+            self.modelcombo.select('Gaussian')
         try:
             from pylatexenc.latex2text import LatexNodes2Text
             text = LatexNodes2Text().latex_to_text
@@ -565,7 +565,7 @@ class FitTab(NXTab):
             else:
                 self.formcombo.setVisible(False)
         except AttributeError:
-            self.formcombo.setVisible(False)
+            self.formcombo.setVisible()
                
     def add_model(self):
         model_class = self.modelcombo.selected
