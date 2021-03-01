@@ -3542,6 +3542,7 @@ class NXProjectionTab(QtWidgets.QWidget):
         panel = self.panel_combo.selected
         dialogs = {'Projection': ProjectionDialog, 'Limits': LimitDialog,
                    'Scan': ScanDialog}
+        self.plotview.make_active()
         if not self.plotview.mainwindow.panel_is_running(panel):
             self.plotview.panels[panel] = dialogs[panel]()
         self.plotview.panels[panel].activate(self.plotview.label)
