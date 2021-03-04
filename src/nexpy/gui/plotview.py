@@ -1164,9 +1164,8 @@ class NXPlotView(QtWidgets.QDialog):
                     linscale = self._linscale
                 else:
                     linscale = 0.1
-                self.norm = NXSymLogNorm(linthresh, linscale=linscale,
-                                         vmin=self.vaxis.lo, 
-                                         vmax=self.vaxis.hi)
+                self.norm = SymLogNorm(linthresh, linscale=linscale,
+                                       vmin=self.vaxis.lo, vmax=self.vaxis.hi)
                 self.locator = AutoLocator()
                 self.formatter = ScalarFormatter()
             else:
@@ -1425,9 +1424,9 @@ class NXPlotView(QtWidgets.QDialog):
             self.vaxis.max = self.vaxis.hi = vmax
             self.colorbar.locator = AutoLocator()
             self.colorbar.formatter = ScalarFormatter()
-            self.colorbar.set_norm(NXSymLogNorm(linthresh, linscale=linscale,
+            self.colorbar.set_norm(SymLogNorm(linthresh, linscale=linscale,
                                                 vmin=-vmax, vmax=vmax))
-            self.image.set_norm(NXSymLogNorm(linthresh, linscale=linscale,
+            self.image.set_norm(SymLogNorm(linthresh, linscale=linscale,
                                              vmin=-vmax, vmax=vmax))
             self.colorbar.update_bruteforce(self.image)
             self.set_minorticks()
@@ -3805,17 +3804,3 @@ class NXNavigationToolbar(NavigationToolbar2QT, QtWidgets.QToolBar):
             self.plotview.canvas.setFocus()
         else:
             self.set_message('')
-
-
-class NXSymLogNorm(SymLogNorm):
-    """
-    A subclass of Matplotlib SymLogNorm containing a bug fix
-    for backward compatibility to previous versions.
-    """
-    def __init__(self,  linthresh, linscale=1.0,
-                 vmin=None, vmax=None, clip=False):
-        super(NXSymLogNorm, self).__init__(linthresh, linscale, vmin, vmax, 
-                                           clip)
-        if (not hasattr(self, '_upper') and 
-                vmin is not None and vmax is not None):
-            self._transform_vmin_vmax()
