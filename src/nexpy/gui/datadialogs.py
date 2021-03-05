@@ -2480,12 +2480,14 @@ class ProjectionTab(NXTab):
             axes = [x]
         else:
             y = self.get_axes().index(self.yaxis)
-            axes = [y,x]
+            axes = [y, x]
         limits = self.get_limits()
         shape = self.plotview.data.nxsignal.shape
         if (len(shape)-len(limits) > 0 and 
             len(shape)-len(limits) == shape.count(1)):
             axes, limits = fix_projection(shape, axes, limits)
+        elif any([limits[axis][1]-limits[axis][0]<=1 for axis in axes]):
+            raise NeXusError("One of the projection axes has zero range")
         if self.plotview.rgb_image:
             limits.append((None, None))
         return axes, limits
