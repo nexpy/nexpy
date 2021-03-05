@@ -916,12 +916,14 @@ class NXPlotView(QtWidgets.QDialog):
                 opts['marker'] = 'o'
             if 'linestyle' not in opts and 'ls' not in opts:
                 opts['linestyle'] = 'None'
-            fmt = 'none'
 
         if self.e is not None:
             self._plot = ax.errorbar(self.x, self.y, self.e, fmt=fmt, **opts)[0]
         else:
-            self._plot = ax.plot(self.x, self.y, fmt, **opts)[0]
+            if fmt == '':
+                self._plot = ax.plot(self.x, self.y, **opts)[0]
+            else:
+                self._plot = ax.plot(self.x, self.y, fmt, **opts)[0]
 
         ax.lines[-1].set_label(self.signal_group + self.signal.nxname)
 
@@ -3714,7 +3716,7 @@ class NXNavigationToolbar(NavigationToolbar2QT, QtWidgets.QToolBar):
         if self.plotview.ndim == 1:
             try:
                 self.plotview.plot_smooth()
-            except NeXusError:
+            except Exception:
                 pass
         try:
             xdim = self.plotview.xtab.axis.dim
