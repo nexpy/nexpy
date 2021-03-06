@@ -584,6 +584,13 @@ class NXPlotView(QtWidgets.QDialog):
         self.ax.title.set_visible(False)
         self.draw()
 
+    @property
+    def screen(self):
+        if self.windowHandle():
+            return self.windowHandle().screen()
+        else:
+            return None
+
     def make_active(self):
         """Make this window active for plotting."""
         global active_plotview, plotview
@@ -596,6 +603,10 @@ class NXPlotView(QtWidgets.QDialog):
             self.mainwindow.raise_()
         else:
             self.raise_()
+        try:
+            self.canvas._update_screen(self.screen)
+        except Exception as error:
+            pass
         self.canvas.activateWindow()
         self.canvas.setFocus()
         self.update_active()
@@ -3535,7 +3546,7 @@ class NXProjectionTab(QtWidgets.QWidget):
         else:
             self.overplot_box.setVisible(False)
             self.overplot_box.setChecked(False)
-        plotviews[projection.label].raise_()
+        plotviews[projection.label].make_active()
         if 'Projection' in self.plotview.mainwindow.panels:
             self.plotview.mainwindow.panels['Projection'].update()
 
