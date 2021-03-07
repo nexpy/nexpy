@@ -87,6 +87,7 @@ cmaps = ['viridis', 'inferno', 'magma', 'plasma', #perceptually uniform
          'spring', 'summer', 'autumn', 'winter', 'cool', 'hot', #sequential
          'bone', 'copper', 'gray', 'pink', 
          'turbo', 'jet', 'spectral', 'rainbow', 'hsv', #miscellaneous
+         'Set1', #
          'seismic', 'coolwarm', 'twilight', 'RdBu', 'RdYlBu',  #diverging
          'RdYlGn']
 cmap_d['parula'] = parula_map()
