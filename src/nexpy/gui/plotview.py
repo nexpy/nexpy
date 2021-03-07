@@ -2756,9 +2756,9 @@ class NXPlotTab(QtWidgets.QWidget):
             self.image = True
             self.cmapcombo = NXComboBox(self.change_cmap, cmaps, default_cmap)
             self._cached_cmap = default_cmap
-            if cmaps.index('spring') > 0:
+            if cmaps.index('parula') > 0:
                 self.cmapcombo.insertSeparator(
-                    self.cmapcombo.findText('spring'))
+                    self.cmapcombo.findText('parula')+1)
             if cmaps.index('seismic') > 0:
                 self.cmapcombo.insertSeparator(
                     self.cmapcombo.findText('seismic'))
@@ -3189,6 +3189,7 @@ class NXPlotTab(QtWidgets.QWidget):
         If the color map is available but was not included in the 
         default list when NeXpy was launched, it is added to the list.
         """
+        global cmaps
         if cmap is None:
             cmap = self._cached_cmap
         try:
@@ -3197,9 +3198,11 @@ class NXPlotTab(QtWidgets.QWidget):
             raise NeXusError("'%s' is not registered as a color map" % cmap)
         cmap = cm.name
         if cmap != self._cached_cmap:
+            if cmap not in cmaps:
+                cmaps.insert(6, cmap)
             idx = self.cmapcombo.findText(cmap)
             if idx < 0:
-                self.cmapcombo.insertItem(5, cmap)
+                self.cmapcombo.insertItem(7, cmap)
                 self.cmapcombo.setCurrentIndex(self.cmapcombo.findText(cmap))
             else:
                 self.cmapcombo.setCurrentIndex(idx)
