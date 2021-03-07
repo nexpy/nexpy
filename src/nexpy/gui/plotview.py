@@ -24,6 +24,7 @@ plotviews : dict
     keys are defined by the 
     
 """
+import copy
 import numbers
 import numpy as np
 import os
@@ -1044,9 +1045,12 @@ class NXPlotView(QtWidgets.QDialog):
             else:
                 opts['interpolation'] = self.interpolation
 
+        cm = copy.copy(get_cmap(self.cmap))
+        cm.set_bad('k', 1.0)
         if self.rgb_image or self.regular_grid:
             opts['origin'] = 'lower'
             self.image = ax.imshow(self.v, extent=extent, cmap=self.cmap,
+            self.image = ax.imshow(self.v, extent=extent, cmap=cm,
                                    norm=self.norm, **opts)
         else:
             if self.skew is not None:
@@ -1054,9 +1058,8 @@ class NXPlotView(QtWidgets.QDialog):
                 x, y = self.transform(xx, yy)
             else:
                 x, y = self.x, self.y
-            self.image = ax.pcolormesh(x, y, self.v, cmap=self.cmap, **opts)
+            self.image = ax.pcolormesh(x, y, self.v, cmap=cm, **opts)
             self.image.set_norm(self.norm)
-        self.image.get_cmap().set_bad('k', 1.0)
         ax.set_aspect(self.aspect)
 
         if not over and not self.rgb_image:
@@ -3188,7 +3191,10 @@ class NXPlotTab(QtWidgets.QWidget):
         """
         if cmap is None:
             cmap = self._cached_cmap
-        cm = get_cmap(cmap)
+        try:
+            cm = copy.copy(get_cmap(cmap))
+        except ValueError:
+            raise NeXusError("'%s' is not registered as a color map" % cmap)
         cmap = cm.name
         if cmap != self._cached_cmap:
             idx = self.cmapcombo.findText(cmap)
