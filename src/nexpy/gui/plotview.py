@@ -1050,7 +1050,6 @@ class NXPlotView(QtWidgets.QDialog):
         cm.set_bad('k', 1.0)
         if self.rgb_image or self.regular_grid:
             opts['origin'] = 'lower'
-            self.image = ax.imshow(self.v, extent=extent, cmap=self.cmap,
             self.image = ax.imshow(self.v, extent=extent, cmap=cm,
                                    norm=self.norm, **opts)
         else:
