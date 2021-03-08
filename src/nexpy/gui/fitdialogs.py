@@ -99,6 +99,7 @@ def get_models():
     from lmfit.models import lmfit_models
     models.update(lmfit_models)
     del models['Expression']
+    del models['Gaussian-2D']
 
     return models
 
@@ -471,14 +472,22 @@ class FitTab(NXTab):
         return self.color_box.textbox.text()
 
     def compressed_name(self, name):
-        return re.sub(r'([a-zA-Z]*) # (\d*) ', r'\1\2', name, count=1)
+        return re.sub(r'([a-zA-Z_ ]*) [#] (\d*) $', r'\1_\2', 
+                      name, count=1).replace(' ', '_')
 
     def expanded_name(self, name):
-        return re.sub(r'([a-zA-Z]*)(\d*)', r'\1 # \2 ', name, count=1)
-    
+        return re.sub(r'([a-zA-Z_]*)_(\d*)$', r'\1 # \2 ', 
+                      name, count=1).replace('_', ' ')
+
     def parse_model_name(self, name):
-        match = re.match(r'([a-zA-Z]*)(\d*)', name)
-        return match.group(1), match.group(2)
+        match = re.match(r'([a-zA-Z0-9_-]*)_(\d*)$', name)
+        if match:
+            return match.group(1).replace('_', ' '), match.group(2)
+        try:
+            match = re.match(r'([a-zA-Z]*)(\d*)', name)
+            return match.group(1), match.group(2)
+        except Exception as error:
+            return None, None
 
     def load_group(self, group):
         self.model = None
@@ -490,7 +499,7 @@ class FitTab(NXTab):
                     model_class = group[model_name]['parameters'].attrs['model']
                 else:
                     model_class, model_index = self.parse_model_name(model_name)
-                    if (model_class not in self.all_models and 
+                    if (model_class and model_class not in self.all_models and 
                         model_class+'Model' in self.all_models):
                         model_class = model_class + 'Model'          
                 if model_class in self.all_models:
@@ -570,7 +579,8 @@ class FitTab(NXTab):
     def add_model(self):
         model_class = self.modelcombo.selected
         model_index = len(self.models)
-        model_name = model_class.replace('Model', '') + str(model_index+1)
+        model_name = (model_class.replace('Model', '').replace(' ', '_') 
+                      + '_' + str(model_index+1))
         model = self.get_model_instance(model_class, prefix=model_name)
         try:
             if self.model:
