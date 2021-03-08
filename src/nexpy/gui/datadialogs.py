@@ -2189,6 +2189,10 @@ class CustomizeTab(NXTab):
             #reset in case plotview.aspect changed by plotview.skew            
             self.plotview.skew = _skew_angle
             self.plotview.aspect = self.plotview._aspect
+            if pi['cb_minorticks'].value == 'On':
+                self.plotview.cb_minorticks_on()
+            else:
+                self.plotview.cb_minorticks_off()
             if pi['minorticks'].value == 'On':
                 self.plotview.minorticks_on()
                 if self.plotview._grid:
@@ -2201,10 +2205,6 @@ class CustomizeTab(NXTab):
                     self.plotview.grid(True, minor=False)
                 else:
                     self.plotview.grid(False)
-            if pi['cb_minorticks'].value == 'On':
-                self.plotview.cb_minorticks_on()
-            else:
-                self.plotview.cb_minorticks_off()
         else:
             
             for plot in self.plots:
