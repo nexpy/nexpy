@@ -50,7 +50,7 @@ else:
 from matplotlib.figure import Figure
 from matplotlib.image import NonUniformImage
 from matplotlib.colors import LogNorm, Normalize, SymLogNorm
-from matplotlib.cm import cmap_d, get_cmap
+from matplotlib.cm import get_cmap, register_cmap
 from matplotlib.lines import Line2D
 from matplotlib import markers
 from matplotlib.patches import Circle, Ellipse, Rectangle, Polygon
@@ -76,26 +76,30 @@ from .widgets import (NXSpinBox, NXDoubleSpinBox, NXSlider, NXComboBox,
                       NXcircle, NXellipse, NXrectangle, NXpolygon)
 from .utils import (report_error, report_exception, boundaries, centers, 
                     keep_data, fix_projection, find_nearest, iterable,
-                    parula_map)
+                    parula_map, divgray_map)
 
 active_plotview = None
 plotview = None
 plotviews = {}
 colors = mpl.rcParams['axes.prop_cycle'].by_key()['color']
+register_cmap('parula', parula_map())
+register_cmap('divgray', divgray_map())
 cmaps = ['viridis', 'inferno', 'magma', 'plasma', #perceptually uniform
          'cividis', 'parula',
          'spring', 'summer', 'autumn', 'winter', 'cool', 'hot', #sequential
          'bone', 'copper', 'gray', 'pink', 
          'turbo', 'jet', 'spectral', 'rainbow', 'hsv', #miscellaneous
-         'Set1', #
-         'seismic', 'coolwarm', 'twilight', 'RdBu', 'RdYlBu',  #diverging
-         'RdYlGn']
-cmap_d['parula'] = parula_map()
+         'Set1', 'tab10', #qualitative
+         'seismic', 'coolwarm', 'twilight', 'divgray',
+         'RdBu', 'RdYlBu', 'RdYlGn'] #diverging
+from matplotlib.cm import cmap_d
 cmaps = [cm for cm in cmaps if cm in cmap_d]
 if 'viridis' in cmaps:
     default_cmap = 'viridis'
 else:
     default_cmap = 'jet'
+divergent_cmaps = ['seismic', 'coolwarm', 'twilight', 'divgray', 
+                   'RdBu', 'RdYlBu', 'RdYlGn']
 interpolations = ['nearest', 'bilinear', 'bicubic', 'spline16', 'spline36',
                   'hanning', 'hamming', 'hermite', 'kaiser', 'quadric',
                   'catrom', 'gaussian', 'bessel', 'mitchell', 'sinc', 'lanczos']
@@ -2762,6 +2766,9 @@ class NXPlotTab(QtWidgets.QWidget):
             if cmaps.index('seismic') > 0:
                 self.cmapcombo.insertSeparator(
                     self.cmapcombo.findText('seismic'))
+            if cmaps.index('Set1') > 0:
+                self.cmapcombo.insertSeparator(
+                    self.cmapcombo.findText('Set1'))
             widgets.append(self.cmapcombo)
             self.interpcombo = NXComboBox(self.change_interpolation, 
                                           interpolations, default_interpolation)
@@ -3229,12 +3236,7 @@ class NXPlotTab(QtWidgets.QWidget):
         return self.is_symmetric_cmap(self.cmap)
 
     def is_symmetric_cmap(self, cmap):
-        if (self.cmapcombo is not None and
-            self.cmapcombo.findText(cmap) >= 
-            self.cmapcombo.findText('seismic')):
-            return True
-        else:
-            return False    
+        return cmap in divergent_cmaps    
 
     def symmetrize(self):
         """Symmetrize the minimum and maximum boxes and sliders."""
