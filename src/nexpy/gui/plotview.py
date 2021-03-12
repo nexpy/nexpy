@@ -2472,7 +2472,10 @@ class NXPlotView(QtWidgets.QDialog):
         """Update the option panels."""
         for panel in self.panels:
             if self.label in self.panels[panel].tabs:
-                self.panels[panel].tabs[self.label].update()
+                try:
+                    self.panels[panel].tabs[self.label].update()
+                except Exception as error:
+                    pass
 
     def format_coord(self, x, y):
         """Return the x, y, and signal values for the selected pixel."""
