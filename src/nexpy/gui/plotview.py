@@ -1444,11 +1444,13 @@ class NXPlotView(QtWidgets.QDialog):
             self.vaxis.max = self.vaxis.hi = vmax
             self.colorbar.locator = AutoLocator()
             self.colorbar.formatter = ScalarFormatter()
-            self.colorbar.set_norm(SymLogNorm(linthresh, linscale=linscale,
-                                                vmin=-vmax, vmax=vmax))
-            self.image.set_norm(SymLogNorm(linthresh, linscale=linscale,
-                                             vmin=-vmax, vmax=vmax))
-            self.colorbar.update_bruteforce(self.image)
+            if mpl.__version__ >= '3.1.0':
+                self.image.set_norm(SymLogNorm(linthresh, linscale=linscale,
+                                               vmin=-vmax, vmax=vmax))
+            else:
+                self.colorbar.set_norm(SymLogNorm(linthresh, linscale=linscale,
+                                                  vmin=-vmax, vmax=vmax))
+                self.colorbar.update_bruteforce(self.image)
             self.set_minorticks()
             self.image.set_clim(self.vaxis.lo, self.vaxis.hi)
             self.draw()
