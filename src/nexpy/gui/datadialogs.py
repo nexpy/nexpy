@@ -2667,7 +2667,7 @@ class LimitDialog(NXPanel):
     """Dialog to set plot window limits"""
  
     def __init__(self, parent=None):
-        super(LimitDialog, self).__init__('Limit', title='Limits Panel', 
+        super(LimitDialog, self).__init__('Limits', title='Limits Panel', 
                                           parent=parent)
         self.tab_class = LimitTab
         self.plotview_sort = True

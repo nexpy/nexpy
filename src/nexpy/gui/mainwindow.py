@@ -2183,23 +2183,23 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def show_limits_panel(self):
         try:
-            if not self.panel_is_running('Limit'):
-                self.panels['Limit'] = LimitDialog()
-            self.panels['Limit'].activate(self.active_plotview.label)
+            if not self.panel_is_running('Limits'):
+                self.panels['Limits'] = LimitDialog()
+            self.panels['Limits'].activate(self.active_plotview.label)
         except NeXusError as error:
             report_error("Showing Limits Panel", error)
 
     def show_all_limits(self):
         try:
             original_plotview = self.plotview
-            if not self.panel_is_running('Limit'):
-                self.panels['Limit'] = LimitDialog()
+            if not self.panel_is_running('Limits'):
+                self.panels['Limits'] = LimitDialog()
             for pv in sorted(self.plotviews.values(), key=attrgetter('number'),
                              reverse=True):
                 self.make_active(pv.number)
-                self.panels['Limit'].activate(pv.label)
+                self.panels['Limits'].activate(pv.label)
             self.make_active(original_plotview.number)
-            self.panels['Limit'].activate(self.active_plotview.label)
+            self.panels['Limits'].activate(self.active_plotview.label)
         except NeXusError as error:
             report_error("Showing Limits Panel", error)
 
