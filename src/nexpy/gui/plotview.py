@@ -3676,8 +3676,6 @@ class NXNavigationToolbar(NavigationToolbar2QT, QtWidgets.QToolBar):
         if event.button == 1:
             super(NXNavigationToolbar, self).release_zoom(event)
             self._update_release()
-            if self.plotview.ndim > 1 and self.plotview.label != "Projection":
-                self.plotview.tab_widget.setCurrentWidget(self.plotview.ptab)
         elif event.button == 3:
             if not event.inaxes:
                 self.home(autoscale=False)
