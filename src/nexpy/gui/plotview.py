@@ -3403,55 +3403,38 @@ class NXProjectionTab(QtWidgets.QWidget):
 
         self.plotview = plotview
 
-        hbox = QtWidgets.QHBoxLayout()
-        widgets = []
-
+        self.xlabel = NXLabel('X-Axis:')
         self.xbox = NXComboBox(self.set_xaxis)
-        widgets.append(NXLabel('X-Axis:'))
-        widgets.append(self.xbox)
-
-        self.ybox = NXComboBox(self.set_yaxis)
         self.ylabel = NXLabel('Y-Axis:')
-        widgets.append(self.ylabel)
-        widgets.append(self.ybox)
-
+        self.ybox = NXComboBox(self.set_yaxis)
         self.save_button = NXPushButton("Save", self.save_projection, self)
-        widgets.append(self.save_button)
-
         self.plot_button = NXPushButton("Plot", self.plot_projection, self)
-        widgets.append(self.plot_button)
-
         self.sumbox = NXCheckBox("Sum", self.plotview.replot_data)
-        widgets.append(self.sumbox)
-
-        self.overplot_box = NXCheckBox("Over")
-        if 'Projection' not in plotviews:
-            self.overplot_box.setVisible(False)
-        widgets.append(self.overplot_box)
-
         self.panel_button = NXPushButton("Open Panel", self.open_panel, self)
-        widgets.append(self.panel_button)
+        self.panel_combo = NXComboBox(slot=self.open_panel, items=['Projection', 
+                                                                   'Limits', 
+                                                                   'Scan'])
 
-        self.panel_combo = NXComboBox(slot=self.open_panel, 
-                                      items=['Projection', 
-                                             'Limits', 
-                                             'Scan'])
-        widgets.append(self.panel_combo)
-
-        hbox.addStretch()
-        for w in widgets:
-            hbox.addWidget(w)
-            hbox.setAlignment(w, QtCore.Qt.AlignVCenter)
-        hbox.addStretch()
-
-        self.setLayout(hbox)
+        self.layout = QtWidgets.QHBoxLayout()
+        self.layout.addStretch()
+        self.layout.addWidget(self.xlabel)
+        self.layout.addWidget(self.xbox)
+        self.layout.addWidget(self.ylabel)
+        self.layout.addWidget(self.ybox)
+        self.layout.addWidget(self.save_button)
+        self.layout.addWidget(self.plot_button)
+        self.layout.addWidget(self.sumbox)
+        self.layout.addStretch()
+        self.layout.addWidget(self.panel_button)
+        self.layout.addWidget(self.panel_combo)
+        self.layout.addStretch()
+        self.setLayout(self.layout)
 
         self.setTabOrder(self.xbox, self.ybox)
         self.setTabOrder(self.ybox, self.save_button)
         self.setTabOrder(self.save_button, self.plot_button)
         self.setTabOrder(self.plot_button, self.sumbox)
-        self.setTabOrder(self.sumbox, self.overplot_box)
-        self.setTabOrder(self.overplot_box, self.panel_button)
+        self.setTabOrder(self.sumbox, self.panel_button)
 
     def __repr__(self):
         return 'NXProjectionTab("%s")' % self.plotview.label
@@ -3468,6 +3451,7 @@ class NXProjectionTab(QtWidgets.QWidget):
         if self.plotview.ndim <= 2:
             self.ylabel.setVisible(False)
             self.ybox.setVisible(False)
+            self.layout.setSpacing(20)
         else:
             self.ylabel.setVisible(True)
             self.ybox.setVisible(True)
@@ -3476,6 +3460,7 @@ class NXProjectionTab(QtWidgets.QWidget):
             self.ybox.addItems(axes)
             self.ybox.setCurrentIndex(
                 self.ybox.findText(self.plotview.yaxis.name))
+            self.layout.setSpacing(5)
 
     @property
     def xaxis(self):
@@ -3543,25 +3528,13 @@ class NXProjectionTab(QtWidgets.QWidget):
         keep_data(self.plotview.data.project(axes, limits, summed=self.summed))
 
     def plot_projection(self):
-        if 'Projection' not in plotviews:
-            self.overplot_box.setChecked(False)
         axes, limits = self.get_projection()
         if 'Projection' in plotviews:
             projection = plotviews['Projection']
         else:
             projection = NXPlotView('Projection')
-        if len(axes) == 1 and self.overplot_box.isChecked():
-            over = True
-        else:
-            over = False
         projection.plot(self.plotview.data.project(axes, limits, 
-                                                   summed=self.summed), 
-                        over=over, fmt='o')
-        if len(axes) == 1:
-            self.overplot_box.setVisible(True)
-        else:
-            self.overplot_box.setVisible(False)
-            self.overplot_box.setChecked(False)
+                                                   summed=self.summed), fmt='o')
         plotviews[projection.label].make_active()
         if 'Projection' in self.plotview.mainwindow.panels:
             self.plotview.mainwindow.panels['Projection'].update()
