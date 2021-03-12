@@ -3539,8 +3539,9 @@ class NXProjectionTab(QtWidgets.QWidget):
         if 'Projection' in self.plotview.mainwindow.panels:
             self.plotview.mainwindow.panels['Projection'].update()
 
-    def open_panel(self):
-        panel = self.panel_combo.selected
+    def open_panel(self, panel=None):
+        if panel is None:
+            panel = self.panel_combo.selected
         dialogs = {'Projection': ProjectionDialog, 'Limits': LimitDialog,
                    'Scan': ScanDialog}
         self.plotview.make_active()
@@ -3693,7 +3694,7 @@ class NXNavigationToolbar(NavigationToolbar2QT, QtWidgets.QToolBar):
                         self.plotview is panels['Fit'].tab.fitview):
                         panels['Fit'].tab.set_limits(xmin, xmax)
                 else:
-                    self.plotview.ptab.open_panel()
+                    self.plotview.ptab.open_panel('Projection')
                     panel = self.plotview.panels['Projection']
                     tab = panel.tabs[self.plotview.label]
                     tab.minbox[self.plotview.xaxis.dim].setValue(xmin)
