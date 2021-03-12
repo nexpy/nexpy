@@ -3658,19 +3658,6 @@ class NXNavigationToolbar(NavigationToolbar2QT, QtWidgets.QToolBar):
         dialog = ExportDialog(data, parent=self)
         dialog.show()
 
-    def release(self, event):
-        try:
-            for zoom_id in self._ids_zoom:
-                self.canvas.mpl_disconnect(zoom_id)
-            self.remove_rubberband()
-        except Exception as error:
-            pass
-        self._ids_zoom = []
-        self._xypress = None
-        self._button_pressed = None
-        self._zoom_mode = None
-        super(NXNavigationToolbar, self).release(event)
-
     def release_zoom(self, event):
         """The release mouse button callback in zoom to rect mode."""
         if event.button == 1:
@@ -3699,7 +3686,16 @@ class NXNavigationToolbar(NavigationToolbar2QT, QtWidgets.QToolBar):
                     tab.maxbox[self.plotview.xaxis.dim].setValue(xmax)
                     tab.minbox[self.plotview.yaxis.dim].setValue(ymin)
                     tab.maxbox[self.plotview.yaxis.dim].setValue(ymax)
-        self.release(event)
+            self.remove_rubberband()
+            try:
+                if hasattr(self, '_zoom_info'):
+                    self.canvas.mpl_disconnect(self._zoom_info.cid)
+                elif hasattr(self, '_ids_zoom'):
+                    for zoom_id in self._ids_zoom:
+                        self.canvas.mpl_disconnect(zoom_id)
+                    self._ids_zoom = []
+            except Exception as error:
+                pass
 
     def release_pan(self, event):
         super(NXNavigationToolbar, self).release_pan(event)
