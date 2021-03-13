@@ -948,9 +948,14 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.scripts = {}
         files = sorted(os.listdir(self.script_dir))
-        for file_name in files:
-            if file_name.endswith('.py'):
-                self.add_script_action(os.path.join(self.script_dir, file_name))
+        for name in files:
+            if os.path.isdir(os.path.join(self.script_dir, name)):
+                dir = os.path.join(self.script_dir, name)
+                menu = self.script_menu.addMenu(name)
+                for f in [f for f in sorted(os.listdir(dir)) if f.endswith('.py')]:
+                    self.add_script_action(os.path.join(dir, f), menu=menu)                
+            elif name.endswith('.py'):
+                self.add_script_action(os.path.join(self.script_dir, name))
 
     def init_help_menu(self):
         # please keep the Help menu in Mac Os even if empty. It will
@@ -1020,7 +1025,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.recent_file_actions = {}
         for i, recent_file in enumerate(recent_files):
             action = QtWidgets.QAction(os.path.basename(recent_file), self,
-                                   triggered=self.open_recent_file)
+                                       triggered=self.open_recent_file)
             action.setToolTip(recent_file)
             self.add_menu_action(self.recent_menu, action, self)
             self.recent_file_actions[action] = (i, recent_file)
@@ -1229,7 +1234,7 @@ class MainWindow(QtWidgets.QMainWindow):
             if isinstance(node, NXroot):
                 if node.nxfile:
                     name = self.tree.get_new_name()
-                    default_name = os.path.join(self.default_directory,name)
+                    default_name = os.path.join(self.default_directory, name)
                     fname = getSaveFileName(self, "Choose a Filename",
                                             default_name, self.file_filter)
                     if fname:
@@ -2273,11 +2278,13 @@ class MainWindow(QtWidgets.QMainWindow):
         except NeXusError as error:
             report_error("Opening Script", error)
 
-    def add_script_action(self, file_name):
+    def add_script_action(self, file_name, menu=None):
+        if menu is None:
+            menu = self.script_menu
         name = os.path.basename(file_name)
-        script_action = QtWidgets.QAction("Open "+name, self,
-                               triggered=self.open_script_file)
-        self.add_menu_action(self.script_menu, script_action, self)
+        script_action = QtWidgets.QAction(name, self,
+                                          triggered=self.open_script_file)
+        self.add_menu_action(menu, script_action, self)
         self.scripts[script_action] = file_name
 
     def remove_script_action(self, file_name):
