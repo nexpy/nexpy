@@ -1378,6 +1378,7 @@ class NXPlotView(QtWidgets.QDialog):
             if p['smooth_line']:
                 p['smooth_line'].remove()
             xs_min, xs_max = self.ax.get_xlim()
+            ys_min, ys_max = self.ax.get_ylim()
             if (p['smoothing'] and p['smooth_function'] and
                 xs_min < p['x'].max() and xs_max > p['x'].min()):
                 p['plot'].set_linestyle('None')
@@ -1392,6 +1393,8 @@ class NXPlotView(QtWidgets.QDialog):
                 p['smooth_line'] = self.ax.plot(xs, 
                                                 p['smooth_function'](xs), 
                                                 p['smooth_linestyle'])[0]
+                self.ax.set_xlim(xs_min, xs_max)
+                self.ax.set_ylim(ys_min, ys_max)
                 p['smooth_line'].set_color(p['color'])
                 p['smooth_line'].set_label('_smooth_line_' + str(num))
             else:
