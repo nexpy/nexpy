@@ -947,15 +947,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.script_menu.addSeparator()
 
         self.scripts = {}
-        files = sorted(os.listdir(self.script_dir))
-        for name in files:
-            if os.path.isdir(os.path.join(self.script_dir, name)):
-                dir = os.path.join(self.script_dir, name)
-                menu = self.script_menu.addMenu(name)
-                for f in [f for f in sorted(os.listdir(dir)) if f.endswith('.py')]:
-                    self.add_script_action(os.path.join(dir, f), menu=menu)                
-            elif name.endswith('.py'):
-                self.add_script_action(os.path.join(self.script_dir, name))
+        self.add_script_directory(self.script_dir, self.script_menu)
 
     def init_help_menu(self):
         # please keep the Help menu in Mac Os even if empty. It will
@@ -2272,25 +2264,33 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def open_script_file(self):
         try:
-            file_name = self.scripts[self.sender()]
+            file_name = self.scripts[self.sender()][1]
             self.open_script_window(file_name)
             logging.info("NeXus script '%s' opened" % file_name)
         except NeXusError as error:
             report_error("Opening Script", error)
 
-    def add_script_action(self, file_name, menu=None):
-        if menu is None:
-            menu = self.script_menu
+    def add_script_directory(self, directory, menu):
+        names = sorted(os.listdir(directory))
+        for name in names:
+            if os.path.isdir(os.path.join(directory, name)):
+                d = os.path.join(directory, name)
+                m = menu.addMenu(name)
+                self.add_script_directory(d, m)
+            elif name.endswith('.py'):
+                self.add_script_action(os.path.join(directory, name), menu)
+
+    def add_script_action(self, file_name, menu):
         name = os.path.basename(file_name)
         script_action = QtWidgets.QAction(name, self,
                                           triggered=self.open_script_file)
         self.add_menu_action(menu, script_action, self)
-        self.scripts[script_action] = file_name
+        self.scripts[script_action] = (menu, file_name)
 
     def remove_script_action(self, file_name):
-        for action, name in self.scripts.items():
+        for action, (menu, name) in self.scripts.items():
             if name == file_name:
-                self.script_menu.removeAction(action)
+                menu.removeAction(action)
 
     def _open_nexpy_online_help(self):
         filename = "https://nexpy.github.io/nexpy/"
