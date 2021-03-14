@@ -9,6 +9,7 @@
 # The full license is in the file COPYING, distributed with this software.
 #-----------------------------------------------------------------------------
 
+import copy
 import datetime
 import gc
 import importlib
@@ -26,6 +27,7 @@ import numpy as np
 from IPython.core.ultratb import ColorTB
 from matplotlib.colors import (colorConverter, hex2color, rgb2hex,
                                LinearSegmentedColormap)
+from matplotlib.cm import get_cmap
 from nexusformat.nexus import *
 
 from .pyqt import QtCore, QtWidgets, getOpenFileName
@@ -522,6 +524,12 @@ def parula_map():
                [0.9661, 0.9514428571, 0.0755333333], 
                [0.9763, 0.9831, 0.0538]]
     return LinearSegmentedColormap.from_list('parula', cm_data)
+
+def divgray_map():
+    """New divergent color map copied from the registered 'gray' map."""
+    cm = copy.copy(get_cmap('gray'))
+    cm.name = 'divgray'
+    return cm
 
 def cmyk_to_rgb(c, m, y, k):
     """Convert CMYK values to RGB values."""

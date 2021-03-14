@@ -1190,7 +1190,7 @@ class GridParameter(object):
         else:
             _value = self.box.text()
             try:
-                return np.asscalar(np.array(_value).astype(self.field.dtype))
+                return np.array(_value).astype(self.field.dtype).item()
             except AttributeError:
                 try:
                     return float(_value)
@@ -2189,6 +2189,10 @@ class CustomizeTab(NXTab):
             #reset in case plotview.aspect changed by plotview.skew            
             self.plotview.skew = _skew_angle
             self.plotview.aspect = self.plotview._aspect
+            if pi['cb_minorticks'].value == 'On':
+                self.plotview.cb_minorticks_on()
+            else:
+                self.plotview.cb_minorticks_off()
             if pi['minorticks'].value == 'On':
                 self.plotview.minorticks_on()
                 if self.plotview._grid:
@@ -2201,10 +2205,6 @@ class CustomizeTab(NXTab):
                     self.plotview.grid(True, minor=False)
                 else:
                     self.plotview.grid(False)
-            if pi['cb_minorticks'].value == 'On':
-                self.plotview.cb_minorticks_on()
-            else:
-                self.plotview.cb_minorticks_off()
         else:
             
             for plot in self.plots:
@@ -2480,12 +2480,14 @@ class ProjectionTab(NXTab):
             axes = [x]
         else:
             y = self.get_axes().index(self.yaxis)
-            axes = [y,x]
+            axes = [y, x]
         limits = self.get_limits()
         shape = self.plotview.data.nxsignal.shape
         if (len(shape)-len(limits) > 0 and 
             len(shape)-len(limits) == shape.count(1)):
             axes, limits = fix_projection(shape, axes, limits)
+        elif any([limits[axis][1]-limits[axis][0]<=1 for axis in axes]):
+            raise NeXusError("One of the projection axes has zero range")
         if self.plotview.rgb_image:
             limits.append((None, None))
         return axes, limits
@@ -2493,33 +2495,27 @@ class ProjectionTab(NXTab):
     def save_projection(self):
         try:
             axes, limits = self.get_projection()
-            try:
-                keep_data(self.plotview.data.project(axes, limits,
-                                                     summed=self.summed))
-            except Exception as error:
-                raise NeXusError("Invalid projection limits")
+            keep_data(self.plotview.data.project(axes, limits, 
+                                                 summed=self.summed))
         except NeXusError as error:
             report_error("Saving Projection", error)
 
     def plot_projection(self):
         try:
+            axes, limits = self.get_projection()
             if self.plot:
                 plotview = self.plot
             else:
                 from .plotview import NXPlotView
                 plotview = NXPlotView('Projection')
                 self.over = False
-            axes, limits = self.get_projection()
             if self.lines:
                 fmt = '-'
             else:
                 fmt = 'o'
-            try:
-                plotview.plot(self.plotview.data.project(axes, limits, 
-                                                         summed=self.summed),
-                              over=self.over, fmt=fmt)
-            except Exception as error:
-                raise NeXusError("Invalid projection limits")
+            plotview.plot(self.plotview.data.project(axes, limits, 
+                                                     summed=self.summed),
+                          over=self.over, fmt=fmt)
             self.update_overbox()
             if plotview.ndim > 1:
                 plotview.logv = self.plotview.logv
@@ -2671,7 +2667,7 @@ class LimitDialog(NXPanel):
     """Dialog to set plot window limits"""
  
     def __init__(self, parent=None):
-        super(LimitDialog, self).__init__('Limit', title='Limits Panel', 
+        super(LimitDialog, self).__init__('Limits', title='Limits Panel', 
                                           parent=parent)
         self.tab_class = LimitTab
         self.plotview_sort = True
@@ -3351,11 +3347,8 @@ class ScanTab(NXTab):
         return axes, limits
 
     def get_scan(self):
-        try:
-            axes, limits = self.get_projection()
-            data = self.plotview.data.project(axes, limits, summed=self.summed)
-        except Exception as error:
-            raise NeXusError("Invalid projection limits")
+        axes, limits = self.get_projection()
+        data = self.plotview.data.project(axes, limits, summed=self.summed)
         data_signal = data.nxsignal
         data_axes = data.nxaxes
         scan_axis = self.scan_axis()
@@ -3368,7 +3361,6 @@ class ScanTab(NXTab):
                                                    summed=self.summed).nxsignal
             except Exception as error:
                 raise NeXusError("Cannot read '%s'" % f)
-                return
         del data[data_signal.nxname]
         data.nxsignal = scan_field
         data.nxaxes = [scan_axis, *data_axes]

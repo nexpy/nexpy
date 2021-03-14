@@ -313,7 +313,7 @@ class NXComboBox(QtWidgets.QComboBox):
         super(NXComboBox, self).__init__()
         self.setSizeAdjustPolicy(QtWidgets.QComboBox.AdjustToContents)
         self.setFocusPolicy(QtCore.Qt.StrongFocus)
-        self.setMinimumWidth(100)
+        self.setMinimumWidth(80)
         if items:
             self.addItems([str(item) for item in items])
             if default:
@@ -1044,7 +1044,7 @@ class NXcircle(NXpatch):
         shape = Ellipse((x,y), 2*r, 2*r, **opts)
         if 'linewidth' not in opts:
             shape.set_linewidth(1.0)
-        if 'facecolor' not in opts:
+        if 'color' not in opts and 'facecolor' not in opts:
             shape.set_facecolor('r')
         super(NXcircle, self).__init__(shape, border_tol, resize, plotview)
         self.shape.set_label('Circle')
@@ -1132,7 +1132,7 @@ class NXellipse(NXpatch):
         shape = Ellipse((float(x),float(y)), dx, dy, **opts)
         if 'linewidth' not in opts:
             shape.set_linewidth(1.0)
-        if 'facecolor' not in opts:
+        if 'color' not in opts and 'facecolor' not in opts:
             shape.set_facecolor('r')
         super(NXellipse, self).__init__(shape, border_tol, resize, plotview)
         self.shape.set_label('Ellipse')
@@ -1204,7 +1204,7 @@ class NXrectangle(NXpatch):
         shape = Rectangle((float(x),float(y)), float(dx), float(dy), **opts)
         if 'linewidth' not in opts:
             shape.set_linewidth(1.0)
-        if 'facecolor' not in opts:
+        if 'color' not in opts and 'facecolor' not in opts:
             shape.set_facecolor('r')
         super(NXrectangle, self).__init__(shape, border_tol, resize, plotview)
         self.shape.set_label('Rectangle')
@@ -1289,7 +1289,7 @@ class NXpolygon(NXpatch):
         shape = Polygon(xy, closed, **opts)
         if 'linewidth' not in opts:
             shape.set_linewidth(1.0)
-        if 'facecolor' not in opts:
+        if 'color' not in opts and 'facecolor' not in opts:
             shape.set_facecolor('r')
         super(NXpolygon, self).__init__(shape, resize=False, plotview=plotview)
         self.shape.set_label('Polygon')

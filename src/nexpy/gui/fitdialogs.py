@@ -79,10 +79,10 @@ def get_models():
             if name != '__init__' and ext.startswith('.py'):
                 filenames.add(name)
 
-    functions_path = pkg_resources.resource_filename('nexpy.api.frills', 
+    models_path = pkg_resources.resource_filename('nexpy.api.frills', 
                                                      'models')
-    sys.path.append(functions_path)
-    for file_ in os.listdir(functions_path):
+    sys.path.append(models_path)
+    for file_ in os.listdir(models_path):
         name, ext = os.path.splitext(file_)
         if name != '__init__' and ext.startswith('.py'):
             filenames.add(name)
@@ -91,19 +91,15 @@ def get_models():
     for name in sorted(filenames):
         try:
             module = importlib.import_module(name)
-            models.update(dict((n, m) 
+            models.update(dict((n.strip('Model'), m) 
                 for n, m in inspect.getmembers(module, inspect.isclass) 
                 if issubclass(m, Model) and n != 'Model'))
         except ImportError:
             pass
-    from lmfit import models as lmfit_models
-    models.update(dict((n, m) 
-                  for n, m in inspect.getmembers(lmfit_models, inspect.isclass) 
-                  if issubclass(m, Model) and n != 'Model'))
-
-    for model in ['DonaichModel', 'ExpressionModel']:
-        if model in models:
-            del models[model]
+    from lmfit.models import lmfit_models
+    models.update(lmfit_models)
+    del models['Expression']
+    del models['Gaussian-2D']
 
     return models
 
@@ -134,6 +130,8 @@ all_methods = get_methods()
 
 
 class NXModel(Model):
+
+    valid_forms = ()
 
     def __init__(self, module, **kwargs):
         self.module = module
@@ -218,9 +216,11 @@ class FitTab(NXTab):
 
         self.initialize_models()
  
-        self.modelcombo = NXComboBox(items=list(self.all_models))
-        if 'GaussianModel' in self.modelcombo:
-            self.modelcombo.select('GaussianModel')
+        add_button = NXPushButton("Add Model", self.add_model)
+        self.modelcombo = NXComboBox(items=list(self.all_models), 
+                                     slot=self.choose_model)
+        if 'Gaussian' in self.modelcombo:
+            self.modelcombo.select('Gaussian')
         try:
             from pylatexenc.latex2text import LatexNodes2Text
             text = LatexNodes2Text().latex_to_text
@@ -233,9 +233,10 @@ class FitTab(NXTab):
                 tooltip = re.sub(r'\:[a-z]*\:', r'', tooltip)
                 self.modelcombo.setItemData(i, text(tooltip), 
                                             QtCore.Qt.ToolTipRole)
-        add_button = NXPushButton("Add Model", self.add_model)
-        model_layout = self.make_layout(self.modelcombo, add_button, 
-                                        align='left')
+        self.formcombo = NXComboBox()
+        self.formcombo.setVisible(False)
+        model_layout = self.make_layout(add_button, self.modelcombo, 
+                                        self.formcombo, align='left')
         
         self.parameter_layout = self.initialize_parameter_grid()
 
@@ -471,14 +472,22 @@ class FitTab(NXTab):
         return self.color_box.textbox.text()
 
     def compressed_name(self, name):
-        return re.sub(r'([a-zA-Z]*) # (\d*) ', r'\1\2', name, count=1)
+        return re.sub(r'([a-zA-Z_ ]*) [#] (\d*) $', r'\1_\2', 
+                      name, count=1).replace(' ', '_')
 
     def expanded_name(self, name):
-        return re.sub(r'([a-zA-Z]*)(\d*)', r'\1 # \2 ', name, count=1)
-    
+        return re.sub(r'([a-zA-Z_]*)_(\d*)$', r'\1 # \2 ', 
+                      name, count=1).replace('_', ' ')
+
     def parse_model_name(self, name):
-        match = re.match(r'([a-zA-Z]*)(\d*)', name)
-        return match.group(1), match.group(2)
+        match = re.match(r'([a-zA-Z0-9_-]*)_(\d*)$', name)
+        if match:
+            return match.group(1).replace('_', ' '), match.group(2)
+        try:
+            match = re.match(r'([a-zA-Z]*)(\d*)', name)
+            return match.group(1), match.group(2)
+        except Exception as error:
+            return None, None
 
     def load_group(self, group):
         self.model = None
@@ -490,7 +499,7 @@ class FitTab(NXTab):
                     model_class = group[model_name]['parameters'].attrs['model']
                 else:
                     model_class, model_index = self.parse_model_name(model_name)
-                    if (model_class not in self.all_models and 
+                    if (model_class and model_class not in self.all_models and 
                         model_class+'Model' in self.all_models):
                         model_class = model_class + 'Model'          
                 if model_class in self.all_models:
@@ -549,16 +558,29 @@ class FitTab(NXTab):
     def get_model_instance(self, model_class, prefix=None):
         if isinstance(self.all_models[model_class], types.ModuleType):
             return NXModel(self.all_models[model_class], prefix=prefix)
+        elif self.all_models[model_class].valid_forms:
+            return self.all_models[model_class](prefix=prefix,
+                                                form=self.formcombo.selected)
         else:
-            if model_class == 'PolynomialModel':
-                return self.all_models[model_class](7, prefix=prefix)
+            return self.all_models[model_class](prefix=prefix)
+
+    def choose_model(self):
+        model_class = self.modelcombo.selected
+        try:
+            if self.all_models[model_class].valid_forms:
+                self.formcombo.setVisible(True)
+                self.formcombo.clear()
+                self.formcombo.add(*self.all_models[model_class].valid_forms)
             else:
-                return self.all_models[model_class](prefix=prefix)
+                self.formcombo.setVisible(False)
+        except AttributeError:
+            self.formcombo.setVisible()
                
     def add_model(self):
         model_class = self.modelcombo.selected
         model_index = len(self.models)
-        model_name = model_class.replace('Model', '') + str(model_index+1)
+        model_name = (model_class.replace('Model', '').replace(' ', '_') 
+                      + '_' + str(model_index+1))
         model = self.get_model_instance(model_class, prefix=model_name)
         try:
             if self.model:

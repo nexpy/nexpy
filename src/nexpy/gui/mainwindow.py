@@ -108,7 +108,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self._memroot = None
 
         self.console = NXRichJupyterWidget(config=self.config, parent=rightpane)
-        self.console.setMinimumSize(700, 100)
+        self.console.setMinimumSize(750, 100)
         self.console.setSizePolicy(QtWidgets.QSizePolicy.Expanding, 
                                    QtWidgets.QSizePolicy.Fixed)
         self.console._confirm_exit = True
@@ -947,10 +947,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.script_menu.addSeparator()
 
         self.scripts = {}
-        files = sorted(os.listdir(self.script_dir))
-        for file_name in files:
-            if file_name.endswith('.py'):
-                self.add_script_action(os.path.join(self.script_dir, file_name))
+        self.add_script_directory(self.script_dir, self.script_menu)
 
     def init_help_menu(self):
         # please keep the Help menu in Mac Os even if empty. It will
@@ -1020,7 +1017,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.recent_file_actions = {}
         for i, recent_file in enumerate(recent_files):
             action = QtWidgets.QAction(os.path.basename(recent_file), self,
-                                   triggered=self.open_recent_file)
+                                       triggered=self.open_recent_file)
             action.setToolTip(recent_file)
             self.add_menu_action(self.recent_menu, action, self)
             self.recent_file_actions[action] = (i, recent_file)
@@ -1229,7 +1226,7 @@ class MainWindow(QtWidgets.QMainWindow):
             if isinstance(node, NXroot):
                 if node.nxfile:
                     name = self.tree.get_new_name()
-                    default_name = os.path.join(self.default_directory,name)
+                    default_name = os.path.join(self.default_directory, name)
                     fname = getSaveFileName(self, "Choose a Filename",
                                             default_name, self.file_filter)
                     if fname:
@@ -2183,23 +2180,23 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def show_limits_panel(self):
         try:
-            if not self.panel_is_running('Limit'):
-                self.panels['Limit'] = LimitDialog()
-            self.panels['Limit'].activate(self.active_plotview.label)
+            if not self.panel_is_running('Limits'):
+                self.panels['Limits'] = LimitDialog()
+            self.panels['Limits'].activate(self.active_plotview.label)
         except NeXusError as error:
             report_error("Showing Limits Panel", error)
 
     def show_all_limits(self):
         try:
             original_plotview = self.plotview
-            if not self.panel_is_running('Limit'):
-                self.panels['Limit'] = LimitDialog()
+            if not self.panel_is_running('Limits'):
+                self.panels['Limits'] = LimitDialog()
             for pv in sorted(self.plotviews.values(), key=attrgetter('number'),
                              reverse=True):
                 self.make_active(pv.number)
-                self.panels['Limit'].activate(pv.label)
+                self.panels['Limits'].activate(pv.label)
             self.make_active(original_plotview.number)
-            self.panels['Limit'].activate(self.active_plotview.label)
+            self.panels['Limits'].activate(self.active_plotview.label)
         except NeXusError as error:
             report_error("Showing Limits Panel", error)
 
@@ -2267,23 +2264,33 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def open_script_file(self):
         try:
-            file_name = self.scripts[self.sender()]
+            file_name = self.scripts[self.sender()][1]
             self.open_script_window(file_name)
             logging.info("NeXus script '%s' opened" % file_name)
         except NeXusError as error:
             report_error("Opening Script", error)
 
-    def add_script_action(self, file_name):
+    def add_script_directory(self, directory, menu):
+        names = sorted(os.listdir(directory))
+        for name in names:
+            if os.path.isdir(os.path.join(directory, name)):
+                d = os.path.join(directory, name)
+                m = menu.addMenu(name)
+                self.add_script_directory(d, m)
+            elif name.endswith('.py'):
+                self.add_script_action(os.path.join(directory, name), menu)
+
+    def add_script_action(self, file_name, menu):
         name = os.path.basename(file_name)
-        script_action = QtWidgets.QAction("Open "+name, self,
-                               triggered=self.open_script_file)
-        self.add_menu_action(self.script_menu, script_action, self)
-        self.scripts[script_action] = file_name
+        script_action = QtWidgets.QAction(name, self,
+                                          triggered=self.open_script_file)
+        self.add_menu_action(menu, script_action, self)
+        self.scripts[script_action] = (menu, file_name)
 
     def remove_script_action(self, file_name):
-        for action, name in self.scripts.items():
+        for action, (menu, name) in self.scripts.items():
             if name == file_name:
-                self.script_menu.removeAction(action)
+                menu.removeAction(action)
 
     def _open_nexpy_online_help(self):
         filename = "https://nexpy.github.io/nexpy/"

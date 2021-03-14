@@ -130,6 +130,10 @@ class NXScriptWindow(NXPanel):
         else:
             label = 'Untitled %s' % (self.count+1)
         super(NXScriptWindow, self).activate(label, file_name)
+        if file_name:
+            self.tab.default_directory = os.path.dirname(file_name)
+        else:
+            self.tab.default_directory = self.mainwindow.script_dir
 
 
 class NXScriptEditor(NXTab):
@@ -140,7 +144,6 @@ class NXScriptEditor(NXTab):
         super(NXScriptEditor, self).__init__(label, parent=parent)
  
         self.file_name = file_name
-        self.default_directory = self.mainwindow.script_dir
 
         self.number_box = QtWidgets.QPlainTextEdit('1')
         self.number_box.setFont(QtGui.QFont('Courier'))
@@ -220,14 +223,19 @@ class NXScriptEditor(NXTab):
 
     def save_script_as(self):
         file_filter = ';;'.join(("Python Files (*.py)", "Any Files (*.* *)"))
-        file_name = getSaveFileName(self, "Choose a Filename", 
-                                    self.default_directory, filter=file_filter)
+        if self.file_name:
+            default_name = self.file_name
+        else:
+            default_name = self.default_directory
+        file_name = getSaveFileName(self, "Choose a Filename", default_name, 
+                                    filter=file_filter)
         if file_name:
             with open(file_name, 'w') as f:
                 f.write(self.get_text())
             self.file_name = file_name
             self.tab_label = os.path.basename(self.file_name)
-            self.mainwindow.add_script_action(self.file_name)
+            self.mainwindow.add_script_action(self.file_name, 
+                                              self.mainwindow.script_menu)
             self.delete_button.setVisible(True)
 
     def delete_script(self):

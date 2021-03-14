@@ -24,6 +24,7 @@ plotviews : dict
     keys are defined by the 
     
 """
+import copy
 import numbers
 import numpy as np
 import os
@@ -49,7 +50,7 @@ else:
 from matplotlib.figure import Figure
 from matplotlib.image import NonUniformImage
 from matplotlib.colors import LogNorm, Normalize, SymLogNorm
-from matplotlib.cm import cmap_d, get_cmap
+from matplotlib.cm import get_cmap, register_cmap
 from matplotlib.lines import Line2D
 from matplotlib import markers
 from matplotlib.patches import Circle, Ellipse, Rectangle, Polygon
@@ -69,31 +70,36 @@ from scipy.spatial import Voronoi, voronoi_plot_2d
 from nexusformat.nexus import NXfield, NXdata, NXentry, NXroot, NeXusError
 
 from .. import __version__
-from .datadialogs import ExportDialog
+from .datadialogs import ExportDialog, LimitDialog, ProjectionDialog, ScanDialog
 from .widgets import (NXSpinBox, NXDoubleSpinBox, NXSlider, NXComboBox, 
                       NXCheckBox, NXLabel, NXPushButton,
                       NXcircle, NXellipse, NXrectangle, NXpolygon)
 from .utils import (report_error, report_exception, boundaries, centers, 
                     keep_data, fix_projection, find_nearest, iterable,
-                    parula_map)
+                    parula_map, divgray_map)
 
 active_plotview = None
 plotview = None
 plotviews = {}
 colors = mpl.rcParams['axes.prop_cycle'].by_key()['color']
+register_cmap('parula', parula_map())
+register_cmap('divgray', divgray_map())
 cmaps = ['viridis', 'inferno', 'magma', 'plasma', #perceptually uniform
          'cividis', 'parula',
          'spring', 'summer', 'autumn', 'winter', 'cool', 'hot', #sequential
          'bone', 'copper', 'gray', 'pink', 
          'turbo', 'jet', 'spectral', 'rainbow', 'hsv', #miscellaneous
-         'seismic', 'coolwarm', 'twilight', 'RdBu', 'RdYlBu',  #diverging
-         'RdYlGn']
-cmap_d['parula'] = parula_map()
+         'Set1', 'tab10', #qualitative
+         'seismic', 'coolwarm', 'twilight', 'divgray',
+         'RdBu', 'RdYlBu', 'RdYlGn'] #diverging
+from matplotlib.cm import cmap_d
 cmaps = [cm for cm in cmaps if cm in cmap_d]
 if 'viridis' in cmaps:
     default_cmap = 'viridis'
 else:
     default_cmap = 'jet'
+divergent_cmaps = ['seismic', 'coolwarm', 'twilight', 'divgray', 
+                   'RdBu', 'RdYlBu', 'RdYlGn']
 interpolations = ['nearest', 'bilinear', 'bicubic', 'spline16', 'spline36',
                   'hanning', 'hamming', 'hermite', 'kaiser', 'quadric',
                   'catrom', 'gaussian', 'bessel', 'mitchell', 'sinc', 'lanczos']
@@ -198,6 +204,12 @@ class NXFigureManager(FigureManager):
         extra_height = self.window.height() - self.canvas.height()
         self.window.resize(width+extra_width, height+extra_height)
 
+    def set_window_title(self, title):
+        try:
+            self.window.setWindowTitle(title)
+        except AttributeError as exception:
+            pass
+
 
 class NXPlotView(QtWidgets.QDialog):
     """Qt widget containing a NeXpy plot.
@@ -280,7 +292,7 @@ class NXPlotView(QtWidgets.QDialog):
 
         super(NXPlotView, self).__init__(parent)
 
-        self.setMinimumSize(724, 550)
+        self.setMinimumSize(750, 550)
         self.setSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding,
                            QtWidgets.QSizePolicy.MinimumExpanding)
         self.setFocusPolicy(QtCore.Qt.ClickFocus)
@@ -578,6 +590,13 @@ class NXPlotView(QtWidgets.QDialog):
         self.ax.title.set_visible(False)
         self.draw()
 
+    @property
+    def screen(self):
+        if self.windowHandle():
+            return self.windowHandle().screen()
+        else:
+            return None
+
     def make_active(self):
         """Make this window active for plotting."""
         global active_plotview, plotview
@@ -590,6 +609,10 @@ class NXPlotView(QtWidgets.QDialog):
             self.mainwindow.raise_()
         else:
             self.raise_()
+        try:
+            self.canvas._update_screen(self.screen)
+        except Exception as error:
+            pass
         self.canvas.activateWindow()
         self.canvas.setFocus()
         self.update_active()
@@ -709,7 +732,7 @@ class NXPlotView(QtWidgets.QDialog):
                 self._nameonly = False
 
             self.x, self.y, self.e = self.get_points()
-            self.plot_points(fmt, over, **opts)
+            self.plot_points(fmt=fmt, over=over, **opts)
             self.add_plot()
 
         #Higher-dimensional plot
@@ -878,7 +901,7 @@ class NXPlotView(QtWidgets.QDialog):
             e = None
         return x, y, e
 
-    def plot_points(self, fmt, over=False, **opts):
+    def plot_points(self, fmt='', over=False, **opts):
         """Plot one-dimensional data.
         
         Parameters
@@ -903,17 +926,21 @@ class NXPlotView(QtWidgets.QDialog):
 
         ax = self.figure.gca()
 
-        if fmt == '' and 'color' not in opts:
-            opts['color'] = colors[(self.num-1) % len(colors)]
-        if fmt == '' and 'marker' not in opts:
-            opts['marker'] = 'o'
-        if fmt == '' and 'linestyle' not in opts and 'ls' not in opts:
-            opts['linestyle'] = 'None'
+        if fmt == '':
+            if 'color' not in opts:
+                opts['color'] = colors[(self.num-1) % len(colors)]
+            if 'marker' not in opts:
+                opts['marker'] = 'o'
+            if 'linestyle' not in opts and 'ls' not in opts:
+                opts['linestyle'] = 'None'
 
         if self.e is not None:
             self._plot = ax.errorbar(self.x, self.y, self.e, fmt=fmt, **opts)[0]
         else:
-            self._plot = ax.plot(self.x, self.y, fmt, **opts)[0]
+            if fmt == '':
+                self._plot = ax.plot(self.x, self.y, **opts)[0]
+            else:
+                self._plot = ax.plot(self.x, self.y, fmt, **opts)[0]
 
         ax.lines[-1].set_label(self.signal_group + self.signal.nxname)
 
@@ -1023,9 +1050,11 @@ class NXPlotView(QtWidgets.QDialog):
             else:
                 opts['interpolation'] = self.interpolation
 
+        cm = copy.copy(get_cmap(self.cmap))
+        cm.set_bad('k', 1.0)
         if self.rgb_image or self.regular_grid:
             opts['origin'] = 'lower'
-            self.image = ax.imshow(self.v, extent=extent, cmap=self.cmap,
+            self.image = ax.imshow(self.v, extent=extent, cmap=cm,
                                    norm=self.norm, **opts)
         else:
             if self.skew is not None:
@@ -1033,9 +1062,8 @@ class NXPlotView(QtWidgets.QDialog):
                 x, y = self.transform(xx, yy)
             else:
                 x, y = self.x, self.y
-            self.image = ax.pcolormesh(x, y, self.v, cmap=self.cmap, **opts)
+            self.image = ax.pcolormesh(x, y, self.v, cmap=cm, **opts)
             self.image.set_norm(self.norm)
-        self.image.get_cmap().set_bad('k', 1.0)
         ax.set_aspect(self.aspect)
 
         if not over and not self.rgb_image:
@@ -1156,9 +1184,8 @@ class NXPlotView(QtWidgets.QDialog):
                     linscale = self._linscale
                 else:
                     linscale = 0.1
-                self.norm = NXSymLogNorm(linthresh, linscale=linscale,
-                                         vmin=self.vaxis.lo, 
-                                         vmax=self.vaxis.hi)
+                self.norm = SymLogNorm(linthresh, linscale=linscale,
+                                       vmin=self.vaxis.lo, vmax=self.vaxis.hi)
                 self.locator = AutoLocator()
                 self.formatter = ScalarFormatter()
             else:
@@ -1351,6 +1378,7 @@ class NXPlotView(QtWidgets.QDialog):
             if p['smooth_line']:
                 p['smooth_line'].remove()
             xs_min, xs_max = self.ax.get_xlim()
+            ys_min, ys_max = self.ax.get_ylim()
             if (p['smoothing'] and p['smooth_function'] and
                 xs_min < p['x'].max() and xs_max > p['x'].min()):
                 p['plot'].set_linestyle('None')
@@ -1365,6 +1393,8 @@ class NXPlotView(QtWidgets.QDialog):
                 p['smooth_line'] = self.ax.plot(xs, 
                                                 p['smooth_function'](xs), 
                                                 p['smooth_linestyle'])[0]
+                self.ax.set_xlim(xs_min, xs_max)
+                self.ax.set_ylim(ys_min, ys_max)
                 p['smooth_line'].set_color(p['color'])
                 p['smooth_line'].set_label('_smooth_line_' + str(num))
             else:
@@ -1417,11 +1447,13 @@ class NXPlotView(QtWidgets.QDialog):
             self.vaxis.max = self.vaxis.hi = vmax
             self.colorbar.locator = AutoLocator()
             self.colorbar.formatter = ScalarFormatter()
-            self.colorbar.set_norm(NXSymLogNorm(linthresh, linscale=linscale,
-                                                vmin=-vmax, vmax=vmax))
-            self.image.set_norm(NXSymLogNorm(linthresh, linscale=linscale,
-                                             vmin=-vmax, vmax=vmax))
-            self.colorbar.update_bruteforce(self.image)
+            if mpl.__version__ >= '3.1.0':
+                self.image.set_norm(SymLogNorm(linthresh, linscale=linscale,
+                                               vmin=-vmax, vmax=vmax))
+            else:
+                self.colorbar.set_norm(SymLogNorm(linthresh, linscale=linscale,
+                                                  vmin=-vmax, vmax=vmax))
+                self.colorbar.update_bruteforce(self.image)
             self.set_minorticks()
             self.image.set_clim(self.vaxis.lo, self.vaxis.hi)
             self.draw()
@@ -2445,7 +2477,10 @@ class NXPlotView(QtWidgets.QDialog):
         """Update the option panels."""
         for panel in self.panels:
             if self.label in self.panels[panel].tabs:
-                self.panels[panel].tabs[self.label].update()
+                try:
+                    self.panels[panel].tabs[self.label].update()
+                except Exception as error:
+                    pass
 
     def format_coord(self, x, y):
         """Return the x, y, and signal values for the selected pixel."""
@@ -2733,12 +2768,15 @@ class NXPlotTab(QtWidgets.QWidget):
             self.image = True
             self.cmapcombo = NXComboBox(self.change_cmap, cmaps, default_cmap)
             self._cached_cmap = default_cmap
-            if cmaps.index('spring') > 0:
+            if cmaps.index('parula') > 0:
                 self.cmapcombo.insertSeparator(
-                    self.cmapcombo.findText('spring'))
+                    self.cmapcombo.findText('parula')+1)
             if cmaps.index('seismic') > 0:
                 self.cmapcombo.insertSeparator(
                     self.cmapcombo.findText('seismic'))
+            if cmaps.index('Set1') > 0:
+                self.cmapcombo.insertSeparator(
+                    self.cmapcombo.findText('Set1'))
             widgets.append(self.cmapcombo)
             self.interpcombo = NXComboBox(self.change_interpolation, 
                                           interpolations, default_interpolation)
@@ -3166,14 +3204,20 @@ class NXPlotTab(QtWidgets.QWidget):
         If the color map is available but was not included in the 
         default list when NeXpy was launched, it is added to the list.
         """
+        global cmaps
         if cmap is None:
             cmap = self._cached_cmap
-        cm = get_cmap(cmap)
+        try:
+            cm = copy.copy(get_cmap(cmap))
+        except ValueError:
+            raise NeXusError("'%s' is not registered as a color map" % cmap)
         cmap = cm.name
         if cmap != self._cached_cmap:
+            if cmap not in cmaps:
+                cmaps.insert(6, cmap)
             idx = self.cmapcombo.findText(cmap)
             if idx < 0:
-                self.cmapcombo.insertItem(5, cmap)
+                self.cmapcombo.insertItem(7, cmap)
                 self.cmapcombo.setCurrentIndex(self.cmapcombo.findText(cmap))
             else:
                 self.cmapcombo.setCurrentIndex(idx)
@@ -3200,12 +3244,7 @@ class NXPlotTab(QtWidgets.QWidget):
         return self.is_symmetric_cmap(self.cmap)
 
     def is_symmetric_cmap(self, cmap):
-        if (self.cmapcombo is not None and
-            self.cmapcombo.findText(cmap) >= 
-            self.cmapcombo.findText('seismic')):
-            return True
-        else:
-            return False    
+        return cmap in divergent_cmaps    
 
     def symmetrize(self):
         """Symmetrize the minimum and maximum boxes and sliders."""
@@ -3367,49 +3406,38 @@ class NXProjectionTab(QtWidgets.QWidget):
 
         self.plotview = plotview
 
-        hbox = QtWidgets.QHBoxLayout()
-        widgets = []
-
+        self.xlabel = NXLabel('X-Axis:')
         self.xbox = NXComboBox(self.set_xaxis)
-        widgets.append(NXLabel('X-Axis:'))
-        widgets.append(self.xbox)
-
-        self.ybox = NXComboBox(self.set_yaxis)
         self.ylabel = NXLabel('Y-Axis:')
-        widgets.append(self.ylabel)
-        widgets.append(self.ybox)
-
+        self.ybox = NXComboBox(self.set_yaxis)
         self.save_button = NXPushButton("Save", self.save_projection, self)
-        widgets.append(self.save_button)
-
         self.plot_button = NXPushButton("Plot", self.plot_projection, self)
-        widgets.append(self.plot_button)
-
         self.sumbox = NXCheckBox("Sum", self.plotview.replot_data)
-        widgets.append(self.sumbox)
-
-        self.overplot_box = NXCheckBox("Over")
-        if 'Projection' not in plotviews:
-            self.overplot_box.setVisible(False)
-        widgets.append(self.overplot_box)
-
         self.panel_button = NXPushButton("Open Panel", self.open_panel, self)
-        widgets.append(self.panel_button)
+        self.panel_combo = NXComboBox(slot=self.open_panel, items=['Projection', 
+                                                                   'Limits', 
+                                                                   'Scan'])
 
-        hbox.addStretch()
-        for w in widgets:
-            hbox.addWidget(w)
-            hbox.setAlignment(w, QtCore.Qt.AlignVCenter)
-        hbox.addStretch()
-
-        self.setLayout(hbox)
+        self.layout = QtWidgets.QHBoxLayout()
+        self.layout.addStretch()
+        self.layout.addWidget(self.xlabel)
+        self.layout.addWidget(self.xbox)
+        self.layout.addWidget(self.ylabel)
+        self.layout.addWidget(self.ybox)
+        self.layout.addWidget(self.save_button)
+        self.layout.addWidget(self.plot_button)
+        self.layout.addWidget(self.sumbox)
+        self.layout.addStretch()
+        self.layout.addWidget(self.panel_button)
+        self.layout.addWidget(self.panel_combo)
+        self.layout.addStretch()
+        self.setLayout(self.layout)
 
         self.setTabOrder(self.xbox, self.ybox)
         self.setTabOrder(self.ybox, self.save_button)
         self.setTabOrder(self.save_button, self.plot_button)
         self.setTabOrder(self.plot_button, self.sumbox)
-        self.setTabOrder(self.sumbox, self.overplot_box)
-        self.setTabOrder(self.overplot_box, self.panel_button)
+        self.setTabOrder(self.sumbox, self.panel_button)
 
     def __repr__(self):
         return 'NXProjectionTab("%s")' % self.plotview.label
@@ -3426,6 +3454,7 @@ class NXProjectionTab(QtWidgets.QWidget):
         if self.plotview.ndim <= 2:
             self.ylabel.setVisible(False)
             self.ybox.setVisible(False)
+            self.layout.setSpacing(20)
         else:
             self.ylabel.setVisible(True)
             self.ybox.setVisible(True)
@@ -3434,6 +3463,7 @@ class NXProjectionTab(QtWidgets.QWidget):
             self.ybox.addItems(axes)
             self.ybox.setCurrentIndex(
                 self.ybox.findText(self.plotview.yaxis.name))
+            self.layout.setSpacing(5)
 
     @property
     def xaxis(self):
@@ -3501,31 +3531,27 @@ class NXProjectionTab(QtWidgets.QWidget):
         keep_data(self.plotview.data.project(axes, limits, summed=self.summed))
 
     def plot_projection(self):
-        if 'Projection' not in plotviews:
-            self.overplot_box.setChecked(False)
         axes, limits = self.get_projection()
         if 'Projection' in plotviews:
             projection = plotviews['Projection']
         else:
             projection = NXPlotView('Projection')
-        if len(axes) == 1 and self.overplot_box.isChecked():
-            over = True
-        else:
-            over = False
         projection.plot(self.plotview.data.project(axes, limits, 
-                                                   summed=self.summed), 
-                        over=over, fmt='o')
-        if len(axes) == 1:
-            self.overplot_box.setVisible(True)
-        else:
-            self.overplot_box.setVisible(False)
-            self.overplot_box.setChecked(False)
-        plotviews[projection.label].raise_()
+                                                   summed=self.summed), fmt='o')
+        plotviews[projection.label].make_active()
         if 'Projection' in self.plotview.mainwindow.panels:
             self.plotview.mainwindow.panels['Projection'].update()
 
     def open_panel(self):
-        self.plotview.mainwindow.show_projection_panel()
+        panel = self.panel_combo.selected
+        dialogs = {'Projection': ProjectionDialog, 'Limits': LimitDialog,
+                   'Scan': ScanDialog}
+        self.plotview.make_active()
+        if not self.plotview.mainwindow.panel_is_running(panel):
+            self.plotview.panels[panel] = dialogs[panel]()
+        self.plotview.panels[panel].activate(self.plotview.label)
+        self.plotview.panels[panel].setVisible(True)
+        self.plotview.panels[panel].raise_()
 
 
 class NXNavigationToolbar(NavigationToolbar2QT, QtWidgets.QToolBar):
@@ -3635,25 +3661,32 @@ class NXNavigationToolbar(NavigationToolbar2QT, QtWidgets.QToolBar):
         dialog.show()
 
     def release(self, event):
-        try:
+        """Disconnect signals and remove rubber bands after a right-click zoom.
+      
+        There have been multiple changes in Matplotlib in the zoom code, but 
+        this attempts to follow them in a backwards-compatible way.      
+        """
+        if hasattr(self, '_zoom_info') and self._zoom_info:
+            try:
+                self.canvas.mpl_disconnect(self._zoom_info.cid)
+            except AttributeError:
+                self.canvas.mpl_disconnect(self._zoom_info['cid'])
+            self.remove_rubberband()
+        elif hasattr(self, '_ids_zoom'):
             for zoom_id in self._ids_zoom:
                 self.canvas.mpl_disconnect(zoom_id)
             self.remove_rubberband()
-        except Exception as error:
-            pass
-        self._ids_zoom = []
-        self._xypress = None
-        self._button_pressed = None
-        self._zoom_mode = None
-        super(NXNavigationToolbar, self).release(event)
+            self._ids_zoom = []
+            self._xypress = None
+            self._button_pressed = None
+            self._zoom_mode = None
+            super(NXNavigationToolbar, self).release(event)
 
     def release_zoom(self, event):
         """The release mouse button callback in zoom to rect mode."""
         if event.button == 1:
             super(NXNavigationToolbar, self).release_zoom(event)
             self._update_release()
-            if self.plotview.ndim > 1 and self.plotview.label != "Projection":
-                self.plotview.tab_widget.setCurrentWidget(self.plotview.ptab)
         elif event.button == 3:
             if not event.inaxes:
                 self.home(autoscale=False)
@@ -3670,6 +3703,7 @@ class NXNavigationToolbar(NavigationToolbar2QT, QtWidgets.QToolBar):
                         self.plotview is panels['Fit'].tab.fitview):
                         panels['Fit'].tab.set_limits(xmin, xmax)
                 else:
+                    self.plotview.ptab.panel_combo.select('Projection')
                     self.plotview.ptab.open_panel()
                     panel = self.plotview.panels['Projection']
                     tab = panel.tabs[self.plotview.label]
@@ -3677,7 +3711,7 @@ class NXNavigationToolbar(NavigationToolbar2QT, QtWidgets.QToolBar):
                     tab.maxbox[self.plotview.xaxis.dim].setValue(xmax)
                     tab.minbox[self.plotview.yaxis.dim].setValue(ymin)
                     tab.maxbox[self.plotview.yaxis.dim].setValue(ymax)
-        self.release(event)
+            self.release(event)
 
     def release_pan(self, event):
         super(NXNavigationToolbar, self).release_pan(event)
@@ -3693,7 +3727,7 @@ class NXNavigationToolbar(NavigationToolbar2QT, QtWidgets.QToolBar):
         if self.plotview.ndim == 1:
             try:
                 self.plotview.plot_smooth()
-            except NeXusError:
+            except Exception:
                 pass
         try:
             xdim = self.plotview.xtab.axis.dim
@@ -3783,17 +3817,3 @@ class NXNavigationToolbar(NavigationToolbar2QT, QtWidgets.QToolBar):
             self.plotview.canvas.setFocus()
         else:
             self.set_message('')
-
-
-class NXSymLogNorm(SymLogNorm):
-    """
-    A subclass of Matplotlib SymLogNorm containing a bug fix
-    for backward compatibility to previous versions.
-    """
-    def __init__(self,  linthresh, linscale=1.0,
-                 vmin=None, vmax=None, clip=False):
-        super(NXSymLogNorm, self).__init__(linthresh, linscale, vmin, vmax, 
-                                           clip)
-        if (not hasattr(self, '_upper') and 
-                vmin is not None and vmax is not None):
-            self._transform_vmin_vmax()
