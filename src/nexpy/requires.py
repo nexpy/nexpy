@@ -20,7 +20,7 @@ pkg_requirements = [
     'qtconsole',
     'ipython',
     'matplotlib',
-    'lmfit',
+    'lmfit>=1.0.2',
     'pylatexenc',
     'ansi2html',
     'pillow'
