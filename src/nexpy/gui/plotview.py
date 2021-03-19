@@ -89,7 +89,7 @@ cmaps = ['viridis', 'inferno', 'magma', 'plasma', #perceptually uniform
          'spring', 'summer', 'autumn', 'winter', 'cool', 'hot', #sequential
          'bone', 'copper', 'gray', 'pink', 
          'turbo', 'jet', 'spectral', 'rainbow', 'hsv', #miscellaneous
-         'Set1', 'tab10', #qualitative
+         'tab10', 'tab20', #qualitative
          'seismic', 'coolwarm', 'twilight', 'divgray',
          'RdBu', 'RdYlBu', 'RdYlGn'] #diverging
 from matplotlib.cm import cmap_d
@@ -2774,9 +2774,9 @@ class NXPlotTab(QtWidgets.QWidget):
             if cmaps.index('seismic') > 0:
                 self.cmapcombo.insertSeparator(
                     self.cmapcombo.findText('seismic'))
-            if cmaps.index('Set1') > 0:
+            if cmaps.index('tab10') > 0:
                 self.cmapcombo.insertSeparator(
-                    self.cmapcombo.findText('Set1'))
+                    self.cmapcombo.findText('tab10'))
             widgets.append(self.cmapcombo)
             self.interpcombo = NXComboBox(self.change_interpolation, 
                                           interpolations, default_interpolation)
