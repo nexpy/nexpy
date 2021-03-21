@@ -1407,7 +1407,8 @@ class NXPlotView(QtWidgets.QDialog):
         from .fitdialogs import FitDialog
         if not self.mainwindow.panel_is_running('Fit'):
             self.panels['Fit'] = FitDialog()
-        self.panels['Fit'].activate(self.plots[self.num]['data'], 
+        self.panels['Fit'].activate(self.plots[self.num]['data'],
+                                    xmin=self.xaxis.lo, xmax=self.xaxis.hi, 
                                     plotview=self,
                                     color=self.plots[self.num]['color'])
 
