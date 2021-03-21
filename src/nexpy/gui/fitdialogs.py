@@ -330,7 +330,8 @@ class FitTab(NXTab):
             for shortcut in 'lr':
                 if shortcut in mpl.rcParams[key]:
                     mpl.rcParams[key].remove(shortcut)
-        self.fitview.canvas.mpl_connect('key_press_event', self.on_key_press)
+        self.cid = self.fitview.canvas.mpl_connect('key_press_event', 
+                                                   self.on_key_press)
 
     def __repr__(self):
         return 'FitTab("%s")' % self.data_label
@@ -943,5 +944,6 @@ class FitTab(NXTab):
         self.plot_data()
 
     def close(self):
+        self.fitview.canvas.mpl_disconnect(self.cid)
         if self.plotview:
             self.remove_plots()
