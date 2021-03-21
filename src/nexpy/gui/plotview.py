@@ -769,6 +769,7 @@ class NXPlotView(QtWidgets.QDialog):
             self.update_panels()
         else:
             self.init_tabs()
+            self.remove_panels()
 
         if self.rgb_image:
             self.ytab.flipped = True
@@ -2385,12 +2386,6 @@ class NXPlotView(QtWidgets.QDialog):
                 self.tab_widget.removeTab(self.tab_widget.indexOf(self.vtab))
             else:
                 self.vtab.flipbox.setVisible(False)
-        for panel in list(self.panels):
-            if self.label in self.panels[panel].tabs:
-                try:
-                    self.panels[panel].remove(self.label)
-                except RuntimeError:
-                    self.panels[panel].close()
         self.block_signals(False)
 
     def update_tabs(self):
@@ -2482,6 +2477,22 @@ class NXPlotView(QtWidgets.QDialog):
                 except Exception as error:
                     pass
 
+    def remove_panels(self):
+        """Remove panels associated with the previous plot."""
+        for panel in list(self.panels):
+            if self.label in self.panels[panel].tabs:
+                try:
+                    self.panels[panel].remove(self.label)
+                except RuntimeError:
+                    self.panels[panel].close()
+            elif panel == 'Fit':
+                removed_tabs = []
+                for tab in self.panels['Fit'].tabs:
+                    if tab.startswith(self.label):
+                        removed_tabs.append(tab)
+                for tab in removed_tabs:
+                    self.panels['Fit'].remove(tab)
+
     def format_coord(self, x, y):
         """Return the x, y, and signal values for the selected pixel."""
         try:
@@ -2507,16 +2518,7 @@ class NXPlotView(QtWidgets.QDialog):
         self.remove_menu_action()
         if self.label in plotviews:
             del plotviews[self.label]
-        for panel in self.panels:
-            if self.label in self.panels[panel].tabs:
-                self.panels[panel].remove(self.label)
-            if panel == 'Fit':
-                removed_tabs = []
-                for tab in self.panels['Fit'].tabs:
-                    if tab.startswith(self.label):
-                        removed_tabs.append(tab)
-                for tab in removed_tabs:
-                    self.panels['Fit'].remove(tab)
+        self.remove_panels()
 
     def closeEvent(self, event):
         """Close this widget and mark it for deletion."""
