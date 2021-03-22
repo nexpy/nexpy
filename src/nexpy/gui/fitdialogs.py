@@ -178,19 +178,20 @@ class FitDialog(NXPanel):
         self.setMinimumWidth(850)        
         self.tab_class = FitTab
 
-    def activate(self, data, plotview=None, color='C0'):
+    def activate(self, data, xmin=None, xmax=None, plotview=None, color='C0'):
         if plotview:
             label = plotview.label + ': ' + str(plotview.num) 
         else:
             label = data.nxroot.nxname + data.nxpath
-        super(FitDialog, self).activate(label, data, plotview=plotview, 
-                                        color=color)
+        super(FitDialog, self).activate(label, data, xmin=xmin, xmax=xmax,
+                                        plotview=plotview, color=color)
 
 
 class FitTab(NXTab):
     """Dialog to fit one-dimensional NeXus data"""
  
-    def __init__(self, label, data, plotview=None, color='C0', parent=None):
+    def __init__(self, label, data, xmin=None, xmax=None, 
+                 plotview=None, color='C0', parent=None):
 
         super(FitTab, self).__init__(label, parent=parent)
  
@@ -257,8 +258,14 @@ class FitTab(NXTab):
         self.plotcombo = NXComboBox()
         self.plotcombo.setVisible(False)
         plot_label = NXLabel('X:')
-        self.plot_min = self._data.nxaxes[0].min()
-        self.plot_max = self._data.nxaxes[0].max() 
+        if xmin:
+            self.plot_min = xmin
+        else:
+            self.plot_min = self._data.nxaxes[0].min()
+        if xmax:
+            self.plot_max = xmax
+        else:
+            self.plot_max = self._data.nxaxes[0].max() 
         self.plot_minbox = NXLineEdit(format_float(self.plot_min), 
                                       align='right', width=100)
         plot_tolabel = NXLabel(' to ')
@@ -330,7 +337,8 @@ class FitTab(NXTab):
             for shortcut in 'lr':
                 if shortcut in mpl.rcParams[key]:
                     mpl.rcParams[key].remove(shortcut)
-        self.fitview.canvas.mpl_connect('key_press_event', self.on_key_press)
+        self.cid = self.fitview.canvas.mpl_connect('key_press_event', 
+                                                   self.on_key_press)
 
     def __repr__(self):
         return 'FitTab("%s")' % self.data_label
@@ -338,12 +346,12 @@ class FitTab(NXTab):
     @property
     def fitview(self):
         if self.plotview and self.plotview.label in self.plotviews:
-            self._fitview = self.plotview
+            _fitview = self.plotview
         elif 'Fit' in self.plotviews:
-            self._fitview = self.plotviews['Fit']
+            _fitview = self.plotviews['Fit']
         else:
-            self._fitview = NXPlotView('Fit')
-        return self._fitview
+            _fitview = NXPlotView('Fit')
+        return _fitview
 
     def initialize_data(self, data):
         if isinstance(data, NXdata):
@@ -765,13 +773,17 @@ class FitTab(NXTab):
         return float(self.plot_minbox.text()), float(self.plot_maxbox.text())
 
     def reset_limits(self):
+        self.plot_min = self.fitview.xaxis.lo
+        self.plot_max = self.fitview.xaxis.hi
         self.plot_minbox.setText(format_float(self.plot_min))
         self.plot_maxbox.setText(format_float(self.plot_max))
-        self.fitview.reset_plot_limits()
+        self.fitview.set_plot_limits(xmin=self.plot_min, xmax=self.plot_max)
 
     def plot_data(self):
         if self.plotview is None:
-            self.fitview.plot(self._data, fmt='o', color=self.color)
+            self.fitview.plot(self._data, 
+                              xmin=self.plot_min, xmax=self.plot_max,
+                              color=self.color)
             self.fitview.set_plot_limits(*self.get_limits())
             for label in ['label', 'legend_label']:
                 self.fitview.plots[self.fitview.num][label] = self.data_label
@@ -793,17 +805,20 @@ class FitTab(NXTab):
                 fmt = '-'
             else:
                 fmt = '--'
-            self.fitview.plot(self.get_model(), fmt=fmt, over=True, num=num,
-                              color=self.color)
+            self.fitview.plot(self.get_model(), fmt=fmt, 
+                              xmin=self.plot_min, xmax=self.plot_max,
+                              over=True, num=num, color=self.color)
             if self.fitted:
                 self.fitview.plots[num]['legend_label'] = 'Fit'
             else:
                 self.fitview.plots[num]['legend_label'] = 'Model'
         else:
             name = self.compressed_name(model_name)
-            self.fitview.plot(self.get_model(name), fmt='--', over=True, 
-                              num=num)
+            self.fitview.plot(self.get_model(name), fmt='--', 
+                              xmin=self.plot_min, xmax=self.plot_max,
+                              over=True, num=num)
             self.fitview.plots[num]['legend_label'] = name
+        self.fitview.set_plot_limits(xmin=self.plot_min, xmax=self.plot_max)
         self.plot_nums.append(num)
         self.fitview.ytab.plotcombo.select(self.data_num)
         self.fitview.raise_()
@@ -943,5 +958,6 @@ class FitTab(NXTab):
         self.plot_data()
 
     def close(self):
+        self.fitview.canvas.mpl_disconnect(self.cid)
         if self.plotview:
             self.remove_plots()
