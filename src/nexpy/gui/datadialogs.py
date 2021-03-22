@@ -1637,7 +1637,7 @@ class PlotScalarDialog(NXDialog):
             if 'units' in _variable.attrs:
                 _axis.attrs['units'] = _variable.attrs['units']
         else:
-            _axis = NXfield(_files, name='Variable')
+            _axis = NXfield(_values, name='file_index', long_name='File Index')
         return _axis
  
     def choose_files(self):
@@ -3213,7 +3213,7 @@ class ScanTab(NXTab):
             if 'units' in _variable.attrs:
                     _axis.attrs['units'] = _variable.attrs['units']
         else:
-            _axis = NXfield(_files, name='Variable')
+            _axis = NXfield(_values, name='file_index', long_name='File Index')
         return _axis
  
     def choose_files(self):
