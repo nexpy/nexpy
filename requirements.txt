@@ -7,7 +7,7 @@ pyqt5
 ipykernel>=5.2.0
 qtconsole
 matplotlib
-lmfit
+lmfit>=1.0.2
 pylatexenc
 ansi2html
 pillow
