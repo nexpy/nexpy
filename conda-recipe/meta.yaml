@@ -14,7 +14,7 @@ build:
 
 requirements:
   build:
-    - python
+    - python >=3.6
     - setuptools
     - nexusformat >=0.6.1
     - numpy
@@ -30,7 +30,7 @@ requirements:
     - pillow
 
   run:
-    - python
+    - python >=3.6
     - nexusformat >=0.6.1
     - numpy
     - scipy
