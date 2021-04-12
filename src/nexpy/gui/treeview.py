@@ -483,23 +483,29 @@ class NXTreeView(QtWidgets.QTreeView):
         self.mainwindow.statusBar().showMessage(text.replace('\n','; '))
 
     def check_modified_files(self):
-        for key in list(self.tree._entries):
-            node = self.tree._entries[key]
-            if node.nxfilemode and not node.file_exists():
-                display_message("'%s' no longer exists" % node.nxfilename)
-                del self.tree[key]
-            elif node.is_modified():
-                if node.nxfilemode == 'rw':
+        try:
+            for key in list(self.tree._entries):
+                node = self.tree._entries[key]
+                if node.nxfilemode and not node.file_exists():
+                    display_message("'%s' no longer exists" % node.nxfilename)
+                    del self.tree[key]
+                elif node.is_modified():
                     node.lock()
-                node.nxfile.lock = True
-            nxfile = node.nxfile
-            if (node.nxfilemode == 'rw' and nxfile.is_locked() and 
-                nxfile.locked is False):
-                node.lock()
-                lock_time = modification_time(nxfile.lock_file) 
-                display_message("'%s' has been locked by an external process" 
-                                % node.nxname, "Lock file created: "+lock_time)
-                node.nxfile.lock = True
+                    node.nxfile.lock = True
+                elif node.nxfilemode == 'rw':
+                    nxfile = node.nxfile
+                    if nxfile.is_locked() and nxfile.locked is False:
+                        node.lock()
+                        lock_time = modification_time(nxfile.lock_file) 
+                        display_message(
+                            "'%s' has been locked by an external process" 
+                            % node.nxname, "Lock file created: "+lock_time)
+                        nxfile.lock = True
+            if self.timer.interval() > 1000:
+                self.timer.setInterval(1000)
+        except Exception as error:
+            report_error('Checking Modified Files', error)
+            self.timer.setInterval(60000)
 
     @property
     def node(self):
