@@ -16,30 +16,23 @@ requirements:
   build:
     - python >=3.6
     - setuptools
-    - nexusformat >=0.6.1
-    - numpy
-    - scipy
-    - h5py
-    - qtpy
-    - qtconsole
-    - matplotlib
-    - lmfit >=1.0.2
-    - six
-    - ansi2html
-    - pylatexenc
-    - pillow
+    - versioneer
 
   run:
     - python >=3.6
     - nexusformat >=0.6.1
-    - numpy
+    - numpy >=1.16
     - scipy
     - h5py
     - qtpy
+    - ipython
     - qtconsole
     - matplotlib
     - lmfit >=1.0.2
     - ansi2html
+    - pylatexenc
+    - pillow
+    - versioneer
 
 test:
   imports:
