@@ -2469,6 +2469,11 @@ class MainWindow(QtWidgets.QMainWindow):
     def quickref_console(self):
         self.console.execute("%quickref")
 
+    def close_files(self):
+        for root in [n for n in self.user_ns 
+                     if isinstance(self.user_ns[n], NXroot)]:
+            self.user_ns[root].close()
+
     def close_widgets(self):
         windows = self.dialogs
         windows += [self.plotviews[pv] for pv in self.plotviews if pv != 'Main']
@@ -2484,6 +2489,7 @@ class MainWindow(QtWidgets.QMainWindow):
                           icon=self.app.icon_pixmap):
             self.console.kernel_client.stop_channels()
             self.console.kernel_manager.shutdown_kernel()
+            self.close_files()
             self.close_widgets()
             logging.info('NeXpy closed\n'+80*'-')
             self._app.quit()
