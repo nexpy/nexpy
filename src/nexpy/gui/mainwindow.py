@@ -28,6 +28,7 @@ import webbrowser
 import xml.etree.ElementTree as ET
 from copy import deepcopy
 from operator import attrgetter
+from pathlib import Path
 
 from .pyqt import QtCore, QtGui, QtWidgets, getOpenFileName, getSaveFileName
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
@@ -1070,11 +1071,15 @@ class MainWindow(QtWidgets.QMainWindow):
                          % fname)
             return
         name = self.tree.get_name(fname)
-        self.tree[name] = nxload(fname)
+        if Path(self.backup_dir) in Path(fname).parents:
+            name = name.replace('_backup', '')
+            self.tree[name] = nxload(fname, 'rw')
+        else:
+            self.tree[name] = nxload(fname)
+            self.default_directory = os.path.dirname(fname)
         self.treeview.update()
         self.treeview.select_node(self.tree[name])
         self.treeview.setFocus()
-        self.default_directory = os.path.dirname(fname)
         logging.info("NeXus file '%s' opened as workspace '%s'" % (fname, name))
         self.update_files(fname, recent=recent)
 
