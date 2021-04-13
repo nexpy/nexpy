@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #-----------------------------------------------------------------------------
-# Copyright (c) 2013-2015, NeXpy Development Team.
+# Copyright (c) 2013-2021, NeXpy Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -17,8 +17,8 @@
 #-----------------------------------------------------------------------------
 import logging
 import logging.handlers
-import pkg_resources
 import os
+import pkg_resources
 import shutil
 import signal
 import sys
@@ -26,30 +26,23 @@ import tempfile
 
 from .pyqt import QtCore, QtGui, QtWidgets
 
-from .mainwindow import MainWindow
-from .treeview import NXtree
-from .utils import (NXConfigParser, NXLogger, NXGarbageCollector,
-                    timestamp_age, report_exception, initialize_preferences)
+from IPython import __version__ as ipython_version
+from jupyter_client.consoleapp import JupyterConsoleApp, app_aliases, app_flags
+from jupyter_core.application import JupyterApp, base_aliases, base_flags
+from matplotlib import __version__ as mpl_version
+from qtconsole import __version__, styles
+from qtconsole.jupyter_widget import JupyterWidget
+from qtconsole.rich_jupyter_widget import RichJupyterWidget
+from traitlets import Any, CBool, Dict, Unicode
+from traitlets.config.application import boolean_flag, catch_config_error
 
 from nexusformat.nexus import NXroot, nxclasses, nxload, nxversion
 
-from traitlets.config.application import boolean_flag
-from traitlets.config.application import catch_config_error
-from qtconsole.jupyter_widget import JupyterWidget
-from qtconsole.rich_jupyter_widget import RichJupyterWidget
-from qtconsole import styles, __version__
-from traitlets import (
-    Dict, Unicode, CBool, Any
-)
-
-from jupyter_core.application import JupyterApp, base_flags, base_aliases
-from jupyter_client.consoleapp import (
-        JupyterConsoleApp, app_aliases, app_flags,
-    )
-
-from IPython import __version__ as ipython_version
-from matplotlib import __version__ as mpl_version    
 from .. import __version__ as nexpy_version
+from .mainwindow import MainWindow
+from .treeview import NXtree
+from .utils import (NXConfigParser, NXGarbageCollector, NXLogger,
+                    initialize_preferences, report_exception, timestamp_age)
 
 #-----------------------------------------------------------------------------
 # Globals

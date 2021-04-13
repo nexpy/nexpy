@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #-----------------------------------------------------------------------------
-# Copyright (c) 2013, NeXpy Development Team.
+# Copyright (c) 2013-2021, NeXpy Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -12,16 +12,14 @@
 """
 Module to read in a folder of image files and convert them to NeXus.
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-
 import os
 import re
 import numpy as np
 
+from qtpy import QtCore, QtWidgets
+
 from nexusformat.nexus import *
-from nexpy.gui.pyqt import QtCore, QtWidgets
-from nexpy.gui.importdialog import BaseImportDialog
+from nexpy.gui.importdialog import NXImportDialog
 from nexpy.gui.widgets import NXLabel, NXLineEdit
 
 filetype = "Image Stack"
@@ -29,7 +27,7 @@ maximum = 0.0
 prefix_pattern = re.compile('^([^.]+)(?:(?<!\d)|(?=_))')
 
 
-class ImportDialog(BaseImportDialog):
+class ImportDialog(NXImportDialog):
     """Dialog to import an image stack using Fabio"""
  
     def __init__(self, parent=None):

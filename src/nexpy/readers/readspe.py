@@ -12,22 +12,19 @@
 """
 Module to read in a SPE or NXSPE file and convert it to NeXus.
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-
 import os
 import numpy as np
 
-from nexpy.gui.pyqt import QtWidgets
+from qtpy import QtWidgets
 
 from nexusformat.nexus import *
 from nexusformat.nexus.tree import convert_index, centers
-from nexpy.gui.importdialog import BaseImportDialog
+from nexpy.gui.importdialog import NXImportDialog
 from nexpy.gui.widgets import NXLabel, NXLineEdit
 
 filetype = "SPE/NXSPE File"
 
-class ImportDialog(BaseImportDialog):
+class ImportDialog(NXImportDialog):
     """Dialog to import neutron SPE data"""
  
     def __init__(self, parent=None):

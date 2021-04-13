@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #-----------------------------------------------------------------------------
-# Copyright (c) 2013-2020, NeXpy Development Team.
+# Copyright (c) 2013-2021, NeXpy Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -26,57 +26,65 @@ plotviews : dict
 """
 import copy
 import numbers
-import numpy as np
 import os
 import pkg_resources
 import sys
 import warnings
+from posixpath import basename, dirname
 
-from posixpath import dirname, basename
+import numpy as np
 
-from .pyqt import QtCore, QtGui, QtWidgets, QtVersion
+from .pyqt import QtCore, QtGui, QtVersion, QtWidgets
 
 import matplotlib as mpl
-from matplotlib.backend_bases import (FigureManagerBase, FigureCanvasBase,
+from matplotlib.backend_bases import (FigureCanvasBase, FigureManagerBase,
                                       NavigationToolbar2)
+
 if QtVersion == 'Qt5Agg':
-    from matplotlib.backends.backend_qt5 import FigureManagerQT as FigureManager
-    from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+    from matplotlib.backends.backend_qt5 import \
+        FigureManagerQT as FigureManager
+    from matplotlib.backends.backend_qt5agg import \
+        FigureCanvasQTAgg as FigureCanvas
     from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT
 else:
     from matplotlib.backends.backend_qt4 import FigureManagerQT as FigureManager
     from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
     from matplotlib.backends.backend_qt4agg import NavigationToolbar2QT
+
+from matplotlib import markers
+from matplotlib.cm import get_cmap, register_cmap
+from matplotlib.colors import LogNorm, Normalize, SymLogNorm
 from matplotlib.figure import Figure
 from matplotlib.image import NonUniformImage
-from matplotlib.colors import LogNorm, Normalize, SymLogNorm
-from matplotlib.cm import get_cmap, register_cmap
 from matplotlib.lines import Line2D
-from matplotlib import markers
-from matplotlib.patches import Circle, Ellipse, Rectangle, Polygon
+from matplotlib.patches import Circle, Ellipse, Polygon, Rectangle
 from matplotlib.ticker import AutoLocator, LogLocator, ScalarFormatter
+
 try:
     from matplotlib.ticker import LogFormatterSciNotation as LogFormatter
 except ImportError:
     from matplotlib.ticker import LogFormatter
-from matplotlib.transforms import nonsingular
+
 from matplotlib.cbook import mplDeprecation
-from mpl_toolkits.axisartist.grid_helper_curvelinear import GridHelperCurveLinear
+from matplotlib.transforms import nonsingular
 from mpl_toolkits.axisartist import Subplot
 from mpl_toolkits.axisartist.grid_finder import MaxNLocator
+from mpl_toolkits.axisartist.grid_helper_curvelinear import \
+    GridHelperCurveLinear
 from scipy.interpolate import interp1d
 from scipy.spatial import Voronoi, voronoi_plot_2d
 
-from nexusformat.nexus import NXfield, NXdata, NXentry, NXroot, NeXusError
+from nexusformat.nexus import NeXusError, NXdata, NXentry, NXfield, NXroot
 
 from .. import __version__
-from .datadialogs import ExportDialog, LimitDialog, ProjectionDialog, ScanDialog
-from .widgets import (NXSpinBox, NXDoubleSpinBox, NXSlider, NXComboBox, 
-                      NXCheckBox, NXLabel, NXPushButton,
-                      NXcircle, NXellipse, NXrectangle, NXpolygon)
-from .utils import (report_error, report_exception, boundaries, centers, 
-                    keep_data, fix_projection, find_nearest, iterable,
-                    parula_map, divgray_map)
+from .datadialogs import (ExportDialog, LimitDialog, ProjectionDialog,
+                          ScanDialog)
+from .utils import (boundaries, centers, divgray_map, find_nearest,
+                    fix_projection, iterable, keep_data, parula_map,
+                    report_error, report_exception)
+from .widgets import (NXCheckBox, NXcircle, NXComboBox, NXDoubleSpinBox,
+                      NXellipse, NXLabel, NXpolygon, NXPushButton, NXrectangle,
+                      NXSlider, NXSpinBox)
 
 active_plotview = None
 plotview = None
@@ -93,6 +101,7 @@ cmaps = ['viridis', 'inferno', 'magma', 'plasma', #perceptually uniform
          'seismic', 'coolwarm', 'twilight', 'divgray',
          'RdBu', 'RdYlBu', 'RdYlGn'] #diverging
 from matplotlib.cm import cmap_d
+
 cmaps = [cm for cm in cmaps if cm in cmap_d]
 if 'viridis' in cmaps:
     default_cmap = 'viridis'
@@ -105,7 +114,7 @@ interpolations = ['nearest', 'bilinear', 'bicubic', 'spline16', 'spline36',
                   'catrom', 'gaussian', 'bessel', 'mitchell', 'sinc', 'lanczos']
 default_interpolation = 'nearest'
 try:
-    from astropy.convolution import convolve, Gaussian2DKernel
+    from astropy.convolution import Gaussian2DKernel, convolve
     interpolations.insert(1, 'convolve')
 except ImportError:
     pass
