@@ -1210,7 +1210,11 @@ class MainWindow(QtWidgets.QMainWindow):
             if fname:
                 old_name = node.nxname
                 old_fname = node.nxfilename
-                root = node.save(fname, 'w')
+                if node.nxfilemode == 'r':
+                    nxduplicate(old_fname, fname, 'w')
+                    root = nxload(fname)
+                else:
+                    root = node.save(fname, 'w')
                 del self.tree[old_name]
                 name = self.tree.get_name(fname)
                 self.tree[name] = self.user_ns[name] = root
