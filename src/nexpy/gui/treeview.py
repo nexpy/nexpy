@@ -16,7 +16,8 @@ from nexusformat.nexus import (NeXusError, NXdata, NXentry, NXfield, NXgroup,
                                NXlink, NXroot, nxload)
 
 from .pyqt import QtCore, QtGui, QtWidgets
-from .utils import display_message, natural_sort, modification_time
+from .utils import (display_message, natural_sort, modification_time, 
+                    report_error)
 from .widgets import NXSortModel
 from nexusformat.nexus import *
 
@@ -487,8 +488,17 @@ class NXTreeView(QtWidgets.QTreeView):
             for key in list(self.tree._entries):
                 node = self.tree._entries[key]
                 if node.nxfilemode and not node.file_exists():
-                    display_message("'%s' no longer exists" % node.nxfilename)
-                    del self.tree[key]
+                    _dir = node.nxfile._filedir
+                    if not os.path.exists(_dir):
+                        display_message("'%s' no longer exists" % _dir)
+                        for _key in [k for k in self.tree
+                                     if self.tree[k].nxfile._filedir == _dir]:
+                            del self.tree[_key]
+                        break
+                    else:    
+                        display_message("'%s' no longer exists" 
+                                        % node.nxfilename)
+                        del self.tree[key]
                 elif node.is_modified():
                     node.lock()
                     node.nxfile.lock = True
