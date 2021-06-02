@@ -81,6 +81,7 @@ from .utils import (report_error, report_exception, boundaries, centers,
 active_plotview = None
 plotview = None
 plotviews = {}
+mpl.rcParams["figure.autolayout"] = True
 colors = mpl.rcParams['axes.prop_cycle'].by_key()['color']
 register_cmap('parula', parula_map())
 register_cmap('divgray', divgray_map())
