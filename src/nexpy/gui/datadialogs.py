@@ -23,6 +23,7 @@ from posixpath import basename
 
 from .pyqt import QtCore, QtGui, QtWidgets, getOpenFileName, getSaveFileName
 import numpy as np
+import matplotlib as mpl
 from matplotlib import rcParams, rcParamsDefault
 from matplotlib.legend import Legend
 from matplotlib.rcsetup import (defaultParams, validate_float, validate_int, 
@@ -46,7 +47,7 @@ from nexusformat.nexus import (NeXusError, NXgroup, NXfield, NXattr,
 from .utils import (confirm_action, display_message, report_error, 
                     import_plugin, convertHTML, natural_sort, wrap, human_size,
                     timestamp, format_timestamp, restore_timestamp, get_color,
-                    keep_data, fix_projection, modification_time)
+                    keep_data, fix_projection, modification_time, set_style)
 from .widgets import (NXStack, NXScrollArea, NXCheckBox, NXComboBox, NXColorBox, 
                       NXPushButton, NXLabel, NXLineEdit,
                       NXDoubleSpinBox, NXSpinBox, NXpolygon)
@@ -1848,6 +1849,11 @@ class PreferencesDialog(NXDialog):
         self.parameters.add('lock', nxgetlock(), 'Lock Timeout (s)')
         self.parameters.add('recursive', ['True', 'False'], 'File Recursion')
         self.parameters['recursive'].value = str(nxgetrecursive())
+        styles = ['default', 'publication'] + sorted(
+            style for style in mpl.style.available if style != 'publication')
+        self.parameters.add('style', styles, 'Plot Style')
+        self.parameters['style'].value = self.mainwindow.settings.get(
+                                                        'preferences', 'style')
         self.set_layout(self.parameters.grid(), 
                         self.action_buttons(('Save As Default', 
                                             self.save_default)),
@@ -1864,6 +1870,8 @@ class PreferencesDialog(NXDialog):
         self.mainwindow.settings.set('preferences', 'lock', nxgetlock())
         self.mainwindow.settings.set('preferences', 'recursive', 
                                      nxgetrecursive())
+        self.mainwindow.settings.set('preferences', 'style', 
+                                     self.parameters['style'].value)
         self.mainwindow.settings.save()
 
     def set_preferences(self):
@@ -1873,6 +1881,7 @@ class PreferencesDialog(NXDialog):
         nxsetencoding(self.parameters['encoding'].value)
         nxsetlock(self.parameters['lock'].value)
         nxsetrecursive(self.parameters['recursive'].value)
+        set_style(self.parameters['style'].value)
 
     def accept(self):
         self.set_preferences()

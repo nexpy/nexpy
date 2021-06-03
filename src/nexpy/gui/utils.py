@@ -22,6 +22,7 @@ import traceback as tb
 from collections import OrderedDict
 from datetime import datetime
 
+import matplotlib as mpl
 import matplotlib.image as img
 import numpy as np
 from IPython.core.ultratb import ColorTB
@@ -608,7 +609,37 @@ def initialize_preferences(settings):
         nxsetrecursive(settings.getboolean('preferences', 'recursive'))
     else:
         settings.set('preferences', 'recursive', nxgetrecursive())
+    if settings.has_option('preferences', 'style'):
+        set_style(settings.get('preferences', 'style'))
+    else:
+        settings.set('preferences', 'style', 'default')
     settings.save()
+
+
+def set_style(style=None):
+    if style == 'publication':
+        mpl.style.use('default')
+        mpl.rcParams['axes.titlesize'] = 24
+        mpl.rcParams['axes.titlepad'] = 20
+        mpl.rcParams['axes.labelsize'] = 20
+        mpl.rcParams['axes.labelpad'] = 5
+        mpl.rcParams['axes.formatter.limits'] = -5, 5
+        mpl.rcParams['lines.linewidth'] = 3
+        mpl.rcParams['lines.markersize'] = 10
+        mpl.rcParams['xtick.labelsize'] = 16
+        mpl.rcParams['xtick.direction'] = 'in'
+        mpl.rcParams['xtick.top'] = True
+        mpl.rcParams['xtick.major.pad'] = 5
+        mpl.rcParams['xtick.minor.visible'] = True
+        mpl.rcParams['ytick.labelsize'] = 16
+        mpl.rcParams['ytick.direction'] = 'in'
+        mpl.rcParams['ytick.right'] = True
+        mpl.rcParams['ytick.major.pad'] = 5
+        mpl.rcParams['ytick.minor.visible'] = True
+    elif style is not None:
+        mpl.style.use(style)
+    else:
+        mpl.style.use('default')
 
 
 class NXimporter(object):
