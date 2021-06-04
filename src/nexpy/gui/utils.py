@@ -765,6 +765,13 @@ class Gaussian3DKernel(Kernel):
     _is_bool = False
 
     def __init__(self, stddev, **kwargs):
+        def _round_up_to_odd_integer(value):
+            import math
+            i = int(math.ceil(value))
+            if i % 2 == 0:
+                return i + 1
+            else:
+                return i
         x = np.linspace(-15., 15., 17)
         y = np.linspace(-15., 15., 17)
         z = np.linspace(-15., 15., 17)
