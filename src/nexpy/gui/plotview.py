@@ -2326,6 +2326,36 @@ class NXPlotView(QtWidgets.QDialog):
         self.draw()
         self.otab.push_current()
 
+    def mpl_plot(self, ax=None, title=True, colorbar=True):
+        from nexusformat.nexus.plot import plotview as pv
+        import matplotlib.pyplot as plt
+        if ax:
+            plt.sca(ax)
+        else:
+            ax = plt.gca()
+        if self.plotdata.ndim == 1:
+            for i in self.plots:
+                p = self.plots[i]
+                pv.plot(p['data'], color=p['color'], over=True, fmt='none',
+                        marker=p['marker'], markersize=p['markersize'],
+                        linestyle=p['linestyle'], linewidth=p['linewidth'],
+                        zorder=p['zorder'])
+        else:
+            pv.plot(self.plotdata, over=True, log=self.logv, 
+                    vmin=self.vaxis.lo, vmax=self.vaxis.hi,
+                    xmin=self.xaxis.lo, xmax=self.xaxis.hi,
+                    ymin=self.yaxis.lo, ymax=self.yaxis.hi,
+                    aspect=self.aspect, regular=self.regular_grid,
+                    interpolation=self.interpolation, 
+                    cmap=self.cmap, bad=self.image.cmap.get_bad(), 
+                    colorbar=colorbar)
+        if title:
+            ax.set_title(self.ax.get_title())
+        else:
+            ax.set_title('')
+        ax.set_xlabel(self.ax.get_xlabel())
+        ax.set_ylabel(self.ax.get_ylabel())
+
     def block_signals(self, block=True):
         self.xtab.block_signals(block)
         self.ytab.block_signals(block)
