@@ -1991,6 +1991,9 @@ class CustomizeTab(NXTab):
                        'Grid Style')
         parameters.add('minorticks', ['On', 'Off'], 'Minor Ticks')
         parameters.add('cb_minorticks', ['On', 'Off'], 'Color Bar Minor Ticks')
+        parameters.add('badcolor', 
+                       get_color(self.plotview.image.cmap.get_bad()),
+                       'Bad Color', color=True)
         parameters.grid(title='Image Parameters', header=False, width=125)
         return parameters
 
@@ -2014,6 +2017,7 @@ class CustomizeTab(NXTab):
             p['cb_minorticks'].value = 'On'
         else:
             p['cb_minorticks'].value = 'Off'
+        p['badcolor'].value = get_color(self.plotview.image.cmap.get_bad())
 
     def plot_parameters(self, plot):
         p = self.plots[plot]
@@ -2195,6 +2199,7 @@ class CustomizeTab(NXTab):
             self.plotview._gridcolor = pi['gridcolor'].value
             self.plotview._gridstyle = [k for k, v in self.linestyles.items()
                                         if v == pi['gridstyle'].value][0]
+            self.plotview.image.cmap.set_bad(pi['badcolor'].value)
             #reset in case plotview.aspect changed by plotview.skew            
             self.plotview.skew = _skew_angle
             self.plotview.aspect = self.plotview._aspect
