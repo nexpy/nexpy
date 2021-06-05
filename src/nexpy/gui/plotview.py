@@ -2326,29 +2326,49 @@ class NXPlotView(QtWidgets.QDialog):
         self.draw()
         self.otab.push_current()
 
-    def mpl_plot(self, ax=None, title=True, colorbar=True):
+    def mpl_plot(self, ax=None, title=False, colorbar=False, **kwargs):
         from nexusformat.nexus.plot import plotview as pv
         import matplotlib.pyplot as plt
         if ax:
             plt.sca(ax)
         else:
             ax = plt.gca()
+        over = False
         if self.plotdata.ndim == 1:
             for i in self.plots:
                 p = self.plots[i]
-                pv.plot(p['data'], color=p['color'], over=True, fmt='none',
+                if p['markerstyle'] == 'open':
+                    mfc = '#ffffff'
+                else:
+                    mfc = p['color']
+                pv.plot(p['data'], color=p['color'], ax=ax, over=over,
+                        xmin=self.xaxis.lo, xmax=self.xaxis.hi,
+                        ymin=self.yaxis.lo, ymax=self.yaxis.hi,
                         marker=p['marker'], markersize=p['markersize'],
+                        markerfacecolor=mfc, markeredgecolor=p['color'],
                         linestyle=p['linestyle'], linewidth=p['linewidth'],
-                        zorder=p['zorder'])
+                        zorder=p['zorder'], **kwargs)
+                over = True
+            if self.ax.get_legend():
+                h, _ = self.ax.get_legend_handles_labels()
+                order = sorted(self.plots, 
+                               key=lambda x: self.plots[x]['legend_order'])
+                handles = [self.plots[i]['plot'] for i in order]
+                labels = [self.plots[i]['legend_label'] for i in order]
+                leg = ax.legend(handles, labels)
+                try:
+                    leg.set_draggable(True)
+                except AttributeError:
+                    leg.draggable(True)
         else:
-            pv.plot(self.plotdata, over=True, log=self.logv, 
+            pv.plot(self.plotdata, ax=ax, log=self.logv, 
                     vmin=self.vaxis.lo, vmax=self.vaxis.hi,
                     xmin=self.xaxis.lo, xmax=self.xaxis.hi,
                     ymin=self.yaxis.lo, ymax=self.yaxis.hi,
                     aspect=self.aspect, regular=self.regular_grid,
                     interpolation=self.interpolation, 
                     cmap=self.cmap, bad=self.image.cmap.get_bad(), 
-                    colorbar=colorbar)
+                    colorbar=colorbar, **kwargs)
         if title:
             ax.set_title(self.ax.get_title())
         else:

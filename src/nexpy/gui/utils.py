@@ -636,6 +636,7 @@ def set_style(style=None):
         mpl.rcParams['ytick.right'] = True
         mpl.rcParams['ytick.major.pad'] = 5
         mpl.rcParams['ytick.minor.visible'] = True
+        mpl.rcParams['legend.fontsize'] = 16
     elif style is not None:
         mpl.style.use(style)
     else:
