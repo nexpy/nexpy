@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #-----------------------------------------------------------------------------
-# Copyright (c) 2013-2020, NeXpy Development Team.
+# Copyright (c) 2013-2021, NeXpy Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -18,18 +18,22 @@ import types
 from collections import OrderedDict
 from copy import deepcopy
 
-import matplotlib as mpl
 import numpy as np
-from lmfit import Model, Parameter, Parameters, models
+
+from .pyqt import QtCore, QtGui, QtWidgets
+
+import matplotlib as mpl
+from lmfit import Model, Parameter, Parameters
 from lmfit import __version__ as lmfit_version
+from lmfit import models
+
 from nexusformat.nexus import (NeXusError, NXattr, NXdata, NXentry, NXfield,
                                NXgroup, NXnote, NXparameters, NXprocess,
                                NXroot, nxload)
 
 from .datadialogs import NXPanel, NXTab
 from .plotview import NXPlotView
-from .pyqt import QtCore, QtGui, QtWidgets
-from .utils import report_error, format_float, get_color
+from .utils import format_float, get_color, report_error
 from .widgets import (NXCheckBox, NXColorBox, NXComboBox, NXLabel, NXLineEdit,
                       NXMessageBox, NXPushButton, NXScrollArea)
 

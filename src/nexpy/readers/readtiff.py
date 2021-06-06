@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #-----------------------------------------------------------------------------
-# Copyright (c) 2013, NeXpy Development Team.
+# Copyright (c) 2013-2021, NeXpy Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -12,17 +12,14 @@
 """
 Module to read in a TIFF file and convert it to NeXus.
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-
 import numpy as np
 
 from nexusformat.nexus import *
-from nexpy.gui.importdialog import BaseImportDialog
+from nexpy.gui.importdialog import NXImportDialog
 
 filetype = "TIFF Image"
 
-class ImportDialog(BaseImportDialog):
+class ImportDialog(NXImportDialog):
     """Dialog to import a TIFF image"""
  
     def __init__(self, parent=None):

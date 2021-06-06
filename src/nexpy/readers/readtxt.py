@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #-----------------------------------------------------------------------------
-# Copyright (c) 2013, NeXpy Development Team.
+# Copyright (c) 2013-2021, NeXpy Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -29,7 +29,8 @@ import os
 
 import numpy as np
 
-from nexpy.gui.pyqt import QtWidgets
+from qtpy import QtWidgets
+
 from nexusformat.nexus import *
 from nexpy.gui.importdialog import NXImportDialog
 from nexpy.gui.utils import report_error

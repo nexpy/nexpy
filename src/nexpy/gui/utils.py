@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #-----------------------------------------------------------------------------
-# Copyright (c) 2013-2020, NeXpy Development Team.
+# Copyright (c) 2013-2021, NeXpy Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -22,21 +22,20 @@ import traceback as tb
 from collections import OrderedDict
 from datetime import datetime
 
-import matplotlib as mpl
-import matplotlib.image as img
-import numpy as np
-from IPython.core.ultratb import ColorTB
-from matplotlib.colors import (colorConverter, hex2color, rgb2hex,
-                               LinearSegmentedColormap)
-from matplotlib.cm import get_cmap
-from nexusformat.nexus import *
-
-from .pyqt import QtCore, QtWidgets, getOpenFileName
-
 try:
     from configparser import ConfigParser
 except ImportError:
     from ConfigParser import ConfigParser
+
+import numpy as np
+
+from .pyqt import QtCore, QtWidgets, getOpenFileName
+
+import matplotlib.image as img
+from IPython.core.ultratb import ColorTB
+from matplotlib.cm import get_cmap
+from matplotlib.colors import (LinearSegmentedColormap, colorConverter,
+                               hex2color, rgb2hex)
 
 try:
     from astropy.convolution import Kernel
@@ -46,6 +45,9 @@ try:
     import fabio
 except ImportError:
     fabio = None
+
+from nexusformat.nexus import *
+
 
 ansi_re = re.compile('\x1b' + r'\[([\dA-Fa-f;]*?)m')
 
@@ -88,6 +90,7 @@ def confirm_action(query, information=None, answer=None, icon=None):
     else:
         return False
 
+
 def display_message(message, information=None):
     """Display a message box with an error message"""
     message_box = QtWidgets.QMessageBox()
@@ -126,7 +129,8 @@ def run_pythonw(script_path):
     """
     if 'PYTHONEXECUTABLE' in os.environ:
         return
-    import platform, warnings
+    import platform
+    import warnings
     from distutils.version import StrictVersion
     if (StrictVersion(platform.release()) > StrictVersion('19.0.0') and
         'CONDA_PREFIX' in os.environ):

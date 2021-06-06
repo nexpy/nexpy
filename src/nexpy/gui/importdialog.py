@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #-----------------------------------------------------------------------------
-# Copyright (c) 2013-2020, NeXpy Development Team.
+# Copyright (c) 2013-2021, NeXpy Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -15,6 +15,7 @@ Base class for import dialogs
 import os
 
 from nexusformat.nexus import *
+
 from .datadialogs import NXDialog
 
 filetype = "Text File" #Defines the Import Menu label

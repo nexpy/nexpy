@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #-----------------------------------------------------------------------------
-# Copyright (c) 2013-2020, NeXpy Development Team.
+# Copyright (c) 2013-2021, NeXpy Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -10,16 +10,14 @@
 #-----------------------------------------------------------------------------
 
 import os
-
 import pkg_resources
-from nexusformat.nexus import (NeXusError, NXdata, NXentry, NXfield, NXgroup,
-                               NXlink, NXroot, nxload)
+
+from nexusformat.nexus import *
 
 from .pyqt import QtCore, QtGui, QtWidgets
-from .utils import (display_message, natural_sort, modification_time, 
+from .utils import (display_message, modification_time, natural_sort,
                     report_error)
 from .widgets import NXSortModel
-from nexusformat.nexus import *
 
 
 class NXtree(NXgroup):

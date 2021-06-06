@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #-----------------------------------------------------------------------------
-# Copyright (c) 2013-2020, NeXpy Development Team.
+# Copyright (c) 2013-2021, NeXpy Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -31,21 +31,22 @@ from operator import attrgetter
 from pathlib import Path
 
 from .pyqt import QtCore, QtGui, QtWidgets, getOpenFileName, getSaveFileName
-from qtconsole.rich_jupyter_widget import RichJupyterWidget
-from qtconsole.inprocess import QtInProcessKernelManager
+
 from IPython.core.magic import magic_escapes
+from qtconsole.inprocess import QtInProcessKernelManager
+from qtconsole.rich_jupyter_widget import RichJupyterWidget
 
 from nexusformat.nexus import *
 
 from .. import __version__
-from .treeview import NXTreeView
-from .plotview import NXPlotView
 from .datadialogs import *
 from .fitdialogs import FitDialog
-from .scripteditor import NXScriptWindow, NXScriptEditor
-from .utils import confirm_action, report_error, display_message, is_file_locked
-from .utils import natural_sort, import_plugin, timestamp
-from .utils import get_name, get_colors, load_image
+from .plotview import NXPlotView
+from .scripteditor import NXScriptEditor, NXScriptWindow
+from .treeview import NXTreeView
+from .utils import (confirm_action, display_message, get_colors, get_name,
+                    import_plugin, is_file_locked, load_image, natural_sort,
+                    report_error, timestamp)
 
 
 class NXRichJupyterWidget(RichJupyterWidget):
