@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #-----------------------------------------------------------------------------
-# Copyright (c) 2013-2020, NeXpy Development Team.
+# Copyright (c) 2013-2021, NeXpy Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -10,15 +10,14 @@
 #-----------------------------------------------------------------------------
 
 import os
-
 import pkg_resources
-from nexusformat.nexus import (NeXusError, NXdata, NXentry, NXfield, NXgroup,
-                               NXlink, NXroot, nxload)
+
+from nexusformat.nexus import *
 
 from .pyqt import QtCore, QtGui, QtWidgets
-from .utils import display_message, natural_sort, modification_time
+from .utils import (display_message, modification_time, natural_sort,
+                    report_error)
 from .widgets import NXSortModel
-from nexusformat.nexus import *
 
 
 class NXtree(NXgroup):
@@ -483,23 +482,38 @@ class NXTreeView(QtWidgets.QTreeView):
         self.mainwindow.statusBar().showMessage(text.replace('\n','; '))
 
     def check_modified_files(self):
-        for key in list(self.tree._entries):
-            node = self.tree._entries[key]
-            if node.nxfilemode and not node.file_exists():
-                display_message("'%s' no longer exists" % node.nxfilename)
-                del self.tree[key]
-            elif node.is_modified():
-                if node.nxfilemode == 'rw':
+        try:
+            for key in list(self.tree._entries):
+                node = self.tree._entries[key]
+                if node.nxfilemode and not node.file_exists():
+                    _dir = node.nxfile._filedir
+                    if not os.path.exists(_dir):
+                        display_message("'%s' no longer exists" % _dir)
+                        for _key in [k for k in self.tree
+                                     if self.tree[k].nxfile._filedir == _dir]:
+                            del self.tree[_key]
+                        break
+                    else:    
+                        display_message("'%s' no longer exists" 
+                                        % node.nxfilename)
+                        del self.tree[key]
+                elif node.is_modified():
                     node.lock()
-                node.nxfile.lock = True
-            nxfile = node.nxfile
-            if (node.nxfilemode == 'rw' and nxfile.is_locked() and 
-                nxfile.locked is False):
-                node.lock()
-                lock_time = modification_time(nxfile.lock_file) 
-                display_message("'%s' has been locked by an external process" 
-                                % node.nxname, "Lock file created: "+lock_time)
-                node.nxfile.lock = True
+                    node.nxfile.lock = True
+                elif node.nxfilemode == 'rw':
+                    nxfile = node.nxfile
+                    if nxfile.is_locked() and nxfile.locked is False:
+                        node.lock()
+                        lock_time = modification_time(nxfile.lock_file) 
+                        display_message(
+                            "'%s' has been locked by an external process" 
+                            % node.nxname, "Lock file created: "+lock_time)
+                        nxfile.lock = True
+            if self.timer.interval() > 1000:
+                self.timer.setInterval(1000)
+        except Exception as error:
+            report_error('Checking Modified Files', error)
+            self.timer.setInterval(60000)
 
     @property
     def node(self):

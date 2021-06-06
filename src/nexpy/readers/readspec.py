@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #-----------------------------------------------------------------------------
-# Copyright (c) 2013, NeXpy Development Team.
+# Copyright (c) 2013-2021, NeXpy Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -11,11 +11,6 @@
 """
 Module to read in a SPEC file and convert it to NeXus.
 """
-
-
-from __future__ import (
-    absolute_import, division, print_function, unicode_literals)
-
 import os
 import numpy as np
 
@@ -23,13 +18,13 @@ from nexpy.gui.pyqt import QtCore, QtWidgets, getOpenFileName
 
 from nexusformat.nexus.tree import NeXusError
 from nexusformat.nexus.tree import NXroot, NXentry, NXfield, NXdata, NXlog
-from nexpy.gui.importdialog import BaseImportDialog
+from nexpy.gui.importdialog import NXImportDialog
 from nexpy.gui.widgets import NXLabel, NXLineEdit
 
 filetype = "SPEC File"
 
 
-class ImportDialog(BaseImportDialog):
+class ImportDialog(NXImportDialog):
     """Dialog to import SPEC Scans"""
  
     def __init__(self, parent=None):

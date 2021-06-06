@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #-----------------------------------------------------------------------------
-# Copyright (c) 2013-2020, NeXpy Development Team.
+# Copyright (c) 2013-2021, NeXpy Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -22,20 +22,20 @@ import traceback as tb
 from collections import OrderedDict
 from datetime import datetime
 
-import matplotlib.image as img
-import numpy as np
-from IPython.core.ultratb import ColorTB
-from matplotlib.colors import (colorConverter, hex2color, rgb2hex,
-                               LinearSegmentedColormap)
-from matplotlib.cm import get_cmap
-from nexusformat.nexus import *
-
-from .pyqt import QtCore, QtWidgets, getOpenFileName
-
 try:
     from configparser import ConfigParser
 except ImportError:
     from ConfigParser import ConfigParser
+
+import numpy as np
+
+from .pyqt import QtCore, QtWidgets, getOpenFileName
+
+import matplotlib as mpl
+from IPython.core.ultratb import ColorTB
+from matplotlib.cm import get_cmap
+from matplotlib.colors import (LinearSegmentedColormap, colorConverter,
+                               hex2color, rgb2hex)
 
 try:
     from astropy.convolution import Kernel
@@ -45,6 +45,9 @@ try:
     import fabio
 except ImportError:
     fabio = None
+
+from nexusformat.nexus import *
+
 
 ansi_re = re.compile('\x1b' + r'\[([\dA-Fa-f;]*?)m')
 
@@ -87,6 +90,7 @@ def confirm_action(query, information=None, answer=None, icon=None):
     else:
         return False
 
+
 def display_message(message, information=None):
     """Display a message box with an error message"""
     message_box = QtWidgets.QMessageBox()
@@ -125,7 +129,8 @@ def run_pythonw(script_path):
     """
     if 'PYTHONEXECUTABLE' in os.environ:
         return
-    import platform, warnings
+    import platform
+    import warnings
     from distutils.version import StrictVersion
     if (StrictVersion(platform.release()) > StrictVersion('19.0.0') and
         'CONDA_PREFIX' in os.environ):
@@ -541,7 +546,7 @@ def cmyk_to_rgb(c, m, y, k):
 def load_image(filename):
     if os.path.splitext(filename.lower())[1] in ['.png', '.jpg', '.jpeg',
                                                  '.gif']:
-        im = img.imread(filename)
+        im = mpl.image.imread(filename)
         z = NXfield(im, name='z')
         y = NXfield(range(z.shape[0]), name='y')
         x = NXfield(range(z.shape[1]), name='x')
@@ -608,7 +613,38 @@ def initialize_preferences(settings):
         nxsetrecursive(settings.getboolean('preferences', 'recursive'))
     else:
         settings.set('preferences', 'recursive', nxgetrecursive())
+    if settings.has_option('preferences', 'style'):
+        set_style(settings.get('preferences', 'style'))
+    else:
+        settings.set('preferences', 'style', 'default')
     settings.save()
+
+
+def set_style(style=None):
+    if style == 'publication':
+        mpl.style.use('default')
+        mpl.rcParams['axes.titlesize'] = 24
+        mpl.rcParams['axes.titlepad'] = 20
+        mpl.rcParams['axes.labelsize'] = 20
+        mpl.rcParams['axes.labelpad'] = 5
+        mpl.rcParams['axes.formatter.limits'] = -5, 5
+        mpl.rcParams['lines.linewidth'] = 3
+        mpl.rcParams['lines.markersize'] = 10
+        mpl.rcParams['xtick.labelsize'] = 16
+        mpl.rcParams['xtick.direction'] = 'in'
+        mpl.rcParams['xtick.top'] = True
+        mpl.rcParams['xtick.major.pad'] = 5
+        mpl.rcParams['xtick.minor.visible'] = True
+        mpl.rcParams['ytick.labelsize'] = 16
+        mpl.rcParams['ytick.direction'] = 'in'
+        mpl.rcParams['ytick.right'] = True
+        mpl.rcParams['ytick.major.pad'] = 5
+        mpl.rcParams['ytick.minor.visible'] = True
+        mpl.rcParams['legend.fontsize'] = 16
+    elif style is not None:
+        mpl.style.use(style)
+    else:
+        mpl.style.use('default')
 
 
 class NXimporter(object):
@@ -734,6 +770,13 @@ class Gaussian3DKernel(Kernel):
     _is_bool = False
 
     def __init__(self, stddev, **kwargs):
+        def _round_up_to_odd_integer(value):
+            import math
+            i = int(math.ceil(value))
+            if i % 2 == 0:
+                return i + 1
+            else:
+                return i
         x = np.linspace(-15., 15., 17)
         y = np.linspace(-15., 15., 17)
         z = np.linspace(-15., 15., 17)

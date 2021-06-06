@@ -13,22 +13,19 @@
 Module to read in data from a Globus Online catalog and convert it to NeXus.
 """
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-
 import os
 
-from nexpy.gui.pyqt import QtWidgets
+from qtpy import QtWidgets
 
 import numpy as np
 from globusonline.catalog.client.examples.catalog_wrapper import CatalogWrapper
 
 from nexusformat.nexus import *
-from nexpy.gui.importdialog import BaseImportDialog
+from nexpy.gui.importdialog import NXImportDialog
 
 filetype = "Catalog File"
 
-class ImportDialog(BaseImportDialog):
+class ImportDialog(NXImportDialog):
     """Dialog to import data from a Globus Online catalog"""
 
     def __init__(self, parent=None):

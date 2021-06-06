@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #-----------------------------------------------------------------------------
-# Copyright (c) 2013-2020, NeXpy Development Team.
+# Copyright (c) 2013-2021, NeXpy Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -28,23 +28,25 @@ import webbrowser
 import xml.etree.ElementTree as ET
 from copy import deepcopy
 from operator import attrgetter
+from pathlib import Path
 
 from .pyqt import QtCore, QtGui, QtWidgets, getOpenFileName, getSaveFileName
-from qtconsole.rich_jupyter_widget import RichJupyterWidget
-from qtconsole.inprocess import QtInProcessKernelManager
+
 from IPython.core.magic import magic_escapes
+from qtconsole.inprocess import QtInProcessKernelManager
+from qtconsole.rich_jupyter_widget import RichJupyterWidget
 
 from nexusformat.nexus import *
 
 from .. import __version__
-from .treeview import NXTreeView
-from .plotview import NXPlotView
 from .datadialogs import *
 from .fitdialogs import FitDialog
-from .scripteditor import NXScriptWindow, NXScriptEditor
-from .utils import confirm_action, report_error, display_message, is_file_locked
-from .utils import natural_sort, import_plugin, timestamp
-from .utils import get_name, get_colors, load_image
+from .plotview import NXPlotView
+from .scripteditor import NXScriptEditor, NXScriptWindow
+from .treeview import NXTreeView
+from .utils import (confirm_action, display_message, get_colors, get_name,
+                    import_plugin, is_file_locked, load_image, natural_sort,
+                    report_error, timestamp)
 
 
 class NXRichJupyterWidget(RichJupyterWidget):
@@ -1070,11 +1072,15 @@ class MainWindow(QtWidgets.QMainWindow):
                          % fname)
             return
         name = self.tree.get_name(fname)
-        self.tree[name] = nxload(fname)
+        if Path(self.backup_dir) in Path(fname).parents:
+            name = name.replace('_backup', '')
+            self.tree[name] = nxload(fname, 'rw')
+        else:
+            self.tree[name] = nxload(fname)
+            self.default_directory = os.path.dirname(fname)
         self.treeview.update()
         self.treeview.select_node(self.tree[name])
         self.treeview.setFocus()
-        self.default_directory = os.path.dirname(fname)
         logging.info("NeXus file '%s' opened as workspace '%s'" % (fname, name))
         self.update_files(fname, recent=recent)
 
@@ -1205,7 +1211,11 @@ class MainWindow(QtWidgets.QMainWindow):
             if fname:
                 old_name = node.nxname
                 old_fname = node.nxfilename
-                root = node.save(fname, 'w')
+                if node.nxfilemode == 'r':
+                    nxduplicate(old_fname, fname, 'w')
+                    root = nxload(fname)
+                else:
+                    root = node.save(fname, 'w')
                 del self.tree[old_name]
                 name = self.tree.get_name(fname)
                 self.tree[name] = self.user_ns[name] = root
@@ -2469,6 +2479,11 @@ class MainWindow(QtWidgets.QMainWindow):
     def quickref_console(self):
         self.console.execute("%quickref")
 
+    def close_files(self):
+        for root in [n for n in self.user_ns 
+                     if isinstance(self.user_ns[n], NXroot)]:
+            self.user_ns[root].close()
+
     def close_widgets(self):
         windows = self.dialogs
         windows += [self.plotviews[pv] for pv in self.plotviews if pv != 'Main']
@@ -2484,6 +2499,7 @@ class MainWindow(QtWidgets.QMainWindow):
                           icon=self.app.icon_pixmap):
             self.console.kernel_client.stop_channels()
             self.console.kernel_manager.shutdown_kernel()
+            self.close_files()
             self.close_widgets()
             logging.info('NeXpy closed\n'+80*'-')
             self._app.quit()

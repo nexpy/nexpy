@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #-----------------------------------------------------------------------------
-# Copyright (c) 2013-2020, NeXpy Development Team.
+# Copyright (c) 2013-2021, NeXpy Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -17,39 +17,38 @@ import re
 import shutil
 import sys
 import time
-
 from operator import attrgetter
 from posixpath import basename
-
-from .pyqt import QtCore, QtGui, QtWidgets, getOpenFileName, getSaveFileName
-import numpy as np
-from matplotlib import rcParams, rcParamsDefault
-from matplotlib.legend import Legend
-from matplotlib.rcsetup import (defaultParams, validate_float, validate_int, 
-                                validate_color, validate_aspect)
 
 try:
     from collections import OrderedDict
 except ImportError:
     from ordereddict import OrderedDict
 
-from nexusformat.nexus import (NeXusError, NXgroup, NXfield, NXattr, 
-                               NXlink, NXlinkgroup, NXlinkfield,
-                               NXroot, NXentry, NXdata, NXparameters, nxload,
-                               nxgetcompression, nxsetcompression,
-                               nxgetencoding, nxsetencoding,
-                               nxgetlock, nxsetlock,
-                               nxgetmaxsize, nxsetmaxsize, 
-                               nxgetmemory, nxsetmemory,
-                               nxgetrecursive, nxsetrecursive)
+import numpy as np
 
-from .utils import (confirm_action, display_message, report_error, 
-                    import_plugin, convertHTML, natural_sort, wrap, human_size,
-                    timestamp, format_timestamp, restore_timestamp, get_color,
-                    keep_data, fix_projection, modification_time)
-from .widgets import (NXStack, NXScrollArea, NXCheckBox, NXComboBox, NXColorBox, 
-                      NXPushButton, NXLabel, NXLineEdit,
-                      NXDoubleSpinBox, NXSpinBox, NXpolygon)
+from .pyqt import QtCore, QtGui, QtWidgets, getOpenFileName, getSaveFileName
+
+from matplotlib import rcParams, rcParamsDefault
+from matplotlib.legend import Legend
+from matplotlib.rcsetup import (defaultParams, validate_aspect, validate_color,
+                                validate_float, validate_int)
+
+from nexusformat.nexus import (NeXusError, NXattr, NXdata, NXentry, NXfield,
+                               NXgroup, NXlink, NXlinkfield, NXlinkgroup,
+                               NXparameters, NXroot, nxgetcompression,
+                               nxgetencoding, nxgetlock, nxgetmaxsize,
+                               nxgetmemory, nxgetrecursive, nxload,
+                               nxsetcompression, nxsetencoding, nxsetlock,
+                               nxsetmaxsize, nxsetmemory, nxsetrecursive)
+
+from .utils import (confirm_action, convertHTML, display_message,
+                    fix_projection, format_timestamp, get_color, human_size,
+                    import_plugin, keep_data, modification_time, natural_sort,
+                    report_error, restore_timestamp, timestamp, wrap)
+from .widgets import (NXCheckBox, NXColorBox, NXComboBox, NXDoubleSpinBox,
+                      NXLabel, NXLineEdit, NXpolygon, NXPushButton,
+                      NXScrollArea, NXSpinBox, NXStack)
 
 
 class NXWidget(QtWidgets.QWidget):
@@ -1031,7 +1030,7 @@ class GridParameters(OrderedDict):
                         widget.deleteLater()           
 
     def set_parameters(self):
-        from lmfit import Parameters, Parameter
+        from lmfit import Parameter, Parameters
         self.lmfit_parameters = Parameters()
         for p in [p for p in self if self[p].vary]:
             self.lmfit_parameters[p] = Parameter(self[p].name, self[p].value)
@@ -1041,7 +1040,7 @@ class GridParameters(OrderedDict):
             self[p].value = parameters[p].value
 
     def refine_parameters(self, residuals, **opts):
-        from lmfit import minimize, fit_report
+        from lmfit import fit_report, minimize
         self.set_parameters()
         if self.status_layout:
             self.status_message.setText('Fitting...')
@@ -1486,7 +1485,7 @@ class PlotDialog(NXDialog):
                 kwargs['over'] = self.checkbox['over'].isChecked()
             data = NXdata(self.signal, self.get_axes(), 
                           title=self.signal_path)
-            data.nxsignal.attrs['signal_path'] = self.signal_path
+            data.attrs['signal_path'] = self.signal_path
             data.plot(**kwargs)
             super(PlotDialog, self).accept()
         except NeXusError as error:
@@ -1848,6 +1847,11 @@ class PreferencesDialog(NXDialog):
         self.parameters.add('lock', nxgetlock(), 'Lock Timeout (s)')
         self.parameters.add('recursive', ['True', 'False'], 'File Recursion')
         self.parameters['recursive'].value = str(nxgetrecursive())
+        styles = ['default', 'publication'] + sorted(
+            style for style in mpl.style.available if style != 'publication')
+        self.parameters.add('style', styles, 'Plot Style')
+        self.parameters['style'].value = self.mainwindow.settings.get(
+                                                        'preferences', 'style')
         self.set_layout(self.parameters.grid(), 
                         self.action_buttons(('Save As Default', 
                                             self.save_default)),
@@ -1864,6 +1868,8 @@ class PreferencesDialog(NXDialog):
         self.mainwindow.settings.set('preferences', 'lock', nxgetlock())
         self.mainwindow.settings.set('preferences', 'recursive', 
                                      nxgetrecursive())
+        self.mainwindow.settings.set('preferences', 'style', 
+                                     self.parameters['style'].value)
         self.mainwindow.settings.save()
 
     def set_preferences(self):
@@ -1873,6 +1879,7 @@ class PreferencesDialog(NXDialog):
         nxsetencoding(self.parameters['encoding'].value)
         nxsetlock(self.parameters['lock'].value)
         nxsetrecursive(self.parameters['recursive'].value)
+        set_style(self.parameters['style'].value)
 
     def accept(self):
         self.set_preferences()
@@ -1896,7 +1903,7 @@ class CustomizeTab(NXTab):
     def __init__(self, label, parent=None):
         super(CustomizeTab, self).__init__(label, parent=parent)
 
-        from .plotview import markers, linestyles
+        from .plotview import linestyles, markers
         self.markers, self.linestyles = markers, linestyles
 
         self.plotview = self.active_plotview
@@ -1982,6 +1989,9 @@ class CustomizeTab(NXTab):
                        'Grid Style')
         parameters.add('minorticks', ['On', 'Off'], 'Minor Ticks')
         parameters.add('cb_minorticks', ['On', 'Off'], 'Color Bar Minor Ticks')
+        parameters.add('badcolor', 
+                       get_color(self.plotview.image.cmap.get_bad()),
+                       'Bad Color', color=True)
         parameters.grid(title='Image Parameters', header=False, width=125)
         return parameters
 
@@ -2005,6 +2015,7 @@ class CustomizeTab(NXTab):
             p['cb_minorticks'].value = 'On'
         else:
             p['cb_minorticks'].value = 'Off'
+        p['badcolor'].value = get_color(self.plotview.image.cmap.get_bad())
 
     def plot_parameters(self, plot):
         p = self.plots[plot]
@@ -2186,6 +2197,7 @@ class CustomizeTab(NXTab):
             self.plotview._gridcolor = pi['gridcolor'].value
             self.plotview._gridstyle = [k for k, v in self.linestyles.items()
                                         if v == pi['gridstyle'].value][0]
+            self.plotview.image.cmap.set_bad(pi['badcolor'].value)
             #reset in case plotview.aspect changed by plotview.skew            
             self.plotview.skew = _skew_angle
             self.plotview.aspect = self.plotview._aspect
@@ -3771,7 +3783,7 @@ class RemoteDialog(NXDialog):
 
         try:
             import h5pyd
-            from nexusformat.nexus import nxgetserver, nxgetdomain
+            from nexusformat.nexus import nxgetdomain, nxgetserver
         except ImportError:
             raise NeXusError("Please install h5pyd for remote data access")
 

@@ -23,7 +23,8 @@ pkg_requirements = [
     'lmfit>=1.0.2',
     'pylatexenc',
     'ansi2html',
-    'pillow'
+    'pillow',
+    'versioneer'
 ]
 extra_requirements = {
     'spec': ['spec2nexus>=2017.901.4',],

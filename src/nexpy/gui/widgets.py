@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #-----------------------------------------------------------------------------
-# Copyright (c) 2018-2020, NeXpy Development Team.
+# Copyright (c) 2018-2021, NeXpy Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -12,19 +12,19 @@
 """
 This module contains a set of customized widgets both for dialogs and plot objects. 
 """
+import math
 import warnings
 
-import matplotlib as mpl
-import math
 import numpy as np
-from matplotlib import colors
-from matplotlib import cbook
-from matplotlib.patches import Circle, Ellipse, Polygon, Rectangle
 
 from .pyqt import QtCore, QtGui, QtWidgets
-from .utils import (report_error, boundaries, get_color, format_float,
-                    find_nearest, natural_sort)
 
+import matplotlib as mpl
+from matplotlib import cbook, colors
+from matplotlib.patches import Circle, Ellipse, Polygon, Rectangle
+
+from .utils import (boundaries, find_nearest, format_float, get_color,
+                    natural_sort, report_error)
 
 warnings.filterwarnings("ignore", category=cbook.mplDeprecation)
 
