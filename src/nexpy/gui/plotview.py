@@ -2370,7 +2370,8 @@ class NXPlotView(QtWidgets.QDialog):
                 except AttributeError:
                     leg.draggable(True)
         else:
-            pv.plot(self.plotdata, ax=ax, log=self.logv, 
+            pv.plot(self.plotdata, ax=ax, 
+                    image=plotview.rgb_image, log=self.logv, 
                     vmin=self.vaxis.lo, vmax=self.vaxis.hi,
                     xmin=self.xaxis.lo, xmax=self.xaxis.hi,
                     ymin=self.yaxis.lo, ymax=self.yaxis.hi,
