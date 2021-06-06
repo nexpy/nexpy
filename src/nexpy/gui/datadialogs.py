@@ -46,7 +46,7 @@ from nexusformat.nexus import (NeXusError, NXattr, NXdata, NXentry, NXfield,
 from .utils import (confirm_action, convertHTML, display_message,
                     fix_projection, format_timestamp, get_color, human_size,
                     import_plugin, keep_data, modification_time, natural_sort,
-                    report_error, restore_timestamp, timestamp, wrap)
+                    report_error, restore_timestamp, set_style, timestamp, wrap)
 from .widgets import (NXCheckBox, NXColorBox, NXComboBox, NXDoubleSpinBox,
                       NXLabel, NXLineEdit, NXpolygon, NXPushButton,
                       NXScrollArea, NXSpinBox, NXStack)
