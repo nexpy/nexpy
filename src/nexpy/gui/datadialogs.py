@@ -29,6 +29,7 @@ import numpy as np
 
 from .pyqt import QtCore, QtGui, QtWidgets, getOpenFileName, getSaveFileName
 
+import matplotlib as mpl
 from matplotlib import rcParams, rcParamsDefault
 from matplotlib.legend import Legend
 from matplotlib.rcsetup import (defaultParams, validate_aspect, validate_color,
