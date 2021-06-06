@@ -1487,7 +1487,7 @@ class PlotDialog(NXDialog):
                 kwargs['over'] = self.checkbox['over'].isChecked()
             data = NXdata(self.signal, self.get_axes(), 
                           title=self.signal_path)
-            data.nxsignal.attrs['signal_path'] = self.signal_path
+            data.attrs['signal_path'] = self.signal_path
             data.plot(**kwargs)
             super(PlotDialog, self).accept()
         except NeXusError as error:
