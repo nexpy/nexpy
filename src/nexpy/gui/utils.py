@@ -31,7 +31,7 @@ import numpy as np
 
 from .pyqt import QtCore, QtWidgets, getOpenFileName
 
-import matplotlib.image as img
+import matplotlib as mpl
 from IPython.core.ultratb import ColorTB
 from matplotlib.cm import get_cmap
 from matplotlib.colors import (LinearSegmentedColormap, colorConverter,
@@ -546,7 +546,7 @@ def cmyk_to_rgb(c, m, y, k):
 def load_image(filename):
     if os.path.splitext(filename.lower())[1] in ['.png', '.jpg', '.jpeg',
                                                  '.gif']:
-        im = img.imread(filename)
+        im = mpl.image.imread(filename)
         z = NXfield(im, name='z')
         y = NXfield(range(z.shape[0]), name='y')
         x = NXfield(range(z.shape[1]), name='x')
