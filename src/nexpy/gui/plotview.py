@@ -2370,6 +2370,10 @@ class NXPlotView(QtWidgets.QDialog):
                 except AttributeError:
                     leg.draggable(True)
         else:
+            try:
+                kwargs['bad'] = self.image.cmap.get_bad()
+            except AttributeError:
+                pass
             pv.plot(self.plotdata, ax=ax, 
                     image=plotview.rgb_image, log=self.logv, 
                     vmin=self.vaxis.lo, vmax=self.vaxis.hi,
@@ -2377,8 +2381,7 @@ class NXPlotView(QtWidgets.QDialog):
                     ymin=self.yaxis.lo, ymax=self.yaxis.hi,
                     aspect=self.aspect, regular=self.regular_grid,
                     interpolation=self.interpolation, 
-                    cmap=self.cmap, bad=self.image.cmap.get_bad(), 
-                    colorbar=colorbar, **kwargs)
+                    cmap=self.cmap, colorbar=colorbar, **kwargs)
         if title:
             ax.set_title(self.ax.get_title())
         else:
