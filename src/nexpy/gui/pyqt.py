@@ -10,6 +10,7 @@
 #-----------------------------------------------------------------------------
 import os
 
+import matplotlib as mpl
 from qtpy import QtCore, QtGui, QtWidgets
 
 if QtCore.PYQT5:
@@ -25,6 +26,7 @@ elif QtCore.PYSIDE:
     QtVersion = 'Qt4Agg'
     os.environ['QT_API'] = 'pyside'
 
+mpl.use(QtVersion)
 
 def getOpenFileName(*args, **kwargs):
     fname = QtWidgets.QFileDialog.getOpenFileName(*args, **kwargs)
