@@ -24,7 +24,7 @@ import signal
 import sys
 import tempfile
 
-from .pyqt import QtCore, QtGui, QtWidgets
+from .pyqt import QtCore, QtGui, QtWidgets, QtVersion
 
 from IPython import __version__ as ipython_version
 from jupyter_client.consoleapp import JupyterConsoleApp, app_aliases, app_flags
@@ -298,6 +298,7 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
                  "import numpy.ma as ma\n",
                  "import scipy as sp\n",
                  "import matplotlib as mpl\n",
+                 "mpl.use('{}')\n".format(QtVersion),
                  "from matplotlib import pylab, mlab, pyplot\n",
                  "plt = pyplot\n",
                  "os.chdir(os.path.expanduser('~'))\n"]

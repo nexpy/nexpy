@@ -77,8 +77,8 @@ from scipy.spatial import Voronoi, voronoi_plot_2d
 from nexusformat.nexus import NeXusError, NXdata, NXentry, NXfield, NXroot
 
 from .. import __version__
-from .datadialogs import (ExportDialog, LimitDialog, ProjectionDialog,
-                          ScanDialog)
+from .datadialogs import (CustomizeDialog, ExportDialog, LimitDialog, 
+                          ProjectionDialog, ScanDialog)
 from .utils import (boundaries, centers, divgray_map, find_nearest,
                     fix_projection, iterable, keep_data, parula_map,
                     report_error, report_exception)
@@ -358,7 +358,7 @@ class NXPlotView(QtWidgets.QDialog):
         self.vbox.addWidget(self.tab_widget)
         self.setLayout(self.vbox)
 
-        self.setWindowTitle(self.label)
+        self.setWindowTitle('NeXpy: '+self.label)
         
         self.resize(734, 550)
 
@@ -3709,7 +3709,7 @@ class NXNavigationToolbar(NavigationToolbar2QT, QtWidgets.QToolBar):
             self.plotview.grid(self.plotview._grid, self.plotview._minorgrid)
 
     def edit_parameters(self):
-        from .datadialogs import CustomizeDialog
+        self.plotview.make_active()
         if not self.plotview.mainwindow.panel_is_running('Customize'):
             self.plotview.panels['Customize'] = CustomizeDialog()
         self.plotview.panels['Customize'].activate(self.plotview.label)
