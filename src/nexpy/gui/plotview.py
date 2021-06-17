@@ -2362,8 +2362,10 @@ class NXPlotView(QtWidgets.QDialog):
                 h, _ = self.ax.get_legend_handles_labels()
                 order = sorted(self.plots, 
                                key=lambda x: self.plots[x]['legend_order'])
-                handles = [self.plots[i]['plot'] for i in order]
-                labels = [self.plots[i]['legend_label'] for i in order]
+                handles = [self.plots[i]['plot'] for i in order 
+                           if self.plots[i]['show_legend']]
+                labels = [self.plots[i]['legend_label'] for i in order
+                          if self.plots[i]['show_legend']]
                 leg = ax.legend(handles, labels)
                 try:
                     leg.set_draggable(True)
