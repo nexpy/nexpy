@@ -804,7 +804,6 @@ class NXPlotView(QtWidgets.QDialog):
 
         self.draw()
         self.otab.push_current()
-        self.figure.set_tight_layout(True)
         mpl.interactive(True)
 
     def get_plotdata(self, over=False):
