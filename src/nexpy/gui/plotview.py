@@ -2941,6 +2941,7 @@ class NXPlotTab(QtWidgets.QWidget):
 
     def select_plot(self):
         self.plotview.num = int(self.plotcombo.currentText())
+        self.plotview.plotdata = self.plotview.plots[self.plotview.num]['data']
         self.smoothing = self.plotview.plots[self.plotview.num]['smoothing']    
 
     @property
