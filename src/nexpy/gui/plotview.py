@@ -804,7 +804,6 @@ class NXPlotView(QtWidgets.QDialog):
 
         self.draw()
         self.otab.push_current()
-        self.figure.set_tight_layout(True)
         mpl.interactive(True)
 
     def get_plotdata(self, over=False):
@@ -2338,6 +2337,7 @@ class NXPlotView(QtWidgets.QDialog):
     def mpl_plot(self, ax=None, title=False, colorbar=False, **kwargs):
         from nexusformat.nexus.plot import plotview as pv
         import matplotlib.pyplot as plt
+        plot_label = kwargs.pop('label', None)
         if ax:
             plt.sca(ax)
         else:
@@ -2390,6 +2390,10 @@ class NXPlotView(QtWidgets.QDialog):
             ax.set_title('')
         ax.set_xlabel(self.ax.get_xlabel())
         ax.set_ylabel(self.ax.get_ylabel())
+        if plot_label:
+            ax.text(0.02, 0.95, plot_label, fontsize=16,
+            horizontalalignment='left', verticalalignment='top', color='black',
+            transform=ax.transAxes)
 
     def block_signals(self, block=True):
         self.xtab.block_signals(block)
@@ -2942,6 +2946,7 @@ class NXPlotTab(QtWidgets.QWidget):
 
     def select_plot(self):
         self.plotview.num = int(self.plotcombo.currentText())
+        self.plotview.plotdata = self.plotview.plots[self.plotview.num]['data']
         self.smoothing = self.plotview.plots[self.plotview.num]['smoothing']    
 
     @property
