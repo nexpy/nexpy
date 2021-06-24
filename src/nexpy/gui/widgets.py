@@ -621,8 +621,7 @@ class NXColorBox(QtWidgets.QWidget):
         if label:
             self.layout.addStretch()
             self.layout.addWidget(NXLabel(label))
-        self.textbox = NXLineEdit(colors.to_hex(color.getRgbF(),
-                                                keep_alpha=True),
+        self.textbox = NXLineEdit(colors.to_hex(color.getRgbF()),
                                   parent=parent, slot=self.update_color, 
                                   width=width, align='right')
         self.layout.addWidget(self.textbox)
@@ -646,7 +645,7 @@ class NXColorBox(QtWidgets.QWidget):
 
     def update_text(self, color):
         """Set the text box string following a change to the color button."""
-        self.color_text = colors.to_hex(color.getRgbF(), keep_alpha=True)
+        self.color_text = colors.to_hex(color.getRgbF())
         self.textbox.setText(self.color_text)
 
     def qcolor(self, text):
