@@ -549,6 +549,10 @@ class NXWidget(QtWidgets.QWidget):
             self.thread.deleteLater()
         self.thread = None
 
+    def resize(self):
+        self.mainwindow._app.processEvents()
+        super(NXWidget, self).resize(self.minimumSizeHint())
+
     def update(self):
         pass
 
@@ -779,10 +783,10 @@ class NXPanel(NXDialog):
                         if self.tabs[label] is not self.tab]:
                 tab.setSizePolicy(QtWidgets.QSizePolicy.Ignored, 
                                   QtWidgets.QSizePolicy.Ignored)
-            self.tab.setSizePolicy(QtWidgets.QSizePolicy.Preferred,
-                                   QtWidgets.QSizePolicy.Preferred)
-            self.mainwindow._app.processEvents()
-            self.adjustSize()
+            self.tab.setSizePolicy(QtWidgets.QSizePolicy.Minimum,
+                                   QtWidgets.QSizePolicy.Minimum)
+            self.tab.resize()
+            self.resize()
 
     def copy(self):
         self.tab.copy()
