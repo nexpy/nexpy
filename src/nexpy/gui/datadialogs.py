@@ -2463,6 +2463,7 @@ class ProjectionTab(NXTab):
             self.checkbox["lines"].setVisible(False)
             self.checkbox["select"].setVisible(False)
             self.select_widget.setVisible(False)
+        self.panel.update()
 
     def set_limits(self):
         self.block_signals(True)
@@ -2538,7 +2539,7 @@ class ProjectionTab(NXTab):
             self.select_widget.setVisible(True)
         else:
             self.select_widget.setVisible(False)
-        self.panel.resize()
+        self.panel.update()
 
     def set_maximum(self):
         if self.checkbox["max"].isChecked():
