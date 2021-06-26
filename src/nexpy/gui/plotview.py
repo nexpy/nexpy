@@ -1869,7 +1869,7 @@ class NXPlotView(QtWidgets.QDialog):
         self._nameonly = False
         self.draw()
 
-    def grid(self, display=None, minor=False, **opts):
+    def grid(self, display=None, minor=False, ax=None, **opts):
         """Set grid display.
         
         Parameters
@@ -1883,6 +1883,8 @@ class NXPlotView(QtWidgets.QDialog):
             Valid options for displaying grids. If not set, the default
             Matplotlib styles are used.
         """
+        if ax is None:
+            ax = self.ax
         if display is not None:
             self._grid = display
         elif opts:
@@ -1904,17 +1906,17 @@ class NXPlotView(QtWidgets.QDialog):
             else:
                 opts['color'] = self._gridcolor
             if minor:
-                self.ax.minorticks_on()
+                ax.minorticks_on()
             if self.skew:
                 self.draw_skewed_grid(minor=minor, **opts)
             else:
-                self.ax.grid(True, which='major', axis='both', **opts)
+                ax.grid(True, which='major', axis='both', **opts)
                 if minor:
                     opts['linewidth'] = max(self._gridwidth/2, 0.1)
-                    self.ax.grid(True, which='minor', axis='both', **opts)
+                    ax.grid(True, which='minor', axis='both', **opts)
                 self.remove_skewed_grid()
         else:
-            self.ax.grid(False, which='both', axis='both')
+            ax.grid(False, which='both', axis='both')
             if not self._minorticks:
                 self.minorticks_off()
             if self.skew:
@@ -2337,7 +2339,8 @@ class NXPlotView(QtWidgets.QDialog):
     def mpl_plot(self, ax=None, title=False, colorbar=False, **kwargs):
         from nexusformat.nexus.plot import plotview as pv
         import matplotlib.pyplot as plt
-        plot_label = kwargs.pop('label', None)
+        label = kwargs.pop('label', None)
+        loc = kwargs.pop('loc', 'upper left')
         if ax:
             plt.sca(ax)
         else:
@@ -2390,10 +2393,11 @@ class NXPlotView(QtWidgets.QDialog):
             ax.set_title('')
         ax.set_xlabel(self.ax.get_xlabel())
         ax.set_ylabel(self.ax.get_ylabel())
-        if plot_label:
-            ax.text(0.02, 0.95, plot_label, fontsize=16,
-            horizontalalignment='left', verticalalignment='top', color='black',
-            transform=ax.transAxes)
+        self.grid(display=self._grid, minor=self._minorgrid, ax=ax)
+        if label:
+            from matplotlib.offsetbox import AnchoredText
+            ax.add_artist(AnchoredText(label, loc=loc, prop=dict(size=20),
+                                       frameon=False))
 
     def block_signals(self, block=True):
         self.xtab.block_signals(block)
