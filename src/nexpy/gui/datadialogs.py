@@ -549,6 +549,15 @@ class NXWidget(QtWidgets.QWidget):
             self.thread.deleteLater()
         self.thread = None
 
+    def resize(self, width=None, height=None):
+        self.mainwindow._app.processEvents()
+        self.adjustSize()
+        self.mainwindow._app.processEvents()
+        if width is None or height is None:
+            super(NXWidget, self).resize(self.minimumSizeHint())
+        else:
+            super(NXWidget, self).resize(width, height)            
+
     def update(self):
         pass
 
@@ -769,6 +778,7 @@ class NXPanel(NXDialog):
         else:
             self.tab = label
             self.tab.update()
+        self.update()
         self.setVisible(True)
         self.raise_()
         self.activateWindow()
@@ -779,10 +789,10 @@ class NXPanel(NXDialog):
                         if self.tabs[label] is not self.tab]:
                 tab.setSizePolicy(QtWidgets.QSizePolicy.Ignored, 
                                   QtWidgets.QSizePolicy.Ignored)
-            self.tab.setSizePolicy(QtWidgets.QSizePolicy.Preferred,
-                                   QtWidgets.QSizePolicy.Preferred)
-            self.mainwindow._app.processEvents()
-            self.adjustSize()
+            self.tab.setSizePolicy(QtWidgets.QSizePolicy.Minimum,
+                                   QtWidgets.QSizePolicy.Minimum)
+            self.tab.resize()
+            self.resize()
 
     def copy(self):
         self.tab.copy()
@@ -2348,12 +2358,30 @@ class ProjectionTab(NXTab):
         self.unmask_button = NXPushButton("Unmask", self.unmask_data, self)
         grid.addWidget(self.unmask_button, row, 2)
 
+        self.select_widget = NXWidget()
+        sp = self.select_parameters = GridParameters()
+        sp.add('divisor', 1.0, 'Divisor')
+        sp.add('offset', 0.0, 'Offset')
+        sp.add('tol', 0.0, 'Tolerance')
+        self.select_widget.set_layout(sp.grid(header=False), 
+            self.checkboxes(("smooth", "Smooth", False),
+                            ("symm", "Symmetric", False),
+                            ("max", "Max", False),
+                            ("min", "Min", False)))
+        self.select_widget.setVisible(False)
         self.set_layout(axis_layout, grid, 
-                        self.checkboxes(("sum", "Sum Projections", False),
-                                        ("lines", "Plot Lines", False),
-                                        ("hide", "Hide Limits", False)),
-                        self.copy_layout("Copy Limits"))
+            self.checkboxes(("sum", "Sum Projections", False),
+                            ("hide", "Hide Limits", False)),
+            self.checkboxes(("lines", "Plot Lines", False),
+                            ("select", "Plot Selection", False)),
+            self.select_widget,
+            self.copy_layout("Copy Limits"))
+        self.checkbox["lines"].setVisible(False)
+        self.checkbox["select"].setVisible(False)
         self.checkbox["hide"].stateChanged.connect(self.hide_rectangle)
+        self.checkbox["select"].stateChanged.connect(self.set_select)
+        self.checkbox["max"].stateChanged.connect(self.set_maximum)
+        self.checkbox["min"].stateChanged.connect(self.set_minimum)
 
         self.initialize()
         self._rectangle = None
@@ -2423,11 +2451,19 @@ class ProjectionTab(NXTab):
                 if self.xbox.itemText(idx) != self.yaxis:
                     self.xbox.setCurrentIndex(idx)
                     break
-        if self.yaxis == 'None' and self.plot and self.plot.ndim == 1:
-            self.overbox.setVisible(True)
+        if self.yaxis == 'None':
+            if self.plot and self.plot.ndim == 1:
+                self.overbox.setVisible(True)
+            self.checkbox["lines"].setVisible(True)
+            self.checkbox["select"].setVisible(True)
+            self.set_select()
         else:
             self.overbox.setChecked(False)
             self.overbox.setVisible(False)
+            self.checkbox["lines"].setVisible(False)
+            self.checkbox["select"].setVisible(False)
+            self.select_widget.setVisible(False)
+        self.panel.update()
 
     def set_limits(self):
         self.block_signals(True)
@@ -2494,6 +2530,25 @@ class ProjectionTab(NXTab):
         self.overbox.setVisible(True)
         self.overbox.setChecked(value)
 
+    @property
+    def select(self):
+        return self.checkbox["select"].isChecked()
+
+    def set_select(self):
+        if self.checkbox["select"].isChecked():
+            self.select_widget.setVisible(True)
+        else:
+            self.select_widget.setVisible(False)
+        self.panel.update()
+
+    def set_maximum(self):
+        if self.checkbox["max"].isChecked():
+            self.checkbox["min"].setChecked(False)
+
+    def set_minimum(self):
+        if self.checkbox["min"].isChecked():
+            self.checkbox["max"].setChecked(False)
+
     def get_projection(self):
         x = self.get_axes().index(self.xaxis)
         if self.yaxis == 'None':
@@ -2510,19 +2565,30 @@ class ProjectionTab(NXTab):
             raise NeXusError("One of the projection axes has zero range")
         if self.plotview.rgb_image:
             limits.append((None, None))
-        return axes, limits
+        data = self.plotview.data.project(axes, limits, summed=self.summed)
+        if self.select:
+            divisor = self.select_parameters['divisor'].value
+            offset = self.select_parameters['offset'].value
+            tol = self.select_parameters['tol'].value
+            symmetric = self.checkbox['symm'].isChecked()
+            smooth = self.checkbox['smooth'].isChecked()
+            maxima = self.checkbox['max'].isChecked()
+            minima = self.checkbox['min'].isChecked()
+            return data.select(divisor, offset, symmetric, smooth, 
+                               maxima, minima, tol)
+        else:
+            return data
 
     def save_projection(self):
         try:
-            axes, limits = self.get_projection()
-            keep_data(self.plotview.data.project(axes, limits, 
-                                                 summed=self.summed))
+            projection = self.get_projection()
+            keep_data(projectiion)
         except NeXusError as error:
             report_error("Saving Projection", error)
 
     def plot_projection(self):
         try:
-            axes, limits = self.get_projection()
+            projection = self.get_projection()
             if self.plot:
                 plotview = self.plot
             else:
@@ -2533,9 +2599,7 @@ class ProjectionTab(NXTab):
                 fmt = '-'
             else:
                 fmt = 'o'
-            plotview.plot(self.plotview.data.project(axes, limits, 
-                                                     summed=self.summed),
-                          over=self.over, fmt=fmt)
+            plotview.plot(projection, over=self.over, fmt=fmt)
             self.update_overbox()
             if plotview.ndim > 1:
                 plotview.logv = self.plotview.logv
