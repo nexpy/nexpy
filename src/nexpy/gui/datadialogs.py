@@ -549,9 +549,14 @@ class NXWidget(QtWidgets.QWidget):
             self.thread.deleteLater()
         self.thread = None
 
-    def resize(self):
+    def resize(self, width=None, height=None):
         self.mainwindow._app.processEvents()
-        super(NXWidget, self).resize(self.minimumSizeHint())
+        self.adjustSize()
+        self.mainwindow._app.processEvents()
+        if width is None or height is None:
+            super(NXWidget, self).resize(self.minimumSizeHint())
+        else:
+            super(NXWidget, self).resize(width, height)            
 
     def update(self):
         pass
@@ -773,6 +778,7 @@ class NXPanel(NXDialog):
         else:
             self.tab = label
             self.tab.update()
+        self.update()
         self.setVisible(True)
         self.raise_()
         self.activateWindow()
