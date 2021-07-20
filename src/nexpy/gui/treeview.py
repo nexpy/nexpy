@@ -319,6 +319,7 @@ class NXTreeView(QtWidgets.QTreeView):
         self.mainwindow.overplot_line_action.setEnabled(False)
         self.mainwindow.multiplot_data_action.setEnabled(False)
         self.mainwindow.multiplot_lines_action.setEnabled(False)
+        self.mainwindow.plot_weighted_data_action.setEnabled(False)
         self.mainwindow.plot_image_action.setEnabled(False)
         self.mainwindow.export_action.setEnabled(False)
         self.mainwindow.rename_action.setEnabled(False)
@@ -409,11 +410,14 @@ class NXTreeView(QtWidgets.QTreeView):
                     if 'auxiliary_signals' in node.attrs:
                         self.mainwindow.multiplot_data_action.setEnabled(True)
                         self.mainwindow.multiplot_lines_action.setEnabled(True)
-                if ((isinstance(node, NXgroup) and 
-                     node.plottable_data is not None and
-                     node.plottable_data.is_image()) or
-                    (isinstance(node, NXfield) and node.is_image())):
-                    self.mainwindow.plot_image_action.setEnabled(True)
+                if (isinstance(node, NXgroup) and 
+                    node.plottable_data is not None):
+                    if node.nxweights is not None:
+                        self.mainwindow.plot_weighted_data_action.setEnabled(
+                                                                           True)
+                    if (node.plottable_data.is_image() or
+                        (isinstance(node, NXfield) and node.is_image())):
+                        self.mainwindow.plot_image_action.setEnabled(True)
         except Exception as error:
             pass
 
@@ -436,6 +440,7 @@ class NXTreeView(QtWidgets.QTreeView):
         self.addMenu(self.mainwindow.overplot_line_action)
         self.addMenu(self.mainwindow.multiplot_data_action)
         self.addMenu(self.mainwindow.multiplot_lines_action)
+        self.addMenu(self.mainwindow.plot_weighted_data_action)
         self.addMenu(self.mainwindow.plot_image_action)
         self.menu.addSeparator()
         self.addMenu(self.mainwindow.view_action)

@@ -564,6 +564,12 @@ class MainWindow(QtWidgets.QMainWindow):
             triggered=self.multiplot_lines
             )
 
+        self.plot_weighted_data_action=QtWidgets.QAction("Plot Weighted Data",
+            self,
+            triggered=self.plot_weighted_data
+            )
+        self.add_menu_action(self.data_menu, self.plot_weighted_data_action)
+
         self.plot_image_action=QtWidgets.QAction("Plot RGB(A) Image",
             self,
             triggered=self.plot_image
@@ -1642,6 +1648,18 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.plotview.make_active()
         except NeXusError as error:
             report_error("Plotting Data", error)
+
+    def plot_weighted_data(self):
+        try:
+            node = self.treeview.get_node()
+            if node is not None:
+                if not node.exists():
+                    raise NeXusError("%s does not exist" % node.nxfullpath)
+                self.treeview.status_message(node)
+                node.plot(weights=True)
+                self.plotview.make_active()
+        except NeXusError as error:
+            report_error("Plotting Weighted Data", error)
 
     def plot_image(self):
         try:
