@@ -849,7 +849,7 @@ class NXPlotView(QtWidgets.QDialog):
             if self.weighted:
                 signal = _data[tuple(idx)].weighted_data().nxsignal[()]
             else:
-                signal = _data[tuple(idx)].nxsignal[()]
+                signal = _data.nxsignal[tuple(idx)][()]
         elif self.rgb_image:
             signal = self.data.nxsignal[()]
         else:
