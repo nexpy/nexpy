@@ -361,7 +361,7 @@ class NXWidget(QtWidgets.QWidget):
     def select_box(self, choices, default=None, slot=None):
         box = NXComboBox()
         for choice in choices:
-            box.addItem(choice)
+            box.add(choice)
         if default in choices:
             idx = box.findText(default)
             box.setCurrentIndex(idx)
