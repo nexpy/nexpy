@@ -705,6 +705,7 @@ class NXPlotView(QtWidgets.QDialog):
         logy = opts.pop("logy", False)
         cmap = opts.pop("cmap", None)
         num = opts.pop("num", max([p for p in self.plots if p < 100]+[1]) + 1)
+        self.weighted = opts.pop("weights", False)
         self._aspect = opts.pop("aspect", "auto")
         self._skew_angle = opts.pop("skew", None)
 
@@ -714,13 +715,15 @@ class NXPlotView(QtWidgets.QDialog):
 
         if self.data.nxsignal is None:
             raise NeXusError('No plotting signal defined')
+        if self.weighted and self.data.nxweights is None:
+            raise NeXusError('Invalid weights in plot data')
 
         if image:
             self.rgb_image = True
         else:
             self.rgb_image = False
 
-        self.plotdata = self.get_plotdata(over)
+        self.plotdata = self.get_plotdata(over=over)
 
         #One-dimensional Plot
         if self.ndim == 1:
@@ -834,23 +837,29 @@ class NXPlotView(QtWidgets.QDialog):
         self.axes = [NXfield(axes[i].nxdata, name=axes[i].nxname,
                      attrs=axes[i].safe_attrs) for i in range(self.ndim)]
 
+        _data = self.data
         if self.ndim > 2:
-            idx=[np.s_[0] if s==1 else np.s_[:] 
-                for s in self.data.nxsignal.shape]
+            idx=[np.s_[0] if s==1 else np.s_[:] for s in _data.nxsignal.shape]
             for i in range(len(idx)):
                 if idx.count(slice(None,None,None)) > 2:
                     try:
                         idx[i] = self.axes[i].index(0.0)
                     except Exception:
                         idx[i] = 0
-            signal = self.data.nxsignal[tuple(idx)][()]
+            if self.weighted:
+                signal = _data[tuple(idx)].weighted_data().nxsignal[()]
+            else:
+                signal = _data[tuple(idx)].nxsignal[()]
         elif self.rgb_image:
             signal = self.data.nxsignal[()]
         else:
-            signal = self.data.nxsignal[()].reshape(self.shape)
-        if signal.dtype == np.bool:
+            if self.weighted:
+                signal = _data.weighted_data().nxsignal[()].reshape(self.shape)
+            else:
+                signal = _data.nxsignal[()].reshape(self.shape)
+        if signal.dtype == bool:
             signal.dtype = np.int8
-        self.signal = signal        
+        self.signal = signal    
 
         if over:
             self.axis['signal'].set_data(self.signal)
@@ -994,7 +1003,8 @@ class NXPlotView(QtWidgets.QDialog):
         self.colorbar = None
         try:
             import mplcursors
-            self.mplcursor = mplcursors.cursor(ax.get_lines())
+            if self._plot.get_marker() != 'None':
+                self.cursor = mplcursors.cursor(self._plot)
         except ImportError:
             self.mplcursor = None           
 
@@ -1236,6 +1246,8 @@ class NXPlotView(QtWidgets.QDialog):
                                           limits)
         try:
             self.plotdata = self.data.project(axes, limits, summed=self.summed)
+            if self.weighted:
+                self.plotdata = self.plotdata.weighted_data()
         except Exception as e:
             self.ztab.pause()
             raise e
@@ -1417,7 +1429,6 @@ class NXPlotView(QtWidgets.QDialog):
         if not self.mainwindow.panel_is_running('Fit'):
             self.panels['Fit'] = FitDialog()
         self.panels['Fit'].activate(self.plots[self.num]['data'],
-                                    xmin=self.xaxis.lo, xmax=self.xaxis.hi, 
                                     plotview=self,
                                     color=self.plots[self.num]['color'])
 
@@ -2601,6 +2612,10 @@ class NXPlotView(QtWidgets.QDialog):
         self.deleteLater()
         event.accept()
 
+    def close(self):
+        self.close_view()
+        super(NXPlotView, self).close()
+
 
 class NXPlotAxis(object):
     """Class containing plotted axis values and limits.
@@ -3582,15 +3597,10 @@ class NXProjectionTab(QtWidgets.QWidget):
         limits = [(self.plotview.axis[axis].lo,
                    self.plotview.axis[axis].hi)
                    for axis in range(self.plotview.ndim)]
-        if self.plotview.zoom:
-            xdim, xlo, xhi = self.plotview.zoom['x']
-            ydim, ylo, yhi = self.plotview.zoom['y']
-        else:
-            xaxis = self.plotview.xaxis
-            xdim, xlo, xhi = xaxis.dim, xaxis.lo, xaxis.hi
-            yaxis = self.plotview.yaxis
-            ydim, ylo, yhi = yaxis.dim, yaxis.lo, yaxis.hi
-
+        xaxis = self.plotview.xaxis
+        xdim, xlo, xhi = xaxis.dim, xaxis.lo, xaxis.hi
+        yaxis = self.plotview.yaxis
+        ydim, ylo, yhi = yaxis.dim, yaxis.lo, yaxis.hi
         limits[xdim] = (xlo, xhi)
         limits[ydim] = (ylo, yhi)
         for axis in axes:
@@ -3720,6 +3730,7 @@ class NXNavigationToolbar(NavigationToolbar2QT, QtWidgets.QToolBar):
             self.plotview.grid(self.plotview._grid, self.plotview._minorgrid)
 
     def edit_parameters(self):
+        """Launch the Customize Panel."""
         self.plotview.make_active()
         if not self.plotview.mainwindow.panel_is_running('Customize'):
             self.plotview.panels['Customize'] = CustomizeDialog()
@@ -3728,9 +3739,11 @@ class NXNavigationToolbar(NavigationToolbar2QT, QtWidgets.QToolBar):
         self.plotview.panels['Customize'].raise_()
 
     def add_data(self):
+        """Save the currently plotted data to the scratch workspace."""
         keep_data(self.plotview.plotdata)
 
     def export_data(self):
+        """Launch the Export Dialog to export the current plot or data."""
         if self.plotview.plotdata.ndim == 1:
             data = self.plotview.data
         else:
@@ -3761,11 +3774,12 @@ class NXNavigationToolbar(NavigationToolbar2QT, QtWidgets.QToolBar):
             super(NXNavigationToolbar, self).release(event)
 
     def release_zoom(self, event):
-        """The release mouse button callback in zoom to rect mode."""
+        """The release mouse button callback in zoom mode."""
         if event.button == 1:
             super(NXNavigationToolbar, self).release_zoom(event)
             self._update_release()
         elif event.button == 3:
+            self.plotview.zoom = None
             if not event.inaxes:
                 self.home(autoscale=False)
             elif (self.plotview.xp and self.plotview.yp and
@@ -3776,10 +3790,7 @@ class NXNavigationToolbar(NavigationToolbar2QT, QtWidgets.QToolBar):
                 xmin, xmax = sorted([event.xdata, self.plotview.xdata])
                 ymin, ymax = sorted([event.ydata, self.plotview.ydata])
                 if self.plotview.ndim == 1:
-                    panels = self.plotview.panels
-                    if ('Fit' in panels and 
-                        self.plotview is panels['Fit'].tab.fitview):
-                        panels['Fit'].tab.set_limits(xmin, xmax)
+                    self.plotview.zoom = {'x': (xmin, xmax), 'y': (ymin, ymax)}
                 else:
                     self.plotview.ptab.panel_combo.select('Projection')
                     self.plotview.ptab.open_panel()
@@ -3792,6 +3803,7 @@ class NXNavigationToolbar(NavigationToolbar2QT, QtWidgets.QToolBar):
             self.release(event)
 
     def release_pan(self, event):
+        """The release mouse button callback in pan mode."""
         super(NXNavigationToolbar, self).release_pan(event)
         self._update_release()
 
@@ -3812,8 +3824,8 @@ class NXNavigationToolbar(NavigationToolbar2QT, QtWidgets.QToolBar):
             ydim = self.plotview.ytab.axis.dim
         except AttributeError:
             return
-        self.plotview.zoom = {'x': (xdim, xmin, xmax),
-                              'y': (ydim, ymin, ymax)}
+        self.plotview.zoom = {'x': (xmin, xmax),
+                              'y': (ymin, ymax)}
         self.plotview.update_panels()
 
     def _update_view(self):
