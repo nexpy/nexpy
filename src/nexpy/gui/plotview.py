@@ -1559,11 +1559,13 @@ class NXPlotView(QtWidgets.QDialog):
     def logv(self, value):
         self.vtab.log = value
 
-    def _aspect(self):
+    @property
+    def aspect(self):
         """Return the currently set aspect ratio value."""
         return self._aspect
 
-    def _set_aspect(self, aspect):
+    @aspect.setter
+    def aspect(self, aspect):
         """Set the aspect ratio of the x and y axes.
         
         If set to a numerical value, this is the ratio of the y-axis 
@@ -1611,13 +1613,13 @@ class NXPlotView(QtWidgets.QDialog):
             except:
                 pass
 
-    aspect = property(_aspect, _set_aspect, "Property: Aspect ratio value")
-
-    def _skew(self):
+    @property
+    def skew(self):
         """Return the skew angle for a 2D plot."""
         return self._skew_angle
 
-    def _set_skew(self, skew_angle):
+    @skew.setter
+    def skew(self, skew_angle):
         """Set the skew angle for a 2D plot.
 
         This defines the transformation values stored in 'grid_helper'.
@@ -1662,21 +1664,18 @@ class NXPlotView(QtWidgets.QDialog):
         if self.image is not None:
             self.replot_data(newaxis=True)
 
-    skew = property(_skew, _set_skew, "Property: Axis skew angle")
-
-    def _autoscale(self):
+    @property
+    def autoscale(self):
         """Return True if the ztab autoscale checkbox is selected."""
         if self.ndim > 2 and self.ztab.scalebox.isChecked():
             return True
         else:
             return False
 
-    def _set_autoscale(self, value=True):
+    @autoscale.setter
+    def autoscale(self, value=True):
         """Set the ztab autoscale checkbox to True or False"""
         self.ztab.scalebox.setChecked(value)
-
-    autoscale = property(_autoscale, _set_autoscale, 
-                         "Property: Autoscale boolean")
 
     @property
     def summed(self):
@@ -1686,11 +1685,13 @@ class NXPlotView(QtWidgets.QDialog):
         else:
             return False
 
-    def _cmap(self):
+    @property
+    def cmap(self):
         """Return the color map set in the vtab."""
         return self.vtab.cmap
 
-    def _set_cmap(self, cmap):
+    @cmap.setter
+    def cmap(self, cmap):
         """Set the color map.
         
         Parameters
@@ -1706,7 +1707,6 @@ class NXPlotView(QtWidgets.QDialog):
         """
         self.vtab.cmap = cmap
 
-    cmap = property(_cmap, _set_cmap, "Property: color map")
 
     @property
     def interpolations(self):
@@ -1724,16 +1724,15 @@ class NXPlotView(QtWidgets.QDialog):
         else:
             return interpolations[:1]
 
-    def _interpolation(self):
+    @property
+    def interpolation(self):
         """Return the currently selected interpolation method."""
         return self.vtab.interpolation
 
-    def _set_interpolation(self, interpolation):
+    @interpolation.setter
+    def interpolation(self, interpolation):
         """Set the interpolation method and replot the data."""
         self.vtab.interpolation = interpolation
-
-    interpolation = property(_interpolation, _set_interpolation,
-                             "Property: interpolation method")
 
     def interpolate(self):
         """Replot the data with the current interpolation method."""
@@ -1747,23 +1746,24 @@ class NXPlotView(QtWidgets.QDialog):
             self.draw()
             self.update_panels()
 
-    def _smooth(self):
+    @property
+    def smooth(self):
         """Return standard deviation in pixels of Gaussian smoothing."""
         return self._stddev
 
-    def _set_smooth(self, value):
+    @smooth.setter
+    def smooth(self, value):
         """Set standard deviation in pixels of Gaussian smoothing."""
         self._stddev = value
         self.interpolate()
 
-    smooth = property(_smooth, _set_smooth, 
-                      "Property: No. of pixels in Gaussian convolution")
-
-    def _offsets(self):
+    @property
+    def offsets(self):
         """Return the axis offset used in tick labels."""
         return self._axis_offsets
 
-    def _set_offsets(self, value):
+    @offsets.setter
+    def offsets(self, value):
         """Set the axis offset used in tick labels and redraw plot."""
         try :
             self._axis_offsets = value
@@ -1771,9 +1771,6 @@ class NXPlotView(QtWidgets.QDialog):
             self.draw()
         except Exception as error:
             pass
-
-    offsets = property(_offsets, _set_offsets, 
-                       "Property: Axis offsets property")
 
     def set_minorticks(self, default=False):
         if default:
@@ -3194,13 +3191,15 @@ class NXPlotTab(QtWidgets.QWidget):
             self.cmapcombo.blockSignals(block)
             self.interpcombo.blockSignals(block)
 
-    def _log(self):
+    @property
+    def log(self):
         try:
             return self.logbox.isChecked()
         except Exception:
             return False
 
-    def _set_log(self, value):
+    @log.setter
+    def log(self, value):
         if value and np.all(self.axis.data[np.isfinite(self.axis.data)] <= 0.0):
             raise NeXusError("Cannot set log axis when all values are <= 0")
         try:
@@ -3208,8 +3207,6 @@ class NXPlotTab(QtWidgets.QWidget):
                 self.logbox.setChecked(value)
         except Exception:
             pass
-    
-    log = property(_log, _set_log, "Property: Log scale")
 
     def change_log(self):
         try:
@@ -3217,13 +3214,15 @@ class NXPlotTab(QtWidgets.QWidget):
         except Exception:
             pass
 
-    def _locked(self):
+    @property
+    def locked(self):
         try:
             return self.lockbox.isChecked()
         except:
             return False
 
-    def _set_locked(self, value):
+    @locked.setter
+    def locked(self, value):
         try:
             self.axis.locked = value
             if value:
@@ -3239,8 +3238,6 @@ class NXPlotTab(QtWidgets.QWidget):
         except:
             pass
 
-    locked = property(_locked, _set_locked, "Property: Tab lock")
-
     def change_lock(self):
         self._set_locked(self.locked)
 
@@ -3248,19 +3245,19 @@ class NXPlotTab(QtWidgets.QWidget):
         if self.scalebox.isChecked():
             self.plotview.replot_image()
 
-    def _flipped(self):
+    @property
+    def flipped(self):
         try:
             return self.flipbox.isChecked()
         except:
             return False
 
-    def _set_flipped(self, value):
+    @flipped.setter
+    def flipped(self, value):
         try:
             self.flipbox.setChecked(value)
         except:
             pass
-
-    flipped = property(_flipped, _set_flipped, "Property: Axis flip")
 
     def flip_axis(self):
         try:
@@ -3287,11 +3284,13 @@ class NXPlotTab(QtWidgets.QWidget):
         """Change the color map of the current plot."""
         self.cmap = self.cmapcombo.currentText()
 
-    def _cmap(self):
+    @property
+    def cmap(self):
         """Return the currently selected color map."""
         return self.cmapcombo.currentText()
 
-    def _set_cmap(self, cmap):
+    @cmap.setter
+    def cmap(self, cmap):
         """Set the color map.
         
         If the color map is available but was not included in the 
@@ -3328,8 +3327,6 @@ class NXPlotTab(QtWidgets.QWidget):
                     self.axis.lo = None
                 self.plotview.replot_image()
             self._cached_cmap = self.cmap
-
-    cmap = property(_cmap, _set_cmap, "Property: Image color map")
     
     @property
     def symmetric(self):
@@ -3354,10 +3351,12 @@ class NXPlotTab(QtWidgets.QWidget):
     def change_interpolation(self):
         self.interpolation = self.interpcombo.currentText()
 
-    def _interpolation(self):
+    @property
+    def interpolation(self):
         return self.interpcombo.currentText()
 
-    def _set_interpolation(self, interpolation):
+    @interpolation.setter
+    def interpolation(self, interpolation):
         if interpolation != self._cached_interpolation:
             idx = self.interpcombo.findText(interpolation)
             if idx >= 0:
@@ -3368,9 +3367,6 @@ class NXPlotTab(QtWidgets.QWidget):
             self._cached_interpolation = interpolation
             self.plotview.interpolate()
             self._cached_interpolation = self.interpolation
-
-    interpolation = property(_interpolation, _set_interpolation, 
-                             "Property: Image interpolation")
 
     def toggle_smoothing(self):
         try:
@@ -3385,17 +3381,17 @@ class NXPlotTab(QtWidgets.QWidget):
             self.smoothbox.setChecked(False)
             self.smoothbox.blockSignals(False)
 
-    def _smoothing(self):
+    @property
+    def smoothing(self):
         if self.smoothbox:
             return self.smoothbox.isChecked()
         else:
             return False
 
-    def _set_smoothing(self, smoothing):
+    @smoothing.setter
+    def smoothing(self, smoothing):
         if self.smoothbox:
             self.smoothbox.setChecked(smoothing)
-
-    smoothing = property(_smoothing, _set_smoothing, "Property: Line smoothing")
 
     def fit_data(self):
         self.plotview.fit_data()
