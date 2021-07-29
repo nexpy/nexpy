@@ -707,6 +707,7 @@ class NXPlotView(QtWidgets.QDialog):
         cmap = opts.pop("cmap", None)
         num = opts.pop("num", max([p for p in self.plots if p < 100]+[1]) + 1)
         self.weighted = opts.pop("weights", False)
+        self.interpolation = opts.pop("interpolation", self.interpolation)
         self._aspect = opts.pop("aspect", "auto")
         self._skew_angle = opts.pop("skew", None)
         self._bad = opts.pop("bad", self.bad)
