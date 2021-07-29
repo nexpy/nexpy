@@ -376,6 +376,7 @@ class NXPlotView(QtWidgets.QDialog):
         self._smooth_line = None
         self._aspect = 'auto'
         self._skew_angle = None
+        self._bad = 'black'
         self._legend = None
         self._nameonly = False
         self._grid = False
@@ -708,6 +709,7 @@ class NXPlotView(QtWidgets.QDialog):
         self.weighted = opts.pop("weights", False)
         self._aspect = opts.pop("aspect", "auto")
         self._skew_angle = opts.pop("skew", None)
+        self._bad = opts.pop("bad", self.bad)
 
         self.data = data
         if not over:
@@ -1071,7 +1073,7 @@ class NXPlotView(QtWidgets.QDialog):
                 opts['interpolation'] = self.interpolation
 
         cm = copy.copy(get_cmap(self.cmap))
-        cm.set_bad('k', 1.0)
+        cm.set_bad(self.bad)
         if self.rgb_image or self.regular_grid:
             opts['origin'] = 'lower'
             self.image = ax.imshow(self.v, extent=extent, cmap=cm,
@@ -1707,6 +1709,35 @@ class NXPlotView(QtWidgets.QDialog):
         """
         self.vtab.cmap = cmap
 
+    @property
+    def bad(self):
+        """Return the color defined for bad pixels."""
+        return self._bad
+
+    @bad.setter
+    def bad(self, bad):
+        """Set the bad pixel color.
+        
+        Parameters
+        ----------
+        bad : str or tuple
+            Value of the bad color. This can use any of the standard forms 
+            recognized by Matplotlib, including hex color codes, RGBA tuples,
+            and their equivalent names.
+        
+        Raises
+        ------
+        NeXusError
+            If the requested value is an invalid color.
+        """
+        from matplotlib.colors import is_color_like
+        if is_color_like(bad):
+            self._bad = bad
+            if self.image:
+                self.image.cmap.set_bad(bad)
+                self.draw()
+        else:
+            raise NeXusError("Invalid color value")
 
     @property
     def interpolations(self):
@@ -2383,10 +2414,6 @@ class NXPlotView(QtWidgets.QDialog):
                 except AttributeError:
                     leg.draggable(True)
         else:
-            try:
-                kwargs['bad'] = self.image.cmap.get_bad()
-            except AttributeError:
-                pass
             pv.plot(self.plotdata, ax=ax, 
                     image=plotview.rgb_image, log=self.logv, 
                     vmin=self.vaxis.lo, vmax=self.vaxis.hi,
@@ -2394,7 +2421,7 @@ class NXPlotView(QtWidgets.QDialog):
                     ymin=self.yaxis.lo, ymax=self.yaxis.hi,
                     aspect=self.aspect, regular=self.regular_grid,
                     interpolation=self.interpolation, 
-                    cmap=self.cmap, colorbar=colorbar, **kwargs)
+                    cmap=self.cmap, colorbar=colorbar, bad=self.bad, **kwargs)
         if title:
             ax.set_title(self.ax.get_title())
         else:
@@ -3313,7 +3340,7 @@ class NXPlotTab(QtWidgets.QWidget):
                 self.cmapcombo.setCurrentIndex(self.cmapcombo.findText(cmap))
             else:
                 self.cmapcombo.setCurrentIndex(idx)
-            cm.set_bad('k', 1)
+            cm.set_bad(self.plotview.bad)
             self.plotview.image.set_cmap(cm)
             if self.symmetric:
                 self.symmetrize()
