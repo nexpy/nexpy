@@ -3267,7 +3267,7 @@ class NXPlotTab(QtWidgets.QWidget):
             pass
 
     def change_lock(self):
-        self._set_locked(self.locked)
+        self.locked = self.locked
 
     def change_scale(self):
         if self.scalebox.isChecked():
