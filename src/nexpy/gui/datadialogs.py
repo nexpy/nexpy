@@ -942,7 +942,7 @@ class GridParameters(OrderedDict):
         value.name = key
 
     def add(self, name, value=None, label=None, vary=None, slot=None,
-            color=False, spinbox=None):
+            color=False, spinbox=None, readonly=False):
         """
         Convenience function for adding a Parameter:
 
@@ -955,13 +955,13 @@ class GridParameters(OrderedDict):
         p[name] = GridParameter(name=name, value=XX, ....
         """
         self.__setitem__(name, GridParameter(value=value, name=name, 
-                                             label=label, vary=vary, 
-                                             slot=slot, color=color,
-                                             spinbox=spinbox))
+                                             label=label, vary=vary,
+                                             slot=slot, readonly=readonly,
+                                             color=color, spinbox=spinbox))
 
-    def grid(self, header=True, title=None, width=None):
+    def grid(self, header=True, title=None, width=None, spacing=2):
         grid = QtWidgets.QGridLayout()
-        grid.setSpacing(2)
+        grid.setSpacing(spacing)
         if isinstance(header, list) or isinstance(header, tuple):
             headers = header
             header = True
@@ -1102,7 +1102,7 @@ class GridParameter(object):
     A Parameter is an object to be set in a dialog box grid.
     """
     def __init__(self, name=None, value=None, label=None, vary=None, slot=None,
-                 color=False, spinbox=False):
+                 color=False, spinbox=False, readonly=False):
         """
         Parameters
         ----------
@@ -1155,6 +1155,8 @@ class GridParameter(object):
                     self.field = None
                     self.value = value
                 self.box.blockSignals(False)
+            if readonly:
+                self.box.setReadOnly(True)
         self.init_value = self.value
         if vary is not None:
             self.checkbox = NXCheckBox()
