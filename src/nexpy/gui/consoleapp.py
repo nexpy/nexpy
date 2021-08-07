@@ -267,6 +267,8 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
                 self.app.icon.pixmap(QtCore.QSize(64,64)))
         except Exception:
             self.icon_pixmap = None
+        self.app.setStyleSheet("""QToolTip {color:darkblue; 
+                                            background-color:beige}""");
         self.window = MainWindow(self, self.tree, self.settings, self.config)
         self.window.log = self.log
         self.gc = NXGarbageCollector(self.window)
