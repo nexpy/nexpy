@@ -1975,6 +1975,10 @@ class NXPlotView(QtWidgets.QDialog):
                 self.minorticks_off()
             if self.skew:
                 self.remove_skewed_grid()
+        if self._cb_minorticks:
+            self.cb_minorticks_on()
+        else:
+            self.cb_minorticks_off()
         self.update_panels()
         self.draw()
 
