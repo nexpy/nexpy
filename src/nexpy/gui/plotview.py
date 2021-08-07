@@ -1604,7 +1604,21 @@ class NXPlotView(QtWidgets.QDialog):
                 self._aspect = 'auto'
                 self.otab._actions['set_aspect'].setChecked(False)
             elif aspect == 'equal':
-                self._aspect = 'equal'
+                try:
+                    _axes = self.plotdata.nxaxes
+                    if ('scaling_factor' in _axes[-1].attrs and
+                        'scaling_factor' in _axes[-2].attrs):
+                        _xscale = _axes[-1].attrs['scaling_factor']
+                        _yscale = _axes[-2].attrs['scaling_factor']
+                        self._aspect = float(_yscale / _xscale)
+                    elif 'scaling_factor' in _axes[-1].attrs:
+                        self._aspect = 1.0 / _axes[-1].attrs['scaling_factor']
+                    elif 'scaling_factor' in _axes[-2].attrs:
+                        self._aspect = _axes[-2].attrs['scaling_factor']
+                    else:
+                        self._aspect = 'equal'
+                except Exception:
+                    self._aspect = 'equal'
                 self.otab._actions['set_aspect'].setChecked(True)
             else:
                 self._aspect = 'auto'
