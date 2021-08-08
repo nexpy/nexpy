@@ -187,8 +187,8 @@ class NXLineEdit(QtWidgets.QLineEdit):
     after any programmatic changes.
     """
 
-    def __init__(self, text=None, parent=None, slot=None, width=None, 
-                 align='left'):
+    def __init__(self, text=None, parent=None, slot=None, readonly=False,
+                 width=None, align='left'):
         """Initialize the edit window and optionally set the alignment
         
         Parameters
@@ -207,6 +207,8 @@ class NXLineEdit(QtWidgets.QLineEdit):
             self.editingFinished.connect(slot)
         if text is not None:
             self.setText(text)
+        if readonly:
+            self.setReadOnly(True)
         if width:
             self.setFixedWidth(width)
         if align == 'left':
