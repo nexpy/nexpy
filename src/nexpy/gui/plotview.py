@@ -372,6 +372,7 @@ class NXPlotView(QtWidgets.QDialog):
         self.colorbar = None
         self.zoom = None
         self.rgb_image = False
+        self.skewed = False
         self._smooth_func = None
         self._smooth_line = None
         self._aspect = 'auto'
@@ -795,7 +796,6 @@ class NXPlotView(QtWidgets.QDialog):
 
         self.offsets = True
         self.cmap = cmap
-        self.aspect = self._aspect
 
         if self.ndim > 1 and log:
             self.logv = log
@@ -897,6 +897,8 @@ class NXPlotView(QtWidgets.QDialog):
                 self.zaxis = None
             self.vaxis = self.axis['signal']
             plotdata = NXdata(self.signal, [self.axes[i] for i in [-2,-1]])
+            if self.data.ndim == 3:
+                self._skew_angle = self.get_skew_angle(1,2)               
 
         plotdata['title'] = self.data.nxtitle
 
@@ -1048,11 +1050,13 @@ class NXPlotView(QtWidgets.QDialog):
             self.set_data_limits()
             self.set_data_norm()
             self.figure.clf()
-            if self.skew:
+            if self._skew_angle and self._aspect == 'equal':
                 ax = self.figure.add_subplot(Subplot(self.figure, 1, 1, 1, 
                                              grid_helper=self.grid_helper()))
+                self.skewed = True
             else:
                 ax = self.figure.add_subplot(1, 1, 1)
+                self.skewed = False
             ax.autoscale(enable=True)
         else:
             ax = self.ax
@@ -1080,14 +1084,14 @@ class NXPlotView(QtWidgets.QDialog):
             self.image = ax.imshow(self.v, extent=extent, cmap=cm,
                                    norm=self.norm, **opts)
         else:
-            if self.skew is not None:
+            if self.skewed:
                 xx, yy = np.meshgrid(self.x, self.y)
                 x, y = self.transform(xx, yy)
             else:
                 x, y = self.x, self.y
             self.image = ax.pcolormesh(x, y, self.v, cmap=cm, **opts)
             self.image.set_norm(self.norm)
-        ax.set_aspect(self.aspect)
+        ax.set_aspect(self.get_aspect())
 
         if not over and not self.rgb_image:
             self.colorbar = self.figure.colorbar(self.image, ax=ax)
@@ -1251,6 +1255,8 @@ class NXPlotView(QtWidgets.QDialog):
             self.plotdata = self.data.project(axes, limits, summed=self.summed)
             if self.weighted:
                 self.plotdata = self.plotdata.weighted_data()
+            if self.ndim == 3 and not self._skew_angle:
+                self._skew_angle = self.get_skew_angle(*axes)
         except Exception as e:
             self.ztab.pause()
             raise e
@@ -1352,7 +1358,7 @@ class NXPlotView(QtWidgets.QDialog):
 
     def transform(self, x, y):
         """Return the x and y values transformed by the skew angle."""
-        if x is None or y is None or self.skew is None:
+        if x is None or y is None or not self.skewed:
             return x, y
         else:
             x, y = np.asarray(x), np.asarray(y)
@@ -1361,7 +1367,7 @@ class NXPlotView(QtWidgets.QDialog):
 
     def inverse_transform(self, x, y):
         """Return the inverse transform of the x and y values."""
-        if x is None or y is None or self.skew is None:
+        if x is None or y is None or not self.skewed:
             return x, y
         else:
             x, y = np.asarray(x), np.asarray(y)
@@ -1562,6 +1568,30 @@ class NXPlotView(QtWidgets.QDialog):
     def logv(self, value):
         self.vtab.log = value
 
+    def get_aspect(self):
+        if self.image and self._aspect == 'equal':
+            self.otab._actions['set_aspect'].setChecked(True)
+            _axes = self.plotdata.nxaxes
+            try:
+                if ('scaling_factor' in _axes[-1].attrs and
+                    'scaling_factor' in _axes[-2].attrs):
+                    _xscale = _axes[-1].attrs['scaling_factor']
+                    _yscale = _axes[-2].attrs['scaling_factor']
+                    return float(_yscale / _xscale)
+                elif 'scaling_factor' in _axes[-1].attrs:
+                    return 1.0 / _axes[-1].attrs['scaling_factor']
+                elif 'scaling_factor' in _axes[-2].attrs:
+                    return _axes[-2].attrs['scaling_factor']
+                else:
+                    return 'equal'
+            except Exception:
+                return 'equal'
+        elif self._aspect == 'auto':
+            self.otab._actions['set_aspect'].setChecked(False)
+        else:
+            self.otab._actions['set_aspect'].setChecked(True)
+        return self._aspect
+
     @property
     def aspect(self):
         """Return the currently set aspect ratio value."""
@@ -1600,35 +1630,40 @@ class NXPlotView(QtWidgets.QDialog):
             else:
                 return
         except (ValueError, TypeError):
+            self._aspect = aspect
             if aspect == 'auto':
-                self._aspect = 'auto'
                 self.otab._actions['set_aspect'].setChecked(False)
             elif aspect == 'equal':
-                try:
-                    _axes = self.plotdata.nxaxes
-                    if ('scaling_factor' in _axes[-1].attrs and
-                        'scaling_factor' in _axes[-2].attrs):
-                        _xscale = _axes[-1].attrs['scaling_factor']
-                        _yscale = _axes[-2].attrs['scaling_factor']
-                        self._aspect = float(_yscale / _xscale)
-                    elif 'scaling_factor' in _axes[-1].attrs:
-                        self._aspect = 1.0 / _axes[-1].attrs['scaling_factor']
-                    elif 'scaling_factor' in _axes[-2].attrs:
-                        self._aspect = _axes[-2].attrs['scaling_factor']
-                    else:
-                        self._aspect = 'equal'
-                except Exception:
-                    self._aspect = 'equal'
                 self.otab._actions['set_aspect'].setChecked(True)
-            else:
-                self._aspect = 'auto'
-        if self._aspect != self.ax.get_aspect():
+        if self.ax.get_aspect() != self.get_aspect():
             try:
-                self.ax.set_aspect(self._aspect)
+                if self.skew and self.image is not None:
+                    self.replot_data(newaxis=True)
+                else:                
+                    self.ax.set_aspect(self.get_aspect())
                 self.canvas.draw()
                 self.update_panels()
             except:
                 pass
+
+    def get_skew_angle(self, xdim, ydim):
+        """Return the skew angle defined by the NXdata attributes.
+        
+        If the original data is three-dimensional and the 'angles' attribute
+        has been defined, this returns the value between the x and y axes.
+
+        Parameters
+        ----------
+        xdim : int
+            The dimension number of the x-axis.
+        ydim : int
+            The dimension number of the y-axis.
+        """
+        if self.data.ndim == 3 and 'angles' in self.data.attrs:
+            dim = [i for i in [0, 1, 2] if i not in [xdim, ydim]][0]
+            if not np.isclose(self.data.attrs['angles'][dim], 90.0):
+                return self.data.attrs['angles'][dim]
+        return None               
 
     @property
     def skew(self):
@@ -1670,14 +1705,12 @@ class NXPlotView(QtWidgets.QDialog):
                 _skew_angle = None
             else:
                 return
-        if self.skew is None and _skew_angle is None:
+        if self._skew_angle is None and _skew_angle is None:
             return
         else:
             self._skew_angle = _skew_angle
-        if self.skew is not None and self._aspect == 'auto':
+        if self._skew_angle is not None and self._aspect == 'auto':
             self._aspect = 'equal'
-            self.otab._actions['set_aspect'].setChecked(True)
-            self.ax.set_aspect(self._aspect)
         if self.image is not None:
             self.replot_data(newaxis=True)
 
@@ -1869,7 +1902,7 @@ class NXPlotView(QtWidgets.QDialog):
         try:
             return (self.xaxis.equally_spaced and 
                     self.yaxis.equally_spaced
-                    and self.skew is None)
+                    and not self.skewed)
         except Exception:
             return False
 
@@ -2590,7 +2623,6 @@ class NXPlotView(QtWidgets.QDialog):
             self.ztab.set_axis(self.zaxis)
             self.vtab.set_axis(self.vaxis)
             self.ztab.locked = True
-            self.aspect = 'auto'
             self.skew = None
             self.replot_data(newaxis=True)
             self.vtab.set_axis(self.vaxis)
