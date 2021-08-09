@@ -946,11 +946,17 @@ class MainWindow(QtWidgets.QMainWindow):
             triggered=self.new_script
             )
         self.add_menu_action(self.script_menu, self.new_script_action)
-        self.open_script_action=QtWidgets.QAction("Open Script...",
+        self.open_script_action = QtWidgets.QAction("Open Script...",
             self,
             triggered=self.open_script
             )
         self.add_menu_action(self.script_menu, self.open_script_action)
+        self.open_startup_script_action = QtWidgets.QAction(
+            "Open Startup Script...",
+            self,
+            triggered=self.open_startup_script
+            )
+        self.add_menu_action(self.script_menu, self.open_startup_script_action)
 
         self.script_menu.addSeparator()
 
@@ -2289,6 +2295,15 @@ class MainWindow(QtWidgets.QMainWindow):
                 logging.info("NeXus script '%s' opened" % file_name)
         except NeXusError as error:
             report_error("Editing Script", error)
+
+    def open_startup_script(self):
+        try:
+            file_name = os.path.join(self.nexpy_dir, 'config.py')
+            self.open_script_window(file_name)
+            logging.info("NeXus script '%s' opened" % file_name)
+        except NeXusError as error:
+            report_error("Editing Startup Script", error)
+
 
     def open_script_file(self):
         try:
