@@ -942,7 +942,7 @@ class GridParameters(OrderedDict):
         value.name = key
 
     def add(self, name, value=None, label=None, vary=None, slot=None,
-            color=False, spinbox=None, readonly=False):
+            color=False, spinbox=None, readonly=False, width=None):
         """
         Convenience function for adding a Parameter:
 
@@ -957,7 +957,8 @@ class GridParameters(OrderedDict):
         self.__setitem__(name, GridParameter(value=value, name=name, 
                                              label=label, vary=vary,
                                              slot=slot, readonly=readonly,
-                                             color=color, spinbox=spinbox))
+                                             color=color, spinbox=spinbox,
+                                             width=width))
 
     def grid(self, header=True, title=None, width=None, spacing=2):
         grid = QtWidgets.QGridLayout()
@@ -1102,7 +1103,7 @@ class GridParameter(object):
     A Parameter is an object to be set in a dialog box grid.
     """
     def __init__(self, name=None, value=None, label=None, vary=None, slot=None,
-                 color=False, spinbox=False, readonly=False):
+                 color=False, spinbox=False, readonly=False, width=None):
         """
         Parameters
         ----------
@@ -1140,7 +1141,7 @@ class GridParameter(object):
                 self.box = NXDoubleSpinBox(slot=slot) 
                 self.colorbox = None              
             else:
-                self.box = NXLineEdit(align='right', slot=slot)
+                self.box = NXLineEdit(align='right', slot=slot, width=width)
                 self.colorbox = None
             if value is not None:
                 self.box.blockSignals(True)
