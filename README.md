@@ -39,10 +39,10 @@ To install in an alternate location:
     $ python setup.py install --prefix=/path/to/installation/dir
 ```
 
-As of NeXpy v0.6.0, the Python API for reading and writing NeXus files is in a 
-separate package, [nexusformat](https://github.com/nexpy/nexusformat), which 
-is also available on [PyPI](https://pypi.python.org/pypi/nexusformat/) and 
-will be automatically installed as a NeXpy dependency if you use pip. 
+The Python API for reading and writing NeXus files is in a separate package, 
+[nexusformat](https://github.com/nexpy/nexusformat), which is also available on 
+[PyPI](https://pypi.python.org/pypi/nexusformat/) and will be automatically 
+installed as a NeXpy dependency if you use pip. 
 
 If the NeXpy GUI is not required, the package may be used in a regular Python
 shell. It may be installed using:: 
@@ -82,7 +82,7 @@ other required libraries are [NumPy](http://numpy.org) and, if you want
 autocompletion within an IPython shell, [SciPy](http://scipy.org).
 
 * [nexusformat](https://github.com/nexpy/nexusformat)
-* [h5py](http://www.h5py.org)
+* [h5py](https://www.h5py.org)
 * [numpy](https://numpy.org/)
 * [scipy](https://scipy.org/)
 
@@ -100,11 +100,13 @@ while PySide is included in the
 The GUI includes an [IPython shell](http://ipython.org/) and a 
 [Matplotlib plotting pane](http://matplotlib.sourceforge.net). The IPython shell 
 is embedded in the Qt GUI using an implementation based on the newly-released
-Jupyter QtConsole, which has replaced the old IPython QtConsole.
+Jupyter QtConsole, which has replaced the old IPython QtConsole. Least-squares
+fitting of 1D data requires [lmfit](https://lmfit.github.io/lmfit-py/).
           
-* [jupyter](http://jupyter.org/)
-* [IPython v4.0.0](http://ipython.org/)
-* [matplotlib v1.4.0](http://matplotlib.sourceforge.net/)
+* [jupyter](https://jupyter.org/)
+* [IPython](https://ipython.org/)
+* [matplotlib](https://matplotlib.sourceforge.net/)
+* [lmfit](https://lmfit.github.io/lmfit-py/)
 * [pillow](https://pillow.readthedocs.io/)
 * [ansi2html](https://pypi.org/project/ansi2html/)
 
@@ -135,10 +137,8 @@ changed in the shell by setting `plotview.smooth`.
 
 The following packages are recommended.
 
-* Least-squares fitting: [lmfit](http://newville.github.io/lmfit-py/)
 * TIFF/CBF file imports: [fabio](https://github.com/silx-kit/fabio)
 * SPEC file imports: [spec2nexus](http://spec2nexus.readthedocs.org/)
-* Log file colorization: [ansi2html](https://pypi.python.org/pypi/ansi2html/)
 * Gaussian smoothing: [astropy](http://www.astropy.org)
 
 To run with the GUI

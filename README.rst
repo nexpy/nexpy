@@ -72,7 +72,7 @@ autocompletion within an IPython shell,  `SciPy <http://numpy.scipy.org>`_.
 Library            URL
 =================  =================================================
 nexusformat        https://github.com/nexpy/nexusformat
-h5py               http://www.h5py.org
+h5py               https://www.h5py.org
 numpy              https://numpy.org/
 scipy              https://scipy.org/
 =================  =================================================
@@ -80,29 +80,23 @@ scipy              https://scipy.org/
 .. note:: If you need to read HDF4 or XML files now, please clone the 
           old-master branch (https://github.com/nexpy/nexpy/tree/old-master).
 
-.. warning:: Version 0.5 is the last version to be compatible with Python 2.
-             There may be urgent bug fixes but from v0.6, Python 3 will be 
-             required.
-
 NeXpy GUI
 ---------
-The GUI is built using the PyQt. The latest version supports PyQt4, PySide, and
-with v0.10.0, PyQt5, and should load whichever library it finds. None are 
-listed as a dependency but one or other must be installed. PyQt5 is included
-in the 
+The GUI is built using the PyQt. The latest version supports PyQt4, PySide, 
+PyQt5, and should load whichever library it finds. None are listed as a 
+dependency but one or other must be installed. PyQt5 is included in the 
 `Anaconda default distribution <https://store.continuum.io/cshop/anaconda/>`_ 
 while PySide is included in the `Enthought Python Distribution
 <http://www.enthought.com>`_ or within Enthought's `Canopy Application
 <https://www.enthought.com/products/canopy/>`_.
 
-.. warning:: Version 0.12 is the last version to be compatible with Python 2.
-             There may be urgent bug fixes but from v0.13, Python 3 will be 
-             required.
-
 The GUI includes an `IPython shell <http://ipython.org/>`_ and a `Matplotlib
 plotting pane <http://matplotlib.sourceforge.net>`_. The IPython shell is
 embedded in the Qt GUI using an implementation based on the newly-released
 Jupyter QtConsole, which has replaced the old IPython QtConsole.
+
+Least-squares fitting of 1D data uses the `lmfit package 
+<https://lmfit.github.io/lmfit-py/>`_`.
 
 =================  =================================================
 Library            URL
@@ -116,11 +110,6 @@ pillow             https://pillow.readthedocs.io/
 ansi2html          https://pypi.python.org/pypi/ansi2html/
 =================  =================================================
 
-.. warning:: On Mac OS there is a serious issue with PyQt5, which started in 
-             v5.11 and has still not been fixed in v5.13. It should have been
-             fixed in NeXpy v0.12.2, but if you experience any similar issues,
-             please report it. The alternative is to downgrade PyQt to <v5.10.
-
 .. warning:: Some people have reported that NeXpy crashes on launch on some
              Linux systems. We believe that this may be due to both PyQt4 and
              PyQt5 being installed, although that doesn't cause a problem on 
@@ -131,11 +120,6 @@ ansi2html          https://pypi.python.org/pypi/ansi2html/
              BASH, type ::
 
                  export QT_API=pyqt
-
-.. seealso:: If you are having problems linking to the PySide library, you may
-             need to run the PySide post-installation script after installing
-             PySide, *i.e.*, ``python pyside_postinstall.py -install``. See 
-             `this issue <https://github.com/nexpy/nexpy/issues/29>`_.
 
 Additional Packages
 -------------------
