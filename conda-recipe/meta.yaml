@@ -1,10 +1,10 @@
 package:
   name: nexpy
-  version: "0.13.4"
+  version: "0.14.0"
 
 source:
   git_url: https://github.com/nexpy/nexpy.git
-  git_tag: v0.13.4
+  git_tag: v0.14.0
 
 build:
   entry_points:
@@ -14,19 +14,20 @@ build:
 
 requirements:
   build:
-    - python >=3.6
+    - python >=3.7
     - setuptools
     - versioneer
 
   run:
-    - python >=3.6
-    - nexusformat >=0.6.1
+    - python >=3.7
+    - nexusformat >=0.7.0
     - numpy >=1.16
     - scipy
     - h5py
     - qtpy
     - ipython
     - qtconsole
+    - ipykernel >=6.2.0
     - matplotlib
     - lmfit >=1.0.2
     - ansi2html

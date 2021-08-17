@@ -46,9 +46,9 @@ other required libraries are NumPy and, and, if you want autocompletion within
 an IPython shell, SciPy.
 
 * nexusformat (https://github.com/nexpy/nexusformat)
-* h5py (http://www.h5py.org)
-* numpy (http://numpy.org)
-* scipy (http://scipy.org)
+* h5py (https://www.h5py.org)
+* numpy (https://numpy.org)
+* scipy (https://scipy.org)
 
 NeXpy GUI
 ---------
@@ -60,15 +60,19 @@ while PySide is included in the Enthought Python Distribution
 (http://www.enthought.com) or within Enthought's Canopy Application 
 (https://www.enthought.com/products/canopy/).
 
-The GUI includes an IPython shell (http://ipython.org/) and a 
-Matplotlib plotting pane (http://matplotlib.sourceforge.net). The IPython shell 
+The GUI includes an IPython shell (https://ipython.org/) and a 
+Matplotlib plotting pane (https://matplotlib.sourceforge.net). The IPython shell 
 is embedded in the Qt GUI using an implementation based on the newly-released
-Jupyter QtConsole, which has replaced the old IPython QtConsole.
+Jupyter QtConsole, which has replaced the old IPython QtConsole. Least-squares
+fitting of 1D data requires the lmfit package 
+(https://lmfit.github.io/lmfit-py/).
           
-* jupyter (http://jupyter.org/)
-* IPython v4.0.0 (http://ipython.org/)
-* matplotlib v1.4.0 (http://matplotlib.sourceforge.net/)
+* jupyter (https://jupyter.org/)
+* IPython (https://ipython.org/)
+* matplotlib (https://matplotlib.sourceforge.net/)
+* lmfit (https://lmfit.github.io/lmfit-py/)
 * pillow (https://pillow.readthedocs.io/)
+* ansi2html (https://pypi.org/project/ansi2html/)
 
 Some people have reported that NeXpy crashes on launch on some Linux systems.
 We believe that this may be due to both PyQt4 and PyQt5 being installed,
@@ -82,8 +86,7 @@ PySide library, depending on what you have installed, e.g., in BASH, type::
 Additional Packages
 -------------------
 Additional functionality is provided by other external Python packages.
-Least-squares fitting requires Matt Newville's least-squares fitting package,
-lmfit-py. Importers may also require libraries to read the imported files in
+Importers may also require libraries to read the imported files in
 their native format, e.g., spec2nexus for reading SPEC files.
 
 From v0.9.1, a new 2D smoothing option is available in the list of
@@ -94,26 +97,9 @@ data. The number of pixels can be changed in the shell by setting
 
 The following packages are recommended.
 
-* Least-squares fitting: lmfit (http://newville.github.io/lmfit-py/)
 * TIFF/CBF file imports: fabio (https://github.com/silx-kit/fabio)
 * SPEC file imports: spec2nexus (http://spec2nexus.readthedocs.org/)
-* Log file colorization: ansi2html (https://pypi.python.org/pypi/ansi2html/)
 * Gaussian smoothing: astropy (http://www.astropy.org)
-
-The following libraries are used by the full installation of NeXpy. There is 
-more details of the nature of these dependencies in the NeXpy documentation
-(http://nexpy.github.io/nexpy).
-
-PySide v1.1.0        http://www.pyside.org/
-jupyter              http://jupyter.org
-IPython v1.1.0       http://ipython.org/
-h5py                 http://www.h5py.org/
-numpy,scipy          http://numpy.scipy.org
-matplotlib v1.2.0    http://matplotlib.sourceforge.net
-lmfit                http://newville.github.io/lmfit-py (Fitting only)
-spec2nexus           http://spec2nexus.readthedocs.org  (SPEC reader only)
-pillow               https://pillow.readthedocs.io/
-ansi2html            https://pypi.org/project/ansi2html/
 
 To run with the GUI
 ===================
