@@ -1,10 +1,10 @@
 h5py
-nexusformat>=0.6.1
+nexusformat>=0.7.0
 numpy
 scipy
 qtpy
 pyqt5
-ipykernel>=5.2.0
+ipykernel>=6.2.0
 qtconsole
 matplotlib
 lmfit>=1.0.2

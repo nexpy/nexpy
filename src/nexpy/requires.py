@@ -11,12 +11,12 @@
 #-----------------------------------------------------------------------------
 
 pkg_requirements = [
-    'nexusformat>=0.6.1',
+    'nexusformat>=0.7.0',
     'numpy',
     'scipy',
     'h5py',
     'qtpy',
-    'ipykernel>=5.2.0',
+    'ipykernel>=6.2.0',
     'qtconsole',
     'ipython',
     'matplotlib',
