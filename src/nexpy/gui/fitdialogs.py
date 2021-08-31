@@ -586,7 +586,7 @@ class FitTab(NXTab):
             else:
                 self.formcombo.setVisible(False)
         except AttributeError:
-            self.formcombo.setVisible()
+            self.formcombo.setVisible(False)
                
     def add_model(self):
         model_class = self.modelcombo.selected
