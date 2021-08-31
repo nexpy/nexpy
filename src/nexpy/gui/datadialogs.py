@@ -2585,7 +2585,7 @@ class ProjectionTab(NXTab):
     def save_projection(self):
         try:
             projection = self.get_projection()
-            keep_data(projectiion)
+            keep_data(projection)
         except NeXusError as error:
             report_error("Saving Projection", error)
 
