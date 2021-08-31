@@ -347,10 +347,10 @@ class NXTreeView(QtWidgets.QTreeView):
             self.mainwindow.remove_all_action.setEnabled(True)
             self.mainwindow.collapse_action.setEnabled(True)
             self.mainwindow.view_action.setEnabled(True)
-            if node.is_modifiable():
+            if node.nxgroup.is_modifiable():
                 self.mainwindow.rename_action.setEnabled(True)
-                if not isinstance(node, NXlink):
-                    self.mainwindow.add_action.setEnabled(True)
+            if node.is_modifiable() and not isinstance(node, NXlink):
+                self.mainwindow.add_action.setEnabled(True)
         if isinstance(node, NXroot):
             self.mainwindow.savefile_action.setEnabled(True)
             self.mainwindow.remove_action.setEnabled(True)

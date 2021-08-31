@@ -1793,11 +1793,14 @@ class MainWindow(QtWidgets.QMainWindow):
             node = self.treeview.get_node()
             if node.nxfilemode and node.nxfilemode == 'r':
                 raise NeXusError("NeXus file is locked")
-            elif isinstance(node, NXgroup) and self.copied_node is not None:
-                if self.copied_node.nxname in node:
-                    self.copied_node.nxname = self.copied_node.nxname + '_copy'
+            elif isinstance(node, NXfield):
+                raise NeXusError("Cannot only paste into a NeXus group")
+            elif isinstance(node, NXgroup):
+                if self.copied_node is None:
+                    raise NeXusError("No data in the copy buffer")
                 if node.nxfilemode != 'r':
-                    node.insert(self.copied_node)
+                    dialog = PasteDialog(node, parent=self)
+                    dialog.show()
                     logging.info("'%s' pasted to '%s'"
                                  % (self.copied_node.nxpath, node.nxpath))
                 else:
@@ -1810,13 +1813,8 @@ class MainWindow(QtWidgets.QMainWindow):
             node = self.treeview.get_node()
             if isinstance(node, NXgroup) and self.copied_link is not None:
                 if node.nxfilemode != 'r':
-                    _name, _target, _filename = self.copied_link
-                    if _name in node:
-                        _name = _name + '_copy'
-                    if _filename == 'None' or node.nxfilename == _filename:
-                        node[_name] = NXlink(_target)
-                    else:
-                        node[_name] = NXlink(_target, _filename)
+                    dialog = PasteDialog(node, link=True, parent=self)
+                    dialog.show()
                     logging.info("'%s' pasted as link to '%s'"
                                  % (self.copied_node.nxpath, node.nxpath))
                 else:

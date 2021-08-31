@@ -2585,7 +2585,7 @@ class ProjectionTab(NXTab):
     def save_projection(self):
         try:
             projection = self.get_projection()
-            keep_data(projectiion)
+            keep_data(projection)
         except NeXusError as error:
             report_error("Saving Projection", error)
 
@@ -4288,6 +4288,45 @@ class RenameDialog(NXDialog):
             if self.combo_box is not None:
                 self.node.nxclass = self.get_class()
         super(RenameDialog, self).accept()
+
+    
+class PasteDialog(NXDialog):
+    """Dialog to paste to a NeXus group."""
+
+    def __init__(self, node, link=False, parent=None):
+
+        super(PasteDialog, self).__init__(parent=parent)
+
+        self.node = node
+        self.copied_node = self.mainwindow.copied_node
+        path = node.nxroot.nxname + node.nxpath + '/' + self.copied_node.nxname
+        self.link = link        
+
+        if self.copied_node.nxname in node:
+            self.copied_node.nxname = self.copied_node.nxname + '_copy'
+
+        self.parameters = GridParameters()
+        self.parameters.add('name', self.copied_node.nxname, 
+                            'Name of pasted node')
+        self.set_layout(self.parameters.grid(header=False, spacing=10), 
+                        self.close_layout(save=True))
+
+        self.set_title(f"Pasting '{path}'")
+
+    def accept(self):
+        name = self.copied_node.nxname = self.parameters['name'].value
+        try:
+            if self.link:
+                _, target, filename = self.mainwindow.copied_link
+                if filename == 'None' or self.node.nxfilename == filename:
+                    self.node[name] = NXlink(target)
+                else:
+                    self.node[name] = NXlink(target, filename)
+            else:
+                self.node.insert(self.copied_node)
+            super(PasteDialog, self).accept()
+        except NeXusError as error:
+            report_error("Pasting Data", error)            
 
     
 class SignalDialog(NXDialog):
