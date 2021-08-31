@@ -751,7 +751,10 @@ class FitTab(NXTab):
                 else:
                     p.box['fixed'].setCheckState(QtCore.Qt.Checked)
                     if p.expr:
-                        p.box['fixed'].setEnabled(False)
+                        if m['class'] == 'Voigt' and p.name.endswith('gamma'):
+                            p.expr = None
+                        else: 
+                            p.box['fixed'].setEnabled(False)
 
     def get_model(self, name=None):
         if self.plot_checkbox.isChecked():
