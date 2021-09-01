@@ -313,9 +313,6 @@ class FitTab(NXTab):
         self.layout.setSpacing(5)
         self.set_title("Fit NeXus Data")
 
-        self.cid = self.fitview.canvas.mpl_connect('button_release_event', 
-                                                   self.on_button_release)
-
         if group:
             self.load_group(group)
 
@@ -814,6 +811,7 @@ class FitTab(NXTab):
         else:
             weights = None
         try:
+            self.fit_label.setText('Fitting...')
             self.fit = self.model.fit(self.signal, 
                                       params=self.parameters,
                                       weights=weights,
@@ -835,6 +833,8 @@ class FitTab(NXTab):
                 self.restore_button.setVisible(True)
                 self.save_button.setText('Save Fit')
             self.fitted = True
+        else:
+            self.fit_label.setText('Fit failed')
 
     def report_fit(self):
         if self.fit.result.errorbars:
