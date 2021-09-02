@@ -513,7 +513,7 @@ class NXCheckBox(QtWidgets.QCheckBox):
 class NXPushButton(QtWidgets.QPushButton):
     """A button with associated label and slot function."""
 
-    def __init__(self, label, slot, parent=None):
+    def __init__(self, label, slot, checkable=False, width=None, parent=None):
         """Initialize button
         
         Parameters
@@ -530,6 +530,10 @@ class NXPushButton(QtWidgets.QPushButton):
         self.setDefault(False)
         self.setAutoDefault(False)
         self.clicked.connect(slot)
+        if checkable:
+            self.setCheckable(True)
+        if width:
+            self.setFixedWidth(width)
 
     def keyPressEvent(self, event):
         """Function to enable the use of keys to press the button.
