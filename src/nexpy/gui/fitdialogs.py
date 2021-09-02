@@ -620,7 +620,8 @@ class FitTab(NXTab):
             if name == 'Fwhm':
                 name = 'FWHM'
             p.box = {}
-            p.box['value'] = NXLineEdit(align='right')
+            p.box['value'] = NXLineEdit(align='right', 
+                                        slot=self.read_parameters)
             p.box['error'] = NXLabel()
             p.box['min'] = NXLineEdit('-inf', align='right')
             p.box['max'] = NXLineEdit('inf', align='right')
@@ -705,6 +706,12 @@ class FitTab(NXTab):
                     self.expression_dialog = ExpressionDialog(p, parent=self)
                     self.expression_dialog.show()
                     p.box['expr'].setChecked(False)
+
+    def eval_expression(self, parameter):
+        if parameter.expr:
+            return parameter._expr_eval(parameter.expr)
+        else:
+            return parameter.value    
                     
     def read_parameters(self):
         def make_float(value):
@@ -719,6 +726,12 @@ class FitTab(NXTab):
                 p.min = make_float(p.box['min'].text())
                 p.max = make_float(p.box['max'].text())
                 p.vary = not p.box['fixed'].checkState()
+        for m in self.models:
+            for parameter in m['parameters']:
+                p = m['parameters'][parameter]
+                if p.expr:
+                    p.value = self.eval_expression(p)
+                    p.box['value'].setText(format_float(p.value))
 
     def write_parameters(self):
         def write_value(box, value, prefix=None):
@@ -733,7 +746,7 @@ class FitTab(NXTab):
             for parameter in m['parameters']:
                 p = m['parameters'][parameter]
                 if p.expr:
-                    write_value(p.box['value'], p._expr_eval(p.expr))
+                    write_value(p.box['value'], self.eval_expression(p))
                     p.box['fixed'].setCheckState(QtCore.Qt.Checked)
                     p.box['fixed'].setEnabled(False)
                 else:
@@ -984,6 +997,7 @@ class ExpressionDialog(NXDialog):
             else:
                 p.box['fixed'].setChecked(False)
                 p.box['fixed'].setEnabled(True)
+            self.parent.read_parameters()
             super(ExpressionDialog, self).accept()    
         except NeXusError as error:
             report_error("Editing Expression", error)            
