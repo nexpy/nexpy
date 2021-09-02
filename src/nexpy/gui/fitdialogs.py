@@ -31,7 +31,7 @@ from nexusformat.nexus import (NeXusError, NXattr, NXdata, NXentry, NXfield,
                                NXgroup, NXnote, NXparameters, NXprocess,
                                NXroot, nxload)
 
-from .datadialogs import NXPanel, NXTab
+from .datadialogs import NXDialog, NXPanel, NXTab
 from .plotview import NXPlotView
 from .utils import format_float, get_color, report_error
 from .widgets import (NXCheckBox, NXColorBox, NXComboBox, NXLabel, NXLineEdit,
@@ -313,6 +313,8 @@ class FitTab(NXTab):
         self.layout.setSpacing(5)
         self.set_title("Fit NeXus Data")
 
+        self.expression_dialog = None
+
         if group:
             self.load_group(group)
 
@@ -358,8 +360,8 @@ class FitTab(NXTab):
 
         self.parameter_grid = QtWidgets.QGridLayout()
         self.parameter_grid.setSpacing(5)
-        headers = ['Model', 'Name', 'Value', '', 'Min', 'Max', 'Fixed']
-        width = [100, 100, 100, 100, 100, 100, 50, 100]
+        headers = ['Model', 'Name', 'Value', '', 'Min', 'Max', 'Fixed', '']
+        width = [100, 100, 100, 100, 100, 100, 50, 50]
         column = 0
         for header in headers:
             label = NXLabel(header, bold=True, align='center')
@@ -425,7 +427,6 @@ class FitTab(NXTab):
                                                        1, self._data.nxsignal))
             else:
                 del self._data[self._data.nxerrors.nxname]
-                del self._data.nxsignal.attrs['uncertainties']
 
     @property
     def parameters(self):
@@ -456,11 +457,11 @@ class FitTab(NXTab):
         return self.color_box.textbox.text()
 
     def compressed_name(self, name):
-        return re.sub(r'([a-zA-Z_ ]*) [#] (\d*) $', r'\1_\2', 
+        return re.sub(r'([a-zA-Z_ ]*) [#] (\d*) $', r'\1_\2_', 
                       name, count=1).replace(' ', '_')
 
     def expanded_name(self, name):
-        return re.sub(r'([a-zA-Z_]*)_(\d*)$', r'\1 # \2 ', 
+        return re.sub(r'([a-zA-Z_]*)_(\d*)_$', r'\1 # \2 ', 
                       name, count=1).replace('_', ' ')
 
     def parse_model_name(self, name):
@@ -564,7 +565,7 @@ class FitTab(NXTab):
         model_class = self.modelcombo.selected
         model_index = len(self.models)
         model_name = (model_class.replace('Model', '').replace(' ', '_') 
-                      + '_' + str(model_index+1))
+                      + '_' + str(model_index+1) + '_')
         model = self.get_model_instance(model_class, prefix=model_name)
         try:
             if self.model:
@@ -624,6 +625,8 @@ class FitTab(NXTab):
             p.box['min'] = NXLineEdit('-inf', align='right')
             p.box['max'] = NXLineEdit('inf', align='right')
             p.box['fixed'] = NXCheckBox()
+            p.box['expr'] = NXPushButton('Σ', self.edit_expression,
+                                         checkable=True, width=50)
             self.parameter_grid.addWidget(NXLabel(name), row, 1)
             self.parameter_grid.addWidget(p.box['value'], row, 2)
             self.parameter_grid.addWidget(p.box['error'], row, 3)
@@ -631,6 +634,7 @@ class FitTab(NXTab):
             self.parameter_grid.addWidget(p.box['max'], row, 5)
             self.parameter_grid.addWidget(p.box['fixed'], row, 6,
                                           alignment=QtCore.Qt.AlignHCenter)
+            self.parameter_grid.addWidget(p.box['expr'], row, 7)
             row += 1
         self.models[model_index]['row'] = first_row
         self.models[model_index]['label_box'] = label_box
@@ -643,7 +647,7 @@ class FitTab(NXTab):
         parameters = self.models[model_index]['parameters']
         row = self.models[model_index]['row']
         for row in range(row, row+len(parameters)):
-            for column in range(7):
+            for column in range(8):
                 item = self.parameter_grid.itemAtPosition(row, column)
                 if item is not None:
                     widget = item.widget()
@@ -657,7 +661,7 @@ class FitTab(NXTab):
         self.model = None
         for i, m in enumerate(self.models):
             old_name = m['name']
-            m['name'] = m['class'].replace('Model', '') + str(i+1)
+            m['name'] = m['class'] + '_' + str(i+1) + '_'
             m['model'].prefix = m['name']
             m['parameters'] = self.rename_parameters(m, old_name)
             m['label_box'].setText(self.expanded_name(m['name']))
@@ -687,7 +691,21 @@ class FitTab(NXTab):
         self.plotcombo.setItemText(plot_index, new_name)
         remove_index = self.removecombo.findText(old_name)
         self.removecombo.setItemText(remove_index, new_name)
-        
+
+    def edit_expression(self):
+        if self.expression_dialog:
+            try:
+                self.expression_dialog.close()
+            except Exception:
+                pass
+        for m in self.models:
+            for parameter in m['parameters']:
+                p = m['parameters'][parameter]
+                if p.box['expr'].isChecked():
+                    self.expression_dialog = ExpressionDialog(p, parent=self)
+                    self.expression_dialog.show()
+                    p.box['expr'].setChecked(False)
+                    
     def read_parameters(self):
         def make_float(value):
             try:
@@ -714,20 +732,17 @@ class FitTab(NXTab):
         for m in self.models:
             for parameter in m['parameters']:
                 p = m['parameters'][parameter]
-                write_value(p.box['value'], p.value)
+                if p.expr:
+                    write_value(p.box['value'], p._expr_eval(p.expr))
+                    p.box['fixed'].setCheckState(QtCore.Qt.Checked)
+                    p.box['fixed'].setEnabled(False)
+                else:
+                    write_value(p.box['value'], p.value)
                 if p.vary:
                     write_value(p.box['error'], p.stderr, prefix='+/-')
+                    p.box['fixed'].setCheckState(QtCore.Qt.Unchecked)
                 write_value(p.box['min'], p.min)
                 write_value(p.box['max'], p.max)
-                if p.vary:
-                    p.box['fixed'].setCheckState(QtCore.Qt.Unchecked)
-                else:
-                    p.box['fixed'].setCheckState(QtCore.Qt.Checked)
-                    if p.expr:
-                        if m['class'] == 'Voigt' and p.name.endswith('gamma'):
-                            p.expr = None
-                        else: 
-                            p.box['fixed'].setEnabled(False)
 
     def get_model(self, name=None):
         if self.plot_checkbox.isChecked():
@@ -931,6 +946,47 @@ class FitTab(NXTab):
                           over=True)
         
     def close(self):
-        self.fitview.canvas.mpl_disconnect(self.cid)
         if self.plotview:
             self.remove_plots()
+
+class ExpressionDialog(NXDialog):
+    """Dialog to edit a fitting parameter expression."""
+
+    def __init__(self, parameter, parent=None):
+
+        super(ExpressionDialog, self).__init__(parent=parent)
+
+        self.parameter = parameter
+        self.parent = parent
+        self.expression = NXLineEdit(parameter.expr)
+        self.add_parameter_button = NXPushButton('Insert Parameter',
+                                                 self.insert_parameter)
+        self.parameter_combo = NXComboBox(items=self.parent.parameters)
+        self.set_layout(self.expression,
+                        self.make_layout(self.add_parameter_button,
+                                         self.parameter_combo, 
+                                         'stretch',
+                                         self.close_buttons(save=True)))
+        self.set_title(f"Editing '{parameter.name}' Expression")
+
+    def insert_parameter(self):
+        self.expression.insert(self.parameter_combo.selected)
+        
+    def accept(self):
+        try:
+            p = self.parent.parameters[self.parameter.name]
+            p.expr = self.expression.text()
+            if p.expr:
+                p.value = p._expr_eval(p.expr)
+                p.box['value'].setText(format_float(p.value))
+                p.box['fixed'].setChecked(True)
+                p.box['fixed'].setEnabled(False)
+            else:
+                p.box['fixed'].setChecked(False)
+                p.box['fixed'].setEnabled(True)
+            super(ExpressionDialog, self).accept()    
+        except NeXusError as error:
+            report_error("Editing Expression", error)            
+
+    def reject(self):
+        super(ExpressionDialog, self).reject()    
