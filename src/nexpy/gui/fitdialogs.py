@@ -275,10 +275,16 @@ class FitTab(NXTab):
         else:
             self.fit_checkbox = NXCheckBox('Use Poisson Errors',
                                            self.define_errors)
+        self.mask_button = NXPushButton('Mask Data', self.mask_data)
+        self.clear_mask_button = NXPushButton('Clear Mask', self.clear_mask)
         self.adjust_layout = self.make_layout(self.method_label,
                                               self.methodcombo,
                                               self.fit_checkbox,
-                                              align='left')
+                                              'stretch',
+                                              self.mask_button,
+                                              self.clear_mask_button,
+                                              align='justified')
+        self.clear_mask_button.setVisible(False)
 
         fit_button = NXPushButton('Fit', self.fit_data)
         self.fit_label = NXLabel(width=300)
@@ -313,6 +319,7 @@ class FitTab(NXTab):
         self.layout.setSpacing(5)
         self.set_title("Fit NeXus Data")
 
+        self.masks = []
         self.expression_dialog = None
 
         if group:
@@ -336,17 +343,22 @@ class FitTab(NXTab):
             if len(data.shape) > 1:
                 raise NeXusError(
                     "Fitting only possible on one-dimensional arrays")
+            self._data = NXdata()
+            self._data['signal'] = data.nxsignal
+            self._data.nxsignal = self._data['signal']
             if data.nxaxes[0].size == data.nxsignal.size + 1:
-                self.boundaries = True
+                self._data['axis'] = data.nxaxes[0].centers()
             elif data.nxaxes[0].size == data.nxsignal.size:
-                self.boundaries = False
+                self._data['axis'] = data.nxaxes[0]
             else:
                 raise NeXusError("Data has invalid axes")
+            self._data.nxaxes = [self._data['axis']]
             if data.nxerrors:
+                self._data.nxerrors = data.nxerrors
                 self.poisson_errors = False
             else:
                 self.poisson_errors = True
-            self._data = deepcopy(data)
+            self._data['title'] = data.nxtitle
         else:
             raise NeXusError("Must be an NXdata group")
 
@@ -387,7 +399,7 @@ class FitTab(NXTab):
     def data(self):
         try:
             xmin, xmax = self.get_limits()
-            axis = self._data.nxaxes[0].centers()
+            axis = self._data.nxaxes[0]
             if xmin > axis.max() or xmax < axis.min():
                 raise NeXusError('Invalid data range')
             else:
@@ -397,19 +409,32 @@ class FitTab(NXTab):
 
     @property
     def signal(self):
-        return self.data.nxsignal.nxvalue.astype(np.float64)
+        signal = self.data['signal']
+        if signal.mask:
+            return signal.nxvalue.compressed().astype(np.float64)
+        else:
+            return signal.nxvalue.astype(np.float64)
 
     @property
     def axis(self):
-        if self.boundaries:
-            return self.data.nxaxes[0].centers().nxvalue.astype(np.float64)
+        data = self.data
+        signal = data['signal'].nxvalue
+        axis = data['axis'].nxvalue.astype(np.float64)
+        if isinstance(signal, np.ma.MaskedArray):
+            return np.ma.masked_array(axis, mask=signal.mask).compressed()
         else:
-            return self.data.nxaxes[0].nxvalue.astype(np.float64)
+            return axis
 
     @property
     def errors(self):
-        if self.data.nxerrors:
-            return self.data.nxerrors.nxvalue.astype(np.float64)
+        data = self.data
+        if data.nxerrors:
+            errors = data.nxerrors.nxvalue.astype(np.float64)
+            signal = data['signal'].nxvalue
+            if isinstance(signal, np.ma.MaskedArray):
+                return np.ma.masked_array(errors, mask=signal.mask).compressed()
+            else:
+                return errors
         else:
             return None
 
@@ -427,6 +452,25 @@ class FitTab(NXTab):
                                                        1, self._data.nxsignal))
             else:
                 del self._data[self._data.nxerrors.nxname]
+
+    def mask_data(self):
+        xlo, xhi = self.get_limits()
+        axis = self._data['axis']
+        self._data['signal'][(axis>=xlo) & (axis<=xhi)] = np.ma.masked
+        self.clear_mask_button.setVisible(True)
+        x, dx = xlo, xhi-xlo
+        ylo, yhi = self.fitview.ytab.get_limits()
+        y, dy = 100*(ylo-yhi), 200*(yhi-ylo) 
+        self.masks.append(self.fitview.rectangle(x, y, dx, dy, 
+                                                 facecolor=self.color, 
+                                                 edgecolor='None', 
+                                                 alpha=0.2,
+                                                 plotview=self.fitview))
+        self.fitview.otab.zoom()
+
+    def clear_mask(self):
+        self._data['signal'].mask = np.ma.nomask
+        self.remove_masks()
 
     @property
     def parameters(self):
@@ -942,6 +986,11 @@ class FitTab(NXTab):
         self.parameters = self.fit.init_params
         self.fit_label.setText(' ')
 
+    def remove_masks(self):
+        for mask in self.masks:
+            mask.remove()
+        self.masks = []
+
     def remove_plots(self):
         for num in [n for n in self.plot_nums if n in self.fitview.plots]:
             self.fitview.plots[num]['plot'].remove()
@@ -960,6 +1009,7 @@ class FitTab(NXTab):
         
     def close(self):
         if self.plotview:
+            self.remove_masks()
             self.remove_plots()
 
 class ExpressionDialog(NXDialog):
