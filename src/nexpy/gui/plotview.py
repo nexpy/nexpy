@@ -2231,7 +2231,7 @@ class NXPlotView(QtWidgets.QDialog):
 
     yline = ylines
 
-    def circle(self, x, y, radius, plotview=self, **opts):
+    def circle(self, x, y, radius, **opts):
         """Plot circle.
         
         Parameters
@@ -2261,13 +2261,13 @@ class NXPlotView(QtWidgets.QDialog):
             opts['facecolor'] = 'r'
         if 'edgecolor' not in opts:
             opts['edgecolor'] = 'k'
-        circle = NXcircle(float(x), float(y), radius, **opts)
+        circle = NXcircle(float(x), float(y), radius, plotview=self, **opts)
         circle.connect()
         self.canvas.draw()
         self.shapes.append(circle)
         return circle
 
-    def ellipse(self, x, y, dx, dy, plotview=self, **opts):
+    def ellipse(self, x, y, dx, dy, **opts):
         """Plot ellipse.
         
         Parameters
@@ -2296,13 +2296,14 @@ class NXPlotView(QtWidgets.QDialog):
             opts['facecolor'] = 'r'
         if 'edgecolor' not in opts:
             opts['edgecolor'] = 'k'
-        ellipse = NXellipse(float(x), float(y), float(dx), float(dy), **opts)
+        ellipse = NXellipse(float(x), float(y), float(dx), float(dy), 
+                            plotview=self, **opts)
         ellipse.connect()
         self.canvas.draw()
         self.shapes.append(ellipse)
         return ellipse
 
-    def rectangle(self, x, y, dx, dy, plotview=self, **opts):
+    def rectangle(self, x, y, dx, dy, **opts):
         """Plot rectangle.
         
         Note
@@ -2330,17 +2331,18 @@ class NXPlotView(QtWidgets.QDialog):
         if 'edgecolor' not in opts:
             opts['edgecolor'] = 'k'
         if self.skew is None:
-            rectangle = NXrectangle(float(x), float(y), float(dx), float(dy), **opts)
+            rectangle = NXrectangle(float(x), float(y), float(dx), float(dy), 
+                                    plotview=self, **opts)
         else:
             xc, yc = [x, x, x+dx, x+dx], [y, y+dy, y+dy, y]
             xy = [self.transform(_x, _y) for _x,_y in zip(xc,yc)]
-            rectangle = NXpolygon(xy, True, **opts)
+            rectangle = NXpolygon(xy, True, plotview=self, **opts)
         rectangle.connect()
         self.canvas.draw()
         self.shapes.append(rectangle)
         return rectangle
 
-    def polygon(self, xy, closed=True, plotview=self, **opts):
+    def polygon(self, xy, closed=True, **opts):
         """Plot closed polygon.
         
         Note
@@ -2369,7 +2371,7 @@ class NXPlotView(QtWidgets.QDialog):
             opts['facecolor'] = 'r'
         if 'edgecolor' not in opts:
             opts['edgecolor'] = 'k'
-        polygon = NXpolygon(xy, closed, **opts)
+        polygon = NXpolygon(xy, closed, plotview=self, **opts)
         polygon.connect()
         self.canvas.draw()
         self.shapes.append(polygon)

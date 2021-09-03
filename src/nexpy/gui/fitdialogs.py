@@ -464,8 +464,7 @@ class FitTab(NXTab):
         self.masks.append(self.fitview.rectangle(x, y, dx, dy, 
                                                  facecolor=self.color, 
                                                  edgecolor='None', 
-                                                 alpha=0.2,
-                                                 plotview=self.fitview))
+                                                 alpha=0.2))
         self.fitview.otab.zoom()
 
     def clear_mask(self):
