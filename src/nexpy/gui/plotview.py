@@ -2231,7 +2231,7 @@ class NXPlotView(QtWidgets.QDialog):
 
     yline = ylines
 
-    def circle(self, x, y, radius, **opts):
+    def circle(self, x, y, radius, plotview=self, **opts):
         """Plot circle.
         
         Parameters
@@ -2267,7 +2267,7 @@ class NXPlotView(QtWidgets.QDialog):
         self.shapes.append(circle)
         return circle
 
-    def ellipse(self, x, y, dx, dy, **opts):
+    def ellipse(self, x, y, dx, dy, plotview=self, **opts):
         """Plot ellipse.
         
         Parameters
@@ -2302,7 +2302,7 @@ class NXPlotView(QtWidgets.QDialog):
         self.shapes.append(ellipse)
         return ellipse
 
-    def rectangle(self, x, y, dx, dy, **opts):
+    def rectangle(self, x, y, dx, dy, plotview=self, **opts):
         """Plot rectangle.
         
         Note
@@ -2340,7 +2340,7 @@ class NXPlotView(QtWidgets.QDialog):
         self.shapes.append(rectangle)
         return rectangle
 
-    def polygon(self, xy, closed=True, **opts):
+    def polygon(self, xy, closed=True, plotview=self, **opts):
         """Plot closed polygon.
         
         Note

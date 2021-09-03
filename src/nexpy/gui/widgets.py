@@ -1153,7 +1153,8 @@ class NXcircle(NXpatch):
 
 class NXellipse(NXpatch):
 
-    def __init__(self, x, y, dx, dy, border_tol=0.2, resize=True, plotview=None, **opts):
+    def __init__(self, x, y, dx, dy, border_tol=0.2, resize=True, plotview=None, 
+                 **opts):
         shape = Ellipse((float(x),float(y)), dx, dy, **opts)
         if 'linewidth' not in opts:
             shape.set_linewidth(1.0)
@@ -1225,7 +1226,8 @@ class NXellipse(NXpatch):
 
 class NXrectangle(NXpatch):
 
-    def __init__(self, x, y, dx, dy, border_tol=0.1, resize=True, plotview=None, **opts):
+    def __init__(self, x, y, dx, dy, border_tol=0.1, resize=True, plotview=None, 
+                 **opts):
         shape = Rectangle((float(x),float(y)), float(dx), float(dy), **opts)
         if 'linewidth' not in opts:
             shape.set_linewidth(1.0)
