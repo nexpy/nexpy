@@ -983,6 +983,10 @@ class NXpatch(object):
         self.allow_resize = resize
         self.plotview.ax.add_patch(self.shape)
 
+    def __getattr__(self, name):
+        """Return Matplotlib attributes if not defined in the class."""
+        return getattr(self.shape, name)
+
     def connect(self):
         'connect to all the events we need'
         self.plotview.deactivate()
@@ -1058,6 +1062,14 @@ class NXpatch(object):
 
     def set_alpha(self, alpha):
         self.shape.set_alpha(alpha)
+        self.plotview.draw()
+
+    def set_linestyle(self, linestyle):
+        self.shape.set_linestyle(linestyle)
+        self.plotview.draw()
+
+    def set_linewidth(self, linewidth):
+        self.shape.set_linewidth(linewidth)
         self.plotview.draw()
 
 
@@ -1253,6 +1265,10 @@ class NXrectangle(NXpatch):
     @property
     def xy(self):
         return self.rectangle.xy
+
+    def set_bounds(self, x, y, dx, dy):
+        self.rectangle.set_bounds(x, y, dx, dy)
+        self.plotview.draw()
 
     def set_left(self, left):
         self.rectangle.set_x(left)
