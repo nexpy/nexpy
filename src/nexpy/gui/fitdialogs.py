@@ -458,7 +458,7 @@ class FitTab(NXTab):
 
     def signal_mask(self):
         mask = self._data['signal'].mask
-        if mask:
+        if mask.any():
             signal = self._data['signal'].nxdata.data
             axis = self._data['axis'].nxdata
             return NXdata(signal[mask==True], axis[mask==True])
