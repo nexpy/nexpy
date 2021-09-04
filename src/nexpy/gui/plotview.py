@@ -1170,8 +1170,9 @@ class NXPlotView(QtWidgets.QDialog):
             Tuple of dimension sizes.
         """
         _shape = list(self.data.nxsignal.shape)
-        while 1 in _shape:
-            _shape.remove(1)
+        if len(_shape) > 1:
+            while 1 in _shape:
+                _shape.remove(1)
         if self.rgb_image:
             _shape = _shape[:-1]
         return tuple(_shape)
@@ -2745,8 +2746,9 @@ class NXPlotAxis(object):
                     self.reversed = True
                 _spacing = self.data[1:] - self.data[:-1]
                 _range = self.data.max() - self.data.min()
-                if max(_spacing) - min(_spacing) > _range/1000:
-                    self.equally_spaced = False
+                if _spacing.size > 0:
+                    if max(_spacing) - min(_spacing) > _range/1000:
+                        self.equally_spaced = False
                 self.centers = centers(self.data, dimlen)
                 self.boundaries = boundaries(self.data, dimlen)
                 try:
@@ -2793,9 +2795,9 @@ class NXPlotAxis(object):
                 self.reversed = True
             _spacing = self.data[1:] - self.data[:-1]
             _range = self.data.max() - self.data.min()
-            _spacing = self.data[1:] - self.data[:-1]
-            if max(_spacing) - min(_spacing) > _range/1000:
-                self.equally_spaced = False
+            if _spacing.size > 0:
+                if max(_spacing) - min(_spacing) > _range/1000:
+                    self.equally_spaced = False
             self.centers = centers(self.data, dimlen)
             self.boundaries = boundaries(self.data, dimlen)
 
