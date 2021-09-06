@@ -1170,8 +1170,9 @@ class NXPlotView(QtWidgets.QDialog):
             Tuple of dimension sizes.
         """
         _shape = list(self.data.nxsignal.shape)
-        while 1 in _shape:
-            _shape.remove(1)
+        if len(_shape) > 1:
+            while 1 in _shape:
+                _shape.remove(1)
         if self.rgb_image:
             _shape = _shape[:-1]
         return tuple(_shape)
@@ -2261,7 +2262,7 @@ class NXPlotView(QtWidgets.QDialog):
             opts['facecolor'] = 'r'
         if 'edgecolor' not in opts:
             opts['edgecolor'] = 'k'
-        circle = NXcircle(float(x), float(y), radius, **opts)
+        circle = NXcircle(float(x), float(y), radius, plotview=self, **opts)
         circle.connect()
         self.canvas.draw()
         self.shapes.append(circle)
@@ -2296,7 +2297,8 @@ class NXPlotView(QtWidgets.QDialog):
             opts['facecolor'] = 'r'
         if 'edgecolor' not in opts:
             opts['edgecolor'] = 'k'
-        ellipse = NXellipse(float(x), float(y), float(dx), float(dy), **opts)
+        ellipse = NXellipse(float(x), float(y), float(dx), float(dy), 
+                            plotview=self, **opts)
         ellipse.connect()
         self.canvas.draw()
         self.shapes.append(ellipse)
@@ -2330,11 +2332,12 @@ class NXPlotView(QtWidgets.QDialog):
         if 'edgecolor' not in opts:
             opts['edgecolor'] = 'k'
         if self.skew is None:
-            rectangle = NXrectangle(float(x), float(y), float(dx), float(dy), **opts)
+            rectangle = NXrectangle(float(x), float(y), float(dx), float(dy), 
+                                    plotview=self, **opts)
         else:
             xc, yc = [x, x, x+dx, x+dx], [y, y+dy, y+dy, y]
             xy = [self.transform(_x, _y) for _x,_y in zip(xc,yc)]
-            rectangle = NXpolygon(xy, True, **opts)
+            rectangle = NXpolygon(xy, True, plotview=self, **opts)
         rectangle.connect()
         self.canvas.draw()
         self.shapes.append(rectangle)
@@ -2369,7 +2372,7 @@ class NXPlotView(QtWidgets.QDialog):
             opts['facecolor'] = 'r'
         if 'edgecolor' not in opts:
             opts['edgecolor'] = 'k'
-        polygon = NXpolygon(xy, closed, **opts)
+        polygon = NXpolygon(xy, closed, plotview=self, **opts)
         polygon.connect()
         self.canvas.draw()
         self.shapes.append(polygon)
@@ -2743,8 +2746,9 @@ class NXPlotAxis(object):
                     self.reversed = True
                 _spacing = self.data[1:] - self.data[:-1]
                 _range = self.data.max() - self.data.min()
-                if max(_spacing) - min(_spacing) > _range/1000:
-                    self.equally_spaced = False
+                if _spacing.size > 0:
+                    if max(_spacing) - min(_spacing) > _range/1000:
+                        self.equally_spaced = False
                 self.centers = centers(self.data, dimlen)
                 self.boundaries = boundaries(self.data, dimlen)
                 try:
@@ -2791,9 +2795,9 @@ class NXPlotAxis(object):
                 self.reversed = True
             _spacing = self.data[1:] - self.data[:-1]
             _range = self.data.max() - self.data.min()
-            _spacing = self.data[1:] - self.data[:-1]
-            if max(_spacing) - min(_spacing) > _range/1000:
-                self.equally_spaced = False
+            if _spacing.size > 0:
+                if max(_spacing) - min(_spacing) > _range/1000:
+                    self.equally_spaced = False
             self.centers = centers(self.data, dimlen)
             self.boundaries = boundaries(self.data, dimlen)
 

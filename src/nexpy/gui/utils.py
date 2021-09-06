@@ -254,7 +254,9 @@ def boundaries(axis, dimlen):
         size, it is assumed the axis contains bin boundaries.
     """
     ax = axis.astype(np.float64)
-    if ax.shape[0] == dimlen:
+    if ax.shape[0] == 1:
+        return ax
+    elif ax.shape[0] == dimlen:
         start = ax[0] - (ax[1] - ax[0])/2
         end = ax[-1] + (ax[-1] - ax[-2])/2
         return np.concatenate((np.atleast_1d(start),
