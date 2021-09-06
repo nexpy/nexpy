@@ -286,9 +286,8 @@ class FitTab(NXTab):
                                               self.save_fit_button,
                                               align='justified')
 
-        self.fit_status = NXLabel(
-            'Note: Use right-click zooms to mask data - Waiting to fit...', 
-            width=600)
+        self.fit_status = NXLabel('Note: Use right-click zooms to mask data', 
+                                  width=600)
         self.report_button = NXPushButton("Show Fit Report", self.report_fit)
         self.report_button.setVisible(False)
         self.action_layout = self.make_layout(self.fit_status,
@@ -480,6 +479,7 @@ class FitTab(NXTab):
         self.remove_rectangle()
         self.mask_button.setVisible(False)
         self.clear_mask_button.setVisible(True)
+        self.fit_status.setText('Waiting to fit...')
 
     def clear_mask(self):
         self._data['signal'].mask = np.ma.nomask
@@ -889,6 +889,7 @@ class FitTab(NXTab):
                 self.mask_num = self.next_plot_num()
             self.fitview.plot(mask_data, over=True, num=self.mask_num, 
                               fmt='o', color='white', alpha=0.8)
+            self.fitview.plots[self.mask_num]['legend_label'] = 'Mask'
 
     def plot_model(self):
         model_name = self.plotcombo.currentText()
