@@ -321,7 +321,6 @@ class FitTab(NXTab):
 
         self.set_layout(model_layout, self.plot_layout)
         self.layout.setSpacing(5)
-        self.setMinimumWidth(825)
         self.set_title("Fit NeXus Data")
 
         self.cid = self.fitview.canvas.mpl_connect('button_release_event', 
@@ -392,17 +391,17 @@ class FitTab(NXTab):
             column += 1
 
         self.scroll_widget = QtWidgets.QWidget()
-        scroll_area = NXScrollArea(self.scroll_widget)
-        scroll_layout = QtWidgets.QVBoxLayout()
-        scroll_layout.addLayout(self.parameter_grid)
-        scroll_layout.addStretch()
-        self.scroll_widget.setLayout(scroll_layout)
-        scroll_area.setMinimumHeight(200)
-        scroll_area.setMinimumWidth(800)
-        scroll_area.setSizePolicy(QtWidgets.QSizePolicy.Minimum,
-                                  QtWidgets.QSizePolicy.Minimum)
+        self.scroll_area = NXScrollArea(self.scroll_widget)
+        self.scroll_layout = QtWidgets.QVBoxLayout()
+        self.scroll_layout.addLayout(self.parameter_grid)
+        self.scroll_layout.addStretch()
+        self.scroll_widget.setLayout(self.scroll_layout)
+        self.scroll_area.setMinimumHeight(200)
+        self.scroll_area.setMinimumWidth(800)
+        self.scroll_area.setSizePolicy(QtWidgets.QSizePolicy.Minimum,
+                                       QtWidgets.QSizePolicy.Expanding)
         
-        grid_layout.addWidget(scroll_area)
+        grid_layout.addWidget(self.scroll_area)
 
         return grid_layout
 
