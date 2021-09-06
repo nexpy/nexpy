@@ -889,6 +889,7 @@ class FitTab(NXTab):
                 self.mask_num = self.next_plot_num()
             self.fitview.plot(mask_data, over=True, num=self.mask_num, 
                               fmt='o', color='white', alpha=0.8)
+            self.fitview.ytab.plotcombo.remove(self.mask_num)
             self.fitview.plots[self.mask_num]['legend_label'] = 'Mask'
 
     def plot_model(self):
@@ -915,6 +916,7 @@ class FitTab(NXTab):
             self.fitview.plots[num]['legend_label'] = name
         self.fitview.set_plot_limits(xmin=xmin, xmax=xmax)
         self.plot_nums.append(num)
+        self.fitview.ytab.plotcombo.remove(num)
         self.fitview.ytab.plotcombo.select(self.data_num)
         self.fitview.raise_()
 
