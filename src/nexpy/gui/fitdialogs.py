@@ -246,8 +246,6 @@ class FitTab(NXTab):
 
         remove_button = NXPushButton("Remove Model", self.remove_model)
         self.removecombo = NXComboBox()
-        self.mask_button = NXPushButton('Mask Data', self.mask_data)
-        self.clear_mask_button = NXPushButton('Clear Mask', self.clear_mask)
         self.restore_button = NXPushButton("Restore Parameters", 
                                            self.restore_parameters)
         self.save_parameters_button = NXPushButton("Save Parameters", 
@@ -255,13 +253,9 @@ class FitTab(NXTab):
         self.remove_layout = self.make_layout(remove_button,
                                               self.removecombo,
                                               'stretch',
-                                              self.mask_button,
-                                              self.clear_mask_button,
                                               self.restore_button,
                                               self.save_parameters_button,
                                               align='justified')
-        self.mask_button.setVisible(False)
-        self.clear_mask_button.setVisible(False)
         self.save_parameters_button.setVisible(False)
         self.restore_button.setVisible(False)
 
@@ -309,15 +303,21 @@ class FitTab(NXTab):
         self.plotcombo.setVisible(False)
         self.plot_checkbox = NXCheckBox('Use Data Points')
         self.plot_checkbox.setVisible(False)
+        self.mask_button = NXPushButton('Mask Data', self.mask_data)
+        self.clear_mask_button = NXPushButton('Clear Mask', self.clear_mask)
         self.color_box = NXColorBox(get_color(color), label='Plot Color',
                                     width=100)
         self.plot_layout = self.make_layout(plot_data_button, 
                                             self.plot_model_button,
                                             self.plotcombo, 
                                             self.plot_checkbox,
+                                            self.mask_button,
+                                            self.clear_mask_button,
                                             'stretch',
                                             self.color_box,
                                             align='justified')
+        self.mask_button.setVisible(False)
+        self.clear_mask_button.setVisible(False)
 
         self.set_layout(model_layout, self.plot_layout)
         self.layout.setSpacing(5)
@@ -457,7 +457,7 @@ class FitTab(NXTab):
 
     def signal_mask(self):
         mask = self._data['signal'].mask
-        if mask.any():
+        if mask and mask.any():
             signal = self._data['signal'].nxdata.data
             axis = self._data['axis'].nxdata
             return NXdata(signal[mask==True], axis[mask==True])
@@ -480,7 +480,6 @@ class FitTab(NXTab):
         self.remove_rectangle()
         self.mask_button.setVisible(False)
         self.clear_mask_button.setVisible(True)
-        self.save_parameters_button.setVisible(True)
 
     def clear_mask(self):
         self._data['signal'].mask = np.ma.nomask
@@ -883,7 +882,11 @@ class FitTab(NXTab):
     def plot_mask(self):
         mask_data = self.signal_mask()
         if mask_data:
-            self.mask_num = self.next_plot_num()
+            if self.mask_num:
+                self.fitview.plots[self.mask_num]['plot'].remove()
+                del self.fitview.plots[self.mask_num]
+            else:                
+                self.mask_num = self.next_plot_num()
             self.fitview.plot(mask_data, over=True, num=self.mask_num, 
                               fmt='o', color='white', alpha=0.8)
 
@@ -1061,6 +1064,7 @@ class FitTab(NXTab):
             self.xlo, self.xhi = self.fitview.zoom['x']
             self.ylo, self.yhi = self.fitview.zoom['y']
             self.draw_rectangle()
+            self.clear_mask_button.setVisible(False)
             self.mask_button.setVisible(True)
         self.fitview.draw()
 
