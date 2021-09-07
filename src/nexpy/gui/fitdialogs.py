@@ -992,12 +992,13 @@ class FitTab(NXTab):
         for m in self.models:
             group[m['name']] = self.get_model(m['name'])
             parameters = NXparameters(attrs={'model':m['class']})
-            for n,p in m['parameters'].items():
-                n = n.replace(m['model'].prefix, '')
-                parameters[n] = NXfield(p.value, error=p.stderr, 
-                                        initial_value=p.init_value,
-                                        min=str(p.min), max=str(p.max),
-                                        expr=p.expr)
+            for name in m['parameters']:
+                p = self.fit.params[name]
+                name = name.replace(m['model'].prefix, '')
+                parameters[name] = NXfield(p.value, error=p.stderr, 
+                                           initial_value=p.init_value,
+                                           min=str(p.min), max=str(p.max),
+                                           expr=p.expr)
             group[m['name']].insert(parameters)
         group['program'] = 'lmfit'
         group['version'] = lmfit_version
