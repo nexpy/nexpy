@@ -303,7 +303,7 @@ class FitTab(NXTab):
         self.plot_checkbox = NXCheckBox('Use Data Points')
         self.plot_checkbox.setVisible(False)
         self.mask_button = NXPushButton('Mask Data', self.mask_data)
-        self.clear_mask_button = NXPushButton('Clear Mask', self.clear_mask)
+        self.clear_mask_button = NXPushButton('Clear Masks', self.clear_masks)
         self.color_box = NXColorBox(get_color(color), label='Plot Color',
                                     width=100)
         self.plot_layout = self.make_layout(plot_data_button, 
@@ -481,7 +481,7 @@ class FitTab(NXTab):
         self.clear_mask_button.setVisible(True)
         self.fit_status.setText('Waiting to fit...')
 
-    def clear_mask(self):
+    def clear_masks(self):
         self._data['signal'].mask = np.ma.nomask
         self.remove_masks()
         self.clear_mask_button.setVisible(False)
@@ -882,7 +882,7 @@ class FitTab(NXTab):
     def plot_mask(self):
         mask_data = self.signal_mask()
         if mask_data:
-            if self.mask_num:
+            if self.mask_num in self.fitview.plots:
                 self.fitview.plots[self.mask_num]['plot'].remove()
                 del self.fitview.plots[self.mask_num]
             else:                
@@ -1091,7 +1091,7 @@ class FitTab(NXTab):
         self.fitview.draw()
 
     def remove_masks(self):
-        if self.mask_num:
+        if self.mask_num in self.fitview.plots:
             self.fitview.plots[self.mask_num]['plot'].remove()
             del self.fitview.plots[self.mask_num]
             self.fitview.ytab.plotcombo.remove(self.mask_num)
@@ -1101,10 +1101,10 @@ class FitTab(NXTab):
         for num in [n for n in self.plot_nums if n in self.fitview.plots]:
             self.fitview.plots[num]['plot'].remove()
             del self.fitview.plots[num]
-            self.fitview.ytab.plotcombo.remove(num)
         self.plot_nums = []
-        self.fitview.num = self.data_num
-        self.fitview.ytab.plotcombo.select(self.data_num)
+        if self.data_num in self.fitview.plots:
+            self.fitview.num = self.data_num
+            self.fitview.ytab.plotcombo.select(self.data_num)
         self.fitview.draw()
         self.fitview.update_panels()
    
