@@ -303,7 +303,7 @@ class FitTab(NXTab):
         self.plot_checkbox = NXCheckBox('Use Data Points')
         self.plot_checkbox.setVisible(False)
         self.mask_button = NXPushButton('Mask Data', self.mask_data)
-        self.clear_mask_button = NXPushButton('Clear Mask', self.clear_mask)
+        self.clear_mask_button = NXPushButton('Clear Masks', self.clear_masks)
         self.color_box = NXColorBox(get_color(color), label='Plot Color',
                                     width=100)
         self.plot_layout = self.make_layout(plot_data_button, 
@@ -414,7 +414,7 @@ class FitTab(NXTab):
             else:
                 return self._data[xmin:xmax]
         except NeXusError as error:
-            report_error('Fitting data', error)
+            report_error("Fitting data", error)
 
     @property
     def signal(self):
@@ -481,7 +481,7 @@ class FitTab(NXTab):
         self.clear_mask_button.setVisible(True)
         self.fit_status.setText('Waiting to fit...')
 
-    def clear_mask(self):
+    def clear_masks(self):
         self._data['signal'].mask = np.ma.nomask
         self.remove_masks()
         self.clear_mask_button.setVisible(False)
@@ -740,18 +740,24 @@ class FitTab(NXTab):
             self.rename_model(old_name, m['name'])
         if len(self.models) == 0:
             self.save_parameters_button.setVisible(False)
+        self.read_parameters()
         self.save_fit_button.setVisible(False)
 
     def rename_parameters(self, model, old_name):
+        model['model'].prefix = model['name'] + '_'
         for p in model['parameters']:
             model['parameters'][p].name = model['parameters'][p].name.replace(
                 old_name, model['name'])
-        _parameters = model['parameters'].copy()
-        for p in _parameters:
+            if model['parameters'][p].expr:
+                model['parameters'][p].expr = model['parameters'][p].expr.replace(
+                                                  old_name, model['name'])
+            model['parameters'][p]._delay_asteval = True
+        parameters = model['parameters'].copy()
+        for p in parameters:
             old_p = p.replace(model['name'], old_name)
-            _parameters[p].box = model['parameters'][old_p].box
-            _parameters[p].box['error'].setText('')
-        return _parameters
+            parameters[p].box = model['parameters'][old_p].box
+            parameters[p].box['error'].setText('')
+        return parameters
 
     def rename_model(self, old_name, new_name):
         old_name, new_name = (self.expanded_name(old_name), 
@@ -776,10 +782,13 @@ class FitTab(NXTab):
                     p.box['expr'].setChecked(False)
 
     def eval_expression(self, parameter):
-        if parameter.expr:
-            return parameter._expr_eval(parameter.expr)
-        else:
-            return parameter.value    
+        try:
+            if parameter.expr:
+                return parameter._expr_eval(parameter.expr)
+            else:
+                return parameter.value
+        except Exception as error:
+            report_error(parameter.name, error)
                     
     def read_parameters(self):
         def make_float(value):
@@ -799,7 +808,11 @@ class FitTab(NXTab):
                 p = m['parameters'][parameter]
                 if p.expr:
                     p.value = self.eval_expression(p)
-                    p.box['value'].setText(format_float(p.value))
+                    try:
+                        p.box['value'].setText(format_float(p.value))
+                    except Exception as error:
+                        report_error(p.name, error)
+                        return self.parameters
         return self.parameters
 
     def write_parameters(self):
@@ -882,7 +895,7 @@ class FitTab(NXTab):
     def plot_mask(self):
         mask_data = self.signal_mask()
         if mask_data:
-            if self.mask_num:
+            if self.mask_num in self.fitview.plots:
                 self.fitview.plots[self.mask_num]['plot'].remove()
                 del self.fitview.plots[self.mask_num]
             else:                
@@ -992,12 +1005,13 @@ class FitTab(NXTab):
         for m in self.models:
             group[m['name']] = self.get_model(m['name'])
             parameters = NXparameters(attrs={'model':m['class']})
-            for n,p in m['parameters'].items():
-                n = n.replace(m['model'].prefix, '')
-                parameters[n] = NXfield(p.value, error=p.stderr, 
-                                        initial_value=p.init_value,
-                                        min=str(p.min), max=str(p.max),
-                                        expr=p.expr)
+            for name in m['parameters']:
+                p = self.fit.params[name]
+                name = name.replace(m['model'].prefix, '')
+                parameters[name] = NXfield(p.value, error=p.stderr, 
+                                           initial_value=p.init_value,
+                                           min=str(p.min), max=str(p.max),
+                                           expr=p.expr)
             group[m['name']].insert(parameters)
         group['program'] = 'lmfit'
         group['version'] = lmfit_version
@@ -1091,7 +1105,7 @@ class FitTab(NXTab):
         self.fitview.draw()
 
     def remove_masks(self):
-        if self.mask_num:
+        if self.mask_num in self.fitview.plots:
             self.fitview.plots[self.mask_num]['plot'].remove()
             del self.fitview.plots[self.mask_num]
             self.fitview.ytab.plotcombo.remove(self.mask_num)
@@ -1101,10 +1115,10 @@ class FitTab(NXTab):
         for num in [n for n in self.plot_nums if n in self.fitview.plots]:
             self.fitview.plots[num]['plot'].remove()
             del self.fitview.plots[num]
-            self.fitview.ytab.plotcombo.remove(num)
         self.plot_nums = []
-        self.fitview.num = self.data_num
-        self.fitview.ytab.plotcombo.select(self.data_num)
+        if self.data_num in self.fitview.plots:
+            self.fitview.num = self.data_num
+            self.fitview.ytab.plotcombo.select(self.data_num)
         self.fitview.draw()
         self.fitview.update_panels()
    
