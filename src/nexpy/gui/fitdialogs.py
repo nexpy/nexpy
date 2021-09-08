@@ -414,7 +414,7 @@ class FitTab(NXTab):
             else:
                 return self._data[xmin:xmax]
         except NeXusError as error:
-            report_error('Fitting data', error)
+            report_error("Fitting data", error)
 
     @property
     def signal(self):
@@ -740,18 +740,24 @@ class FitTab(NXTab):
             self.rename_model(old_name, m['name'])
         if len(self.models) == 0:
             self.save_parameters_button.setVisible(False)
+        self.read_parameters()
         self.save_fit_button.setVisible(False)
 
     def rename_parameters(self, model, old_name):
+        model['model'].prefix = model['name'] + '_'
         for p in model['parameters']:
             model['parameters'][p].name = model['parameters'][p].name.replace(
                 old_name, model['name'])
-        _parameters = model['parameters'].copy()
-        for p in _parameters:
+            if model['parameters'][p].expr:
+                model['parameters'][p].expr = model['parameters'][p].expr.replace(
+                                                  old_name, model['name'])
+            model['parameters'][p]._delay_asteval = True
+        parameters = model['parameters'].copy()
+        for p in parameters:
             old_p = p.replace(model['name'], old_name)
-            _parameters[p].box = model['parameters'][old_p].box
-            _parameters[p].box['error'].setText('')
-        return _parameters
+            parameters[p].box = model['parameters'][old_p].box
+            parameters[p].box['error'].setText('')
+        return parameters
 
     def rename_model(self, old_name, new_name):
         old_name, new_name = (self.expanded_name(old_name), 
@@ -776,10 +782,13 @@ class FitTab(NXTab):
                     p.box['expr'].setChecked(False)
 
     def eval_expression(self, parameter):
-        if parameter.expr:
-            return parameter._expr_eval(parameter.expr)
-        else:
-            return parameter.value    
+        try:
+            if parameter.expr:
+                return parameter._expr_eval(parameter.expr)
+            else:
+                return parameter.value
+        except Exception as error:
+            report_error(parameter.name, error)
                     
     def read_parameters(self):
         def make_float(value):
@@ -799,7 +808,11 @@ class FitTab(NXTab):
                 p = m['parameters'][parameter]
                 if p.expr:
                     p.value = self.eval_expression(p)
-                    p.box['value'].setText(format_float(p.value))
+                    try:
+                        p.box['value'].setText(format_float(p.value))
+                    except Exception as error:
+                        report_error(p.name, error)
+                        return self.parameters
         return self.parameters
 
     def write_parameters(self):
