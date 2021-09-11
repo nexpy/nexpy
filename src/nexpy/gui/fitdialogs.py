@@ -858,6 +858,8 @@ class FitTab(NXTab):
             model_data = NXfield(ys[model.prefix], name=name)
         else:
             y = self.model.eval(parameters, x=x)
+            if isinstance(y, float):
+                y = y * np.ones(shape=x.shape)
             if fit:
                 model_data = NXfield(y, name='Fit')
             else:
