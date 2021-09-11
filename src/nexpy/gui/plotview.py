@@ -890,7 +890,7 @@ class NXPlotView(QtWidgets.QDialog):
             if self.ndim > 2:
                 for i in range(self.ndim-2):
                     self.axis[i].lo = self.axis[i].hi \
-                        = np.float(self.axis[i].data[idx[i]])
+                        = float(self.axis[i].data[idx[i]])
                 self.zaxis = self.axis[self.ndim - 3]
                 self.zaxis.lo = self.zaxis.hi = self.axis[self.ndim - 3].lo
             else:
@@ -1239,7 +1239,7 @@ class NXPlotView(QtWidgets.QDialog):
         """
         axes = [self.yaxis.dim, self.xaxis.dim]
         limits = []
-        xmin, xmax, ymin, ymax = [np.float(value) for value in self.limits]
+        xmin, xmax, ymin, ymax = [float(value) for value in self.limits]
         for i in range(self.ndim):
             if i in axes:
                 if i == self.xaxis.dim:
@@ -1247,8 +1247,7 @@ class NXPlotView(QtWidgets.QDialog):
                 else:
                     limits.append((ymin, ymax))
             else:
-                limits.append((np.float(self.axis[i].lo), 
-                               np.float(self.axis[i].hi)))
+                limits.append((float(self.axis[i].lo), float(self.axis[i].hi)))
         if self.data.nxsignal.shape != self.data.plot_shape:
             axes, limits = fix_projection(self.data.nxsignal.shape, axes, 
                                           limits)
