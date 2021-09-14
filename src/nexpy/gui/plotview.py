@@ -841,25 +841,28 @@ class NXPlotView(QtWidgets.QDialog):
                      attrs=axes[i].safe_attrs) for i in range(self.ndim)]
 
         _data = self.data
+        _signal = _data.nxsignal
         if self.ndim > 2:
-            idx=[np.s_[0] if s==1 else np.s_[:] for s in _data.nxsignal.shape]
+            idx=[np.s_[0] if s==1 else np.s_[:] for s in _signal.shape]
             for i in range(len(idx)):
                 if idx.count(slice(None,None,None)) > 2:
                     try:
                         idx[i] = self.axes[i].index(0.0)
+                        if self.axes[i].shape[0] == _signal.shape[i]+1:
+                            idx[i] += 1
                     except Exception:
                         idx[i] = 0
             if self.weighted:
                 signal = _data[tuple(idx)].weighted_data().nxsignal[()]
             else:
-                signal = _data.nxsignal[tuple(idx)][()]
+                signal = _signal[tuple(idx)][()]
         elif self.rgb_image:
-            signal = self.data.nxsignal[()]
+            signal = _signal[()]
         else:
             if self.weighted:
                 signal = _data.weighted_data().nxsignal[()].reshape(self.shape)
             else:
-                signal = _data.nxsignal[()].reshape(self.shape)
+                signal = _signal[()].reshape(self.shape)
         if signal.dtype == bool:
             signal.dtype = np.int8
         self.signal = signal    
