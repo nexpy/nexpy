@@ -17,6 +17,7 @@ import sys
 import types
 from collections import OrderedDict
 from copy import deepcopy
+from itertools import cycle
 
 import numpy as np
 
@@ -32,7 +33,7 @@ from nexusformat.nexus import (NeXusError, NXattr, NXdata, NXentry, NXfield,
                                NXroot, nxload)
 
 from .datadialogs import NXDialog, NXPanel, NXTab
-from .plotview import NXPlotView
+from .plotview import NXPlotView, linestyles
 from .utils import format_float, get_color, report_error
 from .widgets import (NXCheckBox, NXColorBox, NXComboBox, NXLabel, NXLineEdit,
                       NXMessageBox, NXPushButton, NXScrollArea, NXrectangle)
@@ -327,6 +328,8 @@ class FitTab(NXTab):
         self.expression_dialog = None
         self.rectangle = None
         self.mask_num = None
+        self.linestyle = cycle([linestyles[ls] for ls in linestyles 
+                                if ls != 'Solid' and ls != 'None'])
         self.xlo, self.xhi = self.fitview.ax.get_xlim()
         self.ylo, self.yhi = self.fitview.ax.get_ylim()
 
@@ -891,6 +894,8 @@ class FitTab(NXTab):
         else:
             self.fitview.plots[self.data_num]['plot'].set_color(self.color)
             self.remove_plots()
+        self.linestyle = cycle([linestyles[ls] for ls in linestyles 
+                                if ls != 'Solid' and ls != 'None'])
         self.plot_mask()
         self.fitview.raise_()
 
@@ -916,19 +921,21 @@ class FitTab(NXTab):
                 fmt = '-'
             else:
                 fmt = '--'
-            self.fitview.plot(self.get_model(), fmt=fmt, 
+            self.fitview.plot(self.get_model(), fmt=fmt, color=self.color,
                               xmin=self.plot_min, xmax=self.plot_max,
-                              over=True, num=num, color=self.color)
+                              over=True, num=num)
             if self.fitted:
                 self.fitview.plots[num]['legend_label'] = 'Fit'
             else:
                 self.fitview.plots[num]['legend_label'] = 'Model'
         else:
             name = self.compressed_name(model_name)
-            self.fitview.plot(self.get_model(name), fmt='--', 
+            self.fitview.plot(self.get_model(name), color=self.color,
+                              marker=None, linestyle=next(self.linestyle), 
                               xmin=self.plot_min, xmax=self.plot_max,
                               over=True, num=num)
             self.fitview.plots[num]['legend_label'] = name
+        self.fitview.plots[num]['show_legend'] = False
         self.fitview.set_plot_limits(xmin=xmin, xmax=xmax)
         self.plot_nums.append(num)
         self.fitview.ytab.plotcombo.remove(num)
