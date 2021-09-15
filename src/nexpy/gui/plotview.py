@@ -118,7 +118,10 @@ try:
     interpolations.insert(1, 'convolve')
 except ImportError:
     pass
-linestyles = {'-': 'Solid', '--': 'Dashed', '-.': 'DashDot', ':': 'Dotted',
+linestyles = {'Solid': '-', 'Dashed': '--', 'DashDot': '-.', 'Dotted': ':',
+              'DashDotDotted': (0, (3, 5, 1, 5, 1, 5)),
+              'DenselyDashed': (0, (5, 1)),
+              'DenselyDotted': (0, (1, 1)),
               'None': 'None'}
 markers = {'.': 'point', ',': 'pixel', '+': 'plus', 'x': 'x', 
            'o': 'circle', 's': 'square', 'D': 'diamond', 'H': 'hexagon', 
