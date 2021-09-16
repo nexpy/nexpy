@@ -328,8 +328,9 @@ class FitTab(NXTab):
         self.expression_dialog = None
         self.rectangle = None
         self.mask_num = None
-        self.linestyle = cycle([linestyles[ls] for ls in linestyles 
-                                if ls != 'Solid' and ls != 'None'])
+        self.linestyles = [linestyles[ls] for ls in linestyles 
+                           if ls != 'Solid' and ls != 'None']
+        self.linestyle = cycle(self.linestyles)
         self.xlo, self.xhi = self.fitview.ax.get_xlim()
         self.ylo, self.yhi = self.fitview.ax.get_ylim()
 
@@ -894,8 +895,7 @@ class FitTab(NXTab):
         else:
             self.fitview.plots[self.data_num]['plot'].set_color(self.color)
             self.remove_plots()
-        self.linestyle = cycle([linestyles[ls] for ls in linestyles 
-                                if ls != 'Solid' and ls != 'None'])
+        self.linestyle = cycle(self.linestyles)
         self.plot_mask()
         self.fitview.raise_()
 
