@@ -4,15 +4,22 @@ from lmfit.lineshapes import thermal_distribution
 from lmfit.model import Model
 
 class BoseFactorModel(Model):
-    r"""A model to describe the Bose temperature factor
-    with one Parameter: ``T``.
+    r"""A model to describe the Bose temperature factor with one Parameter: 
+    ``T``.
 
     .. math::
 
-        f(x; T) = x (1 / (1 - exp[-x/kT]))
+        f(x; T) = (x / (1 - exp[-x/kT]))
 
-    This assumes that x is defined as energy loss. This function should be used
-    to multiply intensities that obey detailed balance in a composite model. 
+    assuming that x is defined as energy loss. This function should be used
+    to multiply symmetric functions to produce a composite model that obeys 
+    detailed balance, e.g., when multiplying a Lorentzian, the model returns 
+    the correct form for quasi-elastic neutron scattering in both energy gain 
+    and energy loss:
+    
+        .. math::
+
+        f(\omega; T) = (n(\omega)+1) * \omega\ * L(\omega)
 
     """
 
