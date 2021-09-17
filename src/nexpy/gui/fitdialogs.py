@@ -909,9 +909,9 @@ class FitTab(NXTab):
             if isinstance(y, float):
                 y = y * np.ones(shape=x.shape)
             if fit:
-                model_data = NXfield(y, name='Fit')
+                model_data = NXfield(y, name='fit')
             else:
-                model_data = NXfield(y, name='Model')
+                model_data = NXfield(y, name='model')
         return NXdata(model_data, model_axis, title=self.data.nxtitle)
 
     def get_limits(self):
@@ -1070,7 +1070,7 @@ class FitTab(NXTab):
                                            expr=p.expr)
             group[m['name']].insert(parameters)
         group['program'] = 'lmfit'
-        group['version'] = lmfit_version
+        group['program'].attrs['version'] = lmfit_version
         group['title'] = 'Fit Results'
         group['fit'] = self.get_model(fit=True)
         fit = NXparameters()
