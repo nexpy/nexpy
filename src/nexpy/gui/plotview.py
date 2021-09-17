@@ -74,6 +74,11 @@ from mpl_toolkits.axisartist.grid_helper_curvelinear import \
 from scipy.interpolate import interp1d
 from scipy.spatial import Voronoi, voronoi_plot_2d
 
+try:
+    import mplcursors
+except ImportError:
+    mplcursors = None           
+
 from nexusformat.nexus import NeXusError, NXdata, NXentry, NXfield, NXroot
 
 from .. import __version__
@@ -1012,12 +1017,6 @@ class NXPlotView(QtWidgets.QDialog):
 
         self.image = None
         self.colorbar = None
-        try:
-            import mplcursors
-            if self._plot.get_marker() != 'None':
-                self.cursor = mplcursors.cursor(self._plot)
-        except ImportError:
-            self.mplcursor = None           
 
     def get_image(self):
         """Initialize the plot's signal and axis values.
@@ -1147,10 +1146,15 @@ class NXPlotView(QtWidgets.QDialog):
         p['smooth_line'] = None
         p['smooth_linestyle'] = 'None'
         p['smoothing'] = False
+        if mplcursors and p['marker'] != 'None':
+            p['cursor'] = mplcursors.cursor(p['plot'])
+        else:
+            p['cursor'] = None           
         self.plots[self.num] = p
         self.ytab.plotcombo.add(self.num)
         self.ytab.plotcombo.select(self.num)
         self.ytab.reset_smoothing()
+
 
     @property
     def signal_group(self):
