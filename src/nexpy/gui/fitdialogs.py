@@ -34,7 +34,7 @@ from nexusformat.nexus import (NeXusError, NXattr, NXdata, NXentry, NXfield,
 
 from .datadialogs import NXDialog, NXPanel, NXTab
 from .plotview import NXPlotView, linestyles
-from .utils import format_float, get_color, report_error
+from .utils import format_float, get_color, report_error, display_message
 from .widgets import (NXCheckBox, NXColorBox, NXComboBox, NXLabel, NXLineEdit,
                       NXMessageBox, NXPushButton, NXScrollArea, NXrectangle)
 
@@ -261,6 +261,11 @@ class FitTab(NXTab):
             self.fitview.plot(self._data, fmt='o', color=color)
         self.data_num = self.fitview.num
         self.data_label = self.fitview.plots[self.fitview.num]['label']
+        self.cursor = self.fitview.plots[self.fitview.num]['cursor']
+        if self.cursor:
+            @self.cursor.connect("add")
+            def add_selection(sel):
+                self.mask_data()
 
         self.fit_button = NXPushButton('Fit', self.fit_data)
         self.fit_combo = NXComboBox(items=list(all_methods))
@@ -308,7 +313,6 @@ class FitTab(NXTab):
                                             'stretch',
                                             self.color_box,
                                             align='justified')
-        self.mask_button.setVisible(False)
         self.clear_mask_button.setVisible(False)
         
         self.set_layout(model_layout, self.plot_layout)
@@ -487,9 +491,11 @@ class FitTab(NXTab):
     def signal_mask(self):
         mask = self._data['signal'].mask
         if mask and mask.any():
-            signal = self._data['signal'].nxdata.data
-            axis = self._data['axis'].nxdata
-            return NXdata(signal[mask==True], axis[mask==True])
+            mask_data = NXfield(self._data['signal'].nxdata.data[mask==True], 
+                                name='mask')
+            mask_axis = NXfield(self._data['axis'].nxdata[mask==True], 
+                                name='axis')
+            return NXdata(mask_data, mask_axis)
         else:
             return None
 
@@ -504,16 +510,34 @@ class FitTab(NXTab):
     def mask_data(self):
         axis = self._data['axis']
         signal = self._data['signal']
-        signal[(axis>=self.xlo) & (axis<=self.xhi)] = np.ma.masked
+        if self.cursor and self.cursor.selections:
+            idx = self.cursor.selections[0].target.index
+            if np.ma.is_masked(signal.nxvalue[idx]):
+                signal[idx] = np.ma.nomask
+            else:
+                signal[idx] = np.ma.masked
+            self.cursor.remove_selection(self.cursor.selections[0])
+        elif self.rectangle:
+            signal[(axis>=self.xlo) & (axis<=self.xhi)] = np.ma.masked
+        else:
+            display_message('Masking Data',
+            "There are two methods to mask data:\n\n" +
+            "1) Select data with a right-click zoom and click 'Mask Data'\n" +
+            "2) Double-click points to be masked (needs 'mplcursor' package)", 
+                width=350)
+            return
         self.plot_mask()
-        self.remove_rectangle()
-        self.mask_button.setVisible(False)
-        self.clear_mask_button.setVisible(True)
-        self.fit_status.setText('Waiting to fit...')
+        if np.ma.is_masked(signal.nxvalue):
+            self.mask_button.setVisible(False)
+            self.clear_mask_button.setVisible(True)
+        else:
+            self.mask_button.setVisible(True)
+            self.clear_mask_button.setVisible(False)
 
     def clear_masks(self):
         self._data['signal'].mask = np.ma.nomask
         self.remove_masks()
+        self.mask_button.setVisible(True)
         self.clear_mask_button.setVisible(False)
 
     @property
@@ -931,6 +955,11 @@ class FitTab(NXTab):
                               fmt='o', color='white', alpha=0.8)
             self.fitview.ytab.plotcombo.remove(self.mask_num)
             self.fitview.plots[self.mask_num]['legend_label'] = 'Mask'
+            self.fitview.plots[self.mask_num]['show_legend'] = False
+            if self.fitview.plots[self.mask_num]['cursor']:
+                self.fitview.plots[self.mask_num]['cursor'].remove()
+            self.fitview.plots[self.mask_num]['cursor'] = None
+        self.remove_rectangle()
 
     def plot_model(self):
         model_name = self.plot_combo.currentText()
@@ -960,6 +989,7 @@ class FitTab(NXTab):
         self.plot_nums.append(num)
         self.fitview.ytab.plotcombo.remove(num)
         self.fitview.ytab.plotcombo.select(self.data_num)
+        self.remove_rectangle()
         self.fitview.raise_()
 
     def next_plot_num(self):
@@ -1102,7 +1132,6 @@ class FitTab(NXTab):
         self.fitview.otab.release_zoom(event)
         if event.button == 1:
             self.remove_rectangle()
-            self.mask_button.setVisible(False)
         elif event.button == 3 and self.fitview.zoom:
             self.xlo, self.xhi = self.fitview.zoom['x']
             self.ylo, self.yhi = self.fitview.zoom['y']
