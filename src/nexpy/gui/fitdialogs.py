@@ -239,8 +239,10 @@ class FitTab(NXTab):
                 self.model_combo.setItemData(i, text(tooltip), 
                                              QtCore.Qt.ToolTipRole)
         self.form_combo = NXComboBox()
+        self.compose_button = NXPushButton("Compose Models", self.compose_model)
         model_layout = self.make_layout(add_button, self.model_combo, 
-                                        self.form_combo, align='left')
+                                        self.form_combo, 'stretch',
+                                        self.compose_button, align='justified')
         
         self.parameter_layout = self.initialize_parameter_grid()
 
@@ -323,6 +325,8 @@ class FitTab(NXTab):
 
         self.cid = self.fitview.canvas.mpl_connect('button_release_event', 
                                                    self.on_button_release)
+        self.composite_model = ''
+        self.composite_dialog = None
         self.expression_dialog = None
         self.rectangle = None
         self.mask_num = None
@@ -407,6 +411,7 @@ class FitTab(NXTab):
 
     def set_button_visibility(self, fitted=False):
         if len(self.models) == 0:
+            self.compose_button.setVisible(False)
             self.remove_button.setVisible(False)
             self.remove_combo.setVisible(False)
             self.restore_button.setVisible(False)
@@ -421,6 +426,8 @@ class FitTab(NXTab):
             self.plot_combo.setVisible(False)
             self.plot_checkbox.setVisible(False)
         else:
+            if len(self.models) > 1:
+                self.compose_button.setVisible(True)
             self.remove_button.setVisible(True)
             self.remove_combo.setVisible(True)
             self.save_parameters_button.setVisible(True)
@@ -704,6 +711,10 @@ class FitTab(NXTab):
             self.model = model
         else:
             self.model = self.model + model
+        if len(self.models) > 1:
+            self.composite_model += '+' + model_name
+        else:
+            self.composite_model = model_name
         self.set_button_visibility()
  
     def add_model_parameters(self, model_index):
@@ -785,8 +796,10 @@ class FitTab(NXTab):
             m['row'] = self.parameter_grid.getItemPosition(idx)[0]
             if i == 0:
                 self.model = m['model']
+                self.composite_model = m['name']
             else:
                 self.model +=  m['model']
+                self.composite_model += '+' + m['name'] 
             self.rename_model(old_name, m['name'])
         self.read_parameters()
         self.set_button_visibility()
@@ -814,6 +827,15 @@ class FitTab(NXTab):
         self.plot_combo.setItemText(plot_index, new_name)
         remove_index = self.remove_combo.findText(old_name)
         self.remove_combo.setItemText(remove_index, new_name)
+
+    def compose_model(self):
+        if self.composite_dialog:
+            try:
+                self.composite_dialog.close()
+            except Exception:
+                pass
+        self.composite_dialog = CompositeDialog(parent=self)
+        self.composite_dialog.show()
 
     def edit_expression(self):
         if self.expression_dialog:
@@ -1156,7 +1178,7 @@ class FitTab(NXTab):
     def remove_rectangle(self):
         if self.rectangle:
             self.rectangle.remove()
-            self.rectangle = None
+        self.rectangle = None
         self.fitview.draw()
 
     def remove_masks(self):
@@ -1187,6 +1209,47 @@ class FitTab(NXTab):
         self.remove_masks()
         if self.plotview:
             self.remove_plots()
+
+
+class CompositeDialog(NXDialog):
+    """Dialog to define a composite model."""
+
+    def __init__(self, parent=None):
+
+        super(CompositeDialog, self).__init__(parent=parent)
+
+        self.parent = parent
+        self.models = {m['name']: m['model'] for m in self.parent.models}
+        self.expression = NXLineEdit(self.parent.composite_model)
+        self.add_model_button = NXPushButton('Insert Model', self.insert_model)
+        self.model_combo = NXComboBox(items=self.models)
+        self.set_layout(self.expression,
+                        self.make_layout(self.add_model_button,
+                                         self.model_combo, 
+                                         'stretch',
+                                         self.close_buttons(save=True)))
+        self.set_title("Editing Composite Model")
+
+    def insert_model(self):
+        self.expression.insert(self.model_combo.selected)
+
+    def compose_model(self):
+        composite_text = self.expression.text()
+        for m in self.models:
+            composite_text = composite_text.replace(m, f"self.models['{m}']")
+        return eval(composite_text)
+        
+    def accept(self):
+        try:
+            self.parent.model = self.compose_model()
+            self.parent.composite_model = self.expression.text()
+            super(CompositeDialog, self).accept()    
+        except Exception as error:
+            report_error("Editing Composite Model", error)            
+
+    def reject(self):
+        super(CompositeDialog, self).reject()    
+
 
 class ExpressionDialog(NXDialog):
     """Dialog to edit a fitting parameter expression."""
