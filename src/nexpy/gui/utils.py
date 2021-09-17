@@ -91,12 +91,16 @@ def confirm_action(query, information=None, answer=None, icon=None):
         return False
 
 
-def display_message(message, information=None):
+def display_message(message, information=None, width=None):
     """Display a message box with an error message"""
     message_box = QtWidgets.QMessageBox()
     message_box.setText(message)
     if information:
         message_box.setInformativeText(information)
+    if width:
+        message_box.setStyleSheet(f"QLabel{{min-width:{width} px; }}")
+    else:
+        message_box.setStyleSheet("QLabel{min-width:250 px; }")
     return message_box.exec_()
 
 

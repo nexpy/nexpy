@@ -51,7 +51,6 @@ from .widgets import (NXCheckBox, NXColorBox, NXComboBox, NXDoubleSpinBox,
                       NXLabel, NXLineEdit, NXpolygon, NXPushButton,
                       NXScrollArea, NXSpinBox, NXStack)
 
-
 class NXWidget(QtWidgets.QWidget):
     """Customized widget for NeXpy widgets"""
  
@@ -1999,8 +1998,7 @@ class CustomizeTab(NXTab):
         parameters.add('grid', ['On', 'Off'], 'Grid')
         parameters.add('gridcolor', get_color(self.plotview._gridcolor), 
                        'Grid Color', color=True)
-        parameters.add('gridstyle', list(self.linestyles.values()), 
-                       'Grid Style')
+        parameters.add('gridstyle', list(self.linestyles), 'Grid Style')
         parameters.add('minorticks', ['On', 'Off'], 'Minor Ticks')
         parameters.add('cb_minorticks', ['On', 'Off'], 'Color Bar Minor Ticks')
         try:
@@ -2023,7 +2021,7 @@ class CustomizeTab(NXTab):
         else:
             p['grid'].value = 'Off'
         p['gridcolor'].value = get_color(self.plotview._gridcolor)
-        p['gridstyle'].value = self.linestyles[self.plotview._gridstyle]
+        p['gridstyle'].value = self.plotview._gridstyle
         if self.plotview._minorticks:
             p['minorticks'].value = 'On'
         else:
@@ -2045,8 +2043,7 @@ class CustomizeTab(NXTab):
         parameters.add('legend_order', p['legend_order'], 'Legend Order', 
                        slot=self.update_legend_order)
         parameters.add('color', p['color'], 'Color', color=True)
-        parameters.add('linestyle', list(self.linestyles.values()), 
-                       'Line Style')
+        parameters.add('linestyle', list(self.linestyles), 'Line Style')
         parameters.add('linewidth', p['linewidth'], 'Line Width')
         parameters.add('marker', list(self.markers.values()), 'Marker')
         parameters.add('markerstyle', ['filled', 'open'], 'Marker Style')
@@ -2074,9 +2071,9 @@ class CustomizeTab(NXTab):
         pp['legend_order'].value = p['legend_order']
         pp['color'].value = p['color']
         if p['smooth_line']:
-            pp['linestyle'].value = self.linestyles[p['smooth_linestyle']]
+            pp['linestyle'].value = p['smooth_linestyle']
         else:
-            pp['linestyle'].value = self.linestyles[p['linestyle']]
+            pp['linestyle'].value = p['linestyle']
         pp['linewidth'].value = p['linewidth']
         pp['marker'].value = self.markers[p['marker']]
         pp['markerstyle'].value = p['markerstyle']
@@ -2215,8 +2212,8 @@ class CustomizeTab(NXTab):
             else:
                 self.plotview._grid = False
             self.plotview._gridcolor = pi['gridcolor'].value
-            self.plotview._gridstyle = [k for k, v in self.linestyles.items()
-                                        if v == pi['gridstyle'].value][0]
+            self.plotview._gridstyle = [v for k, v in self.linestyles.items()
+                                        if k == pi['gridstyle'].value][0]
             if 'badcolor' in pi:
                 self.plotview.image.cmap.set_bad(pi['badcolor'].value)
             #reset in case plotview.aspect changed by plotview.skew            
@@ -2251,8 +2248,8 @@ class CustomizeTab(NXTab):
                 p['legend_order'] = int(pp['legend_order'].value) - 1
                 p['color'] = pp['color'].value
                 p['plot'].set_color(p['color'])
-                linestyle = [k for k, v in self.linestyles.items()
-                             if v == pp['linestyle'].value][0]
+                linestyle = [v for k, v in self.linestyles.items()
+                             if k == pp['linestyle'].value][0]
                 p['linewidth'] = pp['linewidth'].value
                 p['plot'].set_linestyle(linestyle)
                 p['plot'].set_linewidth(p['linewidth'])
