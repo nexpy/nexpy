@@ -222,10 +222,10 @@ class FitTab(NXTab):
         self.initialize_models()
  
         add_button = NXPushButton("Add Model", self.add_model)
-        self.modelcombo = NXComboBox(items=list(self.all_models), 
-                                     slot=self.choose_model)
-        if 'Gaussian' in self.modelcombo:
-            self.modelcombo.select('Gaussian')
+        self.model_combo = NXComboBox(items=list(self.all_models), 
+                                      slot=self.choose_model)
+        if 'Gaussian' in self.model_combo:
+            self.model_combo.select('Gaussian')
         try:
             from pylatexenc.latex2text import LatexNodes2Text
             text = LatexNodes2Text().latex_to_text
@@ -236,61 +236,56 @@ class FitTab(NXTab):
             if tooltip:
                 tooltip = tooltip.replace('.. math::\n\n', '')
                 tooltip = re.sub(r'\:[a-z]*\:', r'', tooltip)
-                self.modelcombo.setItemData(i, text(tooltip), 
-                                            QtCore.Qt.ToolTipRole)
-        self.formcombo = NXComboBox()
-        self.formcombo.setVisible(False)
-        model_layout = self.make_layout(add_button, self.modelcombo, 
-                                        self.formcombo, align='left')
+                self.model_combo.setItemData(i, text(tooltip), 
+                                             QtCore.Qt.ToolTipRole)
+        self.form_combo = NXComboBox()
+        model_layout = self.make_layout(add_button, self.model_combo, 
+                                        self.form_combo, align='left')
         
         self.parameter_layout = self.initialize_parameter_grid()
 
-        remove_button = NXPushButton("Remove Model", self.remove_model)
-        self.removecombo = NXComboBox()
+        self.remove_button = NXPushButton("Remove Model", self.remove_model)
+        self.remove_combo = NXComboBox()
         self.restore_button = NXPushButton("Restore Parameters", 
                                            self.restore_parameters)
         self.save_parameters_button = NXPushButton("Save Parameters", 
                                                    self.save_parameters)
-        self.remove_layout = self.make_layout(remove_button,
-                                              self.removecombo,
+        self.remove_layout = self.make_layout(self.remove_button,
+                                              self.remove_combo,
                                               'stretch',
                                               self.restore_button,
                                               self.save_parameters_button,
                                               align='justified')
-        self.save_parameters_button.setVisible(False)
-        self.restore_button.setVisible(False)
 
         if self.plotview is None:
             self.fitview.plot(self._data, fmt='o', color=color)
         self.data_num = self.fitview.num
         self.data_label = self.fitview.plots[self.fitview.num]['label']
 
-        fit_button = NXPushButton('Fit', self.fit_data)
-        self.methodcombo = NXComboBox(items=list(all_methods))
+        self.fit_button = NXPushButton('Fit', self.fit_data)
+        self.fit_combo = NXComboBox(items=list(all_methods))
         for i, m in enumerate(all_methods):
             tooltip = all_methods[m]
             if tooltip:
-                self.methodcombo.setItemData(i, text(tooltip), 
-                                             QtCore.Qt.ToolTipRole)
-        self.methodcombo.sort()
-        self.methodcombo.select('leastsq') 
+                self.fit_combo.setItemData(i, text(tooltip), 
+                                           QtCore.Qt.ToolTipRole)
+        self.fit_combo.sort()
+        self.fit_combo.select('leastsq') 
         if self._data.nxerrors:
             self.fit_checkbox = NXCheckBox('Use Errors', checked=True)
         else:
             self.fit_checkbox = NXCheckBox('Use Poisson Errors',
                                            self.define_errors)
         self.save_fit_button = NXPushButton("Save Fit", self.save_fit)
-        self.adjust_layout = self.make_layout(fit_button,
-                                              self.methodcombo,
+        self.adjust_layout = self.make_layout(self.fit_button,
+                                              self.fit_combo,
                                               self.fit_checkbox,
                                               'stretch',
                                               self.save_fit_button,
                                               align='justified')
 
-        self.fit_status = NXLabel('Note: Use right-click zooms to mask data', 
-                                  width=600)
+        self.fit_status = NXLabel(width=600)
         self.report_button = NXPushButton("Show Fit Report", self.report_fit)
-        self.report_button.setVisible(False)
         self.action_layout = self.make_layout(self.fit_status,
                                               'stretch',
                                               self.report_button,
@@ -298,18 +293,15 @@ class FitTab(NXTab):
 
         plot_data_button = NXPushButton('Plot Data', self.plot_data)
         self.plot_model_button = NXPushButton('Plot Model', self.plot_model)
-        self.plot_model_button.setVisible(False)
-        self.plotcombo = NXComboBox()
-        self.plotcombo.setVisible(False)
+        self.plot_combo = NXComboBox()
         self.plot_checkbox = NXCheckBox('Use Data Points')
-        self.plot_checkbox.setVisible(False)
         self.mask_button = NXPushButton('Mask Data', self.mask_data)
         self.clear_mask_button = NXPushButton('Clear Masks', self.clear_masks)
         self.color_box = NXColorBox(get_color(color), label='Plot Color',
                                     width=100)
         self.plot_layout = self.make_layout(plot_data_button, 
                                             self.plot_model_button,
-                                            self.plotcombo, 
+                                            self.plot_combo, 
                                             self.plot_checkbox,
                                             self.mask_button,
                                             self.clear_mask_button,
@@ -318,10 +310,12 @@ class FitTab(NXTab):
                                             align='justified')
         self.mask_button.setVisible(False)
         self.clear_mask_button.setVisible(False)
-
+        
         self.set_layout(model_layout, self.plot_layout)
         self.layout.setSpacing(5)
         self.set_title("Fit NeXus Data")
+        self.choose_model()
+        self.set_button_visibility()
 
         self.cid = self.fitview.canvas.mpl_connect('button_release_event', 
                                                    self.on_button_release)
@@ -405,8 +399,40 @@ class FitTab(NXTab):
                                        QtWidgets.QSizePolicy.Expanding)
         
         grid_layout.addWidget(self.scroll_area)
-
         return grid_layout
+
+    def set_button_visibility(self, fitted=False):
+        if len(self.models) == 0:
+            self.remove_button.setVisible(False)
+            self.remove_combo.setVisible(False)
+            self.restore_button.setVisible(False)
+            self.save_parameters_button.setVisible(False)
+            self.fit_button.setVisible(False)
+            self.fit_combo.setVisible(False)
+            self.fit_checkbox.setVisible(False)
+            self.fit_status.setVisible(False)
+            self.report_button.setVisible(False)
+            self.save_fit_button.setVisible(False)
+            self.plot_model_button.setVisible(False)
+            self.plot_combo.setVisible(False)
+            self.plot_checkbox.setVisible(False)
+        else:
+            self.remove_button.setVisible(True)
+            self.remove_combo.setVisible(True)
+            self.save_parameters_button.setVisible(True)
+            self.fit_button.setVisible(True)
+            self.fit_combo.setVisible(True)
+            self.fit_checkbox.setVisible(True)
+            self.plot_model_button.setVisible(True)
+            self.plot_combo.setVisible(True)
+            self.plot_checkbox.setVisible(True)
+            if fitted:
+                self.restore_button.setVisible(True)
+                self.fit_status.setVisible(True)
+                self.report_button.setVisible(True)
+                self.save_fit_button.setVisible(True)
+            else:
+                self.save_fit_button.setVisible(False)
 
     @property
     def data(self):
@@ -513,7 +539,7 @@ class FitTab(NXTab):
 
     @property
     def method(self):
-        return self.methodcombo.selected
+        return self.fit_combo.selected
 
     @property
     def color(self):
@@ -614,24 +640,24 @@ class FitTab(NXTab):
             return NXModel(self.all_models[model_class], prefix=model_name+'_')
         elif self.all_models[model_class].valid_forms:
             return self.all_models[model_class](prefix=model_name+'_',
-                                                form=self.formcombo.selected)
+                                                form=self.form_combo.selected)
         else:
             return self.all_models[model_class](prefix=model_name+'_')
 
     def choose_model(self):
-        model_class = self.modelcombo.selected
+        model_class = self.model_combo.selected
         try:
             if self.all_models[model_class].valid_forms:
-                self.formcombo.setVisible(True)
-                self.formcombo.clear()
-                self.formcombo.add(*self.all_models[model_class].valid_forms)
+                self.form_combo.setVisible(True)
+                self.form_combo.clear()
+                self.form_combo.add(*self.all_models[model_class].valid_forms)
             else:
-                self.formcombo.setVisible(False)
+                self.form_combo.setVisible(False)
         except AttributeError:
-            self.formcombo.setVisible(False)
+            self.form_combo.setVisible(False)
                
     def add_model(self):
-        model_class = self.modelcombo.selected
+        model_class = self.model_combo.selected
         model_index = len(self.models)
         model_name = (model_class.replace('Model', '').replace(' ', '_') 
                       + '_' + str(model_index+1))
@@ -654,9 +680,7 @@ class FitTab(NXTab):
             self.model = model
         else:
             self.model = self.model + model
-        self.save_fit_button.setVisible(False)
-        self.save_parameters_button.setVisible(True)
-        self.methodcombo.setVisible(True)
+        self.set_button_visibility()
  
     def add_model_parameters(self, model_index):
         self.add_model_rows(model_index)
@@ -665,15 +689,13 @@ class FitTab(NXTab):
             self.layout.insertLayout(2, self.remove_layout)
             self.layout.insertLayout(3, self.adjust_layout)
             self.layout.insertLayout(4, self.action_layout)
-            self.plot_model_button.setVisible(True)
-            self.plotcombo.add('All')
-            self.plotcombo.insertSeparator(1)
-            self.plotcombo.setVisible(True)
-            self.plot_checkbox.setVisible(True)
+            self.plot_combo.add('All')
+            self.plot_combo.insertSeparator(1)
+            self.set_button_visibility()
         model_name = self.models[model_index]['name']
-        self.removecombo.add(self.expanded_name(model_name))
-        self.removecombo.select(self.expanded_name(model_name))
-        self.plotcombo.add(self.expanded_name(model_name))
+        self.remove_combo.add(self.expanded_name(model_name))
+        self.remove_combo.select(self.expanded_name(model_name))
+        self.plot_combo.add(self.expanded_name(model_name))
         self.first_time = False
 
     def add_model_rows(self, model_index): 
@@ -711,7 +733,7 @@ class FitTab(NXTab):
         self.models[model_index]['label_box'] = label_box
 
     def remove_model(self):
-        expanded_name = self.removecombo.currentText()
+        expanded_name = self.remove_combo.currentText()
         model_name = self.compressed_name(expanded_name)
         model_index = [self.models.index(m) for m in self.models 
                        if m['name'] == model_name][0]
@@ -727,8 +749,8 @@ class FitTab(NXTab):
                         self.parameter_grid.removeWidget(widget)
                         widget.deleteLater()
         self.models.pop(model_index)
-        self.plotcombo.removeItem(self.plotcombo.findText(expanded_name))
-        self.removecombo.removeItem(self.removecombo.findText(expanded_name))
+        self.plot_combo.removeItem(self.plot_combo.findText(expanded_name))
+        self.remove_combo.removeItem(self.remove_combo.findText(expanded_name))
         self.model = None
         for i, m in enumerate(self.models):
             old_name = m['name']
@@ -742,10 +764,8 @@ class FitTab(NXTab):
             else:
                 self.model +=  m['model']
             self.rename_model(old_name, m['name'])
-        if len(self.models) == 0:
-            self.save_parameters_button.setVisible(False)
         self.read_parameters()
-        self.save_fit_button.setVisible(False)
+        self.set_button_visibility()
 
     def rename_parameters(self, model, old_name):
         model['model'].prefix = model['name'] + '_'
@@ -766,10 +786,10 @@ class FitTab(NXTab):
     def rename_model(self, old_name, new_name):
         old_name, new_name = (self.expanded_name(old_name), 
                               self.expanded_name(new_name))
-        plot_index = self.plotcombo.findText(old_name)
-        self.plotcombo.setItemText(plot_index, new_name)
-        remove_index = self.removecombo.findText(old_name)
-        self.removecombo.setItemText(remove_index, new_name)
+        plot_index = self.plot_combo.findText(old_name)
+        self.plot_combo.setItemText(plot_index, new_name)
+        remove_index = self.remove_combo.findText(old_name)
+        self.remove_combo.setItemText(remove_index, new_name)
 
     def edit_expression(self):
         if self.expression_dialog:
@@ -913,7 +933,7 @@ class FitTab(NXTab):
             self.fitview.plots[self.mask_num]['legend_label'] = 'Mask'
 
     def plot_model(self):
-        model_name = self.plotcombo.currentText()
+        model_name = self.plot_combo.currentText()
         num = self.next_plot_num()
         xmin, xmax = self.plot_min, self.plot_max
         if model_name == 'All':
@@ -972,10 +992,7 @@ class FitTab(NXTab):
                 self.fit_status.setText('Fit Failed Chi^2 = %s' 
                                         % format_float(self.fit.result.redchi))
             self.parameters = self.fit.params
-            if not self.fitted:
-                self.report_button.setVisible(True)
-                self.restore_button.setVisible(True)
-                self.save_fit_button.setVisible(True)
+            self.set_button_visibility(fitted=True)
             self.fitted = True
         else:
             self.fit_status.setText('Fit failed')
