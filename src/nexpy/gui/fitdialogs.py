@@ -75,14 +75,12 @@ all_functions = get_functions()
 def get_models():
     """Return a list of available models."""
 
+    from lmfit.models import lmfit_models
+    models = lmfit_models
+    del models['Expression']
+    del models['Gaussian-2D']
+
     filenames = set()
-    private_path = os.path.join(os.path.expanduser('~'), '.nexpy', 'models')
-    if os.path.isdir(private_path):
-        sys.path.append(private_path)
-        for file_ in os.listdir(private_path):
-            name, ext = os.path.splitext(file_)
-            if name != '__init__' and ext.startswith('.py'):
-                filenames.add(name)
 
     models_path = pkg_resources.resource_filename('nexpy.api.frills', 
                                                      'models')
@@ -92,7 +90,14 @@ def get_models():
         if name != '__init__' and ext.startswith('.py'):
             filenames.add(name)
 
-    models = {}
+    private_path = os.path.join(os.path.expanduser('~'), '.nexpy', 'models')
+    if os.path.isdir(private_path):
+        sys.path.append(private_path)
+        for file_ in os.listdir(private_path):
+            name, ext = os.path.splitext(file_)
+            if name != '__init__' and ext.startswith('.py'):
+                filenames.add(name)
+
     for name in sorted(filenames):
         try:
             module = importlib.import_module(name)
@@ -101,10 +106,6 @@ def get_models():
                 if issubclass(m, Model) and n != 'Model'))
         except ImportError:
             pass
-    from lmfit.models import lmfit_models
-    models.update(lmfit_models)
-    del models['Expression']
-    del models['Gaussian-2D']
 
     return models
 
