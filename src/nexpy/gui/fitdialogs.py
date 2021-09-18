@@ -646,9 +646,16 @@ class FitTab(NXTab):
             for model_index, model in enumerate(self.models):
                 if model_index == 0:
                     self.model = model['model']
+                    self.composite_model = model['name']
                 else:
                     self.model += model['model']
+                    self.composite_model += '+' + model['name']
                 self.add_model_parameters(model_index)
+            try:
+                if 'model' in group:
+                    self.eval_model(group['model'].nxvalue)
+            except NeXusError:
+                pass
             self.write_parameters()
             self.save_parameters_button.setVisible(True)
             self.save_fit_button.setVisible(False)
@@ -837,6 +844,17 @@ class FitTab(NXTab):
                 pass
         self.composite_dialog = CompositeDialog(parent=self)
         self.composite_dialog.show()
+
+    def eval_model(self, composite_text):
+        models = {m['name']: m['model'] for m in self.models}
+        text = composite_text
+        for m in models:
+            text = text.replace(m, f"models['{m}']")
+        try:
+            self.model = eval(text)
+        except Exception as error:
+            raise NeXusError(str(error))
+        self.composite_model = composite_text
 
     def edit_expression(self):
         if self.expression_dialog:
@@ -1080,6 +1098,7 @@ class FitTab(NXTab):
             return
         self.read_parameters()
         group = NXprocess()
+        group['model'] = self.composite_model
         group['data'] = self.data
         for m in self.models:
             group[m['name']] = self.get_model(m['name'])
@@ -1116,6 +1135,7 @@ class FitTab(NXTab):
         """Saves parameters to an NXprocess group"""
         self.read_parameters()
         group = NXprocess()
+        group['model'] = self.composite_model
         group['data'] = self.data
         for m in self.models:
             group[m['name']] = self.get_model(m['name'])
@@ -1220,10 +1240,10 @@ class CompositeDialog(NXDialog):
         super(CompositeDialog, self).__init__(parent=parent)
 
         self.parent = parent
-        self.models = {m['name']: m['model'] for m in self.parent.models}
         self.expression = NXLineEdit(self.parent.composite_model)
         self.add_model_button = NXPushButton('Insert Model', self.insert_model)
-        self.model_combo = NXComboBox(items=self.models)
+        self.model_combo = NXComboBox(items=[m['name'] 
+                                             for m in self.parent.models])
         self.set_layout(self.expression,
                         self.make_layout(self.add_model_button,
                                          self.model_combo, 
@@ -1234,18 +1254,11 @@ class CompositeDialog(NXDialog):
     def insert_model(self):
         self.expression.insert(self.model_combo.selected)
 
-    def compose_model(self):
-        composite_text = self.expression.text()
-        for m in self.models:
-            composite_text = composite_text.replace(m, f"self.models['{m}']")
-        return eval(composite_text)
-        
     def accept(self):
         try:
-            self.parent.model = self.compose_model()
-            self.parent.composite_model = self.expression.text()
+            self.parent.eval_model(self.expression.text())
             super(CompositeDialog, self).accept()    
-        except Exception as error:
+        except NeXusError as error:
             report_error("Editing Composite Model", error)            
 
     def reject(self):
