@@ -624,11 +624,13 @@ class FitTab(NXTab):
                                 saved_parameters[p].attrs['min'])
                             parameter.max = float(
                                 saved_parameters[p].attrs['max'])
+                            if 'vary' in saved_parameters[p].attrs:
+                                parameter.vary = saved_parameters[p].attrs['vary']
                             if 'expr' in saved_parameters[p].attrs:
                                 parameter.expr = saved_parameters[p].attrs['expr']
-                            if parameter.expr:
-                                parameter.vary = False
-                            elif 'error' in saved_parameters[p].attrs:
+                            else:
+                                parameter.expr = None
+                            if 'error' in saved_parameters[p].attrs:
                                 error = saved_parameters[p].attrs['error']
                                 if error:
                                     parameter.stderr = float(
@@ -640,6 +642,7 @@ class FitTab(NXTab):
                                         'class': model_class,
                                         'model': model, 
                                         'parameters': parameters})
+            self.parameters = self.parameters
             def idx(model):
                 return int(re.match('.*?([0-9]+)$', model['name']).group(1))
             self.models = sorted(self.models, key=idx)
@@ -653,7 +656,9 @@ class FitTab(NXTab):
                 self.add_model_parameters(model_index)
             try:
                 if 'model' in group:
-                    self.eval_model(group['model'].nxvalue)
+                    composite_model = group['model'].nxvalue
+                    self.model = self.eval_model(composite_model)
+                    self.composite_model = composite_model
             except NeXusError:
                 pass
             self.write_parameters()
