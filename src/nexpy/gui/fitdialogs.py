@@ -328,6 +328,7 @@ class FitTab(NXTab):
                                                    self.on_button_release)
         self.composite_model = ''
         self.composite_dialog = None
+        self.plot_dialog = None
         self.expression_dialog = None
         self.rectangle = None
         self.mask_num = None
@@ -567,7 +568,6 @@ class FitTab(NXTab):
                     m['parameters'][p].expr = new_parameters[p].expr
                     m['parameters'][p].stderr = new_parameters[p].stderr
                     m['parameters'][p].correl = new_parameters[p].correl
-        self.write_parameters()
 
     @property
     def method(self):
@@ -739,11 +739,14 @@ class FitTab(NXTab):
             self.layout.insertLayout(4, self.action_layout)
             self.plot_combo.add('All')
             self.plot_combo.insertSeparator(1)
+            self.plot_combo.insertSeparator(2)
+            self.plot_combo.add('Composite Model')
             self.set_button_visibility()
         model_name = self.models[model_index]['name']
         self.remove_combo.add(self.expanded_name(model_name))
         self.remove_combo.select(self.expanded_name(model_name))
-        self.plot_combo.add(self.expanded_name(model_name))
+        self.plot_combo.insert(self.plot_combo.count()-2,
+                               self.expanded_name(model_name))
         self.first_time = False
 
     def add_model_rows(self, model_index): 
@@ -856,10 +859,9 @@ class FitTab(NXTab):
         for m in models:
             text = text.replace(m, f"models['{m}']")
         try:
-            self.model = eval(text)
+            return eval(text)
         except Exception as error:
             raise NeXusError(str(error))
-        self.composite_model = composite_text
 
     def edit_expression(self):
         if self.expression_dialog:
@@ -930,10 +932,12 @@ class FitTab(NXTab):
                 if p.vary:
                     write_value(p.box['error'], p.stderr, prefix='+/-')
                     p.box['fixed'].setCheckState(QtCore.Qt.Unchecked)
+                else:
+                    p.box['fixed'].setCheckState(QtCore.Qt.Checked)
                 write_value(p.box['min'], p.min)
                 write_value(p.box['max'], p.max)
 
-    def get_model(self, name=None, fit=False):
+    def get_model(self, model=None, fit=False):
         if self.plot_checkbox.isChecked():
             x = self.axis
         else:
@@ -944,20 +948,15 @@ class FitTab(NXTab):
             parameters = self.fit.params
         else:
             parameters = self.read_parameters()
-        if name:
-            model = [m['model'] for m in self.models if m['name'] == name][0]
-            ys = self.model.eval_components(params=parameters, x=x)
-            if isinstance(ys[model.prefix], float):
-                ys[model.prefix] = ys[model.prefix] * np.ones(shape=x.shape)
-            model_data = NXfield(ys[model.prefix], name=name)
+        if model is None:
+            model = self.model
+        y = model.eval(parameters, x=x)
+        if isinstance(y, float):
+            y = y * np.ones(shape=x.shape)
+        if fit:
+            model_data = NXfield(y, name='fit')
         else:
-            y = self.model.eval(parameters, x=x)
-            if isinstance(y, float):
-                y = y * np.ones(shape=x.shape)
-            if fit:
-                model_data = NXfield(y, name='fit')
-            else:
-                model_data = NXfield(y, name='model')
+            model_data = NXfield(y, name='model')
         return NXdata(model_data, model_axis, title=self.data.nxtitle)
 
     def get_limits(self):
@@ -1007,8 +1006,21 @@ class FitTab(NXTab):
             self.fitview.plots[self.mask_num]['cursor'] = None
         self.remove_rectangle()
 
-    def plot_model(self):
+    def plot_model(self, model=False):
         model_name = self.plot_combo.currentText()
+        if model is False:
+            if model_name == 'Composite Model':
+                if self.plot_dialog:
+                    try:
+                        self.plot_dialog.close()
+                    except Exception:
+                        pass
+                self.plot_dialog = PlotModelDialog(parent=self)
+                self.plot_dialog.show()
+                return
+            elif model_name != 'All':
+                name = self.compressed_name(model_name)
+                model = [m['model'] for m in self.models if m['name'] == name][0]
         num = self.next_plot_num()
         xmin, xmax = self.plot_min, self.plot_max
         if model_name == 'All':
@@ -1024,12 +1036,11 @@ class FitTab(NXTab):
             else:
                 self.fitview.plots[num]['legend_label'] = 'Model'
         else:
-            name = self.compressed_name(model_name)
-            self.fitview.plot(self.get_model(name), color=self.color,
+            self.fitview.plot(self.get_model(model), color=self.color,
                               marker=None, linestyle=next(self.linestyle), 
                               xmin=self.plot_min, xmax=self.plot_max,
                               over=True, num=num)
-            self.fitview.plots[num]['legend_label'] = name
+            self.fitview.plots[num]['legend_label'] = model_name
         self.fitview.plots[num]['show_legend'] = False
         self.fitview.set_plot_limits(xmin=xmin, xmax=xmax)
         self.plot_nums.append(num)
@@ -1068,6 +1079,7 @@ class FitTab(NXTab):
                 self.fit_status.setText('Fit Failed Chi^2 = %s' 
                                         % format_float(self.fit.result.redchi))
             self.parameters = self.fit.params
+            self.write_parameters()
             self.set_button_visibility(fitted=True)
             self.fitted = True
         else:
@@ -1106,7 +1118,7 @@ class FitTab(NXTab):
         group['model'] = self.composite_model
         group['data'] = self.data
         for m in self.models:
-            group[m['name']] = self.get_model(m['name'])
+            group[m['name']] = self.get_model(m['model'])
             parameters = NXparameters(attrs={'model':m['class']})
             for name in m['parameters']:
                 p = self.fit.params[name]
@@ -1114,7 +1126,7 @@ class FitTab(NXTab):
                 parameters[name] = NXfield(p.value, error=p.stderr, 
                                            initial_value=p.init_value,
                                            min=str(p.min), max=str(p.max),
-                                           expr=p.expr)
+                                           vary=p.vary, expr=p.expr)
             group[m['name']].insert(parameters)
         group['program'] = 'lmfit'
         group['program'].attrs['version'] = lmfit_version
@@ -1143,14 +1155,14 @@ class FitTab(NXTab):
         group['model'] = self.composite_model
         group['data'] = self.data
         for m in self.models:
-            group[m['name']] = self.get_model(m['name'])
+            group[m['name']] = self.get_model(m['model'])
             parameters = NXparameters(attrs={'model':m['class']})
             for n,p in m['parameters'].items():
                 n = n.replace(m['model'].prefix, '')
                 parameters[n] = NXfield(p.value, error=p.stderr, 
                                         initial_value=p.init_value,
                                         min=str(p.min), max=str(p.max),
-                                        expr=p.expr)
+                                        vary=p.vary, expr=p.expr)
             group[m['name']].insert(parameters)
         group['title'] = 'Fit Model'
         group['model'] = self.get_model()
@@ -1174,6 +1186,7 @@ class FitTab(NXTab):
 
     def restore_parameters(self):
         self.parameters = self.fit.init_params
+        self.write_parameters()
         self.fit_status.setText('Waiting to fit...')
 
     def on_button_release(self, event):
@@ -1261,13 +1274,37 @@ class CompositeDialog(NXDialog):
 
     def accept(self):
         try:
-            self.parent.eval_model(self.expression.text())
+            self.parent.model = self.parent.eval_model(self.expression.text())
+            self.parent.composite_model = self.expression.text()
             super(CompositeDialog, self).accept()    
         except NeXusError as error:
             report_error("Editing Composite Model", error)            
 
-    def reject(self):
-        super(CompositeDialog, self).reject()    
+
+class PlotModelDialog(NXDialog):
+    """Dialog to plot a composite model."""
+
+    def __init__(self, parent=None):
+
+        super(PlotModelDialog, self).__init__(parent=parent)
+
+        self.parent = parent
+        self.expression = NXLineEdit(self.parent.composite_model)
+        self.plot_model_button = NXPushButton('Plot Model', self.plot_model)
+        self.set_layout(self.expression,
+                        self.make_layout(self.plot_model_button,
+                                         'stretch',
+                                         self.close_buttons(close=True)))
+        self.set_title("Plotting Composite Model")
+        self.setMinimumWidth(400)
+
+    def plot_model(self):
+        try:
+            model = self.parent.eval_model(self.expression.text())
+            self.parent.plot_model(model)
+            super(PlotModelDialog, self).accept()
+        except NeXusError as error:
+            report_error("Plotting Composite Model", error)            
 
 
 class ExpressionDialog(NXDialog):
@@ -1309,6 +1346,3 @@ class ExpressionDialog(NXDialog):
             super(ExpressionDialog, self).accept()    
         except NeXusError as error:
             report_error("Editing Expression", error)            
-
-    def reject(self):
-        super(ExpressionDialog, self).reject()    
