@@ -23,7 +23,6 @@ import numpy as np
 
 from .pyqt import QtCore, QtGui, QtWidgets
 
-import matplotlib as mpl
 from lmfit import Model, Parameter, Parameters
 from lmfit import __version__ as lmfit_version
 from lmfit import models

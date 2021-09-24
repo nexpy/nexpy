@@ -19,7 +19,6 @@ import numpy as np
 
 from .pyqt import QtCore, QtGui, QtWidgets
 
-import matplotlib as mpl
 from matplotlib import cbook, colors
 from matplotlib.patches import Circle, Ellipse, Polygon, Rectangle
 
