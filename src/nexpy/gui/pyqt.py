@@ -10,7 +10,6 @@
 #-----------------------------------------------------------------------------
 import os
 
-import matplotlib as mpl
 from qtpy import QtCore, QtGui, QtWidgets
 
 if QtCore.PYQT5:
