@@ -52,10 +52,10 @@ else:
     from matplotlib.backends.backend_qt4agg import NavigationToolbar2QT
 
 from matplotlib import markers
-from matplotlib.cm import get_cmap, register_cmap
+from matplotlib.cm import ScalarMappable, cmap_d, get_cmap, register_cmap
 from matplotlib.colors import LogNorm, Normalize, SymLogNorm
 from matplotlib.figure import Figure
-from matplotlib.image import NonUniformImage
+from matplotlib.image import NonUniformImage, imread
 from matplotlib.lines import Line2D
 from matplotlib.patches import Circle, Ellipse, Polygon, Rectangle
 from matplotlib.ticker import AutoLocator, LogLocator, ScalarFormatter
@@ -105,7 +105,6 @@ cmaps = ['viridis', 'inferno', 'magma', 'plasma', #perceptually uniform
          'tab10', 'tab20', #qualitative
          'seismic', 'coolwarm', 'twilight', 'divgray',
          'RdBu', 'RdYlBu', 'RdYlGn'] #diverging
-from matplotlib.cm import cmap_d
 
 cmaps = [cm for cm in cmaps if cm in cmap_d]
 if 'viridis' in cmaps:
@@ -132,7 +131,7 @@ markers = {'.': 'point', ',': 'pixel', '+': 'plus', 'x': 'x',
            'o': 'circle', 's': 'square', 'D': 'diamond', 'H': 'hexagon', 
            'v': 'triangle_down', '^': 'triangle_up', '<': 'triangle_left', 
            '>': 'triangle_right', 'None': 'None'}
-logo = mpl.image.imread(pkg_resources.resource_filename(
+logo = imread(pkg_resources.resource_filename(
            'nexpy.gui', 'resources/icon/NeXpy.png'))[180:880,50:1010]
 warnings.filterwarnings("ignore", category=mplDeprecation)
 
@@ -2421,7 +2420,7 @@ class NXPlotView(QtWidgets.QDialog):
         self.vaxis.min = self.vaxis.lo = z.min()
         self.vaxis.max = self.vaxis.hi = z.max()
         self.set_data_norm()
-        mapper = mpl.cm.ScalarMappable(norm=self.norm, cmap=self.cmap)
+        mapper = ScalarMappable(norm=self.norm, cmap=self.cmap)
         mapper.set_array(z)
         for r in range(len(vor.point_region)):
             region = vor.regions[vor.point_region[r]]

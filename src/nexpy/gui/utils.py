@@ -31,11 +31,8 @@ import numpy as np
 
 from .pyqt import QtCore, QtWidgets, getOpenFileName
 
-import matplotlib as mpl
 from IPython.core.ultratb import ColorTB
-from matplotlib.cm import get_cmap
-from matplotlib.colors import (LinearSegmentedColormap, colorConverter,
-                               hex2color, rgb2hex)
+from matplotlib.colors import colorConverter, hex2color, rgb2hex
 
 try:
     from astropy.convolution import Kernel
@@ -470,6 +467,7 @@ def parula_map():
     Ander Biguri, "Perceptually uniform colormaps"
     MATLAB Central File Exchange (2020). 
     """
+    from matplotlib.colors import LinearSegmentedColormap
     cm_data = [[0.2081, 0.1663, 0.5292], 
                [0.2116238095, 0.1897809524, 0.5776761905], 
                [0.212252381, 0.2137714286, 0.6269714286],
@@ -538,6 +536,7 @@ def parula_map():
 
 def divgray_map():
     """New divergent color map copied from the registered 'gray' map."""
+    from matplotlib.cm import get_cmap
     cm = copy.copy(get_cmap('gray'))
     cm.name = 'divgray'
     return cm
@@ -552,7 +551,8 @@ def cmyk_to_rgb(c, m, y, k):
 def load_image(filename):
     if os.path.splitext(filename.lower())[1] in ['.png', '.jpg', '.jpeg',
                                                  '.gif']:
-        im = mpl.image.imread(filename)
+        from matplotlib.image import imread
+        im = imread(filename)
         z = NXfield(im, name='z')
         y = NXfield(range(z.shape[0]), name='y')
         x = NXfield(range(z.shape[1]), name='x')
@@ -627,31 +627,33 @@ def initialize_preferences(settings):
 
 
 def set_style(style=None):
+    from matplotlib.style import use
     if style == 'publication':
-        mpl.style.use('default')
-        mpl.rcParams['axes.titlesize'] = 24
-        mpl.rcParams['axes.titlepad'] = 20
-        mpl.rcParams['axes.labelsize'] = 20
-        mpl.rcParams['axes.labelpad'] = 5
-        mpl.rcParams['axes.formatter.limits'] = -5, 5
-        mpl.rcParams['lines.linewidth'] = 3
-        mpl.rcParams['lines.markersize'] = 10
-        mpl.rcParams['xtick.labelsize'] = 16
-        mpl.rcParams['xtick.direction'] = 'in'
-        mpl.rcParams['xtick.top'] = True
-        mpl.rcParams['xtick.major.pad'] = 5
-        mpl.rcParams['xtick.minor.visible'] = True
-        mpl.rcParams['ytick.labelsize'] = 16
-        mpl.rcParams['ytick.direction'] = 'in'
-        mpl.rcParams['ytick.right'] = True
-        mpl.rcParams['ytick.major.pad'] = 5
-        mpl.rcParams['ytick.minor.visible'] = True
-        mpl.rcParams['legend.fontsize'] = 14
-        mpl.rcParams['figure.autolayout'] = True
+        from matplotlib import rcParams
+        use('default')
+        rcParams['axes.titlesize'] = 24
+        rcParams['axes.titlepad'] = 20
+        rcParams['axes.labelsize'] = 20
+        rcParams['axes.labelpad'] = 5
+        rcParams['axes.formatter.limits'] = -5, 5
+        rcParams['lines.linewidth'] = 3
+        rcParams['lines.markersize'] = 10
+        rcParams['xtick.labelsize'] = 16
+        rcParams['xtick.direction'] = 'in'
+        rcParams['xtick.top'] = True
+        rcParams['xtick.major.pad'] = 5
+        rcParams['xtick.minor.visible'] = True
+        rcParams['ytick.labelsize'] = 16
+        rcParams['ytick.direction'] = 'in'
+        rcParams['ytick.right'] = True
+        rcParams['ytick.major.pad'] = 5
+        rcParams['ytick.minor.visible'] = True
+        rcParams['legend.fontsize'] = 14
+        rcParams['figure.autolayout'] = True
     elif style is not None:
-        mpl.style.use(style)
+        use(style)
     else:
-        mpl.style.use('default')
+        use('default')
 
 
 class NXimporter(object):
