@@ -94,7 +94,6 @@ from .widgets import (NXCheckBox, NXcircle, NXComboBox, NXDoubleSpinBox,
 active_plotview = None
 plotview = None
 plotviews = {}
-colors = mpl.rcParams['axes.prop_cycle'].by_key()['color']
 register_cmap('parula', parula_map())
 register_cmap('divgray', divgray_map())
 cmaps = ['viridis', 'inferno', 'magma', 'plasma', #perceptually uniform
@@ -960,7 +959,7 @@ class NXPlotView(QtWidgets.QDialog):
 
         if fmt == '':
             if 'color' not in opts:
-                opts['color'] = colors[(self.num-1) % len(colors)]
+                opts['color'] = self.colors[(self.num-1) % len(self.colors)]
             if 'marker' not in opts:
                 opts['marker'] = 'o'
             if 'linestyle' not in opts and 'ls' not in opts:
@@ -1768,6 +1767,10 @@ class NXPlotView(QtWidgets.QDialog):
             If the requested color map is not available.
         """
         self.vtab.cmap = cmap
+
+    @property
+    def colors(self):
+        return mpl.rcParams['axes.prop_cycle'].by_key()['color']
 
     @property
     def bad(self):

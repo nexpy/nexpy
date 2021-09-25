@@ -33,6 +33,7 @@ from .pyqt import QtCore, QtWidgets, getOpenFileName
 
 from IPython.core.ultratb import ColorTB
 from matplotlib.colors import colorConverter, hex2color, rgb2hex
+from matplotlib import rcParams
 
 try:
     from astropy.convolution import Kernel
@@ -432,7 +433,7 @@ def get_color(color):
     return rgb2hex(colorConverter.to_rgb(color))
 
 
-def get_colors(n, first='#1f77b4', last='#d62728'):
+def get_colors(n, first=None, last=None):
     """Return a list of colors interpolating between the first and last.
 
     The function accepts both strings representing hex colors and tuples 
@@ -452,6 +453,10 @@ def get_colors(n, first='#1f77b4', last='#d62728'):
     colors : list
         A list of strings containing hex colors
     """
+    if first is None:
+        first = rcParams['axes.prop_cycle'].by_key()['color'][0]
+    if last is None:
+        last = rcParams['axes.prop_cycle'].by_key()['color'][-1]
     if not isinstance(first, tuple):
         first = hex2color(first)
     if not isinstance(last, tuple):
@@ -629,7 +634,6 @@ def initialize_preferences(settings):
 def set_style(style=None):
     from matplotlib.style import use
     if style == 'publication':
-        from matplotlib import rcParams
         use('default')
         rcParams['axes.titlesize'] = 24
         rcParams['axes.titlepad'] = 20
