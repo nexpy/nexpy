@@ -1244,8 +1244,9 @@ class FitTab(NXTab):
    
     def apply(self):
         self.remove_plots()
-        self.fitview.plot(self.get_model(), fmt='-', color=self.color, 
-                          over=True)
+        if self.model is not None:
+            self.fitview.plot(self.get_model(), fmt='-', color=self.color, 
+                              over=True)
         
     def close(self):
         self.fitview.canvas.mpl_disconnect(self.cid)
