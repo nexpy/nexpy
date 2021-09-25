@@ -619,7 +619,7 @@ class NXColorBox(QtWidgets.QWidget):
             Parent of the color box.
         """
         super(NXColorBox, self).__init__(parent=parent)
-        self.color_text = color
+        self.color_text = get_color(color)
         color = self.qcolor(self.color_text)
         self.layout = QtWidgets.QHBoxLayout()
         self.layout.setContentsMargins(0, 0, 0, 0)

@@ -304,8 +304,7 @@ class FitTab(NXTab):
         self.plot_checkbox = NXCheckBox('Use Data Points')
         self.mask_button = NXPushButton('Mask Data', self.mask_data)
         self.clear_mask_button = NXPushButton('Clear Masks', self.clear_masks)
-        self.color_box = NXColorBox(get_color(color), label='Plot Color',
-                                    width=100)
+        self.color_box = NXColorBox(color, label='Plot Color', width=100)
         self.plot_layout = self.make_layout(plot_data_button, 
                                             self.plot_model_button,
                                             self.plot_combo, 
