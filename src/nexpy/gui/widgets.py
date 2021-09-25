@@ -626,7 +626,7 @@ class NXColorBox(QtWidgets.QWidget):
         if label:
             self.layout.addStretch()
             self.layout.addWidget(NXLabel(label))
-        self.textbox = NXLineEdit(colors.to_hex(color.getRgbF()),
+        self.textbox = NXLineEdit(self.color_text,
                                   parent=parent, slot=self.update_color, 
                                   width=width, align='right')
         self.layout.addWidget(self.textbox)
@@ -656,7 +656,7 @@ class NXColorBox(QtWidgets.QWidget):
     def qcolor(self, text):
         """Create a QColor from a Matplotlib color."""
         qcolor = QtGui.QColor()
-        text = str(text)
+        text = get_color(text)
         if text.startswith('#') and len(text)==7:
             correct = '#0123456789abcdef'
             for char in text:
