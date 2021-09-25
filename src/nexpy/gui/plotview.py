@@ -84,7 +84,7 @@ from nexusformat.nexus import NeXusError, NXdata, NXentry, NXfield, NXroot
 from .. import __version__
 from .datadialogs import (CustomizeDialog, ExportDialog, LimitDialog, 
                           ProjectionDialog, ScanDialog)
-from .utils import (boundaries, centers, divgray_map, find_nearest,
+from .utils import (boundaries, centers, divgray_map, find_nearest, get_color,
                     fix_projection, iterable, keep_data, parula_map,
                     report_error, report_exception)
 from .widgets import (NXCheckBox, NXcircle, NXComboBox, NXDoubleSpinBox,
@@ -1128,7 +1128,7 @@ class NXPlotView(QtWidgets.QDialog):
         p['legend_label'] = p['label']
         p['show_legend'] = True
         p['legend_order'] = len(self.plots) + 1
-        p['color'] = p['plot'].get_color()
+        p['color'] = get_color(p['plot'].get_color())
         p['marker'] = p['plot'].get_marker()
         p['markersize'] = p['plot'].get_markersize()
         p['markerstyle'] = 'filled'
