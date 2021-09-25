@@ -1945,6 +1945,7 @@ class NXPlotView(QtWidgets.QDialog):
         path = opts.pop('path', False)
         group = opts.pop('group', False)
         signal = opts.pop('signal', False)
+        ax = opts.pop('ax', self.ax)
         if self.ndim != 1:
             raise NeXusError("Legends are only displayed for 1D plots")
         elif len(items) == 0:
@@ -1967,13 +1968,15 @@ class NXPlotView(QtWidgets.QDialog):
             labels = items[0]
         else:
             handles, labels = items
-        self._legend = self.ax.legend(handles, labels, **opts)
+        _legend = ax.legend(handles, labels, **opts)
         try:
-            self._legend.set_draggable(True)
+            _legend.set_draggable(True)
         except AttributeError:
-            self._legend.draggable(True)
-        self.draw()
-        return self._legend
+            _legend.draggable(True)
+        if ax == self.ax:
+            self.draw()
+            self._legend = _legend
+        return _legend
 
     def remove_legend(self):
         """Remove the legend."""
@@ -2481,18 +2484,7 @@ class NXPlotView(QtWidgets.QDialog):
                         zorder=p['zorder'], **kwargs)
                 over = True
             if self.ax.get_legend():
-                h, _ = self.ax.get_legend_handles_labels()
-                order = sorted(self.plots, 
-                               key=lambda x: self.plots[x]['legend_order'])
-                handles = [self.plots[i]['plot'] for i in order 
-                           if self.plots[i]['show_legend']]
-                labels = [self.plots[i]['legend_label'] for i in order
-                          if self.plots[i]['show_legend']]
-                leg = ax.legend(handles, labels)
-                try:
-                    leg.set_draggable(True)
-                except AttributeError:
-                    leg.draggable(True)
+                self.legend(ax=ax)
         else:
             pv.plot(self.plotdata, ax=ax, 
                     image=plotview.rgb_image, log=self.logv, 
