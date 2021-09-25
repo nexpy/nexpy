@@ -386,7 +386,6 @@ class NXPlotView(QtWidgets.QDialog):
         self._skew_angle = None
         self._bad = 'black'
         self._legend = None
-        self._nameonly = False
         self._grid = False
         self._gridcolor = mpl.rcParams['grid.color']
         self._gridstyle = mpl.rcParams['grid.linestyle']
@@ -752,7 +751,6 @@ class NXPlotView(QtWidgets.QDialog):
                     self.yaxis.hi = ymax
                 if log:
                     logy = True
-                self._nameonly = False
 
             self.x, self.y, self.e = self.get_points()
             self.plot_points(fmt=fmt, over=over, **opts)
@@ -976,7 +974,7 @@ class NXPlotView(QtWidgets.QDialog):
             else:
                 self._plot = ax.plot(self.x, self.y, fmt, **opts)[0]
 
-        ax.lines[-1].set_label(self.signal_group + self.signal.nxname)
+        ax.lines[-1].set_label(self.signal_path)
 
         if over:
             self.xaxis.lo, self.xaxis.hi = ax.get_xlim()
@@ -1125,7 +1123,8 @@ class NXPlotView(QtWidgets.QDialog):
         p['x'] = self.x
         p['y'] = self.y
         p['data'] = self.data
-        p['label'] = p['plot'].get_label()
+        p['path'] = self.signal_path
+        p['label'] = self.signal_path
         p['legend_label'] = p['label']
         p['show_legend'] = True
         p['legend_order'] = len(self.plots) + 1
@@ -1154,10 +1153,9 @@ class NXPlotView(QtWidgets.QDialog):
         self.ytab.plotcombo.select(self.num)
         self.ytab.reset_smoothing()
 
-
     @property
     def signal_group(self):
-        """Determine full path of signal."""
+        """Determine path of signal group."""
         if self.data.nxroot.nxclass == "NXroot":
             return dirname(self.data.nxroot.nxname +
                            self.data.nxsignal.nxpath) + '/'
@@ -1165,6 +1163,11 @@ class NXPlotView(QtWidgets.QDialog):
             return dirname(self.data.attrs['signal_path']) + '/'
         else:
             return ''
+
+    @property
+    def signal_path(self):
+        """Determine full path of signal."""
+        return self.signal_group + self.signal.nxname
 
     @property
     def shape(self):
@@ -1939,16 +1942,31 @@ class NXPlotView(QtWidgets.QDialog):
 
     def legend(self, *items, **opts):
         """Add a legend to the plot."""
-        if len(items) == 0:
-            handles, labels = self.ax.get_legend_handles_labels()
+        path = opts.pop('path', False)
+        group = opts.pop('group', False)
+        signal = opts.pop('signal', False)
+        if self.ndim != 1:
+            raise NeXusError("Legends are only displayed for 1D plots")
+        elif len(items) == 0:
+            plots = [self.plots[p] for p in self.plots 
+                     if self.plots[p]['show_legend']]
+            handles = [p['plot'] for p in plots]
+            if path:
+                labels = [p['path'] for p in plots]
+            elif group:
+                labels = [dirname(p['path']) for p in plots]
+            elif signal:
+                labels = [basename(p['path']) for p in plots]
+            else:
+                labels = [p['legend_label'] for p in plots]
+            order = [int(p['legend_order']) for p in plots]
+            handles = list(zip(*sorted(zip(order, handles))))[1]
+            labels = list(zip(*sorted(zip(order, labels))))[1]
         elif len(items) == 1:
             handles, _ = self.ax.get_legend_handles_labels()
             labels = items[0]
         else:
             handles, labels = items
-        self._nameonly = opts.pop('nameonly', self._nameonly)
-        if self._nameonly:
-            labels = [basename(label) for label in labels]
         self._legend = self.ax.legend(handles, labels, **opts)
         try:
             self._legend.set_draggable(True)
@@ -1962,7 +1980,6 @@ class NXPlotView(QtWidgets.QDialog):
         if self.ax.get_legend():
             self.ax.get_legend().remove()
         self._legend = None
-        self._nameonly = False
         self.draw()
 
     def grid(self, display=None, minor=False, ax=None, **opts):

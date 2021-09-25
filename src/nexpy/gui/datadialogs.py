@@ -18,7 +18,7 @@ import shutil
 import sys
 import time
 from operator import attrgetter
-from posixpath import basename
+from posixpath import basename, dirname
 
 try:
     from collections import OrderedDict
@@ -1135,6 +1135,7 @@ class GridParameter(object):
                 if value == 'auto':
                     value = None
                 self.colorbox = NXColorBox(value)
+                value = self.colorbox.color_text
                 self.box = self.colorbox.textbox
             elif spinbox:
                 self.box = NXDoubleSpinBox(slot=slot) 
@@ -1950,7 +1951,8 @@ class CustomizeTab(NXTab):
             pg = self.parameters['legend'] = GridParameters()
             pg.add('legend', ['None'] + [key.title() for key in Legend.codes], 
                    'Legend')
-            pg.add('label', ['Full Path', 'Name Only'], 'Label')
+            pg.add('label', ['Legend Label', 'Full Path', 'Signal Group', 
+                             'Signal Name'], 'Label')
             self.update_legend_parameters()
             self.set_layout(pl.grid(header=False),
                            self.plot_stack,
@@ -1958,7 +1960,7 @@ class CustomizeTab(NXTab):
         self.parameters['labels']['title'].box.setFocus()
 
     def plot_label(self, plot):
-        return str(plot) + ': ' + self.plots[plot]['label']
+        return str(plot) + ': ' + self.plots[plot]['path']
 
     def label_plot(self, label):
         return int(label[:label.index(':')])
@@ -1972,6 +1974,7 @@ class CustomizeTab(NXTab):
             for plot in self.plots:
                 if plot in [self.label_plot(p) for p in self.parameters
                             if p not in ['labels', 'legend']]:
+                    self.update_plot_parameters(plot)
                     continue
                 label = self.plot_label(plot)
                 if label not in self.parameters:
@@ -2038,7 +2041,7 @@ class CustomizeTab(NXTab):
     def plot_parameters(self, plot):
         p = self.plots[plot]
         parameters = GridParameters()
-        parameters.add('legend_label', p['legend_label'], 'Label')
+        parameters.add('legend_label', p['legend_label'], 'Legend Label')
         parameters.add('legend', ['Yes', 'No'], 'Add to Legend')
         parameters.add('legend_order', p['legend_order'], 'Legend Order', 
                        slot=self.update_legend_order)
@@ -2113,10 +2116,7 @@ class CustomizeTab(NXTab):
                 p['legend'].value = 'Best'
         else:
             p['legend'].value = 'None'
-        if self.plotview._nameonly == True:
-            p['label'].value = 'Name Only'
-        else:
-            p['label'].value = 'Full Path'
+        p['label'].value = 'Label'
 
     def is_empty_legend(self):
         labels = [self.plot_label(plot) for plot in self.plots]
@@ -2165,23 +2165,17 @@ class CustomizeTab(NXTab):
     def set_legend(self):
         legend_location = self.parameters['legend']['legend'].value.lower()
         label_selection = self.parameters['legend']['label'].value
-        if label_selection == 'Full Path':
-            _nameonly = False
-        else:
-            _nameonly = True
         if legend_location == 'none' or self.is_empty_legend():
             self.plotview.remove_legend()
         else:
-            handles, labels = [], []
-            for plot in self.plots:
-                label = self.plot_label(plot)
-                if self.parameters[label]['legend'].value == 'Yes':
-                    handles.append(self.plots[plot]['plot'])
-                    labels.append(self.plots[plot]['legend_label'])
-            order = self.get_legend_order()
-            self.plotview.legend(list(zip(*sorted(zip(order,handles))))[1],
-                                 list(zip(*sorted(zip(order,labels))))[1], 
-                                 nameonly=_nameonly, loc=legend_location)
+            if label_selection == 'Legend Label':
+                self.plotview.legend(loc=legend_location)
+            elif label_selection == 'Full Path':
+                self.plotview.legend(path=True, loc=legend_location)
+            elif label_selection == 'Signal Group':
+                self.plotview.legend(group=True, loc=legend_location)
+            else:
+                self.plotview.legend(signal=True, loc=legend_location)
 
     def block_signals(self, block=True):
         for p in [parameter for parameter in self.parameters if 
@@ -2246,7 +2240,7 @@ class CustomizeTab(NXTab):
                     p['show_legend'] = True
                 else:
                     p['show_legend'] = False
-                p['legend_order'] = int(pp['legend_order'].value) - 1
+                p['legend_order'] = int(pp['legend_order'].value)
                 p['color'] = pp['color'].value
                 p['plot'].set_color(p['color'])
                 linestyle = self.linestyles[pp['linestyle'].value]
