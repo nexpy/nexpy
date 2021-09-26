@@ -389,6 +389,7 @@ class NXPlotView(QtWidgets.QDialog):
         self._gridcolor = None
         self._gridstyle = None
         self._gridwidth = None
+        self._gridalpha = None
         self._minorgrid = False
         self._majorlines = []
         self._minorlines = []
@@ -1869,6 +1870,7 @@ class NXPlotView(QtWidgets.QDialog):
         self._gridcolor = mpl.rcParams['grid.color']
         self._gridstyle = mpl.rcParams['grid.linestyle']
         self._gridwidth = mpl.rcParams['grid.linewidth']
+        self._gridalpha = mpl.rcParams['grid.alpha']
         self._minorgrid = False
         if self._grid:
             self.grid(self._grid, self._minorgrid)
@@ -2020,6 +2022,10 @@ class NXPlotView(QtWidgets.QDialog):
             self._grid = not self._grid
         self._minorgrid = minor
         if self._grid:
+            if 'color' in opts:
+                self._gridcolor = opts['color']
+            else:
+                opts['color'] = self._gridcolor
             if 'linestyle' in opts:
                 self._gridstyle = opts['linestyle']
             else:
@@ -2028,14 +2034,13 @@ class NXPlotView(QtWidgets.QDialog):
                 self._gridwidth = opts['linewidth']
             else:
                 opts['linewidth'] = self._gridwidth
-            if 'color' in opts:
-                self._gridcolor = opts['color']
+            if 'alpha' in opts:
+                self._gridalpha = opts['alpha']
             else:
-                opts['color'] = self._gridcolor
+                opts['alpha'] = self._gridalpha
             if minor:
                 ax.minorticks_on()
-            if self.ndim > 1:
-                self.ax.set_axisbelow(False)
+            self.ax.set_axisbelow('line')
             if self.skew:
                 self.draw_skewed_grid(minor=minor, **opts)
             else:
