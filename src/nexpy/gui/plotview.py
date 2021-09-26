@@ -386,9 +386,9 @@ class NXPlotView(QtWidgets.QDialog):
         self._bad = 'black'
         self._legend = None
         self._grid = False
-        self._gridcolor = mpl.rcParams['grid.color']
-        self._gridstyle = mpl.rcParams['grid.linestyle']
-        self._gridwidth = mpl.rcParams['grid.linewidth']
+        self._gridcolor = None
+        self._gridstyle = None
+        self._gridwidth = None
         self._minorgrid = False
         self._majorlines = []
         self._minorlines = []
@@ -808,9 +808,7 @@ class NXPlotView(QtWidgets.QDialog):
         if logy:
             self.logy = logy
 
-        if self._grid:
-            self.grid(self._grid, self._minorgrid)
-        self.set_minorticks(default=True)
+        self.set_plot_defaults()
 
         self.draw()
         self.otab.push_current()
@@ -1866,6 +1864,16 @@ class NXPlotView(QtWidgets.QDialog):
         except Exception as error:
             pass
 
+    def set_plot_defaults(self):
+        self._grid = mpl.rcParams['axes.grid']
+        self._gridcolor = mpl.rcParams['grid.color']
+        self._gridstyle = mpl.rcParams['grid.linestyle']
+        self._gridwidth = mpl.rcParams['grid.linewidth']
+        self._minorgrid = False
+        if self._grid:
+            self.grid(self._grid, self._minorgrid)
+        self.set_minorticks(default=True)
+
     def set_minorticks(self, default=False):
         if default:
             self._minorticks = (mpl.rcParams['xtick.minor.visible'] or
@@ -2026,6 +2034,8 @@ class NXPlotView(QtWidgets.QDialog):
                 opts['color'] = self._gridcolor
             if minor:
                 ax.minorticks_on()
+            if self.ndim > 1:
+                self.ax.set_axisbelow(False)
             if self.skew:
                 self.draw_skewed_grid(minor=minor, **opts)
             else:
