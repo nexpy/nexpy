@@ -84,7 +84,7 @@ from nexusformat.nexus import NeXusError, NXdata, NXentry, NXfield, NXroot
 from .. import __version__
 from .datadialogs import (CustomizeDialog, ExportDialog, LimitDialog, 
                           ProjectionDialog, ScanDialog)
-from .utils import (boundaries, centers, divgray_map, find_nearest,
+from .utils import (boundaries, centers, divgray_map, find_nearest, get_color,
                     fix_projection, iterable, keep_data, parula_map,
                     report_error, report_exception)
 from .widgets import (NXCheckBox, NXcircle, NXComboBox, NXDoubleSpinBox,
@@ -94,7 +94,6 @@ from .widgets import (NXCheckBox, NXcircle, NXComboBox, NXDoubleSpinBox,
 active_plotview = None
 plotview = None
 plotviews = {}
-colors = mpl.rcParams['axes.prop_cycle'].by_key()['color']
 register_cmap('parula', parula_map())
 register_cmap('divgray', divgray_map())
 cmaps = ['viridis', 'inferno', 'magma', 'plasma', #perceptually uniform
@@ -386,11 +385,11 @@ class NXPlotView(QtWidgets.QDialog):
         self._skew_angle = None
         self._bad = 'black'
         self._legend = None
-        self._nameonly = False
         self._grid = False
-        self._gridcolor = mpl.rcParams['grid.color']
-        self._gridstyle = mpl.rcParams['grid.linestyle']
-        self._gridwidth = mpl.rcParams['grid.linewidth']
+        self._gridcolor = None
+        self._gridstyle = None
+        self._gridwidth = None
+        self._gridalpha = None
         self._minorgrid = False
         self._majorlines = []
         self._minorlines = []
@@ -752,7 +751,6 @@ class NXPlotView(QtWidgets.QDialog):
                     self.yaxis.hi = ymax
                 if log:
                     logy = True
-                self._nameonly = False
 
             self.x, self.y, self.e = self.get_points()
             self.plot_points(fmt=fmt, over=over, **opts)
@@ -811,9 +809,7 @@ class NXPlotView(QtWidgets.QDialog):
         if logy:
             self.logy = logy
 
-        if self._grid:
-            self.grid(self._grid, self._minorgrid)
-        self.set_minorticks(default=True)
+        self.set_plot_defaults()
 
         self.draw()
         self.otab.push_current()
@@ -962,7 +958,7 @@ class NXPlotView(QtWidgets.QDialog):
 
         if fmt == '':
             if 'color' not in opts:
-                opts['color'] = colors[(self.num-1) % len(colors)]
+                opts['color'] = self.colors[(self.num-1) % len(self.colors)]
             if 'marker' not in opts:
                 opts['marker'] = 'o'
             if 'linestyle' not in opts and 'ls' not in opts:
@@ -976,7 +972,7 @@ class NXPlotView(QtWidgets.QDialog):
             else:
                 self._plot = ax.plot(self.x, self.y, fmt, **opts)[0]
 
-        ax.lines[-1].set_label(self.signal_group + self.signal.nxname)
+        ax.lines[-1].set_label(self.signal_path)
 
         if over:
             self.xaxis.lo, self.xaxis.hi = ax.get_xlim()
@@ -1125,11 +1121,12 @@ class NXPlotView(QtWidgets.QDialog):
         p['x'] = self.x
         p['y'] = self.y
         p['data'] = self.data
-        p['label'] = p['plot'].get_label()
+        p['path'] = self.signal_path
+        p['label'] = self.signal_path
         p['legend_label'] = p['label']
         p['show_legend'] = True
         p['legend_order'] = len(self.plots) + 1
-        p['color'] = p['plot'].get_color()
+        p['color'] = get_color(p['plot'].get_color())
         p['marker'] = p['plot'].get_marker()
         p['markersize'] = p['plot'].get_markersize()
         p['markerstyle'] = 'filled'
@@ -1154,10 +1151,9 @@ class NXPlotView(QtWidgets.QDialog):
         self.ytab.plotcombo.select(self.num)
         self.ytab.reset_smoothing()
 
-
     @property
     def signal_group(self):
-        """Determine full path of signal."""
+        """Determine path of signal group."""
         if self.data.nxroot.nxclass == "NXroot":
             return dirname(self.data.nxroot.nxname +
                            self.data.nxsignal.nxpath) + '/'
@@ -1165,6 +1161,11 @@ class NXPlotView(QtWidgets.QDialog):
             return dirname(self.data.attrs['signal_path']) + '/'
         else:
             return ''
+
+    @property
+    def signal_path(self):
+        """Determine full path of signal."""
+        return self.signal_group + self.signal.nxname
 
     @property
     def shape(self):
@@ -1767,6 +1768,10 @@ class NXPlotView(QtWidgets.QDialog):
         self.vtab.cmap = cmap
 
     @property
+    def colors(self):
+        return mpl.rcParams['axes.prop_cycle'].by_key()['color']
+
+    @property
     def bad(self):
         """Return the color defined for bad pixels."""
         return self._bad
@@ -1860,6 +1865,17 @@ class NXPlotView(QtWidgets.QDialog):
         except Exception as error:
             pass
 
+    def set_plot_defaults(self):
+        self._grid = mpl.rcParams['axes.grid']
+        self._gridcolor = mpl.rcParams['grid.color']
+        self._gridstyle = mpl.rcParams['grid.linestyle']
+        self._gridwidth = mpl.rcParams['grid.linewidth']
+        self._gridalpha = mpl.rcParams['grid.alpha']
+        self._minorgrid = False
+        if self._grid:
+            self.grid(self._grid, self._minorgrid)
+        self.set_minorticks(default=True)
+
     def set_minorticks(self, default=False):
         if default:
             self._minorticks = (mpl.rcParams['xtick.minor.visible'] or
@@ -1939,30 +1955,47 @@ class NXPlotView(QtWidgets.QDialog):
 
     def legend(self, *items, **opts):
         """Add a legend to the plot."""
-        if len(items) == 0:
-            handles, labels = self.ax.get_legend_handles_labels()
+        path = opts.pop('path', False)
+        group = opts.pop('group', False)
+        signal = opts.pop('signal', False)
+        ax = opts.pop('ax', self.ax)
+        if self.ndim != 1:
+            raise NeXusError("Legends are only displayed for 1D plots")
+        elif len(items) == 0:
+            plots = [self.plots[p] for p in self.plots 
+                     if self.plots[p]['show_legend']]
+            handles = [p['plot'] for p in plots]
+            if path:
+                labels = [p['path'] for p in plots]
+            elif group:
+                labels = [dirname(p['path']) for p in plots]
+            elif signal:
+                labels = [basename(p['path']) for p in plots]
+            else:
+                labels = [p['legend_label'] for p in plots]
+            order = [int(p['legend_order']) for p in plots]
+            handles = list(zip(*sorted(zip(order, handles))))[1]
+            labels = list(zip(*sorted(zip(order, labels))))[1]
         elif len(items) == 1:
             handles, _ = self.ax.get_legend_handles_labels()
             labels = items[0]
         else:
             handles, labels = items
-        self._nameonly = opts.pop('nameonly', self._nameonly)
-        if self._nameonly:
-            labels = [basename(label) for label in labels]
-        self._legend = self.ax.legend(handles, labels, **opts)
+        _legend = ax.legend(handles, labels, **opts)
         try:
-            self._legend.set_draggable(True)
+            _legend.set_draggable(True)
         except AttributeError:
-            self._legend.draggable(True)
-        self.draw()
-        return self._legend
+            _legend.draggable(True)
+        if ax == self.ax:
+            self.draw()
+            self._legend = _legend
+        return _legend
 
     def remove_legend(self):
         """Remove the legend."""
         if self.ax.get_legend():
             self.ax.get_legend().remove()
         self._legend = None
-        self._nameonly = False
         self.draw()
 
     def grid(self, display=None, minor=False, ax=None, **opts):
@@ -1989,6 +2022,10 @@ class NXPlotView(QtWidgets.QDialog):
             self._grid = not self._grid
         self._minorgrid = minor
         if self._grid:
+            if 'color' in opts:
+                self._gridcolor = opts['color']
+            else:
+                opts['color'] = self._gridcolor
             if 'linestyle' in opts:
                 self._gridstyle = opts['linestyle']
             else:
@@ -1997,12 +2034,13 @@ class NXPlotView(QtWidgets.QDialog):
                 self._gridwidth = opts['linewidth']
             else:
                 opts['linewidth'] = self._gridwidth
-            if 'color' in opts:
-                self._gridcolor = opts['color']
+            if 'alpha' in opts:
+                self._gridalpha = opts['alpha']
             else:
-                opts['color'] = self._gridcolor
+                opts['alpha'] = self._gridalpha
             if minor:
                 ax.minorticks_on()
+            self.ax.set_axisbelow('line')
             if self.skew:
                 self.draw_skewed_grid(minor=minor, **opts)
             else:
@@ -2464,18 +2502,7 @@ class NXPlotView(QtWidgets.QDialog):
                         zorder=p['zorder'], **kwargs)
                 over = True
             if self.ax.get_legend():
-                h, _ = self.ax.get_legend_handles_labels()
-                order = sorted(self.plots, 
-                               key=lambda x: self.plots[x]['legend_order'])
-                handles = [self.plots[i]['plot'] for i in order 
-                           if self.plots[i]['show_legend']]
-                labels = [self.plots[i]['legend_label'] for i in order
-                          if self.plots[i]['show_legend']]
-                leg = ax.legend(handles, labels)
-                try:
-                    leg.set_draggable(True)
-                except AttributeError:
-                    leg.draggable(True)
+                self.legend(ax=ax)
         else:
             pv.plot(self.plotdata, ax=ax, 
                     image=plotview.rgb_image, log=self.logv, 

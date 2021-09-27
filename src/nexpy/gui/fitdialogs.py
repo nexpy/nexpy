@@ -33,7 +33,7 @@ from nexusformat.nexus import (NeXusError, NXattr, NXdata, NXentry, NXfield,
 
 from .datadialogs import NXDialog, NXPanel, NXTab
 from .plotview import NXPlotView, linestyles
-from .utils import format_float, get_color, report_error, display_message
+from .utils import format_float, report_error, display_message
 from .widgets import (NXCheckBox, NXColorBox, NXComboBox, NXLabel, NXLineEdit,
                       NXMessageBox, NXPushButton, NXScrollArea, NXrectangle)
 
@@ -304,8 +304,7 @@ class FitTab(NXTab):
         self.plot_checkbox = NXCheckBox('Use Data Points')
         self.mask_button = NXPushButton('Mask Data', self.mask_data)
         self.clear_mask_button = NXPushButton('Clear Masks', self.clear_masks)
-        self.color_box = NXColorBox(get_color(color), label='Plot Color',
-                                    width=100)
+        self.color_box = NXColorBox(color, label='Plot Color', width=100)
         self.plot_layout = self.make_layout(plot_data_button, 
                                             self.plot_model_button,
                                             self.plot_combo, 
@@ -998,11 +997,13 @@ class FitTab(NXTab):
             self.fitview.plot(mask_data, over=True, num=self.mask_num, 
                               fmt='o', color='white', alpha=0.8)
             self.fitview.ytab.plotcombo.remove(self.mask_num)
-            self.fitview.plots[self.mask_num]['legend_label'] = 'Mask'
+            self.fitview.plots[self.mask_num]['legend_label'] = (
+                                                    f"{self.tab_label} Mask")
             self.fitview.plots[self.mask_num]['show_legend'] = False
             if self.fitview.plots[self.mask_num]['cursor']:
                 self.fitview.plots[self.mask_num]['cursor'].remove()
             self.fitview.plots[self.mask_num]['cursor'] = None
+            self.fitview.update_panels()
         self.remove_rectangle()
 
     def plot_model(self, model=False):
@@ -1031,21 +1032,25 @@ class FitTab(NXTab):
                               xmin=self.plot_min, xmax=self.plot_max,
                               over=True, num=num)
             if self.fitted:
-                self.fitview.plots[num]['legend_label'] = 'Fit'
+                self.fitview.plots[num]['legend_label'] = (
+                                                    f"{self.tab_label} Fit")
             else:
-                self.fitview.plots[num]['legend_label'] = 'Model'
+                self.fitview.plots[num]['legend_label'] = (
+                                                    f"{self.tab_label} Model")
         else:
             self.fitview.plot(self.get_model(model), color=self.color,
                               marker=None, linestyle=next(self.linestyle), 
                               xmin=self.plot_min, xmax=self.plot_max,
                               over=True, num=num)
-            self.fitview.plots[num]['legend_label'] = model_name
+            self.fitview.plots[num]['legend_label'] = (
+                                            f"{self.tab_label} {model_name}")
         self.fitview.plots[num]['show_legend'] = False
         self.fitview.set_plot_limits(xmin=xmin, xmax=xmax)
         self.plot_nums.append(num)
         self.fitview.ytab.plotcombo.remove(num)
         self.fitview.ytab.plotcombo.select(self.data_num)
         self.remove_rectangle()
+        self.fitview.update_panels()
         self.fitview.raise_()
 
     def next_plot_num(self):
@@ -1239,8 +1244,9 @@ class FitTab(NXTab):
    
     def apply(self):
         self.remove_plots()
-        self.fitview.plot(self.get_model(), fmt='-', color=self.color, 
-                          over=True)
+        if self.model is not None:
+            self.fitview.plot(self.get_model(), fmt='-', color=self.color, 
+                              over=True)
         
     def close(self):
         self.fitview.canvas.mpl_disconnect(self.cid)
