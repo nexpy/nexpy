@@ -1923,16 +1923,8 @@ class CustomizeTab(NXTab):
         self.plotview = self.active_plotview
 
         self.parameters = {}
-        pl = self.parameters['labels'] = GridParameters()
-        pl.add('title', self.plotview.title, 'Title')
-        pl['title'].box.setMinimumWidth(200)
-        pl['title'].box.setAlignment(QtCore.Qt.AlignLeft)
-        pl.add('xlabel', self.plotview.xaxis.label, 'X-Axis Label')
-        pl['xlabel'].box.setMinimumWidth(200)
-        pl['xlabel'].box.setAlignment(QtCore.Qt.AlignLeft)
-        pl.add('ylabel', self.plotview.yaxis.label, 'Y-Axis Label')
-        pl['ylabel'].box.setMinimumWidth(200)
-        pl['ylabel'].box.setAlignment(QtCore.Qt.AlignLeft)
+        pl = self.parameters['labels'] = self.label_parameters()
+        self.update_label_parameters()
         if self.plotview.image is not None:
             pi = self.parameters['image'] = self.image_parameters()
             self.update_image_parameters()
@@ -1948,15 +1940,11 @@ class CustomizeTab(NXTab):
             for plot in self.plots:
                 self.update_plot_parameters(plot)
             self.legend_order = self.get_legend_order()
-            pg = self.parameters['legend'] = GridParameters()
-            pg.add('legend', ['None'] + [key.title() for key in Legend.codes], 
-                   'Legend')
-            pg.add('label', ['Legend Label', 'Full Path', 'Signal Group', 
-                             'Signal Name'], 'Label')
-            self.update_legend_parameters()
+            pg = self.parameters['grid'] = self.grid_parameters()
+            self.update_grid_parameters()
             self.set_layout(pl.grid(header=False),
-                           self.plot_stack,
-                           pg.grid(header=False))
+                            self.plot_stack,
+                            pg.grid(header=False))
         self.parameters['labels']['title'].box.setFocus()
 
     def plot_label(self, plot):
@@ -1966,16 +1954,12 @@ class CustomizeTab(NXTab):
         return int(label[:label.index(':')])
 
     def update(self):
-        self.update_labels()
+        self.update_label_parameters()
         if self.plotview.image is not None:
             self.update_image_parameters()
         else:
             self.plots = self.plotview.plots
             for plot in self.plots:
-                if plot in [self.label_plot(p) for p in self.parameters
-                            if p not in ['labels', 'legend']]:
-                    self.update_plot_parameters(plot)
-                    continue
                 label = self.plot_label(plot)
                 if label not in self.parameters:
                     pp = self.parameters[label] = self.plot_parameters(plot)
@@ -1983,16 +1967,24 @@ class CustomizeTab(NXTab):
                 self.update_plot_parameters(plot)
             self.legend_order = self.get_legend_order()
             for label in [l for l in self.parameters 
-                          if l not in ['labels', 'legend']]:
+                          if l not in ['labels', 'grid']]:
                 if self.label_plot(label) not in self.plots:
                     del self.parameters[label]
                     self.plot_stack.remove(label)
 
-    def update_labels(self):
-        pl = self.parameters['labels']
-        pl['title'].value = self.plotview.title
-        pl['xlabel'].value = self.plotview.xaxis.label
-        pl['ylabel'].value = self.plotview.yaxis.label
+    def label_parameters(self):
+        parameters = GridParameters()
+        parameters.add('title', self.plotview.title, 'Title')
+        parameters.add('xlabel', self.plotview.xaxis.label, 'X-Axis Label')
+        parameters.add('ylabel', self.plotview.yaxis.label, 'Y-Axis Label')
+        parameters.grid(title='Plot Labels', header=False, width=200)
+        return parameters
+
+    def update_label_parameters(self):
+        p = self.parameters['labels']
+        p['title'].value = self.plotview.title
+        p['xlabel'].value = self.plotview.xaxis.label
+        p['ylabel'].value = self.plotview.yaxis.label
 
     def image_parameters(self):
         parameters = GridParameters()
@@ -2002,6 +1994,7 @@ class CustomizeTab(NXTab):
         parameters.add('gridcolor', get_color(self.plotview._gridcolor), 
                        'Grid Color', color=True)
         parameters.add('gridstyle', list(self.linestyles), 'Grid Style')
+        parameters.add('gridalpha', self.plotview._gridalpha, 'Grid Alpha')
         parameters.add('minorticks', ['On', 'Off'], 'Minor Ticks')
         parameters.add('cb_minorticks', ['On', 'Off'], 'Color Bar Minor Ticks')
         try:
@@ -2025,6 +2018,7 @@ class CustomizeTab(NXTab):
             p['grid'].value = 'Off'
         p['gridcolor'].value = get_color(self.plotview._gridcolor)
         p['gridstyle'].value = self.plotview._gridstyle
+        p['gridalpha'].value = self.plotview._gridalpha
         if self.plotview._minorticks:
             p['minorticks'].value = 'On'
         else:
@@ -2088,26 +2082,23 @@ class CustomizeTab(NXTab):
         pp['offset'].value = p['offset']
         self.block_signals(False)
 
-    def scale_plot(self):
-        plot = self.label_plot(self.plot_stack.box.selected)
-        label = self.plot_label(plot)
-        scale = self.parameters[label]['scale'].value
-        if scale == self.parameters[label]['scale'].box.maximum():
-            self.parameters[label]['scale'].box.setMaximum(10*scale)
-        self.parameters[label]['scale'].box.setSingleStep(scale/100.0)
-        offset = self.parameters[label]['offset'].value
-        if offset == self.parameters[label]['offset'].box.maximum():
-            self.parameters[label]['offset'].box.setMaximum(10*abs(offset))
-        self.parameters[label]['offset'].box.setMinimum(
-            -self.parameters[label]['offset'].box.maximum()) 
-        self.parameters[label]['offset'].box.setSingleStep(
-            max(abs(offset)/100.0, 1))
-        y = self.plotview.plots[plot]['y']
-        self.plotview.plots[plot]['plot'].set_ydata((y * scale) + offset)
-        self.plotview.draw()
+    def grid_parameters(self):
+        parameters = GridParameters()
+        parameters.add('legend', ['None']+[key.title() for key in Legend.codes], 
+                       'Legend')
+        parameters.add('label', ['Legend Label', 'Full Path', 'Signal Group', 
+                                 'Signal Name'], 'Label')
+        parameters.add('grid', ['On', 'Off'], 'Grid')
+        parameters.add('gridcolor', get_color(self.plotview._gridcolor), 
+                       'Grid Color', color=True)
+        parameters.add('gridstyle', list(self.linestyles), 'Grid Style')
+        parameters.add('gridalpha', self.plotview._gridalpha, 'Grid Alpha')
+        parameters.add('minorticks', ['On', 'Off'], 'Minor Ticks')
+        parameters.grid(title='Plot Attributes', header=False, width=125)
+        return parameters
 
-    def update_legend_parameters(self):
-        p = self.parameters['legend']
+    def update_grid_parameters(self):
+        p = self.parameters['grid']
         if self.plotview.ax.get_legend() and not self.is_empty_legend():
             _loc = self.plotview.ax.get_legend()._loc
             if _loc in self.legend_location:
@@ -2117,6 +2108,17 @@ class CustomizeTab(NXTab):
         else:
             p['legend'].value = 'None'
         p['label'].value = 'Label'
+        if self.plotview._grid:
+            p['grid'].value = 'On'
+        else:
+            p['grid'].value = 'Off'
+        p['gridcolor'].value = get_color(self.plotview._gridcolor)
+        p['gridstyle'].value = self.plotview._gridstyle
+        p['gridalpha'].value = self.plotview._gridalpha
+        if self.plotview._minorticks:
+            p['minorticks'].value = 'On'
+        else:
+            p['minorticks'].value = 'Off'
 
     def is_empty_legend(self):
         labels = [self.plot_label(plot) for plot in self.plots]
@@ -2163,8 +2165,8 @@ class CustomizeTab(NXTab):
         self.legend_order = self.get_legend_order()
 
     def set_legend(self):
-        legend_location = self.parameters['legend']['legend'].value.lower()
-        label_selection = self.parameters['legend']['label'].value
+        legend_location = self.parameters['grid']['legend'].value.lower()
+        label_selection = self.parameters['grid']['label'].value
         if legend_location == 'none' or self.is_empty_legend():
             self.plotview.remove_legend()
         else:
@@ -2177,9 +2179,52 @@ class CustomizeTab(NXTab):
             else:
                 self.plotview.legend(signal=True, loc=legend_location)
 
+    def set_grid(self):
+        if self.plotview.image is None:
+            p = self.parameters['grid']
+        else:
+            p = self.parameters['image']
+        if p['grid'].value == 'On':
+            self.plotview._grid = True
+        else:
+            self.plotview._grid = False
+        self.plotview._gridcolor = p['gridcolor'].value
+        self.plotview._gridstyle = self.linestyles[p['gridstyle'].value]
+        self.plotview._gridalpha = p['gridalpha'].value
+        if p['minorticks'].value == 'On':
+            self.plotview.minorticks_on()
+            if self.plotview._grid:
+                self.plotview.grid(True, minor=True)
+            else:
+                self.plotview.grid(False)
+        else:
+            self.plotview.minorticks_off()
+            if self.plotview._grid:
+                self.plotview.grid(True, minor=False)
+            else:
+                self.plotview.grid(False)
+
+    def scale_plot(self):
+        plot = self.label_plot(self.plot_stack.box.selected)
+        label = self.plot_label(plot)
+        scale = self.parameters[label]['scale'].value
+        if scale == self.parameters[label]['scale'].box.maximum():
+            self.parameters[label]['scale'].box.setMaximum(10*scale)
+        self.parameters[label]['scale'].box.setSingleStep(scale/100.0)
+        offset = self.parameters[label]['offset'].value
+        if offset == self.parameters[label]['offset'].box.maximum():
+            self.parameters[label]['offset'].box.setMaximum(10*abs(offset))
+        self.parameters[label]['offset'].box.setMinimum(
+            -self.parameters[label]['offset'].box.maximum()) 
+        self.parameters[label]['offset'].box.setSingleStep(
+            max(abs(offset)/100.0, 1))
+        y = self.plotview.plots[plot]['y']
+        self.plotview.plots[plot]['plot'].set_ydata((y * scale) + offset)
+        self.plotview.draw()
+
     def block_signals(self, block=True):
         for p in [parameter for parameter in self.parameters if 
-                  parameter not in ['labels', 'legend']]:
+                  parameter not in ['labels', 'grid']]:
             self.parameters[p]['legend_order'].box.blockSignals(block)                
 
     def reset(self):
@@ -2209,6 +2254,7 @@ class CustomizeTab(NXTab):
                 self.plotview._grid = False
             self.plotview._gridcolor = pi['gridcolor'].value
             self.plotview._gridstyle = self.linestyles[pi['gridstyle'].value]
+            self.plotview._gridalpha = pi['gridalpha'].value
             if 'badcolor' in pi:
                 self.plotview.image.cmap.set_bad(pi['badcolor'].value)
             #reset in case plotview.aspect changed by plotview.skew            
@@ -2218,20 +2264,7 @@ class CustomizeTab(NXTab):
                 self.plotview.cb_minorticks_on()
             else:
                 self.plotview.cb_minorticks_off()
-            if pi['minorticks'].value == 'On':
-                self.plotview.minorticks_on()
-                if self.plotview._grid:
-                    self.plotview.grid(True, minor=True)
-                else:
-                    self.plotview.grid(False)
-            else:
-                self.plotview.minorticks_off()
-                if self.plotview._grid:
-                    self.plotview.grid(True, minor=False)
-                else:
-                    self.plotview.grid(False)
-        else:
-            
+        else:            
             for plot in self.plots:
                 label = self.plot_label(plot)
                 p, pp = self.plots[plot], self.parameters[label]
@@ -2278,6 +2311,7 @@ class CustomizeTab(NXTab):
                 if p['smooth_line']:
                     p['plot'].set_linestyle('None')
                     p['smooth_line'].set_linestyle(p['smooth_linestyle'])
+        self.set_grid()
         self.update()
         self.plotview.draw()
 
