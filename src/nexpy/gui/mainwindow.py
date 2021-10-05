@@ -2334,21 +2334,21 @@ class MainWindow(QtWidgets.QMainWindow):
                 menu.removeAction(action)
 
     def _open_nexpy_online_help(self):
-        filename = "https://nexpy.github.io/nexpy/"
-        webbrowser.open(filename, new=1, autoraise=True)
+        url = "https://nexpy.github.io/nexpy/"
+        webbrowser.open(url, new=1, autoraise=True)
 
     def _open_nexusformat_online_notebook(self):
-        filename = ("https://colab.research.google.com/github/nexpy/nexusformat/blob/" +
+        url = ("https://colab.research.google.com/github/nexpy/nexusformat/blob/" +
                     "master/src/nexusformat/notebooks/nexusformat.ipynb")
-        webbrowser.open(filename, new=1, autoraise=True)
+        webbrowser.open(url, new=1, autoraise=True)
 
     def _open_nexus_online_help(self):
-        filename = "http://download.nexusformat.org/doc/html/classes/base_classes/"
-        webbrowser.open(filename, new=1, autoraise=True)
+        url = "http://download.nexusformat.org/doc/html/classes/base_classes/"
+        webbrowser.open(url, new=1, autoraise=True)
 
     def _open_ipython_online_help(self):
-        filename = "https://ipython.readthedocs.io/en/stable/"
-        webbrowser.open(filename, new=1, autoraise=True)
+        url = "https://ipython.readthedocs.io/en/stable/"
+        webbrowser.open(url, new=1, autoraise=True)
 
     def open_example_file(self):
         default_directory = self.default_directory
