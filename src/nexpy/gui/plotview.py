@@ -655,14 +655,12 @@ class NXPlotView(QtWidgets.QDialog):
             self.mainwindow.previous_active = 1
         self.mainwindow.make_active(self.mainwindow.previous_active)
 
-    def save_plot(self):
-        """Open a dialog box for saving the plot as a PNG file."""
-        file_choices = "PNG (*.png)|*.png"
-        path = str(QtWidgets.QFileDialog.getSaveFileName(self, 'Save file', '', 
-                                                         file_choices))
-        if path:
-            self.canvas.print_figure(path, dpi=self.dpi)
-            self.statusBar().showMessage('Saved to %s' % path, 2000)
+    def save(self, fname=None, **opts):
+        """Save the current plot to an image file."""
+        if fname:
+            self.figure.savefig(fname, **opts)
+        else:
+            self.otab.save_figure()
 
     def plot(self, data, fmt='', xmin=None, xmax=None, ymin=None, ymax=None,
              vmin=None, vmax=None, **opts):
