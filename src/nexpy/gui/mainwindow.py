@@ -675,11 +675,13 @@ class MainWindow(QtWidgets.QMainWindow):
         private_path = self.plugin_dir
         if os.path.isdir(private_path):
             for name in os.listdir(private_path):
-                if os.path.isdir(os.path.join(private_path, name)):
+                if (os.path.isdir(os.path.join(private_path, name)) and
+                    not (name.startswith('_') or name.startswith('.'))):
                     self.plugin_names.add(name)
         public_path = pkg_resources.resource_filename('nexpy', 'plugins')
         for name in os.listdir(public_path):
-            if os.path.isdir(os.path.join(public_path, name)):
+            if (os.path.isdir(os.path.join(public_path, name)) and
+                not (name.startswith('_') or name.startswith('.'))):
                 self.plugin_names.add(name)
         plugin_paths = [private_path, public_path]
         for plugin_name in set(sorted(self.plugin_names)):
