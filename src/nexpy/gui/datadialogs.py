@@ -48,8 +48,8 @@ from .utils import (confirm_action, convertHTML, display_message,
                     import_plugin, keep_data, modification_time, natural_sort,
                     report_error, restore_timestamp, set_style, timestamp, wrap)
 from .widgets import (NXCheckBox, NXColorBox, NXComboBox, NXDoubleSpinBox,
-                      NXLabel, NXLineEdit, NXpolygon, NXPushButton,
-                      NXScrollArea, NXSpinBox, NXStack)
+                      NXLabel, NXLineEdit, NXPlainTextEdit, NXPushButton,
+                      NXScrollArea, NXSpinBox, NXStack, NXpolygon)
 
 class NXWidget(QtWidgets.QWidget):
     """Customized widget for NeXpy widgets"""
@@ -2799,7 +2799,7 @@ class LimitTab(NXTab):
             self.xlabel, self.xbox = self.label('X-Axis'), NXComboBox(self.set_xaxis)
             self.ylabel, self.ybox = self.label('Y-Axis'), NXComboBox(self.set_yaxis)
             axis_layout = self.make_layout(self.xlabel, self.xbox, 
-                          self.ylabel, self.ybox)                                     
+                                           self.ylabel, self.ybox)                                     
             self.set_axes()
         else:
             axis_layout = None
@@ -4505,34 +4505,34 @@ class LogDialog(NXDialog):
  
         self.log_directory = self.mainwindow.nexpy_dir
  
-        layout = QtWidgets.QVBoxLayout()
         self.text_box = QtWidgets.QTextEdit()
         self.text_box.setMinimumWidth(800)
         self.text_box.setMinimumHeight(600)
         self.text_box.setFocusPolicy(QtCore.Qt.StrongFocus)
         self.text_box.setReadOnly(True)
-        layout.addWidget(self.text_box)
-        footer_layout = QtWidgets.QHBoxLayout()
         self.file_combo = NXComboBox(self.show_log)
         for file_name in self.get_filesindirectory('nexpy', extension='.log*',
                                                 directory=self.log_directory):
-            self.file_combo.addItem(file_name)
-        self.file_combo.setCurrentIndex(self.file_combo.findText('nexpy.log'))
-        close_box = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.Close)
-        close_box.setFocusPolicy(QtCore.Qt.StrongFocus)
-        close_box.setFocus()
-        close_box.rejected.connect(self.reject)
-        footer_layout.addStretch()
-        footer_layout.addWidget(self.file_combo)
-        footer_layout.addWidget(close_box)
-        layout.addLayout(footer_layout)
-        self.setLayout(layout)
+            self.file_combo.add(file_name)
+        self.file_combo.select('nexpy.log')
+        self.issue_button = NXPushButton('Open NeXpy Issue', self.open_issue)
+        footer_layout = self.make_layout(self.issue_button,
+                                         'stretch', 
+                                         self.file_combo, 'stretch',
+                                         self.close_buttons(close=True),
+                                         align='justified')
+        self.set_layout(self.text_box, footer_layout)
 
         self.show_log()
 
     @property
     def file_name(self):
         return os.path.join(self.log_directory, self.file_combo.currentText())
+
+    def open_issue(self):
+        import webbrowser
+        url = "https://github.com/nexpy/nexpy/issues"
+        webbrowser.open(url, new=1, autoraise=True)
 
     def mouseReleaseEvent(self, event):
         self.show_log()

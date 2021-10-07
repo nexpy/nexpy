@@ -1054,10 +1054,13 @@ class FitTab(NXTab):
         self.fitview.raise_()
 
     def next_plot_num(self):
-        if max(self.fitview.plots) < 101:
-            return 101
+        min_num = self.data_num*100 + 1
+        max_num = min_num + 98
+        valid_nums = [n for n in self.fitview.plots if min_num <= n <= max_num]
+        if valid_nums:
+            return max(valid_nums) + 1
         else:
-            return max([p for p in self.fitview.plots if p > 100]+[100]) + 1
+            return min_num
 
     def fit_data(self):
         self.read_parameters()

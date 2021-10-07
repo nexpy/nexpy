@@ -1043,6 +1043,8 @@ class NXpatch(object):
         self.plotview.activate()
 
     def remove(self):
+        if self in self.plotview.shapes:
+            self.plotview.shapes.remove(self)
         self.shape.remove()
         self.plotview.draw()
 
