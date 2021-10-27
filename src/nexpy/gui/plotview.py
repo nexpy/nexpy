@@ -2801,10 +2801,10 @@ class NXPlotAxis(object):
                 self.centers = centers(self.data, dimlen)
                 self.boundaries = boundaries(self.data, dimlen)
                 try:
-                    self.min = np.min(
-                        self.boundaries[np.isfinite(self.boundaries)])
-                    self.max = np.max(
-                        self.boundaries[np.isfinite(self.boundaries)])
+                    self.min = float(np.min(
+                        self.boundaries[np.isfinite(self.boundaries)]))
+                    self.max = float(np.max(
+                        self.boundaries[np.isfinite(self.boundaries)]))
                 except:
                     self.min = 0.0
                     self.max = 0.1
@@ -2867,7 +2867,8 @@ class NXPlotAxis(object):
             minpos = min(self.data[self.data>0.0])
         except ValueError:
             minpos = 0.01
-        return (minpos if self.lo <= 0 else self.lo, minpos if self.hi <= 0 else self.hi)
+        return (minpos if self.lo <= 0 else self.lo, 
+                minpos if self.hi <= 0 else self.hi)
 
     @property
     def min_range(self):
