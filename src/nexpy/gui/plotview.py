@@ -111,7 +111,8 @@ if 'viridis' in cmaps:
 else:
     default_cmap = 'jet'
 divergent_cmaps = ['seismic', 'coolwarm', 'twilight', 'divgray', 
-                   'RdBu', 'RdYlBu', 'RdYlGn']
+                   'RdBu', 'RdYlBu', 'RdYlGn', 
+                   'PiYG', 'PRGn', 'BrBG', 'PuOr', 'RdGy', 'Spectral', 'bwr']
 qualitative_cmaps = ['tab10', 'tab20']
 interpolations = ['nearest', 'bilinear', 'bicubic', 'spline16', 'spline36',
                   'hanning', 'hamming', 'hermite', 'kaiser', 'quadric',
@@ -3450,7 +3451,10 @@ class NXPlotTab(QtWidgets.QWidget):
                 cmaps.insert(6, cmap)
             idx = self.cmapcombo.findText(cmap)
             if idx < 0:
-                self.cmapcombo.insertItem(7, cmap)
+                if cmap in divergent_cmaps:
+                    self.cmapcombo.addItem(cmap)
+                else:
+                    self.cmapcombo.insertItem(7, cmap)
                 self.cmapcombo.setCurrentIndex(self.cmapcombo.findText(cmap))
             else:
                 self.cmapcombo.setCurrentIndex(idx)
