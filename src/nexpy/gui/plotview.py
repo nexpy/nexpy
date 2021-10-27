@@ -1343,17 +1343,6 @@ class NXPlotView(QtWidgets.QDialog):
                 self.plot_smooth()
             except NeXusError:
                 pass
-        else:
-            if self.autoscale:
-                logv = self.logv
-                try:
-                    self.vaxis.min = self.vaxis.lo = np.min(self.finite_v)
-                    self.vaxis.max = self.vaxis.hi = np.max(self.finite_v)
-                except:
-                    self.vaxis.min = self.vaxis.lo = 0.0
-                    self.vaxis.max = self.vaxis.hi = 0.1
-                self.vtab.set_axis(self.vaxis)
-                self.logv = logv
         if draw:
             self.draw()
         self.update_panels()
