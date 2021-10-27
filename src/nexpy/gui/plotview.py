@@ -112,6 +112,7 @@ else:
     default_cmap = 'jet'
 divergent_cmaps = ['seismic', 'coolwarm', 'twilight', 'divgray', 
                    'RdBu', 'RdYlBu', 'RdYlGn']
+qualitative_cmaps = ['tab10', 'tab20']
 interpolations = ['nearest', 'bilinear', 'bicubic', 'spline16', 'spline36',
                   'hanning', 'hamming', 'hermite', 'kaiser', 'quadric',
                   'catrom', 'gaussian', 'bessel', 'mitchell', 'sinc', 'lanczos']
@@ -1202,7 +1203,15 @@ class NXPlotView(QtWidgets.QDialog):
             self.vaxis.hi = self.vaxis.max = np.max(self.finite_v)
         if self.vtab.symmetric:
             self.vaxis.lo = -self.vaxis.hi
-            self.vaxis.min = -self.vaxis.max
+        elif self.vtab.qualitative:
+            if self.vaxis.min_data > 0.0:
+                self.vaxis.lo = 0.5
+            else:
+                self.vaxis.lo = -0.5
+            if self.cmap == 'tab10':
+                self.vaxis.hi = self.vaxis.lo + 10.0
+            elif self.cmap == 'tab20':
+                self.vaxis.hi = self.vaxis.lo + 20.0
         elif self.vaxis.lo is None or self.autoscale:
             self.vaxis.lo = self.vaxis.min = np.min(self.finite_v)
         if self.vtab.log and not self.vtab.symmetric:
@@ -1298,6 +1307,7 @@ class NXPlotView(QtWidgets.QDialog):
                 self.update_colorbar()
                 self.set_minorticks()
             self.image.set_clim(self.vaxis.lo, self.vaxis.hi)
+            self.vtab.set_limits(self.vaxis.lo, self.vaxis.hi)
             if self.regular_grid:
                 if self.interpolation == 'convolve':
                     self.image.set_interpolation('bicubic')
@@ -1354,6 +1364,12 @@ class NXPlotView(QtWidgets.QDialog):
             else:
                 self.colorbar.set_norm(self.norm)
                 self.colorbar.update_bruteforce(self.image)
+            if self.vtab.qualitative:
+                vmin, vmax = [int(i+0.5) for i in self.image.get_clim()]
+                self.colorbar.set_ticks(range(vmin, vmax))
+                if mpl.__version__ >= '3.5.0':
+                    self.colorbar.ax.set_ylim(self.vaxis.min_data-0.5, 
+                                              self.vaxis.max_data+0.5)
 
     def grid_helper(self):
         """Define the locator used in skew transforms."""
@@ -3268,8 +3284,12 @@ class NXPlotTab(QtWidgets.QWidget):
         if lo > hi:
             lo, hi = hi, lo
         self.axis.set_limits(lo, hi)
-        self.minbox.setValue(lo)
-        self.maxbox.setValue(hi)
+        if self.qualitative:
+            self.minbox.setValue(self.axis.min_data)
+            self.maxbox.setValue(self.axis.max_data)
+        else:
+            self.minbox.setValue(lo)
+            self.maxbox.setValue(hi)
         if not self.zaxis:
             self.set_sliders(lo, hi)
         self.block_signals(False)
@@ -3325,6 +3345,8 @@ class NXPlotTab(QtWidgets.QWidget):
 
     def change_log(self):
         try:
+            if not self.log:
+                self.axis.lo = self.axis.min
             self.plotview.set_log_axis(self.name)
         except Exception:
             pass
@@ -3344,11 +3366,11 @@ class NXPlotTab(QtWidgets.QWidget):
                 lo, hi = self.get_limits()
                 self.axis.diff = max(hi - lo, 0.0)
                 self.maxbox.diff = self.minbox.diff = self.axis.diff
-                self.minbox.setDisabled(True)
+                self.minbox.setEnabled(False)
             else:
                 self.axis.locked = False
                 self.axis.diff = self.maxbox.diff = self.minbox.diff = 0.0
-                self.minbox.setDisabled(False)
+                self.minbox.setEnabled(True)
             self.lockbox.setChecked(value)
         except:
             pass
@@ -3402,7 +3424,10 @@ class NXPlotTab(QtWidgets.QWidget):
     @property
     def cmap(self):
         """Return the currently selected color map."""
-        return self.cmapcombo.currentText()
+        try:
+            return self.cmapcombo.currentText()
+        except Exception:
+            return default_cmap
 
     @cmap.setter
     def cmap(self, cmap):
@@ -3431,15 +3456,27 @@ class NXPlotTab(QtWidgets.QWidget):
             cm.set_bad(self.plotview.bad)
             self.plotview.image.set_cmap(cm)
             if self.symmetric:
-                self.symmetrize()
+                if self.is_qualitative_cmap(self._cached_cmap):
+                    self.axis.hi = self.axis.max
+                self.make_symmetric()
+                self.plotview.x, self.plotview.y, self.plotview.v = \
+                    self.plotview.get_image()
+                self.plotview.replot_image()
+            elif self.qualitative:
+                self.make_qualitative()
                 self.plotview.x, self.plotview.y, self.plotview.v = \
                     self.plotview.get_image()
                 self.plotview.replot_image()
             else:
-                self.minbox.setDisabled(False)
-                self.minslider.setDisabled(False)
+                self.maxbox.setEnabled(True)
+                self.minbox.setEnabled(True)
+                self.maxslider.setEnabled(True)
+                self.minslider.setEnabled(True)
                 if self.is_symmetric_cmap(self._cached_cmap):
-                    self.axis.lo = None
+                    self.axis.lo = self.axis.min
+                elif self.is_qualitative_cmap(self._cached_cmap):
+                    self.axis.lo = self.axis.min
+                    self.axis.hi = self.axis.max
                 self.plotview.replot_image()
             self._cached_cmap = self.cmap
     
@@ -3451,17 +3488,40 @@ class NXPlotTab(QtWidgets.QWidget):
     def is_symmetric_cmap(self, cmap):
         return cmap in divergent_cmaps    
 
-    def symmetrize(self):
+    def make_symmetric(self):
         """Symmetrize the minimum and maximum boxes and sliders."""
         self.axis.lo = -self.axis.hi
-        self.axis.min = -self.axis.max
         self.maxbox.setMinimum(0.0)
         self.minbox.setMinimum(-self.maxbox.maximum())
         self.minbox.setMaximum(0.0)
         self.minbox.setValue(-self.maxbox.value())
-        self.minbox.setDisabled(True)
+        self.maxbox.setEnabled(True)
+        self.minbox.setEnabled(False)
         self.minslider.setValue(self.slider_max - self.maxslider.value())
-        self.minslider.setDisabled(True)
+        self.minslider.setEnabled(False)
+        self.maxslider.setEnabled(True)
+
+    @property
+    def qualitative(self):
+        """Return True if a qualitative color map has been selected."""
+        if (self.is_qualitative_cmap(self.cmap) and 
+            (np.issubdtype(self.axis.data.dtype, np.integer) or
+             np.all(np.equal(np.mod(self.axis.data, 1.0),0)))):
+            return True
+        else:
+            return False
+
+    def is_qualitative_cmap(self, cmap):
+        return cmap in qualitative_cmaps    
+
+    def make_qualitative(self):
+        """Remove access to minimum and maximum boxes and sliders."""
+        self.minbox.setValue(self.axis.min_data)
+        self.maxbox.setValue(self.axis.max_data)
+        self.minbox.setEnabled(False)
+        self.maxbox.setEnabled(False)
+        self.maxslider.setEnabled(False)
+        self.minslider.setEnabled(False)
 
     def change_interpolation(self):
         self.interpolation = self.interpcombo.currentText()
