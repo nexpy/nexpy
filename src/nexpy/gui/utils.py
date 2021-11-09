@@ -456,7 +456,7 @@ def get_colors(n, first=None, last=None):
     if first is None:
         first = rcParams['axes.prop_cycle'].by_key()['color'][0]
     if last is None:
-        last = rcParams['axes.prop_cycle'].by_key()['color'][-1]
+        last = rcParams['axes.prop_cycle'].by_key()['color'][3]
     if not isinstance(first, tuple):
         first = hex2color(first)
     if not isinstance(last, tuple):
