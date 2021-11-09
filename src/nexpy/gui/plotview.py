@@ -734,6 +734,8 @@ class NXPlotView(QtWidgets.QDialog):
             self.rgb_image = False
 
         self.plotdata = self.get_plotdata(over=over)
+        if not over:
+            self.init_tabs()
 
         #One-dimensional Plot
         if self.ndim == 1:
@@ -785,11 +787,11 @@ class NXPlotView(QtWidgets.QDialog):
         self.limits = (self.xaxis.min, self.xaxis.max,
                        self.yaxis.min, self.yaxis.max)
 
+        self.update_tabs()
+
         if over:
-            self.update_tabs()
             self.update_panels()
         else:
-            self.init_tabs()
             self.remove_panels()
 
         if self.rgb_image:
@@ -1214,7 +1216,7 @@ class NXPlotView(QtWidgets.QDialog):
             elif self.cmap == 'tab20':
                 self.vaxis.hi = self.vaxis.lo + 20.0
         elif self.vaxis.lo is None or self.autoscale:
-            self.vaxis.lo = self.vaxis.min = np.min(self.finite_v)
+            self.vaxis.lo = np.min(self.finite_v)
         if self.vtab.log and not self.vtab.symmetric:
             self.vtab.set_limits(*self.vaxis.log_limits())
 
@@ -2770,6 +2772,7 @@ class NXPlotAxis(object):
         self.dim = dim
         self.reversed = False
         self.equally_spaced = True
+        self.qualitative_data = False
         if self.data is not None:
             if dimlen is None:
                 self.centers = None
@@ -2780,6 +2783,10 @@ class NXPlotAxis(object):
                 except Exception:
                     self.min = 0.0
                     self.max = 0.1
+                if ((self.min >= 0 and self.max <= 20) and
+                    (np.issubdtype(self.data.dtype, np.integer) or
+                     np.all(np.equal(np.mod(self.data, 1.0),0)))):
+                    self.qualitative_data = True
             else:
                 if self.data[0] > self.data[-1]:
                     self.reversed = True
@@ -2911,6 +2918,7 @@ class NXPlotTab(QtWidgets.QWidget):
 
         self.name = name
         self.plotview = plotview
+        self.axis = None
 
         self.setFocusPolicy(QtCore.Qt.ClickFocus)
 
@@ -3041,10 +3049,11 @@ class NXPlotTab(QtWidgets.QWidget):
             self.maxbox.setValue(axis.hi)
             self.minbox.diff = self.maxbox.diff = axis.hi - axis.lo
             self.pause()
-        else:
-            self.set_range()
-            self.set_limits(axis.lo, axis.hi)
-        if not self.zaxis:
+        else:            
+            if axis.lo and axis.hi:
+                self.set_range()
+                self.set_limits(axis.lo, axis.hi)
+                self.set_sliders(axis.lo, axis.hi)
             self.axis.locked = False
             if np.all(self.axis.data[np.isfinite(self.axis.data)] <= 0.0):
                 self.logbox.setChecked(False)
@@ -3056,7 +3065,6 @@ class NXPlotTab(QtWidgets.QWidget):
             self.flipbox.setChecked(False)
             if self.name == 'y':
                 self.smoothbox.setChecked(False)
-            self.set_sliders(axis.lo, axis.hi)
         if self.axiscombo is not None:
             self.axiscombo.clear()
             if self.plotview.rgb_image:
@@ -3498,9 +3506,8 @@ class NXPlotTab(QtWidgets.QWidget):
     @property
     def qualitative(self):
         """Return True if a qualitative color map has been selected."""
-        if (self.is_qualitative_cmap(self.cmap) and 
-            (np.issubdtype(self.axis.data.dtype, np.integer) or
-             np.all(np.equal(np.mod(self.axis.data, 1.0),0)))):
+        if (self.axis and self.axis.qualitative_data and 
+            self.is_qualitative_cmap(self.cmap)):
             return True
         else:
             return False
