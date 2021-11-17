@@ -2086,8 +2086,8 @@ class CustomizeTab(NXTab):
         parameters = GridParameters()
         parameters.add('legend', ['None']+[key.title() for key in Legend.codes], 
                        'Legend')
-        parameters.add('label', ['Legend Label', 'Full Path', 'Signal Group', 
-                                 'Signal Name'], 'Label')
+        parameters.add('label', ['Legend Label', 'Full Path', 'Group Path',
+                                 'Group Name', 'Signal Name'], 'Label')
         parameters.add('grid', ['On', 'Off'], 'Grid')
         parameters.add('gridcolor', get_color(self.plotview._gridcolor), 
                        'Grid Color', color=True)
@@ -2174,7 +2174,9 @@ class CustomizeTab(NXTab):
                 self.plotview.legend(loc=legend_location)
             elif label_selection == 'Full Path':
                 self.plotview.legend(path=True, loc=legend_location)
-            elif label_selection == 'Signal Group':
+            elif label_selection == 'Group Path':
+                self.plotview.legend(group=True, path=True, loc=legend_location)
+            elif label_selection == 'Group Name':
                 self.plotview.legend(group=True, loc=legend_location)
             else:
                 self.plotview.legend(signal=True, loc=legend_location)

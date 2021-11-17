@@ -1972,9 +1972,12 @@ class NXPlotView(QtWidgets.QDialog):
                      if self.plots[p]['show_legend']]
             handles = [p['plot'] for p in plots]
             if path:
-                labels = [p['path'] for p in plots]
+                if group:
+                    labels = [dirname(p['path']) for p in plots]
+                else:
+                    labels = [p['path'] for p in plots]
             elif group:
-                labels = [dirname(p['path']) for p in plots]
+                labels = [basename(dirname(p['path'])) for p in plots]
             elif signal:
                 labels = [basename(p['path']) for p in plots]
             else:
