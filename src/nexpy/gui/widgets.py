@@ -93,9 +93,12 @@ class NXSortModel(QtCore.QSortFilterProxyModel):
         super(NXSortModel, self).__init__(parent=parent)
 
     def lessThan(self, left, right):
-        left_text = self.sourceModel().itemFromIndex(left).text()
-        right_text = self.sourceModel().itemFromIndex(right).text()
-        return natural_sort(left_text) < natural_sort(right_text)
+        try:
+            left_text = self.sourceModel().itemFromIndex(left).text()
+            right_text = self.sourceModel().itemFromIndex(right).text()
+            return natural_sort(left_text) < natural_sort(right_text)
+        except Exception:
+            return True
 
     
 class NXScrollArea(QtWidgets.QScrollArea):
