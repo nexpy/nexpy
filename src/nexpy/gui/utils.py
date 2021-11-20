@@ -19,21 +19,15 @@ import os
 import re
 import sys
 import traceback as tb
-from collections import OrderedDict
+from configparser import ConfigParser
 from datetime import datetime
 
-try:
-    from configparser import ConfigParser
-except ImportError:
-    from ConfigParser import ConfigParser
-
 import numpy as np
+from IPython.core.ultratb import ColorTB
+from matplotlib import rcParams
+from matplotlib.colors import colorConverter, hex2color, rgb2hex
 
 from .pyqt import QtCore, QtWidgets, getOpenFileName
-
-from IPython.core.ultratb import ColorTB
-from matplotlib.colors import colorConverter, hex2color, rgb2hex
-from matplotlib import rcParams
 
 try:
     from astropy.convolution import Kernel
@@ -44,8 +38,13 @@ try:
 except ImportError:
     fabio = None
 
-from nexusformat.nexus import *
-
+from nexusformat.nexus import (NeXusError, NXcollection, NXdata, NXfield,
+                               NXLock, NXLockException, NXnote,
+                               nxgetcompression, nxgetencoding, nxgetlock,
+                               nxgetmaxsize, nxgetmemory, nxgetrecursive,
+                               nxload, nxsetcompression, nxsetencoding,
+                               nxsetlock, nxsetmaxsize, nxsetmemory,
+                               nxsetrecursive)
 
 ansi_re = re.compile('\x1b' + r'\[([\dA-Fa-f;]*?)m')
 

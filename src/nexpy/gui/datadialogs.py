@@ -12,44 +12,30 @@ import bisect
 import logging
 import numbers
 import os
-import pkg_resources
-import re
 import shutil
-import sys
-import time
 from operator import attrgetter
-from posixpath import basename, dirname
-
-try:
-    from collections import OrderedDict
-except ImportError:
-    from ordereddict import OrderedDict
-
-import numpy as np
-
-from .pyqt import QtCore, QtGui, QtWidgets, getOpenFileName, getSaveFileName
 
 import matplotlib as mpl
-from matplotlib import rcParams, rcParamsDefault
+import numpy as np
+import pkg_resources
 from matplotlib.legend import Legend
-from matplotlib.rcsetup import (defaultParams, validate_aspect, validate_color,
-                                validate_float, validate_int)
-
+from matplotlib.rcsetup import validate_aspect, validate_float
 from nexusformat.nexus import (NeXusError, NXattr, NXdata, NXentry, NXfield,
-                               NXgroup, NXlink, NXlinkfield, NXlinkgroup,
-                               NXparameters, NXroot, nxgetcompression,
+                               NXgroup, NXlink, NXroot, nxgetcompression,
                                nxgetencoding, nxgetlock, nxgetmaxsize,
                                nxgetmemory, nxgetrecursive, nxload,
                                nxsetcompression, nxsetencoding, nxsetlock,
                                nxsetmaxsize, nxsetmemory, nxsetrecursive)
 
+from .pyqt import QtCore, QtGui, QtWidgets, getOpenFileName, getSaveFileName
 from .utils import (confirm_action, convertHTML, display_message,
                     fix_projection, format_timestamp, get_color, human_size,
-                    import_plugin, keep_data, modification_time, natural_sort,
-                    report_error, restore_timestamp, set_style, timestamp, wrap)
+                    import_plugin, keep_data, natural_sort, report_error,
+                    set_style, timestamp, wrap)
 from .widgets import (NXCheckBox, NXColorBox, NXComboBox, NXDoubleSpinBox,
-                      NXLabel, NXLineEdit, NXPlainTextEdit, NXPushButton,
-                      NXScrollArea, NXSpinBox, NXStack, NXpolygon)
+                      NXLabel, NXLineEdit, NXpolygon, NXPushButton,
+                      NXScrollArea, NXSpinBox, NXStack)
+
 
 class NXWidget(QtWidgets.QWidget):
     """Customized widget for NeXpy widgets"""
@@ -468,6 +454,9 @@ class NXWidget(QtWidgets.QWidget):
         return NXStack([p for p in parameters], 
                        [parameters[p].widget(header=False, width=width) 
                         for p in parameters])
+
+    def grid(self, rows, cols, headers=None, spacing=10):
+        pass
 
     def hide_grid(self, grid):
         for row in range(grid.rowCount()):
@@ -921,7 +910,7 @@ class NXTab(NXWidget):
                 self.copybox.select(selected)
 
 
-class GridParameters(OrderedDict):
+class GridParameters(dict):
     """
     A dictionary of parameters to be entered in a dialog box grid.
 
@@ -937,7 +926,7 @@ class GridParameters(OrderedDict):
     def __setitem__(self, key, value):
         if value is not None and not isinstance(value, GridParameter):
             raise ValueError("'%s' is not a GridParameter" % value)
-        OrderedDict.__setitem__(self, key, value)
+        super().__setitem__(self, key, value)
         value.name = key
 
     def add(self, name, value=None, label=None, vary=None, slot=None,

@@ -11,31 +11,24 @@
 import importlib
 import inspect
 import os
-import pkg_resources
 import re
 import sys
 import types
-from collections import OrderedDict
-from copy import deepcopy
 from itertools import cycle
 
 import numpy as np
-
-from .pyqt import QtCore, QtGui, QtWidgets
-
-from lmfit import Model, Parameter, Parameters
+import pkg_resources
+from lmfit import Model, Parameters
 from lmfit import __version__ as lmfit_version
-from lmfit import models
-
-from nexusformat.nexus import (NeXusError, NXattr, NXdata, NXentry, NXfield,
-                               NXgroup, NXnote, NXparameters, NXprocess,
-                               NXroot, nxload)
+from nexusformat.nexus import (NeXusError, NXdata, NXentry, NXfield, NXnote,
+                               NXparameters, NXprocess, nxload)
 
 from .datadialogs import NXDialog, NXPanel, NXTab
 from .plotview import NXPlotView, linestyles
-from .utils import format_float, report_error, display_message
+from .pyqt import QtCore, QtWidgets
+from .utils import display_message, format_float, report_error
 from .widgets import (NXCheckBox, NXColorBox, NXComboBox, NXLabel, NXLineEdit,
-                      NXMessageBox, NXPushButton, NXScrollArea, NXrectangle)
+                      NXMessageBox, NXPushButton, NXrectangle, NXScrollArea)
 
 
 def get_functions():
