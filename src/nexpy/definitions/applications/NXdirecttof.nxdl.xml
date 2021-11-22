@@ -3,7 +3,7 @@
 <!--
 # NeXus - Neutron and X-ray Common Data Format
 # 
-# Copyright (C) 2008-2012 NeXus International Advisory Committee (NIAC)
+# Copyright (C) 2008-2021 NeXus International Advisory Committee (NIAC)
 # 
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -20,22 +20,13 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 # For further information, see http://www.nexusformat.org
-
-########### SVN repository information ###################
-# $Date$
-# $Author$
-# $Revision$
-# $HeadURL$
-# $Id$
-########### SVN repository information ###################
 -->
 <definition name="NXdirecttof" extends="NXtofraw" type="group"
   category="application"
-    xmlns="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@"
+  xmlns="http://definition.nexusformat.org/nxdl/3.1"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@ ../nxdl.xsd"
-    version="1.0b"
-    svnid="$Id$">
+    xsi:schemaLocation="http://definition.nexusformat.org/nxdl/3.1 ../nxdl.xsd"
+    >
     <doc>This is a application definition for raw data from a direct geometry TOF spectrometer</doc>
     <group type="NXentry" name="entry">
       <field name="title" />
@@ -47,7 +38,7 @@
         </enumeration>
       </field>
      <group type="NXinstrument">
-       <group type="NXfermi_chopper" name="fermi_chopper">
+       <group type="NXfermi_chopper" name="fermi_chopper" minOccurs="0">
         <field name="rotation_speed" type="NX_FLOAT" units="NX_FREQUENCY">
           <doc>chopper rotation speed</doc>
         </field>
@@ -55,6 +46,18 @@
             <doc>energy selected</doc>
        </field> 
        </group>
+       <group type="NXdisk_chopper" name="disk_chopper" minOccurs="0">
+        <field name="rotation_speed" type="NX_FLOAT" units="NX_FREQUENCY">
+          <doc>chopper rotation speed</doc>
+        </field>
+       <field name="energy" type="NX_FLOAT" units="NX_ENERGY">
+            <doc>energy selected</doc>
+       </field> 
+       </group>
+       <doc>
+          We definitly want the rotation_speed and energy of the chopper. Thus either 
+          a fermi_chopper or a disk_chopper group is required. 
+       </doc>
      </group>  
     </group>
 </definition>

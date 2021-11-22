@@ -1,7 +1,7 @@
 import numpy as np
-from nexpy.gui.datadialogs import NXDialog, GridParameters
+from nexpy.gui.datadialogs import GridParameters, NXDialog
 from nexpy.gui.utils import report_error
-from nexusformat.nexus import NXfield, NXdata, NeXusError
+from nexusformat.nexus import NeXusError, NXdata, NXfield
 from nexusformat.nexus.tree import centers
 
 
@@ -16,7 +16,7 @@ def show_dialog():
 class ConvertDialog(NXDialog):
 
     def __init__(self, parent=None):
-        super(ConvertDialog, self).__init__(parent)
+        super().__init__(parent)
         self.select_entry()
         self.parameters = GridParameters()
         self.parameters.add('Ei', self.entry['instrument/monochromator/energy'],

@@ -3,7 +3,7 @@
 <!--
 # NeXus - Neutron and X-ray Common Data Format
 # 
-# Copyright (C) 2008-2012 NeXus International Advisory Committee (NIAC)
+# Copyright (C) 2008-2021 NeXus International Advisory Committee (NIAC)
 # 
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -20,22 +20,13 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 # For further information, see http://www.nexusformat.org
-
-########### SVN repository information ###################
-# $Date$
-# $Author$
-# $Revision$
-# $HeadURL$
-# $Id$
-########### SVN repository information ###################
 -->
-<definition xmlns="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@" category="base"
+<definition xmlns="http://definition.nexusformat.org/nxdl/3.1" category="base"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@ ../nxdl.xsd"
+	xsi:schemaLocation="http://definition.nexusformat.org/nxdl/3.1 ../nxdl.xsd"
 	name="NXsample" 
-	version="1.0"
-    svnid="$Id$"
-	type="group" extends="NXobject">
+	type="group" extends="NXobject"
+	>
 
 	<symbols>
 		<doc>symbolic array lengths to be coordinated between various fields</doc>
@@ -48,8 +39,10 @@
 	</symbols>
 
 	<doc>
-		Template of the state of the sample. This could include scanned variables that 
-		are associated with one of the data dimensions, e.g. the magnetic field, or 
+		Any information on the sample. 
+		
+		This could include scanned variables that
+		are associated with one of the data dimensions, e.g. the magnetic field, or
 		logged data, e.g. monitored temperature vs elapsed time.
 	</doc>
 	<field name="name">
@@ -131,31 +124,60 @@
 	<field name="changer_position" type="NX_INT" units="NX_UNITLESS">
 		<doc>Sample changer position</doc>
 	</field>
+	<field name="unit_cell_abc" type="NX_FLOAT" units="NX_LENGTH">
+		<doc>Crystallography unit cell parameters a, b, and c</doc>
+		<dimensions>
+			<dim index="1" value="3"/>
+		</dimensions>
+	</field>
+	<field name="unit_cell_alphabetagamma" type="NX_FLOAT" units="NX_ANGLE">
+		<doc>Crystallography unit cell parameters alpha, beta, and gamma</doc>
+		<dimensions>
+			<dim index="1" value="3"/>
+		</dimensions>
+	</field>
 	<field name="unit_cell" type="NX_FLOAT" units="NX_LENGTH">
 		<doc>Unit cell parameters (lengths and angles)</doc>
-		<dimensions rank="2"><!--[n_comp,6]-->
+		<dimensions rank="2">
 			<dim index="1" value="n_comp"/>
 			<dim index="2" value="6"/>
 		</dimensions>
 	</field>
 	<field name="unit_cell_volume" type="NX_FLOAT" units="NX_VOLUME">
 		<doc>Volume of the unit cell</doc>
-		<dimensions rank="1"><!--[n_comp]-->
+		<dimensions rank="1">
 			<dim index="1" value="n_comp"/>
 		</dimensions>
 	</field>
 	<field name="sample_orientation" type="NX_FLOAT" units="NX_ANGLE">
-		<doc>This will follow the Busing and Levy convention from Acta.Crysta v22, p457 (1967)</doc>
+		<doc>
+			This will follow the Busing-Levy convention:
+			W. R. Busing and H. A. Levy (1967). Acta Cryst. 22, 457-464
+		</doc>
 		<dimensions rank="1">
 			<dim index="1" value="3"/>
 		</dimensions>
 	</field>
 	<field name="orientation_matrix" type="NX_FLOAT">
 		<doc>
-			Orientation matrix of single crystal sample.
-			This will follow the Busing and Levy convention from Acta.Crysta v22, p457 (1967)
+			Orientation matrix of single crystal sample using Busing-Levy convention:
+			W. R. Busing and H. A. Levy (1967). Acta Cryst. 22, 457-464
 		</doc>
-		<dimensions rank="3"><!--[n_comp,3,3]-->
+		<dimensions rank="3">
+			<dim index="1" value="n_comp"/>
+			<dim index="2" value="3"/>
+			<dim index="3" value="3"/>
+		</dimensions>
+	</field>
+	<field name="ub_matrix" type="NX_FLOAT">
+		<doc>
+			UB matrix of single crystal sample using Busing-Levy convention:
+			W. R. Busing and H. A. Levy (1967). Acta Cryst. 22, 457-464. This is 
+			the multiplication of the orientation_matrix, given above, 
+			with the :math:`B` matrix which 
+			can be derived from the lattice constants. 
+		</doc>
+		<dimensions rank="3">
 			<dim index="1" value="n_comp"/>
 			<dim index="2" value="3"/>
 			<dim index="3" value="3"/>
@@ -163,19 +185,19 @@
 	</field>
 	<field name="mass" type="NX_FLOAT" units="NX_MASS">
 		<doc>Mass of sample</doc>
-		<dimensions rank="1"><!--[n_comp]-->
+		<dimensions rank="1">
 			<dim index="1" value="n_comp"/>
 		</dimensions>
 	</field>
 	<field name="density" type="NX_FLOAT" units="NX_MASS_DENSITY">
 		<doc>Density of sample</doc>
-		<dimensions rank="1"><!--[n_comp]-->
+		<dimensions rank="1">
 			<dim index="1" value="n_comp"/>
 		</dimensions>
 	</field>
 	<field name="relative_molecular_mass" type="NX_FLOAT" units="NX_MASS">
 		<doc>Relative Molecular Mass of sample</doc>
-		<dimensions rank="1"><!--[n_comp]-->
+		<dimensions rank="1">
 			<dim index="1" value="n_comp"/>
 		</dimensions>
 	</field>
@@ -184,6 +206,8 @@
 			<item value="sample" />
 			<item value="sample+can" />
 			<item value="can" />
+			<item value="sample+buffer" />
+			<item value="buffer" />
 			<item value="calibration sample" />
 			<item value="normalisation sample" />
 			<item value="simulated data" />
@@ -221,15 +245,21 @@
 	<group type="NXbeam">
 		<doc>Details of beam incident on sample - used to calculate sample/beam interaction point</doc>
 	</group>
+	<group type="NXsample_component">
+		<doc>
+			One group per sample component
+			This is the perferred way of recording per component information over the n_comp arrays
+		</doc>
+	</group>
 	<field name="component">
 		<doc>Details of the component of the sample and/or can</doc>
-		<dimensions rank="1"><!--[n_comp]-->
+		<dimensions rank="1">
 			<dim index="1" value="n_comp"/>
 		</dimensions>
 	</field>
 	<field name="sample_component">
-		<doc>What type of component we are: "sample | can | atmosphere | kit"</doc>
-		<dimensions rank="1"><!--[n_comp]-->
+		<doc>Type of component</doc>
+		<dimensions rank="1">
 			<dim index="1" value="n_comp"/>
 		</dimensions>
 		<enumeration>
@@ -241,43 +271,48 @@
 	</field>
 	<field name="concentration" type="NX_FLOAT" units="NX_MASS_DENSITY">
 		<doc>Concentration of each component</doc>
-		<dimensions rank="1"><!--[n_comp]-->
+		<dimensions rank="1">
 			<dim index="1" value="n_comp"/>
 		</dimensions>
 	</field>
 	<field name="volume_fraction" type="NX_FLOAT">
 		<doc>Volume fraction of each component</doc>
-		<dimensions rank="1"><!--[n_comp]-->
+		<dimensions rank="1">
 			<dim index="1" value="n_comp"/>
 		</dimensions>
 	</field>
 	<field name="scattering_length_density" type="NX_FLOAT" units="NX_SCATTERING_LENGTH_DENSITY">
 		<doc>Scattering length density of each component</doc>
-		<dimensions rank="1"><!--[n_comp]-->
+		<dimensions rank="1">
 			<dim index="1" value="n_comp"/>
 		</dimensions>
 	</field>
-	<field name="unit_cell_class">
-		<doc>
-			In case it is all we know and we want to record/document it
-		</doc>
-		<dimensions rank="1"><!--[n_comp]-->
+        <field name="unit_cell_class">
+                <doc>
+                        In case it is all we know and we want to record/document it
+                </doc>
+                <enumeration>
+                        <item value="triclinic" />
+                        <item value="monoclinic" />
+                        <item value="orthorhombic" />
+                        <item value="tetragonal" />
+                        <item value="rhombohedral" />
+                        <item value="hexagonal" />
+                        <item value="cubic" />
+                </enumeration>
+        </field>
+        <field name="space_group">
+                <doc>Crystallographic space group</doc>
+		<dimensions>
 			<dim index="1" value="n_comp"/>
 		</dimensions>
-		<enumeration>
-			<item value="cubic" />
-			<item value="tetragonal" />
-			<item value="orthorhombic" />
-			<item value="monoclinic" />
-			<item value="triclinic" />
-		</enumeration>
-	</field>
-	<field name="unit_cell_group">
-		<doc>Crystallographic point or space group</doc>
-		<dimensions rank="1"><!--[n_comp]-->
+        </field>
+        <field name="point_group">
+                <doc>Crystallographic point group, deprecated if space_group present</doc>
+		<dimensions>
 			<dim index="1" value="n_comp"/>
-		</dimensions>
-	</field>
+        </dimensions>
+		</field>
 	<field name="path_length" type="NX_FLOAT" units="NX_LENGTH">
 		<doc>
 			Path length through sample/can for simple case when 
@@ -296,13 +331,21 @@
 	<group name="transmission" type="NXdata">
 		<doc>As a function of Wavelength</doc>
 	</group>
-	<group name="temperature_log" type="NXlog">
+	<group name="temperature" type="NXlog">
+		<doc>temperature.value is a link to e.g. temperature_env.sensor1.value</doc>
+	</group>
+	<group name="temperature_log" type="NXlog"
+		deprecated="use ``temperature``, see: https://github.com/nexusformat/definitions/issues/816">
 		<doc>temperature_log.value is a link to e.g. temperature_env.sensor1.value_log.value</doc>
 	</group>
 	<group name="temperature_env" type="NXenvironment">
 		<doc>Additional sample temperature environment information</doc>
 	</group>
-	<group name="magnetic_field_log" type="NXlog">
+	<group name="magnetic_field" type="NXlog">
+		<doc>magnetic_field.value is a link to e.g. magnetic_field_env.sensor1.value</doc>
+	</group>
+	<group name="magnetic_field_log" type="NXlog"
+		deprecated="use ``magnetic_field``, see: https://github.com/nexusformat/definitions/issues/816">
 		<doc>magnetic_field_log.value is a link to e.g. magnetic_field_env.sensor1.value_log.value</doc>
 	</group>
 	<group name="magnetic_field_env" type="NXenvironment">
@@ -334,5 +377,18 @@
 	<group type="NXpositioner">
 	  <doc>Any positioner (motor, PZT, ...) used to locate the sample</doc>
 	</group>
+    <attribute name="default">
+        <doc>
+            .. index:: plotting
+            
+            Declares which child group contains a path leading 
+            to a :ref:`NXdata` group.
+            
+            It is recommended (as of NIAC2014) to use this attribute
+            to help define the path to the default dataset to be plotted.
+            See https://www.nexusformat.org/2014_How_to_find_default_data.html
+            for a summary of the discussion.
+        </doc>
+    </attribute>
 </definition>
 

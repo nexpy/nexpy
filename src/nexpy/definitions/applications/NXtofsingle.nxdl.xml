@@ -3,7 +3,7 @@
 <!--
 # NeXus - Neutron and X-ray Common Data Format
 # 
-# Copyright (C) 2008-2012 NeXus International Advisory Committee (NIAC)
+# Copyright (C) 2008-2021 NeXus International Advisory Committee (NIAC)
 # 
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -20,22 +20,30 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 # For further information, see http://www.nexusformat.org
-
-########### SVN repository information ###################
-# $Date$
-# $Author$
-# $Revision$
-# $HeadURL$
-# $Id$
-########### SVN repository information ###################
 -->
 <definition name="NXtofsingle" extends="NXobject" type="group"
   category="application"
-    xmlns="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@"
+  xmlns="http://definition.nexusformat.org/nxdl/3.1"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@ ../nxdl.xsd"
-    version="1.0b"
-    svnid="$Id$">
+    xsi:schemaLocation="http://definition.nexusformat.org/nxdl/3.1 ../nxdl.xsd"
+    >
+    <symbols>
+      <doc>
+	    The symbol(s) listed here will be used below to coordinate datasets with the same shape.
+      </doc>
+	  <symbol name="xSize">
+	    <doc>xSize description</doc>
+      </symbol>
+      <symbol name="ySize">
+	    <doc>ySize description</doc>
+      </symbol>
+      <symbol name="nDet">
+	    <doc>Number of detectors</doc>
+      </symbol>
+	  <symbol name="nTimeChan">
+	    <doc>nTimeChan description</doc>
+      </symbol>
+	</symbols>
     <doc>This is a application definition for raw data from a generic TOF instrument</doc>
     <group type="NXentry" name="entry">
       <field name="title" />
@@ -49,10 +57,12 @@
       <field name="duration" type="NX_FLOAT"></field>
       <field name="pre_sample_flightpath" type="NX_FLOAT"
         units="NX_LENGTH">
-      <doc>This is the flight path before the sample position. This can be determined by a chopper,
+      <doc>
+        This is the flight path before the sample position. This can be determined by a chopper,
         by the moderator or the source itself. In other words: it the distance to the component
         which gives the T0 signal to the detector electronics. If another component in the
-        NXinstrument hierarchy provides this information, this should be a link.</doc>
+        NXinstrument hierarchy provides this information, this should be a link.
+      </doc>
       </field>
       <group type="NXuser" name="user">
         <field name="name" type="NX_CHAR"></field></group>
@@ -60,9 +70,9 @@
         <group type="NXdetector" name="detector">
           <field name="data" type="NX_INT" signal="1">
             <dimensions rank="3">
-              <dim index="1" value="xsize" />
-              <dim index="2" value="ysize" />
-              <dim index="3" value="ntimechan" />
+              <dim index="1" value="xSize" />
+              <dim index="2" value="ySize" />
+              <dim index="3" value="nTimeChan" />
             </dimensions>
           </field>
           <field name="distance" type="NX_FLOAT" units="NX_LENGTH">
@@ -72,19 +82,19 @@
             <field name="time_of_flight" type="NX_FLOAT"
           units="NX_TIME_OF_FLIGHT" axis="1">
           <dimensions rank="1">
-            <dim index="1" value="ntimechan" /></dimensions>
+            <dim index="1" value="nTimeChan" /></dimensions>
         </field>
             <field name="polar_angle" type="NX_FLOAT"
               units="NX_ANGLE">
               <doc>polar angle for each detector element</doc>
               <dimensions rank="1">
-                <dim index="1" value="ndet"></dim></dimensions>
+                <dim index="1" value="nDet"></dim></dimensions>
             </field>
             <field name="azimuthal_angle" type="NX_FLOAT"
               units="NX_ANGLE">
               <doc>azimuthal angle for each detector element</doc>
               <dimensions rank="1">
-                <dim index="1" value="ndet"></dim></dimensions>
+                <dim index="1" value="nDet"></dim></dimensions>
             </field>
         </group>
       </group>
@@ -116,16 +126,15 @@
         <field name="distance" type="NX_FLOAT" units="NX_LENGTH"></field>
         <field name="data" type="NX_INT" signal="1">
           <dimensions rank="1">
-            <dim index="1" value="ntimechan" /></dimensions></field>
+            <dim index="1" value="nTimeChan" /></dimensions></field>
         <field name="time_of_flight" type="NX_FLOAT"
           units="NX_TIME_OF_FLIGHT" axis="1">
           <dimensions rank="1">
-            <dim index="1" value="ntimechan" /></dimensions>
+            <dim index="1" value="nTimeChan" /></dimensions>
         </field>
       </group>
       <group type="NXdata" name="data">
         <link name="data" target="/NXentry/NXinstrument/NXdetector/data"></link>
-        <link name="detector_number" target="/NXentry/NXinstrument/NXdetector/detector_number"></link>
         <link name="time_of_flight" target="/NXentry/NXinstrument/NXdetector/time_of_flight"></link>
       </group>
     </group>

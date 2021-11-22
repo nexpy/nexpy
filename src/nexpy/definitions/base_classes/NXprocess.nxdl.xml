@@ -3,7 +3,7 @@
 <!--
 # NeXus - Neutron and X-ray Common Data Format
 # 
-# Copyright (C) 2008-2012 NeXus International Advisory Committee (NIAC)
+# Copyright (C) 2008-2021 NeXus International Advisory Committee (NIAC)
 # 
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -20,25 +20,22 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 # For further information, see http://www.nexusformat.org
-
-########### SVN repository information ###################
-# $Date$
-# $Author$
-# $Revision$
-# $HeadURL$
-# $Id$
-########### SVN repository information ###################
 -->
-<definition xmlns="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@" category="base"
+<definition xmlns="http://definition.nexusformat.org/nxdl/3.1" category="base"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@ ../nxdl.xsd"
+    xsi:schemaLocation="http://definition.nexusformat.org/nxdl/3.1 ../nxdl.xsd"
     name="NXprocess" 
-    version="1.0"
-    svnid="$Id$"
 	type="group" extends="NXobject">
     <doc>Document an event of data processing, reconstruction, or analysis for this data.</doc>
     <field name="program" type="NX_CHAR">
         <doc>Name of the program used</doc>
+    </field>
+    <field name="sequence_index" type="NX_POSINT">
+        <doc>
+            Sequence index of processing, 
+            for determining the order of multiple **NXprocess** steps.  
+            Starts with 1.
+        </doc>
     </field>
     <field name="version" type="NX_CHAR">
         <doc>Version of the program used</doc>
@@ -47,7 +44,8 @@
         <doc>Date and time of processing.</doc>
     </field>
     <group type="NXnote">
-        <doc>The note will contain information about how the data was processed
+        <doc>
+            The note will contain information about how the data was processed
             or anything about the data provenance. 
             The contents of the note can be anything that the processing code 
             can understand, or simple text.
@@ -55,5 +53,18 @@
             The name will be numbered to allow for ordering of steps.
         </doc>
     </group>
+    <attribute name="default">
+        <doc>
+            .. index:: plotting
+            
+            Declares which child group contains a path leading 
+            to a :ref:`NXdata` group.
+            
+            It is recommended (as of NIAC2014) to use this attribute
+            to help define the path to the default dataset to be plotted.
+            See https://www.nexusformat.org/2014_How_to_find_default_data.html
+            for a summary of the discussion.
+        </doc>
+    </attribute>
 </definition>
 

@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
-<?xml-stylesheet type="text/xsl" href="nxdlformat.xsl" ?><!--
+<?xml-stylesheet type="text/xsl" href="nxdlformat.xsl" ?>
+<!--
 # NeXus - Neutron and X-ray Common Data Format
 # 
-# Copyright (C) 2008-2012 NeXus International Advisory Committee (NIAC)
+# Copyright (C) 2008-2021 NeXus International Advisory Committee (NIAC)
 # 
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -20,23 +20,28 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 # For further information, see http://www.nexusformat.org
-
-########### SVN repository information ###################
-# $Date$
-# $Author$
-# $Revision$
-# $HeadURL$
-# $Id$
-########### SVN repository information ###################
 -->
 <definition name="NXiqproc" extends="NXobject" type="group"
   category="application"
-    xmlns="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@"
+  xmlns="http://definition.nexusformat.org/nxdl/3.1"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@ ../nxdl.xsd"
-    version="1.0b"
-    svnid="$Id$">
-    <doc>Actually this is a template from which to start an application definition.</doc>
+    xsi:schemaLocation="http://definition.nexusformat.org/nxdl/3.1 ../nxdl.xsd"
+    >
+    <symbols>
+        <doc>
+            The symbol(s) listed here will be used below to coordinate datasets with the same shape.
+        </doc>
+        <symbol name="nVars">
+            <doc>The number of values taken by the varied variable</doc>
+        </symbol>
+        <symbol name="nQX">
+            <doc>Number of values for the first dimension of Q</doc>
+        </symbol>
+        <symbol name="nQY">
+            <doc>Number of values for the second dimension of Q</doc>
+        </symbol>
+    </symbols>
+    <doc>Application definition for any :math:`I(Q)` data.</doc>
     <group type="NXentry">
         <attribute name="entry">
           <!-- TODO documentation string needed here -->
@@ -88,24 +93,24 @@
               </doc>
               <dimensions rank="3">
 
-                <dim index="1" value="NE" />
-                <dim index="2" value="NQX" />
-                <dim index="3" value="NQY" />
+                <dim index="1" value="nVars" />
+                <dim index="2" value="nQX" />
+                <dim index="3" value="nQY" />
               </dimensions>
             </field>
-            <field name="variable" axis="1">
+            <field name="variable" type="NX_NUMBER" axis="1">
               <dimensions rank="1">
-                <dim index="1" value="NE" /></dimensions>
+                <dim index="1" value="nVars" /></dimensions>
               <attribute name="varied_variable">
                 <doc>The real name of the varied variable in the first dim of data, temperature, P, MF etc...</doc></attribute></field>
-            <field name="qx" axis="2">
+            <field name="qx" type="NX_NUMBER" axis="2">
               <doc>Values for the first dimension of Q</doc>
               <dimensions rank="1">
-                <dim index="1" value="NQX" /></dimensions></field>
-            <field name="qy" axis="3">
+                <dim index="1" value="nQX" /></dimensions></field>
+            <field name="qy" type="NX_NUMBER" axis="3">
               <doc>Values for the second dimension of Q</doc>
               <dimensions rank="1">
-                <dim index="1" value="NQY" /></dimensions></field>
+                <dim index="1" value="nQY" /></dimensions></field>
          </group>
      </group>
 </definition>

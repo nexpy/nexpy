@@ -3,7 +3,7 @@
 <!--
 # NeXus - Neutron and X-ray Common Data Format
 # 
-# Copyright (C) 2008-2012 NeXus International Advisory Committee (NIAC)
+# Copyright (C) 2008-2021 NeXus International Advisory Committee (NIAC)
 # 
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -20,25 +20,24 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 # For further information, see http://www.nexusformat.org
-
-########### SVN repository information ###################
-# $Date$
-# $Author$
-# $Revision$
-# $HeadURL$
-# $Id$
-########### SVN repository information ###################
 -->
 <definition name="NXrefscan" extends="NXobject" type="group"
   category="application"
-    xmlns="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@"
+  xmlns="http://definition.nexusformat.org/nxdl/3.1"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@ ../nxdl.xsd"
-    version="1.0b"
-    svnid="$Id$"
+    xsi:schemaLocation="http://definition.nexusformat.org/nxdl/3.1 ../nxdl.xsd"
   >
+  <symbols>
+    <doc>
+	  The symbol(s) listed here will be used below to coordinate datasets with the same shape.
+	</doc>
+	<symbol name="nP">
+		<doc>Number of points</doc>
+	</symbol>
+  </symbols>
   <doc>
     This is an application definition for a monochromatic scanning reflectometer.
+
     It does not have the information to calculate the resolution
     since it does not have any apertures.
   </doc>
@@ -70,13 +69,13 @@
         <group type="NXdetector">
           <field name="data" type="NX_INT" signal="1">
             <dimensions rank="1">
-              <dim index="1" value="NP" />
+              <dim index="1" value="nP" />
             </dimensions>
           </field>
           <field name="polar_angle" type="NX_FLOAT" units="NX_ANGLE"
             axis="1">
             <dimensions rank="1">
-              <dim index="1" value="NP" />
+              <dim index="1" value="nP" />
             </dimensions>
           </field>
         </group>
@@ -87,7 +86,7 @@
         </field>
         <field name="rotation_angle" type="NX_FLOAT" units="NX_ANGLE">
           <dimensions rank="1">
-            <dim index="1" value="NP" />
+            <dim index="1" value="nP" />
           </dimensions>
         </field>
       </group>
@@ -108,7 +107,7 @@
         <field name="data" type="NX_FLOAT" units="NX_ANY">
           <doc>Monitor counts for each step</doc>
           <dimensions rank="1">
-            <dim index="1" value="NP" />
+            <dim index="1" value="nP" />
           </dimensions>
         </field>
       </group>

@@ -1,0 +1,661 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="nxdlformat.xsl" ?>
+<!--
+  # NXreflections: candidate NeXus definition for reflection data
+-->
+<definition type="group" name="NXreflections" category="base" extends="NXobject"
+	    xmlns="http://definition.nexusformat.org/nxdl/3.1"
+	    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	    xsi:schemaLocation="http://definition.nexusformat.org/nxdl/3.1 ../nxdl.xsd"
+    >
+  <symbols>
+    <symbol name="n"><doc>number of reflections</doc></symbol>
+    <symbol name="m"><doc>number of experiments</doc></symbol>
+  </symbols>
+  <doc>Reflection data from diffraction experiments </doc>
+  <field name="experiments" minOccurs="1">
+    <doc>The experiments from which the reflection data derives </doc>
+    <dimensions rank="1">
+      <dim index="1" value="m" />
+    </dimensions>
+  </field>
+
+  <field name="h" type="NX_NUMBER" minOccurs="1">
+    <doc>The h component of the miller index </doc>
+    <dimensions rank="1">
+      <dim index="1" value="n" />
+    </dimensions>
+    <attribute name="description">
+      <doc>Describes the dataset </doc>
+    </attribute>
+  </field>
+
+  <field name="k" type="NX_NUMBER" minOccurs="1">
+    <doc>The k component of the miller index </doc>
+    <dimensions rank="1">
+      <dim index="1" value="n" />
+    </dimensions>
+    <attribute name="description">
+      <doc>Describes the dataset </doc>
+    </attribute>
+  </field>
+
+  <field name="l" type="NX_NUMBER" minOccurs="1">
+    <doc>The l component of the miller index </doc>
+    <dimensions rank="1">
+      <dim index="1" value="n" />
+    </dimensions>
+    <attribute name="description">
+      <doc>Describes the dataset </doc>
+    </attribute>
+  </field>
+
+  <field name="id" type="NX_INT" minOccurs="1">
+    <doc>
+      The id of the experiment which resulted in the reflection. If the value
+      is greater than 0, the experiments must link to a multi-experiment NXmx
+      group 
+    </doc>
+    <dimensions rank="1">
+      <dim index="1" value="n" />
+    </dimensions>
+    <attribute name="description">
+      <doc>Describes the dataset </doc>
+    </attribute>
+  </field>
+
+  <field name="reflection_id" type="NX_INT" minOccurs="1">
+    <doc>
+      The id of the reflection. Multiple partials from the same reflection
+      should all have the same id
+    </doc>
+    <dimensions rank="1">
+      <dim index="1" value="n" />
+    </dimensions>
+    <attribute name="description">
+      <doc>Describes the dataset </doc>
+    </attribute>
+  </field>
+  <field name="entering" type="NX_BOOLEAN" minOccurs="1">
+    <doc>Is the reflection entering or exiting the Ewald sphere </doc>
+    <dimensions rank="1">
+      <dim index="1" value="n" />
+    </dimensions>
+    <attribute name="description">
+      <doc>Describes the dataset </doc>
+    </attribute>
+  </field>
+  
+  <field name="det_module" type="NX_INT" minOccurs="1">
+    <doc>The detector module on which the reflection was recorded </doc>
+    <dimensions rank="1">
+      <dim index="1" value="n" />
+    </dimensions>
+    <attribute name="description">
+      <doc>Describes the dataset </doc>
+    </attribute>
+  </field>
+
+  <field name="flags" type="NX_INT" minOccurs="1">
+    <doc>
+      Status flags describing the reflection. 
+      
+      This is a bit mask. The bits in the mask follow the convention 
+      used by DIALS, and have the following names:
+      
+      ===   ==========================================
+      bit   name
+      ===   ==========================================
+      0     ``predicted``
+      1     ``observed``
+      2     ``indexed``
+      3     ``used_in_refinement``
+      4     ``strong``
+      5     ``reference_spot``
+      6     ``dont_integrate``
+      7     ``integrated_sum``
+      8     ``integrated_prf``
+      9     ``integrated``
+      10    ``overloaded``
+      11    ``overlapped``
+      12    ``overlapped_fg``
+      13    ``in_powder_ring``
+      14    ``foreground_includes_bad_pixels``
+      15    ``background_includes_bad_pixels``
+      16    ``includes_bad_pixels``
+      17    ``bad_shoebox``
+      18    ``bad_spot``
+      19    ``used_in_modelling``
+      20    ``centroid_outlier``
+      21    ``failed_during_background_modelling``
+      22    ``failed_during_summation``
+      23    ``failed_during_profile_fitting``
+      24    ``bad_reference``
+      ===   ==========================================
+    </doc>
+    <dimensions rank="1">
+      <dim index="1" value="n" />
+    </dimensions>
+    <attribute name="description">
+      <doc>Describes the dataset </doc>
+    </attribute>
+  </field>
+
+  <field name="d" type="NX_FLOAT" minOccurs="1">
+    <doc>The resolution of the reflection </doc>
+    <dimensions rank="1">
+      <dim index="1" value="n" />
+    </dimensions>
+    <attribute name="description">
+      <doc>Describes the dataset </doc>
+    </attribute>
+  </field>
+  
+  <field name="partiality" type="NX_FLOAT" minOccurs="1">
+    <doc>
+      The partiality of the reflection. 
+      Dividing by this number will inflate the measured 
+      intensity to the full reflection equivalent.
+    </doc>
+    <dimensions rank="1">
+      <dim index="1" value="n" />
+    </dimensions>
+    <attribute name="description">
+      <doc>Describes the dataset </doc>
+    </attribute>
+  </field>
+
+  <field name="predicted_frame" type="NX_FLOAT" units="NX_UNITLESS" minOccurs="1">
+    <doc>
+      The frame on which the bragg peak of the reflection is predicted
+    </doc>
+    <dimensions rank="1">
+      <dim index="1" value="n" />
+    </dimensions>
+    <attribute name="description">
+      <doc>Describes the dataset </doc>
+    </attribute>
+  </field>
+
+  <field name="predicted_x" type="NX_FLOAT" units="NX_LENGTH" minOccurs="1">
+    <doc>
+      The x position at which the bragg peak of the reflection
+      is predicted 
+    </doc>
+    <dimensions rank="1">
+      <dim index="1" value="n" />
+    </dimensions>
+    <attribute name="description">
+      <doc>Describes the dataset </doc>
+    </attribute>
+  </field>
+
+  <field name="predicted_y" type="NX_FLOAT" units="NX_LENGTH" minOccurs="1">
+    <doc>
+      The y position at which the bragg peak of the reflection
+      is predicted 
+    </doc>
+    <dimensions rank="1">
+      <dim index="1" value="n" />
+    </dimensions>
+    <attribute name="description">
+      <doc>Describes the dataset </doc>
+    </attribute>
+  </field>
+
+  <field name="predicted_phi" type="NX_FLOAT" units="NX_ANGLE" minOccurs="1">
+    <doc>
+      The phi angle at which the bragg peak of the reflection is predicted
+    </doc>
+    <dimensions rank="1">
+      <dim index="1" value="n" />
+    </dimensions>
+    <attribute name="description">
+      <doc>Describes the dataset </doc>
+    </attribute>
+  </field>
+
+  <field name="predicted_px_x" type="NX_FLOAT" units="NX_UNITLESS" minOccurs="1">
+    <doc>
+      The x pixel position at which the bragg peak of the reflection is
+      predicted 
+    </doc>
+    <dimensions rank="1">
+      <dim index="1" value="n" />
+    </dimensions>
+    <attribute name="description">
+      <doc>Describes the dataset </doc>
+    </attribute>
+  </field>
+
+  <field name="predicted_px_y" type="NX_FLOAT" units="NX_UNITLESS" minOccurs="1">
+    <doc>
+      The y pixel position at which the bragg peak of the reflection is
+      predicted 
+    </doc>
+    <dimensions rank="1">
+      <dim index="1" value="n" />
+    </dimensions>
+    <attribute name="description">
+      <doc>Describes the dataset </doc>
+    </attribute>
+  </field>
+  
+  <field name="observed_frame" type="NX_FLOAT" units="NX_UNITLESS" minOccurs="1">
+    <doc>
+      The estimate of the frame at which the central impact of the
+      reflection was recorded 
+    </doc>
+    <dimensions rank="1">
+      <dim index="1" value="n" />
+    </dimensions>
+    <attribute name="description">
+      <doc>Describes the dataset </doc>
+    </attribute>
+  </field>
+
+  <field name="observed_frame_var" type="NX_FLOAT" units="NX_UNITLESS" minOccurs="1">
+    <doc>
+      The variance on the estimate of the frame at which the central
+      impact of the reflection was recorded 
+    </doc>
+    <dimensions rank="1">
+      <dim index="1" value="n" />
+    </dimensions>
+    <attribute name="description">
+      <doc>Describes the dataset </doc>
+    </attribute>
+  </field>
+
+  <field name="observed_frame_errors" type="NX_FLOAT" units="NX_UNITLESS" minOccurs="1">
+    <doc>
+      The standard deviation of the estimate of the frame at which the central
+      impact of the reflection was recorded 
+    </doc>
+    <dimensions rank="1">
+      <dim index="1" value="n" />
+    </dimensions>
+    <attribute name="description">
+      <doc>Describes the dataset </doc>
+    </attribute>
+  </field>
+	
+  <field name="observed_px_x" type="NX_FLOAT" units="NX_UNITLESS" minOccurs="1">
+    <doc>
+      The estimate of the pixel x position at which the central impact of
+      the reflection was recorded 
+    </doc>
+    <dimensions rank="1">
+      <dim index="1" value="n" />
+    </dimensions>
+    <attribute name="description">
+      <doc>Describes the dataset </doc>
+    </attribute>
+  </field>
+
+  <field name="observed_px_x_var" type="NX_FLOAT" units="NX_UNITLESS" minOccurs="1">
+    <doc>
+      The variance on the estimate of the pixel x position at which the
+      central impact of the reflection was recorded 
+    </doc>
+    <dimensions rank="1">
+      <dim index="1" value="n" />
+    </dimensions>
+    <attribute name="description">
+      <doc>Describes the dataset </doc>
+    </attribute>
+  </field>
+	
+  <field name="observed_px_x_errors" type="NX_FLOAT" units="NX_UNITLESS" minOccurs="1">
+    <doc>
+      The standard deviation of the estimate of the pixel x position at which the
+      central impact of the reflection was recorded 
+    </doc>
+    <dimensions rank="1">
+      <dim index="1" value="n" />
+    </dimensions>
+    <attribute name="description">
+      <doc>Describes the dataset </doc>
+    </attribute>
+  </field>
+
+  <field name="observed_px_y" type="NX_FLOAT" units="NX_UNITLESS" minOccurs="1">
+    <doc>
+      The estimate of the pixel y position at which the central impact of
+      the reflection was recorded 
+    </doc>
+    <dimensions rank="1">
+      <dim index="1" value="n" />
+    </dimensions>
+    <attribute name="description">
+      <doc>Describes the dataset </doc>
+    </attribute>
+  </field>
+
+  <field name="observed_px_y_var" type="NX_FLOAT" units="NX_UNITLESS"  minOccurs="1">
+    <doc>
+      The variance on the estimate of the pixel y position at which the
+      central impact of the reflection was recorded 
+    </doc>
+    <dimensions rank="1">
+      <dim index="1" value="n" />
+    </dimensions>
+    <attribute name="description">
+      <doc>Describes the dataset </doc>
+    </attribute>
+  </field>
+	
+  <field name="observed_px_y_errors" type="NX_FLOAT" units="NX_UNITLESS"  minOccurs="1">
+    <doc>
+      The standard deviation of the estimate of the pixel y position at which the
+      central impact of the reflection was recorded 
+    </doc>
+    <dimensions rank="1">
+      <dim index="1" value="n" />
+    </dimensions>
+    <attribute name="description">
+      <doc>Describes the dataset </doc>
+    </attribute>
+  </field>
+
+  <field name="observed_phi" type="NX_FLOAT" units="NX_ANGLE" minOccurs="1">
+    <doc>
+      The estimate of the phi angle at which the central impact of the
+      reflection was recorded 
+    </doc>
+    <dimensions rank="1">
+      <dim index="1" value="n" />
+    </dimensions>
+    <attribute name="description">
+      <doc>Describes the dataset </doc>
+    </attribute>
+  </field>
+
+  <field name="observed_phi_var" type="NX_FLOAT" units="NX_ANGLE" minOccurs="1">
+    <doc>
+      The variance on the estimate of the phi angle at which the central
+      impact of the reflection was recorded 
+    </doc>
+    <dimensions rank="1">
+      <dim index="1" value="n" />
+    </dimensions>
+    <attribute name="description">
+      <doc>Describes the dataset </doc>
+    </attribute>
+  </field>
+
+  <field name="observed_phi_errors" type="NX_FLOAT" units="NX_ANGLE" minOccurs="1">
+    <doc>
+      The standard deviation of the estimate of the phi angle at which the central
+      impact of the reflection was recorded 
+    </doc>
+    <dimensions rank="1">
+      <dim index="1" value="n" />
+    </dimensions>
+    <attribute name="description">
+      <doc>Describes the dataset </doc>
+    </attribute>
+  </field>
+
+  <field name="observed_x" type="NX_FLOAT" units="NX_LENGTH" minOccurs="1">
+    <doc>
+      The estimate of the x position at which the central
+      impact of the reflection was recorded 
+    </doc>
+    <dimensions rank="1">
+      <dim index="1" value="n" />
+    </dimensions>
+    <attribute name="description">
+      <doc>Describes the dataset </doc>
+    </attribute>
+  </field>
+
+  <field name="observed_x_var" type="NX_FLOAT" units="NX_LENGTH" minOccurs="1">
+    <doc>
+      The variance on the estimate of the x position at which
+      the central impact of the reflection was recorded 
+    </doc>
+    <dimensions rank="1">
+      <dim index="1" value="n" />
+    </dimensions>
+    <attribute name="description">
+      <doc>Describes the dataset </doc>
+    </attribute>
+  </field>
+
+  <field name="observed_x_errors" type="NX_FLOAT" units="NX_LENGTH" minOccurs="1">
+    <doc>
+      The standard deviation of the estimate of the x position at which
+      the central impact of the reflection was recorded 
+    </doc>
+    <dimensions rank="1">
+      <dim index="1" value="n" />
+    </dimensions>
+    <attribute name="description">
+      <doc>Describes the dataset </doc>
+    </attribute>
+  </field>
+
+  <field name="observed_y" type="NX_FLOAT" units="NX_LENGTH" minOccurs="1">
+    <doc>
+      The estimate of the y position at which the central
+      impact of the reflection was recorded 
+    </doc>
+    <dimensions rank="1">
+      <dim index="1" value="n" />
+    </dimensions>
+    <attribute name="description">
+      <doc>Describes the dataset </doc>
+    </attribute>
+  </field>
+
+  <field name="observed_y_var" type="NX_FLOAT" units="NX_LENGTH" minOccurs="1">
+    <doc>
+      The variance on the estimate of the y position at which
+      the central impact of the reflection was recorded 
+    </doc>
+    <dimensions rank="1">
+      <dim index="1" value="n" />
+    </dimensions>
+    <attribute name="description">
+      <doc>Describes the dataset </doc>
+    </attribute>
+  </field>
+
+  <field name="observed_y_errors" type="NX_FLOAT" units="NX_LENGTH" minOccurs="1">
+    <doc>
+      The standard deviation of the estimate of the y position at which
+      the central impact of the reflection was recorded 
+    </doc>
+    <dimensions rank="1">
+      <dim index="1" value="n" />
+    </dimensions>
+    <attribute name="description">
+      <doc>Describes the dataset </doc>
+    </attribute>
+  </field>
+
+  <field name="bounding_box" type="NX_INT" units="NX_UNITLESS" minOccurs="1">
+    <doc>
+      The bounding box around the recorded recorded reflection. 
+      Should be an integer array of length 6, where the 6 values 
+      are pixel positions or frame numbers, as follows:
+      
+      =====  ===========================
+      index  meaning
+      =====  ===========================
+      0      The lower pixel x position
+      1      The upper pixel x position
+      2      The lower pixel y position
+      3      The upper pixel y position
+      4      The lower frame number
+      5      The upper frame number
+      =====  ===========================
+    </doc>
+    <dimensions rank="2">
+      <dim index="1" value="n" />
+      <dim index="2" value="6" />
+    </dimensions>
+    <attribute name="description">
+      <doc>Describes the dataset </doc>
+    </attribute>
+  </field>
+
+  <field name="background_mean" type="NX_FLOAT" minOccurs="1">
+    <doc>
+      The mean background under the reflection peak 
+    </doc>
+    <dimensions rank="1">
+      <dim index="1" value="n" />
+    </dimensions>
+    <attribute name="description">
+      <doc>Describes the dataset </doc>
+    </attribute>
+  </field>
+
+  <field name="int_prf" type="NX_FLOAT" minOccurs="0">
+    <doc>
+      The estimate of the reflection intensity by profile fitting 
+    </doc>
+    <dimensions rank="1">
+      <dim index="1" value="n" />
+    </dimensions>
+    <attribute name="description">
+      <doc>Describes the dataset </doc>
+    </attribute>
+  </field>
+
+  <field name="int_prf_var" type="NX_FLOAT" minOccurs="0">
+    <doc>
+      The variance on the estimate of the reflection intensity by profile
+      fitting 
+    </doc>
+    <dimensions rank="1">
+      <dim index="1" value="n" />
+    </dimensions>
+    <attribute name="description">
+      <doc>Describes the dataset </doc>
+    </attribute>
+  </field>
+
+  <field name="int_prf_errors" type="NX_FLOAT" minOccurs="0">
+    <doc>
+      The standard deviation of the estimate of the reflection intensity by profile
+      fitting 
+    </doc>
+    <dimensions rank="1">
+      <dim index="1" value="n" />
+    </dimensions>
+    <attribute name="description">
+      <doc>Describes the dataset </doc>
+    </attribute>
+  </field>
+  <field name="int_sum" type="NX_FLOAT" minOccurs="1">
+    <doc>The estimate of the reflection intensity by summation </doc>
+    <dimensions rank="1">
+      <dim index="1" value="n" />
+    </dimensions>
+    <attribute name="description">
+      <doc>Describes the dataset </doc>
+    </attribute>
+  </field>
+
+  <field name="int_sum_var" type="NX_FLOAT" minOccurs="1">
+    <doc>
+      The variance on the estimate of the reflection intensity by
+      summation 
+    </doc>
+    <dimensions rank="1">
+      <dim index="1" value="n" />
+    </dimensions>
+    <attribute name="description">
+      <doc>Describes the dataset </doc>
+    </attribute>
+  </field>
+
+  <field name="int_sum_errors" type="NX_FLOAT" minOccurs="1">
+    <doc>
+      The standard deviation of the estimate of the reflection intensity by
+      summation 
+    </doc>
+    <dimensions rank="1">
+      <dim index="1" value="n" />
+    </dimensions>
+    <attribute name="description">
+      <doc>Describes the dataset </doc>
+    </attribute>
+  </field>
+
+  <field name="lp" type="NX_FLOAT" minOccurs="1">
+    <doc>
+      The LP correction factor to be applied to the reflection intensities
+    </doc>
+    <dimensions rank="1">
+      <dim index="1" value="n" />
+    </dimensions>
+    <attribute name="description">
+      <doc>Describes the dataset </doc>
+    </attribute>
+  </field>
+
+  <field name="prf_cc" type="NX_FLOAT" minOccurs="0">
+    <doc>
+      The correlation of the reflection profile with the reference profile
+      used in profile fitting 
+    </doc>
+    <dimensions rank="1">
+      <dim index="1" value="n" />
+    </dimensions>
+    <attribute name="description">
+      <doc>Describes the dataset </doc>
+    </attribute>
+  </field>
+
+  <field name="overlaps" type="NX_INT" minOccurs="0">
+    <doc>
+      An adjacency list specifying the spatial overlaps of reflections. The
+      adjacency list is specified using an array data type where the elements
+      of the array are the indices of the adjacent overlapped reflection 
+    </doc>
+    <attribute name="description">
+      <doc>Describes the dataset </doc>
+    </attribute>
+  </field>
+
+  <field name="polar_angle" type="NX_FLOAT" units="NX_ANGLE" minOccurs="0">
+    <doc>
+      Polar angle of reflection centroid, following the NeXus simple (spherical polar) coordinate system
+    </doc>
+    <dimensions rank="1">
+      <dim index="1" value="n" />
+    </dimensions>
+    <attribute name="description">
+      <doc>Describes the dataset </doc>
+    </attribute>
+  </field>
+
+  <field name="azimuthal_angle" type="NX_FLOAT" units="NX_ANGLE" minOccurs="0">
+    <doc>
+      Azimuthal angle of reflection centroid, following the NeXus simple (spherical polar) coordinate system
+    </doc>
+    <dimensions rank="1">
+      <dim index="1" value="n" />
+    </dimensions>
+  </field>
+  <attribute name="description">
+    <doc>Describes the dataset </doc>
+  </attribute>
+    <attribute name="default">
+        <doc>
+            .. index:: plotting
+            
+            Declares which child group contains a path leading 
+            to a :ref:`NXdata` group.
+            
+            It is recommended (as of NIAC2014) to use this attribute
+            to help define the path to the default dataset to be plotted.
+            See https://www.nexusformat.org/2014_How_to_find_default_data.html
+            for a summary of the discussion.
+        </doc>
+    </attribute>
+</definition>

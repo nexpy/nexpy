@@ -3,7 +3,7 @@
 <!--
 # NeXus - Neutron and X-ray Common Data Format
 # 
-# Copyright (C) 2008-2012 NeXus International Advisory Committee (NIAC)
+# Copyright (C) 2008-2021 NeXus International Advisory Committee (NIAC)
 # 
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -20,27 +20,18 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 # For further information, see http://www.nexusformat.org
-
-########### SVN repository information ###################
-# $Date$
-# $Author$
-# $Revision$
-# $HeadURL$
-# $Id$
-########### SVN repository information ###################
 -->
-<definition xmlns="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@" 
-	category="contributed"
+<definition xmlns="http://definition.nexusformat.org/nxdl/3.1" 
+	category="base"
 	name="NXcollection" 
-	version="1.0"
 	type="group" 
 	extends="NXobject"
 	ignoreExtraGroups="true"
 	ignoreExtraFields="true"
 	ignoreExtraAttributes="true"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@ ../nxdl.xsd"
-	svnid="$Id$">
+	xsi:schemaLocation="http://definition.nexusformat.org/nxdl/3.1 ../nxdl.xsd"
+	>
 
 	<!-- 
 		The ignoreExtra* attributes are used in the definition to
@@ -52,18 +43,19 @@
 	-->
 
 	<doc>
-		Use ``NXcollection`` to gather together any set of terms.
+		An unvalidated set of terms, such as the description of a beam line.
+		
+		Use :ref:`NXcollection` to gather together any set of terms.
 		The original suggestion is to use this as a container 
 		class for the description of a beamline.
 		
-		For NeXus validation, ``NXcollection`` will always generate 
+		For NeXus validation, :ref:`NXcollection` will always generate 
 		a warning since it is always an optional group.  
 		Anything (groups, fields, or attributes) placed in
-		an ``NXcollection`` group will not be validated.
+		an :ref:`NXcollection` group will not be validated.
 	</doc>
 	
-	<field name="beamline"><doc>name of the beamline for this collection</doc></field>
-	<!-- any other content is purely optional -->
+	<!-- any content is purely optional -->
 	<!-- 
 	   NOTE
 	   =====

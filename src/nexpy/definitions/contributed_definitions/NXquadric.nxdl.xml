@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="nxdlformat.xsl" ?>
+<!--
+# NeXus - Neutron and X-ray Common Data Format
+# 
+# Copyright (C) 2008-2021 NeXus International Advisory Committee (NIAC)
+# 
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 3 of the License, or (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+# For further information, see http://www.nexusformat.org
+-->
+<definition name="NXquadric"
+	   extends="NXobject"
+	   type="group"
+	   category="contributed" 
+	   xmlns="http://definition.nexusformat.org/nxdl/3.1"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xsi:schemaLocation="http://definition.nexusformat.org/nxdl/3.1 ../nxdl.xsd"
+	   >
+  <doc>definition of a quadric surface.</doc>
+  <field 
+     name="parameters"
+     type="NX_NUMBER"
+     units="NX_PER_LENGTH">
+    <doc>
+      Ten real values of the matrix that defines the quadric surface
+      in projective space. Ordered Q11, Q12, Q13, Q22, Q23, Q33, P1,
+      P2, P3, R. Takes a units attribute of dimension reciprocal
+      length. R is scalar. P has dimension reciprocal length, and the
+      given units. Q has dimension reciprocal length squared, and
+      units the square of those given.
+    </doc>
+    <dimensions>
+      <dim index = "1" value="10"/>
+    </dimensions>
+  </field>
+  <field
+     name="surface_type"
+     minOccurs="0"
+     maxOccurs="1">
+    <doc>
+      An optional description of the form of the quadric surface:
+    </doc>
+    <enumeration>
+      <item value="ELLIPSOID" />
+      <item value="ELLIPTIC_PARABOLOID" />
+      <item value="HYPERBOLIC_PARABOLOID" />
+      <item value="ELLIPTIC_HYPERBOLOID_OF_1_SHEET" />
+      <item value="ELLIPTIC_HYPERBOLOID_OF_2_SHEETS" />
+      <item value="ELLIPTIC_CONE" />
+      <item value="ELLIPTIC_CYLINDER" />
+      <item value="HYPERBOLIC_CYLINDER" />
+      <item value="PARABOLIC_CYLINDER" />
+      <item value="SPHEROID" />
+      <item value="SPHERE" />
+      <item value="PARABOLOID" />
+      <item value="HYPERBOLOID_1_SHEET" />
+      <item value="HYPERBOLOID_2_SHEET" />
+      <item value="CONE" />
+      <item value="CYLINDER" />
+      <item value="PLANE" />
+      <item value="IMAGINARY" />
+      <item value="UNKNOWN" />
+    </enumeration>
+  </field>
+  <field
+     name="depends_on"
+     type="NX_CHAR"
+     minOccurs="0"
+     maxOccurs="1">
+    <doc>
+      Path to an :ref:`NXtransformations` that defining the axis on
+      which the orientation of the surface depends.
+    </doc>
+  </field>
+</definition>

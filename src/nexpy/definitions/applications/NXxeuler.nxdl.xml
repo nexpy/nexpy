@@ -3,7 +3,7 @@
 <!--
 # NeXus - Neutron and X-ray Common Data Format
 # 
-# Copyright (C) 2008-2012 NeXus International Advisory Committee (NIAC)
+# Copyright (C) 2008-2021 NeXus International Advisory Committee (NIAC)
 # 
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -20,28 +20,28 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 # For further information, see http://www.nexusformat.org
-
-########### SVN repository information ###################
-# $Date$
-# $Author$
-# $Revision$
-# $HeadURL$
-# $Id$
-########### SVN repository information ###################
 -->
 <definition name="NXxeuler" extends="NXxbase" type="group"
   category="application"
-    xmlns="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@"
+  xmlns="http://definition.nexusformat.org/nxdl/3.1"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@ ../nxdl.xsd"
-    version="1.0b"
-    svnid="$Id$"
+    xsi:schemaLocation="http://definition.nexusformat.org/nxdl/3.1 ../nxdl.xsd"
   >
-    <doc>This is the application definition for raw data from a 
-      :index:`four-circle diffractometer` with an :index:`eulerian cradle`.  
+    <symbols>
+      <doc>
+        The symbol(s) listed here will be used below to coordinate datasets with the same shape.
+      </doc>
+      <symbol name="nP">
+        <doc>Number of points</doc>
+      </symbol>
+	</symbols>
+    <doc>
+      raw data from a :index:`four-circle diffractometer` with an :index:`eulerian cradle`, extends :ref:`NXxbase`
+      
       It extends :ref:`NXxbase`, so the full definition is the content 
-      of NXxbase plus the data defined here. All four angles are 
-      logged in order to support arbitrary scans in reciprocal space.</doc>
+      of :ref:`NXxbase` plus the data defined here. All four angles are 
+      logged in order to support arbitrary scans in reciprocal space.
+    </doc>
     <group type="NXentry" name="entry">
       <field name="definition">
         <doc> Official NeXus NXDL schema to which this file conforms </doc>
@@ -58,7 +58,7 @@
               at each scan point.
             </doc>
             <dimensions rank="1">
-              <dim index="1" value="np" />
+              <dim index="1" value="nP" />
             </dimensions>
           </field>
         </group>
@@ -71,7 +71,7 @@
             scan point
           </doc>
           <dimensions rank="1">
-            <dim index="1" value="np" />
+            <dim index="1" value="nP" />
           </dimensions>
         </field>
         <field name="chi" type="NX_FLOAT" units="NX_ANGLE" axis="1">
@@ -80,7 +80,7 @@
             cradle at each scan point
           </doc>
           <dimensions rank="1">
-            <dim index="1" value="np" />
+            <dim index="1" value="nP" />
           </dimensions>
         </field>
         <field name="phi" type="NX_FLOAT" units="NX_ANGLE" signal="1">
@@ -89,7 +89,7 @@
             cradle at each scan point
           </doc>
           <dimensions rank="1">
-            <dim index="1" value="np" />
+            <dim index="1" value="nP" />
           </dimensions>
         </field>
       </group>

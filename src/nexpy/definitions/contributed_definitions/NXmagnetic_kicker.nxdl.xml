@@ -3,7 +3,7 @@
 <!-- 
   # NeXus - Neutron and X-ray Common Data Format
   # 
-  # Copyright (C) 2008-2012 NeXus International Advisory Committee (NIAC)
+  # Copyright (C) 2008-2021 NeXus International Advisory Committee (NIAC)
   # 
   # This library is free software; you can redistribute it and/or
   # modify it under the terms of the GNU Lesser General Public
@@ -20,21 +20,12 @@
   # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   #
   # For further information, see http://www.nexusformat.org 
-  
-  ################### SVN repository information #############################
-  # $LastChangedRevision::     $
-  # $LastChangedDate::                                                  $
-  # $LastChangedBy::                   $
-  # $HeadURL$
-  # $Id$
-  ################# SVN repository information ###############################
 -->
 <definition type="group" name="NXmagnetic_kicker" category="contributed" extends="NXobject"
-    xmlns="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@"
+	xmlns="http://definition.nexusformat.org/nxdl/3.1"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@ ../nxdl.xsd"
-    version="1.0"
-    svnid="$Id$">
+    xsi:schemaLocation="http://definition.nexusformat.org/nxdl/3.1 ../nxdl.xsd"
+    >
 	<doc>definition for a magnetic kicker.</doc>
 	<field name="description" type="NX_CHAR">
 		<doc>extended description of the kicker.</doc>

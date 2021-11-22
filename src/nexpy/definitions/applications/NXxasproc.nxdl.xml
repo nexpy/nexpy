@@ -3,7 +3,7 @@
 <!--
 # NeXus - Neutron and X-ray Common Data Format
 # 
-# Copyright (C) 2008-2012 NeXus International Advisory Committee (NIAC)
+# Copyright (C) 2008-2021 NeXus International Advisory Committee (NIAC)
 # 
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -20,28 +20,30 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 # For further information, see http://www.nexusformat.org
-
-########### SVN repository information ###################
-# $Date$
-# $Author$
-# $Revision$
-# $HeadURL$
-# $Id$
-########### SVN repository information ###################
 -->
 <definition name="NXxasproc" extends="NXobject" type="group"
-  version="1.0"  category="application"
-    xmlns="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@"
+  category="application"
+  xmlns="http://definition.nexusformat.org/nxdl/3.1"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@ ../nxdl.xsd "
-    svnid="$Id$">
-    <doc>This is an application definition for processed data from XAS. This 
-       is energy versus I(incoming)/I(absorbed)
+    xsi:schemaLocation="http://definition.nexusformat.org/nxdl/3.1 ../nxdl.xsd "
+    >
+    <symbols>
+        <doc>
+		    The symbol(s) listed here will be used below to coordinate datasets with the same shape.
+        </doc>
+		<symbol name="nP">
+			<doc>Number of points</doc>
+		</symbol>
+	</symbols>
+    <doc>
+       Processed data from XAS. This is energy versus I(incoming)/I(absorbed).
     </doc>
     <group type="NXentry">
         <attribute name="entry">
-            <doc>NeXus convention is to use "entry1", "entry2", ... 
-                for analysis software to locate each entry</doc>
+            <doc>
+                NeXus convention is to use "entry1", "entry2", ... 
+                for analysis software to locate each entry.
+            </doc>
         </attribute>
         <field name="title"/>
       <field name="definition">
@@ -74,7 +76,7 @@
         <group type="NXdata">
               <field name="energy" axis="1">
                 <dimensions rank="1">
-                  <dim index="1" value="np" />
+                  <dim index="1" value="nP" />
                 </dimensions>
               </field>
               <field name="data" type="NX_FLOAT">
@@ -83,7 +85,7 @@
                    Expect attribute  ``signal=1``
                 </doc>
                 <dimensions rank="1">
-                  <dim index="1" value="np" />
+                  <dim index="1" value="nP" />
                 </dimensions>
               </field>
         </group>

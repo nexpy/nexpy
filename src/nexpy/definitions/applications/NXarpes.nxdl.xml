@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="nxdlformat.xsl" ?>
+<!--
+# NeXus - Neutron and X-ray Common Data Format
+# 
+# Copyright (C) 2012-2021 NeXus International Advisory Committee (NIAC)
+# 
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 3 of the License, or (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+# For further information, see http://www.nexusformat.org
+-->
+<definition name="NXarpes" extends="NXobject" type="group"
+	    category="application"
+	    xmlns="http://definition.nexusformat.org/nxdl/3.1"
+	    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	    xsi:schemaLocation="http://definition.nexusformat.org/nxdl/3.1 ../nxdl.xsd"
+	    >
+  <doc>
+    This is an application definition for angular resolved photo electron spectroscopy.
+    
+    It has been drawn up with hemispherical electron analysers in mind. 
+  </doc>
+  <group type="NXentry">
+    <attribute name="entry">
+      <doc>
+        NeXus convention is to use "entry1", "entry2", ... 
+        for analysis software to locate each entry.
+      </doc>
+    </attribute>
+    <field name="title" type="NX_CHAR"/>
+    <field name="start_time" type="NX_DATE_TIME"/>
+    <field name="definition">
+      <doc>Official NeXus NXDL schema to which this file conforms.</doc>
+      <enumeration>
+        <item value="NXarpes"></item>
+      </enumeration>
+    </field>
+    <group type="NXinstrument">
+      <group type="NXsource">
+        <field name="type" type="NX_CHAR"/>
+        <field name="name" type="NX_CHAR"/>
+        <field name="probe">
+          <enumeration>
+            <item value="x-ray"/>
+          </enumeration>
+        </field>
+      </group>
+      <group type="NXmonochromator" name="monochromator">
+        <field name="energy" type="NX_NUMBER" units="NX_ENERGY"/>
+      </group>
+      <group type="NXdetector" name="analyser">
+        <field name="data" type="NX_NUMBER" />
+        <field name="lens_mode" type="NX_CHAR">
+          <doc>setting for the electron analyser lens</doc>
+        </field>
+        <field name="acquisition_mode">
+          <enumeration>
+            <item value="swept"/>
+            <item value="fixed"/>
+          </enumeration>
+        </field>
+        <field name="entrance_slit_shape">
+          <enumeration>
+            <item value="curved"/>
+            <item value="straight"/>
+          </enumeration>
+        </field>
+        <field name="entrance_slit_setting" type="NX_NUMBER" units="NX_ANY">
+          <doc>dial setting of the entrance slit</doc>
+        </field>
+        <field name="entrance_slit_size" units="NX_LENGTH">
+          <doc>size of the entrance slit</doc>
+        </field>
+        <field name="pass_energy" units="NX_ENERGY">
+          <doc>energy of the electrons on the mean path of the analyser</doc>
+        </field>
+        <field name="time_per_channel" units="NX_TIME">
+          <doc>todo: define more clearly</doc>
+        </field>
+        <field name="angles" type="NX_NUMBER" units="NX_ANGLE">
+          <doc>
+            Angular axis of the analyser data
+            which dimension the axis applies to is defined
+            using the normal NXdata methods.
+          </doc>
+        </field>
+        <field name="energies" type="NX_NUMBER" units="NX_ENERGY">
+          <doc>
+            Energy axis of the analyser data
+            which dimension the axis applies to is defined
+            using the normal NXdata methods.
+          </doc>
+        </field>
+        <field name="sensor_size" type="NX_INT">
+          <doc>number of raw active elements in each dimension</doc>
+          <dimensions rank="1">
+          	<dim index="1" value="2" />
+          </dimensions>
+        </field>
+        <field name="region_origin" type="NX_INT">
+          <doc>origin of rectangular region selected for readout</doc>
+          <dimensions rank="1">
+          	<dim index="1" value="2" />
+          </dimensions>
+        </field>
+        <field name="region_size" type="NX_INT">
+          <doc>size of rectangular region selected for readout</doc>
+          <dimensions rank="1" >
+          	<dim index="1" value="2" />
+          </dimensions>
+        </field>
+      </group>
+    </group>
+    <group type="NXsample">
+      <field name="name" type="NX_CHAR">
+        <doc>Descriptive name of sample</doc>
+      </field>
+      <field name="temperature" type="NX_NUMBER" units="NX_TEMPERATURE"/>
+    </group>
+    <group type="NXdata"/>
+  </group>
+</definition>

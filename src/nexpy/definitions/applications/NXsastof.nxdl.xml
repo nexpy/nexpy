@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
-<?xml-stylesheet type="text/xsl" href="nxdlformat.xsl" ?><!--
+<?xml-stylesheet type="text/xsl" href="nxdlformat.xsl" ?>
+<!--
 # NeXus - Neutron and X-ray Common Data Format
 # 
-# Copyright (C) 2008-2012 NeXus International Advisory Committee (NIAC)
+# Copyright (C) 2008-2021 NeXus International Advisory Committee (NIAC)
 # 
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -20,26 +20,33 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 # For further information, see http://www.nexusformat.org
-
-########### SVN repository information ###################
-# $Date$
-# $Author$
-# $Revision$
-# $HeadURL$
-# $Id$
-########### SVN repository information ###################
 -->
 <definition name="NXsastof" extends="NXobject" type="group"
   category="application"
-  xmlns="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@"
+  xmlns="http://definition.nexusformat.org/nxdl/3.1"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@ ../nxdl.xsd"
-  version="1.0b"
-  svnid="$Id$"
+  xsi:schemaLocation="http://definition.nexusformat.org/nxdl/3.1 ../nxdl.xsd"
   >
+  <symbols>
+    <doc>
+	  The symbol(s) listed here will be used below to coordinate datasets with the same shape.
+	</doc>
+	<symbol name="nXPixel">
+	  <doc>nXPixel description</doc>
+    </symbol>
+    <symbol name="nYPixel">
+	  <doc>nYPixel description</doc>
+	</symbol>
+	<symbol name="nTOF">
+	  <doc>nTOF description</doc>
+	</symbol>
+  </symbols>
   <doc>
-	This is an application definition for small angle scattering using a 2D 
-	detector in TOF mode. It strives to cover all the SAS techniques in the file again
+    raw, 2-D SAS data with an area detector with a time-of-flight source
+    
+    It covers all raw data from any SAS techniques
+    that use an area detector
+    at a time-of-flight source.
    </doc>
   <group type="NXentry">
     <attribute name="entry">

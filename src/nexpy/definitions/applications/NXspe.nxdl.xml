@@ -3,7 +3,7 @@
 <!--
     # NeXus - Neutron and X-ray Common Data Format
     # 
-    # Copyright (C) 2008-2012 NeXus International Advisory Committee (NIAC)
+    # Copyright (C) 2008-2021 NeXus International Advisory Committee (NIAC)
     # 
     # This library is free software; you can redistribute it and/or
     # modify it under the terms of the GNU Lesser General Public
@@ -20,23 +20,15 @@
     # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
     #
     # For further information, see http://www.nexusformat.org
-    
-    ########### SVN repository information ###################
-    # $Date$
-    # $Author$
-    # $Revision$
-    # $HeadURL$
-    # $Id$
-    ########### SVN repository information ###################
 -->
 <definition xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
- xsi:schemaLocation="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@ ../nxdl.xsd"
- xmlns="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@"
+    xsi:schemaLocation="http://definition.nexusformat.org/nxdl/3.1 ../nxdl.xsd"
+    xmlns="http://definition.nexusformat.org/nxdl/3.1"
  name="NXspe"
  extends="NXobject"
  type="group"
  category="application"
- version="1.0">
+>
     <doc>NXSPE Inelastic Format.  Application definition for NXSPE file format. </doc>
     <group type="NXentry">
         <field name="program_name"/>

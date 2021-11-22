@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="nxdlformat.xsl" ?>
+<!--
+# NeXus - Neutron and X-ray Common Data Format
+#
+# Copyright (C) 2008-2021 NeXus International Advisory Committee (NIAC)
+#
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 3 of the License, or (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+# For further information, see http://www.nexusformat.org
+-->
+<definition xmlns="http://definition.nexusformat.org/nxdl/3.1"
+	category="base"
+	name="NXpdb"
+	type="group"
+	extends="NXobject"
+	ignoreExtraGroups="true"
+	ignoreExtraFields="true"
+	ignoreExtraAttributes="true"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://definition.nexusformat.org/nxdl/3.1 ../nxdl.xsd"
+	>
+
+	<!--
+		The ignoreExtra* attributes are used in the definition to
+		avoid warning messages that would be generated from
+		unexpected groups, fields, and attributes.
+		Since no groups or attributes are declared here, _every_
+		child of this class would generate a warning message without this
+		attribute being set to "true".
+	-->
+
+	<doc>
+		A NeXus transliteration of a PDB file, to be validated only as a PDB
+		rather than in NeXus.
+
+		Use :ref:`NXpdb` to incorporate the information in an arbitrary
+		PDB into a NeXus file.
+
+		The main suggestion is to use this as a container
+		class for a PDB entry to describe a sample in NXsample,
+		but it may be more appropriate to place this higher in the
+		hierarchy, say in NXentry.
+
+		The structure has to follow the structure of a PDB
+		with each PDB data block mapped to a NeXus group of class NXpdb,
+		using a lowercase version of the data block name as the name
+		of the NeXus group, each PDB category in that data block
+		mapped to a NeXus group of class NXpdb and with each PDB column
+		mapped to a NeXus field.  Each column in a looped PDB category
+		should always be presented as a 1-dimensional array.  The columns 
+		in an unlooped PDB category should be presented as scalar values.  
+		If a PDB category specifies particular units for columns, the same 
+		units should beused for the corresponding fields.
+
+		A PDB entry is unambigous when all information is carried as text.
+		All text data should be presented as quoted strings, with the quote
+		marks except for the null values "." or "?"
+
+		For clarity in NXpdb form, numeric data may be presented using the
+		numeric types specified in the mmCIF dictionary.  In that case,
+		if a PDB null value, "." or "?", is contained in a numeric column, the
+		IEEE nan should be used for "?" and the IEEE inf should be used for ".".
+
+		An arbitrary DDL2 CIF file can be represented in NeXus using NXpdb.  
+		However, if save frames are required, an NXpdb_class  attribute with the
+		value "CBF_cbfsf" is required for each NeXus group representing a save
+		frame.  NXpdb attributes are not required for other CIF components,
+		but may be used to provide internal documentation.
+
+		The nesting of NXpdb groups and datasets that correspond to a CIF with
+		two categories and one saveframe, including the NXpdb_class attribues is::
+
+			(datablock1):NXpdb
+			   @NXpdb_class:CBF_cbfdb
+			   (category1):NXpdb
+			     @NXpdb_class:CBF_cbfcat
+			      (column_name1):[...]
+			      (column_name2):[...]
+			      (column_name3):[...]
+			      ...
+			   (category2):NXpdb
+			      @NXpdb_class:CBF_cbfcat
+			      (column_name4):[...]
+			      (column_name5):[...]
+			      (column_name6):[...]
+			      ...
+			   (saveframe1):NXpdb
+			      @NXpdb_class:CBF_cbfsf
+			      (category3):NXpdb
+			        @NXpdb_class:CBF_cbfcat
+			        (column_name7):[...]
+			        (column_name8):[...]
+			        (column_name9):[...]
+			         ...
+			      ...
+			   ...
+
+			      
+
+		For example, a PDB entry that begins::
+
+			data_1YVA
+			#
+			 _entry.id   1YVA
+			#
+			_audit_conform.dict_name       mmcif_pdbx.dic
+			_audit_conform.dict_version    5.279
+			_audit_conform.dict_location   http://mmcif.pdb.org/dictionaries/ascii/mmcif_pdbx.dic
+			#
+			loop_
+			_database_2.database_id
+			_database_2.database_code
+			PDB   1YVA
+			RCSB  RCSB031959
+			WWPDB D_1000031959
+			#
+
+		would produce::
+	
+			sample:NXsample
+			   1yva:NXpdb
+			     entry:NXpdb
+				 id:"1YVA"
+			     audit_conform:NXpdb
+				 dict_name:"mmcif_pdbx.dic"
+				 dict_version:"5.279"
+				 dict_location:"http://mmcif.pdb.org/dictionaries/ascii/mmcif_pdbx.dic"
+			     database_2:NXpdb
+				 database_id:["PDB","RCSB","WWPDB"]
+				 database_code:["1YVA","RCSB031959","D_1000031959"]
+
+		another example is the following excerpt from pdb entry 9ins, giving the sequences
+		of the two chains::
+
+			loop_
+			_entity_poly.entity_id
+			_entity_poly.nstd_linkage
+			_entity_poly.nstd_monomer
+			_entity_poly.pdbx_seq_one_letter_code 
+			_entity_poly.pdbx_seq_one_letter_code_can
+			_entity_poly.type
+			1 no no GIVEQCCTSICSLYQLENYCN GIVEQCCTSICSLYQLENYCN polypeptide(L)
+			2 no no FVNQHLCGSHLVEALYLVCGERGFFYTPKA FVNQHLCGSHLVEALYLVCGERGFFYTPKA
+			polypeptide(L)
+
+		which converts to::
+
+			entity_poly:NXpdb
+			  @NXpdb_class:CBF_cbfcat
+			  entity_id:["1", "2"]
+			  nstd_linkage:["no", "no"]
+			  nstd_monomer:["no", "no"]
+			  pdbx_seq_one_letter_code:["GIVEQCCTSICSLYQLENYCN","FVNQHLCGSHLVEALYLVCGERGFFYTPKA"]
+			  pdbx_seq_one_letter_code_can:["GIVEQCCTSICSLYQLENYCN","FVNQHLCGSHLVEALYLVCGERGFFYTPKA"]
+			  type:["polypeptide(L)", "polypeptide(L)"]
+
+
+
+
+	</doc>
+	<!--
+	   NOTE
+	   =====
+
+	   NXpdb is a class not validated by the NXDL tools.
+		 Do not add any subgroups in this nxdl file.
+
+	   See: https://github.com/nexusformat/definitions/issues/259
+	-->
+</definition>

@@ -30,13 +30,13 @@ from IPython import __version__ as ipython_version
 from jupyter_client.consoleapp import JupyterConsoleApp, app_aliases, app_flags
 from jupyter_core.application import JupyterApp, base_aliases, base_flags
 from matplotlib import __version__ as mpl_version
-from qtconsole import __version__, styles
+from qtconsole import __version__
 from qtconsole.jupyter_widget import JupyterWidget
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
 from traitlets import Any, CBool, Dict, Unicode
 from traitlets.config.application import boolean_flag, catch_config_error
 
-from nexusformat.nexus import NXroot, nxclasses, nxload, nxversion
+from nexusformat.nexus import NXroot, nxclasses, nxversion
 
 from .. import __version__ as nexpy_version
 from .mainwindow import MainWindow
@@ -148,7 +148,7 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
     widget_factory = Any(RichJupyterWidget)
 
     def parse_command_line(self, argv=None):
-        super(NXConsoleApp, self).parse_command_line(argv)
+        super().parse_command_line(argv)
         self.build_kernel_argv(argv)
 
     def init_dir(self):
@@ -342,7 +342,7 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
         if args.faulthandler:
             import faulthandler
             faulthandler.enable(all_threads=False)
-        super(NXConsoleApp, self).initialize(extra_args)
+        super().initialize(extra_args)
         self.init_dir()
         self.init_settings()
         self.init_log()
@@ -354,7 +354,7 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
         self.init_signal()
 
     def start(self):
-        super(NXConsoleApp, self).start()
+        super().start()
 
         # draw the window
         self.window.show()

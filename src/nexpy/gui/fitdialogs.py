@@ -11,31 +11,24 @@
 import importlib
 import inspect
 import os
-import pkg_resources
 import re
 import sys
 import types
-from collections import OrderedDict
-from copy import deepcopy
 from itertools import cycle
 
 import numpy as np
-
-from .pyqt import QtCore, QtGui, QtWidgets
-
-from lmfit import Model, Parameter, Parameters
+import pkg_resources
+from lmfit import Model, Parameters
 from lmfit import __version__ as lmfit_version
-from lmfit import models
-
-from nexusformat.nexus import (NeXusError, NXattr, NXdata, NXentry, NXfield,
-                               NXgroup, NXnote, NXparameters, NXprocess,
-                               NXroot, nxload)
+from nexusformat.nexus import (NeXusError, NXdata, NXentry, NXfield, NXnote,
+                               NXparameters, NXprocess, nxload)
 
 from .datadialogs import NXDialog, NXPanel, NXTab
 from .plotview import NXPlotView, linestyles
-from .utils import format_float, report_error, display_message
+from .pyqt import QtCore, QtWidgets
+from .utils import display_message, format_float, report_error
 from .widgets import (NXCheckBox, NXColorBox, NXComboBox, NXLabel, NXLineEdit,
-                      NXMessageBox, NXPushButton, NXScrollArea, NXrectangle)
+                      NXMessageBox, NXPushButton, NXrectangle, NXScrollArea)
 
 
 def get_functions():
@@ -140,10 +133,9 @@ class NXModel(Model):
 
     def __init__(self, module, **kwargs):
         self.module = module
-        super(NXModel, self).__init__(self.module.values,
-                                      param_names=self.module.parameters,
-                                      independent_vars=self._get_x(),
-                                      **kwargs)
+        super().__init__(self.module.values, 
+                         param_names=self.module.parameters,
+                         independent_vars=self._get_x(), **kwargs)
 
     def _parse_params(self):
         if self._prefix is None:
@@ -158,8 +150,7 @@ class NXModel(Model):
 
     def make_funcargs(self, params=None, kwargs=None, strip=True):
         self._func_allargs = ['x'] + self._param_root_names
-        out = super(NXModel, self).make_funcargs(params=params, kwargs=kwargs, 
-                                                 strip=strip)
+        out = super().make_funcargs(params=params, kwargs=kwargs, strip=strip)
         function_out = {}
         function_out['p'] = [out[p] for p in out if p in self._param_root_names]
         for key in out:
@@ -178,8 +169,8 @@ class NXModel(Model):
 class FitDialog(NXPanel):
 
     def __init__(self, parent=None):
-        super(FitDialog, self).__init__('Fit', title='Fit Panel', 
-                                        apply=True, reset=True, parent=parent)
+        super().__init__('Fit', title='Fit Panel', apply=True, reset=True, 
+                         parent=parent)
         self.setMinimumWidth(850)        
         self.tab_class = FitTab
 
@@ -188,8 +179,7 @@ class FitDialog(NXPanel):
             label = plotview.label + ': ' + str(plotview.num) 
         else:
             label = data.nxroot.nxname + data.nxpath
-        super(FitDialog, self).activate(label, data, plotview=plotview, 
-                                        color=color)
+        super().activate(label, data, plotview=plotview, color=color)
 
 
 class FitTab(NXTab):
@@ -197,7 +187,7 @@ class FitTab(NXTab):
  
     def __init__(self, label, data, plotview=None, color='C0', parent=None):
 
-        super(FitTab, self).__init__(label, parent=parent)
+        super().__init__(label, parent=parent)
  
         if ((isinstance(data, NXentry) or isinstance(data, NXprocess))
              and 'data' in data):
@@ -1263,7 +1253,7 @@ class CompositeDialog(NXDialog):
 
     def __init__(self, parent=None):
 
-        super(CompositeDialog, self).__init__(parent=parent)
+        super().__init__(parent=parent)
 
         self.parent = parent
         self.expression = NXLineEdit(self.parent.composite_model)
@@ -1284,7 +1274,7 @@ class CompositeDialog(NXDialog):
         try:
             self.parent.model = self.parent.eval_model(self.expression.text())
             self.parent.composite_model = self.expression.text()
-            super(CompositeDialog, self).accept()    
+            super().accept()    
         except NeXusError as error:
             report_error("Editing Composite Model", error)            
 
@@ -1294,7 +1284,7 @@ class PlotModelDialog(NXDialog):
 
     def __init__(self, parent=None):
 
-        super(PlotModelDialog, self).__init__(parent=parent)
+        super().__init__(parent=parent)
 
         self.parent = parent
         self.expression = NXLineEdit(self.parent.composite_model)
@@ -1310,7 +1300,7 @@ class PlotModelDialog(NXDialog):
         try:
             model = self.parent.eval_model(self.expression.text())
             self.parent.plot_model(model)
-            super(PlotModelDialog, self).accept()
+            super().accept()
         except NeXusError as error:
             report_error("Plotting Composite Model", error)            
 
@@ -1320,7 +1310,7 @@ class ExpressionDialog(NXDialog):
 
     def __init__(self, parameter, parent=None):
 
-        super(ExpressionDialog, self).__init__(parent=parent)
+        super().__init__(parent=parent)
 
         self.parameter = parameter
         self.parent = parent
@@ -1351,6 +1341,6 @@ class ExpressionDialog(NXDialog):
                 p.box['fixed'].setChecked(False)
                 p.box['fixed'].setEnabled(True)
             self.parent.read_parameters()
-            super(ExpressionDialog, self).accept()    
+            super().accept()    
         except NeXusError as error:
             report_error("Editing Expression", error)            

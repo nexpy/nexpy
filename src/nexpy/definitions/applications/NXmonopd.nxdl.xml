@@ -3,7 +3,7 @@
 <!--
 # NeXus - Neutron and X-ray Common Data Format
 # 
-# Copyright (C) 2008-2012 NeXus International Advisory Committee (NIAC)
+# Copyright (C) 2008-2021 NeXus International Advisory Committee (NIAC)
 # 
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -20,24 +20,28 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 # For further information, see http://www.nexusformat.org
-
-########### SVN repository information ###################
-# $Date$
-# $Author$
-# $Revision$
-# $HeadURL$
-# $Id$
-########### SVN repository information ###################
 -->
 <definition name="NXmonopd" extends="NXobject" type="group"
     category="application"
-    xmlns="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@"
+    xmlns="http://definition.nexusformat.org/nxdl/3.1"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@ ../nxdl.xsd"
-    version="1.0b"
-    svnid="$Id$">
+    xsi:schemaLocation="http://definition.nexusformat.org/nxdl/3.1 ../nxdl.xsd"
+    >
+    <symbols>
+        <doc>
+            The symbol(s) listed here will be used below to coordinate datasets with the same shape.
+        </doc>
+        <symbol name="i">
+            <doc>i is the number of wavelengths</doc>
+        </symbol>
+        <symbol name="nDet">
+            <doc>Number of detectors</doc>
+        </symbol>
+    </symbols>
     <doc>
-        Monochromatic Neutron and X-Ray Powder Diffraction. Instrument 
+        Monochromatic Neutron and X-Ray Powder diffractometer 
+        
+        Instrument 
         definition for a powder diffractometer at a monochromatic neutron 
         or X-ray beam. This is both suited for a powder diffractometer 
         with a single detector or a powder diffractometer with a position 
@@ -74,9 +78,8 @@
             </group>
             <group type="NXdetector">
                 <field name="polar_angle" type="NX_FLOAT" axis="1">
-                  <doc>where ndet = number of detectors</doc>
                   <dimensions rank="1">
-                    <dim index="1" value="ndet" />
+                    <dim index="1" value="nDet" />
                   </dimensions>
                 </field>
                 <field name="data" type="NX_INT" signal="1">
@@ -85,7 +88,7 @@
                     corrected for detector efficiency
                   </doc>
                   <dimensions rank="1">
-                    <dim index="1" value="ndet" />
+                    <dim index="1" value="nDet" />
                   </dimensions>
                 </field>
             </group>

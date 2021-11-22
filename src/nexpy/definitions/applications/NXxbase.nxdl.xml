@@ -3,7 +3,7 @@
 <!--
 # NeXus - Neutron and X-ray Common Data Format
 # 
-# Copyright (C) 2008-2012 NeXus International Advisory Committee (NIAC)
+# Copyright (C) 2008-2021 NeXus International Advisory Committee (NIAC)
 # 
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -20,25 +20,30 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 # For further information, see http://www.nexusformat.org
-
-########### SVN repository information ###################
-# $Date$
-# $Author$
-# $Revision$
-# $HeadURL$
-# $Id$
-########### SVN repository information ###################
 -->
 <definition name="NXxbase" extends="NXobject" type="group"
   category="application"
-    xmlns="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@"
+  xmlns="http://definition.nexusformat.org/nxdl/3.1"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@ ../nxdl.xsd"
-    version="1.0b"
-    svnid="$Id$"
+    xsi:schemaLocation="http://definition.nexusformat.org/nxdl/3.1 ../nxdl.xsd"
   >
-    <doc>This definition covers the common parts of all monochromatic 
-      single crystal raw data application definitions</doc>
+    <symbols>
+      <doc>
+        The symbol(s) listed here will be used below to coordinate datasets with the same shape.
+      </doc>
+      <symbol name="nP">
+        <doc>Number of points</doc>
+      </symbol>
+      <symbol name="nXPixels">
+        <doc>Number of X pixels</doc>
+      </symbol>
+      <symbol name="nYPixels">
+        <doc>Number of Y pixels</doc>
+      </symbol>
+	</symbols>
+    <doc>
+      This definition covers the common parts of all monochromatic single crystal raw data application definitions.
+    </doc>
     <group type="NXentry" name="entry">
       <field name="title" />
       <field name="start_time" type="NX_DATE_TIME" />
@@ -63,20 +68,19 @@
         <group type="NXmonochromator" name="monochromator">
           <field name="wavelength" type="NX_FLOAT" units="NX_WAVELENGTH"/>
         </group>
-        <group type="NXdetector" name="detector" minOccurs="1"
-          maxOccurs="unbounded">
+        <group type="NXdetector" name="detector" maxOccurs="unbounded">
           <field name="data" type="NX_INT" signal="1">
             <doc>
               The area detector data, the first dimension is always the
               number of scan points, the second and third are the number
               of pixels in x and y. The origin is always assumed to be
               in the center of the detector. maxOccurs is limited to the
-              the number of detectors on your instrument
+              the number of detectors on your instrument.
             </doc>
             <dimensions rank="3">
-              <dim index="1" value="np" />
-              <dim index="2" value="number of x pixels" />
-              <dim index="3" value="number of y pixels" />
+              <dim index="1" value="nP" />
+              <dim index="2" value="nXPixels" />
+              <dim index="3" value="nYPixels" />
             </dimensions>
             <attribute name="signal" type="NX_POSINT">
               <enumeration>
@@ -86,9 +90,10 @@
           </field>
           <field name="x_pixel_size" type="NX_FLOAT" units="NX_LENGTH"/>
           <field name="y_pixel_size" type="NX_FLOAT" units="NX_LENGTH"/>
-          <doc>The name of the group is detector if there is only one detector, 
+          <doc>
+            The name of the group is detector if there is only one detector, 
             if there are several,  names have to be detector1, 
-            detector2, ...detectorn</doc>
+            detector2, ...detectorn.</doc>
           <field name="distance" type="NX_FLOAT" units="NX_LENGTH"/>
           <field name="frame_start_number" type="NX_INT">
             <doc>
@@ -105,19 +110,23 @@
           <doc>Descriptive name of sample</doc>
         </field>
         <field name="orientation_matrix" type="NX_FLOAT">
-          <doc>The orientation matrix according to Busing and 
+          <doc>
+            The orientation matrix according to Busing and 
             Levy conventions. This is not strictly necessary as 
             the UB can always be derived from the data.  But 
             let us bow to common usage which includes the 
-            UB nearly always.</doc>
+            UB nearly always.
+           </doc>
           <dimensions rank="2">
             <dim index="1" value="3" />
             <dim index="2" value="3" />
           </dimensions>
         </field>
         <field name="unit_cell" type="NX_FLOAT">
-          <doc>The unit cell, a, b, c, alpha, beta, gamma. 
-            Again, not strictly necessary, but normally written. </doc>
+          <doc>
+            The unit cell, a, b, c, alpha, beta, gamma. 
+            Again, not strictly necessary, but normally written.
+          </doc>
           <dimensions rank="1">
             <dim index="1" value="6" />
           </dimensions>
@@ -127,7 +136,7 @@
             The sample temperature or whatever sensor represents this value best
             </doc>
           <dimensions rank="1">
-            <dim index="1" value="NP" />
+            <dim index="1" value="nP" />
           </dimensions>
         </field>
           <field name="x_translation" type="NX_FLOAT" units="NX_LENGTH">
@@ -160,11 +169,13 @@
         </field>
       </group>
       <group type="NXdata">
-          <doc>The name of this group id data if there is only 
+          <doc>
+            The name of this group id data if there is only 
             one detector; if there are several the names will 
             be data1, data2, data3 and will point 
             to the corresponding detector groups in the 
-            instrument hierarchy.</doc>
+            instrument hierarchy.
+          </doc>
           <link name="data" target="/NXentry/NXinstrument/NXdetector/data"></link>
       </group>
     </group>

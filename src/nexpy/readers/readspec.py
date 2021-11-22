@@ -12,24 +12,23 @@
 Module to read in a SPEC file and convert it to NeXus.
 """
 import os
+
 import numpy as np
-
-from nexpy.gui.pyqt import QtCore, QtWidgets, getOpenFileName
-
-from nexusformat.nexus.tree import NeXusError
-from nexusformat.nexus.tree import NXroot, NXentry, NXfield, NXdata, NXlog
 from nexpy.gui.importdialog import NXImportDialog
+from nexpy.gui.pyqt import QtWidgets, getOpenFileName
 from nexpy.gui.widgets import NXLabel, NXLineEdit
+from nexusformat.nexus.tree import (NeXusError, NXdata, NXentry, NXfield,
+                                    NXlog, NXroot)
 
 filetype = "SPEC File"
 
 
 class ImportDialog(NXImportDialog):
-    """Dialog to import SPEC Scans"""
+    """Dialog to import SPEC Scans."""
  
     def __init__(self, parent=None):
 
-        super(ImportDialog, self).__init__(parent=parent)
+        super().__init__(parent=parent)
 
         try:
             import spec2nexus
@@ -58,7 +57,7 @@ class ImportDialog(NXImportDialog):
         self.setWindowTitle("Import "+str(filetype))
  
     def scanbox(self):
-        '''create widgets for specifying scan range to import'''
+        """Create widgets for specifying scan range to import."""
         scanminlabel = NXLabel("Min. Scan")
         self.scanmin = NXLineEdit(width=100, align='right')
         scanmaxlabel = NXLabel("Max. Scan")
@@ -75,9 +74,7 @@ class ImportDialog(NXImportDialog):
         return sorted([int(s) for s in self.spec.getScanNumbers()])
 
     def choose_file(self):
-        '''
-        Opens file dialog, set file text box to the chosen path
-        '''
+        """Opens file dialog, set file text box to the chosen path."""
         from spec2nexus.spec import SpecDataFile
         dirname = self.get_default_directory(self.filename.text())
         filename = getOpenFileName(self, 'Open file', dirname)
@@ -108,23 +105,22 @@ class ImportDialog(NXImportDialog):
 
 
 class Parser(object):
-    '''parse the spec data file object'''
+    """Parse the spec data file object."""
     
     def __init__(self, spec_data = None):
-        ''':param obj spec_data: instance of :class:`spec2nexus.prjPySpec.SpecDataFile`'''
+        """:param obj spec_data: instance of :class:`spec2nexus.prjPySpec.SpecDataFile`"""
         self.SPECfile = spec_data
         self.progress_bar = spec_data.progress_bar
         self.update_progress = spec_data.update_progress
     
     def openFile(self, filename):
-        '''open the SPEC file and get its data'''
+        """open the SPEC file and get its data"""
         from spec2nexus.spec import SpecDataFile
         if os.path.exists(filename):
             self.SPECfile = SpecDataFile(filename)
     
     def toTree(self, scan_list=[]):
-        '''
-        convert scans from chosen SPEC file into NXroot object and structure
+        """Convert scans from chosen SPEC file into NXroot object and structure.
         
         called from nexpy.readers.readspec.ImportDialog.get_data__prjPySpec() after clicking <Ok> in dialog
         
@@ -134,9 +130,10 @@ class Parser(object):
         
         :param [int] scanlist
         :raises: ValueError is Min or Max scan number are not given properly
-        '''
+        """
         import spec2nexus
         from spec2nexus import utils
+
         # check that scan_list is valid
         if len(scan_list) == 0:
             return None
@@ -214,9 +211,8 @@ class Parser(object):
         return root
     
     def scan_NXdata(self, scan):
-        '''
-        return the scan data in an NXdata object
-        '''
+        """Return the scan data in an NXdata object."""
+
         nxdata = NXdata()
 
         if len(scan.data) == 0:       # what if no data?
@@ -254,7 +250,7 @@ class Parser(object):
         return nxdata
     
     def parser_1D_columns(self, nxdata, scan):
-        '''generic data parser for 1-D column data'''
+        """Generic data parser for 1-D column data."""
         from spec2nexus import utils
         for column in scan.L:
             if column in scan.data:
@@ -270,7 +266,7 @@ class Parser(object):
         self.parser_mca_spectra(nxdata, scan, axis)
     
     def parser_mca_spectra(self, nxdata, scan, primary_axis_label):
-        '''parse for optional MCA spectra'''
+        """Parse for optional MCA spectra."""
         if '_mca_' in scan.data:        # check for it
             for mca_key, mca_data in scan.data['_mca_'].items():
                 key = "__" + mca_key
@@ -283,7 +279,7 @@ class Parser(object):
                 nxdata[key].axes = ':'.join( axes )
     
     def parser_mesh(self, nxdata, scan):
-        '''data parser for 2-D mesh and hklmesh'''
+        """Data parser for 2-D mesh and hklmesh."""
         # 2-D parser: http://www.certif.com/spec_help/mesh.html
         #  mesh motor1 start1 end1 intervals1 motor2 start2 end2 intervals2 time
         # 2-D parser: http://www.certif.com/spec_help/hklmesh.html
@@ -368,9 +364,7 @@ class Parser(object):
                 nxdata[key].axes = ':'.join( axes )
     
     def metadata_NXlog(self, spec_metadata, description):
-        '''
-        return the specific metadata in an NXlog object
-        '''
+        """Return the specific metadata in an NXlog object."""
         from spec2nexus import utils
         nxlog = NXlog()
         nxlog.attrs['description'] = description

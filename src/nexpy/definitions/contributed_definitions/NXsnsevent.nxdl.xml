@@ -2,21 +2,12 @@
 <?xml-stylesheet type="text/xsl" href="nxdlformat.xsl" ?>
 <!--
   # NXsnsevent: candidate NeXus definition for event data from Spallation Neutron Source (SNS) at ORNL.
-  
-  ########### SVN repository information ###################
-  # $Date$
-  # $Author$
-  # $Revision$
-  # $HeadURL$
-  # $Id$
-  ########### SVN repository information ###################
 -->
 <definition type="group" name="NXsnsevent" category="contributed" extends="NXobject"
-    xmlns="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@"
+  xmlns="http://definition.nexusformat.org/nxdl/3.1"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@ ../nxdl.xsd"
-    version="1.0"
-    svnid="$Id$">
+    xsi:schemaLocation="http://definition.nexusformat.org/nxdl/3.1 ../nxdl.xsd"
+    >
   <doc>This is a definition for event data from Spallation Neutron Source (SNS) at ORNL.</doc>
   <group type="NXentry" minOccurs="1">
     <group type="NXcollection" name="DASlogs">
@@ -25,7 +16,9 @@
         </doc>
         <group type="NXlog" minOccurs="1">
           <field name="average_value" type="NX_FLOAT"/>
-          <field name="average_value_error" type="NX_FLOAT"/>
+          <field name="average_value_error" type="NX_FLOAT"
+            deprecated="see https://github.com/nexusformat/definitions/issues/821"/>
+          <field name="average_value_errors" type="NX_FLOAT"/>
           <field name="description"/>
           <field name="duration" type="NX_FLOAT"/>
           <field name="maximum_value" type="NX_FLOAT"/>
@@ -46,7 +39,9 @@
             Motor logs from cvinfo file.
           </doc>
           <field name="average_value" type="NX_FLOAT"/>
-          <field name="average_value_error" type="NX_FLOAT"/>
+          <field name="average_value_error" type="NX_FLOAT"
+            deprecated="see https://github.com/nexusformat/definitions/issues/821"/>
+          <field name="average_value_errors" type="NX_FLOAT"/>
           <field name="description"/>
           <field name="duration" type="NX_FLOAT"/>
           <field name="maximum_value" type="NX_FLOAT"/>

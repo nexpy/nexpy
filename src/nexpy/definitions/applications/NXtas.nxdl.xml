@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
-<?xml-stylesheet type="text/xsl" href="nxdlformat.xsl" ?><!--
+<?xml-stylesheet type="text/xsl" href="nxdlformat.xsl" ?>
+<!--
 # NeXus - Neutron and X-ray Common Data Format
 # 
-# Copyright (C) 2008-2012 NeXus International Advisory Committee (NIAC)
+# Copyright (C) 2008-2021 NeXus International Advisory Committee (NIAC)
 # 
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -20,24 +20,27 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 # For further information, see http://www.nexusformat.org
-
-########### SVN repository information ###################
-# $Date$
-# $Author$
-# $Revision$
-# $HeadURL$
-# $Id$
-########### SVN repository information ###################
 -->
 <definition name="NXtas" extends="NXobject" type="group"
   category="application"
-    xmlns="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@"
+  xmlns="http://definition.nexusformat.org/nxdl/3.1"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@ ../nxdl.xsd"
-    version="1.0b"
-    svnid="$Id$">
-  <doc>This is an application definition for a triple axis spectrometer. It is for the trademark
-    scan of the TAS, the Q-E scan. For your alignment scans use the rules in NXscan.</doc>
+    xsi:schemaLocation="http://definition.nexusformat.org/nxdl/3.1 ../nxdl.xsd"
+    >
+    <symbols>
+      <doc>
+	    The symbol(s) listed here will be used below to coordinate datasets with the same shape.
+      </doc>
+	  <symbol name="nP">
+	    <doc>Number of points</doc>
+      </symbol>
+	</symbols>
+  <doc>
+    This is an application definition for a triple axis spectrometer. 
+    
+    It is for the trademark scan of the TAS, the Q-E scan. 
+    For your alignment scans use the rules in :ref:`NXscan`.
+  </doc>
     <group type="NXentry" name="entry">
       <field name="title" type="NX_CHAR" />
       <field name="start_time" type="NX_DATE_TIME" />
@@ -60,41 +63,41 @@
         <group type="NXcrystal" name="monochromator">
           <field name="ei" type="NX_FLOAT" units="NX_ENERGY" axis="1">
             <dimensions rank="1">
-              <dim index="1" value="np" />
+              <dim index="1" value="nP" />
             </dimensions>
           </field>
           <field name="rotation_angle" type="NX_FLOAT" units="NX_ANGLE">
             <dimensions rank="1">
-              <dim index="1" value="np" />
+              <dim index="1" value="nP" />
             </dimensions>
           </field>
         </group>
         <group type="NXcrystal" name="analyser">
           <field name="ef" type="NX_FLOAT" units="NX_ENERGY" axis="1">
             <dimensions rank="1">
-              <dim index="1" value="np" />
+              <dim index="1" value="nP" />
             </dimensions>
           </field>
           <field name="rotation_angle" type="NX_FLOAT" units="NX_ANGLE">
             <dimensions rank="1">
-              <dim index="1" value="np" />
+              <dim index="1" value="nP" />
             </dimensions>
           </field>
           <field name="polar_angle" type="NX_FLOAT" units="NX_ANGLE">
             <dimensions rank="1">
-              <dim index="1" value="np" />
+              <dim index="1" value="nP" />
             </dimensions>
           </field>
         </group>
         <group type="NXdetector">
           <field name="data" type="NX_INT" signal="1">
             <dimensions rank="1">
-              <dim index="1" value="np" />
+              <dim index="1" value="nP" />
             </dimensions>
           </field>
           <field name="polar_angle" type="NX_FLOAT" units="NX_ANGLE">
             <dimensions rank="1">
-              <dim index="1" value="np" />
+              <dim index="1" value="nP" />
             </dimensions>
           </field>
         </group>
@@ -105,42 +108,42 @@
         </field>
         <field name="qh" type="NX_FLOAT" units="NX_DIMENSIONLESS" axis="1">
           <dimensions rank="1">
-            <dim index="1" value="np" />
+            <dim index="1" value="nP" />
           </dimensions>
         </field>
         <field name="qk" type="NX_FLOAT" units="NX_DIMENSIONLESS" axis="1">
           <dimensions rank="1">
-            <dim index="1" value="np" />
+            <dim index="1" value="nP" />
           </dimensions>
         </field>
         <field name="ql" type="NX_FLOAT" units="NX_DIMENSIONLESS" axis="1">
           <dimensions rank="1">
-            <dim index="1" value="np" />
+            <dim index="1" value="nP" />
           </dimensions>
         </field>
         <field name="en" type="NX_FLOAT" units="NX_ENERGY" axis="1">
           <dimensions rank="1">
-            <dim index="1" value="np" />
+            <dim index="1" value="nP" />
           </dimensions>
         </field>
         <field name="rotation_angle" type="NX_FLOAT" units="NX_ANGLE">
           <dimensions rank="1">
-            <dim index="1" value="np" />
+            <dim index="1" value="nP" />
           </dimensions>
         </field>
         <field name="polar_angle" type="NX_FLOAT" units="NX_ANGLE">
            <dimensions rank="1">
-             <dim index="1" value="np" />
+             <dim index="1" value="nP" />
            </dimensions>
         </field>
         <field name="sgu" type="NX_FLOAT" units="NX_ANGLE">
            <dimensions rank="1">
-             <dim index="1" value="np" />
+             <dim index="1" value="nP" />
            </dimensions>
         </field>
         <field name="sgl" type="NX_FLOAT" units="NX_ANGLE">
            <dimensions rank="1">
-             <dim index="1" value="np" />
+             <dim index="1" value="nP" />
            </dimensions>
         </field>
         <field name="unit_cell" type="NX_FLOAT" units="NX_LENGTH">
@@ -171,13 +174,13 @@
         <field name="data" type="NX_FLOAT" units="NX_ANY">
           <doc>Total integral monitor counts</doc>
           <dimensions rank="1">
-            <dim index="1" value="np"></dim></dimensions>
+            <dim index="1" value="nP"></dim></dimensions>
         </field>
       </group>
       <group type="NXdata">
         <doc>One of the ei,ef,qh,qk,ql,en should get a primary=1 attribute to denote the main scan axis</doc>
         <link name="ei" target="/NXentry/NXinstrument/monochromator:NXcrystal/ei"/>
-        <link name="ef" target="/NXentry/NXinstrument/analyzer:NXcrystal/ef"/>
+        <link name="ef" target="/NXentry/NXinstrument/analyser:NXcrystal/ef"/>
         <link name="en" target="/NXentry/NXsample/en"/>
         <link name="qh" target="/NXentry/NXsample/qh"/>
         <link name="qk" target="/NXentry/NXsample/qk"/>

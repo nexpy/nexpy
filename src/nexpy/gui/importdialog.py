@@ -25,7 +25,7 @@ class NXImportDialog(NXDialog):
  
     def __init__(self, parent=None):
 
-        super(NXImportDialog, self).__init__(parent)
+        super().__init__(parent)
         self.default_directory = self.mainwindow.default_directory
         self.import_file = None     # must define in subclass
 
@@ -44,6 +44,6 @@ class NXImportDialog(NXDialog):
         """
         self.accepted = True
         self.mainwindow.import_data()
-        super(NXImportDialog, self).accept()
+        super().accept()
  
 BaseImportDialog = NXImportDialog

@@ -3,7 +3,7 @@
 <!--
 # NeXus - Neutron and X-ray Common Data Format
 # 
-# Copyright (C) 2008-2012 NeXus International Advisory Committee (NIAC)
+# Copyright (C) 2008-2021 NeXus International Advisory Committee (NIAC)
 # 
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -20,34 +20,18 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 # For further information, see http://www.nexusformat.org
-
-########### SVN repository information ###################
-# $Date$
-# $Author$
-# $Revision$
-# $HeadURL$
-# $Id$
-########### SVN repository information ###################
 -->
 <definition 
     name="NXpositioner" 
-    version="1.0"
 	type="group" 
 	extends="NXobject" 
 	category="base"
-    xmlns="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@"
+	xmlns="http://definition.nexusformat.org/nxdl/3.1"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@ ../nxdl.xsd"
-    svnid="$Id$">
+    xsi:schemaLocation="http://definition.nexusformat.org/nxdl/3.1 ../nxdl.xsd"
+    >
     <doc>
-        This group describes a generic positioner 
-        such as a motor or piezo-electric transducer.  It is used to document the
-        current information of a piece of beam line equipment.
-        Note: When using multiple ``NXpositioner`` groups, it is suggested to place 
-        them inside a ``NXcollection`` group.  In such cases, when
-        ``NXpositioner`` is used in another class,
-        ``NXcollection/NXpositioner`` 
-        is then constructed.
+        A generic positioner such as a motor or piezo-electric transducer.  
     </doc>
     <field name="name">
         <doc>symbolic or mnemonic name (one word)</doc>
@@ -87,5 +71,17 @@
     <field name="controller_record">
         <doc>Hardware device record, e.g. EPICS process variable, taco/tango ...</doc>
     </field>
+    <attribute name="default">
+        <doc>
+            .. index:: plotting
+            
+            Declares which child group contains a path leading 
+            to a :ref:`NXdata` group.
+            
+            It is recommended (as of NIAC2014) to use this attribute
+            to help define the path to the default dataset to be plotted.
+            See https://www.nexusformat.org/2014_How_to_find_default_data.html
+            for a summary of the discussion.
+        </doc>
+    </attribute>
 </definition>
-

@@ -3,7 +3,7 @@
 <!--
 # NeXus - Neutron and X-ray Common Data Format
 # 
-# Copyright (C) 2014 NeXus International Advisory Committee (NIAC)
+# Copyright (C) 2014-2021 NeXus International Advisory Committee (NIAC)
 # 
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -21,13 +21,17 @@
 #
 # For further information, see http://www.nexusformat.org
 -->
-<definition xmlns="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@"
-	category="base" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@ ../nxdl.xsd"
-	name="NXslit" version="1.0" type="group" extends="NXobject">
+<definition 
+	category="base"
+	xmlns="http://definition.nexusformat.org/nxdl/3.1" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://definition.nexusformat.org/nxdl/3.1 ../nxdl.xsd"
+	name="NXslit" 
+	type="group" extends="NXobject">
 	<doc>
-		Template of a simple slit.
-		For more complex geometries NXaperture should be used.
+		A simple slit.
+		
+		For more complex geometries, :ref:`NXaperture` should be used.
 	</doc>
 	<field name="depends_on" type="NX_CHAR">
 		<doc>
@@ -40,11 +44,28 @@
 		</doc>
 	</field>
 	<field name="x_gap" type="NX_NUMBER" units="NX_LENGTH">
-		<doc>Size of the gap opening in the first dimension of the local
-			coordinate system.</doc>
+          <doc>
+             Size of the gap opening in the first dimension of the local
+             coordinate system.
+          </doc>
 	</field>
 	<field name="y_gap" type="NX_NUMBER" units="NX_LENGTH">
-		<doc>Size of the gap opening in the second dimension of the local
-			coordinate system.</doc>
+	  <doc>
+            Size of the gap opening in the second dimension of the local
+            coordinate system.
+	  </doc>
 	</field>
+    <attribute name="default">
+        <doc>
+            .. index:: plotting
+            
+            Declares which child group contains a path leading 
+            to a :ref:`NXdata` group.
+            
+            It is recommended (as of NIAC2014) to use this attribute
+            to help define the path to the default dataset to be plotted.
+            See https://www.nexusformat.org/2014_How_to_find_default_data.html
+            for a summary of the discussion.
+        </doc>
+    </attribute>
 </definition>

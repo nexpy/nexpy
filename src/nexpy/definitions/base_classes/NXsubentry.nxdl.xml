@@ -3,7 +3,7 @@
 <!--
 # NeXus - Neutron and X-ray Common Data Format
 # 
-# Copyright (C) 2008-2012 NeXus International Advisory Committee (NIAC)
+# Copyright (C) 2008-2021 NeXus International Advisory Committee (NIAC)
 # 
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -20,43 +20,55 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 # For further information, see http://www.nexusformat.org
-
-########### SVN repository information ###################
-# $Date$
-# $Author$
-# $Revision$
-# $HeadURL$
-# $Id$
-########### SVN repository information ###################
 -->
 <definition name="NXsubentry" 
-	version="1.0"
 	type="group" 
 	extends="NXobject"
 	category="base"
-	xmlns="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@"
+	xmlns="http://definition.nexusformat.org/nxdl/3.1"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@ ../nxdl.xsd"
-	svnid="$Id$">
+	xsi:schemaLocation="http://definition.nexusformat.org/nxdl/3.1 ../nxdl.xsd"
+	>
 
+	<attribute name="default">
+		<doc>
+			.. index:: plotting
+			
+			Declares which :ref:`NXdata` group contains the data 
+			to be shown by default.
+			It is needed to resolve ambiguity when more than 
+			one :ref:`NXdata` group exists. 
+			The value is the name of the default :ref:`NXdata` group.
+			
+			It is recommended (as of NIAC2014) to use this attribute
+			to help define the path to the default dataset to be plotted.
+			See https://www.nexusformat.org/2014_How_to_find_default_data.html
+			for a summary of the discussion.
+		</doc>
+	</attribute>
+	
 	<doc>
-		``NXsubentry`` is a base class virtually identical to ``NXentry``
+		Group of multiple application definitions for "multi-modal" (e.g. SAXS/WAXS) measurements.
+		
+		``NXsubentry`` is a base class virtually identical to :ref:`NXentry`
 		and is used as the (overlay) location for application definitions.
 		Use a separate ``NXsubentry`` for each application definition. 
 		
 		To use ``NXsubentry`` with a hypothetical application definition 
 		called ``NXmyappdef``:
+
 		* Create a group with attribute ``NX_class="NXsubentry"``
 		* Within that group, create a field called ``definition="NXmyappdef"``.
 		* There are two optional attributes of definition: ``version`` and ``URL``
 
 		The intended use is to define application definitions for a 
-		multi-technique ``NXentry``. Previously, an application definition 
-		replaced ``NXentry`` with its own definition. 
+		multi-modal (a.k.a. multi-technique) :ref:`NXentry`. 
+		Previously, an application definition 
+		replaced :ref:`NXentry` with its own definition. 
 		With the increasing popularity of instruments combining 
 		multiple techniques for data collection (such as SAXS/WAXS instruments), 
 		it was recognized the application definitions must be entered in the NeXus
-		data file tree as children of ``NXentry``. 
+		data file tree as children of :ref:`NXentry`. 
 	</doc>
 	
 	<attribute name="IDF_Version">
@@ -68,17 +80,19 @@
 		<doc>Extended title for entry</doc>
 	</field>
 	<field name="experiment_identifier">
-		<doc>Unique identifier for the experiment, defined by the facility, possibly linked to the
-			proposals</doc>
+		<doc>
+                    Unique identifier for the experiment, defined by
+                    the facility, possibly linked to the proposals
+                </doc>
 	</field>
 	<field name="experiment_description">
 		<doc>Brief summary of the experiment, including key objectives.</doc>
 	</field>
 	<group type="NXnote"  name="experiment_documentation">
-		<doc>Description of the full experiment (document in pdf, latex, …)</doc>
+		<doc>Description of the full experiment (document in pdf, latex, ...)</doc>
 	</group>
 	<field name="collection_identifier">
-		<doc>User or Data Acquisition defined group of NeXus files or NXentry</doc>
+		<doc>User or Data Acquisition defined group of NeXus files or :ref:`NXentry`</doc>
 	</field>
 	<field name="collection_description">
 		<doc>Brief summary of the collection, including grouping criteria.</doc>
@@ -87,16 +101,16 @@
 		<doc>unique identifier for the measurement, defined by the facility.</doc>
 	</field>
 	<field name="definition">
-		<doc>Official NeXus NXDL schema to which this file conforms</doc>
+		<doc>Official NeXus NXDL schema to which this subentry conforms</doc>
 		<attribute name="version"><doc>NXDL version number</doc></attribute>
 		<attribute name="URL"><doc>URL of NXDL file</doc></attribute>
 	</field>
 	<field name="definition_local">
 		<doc>
-			Local NXDL schema extended from the file
+			Local NXDL schema extended from the subentry
 			specified in the ``definition`` field. 
 			This contains any locally-defined,
-			additional fields in the file.
+			additional fields in the subentry.
 		</doc>
 		<attribute name="version"><doc>NXDL version number</doc></attribute>
 		<attribute name="URL"><doc>URL of NXDL file</doc></attribute>
@@ -159,7 +173,6 @@
 			</enumeration>
 		</attribute>
 	</group>
-	<group type="NXcharacterization" /><!-- TODO: consider using NXcollection instead, see https://github.com/nexusformat/definitions/issues/177-->
 	<group type="NXuser" />
 	<group type="NXsample" />
 	<group type="NXinstrument" />

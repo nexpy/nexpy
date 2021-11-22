@@ -3,7 +3,7 @@
 <!--
 # NeXus - Neutron and X-ray Common Data Format
 # 
-# Copyright (C) 2008-2012 NeXus International Advisory Committee (NIAC)
+# Copyright (C) 2008-2021 NeXus International Advisory Committee (NIAC)
 # 
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -20,21 +20,11 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 # For further information, see http://www.nexusformat.org
-
-########### SVN repository information ###################
-# $Date: 2009-01-30 17:55:59 +0000 (Fri, 30 Jan 2009) $
-# $Author: Freddie Akeroyd $
-# $Revision: 303 $
-# $HeadURL: https://svn.nexusformat.org/definitions/trunk/base_classes/NXuser.nxdl.xml $
-# $Id: NXuser.nxdl.xml 303 2009-01-30 17:55:59Z Freddie Akeroyd $
-########### SVN repository information ###################
 -->
-<definition xmlns="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@" category="base"
+<definition xmlns="http://definition.nexusformat.org/nxdl/3.1" category="base"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@ ../nxdl.xsd"
+	xsi:schemaLocation="http://definition.nexusformat.org/nxdl/3.1 ../nxdl.xsd"
 	name="NXobject" 
-	version="1.0"
-    svnid="$Id: NXuser.nxdl.xml 303 2009-01-30 17:55:59Z Freddie Akeroyd $"
 	type="group">
 	<doc>
 		This is the base object of NeXus

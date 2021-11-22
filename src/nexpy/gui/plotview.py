@@ -307,7 +307,7 @@ class NXPlotView(QtWidgets.QDialog):
             self.mainwindow = _mainwindow
             parent = self.mainwindow
 
-        super(NXPlotView, self).__init__(parent)
+        super().__init__(parent)
 
         self.setMinimumSize(750, 550)
         self.setSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding,
@@ -580,7 +580,7 @@ class NXPlotView(QtWidgets.QDialog):
 
     def resizeEvent(self, event):
         self.update_panels()
-        super(NXPlotView, self).resizeEvent(event)
+        super().resizeEvent(event)
 
     def activate(self):
         """Restore original signal connections.
@@ -2736,7 +2736,7 @@ class NXPlotView(QtWidgets.QDialog):
 
     def close(self):
         self.close_view()
-        super(NXPlotView, self).close()
+        super().close()
 
 
 class NXPlotAxis(object):
@@ -2917,7 +2917,7 @@ class NXPlotTab(QtWidgets.QWidget):
     def __init__(self, name=None, axis=True, zaxis=False, image=False,
                  plotview=None):
 
-        super(NXPlotTab, self).__init__()
+        super().__init__()
 
         self.name = name
         self.plotview = plotview
@@ -3670,7 +3670,7 @@ class NXProjectionTab(QtWidgets.QWidget):
 
     def __init__(self, plotview=None):
 
-        super(NXProjectionTab, self).__init__()
+        super().__init__()
 
         self.plotview = plotview
 
@@ -3946,12 +3946,12 @@ class NXNavigationToolbar(NavigationToolbar2QT, QtWidgets.QToolBar):
             self._xypress = None
             self._button_pressed = None
             self._zoom_mode = None
-            super(NXNavigationToolbar, self).release(event)
+            super().release(event)
 
     def release_zoom(self, event):
         """The release mouse button callback in zoom mode."""
         if event.button == 1:
-            super(NXNavigationToolbar, self).release_zoom(event)
+            super().release_zoom(event)
             self._update_release()
         elif event.button == 3:
             self.plotview.zoom = None
@@ -3979,7 +3979,7 @@ class NXNavigationToolbar(NavigationToolbar2QT, QtWidgets.QToolBar):
 
     def release_pan(self, event):
         """The release mouse button callback in pan mode."""
-        super(NXNavigationToolbar, self).release_pan(event)
+        super().release_pan(event)
         self._update_release()
 
     def _update_release(self):
@@ -4004,7 +4004,7 @@ class NXNavigationToolbar(NavigationToolbar2QT, QtWidgets.QToolBar):
         self.plotview.update_panels()
 
     def _update_view(self):
-        super(NXNavigationToolbar, self)._update_view()
+        super()._update_view()
         l = self.plotview.limits
         self.plotview.xtab.axis.min, self.plotview.xtab.axis.max = l[0], l[1]
         self.plotview.ytab.axis.min, self.plotview.ytab.axis.max = l[2], l[3]

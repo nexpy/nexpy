@@ -28,14 +28,12 @@ Two GUI elements are provided for convenience:
 import os
 
 import numpy as np
-
-from qtpy import QtWidgets
-
-from nexusformat.nexus import *
 from nexpy.gui.importdialog import NXImportDialog
 from nexpy.gui.utils import report_error
-from nexpy.gui.widgets import (NXCheckBox, NXComboBox, NXLabel, NXLineEdit, 
+from nexpy.gui.widgets import (NXCheckBox, NXComboBox, NXLabel, NXLineEdit,
                                NXPushButton)
+from nexusformat.nexus import NXdata, NXentry, NXfield, NXgroup
+from qtpy import QtWidgets
 
 filetype = "Text File"
 
@@ -47,7 +45,7 @@ class ImportDialog(NXImportDialog):
  
     def __init__(self, parent=None):
 
-        super(ImportDialog, self).__init__(parent=parent)
+        super().__init__(parent=parent)
 
         self.textbox = QtWidgets.QTextEdit()
         self.textbox.setMinimumWidth(400)
@@ -221,5 +219,5 @@ class ImportDialog(NXImportDialog):
                 return
         self.accepted = True
         self.mainwindow.import_data()
-        super(NXImportDialog, self).accept()
+        super().accept()
 

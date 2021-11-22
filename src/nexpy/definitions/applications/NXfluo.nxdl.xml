@@ -3,7 +3,7 @@
 <!--
 # NeXus - Neutron and X-ray Common Data Format
 # 
-# Copyright (C) 2008-2012 NeXus International Advisory Committee (NIAC)
+# Copyright (C) 2008-2021 NeXus International Advisory Committee (NIAC)
 # 
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -20,30 +20,30 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 # For further information, see http://www.nexusformat.org
-
-########### SVN repository information ###################
-# $Date$
-# $Author$
-# $Revision$
-# $HeadURL$
-# $Id$
-########### SVN repository information ###################
 -->
 <definition name="NXfluo" extends="NXobject" type="group"
-    version="1.0"  category="application"
-    xmlns="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@"
+    category="application"
+    xmlns="http://definition.nexusformat.org/nxdl/3.1"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@ ../nxdl.xsd "
-    svnid="$Id$">
-    <doc>This is an application definition for raw data from an X-ray fluorescence 
-         experiment
+    xsi:schemaLocation="http://definition.nexusformat.org/nxdl/3.1 ../nxdl.xsd "
+    >
+    <symbols>
+      <doc>
+        The symbol(s) listed here will be used below to coordinate datasets with the same shape.
+      </doc>
+      <symbol name="nE">
+        <doc>Number of energies</doc>
+      </symbol>
+    </symbols>
+    <doc>
+      This is an application definition for raw data from an X-ray fluorescence experiment
     </doc>
     <group type="NXentry" name="entry">
       <field name="title" />
       <field name="start_time" type="NX_DATE_TIME" />
       <field name="definition">
         <doc>
-          Official NeXus NXDL schema to which this file conforms
+           Official NeXus NXDL schema to which this file conforms.
         </doc>
         <enumeration>
           <item value="NXfluo"></item>
@@ -65,12 +65,12 @@
         <group type="NXdetector" name="fluorescence">
           <field name="data" type="NX_INT" axes="energy" signal="1">
             <dimensions rank="1">
-              <dim index="1" value="nenergy" />
+              <dim index="1" value="nE" />
             </dimensions>
           </field>
           <field name="energy" type="NX_FLOAT">
             <dimensions rank="1">
-              <dim index="1" value="nenergy" />
+              <dim index="1" value="nE" />
             </dimensions>
           </field>
         </group>
@@ -98,9 +98,9 @@
       </group>
       <group type="NXdata" name="data">
         <link name="energy"
-          target="/entry/instrument/fluorecence/energy">
+          target="/entry/instrument/fluorescence/energy">
         </link>
-        <link name="data" target="/entry/instrument/fluorecence/data">
+        <link name="data" target="/entry/instrument/fluorescence/data">
         </link>
       </group>
     </group>

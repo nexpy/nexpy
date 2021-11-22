@@ -14,13 +14,13 @@ Module to read in a folder of image files and convert them to NeXus.
 """
 import os
 import re
+
 import numpy as np
-
-from qtpy import QtCore, QtWidgets
-
-from nexusformat.nexus import *
 from nexpy.gui.importdialog import NXImportDialog
 from nexpy.gui.widgets import NXLabel, NXLineEdit
+from nexusformat.nexus import (NeXusError, NXcollection, NXdata, NXentry,
+                               NXfield, NXnote)
+from qtpy import QtCore, QtWidgets
 
 filetype = "Image Stack"
 maximum = 0.0
@@ -32,7 +32,7 @@ class ImportDialog(NXImportDialog):
  
     def __init__(self, parent=None):
 
-        super(ImportDialog, self).__init__(parent=parent)
+        super().__init__(parent=parent)
         
         self.layout = QtWidgets.QVBoxLayout()
 
@@ -112,7 +112,7 @@ class ImportDialog(NXImportDialog):
         return rangebox
 
     def choose_directory(self):
-        super(ImportDialog, self).choose_directory()
+        super().choose_directory()
         files = self.get_filesindirectory()
         self.get_extensions()
         self.get_prefixes()

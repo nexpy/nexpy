@@ -3,7 +3,7 @@
 <!--
 # NeXus - Neutron and X-ray Common Data Format
 # 
-# Copyright (C) 2008-2012 NeXus International Advisory Committee (NIAC)
+# Copyright (C) 2008-2021 NeXus International Advisory Committee (NIAC)
 # 
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -20,23 +20,13 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 # For further information, see http://www.nexusformat.org
-
-########### SVN repository information ###################
-# $Date$
-# $Author$
-# $Revision$
-# $HeadURL$
-# $Id$
-########### SVN repository information ###################
 -->
-<definition xmlns="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@" category="base"
+<definition xmlns="http://definition.nexusformat.org/nxdl/3.1" category="base"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@ ../nxdl.xsd"
+    xsi:schemaLocation="http://definition.nexusformat.org/nxdl/3.1 ../nxdl.xsd"
     name="NXenvironment" 
-    version="1.0"
-    svnid="$Id$"
 	type="group" extends="NXobject">
-	<doc>This class describes an external condition applied to the sample</doc>
+    <doc>Parameters for controlling external conditions</doc>
     <field name="name">
         <doc>Apparatus identification code/model number; e.g. OC100 011</doc>
     </field>

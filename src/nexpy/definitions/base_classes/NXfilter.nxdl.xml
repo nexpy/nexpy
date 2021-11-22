@@ -3,7 +3,7 @@
 <!--
 # NeXus - Neutron and X-ray Common Data Format
 # 
-# Copyright (C) 2008-2012 NeXus International Advisory Committee (NIAC)
+# Copyright (C) 2008-2021 NeXus International Advisory Committee (NIAC)
 # 
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -20,48 +20,35 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 # For further information, see http://www.nexusformat.org
-
-########### SVN repository information ###################
-# $Date$
-# $Author$
-# $Revision$
-# $HeadURL$
-# $Id$
-########### SVN repository information ###################
 -->
 <definition
 	name="NXfilter" 
 	type="group"
 	extends="NXobject"
 	category="base"
-	version="1.0" xmlns="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@"
+	xmlns="http://definition.nexusformat.org/nxdl/3.1"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@ ../nxdl.xsd"
-    svnid="$Id$">
+	xsi:schemaLocation="http://definition.nexusformat.org/nxdl/3.1 ../nxdl.xsd"
+    >
 	<doc>
-		Template for specifying the state of band pass filters.
-		If uncertain whether to use ``NXfilter`` (band-pass filter)
-		or ``NXattenuator`` (reduces beam intensity), then use 
-		``NXattenuator``.
+		For band pass beam filters.
+		
+		If uncertain whether to use :ref:`NXfilter` (band-pass filter)
+		or :ref:`NXattenuator` (reduces beam intensity), then use 
+		:ref:`NXattenuator`.
 	</doc>
 	<group type="NXgeometry">
 		<doc>Geometry of the filter</doc>
 	</group>
 	<field name="description">
 		<doc>
-			Composition of the filter.  Chemical formula can be specified separately.
+            Composition of the filter.  Chemical formula can be specified separately.
+
             This field was changed (2010-11-17) from an enumeration to
             a string since common usage showed a wider variety of use
             than a simple list.  These are the items in the list at 
-            the time of the change:
-
-            * Beryllium
-            * Pyrolytic Graphite
-            * Graphite
-            * Sapphire
-            * Silicon
-            * Supermirror
-
+            the time of the change: Beryllium | Pyrolytic Graphite |
+            Graphite | Sapphire | Silicon | Supermirror.
 		</doc>
 	</field>
 	<field name="status">
@@ -103,8 +90,8 @@
 			  whether or not carbon is present.
 			* If carbon is present, the order should be: 
 			
-			  - C, then H, then the other elements in alphabetical order of their symbol. 
-			  - If carbon is not present, the elements are listed purely in alphabetic order of their symbol. 
+			  * C, then H, then the other elements in alphabetical order of their symbol. 
+			  * If carbon is not present, the elements are listed purely in alphabetic order of their symbol. 
 			  
 			* This is the *Hill* system used by Chemical Abstracts.
 		</doc>
@@ -135,7 +122,10 @@
 		<dimensions rank="1"><dim index="1" value="n_comp"/></dimensions>
 	</field>
 	<field name="orientation_matrix" type="NX_FLOAT">
-		<doc>Orientation matrix of single crystal filter using Busing-Levy convention</doc>
+		<doc>
+			Orientation matrix of single crystal filter using Busing-Levy convention:
+			W. R. Busing and H. A. Levy (1967). Acta Cryst. 22, 457-464
+		</doc>
 		<dimensions rank="3"><!--n_comp,3,3-->
 			<dim index="1" value="n_comp"/><!-- TODO n_comp is number of different compositions? -->
 			<dim index="2" value="3"/>
@@ -161,5 +151,18 @@
 		<doc>coating roughness (RMS) of supermirror filter</doc>
 		<dimensions rank="1"><dim index="1" incr="1" value="nsurf"/></dimensions>
 	</field>
+    <attribute name="default">
+        <doc>
+            .. index:: plotting
+            
+            Declares which child group contains a path leading 
+            to a :ref:`NXdata` group.
+            
+            It is recommended (as of NIAC2014) to use this attribute
+            to help define the path to the default dataset to be plotted.
+            See https://www.nexusformat.org/2014_How_to_find_default_data.html
+            for a summary of the discussion.
+        </doc>
+    </attribute>
 </definition>
 

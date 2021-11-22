@@ -1,32 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-     Stylesheet to provide a condensed view of a NeXus NXDL specification.
-     (see https://github.com/nexusformat/definitions/issues/181)
+Stylesheet to provide a condensed view of a NeXus NXDL specification.
+(see https://github.com/nexusformat/definitions/issues/181)
 
-     The nxdlformat.xsl stylesheets differ between the directories 
-     because of the rule regarding either /definition/NXentry or
-     /definition/NXsubentry for application and contributed definitions.
-     (see https://github.com/nexusformat/definitions/issues/179)
-     
-     Modify <xsl:template match="nx:definition">...</xsl:template> 
-     for each directory.
-     
-     ########### SVN repository information ###################
-     # $Date$
-     # $Author$
-     # $Revision$
-     # $HeadURL$
-     # $Id$
-     ########### SVN repository information ###################
+The nxdlformat.xsl stylesheets differ between the directories 
+because of the rule regarding either /definition/NXentry or
+/definition/NXsubentry for application and contributed definitions.
+(see https://github.com/nexusformat/definitions/issues/179)
 
-Copyright (C) 2008-2012 NeXus International Advisory Committee (NIAC)
+Modify <xsl:template match="nx:definition">...</xsl:template> 
+for each directory.
 
 line breaks are VERY TRICKY here, be careful how you edit!
 -->
 
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-     xmlns:nx="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@" version="1.0">
+     xmlns:nx="http://definition.nexusformat.org/nxdl/3.1" version="1.0">
 
      <xsl:output method="text"/>
      <xsl:variable name="indent_step" select="'  '"/>
@@ -203,8 +193,7 @@ line breaks are VERY TRICKY here, be careful how you edit!
                <xsl:when test="@category='base'">base class</xsl:when>
                <xsl:when test="@category='application'">application definition</xsl:when>
                <xsl:when test="@category='contributed'">contributed definition</xsl:when>
-          </xsl:choose><xsl:if test="count(@version)">, version <xsl:value-of
-               select="@version"/></xsl:if>)<xsl:text><!-- tricky line break here -->
+          </xsl:choose>)<xsl:text><!-- tricky line break here -->
 </xsl:text></xsl:template>
      
 </xsl:stylesheet>
@@ -212,7 +201,7 @@ line breaks are VERY TRICKY here, be careful how you edit!
 <!--
      # NeXus - Neutron and X-ray Common Data Format
      # 
-     # Copyright (C) 2008-2012 NeXus International Advisory Committee (NIAC)
+     # Copyright (C) 2008-2021 NeXus International Advisory Committee (NIAC)
      # 
      # This library is free software; you can redistribute it and/or
      # modify it under the terms of the GNU Lesser General Public
