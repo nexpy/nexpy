@@ -16,11 +16,11 @@ import os
 
 import numpy as np
 from nexpy.gui.importdialog import NXImportDialog
+from nexpy.gui.pyqt import QtWidgets, getOpenFileName
 from nexpy.gui.widgets import NXLabel, NXLineEdit
 from nexusformat.nexus import (NXdata, NXdetector, NXentry, NXfield,
                                NXinstrument, NXmonochromator, nxload)
-from nexusformat.nexus.tree import centers, convert_index
-from qtpy import QtWidgets, getOpenFileName
+from nexusformat.nexus.tree import centers
 
 filetype = "SPE/NXSPE File"
 
