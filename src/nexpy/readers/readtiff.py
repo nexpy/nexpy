@@ -10,7 +10,7 @@
 #-----------------------------------------------------------------------------
 
 """
-Module to read in a TIFF file and convert it to NeXus.
+Module to read in a TIFF file using 'tifffile' and convert it to NeXus.
 """
 import numpy as np
 from nexpy.gui.importdialog import NXImportDialog
@@ -27,17 +27,19 @@ class ImportDialog(NXImportDialog):
         
         self.set_layout(self.filebox(), self.buttonbox())
   
-        self.setWindowTitle("Import "+str(filetype))
+        self.set_title("Import "+str(filetype))
  
     def get_data(self):
         self.import_file = self.get_filename()
+        if not self.import_file:
+            raise NeXusError("No file specified")
         try:
             import tifffile as TIFF
         except ImportError:
             raise NeXusError("Please install the 'tifffile' module")
         im = TIFF.imread(self.import_file)
         z = NXfield(im, name='z')
-        y = NXfield(range(z.shape[0]), name='y')
-        x = NXfield(range(z.shape[1]), name='x')
+        y = NXfield(np.arange(z.shape[0], dtype=float), name='y')
+        x = NXfield(np.arange(z.shape[1], dtype=float), name='x')
         
         return NXentry(NXdata(z,(y,x)))
