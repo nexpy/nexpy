@@ -95,7 +95,7 @@ class NXScrollBar(QtWidgets.QScrollBar):
 class NXScriptTextEdit(QtWidgets.QPlainTextEdit):
 
     def __init__(self, slot=None, parent=None):
-        super(NXScriptTextEdit, self).__init__(parent)
+        super().__init__(parent)
         self.setFont(QtGui.QFont('Courier'))
         self.setMinimumWidth(700)
         self.setMinimumHeight(600)
@@ -118,8 +118,8 @@ class NXScriptTextEdit(QtWidgets.QPlainTextEdit):
 class NXScriptWindow(NXPanel):
 
     def __init__(self, parent=None):
-        super(NXScriptWindow, self).__init__('Editor', title='Script Editor',
-                                             close=False, parent=parent)
+        super().__init__('Editor', title='Script Editor', close=False, 
+                         parent=parent)
         self.tab_class = NXScriptEditor
 
     def __repr__(self):
@@ -130,7 +130,7 @@ class NXScriptWindow(NXPanel):
             label = os.path.basename(file_name)
         else:
             label = 'Untitled %s' % (self.count+1)
-        super(NXScriptWindow, self).activate(label, file_name)
+        super().activate(label, file_name)
         if file_name:
             self.tab.default_directory = os.path.dirname(file_name)
         else:
@@ -142,7 +142,7 @@ class NXScriptEditor(NXTab):
  
     def __init__(self, label, file_name=None, parent=None):
 
-        super(NXScriptEditor, self).__init__(label, parent=parent)
+        super().__init__(label, parent=parent)
  
         self.file_name = file_name
 

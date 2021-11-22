@@ -1,5 +1,5 @@
 import numpy as np
-from nexpy.gui.datadialogs import NXDialog, GridParameters
+from nexpy.gui.datadialogs import GridParameters, NXDialog
 from nexpy.gui.utils import report_error
 from nexusformat.nexus import NeXusError
 
@@ -16,7 +16,7 @@ class EnergyDialog(NXDialog):
 
     def __init__(self, parent=None):
 
-        super(EnergyDialog, self).__init__(parent)
+        super().__init__(parent)
 
         self.select_entry()
         self.parameters = GridParameters()
@@ -66,4 +66,4 @@ class EnergyDialog(NXDialog):
             self.parameters['Ei'].save()
         except NeXusError as error:
             report_error("Getting Incident Energy", error)
-        super(EnergyDialog, self).accept()
+        super().accept()

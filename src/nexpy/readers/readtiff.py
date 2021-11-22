@@ -13,9 +13,8 @@
 Module to read in a TIFF file and convert it to NeXus.
 """
 import numpy as np
-
-from nexusformat.nexus import *
 from nexpy.gui.importdialog import NXImportDialog
+from nexusformat.nexus import NeXusError, NXdata, NXentry, NXfield
 
 filetype = "TIFF Image"
 
@@ -24,7 +23,7 @@ class ImportDialog(NXImportDialog):
  
     def __init__(self, parent=None):
 
-        super(ImportDialog, self).__init__(parent=parent)
+        super().__init__(parent=parent)
         
         self.set_layout(self.filebox(), self.buttonbox())
   

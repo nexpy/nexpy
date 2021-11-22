@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #-----------------------------------------------------------------------------
-# Copyright (c) 2013, NeXpy Development Team.
+# Copyright (c) 2013-2021, NeXpy Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -13,14 +13,14 @@
 Module to read in a SPE or NXSPE file and convert it to NeXus.
 """
 import os
+
 import numpy as np
-
-from qtpy import QtWidgets
-
-from nexusformat.nexus import *
-from nexusformat.nexus.tree import convert_index, centers
 from nexpy.gui.importdialog import NXImportDialog
 from nexpy.gui.widgets import NXLabel, NXLineEdit
+from nexusformat.nexus import (NXdata, NXdetector, NXentry, NXfield,
+                               NXinstrument, NXmonochromator, nxload)
+from nexusformat.nexus.tree import centers, convert_index
+from qtpy import QtWidgets, getOpenFileName
 
 filetype = "SPE/NXSPE File"
 
@@ -29,7 +29,7 @@ class ImportDialog(NXImportDialog):
  
     def __init__(self, parent=None):
 
-        super(ImportDialog, self).__init__(parent=parent)
+        super().__init__(parent=parent)
 
         self.file_type = None
 

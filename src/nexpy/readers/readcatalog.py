@@ -20,7 +20,7 @@ from qtpy import QtWidgets
 import numpy as np
 from globusonline.catalog.client.examples.catalog_wrapper import CatalogWrapper
 
-from nexusformat.nexus import *
+from nexusformat.nexus import NXentry
 from nexpy.gui.importdialog import NXImportDialog
 
 filetype = "Catalog File"
@@ -30,7 +30,7 @@ class ImportDialog(NXImportDialog):
 
     def __init__(self, parent=None):
 
-        super(ImportDialog, self).__init__(parent=parent)
+        super().__init__(parent=parent)
 
         token_file = os.path.join(os.path.expanduser('~'),'.nexpy',
                                   'globusonline', 'gotoken.txt')
@@ -43,7 +43,8 @@ class ImportDialog(NXImportDialog):
                 self.catalog_box.addItem(catalog['config']['name'])
             except:
                 pass
-        self.catalog_box.setSizeAdjustPolicy(QtWidgets.QComboBox.AdjustToContents)
+        self.catalog_box.setSizeAdjustPolicy(
+            QtWidgets.QComboBox.AdjustToContents)
         catalog_button = QtWidgets.QPushButton("Choose Catalog")
         catalog_button.clicked.connect(self.get_catalog)
         catalog_layout.addWidget(self.catalog_box)

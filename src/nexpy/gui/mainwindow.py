@@ -80,7 +80,7 @@ class MainWindow(QtWidgets.QMainWindow):
         config : JupyterApp.config_file
         """
 
-        super(MainWindow, self).__init__()
+        super().__init__()
         self.resize(1000, 800)
         self.app = app
         self._app = app.app

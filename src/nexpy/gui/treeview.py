@@ -195,7 +195,7 @@ class NXTreeItem(QtGui.QStandardItem):
             self._unlocked_modified = QtGui.QIcon(
                 pkg_resources.resource_filename('nexpy.gui',
                                             'resources/unlock-red-icon.png'))
-        super(NXTreeItem, self).__init__(node.nxname)
+        super().__init__(node.nxname)
 
     @property
     def node(self):
@@ -259,7 +259,7 @@ class NXTreeItem(QtGui.QStandardItem):
 class NXTreeView(QtWidgets.QTreeView):
 
     def __init__(self, tree, parent=None):
-        super(NXTreeView, self).__init__(parent=parent)
+        super().__init__(parent=parent)
 
         self.tree = tree
         self.mainwindow = parent
@@ -302,7 +302,7 @@ class NXTreeView(QtWidgets.QTreeView):
         return 'NXTreeView("nxtree")'
 
     def update(self):
-        super(NXTreeView, self).update()
+        super().update()
 
     def selection_changed(self):
         """Enable and disable menu actions based on the selection."""
@@ -554,7 +554,7 @@ class NXTreeView(QtWidgets.QTreeView):
             pass
         
     def selectionChanged(self, new, old):
-        super(NXTreeView, self).selectionChanged(new, old)
+        super().selectionChanged(new, old)
         if new.indexes():
             node = self.get_node()
             self.status_message(node)
@@ -563,7 +563,7 @@ class NXTreeView(QtWidgets.QTreeView):
 
     def collapse(self, index=None):
         if index:
-            super(NXTreeView, self).collapse(index)
+            super().collapse(index)
         else:
             self.collapseAll()
             self.setCurrentIndex(self.model().index(0,0))

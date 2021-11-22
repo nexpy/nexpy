@@ -12,14 +12,13 @@
 Module to read in a SPEC file and convert it to NeXus.
 """
 import os
+
 import numpy as np
-
-from nexpy.gui.pyqt import QtCore, QtWidgets, getOpenFileName
-
-from nexusformat.nexus.tree import NeXusError
-from nexusformat.nexus.tree import NXroot, NXentry, NXfield, NXdata, NXlog
 from nexpy.gui.importdialog import NXImportDialog
+from nexpy.gui.pyqt import QtCore, QtWidgets, getOpenFileName
 from nexpy.gui.widgets import NXLabel, NXLineEdit
+from nexusformat.nexus.tree import (NeXusError, NXdata, NXentry, NXfield,
+                                    NXlog, NXroot)
 
 filetype = "SPEC File"
 
@@ -29,7 +28,7 @@ class ImportDialog(NXImportDialog):
  
     def __init__(self, parent=None):
 
-        super(ImportDialog, self).__init__(parent=parent)
+        super().__init__(parent=parent)
 
         try:
             import spec2nexus
@@ -137,6 +136,7 @@ class Parser(object):
         '''
         import spec2nexus
         from spec2nexus import utils
+
         # check that scan_list is valid
         if len(scan_list) == 0:
             return None

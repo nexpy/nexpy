@@ -685,11 +685,11 @@ class NXConfigParser(ConfigParser, object):
     """A ConfigParser subclass that preserves the case of option names"""
 
     def __init__(self, settings_file):
-        super(NXConfigParser, self).__init__(allow_no_value=True)
+        super().__init__(allow_no_value=True)
         self.file = settings_file
         self._optcre = re.compile( #makes '=' the only valid key/value delimiter
             r"(?P<option>.*?)\s*(?:(?P<vi>=)\s*(?P<value>.*))?$", re.VERBOSE)
-        super(NXConfigParser, self).read(self.file)
+        super().read(self.file)
         sections = self.sections()
         if 'backups' not in sections:
             self.add_section('backups')
@@ -706,9 +706,9 @@ class NXConfigParser(ConfigParser, object):
 
     def set(self, section, option, value=None):
         if value is not None:
-            super(NXConfigParser, self).set(section, option, str(value))
+            super().set(section, option, str(value))
         else:
-            super(NXConfigParser, self).set(section, option)            
+            super().set(section, option)            
 
     def optionxform(self, optionstr):
         return optionstr
@@ -738,7 +738,7 @@ class NXLogger(io.StringIO):
     sys.stdout and sys.stderr before the IPython kernel starts up.
     """
     def __init__(self):
-        super(NXLogger, self).__init__()
+        super().__init__()
         self.logger = logging.getLogger()
         self.log_level = self.logger.getEffectiveLevel()
         self.linebuf = ''
@@ -795,6 +795,6 @@ class Gaussian3DKernel(Kernel):
         X,Y,Z = np.meshgrid(x,y,z)
         array = np.exp(-(X**2+Y**2+Z**2)/(2*stddev**2))
         self._default_size = _round_up_to_odd_integer(8 * stddev)
-        super(Gaussian3DKernel, self).__init__(array)
+        super().__init__(array)
         self.normalize()
         self._truncation = np.abs(1. - self._array.sum())
