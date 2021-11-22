@@ -3,7 +3,7 @@
 <!--
 # NeXus - Neutron and X-ray Common Data Format
 # 
-# Copyright (C) 2008-2012 NeXus International Advisory Committee (NIAC)
+# Copyright (C) 2008-2021 NeXus International Advisory Committee (NIAC)
 # 
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -20,23 +20,15 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 # For further information, see http://www.nexusformat.org
-
-########### SVN repository information ###################
-# $Date$
-# $Author$
-# $Revision$
-# $HeadURL$
-# $Id$
-########### SVN repository information ###################
 -->
-<definition xmlns="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@" category="base"
+<definition xmlns="http://definition.nexusformat.org/nxdl/3.1" category="base"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@ ../nxdl.xsd"
+	xsi:schemaLocation="http://definition.nexusformat.org/nxdl/3.1 ../nxdl.xsd"
 	name="NXshape" 
-	version="1.0"
-    svnid="$Id$"
 	type="group" extends="NXobject">
 	<doc>
+		legacy class - (used by :ref:`NXgeometry`) - the shape and size of a component.
+		
 		This is the description of the general shape and size of a 
 		component, which may be made up of ``numobj`` separate 
 		elements - it is used by the :ref:`NXgeometry` class
@@ -74,7 +66,7 @@
 			- For nxpolynomial, an array of polynom coefficients, the dimension of the array 
 			  encodes the degree of the polynom
 		</doc>
-		<dimensions><!--[numobj,nshapepar]-->
+		<dimensions>
 		    <dim index="1" value="numobj"/>
 		    <dim index="2" value="nshapepar"/>
 		</dimensions>
@@ -85,5 +77,18 @@
       <item value="convex"></item>
     </enumeration>
   </field>
+    <attribute name="default">
+        <doc>
+            .. index:: plotting
+            
+            Declares which child group contains a path leading 
+            to a :ref:`NXdata` group.
+            
+            It is recommended (as of NIAC2014) to use this attribute
+            to help define the path to the default dataset to be plotted.
+            See https://www.nexusformat.org/2014_How_to_find_default_data.html
+            for a summary of the discussion.
+        </doc>
+    </attribute>
 </definition>
 

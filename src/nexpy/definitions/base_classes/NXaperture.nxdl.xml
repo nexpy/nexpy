@@ -3,7 +3,7 @@
 <!--
 # NeXus - Neutron and X-ray Common Data Format
 # 
-# Copyright (C) 2008-2012 NeXus International Advisory Committee (NIAC)
+# Copyright (C) 2008-2021 NeXus International Advisory Committee (NIAC)
 # 
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -20,39 +20,30 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 # For further information, see http://www.nexusformat.org
-
-########### SVN repository information ###################
-# $Date$
-# $Author$
-# $Revision$
-# $HeadURL$
-# $Id$
-########### SVN repository information ###################
 -->
-<definition xmlns="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@" category="base"
+<definition xmlns="http://definition.nexusformat.org/nxdl/3.1" category="base"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@ ../nxdl.xsd"
+    xsi:schemaLocation="http://definition.nexusformat.org/nxdl/3.1 ../nxdl.xsd"
     name="NXaperture" 
-    version="1.0"
-    svnid="$Id$"
     type="group" extends="NXobject">
 
-    <doc>Template of a beamline aperture.</doc>
+    <doc>A beamline aperture.</doc>
     <!-- TODO compare with "screens" in SHADOW -->
 
     <group type="NXgeometry">
         <doc>
-			location and shape of aperture
-			
-			.. TODO:
-			  description of terms is poor and leaves much to interpretation
-			  Describe what is meant by translation _here_ and ...
-			  Similar throughout base classes
-			  Some base classes do this much better
-			  Such as where is the gap written?
+            location and shape of aperture
+            
+            .. TODO: documentation needs improvement, contributions welcome
+            
+                * description of terms is poor and leaves much to interpretation
+                * Describe what is meant by translation _here_ and ...
+                * Similar throughout base classes
+                * Some base classes do this much better
+                * Such as where is the gap written?
         </doc>
     </group>
-    <group type="NXgeometry">
+    <group name="BLADE_GEOMETRY" type="NXgeometry">
         <doc>location and shape of each blade</doc>
     </group>
     <field name="material"><!-- TODO Uniformity problem, "type" is used elsewhere for same context -->
@@ -61,5 +52,18 @@
     <field name="description">
         <doc>Description of aperture</doc>
     </field>
-    <group type="NXnote"><doc>describe an additional information in a note*</doc></group>
+    <group type="NXnote"><doc>describe any additional information in a note*</doc></group>
+    <attribute name="default">
+        <doc>
+            .. index:: plotting
+            
+            Declares which child group contains a path leading 
+            to a :ref:`NXdata` group.
+            
+            It is recommended (as of NIAC2014) to use this attribute
+            to help define the path to the default dataset to be plotted.
+            See https://www.nexusformat.org/2014_How_to_find_default_data.html
+            for a summary of the discussion.
+        </doc>
+    </attribute>
 </definition>

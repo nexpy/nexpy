@@ -3,7 +3,7 @@
 <!--
 # NeXus - Neutron and X-ray Common Data Format
 # 
-# Copyright (C) 2008-2012 NeXus International Advisory Committee (NIAC)
+# Copyright (C) 2008-2021 NeXus International Advisory Committee (NIAC)
 # 
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -20,37 +20,27 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 # For further information, see http://www.nexusformat.org
-
-########### SVN repository information ###################
-# $Date$
-# $Author$
-# $Revision$
-# $HeadURL$
-# $Id$
-########### SVN repository information ###################
 -->
 <definition name="NXarchive" extends="NXobject" type="group"
   category="application"
-    xmlns="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@"
+  xmlns="http://definition.nexusformat.org/nxdl/3.1"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@ ../nxdl.xsd"
-    version="1.0b"
-    svnid="$Id$">
+    xsi:schemaLocation="http://definition.nexusformat.org/nxdl/3.1 ../nxdl.xsd"
+    >
     <doc>
-        This is a definition for data to be archived by ICAT (http://www.icatproject.org/).
-        
-        .. text from the icatproject.org site
-
+	This is a definition for data to be archived by ICAT (http://www.icatproject.org/).
+	
+	.. text from the icatproject.org site
+	
 	        the database (with supporting software) that provides an 
 	        interface to all ISIS experimental data and will provide 
 	        a mechanism to link all aspects of ISIS research from 
 	        proposal through to publication. 
-
     </doc>
     <group type="NXentry" name="entry">
       <attribute name="index"></attribute>
       <field name="title" />
-      <field name="experiment_identifer" type="NX_CHAR">
+      <field name="experiment_identifier" type="NX_CHAR">
         <doc>unique identifier for the experiment</doc>
       </field>
       <field name="experiment_description" type="NX_CHAR">

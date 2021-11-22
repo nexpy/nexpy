@@ -3,7 +3,7 @@
 <!--
 # NeXus - Neutron and X-ray Common Data Format
 # 
-# Copyright (C) 2008-2012 NeXus International Advisory Committee (NIAC)
+# Copyright (C) 2008-2021 NeXus International Advisory Committee (NIAC)
 # 
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -20,29 +20,22 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 # For further information, see http://www.nexusformat.org
-
-########### SVN repository information ###################
-# $Date$
-# $Author$
-# $Revision$
-# $HeadURL$
-# $Id$
-########### SVN repository information ###################
 -->
-<definition xmlns="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@" category="base"
+<definition xmlns="http://definition.nexusformat.org/nxdl/3.1" category="base"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@ ../nxdl.xsd"
+    xsi:schemaLocation="http://definition.nexusformat.org/nxdl/3.1 ../nxdl.xsd"
     name="NXbeam"
-    version="1.0"
-    svnid="$Id$"
     type="group" extends="NXobject">
 
-    <doc>Template of the state of the neutron or X-ray beam at any location. It will be referenced
-        by beamline component groups within the NXinstrument group or by the NXsample group. Note
+    <doc>
+        Properties of the neutron or X-ray beam at a given location. 
+        
+        It will be referenced
+        by beamline component groups within the :ref:`NXinstrument` group or by the :ref:`NXsample` group. Note
         that variables such as the incident energy could be scalar values or arrays. This group is
         especially valuable in storing the results of instrument simulations in which it is useful
         to specify the beam profile, time distribution etc. at each beamline component. Otherwise,
-        its most likely use is in the NXsample group in which it defines the results of the neutron
+        its most likely use is in the :ref:`NXsample` group in which it defines the results of the neutron
         scattering by the sample, e.g., energy transfer, polarizations. </doc>
     <field name="distance" type="NX_FLOAT" units="NX_LENGTH">
         <doc>Distance from sample</doc>
@@ -79,6 +72,13 @@
     </field>
     <field name="incident_beam_divergence" type="NX_FLOAT" units="NX_ANGLE">
         <doc>Divergence of beam entering this component</doc>
+        <dimensions rank="2"><!-- [2,:] -->
+            <dim index="1" value="2"/>
+            <dim index="2" value="j"/>
+        </dimensions>
+    </field>
+    <field name="extent" type="NX_FLOAT" units="NX_LENGTH">
+        <doc>Size of the beam entering this component</doc>
         <dimensions rank="2"><!-- [2,:] -->
             <dim index="1" value="2"/>
             <dim index="2" value="j"/>
@@ -124,8 +124,22 @@
         </dimensions>
     </field>
     <group type="NXdata">
-        <doc>Distribution of beam with respect to relevant variable e.g. wavelength. This is mainly
+        <doc>
+            Distribution of beam with respect to relevant variable e.g. wavelength. This is mainly
             useful for simulations which need to store plottable information at each beamline
             component.</doc>
     </group>
+    <attribute name="default">
+        <doc>
+            .. index:: plotting
+            
+            Declares which child group contains a path leading 
+            to a :ref:`NXdata` group.
+            
+            It is recommended (as of NIAC2014) to use this attribute
+            to help define the path to the default dataset to be plotted.
+            See https://www.nexusformat.org/2014_How_to_find_default_data.html
+            for a summary of the discussion.
+        </doc>
+    </attribute>
 </definition>

@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="nxdlformat.xsl" ?>
+<!--
+# NeXus - Neutron and X-ray Common Data Format
+#
+# Copyright (C) 2008-2021 NeXus International Advisory Committee (NIAC)
+#
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 3 of the License, or (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+# For further information, see http://www.nexusformat.org
+-->
+<definition xmlns="http://definition.nexusformat.org/nxdl/3.1" category="base"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://definition.nexusformat.org/nxdl/3.1 ../nxdl.xsd"
+  name="NXoff_geometry"
+  type="group" extends="NXobject">
+
+  <symbols>
+    <doc>These symbols will be used below.</doc>
+    <symbol name="i"><doc>number of vertices in the shape</doc></symbol>
+    <symbol name="k"><doc>number of faces in the shape</doc></symbol>
+    <symbol name="l">
+      <doc>
+        number faces which are detecting surfaces or form the boundary of
+        detecting volumes
+      </doc>
+    </symbol>
+  </symbols>
+
+  <doc>
+    Geometry (shape) description.
+    The format closely matches the Object File Format (OFF) which can be output
+    by most CAD software.
+    It can be used to describe the shape of any beamline component, including detectors.
+    In the case of detectors it can be used to define the shape of a single pixel, or,
+    if the pixel shapes are non-uniform, to describe the shape of the whole detector.
+  </doc>
+
+  <field name="vertices" type="NX_NUMBER" units="NX_LENGTH">
+
+    <doc>
+      List of x,y,z coordinates for vertices.
+      The origin of the coordinates is the position of the parent component, for
+      example the NXdetector which the geometry describes.
+      If the shape describes a single pixel for a detector with uniform pixel
+      shape then the origin is the position of each pixel as described by the
+      ``x/y/z_pixel_offset`` datasets in ``NXdetector``.
+    </doc>
+
+    <dimensions rank="2">
+      <dim index="1" value="i" />
+      <dim index="2" value="3" />
+    </dimensions>
+
+  </field>
+
+  <field name="winding_order" type="NX_INT">
+
+    <doc>
+      List of indices of vertices in the ``vertices`` dataset to form each face,
+      right-hand rule for face normal.
+    </doc>
+
+    <dimensions rank="1">
+      <dim index="1" value="j" />
+    </dimensions>
+
+  </field>
+
+  <field name="faces" type="NX_INT">
+
+    <doc>The start index in ``winding_order`` for each face.</doc>
+
+    <dimensions rank="1">
+      <dim index="1" value="k" />
+    </dimensions>
+
+  </field>
+
+  <field name="detector_faces" type="NX_INT">
+
+    <doc>
+      List of pairs of index in the "faces" dataset and detector id. Face IDs in
+      the first column, and corresponding detector IDs in the second column.
+      This dataset should only be used only if the ``NXoff_geometry`` group is
+      describing a detector.
+      Note, the face indices must be in ascending order but need not be
+      consecutive as not every face in faces need be a detecting surface or
+      boundary of detecting volume.
+      Can use multiple entries with the same detector id to define detector volumes.
+    </doc>
+
+    <dimensions rank="2">
+      <dim index="1" value="l" />
+      <dim index="2" value="2" />
+    </dimensions>
+
+  </field>
+    <attribute name="default">
+        <doc>
+            .. index:: plotting
+            
+            Declares which child group contains a path leading 
+            to a :ref:`NXdata` group.
+            
+            It is recommended (as of NIAC2014) to use this attribute
+            to help define the path to the default dataset to be plotted.
+            See https://www.nexusformat.org/2014_How_to_find_default_data.html
+            for a summary of the discussion.
+        </doc>
+    </attribute>
+
+</definition>

@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="nxdlformat.xsl" ?>
+<!--
+# NeXus - Neutron and X-ray Common Data Format
+# 
+# Copyright (C) 2014-2021 NeXus International Advisory Committee (NIAC)
+# 
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 2 of the License, or (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+# For further information, see http://www.nexusformat.org
+-->
+<definition name="NXgrating" type="group" extends="NXobject"
+  category="base"
+  xmlns="http://definition.nexusformat.org/nxdl/3.1"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://definition.nexusformat.org/nxdl/3.1 ../nxdl.xsd"
+  >
+
+	<doc>A diffraction grating, as could be used in a soft X-ray monochromator</doc>
+	<field name="angles" type="NX_FLOAT" units="NX_ANGLE">
+		<doc>Blaze or trapezoidal angles, with the angle of the upstream facing edge listed first. Blazed gratings can be identified by the low value of the first-listed angle.</doc>
+		<dimensions rank="1">
+			<dim index="1" value="2" />
+		</dimensions>
+	</field>
+	<field name="period" type="NX_FLOAT" units="NX_LENGTH">
+		<doc>List of polynomial coefficients describing the spatial separation of lines/grooves as a function of position along the grating, in increasing powers of position. Gratings which do not have variable line spacing will only have a single coefficient (constant).</doc>
+		<dimensions rank="1"/>
+	</field>
+	<field name="duty_cycle" type="NX_FLOAT" units="NX_UNITLESS"/>
+	<field name="depth" type="NX_FLOAT" units="NX_LENGTH"/>
+	<field name="diffraction_order" type="NX_INT" units="NX_UNITLESS"/>
+	<field name="deflection_angle" type="NX_FLOAT" units="NX_ANGLE">
+		<doc>Angle between the incident beam and the utilised outgoing beam.</doc>
+	</field>
+	<field name="interior_atmosphere">
+		<enumeration>
+			<item value="vacuum"/>
+			<item value="helium"/>
+			<item value="argon"/>
+		</enumeration>
+	</field>
+	<field name="substrate_material">
+		<doc></doc>
+	</field>
+	<field name="substrate_density" type="NX_FLOAT" units="NX_MASS_DENSITY">
+		<doc></doc>
+	</field>
+	<field name="substrate_thickness" type="NX_FLOAT" units="NX_LENGTH">
+		<doc></doc>
+	</field>
+	<field name="coating_material"/>
+	<field name="substrate_roughness" type="NX_FLOAT" units="NX_LENGTH"/>
+ <field name="coating_roughness" type="NX_FLOAT" units="NX_LENGTH"/>
+ <field name="layer_thickness" type="NX_FLOAT" units="NX_LENGTH">
+	  <doc> An array describing the thickness of each layer</doc>
+	</field>
+	<group type="NXshape" name="shape">
+		<doc>A NXshape group describing the shape of the mirror</doc>
+	</group>
+	<group name="figure_data" type="NXdata">
+		<doc>Numerical description of the surface figure of the mirror.</doc>
+	</group>
+	<group type="NXtransformations"><doc>"Engineering" position of the grating</doc></group>
+    <attribute name="default">
+        <doc>
+            .. index:: plotting
+            
+            Declares which child group contains a path leading 
+            to a :ref:`NXdata` group.
+            
+            It is recommended (as of NIAC2014) to use this attribute
+            to help define the path to the default dataset to be plotted.
+            See https://www.nexusformat.org/2014_How_to_find_default_data.html
+            for a summary of the discussion.
+        </doc>
+    </attribute>
+</definition>

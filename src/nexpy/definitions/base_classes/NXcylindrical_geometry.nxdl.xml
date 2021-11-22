@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="nxdlformat.xsl" ?>
+<!--
+# NeXus - Neutron and X-ray Common Data Format
+#
+# Copyright (C) 2008-2021 NeXus International Advisory Committee (NIAC)
+#
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 3 of the License, or (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+# For further information, see http://www.nexusformat.org
+-->
+<definition xmlns="http://definition.nexusformat.org/nxdl/3.1" category="base"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://definition.nexusformat.org/nxdl/3.1 ../nxdl.xsd"
+  name="NXcylindrical_geometry"
+  type="group" extends="NXobject">
+
+  <symbols>
+    <doc>These symbols will be used below.</doc>
+    <symbol name="i">
+      <doc>
+        number of vertices required to define all cylinders in the shape
+      </doc>
+    </symbol>
+    <symbol name="j"><doc>number of cylinders in the shape</doc></symbol>
+    <symbol name="k"><doc>number cylinders which are detectors</doc></symbol>
+  </symbols>
+
+  <doc>
+    Geometry description for cylindrical shapes.
+    This class can be used in place of ``NXoff_geometry`` when an exact
+    representation for cylinders is preferred.
+    For example, for Helium-tube, neutron detectors.
+    It can be used to describe the shape of any beamline component, including detectors.
+    In the case of detectors it can be used to define the shape of a single pixel, or,
+    if the pixel shapes are non-uniform, to describe the shape of the whole detector.
+  </doc>
+
+  <field name="vertices" type="NX_NUMBER" units="NX_LENGTH">
+
+    <doc>
+      List of x,y,z coordinates for vertices.
+      The origin of the coordinates is the position of the parent component, for
+      example the NXdetector which the geometry describes.
+      If the shape describes a single pixel for a detector with uniform pixel shape
+      then the origin is the position of each pixel as described by the
+      ``x/y/z_pixel_offset`` datasets in ``NXdetector``.
+    </doc>
+
+    <dimensions rank="2">
+      <dim index="1" value="i" />
+      <dim index="2" value="3" />
+    </dimensions>
+
+  </field>
+
+  <field name="cylinders" type="NX_INT">
+
+    <doc>
+      List of indices of vertices in the ``vertices`` dataset to form each cylinder.
+      Each cylinder is described by three vertices A, B, C.
+      First vertex A lies on the cylinder axis and circular face, second point B
+      on edge of the same face as A, and third point C at the other face and on axis.
+    </doc>
+
+    <dimensions rank="2">
+      <dim index="1" value="j" />
+      <dim index="2" value="3" />
+    </dimensions>
+
+  </field>
+
+  <field name="detector_number" type="NX_INT">
+
+    <doc>Maps cylinders in ``cylinder``, by index, with a detector id.</doc>
+
+    <dimensions rank="1">
+      <dim index="1" value="k" />
+    </dimensions>
+
+  </field>
+    <attribute name="default">
+        <doc>
+            .. index:: plotting
+            
+            Declares which child group contains a path leading 
+            to a :ref:`NXdata` group.
+            
+            It is recommended (as of NIAC2014) to use this attribute
+            to help define the path to the default dataset to be plotted.
+            See https://www.nexusformat.org/2014_How_to_find_default_data.html
+            for a summary of the discussion.
+        </doc>
+    </attribute>
+
+</definition>

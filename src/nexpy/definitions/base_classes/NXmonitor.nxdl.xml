@@ -3,7 +3,7 @@
 <!--
 # NeXus - Neutron and X-ray Common Data Format
 # 
-# Copyright (C) 2008-2012 NeXus International Advisory Committee (NIAC)
+# Copyright (C) 2008-2021 NeXus International Advisory Committee (NIAC)
 # 
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -20,30 +20,26 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 # For further information, see http://www.nexusformat.org
-
-########### SVN repository information ###################
-# $Date$
-# $Author$
-# $Revision$
-# $HeadURL$
-# $Id$
-########### SVN repository information ###################
 -->
-<definition xmlns="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@" category="base"
+<definition xmlns="http://definition.nexusformat.org/nxdl/3.1" category="base"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@ ../nxdl.xsd"
+    xsi:schemaLocation="http://definition.nexusformat.org/nxdl/3.1 ../nxdl.xsd"
     name="NXmonitor" 
-    version="1.0"
-    svnid="$Id$"
     type="group" extends="NXobject">
-    <doc>Template of monitor data. It is similar to the NXdata groups containing
+    <doc>
+        A monitor of incident beam data. 
+        
+        It is similar to the :ref:`NXdata` groups containing
         monitor data and its associated dimension scale, e.g. time_of_flight or
         wavelength in pulsed neutron instruments. However, it may also include
         integrals, or scalar monitor counts, which are often used in both in both
-        pulsed and steady-state instrumentation.</doc>
+        pulsed and steady-state instrumentation.
+    </doc>
     <field name="mode">
-        <doc>Count to a preset value based on either clock time (timer) or received monitor
-            counts (monitor).</doc>
+        <doc>
+            Count to a preset value based on either clock time (timer)
+            or received monitor counts (monitor).
+        </doc>
         <enumeration>
             <item value="monitor"/>
             <item value="timer"/>
@@ -64,6 +60,9 @@
     <field name="range" type="NX_FLOAT" units="NX_ANY">
         <doc>Range (X-axis, Time-of-flight, etc.) over which the integral was calculated</doc>
         <dimensions><dim index="1" value="2"/></dimensions>
+    </field>
+    <field name="nominal" type="NX_NUMBER" units="NX_ANY">
+        <doc>Nominal reading to be used for normalisation purposes.</doc>
     </field>
     <field name="integral" type="NX_NUMBER" units="NX_ANY">
         <doc>Total integral monitor counts</doc>
@@ -89,16 +88,8 @@
     </field>
     <field name="data" type="NX_NUMBER" units="NX_ANY">
         <doc>
-			Monitor data
-			
-			The signal and axes attributes take the same definitions as in :ref:`NXdata`: 
-			
-			:signal:
-			  ``signal=1`` means this is the plottable data
-			:axes:
-			  ``axes="names"`` where names are defined as a colon-delimited string 
-			  within this attribute in the C-order of the data array
-        </doc>
+    	    Monitor data
+    	</doc>
         <dimensions rank="dataRank">
             <doc>
                 The rank (``dataRank``) of the ``data`` must satisfy
@@ -107,8 +98,6 @@
             </doc>
             <dim index="0" value="n"><!-- index="0": cannot know to which dimension this applies a priori --></dim>
         </dimensions>
-        <attribute name="signal" type="NX_POSINT"><doc>as defined for NXdata</doc></attribute>
-        <attribute name="axes"><doc>as defined for NXdata</doc></attribute>
     </field>
     <field name="sampled_fraction" type="NX_FLOAT" units="NX_DIMENSIONLESS">
         <doc>Proportion of incident beam sampled by the monitor (0&lt;x&lt;1)</doc>
@@ -117,8 +106,24 @@
         <doc>Geometry of the monitor</doc>
     </group>
     <field name="count_time" type="NX_FLOAT" units="NX_TIME">
-        <doc>Elapsed actual counting time, can be an array of size ``np`` when scanning. This is not the
-            difference of the calendar time but the time the instrument was really counting, without
-            pauses or times lost due beam unavailability</doc>
+        <doc>
+            Elapsed actual counting time, can be an array of size ``np``
+            when scanning. This is not the difference of the calendar time
+            but the time the instrument was really counting, without
+            pauses or times lost due beam unavailability
+	    </doc>
     </field>
+    <attribute name="default">
+        <doc>
+            .. index:: plotting
+            
+            Declares which child group contains a path leading 
+            to a :ref:`NXdata` group.
+            
+            It is recommended (as of NIAC2014) to use this attribute
+            to help define the path to the default dataset to be plotted.
+            See https://www.nexusformat.org/2014_How_to_find_default_data.html
+            for a summary of the discussion.
+        </doc>
+    </attribute>
 </definition>

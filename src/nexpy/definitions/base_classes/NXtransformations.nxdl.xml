@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="nxdlformat.xsl" ?>
+<!--
+# NeXus - Neutron and X-ray Common Data Format
+# 
+# Copyright (C) 2014-2021 NeXus International Advisory Committee (NIAC)
+# 
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 3 of the License, or (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+# For further information, see http://www.nexusformat.org
+-->
+<definition xmlns="http://definition.nexusformat.org/nxdl/3.1"
+	category="base"
+	name="NXtransformations"
+	type="group"
+	extends="NXobject"
+	ignoreExtraGroups="true"
+	ignoreExtraFields="true"
+	ignoreExtraAttributes="true"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://definition.nexusformat.org/nxdl/3.1 ../nxdl.xsd"
+	>
+
+	<doc>
+		Collection of axis-based translations and rotations to describe a geometry.
+		May also contain axes that do not move and therefore do not have a transformation
+		type specified, but are useful in understanding coordinate frames within which
+		transformations are done, or in documenting important directions, such as the
+		direction of gravity.
+
+		A nested sequence of transformations lists the translation and rotation steps
+		needed to describe the position and orientation of any movable or fixed device.
+
+		There will be one or more transformations (axes) defined by one or more fields
+		for each transformation.  The all-caps name ``AXISNAME`` designates the
+		particular axis generating a transformation (e.g. a rotation axis or a translation
+		axis or a general axis).   The attribute ``units="NX_TRANSFORMATION"`` designates the
+		units will be appropriate to the ``transformation_type`` attribute:
+
+		* ``NX_LENGTH`` for ``translation``
+		* ``NX_ANGLE`` for ``rotation``
+		* ``NX_UNITLESS`` for axes for which no transformation type is specified
+
+		This class will usually contain all axes of a sample stage or goniometer or
+		a detector.  The NeXus default McSTAS coordinate frame is assumed, but additional
+		useful coordinate axes may be defined by using axes for which no transformation
+		type has been specified.
+
+		The entry point (``depends_on``) will be outside of this class and point to a
+		field in here. Following the chain may also require following ``depends_on``
+		links to transformations outside, for example to a common base table.  If
+		a relative path is given, it is relative to the group enclosing the ``depends_on``
+		specification.
+
+		For a chain of three transformations, where :math:`T_1` depends on :math:`T_2`
+		and that in turn depends on :math:`T_3`, the final transformation :math:`T_f` is
+
+		.. math:: T_f = T_3 T_2 T_1
+
+		In explicit terms, the transformations are a subset of affine transformations
+		expressed as 4x4 matrices that act on homogeneous coordinates, :math:`w=(x,y,z,1)^T`.
+
+		For rotation and translation,
+
+		.. math:: T_r &amp;= \begin{pmatrix} R &amp; o \\ 0_3 &amp; 1 \end{pmatrix} \\ T_t &amp;= \begin{pmatrix} I_3  &amp; t + o \\ 0_3 &amp; 1 \end{pmatrix}
+
+		where :math:`R` is the usual 3x3 rotation matrix, :math:`o` is an offset vector,
+		:math:`0_3` is a row of 3 zeros, :math:`I_3` is the 3x3 identity matrix and
+		:math:`t` is the translation vector.
+
+		:math:`o` is given by the ``offset`` attribute, :math:`t` is given by the ``vector``
+		attribute multiplied by the field value, and :math:`R` is defined as a rotation
+		about an axis in the direction of ``vector``, of angle of the field value.
+
+		NOTE
+		
+		One possible use of ``NXtransformations`` is to define the motors and
+		transformations for a diffractometer (goniometer).  Such use is mentioned
+		in the ``NXinstrument`` base class.  Use one ``NXtransformations`` group 
+		for each diffractometer and name the group appropriate to the device.
+		Collecting the motors of a sample table or xyz-stage in an NXtransformation
+		group is equally possible.
+	</doc>
+	<field name="AXISNAME" nameType="any" units="NX_TRANSFORMATION" type="NX_NUMBER" maxOccurs="unbounded">
+		<doc>
+			Units need to be appropriate for translation or rotation
+
+			The name of this field is not forced.  The user is free to use any name
+			that does not cause confusion.  When using more than one ``AXISNAME`` field,
+			make sure that each field name is unique in the same group, as required
+			by HDF5.
+
+			The values given should be the start points of exposures for the corresponding
+			frames.  The end points should be given in ``AXISNAME_end``.
+		</doc>
+		<attribute name="transformation_type" optional="true">
+			<doc>
+				The transformation_type may be ``translation``, in which case the
+				values are linear displacements along the axis, ``rotation``,
+				in which case the values are angular rotations around the axis.
+
+				If this attribute is omitted, this is an axis for which there
+				is no motion to be specifies, such as the direction of gravity,
+				or the direction to the source, or a basis vector of a
+				coordinate frame.
+			</doc>
+			<enumeration>
+				<item value="translation" />
+				<item value="rotation" />
+				<!-- <item value="general" /> -->
+			</enumeration>
+		</attribute>
+		<attribute name="vector" optional="false" type="NX_NUMBER">
+			<doc>
+				Three values that define the axis for this transformation.
+				The axis should be normalized to unit length, making it
+				dimensionless.  For ``rotation`` axes, the direction should be
+				chosen for a right-handed rotation with increasing angle.
+				For ``translation`` axes the direction should be chosen for
+				increasing displacement. For general axes, an appropriate direction
+				should be chosen.
+			</doc>
+			<dimensions rank="1">
+				<dim index="1" value="3" />
+			</dimensions>
+		</attribute>
+		<attribute name="offset" type="NX_NUMBER">
+			<doc>
+				A fixed offset applied before the transformation (three vector components).
+				This is not intended to be a substitute for a fixed ``translation`` axis but, for example,
+				as the mechanical offset from mounting the axis to its dependency.
+			</doc>
+			<dimensions rank="1">
+				<dim index="1" value="3" />
+			</dimensions>
+		</attribute>
+		<attribute name="offset_units" type="NX_CHAR">
+			<doc>
+				Units of the offset.  Values should be consistent with NX_LENGTH.
+			</doc>
+		</attribute>
+		<attribute name="depends_on" type="NX_CHAR">
+			<doc>
+				Points to the path to a field defining the axis on which this
+				depends or the string ".".
+			</doc>
+		</attribute>
+	</field>
+	<field name="AXISNAME_end" units="NX_TRANSFORMATION" nameType="any" type="NX_NUMBER" minOccurs="0">
+		<doc>
+			``AXISNAME_end`` is a placeholder for a name constructed from the actual
+			name of an axis to which ``_end`` has been appended.
+
+			The values in this field are the end points of the motions that start
+			at the corresponding positions given in the ``AXISNAME`` field.
+		</doc>
+	</field>
+	<field name="AXISNAME_increment_set" units="NX_TRANSFORMATION"  nameType="any" type="NX_NUMBER" minOccurs="0">
+		<doc>
+			``AXISNAME_increment_set`` is a placeholder for a name constructed from the actual
+			name of an axis to which ``_increment_set`` has been appended.
+
+			The value of this optional field is the intended average range through which
+			the corresponding axis moves during the exposure of a frame.  Ideally, the
+			value of this field added to each value of ``AXISNAME`` would agree with the
+			corresponding values of ``AXISNAME_end``, but there is a possibility of significant
+			differences.  Use of ``AXISNAME_end`` is recommended.
+		</doc>
+	</field>
+    <attribute name="default">
+        <doc>
+            .. index:: plotting
+            
+            Declares which child group contains a path leading 
+            to a :ref:`NXdata` group.
+            
+            It is recommended (as of NIAC2014) to use this attribute
+            to help define the path to the default dataset to be plotted.
+            See https://www.nexusformat.org/2014_How_to_find_default_data.html
+            for a summary of the discussion.
+        </doc>
+    </attribute>
+</definition>

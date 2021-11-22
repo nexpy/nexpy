@@ -3,7 +3,7 @@
 <!--
 # NeXus - Neutron and X-ray Common Data Format
 # 
-# Copyright (C) 2008-2012 NeXus International Advisory Committee (NIAC)
+# Copyright (C) 2008-2021 NeXus International Advisory Committee (NIAC)
 # 
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -20,27 +20,18 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 # For further information, see http://www.nexusformat.org
-
-########### SVN repository information ###################
-# $Date: 2010-10-21 17:47:35 +0200 (Thu, 21 Oct 2010) $
-# $Author: Mark Koennecke $
-# $Revision: 662 $
-# $HeadURL: https://svn.nexusformat.org/definitions/trunk/base_classes/NXbeam.nxdl.xml $
-# $Id: NXcapillary.nxdl.xml 662 2010-10-21 15:47:35Z Pete Jemian $
-########### SVN repository information ###################
 -->
-<definition xmlns="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@" category="base"
+<definition xmlns="http://definition.nexusformat.org/nxdl/3.1" category="base"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@ ../nxdl.xsd"
+    xsi:schemaLocation="http://definition.nexusformat.org/nxdl/3.1 ../nxdl.xsd"
     name="NXcapillary"
-    version="1.0"
-    svnid="$Id: NXcapillary.nxdl.xml 662 2010-10-21 15:47:35Z Pete Jemian $"
     type="group" extends="NXobject">
 
     <doc>
-      This is a dictionary of field names to use for describing a capillary as used 
-      in X-ray beamlines. Based on information provided by Gerd Wellenreuther.
-      </doc>
+      A capillary lens to focus the X-ray beam.
+      
+      Based on information provided by Gerd Wellenreuther (DESY).
+    </doc>
     <field name="type" type="NX_CHAR">
         <doc>Type of the capillary</doc>
         <enumeration>
@@ -50,8 +41,9 @@
         </enumeration>
     </field>
     <field name="manufacturer" type="NX_CHAR">
-      <doc>The manufacturer of the capillary. This is actually important as 
-      it may have an impact on performance.
+      <doc>
+        The manufacturer of the capillary. This is actually important as 
+        it may have an impact on performance.
       </doc>
     </field>
     <field name="maximum_incident_angle" type="NX_FLOAT" units="NX_ANGLE"></field>
@@ -72,4 +64,17 @@
         The focal size in FWHM
       </doc>
     </field>
+    <attribute name="default">
+        <doc>
+            .. index:: plotting
+            
+            Declares which child group contains a path leading 
+            to a :ref:`NXdata` group.
+            
+            It is recommended (as of NIAC2014) to use this attribute
+            to help define the path to the default dataset to be plotted.
+            See https://www.nexusformat.org/2014_How_to_find_default_data.html
+            for a summary of the discussion.
+        </doc>
+    </attribute>
 </definition>

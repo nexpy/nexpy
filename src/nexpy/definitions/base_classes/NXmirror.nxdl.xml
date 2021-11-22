@@ -3,7 +3,7 @@
 <!--
 # NeXus - Neutron and X-ray Common Data Format
 # 
-# Copyright (C) 2008-2012 NeXus International Advisory Committee (NIAC)
+# Copyright (C) 2008-2021 NeXus International Advisory Committee (NIAC)
 # 
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -20,23 +20,13 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 # For further information, see http://www.nexusformat.org
-
-########### SVN repository information ###################
-# $Date$
-# $Author$
-# $Revision$
-# $HeadURL$
-# $Id$
-########### SVN repository information ###################
 -->
-<definition xmlns="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@" category="base"
+<definition xmlns="http://definition.nexusformat.org/nxdl/3.1" category="base"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@ ../nxdl.xsd"
+    xsi:schemaLocation="http://definition.nexusformat.org/nxdl/3.1 ../nxdl.xsd"
     name="NXmirror" 
-    version="1.0"
-    svnid="$Id$"
 	type="group" extends="NXobject">
-    <doc>Template of a beamline mirror or supermirror.</doc>
+    <doc>A beamline mirror or supermirror.</doc>
 
     <group type="NXgeometry"><doc><!-- TODO explain what this group means --></doc>
     </group>
@@ -80,7 +70,8 @@
         <doc>external material outside substrate</doc>
     </field>
     <field name="m_value" type="NX_FLOAT" units="NX_UNITLESS">
-        <doc>The m value for a supermirror, which defines the supermirror 
+        <doc>
+            The m value for a supermirror, which defines the supermirror 
             regime in multiples of the critical angle of Nickel.
         </doc>
     </field>
@@ -123,6 +114,19 @@
     <group name="figure_data" type="NXdata">
         <doc>Numerical description of the surface figure of the mirror.</doc>
     </group>
+    <attribute name="default">
+        <doc>
+            .. index:: plotting
+            
+            Declares which child group contains a path leading 
+            to a :ref:`NXdata` group.
+            
+            It is recommended (as of NIAC2014) to use this attribute
+            to help define the path to the default dataset to be plotted.
+            See https://www.nexusformat.org/2014_How_to_find_default_data.html
+            for a summary of the discussion.
+        </doc>
+    </attribute>
     <!-- TODO need more parameters here, such as ...
         list from Rainer Gehrke, DESY (some items may already be present)
 

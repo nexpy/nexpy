@@ -3,7 +3,7 @@
 <!--
 # NeXus - Neutron and X-ray Common Data Format
 # 
-# Copyright (C) 2008-2012 NeXus International Advisory Committee (NIAC)
+# Copyright (C) 2008-2021 NeXus International Advisory Committee (NIAC)
 # 
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -20,31 +20,23 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 # For further information, see http://www.nexusformat.org
-
-########### SVN repository information ###################
-# $Date$
-# $Author$
-# $Revision$
-# $HeadURL$
-# $Id$
-########### SVN repository information ###################
 -->
 <definition
     name="NXattenuator" 
     type="group"
     extends="NXobject"
     category="base"
-    version="1.0"
-    xmlns="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@"
+    xmlns="http://definition.nexusformat.org/nxdl/3.1"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@ ../nxdl.xsd"
-    svnid="$Id$">
+    xsi:schemaLocation="http://definition.nexusformat.org/nxdl/3.1 ../nxdl.xsd"
+    >
 
     <doc>
-        Description of a device that reduces the intensity of a beam by attenuation.
-        If uncertain whether to use ``NXfilter`` (band-pass filter)
-        or ``NXattenuator`` (reduces beam intensity), then choose 
-        ``NXattenuator``.
+        A device that reduces the intensity of a beam by attenuation.
+
+        If uncertain whether to use :ref:`NXfilter` (band-pass filter)
+        or :ref:`NXattenuator` (reduces beam intensity), then choose 
+        :ref:`NXattenuator`.
     </doc>
     <!-- 
         TODO compare with SHADOW definition "screen"
@@ -67,8 +59,10 @@
         <doc>Absorption cross section</doc>
     </field>
     <field name="attenuator_transmission" type="NX_FLOAT" units="NX_DIMENSIONLESS">
-        <doc>The nominal amount of the beam that gets through (transmitted intensity)/(incident
-            intensity)</doc>
+        <doc>
+            The nominal amount of the beam that gets through
+            (transmitted intensity)/(incident intensity)
+        </doc>
     </field>
     <field name="status">
         <doc>In or out or moving of the beam</doc>
@@ -81,4 +75,17 @@
             <item value="moving" />
         </enumeration>
     </field>
+    <attribute name="default">
+        <doc>
+            .. index:: plotting
+            
+            Declares which child group contains a path leading 
+            to a :ref:`NXdata` group.
+            
+            It is recommended (as of NIAC2014) to use this attribute
+            to help define the path to the default dataset to be plotted.
+            See https://www.nexusformat.org/2014_How_to_find_default_data.html
+            for a summary of the discussion.
+        </doc>
+    </attribute>
 </definition>

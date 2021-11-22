@@ -3,7 +3,7 @@
 <!--
 # NeXus - Neutron and X-ray Common Data Format
 # 
-# Copyright (C) 2008-2012 NeXus International Advisory Committee (NIAC)
+# Copyright (C) 2008-2021 NeXus International Advisory Committee (NIAC)
 # 
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -20,25 +20,29 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 # For further information, see http://www.nexusformat.org
-
-########### SVN repository information ###################
-# $Date$
-# $Author$
-# $Revision$
-# $HeadURL$
-# $Id$
-########### SVN repository information ###################
 -->
 <definition name="NXlauetof" extends="NXobject" type="group"
   category="application"
-  xmlns="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@"
+  xmlns="http://definition.nexusformat.org/nxdl/3.1"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@ ../nxdl.xsd"
-  version="1.0b"
-  svnid="$Id$"
+  xsi:schemaLocation="http://definition.nexusformat.org/nxdl/3.1 ../nxdl.xsd"
   >
+  <symbols>
+      <doc>
+        The symbol(s) listed here will be used below to coordinate datasets with the same shape.
+      </doc>
+      <symbol name="nXPixels">
+        <doc>Number of X pixels</doc>
+      </symbol>
+      <symbol name="nYPixels">
+        <doc>Number of Y pixels</doc>
+      </symbol>
+      <symbol name="nTOF">
+        <doc>Time of flight</doc>
+      </symbol>
+  </symbols>
   <doc>
-    This is the application definition for a TOF laue diffractometer 
+    This is the application definition for a TOF laue diffractometer
   </doc>
   <group type="NXentry" name="entry">
     <field name="definition">
@@ -50,8 +54,8 @@
     <group type="NXinstrument" name="instrument">
       <group type="NXdetector" name="detector">
          <doc>
-           This assumes a planar 2D detector. All angles and distances refer to the center of the 
-           detector. 
+           This assumes a planar 2D detector. All angles and distances refer to the center of the
+           detector.
         </doc>
          <field name="polar_angle" type="NX_FLOAT" units="NX_ANGLE">
           <doc>The polar_angle (two theta) where the detector is placed.</doc>
@@ -61,8 +65,8 @@
         </field>
          <field name="data" type="NX_INT" signal="1">
             <dimensions rank="3">
-              <dim index="1" value="number of x pixels" />
-              <dim index="2" value="number of y pixels" />
+              <dim index="1" value="nXPixels" />
+              <dim index="2" value="nYPixels" />
               <dim index="3" value="nTOF" />
             </dimensions>
            <attribute name="signal" type="NX_POSINT">
@@ -86,19 +90,23 @@
         <doc>Descriptive name of sample</doc>
       </field>
         <field name="orientation_matrix" type="NX_FLOAT">
-          <doc>The orientation matrix according to Busing and 
-            Levy conventions. This is not strictly necessary as 
-            the UB can always be derived from the data.  But 
-            let us bow to common usage which includes thie 
-            UB nearly always.</doc>
+          <doc>
+            The orientation matrix according to Busing and
+            Levy conventions. This is not strictly necessary as
+            the UB can always be derived from the data.  But
+            let us bow to common usage which includes thie
+            UB nearly always.
+	  </doc>
           <dimensions rank="2">
             <dim index="1" value="3" />
             <dim index="2" value="3" />
           </dimensions>
         </field>
         <field name="unit_cell" type="NX_FLOAT">
-          <doc>The unit cell, a, b, c, alpha, beta, gamma. 
-            Again, not strictly necessary, but normally written. </doc>
+          <doc>
+            The unit cell, a, b, c, alpha, beta, gamma.
+            Again, not strictly necessary, but normally written.
+          </doc>
           <dimensions rank="1">
             <dim index="1" value="6" />
           </dimensions>

@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="nxdlformat.xsl" ?>
+<!--
+# NeXus - Neutron and X-ray Common Data Format
+# 
+# Copyright (C) 2016-2021 NeXus International Advisory Committee (NIAC)
+# 
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 3 of the License, or (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+# For further information, see http://www.nexusformat.org
+-->
+<definition xmlns="http://definition.nexusformat.org/nxdl/3.1" category="base"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://definition.nexusformat.org/nxdl/3.1 ../nxdl.xsd"
+	name="NXsample_component" 
+	type="group" extends="NXobject"
+	>
+
+	<symbols>
+		<doc>symbolic array lengths to be coordinated between various fields</doc>
+		<symbol name="n_Temp"><doc>number of temperatures</doc></symbol>
+		<symbol name="n_eField"><doc>number of values in applied electric field</doc></symbol>
+		<symbol name="n_mField"><doc>number of values in applied magnetic field</doc></symbol>
+		<symbol name="n_pField"><doc>number of values in applied pressure field</doc></symbol>
+		<symbol name="n_sField"><doc>number of values in applied stress field</doc></symbol>
+	</symbols>
+
+	<doc>
+		One group like this per component can be recorded For a sample consisting of multiple components.
+	</doc>
+	<field name="name">
+		<doc>Descriptive name of sample component</doc>
+	</field>
+	<field name="chemical_formula">
+		<doc>
+			The chemical formula specified using CIF conventions.
+			Abbreviated version of CIF standard: 
+			
+			* Only recognized element symbols may be used.
+			* Each element symbol is followed by a 'count' number. A count of '1' may be omitted.
+			* A space or parenthesis must separate each cluster of (element symbol + count).
+			* Where a group of elements is enclosed in parentheses, the multiplier for the 
+			  group must follow the closing parentheses. That is, all element and group 
+			  multipliers are assumed to be printed as subscripted numbers.
+			* Unless the elements are ordered in a manner that corresponds to their chemical 
+			  structure, the order of the elements within any group or moiety depends on 
+			  whether or not carbon is present.
+			* If carbon is present, the order should be: 
+			
+			  - C, then H, then the other elements in alphabetical order of their symbol. 
+			  - If carbon is not present, the elements are listed purely in alphabetic order of their symbol. 
+			  
+			* This is the *Hill* system used by Chemical Abstracts.
+		</doc>
+	</field>
+        <field name="unit_cell_abc" type="NX_FLOAT" units="NX_LENGTH">
+                <doc>Crystallography unit cell parameters a, b, and c</doc>
+                <dimensions>
+                        <dim index="1" value="3"/>
+                </dimensions>
+        </field>
+        <field name="unit_cell_alphabetagamma" type="NX_FLOAT" units="NX_ANGLE">
+                <doc>Crystallography unit cell parameters alpha, beta, and gamma</doc>
+                <dimensions>
+                        <dim index="1" value="3"/>
+                </dimensions>
+        </field>
+	<field name="unit_cell_volume" type="NX_FLOAT" units="NX_VOLUME">
+		<doc>Volume of the unit cell</doc>
+	</field>
+	<field name="sample_orientation" type="NX_FLOAT" units="NX_ANGLE">
+		<doc>This will follow the Busing and Levy convention from Acta.Crysta v22, p457 (1967)</doc>
+		<dimensions rank="1">
+			<dim index="1" value="3"/>
+		</dimensions>
+	</field>
+	<field name="orientation_matrix" type="NX_FLOAT">
+		<doc>
+			Orientation matrix of single crystal sample component.
+			This will follow the Busing and Levy convention from Acta.Crysta v22, p457 (1967)
+		</doc>
+		<dimensions rank="2">
+			<dim index="1" value="3"/>
+			<dim index="2" value="3"/>
+		</dimensions>
+	</field>
+	<field name="mass" type="NX_FLOAT" units="NX_MASS">
+		<doc>Mass of sample component</doc>
+	</field>
+	<field name="density" type="NX_FLOAT" units="NX_MASS_DENSITY">
+		<doc>Density of sample component</doc>
+	</field>
+	<field name="relative_molecular_mass" type="NX_FLOAT" units="NX_MASS">
+		<doc>Relative Molecular Mass of sample component</doc>
+	</field>
+	<field name="description">
+		<doc>
+			Description of the sample component
+		</doc>
+	</field>
+	<field name="volume_fraction" type="NX_FLOAT">
+		<doc>Volume fraction of component</doc>
+	</field>
+	<field name="scattering_length_density" type="NX_FLOAT" units="NX_SCATTERING_LENGTH_DENSITY">
+		<doc>Scattering length density of component</doc>
+	</field>
+	<field name="unit_cell_class">
+		<doc>
+			In case it is all we know and we want to record/document it
+		</doc>
+		<enumeration>
+                        <item value="triclinic" />
+                        <item value="monoclinic" />
+                        <item value="orthorhombic" />
+                        <item value="tetragonal" />
+                        <item value="rhombohedral" />
+                        <item value="hexagonal" />
+                        <item value="cubic" />
+		</enumeration>
+	</field>
+	<field name="space_group">
+		<doc>Crystallographic space group</doc>
+	</field>
+	<field name="point_group">
+		<doc>Crystallographic point group, deprecated if space_group present</doc>
+	</field>
+	<group name="transmission" type="NXdata">
+		<doc>As a function of Wavelength</doc>
+	</group>
+    <attribute name="default">
+        <doc>
+            .. index:: plotting
+            
+            Declares which child group contains a path leading 
+            to a :ref:`NXdata` group.
+            
+            It is recommended (as of NIAC2014) to use this attribute
+            to help define the path to the default dataset to be plotted.
+            See https://www.nexusformat.org/2014_How_to_find_default_data.html
+            for a summary of the discussion.
+        </doc>
+    </attribute>
+</definition>

@@ -1,0 +1,462 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="nxdlformat.xsl" ?>
+<!--
+# NeXus - Neutron and X-ray Common Data Format
+# 
+# Copyright (C) 2012-2021 NeXus International Advisory Committee (NIAC)
+# 
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 3 of the License, or (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+# For further information, see http://www.nexusformat.org
+-->
+
+<definition name="NXspecdata" extends="NXobject" type="group"
+	    category="contributed"
+	    xmlns="http://definition.nexusformat.org/nxdl/3.1"
+	    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	    xsi:schemaLocation="http://definition.nexusformat.org/nxdl/3.1 ../nxdl.xsd"
+	    >
+  <doc>
+      DEPRECATED: This definition will be removed by 2022.  Not for new use.
+
+      Data collected by SPEC control and data acquisition software
+
+      SPEC [#]_ is software for instrument control
+      and data acquisition in X-ray diffraction experiments.
+      
+      .. [#] SPEC: https://certif.com
+  </doc>
+  <attribute name="default">
+    <doc>
+      .. index:: plotting
+      
+      Declares which :ref:`NXentry` group 
+      contains the data to be shown by default.
+      It is needed to resolve ambiguity when more than one :ref:`NXentry` group exists. 
+      The value is the name of the default :ref:`NXentry` group.
+    </doc>
+  </attribute>
+  <attribute name="HDF5_Version" optional="false">
+    <doc>
+      Version of HDF5 library used in writing the file (as specified in :ref:`NXroot`).
+      
+      Note this attribute is spelled with uppercase "V",
+      different than other version attributes.
+    </doc>
+  </attribute>
+  <attribute name="h5py_version" optional="true">
+    <doc>
+      version of h5py Python package used to write this HDF5 file
+    </doc>
+  </attribute>
+  <attribute name="SPEC_file" optional="true">
+    <doc>
+      original SPEC data file name from **#F** line in file header
+    </doc>
+  </attribute>
+  <attribute name="SPEC_date" optional="true">
+    <doc>
+      date from **#D** line in file header, in ISO8601 format
+    </doc>
+  </attribute>
+  <attribute name="SPEC_epoch" type="NX_INT">
+    <doc>
+      UNIX time epoch from **#E** line in file header
+    </doc>
+  </attribute>
+  <!--
+    place SPEC_user into NXentry/NXuser group
+      <attribute name="SPEC_user">
+        <doc>
+          user name from first **#C** line in file header
+        </doc>
+      </attribute>
+    -->
+  <attribute name="SPEC_comments" optional="true">
+    <doc>
+      any **#C** lines in file header, stored as one string with newlines between comments
+    </doc>
+  </attribute>
+  <attribute name="SPEC_num_headers" type="NX_INT" optional="true">
+    <doc>
+      Number of header sections found in the spec file
+    </doc>
+  </attribute>
+
+  <group type="NXentry" deprecated="This definition will be removed by 2022.">
+    <doc>
+      one scan from a SPEC data file, starts with a **#S** line
+    </doc>
+	<attribute name="default">
+		<doc>
+			.. index:: plotting
+			
+			Declares which :ref:`NXdata` group 
+			contains the data to be shown by default.
+			It is needed to resolve ambiguity when more than one :ref:`NXdata` group exists. 
+			The value is the name of the default :ref:`NXdata` group.
+		</doc>
+	</attribute>
+    
+    <field name="definition">
+      <doc>Official NeXus NXDL schema to which this subentry conforms.</doc>
+      <enumeration>
+        <item value="NXspecdata" />
+      </enumeration>
+    </field>
+    
+    <field name="scan_number" type="NX_NUMBER">
+      <doc>
+        SPEC scan number
+      </doc>
+    </field>
+    
+    <field name="title">
+      <doc>
+        SPEC scan number and command, from **#S** line
+        
+        SPEC data file line::
+        
+            #S 1  cscan en 690 750 60 0
+        
+        *title*::
+        
+            1  cscan en 690 750 60 0
+        
+      </doc>
+    </field>
+    
+    <field name="command">
+      <doc>
+        SPEC scan command, from **#S** line, after the scan number.
+        
+        :SPEC data file line: ``#S 1  cscan en 690 750 60 0``
+        
+        :command*:  ``cscan en 690 750 60 0``
+      </doc>
+    </field>
+    
+    <field name="date" type="NX_DATE_TIME">
+      <doc>
+        date from **#D** line in scan header, in ISO8601 format
+      </doc>
+    </field>
+    
+    <group type="NXmonitor">
+      <attribute name="description" />
+      
+      <field name="mode">
+        <doc>
+          Count to a preset value based on either clock time 
+          (timer) or received monitor counts (monitor).
+        </doc>
+        <enumeration>
+          <item value="monitor" />
+          <item value="timer" />
+        </enumeration>
+      </field>
+      
+      <field name="preset" type="NX_NUMBER">
+        <doc>
+          preset value for time or monitor
+          
+          * **#M** -- counting against this constant monitor count (see #T)
+          * **#T** -- counting against this constant number of seconds (see #M)
+        </doc>
+        <attribute name="units" />
+      </field>
+      
+      <field name="data" type="NX_NUMBER" nameType="any">
+        <doc>
+          array(s) of monitor data
+        </doc>
+      </field>
+      
+      <field name="count_time" type="NX_NUMBER" nameType="any">
+        <doc>
+          array(s) of monitor data
+        </doc>
+      </field>
+    </group>
+    
+    <!-- moved to NXmonitor
+    <field name="counting_basis">
+      <doc>
+        describes if counts are referenced to time or a detector
+      </doc>
+    </field>
+    
+    <field name="M" type="NX_NUMBER">
+      <doc>
+        **#M** - - counting against this constant monitor count (see #T)
+      </doc>
+    </field>
+    
+    <field name="T" type="NX_NUMBER">
+      <doc>
+        **#T** - - counting against this constant number of seconds (see #M)
+      </doc>
+    </field>
+    -->
+    
+    <field name="comments">
+      <doc>
+        Any **#C** lines in this scan, stored as one string with newlines between comments
+      </doc>
+    </field>
+    
+    <field name="Q"  type="NX_NUMBER">
+      <doc>
+        **#Q** -- :math:`Q` (:math:`hkl`) at start of scan
+        
+        array of [:math:`h` :math:`k` :math:`l`]
+      </doc>
+    </field>
+    
+    <field name="TEMP_SP" type="NX_NUMBER">
+      <doc>
+        **#X** -- temperature set point
+      </doc>
+    </field>
+    
+    <field name="DEGC_SP" type="NX_NUMBER">
+      <doc>
+        **#X** -- temperature set point (C)
+      </doc>
+    </field>
+    
+    
+    <group name="data" type="NXdata">
+      <doc>
+        detector (and MCA) data from this scan
+      </doc>
+      <attribute name="description" />
+      <attribute name="signal">
+        <doc>
+          name of the field with the plottable data, typically the last column for 1-D scans
+          
+          This is the primary dependent axis, such as two-theta detector.
+          This field must exist (or be linked) in this :ref:`NXdata` group.
+        </doc>
+      </attribute>
+      <attribute name="axes">
+        <doc>
+          name(s) of the field(s) for plotting the data, typically the first column for 1-D scans
+          
+          These are the independent axes, such as positioners.  For 2-D or higher 
+          dimension data, there will be a field named for each dimension,
+          separated by ":" (preferred) or "," or " " (whitespace).
+          
+          Such as for 2-D data plotted against *energy* and *th*::
+          
+              @axes = ["energy", "th"]
+          
+          This(these) field(s) must exist (or be linked) in this :ref:`NXdata` group.
+        </doc>
+      </attribute>
+      <attribute name="AXISNAME_indices" type="NX_NUMBER">
+        <doc>
+          For each field named in *@axes*, there will be an instance of this attribute,
+          defining into which dimensions of the *@signal* data this field applies.
+          The value of this attribute is a list of index numbers using 0-based indexing
+          (first dimension is 0, seconds i 1, ...).
+          
+          Such as for 2-D data plotted against *energy* and *th*::
+          
+              @energy_indices = [0]
+              @th_indices = [1]
+          
+        </doc>
+      </attribute>
+
+      <!-- scan data -->
+      <field name="data" nameType="any" type="NX_NUMBER">
+        <doc>
+          one column of data from the scan
+          
+          HDF5 requires that each member of a group must have a unique name.
+          
+          Pick the name of column from **#L** but make it unique which means if the same
+          name is used in more than one column, append a number to the extra instances
+          to make them unique yet preserve their content, just in case they might be different.
+          
+          Example: ``seconds seconds`` becomes ``seconds`` and ``seconda_1``.
+        </doc>
+        <attribute name="spec_name">
+          <doc>
+            name as specified in **#L** line, before it was made unique for HDF5
+          </doc>
+        </attribute>
+        <attribute name="units">
+          <doc>
+            Unless stated otherwise, units (not declared in the SPEC data file) 
+            are assumed to be *counts* for detectors and "unknown" for 
+            positioners or other scan columns.
+          </doc>
+        </attribute>
+      </field>
+      
+      <!-- scaling factor defined in SPEC -->
+      <field name="intensity_factor" type="NX_NUMBER">
+        <doc>
+          **#I** -- intensity normalizing factor
+        </doc>
+      </field>
+
+      <!-- MCA (multi-channel analyzer) spectra -->
+      <field name="_mca_" type="NX_NUMBER" />
+      <field name="_mca_channel_" type="NX_NUMBER" />
+      <field name="_mca1_" type="NX_NUMBER" />
+      <field name="_mca1_channel_" type="NX_NUMBER" />
+    </group>
+    
+    
+    <group name="counter_cross_reference" type="NXnote">
+      <doc>
+        associates values declared in **#J** and **#j** scan header lines
+      </doc>
+      <attribute name="comment" />
+      <attribute name="description" />
+    </group>
+    
+    
+    <group name="positioner_cross_reference" type="NXnote">
+      <doc>
+        associates values declared in **#O** and **#o** scan header lines
+      </doc>
+      <attribute name="comment" />
+      <attribute name="description" />
+    </group>
+    
+    
+    <group name="spec" type="NXinstrument">
+      <doc>
+        various metadata from the SPEC scan header that have well-known NeXus base clases
+      </doc>
+      
+      <group name="UB" type="NXcrystal">
+        <doc>
+          Orientation matrix of single crystal sample using Busing-Levy convention
+        </doc>
+        <field name="orientation_matrix" type="NX_FLOAT">
+          <doc>
+            **#G3** line in scan header
+          </doc>
+          <dimensions rank="2"><!--3,3-->
+            <dim index="1" value="3"/>
+            <dim index="2" value="3"/>
+          </dimensions>
+        </field>
+      </group>
+
+    </group>
+    
+    
+    <group name="G" type="NXnote">
+      <doc>
+        SPEC geometry variables for this diffractometer geometry (instrument specific)
+        
+        TODO: give interpreted name for each array value (need to figure out how to get the names)
+      </doc>
+      <attribute name="comment" />
+      <attribute name="description" />
+      <field name="G0" type="NX_NUMBER"><doc>geometry parameters from G[] array (geo mode, sector, etc)</doc></field>
+      <field name="G1" type="NX_NUMBER"><doc>geometry parameters from U[] array (lattice constants, orientation reflections)</doc></field>
+      <field name="G2" type="NX_NUMBER"><doc>not used, although some files has a single zero value</doc></field>
+      <!-- G3 data placed into /NXentry/NXinstrument/NXcrystal/orientation_matrix -->
+      <field name="G4" type="NX_NUMBER"><doc>geometry parameters from Q[] array (lambda, frozen angles, cut points, etc)</doc></field>
+    </group>
+
+
+    <group name="positioners" type="NXnote">    <!-- TODO: consider as NXpositioner -->
+      <doc>
+        names and values of all positioners (**#O** and **#P** lines) in scan header
+      </doc>
+      <attribute name="description" />
+      <field name="positioner" nameType="any" type="NX_NUMBER">
+        <doc>
+          one positioner from the scan header
+          
+          HDF5 requires that each member of a group must have a unique name.
+          
+          SPEC assigns a unique name to each positioner, no extra work is neccesary
+          to comply with the HDF5 rule for unique names in a group.
+        </doc>
+      </field>
+    </group>
+    
+    
+    <group name="MCA" type="NXnote">    <!-- TODO: change to NXdetector -->
+      <doc>
+        **#@CALIB** -- coefficients to compute a scale based on the MCA channel number
+      </doc>
+      <attribute name="description" />
+      <field name="preset_time" type="NX_NUMBER" />
+      <field name="elapsed_live_time" type="NX_NUMBER" />
+      <field name="elapsed_real_time" type="NX_NUMBER" />
+      <field name="number_saved" type="NX_NUMBER" />
+      <field name="first_saved" type="NX_INT" />
+      <field name="last_saved" type="NX_INT" />
+      <field name="reduction_coef" type="NX_NUMBER" />
+      <field name="calib_a" type="NX_NUMBER" />
+      <field name="calib_b" type="NX_NUMBER" />
+      <field name="calib_c" type="NX_NUMBER" />
+      <group name="ROI" type="NXnote">
+        <field name="roiN">
+          <doc>
+            numbered regions of interest, use an index number as part of the name
+          </doc>
+          <attribute name="description"><doc>``first_channel, last_channel``</doc></attribute>
+          <attribute name="first_channel" type="NX_INT" />
+          <attribute name="last_channel" type="NX_INT" />
+        </field>
+      </group>
+    </group>
+    
+    
+    <group name="metadata" type="NXnote">
+      <doc>
+        SPEC metadata (UNICAT-style #H and #V lines)
+        
+        This is a block that may be unique to SPEC files acquired at certain
+        APS beam lines.  Other facilities or instruments may use this block
+        for storing key:value pairs of data where the values have suitable 
+        attributes (such as units).
+      </doc>
+      <attribute name="description" />
+    </group>
+    
+    
+    <group name="SPEC_user" type="NXuser">
+      <field name="SPEC_user">
+        <doc>
+          user name from first **#C** line in file header
+        </doc>
+      </field>
+    </group>
+    
+    
+    <group name="_unrecognized" type="NXnote">
+      <doc>
+        Fallback for any SPEC data file control lines not otherwise placed 
+        into groups or fields elsewhere in this specification.
+      </doc>
+      <attribute name="comment" />
+      <attribute name="description" />
+    </group>
+
+  </group>
+  
+</definition>

@@ -3,7 +3,7 @@
 <!--
 # NeXus - Neutron and X-ray Common Data Format
 # 
-# Copyright (C) 2008-2012 NeXus International Advisory Committee (NIAC)
+# Copyright (C) 2008-2021 NeXus International Advisory Committee (NIAC)
 # 
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -20,23 +20,27 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 # For further information, see http://www.nexusformat.org
-
-########### SVN repository information ###################
-# $Date$
-# $Author$
-# $Revision$
-# $HeadURL$
-# $Id$
-########### SVN repository information ###################
 -->
 <definition name="NXreftof" extends="NXobject" type="group"
   category="application"
-    xmlns="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@"
+  xmlns="http://definition.nexusformat.org/nxdl/3.1"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@ ../nxdl.xsd"
-    version="1.0b"
-    svnid="$Id$"
+    xsi:schemaLocation="http://definition.nexusformat.org/nxdl/3.1 ../nxdl.xsd"
   >
+  	<symbols>
+      <doc>
+        The symbol(s) listed here will be used below to coordinate datasets with the same shape.
+      </doc>
+      <symbol name="xSize">
+	    <doc>xSize description</doc>
+      </symbol>
+	  <symbol name="ySize">
+	    <doc>ySize description</doc>
+	  </symbol>
+	  <symbol name="nTOF">
+	    <doc>nTOF description</doc>
+	  </symbol>
+    </symbols>
     <doc>This is an application definition for raw data from a TOF reflectometer. </doc>
     <group type="NXentry" name="entry">
       <field name="title" />
@@ -58,8 +62,8 @@
         <group type="NXdetector" name="detector">
           <field name="data" type="NX_INT" signal="1">
             <dimensions rank="3">
-              <dim index="1" value="xsize" />
-              <dim index="2" value="ysize" />
+              <dim index="1" value="xSize" />
+              <dim index="2" value="ySize" />
               <dim index="3" value="nTOF" />
             </dimensions>
           </field>
@@ -116,7 +120,7 @@
       </group>
       <group type="NXdata" name="data">
         <link name="data" target="/NXentry/NXinstrument/NXdetector/data"></link>
-        <link name="time_binning" target="/NXentry/NXinstrument/NXdetector/time_binning"></link>
+        <link name="time_of_flight" target="/NXentry/NXinstrument/NXdetector/time_of_flight"></link>
       </group>
     </group>
 </definition>
