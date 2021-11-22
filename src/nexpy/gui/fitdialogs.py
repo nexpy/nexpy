@@ -517,7 +517,7 @@ class FitTab(NXTab):
         elif self.rectangle:
             signal[(axis>=self.xlo) & (axis<=self.xhi)] = np.ma.masked
         else:
-            display_message('Masking Data',
+            display_message("Masking Data",
             "There are two methods to mask data:\n\n" +
             "1) Select data with a right-click zoom and click 'Mask Data'\n" +
             "2) Double-click points to be masked (needs 'mplcursor' package)", 

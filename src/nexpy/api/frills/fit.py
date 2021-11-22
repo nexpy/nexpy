@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #-----------------------------------------------------------------------------
-# Copyright (c) 2013-2020, NeXpy Development Team.
+# Copyright (c) 2013-2021, NeXpy Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -10,9 +10,9 @@
 #-----------------------------------------------------------------------------
 
 import numpy as np
+from lmfit import Parameter, Parameters, __version__, fit_report, minimize
+from nexusformat.nexus import NXdata, NXfield, NXnote, NXparameters, NXprocess
 
-from lmfit import minimize, Parameters, Parameter, fit_report, __version__
-from nexusformat.nexus import *
 
 class Fit(object):
     """Class defining the data, parameters, and results of a least-squares fit.

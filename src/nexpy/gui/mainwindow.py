@@ -26,22 +26,29 @@ import re
 import sys
 import webbrowser
 import xml.etree.ElementTree as ET
-from copy import deepcopy
 from operator import attrgetter
 from pathlib import Path
 
-from .pyqt import QtCore, QtGui, QtWidgets, getOpenFileName, getSaveFileName
-
+import pkg_resources
 from IPython.core.magic import magic_escapes
+from nexusformat.nexus import (NeXusError, NXdata, NXentry, NXfield, NXFile,
+                               NXgroup, NXlink, NXobject, NXprocess, NXroot,
+                               nxcompleter, nxduplicate, nxload)
 from qtconsole.inprocess import QtInProcessKernelManager
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
 
-from nexusformat.nexus import *
-
 from .. import __version__
-from .datadialogs import *
+from .datadialogs import (AddDialog, CustomizeDialog, DirectoryDialog,
+                          ExportDialog, InitializeDialog, InstallPluginDialog,
+                          LimitDialog, LogDialog, ManageBackupsDialog,
+                          NewDialog, PasteDialog, PlotDialog, PlotScalarDialog,
+                          PreferencesDialog, ProjectionDialog, RemoteDialog,
+                          RemovePluginDialog, RenameDialog,
+                          RestorePluginDialog, ScanDialog, SignalDialog,
+                          UnlockDialog, ViewDialog)
 from .fitdialogs import FitDialog
 from .plotview import NXPlotView
+from .pyqt import QtCore, QtGui, QtWidgets, getOpenFileName, getSaveFileName
 from .scripteditor import NXScriptEditor, NXScriptWindow
 from .treeview import NXTreeView
 from .utils import (confirm_action, display_message, get_colors, get_name,
@@ -1082,8 +1089,8 @@ class MainWindow(QtWidgets.QMainWindow):
         elif not os.path.exists(fname):
             raise NeXusError("'%s' does not exist" % fname)
         elif is_file_locked(fname, wait=wait):
-            logging.info("NeXus file '%s' is locked by an external process." 
-                         % fname)
+            logging.info(
+                f"NeXus file '{fname}' is locked by an external process.")
             return
         name = self.tree.get_name(fname)
         if Path(self.backup_dir) in Path(fname).parents:
@@ -1095,7 +1102,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.treeview.update()
         self.treeview.select_node(self.tree[name])
         self.treeview.setFocus()
-        logging.info("NeXus file '%s' opened as workspace '%s'" % (fname, name))
+        logging.info(f"NeXus file '{fname}' opened as workspace '{name}'")
         self.update_files(fname, recent=recent)
 
     def open_file(self):
@@ -1903,8 +1910,8 @@ class MainWindow(QtWidgets.QMainWindow):
             node = self.treeview.get_node()
             if node is None:
                 return
-            elif ((isinstance(node, NXentry) or isinstance(node, NXprocess)) and 
-                  node.nxtitle.startswith('Fit')):
+            elif ((isinstance(node, NXentry) or isinstance(node, NXprocess)) 
+                  and node.nxtitle.startswith('Fit')):
                 if 'data' in node and node['data'].ndim > 1:
                     raise NeXusError(
                                 "Fitting only enabled for one-dimensional data")

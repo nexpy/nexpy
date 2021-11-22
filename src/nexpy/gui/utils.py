@@ -27,7 +27,7 @@ from IPython.core.ultratb import ColorTB
 from matplotlib import rcParams
 from matplotlib.colors import colorConverter, hex2color, rgb2hex
 
-from .pyqt import QtCore, QtWidgets, getOpenFileName
+from .pyqt import QtCore, QtWidgets
 
 try:
     from astropy.convolution import Kernel

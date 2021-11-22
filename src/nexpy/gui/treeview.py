@@ -10,13 +10,13 @@
 #-----------------------------------------------------------------------------
 
 import os
-import pkg_resources
 
-from nexusformat.nexus import *
+import pkg_resources
+from nexusformat.nexus import (NeXusError, NXdata, NXentry, NXfield, NXgroup,
+                               NXlink, NXroot, nxload)
 
 from .pyqt import QtCore, QtGui, QtWidgets
-from .utils import (display_message, modification_time, natural_sort,
-                    report_error)
+from .utils import display_message, modification_time, report_error
 from .widgets import NXSortModel
 
 
@@ -517,7 +517,7 @@ class NXTreeView(QtWidgets.QTreeView):
             if self.timer.interval() > 1000:
                 self.timer.setInterval(1000)
         except Exception as error:
-            report_error('Checking Modified Files', error)
+            report_error("Checking Modified Files", error)
             self.timer.setInterval(60000)
 
     @property

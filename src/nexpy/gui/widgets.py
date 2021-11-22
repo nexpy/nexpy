@@ -16,12 +16,10 @@ import math
 import warnings
 
 import numpy as np
+from matplotlib import cbook, colors
+from matplotlib.patches import Ellipse, Polygon, Rectangle
 
 from .pyqt import QtCore, QtGui, QtWidgets
-
-from matplotlib import cbook, colors
-from matplotlib.patches import Circle, Ellipse, Polygon, Rectangle
-
 from .utils import (boundaries, find_nearest, format_float, get_color,
                     natural_sort, report_error)
 
@@ -648,7 +646,7 @@ class NXColorBox(QtWidgets.QWidget):
                 self.button.color = color
                 self.color_text = self.textbox.text()
         except ValueError as error:
-            report_error('Invalid color', error)
+            report_error("Invalid color", error)
             self.textbox.setText(self.color_text)
 
     def update_text(self, color):
