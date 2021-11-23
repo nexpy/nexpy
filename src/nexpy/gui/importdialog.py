@@ -12,10 +12,6 @@
 """
 Base class for import dialogs
 """
-import os
-
-from nexusformat.nexus import *
-
 from .datadialogs import NXDialog
 
 filetype = "Text File" #Defines the Import Menu label
@@ -30,18 +26,17 @@ class NXImportDialog(NXDialog):
         self.import_file = None     # must define in subclass
 
     def get_data(self):
-        '''
-        Must define this module in each subclass.
-        Must define self.import_file as file name
+        """Read the data from the imported file.
+
+        This must be defined in each subclass, defining self.import_file
+        as the file name
 
         :returns: :class:`NXroot` or :class:`NXentry` object
-        '''
+        """
         raise NotImplementedError("must override in subclass")
 
     def accept(self):
-        """
-        Completes the data import.
-        """
+        """Completes importing the data into NeXpy."""
         self.accepted = True
         self.mainwindow.import_data()
         super().accept()
