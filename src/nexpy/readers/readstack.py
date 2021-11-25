@@ -17,7 +17,7 @@ import re
 
 import numpy as np
 from nexpy.gui.importdialog import NXImportDialog
-from nexpy.gui.widgets import NXLabel, NXLineEdit
+from nexpy.gui.widgets import NXComboBox, NXLabel, NXLineEdit
 from nexusformat.nexus import (NeXusError, NXcollection, NXdata, NXentry,
                                NXfield, NXnote)
 from qtpy import QtCore, QtWidgets
@@ -34,27 +34,14 @@ class ImportDialog(NXImportDialog):
 
         super().__init__(parent=parent)
         
-        self.layout = QtWidgets.QVBoxLayout()
-
-        self.layout.addLayout(self.directorybox())
-
         self.filter_box = self.make_filterbox()
-        self.layout.addWidget(self.filter_box)
-        
         self.rangebox = self.make_rangebox()
-        self.layout.addWidget(self.rangebox)
-
-        status_layout = QtWidgets.QHBoxLayout()
-        self.progress_bar = QtWidgets.QProgressBar()
-        status_layout.addWidget(self.progress_bar)
-        self.progress_bar.setVisible(False)
-        status_layout.addStretch()
-        status_layout.addWidget(self.buttonbox())
-        self.layout.addLayout(status_layout)
-
-        self.setLayout(self.layout)
+        self.set_layout(self.directorybox(),
+                        self.filter_box,
+                        self.rangebox,
+                        self.progress_layout(save=True))
   
-        self.setWindowTitle("Import "+str(filetype))
+        self.set_title("Import "+str(filetype))
 
     @property
     def suffix(self):
@@ -65,28 +52,19 @@ class ImportDialog(NXImportDialog):
         layout = QtWidgets.QGridLayout()
         layout.setSpacing(10)
         prefix_label = NXLabel('File Prefix')
-        self.prefix_box = NXLineEdit()
-        self.prefix_box.editingFinished.connect(self.set_range)
+        self.prefix_box = NXLineEdit(slot=self.set_range)
         suffix_label = NXLabel('File Suffix')
-        self.suffix_box = NXLineEdit('')
-        self.suffix_box.editingFinished.connect(self.get_prefixes)
+        self.suffix_box = NXLineEdit(slot=self.get_prefixes)
         extension_label = NXLabel('File Extension')
-        self.extension_box = NXLineEdit()
-        self.extension_box.editingFinished.connect(self.set_extension)
+        self.extension_box = NXLineEdit(slot=self.set_extension)
         layout.addWidget(prefix_label, 0, 0)
         layout.addWidget(self.prefix_box, 0, 1)
         layout.addWidget(suffix_label, 0, 2)
         layout.addWidget(self.suffix_box, 0, 3)
         layout.addWidget(extension_label, 0, 4)
         layout.addWidget(self.extension_box, 0, 5)
-        self.prefix_combo = QtWidgets.QComboBox()
-        self.prefix_combo.setSizeAdjustPolicy(
-            QtWidgets.QComboBox.AdjustToContents)
-        self.prefix_combo.activated.connect(self.choose_prefix)
-        self.extension_combo = QtWidgets.QComboBox()
-        self.extension_combo.setSizeAdjustPolicy(
-            QtWidgets.QComboBox.AdjustToContents)
-        self.extension_combo.activated.connect(self.choose_extension)
+        self.prefix_combo = NXComboBox(self.choose_prefix)
+        self.extension_combo = NXComboBox(self.choose_extension)
         layout.addWidget(self.prefix_combo, 1, 1, 
                          alignment=QtCore.Qt.AlignHCenter)
         layout.addWidget(self.extension_combo, 1, 5, 
