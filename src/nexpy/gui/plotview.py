@@ -39,19 +39,10 @@ from .pyqt import QtCore, QtGui, QtVersion, QtWidgets
 import matplotlib as mpl
 from matplotlib.backend_bases import (FigureCanvasBase, FigureManagerBase,
                                       NavigationToolbar2)
-
-if QtVersion == 'Qt5Agg':
-    from matplotlib.backends.backend_qt5 import \
-        FigureManagerQT as FigureManager
-    from matplotlib.backends.backend_qt5agg import \
-        FigureCanvasQTAgg as FigureCanvas
-    from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT
-else:
-    from matplotlib.backends.backend_qt4 import FigureManagerQT as FigureManager
-    from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
-    from matplotlib.backends.backend_qt4agg import NavigationToolbar2QT
-
-from matplotlib import markers
+from matplotlib.backends.backend_qt5 import FigureManagerQT as FigureManager
+from matplotlib.backends.backend_qt5agg import (FigureCanvasQTAgg as
+                                                FigureCanvas)
+from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT
 from matplotlib.cm import ScalarMappable, cmap_d, get_cmap, register_cmap
 from matplotlib.colors import LogNorm, Normalize, SymLogNorm
 from matplotlib.figure import Figure
