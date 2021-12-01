@@ -905,8 +905,10 @@ class NXPlotView(QtWidgets.QDialog):
                 self.zaxis = None
             self.vaxis = self.axis['signal']
             plotdata = NXdata(self.signal, [self.axes[i] for i in [-2,-1]])
-            if self.data.ndim == 3:
-                self._skew_angle = self.get_skew_angle(1,2)               
+            if self.data.ndim == 2 or self.data.ndim == 3:
+                self._skew_angle = self.get_skew_angle(1, 2)
+                if self._skew_angle is not None:
+                    plotdata.nxangles = self._skew_angle             
 
         plotdata['title'] = self.data.nxtitle
 
@@ -1277,6 +1279,8 @@ class NXPlotView(QtWidgets.QDialog):
                 self.plotdata = self.plotdata.weighted_data()
             if self.ndim == 3 and not self._skew_angle:
                 self._skew_angle = self.get_skew_angle(*axes)
+                if self._skew_angle is not None:
+                    self.plotdata.nxangles = self._skew_angle             
         except Exception as e:
             self.ztab.pause()
             raise e
@@ -1665,8 +1669,9 @@ class NXPlotView(QtWidgets.QDialog):
     def get_skew_angle(self, xdim, ydim):
         """Return the skew angle defined by the NXdata attributes.
         
-        If the original data is three-dimensional and the 'angles' attribute
-        has been defined, this returns the value between the x and y axes.
+        If the original data is two- or three-dimensional and the 
+        'angles' attribute has been defined, this returns the value 
+        between the x and y axes.
 
         Parameters
         ----------
@@ -1675,10 +1680,15 @@ class NXPlotView(QtWidgets.QDialog):
         ydim : int
             The dimension number of the y-axis.
         """
-        if self.data.ndim == 3 and 'angles' in self.data.attrs:
-            dim = [i for i in [0, 1, 2] if i not in [xdim, ydim]][0]
-            if not np.isclose(self.data.attrs['angles'][dim], 90.0):
-                return self.data.attrs['angles'][dim]
+        if self.data.nxangles is not None:
+            angles = self.data.nxangles
+            if self.data.ndim == 2:
+                skew = angles
+            elif self.data.ndim > 2:
+                dim = [i for i in range(self.ndim) if i not in [xdim, ydim]][0]
+                skew = angles[dim]
+            if not np.isclose(skew, 90.0):
+                return skew
         return None               
 
     @property
