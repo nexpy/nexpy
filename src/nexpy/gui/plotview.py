@@ -334,7 +334,7 @@ class NXPlotView(QtWidgets.QDialog):
             self.label = label
             self.figure.set_label(self.label)
         else:
-            self.label = "Figure %d" % self.number
+            self.label = f"Figure {self.number}"
 
         self.canvas.setMinimumWidth(700)
 
@@ -424,7 +424,7 @@ class NXPlotView(QtWidgets.QDialog):
         self.display_logo()
 
     def __repr__(self):
-        return 'NXPlotView("%s")' % self.label
+        return f'NXPlotView("{self.label}")'
 
     def keyPressEvent(self, event):
         """Override the QWidget keyPressEvent.
@@ -838,7 +838,7 @@ class NXPlotView(QtWidgets.QDialog):
         elif self.data.plot_axes is not None:
             axes = self.data.plot_axes
         else:
-            axes = [NXfield(np.arange(self.shape[i]), name='Axis%s' % i)
+            axes = [NXfield(np.arange(self.shape[i]), name=f'Axis{i}')
                     for i in range(self.ndim)]
 
         self.axes = [NXfield(axes[i].nxdata, name=axes[i].nxname,
@@ -2717,7 +2717,7 @@ class NXPlotView(QtWidgets.QDialog):
         """Return the x, y, and signal values for the selected pixel."""
         try:
             if self.ndim == 1:
-                return 'x={:.4g} y={:.4g}'.format(x, y)
+                return f'x={x:.4g} y={y:.4g}'
             else:
                 x, y = self.inverse_transform(x, y)
                 if self.xaxis.reversed:
@@ -2729,7 +2729,7 @@ class NXPlotView(QtWidgets.QDialog):
                 else:
                     row = np.searchsorted(self.yaxis.boundaries-y, 0.0) - 1
                 z = self.v[row, col]
-                return 'x={:.4g} y={:.4g}\nv={:.4g}'.format(x, y, z)
+                return f'x={x:.4g} y={y:.4g}\nv={z:.4g}'
         except Exception:
             return ''
 
@@ -2835,12 +2835,12 @@ class NXPlotAxis(object):
         if hasattr(axis, 'long_name'):
             self.label = axis.long_name
         elif hasattr(axis, 'units'):
-            self.label = "%s (%s)" % (axis.nxname, axis.units)
+            self.label = f"{axis.nxname} ({axis.units})"
         else:
             self.label = axis.nxname
 
     def __repr__(self):
-        return 'NXPlotAxis("%s")' % self.name
+        return f'NXPlotAxis("{self.name}")'
 
     def set_data(self, axis, dimlen=None):
         """Initialize the axis data values.
@@ -3042,7 +3042,7 @@ class NXPlotTab(QtWidgets.QWidget):
         self._block_count = 0
 
     def __repr__(self):
-        return 'NXPlotTab("%s")' % self.name
+        return f'NXPlotTab("{self.name}")'
 
     def set_axis(self, axis):
         """Set the axis values and limits for the tab.
@@ -3461,7 +3461,7 @@ class NXPlotTab(QtWidgets.QWidget):
         try:
             cm = copy.copy(get_cmap(cmap))
         except ValueError:
-            raise NeXusError("'%s' is not registered as a color map" % cmap)
+            raise NeXusError(f"'{cmap}' is not registered as a color map")
         cmap = cm.name
         if cmap != self._cached_cmap:
             if cmap not in cmaps:
@@ -3724,7 +3724,7 @@ class NXProjectionTab(QtWidgets.QWidget):
         self.setTabOrder(self.sumbox, self.panel_button)
 
     def __repr__(self):
-        return 'NXProjectionTab("%s")' % self.plotview.label
+        return f'NXProjectionTab("{self.plotview.label}")'
 
     def get_axes(self):
         return [self.plotview.axis[axis].name
@@ -3889,7 +3889,7 @@ class NXNavigationToolbar(NavigationToolbar2QT, QtWidgets.QToolBar):
         self.zoom()
 
     def __repr__(self):
-        return 'NXNavigationToolbar("%s")' % self.plotview.label
+        return f'NXNavigationToolbar("{self.plotview.label}")'
 
     def _init_toolbar(self):
         pass

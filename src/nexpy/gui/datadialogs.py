@@ -1,13 +1,13 @@
-#!/usr/bin/env python 
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Copyright (c) 2013-2021, NeXpy Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file COPYING, distributed with this software.
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 import bisect
 import logging
 import numbers
@@ -39,7 +39,7 @@ from .widgets import (NXCheckBox, NXColorBox, NXComboBox, NXDoubleSpinBox,
 
 class NXWidget(QtWidgets.QWidget):
     """Customized widget for NeXpy widgets"""
- 
+
     def __init__(self, parent=None):
 
         from .consoleapp import _mainwindow
@@ -58,8 +58,8 @@ class NXWidget(QtWidgets.QWidget):
         self.default_directory = self.mainwindow.default_directory
         self.import_file = None     # must define in subclass
         self.nexus_filter = ';;'.join((
-             "NeXus Files (*.nxs *.nx5 *.h5 *.hdf *.hdf5)",
-             "Any Files (*.* *)"))
+            "NeXus Files (*.nxs *.nx5 *.h5 *.hdf *.hdf5)",
+            "Any Files (*.* *)"))
         self.textbox = {}
         self.pushbutton = {}
         self.checkbox = {}
@@ -70,7 +70,7 @@ class NXWidget(QtWidgets.QWidget):
         self.display_message = display_message
         self.report_error = report_error
         self.thread = None
-        self.bold_font =  QtGui.QFont()
+        self.bold_font = QtGui.QFont()
         self.bold_font.setBold(True)
         self.accepted = False
 
@@ -163,9 +163,9 @@ class NXWidget(QtWidgets.QWidget):
         layout = QtWidgets.QHBoxLayout()
         layout.addStretch()
         for label, action in items:
-             self.pushbutton[label] = NXPushButton(label, action)
-             layout.addWidget(self.pushbutton[label])
-             layout.addStretch()
+            self.pushbutton[label] = NXPushButton(label, action)
+            layout.addWidget(self.pushbutton[label])
+            layout.addStretch()
         return layout
 
     def label(self, label):
@@ -183,7 +183,7 @@ class NXWidget(QtWidgets.QWidget):
                 horizontal_layout.addStretch()
             label_widget = NXLabel(str(label))
             if 'header' in opts:
-                label_widget.setFont(self.bold_font)        
+                label_widget.setFont(self.bold_font)
             horizontal_layout.addWidget(label_widget)
             if align == 'center' or align == 'left':
                 horizontal_layout.addStretch()
@@ -203,14 +203,14 @@ class NXWidget(QtWidgets.QWidget):
             item_layout.addWidget(label_box)
             item_layout.addWidget(self.textbox[label])
             layout.addLayout(item_layout)
-        return layout            
-            
+        return layout
+
     def checkboxes(self, *items, **opts):
         if 'align' in opts:
             align = opts['align']
         else:
             align = 'center'
-        if 'vertical' in opts and opts['vertical'] == True:
+        if 'vertical' in opts and opts['vertical'] is True:
             layout = QtWidgets.QVBoxLayout()
         else:
             layout = QtWidgets.QHBoxLayout()
@@ -228,7 +228,7 @@ class NXWidget(QtWidgets.QWidget):
             align = opts['align']
         else:
             align = 'center'
-        if 'vertical' in opts and opts['vertical'] == True:
+        if 'vertical' in opts and opts['vertical'] is True:
             layout = QtWidgets.QVBoxLayout()
         else:
             layout = QtWidgets.QHBoxLayout()
@@ -237,11 +237,11 @@ class NXWidget(QtWidgets.QWidget):
         if align != 'left':
             layout.addStretch()
         for label, text, checked in items:
-             self.radiobutton[label] = QtWidgets.QRadioButton(text)
-             self.radiobutton[label].setChecked(checked)
-             layout.addWidget(self.radiobutton[label])
-             layout.addStretch()
-             group.addButton(self.radiobutton[label])
+            self.radiobutton[label] = QtWidgets.QRadioButton(text)
+            self.radiobutton[label].setChecked(checked)
+            layout.addWidget(self.radiobutton[label])
+            layout.addStretch()
+            group.addButton(self.radiobutton[label])
         return layout
 
     def filebox(self, text="Choose File", slot=None):
@@ -251,14 +251,14 @@ class NXWidget(QtWidgets.QWidget):
         if slot:
             self.filebutton = NXPushButton(text, slot)
         else:
-            self.filebutton =  NXPushButton(text, self.choose_file)
+            self.filebutton = NXPushButton(text, self.choose_file)
         self.filename = NXLineEdit(parent=self)
         self.filename.setMinimumWidth(300)
         filebox = QtWidgets.QHBoxLayout()
         filebox.addWidget(self.filebutton)
         filebox.addWidget(self.filename)
         return filebox
- 
+
     def directorybox(self, text="Choose Directory", slot=None, default=True):
         """
         Creates a text box and button for selecting a directory.
@@ -266,7 +266,7 @@ class NXWidget(QtWidgets.QWidget):
         if slot:
             self.directorybutton = NXPushButton(text, slot)
         else:
-            self.directorybutton =  NXPushButton(text, self.choose_directory)
+            self.directorybutton = NXPushButton(text, self.choose_directory)
         self.directoryname = NXLineEdit(parent=self)
         self.directoryname.setMinimumWidth(300)
         default_directory = self.get_default_directory()
@@ -283,7 +283,7 @@ class NXWidget(QtWidgets.QWidget):
         """
         dirname = self.get_default_directory(self.filename.text())
         filename = getOpenFileName(self, 'Open File', dirname)
-        if os.path.exists(filename): # avoids problems if <Cancel> was selected
+        if os.path.exists(filename):
             dirname = os.path.dirname(filename)
             self.filename.setText(str(filename))
             self.set_default_directory(dirname)
@@ -297,9 +297,8 @@ class NXWidget(QtWidgets.QWidget):
     def choose_directory(self):
         """Opens a file dialog and sets the directory text box to the path."""
         dirname = self.get_default_directory()
-        dirname = QtWidgets.QFileDialog.getExistingDirectory(self, 
-                                                             'Choose Directory', 
-                                                             dirname)
+        dirname = QtWidgets.QFileDialog.getExistingDirectory(
+            self, 'Choose Directory', dirname)
         if os.path.exists(dirname):  # avoids problems if <Cancel> was selected
             self.directoryname.setText(str(dirname))
             self.set_default_directory(dirname)
@@ -307,7 +306,7 @@ class NXWidget(QtWidgets.QWidget):
     def get_directory(self):
         """Return the selected directory."""
         return self.directoryname.text()
-    
+
     def get_default_directory(self, suggestion=None):
         """Return the most recent default directory for open/save dialogs."""
         if suggestion is None or not os.path.exists(suggestion):
@@ -317,21 +316,22 @@ class NXWidget(QtWidgets.QWidget):
                 suggestion = os.path.dirname(suggestion)
         suggestion = os.path.abspath(suggestion)
         return suggestion
-    
+
     def set_default_directory(self, suggestion):
         """Defines the default directory to use for open/save dialogs."""
         if os.path.exists(suggestion):
             if not os.path.isdir(suggestion):
                 suggestion = os.path.dirname(suggestion)
-            self.mainwindow.default_directory = self.default_directory = suggestion
+            self.default_directory = suggestion
+            self.mainwindow.default_directory = self.default_directory
 
     def get_filesindirectory(self, prefix='', extension='.*', directory=None):
         """
         Returns a list of files in the selected directory.
-        
+
         The files are sorted using a natural sort algorithm that preserves the
-        numeric order when a file name consists of text and index so that, e.g., 
-        'data2.tif' comes before 'data10.tif'.
+        numeric order when a file name consists of text and index so that,
+        e.g., 'data2.tif' comes before 'data10.tif'.
         """
         if directory:
             os.chdir(directory)
@@ -341,7 +341,7 @@ class NXWidget(QtWidgets.QWidget):
             extension = '.'+extension
         from glob import glob
         filenames = glob(prefix+'*'+extension)
-        return sorted(filenames,key=natural_sort)
+        return sorted(filenames, key=natural_sort)
 
     def select_box(self, choices, default=None, slot=None):
         box = NXComboBox()
@@ -437,7 +437,7 @@ class NXWidget(QtWidgets.QWidget):
     def read_parameter(self, root, path):
         """
         Read the value from the NeXus path.
-        
+
         It will return 'None' if the path is not valid.
         """
         try:
@@ -451,8 +451,8 @@ class NXWidget(QtWidgets.QWidget):
 
     def parameter_stack(self, parameters, width=None):
         """Initialize layouts containing a grid selection box and each grid."""
-        return NXStack([p for p in parameters], 
-                       [parameters[p].widget(header=False, width=width) 
+        return NXStack([p for p in parameters],
+                       [parameters[p].widget(header=False, width=width)
                         for p in parameters])
 
     def grid(self, rows, cols, headers=None, spacing=10):
@@ -486,7 +486,7 @@ class NXWidget(QtWidgets.QWidget):
                         widget.setVisible(False)
                         grid.removeWidget(widget)
                         widget.deleteLater()
-        grid.deleteLater()        
+        grid.deleteLater()
 
     def start_progress(self, limits):
         start, stop = limits
@@ -498,7 +498,7 @@ class NXWidget(QtWidgets.QWidget):
     def update_progress(self, value=None):
         """
         Call the main QApplication.processEvents
-        
+
         This ensures that GUI items like progress bars get updated
         """
         if self.progress_bar and value is not None:
@@ -544,7 +544,7 @@ class NXWidget(QtWidgets.QWidget):
         if width is None or height is None:
             super().resize(self.minimumSizeHint())
         else:
-            super().resize(width, height)            
+            super().resize(width, height)
 
     def update(self):
         pass
@@ -552,11 +552,11 @@ class NXWidget(QtWidgets.QWidget):
     def closeEvent(self, event):
         self.stop_thread()
         event.accept()
-        
+
 
 class NXDialog(QtWidgets.QDialog, NXWidget):
     """Base dialog class for NeXpy dialogs"""
-    
+
     def __init__(self, parent=None, default=False):
         from .consoleapp import _mainwindow
         self.mainwindow = _mainwindow
@@ -571,8 +571,8 @@ class NXDialog(QtWidgets.QDialog, NXWidget):
             self.installEventFilter(self)
 
     def __repr__(self):
-        return 'NXDialog(' + self.__class__.__name__  + ')'
- 
+        return 'NXDialog(' + self.__class__.__name__ + ')'
+
     def close_buttons(self, save=False, close=False):
         """
         Creates a box containing the standard Cancel and OK buttons.
@@ -580,25 +580,27 @@ class NXDialog(QtWidgets.QDialog, NXWidget):
         self.close_box = QtWidgets.QDialogButtonBox(self)
         self.close_box.setOrientation(QtCore.Qt.Horizontal)
         if save:
-            self.close_box.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel|
-                                              QtWidgets.QDialogButtonBox.Save)
+            self.close_box.setStandardButtons(
+                QtWidgets.QDialogButtonBox.Cancel |
+                QtWidgets.QDialogButtonBox.Save)
         elif close:
             self.close_box.setStandardButtons(QtWidgets.QDialogButtonBox.Close)
         else:
-            self.close_box.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel|
-                                              QtWidgets.QDialogButtonBox.Ok)
+            self.close_box.setStandardButtons(
+                QtWidgets.QDialogButtonBox.Cancel |
+                QtWidgets.QDialogButtonBox.Ok)
         self.close_box.accepted.connect(self.accept)
         self.close_box.rejected.connect(self.reject)
         return self.close_box
 
-    buttonbox = close_buttons #For backward compatibility
+    buttonbox = close_buttons  # For backward compatibility
 
     def eventFilter(self, widget, event):
         """Prevent closure of dialog when pressing [Return] or [Enter]"""
         if event.type() == QtCore.QEvent.KeyPress:
             key = event.key()
             if key == QtCore.Qt.Key_Return or key == QtCore.Qt.Key_Enter:
-                event = QtGui.QKeyEvent(QtCore.QEvent.KeyPress, 
+                event = QtGui.QKeyEvent(QtCore.QEvent.KeyPress,
                                         QtCore.Qt.Key_Tab,
                                         QtCore.Qt.NoModifier)
                 QtCore.QCoreApplication.postEvent(widget, event)
@@ -615,14 +617,14 @@ class NXDialog(QtWidgets.QDialog, NXWidget):
     def accept(self):
         """
         Accepts the result.
-        
+
         This usually needs to be subclassed in each dialog.
         """
         self.accepted = True
         if self in self.mainwindow.dialogs:
             self.mainwindow.dialogs.remove(self)
         QtWidgets.QDialog.accept(self)
-        
+
     def reject(self):
         """
         Cancels the dialog without saving the result.
@@ -634,7 +636,7 @@ class NXDialog(QtWidgets.QDialog, NXWidget):
 
 
 BaseDialog = NXDialog
-            
+
 
 class NXPanel(NXDialog):
 
@@ -647,7 +649,7 @@ class NXPanel(NXDialog):
         self.tabwidget.currentChanged.connect(self.update)
         self.tabwidget.setElideMode(QtCore.Qt.ElideLeft)
         self.tabs = {}
-        self.labels = {}        
+        self.labels = {}
         self.panel = panel
         self.title = title
         for label in tabs:
@@ -660,7 +662,7 @@ class NXPanel(NXDialog):
         self.set_title(title)
 
     def __repr__(self):
-        return 'NXPanel("%s")' % self.panel
+        return 'NXPanel(f"{self.panel}")'
 
     def __contains__(self, label):
         """Implements 'k in d' test"""
@@ -673,17 +675,17 @@ class NXPanel(NXDialog):
         box = QtWidgets.QDialogButtonBox(self)
         box.setOrientation(QtCore.Qt.Horizontal)
         if apply and reset:
-            box.setStandardButtons(QtWidgets.QDialogButtonBox.Apply|
-                                   QtWidgets.QDialogButtonBox.Reset|
+            box.setStandardButtons(QtWidgets.QDialogButtonBox.Apply |
+                                   QtWidgets.QDialogButtonBox.Reset |
                                    QtWidgets.QDialogButtonBox.Close)
         elif apply:
-            box.setStandardButtons(QtWidgets.QDialogButtonBox.Apply|
+            box.setStandardButtons(QtWidgets.QDialogButtonBox.Apply |
                                    QtWidgets.QDialogButtonBox.Close)
         elif reset:
-            box.setStandardButtons(QtWidgets.QDialogButtonBox.Reset|
+            box.setStandardButtons(QtWidgets.QDialogButtonBox.Reset |
                                    QtWidgets.QDialogButtonBox.Close)
         else:
-            box.setStandardButtons(QtWidgets.QDialogButtonBox.Close)        
+            box.setStandardButtons(QtWidgets.QDialogButtonBox.Close)
         box.setFocusPolicy(QtCore.Qt.NoFocus)
         if apply:
             self.apply_button = box.button(QtWidgets.QDialogButtonBox.Apply)
@@ -714,14 +716,14 @@ class NXPanel(NXDialog):
 
     def tab_list(self):
         if self.plotview_sort:
-            return [tab.tab_label for tab in 
+            return [tab.tab_label for tab in
                     sorted(self.labels, key=attrgetter('plotview.number'))]
         else:
             return sorted(self.tabs)
 
     def add(self, label, tab=None, idx=None):
         if label in self.tabs:
-            raise NeXusError("'%s' already in %s" % (label, self.title))
+            raise NeXusError(f"'{label}' already in {self.title}")
         self.tabs[label] = tab
         self.labels[tab] = label
         tab.panel = self
@@ -730,13 +732,14 @@ class NXPanel(NXDialog):
         else:
             self.tabwidget.addTab(tab, label)
         self.tabwidget.setCurrentWidget(tab)
-        self.tabwidget.tabBar().setTabToolTip(self.tabwidget.indexOf(tab), label)
+        self.tabwidget.tabBar().setTabToolTip(self.tabwidget.indexOf(tab),
+                                              label)
 
     def remove(self, label):
         if label in self.tabs:
             removed_tab = self.tabs[label]
-            if removed_tab.copybox:    
-                for tab in [self.tabs[label] for label in self.tabs 
+            if removed_tab.copybox:
+                for tab in [self.tabs[label] for label in self.tabs
                             if self.tabs[label] is not removed_tab]:
                     if label in tab.copybox:
                         tab.copybox.remove(label)
@@ -773,9 +776,9 @@ class NXPanel(NXDialog):
 
     def update(self):
         if self.count > 0:
-            for tab in [self.tabs[label] for label in self.tabs 
+            for tab in [self.tabs[label] for label in self.tabs
                         if self.tabs[label] is not self.tab]:
-                tab.setSizePolicy(QtWidgets.QSizePolicy.Ignored, 
+                tab.setSizePolicy(QtWidgets.QSizePolicy.Ignored,
                                   QtWidgets.QSizePolicy.Ignored)
             self.tab.setSizePolicy(QtWidgets.QSizePolicy.Minimum,
                                    QtWidgets.QSizePolicy.Minimum)
@@ -891,7 +894,7 @@ class NXTab(NXWidget):
         copylayout.addStretch()
         self.copywidget.setLayout(copylayout)
         self.copywidget.setVisible(False)
-        return self.copywidget    
+        return self.copywidget
 
     def update(self):
         pass
@@ -917,6 +920,7 @@ class GridParameters(dict):
     All keys must be strings, and valid Python symbol names, and all values
     must be of class GridParameter.
     """
+
     def __init__(self, **kwds):
         super().__init__(self)
         self.result = None
@@ -925,7 +929,7 @@ class GridParameters(dict):
 
     def __setitem__(self, key, value):
         if value is not None and not isinstance(value, GridParameter):
-            raise ValueError("'%s' is not a GridParameter" % value)
+            raise ValueError(f"'{value}' is not a GridParameter")
         super().__setitem__(key, value)
         value.name = key
 
@@ -942,7 +946,7 @@ class GridParameters(dict):
         is equivalent to:
         p[name] = GridParameter(name=name, value=XX, ....
         """
-        self.__setitem__(name, GridParameter(value=value, name=name, 
+        self.__setitem__(name, GridParameter(value=value, name=name,
                                              label=label, vary=vary,
                                              slot=slot, readonly=readonly,
                                              color=color, spinbox=spinbox,
@@ -1027,7 +1031,7 @@ class GridParameters(dict):
                     if widget is not None:
                         widget.setVisible(False)
                         grid.removeWidget(widget)
-                        widget.deleteLater()           
+                        widget.deleteLater()
 
     def set_parameters(self):
         from lmfit import Parameter, Parameters
@@ -1062,7 +1066,7 @@ class GridParameters(dict):
         layout.addWidget(NXPushButton('Show Report', self.show_report))
         self.status_layout = layout
         return layout
-        
+
     def show_report(self):
         if self.result is None:
             return
@@ -1070,9 +1074,9 @@ class GridParameters(dict):
         message_box.setText("Fit Results")
         message_box.setInformativeText(self.fit_report)
         message_box.setStandardButtons(QtWidgets.QMessageBox.Ok)
-        spacer = QtWidgets.QSpacerItem(500, 0, 
-                                   QtWidgets.QSizePolicy.Minimum, 
-                                   QtWidgets.QSizePolicy.Expanding)
+        spacer = QtWidgets.QSpacerItem(500, 0,
+                                       QtWidgets.QSizePolicy.Minimum,
+                                       QtWidgets.QSizePolicy.Expanding)
         layout = message_box.layout()
         layout.addItem(spacer, layout.rowCount(), 0, 1, layout.columnCount())
         message_box.exec_()
@@ -1090,6 +1094,7 @@ class GridParameter(object):
     """
     A Parameter is an object to be set in a dialog box grid.
     """
+
     def __init__(self, name=None, value=None, label=None, vary=None, slot=None,
                  color=False, spinbox=False, readonly=False, width=None):
         """
@@ -1102,7 +1107,7 @@ class GridParameter(object):
         label : str, optional
             Label used in the dialog box.
         vary : bool or None, optional
-            Whether the Parameter is fixed during a fit. 
+            Whether the Parameter is fixed during a fit.
         slot : function or None, optional
             Function to be called when the parameter is changed.
         color : bool, optional
@@ -1127,8 +1132,8 @@ class GridParameter(object):
                 value = self.colorbox.color_text
                 self.box = self.colorbox.textbox
             elif spinbox:
-                self.box = NXDoubleSpinBox(slot=slot) 
-                self.colorbox = None              
+                self.box = NXDoubleSpinBox(slot=slot)
+                self.colorbox = None
             else:
                 self.box = NXLineEdit(align='right', slot=slot, width=width)
                 self.colorbox = None
@@ -1174,10 +1179,10 @@ class GridParameter(object):
     def __repr__(self):
         s = []
         if self.name is not None:
-            s.append("'%s'" % self.name)
+            s.append(f"'{self.name}'")
         sval = repr(self.value)
         s.append(sval)
-        return "<GridParameter %s>" % ', '.join(s)
+        return f"<GridParameter {', '.join(s)}>"
 
     def save(self):
         if isinstance(self.field, NXfield):
@@ -1216,7 +1221,7 @@ class GridParameter(object):
                     self.box.setText(value)
                 else:
                     try:
-                        self.box.setText('%.6g' % value)
+                        self.box.setText(f'{value:.6g}')
                     except TypeError:
                         self.box.setText(str(value))
             if self.colorbox:
@@ -1259,7 +1264,7 @@ class NewDialog(NXDialog):
         self.names.add('root', self.tree.get_new_name(), 'Workspace', None)
         self.names.add('entry', 'entry', 'Entry', True)
 
-        self.set_layout(self.names.grid(header=None), 
+        self.set_layout(self.names.grid(header=None),
                         self.close_layout(save=True))
 
     def accept(self):
@@ -1276,7 +1281,7 @@ class NewDialog(NXDialog):
         fname = os.path.join(dir, root+'_backup.nxs')
         self.tree[root].save(fname, 'w')
         self.treeview.update()
-        logging.info("New workspace '%s' created" % root)
+        logging.info(f"New workspace '{root}' created")
         self.mainwindow.settings.set('backups', fname)
         self.mainwindow.settings.set('session', fname)
         self.mainwindow.settings.save()
@@ -1293,10 +1298,8 @@ class DirectoryDialog(NXDialog):
         self.directory = directory
         self.prefix_box = NXLineEdit()
         self.prefix_box.textChanged.connect(self.select_prefix)
-        prefix_layout = self.make_layout(NXLabel('Prefix'), 
-                                         self.prefix_box)
+        prefix_layout = self.make_layout(NXLabel('Prefix'), self.prefix_box)
         grid = QtWidgets.QGridLayout()
-        items = []
         for i, f in enumerate(files):
             self.checkbox[f] = NXCheckBox(checked=True)
             grid.addWidget(NXLabel(f), i, 0)
@@ -1329,27 +1332,27 @@ class DirectoryDialog(NXDialog):
         self.treeview.select_top()
         super().accept()
 
- 
+
 class PlotDialog(NXDialog):
     """Dialog to plot arbitrary NeXus data in one or two dimensions"""
- 
+
     def __init__(self, node, parent=None, lines=False):
 
         super().__init__(parent=parent)
- 
+
         if isinstance(node, NXfield):
             self.group = node.nxgroup
             signal_name = node.nxname
         else:
             self.group = node
             signal_name = None
-        
+
         try:
             self.default_axes = [axis.nxname for axis in self.group.nxaxes]
         except Exception:
             self.default_axes = []
 
-        self.signal_combo =  NXComboBox() 
+        self.signal_combo = NXComboBox()
         for node in self.group.values():
             if isinstance(node, NXfield) and node.is_plottable():
                 self.signal_combo.addItem(node.nxname)
@@ -1362,14 +1365,14 @@ class PlotDialog(NXDialog):
             else:
                 signal_name = None
         self.signal_combo.currentIndexChanged.connect(self.choose_signal)
- 
+
         self.grid = QtWidgets.QGridLayout()
         self.grid.setSpacing(10)
         self.grid.addWidget(NXLabel('Signal :'), 0, 0)
         self.grid.addWidget(self.signal_combo, 0, 1)
         self.choose_signal()
 
-        self.set_layout(self.grid, 
+        self.set_layout(self.grid,
                         self.checkboxes(('lines', 'Plot Lines', lines),
                                         ('over', 'Plot Over', False)),
                         self.close_buttons())
@@ -1379,9 +1382,8 @@ class PlotDialog(NXDialog):
         elif self.plotview.ndim != 1:
             self.checkbox['over'].setVisible(False)
             self.checkbox['over'].setEnabled(False)
-            
-        self.set_title("Plot NeXus Data")
 
+        self.set_title("Plot NeXus Data")
 
     @property
     def signal(self):
@@ -1408,12 +1410,12 @@ class PlotDialog(NXDialog):
         self.axis_boxes = {}
         for axis in range(self.ndim):
             row += 1
-            self.grid.addWidget(NXLabel("Axis %s: " % axis), row, 0)
+            self.grid.addWidget(NXLabel(f"Axis {axis}: "), row, 0)
             self.axis_boxes[axis] = self.axis_box(axis)
             self.grid.addWidget(self.axis_boxes[axis], row, 1)
         while row < self.grid.rowCount() - 1:
             self.remove_axis(row)
-            row += 1 
+            row += 1
 
     def axis_box(self, axis):
         box = NXComboBox()
@@ -1425,7 +1427,7 @@ class PlotDialog(NXDialog):
                     box.addItem(node.nxname)
         if box.count() > 0:
             box.insertSeparator(0)
-        box.insertItem(0,'NXfield index')
+        box.insertItem(0, 'NXfield index')
         try:
             if self.default_axes[axis] in axes:
                 box.setCurrentIndex(box.findText(self.default_axes[axis]))
@@ -1444,7 +1446,7 @@ class PlotDialog(NXDialog):
                 if widget is not None:
                     widget.setVisible(False)
                     self.grid.removeWidget(widget)
-                    widget.deleteLater()           
+                    widget.deleteLater()
 
     def check_axis(self, node, axis):
         if isinstance(node, NXgroup) or node.ndim > 1:
@@ -1461,11 +1463,11 @@ class PlotDialog(NXDialog):
 
     def get_axis(self, axis):
         def plot_axis(axis):
-            return NXfield(axis.nxvalue, name=axis.nxname, attrs=axis.attrs) 
+            return NXfield(axis.nxvalue, name=axis.nxname, attrs=axis.attrs)
         axis_name = self.axis_boxes[axis].currentText()
         if axis_name == 'NXfield index':
-            return NXfield(range(self.signal.shape[axis]), 
-                           name='Axis%s' % axis)
+            return NXfield(range(self.signal.shape[axis]),
+                           name=f'Axis{axis}')
         else:
             return plot_axis(self.group[axis_name])
 
@@ -1486,7 +1488,7 @@ class PlotDialog(NXDialog):
                 else:
                     kwargs['marker'] = 'o'
                 kwargs['over'] = self.checkbox['over'].isChecked()
-            data = NXdata(self.signal, self.get_axes(), 
+            data = NXdata(self.signal, self.get_axes(),
                           title=self.signal_path)
             data.attrs['signal_path'] = self.signal_path
             data.plot(**kwargs)
@@ -1494,37 +1496,41 @@ class PlotDialog(NXDialog):
         except NeXusError as error:
             report_error("Plotting data", error)
 
-    
+
 class PlotScalarDialog(NXDialog):
     """Dialog to plot scalar values against values in another tree."""
- 
+
     def __init__(self, node, parent=None, **kwargs):
 
         super().__init__(parent=parent)
         self.setAttribute(QtCore.Qt.WA_DeleteOnClose, True)
- 
+
         if isinstance(node, NXfield):
             self.node = node
             self.group = node.nxgroup
-        
-        self.signal_combo =  NXComboBox()
-        signals = [s for s in self.group if self.group[s].size == 1 and 
-                                            self.group[s].is_numeric()]
+
+        self.signal_combo = NXComboBox()
+        signals = [s for s in self.group if self.group[s].size == 1 and
+                   self.group[s].is_numeric()]
         if len(signals) == 0:
             raise NeXusError("No numeric scalars in group")
         self.signal_combo.add(*signals)
         if node.nxname in self.signal_combo:
             self.signal_combo.select(node.nxname)
 
-        self.set_layout(self.make_layout(self.signal_combo), 
-                        self.textboxes(('Scan', '')), 
-                        self.action_buttons(('Select Scan', self.select_scan),
-                                            ('Select Files', self.select_files)),
-                        self.checkboxes(('lines', 'Plot Lines', False),
-                                        ('over', 'Plot Over', False)),
-                        self.action_buttons(('Plot', self.plot_scan),
-                                            ('Save', self.save_scan)),
-                        self.close_layout())
+        self.set_layout(
+            self.make_layout(self.signal_combo),
+            self.textboxes(('Scan', '')),
+            self.action_buttons(
+                ('Select Scan', self.select_scan),
+                ('Select Files', self.select_files)),
+            self.checkboxes(
+                ('lines', 'Plot Lines', False),
+                ('over', 'Plot Over', False)),
+            self.action_buttons(
+                ('Plot', self.plot_scan),
+                ('Save', self.save_scan)),
+            self.close_layout())
 
         self.set_title("Plot NeXus Field")
         self.kwargs = kwargs
@@ -1564,12 +1570,13 @@ class PlotScalarDialog(NXDialog):
                     self.files.add(name, root[self.scan_path], name, True)
                 else:
                     self.files.add(name, i, name, True)
-                    self.files[name].checkbox.stateChanged.connect(self.update_files)
+                    self.files[name].checkbox.stateChanged.connect(
+                        self.update_files)
         self.file_grid = self.files.grid(header=('File', self.scan_header, ''))
         self.scroll_widget = NXWidget()
         self.scroll_widget.set_layout(self.make_layout(self.file_grid))
         self.scroll_area.setWidget(self.scroll_widget)
-        self.file_box.set_layout(prefix_layout, self.scroll_area, 
+        self.file_box.set_layout(prefix_layout, self.scroll_area,
                                  self.file_box.close_layout())
         self.file_box.close_box.accepted.connect(self.choose_files)
         self.file_box.show()
@@ -1587,7 +1594,8 @@ class PlotScalarDialog(NXDialog):
                     self.files.add(name, root[self.scan_path], name, True)
                 else:
                     self.files.add(name, i, name, True)
-                    self.files[name].checkbox.stateChanged.connect(self.update_files)
+                    self.files[name].checkbox.stateChanged.connect(
+                        self.update_files)
         self.file_grid = self.files.grid(header=('File', self.scan_header, ''))
         self.scroll_widget.deleteLater()
         self.scroll_widget = NXWidget()
@@ -1632,7 +1640,7 @@ class PlotScalarDialog(NXDialog):
         _values = self.scan_values
         if self.scan_variable is not None:
             _variable = self.scan_variable
-            _axis = NXfield(_values, dtype=_variable.dtype, 
+            _axis = NXfield(_values, dtype=_variable.dtype,
                             name=_variable.nxname)
             if 'long_name' in _variable.attrs:
                 _axis.attrs['long_name'] = _variable.attrs['long_name']
@@ -1641,12 +1649,12 @@ class PlotScalarDialog(NXDialog):
         else:
             _axis = NXfield(_values, name='file_index', long_name='File Index')
         return _axis
- 
+
     def choose_files(self):
         try:
-            self.scan_files = [self.tree[self.files[f].name] for f in self.files 
-                               if self.files[f].vary]
-            self.scan_values = [self.files[f].value for f in self.files 
+            self.scan_files = [self.tree[self.files[f].name]
+                               for f in self.files if self.files[f].vary]
+            self.scan_values = [self.files[f].value for f in self.files
                                 if self.files[f].vary]
         except Exception as error:
             raise NeXusError("Files not selected")
@@ -1660,7 +1668,7 @@ class PlotScalarDialog(NXDialog):
             try:
                 field[i] = f[self.data_path]
             except Exception as error:
-                raise NeXusError("Cannot read '%s'" % f)
+                raise NeXusError(f"Cannot read '{f}'")
             field[i] = f[self.data_path]
         return NXdata(field, axis, title=self.data_path)
 
@@ -1694,7 +1702,7 @@ class ExportDialog(NXDialog):
     def __init__(self, node, parent=None):
 
         super().__init__(parent=parent)
- 
+
         self.tabwidget = QtWidgets.QTabWidget(parent=self)
         self.tabwidget.setElideMode(QtCore.Qt.ElideLeft)
 
@@ -1705,7 +1713,8 @@ class ExportDialog(NXDialog):
             self.e = node.nxerrors
             if self.x.shape[0] > self.y.shape[0]:
                 self.x = node.nxaxes[0].centers()
-            self.fields = [f for f in [self.x, self.y, self.e] if f is not None]
+            self.fields = [f for f in [self.x, self.y, self.e]
+                           if f is not None]
             names = [f.nxname for f in self.fields]
 
             delimiters = ['Tab', 'Space', 'Comma', 'Colon', 'Semicolon']
@@ -1714,20 +1723,20 @@ class ExportDialog(NXDialog):
 
             text_grid = self.text_options.grid(header=False)
             text_grid.setSpacing(10)
-            
+
             text_layout = self.make_layout(text_grid,
-                                    self.checkboxes(
-                                        ('title', 'Title', True),
-                                        ('header', 'Headers', True),
-                                        ('errors', 'Errors', True),
-                                        ('fields', 'All Fields', True)),
-                                    vertical=True)
+                                           self.checkboxes(
+                                               ('title', 'Title', True),
+                                               ('header', 'Headers', True),
+                                               ('errors', 'Errors', True),
+                                               ('fields', 'All Fields', True)),
+                                           vertical=True)
             if self.e is None:
                 self.checkbox['errors'].setChecked(False)
                 self.checkbox['errors'].setVisible(False)
             self.all_fields = []
-            for field in [f for f in self.data.NXfield 
-                          if f.nxname not in names and f.shape == self.y.shape]:
+            for field in [f for f in self.data.NXfield if f.nxname not in names
+                          and f.shape == self.y.shape]:
                 self.all_fields.append(field)
             if self.all_fields == []:
                 self.checkbox['fields'].setChecked(False)
@@ -1741,7 +1750,7 @@ class ExportDialog(NXDialog):
         self.nexus_options = GridParameters()
         self.nexus_options.add('entry', 'entry', 'Name of Entry', True)
         self.nexus_options.add('data', self.data.nxname, 'Name of Data')
-        
+
         nexus_grid = self.nexus_options.grid(header=None)
         nexus_grid.setSpacing(10)
 
@@ -1796,7 +1805,7 @@ class ExportDialog(NXDialog):
 
     def accept(self):
         if self.tabwidget.currentWidget() is self.nexus_tab:
-            fname = getSaveFileName(self, "Choose a Filename", 
+            fname = getSaveFileName(self, "Choose a Filename",
                                     self.data.nxname+'.nxs',
                                     self.mainwindow.file_filter)
             if fname:
@@ -1813,7 +1822,7 @@ class ExportDialog(NXDialog):
                 root[self.name] = self.data
             root.save(fname, 'w')
         else:
-            fname = getSaveFileName(self, "Choose a Filename", 
+            fname = getSaveFileName(self, "Choose a Filename",
                                     self.data.nxname+'.txt')
             if fname:
                 self.set_default_directory(os.path.dirname(fname))
@@ -1826,14 +1835,14 @@ class ExportDialog(NXDialog):
                 if self.header:
                     header += '\n'
             if self.header:
-                header += self.delimiter.join([f.nxname 
+                header += self.delimiter.join([f.nxname
                                                for f in self.export_fields])
             output = np.array(self.export_fields).T.astype(str)
-            output[output=='%s'%np.nan] = ''
+            output[output == str(np.nan)] = ''
             np.savetxt(fname, output, header=header, delimiter=self.delimiter,
                        comments='', fmt='%s')
 
-        logging.info("Data saved as '%s'" % fname)
+        logging.info(f"Data saved as '{fname}'")
         super().accept()
 
 
@@ -1844,7 +1853,7 @@ class PreferencesDialog(NXDialog):
         self.parameters = GridParameters()
         self.parameters.add('memory', nxgetmemory(), 'Memory Limit (MB)')
         self.parameters.add('maxsize', nxgetmaxsize(), 'Array Size Limit')
-        self.parameters.add('compression', nxgetcompression(), 
+        self.parameters.add('compression', nxgetcompression(),
                             'Compression Filter')
         self.parameters.add('encoding', nxgetencoding(), 'Text Encoding')
         self.parameters.add('lock', nxgetlock(), 'Lock Timeout (s)')
@@ -1854,9 +1863,9 @@ class PreferencesDialog(NXDialog):
             style for style in mpl.style.available if style != 'publication')
         self.parameters.add('style', styles, 'Plot Style')
         self.parameters['style'].value = self.mainwindow.settings.get(
-                                                        'preferences', 'style')
-        self.set_layout(self.parameters.grid(), 
-                        self.action_buttons(('Save As Default', 
+            'preferences', 'style')
+        self.set_layout(self.parameters.grid(),
+                        self.action_buttons(('Save As Default',
                                             self.save_default)),
                         self.close_layout(save=True))
         self.set_title('NeXpy Preferences')
@@ -1865,13 +1874,14 @@ class PreferencesDialog(NXDialog):
         self.set_preferences()
         self.mainwindow.settings.set('preferences', 'memory', nxgetmemory())
         self.mainwindow.settings.set('preferences', 'maxsize', nxgetmaxsize())
-        self.mainwindow.settings.set('preferences', 'compression', 
+        self.mainwindow.settings.set('preferences', 'compression',
                                      nxgetcompression())
-        self.mainwindow.settings.set('preferences', 'encoding', nxgetencoding())
+        self.mainwindow.settings.set(
+            'preferences', 'encoding', nxgetencoding())
         self.mainwindow.settings.set('preferences', 'lock', nxgetlock())
-        self.mainwindow.settings.set('preferences', 'recursive', 
+        self.mainwindow.settings.set('preferences', 'recursive',
                                      nxgetrecursive())
-        self.mainwindow.settings.set('preferences', 'style', 
+        self.mainwindow.settings.set('preferences', 'style',
                                      self.parameters['style'].value)
         self.mainwindow.settings.save()
 
@@ -1899,7 +1909,7 @@ class CustomizeDialog(NXPanel):
 
 class CustomizeTab(NXTab):
 
-    legend_location = {v: k for k, v in Legend.codes.items()}            
+    legend_location = {v: k for k, v in Legend.codes.items()}
 
     def __init__(self, label, parent=None):
         super().__init__(label, parent=parent)
@@ -1918,8 +1928,8 @@ class CustomizeTab(NXTab):
             self.set_layout(pl.grid(header=False),
                             pi.grid(header=False))
         else:
-            pp = {}   
-            self.plots = self.plotview.plots       
+            pp = {}
+            self.plots = self.plotview.plots
             for plot in self.plots:
                 label = self.plot_label(plot)
                 pp[label] = self.parameters[label] = self.plot_parameters(plot)
@@ -1953,8 +1963,8 @@ class CustomizeTab(NXTab):
                     self.plot_stack.add(label, pp.widget(header=False))
                 self.update_plot_parameters(plot)
             self.legend_order = self.get_legend_order()
-            for label in [l for l in self.parameters 
-                          if l not in ['labels', 'grid']]:
+            for label in [la for la in self.parameters
+                          if la not in ['labels', 'grid']]:
                 if self.label_plot(label) not in self.plots:
                     del self.parameters[label]
                     self.plot_stack.remove(label)
@@ -1978,14 +1988,14 @@ class CustomizeTab(NXTab):
         parameters.add('aspect', self.plotview._aspect, 'Aspect Ratio')
         parameters.add('skew', self.plotview._skew_angle, 'Skew Angle')
         parameters.add('grid', ['On', 'Off'], 'Grid')
-        parameters.add('gridcolor', get_color(self.plotview._gridcolor), 
+        parameters.add('gridcolor', get_color(self.plotview._gridcolor),
                        'Grid Color', color=True)
         parameters.add('gridstyle', list(self.linestyles), 'Grid Style')
         parameters.add('gridalpha', self.plotview._gridalpha, 'Grid Alpha')
         parameters.add('minorticks', ['On', 'Off'], 'Minor Ticks')
         parameters.add('cb_minorticks', ['On', 'Off'], 'Color Bar Minor Ticks')
         try:
-            parameters.add('badcolor', 
+            parameters.add('badcolor',
                            get_color(self.plotview.image.cmap.get_bad()),
                            'Bad Color', color=True)
         except AttributeError:
@@ -2024,7 +2034,7 @@ class CustomizeTab(NXTab):
         parameters = GridParameters()
         parameters.add('legend_label', p['legend_label'], 'Legend Label')
         parameters.add('legend', ['Yes', 'No'], 'Add to Legend')
-        parameters.add('legend_order', p['legend_order'], 'Legend Order', 
+        parameters.add('legend_order', p['legend_order'], 'Legend Order',
                        slot=self.update_legend_order)
         parameters.add('color', p['color'], 'Color', color=True)
         parameters.add('linestyle', list(self.linestyles), 'Line Style')
@@ -2039,7 +2049,8 @@ class CustomizeTab(NXTab):
         parameters.add('offset', 0.0, 'Offset', slot=self.scale_plot,
                        spinbox=True)
         parameters['offset'].box.setSingleStep(10)
-        parameters['offset'].box.setMinimum(-parameters['offset'].box.maximum())
+        parameters['offset'].box.setMinimum(
+            -parameters['offset'].box.maximum())
         parameters.grid(title='Plot Parameters', header=False, width=125)
         return parameters
 
@@ -2054,8 +2065,10 @@ class CustomizeTab(NXTab):
             pp['legend'].value = 'No'
         pp['legend_order'].value = p['legend_order']
         pp['color'].value = p['color']
+
         def get_ls(ls):
-            return list(self.linestyles)[list(self.linestyles.values()).index(ls)]        
+            return list(self.linestyles)[
+                list(self.linestyles.values()).index(ls)]
         if p['smooth_line']:
             pp['linestyle'].value = get_ls(p['smooth_linestyle'])
         else:
@@ -2071,12 +2084,12 @@ class CustomizeTab(NXTab):
 
     def grid_parameters(self):
         parameters = GridParameters()
-        parameters.add('legend', ['None']+[key.title() for key in Legend.codes], 
-                       'Legend')
+        parameters.add('legend', ['None']+[key.title()
+                       for key in Legend.codes], 'Legend')
         parameters.add('label', ['Legend Label', 'Full Path', 'Group Path',
                                  'Group Name', 'Signal Name'], 'Label')
         parameters.add('grid', ['On', 'Off'], 'Grid')
-        parameters.add('gridcolor', get_color(self.plotview._gridcolor), 
+        parameters.add('gridcolor', get_color(self.plotview._gridcolor),
                        'Grid Color', color=True)
         parameters.add('gridstyle', list(self.linestyles), 'Grid Style')
         parameters.add('gridalpha', self.plotview._gridalpha, 'Grid Alpha')
@@ -2109,14 +2122,14 @@ class CustomizeTab(NXTab):
 
     def is_empty_legend(self):
         labels = [self.plot_label(plot) for plot in self.plots]
-        return 'Yes' not in [self.parameters[label]['legend'].value 
+        return 'Yes' not in [self.parameters[label]['legend'].value
                              for label in labels]
 
     def get_legend_order(self):
         order = []
         for plot in self.plots:
             label = self.plot_label(plot)
-            order.append(int(self.parameters[label]['legend_order'].value - 1))        
+            order.append(int(self.parameters[label]['legend_order'].value - 1))
         return order
 
     def plot_index(self, plot):
@@ -2143,7 +2156,7 @@ class CustomizeTab(NXTab):
             label = self.plot_label(plot)
             order = int(self.parameters[label]['legend_order'].value - 1)
             if (new_order > current_order and order > current_order and
-                order <= new_order):
+                    order <= new_order):
                 self.parameters[label]['legend_order'].value = order
             elif (new_order < current_order and order < current_order and
                   order >= new_order):
@@ -2162,7 +2175,8 @@ class CustomizeTab(NXTab):
             elif label_selection == 'Full Path':
                 self.plotview.legend(path=True, loc=legend_location)
             elif label_selection == 'Group Path':
-                self.plotview.legend(group=True, path=True, loc=legend_location)
+                self.plotview.legend(group=True, path=True,
+                                     loc=legend_location)
             elif label_selection == 'Group Name':
                 self.plotview.legend(group=True, loc=legend_location)
             else:
@@ -2204,7 +2218,7 @@ class CustomizeTab(NXTab):
         if offset == self.parameters[label]['offset'].box.maximum():
             self.parameters[label]['offset'].box.setMaximum(10*abs(offset))
         self.parameters[label]['offset'].box.setMinimum(
-            -self.parameters[label]['offset'].box.maximum()) 
+            -self.parameters[label]['offset'].box.maximum())
         self.parameters[label]['offset'].box.setSingleStep(
             max(abs(offset)/100.0, 1))
         y = self.plotview.plots[plot]['y']
@@ -2212,9 +2226,9 @@ class CustomizeTab(NXTab):
         self.plotview.draw()
 
     def block_signals(self, block=True):
-        for p in [parameter for parameter in self.parameters if 
+        for p in [parameter for parameter in self.parameters if
                   parameter not in ['labels', 'grid']]:
-            self.parameters[p]['legend_order'].box.blockSignals(block)                
+            self.parameters[p]['legend_order'].box.blockSignals(block)
 
     def reset(self):
         self.update()
@@ -2246,14 +2260,14 @@ class CustomizeTab(NXTab):
             self.plotview._gridalpha = pi['gridalpha'].value
             if 'badcolor' in pi:
                 self.plotview.image.cmap.set_bad(pi['badcolor'].value)
-            #reset in case plotview.aspect changed by plotview.skew            
+            # reset in case plotview.aspect changed by plotview.skew
             self.plotview.skew = _skew_angle
             self.plotview.aspect = self.plotview._aspect
             if pi['cb_minorticks'].value == 'On':
                 self.plotview.cb_minorticks_on()
             else:
                 self.plotview.cb_minorticks_off()
-        else:            
+        else:
             for plot in self.plots:
                 label = self.plot_label(plot)
                 p, pp = self.plots[plot], self.parameters[label]
@@ -2307,17 +2321,17 @@ class CustomizeTab(NXTab):
 
 class ProjectionDialog(NXPanel):
     """Dialog to set plot window limits"""
- 
+
     def __init__(self, parent=None):
-        super().__init__('Projection', title='Projection Panel', apply=False, 
+        super().__init__('Projection', title='Projection Panel', apply=False,
                          parent=parent)
         self.tab_class = ProjectionTab
         self.plotview_sort = True
 
-    
+
 class ProjectionTab(NXTab):
     """Tab to set plot window limits"""
- 
+
     def __init__(self, label, parent=None):
 
         super().__init__(label, parent=parent)
@@ -2325,11 +2339,13 @@ class ProjectionTab(NXTab):
         self.plotview = self.active_plotview
         self.ndim = self.plotview.ndim
 
-        self.xlabel, self.xbox = self.label('X-Axis'), NXComboBox(self.set_xaxis)
-        self.ylabel, self.ybox = self.label('Y-Axis'), NXComboBox(self.set_yaxis)
-        axis_layout = self.make_layout(self.xlabel, self.xbox, 
+        self.xlabel, self.xbox = (self.label('X-Axis'),
+                                  NXComboBox(self.set_xaxis))
+        self.ylabel, self.ybox = (self.label('Y-Axis'),
+                                  NXComboBox(self.set_yaxis))
+        axis_layout = self.make_layout(self.xlabel, self.xbox,
                                        self.ylabel, self.ybox)
-                                       
+
         self.set_axes()
 
         grid = QtWidgets.QGridLayout()
@@ -2379,19 +2395,20 @@ class ProjectionTab(NXTab):
         sp.add('divisor', 1.0, 'Divisor')
         sp.add('offset', 0.0, 'Offset')
         sp.add('tol', 0.0, 'Tolerance')
-        self.select_widget.set_layout(sp.grid(header=False), 
+        self.select_widget.set_layout(
+            sp.grid(header=False),
             self.checkboxes(("smooth", "Smooth", False),
                             ("symm", "Symmetric", False),
                             ("max", "Max", False),
                             ("min", "Min", False)))
         self.select_widget.setVisible(False)
-        self.set_layout(axis_layout, grid, 
-            self.checkboxes(("sum", "Sum Projections", False),
-                            ("hide", "Hide Limits", False)),
-            self.checkboxes(("lines", "Plot Lines", False),
-                            ("select", "Plot Selection", False)),
-            self.select_widget,
-            self.copy_layout("Copy Limits"))
+        self.set_layout(axis_layout, grid,
+                        self.checkboxes(("sum", "Sum Projections", False),
+                                        ("hide", "Hide Limits", False)),
+                        self.checkboxes(("lines", "Plot Lines", False),
+                                        ("select", "Plot Selection", False)),
+                        self.select_widget,
+                        self.copy_layout("Copy Limits"))
         self.checkbox["lines"].setVisible(False)
         self.checkbox["select"].setVisible(False)
         self.checkbox["hide"].stateChanged.connect(self.hide_rectangle)
@@ -2416,7 +2433,7 @@ class ProjectionTab(NXTab):
             self.block_signals(False)
 
         self.copywidget.setVisible(False)
-        for tab in [self.tabs[label] for label in self.tabs 
+        for tab in [self.tabs[label] for label in self.tabs
                     if self.tabs[label] is not self]:
             if self.plotview.ndim == tab.plotview.ndim:
                 self.copywidget.setVisible(True)
@@ -2440,7 +2457,7 @@ class ProjectionTab(NXTab):
             self.ylabel.setVisible(True)
             self.ybox.setVisible(True)
             self.ybox.clear()
-            axes.insert(0,'None')
+            axes.insert(0, 'None')
             self.ybox.add(*axes)
             self.ybox.select(self.plotview.yaxis.name)
 
@@ -2501,14 +2518,14 @@ class ProjectionTab(NXTab):
         if axis:
             return get_indices(self.minbox[axis], self.maxbox[axis])
         else:
-            return [get_indices(self.minbox[axis], self.maxbox[axis]) 
+            return [get_indices(self.minbox[axis], self.maxbox[axis])
                     for axis in range(self.ndim)]
 
     def set_lock(self):
         for axis in range(self.ndim):
             if self.lockbox[axis].isChecked():
                 lo, hi = self.minbox[axis].value(), self.maxbox[axis].value()
-                self.minbox[axis].diff = self.maxbox[axis].diff = max(hi - lo, 
+                self.minbox[axis].diff = self.maxbox[axis].diff = max(hi - lo,
                                                                       0.0)
                 self.minbox[axis].setDisabled(True)
             else:
@@ -2519,7 +2536,7 @@ class ProjectionTab(NXTab):
     def summed(self):
         try:
             return self.checkbox["sum"].isChecked()
-        except:
+        except Exception:
             return False
 
     @summed.setter
@@ -2530,7 +2547,7 @@ class ProjectionTab(NXTab):
     def lines(self):
         try:
             return self.checkbox["lines"].isChecked()
-        except:
+        except Exception:
             return False
 
     @lines.setter
@@ -2574,10 +2591,10 @@ class ProjectionTab(NXTab):
             axes = [y, x]
         limits = self.get_limits()
         shape = self.plotview.data.nxsignal.shape
-        if (len(shape)-len(limits) > 0 and 
-            len(shape)-len(limits) == shape.count(1)):
+        if (len(shape)-len(limits) > 0 and
+                len(shape)-len(limits) == shape.count(1)):
             axes, limits = fix_projection(shape, axes, limits)
-        elif any([limits[axis][1]-limits[axis][0]<=1 for axis in axes]):
+        elif any([limits[axis][1]-limits[axis][0] <= 1 for axis in axes]):
             raise NeXusError("One of the projection axes has zero range")
         if self.plotview.rgb_image:
             limits.append((None, None))
@@ -2590,7 +2607,7 @@ class ProjectionTab(NXTab):
             smooth = self.checkbox['smooth'].isChecked()
             maxima = self.checkbox['max'].isChecked()
             minima = self.checkbox['min'].isChecked()
-            return data.select(divisor, offset, symmetric, smooth, 
+            return data.select(divisor, offset, symmetric, smooth,
                                maxima, minima, tol)
         else:
             return data
@@ -2635,7 +2652,7 @@ class ProjectionTab(NXTab):
 
     def mask_data(self):
         try:
-            limits = tuple(slice(x,y) for x,y in self.get_limits())
+            limits = tuple(slice(x, y) for x, y in self.get_limits())
             self.plotview.data.nxsignal[limits] = np.ma.masked
             self.plotview.replot_data()
         except NeXusError as error:
@@ -2643,7 +2660,7 @@ class ProjectionTab(NXTab):
 
     def unmask_data(self):
         try:
-            limits = tuple(slice(x,y) for x,y in self.get_limits())
+            limits = tuple(slice(x, y) for x, y in self.get_limits())
             self.plotview.data.nxsignal.mask[limits] = np.ma.nomask
             if not self.plotview.data.nxsignal.mask.any():
                 self.plotview.data.mask = np.ma.nomask
@@ -2674,9 +2691,9 @@ class ProjectionTab(NXTab):
         x1 = self.maxbox[xp].maxBoundaryValue(self.maxbox[xp].index)
         y0 = self.minbox[yp].minBoundaryValue(self.minbox[yp].index)
         y1 = self.maxbox[yp].maxBoundaryValue(self.maxbox[yp].index)
-        xy = [(x0,y0), (x0,y1), (x1,y1), (x1,y0)]
+        xy = [(x0, y0), (x0, y1), (x1, y1), (x1, y0)]
         if self.plotview.skew is not None:
-            return [self.plotview.transform(_x, _y) for _x,_y in xy]
+            return [self.plotview.transform(_x, _y) for _x, _y in xy]
         else:
             return xy
 
@@ -2712,13 +2729,13 @@ class ProjectionTab(NXTab):
             lo, hi = self.plotview.axis[axis].get_limits()
             minbox, maxbox = self.minbox[axis], self.maxbox[axis]
             ilo, ihi = minbox.indexFromValue(lo), maxbox.indexFromValue(hi)
-            if (self.plotview.axis[axis] is self.plotview.xaxis or 
-                   self.plotview.axis[axis] is self.plotview.yaxis):
+            if (self.plotview.axis[axis] is self.plotview.xaxis or
+                    self.plotview.axis[axis] is self.plotview.yaxis):
                 ilo = ilo + 1
                 ihi = max(ilo, ihi-1)
                 if lo > minbox.value():
                     minbox.setValue(minbox.valueFromIndex(ilo))
-                if  hi < maxbox.value():
+                if hi < maxbox.value():
                     maxbox.setValue(maxbox.valueFromIndex(ihi))
         self.block_signals(False)
         self.draw_rectangle()
@@ -2737,13 +2754,13 @@ class ProjectionTab(NXTab):
         self.ybox.select(tab.ybox.selected)
         self.block_signals(False)
         self.draw_rectangle()
-        self.update_overbox()             
+        self.update_overbox()
 
     def reset(self):
         self.block_signals(True)
         for axis in range(self.ndim):
-            if (self.plotview.axis[axis] is self.plotview.xaxis or 
-                   self.plotview.axis[axis] is self.plotview.yaxis):
+            if (self.plotview.axis[axis] is self.plotview.xaxis or
+                    self.plotview.axis[axis] is self.plotview.yaxis):
                 self.minbox[axis].setValue(self.minbox[axis].data.min())
                 self.maxbox[axis].setValue(self.maxbox[axis].data.max())
             else:
@@ -2763,15 +2780,16 @@ class ProjectionTab(NXTab):
         except Exception:
             pass
 
+
 class LimitDialog(NXPanel):
     """Dialog to set plot window limits"""
- 
+
     def __init__(self, parent=None):
         super().__init__('Limits', title='Limits Panel', parent=parent)
         self.tab_class = LimitTab
         self.plotview_sort = True
 
-    
+
 class LimitTab(NXTab):
     """Tab to set plot window limits"""
 
@@ -2781,14 +2799,14 @@ class LimitTab(NXTab):
 
         self.plotview = self.active_plotview
         self.ndim = self.plotview.ndim
-        
+
         if self.ndim > 1:
             self.xlabel, self.xbox = (self.label('X-Axis'),
                                       NXComboBox(self.set_xaxis))
             self.ylabel, self.ybox = (self.label('Y-Axis'),
                                       NXComboBox(self.set_yaxis))
             axis_layout = self.make_layout(self.xlabel, self.xbox,
-                                           self.ylabel, self.ybox)                                     
+                                           self.ylabel, self.ybox)
             self.set_axes()
         else:
             axis_layout = None
@@ -2834,12 +2852,12 @@ class LimitTab(NXTab):
         if self.tab_label == 'Main':
             self.parameters['xsize'].box.setEnabled(False)
             self.parameters['ysize'].box.setEnabled(False)
-        self.set_layout(axis_layout, grid, 
-                        self.parameters.grid(header=False), 
+        self.set_layout(axis_layout, grid,
+                        self.parameters.grid(header=False),
                         self.copy_layout("Copy Limits", 'sync'))
 
         self.checkbox['sync'].stateChanged.connect(self.choose_sync)
- 
+
         self.initialize()
 
     def initialize(self):
@@ -2857,7 +2875,7 @@ class LimitTab(NXTab):
         self.update_properties()
         self.copied_properties = {}
         self.copywidget.setVisible(False)
-        for tab in [self.tabs[label] for label in self.tabs 
+        for tab in [self.tabs[label] for label in self.tabs
                     if self.tabs[label] is not self]:
             if self.plotview.ndim == tab.plotview.ndim:
                 self.copywidget.setVisible(True)
@@ -2870,7 +2888,7 @@ class LimitTab(NXTab):
         return self.plotview.xtab.get_axes()
 
     def set_axes(self):
-        if self.ndim > 1:        
+        if self.ndim > 1:
             axes = self.get_axes()
             self.xbox.clear()
             self.xbox.add(*axes)
@@ -2890,7 +2908,7 @@ class LimitTab(NXTab):
             if self.yaxis == self.plotview.yaxis.name:
                 self.ybox.select(self.plotview.xaxis.name)
             else:
-                self.ybox.select(self.plotview.yaxis.name)            
+                self.ybox.select(self.plotview.yaxis.name)
 
     @property
     def yaxis(self):
@@ -2901,7 +2919,7 @@ class LimitTab(NXTab):
             if self.xaxis == self.plotview.xaxis.name:
                 self.xbox.select(self.plotview.yaxis.name)
             else:
-                self.xbox.select(self.plotview.xaxis.name)            
+                self.xbox.select(self.plotview.xaxis.name)
 
     def set_limits(self):
         self.block_signals(True)
@@ -2922,14 +2940,14 @@ class LimitTab(NXTab):
         if axis:
             return get_indices(self.minbox[axis], self.maxbox[axis])
         else:
-            return [get_indices(self.minbox[axis], self.maxbox[axis]) 
+            return [get_indices(self.minbox[axis], self.maxbox[axis])
                     for axis in range(self.ndim)]
 
     def set_lock(self):
         for axis in range(self.ndim):
             if self.lockbox[axis].isChecked():
                 lo, hi = self.minbox[axis].value(), self.maxbox[axis].value()
-                self.minbox[axis].diff = self.maxbox[axis].diff = max(hi - lo, 
+                self.minbox[axis].diff = self.maxbox[axis].diff = max(hi - lo,
                                                                       0.0)
                 self.minbox[axis].setDisabled(True)
             else:
@@ -2952,10 +2970,10 @@ class LimitTab(NXTab):
         if not self.checkbox['sync'].isChecked():
             self.update_limits()
             self.update_properties()
-        for tab in [self.tabs[label] for label in self.tabs 
+        for tab in [self.tabs[label] for label in self.tabs
                     if self.tabs[label] is not self]:
             if (tab.copybox.selected == self.tab_label and
-                tab.checkbox['sync'].isChecked()):
+                    tab.checkbox['sync'].isChecked()):
                 tab.copy()
         self.sort_copybox()
 
@@ -2997,7 +3015,7 @@ class LimitTab(NXTab):
         self.update_properties()
         for p in self.properties:
             if self.properties[p] != tab.properties[p]:
-                self.copied_properties[p] = tab.properties[p]    
+                self.copied_properties[p] = tab.properties[p]
 
     def copy(self):
         tab = self.tabs[self.copybox.selected]
@@ -3025,12 +3043,12 @@ class LimitTab(NXTab):
         try:
             self.block_signals(True)
             if self.tab_label != 'Main':
-                xsize, ysize = (self.parameters['xsize'].value, 
+                xsize, ysize = (self.parameters['xsize'].value,
                                 self.parameters['ysize'].value)
                 self.plotview.figure.set_size_inches(xsize, ysize)
             if self.ndim == 1:
                 xmin, xmax = self.minbox[0].value(), self.maxbox[0].value()
-                ymin, ymax = (self.minbox['signal'].value(), 
+                ymin, ymax = (self.minbox['signal'].value(),
                               self.maxbox['signal'].value())
                 if np.isclose(xmin, xmax):
                     raise NeXusError('X-axis has zero range')
@@ -3042,13 +3060,13 @@ class LimitTab(NXTab):
             else:
                 limits = []
                 for axis in range(self.ndim):
-                    limits.append((self.minbox[axis].value(), 
+                    limits.append((self.minbox[axis].value(),
                                    self.maxbox[axis].value()))
                 x = self.get_axes().index(self.xaxis)
                 xmin, xmax = limits[x][0], limits[x][1]
                 y = self.get_axes().index(self.yaxis)
                 ymin, ymax = limits[y][0], limits[y][1]
-                vmin, vmax = (self.minbox['signal'].value(), 
+                vmin, vmax = (self.minbox['signal'].value(),
                               self.maxbox['signal'].value())
                 if np.isclose(xmin, xmax):
                     raise NeXusError('X-axis has zero range')
@@ -3056,9 +3074,9 @@ class LimitTab(NXTab):
                     raise NeXusError('Y-axis has zero range')
                 elif np.isclose(vmin, vmax):
                     raise NeXusError('Signal has zero range')
-                self.plotview.change_axis(self.plotview.xtab, 
+                self.plotview.change_axis(self.plotview.xtab,
                                           self.plotview.axis[x])
-                self.plotview.change_axis(self.plotview.ytab, 
+                self.plotview.change_axis(self.plotview.ytab,
                                           self.plotview.axis[y])
                 self.plotview.xtab.set_limits(xmin, xmax)
                 self.plotview.ytab.set_limits(ymin, ymax)
@@ -3066,7 +3084,7 @@ class LimitTab(NXTab):
                 self.plotview.vtab.set_limits(vmin, vmax)
                 if self.ndim > 2:
                     self.plotview.ztab.locked = False
-                    names = [self.plotview.axis[i].name 
+                    names = [self.plotview.axis[i].name
                              for i in range(self.ndim)]
                     for axis_name in self.plotview.ztab.axiscombo.items():
                         self.plotview.ztab.axiscombo.select(axis_name)
@@ -3084,43 +3102,45 @@ class LimitTab(NXTab):
             self.block_signals(False)
 
     def close(self):
-        for tab in [self.tabs[label] for label in self.tabs 
+        for tab in [self.tabs[label] for label in self.tabs
                     if self.tabs[label] is not self]:
-            if (tab.copybox.selected == self.tab_label and 
-                tab.checkbox['sync'].isChecked()):
+            if (tab.copybox.selected == self.tab_label and
+                    tab.checkbox['sync'].isChecked()):
                 tab.checkbox['sync'].setChecked(False)
             if self.tab_label in tab.copybox:
                 tab.copybox.remove(self.tab_label)
             if len(tab.copybox.items()) == 0:
                 tab.copywidget.setVisible(False)
 
-    
+
 class ScanDialog(NXPanel):
     """Dialog to set plot window limits"""
- 
+
     def __init__(self, parent=None):
-        super().__init__('Scan', title='Scan Panel', apply=False, 
+        super().__init__('Scan', title='Scan Panel', apply=False,
                          parent=parent)
         self.tab_class = ScanTab
         self.plotview_sort = True
 
-    
+
 class ScanTab(NXTab):
     """Tab to generate parametric scans."""
- 
+
     def __init__(self, label, parent=None):
 
         super().__init__(label, parent=parent)
 
         self.ndim = self.plotview.ndim
 
-        self.xlabel, self.xbox = self.label('X-Axis'), NXComboBox(self.set_xaxis)
-        self.ylabel, self.ybox = self.label('Y-Axis'), NXComboBox(self.set_yaxis)
-        axis_layout = self.make_layout(self.xlabel, self.xbox, 
+        self.xlabel, self.xbox = (self.label('X-Axis'),
+                                  NXComboBox(self.set_xaxis))
+        self.ylabel, self.ybox = (self.label('Y-Axis'),
+                                  NXComboBox(self.set_yaxis))
+        axis_layout = self.make_layout(self.xlabel, self.xbox,
                                        self.ylabel, self.ybox)
-                                       
+
         self.set_axes()
-        
+
         grid = QtWidgets.QGridLayout()
         grid.setSpacing(10)
         headers = ['Axis', 'Minimum', 'Maximum', 'Lock']
@@ -3157,15 +3177,16 @@ class ScanTab(NXTab):
         grid.addWidget(self.overbox, row, 3,
                        alignment=QtCore.Qt.AlignHCenter)
 
-        self.set_layout(axis_layout, 
-                        self.textboxes(('Scan', '')), 
-                        self.action_buttons(('Select Scan', self.select_scan),
-                                            ('Select Files', self.select_files)),
-                        grid, 
-                        self.checkboxes(("sum", "Sum Projections", False),
-                                        ("lines", "Plot Lines", False),
-                                        ("hide", "Hide Limits", False)),
-                        self.copy_layout("Copy Limits"))
+        self.set_layout(
+            axis_layout, self.textboxes(('Scan', '')),
+            self.action_buttons(
+                ('Select Scan', self.select_scan),
+                ('Select Files', self.select_files)),
+            grid, self.checkboxes(
+                ("sum", "Sum Projections", False),
+                ("lines", "Plot Lines", False),
+                ("hide", "Hide Limits", False)),
+            self.copy_layout("Copy Limits"))
         if self.ndim == 1:
             self.checkbox["hide"].setVisible(False)
         else:
@@ -3193,7 +3214,7 @@ class ScanTab(NXTab):
             self.block_signals(False)
 
         self.copywidget.setVisible(False)
-        for tab in [self.tabs[label] for label in self.tabs 
+        for tab in [self.tabs[label] for label in self.tabs
                     if self.tabs[label] is not self]:
             if self.plotview.ndim == tab.plotview.ndim:
                 self.copywidget.setVisible(True)
@@ -3229,21 +3250,22 @@ class ScanTab(NXTab):
         for name in sorted(self.tree, key=natural_sort):
             root = self.tree[name]
             try:
-                if (self.data_path in root and 
-                    root[self.data_path].nxsignal.exists()):
+                if (self.data_path in root and
+                        root[self.data_path].nxsignal.exists()):
                     i += 1
                     if self.scan_path:
                         self.files.add(name, root[self.scan_path], name, True)
                     else:
                         self.files.add(name, i, name, True)
-                        self.files[name].checkbox.stateChanged.connect(self.update_files)
+                        self.files[name].checkbox.stateChanged.connect(
+                            self.update_files)
             except Exception as error:
                 pass
         self.file_grid = self.files.grid(header=('File', self.scan_header, ''))
         self.scroll_widget = NXWidget()
         self.scroll_widget.set_layout(self.make_layout(self.file_grid))
         self.scroll_area.setWidget(self.scroll_widget)
-        self.file_box.set_layout(prefix_layout, self.scroll_area, 
+        self.file_box.set_layout(prefix_layout, self.scroll_area,
                                  self.file_box.close_layout())
         self.file_box.close_box.accepted.connect(self.choose_files)
         self.file_box.show()
@@ -3256,13 +3278,14 @@ class ScanTab(NXTab):
                      if n.startswith(prefix)]:
             root = self.tree[name]
             if (self.data_path in root and
-                root[self.data_path].nxsignal.exists()):
+                    root[self.data_path].nxsignal.exists()):
                 i += 1
                 if self.scan_path:
                     self.files.add(name, root[self.scan_path], name, True)
                 else:
                     self.files.add(name, i, name, True)
-                    self.files[name].checkbox.stateChanged.connect(self.update_files)
+                    self.files[name].checkbox.stateChanged.connect(
+                        self.update_files)
         self.file_grid = self.files.grid(header=('File', self.scan_header, ''))
         self.scroll_widget.deleteLater()
         self.scroll_widget = NXWidget()
@@ -3307,21 +3330,21 @@ class ScanTab(NXTab):
         _values = self.scan_values
         if self.scan_variable is not None:
             _variable = self.scan_variable
-            _axis = NXfield(_values, dtype=_variable.dtype, 
+            _axis = NXfield(_values, dtype=_variable.dtype,
                             name=_variable.nxname)
             if 'long_name' in _variable.attrs:
                 _axis.attrs['long_name'] = _variable.attrs['long_name']
             if 'units' in _variable.attrs:
-                    _axis.attrs['units'] = _variable.attrs['units']
+                _axis.attrs['units'] = _variable.attrs['units']
         else:
             _axis = NXfield(_values, name='file_index', long_name='File Index')
         return _axis
- 
+
     def choose_files(self):
         try:
-            self.scan_files = [self.tree[self.files[f].name] for f in self.files 
-                               if self.files[f].vary]
-            self.scan_values = [self.files[f].value for f in self.files 
+            self.scan_files = [self.tree[self.files[f].name]
+                               for f in self.files if self.files[f].vary]
+            self.scan_values = [self.files[f].value for f in self.files
                                 if self.files[f].vary]
         except Exception as error:
             raise NeXusError("Files not selected")
@@ -3331,7 +3354,7 @@ class ScanTab(NXTab):
 
     def set_axes(self):
         axes = self.get_axes()
-        axes.insert(0,'None')
+        axes.insert(0, 'None')
         self.xbox.clear()
         self.xbox.add(*axes)
         self.xbox.select(self.plotview.xaxis.name)
@@ -3392,14 +3415,14 @@ class ScanTab(NXTab):
         if axis:
             return get_indices(self.minbox[axis], self.maxbox[axis])
         else:
-            return [get_indices(self.minbox[axis], self.maxbox[axis]) 
+            return [get_indices(self.minbox[axis], self.maxbox[axis])
                     for axis in range(self.ndim)]
 
     def set_lock(self):
         for axis in range(self.ndim):
             if self.lockbox[axis].isChecked():
                 lo, hi = self.minbox[axis].value(), self.maxbox[axis].value()
-                self.minbox[axis].diff = self.maxbox[axis].diff = max(hi - lo, 
+                self.minbox[axis].diff = self.maxbox[axis].diff = max(hi - lo,
                                                                       0.0)
                 self.minbox[axis].setDisabled(True)
             else:
@@ -3410,7 +3433,7 @@ class ScanTab(NXTab):
     def summed(self):
         try:
             return self.checkbox["sum"].isChecked()
-        except:
+        except Exception:
             return False
 
     @summed.setter
@@ -3421,7 +3444,7 @@ class ScanTab(NXTab):
     def lines(self):
         try:
             return self.checkbox["lines"].isChecked()
-        except:
+        except Exception:
             return False
 
     @lines.setter
@@ -3440,8 +3463,8 @@ class ScanTab(NXTab):
             axes = [y, x]
         limits = self.get_limits()
         shape = self.plotview.data.nxsignal.shape
-        if (len(shape)-len(limits) > 0 and 
-            len(shape)-len(limits) == shape.count(1)):
+        if (len(shape)-len(limits) > 0 and
+                len(shape)-len(limits) == shape.count(1)):
             axes, limits = fix_projection(shape, axes, limits)
         if self.plotview.rgb_image:
             limits.append((None, None))
@@ -3454,14 +3477,14 @@ class ScanTab(NXTab):
         data_axes = data.nxaxes
         scan_axis = self.scan_axis()
         scan_shape = [len(scan_axis)] + list(data_signal.shape)
-        scan_field = NXfield(shape=scan_shape, dtype=data_signal.dtype, 
+        scan_field = NXfield(shape=scan_shape, dtype=data_signal.dtype,
                              name=data_signal.nxname)
         for i, f in enumerate(self.scan_files):
             try:
-                scan_field[i] = f[self.data_path].project(axes, limits, 
-                                                   summed=self.summed).nxsignal
+                scan_field[i] = f[self.data_path].project(
+                    axes, limits, summed=self.summed).nxsignal
             except Exception as error:
-                raise NeXusError("Cannot read '%s'" % f)
+                raise NeXusError(f"Cannot read '{f}'")
         del data[data_signal.nxname]
         data.nxsignal = scan_field
         data.nxaxes = [scan_axis, *data_axes]
@@ -3528,9 +3551,9 @@ class ScanTab(NXTab):
         x1 = self.maxbox[xp].maxBoundaryValue(self.maxbox[xp].index)
         y0 = self.minbox[yp].minBoundaryValue(self.minbox[yp].index)
         y1 = self.maxbox[yp].maxBoundaryValue(self.maxbox[yp].index)
-        xy = [(x0,y0), (x0,y1), (x1,y1), (x1,y0)]
+        xy = [(x0, y0), (x0, y1), (x1, y1), (x1, y0)]
         if self.plotview.skew is not None:
-            return [self.plotview.transform(_x, _y) for _x,_y in xy]
+            return [self.plotview.transform(_x, _y) for _x, _y in xy]
         else:
             return xy
 
@@ -3567,13 +3590,13 @@ class ScanTab(NXTab):
             lo, hi = self.plotview.axis[axis].get_limits()
             minbox, maxbox = self.minbox[axis], self.maxbox[axis]
             ilo, ihi = minbox.indexFromValue(lo), maxbox.indexFromValue(hi)
-            if (self.plotview.axis[axis] is self.plotview.xaxis or 
-                   self.plotview.axis[axis] is self.plotview.yaxis):
+            if (self.plotview.axis[axis] is self.plotview.xaxis or
+                    self.plotview.axis[axis] is self.plotview.yaxis):
                 ilo = ilo + 1
                 ihi = max(ilo, ihi-1)
                 if lo > minbox.value():
                     minbox.setValue(minbox.valueFromIndex(ilo))
-                if  hi < maxbox.value():
+                if hi < maxbox.value():
                     maxbox.setValue(maxbox.valueFromIndex(ihi))
         self.block_signals(False)
         self.draw_rectangle()
@@ -3592,15 +3615,15 @@ class ScanTab(NXTab):
         if self.ndim > 1:
             self.ybox.setCurrentIndex(tab.ybox.currentIndex())
         self.block_signals(False)
-        self.draw_rectangle()              
+        self.draw_rectangle()
 
     def reset(self):
         self.xbox.select(self.plotview.xaxis.name)
         self.ybox.select(self.plotview.yaxis.name)
         self.block_signals(True)
         for axis in range(self.ndim):
-            if (self.plotview.axis[axis] is self.plotview.xaxis or 
-                   self.plotview.axis[axis] is self.plotview.yaxis):
+            if (self.plotview.axis[axis] is self.plotview.xaxis or
+                    self.plotview.axis[axis] is self.plotview.yaxis):
                 self.minbox[axis].setValue(self.minbox[axis].data.min())
                 self.maxbox[axis].setValue(self.maxbox[axis].data.max())
             else:
@@ -3613,7 +3636,7 @@ class ScanTab(NXTab):
         self.update()
 
     def close(self):
-        for tab in [self.tabs[label] for label in self.tabs 
+        for tab in [self.tabs[label] for label in self.tabs
                     if self.tabs[label] is not self]:
             if self.tab_label in tab.copybox:
                 tab.copybox.remove(self.tab_label)
@@ -3635,7 +3658,7 @@ class ViewDialog(NXPanel):
     """Dialog to view a NeXus field"""
 
     def __init__(self, parent=None):
-        super().__init__('View', title='View Panel', apply=False, reset=False, 
+        super().__init__('View', title='View Panel', apply=False, reset=False,
                          parent=parent)
         self.tab_class = ViewTab
 
@@ -3662,7 +3685,7 @@ class ViewTab(NXTab):
 
         layout = QtWidgets.QVBoxLayout()
         self.properties = GridParameters()
-        
+
         self.properties.add('class', node.__class__.__name__, 'Class')
         self.properties.add('name', node.nxname, 'Name')
         self.properties.add('path', node.nxpath, 'Path')
@@ -3681,9 +3704,11 @@ class ViewTab(NXTab):
         if isinstance(node, NXlink):
             self.properties.add('target', node._target, target_path_label)
             if node._filename:
-                self.properties.add('linkfile', node._filename, target_file_label)
+                self.properties.add('linkfile', node._filename,
+                                    target_file_label)
             elif node.nxfilename and node.nxfilename != node.nxroot.nxfilename:
-                self.properties.add('linkfile', node.nxfilename, target_file_label)
+                self.properties.add('linkfile', node.nxfilename,
+                                    target_file_label)
         elif node.nxfilename and node.nxfilename != node.nxroot.nxfilename:
             self.properties.add('target', node.nxfilepath, 'Target Path')
             self.properties.add('linkfile', node.nxfilename, target_file_label)
@@ -3696,37 +3721,38 @@ class ViewTab(NXTab):
                 self.properties.add('value', str(node), 'Value')
             self.properties.add('dtype', node.dtype, 'Dtype')
             self.properties.add('shape', str(node.shape), 'Shape')
-            self.properties.add('maxshape', str(node.maxshape), 'Maximum Shape')
+            self.properties.add('maxshape', str(node.maxshape),
+                                'Maximum Shape')
             self.properties.add('fillvalue', str(node.fillvalue), 'Fill Value')
             self.properties.add('chunks', str(node.chunks), 'Chunk Size')
-            self.properties.add('compression', str(node.compression), 
+            self.properties.add('compression', str(node.compression),
                                 'Compression')
-            self.properties.add('compression_opts', str(node.compression_opts), 
+            self.properties.add('compression_opts', str(node.compression_opts),
                                 'Compression Options')
             self.properties.add('shuffle', str(node.shuffle), 'Shuffle Filter')
-            self.properties.add('fletcher32', str(node.fletcher32), 
+            self.properties.add('fletcher32', str(node.fletcher32),
                                 'Fletcher32 Filter')
         elif isinstance(node, NXgroup):
             self.properties.add('entries', len(node.entries), 'No. of Entries')
-        layout.addLayout(self.properties.grid(header=False, 
-                                              title='Properties', 
+        layout.addLayout(self.properties.grid(header=False,
+                                              title='Properties',
                                               width=200))
         if target_error:
             layout.addWidget(NXLabel(target_error))
-        
+
         if node.attrs:
             self.attributes = GridParameters()
             for attr in node.attrs:
                 self.attributes.add(attr, str(node.attrs[attr]), attr)
-            layout.addLayout(self.attributes.grid(header=False, 
-                                                  title='Attributes', 
+            layout.addLayout(self.attributes.grid(header=False,
+                                                  title='Attributes',
                                                   width=200))
 
         hlayout = QtWidgets.QHBoxLayout()
         hlayout.addStretch()
         hlayout.addLayout(layout)
-        if (isinstance(node, NXfield) and node.shape is not None and 
-               node.shape != () and node.shape != (1,)):
+        if (isinstance(node, NXfield) and node.shape is not None and
+                node.shape != () and node.shape != (1,)):
             hlayout.addLayout(self.table())
         hlayout.addStretch()
         self.setLayout(hlayout)
@@ -3747,11 +3773,11 @@ class ViewTab(NXTab):
             idx = []
             for i, s in enumerate(self.node.shape):
                 spinbox = NXSpinBox(self.choose_data, np.arange(s))
-                spinbox.setRange(0, s-1)   
+                spinbox.setRange(0, s-1)
                 if len(self.node.shape) - i > 2:
                     idx.append(0)
                 else:
-                    idx.append(np.s_[0:min(s,10)])
+                    idx.append(np.s_[0:min(s, 10)])
                     spinbox.setSingleStep(10)
                 self.spinboxes.append(spinbox)
             data = self.node[tuple(idx)][()]
@@ -3771,7 +3797,8 @@ class ViewTab(NXTab):
         self.table_view.setModel(self.table_model)
         self.table_view.setHorizontalScrollBarPolicy(
             QtCore.Qt.ScrollBarAlwaysOff)
-        self.table_view.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        self.table_view.setVerticalScrollBarPolicy(
+            QtCore.Qt.ScrollBarAlwaysOff)
         self.table_view.setSortingEnabled(False)
         self.set_size()
         layout.addWidget(self.table_view)
@@ -3783,7 +3810,7 @@ class ViewTab(NXTab):
         idx = [int(s.value()) for s in self.spinboxes]
         if len(idx) > 1:
             origin = [idx[-2], idx[-1]]
-            for i in [-2,-1]:
+            for i in [-2, -1]:
                 idx[i] = np.s_[idx[i]:min(self.node.shape[i], idx[i]+10)]
         else:
             origin = [idx[0], 0]
@@ -3812,11 +3839,11 @@ class ViewTableModel(QtCore.QAbstractTableModel):
         if len(data.shape) == 0:
             self.rows = 1
             self.columns = 1
-            return data.reshape((1,1))
+            return data.reshape((1, 1))
         elif len(data.shape) == 1:
             self.rows = data.shape[0]
             self.columns = 1
-            return data.reshape((data.shape[0],1))
+            return data.reshape((data.shape[0], 1))
         else:
             self.rows = data.shape[-2]
             self.columns = data.shape[-1]
@@ -3830,7 +3857,7 @@ class ViewTableModel(QtCore.QAbstractTableModel):
 
     def data(self, index, role):
         if not index.isValid():
-             return None
+            return None
         try:
             value = self._data[index.row()][index.column()]
         except IndexError:
@@ -3838,7 +3865,7 @@ class ViewTableModel(QtCore.QAbstractTableModel):
         text = str(value).lstrip('[').rstrip(']')
         if role == QtCore.Qt.DisplayRole:
             try:
-                return '%.6g' % float(text)
+                return f'{float(text):.6g}'
             except (TypeError, ValueError):
                 return (text[:10] + '..') if len(text) > 10 else text
         elif role == QtCore.Qt.ToolTipRole:
@@ -3846,10 +3873,10 @@ class ViewTableModel(QtCore.QAbstractTableModel):
         return None
 
     def headerData(self, position, orientation, role):
-        if (orientation == QtCore.Qt.Horizontal and 
-            role == QtCore.Qt.DisplayRole):
+        if (orientation == QtCore.Qt.Horizontal and
+                role == QtCore.Qt.DisplayRole):
             return str(self.origin[1] + range(10)[position])
-        elif (orientation == QtCore.Qt.Vertical and 
+        elif (orientation == QtCore.Qt.Vertical and
               role == QtCore.Qt.DisplayRole):
             return str(self.origin[0] + range(10)[position])
         return None
@@ -3859,14 +3886,15 @@ class ViewTableModel(QtCore.QAbstractTableModel):
         self._data = self.get_data(data)
         self.origin = origin
         self.layoutChanged.emit()
-        self.headerDataChanged.emit(QtCore.Qt.Horizontal, 0, 
+        self.headerDataChanged.emit(QtCore.Qt.Horizontal, 0,
                                     min(9, self.columns-1))
         self.headerDataChanged.emit(QtCore.Qt.Vertical, 0, min(9, self.rows-1))
 
-  
+
 class RemoteDialog(NXDialog):
     """Dialog to open a remote file.
-    """ 
+    """
+
     def __init__(self, parent=None):
 
         try:
@@ -3876,7 +3904,7 @@ class RemoteDialog(NXDialog):
             raise NeXusError("Please install h5pyd for remote data access")
 
         super().__init__()
- 
+
         self.parameters = GridParameters()
         self.parameters.add('server', nxgetserver(), 'Server')
         self.parameters.add('domain', nxgetdomain(), 'Domain')
@@ -3891,12 +3919,12 @@ class RemoteDialog(NXDialog):
             domain = self.parameters['domain'].value
             filepath = self.parameters['filepath'].value
             root = nxloadremote(filepath, server=server, domain=domain)
-            name = self.treeview.tree.get_name(filepath)               
+            name = self.treeview.tree.get_name(filepath)
             self.treeview.tree[name] = \
                 self.mainwindow.user_ns[name] = root
             logging.info(
-                "Opening remote NeXus file '%s' on '%s' as workspace '%s'"
-                % (root.nxfilename, root._file, name))
+                f"Opening remote NeXus file '{root.nxfilename}' on "
+                f"'{root._file}' as workspace '{name}'")
             super().accept()
         except NeXusError as error:
             report_error("Opening remote file", error)
@@ -3906,9 +3934,9 @@ class RemoteDialog(NXDialog):
 class AddDialog(NXDialog):
     """Dialog to add a NeXus node"""
 
-    data_types = ['char', 'float32', 'float64', 'int8', 'uint8', 'int16', 
+    data_types = ['char', 'float32', 'float64', 'int8', 'uint8', 'int16',
                   'uint16', 'int32', 'uint32', 'int64', 'uint64']
- 
+
     def __init__(self, node, parent=None):
 
         super().__init__(parent=parent)
@@ -3926,7 +3954,7 @@ class AddDialog(NXDialog):
         self.class_button = NXPushButton("Add", self.select_class)
         class_layout.addWidget(self.class_box)
         class_layout.addWidget(self.class_button)
-        class_layout.addStretch()       
+        class_layout.addStretch()
 
         if isinstance(self.node, NXfield):
             self.setWindowTitle("Add NeXus Attribute")
@@ -3935,7 +3963,7 @@ class AddDialog(NXDialog):
 
         self.layout = QtWidgets.QVBoxLayout()
         self.layout.addLayout(class_layout)
-        self.layout.addWidget(self.close_buttons()) 
+        self.layout.addWidget(self.close_buttons())
         self.setLayout(self.layout)
 
     def select_class(self):
@@ -3958,19 +3986,22 @@ class AddDialog(NXDialog):
         if class_name == "NXgroup":
             combo_label = NXLabel("Group Class:")
             self.combo_box = NXComboBox(self.select_combo)
-            standard_groups = sorted(list(set([g for g in 
-                self.mainwindow.nxclasses[self.node.nxclass][2]])))
+            standard_groups = sorted(
+                list(set([g for g in
+                          self.mainwindow.nxclasses[self.node.nxclass][2]])))
             for name in standard_groups:
                 self.combo_box.addItem(name)
-                self.combo_box.setItemData(self.combo_box.count()-1, 
+                self.combo_box.setItemData(
+                    self.combo_box.count() - 1,
                     wrap(self.mainwindow.nxclasses[name][0], 40),
                     QtCore.Qt.ToolTipRole)
             self.combo_box.insertSeparator(self.combo_box.count())
-            other_groups = sorted([g for g in self.mainwindow.nxclasses 
+            other_groups = sorted([g for g in self.mainwindow.nxclasses
                                    if g not in standard_groups])
             for name in other_groups:
                 self.combo_box.addItem(name)
-                self.combo_box.setItemData(self.combo_box.count()-1, 
+                self.combo_box.setItemData(
+                    self.combo_box.count() - 1,
                     wrap(self.mainwindow.nxclasses[name][0], 40),
                     QtCore.Qt.ToolTipRole)
             grid.addWidget(combo_label, 0, 0)
@@ -3981,15 +4012,15 @@ class AddDialog(NXDialog):
         elif class_name == "NXfield":
             combo_label = NXLabel()
             self.combo_box = NXComboBox(self.select_combo)
-            fields = sorted(list(set([g for g in 
+            fields = sorted(list(set([g for g in
                             self.mainwindow.nxclasses[self.node.nxclass][1]])))
             for name in fields:
                 self.combo_box.addItem(name)
                 self.combo_box.setItemData(
-                  self.combo_box.count()-1,
-                  wrap(self.mainwindow.nxclasses[self.node.nxclass][1][name][2], 
-                       40),
-                  QtCore.Qt.ToolTipRole)
+                    self.combo_box.count() - 1,
+                    wrap(self.mainwindow.nxclasses[self.node.nxclass][1]
+                         [name][2], 40),
+                    QtCore.Qt.ToolTipRole)
             grid.addWidget(name_label, 0, 0)
             grid.addWidget(self.name_box, 0, 1)
             grid.addWidget(self.combo_box, 0, 2)
@@ -4031,7 +4062,7 @@ class AddDialog(NXDialog):
 
     def select_combo(self):
         self.set_name(self.combo_box.currentText())
-    
+
     def get_name(self):
         return self.name_box.text()
 
@@ -4066,7 +4097,7 @@ class AddDialog(NXDialog):
             if dtype == "auto":
                 return None
             else:
-                return dtype 
+                return dtype
 
     def accept(self):
         name = self.get_name()
@@ -4078,36 +4109,34 @@ class AddDialog(NXDialog):
                 group = NXgroup(nxclass=nxclass)
                 name = group.nxname
                 self.node.insert(group)
-            logging.info("'%s' added to '%s'" 
-                         % (self.node[name], self.node.nxpath)) 
+            logging.info(f"'{self.node[name]}' added to '{self.node.nxpath}'")
         elif name:
             value = self.get_value()
             dtype = self.get_type()
             if value is not None:
                 if self.class_name == "NXfield":
                     self.node[name] = NXfield(value, dtype=dtype)
-                    logging.info("'%s' added to '%s'" 
-                                 % (name, self.node.nxpath)) 
+                    logging.info(f"'{name}' added to '{self.node.nxpath}'")
                     units = self.get_units()
                     if units:
                         self.node[name].attrs['units'] = units
                 else:
                     self.node.attrs[name] = NXattr(value, dtype=dtype)
-                    logging.info("Attribute '%s' added to '%s'" 
-                         % (name, self.node.nxpath)) 
+                    logging.info(
+                        f"Attribute '{name}' added to '{self.node.nxpath}'")
         super().accept()
 
-    
+
 class InitializeDialog(NXDialog):
     """Dialog to initialize a NeXus field node"""
 
-    data_types = ['float32', 'float64', 'int8', 'uint8', 'int16', 
+    data_types = ['float32', 'float64', 'int8', 'uint8', 'int16',
                   'uint16', 'int32', 'uint32', 'int64', 'uint64']
- 
+
     def __init__(self, node, parent=None):
 
         super().__init__(parent=parent)
- 
+
         self.node = node
 
         self.setWindowTitle("Initialize NeXus Data")
@@ -4118,13 +4147,13 @@ class InitializeDialog(NXDialog):
         name_label = NXLabel("Name:")
         self.name_box = NXLineEdit()
         self.combo_box = NXComboBox(self.select_combo)
-        fields = sorted(list(set([g for g in 
+        fields = sorted(list(set([g for g in
                         self.mainwindow.nxclasses[self.node.nxclass][1]])))
         for name in fields:
             self.combo_box.addItem(name)
             self.combo_box.setItemData(
-                self.combo_box.count()-1, 
-                wrap(self.mainwindow.nxclasses[self.node.nxclass][1][name][2], 
+                self.combo_box.count()-1,
+                wrap(self.mainwindow.nxclasses[self.node.nxclass][1][name][2],
                      40),
                 QtCore.Qt.ToolTipRole)
         grid.addWidget(name_label, 0, 0)
@@ -4150,12 +4179,12 @@ class InitializeDialog(NXDialog):
 
         self.layout = QtWidgets.QVBoxLayout()
         self.layout.addLayout(grid)
-        self.layout.addWidget(self.close_buttons()) 
+        self.layout.addWidget(self.close_buttons())
         self.setLayout(self.layout)
 
     def select_combo(self):
         self.set_name(self.combo_box.currentText())
-    
+
     def get_name(self):
         return self.name_box.text()
 
@@ -4199,17 +4228,17 @@ class InitializeDialog(NXDialog):
                 dtype = self.dtype
                 shape = self.shape
                 fillvalue = self.fillvalue
-                self.node[name] = NXfield(dtype=dtype, shape=shape, 
+                self.node[name] = NXfield(dtype=dtype, shape=shape,
                                           fillvalue=fillvalue)
-                logging.info("'%s' initialized in '%s'" 
-                         % (self.node[name], self.node.nxpath)) 
+                logging.info(
+                    f"'{self.node[name]}' initialized in '{self.node.nxpath}'")
                 super().accept()
             else:
                 raise NeXusError("Invalid name")
         except NeXusError as error:
             report_error("Initializing Data", error)
 
-    
+
 class RenameDialog(NXDialog):
     """Dialog to rename a NeXus node"""
 
@@ -4223,7 +4252,7 @@ class RenameDialog(NXDialog):
 
         self.layout = QtWidgets.QVBoxLayout()
         self.layout.addLayout(self.define_grid())
-        self.layout.addWidget(self.close_buttons()) 
+        self.layout.addWidget(self.close_buttons())
         self.setLayout(self.layout)
 
     def define_grid(self):
@@ -4234,25 +4263,28 @@ class RenameDialog(NXDialog):
         grid.addWidget(name_label, 0, 0)
         grid.addWidget(self.name_box, 0, 1)
         self.combo_box = None
-        if (isinstance(self.node, NXgroup) and 
-            not isinstance(self.node, NXlink) and 
-            self.node.nxclass != 'NXroot'):
+        if (isinstance(self.node, NXgroup) and
+            not isinstance(self.node, NXlink) and
+                self.node.nxclass != 'NXroot'):
             combo_label = NXLabel("New Class:")
             self.combo_box = NXComboBox()
             parent_class = self.node.nxgroup.nxclass
-            standard_groups = sorted(list(set([g for g in 
-                                  self.mainwindow.nxclasses[parent_class][2]])))
+            standard_groups = sorted(
+                list(set([g for g in
+                          self.mainwindow.nxclasses[parent_class][2]])))
             for name in standard_groups:
                 self.combo_box.addItem(name)
-                self.combo_box.setItemData(self.combo_box.count()-1, 
+                self.combo_box.setItemData(
+                    self.combo_box.count() - 1,
                     wrap(self.mainwindow.nxclasses[name][0], 40),
                     QtCore.Qt.ToolTipRole)
             self.combo_box.insertSeparator(self.combo_box.count())
-            other_groups = sorted([g for g in self.mainwindow.nxclasses 
+            other_groups = sorted([g for g in self.mainwindow.nxclasses
                                    if g not in standard_groups])
             for name in other_groups:
                 self.combo_box.addItem(name)
-                self.combo_box.setItemData(self.combo_box.count()-1, 
+                self.combo_box.setItemData(
+                    self.combo_box.count() - 1,
                     wrap(self.mainwindow.nxclasses[name][0], 40),
                     QtCore.Qt.ToolTipRole)
             self.combo_box.insertSeparator(self.combo_box.count())
@@ -4266,15 +4298,15 @@ class RenameDialog(NXDialog):
             if parent_class != 'NXroot' and parent_class != 'NXtree':
                 combo_label = NXLabel("Valid Fields:")
                 self.combo_box = NXComboBox(self.set_name)
-                fields = sorted(list(set([g for g in 
+                fields = sorted(list(set([g for g in
                                 self.mainwindow.nxclasses[parent_class][1]])))
                 for name in fields:
                     self.combo_box.addItem(name)
                     self.combo_box.setItemData(
-                       self.combo_box.count()-1, 
-                       wrap(self.mainwindow.nxclasses[parent_class][1][name][2], 
-                            40),
-                       QtCore.Qt.ToolTipRole)
+                        self.combo_box.count() - 1,
+                        wrap(self.mainwindow.nxclasses[parent_class][1]
+                             [name][2], 40),
+                        QtCore.Qt.ToolTipRole)
                 if self.node.nxname in fields:
                     self.combo_box.setCurrentIndex(
                         self.combo_box.findText(self.node.nxname))
@@ -4302,7 +4334,7 @@ class RenameDialog(NXDialog):
                 self.node.nxclass = self.get_class()
         super().accept()
 
-    
+
 class PasteDialog(NXDialog):
     """Dialog to paste to a NeXus group."""
 
@@ -4313,15 +4345,15 @@ class PasteDialog(NXDialog):
         self.node = node
         self.copied_node = self.mainwindow.copied_node
         path = node.nxroot.nxname + node.nxpath + '/' + self.copied_node.nxname
-        self.link = link        
+        self.link = link
 
         if self.copied_node.nxname in node:
             self.copied_node.nxname = self.copied_node.nxname + '_copy'
 
         self.parameters = GridParameters()
-        self.parameters.add('name', self.copied_node.nxname, 
+        self.parameters.add('name', self.copied_node.nxname,
                             'Name of pasted node')
-        self.set_layout(self.parameters.grid(header=False, spacing=10), 
+        self.set_layout(self.parameters.grid(header=False, spacing=10),
                         self.close_layout(save=True))
 
         self.set_title(f"Pasting '{path}'")
@@ -4339,12 +4371,12 @@ class PasteDialog(NXDialog):
                 self.node.insert(self.copied_node)
             super().accept()
         except NeXusError as error:
-            report_error("Pasting Data", error)            
+            report_error("Pasting Data", error)
 
-    
+
 class SignalDialog(NXDialog):
     """Dialog to set the signal of NXdata"""
- 
+
     def __init__(self, node, parent=None):
 
         super().__init__(parent=parent)
@@ -4359,14 +4391,14 @@ class SignalDialog(NXDialog):
             else:
                 signal_name = None
 
-        self.signal_combo =  NXComboBox() 
+        self.signal_combo = NXComboBox()
         for node in self.group.values():
             if isinstance(node, NXfield) and node.shape != ():
                 self.signal_combo.addItem(node.nxname)
         if self.signal_combo.count() == 0:
             raise NeXusError("No plottable field in group")
         if signal_name:
-            idx =  self.signal_combo.findText(signal_name)
+            idx = self.signal_combo.findText(signal_name)
             if idx >= 0:
                 self.signal_combo.setCurrentIndex(idx)
             else:
@@ -4391,7 +4423,7 @@ class SignalDialog(NXDialog):
         self.layout.addWidget(self.close_buttons())
         self.setLayout(self.layout)
 
-        self.setWindowTitle("Set signal for %s" % self.group.nxname)
+        self.setWindowTitle(f"Set signal for {self.group.nxname}")
 
     @property
     def signal(self):
@@ -4408,12 +4440,11 @@ class SignalDialog(NXDialog):
             self.axis_boxes[axis] = self.axis_box(axis)
             if self.axis_boxes[axis] is not None:
                 row += 1
-                self.grid.addWidget(NXLabel("Axis %s: " % axis), 
-                                    row, 0)
+                self.grid.addWidget(NXLabel(f"Axis {axis}: "), row, 0)
                 self.grid.addWidget(self.axis_boxes[axis], row, 1)
         while row < self.grid.rowCount() - 1:
             self.remove_axis(row)
-            row += 1   
+            row += 1
 
     def axis_box(self, axis=0):
         box = NXComboBox(self.choose_axis)
@@ -4436,7 +4467,7 @@ class SignalDialog(NXDialog):
         return box
 
     def choose_axis(self):
-        axes = [self.axis_boxes[axis].currentText() 
+        axes = [self.axis_boxes[axis].currentText()
                 for axis in range(self.ndim)]
         axes = [axis_name for axis_name in axes if axis_name != 'None']
         if len(set(axes)) < len(axes):
@@ -4451,7 +4482,7 @@ class SignalDialog(NXDialog):
                 if widget is not None:
                     widget.setVisible(False)
                     self.grid.removeWidget(widget)
-                    widget.deleteLater()           
+                    widget.deleteLater()
 
     def check_axis(self, node, axis):
         if len(node.shape) > 1:
@@ -4483,29 +4514,29 @@ class SignalDialog(NXDialog):
             report_error("Setting signal", error)
             super().reject()
 
-    
+
 class LogDialog(NXDialog):
     """Dialog to display a NeXpy log file"""
- 
+
     def __init__(self, parent=None):
 
         super().__init__(parent=parent)
- 
+
         self.log_directory = self.mainwindow.nexpy_dir
- 
+
         self.text_box = QtWidgets.QTextEdit()
         self.text_box.setMinimumWidth(800)
         self.text_box.setMinimumHeight(600)
         self.text_box.setFocusPolicy(QtCore.Qt.StrongFocus)
         self.text_box.setReadOnly(True)
         self.file_combo = NXComboBox(self.show_log)
-        for file_name in self.get_filesindirectory('nexpy', extension='.log*',
-                                                directory=self.log_directory):
+        for file_name in self.get_filesindirectory(
+                'nexpy', extension='.log*', directory=self.log_directory):
             self.file_combo.add(file_name)
         self.file_combo.select('nexpy.log')
         self.issue_button = NXPushButton('Open NeXpy Issue', self.open_issue)
         footer_layout = self.make_layout(self.issue_button,
-                                         'stretch', 
+                                         'stretch',
                                          self.file_combo, 'stretch',
                                          self.close_buttons(close=True),
                                          align='justified')
@@ -4530,7 +4561,7 @@ class LogDialog(NXDialog):
             self.text_box.setText(convertHTML(f.read()))
         self.text_box.verticalScrollBar().setValue(
             self.text_box.verticalScrollBar().maximum())
-        self.setWindowTitle("Log File: %s" % self.file_name)
+        self.setWindowTitle(f"Log File: {self.file_name}")
         self.setVisible(True)
         self.raise_()
         self.activateWindow()
@@ -4557,10 +4588,11 @@ class UnlockDialog(NXDialog):
             default = False
 
         self.set_layout(self.labels(
-                            "<b>Are you sure you want to unlock the file?</b>"),
-                        self.checkboxes(('backup', 'Backup file (%s)' 
-                                         % human_size(file_size), default)),
-                        self.close_buttons())
+            "<b>Are you sure you want to unlock the file?</b>"),
+            self.checkboxes(('backup',
+                             f'Backup file ({human_size(file_size)})',
+                             default)),
+            self.close_buttons())
         self.set_title('Unlocking File')
 
     def accept(self):
@@ -4571,10 +4603,11 @@ class UnlockDialog(NXDialog):
                 self.node.backup(dir=dir)
                 self.mainwindow.settings.set('backups', self.node.nxbackup)
                 self.mainwindow.settings.save()
-                logging.info("Workspace '%s' backed up to '%s'" 
-                             % (self.node.nxname, self.node.nxbackup))
+                logging.info(
+                    f"Workspace '{self.node.nxname}' backed up to "
+                    f"'{self.node.nxbackup}'")
             self.node.unlock()
-            logging.info("Workspace '%s' unlocked" % self.node.nxname)
+            logging.info(f"Workspace '{self.node.nxname}' unlocked")
             super().accept()
         except NeXusError as error:
             report_error("Unlocking file", error)
@@ -4586,7 +4619,7 @@ class ManageBackupsDialog(NXDialog):
     def __init__(self, parent=None):
 
         super().__init__(parent=parent, default=True)
- 
+
         self.backup_dir = self.mainwindow.backup_dir
         self.mainwindow.settings.read(self.mainwindow.settings_file)
         options = reversed(self.mainwindow.settings.options('backups'))
@@ -4604,14 +4637,14 @@ class ManageBackupsDialog(NXDialog):
             name = self.get_name(backup)
             size = os.path.getsize(backup)
             items.append(
-                self.checkboxes((backup, '%s: %s (%s)' 
-                                         % (date, name, human_size(size)), 
+                self.checkboxes((backup,
+                                 f"{date}: {name} ({human_size(size)})",
                                  False), align='left'))
         self.scroll_widget = NXWidget()
         self.scroll_widget.set_layout(*items)
         self.scroll_area.setWidget(self.scroll_widget)
 
-        self.set_layout(self.scroll_area, 
+        self.set_layout(self.scroll_area,
                         self.action_buttons(('Restore Files', self.restore),
                                             ('Delete Files', self.delete)),
                         self.close_buttons(close=True))
@@ -4626,7 +4659,8 @@ class ManageBackupsDialog(NXDialog):
         for backup in self.checkbox:
             if self.checkbox[backup].isChecked():
                 name = self.tree.get_name(self.get_name(backup))
-                self.tree[name] = self.mainwindow.user_ns[name] = nxload(backup)
+                self.tree[name] = self.mainwindow.user_ns[name] = nxload(
+                    backup)
                 self.checkbox[backup].setChecked(False)
                 self.checkbox[backup].setDisabled(True)
 
@@ -4636,14 +4670,15 @@ class ManageBackupsDialog(NXDialog):
             if self.checkbox[backup].isChecked():
                 backups.append(backup)
         if backups:
-            if self.confirm_action("Delete selected backups?", 
+            if self.confirm_action("Delete selected backups?",
                                    "\n".join(backups)):
                 for backup in backups:
-                    if (os.path.exists(backup) and 
-                        os.path.realpath(backup).startswith(self.backup_dir)):
+                    if (os.path.exists(backup) and
+                            os.path.realpath(backup).startswith(
+                                self.backup_dir)):
                         os.remove(os.path.realpath(backup))
-                        os.rmdir(os.path.dirname(os.path.realpath(backup))) 
-                        self.mainwindow.settings.remove_option('backups', 
+                        os.rmdir(os.path.dirname(os.path.realpath(backup)))
+                        self.mainwindow.settings.remove_option('backups',
                                                                backup)
                     self.checkbox[backup].setChecked(False)
                     self.checkbox[backup].setDisabled(True)
@@ -4658,16 +4693,18 @@ class InstallPluginDialog(NXDialog):
         super().__init__(parent=parent)
 
         self.local_directory = self.mainwindow.plugin_dir
-        self.nexpy_directory = pkg_resources.resource_filename('nexpy', 
+        self.nexpy_directory = pkg_resources.resource_filename('nexpy',
                                                                'plugins')
         self.backup_dir = self.mainwindow.backup_dir
 
         self.setWindowTitle("Install Plugin")
 
-        self.set_layout(self.directorybox('Choose plugin directory'), 
-                        self.radiobuttons(('local', 'Install locally', True),
-                                          ('nexpy', 'Install in NeXpy', False)), 
-                        self.close_buttons())
+        self.set_layout(
+            self.directorybox('Choose plugin directory'),
+            self.radiobuttons(
+                ('local', 'Install locally', True),
+                ('nexpy', 'Install in NeXpy', False)),
+            self.close_buttons())
         self.set_title('Installing Plugin')
 
     def get_menu_name(self, plugin_name, plugin_path):
@@ -4678,7 +4715,7 @@ class InstallPluginDialog(NXDialog):
         except Exception as error:
             report_error("Installing Plugin", error)
 
-    def install_plugin(self):        
+    def install_plugin(self):
         plugin_directory = self.get_directory()
         plugin_name = os.path.basename(os.path.normpath(plugin_directory))
         plugin_path = os.path.dirname(plugin_directory)
@@ -4691,21 +4728,21 @@ class InstallPluginDialog(NXDialog):
             plugin_path = self.nexpy_directory
         installed_path = os.path.join(plugin_path, plugin_name)
         if os.path.exists(installed_path):
-            if self.confirm_action("Overwrite plugin?", 
-                                   "Plugin '%s' already exists" % plugin_name):
+            if self.confirm_action("Overwrite plugin?",
+                                   f"Plugin '{plugin_name}' already exists"):
                 backup = os.path.join(self.backup_dir, timestamp())
                 os.mkdir(backup)
                 shutil.move(installed_path, backup)
-                self.mainwindow.settings.set('plugins', 
+                self.mainwindow.settings.set('plugins',
                                              os.path.join(backup, plugin_name))
                 self.mainwindow.settings.save()
             else:
                 return
         shutil.copytree(plugin_directory, installed_path)
-        for action in [action for action 
-                       in self.mainwindow.menuBar().actions() 
+        for action in [action for action
+                       in self.mainwindow.menuBar().actions()
                        if action.text() == plugin_menu_name]:
-            self.mainwindow.menuBar().removeAction(action)   
+            self.mainwindow.menuBar().removeAction(action)
         self.mainwindow.add_plugin_menu(plugin_name, [plugin_path])
 
     def accept(self):
@@ -4722,17 +4759,17 @@ class RemovePluginDialog(NXDialog):
     def __init__(self, parent=None):
 
         super().__init__(parent=parent)
- 
+
         self.local_directory = self.mainwindow.plugin_dir
-        self.nexpy_directory = pkg_resources.resource_filename('nexpy', 
+        self.nexpy_directory = pkg_resources.resource_filename('nexpy',
                                                                'plugins')
         self.backup_dir = self.mainwindow.backup_dir
 
         self.setWindowTitle("Remove Plugin")
 
-        self.set_layout(self.directorybox('Choose plugin directory'), 
+        self.set_layout(self.directorybox('Choose plugin directory'),
                         self.radiobuttons(('local', 'Local plugin', True),
-                                          ('nexpy', 'NeXpy plugin', False)), 
+                                          ('nexpy', 'NeXpy plugin', False)),
                         self.close_buttons())
         self.set_title('Removing Plugin')
         self.radiobutton['local'].clicked.connect(self.set_local_directory)
@@ -4752,34 +4789,34 @@ class RemovePluginDialog(NXDialog):
             plugin_module = import_plugin(plugin_name, [plugin_path])
             name, _ = plugin_module.plugin_menu()
             return name
-        except:
+        except Exception:
             return None
 
     def remove_plugin(self):
         plugin_directory = self.get_directory()
         if (os.path.dirname(plugin_directory) != self.local_directory and
-            os.path.dirname(plugin_directory) != self.nexpy_directory):
-            raise NeXusError("Directory '%s' not in plugins directory"
-                             % plugin_directory)
+                os.path.dirname(plugin_directory) != self.nexpy_directory):
+            raise NeXusError(
+                f"Directory '{plugin_directory}' not in plugins directory")
         plugin_name = os.path.basename(os.path.normpath(plugin_directory))
         plugin_menu_name = self.get_menu_name(plugin_name, plugin_directory)
         if plugin_menu_name is None:
             raise NeXusError("This directory does not contain a valid plugin")
         if os.path.exists(plugin_directory):
-            if self.confirm_action("Remove '%s'?" % plugin_directory, 
+            if self.confirm_action(f"Remove '{plugin_directory}'?",
                                    "This cannot be reversed"):
                 backup = os.path.join(self.backup_dir, timestamp())
                 os.mkdir(backup)
                 shutil.move(plugin_directory, backup)
-                self.mainwindow.settings.set('plugins', 
+                self.mainwindow.settings.set('plugins',
                                              os.path.join(backup, plugin_name))
                 self.mainwindow.settings.save()
             else:
                 return
-        for action in [action for action 
-                       in self.mainwindow.menuBar().actions() 
-                        if action.text().lower() == plugin_name.lower()]:
-            self.mainwindow.menuBar().removeAction(action)   
+        for action in [action for action
+                       in self.mainwindow.menuBar().actions()
+                       if action.text().lower() == plugin_name.lower()]:
+            self.mainwindow.menuBar().removeAction(action)
 
     def accept(self):
         try:
@@ -4788,15 +4825,16 @@ class RemovePluginDialog(NXDialog):
         except NeXusError as error:
             report_error("Removing plugin", error)
 
+
 class RestorePluginDialog(NXDialog):
     """Dialog to restore plugins from backups"""
 
     def __init__(self, parent=None):
 
         super().__init__(parent=parent, default=True)
- 
+
         self.local_directory = self.mainwindow.plugin_dir
-        self.nexpy_directory = pkg_resources.resource_filename('nexpy', 
+        self.nexpy_directory = pkg_resources.resource_filename('nexpy',
                                                                'plugins')
         self.backup_dir = self.mainwindow.backup_dir
 
@@ -4816,9 +4854,9 @@ class RestorePluginDialog(NXDialog):
                 checked = True
             else:
                 checked = False
-            plugin_list.append((plugin, '%s: %s' % (date, name), checked)) 
+            plugin_list.append((plugin, f"{date}: {name}", checked))
         items = []
-        items.append(self.radiobuttons(*plugin_list, align='left', 
+        items.append(self.radiobuttons(*plugin_list, align='left',
                                        vertical=True))
         items.append(self.radiobuttons(('local', 'Install locally', True),
                                        ('nexpy', 'Install in NeXpy', False)))
@@ -4863,12 +4901,12 @@ class RestorePluginDialog(NXDialog):
             plugin_path = self.nexpy_directory
         restored_path = os.path.join(plugin_path, plugin_name)
         if os.path.exists(restored_path):
-            if self.confirm_action("Overwrite plugin?", 
-                                   "Plugin '%s' already exists" % plugin_name):
+            if self.confirm_action("Overwrite plugin?",
+                                   f"Plugin '{plugin_name}' already exists"):
                 backup = os.path.join(self.backup_dir, timestamp())
                 os.mkdir(backup)
                 shutil.move(restored_path, backup)
-                self.mainwindow.settings.set('plugins', 
+                self.mainwindow.settings.set('plugins',
                                              os.path.join(backup, plugin_name))
                 self.mainwindow.settings.save()
             else:
@@ -4876,10 +4914,10 @@ class RestorePluginDialog(NXDialog):
         shutil.copytree(plugin_directory, restored_path)
         self.remove_backup(plugin_directory)
 
-        for action in [action for action 
-                       in self.mainwindow.menuBar().actions() 
+        for action in [action for action
+                       in self.mainwindow.menuBar().actions()
                        if action.text() == plugin_menu_name]:
-            self.mainwindow.menuBar().removeAction(action)   
+            self.mainwindow.menuBar().removeAction(action)
         self.mainwindow.add_plugin_menu(plugin_name, [plugin_path])
 
         self.accept()

@@ -7,7 +7,7 @@
 #
 # The full license is in the file COPYING, distributed with this software.
 # -----------------------------------------------------------------------------
-"""package requirements are checked at runtime and installation time"""
+"""Package requirements are checked at runtime and installation time"""
 
 pkg_requirements = [
     'nexusformat>=0.7.1',

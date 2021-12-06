@@ -1,13 +1,13 @@
-#!/usr/bin/env python 
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Copyright (c) 2013-2021, NeXpy Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file COPYING, distributed with this software.
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 import importlib
 import inspect
 import os
@@ -43,7 +43,7 @@ def get_functions():
             if name != '__init__' and ext.startswith('.py'):
                 filenames.add(name)
 
-    functions_path = pkg_resources.resource_filename('nexpy.api.frills', 
+    functions_path = pkg_resources.resource_filename('nexpy.api.frills',
                                                      'functions')
     sys.path.append(functions_path)
     for file_ in os.listdir(functions_path):
@@ -62,7 +62,9 @@ def get_functions():
 
     return functions
 
+
 all_functions = get_functions()
+
 
 def get_models():
     """Return a list of available models."""
@@ -74,8 +76,8 @@ def get_models():
 
     filenames = set()
 
-    models_path = pkg_resources.resource_filename('nexpy.api.frills', 
-                                                     'models')
+    models_path = pkg_resources.resource_filename('nexpy.api.frills',
+                                                  'models')
     sys.path.append(models_path)
     for file_ in os.listdir(models_path):
         name, ext = os.path.splitext(file_)
@@ -93,15 +95,18 @@ def get_models():
     for name in sorted(filenames):
         try:
             module = importlib.import_module(name)
-            models.update(dict((n.strip('Model'), m) 
-                for n, m in inspect.getmembers(module, inspect.isclass) 
-                if issubclass(m, Model) and n != 'Model'))
+            models.update(dict((n.strip('Model'), m)
+                               for n, m in inspect.getmembers(module,
+                                                              inspect.isclass)
+                               if issubclass(m, Model) and n != 'Model'))
         except ImportError:
             pass
 
     return models
 
+
 all_models = get_models()
+
 
 def get_methods():
     methods = {'leastsq': 'Levenberg-Marquardt',
@@ -109,7 +114,7 @@ def get_methods():
                                 'using Trust Region Reflective method',
                'differential_evolution': 'differential evolution',
                'nelder': 'Nelder-Mead',
-               'lbfgsb':' L-BFGS-B',
+               'lbfgsb': ' L-BFGS-B',
                'powell': 'Powell',
                'cg': 'Conjugate-Gradient',
                'newton': 'Newton-CG',
@@ -124,6 +129,7 @@ def get_methods():
                'slsqp': 'Sequential Linear Squares Programming'}
     return methods
 
+
 all_methods = get_methods()
 
 
@@ -133,30 +139,31 @@ class NXModel(Model):
 
     def __init__(self, module, **kwargs):
         self.module = module
-        super().__init__(self.module.values, 
+        super().__init__(self.module.values,
                          param_names=self.module.parameters,
                          independent_vars=self._get_x(), **kwargs)
 
     def _parse_params(self):
         if self._prefix is None:
             self._prefix = ''
-        self._param_names = ["%s%s" % (self._prefix, p) 
+        self._param_names = [f"{self._prefix}{p}"
                              for p in self._param_root_names]
         self.def_vals = {}
 
     def _get_x(self):
-        return [key for key in inspect.signature(self.module.values).parameters 
+        return [key for key in inspect.signature(self.module.values).parameters
                 if key != 'p']
 
     def make_funcargs(self, params=None, kwargs=None, strip=True):
         self._func_allargs = ['x'] + self._param_root_names
         out = super().make_funcargs(params=params, kwargs=kwargs, strip=strip)
         function_out = {}
-        function_out['p'] = [out[p] for p in out if p in self._param_root_names]
+        function_out['p'] = [out[p]
+                             for p in out if p in self._param_root_names]
         for key in out:
             if key not in self._param_root_names:
                 function_out[key] = out[key]
-        return function_out            
+        return function_out
 
     def guess(self, y, x=None, **kwargs):
         _guess = self.module.guess(x, y)
@@ -169,14 +176,14 @@ class NXModel(Model):
 class FitDialog(NXPanel):
 
     def __init__(self, parent=None):
-        super().__init__('Fit', title='Fit Panel', apply=True, reset=True, 
+        super().__init__('Fit', title='Fit Panel', apply=True, reset=True,
                          parent=parent)
-        self.setMinimumWidth(850)        
+        self.setMinimumWidth(850)
         self.tab_class = FitTab
 
     def activate(self, data, plotview=None, color='C0'):
         if plotview:
-            label = plotview.label + ': ' + str(plotview.num) 
+            label = plotview.label + ': ' + str(plotview.num)
         else:
             label = data.nxroot.nxname + data.nxpath
         super().activate(label, data, plotview=plotview, color=color)
@@ -184,13 +191,13 @@ class FitDialog(NXPanel):
 
 class FitTab(NXTab):
     """Dialog to fit one-dimensional NeXus data"""
- 
+
     def __init__(self, label, data, plotview=None, color='C0', parent=None):
 
         super().__init__(label, parent=parent)
- 
+
         if ((isinstance(data, NXentry) or isinstance(data, NXprocess))
-             and 'data' in data):
+                and 'data' in data):
             group = data
             self.initialize_data(group['data'])
         elif isinstance(data, NXdata):
@@ -204,15 +211,15 @@ class FitTab(NXTab):
 
         self.model = None
         self.models = []
- 
+
         self.first_time = True
         self.fitted = False
         self.fit = None
 
         self.initialize_models()
- 
+
         add_button = NXPushButton("Add Model", self.add_model)
-        self.model_combo = NXComboBox(items=list(self.all_models), 
+        self.model_combo = NXComboBox(items=list(self.all_models),
                                       slot=self.choose_model)
         if 'Gaussian' in self.model_combo:
             self.model_combo.select('Gaussian')
@@ -226,21 +233,22 @@ class FitTab(NXTab):
             if tooltip:
                 tooltip = tooltip.replace('.. math::\n\n', '')
                 tooltip = re.sub(r'\:[a-z]*\:', r'', tooltip)
-                self.model_combo.setItemData(i, text(tooltip), 
+                self.model_combo.setItemData(i, text(tooltip),
                                              QtCore.Qt.ToolTipRole)
         self.form_combo = NXComboBox()
-        self.compose_button = NXPushButton("Compose Models", self.compose_model)
-        model_layout = self.make_layout(add_button, self.model_combo, 
+        self.compose_button = NXPushButton(
+            "Compose Models", self.compose_model)
+        model_layout = self.make_layout(add_button, self.model_combo,
                                         self.form_combo, 'stretch',
                                         self.compose_button, align='justified')
-        
+
         self.parameter_layout = self.initialize_parameter_grid()
 
         self.remove_button = NXPushButton("Remove Model", self.remove_model)
         self.remove_combo = NXComboBox()
-        self.restore_button = NXPushButton("Restore Parameters", 
+        self.restore_button = NXPushButton("Restore Parameters",
                                            self.restore_parameters)
-        self.save_parameters_button = NXPushButton("Save Parameters", 
+        self.save_parameters_button = NXPushButton("Save Parameters",
                                                    self.save_parameters)
         self.remove_layout = self.make_layout(self.remove_button,
                                               self.remove_combo,
@@ -264,10 +272,10 @@ class FitTab(NXTab):
         for i, m in enumerate(all_methods):
             tooltip = all_methods[m]
             if tooltip:
-                self.fit_combo.setItemData(i, text(tooltip), 
+                self.fit_combo.setItemData(i, text(tooltip),
                                            QtCore.Qt.ToolTipRole)
         self.fit_combo.sort()
-        self.fit_combo.select('leastsq') 
+        self.fit_combo.select('leastsq')
         if self._data.nxerrors:
             self.fit_checkbox = NXCheckBox('Use Errors', checked=True)
         else:
@@ -295,9 +303,9 @@ class FitTab(NXTab):
         self.mask_button = NXPushButton('Mask Data', self.mask_data)
         self.clear_mask_button = NXPushButton('Clear Masks', self.clear_masks)
         self.color_box = NXColorBox(color, label='Plot Color', width=100)
-        self.plot_layout = self.make_layout(plot_data_button, 
+        self.plot_layout = self.make_layout(plot_data_button,
                                             self.plot_model_button,
-                                            self.plot_combo, 
+                                            self.plot_combo,
                                             self.plot_checkbox,
                                             self.mask_button,
                                             self.clear_mask_button,
@@ -305,14 +313,14 @@ class FitTab(NXTab):
                                             self.color_box,
                                             align='justified')
         self.clear_mask_button.setVisible(False)
-        
+
         self.set_layout(model_layout, self.plot_layout)
         self.layout.setSpacing(5)
         self.set_title("Fit NeXus Data")
         self.choose_model()
         self.set_button_visibility()
 
-        self.cid = self.fitview.canvas.mpl_connect('button_release_event', 
+        self.cid = self.fitview.canvas.mpl_connect('button_release_event',
                                                    self.on_button_release)
         self.composite_model = ''
         self.composite_dialog = None
@@ -320,7 +328,7 @@ class FitTab(NXTab):
         self.expression_dialog = None
         self.rectangle = None
         self.mask_num = None
-        self.linestyles = [linestyles[ls] for ls in linestyles 
+        self.linestyles = [linestyles[ls] for ls in linestyles
                            if ls != 'Solid' and ls != 'None']
         self.linestyle = cycle(self.linestyles)
         self.xlo, self.xhi = self.fitview.ax.get_xlim()
@@ -330,7 +338,7 @@ class FitTab(NXTab):
             self.load_fit(group)
 
     def __repr__(self):
-        return 'FitTab("%s")' % self.data_label
+        return f'FitTab("{self.data_label}")'
 
     @property
     def fitview(self):
@@ -395,7 +403,7 @@ class FitTab(NXTab):
         self.scroll_area.setMinimumWidth(800)
         self.scroll_area.setSizePolicy(QtWidgets.QSizePolicy.Minimum,
                                        QtWidgets.QSizePolicy.Expanding)
-        
+
         grid_layout.addWidget(self.scroll_area)
         return grid_layout
 
@@ -472,7 +480,8 @@ class FitTab(NXTab):
             errors = data.nxerrors.nxdata.astype(np.float64)
             signal = data['signal'].nxdata
             if isinstance(signal, np.ma.MaskedArray):
-                return np.ma.masked_array(errors, mask=signal.mask).compressed()
+                return np.ma.masked_array(
+                    errors, mask=signal.mask).compressed()
             else:
                 return errors
         else:
@@ -488,9 +497,9 @@ class FitTab(NXTab):
     def signal_mask(self):
         mask = self._data['signal'].mask
         if mask and mask.any():
-            mask_data = NXfield(self._data['signal'].nxdata.data[mask==True], 
+            mask_data = NXfield(self._data['signal'].nxdata.data[mask is True],
                                 name='mask')
-            mask_axis = NXfield(self._data['axis'].nxdata[mask==True], 
+            mask_axis = NXfield(self._data['axis'].nxdata[mask is True],
                                 name='axis')
             return NXdata(mask_data, mask_axis)
         else:
@@ -499,7 +508,7 @@ class FitTab(NXTab):
     def define_errors(self):
         if self.poisson_errors:
             if self.fit_checkbox.isChecked():
-                self._data.nxerrors = np.sqrt(np.where(self._data.nxsignal<1, 
+                self._data.nxerrors = np.sqrt(np.where(self._data.nxsignal < 1,
                                                        1, self._data.nxsignal))
             else:
                 del self._data[self._data.nxerrors.nxname]
@@ -515,13 +524,13 @@ class FitTab(NXTab):
                 signal[idx] = np.ma.masked
             self.cursor.remove_selection(self.cursor.selections[0])
         elif self.rectangle:
-            signal[(axis>=self.xlo) & (axis<=self.xhi)] = np.ma.masked
+            signal[(axis >= self.xlo) & (axis <= self.xhi)] = np.ma.masked
         else:
-            display_message("Masking Data",
-            "There are two methods to mask data:\n\n" +
-            "1) Select data with a right-click zoom and click 'Mask Data'\n" +
-            "2) Double-click points to be masked (needs 'mplcursor' package)", 
-                width=350)
+            display_message(
+                "Masking Data",
+                "There are two methods to mask data:\n\n"
+                "1) Select data with right-click zoom and click 'Mask Data'\n"
+                "2) Double-click points to be masked", width=350)
             return
         self.plot_mask()
         if np.ma.is_masked(signal.nxvalue):
@@ -566,11 +575,11 @@ class FitTab(NXTab):
         return self.color_box.textbox.text()
 
     def compressed_name(self, name):
-        return re.sub(r'([a-zA-Z_ ]*) [#] (\d*)$', r'\1_\2', 
+        return re.sub(r'([a-zA-Z_ ]*) [#] (\d*)$', r'\1_\2',
                       name, count=1).replace(' ', '_')
 
     def expanded_name(self, name):
-        return re.sub(r'([a-zA-Z_]*)_(\d*)$', r'\1 # \2', 
+        return re.sub(r'([a-zA-Z_]*)_(\d*)$', r'\1 # \2',
                       name, count=1).replace('_', ' ').strip()
 
     def parse_model_name(self, name):
@@ -588,16 +597,16 @@ class FitTab(NXTab):
         self.models = []
         if 'fit' in group.entries or 'model' in group.entries:
             for name in group.entries:
-                if ('parameters' in group[name] and 
-                    'model' in group[name]['parameters'].attrs):
+                if ('parameters' in group[name] and
+                        'model' in group[name]['parameters'].attrs):
                     model_class = group[name]['parameters'].attrs['model']
                     model_name = name
                 else:
                     model_class, model_index = self.parse_model_name(name)
                     model_name = model_class + '_' + model_index
-                    if (model_class and model_class not in self.all_models and 
-                        model_class+'Model' in self.all_models):
-                        model_class = model_class + 'Model'          
+                    if (model_class and model_class not in self.all_models and
+                            model_class+'Model' in self.all_models):
+                        model_class = model_class + 'Model'
                 if model_class in self.all_models:
                     model = self.get_model_instance(model_class, model_name)
                     parameters = model.make_params()
@@ -613,9 +622,11 @@ class FitTab(NXTab):
                             parameter.max = float(
                                 saved_parameters[p].attrs['max'])
                             if 'vary' in saved_parameters[p].attrs:
-                                parameter.vary = saved_parameters[p].attrs['vary']
+                                parameter.vary = (
+                                    saved_parameters[p].attrs['vary'])
                             if 'expr' in saved_parameters[p].attrs:
-                                parameter.expr = saved_parameters[p].attrs['expr']
+                                parameter.expr = (
+                                    saved_parameters[p].attrs['expr'])
                             else:
                                 parameter.expr = None
                             if 'error' in saved_parameters[p].attrs:
@@ -628,9 +639,10 @@ class FitTab(NXTab):
                                     parameter.vary = False
                     self.models.append({'name': model_name,
                                         'class': model_class,
-                                        'model': model, 
+                                        'model': model,
                                         'parameters': parameters})
             self.parameters = self.parameters
+
             def idx(model):
                 return int(re.match('.*?([0-9]+)$', model['name']).group(1))
             self.models = sorted(self.models, key=idx)
@@ -687,11 +699,11 @@ class FitTab(NXTab):
                 self.form_combo.setVisible(False)
         except AttributeError:
             self.form_combo.setVisible(False)
-               
+
     def add_model(self):
         model_class = self.model_combo.selected
         model_index = len(self.models)
-        model_name = (model_class.replace('Model', '').replace(' ', '_') 
+        model_name = (model_class.replace('Model', '').replace(' ', '_')
                       + '_' + str(model_index+1))
         model = self.get_model_instance(model_class, model_name)
         try:
@@ -704,7 +716,7 @@ class FitTab(NXTab):
             parameters = model.make_params()
         self.models.append({'name': model_name,
                             'class': model_class,
-                            'model': model, 
+                            'model': model,
                             'parameters': parameters})
         self.add_model_parameters(model_index)
         self.write_parameters()
@@ -717,7 +729,7 @@ class FitTab(NXTab):
         else:
             self.composite_model = model_name
         self.set_button_visibility()
- 
+
     def add_model_parameters(self, model_index):
         self.add_model_rows(model_index)
         if self.first_time:
@@ -737,8 +749,8 @@ class FitTab(NXTab):
                                self.expanded_name(model_name))
         self.first_time = False
 
-    def add_model_rows(self, model_index): 
-        model = self.models[model_index]['model']     
+    def add_model_rows(self, model_index):
+        model = self.models[model_index]['model']
         model_name = self.models[model_index]['name']
         parameters = self.models[model_index]['parameters']
         first_row = row = self.parameter_grid.rowCount()
@@ -751,7 +763,7 @@ class FitTab(NXTab):
             if name == 'Fwhm':
                 name = 'FWHM'
             p.box = {}
-            p.box['value'] = NXLineEdit(align='right', 
+            p.box['value'] = NXLineEdit(align='right',
                                         slot=self.read_parameters)
             p.box['error'] = NXLabel()
             p.box['min'] = NXLineEdit('-inf', align='right')
@@ -774,7 +786,7 @@ class FitTab(NXTab):
     def remove_model(self):
         expanded_name = self.remove_combo.currentText()
         model_name = self.compressed_name(expanded_name)
-        model_index = [self.models.index(m) for m in self.models 
+        model_index = [self.models.index(m) for m in self.models
                        if m['name'] == model_name][0]
         parameters = self.models[model_index]['parameters']
         row = self.models[model_index]['row']
@@ -802,8 +814,8 @@ class FitTab(NXTab):
                 self.model = m['model']
                 self.composite_model = m['name']
             else:
-                self.model +=  m['model']
-                self.composite_model += '+' + m['name'] 
+                self.model += m['model']
+                self.composite_model += '+' + m['name']
             self.rename_model(old_name, m['name'])
         self.read_parameters()
         self.set_button_visibility()
@@ -814,8 +826,9 @@ class FitTab(NXTab):
             model['parameters'][p].name = model['parameters'][p].name.replace(
                 old_name, model['name'])
             if model['parameters'][p].expr:
-                model['parameters'][p].expr = model['parameters'][p].expr.replace(
-                                                  old_name, model['name'])
+                model['parameters'][p].expr = (
+                    model['parameters'][p].expr.replace(
+                        old_name, model['name']))
             model['parameters'][p]._delay_asteval = True
         parameters = model['parameters'].copy()
         for p in parameters:
@@ -825,7 +838,7 @@ class FitTab(NXTab):
         return parameters
 
     def rename_model(self, old_name, new_name):
-        old_name, new_name = (self.expanded_name(old_name), 
+        old_name, new_name = (self.expanded_name(old_name),
                               self.expanded_name(new_name))
         plot_index = self.plot_combo.findText(old_name)
         self.plot_combo.setItemText(plot_index, new_name)
@@ -873,7 +886,7 @@ class FitTab(NXTab):
                 return parameter.value
         except Exception as error:
             report_error(parameter.name, error)
-                    
+
     def read_parameters(self):
         def make_float(value):
             try:
@@ -963,7 +976,7 @@ class FitTab(NXTab):
             if 'Fit' not in self.plotviews:
                 self.fitview.plot(self._data, fmt='o', color=self.color)
             else:
-                self.fitview.plot(self._data, 
+                self.fitview.plot(self._data,
                                   xmin=self.plot_min, xmax=self.plot_max,
                                   color=self.color)
             for label in ['label', 'legend_label']:
@@ -982,13 +995,13 @@ class FitTab(NXTab):
             if self.mask_num in self.fitview.plots:
                 self.fitview.plots[self.mask_num]['plot'].remove()
                 del self.fitview.plots[self.mask_num]
-            else:                
+            else:
                 self.mask_num = self.next_plot_num()
-            self.fitview.plot(mask_data, over=True, num=self.mask_num, 
+            self.fitview.plot(mask_data, over=True, num=self.mask_num,
                               fmt='o', color='white', alpha=0.8)
             self.fitview.ytab.plotcombo.remove(self.mask_num)
             self.fitview.plots[self.mask_num]['legend_label'] = (
-                                                    f"{self.tab_label} Mask")
+                f"{self.tab_label} Mask")
             self.fitview.plots[self.mask_num]['show_legend'] = False
             if self.fitview.plots[self.mask_num]['cursor']:
                 self.fitview.plots[self.mask_num]['cursor'].remove()
@@ -1010,7 +1023,8 @@ class FitTab(NXTab):
                 return
             elif model_name != 'All':
                 name = self.compressed_name(model_name)
-                model = [m['model'] for m in self.models if m['name'] == name][0]
+                model = [m['model']
+                         for m in self.models if m['name'] == name][0]
         num = self.next_plot_num()
         xmin, xmax = self.plot_min, self.plot_max
         if model_name == 'All':
@@ -1023,17 +1037,17 @@ class FitTab(NXTab):
                               over=True, num=num)
             if self.fitted:
                 self.fitview.plots[num]['legend_label'] = (
-                                                    f"{self.tab_label} Fit")
+                    f"{self.tab_label} Fit")
             else:
                 self.fitview.plots[num]['legend_label'] = (
-                                                    f"{self.tab_label} Model")
+                    f"{self.tab_label} Model")
         else:
             self.fitview.plot(self.get_model(model), color=self.color,
-                              marker=None, linestyle=next(self.linestyle), 
+                              marker=None, linestyle=next(self.linestyle),
                               xmin=self.plot_min, xmax=self.plot_max,
                               over=True, num=num)
             self.fitview.plots[num]['legend_label'] = (
-                                            f"{self.tab_label} {model_name}")
+                f"{self.tab_label} {model_name}")
         self.fitview.plots[num]['show_legend'] = False
         self.fitview.set_plot_limits(xmin=xmin, xmax=xmax)
         self.plot_nums.append(num)
@@ -1060,7 +1074,7 @@ class FitTab(NXTab):
             weights = None
         try:
             self.fit_status.setText('Fitting...')
-            self.fit = self.model.fit(self.signal, 
+            self.fit = self.model.fit(self.signal,
                                       params=self.parameters,
                                       weights=weights,
                                       x=self.axis,
@@ -1070,11 +1084,13 @@ class FitTab(NXTab):
             report_error("Fitting Data", error)
         if self.fit:
             if self.fit.success:
-                self.fit_status.setText('Fit Successful Chi^2 = %s' 
-                                       % format_float(self.fit.result.redchi))
+                self.fit_status.setText(
+                    'Fit Successful Chi^2 = '
+                    f'{format_float(self.fit.result.redchi)}')
             else:
-                self.fit_status.setText('Fit Failed Chi^2 = %s' 
-                                        % format_float(self.fit.result.redchi))
+                self.fit_status.setText(
+                    'Fit Failed Chi^2 = '
+                    f'{format_float(self.fit.result.redchi)}')
             self.parameters = self.fit.params
             self.write_parameters()
             self.set_button_visibility(fitted=True)
@@ -1087,20 +1103,20 @@ class FitTab(NXTab):
             errors = 'Uncertainties estimated'
         else:
             errors = 'Uncertainties not estimated'
-        text = ('%s\n' % self.fit.result.message +
-                'Chi^2 = %s\n' % self.fit.result.chisqr +
-                'Reduced Chi^2 = %s\n' % self.fit.result.redchi +
-                '%s\n' % errors +
-                'No. of Function Evaluations = %s\n' % self.fit.result.nfev +
-                'No. of Variables = %s\n' % self.fit.result.nvarys +
-                'No. of Data Points = %s\n' % self.fit.result.ndata +
-                'No. of Degrees of Freedom = %s\n' % self.fit.result.nfree +
-                '%s' % self.fit.fit_report())
+        text = (f'{self.fit.result.message}\n' +
+                f'Chi^2 = {self.fit.result.chisqr}\n' +
+                f'Reduced Chi^2 = {self.fit.result.redchi}\n' +
+                f'{errors}\n' +
+                f'No. of Function Evaluations = {self.fit.result.nfev}\n' +
+                f'No. of Variables = {self.fit.result.nvarys}\n' +
+                f'No. of Data Points = {self.fit.result.ndata}\n' +
+                f'No. of Degrees of Freedom = {self.fit.result.nfree}\n' +
+                f'{self.fit.fit_report()}')
         message_box = NXMessageBox('Fit Results', text, parent=self)
         message_box.setStandardButtons(QtWidgets.QMessageBox.Ok)
-        spacer = QtWidgets.QSpacerItem(500, 0, 
-                                   QtWidgets.QSizePolicy.Minimum, 
-                                   QtWidgets.QSizePolicy.Expanding)
+        spacer = QtWidgets.QSpacerItem(500, 0,
+                                       QtWidgets.QSizePolicy.Minimum,
+                                       QtWidgets.QSizePolicy.Expanding)
         layout = message_box.layout()
         layout.addItem(spacer, layout.rowCount(), 0, 1, layout.columnCount())
         message_box.exec_()
@@ -1116,11 +1132,11 @@ class FitTab(NXTab):
         group['data'] = self.data
         for m in self.models:
             group[m['name']] = self.get_model(m['model'])
-            parameters = NXparameters(attrs={'model':m['class']})
+            parameters = NXparameters(attrs={'model': m['class']})
             for name in m['parameters']:
                 p = self.fit.params[name]
                 name = name.replace(m['model'].prefix, '')
-                parameters[name] = NXfield(p.value, error=p.stderr, 
+                parameters[name] = NXfield(p.value, error=p.stderr,
                                            initial_value=p.init_value,
                                            min=str(p.min), max=str(p.max),
                                            vary=p.vary, expr=p.expr)
@@ -1135,14 +1151,15 @@ class FitTab(NXTab):
         fit.redchi = self.fit.result.redchi
         fit.message = self.fit.result.message
         group['statistics'] = fit
-        group.note = NXnote(self.fit.result.message,
-            ('Chi^2 = %s\n' % self.fit.result.chisqr +
-             'Reduced Chi^2 = %s\n' % self.fit.result.redchi +
-             'No. of Function Evaluations = %s\n' % self.fit.result.nfev +
-             'No. of Variables = %s\n' % self.fit.result.nvarys +
-             'No. of Data Points = %s\n' % self.fit.result.ndata +
-             'No. of Degrees of Freedom = %s\n' % self.fit.result.nfree +
-             '%s' % self.fit.fit_report()))
+        group.note = NXnote(
+            self.fit.result.message,
+            f'Chi^2 = {self.fit.result.chisqr}\n'
+            f'Reduced Chi^2 = {self.fit.result.redchi}\n'
+            f'No. of Function Evaluations = {self.fit.result.nfev}\n'
+            f'No. of Variables = {self.fit.result.nvarys}\n'
+            f'No. of Data Points = {self.fit.result.ndata}\n'
+            f'No. of Degrees of Freedom = {self.fit.result.nfree}\n'
+            f'{self.fit.fit_report()}')
         self.write_group(group)
 
     def save_parameters(self):
@@ -1153,10 +1170,10 @@ class FitTab(NXTab):
         group['data'] = self.data
         for m in self.models:
             group[m['name']] = self.get_model(m['model'])
-            parameters = NXparameters(attrs={'model':m['class']})
-            for n,p in m['parameters'].items():
+            parameters = NXparameters(attrs={'model': m['class']})
+            for n, p in m['parameters'].items():
                 n = n.replace(m['model'].prefix, '')
-                parameters[n] = NXfield(p.value, error=p.stderr, 
+                parameters[n] = NXfield(p.value, error=p.stderr,
                                         initial_value=p.init_value,
                                         min=str(p.min), max=str(p.max),
                                         vary=p.vary, expr=p.expr)
@@ -1171,7 +1188,7 @@ class FitTab(NXTab):
         ind = []
         for key in self.tree['w0']:
             try:
-                if key.startswith('f'): 
+                if key.startswith('f'):
                     ind.append(int(key[1:]))
             except ValueError:
                 pass
@@ -1205,7 +1222,7 @@ class FitTab(NXTab):
             self.rectangle.set_bounds(x, y, dx, dy)
         else:
             self.rectangle = NXrectangle(x, y, dx, dy, plotview=self.fitview,
-                                         facecolor='none', 
+                                         facecolor='none',
                                          edgecolor=self.fitview._gridcolor)
             self.rectangle.set_linestyle('dashed')
             self.rectangle.set_linewidth(2)
@@ -1234,13 +1251,13 @@ class FitTab(NXTab):
             self.fitview.ytab.plotcombo.select(self.data_num)
         self.fitview.draw()
         self.fitview.update_panels()
-   
+
     def apply(self):
         self.remove_plots()
         if self.model is not None:
-            self.fitview.plot(self.get_model(), fmt='-', color=self.color, 
+            self.fitview.plot(self.get_model(), fmt='-', color=self.color,
                               over=True)
-        
+
     def close(self):
         self.fitview.canvas.mpl_disconnect(self.cid)
         self.remove_masks()
@@ -1258,11 +1275,11 @@ class CompositeDialog(NXDialog):
         self.parent = parent
         self.expression = NXLineEdit(self.parent.composite_model)
         self.add_model_button = NXPushButton('Insert Model', self.insert_model)
-        self.model_combo = NXComboBox(items=[m['name'] 
+        self.model_combo = NXComboBox(items=[m['name']
                                              for m in self.parent.models])
         self.set_layout(self.expression,
                         self.make_layout(self.add_model_button,
-                                         self.model_combo, 
+                                         self.model_combo,
                                          'stretch',
                                          self.close_buttons(save=True)))
         self.set_title("Editing Composite Model")
@@ -1274,9 +1291,9 @@ class CompositeDialog(NXDialog):
         try:
             self.parent.model = self.parent.eval_model(self.expression.text())
             self.parent.composite_model = self.expression.text()
-            super().accept()    
+            super().accept()
         except NeXusError as error:
-            report_error("Editing Composite Model", error)            
+            report_error("Editing Composite Model", error)
 
 
 class PlotModelDialog(NXDialog):
@@ -1302,7 +1319,7 @@ class PlotModelDialog(NXDialog):
             self.parent.plot_model(model)
             super().accept()
         except NeXusError as error:
-            report_error("Plotting Composite Model", error)            
+            report_error("Plotting Composite Model", error)
 
 
 class ExpressionDialog(NXDialog):
@@ -1320,14 +1337,14 @@ class ExpressionDialog(NXDialog):
         self.parameter_combo = NXComboBox(items=self.parent.parameters)
         self.set_layout(self.expression,
                         self.make_layout(self.add_parameter_button,
-                                         self.parameter_combo, 
+                                         self.parameter_combo,
                                          'stretch',
                                          self.close_buttons(save=True)))
         self.set_title(f"Editing '{parameter.name}' Expression")
 
     def insert_parameter(self):
         self.expression.insert(self.parameter_combo.selected)
-        
+
     def accept(self):
         try:
             p = self.parent.parameters[self.parameter.name]
@@ -1341,6 +1358,6 @@ class ExpressionDialog(NXDialog):
                 p.box['fixed'].setChecked(False)
                 p.box['fixed'].setEnabled(True)
             self.parent.read_parameters()
-            super().accept()    
+            super().accept()
         except NeXusError as error:
-            report_error("Editing Expression", error)            
+            report_error("Editing Expression", error)

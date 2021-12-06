@@ -1,13 +1,13 @@
-#!/usr/bin/env python 
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Copyright (c) 2013-2021, NeXpy Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file COPYING, distributed with this software.
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 import os
 
 from qtpy import QtCore, QtGui, QtWidgets
@@ -24,6 +24,7 @@ elif QtCore.PYQT4:
 elif QtCore.PYSIDE:
     QtVersion = 'Qt4Agg'
     os.environ['QT_API'] = 'pyside'
+
 
 def getOpenFileName(*args, **kwargs):
     fname = QtWidgets.QFileDialog.getOpenFileName(*args, **kwargs)

@@ -1,16 +1,16 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Copyright (c) 2018-2021, NeXpy Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file COPYING, distributed with this software.
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 """
-This module contains a set of customized widgets both for dialogs and plot objects. 
+A set of customized widgets both for dialogs and plot objects.
 """
 import math
 import warnings
@@ -31,7 +31,7 @@ bold_font.setBold(True)
 
 class NXStack(QtWidgets.QWidget):
     """Widget containing a stack of widgets selected by a dropdown menu.
-    
+
     Attributes
     ----------
     layout : QtWidgets.QVBoxLayout
@@ -41,9 +41,10 @@ class NXStack(QtWidgets.QWidget):
     box : QtWidgets.QComboBox
         Pull-down menu containing the stack options.
     """
+
     def __init__(self, labels, widgets, parent=None):
         """Initialize the widget stack.
-        
+
         Parameters
         ----------
         labels : list of str
@@ -67,13 +68,13 @@ class NXStack(QtWidgets.QWidget):
 
     def add(self, label, widget):
         """Add a widget to the stack.
-        
+
         Parameters
         ----------
         label : str
             Label used to select the widget in the QComboBox
         widget : QtWidgets.QWidget
-            Widget to be added to the stack    
+            Widget to be added to the stack
         """
         self.box.addItem(label)
         self.stack.addWidget(widget)
@@ -98,13 +99,13 @@ class NXSortModel(QtCore.QSortFilterProxyModel):
         except Exception:
             return True
 
-    
+
 class NXScrollArea(QtWidgets.QScrollArea):
     """Scroll area embedding a widget."""
 
     def __init__(self, widget=None, horizontal=False, parent=None):
         """Initialize the scroll area.
-        
+
         Parameters
         ----------
         widget : QtWidgets.QWidget
@@ -121,25 +122,24 @@ class NXScrollArea(QtWidgets.QScrollArea):
         self.setSizePolicy(QtWidgets.QSizePolicy.Expanding,
                            QtWidgets.QSizePolicy.Expanding)
 
-
     def setWidget(self, widget):
         super().setWidget(widget)
         widget.setMinimumWidth(widget.sizeHint().width() +
                                self.verticalScrollBar().sizeHint().width())
-    
+
 
 class NXLabel(QtWidgets.QLabel):
     """A text label.
-    
+
     This is being subclassed from the PyQt QLabel class because of a bug in
-    recent versions of PyQt5 (>11) that requires the box to be repainted 
+    recent versions of PyQt5 (>11) that requires the box to be repainted
     after any programmatic changes.
     """
 
-    def __init__(self, text=None, parent=None, bold=False, width=None, 
+    def __init__(self, text=None, parent=None, bold=False, width=None,
                  align='left'):
         """Initialize the edit window and optionally set the alignment
-        
+
         Parameters
         ----------
         text : str, optional
@@ -163,7 +163,7 @@ class NXLabel(QtWidgets.QLabel):
         if align == 'left':
             self.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
         elif align == 'center':
-            self.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)            
+            self.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
         elif align == 'right':
             self.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
 
@@ -181,16 +181,16 @@ class NXLabel(QtWidgets.QLabel):
 
 class NXLineEdit(QtWidgets.QLineEdit):
     """An editable text box.
-    
+
     This is being subclassed from the PyQt QLineEdit class because of a bug in
-    recent versions of PyQt5 (>11) that requires the box to be repainted 
+    recent versions of PyQt5 (>11) that requires the box to be repainted
     after any programmatic changes.
     """
 
     def __init__(self, text=None, parent=None, slot=None, readonly=False,
                  width=None, align='left'):
         """Initialize the edit window and optionally set the alignment
-        
+
         Parameters
         ----------
         text : str, optional
@@ -200,7 +200,7 @@ class NXLineEdit(QtWidgets.QLineEdit):
         slot: func, optional
             Slot to be used for editingFinished signals.
         right : bool, optional
-            If True, make the box text right-aligned.        
+            If True, make the box text right-aligned.
         """
         super().__init__(parent=parent)
         if slot:
@@ -214,7 +214,7 @@ class NXLineEdit(QtWidgets.QLineEdit):
         if align == 'left':
             self.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
         elif align == 'center':
-            self.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)            
+            self.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
         elif align == 'right':
             self.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
 
@@ -224,7 +224,7 @@ class NXLineEdit(QtWidgets.QLineEdit):
         Parameters
         ----------
         text : str
-            Text to replace the text box contents.        
+            Text to replace the text box contents.
         """
         super().setText(str(text))
         self.repaint()
@@ -235,7 +235,7 @@ class NXTextBox(NXLineEdit):
 
     def value(self):
         """Return the text box value as a floating point number.
-        
+
         Returns
         -------
         float
@@ -245,13 +245,13 @@ class NXTextBox(NXLineEdit):
 
     def setValue(self, value):
         """Set the value of the text box string formatted as a float.
-        
+
         Parameters
         ----------
         value : str or int or float
-            Text box value to be formatted as a float        
+            Text box value to be formatted as a float
         """
-        self.setText(str(float('%.4g' % value)))
+        self.setText(str(float(f'{value:.4g}')))
 
 
 class NXPlainTextEdit(QtWidgets.QPlainTextEdit):
@@ -275,19 +275,19 @@ class NXPlainTextEdit(QtWidgets.QPlainTextEdit):
         Parameters
         ----------
         text : str
-            Text to replace the text box contents.        
+            Text to replace the text box contents.
         """
         super().setPlainText(str(text))
         self.repaint()
 
     def get_text(self, tab_spaces=4):
         """Return the text contained in the edit window.
-        
+
         Parameters
         ----------
         tab_spaces : int, optional
             Number of spaces to replace tabs (default is 4). If set to 0, tab
-            characters are not replaced.      
+            characters are not replaced.
 
         Returns
         -------
@@ -322,7 +322,7 @@ class NXComboBox(QtWidgets.QComboBox):
 
     def __init__(self, slot=None, items=[], default=None):
         """Initialize the dropdown menu with an initial list of items
-        
+
         Parameters
         ----------
         slot : func, optional
@@ -330,7 +330,7 @@ class NXComboBox(QtWidgets.QComboBox):
         items : list of str, optional
             A list of options to initialize the dropdown menu
         default : str, optional
-            The option to be set as default when the menu is initialized        
+            The option to be set as default when the menu is initialized
         """
         super().__init__()
         self.setSizeAdjustPolicy(QtWidgets.QComboBox.AdjustToContents)
@@ -346,11 +346,11 @@ class NXComboBox(QtWidgets.QComboBox):
     def __iter__(self):
         """Implement key iteration."""
         return self.items().__iter__()
-            
+
     def __next__(self):
         """Implements key iteration."""
         return self.items().__next__()
-            
+
     def __contains__(self, item):
         """True if the item is one of the options."""
         return item in self.items()
@@ -359,18 +359,18 @@ class NXComboBox(QtWidgets.QComboBox):
         """Function to enable the use of cursor keys to make selections.
 
         `Up` and `Down` keys are used to select options in the dropdown menu.
-        `Left` and `Right` keys ar used to expand the dropdown menu to 
+        `Left` and `Right` keys ar used to expand the dropdown menu to
         display the options.
-        
+
         Parameters
         ----------
         event : QtCore.QEvent
-            Keypress event that triggered the function.  
+            Keypress event that triggered the function.
         """
-        if (event.key() == QtCore.Qt.Key_Up or 
-            event.key() == QtCore.Qt.Key_Down):
+        if (event.key() == QtCore.Qt.Key_Up or
+                event.key() == QtCore.Qt.Key_Down):
             super().keyPressEvent(event)
-        elif (event.key() == QtCore.Qt.Key_Right or 
+        elif (event.key() == QtCore.Qt.Key_Right or
               event.key() == QtCore.Qt.Key_Left):
             self.showPopup()
         else:
@@ -378,19 +378,19 @@ class NXComboBox(QtWidgets.QComboBox):
 
     def findText(self, value, **kwargs):
         """Function to return the index of a text value.
-        
+
         This is needed since h5py now returns byte strings, which will trigger
         ValueErrors unless they are converted to unicode strings.
-        
+
         Parameters
         ----------
         value :
-            Searched value.  
+            Searched value.
 
         Returns
         -------
         int
-            Index of the searched value. 
+            Index of the searched value.
         """
         if isinstance(value, bytes):
             value = value.decode('utf-8')
@@ -402,7 +402,7 @@ class NXComboBox(QtWidgets.QComboBox):
         Parameters
         ----------
         *items : list of str
-            List of options to be added to the dropdown menu. 
+            List of options to be added to the dropdown menu.
         """
         for item in items:
             if item not in self:
@@ -414,7 +414,7 @@ class NXComboBox(QtWidgets.QComboBox):
         Parameters
         ----------
         item : str or int
-            List of options to be added to the dropdown menu. 
+            List of options to be added to the dropdown menu.
         idx : int
             Index of position before which to insert item
         """
@@ -427,14 +427,14 @@ class NXComboBox(QtWidgets.QComboBox):
         Parameters
         ----------
         item : str or int
-            Option to be removed from the dropdown menu. 
+            Option to be removed from the dropdown menu.
         """
         if str(item) in self:
             self.removeItem(self.findText(str(item)))
 
     def items(self):
         """Return a list of the dropdown menu options.
-        
+
         Returns
         -------
         list of str
@@ -448,7 +448,7 @@ class NXComboBox(QtWidgets.QComboBox):
 
     def select(self, item):
         """Select the option matching the text.
-        
+
         Parameters
         ----------
         item : str
@@ -460,7 +460,7 @@ class NXComboBox(QtWidgets.QComboBox):
     @property
     def selected(self):
         """Return the currently selected option.
-        
+
         Returns
         -------
         str
@@ -471,10 +471,10 @@ class NXComboBox(QtWidgets.QComboBox):
 
 class NXCheckBox(QtWidgets.QCheckBox):
     """A checkbox with associated label and slot function."""
- 
+
     def __init__(self, label=None, slot=None, checked=False):
         """Initialize the checkbox.
-        
+
         Parameters
         ----------
         label : str, optional
@@ -494,14 +494,14 @@ class NXCheckBox(QtWidgets.QCheckBox):
         """Function to enable the use of cursor keys to change the state.
 
         `Up` and `Down` keys are used to toggle the checkbox state.
-        
+
         Parameters
         ----------
         event : QtCore.QEvent
             Keypress event that triggered the function.
         """
-        if (event.key() == QtCore.Qt.Key_Up or 
-            event.key() == QtCore.Qt.Key_Down):
+        if (event.key() == QtCore.Qt.Key_Up or
+                event.key() == QtCore.Qt.Key_Down):
             if self.isChecked():
                 self.setCheckState(QtCore.Qt.Unchecked)
             else:
@@ -515,7 +515,7 @@ class NXPushButton(QtWidgets.QPushButton):
 
     def __init__(self, label, slot, checkable=False, width=None, parent=None):
         """Initialize button
-        
+
         Parameters
         ----------
         label : str
@@ -539,15 +539,15 @@ class NXPushButton(QtWidgets.QPushButton):
         """Function to enable the use of keys to press the button.
 
         `Return`, Enter`, and `Space` keys activate the slot function.
-        
+
         Parameters
         ----------
         event : QtCore.QEvent
             Keypress event that triggered the function.
         """
-        if (event.key() == QtCore.Qt.Key_Return or 
+        if (event.key() == QtCore.Qt.Key_Return or
             event.key() == QtCore.Qt.Key_Enter or
-            event.key() == QtCore.Qt.Key_Space):
+                event.key() == QtCore.Qt.Key_Space):
             self.clicked.emit()
         else:
             self.parent().keyPressEvent(event)
@@ -569,7 +569,8 @@ class NXColorButton(QtWidgets.QPushButton):
         self._color = QtGui.QColor()
 
     def choose_color(self):
-        color = QtWidgets.QColorDialog.getColor(self._color, self.parentWidget())
+        color = QtWidgets.QColorDialog.getColor(self._color,
+                                                self.parentWidget())
         if color.isValid():
             self.set_color(color)
 
@@ -593,25 +594,25 @@ class NXColorBox(QtWidgets.QWidget):
     """Text box and color square for selecting colors.
 
     This utilizes the ColorButton class in the formlayout package.
-    
+
     Attributes
     ----------
     layout : QHBoxLayout
         Layout containing the text and color boxes.
     box : NXLineEdit
         Text box containing the string representation of the color.
-    button : QPushbutton 
+    button : QPushButton
         Color button consisting of a colored icon.
     """
 
     def __init__(self, color='#ffffff', label=None, width=None, parent=None):
         """Initialize the text and color box.
 
-        The selected color can be changed by entering a valid text string or 
+        The selected color can be changed by entering a valid text string or
         by selecting the color using the standard system GUI.
 
         Valid text strings are HTML hex strings or standard Matplotlib colors.
-        
+
         Parameters
         ----------
         color : str, optional
@@ -628,7 +629,7 @@ class NXColorBox(QtWidgets.QWidget):
             self.layout.addStretch()
             self.layout.addWidget(NXLabel(label))
         self.textbox = NXLineEdit(self.color_text,
-                                  parent=parent, slot=self.update_color, 
+                                  parent=parent, slot=self.update_color,
                                   width=width, align='right')
         self.layout.addWidget(self.textbox)
         self.button = NXColorButton(parent=parent)
@@ -658,7 +659,7 @@ class NXColorBox(QtWidgets.QWidget):
         """Create a QColor from a Matplotlib color."""
         qcolor = QtGui.QColor()
         text = get_color(text)
-        if text.startswith('#') and len(text)==7:
+        if text.startswith('#') and len(text) == 7:
             correct = '#0123456789abcdef'
             for char in text:
                 if char.lower() not in correct:
@@ -675,7 +676,7 @@ class NXSpinBox(QtWidgets.QSpinBox):
     Parameters
     ----------
     slot : function
-        PyQt slot triggered by changing values  
+        PyQt slot triggered by changing values
     data : array-like, optional
         Values of data to be adjusted by the spin box.
 
@@ -693,6 +694,7 @@ class NXSpinBox(QtWidgets.QSpinBox):
     pause : bool
         Used when playing a movie with changing z-values.
     """
+
     def __init__(self, slot=None, data=None):
         super().__init__()
         self.data = data
@@ -711,7 +713,7 @@ class NXSpinBox(QtWidgets.QSpinBox):
 
     def value(self):
         """Return the value of the spin box.
-        
+
         Returns
         -------
         float
@@ -725,7 +727,7 @@ class NXSpinBox(QtWidgets.QSpinBox):
     @property
     def centers(self):
         """The values of the data points based on bin centers.
-        
+
         Returns
         -------
         array-like
@@ -767,8 +769,8 @@ class NXSpinBox(QtWidgets.QSpinBox):
 
     def textFromValue(self, value):
         try:
-            return format_float(float('%.4g' % self.centers[value]))
-        except:
+            return format_float(float(f'{self.centers[value]:.4g}'))
+        except Exception:
             return ''
 
     def valueFromIndex(self, idx):
@@ -833,7 +835,7 @@ class NXDoubleSpinBox(QtWidgets.QDoubleSpinBox):
     Parameters
     ----------
     slot : function
-        PyQt slot triggered by changing values  
+        PyQt slot triggered by changing values
 
     Attributes
     ----------
@@ -845,6 +847,7 @@ class NXDoubleSpinBox(QtWidgets.QDoubleSpinBox):
         Difference between maximum and minimum values when the box is
         locked.
     """
+
     def __init__(self, slot=None, editing=None):
         super().__init__()
         self.validator = QtGui.QDoubleValidator()
@@ -929,9 +932,10 @@ class NXSlider(QtWidgets.QSlider):
     slot : function
         PyQt slot triggered by changing values
     move : bool
-        True if the slot is triggered by moving the slider. Otherwise, 
+        True if the slot is triggered by moving the slider. Otherwise,
         it is only triggered on release.
     """
+
     def __init__(self, slot=None, move=True, inverse=False):
         super().__init__(QtCore.Qt.Horizontal)
         self.setFocusPolicy(QtCore.Qt.NoFocus)
@@ -948,7 +952,7 @@ class NXSlider(QtWidgets.QSlider):
             self.setValue(0)
         if slot:
             self.sliderReleased.connect(slot)
-            if move:    
+            if move:
                 self.sliderMoved.connect(slot)
 
     def value(self):
@@ -968,7 +972,7 @@ class NXSlider(QtWidgets.QSlider):
 class NXpatch(object):
     """Class for a draggable shape on the NXPlotView canvas."""
     lock = None
-     
+
     def __init__(self, shape, border_tol=0.1, resize=True, plotview=None):
         if plotview:
             self.plotview = plotview
@@ -998,7 +1002,7 @@ class NXpatch(object):
             'motion_notify_event', self.on_motion)
 
     def is_inside(self, event):
-        if event.inaxes != self.shape.axes: 
+        if event.inaxes != self.shape.axes:
             return False
         contains, _ = self.shape.contains(event)
         if contains:
@@ -1022,9 +1026,9 @@ class NXpatch(object):
 
     def on_motion(self, event):
         """Move the object if motion activated over the object."""
-        if self.press is None: 
+        if self.press is None:
             return
-        if event.inaxes != self.shape.axes: 
+        if event.inaxes != self.shape.axes:
             return
         self.update(event.xdata, event.ydata)
         self.canvas.draw()
@@ -1077,10 +1081,10 @@ class NXpatch(object):
 
 class NXcircle(NXpatch):
 
-    def __init__(self, x, y, r, border_tol=0.1, resize=True, plotview=None, 
+    def __init__(self, x, y, r, border_tol=0.1, resize=True, plotview=None,
                  **opts):
         x, y, r = float(x), float(y), float(r)
-        shape = Ellipse((x,y), 2*r, 2*r, **opts)
+        shape = Ellipse((x, y), 2*r, 2*r, **opts)
         if 'linewidth' not in opts:
             shape.set_linewidth(1.0)
         if 'color' not in opts and 'facecolor' not in opts:
@@ -1093,7 +1097,7 @@ class NXcircle(NXpatch):
     def __repr__(self):
         x, y = self.circle.center
         r = abs(self.circle.width) / 2
-        return 'NXcircle(%g, %g, %g)' % (x, y, r)
+        return f'NXcircle({x:g}, {y:g}, {r:g})'
 
     @property
     def transform(self):
@@ -1117,24 +1121,24 @@ class NXcircle(NXpatch):
 
     @property
     def height(self):
-        return 2 * (self.inverse_transform((0,self.pixel_radius)) - 
-                    self.inverse_transform((0,0)))[1]
+        return 2 * (self.inverse_transform((0, self.pixel_radius)) -
+                    self.inverse_transform((0, 0)))[1]
 
     @property
     def pixel_radius(self):
-        return (self.transform((self.radius,0)) - self.transform((0,0)))[0]
+        return (self.transform((self.radius, 0)) - self.transform((0, 0)))[0]
 
     def pixel_shift(self, x, y, x0, y0):
-        return tuple(self.transform((x,y)) - self.transform((x0,y0)))
+        return tuple(self.transform((x, y)) - self.transform((x0, y0)))
 
     def radius_shift(self, x, y, xp, yp, x0, y0):
         xt, yt = self.pixel_shift(x, y, x0, y0)
         r = np.sqrt(xt**2 + yt**2)
         xt, yt = self.pixel_shift(xp, yp, x0, y0)
         r0 = np.sqrt(xt**2 + yt**2)
-        return (self.inverse_transform((r,0)) - 
-                self.inverse_transform((r0,0)))[0]
-    
+        return (self.inverse_transform((r, 0)) -
+                self.inverse_transform((r0, 0)))[0]
+
     def set_center(self, x, y):
         self.circle.center = x, y
         self.plotview.draw()
@@ -1150,16 +1154,17 @@ class NXcircle(NXpatch):
         xt, yt = self.pixel_shift(xp, yp, x0, y0)
         rt = self.pixel_radius
         if (self.allow_resize and
-            (np.sqrt(xt**2 + yt**2) > rt * (1-self.border_tol))):
+                (np.sqrt(xt**2 + yt**2) > rt * (1-self.border_tol))):
             expand = True
         else:
             expand = False
-        return x0, y0, w0, h0, xp, yp, expand   
+        return x0, y0, w0, h0, xp, yp, expand
 
     def update(self, x, y):
         x0, y0, w0, h0, xp, yp, expand = self.press
         if expand:
-            self.circle.width = self.width + self.radius_shift(x, y, xp, yp, x0, y0)
+            self.circle.width = self.width + \
+                self.radius_shift(x, y, xp, yp, x0, y0)
             self.circle.height = self.height
         else:
             self.circle.center = (x0+x-xp, y0+y-yp)
@@ -1167,9 +1172,9 @@ class NXcircle(NXpatch):
 
 class NXellipse(NXpatch):
 
-    def __init__(self, x, y, dx, dy, border_tol=0.2, resize=True, plotview=None, 
-                 **opts):
-        shape = Ellipse((float(x),float(y)), dx, dy, **opts)
+    def __init__(self, x, y, dx, dy, border_tol=0.2, resize=True,
+                 plotview=None, **opts):
+        shape = Ellipse((float(x), float(y)), dx, dy, **opts)
         if 'linewidth' not in opts:
             shape.set_linewidth(1.0)
         if 'color' not in opts and 'facecolor' not in opts:
@@ -1181,7 +1186,7 @@ class NXellipse(NXpatch):
     def __repr__(self):
         x, y = self.ellipse.center
         w, h = self.ellipse.width, self.ellipse.height
-        return 'NXellipse(%g, %g, %g, %g)' % (x, y, w, h)
+        return f'NXellipse({x:g}, {y:g}, {w:g}, {h:g})'
 
     @property
     def center(self):
@@ -1212,27 +1217,35 @@ class NXellipse(NXpatch):
         w0, h0 = self.ellipse.width, self.ellipse.height
         bt = self.border_tol
         if (self.allow_resize and
-            ((abs(x0-xp) < bt*w0 and abs(y0+np.true_divide(h0,2)-yp) < bt*h0) or
-             (abs(x0-xp) < bt*w0 and abs(y0-np.true_divide(h0,2)-yp) < bt*h0) or
-             (abs(y0-yp) < bt*h0 and abs(x0+np.true_divide(w0,2)-xp) < bt*w0) or
-             (abs(y0-yp) < bt*h0 and abs(x0-np.true_divide(w0,2)-xp) < bt*w0))):
+            ((abs(x0-xp) < bt*w0 and
+              abs(y0+np.true_divide(h0, 2)-yp) < bt*h0) or
+             (abs(x0-xp) < bt*w0
+              and abs(y0-np.true_divide(h0, 2)-yp) < bt*h0) or
+             (abs(y0-yp) < bt*h0
+              and abs(x0+np.true_divide(w0, 2)-xp) < bt*w0) or
+             (abs(y0-yp) < bt*h0
+              and abs(x0-np.true_divide(w0, 2)-xp) < bt*w0))):
             expand = True
         else:
             expand = False
-        return x0, y0, w0, h0, xp, yp, expand   
+        return x0, y0, w0, h0, xp, yp, expand
 
     def update(self, x, y):
         x0, y0, w0, h0, xp, yp, expand = self.press
         dx, dy = (x-xp, y-yp)
         bt = self.border_tol
         if expand:
-            if (abs(x0-xp) < bt*w0 and abs(y0+np.true_divide(h0,2)-yp) < bt*h0):
+            if (abs(x0-xp) < bt*w0
+                    and abs(y0+np.true_divide(h0, 2)-yp) < bt*h0):
                 self.ellipse.height = h0 + dy
-            elif (abs(x0-xp) < bt*w0 and abs(y0-np.true_divide(h0,2)-yp) < bt*h0):
+            elif (abs(x0-xp) < bt*w0
+                    and abs(y0-np.true_divide(h0, 2)-yp) < bt*h0):
                 self.ellipse.height = h0 - dy
-            elif (abs(y0-yp) < bt*h0 and abs(x0+np.true_divide(w0,2)-xp) < bt*w0):
+            elif (abs(y0-yp) < bt*h0
+                    and abs(x0+np.true_divide(w0, 2)-xp) < bt*w0):
                 self.ellipse.width = w0 + dx
-            elif (abs(y0-yp) < bt*h0 and abs(x0-np.true_divide(w0,2)-xp) < bt*w0):
+            elif (abs(y0-yp) < bt*h0
+                    and abs(x0-np.true_divide(w0, 2)-xp) < bt*w0):
                 self.ellipse.width = w0 - dx
         else:
             self.ellipse.set_center((x0+dx, y0+dy))
@@ -1240,9 +1253,9 @@ class NXellipse(NXpatch):
 
 class NXrectangle(NXpatch):
 
-    def __init__(self, x, y, dx, dy, border_tol=0.1, resize=True, plotview=None, 
-                 **opts):
-        shape = Rectangle((float(x),float(y)), float(dx), float(dy), **opts)
+    def __init__(self, x, y, dx, dy, border_tol=0.1, resize=True,
+                 plotview=None, **opts):
+        shape = Rectangle((float(x), float(y)), float(dx), float(dy), **opts)
         if 'linewidth' not in opts:
             shape.set_linewidth(1.0)
         if 'color' not in opts and 'facecolor' not in opts:
@@ -1254,7 +1267,7 @@ class NXrectangle(NXpatch):
     def __repr__(self):
         x, y = self.rectangle.xy
         w, h = self.rectangle.get_width(), self.rectangle.get_height()
-        return 'NXrectangle(%g, %g, %s, %s)' % (x, y, w, h)
+        return f'NXrectangle({x:g}, {y:g}, {w:g}, {h:g})'
 
     @property
     def width(self):
@@ -1301,12 +1314,12 @@ class NXrectangle(NXpatch):
         w0, h0 = self.rectangle.get_width(), self.rectangle.get_height()
         bt = self.border_tol
         if (self.allow_resize and
-            (abs(x0+np.true_divide(w0,2)-xp)>np.true_divide(w0,2)-bt*w0 or
-             abs(y0+np.true_divide(h0,2)-yp)>np.true_divide(h0,2)-bt*h0)):
+            (abs(x0+np.true_divide(w0, 2)-xp) > np.true_divide(w0, 2)-bt*w0 or
+             abs(y0+np.true_divide(h0, 2)-yp) > np.true_divide(h0, 2)-bt*h0)):
             expand = True
         else:
             expand = False
-        return x0, y0, w0, h0, xp, yp, expand   
+        return x0, y0, w0, h0, xp, yp, expand
 
     def update(self, x, y):
         x0, y0, w0, h0, xp, yp, expand = self.press
@@ -1343,7 +1356,7 @@ class NXpolygon(NXpatch):
     def __repr__(self):
         xy = self.polygon.xy
         v = xy.shape[0] - 1
-        return 'NXpolygon(%g, %g, vertices=%s)' % (xy[0][0], xy[0][1], v)
+        return f'NXpolygon({xy[0][0]:g}, {xy[0][1]:g}, vertices={v})'
 
     @property
     def xy(self):
@@ -1351,9 +1364,9 @@ class NXpolygon(NXpatch):
 
     def initialize(self, xp, yp):
         xy0 = self.polygon.xy
-        return xy0, xp, yp 
+        return xy0, xp, yp
 
     def update(self, x, y):
         xy0, xp, yp = self.press
-        dxy = (x-xp, y-yp)        
+        dxy = (x-xp, y-yp)
         self.polygon.set_xy(xy0+dxy)
