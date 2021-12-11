@@ -109,9 +109,10 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.dialogs = []
         self.panels = {}
-        main_plotview = NXPlotView(label="Main", parent=self)
         self.log_window = None
         self._memroot = None
+
+        main_plotview = NXPlotView(label="Main", parent=self)
 
         self.console = NXRichJupyterWidget(config=self.config,
                                            parent=rightpane)
@@ -2220,11 +2221,7 @@ class MainWindow(QtWidgets.QMainWindow):
         file_name = getOpenFileName(self, 'Open Script', script_dir,
                                     file_filter)
         if file_name:
-            if self.scriptwindow is None:
-                self.scriptwindow = NXScriptWindow(self)
-            editor = NXScriptEditor(file_name, self)
-            self.scriptwindow.setVisible(True)
-            self.scriptwindow.raise_()
+            self.open_script_window(file_name)
             logging.info(f"NeXus script '{file_name}' opened")
 
     # minimize/maximize/fullscreen actions:
