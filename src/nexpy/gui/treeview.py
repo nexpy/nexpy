@@ -1,22 +1,19 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Copyright (c) 2013-2021, NeXpy Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file COPYING, distributed with this software.
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 import os
-import pkg_resources
 
-from nexusformat.nexus import *
+import pkg_resources
+from nexusformat.nexus import (NeXusError, NXdata, NXentry, NXfield, NXgroup,
+                               NXlink, NXroot, nxload)
 
 from .pyqt import QtCore, QtGui, QtWidgets
-from .utils import (display_message, modification_time, natural_sort,
-                    report_error)
+from .utils import display_message, modification_time, report_error
 from .widgets import NXSortModel
 
 
@@ -36,7 +33,7 @@ class NXtree(NXgroup):
         self._class = 'NXtree'
         self._name = 'tree'
         self._entries = {}
-        
+
     def __setitem__(self, key, value):
         if isinstance(value, NXroot):
             if key not in self._entries:
@@ -49,7 +46,7 @@ class NXtree(NXgroup):
                 raise NeXusError("'"+key+"' already in the tree")
         else:
             raise NeXusError("Value must be an NXroot group")
-    
+
     def __delitem__(self, key):
         del self._entries[key]
         del self._shell[key]
@@ -81,7 +78,7 @@ class NXtree(NXgroup):
                     if child.name not in item.node:
                         item.removeRow(child.row())
         item.node.set_unchanged()
-    
+
     def add(self, node):
         if isinstance(node, NXgroup):
             shell_names = self.get_shell_names(node)
@@ -94,14 +91,14 @@ class NXtree(NXgroup):
                 group = NXroot(node)
                 name = self.get_new_name()
                 self[name] = group
-                print("NeXpy: '%s' added to tree in '%s'" % (node.nxname,
-                                                             group.nxname))
+                print(f"NeXpy: '{node.nxname}' added to tree in "
+                      f"'{group.nxname}'")
             else:
                 group = NXroot(NXentry(node))
                 name = self.get_new_name()
                 self[name] = group
-                print("NeXpy: '%s' added to tree in '%s%s'" % 
-                    (node.nxname, group.nxname, node.nxgroup.nxpath))
+                print(f"NeXpy: '{node.nxname}' added to tree in "
+                      f"'{group.nxname}{node.nxgroup.nxpath}'")
         else:
             raise NeXusError("Only an NXgroup can be added to the tree")
 
@@ -116,21 +113,23 @@ class NXtree(NXgroup):
                 self[name].reload()
             return self[name]
         else:
-            raise NeXusError('%s not in the tree')
+            raise NeXusError(f"{name} not in the tree")
 
     def get_name(self, filename):
-        name = os.path.splitext(os.path.basename(filename))[0].replace(' ','_')
-        name = "".join([c for c in name.replace('-','_') 
-                        if c.isalpha() or c.isdigit() or c=='_'])
+        name = os.path.splitext(
+            os.path.basename(filename))[0].replace(' ', '_')
+        name = "".join([c for c in name.replace('-', '_')
+                        if c.isalpha() or c.isdigit() or c == '_'])
         if name in self._shell:
             ind = []
             for key in self._shell:
                 try:
-                    if key.startswith(name+'_'): 
+                    if key.startswith(name+'_'):
                         ind.append(int(key[len(name)+1:]))
                 except ValueError:
                     pass
-            if ind == []: ind = [0]
+            if ind == []:
+                ind = [0]
             name = name+'_'+str(sorted(ind)[-1]+1)
         return name
 
@@ -138,15 +137,16 @@ class NXtree(NXgroup):
         ind = []
         for key in self._shell:
             try:
-                if key.startswith('w'): 
+                if key.startswith('w'):
                     ind.append(int(key[1:]))
             except ValueError:
                 pass
-        if ind == []: ind = [0]
+        if ind == []:
+            ind = [0]
         return 'w'+str(sorted(ind)[-1]+1)
 
     def get_shell_names(self, node):
-        return [obj[0] for obj in self._shell.items() if id(obj[1]) == id(node) 
+        return [obj[0] for obj in self._shell.items() if id(obj[1]) == id(node)
                 and not obj[0].startswith('_')]
 
     def sync_shell_names(self):
@@ -160,8 +160,9 @@ class NXtree(NXgroup):
     def node_from_file(self, fname):
         fname = os.path.abspath(fname)
         names = [name for name in self if self[name].nxfilename]
-        try:   
-            return [name for name in names if fname==self[name].nxfilename][0]
+        try:
+            return [name for name in names
+                    if fname == self[name].nxfilename][0]
         except IndexError:
             return None
 
@@ -169,7 +170,7 @@ class NXtree(NXgroup):
 class NXTreeItem(QtGui.QStandardItem):
 
     """
-    A subclass of the QtGui.QStandardItem class to return the data from 
+    A subclass of the QtGui.QStandardItem class to return the data from
     an NXnode.
     """
 
@@ -193,8 +194,8 @@ class NXTreeItem(QtGui.QStandardItem):
                 pkg_resources.resource_filename('nexpy.gui',
                                                 'resources/unlock-icon.png'))
             self._unlocked_modified = QtGui.QIcon(
-                pkg_resources.resource_filename('nexpy.gui',
-                                            'resources/unlock-red-icon.png'))
+                pkg_resources.resource_filename(
+                    'nexpy.gui', 'resources/unlock-red-icon.png'))
         super().__init__(node.nxname)
 
     @property
@@ -202,7 +203,7 @@ class NXTreeItem(QtGui.QStandardItem):
         return self.tree[self.path]
 
     def __repr__(self):
-        return "NXTreeItem('%s')" % self.path
+        return f"NXTreeItem('{self.path}')"
 
     def text(self):
         return self.name
@@ -272,7 +273,8 @@ class NXTreeView(QtWidgets.QTreeView):
         self.setModel(self.proxymodel)
 
         self._model.setColumnCount(1)
-        self._model.setHorizontalHeaderItem(0,QtGui.QStandardItem('NeXus Data'))
+        self._model.setHorizontalHeaderItem(
+            0, QtGui.QStandardItem('NeXus Data'))
         self.setSortingEnabled(True)
         self.sortByColumn(0, QtCore.Qt.AscendingOrder)
 
@@ -390,19 +392,19 @@ class NXTreeView(QtWidgets.QTreeView):
                     self.mainwindow.signal_action.setEnabled(True)
             try:
                 if ((isinstance(node, NXdata) and node.plot_rank == 1) or
-                    (isinstance(node, NXgroup) and 
-                    ('fit' in node or 'model' in node))):
+                    (isinstance(node, NXgroup) and
+                        ('fit' in node or 'model' in node))):
                     self.mainwindow.fit_action.setEnabled(True)
             except Exception as error:
                 pass
         try:
-            if (isinstance(node, NXdata) or 'default' in node.attrs or 
-                node.is_numeric()):
+            if (isinstance(node, NXdata) or 'default' in node.attrs or
+                    node.is_numeric()):
                 self.mainwindow.plot_data_action.setEnabled(True)
                 if ((isinstance(node, NXgroup) and
-                    node.nxsignal is not None and 
+                    node.nxsignal is not None and
                     node.nxsignal.plot_rank == 1) or
-                    (isinstance(node, NXfield) and node.plot_rank == 1)):
+                        (isinstance(node, NXfield) and node.plot_rank == 1)):
                     self.mainwindow.plot_line_action.setEnabled(True)
                     if self.mainwindow.plotview.ndim == 1:
                         self.mainwindow.overplot_data_action.setEnabled(True)
@@ -410,13 +412,13 @@ class NXTreeView(QtWidgets.QTreeView):
                     if 'auxiliary_signals' in node.attrs:
                         self.mainwindow.multiplot_data_action.setEnabled(True)
                         self.mainwindow.multiplot_lines_action.setEnabled(True)
-                if (isinstance(node, NXgroup) and 
-                    node.plottable_data is not None):
+                if (isinstance(node, NXgroup) and
+                        node.plottable_data is not None):
                     if node.nxweights is not None:
                         self.mainwindow.plot_weighted_data_action.setEnabled(
-                                                                           True)
+                            True)
                     if (node.plottable_data.is_image() or
-                        (isinstance(node, NXfield) and node.is_image())):
+                            (isinstance(node, NXfield) and node.is_image())):
                         self.mainwindow.plot_image_action.setEnabled(True)
         except Exception as error:
             pass
@@ -484,7 +486,7 @@ class NXTreeView(QtWidgets.QTreeView):
             text = message._str_name()
         else:
             text = str(message)
-        self.mainwindow.statusBar().showMessage(text.replace('\n','; '))
+        self.mainwindow.statusBar().showMessage(text.replace('\n', '; '))
 
     def check_modified_files(self):
         try:
@@ -493,14 +495,14 @@ class NXTreeView(QtWidgets.QTreeView):
                 if node.nxfilemode and not node.file_exists():
                     _dir = node.nxfile._filedir
                     if not os.path.exists(_dir):
-                        display_message("'%s' no longer exists" % _dir)
+                        display_message(f"'{_dir}' no longer exists")
                         for _key in [k for k in self.tree
                                      if self.tree[k].nxfile._filedir == _dir]:
                             del self.tree[_key]
                         break
-                    else:    
-                        display_message("'%s' no longer exists" 
-                                        % node.nxfilename)
+                    else:
+                        display_message(
+                            f"'{node.nxfilename}' no longer exists")
                         del self.tree[key]
                 elif node.is_modified():
                     node.lock()
@@ -509,15 +511,15 @@ class NXTreeView(QtWidgets.QTreeView):
                     nxfile = node.nxfile
                     if nxfile.is_locked() and nxfile.locked is False:
                         node.lock()
-                        lock_time = modification_time(nxfile.lock_file) 
-                        display_message(
-                            "'%s' has been locked by an external process" 
-                            % node.nxname, "Lock file created: "+lock_time)
+                        lock_time = modification_time(nxfile.lock_file)
+                        display_message(f"'{node.nxname}' has been locked "
+                                        "by an external process",
+                                        f"Lock file created: {lock_time}")
                         nxfile.lock = True
             if self.timer.interval() > 1000:
                 self.timer.setInterval(1000)
         except Exception as error:
-            report_error('Checking Modified Files', error)
+            report_error("Checking Modified Files", error)
             self.timer.setInterval(60000)
 
     @property
@@ -526,7 +528,7 @@ class NXTreeView(QtWidgets.QTreeView):
 
     def get_node(self):
         item = self._model.itemFromIndex(
-                   self.proxymodel.mapToSource(self.currentIndex()))
+            self.proxymodel.mapToSource(self.currentIndex()))
         if item:
             return item.node
         else:
@@ -552,7 +554,7 @@ class NXTreeView(QtWidgets.QTreeView):
             self.setFocus()
         except Exception:
             pass
-        
+
     def selectionChanged(self, new, old):
         super().selectionChanged(new, old)
         if new.indexes():
@@ -566,7 +568,7 @@ class NXTreeView(QtWidgets.QTreeView):
             super().collapse(index)
         else:
             self.collapseAll()
-            self.setCurrentIndex(self.model().index(0,0))
+            self.setCurrentIndex(self.model().index(0, 0))
 
     def on_context_menu(self, point):
         node = self.get_node()

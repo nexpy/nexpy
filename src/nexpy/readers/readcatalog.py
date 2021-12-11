@@ -1,13 +1,10 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Copyright (c) 2013, NeXpy Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file COPYING, distributed with this software.
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 """
 Module to read in data from a Globus Online catalog and convert it to NeXus.
@@ -15,12 +12,12 @@ Module to read in data from a Globus Online catalog and convert it to NeXus.
 
 import os
 
-import numpy as np
 from nexpy.gui.importdialog import NXImportDialog
 from nexpy.gui.pyqt import QtWidgets
 from nexusformat.nexus import NeXusError, NXentry
 
 filetype = "Catalog File"
+
 
 class ImportDialog(NXImportDialog):
     """Dialog to import data from a Globus Online catalog"""
@@ -34,16 +31,16 @@ class ImportDialog(NXImportDialog):
                 CatalogWrapper
         except ImportError:
             raise NeXusError("Cannot import globusonline package")
-        token_file = os.path.join(os.path.expanduser('~'),'.nexpy',
+        token_file = os.path.join(os.path.expanduser('~'), '.nexpy',
                                   'globusonline', 'gotoken.txt')
         self.wrap = CatalogWrapper(token='file', token_file=token_file)
-        _,self.catalogs = self.wrap.catalogClient.get_catalogs()
+        _, self.catalogs = self.wrap.catalogClient.get_catalogs()
         catalog_layout = QtWidgets.QHBoxLayout()
         self.catalog_box = QtWidgets.QComboBox()
         for catalog in self.catalogs:
             try:
                 self.catalog_box.addItem(catalog['config']['name'])
-            except:
+            except Exception:
                 pass
         self.catalog_box.setSizeAdjustPolicy(
             QtWidgets.QComboBox.AdjustToContents)
@@ -60,15 +57,17 @@ class ImportDialog(NXImportDialog):
 
     def get_catalog(self):
         self.catalog_id = self.get_catalog_id(self.catalog_box.currentText())
-        _,self.datasets = self.wrap.catalogClient.get_datasets(self.catalog_id)
+        _, self.datasets = self.wrap.catalogClient.get_datasets(
+            self.catalog_id)
         dataset_layout = QtWidgets.QHBoxLayout()
         self.dataset_box = QtWidgets.QComboBox()
         for dataset in self.datasets:
             try:
                 self.dataset_box.addItem(dataset['name'])
-            except:
+            except Exception:
                 pass
-        self.dataset_box.setSizeAdjustPolicy(QtWidgets.QComboBox.AdjustToContents)
+        self.dataset_box.setSizeAdjustPolicy(
+            QtWidgets.QComboBox.AdjustToContents)
         dataset_button = QtWidgets.QPushButton("Choose Dataset")
         dataset_button.clicked.connect(self.get_dataset)
         dataset_layout.addWidget(self.dataset_box)
@@ -77,21 +76,22 @@ class ImportDialog(NXImportDialog):
 
     def get_catalog_id(self, name):
         for catalog in self.catalogs:
-            if catalog['config']['name']==name:
+            if catalog['config']['name'] == name:
                 return catalog['id']
 
     def get_dataset(self):
         self.dataset_id = self.get_dataset_id(self.dataset_box.currentText())
-        _,self.members = self.wrap.catalogClient.get_members(self.catalog_id,
-                                                             self.dataset_id)
+        _, self.members = self.wrap.catalogClient.get_members(self.catalog_id,
+                                                              self.dataset_id)
         member_layout = QtWidgets.QHBoxLayout()
         self.member_box = QtWidgets.QComboBox()
         for member in self.members:
             try:
                 self.member_box.addItem(member['data_uri'])
-            except:
+            except Exception:
                 pass
-        self.member_box.setSizeAdjustPolicy(QtWidgets.QComboBox.AdjustToContents)
+        self.member_box.setSizeAdjustPolicy(
+            QtWidgets.QComboBox.AdjustToContents)
         member_button = QtWidgets.QPushButton("Choose Member")
         member_button.clicked.connect(self.get_member)
         member_layout.addWidget(self.member_box)
@@ -100,13 +100,13 @@ class ImportDialog(NXImportDialog):
 
     def get_dataset_id(self, name):
         for dataset in self.datasets:
-            if dataset['name']==name:
+            if dataset['name'] == name:
                 return dataset['id']
 
     def get_member(self):
         print(self.catalog_id, self.dataset_id)
         self.wrap.transfer_members(self.catalog_id, self.dataset_id,
-            '/Users/rosborn/Desktop')
+                                   '/Users/rosborn/Desktop')
 
     def get_data(self):
         return NXentry()

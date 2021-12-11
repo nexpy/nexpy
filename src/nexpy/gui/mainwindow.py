@@ -1,13 +1,10 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Copyright (c) 2013-2021, NeXpy Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file COPYING, distributed with this software.
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 """The Qt MainWindow for NeXpy
 
@@ -15,9 +12,9 @@ This is an expanded version on the Jupyter QtConsole with the addition
 of a Matplotlib plotting pane and a tree view for displaying NeXus data.
 """
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Imports
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 import glob
 import json
 import logging
@@ -26,22 +23,29 @@ import re
 import sys
 import webbrowser
 import xml.etree.ElementTree as ET
-from copy import deepcopy
 from operator import attrgetter
 from pathlib import Path
 
-from .pyqt import QtCore, QtGui, QtWidgets, getOpenFileName, getSaveFileName
-
+import pkg_resources
 from IPython.core.magic import magic_escapes
+from nexusformat.nexus import (NeXusError, NXdata, NXentry, NXfield, NXFile,
+                               NXgroup, NXlink, NXobject, NXprocess, NXroot,
+                               nxcompleter, nxduplicate, nxload)
 from qtconsole.inprocess import QtInProcessKernelManager
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
 
-from nexusformat.nexus import *
-
 from .. import __version__
-from .datadialogs import *
+from .datadialogs import (AddDialog, CustomizeDialog, DirectoryDialog,
+                          ExportDialog, InitializeDialog, InstallPluginDialog,
+                          LimitDialog, LogDialog, ManageBackupsDialog,
+                          NewDialog, PasteDialog, PlotDialog, PlotScalarDialog,
+                          PreferencesDialog, ProjectionDialog, RemoteDialog,
+                          RemovePluginDialog, RenameDialog,
+                          RestorePluginDialog, ScanDialog, SignalDialog,
+                          UnlockDialog, ViewDialog)
 from .fitdialogs import FitDialog
 from .plotview import NXPlotView
+from .pyqt import QtCore, QtGui, QtWidgets, getOpenFileName, getSaveFileName
 from .scripteditor import NXScriptEditor, NXScriptWindow
 from .treeview import NXTreeView
 from .utils import (confirm_action, display_message, get_colors, get_name,
@@ -54,7 +58,7 @@ class NXRichJupyterWidget(RichJupyterWidget):
     def _is_complete(self, source, interactive=True):
         shell = self.kernel_manager.kernel.shell
         status, indent_spaces = shell.input_transformer_manager.check_complete(
-                                    source)
+            source)
         if indent_spaces is None:
             indent = ''
         else:
@@ -105,17 +109,19 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.dialogs = []
         self.panels = {}
-        main_plotview = NXPlotView(label="Main", parent=self)
         self.log_window = None
         self._memroot = None
 
-        self.console = NXRichJupyterWidget(config=self.config, parent=rightpane)
+        main_plotview = NXPlotView(label="Main", parent=self)
+
+        self.console = NXRichJupyterWidget(config=self.config,
+                                           parent=rightpane)
         self.console.setMinimumSize(750, 100)
-        self.console.setSizePolicy(QtWidgets.QSizePolicy.Expanding, 
+        self.console.setSizePolicy(QtWidgets.QSizePolicy.Expanding,
                                    QtWidgets.QSizePolicy.Fixed)
         self.console._confirm_exit = True
         self.console.kernel_manager = QtInProcessKernelManager(
-                                          config=self.config)
+            config=self.config)
         self.console.kernel_manager.start_kernel()
         self.console.kernel_manager.kernel.gui = 'qt'
         self.console.kernel_client = self.console.kernel_manager.client()
@@ -132,10 +138,11 @@ class MainWindow(QtWidgets.QMainWindow):
         self.shell.ask_exit = self.close
         self.shell._old_stb = self.shell._showtraceback
         try:
-            self.shell.set_hook('complete_command', nxcompleter, 
+            self.shell.set_hook('complete_command', nxcompleter,
                                 re_key=r"(?:.*\=)?(?:.*\()?(?:.*,)?(.+?)\[")
         except NameError:
             pass
+
         def new_stb(etype, evalue, stb):
             self.shell._old_stb(etype, evalue, [stb[-1]])
             self.shell._last_traceback = stb
@@ -155,7 +162,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.treeview = NXTreeView(self.tree, parent=self)
         self.treeview.setMinimumWidth(200)
         self.treeview.setMaximumWidth(400)
-        self.treeview.setSizePolicy(QtWidgets.QSizePolicy.Preferred, 
+        self.treeview.setSizePolicy(QtWidgets.QSizePolicy.Preferred,
                                     QtWidgets.QSizePolicy.Expanding)
         self.user_ns['plotview'] = self.plotview
         self.user_ns['plotviews'] = self.plotviews = self.plotview.plotviews
@@ -194,17 +201,18 @@ class MainWindow(QtWidgets.QMainWindow):
     def plotview(self):
         from .plotview import plotview
         return plotview
-        
+
     @property
     def active_plotview(self):
         from .plotview import active_plotview
         return active_plotview
-        
+
     # Populate the menu bar with common actions and shortcuts
     def add_menu_action(self, menu, action, defer_shortcut=False):
         """Add action to menu as well as self
 
-        So that when the menu bar is invisible, its actions are still available.
+        So that when the menu bar is invisible, its actions are still
+        available.
 
         If defer_shortcut is True, set the shortcut context to widget-only,
         where it will avoid conflict with shortcuts already bound to the
@@ -219,7 +227,7 @@ class MainWindow(QtWidgets.QMainWindow):
             action.setShortcutContext(QtCore.Qt.ApplicationShortcut)
 
     def init_menu_bar(self):
-        #create menu in the order they should appear in the menu bar
+        # create menu in the order they should appear in the menu bar
         self.menu_bar = QtWidgets.QMenuBar()
         self.init_file_menu()
         self.init_edit_menu()
@@ -237,107 +245,80 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.file_menu.addSeparator()
 
-        self.newworkspace_action=QtWidgets.QAction("&New...",
-            self,
-            shortcut=QtGui.QKeySequence.New,
-            triggered=self.new_workspace
-            )
+        self.newworkspace_action = QtWidgets.QAction(
+            "&New...", self, shortcut=QtGui.QKeySequence.New,
+            triggered=self.new_workspace)
         self.add_menu_action(self.file_menu, self.newworkspace_action)
 
-        self.openfile_action=QtWidgets.QAction("&Open",
-            self,
-            shortcut=QtGui.QKeySequence.Open,
-            triggered=self.open_file
-            )
+        self.openfile_action = QtWidgets.QAction(
+            "&Open", self, shortcut=QtGui.QKeySequence.Open,
+            triggered=self.open_file)
         self.add_menu_action(self.file_menu, self.openfile_action)
 
-        self.openeditablefile_action=QtWidgets.QAction("Open (read/write)",
-            self,
-            shortcut=QtGui.QKeySequence("Ctrl+Shift+O"),
-            triggered=self.open_editable_file
-            )
+        self.openeditablefile_action = QtWidgets.QAction(
+            "Open (read/write)", self, shortcut=QtGui.QKeySequence(
+                "Ctrl+Shift+O"),
+            triggered=self.open_editable_file)
         self.addAction(self.openeditablefile_action)
 
         self.init_recent_menu()
 
-        self.openimage_action=QtWidgets.QAction("Open Image...",
-            self,
-            shortcut=QtGui.QKeySequence("Ctrl+Alt+O"),
-            triggered=self.open_image
-            )
+        self.openimage_action = QtWidgets.QAction(
+            "Open Image...", self, shortcut=QtGui.QKeySequence("Ctrl+Alt+O"),
+            triggered=self.open_image)
         self.add_menu_action(self.file_menu, self.openimage_action)
 
-        self.opendirectory_action=QtWidgets.QAction("Open Directory...",
-            self,
-            triggered=self.open_directory
-            )
+        self.opendirectory_action = QtWidgets.QAction(
+            "Open Directory...", self, triggered=self.open_directory)
         self.add_menu_action(self.file_menu, self.opendirectory_action)
 
         try:
             import h5pyd
-            self.openremotefile_action=QtWidgets.QAction("Open Remote...",
-                self,
-                triggered=self.open_remote_file
-                )
-            self.add_menu_action(self.file_menu, self.openremotefile_action)            
+            self.openremotefile_action = QtWidgets.QAction(
+                "Open Remote...", self, triggered=self.open_remote_file)
+            self.add_menu_action(self.file_menu, self.openremotefile_action)
         except ImportError:
             pass
 
-        self.savefile_action=QtWidgets.QAction("&Save as...",
-            self,
-            shortcut=QtGui.QKeySequence.Save,
-            triggered=self.save_file
-            )
+        self.savefile_action = QtWidgets.QAction(
+            "&Save as...", self, shortcut=QtGui.QKeySequence.Save,
+            triggered=self.save_file)
         self.add_menu_action(self.file_menu, self.savefile_action)
 
-        self.duplicate_action=QtWidgets.QAction("&Duplicate...",
-            self,
-            shortcut=QtGui.QKeySequence("Ctrl+D"),
-            triggered=self.duplicate
-            )
+        self.duplicate_action = QtWidgets.QAction(
+            "&Duplicate...", self, shortcut=QtGui.QKeySequence("Ctrl+D"),
+            triggered=self.duplicate)
         self.add_menu_action(self.file_menu, self.duplicate_action)
 
         self.file_menu.addSeparator()
 
-        self.restore_action=QtWidgets.QAction("Restore Session",
-            self,
-            shortcut=QtGui.QKeySequence("Ctrl+R"),
-            triggered=self.restore_session
-            )
+        self.restore_action = QtWidgets.QAction(
+            "Restore Session", self, shortcut=QtGui.QKeySequence("Ctrl+R"),
+            triggered=self.restore_session)
         self.add_menu_action(self.file_menu, self.restore_action)
 
         self.file_menu.addSeparator()
 
-        self.reload_action=QtWidgets.QAction("&Reload",
-            self,
-            triggered=self.reload
-            )
+        self.reload_action = QtWidgets.QAction("&Reload", self,
+                                               triggered=self.reload)
         self.add_menu_action(self.file_menu, self.reload_action)
 
-        self.reload_all_action=QtWidgets.QAction("Reload All",
-            self,
-            triggered=self.reload_all
-            )
+        self.reload_all_action = QtWidgets.QAction("Reload All", self,
+                                                   triggered=self.reload_all)
         self.add_menu_action(self.file_menu, self.reload_all_action)
 
-        self.remove_action=QtWidgets.QAction("Remove",
-            self,
-            triggered=self.remove
-            )
+        self.remove_action = QtWidgets.QAction("Remove", self,
+                                               triggered=self.remove)
         self.add_menu_action(self.file_menu, self.remove_action)
 
-        self.remove_all_action=QtWidgets.QAction("Remove All",
-            self,
-            triggered=self.remove_all
-            )
+        self.remove_all_action = QtWidgets.QAction("Remove All", self,
+                                                   triggered=self.remove_all)
         self.add_menu_action(self.file_menu, self.remove_all_action)
 
         self.file_menu.addSeparator()
 
-        self.collapse_action=QtWidgets.QAction("Collapse Tree",
-            self,
-            triggered=self.collapse_tree
-            )
+        self.collapse_action = QtWidgets.QAction("Collapse Tree", self,
+                                                 triggered=self.collapse_tree)
         self.add_menu_action(self.file_menu, self.collapse_action)
 
         self.file_menu.addSeparator()
@@ -346,108 +327,80 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.file_menu.addSeparator()
 
-        self.export_action=QtWidgets.QAction("Export",
-            self,
-            triggered=self.export_data
-            )
+        self.export_action = QtWidgets.QAction("Export", self,
+                                               triggered=self.export_data)
         self.add_menu_action(self.file_menu, self.export_action)
 
         self.file_menu.addSeparator()
 
-        self.lockfile_action=QtWidgets.QAction("&Lock File",
-            self,
-            shortcut=QtGui.QKeySequence("Ctrl+L"),
-            triggered=self.lock_file
-            )
+        self.lockfile_action = QtWidgets.QAction(
+            "&Lock File", self, shortcut=QtGui.QKeySequence("Ctrl+L"),
+            triggered=self.lock_file)
         self.add_menu_action(self.file_menu, self.lockfile_action)
 
         if sys.platform == 'darwin':
-            #This maps onto Cmd+U on a Mac. On other systems, this clashes with 
-            #the Ctrl+U command-line editing shortcut.
+            # This maps onto Cmd+U on a Mac. On other systems, this clashes
+            # with the Ctrl+U command-line editing shortcut.
             unlock_shortcut = QtGui.QKeySequence("Ctrl+U")
         else:
             unlock_shortcut = QtGui.QKeySequence("Ctrl+Shift+U")
-        self.unlockfile_action=QtWidgets.QAction("&Unlock File",
-            self,
-            shortcut=unlock_shortcut,
-            triggered=self.unlock_file
-            )
+        self.unlockfile_action = QtWidgets.QAction("&Unlock File", self,
+                                                   shortcut=unlock_shortcut,
+                                                   triggered=self.unlock_file)
         self.add_menu_action(self.file_menu, self.unlockfile_action)
 
         self.file_menu.addSeparator()
 
-        self.backup_action=QtWidgets.QAction("&Backup File",
-            self,
-            shortcut=QtGui.QKeySequence("Ctrl+B"),
-            triggered=self.backup_file
-            )
+        self.backup_action = QtWidgets.QAction(
+            "&Backup File", self, shortcut=QtGui.QKeySequence("Ctrl+B"),
+            triggered=self.backup_file)
         self.add_menu_action(self.file_menu, self.backup_action)
 
-        self.restore_action=QtWidgets.QAction("Restore Backup...",
-            self,
-            triggered=self.restore_file
-            )
+        self.restore_action = QtWidgets.QAction("Restore Backup...", self,
+                                                triggered=self.restore_file)
         self.add_menu_action(self.file_menu, self.restore_action)
 
-        self.manage_backups_action=QtWidgets.QAction("Manage Backups...",
-            self,
-            triggered=self.manage_backups
-            )
+        self.manage_backups_action = QtWidgets.QAction(
+            "Manage Backups...", self, triggered=self.manage_backups)
         self.add_menu_action(self.file_menu, self.manage_backups_action)
 
         self.file_menu.addSeparator()
 
-        self.open_scratch_action=QtWidgets.QAction("Open Scratch File",
-            self,
-            triggered=self.open_scratch_file
-            )
+        self.open_scratch_action = QtWidgets.QAction(
+            "Open Scratch File", self, triggered=self.open_scratch_file)
         self.add_menu_action(self.file_menu, self.open_scratch_action)
 
-        self.purge_scratch_action=QtWidgets.QAction("Purge Scratch File",
-            self,
-            triggered=self.purge_scratch_file
-            )
+        self.purge_scratch_action = QtWidgets.QAction(
+            "Purge Scratch File", self, triggered=self.purge_scratch_file)
         self.add_menu_action(self.file_menu, self.purge_scratch_action)
 
-        self.close_scratch_action=QtWidgets.QAction("Close Scratch File",
-            self,
-            triggered=self.close_scratch_file
-            )
+        self.close_scratch_action = QtWidgets.QAction(
+            "Close Scratch File", self, triggered=self.close_scratch_file)
         self.add_menu_action(self.file_menu, self.close_scratch_action)
 
         self.file_menu.addSeparator()
 
-        self.install_plugin_action=QtWidgets.QAction("Install Plugin...",
-            self,
-            triggered=self.install_plugin
-            )
+        self.install_plugin_action = QtWidgets.QAction(
+            "Install Plugin...", self, triggered=self.install_plugin)
         self.add_menu_action(self.file_menu, self.install_plugin_action)
 
-        self.remove_plugin_action=QtWidgets.QAction("Remove Plugin...",
-            self,
-            triggered=self.remove_plugin
-            )
+        self.remove_plugin_action = QtWidgets.QAction(
+            "Remove Plugin...", self, triggered=self.remove_plugin)
         self.add_menu_action(self.file_menu, self.remove_plugin_action)
 
-        self.restore_plugin_action=QtWidgets.QAction("Restore Plugin...",
-            self,
-            triggered=self.restore_plugin
-            )
+        self.restore_plugin_action = QtWidgets.QAction(
+            "Restore Plugin...", self, triggered=self.restore_plugin)
         self.add_menu_action(self.file_menu, self.restore_plugin_action)
 
         self.file_menu.addSeparator()
 
-        self.preferences_action=QtWidgets.QAction("Edit Preferences",
-            self,
-            triggered=self.edit_preferences
-            )
+        self.preferences_action = QtWidgets.QAction(
+            "Edit Preferences", self, triggered=self.edit_preferences)
         self.add_menu_action(self.file_menu, self.preferences_action)
 
-        self.quit_action = QtWidgets.QAction("&Quit",
-            self,
-            shortcut=QtGui.QKeySequence.Quit,
-            triggered=self.close,
-            )
+        self.quit_action = QtWidgets.QAction("&Quit", self,
+                                             shortcut=QtGui.QKeySequence.Quit,
+                                             triggered=self.close)
         # OSX always has Quit in the Application menu, only add it
         # to the File menu elsewhere.
         if sys.platform == 'darwin':
@@ -459,48 +412,37 @@ class MainWindow(QtWidgets.QMainWindow):
     def init_edit_menu(self):
         self.edit_menu = self.menu_bar.addMenu("&Edit")
 
-        self.undo_action = QtWidgets.QAction("&Undo",
-            self,
-            shortcut=QtGui.QKeySequence.Undo,
+        self.undo_action = QtWidgets.QAction(
+            "&Undo", self, shortcut=QtGui.QKeySequence.Undo,
             statusTip="Undo last action if possible",
-            triggered=self.undo_console
-            )
+            triggered=self.undo_console)
         self.add_menu_action(self.edit_menu, self.undo_action, True)
 
-        self.redo_action = QtWidgets.QAction("&Redo",
-            self,
-            shortcut=QtGui.QKeySequence.Redo,
+        self.redo_action = QtWidgets.QAction(
+            "&Redo", self, shortcut=QtGui.QKeySequence.Redo,
             statusTip="Redo last action if possible",
             triggered=self.redo_console)
         self.add_menu_action(self.edit_menu, self.redo_action, True)
 
         self.edit_menu.addSeparator()
 
-        self.cut_action = QtWidgets.QAction("&Cut",
-            self,
-            shortcut=QtGui.QKeySequence.Cut,
-            triggered=self.cut_console
-            )
+        self.cut_action = QtWidgets.QAction("&Cut", self,
+                                            shortcut=QtGui.QKeySequence.Cut,
+                                            triggered=self.cut_console)
         self.add_menu_action(self.edit_menu, self.cut_action, True)
 
-        self.copy_action = QtWidgets.QAction("&Copy",
-            self,
-            shortcut=QtGui.QKeySequence.Copy,
-            triggered=self.copy_console
-            )
+        self.copy_action = QtWidgets.QAction("&Copy", self,
+                                             shortcut=QtGui.QKeySequence.Copy,
+                                             triggered=self.copy_console)
         self.add_menu_action(self.edit_menu, self.copy_action, True)
 
-        self.copy_raw_action = QtWidgets.QAction("Copy (Raw Text)",
-            self,
-            triggered=self.copy_raw_console
-            )
+        self.copy_raw_action = QtWidgets.QAction(
+            "Copy (Raw Text)", self, triggered=self.copy_raw_console)
         self.add_menu_action(self.edit_menu, self.copy_raw_action)
 
-        self.paste_action = QtWidgets.QAction("&Paste",
-            self,
-            shortcut=QtGui.QKeySequence.Paste,
-            triggered=self.paste_console
-            )
+        self.paste_action = QtWidgets.QAction(
+            "&Paste", self, shortcut=QtGui.QKeySequence.Paste,
+            triggered=self.paste_console)
         self.add_menu_action(self.edit_menu, self.paste_action, True)
 
         self.edit_menu.addSeparator()
@@ -510,163 +452,118 @@ class MainWindow(QtWidgets.QMainWindow):
             # Only override the default if there is a collision.
             # Qt ctrl = cmd on OSX, so the match gets a false positive on OSX.
             selectall = "Ctrl+Shift+A"
-        self.select_all_action = QtWidgets.QAction("Select &All",
-            self,
-            shortcut=selectall,
-            triggered=self.select_all_console
-            )
+        self.select_all_action = QtWidgets.QAction(
+            "Select &All", self, shortcut=selectall,
+            triggered=self.select_all_console)
         self.add_menu_action(self.edit_menu, self.select_all_action, True)
 
         self.edit_menu.addSeparator()
 
-        self.print_action = QtWidgets.QAction("Print Shell",
-            self,
-            triggered=self.print_action_console)
+        self.print_action = QtWidgets.QAction(
+            "Print Shell", self, triggered=self.print_action_console)
         self.add_menu_action(self.edit_menu, self.print_action, True)
-
 
     def init_data_menu(self):
         self.data_menu = self.menu_bar.addMenu("Data")
 
-        self.plot_data_action=QtWidgets.QAction("&Plot Data",
-            self,
-            shortcut=QtGui.QKeySequence("Ctrl+P"),
-            triggered=self.plot_data
-            )
+        self.plot_data_action = QtWidgets.QAction(
+            "&Plot Data", self, shortcut=QtGui.QKeySequence("Ctrl+P"),
+            triggered=self.plot_data)
         self.add_menu_action(self.data_menu, self.plot_data_action)
 
-        self.plot_line_action=QtWidgets.QAction("Plot Line",
-            self,
-            triggered=self.plot_line
-            )
+        self.plot_line_action = QtWidgets.QAction("Plot Line", self,
+                                                  triggered=self.plot_line)
 
-        self.overplot_data_action=QtWidgets.QAction("Overplot Data",
-            self,
-            shortcut=QtGui.QKeySequence("Ctrl+Shift+P"),
-            triggered=self.overplot_data
-            )
+        self.overplot_data_action = QtWidgets.QAction(
+            "Overplot Data", self, shortcut=QtGui.QKeySequence("Ctrl+Shift+P"),
+            triggered=self.overplot_data)
         self.add_menu_action(self.data_menu, self.overplot_data_action)
 
-        self.overplot_line_action=QtWidgets.QAction("Overplot Line",
-            self,
-            triggered=self.overplot_line
-            )
+        self.overplot_line_action = QtWidgets.QAction(
+            "Overplot Line", self, triggered=self.overplot_line)
 
-        self.multiplot_data_action=QtWidgets.QAction("Plot All Signals",
-            self,
-            triggered=self.multiplot_data
-            )
+        self.multiplot_data_action = QtWidgets.QAction(
+            "Plot All Signals", self, triggered=self.multiplot_data)
         self.add_menu_action(self.data_menu, self.multiplot_data_action)
 
-        self.multiplot_lines_action=QtWidgets.QAction(
-            "Plot All Signals as Lines",
-            self,
-            triggered=self.multiplot_lines
-            )
+        self.multiplot_lines_action = QtWidgets.QAction(
+            "Plot All Signals as Lines", self, triggered=self.multiplot_lines)
 
-        self.plot_weighted_data_action=QtWidgets.QAction("Plot Weighted Data",
-            self,
-            triggered=self.plot_weighted_data
-            )
+        self.plot_weighted_data_action = QtWidgets.QAction(
+            "Plot Weighted Data", self, triggered=self.plot_weighted_data)
         self.add_menu_action(self.data_menu, self.plot_weighted_data_action)
 
-        self.plot_image_action=QtWidgets.QAction("Plot RGB(A) Image",
-            self,
-            triggered=self.plot_image
-            )
+        self.plot_image_action = QtWidgets.QAction("Plot RGB(A) Image", self,
+                                                   triggered=self.plot_image)
         self.add_menu_action(self.data_menu, self.plot_image_action)
 
         self.data_menu.addSeparator()
 
-        self.view_action=QtWidgets.QAction("View Data",
-            self,
-            shortcut=QtGui.QKeySequence("Ctrl+Alt+V"),
-            triggered=self.view_data
-            )
+        self.view_action = QtWidgets.QAction(
+            "View Data", self, shortcut=QtGui.QKeySequence("Ctrl+Alt+V"),
+            triggered=self.view_data)
         self.add_menu_action(self.data_menu, self.view_action)
 
-        self.add_action=QtWidgets.QAction("Add Data",
-            self,
-            triggered=self.add_data
-            )
+        self.add_action = QtWidgets.QAction("Add Data", self,
+                                            triggered=self.add_data)
         self.add_menu_action(self.data_menu, self.add_action)
 
-        self.initialize_action=QtWidgets.QAction("Initialize Data",
-            self,
-            triggered=self.initialize_data
-            )
+        self.initialize_action = QtWidgets.QAction(
+            "Initialize Data", self, triggered=self.initialize_data)
         self.add_menu_action(self.data_menu, self.initialize_action)
 
-        self.rename_action=QtWidgets.QAction("Rename Data",
-            self,
-            triggered=self.rename_data
-            )
+        self.rename_action = QtWidgets.QAction("Rename Data", self,
+                                               triggered=self.rename_data)
         self.add_menu_action(self.data_menu, self.rename_action)
 
-        self.copydata_action=QtWidgets.QAction("Copy Data",
-            self,
-            shortcut=QtGui.QKeySequence("Ctrl+Shift+C"),
-            triggered=self.copy_data
-            )
+        self.copydata_action = QtWidgets.QAction(
+            "Copy Data", self, shortcut=QtGui.QKeySequence("Ctrl+Shift+C"),
+            triggered=self.copy_data)
         self.add_menu_action(self.data_menu, self.copydata_action)
 
-        self.cutdata_action=QtWidgets.QAction("Cut Data",
-            self,
-            shortcut=QtGui.QKeySequence("Ctrl+Shift+X"),
-            triggered=self.cut_data
-            )
+        self.cutdata_action = QtWidgets.QAction(
+            "Cut Data", self, shortcut=QtGui.QKeySequence("Ctrl+Shift+X"),
+            triggered=self.cut_data)
         self.add_menu_action(self.data_menu, self.cutdata_action)
 
-        self.pastedata_action=QtWidgets.QAction("Paste Data",
-            self,
-            shortcut=QtGui.QKeySequence("Ctrl+Shift+V"),
-            triggered=self.paste_data
-            )
+        self.pastedata_action = QtWidgets.QAction(
+            "Paste Data", self, shortcut=QtGui.QKeySequence("Ctrl+Shift+V"),
+            triggered=self.paste_data)
         self.add_menu_action(self.data_menu, self.pastedata_action)
 
-        self.pastelink_action=QtWidgets.QAction("Paste As Link",
-            self,
-            shortcut=QtGui.QKeySequence("Ctrl+Shift+Alt+V"),
-            triggered=self.paste_link
-            )
+        self.pastelink_action = QtWidgets.QAction(
+            "Paste As Link", self, shortcut=QtGui.QKeySequence(
+                "Ctrl+Shift+Alt+V"),
+            triggered=self.paste_link)
         self.add_menu_action(self.data_menu, self.pastelink_action)
 
-        self.delete_action=QtWidgets.QAction("Delete Data",
-            self,
-            shortcut=QtGui.QKeySequence("Ctrl+Shift+Alt+X"),
-            triggered=self.delete_data
-            )
+        self.delete_action = QtWidgets.QAction(
+            "Delete Data", self, shortcut=QtGui.QKeySequence(
+                "Ctrl+Shift+Alt+X"),
+            triggered=self.delete_data)
         self.add_menu_action(self.data_menu, self.delete_action)
 
         self.data_menu.addSeparator()
 
-        self.link_action=QtWidgets.QAction("Show Link",
-            self,
-            triggered=self.show_link
-            )
+        self.link_action = QtWidgets.QAction("Show Link", self,
+                                             triggered=self.show_link)
         self.add_menu_action(self.data_menu, self.link_action)
 
         self.data_menu.addSeparator()
 
-        self.signal_action=QtWidgets.QAction("Set Signal",
-            self,
-            triggered=self.set_signal
-            )
+        self.signal_action = QtWidgets.QAction("Set Signal", self,
+                                               triggered=self.set_signal)
         self.add_menu_action(self.data_menu, self.signal_action)
 
-        self.default_action=QtWidgets.QAction("Set Default",
-            self,
-            triggered=self.set_default
-            )
+        self.default_action = QtWidgets.QAction("Set Default", self,
+                                                triggered=self.set_default)
         self.add_menu_action(self.data_menu, self.default_action)
 
         self.data_menu.addSeparator()
 
-        self.fit_action=QtWidgets.QAction("Fit Data",
-            self,
-            shortcut=QtGui.QKeySequence("Ctrl+Shift+F"),
-            triggered=self.fit_data
-            )
+        self.fit_action = QtWidgets.QAction(
+            "Fit Data", self, shortcut=QtGui.QKeySequence("Ctrl+Shift+F"),
+            triggered=self.fit_data)
         self.add_menu_action(self.data_menu, self.fit_action)
 
     def init_plugin_menus(self):
@@ -676,12 +573,12 @@ class MainWindow(QtWidgets.QMainWindow):
         if os.path.isdir(private_path):
             for name in os.listdir(private_path):
                 if (os.path.isdir(os.path.join(private_path, name)) and
-                    not (name.startswith('_') or name.startswith('.'))):
+                        not (name.startswith('_') or name.startswith('.'))):
                     self.plugin_names.add(name)
         public_path = pkg_resources.resource_filename('nexpy', 'plugins')
         for name in os.listdir(public_path):
             if (os.path.isdir(os.path.join(public_path, name)) and
-                not (name.startswith('_') or name.startswith('.'))):
+                    not (name.startswith('_') or name.startswith('.'))):
                 self.plugin_names.add(name)
         plugin_paths = [private_path, public_path]
         for plugin_name in set(sorted(self.plugin_names)):
@@ -689,8 +586,8 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.add_plugin_menu(plugin_name, plugin_paths)
             except Exception as error:
                 logging.info(
-                'The "%s" plugin could not be added to the main menu\n%s%s'
-                % (plugin_name, 33*' ', error))
+                    f'The "{plugin_name}" plugin could not be added '
+                    'to the main menu\n' + 33*' ' + f'{error}')
 
     def add_plugin_menu(self, plugin_name, plugin_paths):
         plugin_module = import_plugin(plugin_name, plugin_paths)
@@ -705,49 +602,41 @@ class MainWindow(QtWidgets.QMainWindow):
 
         if sys.platform != 'darwin':
             # disable on OSX, where there is always a menu bar
-            self.toggle_menu_bar_act = QtWidgets.QAction("Toggle &Menu Bar",
-                self,
-                shortcut=QtGui.QKeySequence("Ctrl+Shift+M"),
+            self.toggle_menu_bar_act = QtWidgets.QAction(
+                "Toggle &Menu Bar", self, shortcut=QtGui.QKeySequence(
+                    "Ctrl+Shift+M"),
                 statusTip="Toggle visibility of menubar",
                 triggered=self.toggle_menu_bar)
             self.add_menu_action(self.view_menu, self.toggle_menu_bar_act)
 
         fs_key = "Ctrl+Meta+F" if sys.platform == 'darwin' else "F11"
-        self.full_screen_act = QtWidgets.QAction("&Full Screen",
-            self,
-            shortcut=fs_key,
+        self.full_screen_act = QtWidgets.QAction(
+            "&Full Screen", self, shortcut=fs_key,
             statusTip="Toggle between Fullscreen and Normal Size",
             triggered=self.toggleFullScreen)
         self.add_menu_action(self.view_menu, self.full_screen_act)
 
         self.view_menu.addSeparator()
 
-        self.increase_font_size = QtWidgets.QAction("Zoom &In",
-            self,
-            shortcut=QtGui.QKeySequence.ZoomIn,
-            triggered=self.increase_font_size_console
-            )
+        self.increase_font_size = QtWidgets.QAction(
+            "Zoom &In", self, shortcut=QtGui.QKeySequence.ZoomIn,
+            triggered=self.increase_font_size_console)
         self.add_menu_action(self.view_menu, self.increase_font_size, True)
 
-        self.decrease_font_size = QtWidgets.QAction("Zoom &Out",
-            self,
-            shortcut=QtGui.QKeySequence.ZoomOut,
-            triggered=self.decrease_font_size_console
-            )
+        self.decrease_font_size = QtWidgets.QAction(
+            "Zoom &Out", self, shortcut=QtGui.QKeySequence.ZoomOut,
+            triggered=self.decrease_font_size_console)
         self.add_menu_action(self.view_menu, self.decrease_font_size, True)
 
-        self.reset_font_size = QtWidgets.QAction("Zoom &Reset",
-            self,
-            shortcut=QtGui.QKeySequence("Ctrl+0"),
-            triggered=self.reset_font_size_console
-            )
+        self.reset_font_size = QtWidgets.QAction(
+            "Zoom &Reset", self, shortcut=QtGui.QKeySequence("Ctrl+0"),
+            triggered=self.reset_font_size_console)
         self.add_menu_action(self.view_menu, self.reset_font_size, True)
 
         self.view_menu.addSeparator()
 
-        self.clear_action = QtWidgets.QAction("&Clear Screen",
-            self,
-            statusTip="Clear the console",
+        self.clear_action = QtWidgets.QAction(
+            "&Clear Screen", self, statusTip="Clear the console",
             triggered=self.clear_magic_console)
         self.add_menu_action(self.view_menu, self.clear_action)
 
@@ -762,46 +651,42 @@ class MainWindow(QtWidgets.QMainWindow):
         # is updated at first kernel response. Though, it is necessary when
         # connecting through X-forwarding, as in this case, the menu is not
         # auto updated, SO DO NOT DELETE.
-        self.pop = QtWidgets.QAction("&Update All Magic Menu ",
-            self, triggered=self.update_all_magic_menu)
+        self.pop = QtWidgets.QAction("&Update All Magic Menu ", self,
+                                     triggered=self.update_all_magic_menu)
         self.add_menu_action(self.all_magic_menu, self.pop)
         # we need to populate the 'Magic Menu' once the kernel has answer at
         # least once let's do it immediately, but it's assured to works
         self.pop.trigger()
 
-        self.reset_action = QtWidgets.QAction("&Reset",
-            self,
-            statusTip="Clear all variables from workspace",
+        self.reset_action = QtWidgets.QAction(
+            "&Reset", self, statusTip="Clear all variables from workspace",
             triggered=self.reset_magic_console)
         self.add_menu_action(self.magic_menu, self.reset_action)
 
-        self.history_action = QtWidgets.QAction("&History",
-            self,
-            statusTip="show command history",
+        self.history_action = QtWidgets.QAction(
+            "&History", self, statusTip="show command history",
             triggered=self.history_magic_console)
         self.add_menu_action(self.magic_menu, self.history_action)
 
-        self.save_action = QtWidgets.QAction("E&xport History ",
-            self,
+        self.save_action = QtWidgets.QAction(
+            "E&xport History ", self,
             statusTip="Export History as Python File",
             triggered=self.save_magic_console)
         self.add_menu_action(self.magic_menu, self.save_action)
 
-        self.who_action = QtWidgets.QAction("&Who",
-            self,
-            statusTip="List interactive variables",
+        self.who_action = QtWidgets.QAction(
+            "&Who", self, statusTip="List interactive variables",
             triggered=self.who_magic_console)
         self.add_menu_action(self.magic_menu, self.who_action)
 
-        self.who_ls_action = QtWidgets.QAction("Wh&o ls",
-            self,
+        self.who_ls_action = QtWidgets.QAction(
+            "Wh&o ls", self,
             statusTip="Return a list of interactive variables",
             triggered=self.who_ls_magic_console)
         self.add_menu_action(self.magic_menu, self.who_ls_action)
 
-        self.whos_action = QtWidgets.QAction("Who&s",
-            self,
-            statusTip="List interactive variables with details",
+        self.whos_action = QtWidgets.QAction(
+            "Who&s", self, statusTip="List interactive variables with details",
             triggered=self.whos_magic_console)
         self.add_menu_action(self.magic_menu, self.whos_action)
 
@@ -809,15 +694,13 @@ class MainWindow(QtWidgets.QMainWindow):
         self.window_menu = self.menu_bar.addMenu("&Window")
         if sys.platform == 'darwin':
             # add min/maximize actions to OSX, which lacks default bindings.
-            self.minimizeAct = QtWidgets.QAction("Mini&mize",
-                self,
-                shortcut=QtGui.QKeySequence("Ctrl+m"),
+            self.minimizeAct = QtWidgets.QAction(
+                "Mini&mize", self, shortcut=QtGui.QKeySequence("Ctrl+m"),
                 statusTip="Minimize the window/Restore Normal Size",
                 triggered=self.toggleMinimized)
             # maximize is called 'Zoom' on OSX for some reason
-            self.maximizeAct = QtWidgets.QAction("&Zoom",
-                self,
-                shortcut=QtGui.QKeySequence("Ctrl+Shift+M"),
+            self.maximizeAct = QtWidgets.QAction(
+                "&Zoom", self, shortcut=QtGui.QKeySequence("Ctrl+Shift+M"),
                 statusTip="Maximize the window/Restore Normal Size",
                 triggered=self.toggleMaximized)
 
@@ -825,116 +708,96 @@ class MainWindow(QtWidgets.QMainWindow):
             self.add_menu_action(self.window_menu, self.maximizeAct)
             self.window_menu.addSeparator()
 
-        self.tree_action=QtWidgets.QAction("Show Tree",
-            self,
-            shortcut=QtGui.QKeySequence("Ctrl+Shift+T"),
-            triggered=self.show_tree
-            )
+        self.tree_action = QtWidgets.QAction(
+            "Show Tree", self, shortcut=QtGui.QKeySequence("Ctrl+Shift+T"),
+            triggered=self.show_tree)
         self.add_menu_action(self.window_menu, self.tree_action)
 
-        self.shell_action=QtWidgets.QAction("Show IPython Shell",
-            self,
-            shortcut=QtGui.QKeySequence("Ctrl+Shift+I"),
-            triggered=self.show_shell
-            )
+        self.shell_action = QtWidgets.QAction(
+            "Show IPython Shell", self, shortcut=QtGui.QKeySequence(
+                "Ctrl+Shift+I"),
+            triggered=self.show_shell)
         self.add_menu_action(self.window_menu, self.shell_action)
 
         self.window_menu.addSeparator()
 
-        self.log_action=QtWidgets.QAction("Show Log File",
-            self,
-            shortcut=QtGui.QKeySequence("Ctrl+Shift+L"),
-            triggered=self.show_log
-            )
+        self.log_action = QtWidgets.QAction(
+            "Show Log File", self, shortcut=QtGui.QKeySequence("Ctrl+Shift+L"),
+            triggered=self.show_log)
         self.add_menu_action(self.window_menu, self.log_action)
 
-        self.script_window_action=QtWidgets.QAction("Show Script Editor",
-            self,
-            shortcut=QtGui.QKeySequence("Ctrl+Shift+S"),
-            triggered=self.show_script_window
-            )
+        self.script_window_action = QtWidgets.QAction(
+            "Show Script Editor", self, shortcut=QtGui.QKeySequence(
+                "Ctrl+Shift+S"),
+            triggered=self.show_script_window)
         self.add_menu_action(self.window_menu, self.script_window_action)
 
         self.window_menu.addSeparator()
 
-        self.customize_action=QtWidgets.QAction("Show Customize Panel",
-            self,
-            shortcut=QtGui.QKeySequence("Ctrl+Alt+C"),
-            triggered=self.show_customize_panel
-            )
+        self.customize_action = QtWidgets.QAction(
+            "Show Customize Panel", self, shortcut=QtGui.QKeySequence(
+                "Ctrl+Alt+C"),
+            triggered=self.show_customize_panel)
         self.add_menu_action(self.window_menu, self.customize_action)
 
-        self.limit_action=QtWidgets.QAction("Show Limits Panel",
-            self,
-            shortcut=QtGui.QKeySequence("Ctrl+Alt+L"),
-            triggered=self.show_limits_panel
-            )
+        self.limit_action = QtWidgets.QAction(
+            "Show Limits Panel", self, shortcut=QtGui.QKeySequence(
+                "Ctrl+Alt+L"),
+            triggered=self.show_limits_panel)
         self.add_menu_action(self.window_menu, self.limit_action)
 
-        self.panel_action=QtWidgets.QAction("Show Projection Panel",
-            self,
-            shortcut=QtGui.QKeySequence("Ctrl+Alt+P"),
-            triggered=self.show_projection_panel
-            )
+        self.panel_action = QtWidgets.QAction(
+            "Show Projection Panel", self, shortcut=QtGui.QKeySequence(
+                "Ctrl+Alt+P"),
+            triggered=self.show_projection_panel)
         self.add_menu_action(self.window_menu, self.panel_action)
 
-        self.scan_action=QtWidgets.QAction("Show Scan Panel",
-            self,
-            shortcut=QtGui.QKeySequence("Ctrl+Alt+S"),
-            triggered=self.show_scan_panel
-            )
+        self.scan_action = QtWidgets.QAction(
+            "Show Scan Panel", self, shortcut=QtGui.QKeySequence("Ctrl+Alt+S"),
+            triggered=self.show_scan_panel)
         self.add_menu_action(self.window_menu, self.scan_action)
 
         self.window_menu.addSeparator()
 
-        self.show_all_limits_action=QtWidgets.QAction("Show All Limits",
-            self,
-            shortcut=QtGui.QKeySequence("Ctrl+Shift+Alt+L"),
-            triggered=self.show_all_limits
-            )
+        self.show_all_limits_action = QtWidgets.QAction(
+            "Show All Limits", self, shortcut=QtGui.QKeySequence(
+                "Ctrl+Shift+Alt+L"),
+            triggered=self.show_all_limits)
         self.add_menu_action(self.window_menu, self.show_all_limits_action)
 
-        self.reset_limit_action=QtWidgets.QAction("Reset Plot Limits",
-            self,
-            triggered=self.reset_axes
-            )
+        self.reset_limit_action = QtWidgets.QAction("Reset Plot Limits", self,
+                                                    triggered=self.reset_axes)
         self.add_menu_action(self.window_menu, self.reset_limit_action)
 
         self.window_menu.addSeparator()
 
-        self.newplot_action=QtWidgets.QAction("New Plot Window",
-            self,
-            shortcut=QtGui.QKeySequence("Ctrl+Shift+N"),
-            triggered=self.new_plot_window
-            )
+        self.newplot_action = QtWidgets.QAction(
+            "New Plot Window", self, shortcut=QtGui.QKeySequence(
+                "Ctrl+Shift+N"),
+            triggered=self.new_plot_window)
         self.add_menu_action(self.window_menu, self.newplot_action)
 
-        self.closewindow_action=QtWidgets.QAction("Close Plot Window",
-            self,
-            shortcut=QtGui.QKeySequence("Ctrl+W"),
-            triggered=self.close_window
-            )
+        self.closewindow_action = QtWidgets.QAction(
+            "Close Plot Window", self, shortcut=QtGui.QKeySequence("Ctrl+W"),
+            triggered=self.close_window)
         self.add_menu_action(self.window_menu, self.closewindow_action,)
 
         self.window_menu.addSeparator()
 
-        self.equalizewindow_action=QtWidgets.QAction("Equalize Plot Sizes",
-            self,
-            shortcut=QtGui.QKeySequence("Ctrl+Shift+E"),
-            triggered=self.equalize_windows
-            )
+        self.equalizewindow_action = QtWidgets.QAction(
+            "Equalize Plot Sizes", self, shortcut=QtGui.QKeySequence(
+                "Ctrl+Shift+E"),
+            triggered=self.equalize_windows)
         self.add_menu_action(self.window_menu, self.equalizewindow_action)
 
         self.window_menu.addSeparator()
 
         self.active_action = {}
 
-        self.active_action[1]=QtWidgets.QAction('Main',
-            self,
-            shortcut=QtGui.QKeySequence("Ctrl+1"),
+        self.active_action[1] = QtWidgets.QAction(
+            'Main', self, shortcut=QtGui.QKeySequence("Ctrl+1"),
             triggered=lambda: self.make_active(1),
-            checkable=True
-            )
+            checkable=True)
         self.add_menu_action(self.window_menu, self.active_action[1])
         self.active_action[1].setChecked(True)
         self.previous_active = 1
@@ -943,21 +806,15 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def init_script_menu(self):
         self.script_menu = self.menu_bar.addMenu("&Script")
-        self.new_script_action=QtWidgets.QAction("New Script...",
-            self,
-            triggered=self.new_script
-            )
+        self.new_script_action = QtWidgets.QAction("New Script...", self,
+                                                   triggered=self.new_script)
         self.add_menu_action(self.script_menu, self.new_script_action)
-        self.open_script_action = QtWidgets.QAction("Open Script...",
-            self,
-            triggered=self.open_script
-            )
+        self.open_script_action = QtWidgets.QAction("Open Script...", self,
+                                                    triggered=self.open_script)
         self.add_menu_action(self.script_menu, self.open_script_action)
         self.open_startup_script_action = QtWidgets.QAction(
-            "Open Startup Script...",
-            self,
-            triggered=self.open_startup_script
-            )
+            "Open Startup Script...", self,
+            triggered=self.open_startup_script)
         self.add_menu_action(self.script_menu, self.open_startup_script_action)
 
         self.script_menu.addSeparator()
@@ -976,13 +833,13 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # Help Menu
 
-        self.nexpyHelpAct = QtWidgets.QAction("Open NeXpy &Help Online",
-            self,
+        self.nexpyHelpAct = QtWidgets.QAction(
+            "Open NeXpy &Help Online", self,
             triggered=self._open_nexpy_online_help)
         self.add_menu_action(self.help_menu, self.nexpyHelpAct)
 
-        self.notebookHelpAct = QtWidgets.QAction("Open NeXus API Tutorial Online",
-            self,
+        self.notebookHelpAct = QtWidgets.QAction(
+            "Open NeXus API Tutorial Online", self,
             triggered=self._open_nexusformat_online_notebook)
         self.add_menu_action(self.help_menu, self.notebookHelpAct)
 
@@ -994,35 +851,27 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.help_menu.addSeparator()
 
-        self.ipythonHelpAct = QtWidgets.QAction("Open iPython Help Online",
-            self,
+        self.ipythonHelpAct = QtWidgets.QAction(
+            "Open iPython Help Online", self,
             triggered=self._open_ipython_online_help)
         self.add_menu_action(self.help_menu, self.ipythonHelpAct)
 
-        self.intro_console_action = QtWidgets.QAction("&Intro to IPython",
-            self,
-            triggered=self.intro_console
-            )
+        self.intro_console_action = QtWidgets.QAction(
+            "&Intro to IPython", self, triggered=self.intro_console)
         self.add_menu_action(self.help_menu, self.intro_console_action)
 
-        self.quickref_console_action = QtWidgets.QAction("IPython &Cheat Sheet",
-            self,
-            triggered=self.quickref_console
-            )
+        self.quickref_console_action = QtWidgets.QAction(
+            "IPython &Cheat Sheet", self, triggered=self.quickref_console)
         self.add_menu_action(self.help_menu, self.quickref_console_action)
 
         self.help_menu.addSeparator()
 
-        self.example_file_action=QtWidgets.QAction("Open Example File",
-            self,
-            triggered=self.open_example_file
-            )
+        self.example_file_action = QtWidgets.QAction(
+            "Open Example File", self, triggered=self.open_example_file)
         self.add_menu_action(self.help_menu, self.example_file_action)
 
-        self.example_script_action=QtWidgets.QAction("Open Example Script",
-            self,
-            triggered=self.open_example_script
-            )
+        self.example_script_action = QtWidgets.QAction(
+            "Open Example Script", self, triggered=self.open_example_script)
         self.add_menu_action(self.help_menu, self.example_script_action)
 
     def init_recent_menu(self):
@@ -1065,8 +914,8 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.importer[import_action] = import_module
             except Exception as error:
                 logging.info(
-                'The "%s" importer could not be added to the Import menu\n%s%s'
-                % (import_name, 33*' ', error))
+                    f'The "{import_name}" importer could not be added '
+                    'to the Import menu\n' + 33*' ' + f'{error}')
 
     def new_workspace(self):
         try:
@@ -1080,10 +929,10 @@ class MainWindow(QtWidgets.QMainWindow):
             raise NeXusError('File already open')
             return
         elif not os.path.exists(fname):
-            raise NeXusError("'%s' does not exist" % fname)
+            raise NeXusError(f"'{fname}' does not exist")
         elif is_file_locked(fname, wait=wait):
-            logging.info("NeXus file '%s' is locked by an external process." 
-                         % fname)
+            logging.info(
+                f"NeXus file '{fname}' is locked by an external process.")
             return
         name = self.tree.get_name(fname)
         if Path(self.backup_dir) in Path(fname).parents:
@@ -1095,7 +944,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.treeview.update()
         self.treeview.select_node(self.tree[name])
         self.treeview.setFocus()
-        logging.info("NeXus file '%s' opened as workspace '%s'" % (fname, name))
+        logging.info(f"NeXus file '{fname}' opened as workspace '{name}'")
         self.update_files(fname, recent=recent)
 
     def open_file(self):
@@ -1135,27 +984,27 @@ class MainWindow(QtWidgets.QMainWindow):
                 return
             data = load_image(fname)
             if 'images' not in self.tree:
-                self.tree['images'] = NXroot()  
+                self.tree['images'] = NXroot()
             name = get_name(fname, self.tree['images'].entries)
             self.tree['images'][name] = data
             node = self.tree['images'][name]
             self.treeview.select_node(node)
             self.treeview.setFocus()
             self.default_directory = os.path.dirname(fname)
-            logging.info("Image file '%s' opened as 'images%s'" 
-                         % (fname, node.nxpath))
+            logging.info(
+                f"Image file '{fname}' opened as 'images{node.nxpath}'")
         except NeXusError as error:
             report_error("Opening Image File", error)
 
     def open_directory(self):
         try:
             directory = self.default_directory
-            directory = QtWidgets.QFileDialog.getExistingDirectory(self, 
-                        'Choose Directory', directory)
+            directory = QtWidgets.QFileDialog.getExistingDirectory(
+                self, 'Choose Directory', directory)
             if directory is None or not os.path.exists(directory):
                 return
             tree_files = [self.tree[root].nxfilename for root in self.tree]
-            nxfiles = sorted([f for f in os.listdir(directory) 
+            nxfiles = sorted([f for f in os.listdir(directory)
                               if ((f.endswith('.nxs') or f.endswith('.nx5') or
                                    f.endswith('.h5') or f.endswith('hdf5') or
                                    f.endswith('hdf') or f.endswith('.cxi') or
@@ -1201,7 +1050,7 @@ class MainWindow(QtWidgets.QMainWindow):
                     action.setText(os.path.basename(recent_file))
                     action.setToolTip(recent_file)
                 except IndexError:
-                    action = QtWidgets.QAction(os.path.basename(recent_file), 
+                    action = QtWidgets.QAction(os.path.basename(recent_file),
                                                self,
                                                triggered=self.open_recent_file)
                     action.setToolTip(recent_file)
@@ -1239,8 +1088,8 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.settings.remove_option('recent', old_fname)
                 self.settings.remove_option('session', old_fname)
                 self.update_files(fname)
-                logging.info("NeXus workspace '%s' saved as '%s'"
-                             % (old_name, fname))
+                logging.info(
+                    f"NeXus workspace '{old_name}' saved as '{fname}'")
         except NeXusError as error:
             report_error("Saving File", error)
 
@@ -1258,19 +1107,20 @@ class MainWindow(QtWidgets.QMainWindow):
                             return
                         with NXFile(fname, 'w') as f:
                             f.copyfile(node.nxfile)
-                        logging.info("Workspace '%s' duplicated in '%s'"
-                                     % (node.nxname, fname))
+                        logging.info(
+                            f"Workspace '{node.nxname}' duplicated "
+                            f"in '{fname}'")
                         self.load_file(fname)
                 else:
                     default_name = self.tree.get_new_name()
-                    name, ok = QtWidgets.QInputDialog.getText(self,
-                                   "Duplicate Workspace", "Workspace Name:",
-                                   text=default_name)
+                    name, ok = QtWidgets.QInputDialog.getText(
+                        self, "Duplicate Workspace", "Workspace Name:",
+                        text=default_name)
                     if name and ok:
                         self.tree[name] = node
                         logging.info(
-                            "Workspace '%s' duplicated as workspace '%s'"
-                            % (node.nxname, name))
+                            f"Workspace '{node.nxname}' duplicated "
+                            f"as workspace '{name}'")
                 if name in self.tree:
                     self.treeview.select_node(self.tree[name])
                     self.treeview.update()
@@ -1296,15 +1146,15 @@ class MainWindow(QtWidgets.QMainWindow):
         try:
             node = self.treeview.get_node()
             if not node.file_exists():
-                raise NeXusError("%s does not exist" % node.nxfilename)
+                raise NeXusError(f"{node.nxfilename} does not exist")
             elif self.nodefile_locked(node):
                 return
             path = node.nxpath
             root = node.nxroot
             name = root.nxname
-            if confirm_action("Are you sure you want to reload '%s'?" % name):
+            if confirm_action(f"Are you sure you want to reload '{name}'?"):
                 root.reload()
-                logging.info("Workspace '%s' reloaded" % name)
+                logging.info(f"Workspace '{name}' reloaded")
                 try:
                     self.treeview.select_node(self.tree[name][path])
                 except Exception:
@@ -1322,7 +1172,7 @@ class MainWindow(QtWidgets.QMainWindow):
                     path = node.nxpath
                     root = node.nxroot
                     root.reload()
-                    logging.info("'%s' reloaded" % name)
+                    logging.info(f"'{name}' reloaded")
                 self.treeview.select_top()
         except NeXusError as error:
             report_error("Reloading All Modified Files", error)
@@ -1332,12 +1182,12 @@ class MainWindow(QtWidgets.QMainWindow):
             node = self.treeview.get_node()
             name = node.nxname
             if isinstance(node, NXroot):
-                if confirm_action("Are you sure you want to remove '%s'?" 
-                                  % name):
+                if confirm_action(
+                        f"Are you sure you want to remove '{name}'?"):
                     del self.tree[name]
                     self.settings.remove_option('session', node.nxfilename)
                     self.settings.save()
-                    logging.info("'%s' removed from tree" % name)
+                    logging.info(f"'{name}' removed from tree")
         except NeXusError as error:
             report_error("Removing File", error)
 
@@ -1350,7 +1200,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 del self.tree[name]
                 self.settings.remove_option('session', fname)
                 self.settings.save()
-                logging.info("'%s' removed from tree" % name)
+                logging.info(f"'{name}' removed from tree")
         except NeXusError as error:
             report_error("Removing All Files", error)
 
@@ -1374,7 +1224,8 @@ class MainWindow(QtWidgets.QMainWindow):
                 except Exception:
                     name = self.tree.get_new_name()
                 if isinstance(imported_data, NXentry):
-                    self.tree[name] = self.user_ns[name] = NXroot(imported_data)
+                    self.tree[name] = self.user_ns[name] = NXroot(
+                        imported_data)
                 elif isinstance(imported_data, NXroot):
                     self.tree[name] = self.user_ns[name] = imported_data
                 else:
@@ -1384,10 +1235,10 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.treeview.setFocus()
                 try:
                     self.default_directory = os.path.dirname(
-                                                self.import_dialog.import_file)
+                        self.import_dialog.import_file)
                 except Exception:
                     pass
-                logging.info("Workspace '%s' imported" % name)
+                logging.info(f"Workspace '{name}' imported")
         except NeXusError as error:
             report_error("Importing File", error)
 
@@ -1398,7 +1249,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 dialog = ExportDialog(node, parent=self)
                 dialog.show()
             else:
-                raise NeXusError("Can only export an NXdata group")                  
+                raise NeXusError("Can only export an NXdata group")
         except NeXusError as error:
             report_error("Exporting Data", error)
 
@@ -1408,7 +1259,7 @@ class MainWindow(QtWidgets.QMainWindow):
             if isinstance(node, NXroot) and node.nxfilemode:
                 node.lock()
                 self.treeview.update()
-                logging.info("Workspace '%s' locked" % node.nxname)
+                logging.info(f"Workspace '{node.nxname}' locked")
             else:
                 raise NeXusError("Can only lock a saved NXroot group")
         except NeXusError as error:
@@ -1420,7 +1271,7 @@ class MainWindow(QtWidgets.QMainWindow):
             if not (isinstance(node, NXroot) and node.nxfilemode):
                 raise NeXusError("Can only unlock a saved NXroot group")
             elif not node.file_exists():
-                raise NeXusError("'%s' does not exist" % node.nfilename)
+                raise NeXusError(f"'{node.nfilename}' does not exist")
             elif node.is_modified():
                 if confirm_action("File has been modified. Reload?"):
                     node.reload()
@@ -1441,17 +1292,18 @@ class MainWindow(QtWidgets.QMainWindow):
         try:
             node = self.treeview.get_node()
             if node is not None and not node.file_exists():
-                raise NeXusError("%s does not exist" % node.nxfilename)
+                raise NeXusError(f"{node.nxfilename} does not exist")
             if isinstance(node, NXroot):
                 dir = os.path.join(self.nexpy_dir, 'backups', timestamp())
                 os.mkdir(dir)
                 node.backup(dir=dir)
                 self.settings.set('backups', node.nxbackup)
                 self.settings.save()
-                display_message("Workspace '%s' backed up" % node.nxname, 
+                display_message(f"Workspace '{node.nxname}' backed up",
                                 information=node.nxbackup)
-                logging.info("Workspace '%s' backed up to '%s'" 
-                             % (node.nxname, node.nxbackup))
+                logging.info(
+                    f"Workspace '{node.nxname}' backed up to "
+                    f"'{node.nxbackup}'")
             else:
                 raise NeXusError("Can only backup a NXroot group")
         except NeXusError as error:
@@ -1461,12 +1313,13 @@ class MainWindow(QtWidgets.QMainWindow):
         try:
             node = self.treeview.get_node()
             if isinstance(node, NXroot):
-                if confirm_action("Are you sure you want to restore the file?",
-                        "This will overwrite the current contents of '%s'" 
-                        % node.nxname):
+                if confirm_action(
+                        "Are you sure you want to restore the file?",
+                        "This will overwrite the current contents of "
+                        f"'{node.nxname}'"):
                     node.restore(overwrite=True)
                     self.treeview.update()
-                    logging.info("Workspace '%s' backed up" % node.nxname)
+                    logging.info(f"Workspace '{node.nxname}' backed up")
             else:
                 raise NeXusError("Can only restore a NXroot group")
         except NeXusError as error:
@@ -1500,7 +1353,7 @@ class MainWindow(QtWidgets.QMainWindow):
         try:
             if 'w0' in self.tree:
                 if confirm_action(
-                        "Do you want to delete the scratch file contents?", 
+                        "Do you want to delete the scratch file contents?",
                         answer='no'):
                     for entry in self.tree['w0'].entries.copy():
                         del self.tree['w0'][entry]
@@ -1535,7 +1388,7 @@ class MainWindow(QtWidgets.QMainWindow):
             node = self.treeview.get_node()
             if node is not None:
                 if not node.exists():
-                    raise NeXusError("%s does not exist" % node.nxfullpath)
+                    raise NeXusError(f"{node.nxfullpath} does not exist")
                 self.treeview.status_message(node)
                 if isinstance(node, NXgroup) and node.plottable_data:
                     try:
@@ -1547,7 +1400,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 elif node.is_plottable():
                     dialog = PlotDialog(node, parent=self)
                     dialog.show()
-                elif (isinstance(node, NXfield) and 
+                elif (isinstance(node, NXfield) and
                       node.size == 1 and node.is_numeric()):
                     dialog = PlotScalarDialog(node, parent=self)
                     dialog.show()
@@ -1561,7 +1414,7 @@ class MainWindow(QtWidgets.QMainWindow):
             node = self.treeview.get_node()
             if node is not None:
                 if not node.exists():
-                    raise NeXusError("%s does not exist" % node.nxfullpath)
+                    raise NeXusError(f"{node.nxfullpath} does not exist")
                 self.treeview.status_message(node)
                 node.oplot()
                 self.plotview.make_active()
@@ -1573,7 +1426,7 @@ class MainWindow(QtWidgets.QMainWindow):
             node = self.treeview.get_node()
             if node is not None:
                 if not node.exists():
-                    raise NeXusError("%s does not exist" % node.nxfullpath)
+                    raise NeXusError(f"{node.nxfullpath} does not exist")
                 self.treeview.status_message(node)
                 if isinstance(node, NXgroup) and node.plottable_data:
                     try:
@@ -1594,7 +1447,7 @@ class MainWindow(QtWidgets.QMainWindow):
             node = self.treeview.get_node()
             if node is not None:
                 if not node.exists():
-                    raise NeXusError("%s does not exist" % node.nxfullpath)
+                    raise NeXusError(f"{node.nxfullpath} does not exist")
                 self.treeview.status_message(node)
                 node.oplot(marker='None', linestyle='-')
                 self.plotview.make_active()
@@ -1606,7 +1459,7 @@ class MainWindow(QtWidgets.QMainWindow):
             node = self.treeview.get_node()
             if node is not None:
                 if not node.exists():
-                    raise NeXusError("%s does not exist" % node.nxfullpath)
+                    raise NeXusError(f"{node.nxfullpath} does not exist")
                 elif not isinstance(node, NXgroup):
                     raise NeXusError("Multiplots only available for groups.")
                 elif 'auxiliary_signals' not in node.attrs:
@@ -1614,7 +1467,7 @@ class MainWindow(QtWidgets.QMainWindow):
                         "Group must have the 'auxiliary_signals' attribute.")
                 self.treeview.status_message(node)
                 signals = [node.nxsignal]
-                signals.extend([node[signal] for signal 
+                signals.extend([node[signal] for signal
                                 in node.attrs['auxiliary_signals']])
                 colors = get_colors(len(signals))
                 for i, signal in enumerate(signals):
@@ -1633,7 +1486,7 @@ class MainWindow(QtWidgets.QMainWindow):
             node = self.treeview.get_node()
             if node is not None:
                 if not node.exists():
-                    raise NeXusError("%s does not exist" % node.nxfullpath)
+                    raise NeXusError(f"{node.nxfullpath} does not exist")
                 elif not isinstance(node, NXgroup):
                     raise NeXusError("Multiplots only available for groups.")
                 elif 'auxiliary_signals' not in node.attrs:
@@ -1641,12 +1494,12 @@ class MainWindow(QtWidgets.QMainWindow):
                         "Group must have the 'auxiliary_signals' attribute.")
                 self.treeview.status_message(node)
                 signals = [node.nxsignal]
-                signals.extend([node[signal] for signal 
+                signals.extend([node[signal] for signal
                                 in node.attrs['auxiliary_signals']])
                 colors = get_colors(len(signals))
                 for i, signal in enumerate(signals):
                     if i == 0:
-                        signal.plot(marker='None', linestyle='-', 
+                        signal.plot(marker='None', linestyle='-',
                                     color=colors[i])
                     else:
                         signal.oplot(marker='None', linestyle='-',
@@ -1662,7 +1515,7 @@ class MainWindow(QtWidgets.QMainWindow):
             node = self.treeview.get_node()
             if node is not None:
                 if not node.exists():
-                    raise NeXusError("%s does not exist" % node.nxfullpath)
+                    raise NeXusError(f"{node.nxfullpath} does not exist")
                 self.treeview.status_message(node)
                 node.plot(weights=True)
                 self.plotview.make_active()
@@ -1674,7 +1527,7 @@ class MainWindow(QtWidgets.QMainWindow):
             node = self.treeview.get_node()
             if node is not None:
                 if not node.exists():
-                    raise NeXusError("%s does not exist" % node.nxfullpath)
+                    raise NeXusError(f"{node.nxfullpath} does not exist")
                 self.treeview.status_message(node)
                 node.implot()
                 self.plotview.make_active()
@@ -1695,7 +1548,7 @@ class MainWindow(QtWidgets.QMainWindow):
             node = self.treeview.get_node()
             if node is not None:
                 if not node.exists():
-                    raise NeXusError("%s does not exist" % node.nxfullpath)
+                    raise NeXusError(f"{node.nxfullpath} does not exist")
                 elif node.nxfilemode == 'r':
                     raise NeXusError("NeXus file is locked")
                 dialog = AddDialog(node, parent=self)
@@ -1710,7 +1563,7 @@ class MainWindow(QtWidgets.QMainWindow):
             node = self.treeview.get_node()
             if node is not None:
                 if not node.exists():
-                    raise NeXusError("%s does not exist" % node.nxfullpath)
+                    raise NeXusError(f"{node.nxfullpath} does not exist")
                 elif node.nxfilemode == 'r':
                     raise NeXusError("NeXus file is locked")
                 elif isinstance(node, NXgroup):
@@ -1718,7 +1571,7 @@ class MainWindow(QtWidgets.QMainWindow):
                     dialog.exec_()
                 else:
                     raise NeXusError(
-                                "An NXfield can only be added to an NXgroup")
+                        "An NXfield can only be added to an NXgroup")
         except NeXusError as error:
             report_error("Initializing Data", error)
 
@@ -1728,14 +1581,13 @@ class MainWindow(QtWidgets.QMainWindow):
                 node = self.treeview.get_node()
                 if node is not None:
                     if not node.exists():
-                        raise NeXusError("%s does not exist" % node.nxfullpath)
-                    elif (isinstance(node, NXroot) or 
-                           node.nxgroup.nxfilemode != 'r'):
+                        raise NeXusError(f"{node.nxfullpath} does not exist")
+                    elif (isinstance(node, NXroot) or
+                          node.nxgroup.nxfilemode != 'r'):
                         path = node.nxpath
                         dialog = RenameDialog(node, parent=self)
                         dialog.exec_()
-                        logging.info("'%s' renamed as '%s'"
-                                     % (path, node.nxpath))
+                        logging.info(f"'{path}' renamed as '{node.nxpath}'")
                     else:
                         raise NeXusError("NeXus file is locked")
         except NeXusError as error:
@@ -1749,7 +1601,7 @@ class MainWindow(QtWidgets.QMainWindow):
         if isinstance(node, NXlink):
             node = node.nxlink
         self._memroot['entry'][node.nxname] = node
-        self._memroot['entry'].attrs['link'] = [node.nxname, node.nxpath, 
+        self._memroot['entry'].attrs['link'] = [node.nxname, node.nxpath,
                                                 str(node.nxfilename)]
         return self._memroot['entry'][node.nxname]
 
@@ -1765,9 +1617,10 @@ class MainWindow(QtWidgets.QMainWindow):
             node = self.treeview.get_node()
             if not isinstance(node, NXroot):
                 self.copied_node = self.copy_node(node)
-                logging.info("'%s' copied" % node.nxpath)
+                logging.info(f"'{node.nxpath}' copied")
             else:
-                raise NeXusError("Use 'Duplicate File' to copy an NXroot group")
+                raise NeXusError(
+                    "Use 'Duplicate File' to copy an NXroot group")
         except NeXusError as error:
             report_error("Copying Data", error)
 
@@ -1782,10 +1635,10 @@ class MainWindow(QtWidgets.QMainWindow):
             elif node.nxgroup.nxfilemode and node.nxgroup.nxfilemode == 'r':
                 raise NeXusError("NeXus file is locked")
             else:
-                if confirm_action("Are you sure you want to cut '%s'?"
-                                  % (node.nxroot.nxname+node.nxpath)):
+                if confirm_action("Are you sure you want to cut "
+                                  f"'{node.nxroot.nxname+node.nxpath}'?"):
                     self.copied_node = self.copy_node(node)
-                    logging.info("'%s' cut" % node.nxpath)
+                    logging.info(f"'{node.nxpath}' cut")
                     del node.nxgroup[node.nxname]
         except NeXusError as error:
             report_error("Cutting Data", error)
@@ -1803,8 +1656,9 @@ class MainWindow(QtWidgets.QMainWindow):
                 if node.nxfilemode != 'r':
                     dialog = PasteDialog(node, parent=self)
                     dialog.show()
-                    logging.info("'%s' pasted to '%s'"
-                                 % (self.copied_node.nxpath, node.nxpath))
+                    logging.info(
+                        f"'{self.copied_node.nxpath}' pasted to "
+                        f"'{node.nxpath}'")
                 else:
                     raise NeXusError("NeXus file is locked")
         except NeXusError as error:
@@ -1817,8 +1671,9 @@ class MainWindow(QtWidgets.QMainWindow):
                 if node.nxfilemode != 'r':
                     dialog = PasteDialog(node, link=True, parent=self)
                     dialog.show()
-                    logging.info("'%s' pasted as link to '%s'"
-                                 % (self.copied_node.nxpath, node.nxpath))
+                    logging.info(
+                        f"'{self.copied_node.nxpath}' pasted as link to "
+                        f"'{node.nxpath}'")
                 else:
                     raise NeXusError("NeXus file is locked")
         except NeXusError as error:
@@ -1834,10 +1689,10 @@ class MainWindow(QtWidgets.QMainWindow):
                     "Cannot delete object in an externally linked group")
             elif node.nxgroup.nxfilemode and node.nxgroup.nxfilemode == 'r':
                 raise NeXusError("NeXus file is locked")
-            elif confirm_action("Are you sure you want to delete '%s'?"
-                                % (node.nxroot.nxname+node.nxpath)):
+            elif confirm_action("Are you sure you want to delete "
+                                f"'{node.nxroot.nxname+node.nxpath}'?"):
                 del node.nxgroup[node.nxname]
-                logging.info("'%s' deleted" % (node.nxroot.nxname+node.nxpath))
+                logging.info(f"'{node.nxroot.nxname + node.nxpath}' deleted")
         except NeXusError as error:
             report_error("Deleting Data", error)
 
@@ -1845,8 +1700,8 @@ class MainWindow(QtWidgets.QMainWindow):
         try:
             node = self.treeview.get_node()
             if isinstance(node, NXlink):
-                if (node.nxfilename and 
-                    node.nxfilename != node.nxroot.nxfilename):
+                if (node.nxfilename and
+                        node.nxfilename != node.nxroot.nxfilename):
                     fname = node.nxfilename
                     if not os.path.isabs(fname):
                         fname = os.path.join(
@@ -1875,7 +1730,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 if node.nxfilemode != 'r':
                     dialog = SignalDialog(node, parent=self)
                     dialog.show()
-                    logging.info("Signal set for '%s'" % node.nxgroup.nxpath)
+                    logging.info(f"Signal set for '{node.nxgroup.nxpath}'")
                 else:
                     raise NeXusError("NeXus file is locked")
         except NeXusError as error:
@@ -1884,7 +1739,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def set_default(self):
         try:
             node = self.treeview.get_node()
-            if isinstance(node, NXentry) or isinstance(node, NXdata):               
+            if isinstance(node, NXentry) or isinstance(node, NXdata):
                 if node.nxfilemode != 'r':
                     if node.nxgroup is None:
                         raise NeXusError("There is no parent group")
@@ -1892,7 +1747,7 @@ class MainWindow(QtWidgets.QMainWindow):
                         if not confirm_action("Override existing default?"):
                             return
                     node.set_default()
-                    logging.info("Default set to '%s'" % node.nxpath)
+                    logging.info(f"Default set to '{node.nxpath}'")
                 else:
                     raise NeXusError("NeXus file is locked")
         except NeXusError as error:
@@ -1903,34 +1758,34 @@ class MainWindow(QtWidgets.QMainWindow):
             node = self.treeview.get_node()
             if node is None:
                 return
-            elif ((isinstance(node, NXentry) or isinstance(node, NXprocess)) and 
-                  node.nxtitle.startswith('Fit')):
+            elif ((isinstance(node, NXentry) or isinstance(node, NXprocess))
+                  and node.nxtitle.startswith('Fit')):
                 if 'data' in node and node['data'].ndim > 1:
                     raise NeXusError(
-                                "Fitting only enabled for one-dimensional data")
+                        "Fitting only enabled for one-dimensional data")
             elif isinstance(node, NXdata):
                 if node.ndim > 1:
                     raise NeXusError(
-                                "Fitting only enabled for one-dimensional data")
+                        "Fitting only enabled for one-dimensional data")
             else:
                 raise NeXusError("Select an NXdata group")
             if 'Fit' not in self.panels:
                 self.panels['Fit'] = FitDialog()
             self.panels['Fit'].activate(node)
-            logging.info("Fitting invoked on'%s'" % node.nxpath)
+            logging.info(f"Fitting invoked on'{node.nxpath}'")
         except NeXusError as error:
             report_error("Fitting Data", error)
 
     def input_base_classes(self):
         base_class_path = pkg_resources.resource_filename(
-                              'nexpy', 'definitions/base_classes')
-        nxdl_files = map(os.path.basename,
-            glob.glob(os.path.join(base_class_path,'*.nxdl.xml')))
+            'nexpy', 'definitions/base_classes')
+        nxdl_files = map(os.path.basename, glob.glob(
+            os.path.join(base_class_path, '*.nxdl.xml')))
         pattern = re.compile(r'[\t\n ]+')
         self.nxclasses = {}
         for nxdl_file in nxdl_files:
             class_name = nxdl_file.split('.')[0]
-            xml_root = ET.parse(os.path.join(base_class_path, 
+            xml_root = ET.parse(os.path.join(base_class_path,
                                              nxdl_file)).getroot()
             class_doc = ''
             class_groups = {}
@@ -1952,7 +1807,8 @@ class MainWindow(QtWidgets.QMainWindow):
                     for element in child:
                         if element.tag.endswith('doc'):
                             try:
-                                doc = re.sub(pattern, ' ', element.text).strip()
+                                doc = re.sub(pattern, ' ',
+                                             element.text).strip()
                             except TypeError:
                                 pass
                     class_fields[name] = (dtype, units, doc)
@@ -1965,26 +1821,29 @@ class MainWindow(QtWidgets.QMainWindow):
                     for element in child:
                         if element.tag.endswith('doc'):
                             try:
-                                doc = re.sub(pattern, ' ', element.text).strip()
+                                doc = re.sub(pattern, ' ',
+                                             element.text).strip()
                             except TypeError:
                                 pass
                     class_groups[dtype] = (name, doc)
-            self.nxclasses[class_name] = (class_doc, class_fields, class_groups)
+            self.nxclasses[class_name] = (
+                class_doc, class_fields, class_groups)
         self.nxclasses['NXgroup'] = ('', {}, {})
 
-    def _make_dynamic_magic(self,magic):
+    def _make_dynamic_magic(self, magic):
         """Return a function `fun` that will execute `magic` on the console.
 
         Parameters
         ----------
         magic : string
-            string that will be executed as is when the returned function is called
+            string that will be executed as is when the returned function is
+            called
 
         Returns
         -------
         fun : function
-            function with no parameters, when called will execute `magic` on the
-            console at call time
+            function with no parameters, when called will execute `magic` on
+            the console at call time
 
         See Also
         --------
@@ -1995,7 +1854,8 @@ class MainWindow(QtWidgets.QMainWindow):
         `fun` execute `magic` the console at the moment it is triggered,
         not the console at the moment it was created.
 
-        This function is mostly used to create the "All Magics..." Menu at run time.
+        This function is mostly used to create the "All Magics..." Menu
+        at run time.
         """
         # need two level nested function to be sure to pass magic
         # to active console **at run time**.
@@ -2022,7 +1882,7 @@ class MainWindow(QtWidgets.QMainWindow):
             return
 
         if display_data['status'] != 'ok':
-            self.log.warn("%%lsmagic user-expression failed: %s" % display_data)
+            self.log.warn(f"%%lsmagic user-expression failed: {display_data}")
             return
 
         data = display_data['data'].get('application/json', {})
@@ -2042,14 +1902,10 @@ class MainWindow(QtWidgets.QMainWindow):
                 pmagic = prefix + name
 
                 # Adding seperate QActions is needed for some window managers
-                xaction = QtWidgets.QAction(pmagic,
-                    self,
-                    triggered=self._make_dynamic_magic(pmagic)
-                    )
-                xaction_all = QtWidgets.QAction(pmagic,
-                    self,
-                    triggered=self._make_dynamic_magic(pmagic)
-                    )
+                xaction = QtWidgets.QAction(
+                    pmagic, self, triggered=self._make_dynamic_magic(pmagic))
+                xaction_all = QtWidgets.QAction(
+                    pmagic, self, triggered=self._make_dynamic_magic(pmagic))
                 magic_menu.addAction(xaction)
                 self.all_magic_menu.addAction(xaction_all)
 
@@ -2061,7 +1917,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         """
         self.console._silent_exec_callback('get_ipython().magic("lsmagic")',
-                self.populate_all_magic_menu)
+                                           self.populate_all_magic_menu)
 
     def _get_magic_menu(self, menuidentifier, menulabel=None):
         """return a submagic menu by name, and create it if needed
@@ -2072,39 +1928,36 @@ class MainWindow(QtWidgets.QMainWindow):
         menulabel : str
             Label for the menu
 
-        Will infere the menu name from the identifier at creation if menulabel 
-        not given. To do so you have too give menuidentifier as a 
-        CamelCassedString
+        Will infere the menu name from the identifier at creation if
+        menulabel not given. To do so you have too give menuidentifier
+        as a CamelCassedString
         """
-        menu = self._magic_menu_dict.get(menuidentifier,None)
-        if not menu :
+        menu = self._magic_menu_dict.get(menuidentifier, None)
+        if not menu:
             if not menulabel:
-                menulabel = re.sub("([a-zA-Z]+)([A-Z][a-z])","\g<1> \g<2>",
+                menulabel = re.sub(r"([a-zA-Z]+)([A-Z][a-z])", r"\g<1> \g<2>",
                                    menuidentifier)
             menu = QtWidgets.QMenu(menulabel, self.magic_menu)
-            self._magic_menu_dict[menuidentifier]=menu
-            self.magic_menu.insertMenu(self.magic_menu_separator,menu)
+            self._magic_menu_dict[menuidentifier] = menu
+            self.magic_menu.insertMenu(self.magic_menu_separator, menu)
         return menu
 
     def make_active_action(self, number, label):
         if label == 'Projection':
-            self.active_action[number] = QtWidgets.QAction(label,
-                self,
-                shortcut=QtGui.QKeySequence("Ctrl+Shift+Alt+P"),
+            self.active_action[number] = QtWidgets.QAction(
+                label, self, shortcut=QtGui.QKeySequence("Ctrl+Shift+Alt+P"),
                 triggered=lambda: self.plotviews[label].make_active(),
                 checkable=False)
             self.window_menu.addAction(self.active_action[number])
         elif label == 'Scan':
-            self.active_action[number] = QtWidgets.QAction(label,
-                self,
-                shortcut=QtGui.QKeySequence("Ctrl+Shift+Alt+S"),
+            self.active_action[number] = QtWidgets.QAction(
+                label, self, shortcut=QtGui.QKeySequence("Ctrl+Shift+Alt+S"),
                 triggered=lambda: self.plotviews[label].make_active(),
                 checkable=False)
             self.window_menu.addAction(self.active_action[number])
         elif label == 'Fit':
-            self.active_action[number] = QtWidgets.QAction(label,
-                self,
-                shortcut=QtGui.QKeySequence("Ctrl+Shift+Alt+F"),
+            self.active_action[number] = QtWidgets.QAction(
+                label, self, shortcut=QtGui.QKeySequence("Ctrl+Shift+Alt+F"),
                 triggered=lambda: self.plotviews[label].make_active(),
                 checkable=False)
             self.window_menu.addAction(self.active_action[number])
@@ -2117,13 +1970,12 @@ class MainWindow(QtWidgets.QMainWindow):
                     if num > number:
                         break
                 before_action = self.active_action[num]
-            self.active_action[number] = QtWidgets.QAction(label,
-                self,
-                triggered=lambda: self.make_active(number),
+            self.active_action[number] = QtWidgets.QAction(
+                label, self, triggered=lambda: self.make_active(number),
                 checkable=True)
             if number < 10:
                 self.active_action[number].setShortcut(
-                    QtGui.QKeySequence("Ctrl+%s" % number))
+                    QtGui.QKeySequence(f"Ctrl+{number}"))
             self.window_menu.insertAction(before_action,
                                           self.active_action[number])
         self.make_active(number)
@@ -2133,7 +1985,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def close_window(self):
         windows = self.dialogs
-        windows += [self.plotviews[pv] for pv in self.plotviews if pv != 'Main']
+        windows += [self.plotviews[pv]
+                    for pv in self.plotviews if pv != 'Main']
         for window in windows:
             try:
                 if window.isActiveWindow():
@@ -2143,7 +1996,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 pass
 
     def equalize_windows(self):
-        for label in [label for label in self.plotviews 
+        for label in [label for label in self.plotviews
                       if (label != 'Main' and label != self.plotview.label)]:
             self.plotviews[label].resize(self.plotview.size())
 
@@ -2235,9 +2088,10 @@ class MainWindow(QtWidgets.QMainWindow):
             report_error("Showing Limits Panel", error)
 
     def show_projection_panel(self):
-        if self.active_plotview.label == 'Projection' or self.plotview.ndim == 1:
-            if ('Projection' in self.panels and 
-                self.panels['Projection'].isVisible()):
+        if (self.active_plotview.label == 'Projection'
+                or self.plotview.ndim == 1):
+            if ('Projection' in self.panels and
+                    self.panels['Projection'].isVisible()):
                 self.panels['Projection'].raise_()
                 self.panels['Projection'].activateWindow()
             return
@@ -2267,7 +2121,7 @@ class MainWindow(QtWidgets.QMainWindow):
         if self.panels['Editor'].count == 0:
             self.new_script()
         else:
-            self.panels['Editor'].raise_()    
+            self.panels['Editor'].raise_()
             self.panels['Editor'].activateWindow()
 
     def open_script_window(self, file_name):
@@ -2287,12 +2141,12 @@ class MainWindow(QtWidgets.QMainWindow):
         try:
             script_dir = os.path.join(self.nexpy_dir, 'scripts')
             file_filter = ';;'.join(("Python Files (*.py)",
-                                         "Any Files (*.* *)"))
+                                     "Any Files (*.* *)"))
             file_name = getOpenFileName(self, 'Open Script', script_dir,
                                         file_filter)
             if file_name:
                 self.open_script_window(file_name)
-                logging.info("NeXus script '%s' opened" % file_name)
+                logging.info(f"NeXus script '{file_name}' opened")
         except NeXusError as error:
             report_error("Editing Script", error)
 
@@ -2300,16 +2154,15 @@ class MainWindow(QtWidgets.QMainWindow):
         try:
             file_name = os.path.join(self.nexpy_dir, 'config.py')
             self.open_script_window(file_name)
-            logging.info("NeXus script '%s' opened" % file_name)
+            logging.info(f"NeXus script '{file_name}' opened")
         except NeXusError as error:
             report_error("Editing Startup Script", error)
-
 
     def open_script_file(self):
         try:
             file_name = self.scripts[self.sender()][1]
             self.open_script_window(file_name)
-            logging.info("NeXus script '%s' opened" % file_name)
+            logging.info(f"NeXus script '{file_name}' opened")
         except NeXusError as error:
             report_error("Opening Script", error)
 
@@ -2340,8 +2193,9 @@ class MainWindow(QtWidgets.QMainWindow):
         webbrowser.open(url, new=1, autoraise=True)
 
     def _open_nexusformat_online_notebook(self):
-        url = ("https://colab.research.google.com/github/nexpy/nexusformat/blob/" +
-                    "master/src/nexusformat/notebooks/nexusformat.ipynb")
+        url = (
+            "https://colab.research.google.com/github/nexpy/nexusformat/blob/"
+            "master/src/nexusformat/notebooks/nexusformat.ipynb")
         webbrowser.open(url, new=1, autoraise=True)
 
     def _open_nexus_online_help(self):
@@ -2354,25 +2208,21 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def open_example_file(self):
         default_directory = self.default_directory
-        self.default_directory = pkg_resources.resource_filename('nexpy', 
+        self.default_directory = pkg_resources.resource_filename('nexpy',
                                                                  'examples')
         self.open_file()
         self.default_directory = default_directory
 
     def open_example_script(self):
-        script_dir = pkg_resources.resource_filename('nexpy', 
-                                            os.path.join('examples', 'scripts'))
+        script_dir = pkg_resources.resource_filename(
+            'nexpy', os.path.join('examples', 'scripts'))
         file_filter = ';;'.join(("Python Files (*.py)",
-                                         "Any Files (*.* *)"))
+                                 "Any Files (*.* *)"))
         file_name = getOpenFileName(self, 'Open Script', script_dir,
                                     file_filter)
         if file_name:
-            if self.scriptwindow is None:
-                self.scriptwindow = NXScriptWindow(self)
-            editor = NXScriptEditor(file_name, self)
-            self.scriptwindow.setVisible(True)
-            self.scriptwindow.raise_()
-            logging.info("NeXus script '%s' opened" % file_name)
+            self.open_script_window(file_name)
+            logging.info(f"NeXus script '{file_name}' opened")
 
     # minimize/maximize/fullscreen actions:
 
@@ -2513,22 +2363,23 @@ class MainWindow(QtWidgets.QMainWindow):
         self.console.execute("%quickref")
 
     def close_files(self):
-        for root in [n for n in self.user_ns 
+        for root in [n for n in self.user_ns
                      if isinstance(self.user_ns[n], NXroot)]:
             self.user_ns[root].close()
 
     def close_widgets(self):
         windows = self.dialogs
-        windows += [self.plotviews[pv] for pv in self.plotviews if pv != 'Main']
+        windows += [self.plotviews[pv]
+                    for pv in self.plotviews if pv != 'Main']
         for window in windows:
             try:
                 window.close()
-            except:
-                pass        
+            except Exception:
+                pass
 
     def closeEvent(self, event):
         """Customize the close process to confirm request to quit NeXpy."""
-        if confirm_action("Are you sure you want to quit NeXpy?", 
+        if confirm_action("Are you sure you want to quit NeXpy?",
                           icon=self.app.icon_pixmap):
             self.console.kernel_client.stop_channels()
             self.console.kernel_manager.shutdown_kernel()

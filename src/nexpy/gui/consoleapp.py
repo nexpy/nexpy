@@ -1,20 +1,15 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Copyright (c) 2013-2021, NeXpy Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file COPYING, distributed with this software.
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
-""" A minimal application using the Qt console-style Jupyter frontend.
+"""
+A minimal application using the Qt console-style Jupyter frontend.
 """
 
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
 import logging
 import logging.handlers
 import os
@@ -44,9 +39,9 @@ from .treeview import NXtree
 from .utils import (NXConfigParser, NXGarbageCollector, NXLogger,
                     initialize_preferences, report_exception, timestamp_age)
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Globals
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 _tree = None
 _shell = None
@@ -56,49 +51,37 @@ _examples = """
 nexpy                      # start the GUI application
 """
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Aliases and Flags
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 flags = dict(base_flags)
-qt_flags = {
-    'plain' : ({'NXConsoleApp' : {'plain' : True}},
-            "Disable rich text support."),
-}
+qt_flags = {'plain': ({'NXConsoleApp': {'plain': True}},
+                      "Disable rich text support.")}
 qt_flags.update(boolean_flag(
     'banner', 'NXConsoleApp.display_banner',
     "Display a banner upon starting the QtConsole.",
     "Don't display a banner upon starting the QtConsole."
 ))
-
-# and app_flags from the Console Mixin
 qt_flags.update(app_flags)
-# add frontend flags to the full set
 flags.update(qt_flags)
 
-# start with copy of base jupyter aliases
 aliases = dict(base_aliases)
-qt_aliases = dict(
-    style = 'JupyterWidget.syntax_style',
-    stylesheet = 'NXConsoleApp.stylesheet',
-
-    editor = 'JupyterWidget.editor',
-    paging = 'ConsoleWidget.paging',
-)
-# and app_aliases from the Console Mixin
+qt_aliases = dict(style='JupyterWidget.syntax_style',
+                  stylesheet='NXConsoleApp.stylesheet',
+                  editor='JupyterWidget.editor',
+                  paging='ConsoleWidget.paging')
 qt_aliases.update(app_aliases)
-qt_aliases.update({'gui-completion':'ConsoleWidget.gui_completion'})
-# add frontend aliases to the full set
+qt_aliases.update({'gui-completion': 'ConsoleWidget.gui_completion'})
 aliases.update(qt_aliases)
 
-# get flags&aliases into sets, and remove a couple that
-# shouldn't be scrubbed from backend flags:
 qt_aliases = set(qt_aliases)
 qt_flags = set(qt_flags)
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # NXConsoleApp
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+
 
 class NXConsoleApp(JupyterApp, JupyterConsoleApp):
     name = 'nexpy-console'
@@ -124,17 +107,18 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
     frontend_aliases = Any(qt_aliases)
 
     stylesheet = Unicode('', config=True,
-        help="path to a custom CSS stylesheet")
+                         help="path to a custom CSS stylesheet")
 
-    hide_menubar = CBool(False, config=True,
+    hide_menubar = CBool(
+        False, config=True,
         help="Start the console window with the menu bar hidden.")
 
     plain = CBool(False, config=True,
-        help="Use a plaintext widget instead of rich text.")
+                  help="Use a plaintext widget instead of rich text.")
 
-    display_banner = CBool(True, config=True,
-        help="Whether to display a banner upon starting the QtConsole."
-    )
+    display_banner = CBool(
+        True, config=True,
+        help="Whether to display a banner upon starting the QtConsole.")
 
     def _plain_changed(self, name, old, new):
         kind = 'plain' if new else 'rich'
@@ -144,7 +128,6 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
         else:
             self.widget_factory = RichJupyterWidget
 
-    # the factory for creating a widget
     widget_factory = Any(RichJupyterWidget)
 
     def parse_command_line(self, argv=None):
@@ -161,7 +144,7 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
                 nexpy_dir = tempfile.mkdtemp()
             else:
                 os.mkdir(nexpy_dir)
-        for subdirectory in ['backups', 'functions', 'models', 'plugins', 
+        for subdirectory in ['backups', 'functions', 'models', 'plugins',
                              'readers', 'scripts']:
             directory = os.path.join(nexpy_dir, subdirectory)
             if not os.path.exists(directory):
@@ -184,6 +167,7 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
         self.settings_file = os.path.join(self.nexpy_dir, 'settings.ini')
         self.settings = NXConfigParser(self.settings_file)
         initialize_preferences(self.settings)
+
         def backup_age(backup):
             try:
                 return timestamp_age(os.path.basename(os.path.dirname(backup)))
@@ -191,7 +175,7 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
                 return 0
         backups = self.settings.options('backups')
         for backup in backups:
-            if not (os.path.exists(backup) and 
+            if not (os.path.exists(backup) and
                     os.path.realpath(backup).startswith(self.backup_dir)):
                 self.settings.remove_option('backups', backup)
             elif backup_age(backup) > 5:
@@ -205,7 +189,7 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
     def init_log(self):
         """Initialize the NeXpy logger."""
         log_file = os.path.join(self.nexpy_dir, 'nexpy.log')
-        handler = logging.handlers.RotatingFileHandler(log_file, 
+        handler = logging.handlers.RotatingFileHandler(log_file,
                                                        maxBytes=50000,
                                                        backupCount=5)
         fmt = '%(asctime)s - %(levelname)s - %(message)s'
@@ -218,20 +202,21 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
         except Exception:
             pass
         logging.root.addHandler(handler)
-        levels = {'CRITICAL':logging.CRITICAL, 'ERROR':logging.ERROR,
-                  'WARNING':logging.WARNING, 'INFO':logging.INFO, 
-                  'DEBUG':logging.DEBUG}
+        levels = {'CRITICAL': logging.CRITICAL, 'ERROR': logging.ERROR,
+                  'WARNING': logging.WARNING, 'INFO': logging.INFO,
+                  'DEBUG': logging.DEBUG}
         level = os.getenv("NEXPY_LOG")
         if level is None or level.upper() not in levels:
             level = 'INFO'
         else:
-            level = level.upper()       
+            level = level.upper()
         logging.root.setLevel(levels[level])
         logging.info('NeXpy launched')
         logging.info('Log level is ' + level)
-        logging.info('Python ' + sys.version.split()[0] + ': ' + sys.executable)
+        logging.info('Python ' + sys.version.split()[0] + ': '
+                     + sys.executable)
         logging.info('IPython v' + ipython_version)
-        logging.info('Matplotlib v' + mpl_version)  
+        logging.info('Matplotlib v' + mpl_version)
         logging.info('NeXpy v' + nexpy_version)
         logging.info('nexusformat v' + nxversion)
         sys.stdout = sys.stderr = NXLogger()
@@ -256,19 +241,19 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
         try:
             if 'svg' in QtGui.QImageReader.supportedImageFormats():
                 self.app.icon = QtGui.QIcon(
-                    pkg_resources.resource_filename('nexpy.gui',
-                                                    'resources/icon/NeXpy.svg'))
+                    pkg_resources.resource_filename(
+                        'nexpy.gui', 'resources/icon/NeXpy.svg'))
             else:
                 self.app.icon = QtGui.QIcon(
-                    pkg_resources.resource_filename('nexpy.gui',
-                                                    'resources/icon/NeXpy.png'))
+                    pkg_resources.resource_filename(
+                        'nexpy.gui', 'resources/icon/NeXpy.png'))
             QtWidgets.QApplication.setWindowIcon(self.app.icon)
             self.icon_pixmap = QtGui.QPixmap(
-                self.app.icon.pixmap(QtCore.QSize(64,64)))
+                self.app.icon.pixmap(QtCore.QSize(64, 64)))
         except Exception:
             self.icon_pixmap = None
-        self.app.setStyleSheet("""QToolTip {color:darkblue; 
-                                            background-color:beige}""");
+        self.app.setStyleSheet("""QToolTip {color:darkblue;
+                                            background-color:beige}""")
         self.window = MainWindow(self, self.tree, self.settings, self.config)
         self.window.log = self.log
         self.gc = NXGarbageCollector(self.window)
@@ -288,7 +273,7 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
 
         s = ""
         for _class in nxclasses:
-            s = "%s=nx.%s\n" % (_class,_class) + s
+            s = f"{_class}=nx.{_class}\n" + s
         exec(s, self.window.user_ns)
 
         config_file = os.path.join(self.nexpy_dir, 'config.py')
@@ -362,9 +347,10 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
         # Start the application main loop.
         self.app.exec_()
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Main entry point
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+
 
 def main(args, extra_args):
     app = NXConsoleApp()

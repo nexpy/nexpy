@@ -1,13 +1,10 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Copyright (c) 2013-2021, NeXpy Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file COPYING, distributed with this software.
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 import copy
 import datetime
@@ -27,7 +24,7 @@ from IPython.core.ultratb import ColorTB
 from matplotlib import rcParams
 from matplotlib.colors import colorConverter, hex2color, rgb2hex
 
-from .pyqt import QtCore, QtWidgets, getOpenFileName
+from .pyqt import QtCore, QtWidgets
 
 try:
     from astropy.convolution import Kernel
@@ -46,7 +43,7 @@ from nexusformat.nexus import (NeXusError, NXcollection, NXdata, NXfield,
                                nxsetlock, nxsetmaxsize, nxsetmemory,
                                nxsetrecursive)
 
-ansi_re = re.compile('\x1b' + r'\[([\dA-Fa-f;]*?)m')
+ansi_re = re.compile(r'\x1b' + r'\[([\dA-Fa-f;]*?)m')
 
 
 def report_error(context, error):
@@ -68,21 +65,21 @@ def confirm_action(query, information=None, answer=None, icon=None):
     if information:
         message_box.setInformativeText(information)
     if answer == 'yes' or answer == 'no':
-        message_box.setStandardButtons(QtWidgets.QMessageBox.Yes | 
+        message_box.setStandardButtons(QtWidgets.QMessageBox.Yes |
                                        QtWidgets.QMessageBox.No)
-        if answer == 'yes':                           
+        if answer == 'yes':
             message_box.setDefaultButton(QtWidgets.QMessageBox.Yes)
         else:
             message_box.setDefaultButton(QtWidgets.QMessageBox.No)
     else:
-        message_box.setStandardButtons(QtWidgets.QMessageBox.Ok | 
+        message_box.setStandardButtons(QtWidgets.QMessageBox.Ok |
                                        QtWidgets.QMessageBox.Cancel)
     if icon:
         message_box.setIconPixmap(icon)
 
     response = message_box.exec_()
-    if (response == QtWidgets.QMessageBox.Yes or 
-        response == QtWidgets.QMessageBox.Ok):
+    if (response == QtWidgets.QMessageBox.Yes or
+            response == QtWidgets.QMessageBox.Ok):
         return True
     else:
         return False
@@ -123,9 +120,9 @@ def report_exception(*args):
 def run_pythonw(script_path):
     """Execute the NeXpy startup script using 'pythonw' on MacOS.
 
-    This relaunches the script in a subprocess using a framework build of 
+    This relaunches the script in a subprocess using a framework build of
     Python in order to fix the frozen menubar issue in MacOS 10.15 Catalina.
-    
+
     Based on https://github.com/napari/napari/pull/1554.
     """
     if 'PYTHONEXECUTABLE' in os.environ:
@@ -134,7 +131,7 @@ def run_pythonw(script_path):
     import warnings
     from distutils.version import StrictVersion
     if (StrictVersion(platform.release()) > StrictVersion('19.0.0') and
-        'CONDA_PREFIX' in os.environ):
+            'CONDA_PREFIX' in os.environ):
         pythonw_path = os.path.join(sys.exec_prefix, 'bin', 'pythonw')
         if os.path.exists(pythonw_path):
             cwd = os.getcwd()
@@ -152,7 +149,7 @@ def run_pythonw(script_path):
                    "then reactivate nexpy. To avoid this problem, "
                    "please install python.app in conda using:\n\n"
                    "conda install -c conda-forge python.app\n")
-            warnings.warn(msg)    
+            warnings.warn(msg)
 
 
 def is_file_locked(filename, wait=5):
@@ -163,12 +160,12 @@ def is_file_locked(filename, wait=5):
     except NXLockException:
         lock_time = modification_time(_lock.lock_file)
         if confirm_action("File locked. Do you want to clear the lock?",
-                          "%s\nLock file created: "%filename+lock_time, 
+                          f"{filename+lock_time}\nLock file created: ",
                           answer="no"):
             _lock.clear()
             return False
         else:
-            return True           
+            return True
     else:
         return False
 
@@ -192,19 +189,20 @@ def wrap(text, length):
             lines.append(line)
             line = ''
         line = line + w + ' '
-        if w is words[-1]: lines.append(line)
+        if w is words[-1]:
+            lines.append(line)
     return '\n'.join(lines)
 
 
 def natural_sort(key):
     """Sort numbers according to their value, not their first character"""
     import re
-    return [int(t) if t.isdigit() else t for t in re.split(r'(\d+)', key)]    
+    return [int(t) if t.isdigit() else t for t in re.split(r'(\d+)', key)]
 
 
 def clamp(value, min_value, max_value):
     """Return value constrained to be within defined limits
-    
+
     Parameters
     ----------
     value : int or float
@@ -213,7 +211,7 @@ def clamp(value, min_value, max_value):
         Allowed minimum value
     max_value : int or float
         Allowed maximum value
-    
+
     Returns
     -------
     int or float
@@ -225,13 +223,13 @@ def clamp(value, min_value, max_value):
 def centers(axis, dimlen):
     """Return the centers of the axis bins.
 
-    This works regardless if the axis contains bin boundaries or 
+    This works regardless if the axis contains bin boundaries or
     centers.
-    
+
     Parameters
     ----------
     dimlen : int
-        Size of the signal dimension. If this one more than the axis 
+        Size of the signal dimension. If this one more than the axis
         size, it is assumed the axis contains bin boundaries.
     """
     ax = axis.astype(np.float64)
@@ -245,13 +243,13 @@ def centers(axis, dimlen):
 def boundaries(axis, dimlen):
     """Return the boundaries of the axis bins.
 
-    This works regardless if the axis contains bin boundaries or 
+    This works regardless if the axis contains bin boundaries or
     centers.
-    
+
     Parameters
     ----------
     dimlen : int
-        Size of the signal dimension. If this one more than the axis 
+        Size of the signal dimension. If this one more than the axis
         size, it is assumed the axis contains bin boundaries.
     """
     ax = axis.astype(np.float64)
@@ -270,12 +268,12 @@ def boundaries(axis, dimlen):
 
 def keep_data(data):
     """Store the data in the scratch workspace.
-    
+
     Parameters
     ----------
     data : NXdata
-        NXdata group containing the data to be stored    
-    
+        NXdata group containing the data to be stored
+
     """
     from .consoleapp import _nexpy_dir, _tree
     if 'w0' not in _tree:
@@ -287,16 +285,17 @@ def keep_data(data):
                 ind.append(int(key[1:]))
         except ValueError:
             pass
-    if ind == []: ind = [0]
+    if ind == []:
+        ind = [0]
     data.nxname = 's'+str(sorted(ind)[-1]+1)
     _tree['w0'][data.nxname] = data
 
 
 def fix_projection(shape, axes, limits):
-    """Fix the axes and limits for data with dimension sizes of 1.    
+    """Fix the axes and limits for data with dimension sizes of 1.
 
-    If the shape contains dimensions of size 1, they need to be added 
-    back to the list of axis dimensions and slice limits before calling 
+    If the shape contains dimensions of size 1, they need to be added
+    back to the list of axis dimensions and slice limits before calling
     the original NXdata 'project' function.
 
     Parameters
@@ -319,12 +318,12 @@ def fix_projection(shape, axes, limits):
     fixed_axes = axes
     for s in shape:
         if s == 1:
-            fixed_limits.append((0,0))
+            fixed_limits.append((0, 0))
         else:
             fixed_limits.append(limits.pop(0))
-    for (i,s) in enumerate(shape):
-        if s==1:
-            fixed_axes=[a+1 if a>=i else a for a in fixed_axes]
+    for (i, s) in enumerate(shape):
+        if s == 1:
+            fixed_axes = [a+1 if a >= i else a for a in fixed_axes]
     return fixed_axes, fixed_limits
 
 
@@ -370,8 +369,9 @@ def format_timestamp(timestamp):
 
 def restore_timestamp(formatted_timestamp):
     """Return a timestamp from a formatted string."""
-    return datetime.strptime(formatted_timestamp, 
+    return datetime.strptime(formatted_timestamp,
                              "%Y-%m-%d %H:%M:%S").strftime('%Y%m%d%H%M%S')
+
 
 def timestamp_age(timestamp):
     """Return the number of days since the timestamp"""
@@ -411,18 +411,18 @@ def convertHTML(text):
 
 def get_name(filename, entries=[]):
     """Return a valid object name from a filename."""
-    name = os.path.splitext(os.path.basename(filename))[0].replace(' ','_')
-    name = "".join([c for c in name.replace('-','_') 
-                    if c.isalpha() or c.isdigit() or c=='_'])
+    name = os.path.splitext(os.path.basename(filename))[0].replace(' ', '_')
+    name = "".join([c for c in name.replace('-', '_')
+                    if c.isalpha() or c.isdigit() or c == '_'])
     if name in entries:
         ind = []
         for key in entries:
             try:
-                if key.startswith(name+'_'): 
+                if key.startswith(name+'_'):
                     ind.append(int(key[len(name)+1:]))
             except ValueError:
                 pass
-        if ind == []: 
+        if ind == []:
             ind = [0]
         name = name+'_'+str(sorted(ind)[-1]+1)
     return name
@@ -435,7 +435,7 @@ def get_color(color):
 def get_colors(n, first=None, last=None):
     """Return a list of colors interpolating between the first and last.
 
-    The function accepts both strings representing hex colors and tuples 
+    The function accepts both strings representing hex colors and tuples
     containing RGB values, which must be between 0 and 1.
 
     Parameters
@@ -460,83 +460,85 @@ def get_colors(n, first=None, last=None):
         first = hex2color(first)
     if not isinstance(last, tuple):
         last = hex2color(last)
-    return [rgb2hex((first[0]+(last[0]-first[0])*i/(n-1), 
+    return [rgb2hex((first[0]+(last[0]-first[0])*i/(n-1),
                      first[1]+(last[1]-first[1])*i/(n-1),
                      first[2]+(last[2]-first[2])*i/(n-1))) for i in range(n)]
 
+
 def parula_map():
     """Generate a color map similar to Matlab's Parula for use in NeXpy.
-    
-    The color map data are from the 'fake_parula' function provided by 
+
+    The color map data are from the 'fake_parula' function provided by
     Ander Biguri, "Perceptually uniform colormaps"
-    MATLAB Central File Exchange (2020). 
+    MATLAB Central File Exchange (2020).
     """
     from matplotlib.colors import LinearSegmentedColormap
-    cm_data = [[0.2081, 0.1663, 0.5292], 
-               [0.2116238095, 0.1897809524, 0.5776761905], 
+    cm_data = [[0.2081, 0.1663, 0.5292],
+               [0.2116238095, 0.1897809524, 0.5776761905],
                [0.212252381, 0.2137714286, 0.6269714286],
-               [0.2081, 0.2386, 0.6770857143], 
-               [0.1959047619, 0.2644571429, 0.7279], 
-               [0.1707285714, 0.2919380952, 0.779247619], 
-               [0.1252714286, 0.3242428571, 0.8302714286], 
-               [0.0591333333, 0.3598333333, 0.8683333333], 
+               [0.2081, 0.2386, 0.6770857143],
+               [0.1959047619, 0.2644571429, 0.7279],
+               [0.1707285714, 0.2919380952, 0.779247619],
+               [0.1252714286, 0.3242428571, 0.8302714286],
+               [0.0591333333, 0.3598333333, 0.8683333333],
                [0.0116952381, 0.3875095238, 0.8819571429],
-               [0.0059571429, 0.4086142857, 0.8828428571], 
+               [0.0059571429, 0.4086142857, 0.8828428571],
                [0.0165142857, 0.4266, 0.8786333333],
                [0.032852381, 0.4430428571, 0.8719571429],
-               [0.0498142857, 0.4585714286, 0.8640571429], 
+               [0.0498142857, 0.4585714286, 0.8640571429],
                [0.0629333333, 0.4736904762, 0.8554380952],
-               [0.0722666667, 0.4886666667,  0.8467], 
-               [0.0779428571, 0.5039857143, 0.8383714286], 
-               [0.079347619, 0.5200238095, 0.8311809524], 
+               [0.0722666667, 0.4886666667,  0.8467],
+               [0.0779428571, 0.5039857143, 0.8383714286],
+               [0.079347619, 0.5200238095, 0.8311809524],
                [0.0749428571, 0.5375428571, 0.8262714286],
-               [0.0640571429, 0.5569857143, 0.8239571429], 
+               [0.0640571429, 0.5569857143, 0.8239571429],
                [0.0487714286, 0.5772238095, 0.8228285714],
-               [0.0343428571, 0.5965809524, 0.819852381], 
-               [0.0265, 0.6137, 0.8135], 
+               [0.0343428571, 0.5965809524, 0.819852381],
+               [0.0265, 0.6137, 0.8135],
                [0.0238904762, 0.6286619048, 0.8037619048],
-               [0.0230904762, 0.6417857143, 0.7912666667], 
+               [0.0230904762, 0.6417857143, 0.7912666667],
                [0.0227714286, 0.6534857143, 0.7767571429],
-               [0.0266619048, 0.6641952381, 0.7607190476], 
-               [0.0383714286, 0.6742714286, 0.743552381], 
-               [0.0589714286, 0.6837571429, 0.7253857143], 
-               [0.0843, 0.6928333333, 0.7061666667], 
-               [0.1132952381, 0.7015, 0.6858571429], 
-               [0.1452714286, 0.7097571429, 0.6646285714], 
+               [0.0266619048, 0.6641952381, 0.7607190476],
+               [0.0383714286, 0.6742714286, 0.743552381],
+               [0.0589714286, 0.6837571429, 0.7253857143],
+               [0.0843, 0.6928333333, 0.7061666667],
+               [0.1132952381, 0.7015, 0.6858571429],
+               [0.1452714286, 0.7097571429, 0.6646285714],
                [0.1801333333, 0.7176571429,  0.6424333333],
-               [0.2178285714, 0.7250428571, 0.6192619048], 
-               [0.2586428571, 0.7317142857, 0.5954285714], 
+               [0.2178285714, 0.7250428571, 0.6192619048],
+               [0.2586428571, 0.7317142857, 0.5954285714],
                [0.3021714286, 0.7376047619, 0.5711857143],
-               [0.3481666667, 0.7424333333, 0.5472666667], 
-               [0.3952571429, 0.7459, 0.5244428571], 
+               [0.3481666667, 0.7424333333, 0.5472666667],
+               [0.3952571429, 0.7459, 0.5244428571],
                [0.4420095238, 0.7480809524,  0.5033142857],
-               [0.4871238095, 0.7490619048, 0.4839761905], 
-               [0.5300285714, 0.7491142857, 0.4661142857], 
-               [0.5708571429, 0.7485190476, 0.4493904762], 
-               [0.609852381, 0.7473142857, 0.4336857143], 
+               [0.4871238095, 0.7490619048, 0.4839761905],
+               [0.5300285714, 0.7491142857, 0.4661142857],
+               [0.5708571429, 0.7485190476, 0.4493904762],
+               [0.609852381, 0.7473142857, 0.4336857143],
                [0.6473, 0.7456, 0.4188],
-               [0.6834190476, 0.7434761905, 0.4044333333], 
-               [0.7184095238, 0.7411333333, 0.3904761905], 
-               [0.7524857143, 0.7384, 0.3768142857], 
-               [0.7858428571, 0.7355666667,  0.3632714286], 
-               [0.8185047619, 0.7327333333, 0.3497904762], 
+               [0.6834190476, 0.7434761905, 0.4044333333],
+               [0.7184095238, 0.7411333333, 0.3904761905],
+               [0.7524857143, 0.7384, 0.3768142857],
+               [0.7858428571, 0.7355666667,  0.3632714286],
+               [0.8185047619, 0.7327333333, 0.3497904762],
                [0.8506571429, 0.7299, 0.3360285714],
-               [0.8824333333, 0.7274333333, 0.3217], 
+               [0.8824333333, 0.7274333333, 0.3217],
                [0.9139333333, 0.7257857143, 0.3062761905],
                [0.9449571429, 0.7261142857,  0.2886428571],
-               [0.9738952381, 0.7313952381, 0.266647619], 
+               [0.9738952381, 0.7313952381, 0.266647619],
                [0.9937714286, 0.7454571429, 0.240347619],
-               [0.9990428571, 0.7653142857,  0.2164142857], 
-               [0.9955333333, 0.7860571429, 0.196652381], 
+               [0.9990428571, 0.7653142857,  0.2164142857],
+               [0.9955333333, 0.7860571429, 0.196652381],
                [0.988, 0.8066, 0.1793666667],
-               [0.9788571429, 0.8271428571, 0.1633142857], 
-               [0.9697, 0.8481380952, 0.147452381], 
-               [0.9625857143, 0.8705142857, 0.1309], 
-               [0.9588714286, 0.8949, 0.1132428571], 
+               [0.9788571429, 0.8271428571, 0.1633142857],
+               [0.9697, 0.8481380952, 0.147452381],
+               [0.9625857143, 0.8705142857, 0.1309],
+               [0.9588714286, 0.8949, 0.1132428571],
                [0.9598238095, 0.9218333333,  0.0948380952],
-               [0.9661, 0.9514428571, 0.0755333333], 
+               [0.9661, 0.9514428571, 0.0755333333],
                [0.9763, 0.9831, 0.0538]]
     return LinearSegmentedColormap.from_list('parula', cm_data)
+
 
 def divgray_map():
     """New divergent color map copied from the registered 'gray' map."""
@@ -545,12 +547,14 @@ def divgray_map():
     cm.name = 'divgray'
     return cm
 
+
 def cmyk_to_rgb(c, m, y, k):
     """Convert CMYK values to RGB values."""
     r = int(255 * (1.0 - (c + k) / 100.))
     g = int(255 * (1.0 - (m + k) / 100.))
     b = int(255 * (1.0 - (y + k) / 100.))
     return r, g, b
+
 
 def load_image(filename):
     if os.path.splitext(filename.lower())[1] in ['.png', '.jpg', '.jpeg',
@@ -567,7 +571,7 @@ def load_image(filename):
             elif len(rgba) == 4:
                 z.interpretation = 'rgba-image'
             data = NXdata(z, (y, x, rgba))
-        else:        
+        else:
             data = NXdata(z, (y, x))
     else:
         try:
@@ -581,7 +585,7 @@ def load_image(filename):
         z = NXfield(im.data, name='z')
         y = NXfield(range(z.shape[0]), name='y')
         x = NXfield(range(z.shape[1]), name='x')
-        data = NXdata(z,(y,x))
+        data = NXdata(z, (y, x))
         if im.header:
             header = NXcollection()
             for k, v in im.header.items():
@@ -675,7 +679,7 @@ class NXimporter(object):
 def import_plugin(name, paths):
     with NXimporter(paths):
         plugin_module = importlib.import_module(name)
-        if hasattr(plugin_module, '__file__'): #Not a namespace module
+        if hasattr(plugin_module, '__file__'):  # Not a namespace module
             return plugin_module
         else:
             raise ImportError('Plugin cannot be a namespace module')
@@ -687,7 +691,7 @@ class NXConfigParser(ConfigParser, object):
     def __init__(self, settings_file):
         super().__init__(allow_no_value=True)
         self.file = settings_file
-        self._optcre = re.compile( #makes '=' the only valid key/value delimiter
+        self._optcre = re.compile(  # makes '=' the only valid delimiter
             r"(?P<option>.*?)\s*(?:(?P<vi>=)\s*(?P<value>.*))?$", re.VERBOSE)
         super().read(self.file)
         sections = self.sections()
@@ -708,7 +712,7 @@ class NXConfigParser(ConfigParser, object):
         if value is not None:
             super().set(section, option, str(value))
         else:
-            super().set(section, option)            
+            super().set(section, option)
 
     def optionxform(self, optionstr):
         return optionstr
@@ -723,7 +727,7 @@ class NXConfigParser(ConfigParser, object):
 
     def fix_recent(self):
         """Perform backward compatibility fix"""
-        paths = [f.strip() for f 
+        paths = [f.strip() for f
                  in self.get('recent', 'recentFiles').split(',')]
         for path in paths:
             self.set("recent", path)
@@ -733,10 +737,11 @@ class NXConfigParser(ConfigParser, object):
 
 class NXLogger(io.StringIO):
     """File-like stream object that redirects writes to the default logger.
-    
-    An NXLogger instance is used to provide a temporary redirect of 
+
+    An NXLogger instance is used to provide a temporary redirect of
     sys.stdout and sys.stderr before the IPython kernel starts up.
     """
+
     def __init__(self):
         super().__init__()
         self.logger = logging.getLogger()
@@ -792,7 +797,7 @@ class Gaussian3DKernel(Kernel):
         x = np.linspace(-15., 15., 17)
         y = np.linspace(-15., 15., 17)
         z = np.linspace(-15., 15., 17)
-        X,Y,Z = np.meshgrid(x,y,z)
+        X, Y, Z = np.meshgrid(x, y, z)
         array = np.exp(-(X**2+Y**2+Z**2)/(2*stddev**2))
         self._default_size = _round_up_to_odd_integer(8 * stddev)
         super().__init__(array)

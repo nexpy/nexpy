@@ -11,7 +11,7 @@ def show_dialog():
         dialog.show()
     except NeXusError as error:
         report_error("Converting to (Q,E)", error)
-        
+
 
 class ConvertDialog(NXDialog):
 
@@ -19,11 +19,12 @@ class ConvertDialog(NXDialog):
         super().__init__(parent)
         self.select_entry()
         self.parameters = GridParameters()
-        self.parameters.add('Ei', self.entry['instrument/monochromator/energy'],
-                            'Incident Energy')
+        self.parameters.add(
+            'Ei', self.entry['instrument/monochromator/energy'],
+            'Incident Energy')
         self.parameters.add('dQ', self.round(np.sqrt(self.Ei/2)/50), 'Q Step')
         self.parameters.add('dE', self.round(self.Ei/50), 'Energy Step')
-        self.set_layout(self.entry_layout, 
+        self.set_layout(self.entry_layout,
                         self.parameters.grid(),
                         self.action_buttons(('Plot', self.plot_data),
                                             ('Save', self.save_data)),
@@ -70,22 +71,22 @@ class ConvertDialog(NXDialog):
         tof = centers(self.entry['data/time_of_flight'], signal.shape[1])
         en = self.convert_tof(tof)
 
-        idx_max = min(np.where(np.abs(en-0.75*Ei)<0.1)[0])
+        idx_max = min(np.where(np.abs(en-0.75*Ei) < 0.1)[0])
 
         en = en[:idx_max]
 
-        data = signal.nxdata[:,:idx_max]
+        data = signal.nxdata[:, :idx_max]
         if self.entry['data'].nxerrors:
             errors = self.entry['data'].nxerrors.nxdata[:]
 
         Q = np.zeros((len(pol), len(en)))
         E = np.zeros((len(pol), len(en)))
 
-        for i in range(0,len(pol)):
+        for i in range(0, len(pol)):
             p = pol[i]
-            Q[i,:] = np.array(np.sqrt((2*Ei - en - 2*np.sqrt(Ei*(Ei-en))
-                               * np.cos(p*np.pi/180.0))/2.0721))
-            E[i,:] = np.array(en)
+            Q[i, :] = np.array(np.sqrt((2*Ei - en - 2*np.sqrt(Ei*(Ei-en))
+                                       * np.cos(p*np.pi/180.0))/2.0721))
+            E[i, :] = np.array(en)
 
         s = Q.shape
         Qin = Q.reshape(s[0]*s[1])
@@ -102,20 +103,21 @@ class ConvertDialog(NXDialog):
         NE = int((emax-emin)/dE) + 1
         Qb = np.linspace(qmin, qmax, NQ)
         Eb = np.linspace(emin, emax, NE)
-        #histogram and normalize 
-        norm, nbin = np.histogramdd((Ein,Qin), bins=(Eb,Qb))
-        hist, hbin = np.histogramdd((Ein,Qin), bins=(Eb,Qb), weights=datain)
+        # histogram and normalize
+        norm, nbin = np.histogramdd((Ein, Qin), bins=(Eb, Qb))
+        hist, hbin = np.histogramdd((Ein, Qin), bins=(Eb, Qb), weights=datain)
         if self.entry['data'].nxerrors:
-            histe, hbin = np.histogramdd((Ein,Qin), bins=(Eb,Qb), weights=errorsin*errorsin)
+            histe, hbin = np.histogramdd((Ein, Qin), bins=(Eb, Qb),
+                                         weights=errorsin * errorsin)
             histe = histe**0.5
             err = histe/norm
 
-        I = NXfield(hist/norm, name='S(Q,E)')
+        Ib = NXfield(hist/norm, name='S(Q,E)')
 
         Qb = NXfield(Qb[:-1]+dQ/2., name='Q')
         Eb = NXfield(Eb[:-1]+dE/2., name='E')
 
-        result = NXdata(I, (Eb, Qb))
+        result = NXdata(Ib, (Eb, Qb))
         if self.entry.data.nxerrors:
             result.errors = NXfield(err)
         return result

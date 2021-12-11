@@ -1,18 +1,15 @@
-#!/usr/bin/env python 
-# -*- coding: utf-8 -*-
-
-#-----------------------------------------------------------------------------
-# Copyright (c) 2013-2020, NeXpy Development Team.
+# -----------------------------------------------------------------------------
+# Copyright (c) 2013-2021, NeXpy Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file COPYING, distributed with this software.
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 import numpy as np
+from lmfit import Parameter, Parameters, __version__, fit_report, minimize
+from nexusformat.nexus import NXdata, NXfield, NXnote, NXparameters, NXprocess
 
-from lmfit import minimize, Parameters, Parameter, fit_report, __version__
-from nexusformat.nexus import *
 
 class Fit(object):
     """Class defining the data, parameters, and results of a least-squares fit.
@@ -46,7 +43,7 @@ class Fit(object):
         self.result = None
 
     def __repr__(self):
-        return 'Fit(%s)' % self.data.nxpath
+        return f'Fit({self.data.nxpath})'
 
     def set_data(self, data):
         """
@@ -79,16 +76,17 @@ class Fit(object):
         x : ndarray, optional
             x-values where the model is calculated. Defaults to `self.x`
         f : Function, optional
-            Function to be included in the model. Defaults to all the functions.
+            Function to be included in the model. Defaults to all the
+            functions.
 
         Returns
         -------
         model : ndarray
             values of the model at the requested x-varlues.
         """
-        if x is None: 
+        if x is None:
             x = self.x
-        model = np.zeros(x.shape,np.float64)
+        model = np.zeros(x.shape, np.float64)
         if f:
             model = f.module.values(x, [p.value for p in f.parameters])
         else:
@@ -113,7 +111,7 @@ class Fit(object):
             for parameter in parameters:
                 self.parameters[parameter].value = parameters[parameter].value
         if self.e is not None:
-             return (self.y - self.get_model()) / self.e
+            return (self.y - self.get_model()) / self.e
         else:
             return self.y - self.get_model()
 
@@ -156,21 +154,21 @@ class Fit(object):
         group : NXprocess
             NXprocess group that contains the data, models and parameters.
         """
-        group = NXprocess(program='lmfit', version=__version__)    
+        group = NXprocess(program='lmfit', version=__version__)
         group['data'] = self.data
         for f in self.functions:
             group[f.name] = NXdata(NXfield(self.get_model(x, f), name='model'),
-                                   NXfield(x, name=self.data.nxaxes[0].nxname), 
+                                   NXfield(x, name=self.data.nxaxes[0].nxname),
                                    title='Fit Results')
             parameters = NXparameters()
             for p in f.parameters:
-                parameters[p.name] = NXfield(p.value, error=p.stderr, 
+                parameters[p.name] = NXfield(p.value, error=p.stderr,
                                              initial_value=p.init_value,
                                              min=str(p.min), max=str(p.max))
             group[f.name]['parameters'] = parameters
         group['title'] = 'Fit Results'
         group['fit'] = NXdata(NXfield(self.get_model(x), name='model'),
-                              NXfield(x, name=self.data.nxaxes[0].nxname), 
+                              NXfield(x, name=self.data.nxaxes[0].nxname),
                               title='Fit Results')
         if self.result is not None:
             fit = NXparameters()
@@ -179,14 +177,15 @@ class Fit(object):
             fit.redchi = self.result.redchi
             fit.message = self.result.message
             group['statistics'] = fit
-            group.note = NXnote(self.result.message,
-                ('Chi^2 = %s\n' % self.result.chisqr +
-                 'Reduced Chi^2 = %s\n' % self.result.redchi +
-                 'No. of Function Evaluations = %s\n' % self.result.nfev +
-                 'No. of Variables = %s\n' % self.result.nvarys +
-                 'No. of Data Points = %s\n' % self.result.ndata +
-                 'No. of Degrees of Freedom = %s\n' % self.result.nfree +
-                 '%s' % self.fit_report()))
+            group.note = NXnote(
+                self.fit.result.message,
+                f'Chi^2 = {self.fit.result.chisqr}\n'
+                f'Reduced Chi^2 = {self.fit.result.redchi}\n'
+                f'No. of Function Evaluations = {self.fit.result.nfev}\n'
+                f'No. of Variables = {self.fit.result.nvarys}\n'
+                f'No. of Data Points = {self.fit.result.ndata}\n'
+                f'No. of Degrees of Freedom = {self.fit.result.nfree}\n'
+                f'{self.fit.fit_report()}')
 
         return group
 
@@ -204,30 +203,31 @@ class Function(object):
         index of the function
     """
 
-    def __init__(self, name=None, module=None, parameters=None, function_index=0):
+    def __init__(self, name=None, module=None, parameters=None,
+                 function_index=0):
         self.name = name
         self.module = module
         self._parameters = parameters
         self.function_index = function_index
 
     def __lt__(self, other):
-         return int(self.function_index) < int(other.function_index)
+        return int(self.function_index) < int(other.function_index)
 
     def __repr__(self):
-        return 'Function(%s)' % self.name
+        return f'Function({self.name})'
 
     @property
     def parameters(self):
         """List of parameters defining the function."""
         if self._parameters is None:
-            self._parameters = [Parameter(name) 
+            self._parameters = [Parameter(name)
                                 for name in self.module.parameters]
         return self._parameters
 
     def guess_parameters(self, x, y):
-        """Return a list of parameters determined by the function's `guess` method."""
-        [setattr(p, 'value', g) for p,g in zip(self.parameters,
-                                               self.module.guess(x, y))]
+        """Return parameters determined by the function's `guess` method."""
+        [setattr(p, 'value', g) for p, g in zip(self.parameters,
+                                                self.module.guess(x, y))]
 
     @property
     def parameter_values(self):

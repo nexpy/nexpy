@@ -1,14 +1,11 @@
-# -*- coding: utf-8 -*-
-
-'''package requirements are checked at runtime and installation time'''
-
-#-----------------------------------------------------------------------------
-# Copyright (c) 2013-2020, NeXpy Development Team.
+# -----------------------------------------------------------------------------
+# Copyright (c) 2013-2021, NeXpy Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file COPYING, distributed with this software.
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+"""Package requirements are checked at runtime and installation time"""
 
 pkg_requirements = [
     'nexusformat>=0.7.1',
@@ -16,16 +13,15 @@ pkg_requirements = [
     'scipy',
     'h5py',
     'qtpy',
-    'ipykernel',
     'qtconsole',
     'ipython',
     'matplotlib',
     'lmfit>=1.0.3',
     'pylatexenc',
     'ansi2html',
-    'pillow',
-    'versioneer'
+    'pillow'
 ]
 extra_requirements = {
-    'spec': ['spec2nexus>=2017.901.4',],
+    'spec': ['spec2nexus'],
+    'fabio': ['fabio'],
 }

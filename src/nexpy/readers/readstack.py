@@ -1,13 +1,10 @@
-#!/usr/bin/env python 
-# -*- coding: utf-8 -*-
-
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Copyright (c) 2013-2021, NeXpy Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file COPYING, distributed with this software.
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 """
 Module to read in a folder of image files and convert them to NeXus.
@@ -17,44 +14,31 @@ import re
 
 import numpy as np
 from nexpy.gui.importdialog import NXImportDialog
-from nexpy.gui.widgets import NXLabel, NXLineEdit
+from nexpy.gui.widgets import NXComboBox, NXLabel, NXLineEdit
 from nexusformat.nexus import (NeXusError, NXcollection, NXdata, NXentry,
                                NXfield, NXnote)
 from qtpy import QtCore, QtWidgets
 
 filetype = "Image Stack"
 maximum = 0.0
-prefix_pattern = re.compile('^([^.]+)(?:(?<!\d)|(?=_))')
+prefix_pattern = re.compile(r'^([^.]+)(?:(?<!\d)|(?=_))')
 
 
 class ImportDialog(NXImportDialog):
     """Dialog to import an image stack using Fabio"""
- 
+
     def __init__(self, parent=None):
 
         super().__init__(parent=parent)
-        
-        self.layout = QtWidgets.QVBoxLayout()
-
-        self.layout.addLayout(self.directorybox())
 
         self.filter_box = self.make_filterbox()
-        self.layout.addWidget(self.filter_box)
-        
         self.rangebox = self.make_rangebox()
-        self.layout.addWidget(self.rangebox)
+        self.set_layout(self.directorybox(),
+                        self.filter_box,
+                        self.rangebox,
+                        self.progress_layout(save=True))
 
-        status_layout = QtWidgets.QHBoxLayout()
-        self.progress_bar = QtWidgets.QProgressBar()
-        status_layout.addWidget(self.progress_bar)
-        self.progress_bar.setVisible(False)
-        status_layout.addStretch()
-        status_layout.addWidget(self.buttonbox())
-        self.layout.addLayout(status_layout)
-
-        self.setLayout(self.layout)
-  
-        self.setWindowTitle("Import "+str(filetype))
+        self.set_title("Import "+str(filetype))
 
     @property
     def suffix(self):
@@ -65,31 +49,22 @@ class ImportDialog(NXImportDialog):
         layout = QtWidgets.QGridLayout()
         layout.setSpacing(10)
         prefix_label = NXLabel('File Prefix')
-        self.prefix_box = NXLineEdit()
-        self.prefix_box.editingFinished.connect(self.set_range)
+        self.prefix_box = NXLineEdit(slot=self.set_range)
         suffix_label = NXLabel('File Suffix')
-        self.suffix_box = NXLineEdit('')
-        self.suffix_box.editingFinished.connect(self.get_prefixes)
+        self.suffix_box = NXLineEdit(slot=self.get_prefixes)
         extension_label = NXLabel('File Extension')
-        self.extension_box = NXLineEdit()
-        self.extension_box.editingFinished.connect(self.set_extension)
+        self.extension_box = NXLineEdit(slot=self.set_extension)
         layout.addWidget(prefix_label, 0, 0)
         layout.addWidget(self.prefix_box, 0, 1)
         layout.addWidget(suffix_label, 0, 2)
         layout.addWidget(self.suffix_box, 0, 3)
         layout.addWidget(extension_label, 0, 4)
         layout.addWidget(self.extension_box, 0, 5)
-        self.prefix_combo = QtWidgets.QComboBox()
-        self.prefix_combo.setSizeAdjustPolicy(
-            QtWidgets.QComboBox.AdjustToContents)
-        self.prefix_combo.activated.connect(self.choose_prefix)
-        self.extension_combo = QtWidgets.QComboBox()
-        self.extension_combo.setSizeAdjustPolicy(
-            QtWidgets.QComboBox.AdjustToContents)
-        self.extension_combo.activated.connect(self.choose_extension)
-        layout.addWidget(self.prefix_combo, 1, 1, 
+        self.prefix_combo = NXComboBox(self.choose_prefix)
+        self.extension_combo = NXComboBox(self.choose_extension)
+        layout.addWidget(self.prefix_combo, 1, 1,
                          alignment=QtCore.Qt.AlignHCenter)
-        layout.addWidget(self.extension_combo, 1, 5, 
+        layout.addWidget(self.extension_combo, 1, 5,
                          alignment=QtCore.Qt.AlignHCenter)
         filterbox.setLayout(layout)
         filterbox.setVisible(False)
@@ -119,9 +94,9 @@ class ImportDialog(NXImportDialog):
         self.filter_box.setVisible(True)
 
     def get_prefixes(self):
-        files = [f for f in self.get_filesindirectory() 
-                     if f.endswith(self.get_extension())]
-        self.prefix_combo.clear()        
+        files = [f for f in self.get_filesindirectory()
+                 if f.endswith(self.get_extension())]
+        self.prefix_combo.clear()
         prefixes = []
         for file in files:
             prefix = prefix_pattern.match(file)
@@ -147,19 +122,19 @@ class ImportDialog(NXImportDialog):
 
     def get_prefix(self):
         return self.prefix_box.text().strip()
- 
+
     def choose_prefix(self):
         self.set_prefix(self.prefix_combo.currentText())
-     
+
     def set_prefix(self, text):
         self.prefix_box.setText(text)
         if self.prefix_combo.findText(text) >= 0:
             self.prefix_combo.setCurrentIndex(self.prefix_combo.findText(text))
         self.get_prefixes()
- 
+
     def get_extensions(self):
         files = self.get_filesindirectory()
-        extensions =  set([os.path.splitext(f)[-1] for f in files])
+        extensions = set([os.path.splitext(f)[-1] for f in files])
         self.extension_combo.clear()
         for extension in extensions:
             self.extension_combo.addItem(extension)
@@ -184,7 +159,7 @@ class ImportDialog(NXImportDialog):
 
     def choose_extension(self):
         self.set_extension(self.extension_combo.currentText())
-     
+
     def set_extension(self, text):
         if not text.startswith('.'):
             text = '.'+text
@@ -195,15 +170,15 @@ class ImportDialog(NXImportDialog):
         self.get_prefixes()
 
     def get_index(self, file):
-        return int(re.match('^(.*?)([0-9]*)%s[.](.*)$' % self.suffix, 
-                   file).groups()[1])
+        return int(re.match(fr'^(.*?)([0-9]*){self.suffix}[.](.*)$',
+                            file).groups()[1])
 
     def get_indices(self):
         try:
             min, max = (int(self.rangemin.text().strip()),
                         int(self.rangemax.text().strip()))
             return min, max
-        except:
+        except Exception:
             return None
 
     def set_indices(self, min, max):
@@ -212,18 +187,18 @@ class ImportDialog(NXImportDialog):
 
     def get_files(self):
         prefix = self.get_prefix()
-        filenames = self.get_filesindirectory(prefix, 
+        filenames = self.get_filesindirectory(prefix,
                                               self.get_extension())
         if self.get_indices():
             min, max = self.get_indices()
-            return [file for file in filenames 
-                    if self.get_index(file) >= min and 
+            return [file for file in filenames
+                    if self.get_index(file) >= min and
                     self.get_index(file) <= max]
         else:
             return filenames
 
     def set_range(self):
-        files = self.get_filesindirectory(self.get_prefix(), 
+        files = self.get_filesindirectory(self.get_prefix(),
                                           self.get_extension())
         try:
             min, max = self.get_index(files[0]), self.get_index(files[-1])
@@ -231,7 +206,7 @@ class ImportDialog(NXImportDialog):
                 raise ValueError
             self.set_indices(min, max)
             self.rangebox.setVisible(True)
-        except:
+        except Exception:
             self.set_indices('', '')
             self.rangebox.setVisible(False)
 
@@ -245,8 +220,12 @@ class ImportDialog(NXImportDialog):
 
     def read_images(self, filenames):
         v0 = self.read_image(filenames[0]).data
-        v = np.zeros([len(filenames), v0.shape[0], v0.shape[1]], dtype=np.int32)
-        for i,filename in enumerate(filenames):
+        v = np.zeros(
+            [len(filenames),
+             v0.shape[0],
+             v0.shape[1]],
+            dtype=np.int32)
+        for i, filename in enumerate(filenames):
             v[i] = self.read_image(filename).data
         global maximum
         if v.max() > maximum:
@@ -258,7 +237,7 @@ class ImportDialog(NXImportDialog):
         if prefix:
             self.import_file = prefix
         else:
-            self.import_file = self.get_directory()       
+            self.import_file = self.get_directory()
         filenames = self.get_files()
         try:
             import fabio
@@ -268,8 +247,8 @@ class ImportDialog(NXImportDialog):
         v0 = im.data
         x = NXfield(range(v0.shape[1]), dtype=np.uint16, name='x')
         y = NXfield(range(v0.shape[0]), dtype=np.uint16, name='y')
-        z = NXfield(range(1,len(filenames)+1), dtype=np.uint16, name='z')
-        v = NXfield(shape=(len(filenames),v0.shape[0],v0.shape[1]),
+        z = NXfield(range(1, len(filenames)+1), dtype=np.uint16, name='z')
+        v = NXfield(shape=(len(filenames), v0.shape[0], v0.shape[1]),
                     dtype=v0.dtype, name='v')
         v[0] = v0
         if v._memfile:
@@ -281,11 +260,11 @@ class ImportDialog(NXImportDialog):
         for i in range(0, len(filenames), chunk_size):
             try:
                 files = []
-                for j in range(i,i+chunk_size):
+                for j in range(i, i+chunk_size):
                     files.append(filenames[j])
                     self.progress_bar.setValue(j)
                 self.update_progress()
-                v[i:i+chunk_size,:,:] = self.read_images(files)
+                v[i:i+chunk_size, :, :] = self.read_images(files)
             except IndexError as error:
                 pass
         global maximum
@@ -304,6 +283,9 @@ class ImportDialog(NXImportDialog):
             header[key] = value
 
         if note:
-            return NXentry(NXdata(v,(z,y,x), CBF_header=note, header=header))
+            return NXentry(
+                NXdata(
+                    v, (z, y, x),
+                    CBF_header=note, header=header))
         else:
-            return NXentry(NXdata(v,(z,y,x), header=header))
+            return NXentry(NXdata(v, (z, y, x), header=header))

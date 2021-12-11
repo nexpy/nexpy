@@ -1,4 +1,5 @@
-from . import get_ei, convert_qe
+from . import convert_qe, get_ei
+
 
 def plugin_menu():
     menu = 'Chopper'

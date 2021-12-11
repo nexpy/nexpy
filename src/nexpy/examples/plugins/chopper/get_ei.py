@@ -10,7 +10,7 @@ def show_dialog():
         dialog.show()
     except NeXusError as error:
         report_error("Getting Incident Energy", error)
-        
+
 
 class EnergyDialog(NXDialog):
 
@@ -20,16 +20,17 @@ class EnergyDialog(NXDialog):
 
         self.select_entry()
         self.parameters = GridParameters()
-        self.parameters.add('m1', self.entry['monitor1/distance'], 
+        self.parameters.add('m1', self.entry['monitor1/distance'],
                             'Monitor 1 Distance')
-        self.parameters.add('m2', self.entry['monitor2/distance'], 
+        self.parameters.add('m2', self.entry['monitor2/distance'],
                             'Monitor 2 Distance')
-        self.parameters.add('Ei', self.entry['instrument/monochromator/energy'], 
+        self.parameters.add('Ei',
+                            self.entry['instrument/monochromator/energy'],
                             'Incident Energy')
-        self.parameters.add('mod', self.entry['instrument/source/distance'], 
+        self.parameters.add('mod', self.entry['instrument/source/distance'],
                             'Moderator Distance')
         action_buttons = self.action_buttons(('Get Ei', self.get_ei))
-        self.set_layout(self.entry_layout, self.parameters.grid(), 
+        self.set_layout(self.entry_layout, self.parameters.grid(),
                         action_buttons, self.close_buttons(save=True))
         self.set_title('Get Incident Energy')
 
@@ -57,7 +58,7 @@ class EnergyDialog(NXDialog):
         m1_time = self.m1[t-200.0:t+200.0].moment()
         t = 2286.26 * self.m2_distance / np.sqrt(self.Ei)
         m2_time = self.m2[t-200.0:t+200.0].moment()
-        self.parameters['Ei'].value = (2286.26 * 
+        self.parameters['Ei'].value = (2286.26 *
                                        (self.m2_distance - self.m1_distance) /
                                        (m2_time - m1_time))**2
 
