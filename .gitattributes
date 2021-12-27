@@ -36,7 +36,3 @@
 *.svg       binary
 *.eps       binary
 *.ico       binary
-
-# Versioneer setting
-#===================
-src/nexpy/_version.py export-subst
