@@ -1,5 +1,7 @@
 import os
+
 import pytest
+
 
 def test_api_imports():
     try:

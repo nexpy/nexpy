@@ -1,6 +1,0 @@
-include src/nexpy/definitions/base_classes/*.xml
-recursive-include src/nexpy/gui/resources *
-recursive-include src/nexpy/examples *
-include versioneer.py
-include src/nexpy/_version.py
-include COPYING

@@ -68,8 +68,10 @@ def get_models():
 
     from lmfit.models import lmfit_models
     models = lmfit_models
-    del models['Expression']
-    del models['Gaussian-2D']
+    if 'Expression' in models:
+        del models['Expression']
+    if 'Gaussian-2D' in models:
+        del models['Gaussian-2D']
 
     filenames = set()
 

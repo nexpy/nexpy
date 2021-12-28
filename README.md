@@ -15,7 +15,7 @@ Released versions of NeXpy can be installed using either
     $ pip install nexpy
 ```
 
-If you have an Anaconda installation, use::
+or::
 
 ```
     $ conda install -c conda-forge nexpy
@@ -27,25 +27,10 @@ The source code can be downloaded from the NeXpy Git repository:
     $ git clone https://github.com/nexpy/nexpy.git
 ```
 
-To install in the standard Python location:
 
-```
-    $ python setup.py install
-```
+The Python API for reading and writing NeXus files is in a separate package, [nexusformat](https://github.com/nexpy/nexusformat), which is also available on [PyPI](https://pypi.python.org/pypi/nexusformat/) and conda-forge. It will be automatically installed as a NeXpy dependency if you use pip or conda. 
 
-To install in an alternate location:
-
-```
-    $ python setup.py install --prefix=/path/to/installation/dir
-```
-
-The Python API for reading and writing NeXus files is in a separate package, 
-[nexusformat](https://github.com/nexpy/nexusformat), which is also available on 
-[PyPI](https://pypi.python.org/pypi/nexusformat/) and will be automatically 
-installed as a NeXpy dependency if you use pip. 
-
-If the NeXpy GUI is not required, the package may be used in a regular Python
-shell. It may be installed using:: 
+If the NeXpy GUI is not required, the package may be used in a regular Python shell. It may be installed using:: 
 
 ```
     $ pip install nexusformat
@@ -57,11 +42,7 @@ or::
     $ conda install -c conda-forge nexusformat
 ```
 
-The package can also be installed from the source code using the setup commands
-described above. The source code is available either by downloading one of the 
-[Github releases](https://github.com/nexpy/nexusformat/releases>) or by cloning 
-the latest development version in the 
-[NeXpy Git repository](https://github.com/nexpy/nexusformat>)::
+The source code can also be downloaded from the NeXpy Git repository:::
 
 ```
     $ git clone https://github.com/nexpy/nexusformat.git
