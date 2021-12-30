@@ -3273,13 +3273,13 @@ class ScanTab(NXTab):
         signal = self.plotview.data.nxsignal
         axes = self.plotview.data.nxaxes
         scan_shape = (len(self.scan_axis()),) + signal.shape
-        scan_field = NXfield(name='data', shape=scan_shape, dtype=signal.dtype)
-        scan_field._create_memfile()
         layout = h5.VirtualLayout(shape=scan_shape, dtype=signal.dtype)
         for i, f in enumerate(self.scan_files):
             signal = f[self.data_path].nxsignal
             layout[i] = h5.VirtualSource(signal.nxfilename, signal.nxfilepath,
                                          shape=signal.shape)
+        scan_field = NXfield(name='data', shape=scan_shape, dtype=signal.dtype)
+        scan_field._create_memfile()
         scan_field._memfile.create_virtual_dataset(
             'data', layout, fillvalue=signal.fillvalue)
         self.scan_data = NXdata(scan_field, [self.scan_axis()] + axes)
