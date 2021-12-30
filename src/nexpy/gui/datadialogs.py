@@ -3115,7 +3115,7 @@ class ScanDialog(NXPanel):
 
     def __init__(self, parent=None):
         super().__init__('Scan', title='Scan Panel', apply=False,
-                         parent=parent)
+                         reset=False, parent=parent)
         self.tab_class = ScanTab
         self.plotview_sort = True
 
@@ -3127,98 +3127,18 @@ class ScanTab(NXTab):
 
         super().__init__(label, parent=parent)
 
-        self.ndim = self.plotview.ndim
-
-        self.xlabel, self.xbox = (self.label('X-Axis'),
-                                  NXComboBox(self.set_xaxis))
-        self.ylabel, self.ybox = (self.label('Y-Axis'),
-                                  NXComboBox(self.set_yaxis))
-        axis_layout = self.make_layout(self.xlabel, self.xbox,
-                                       self.ylabel, self.ybox)
-
-        self.set_axes()
-
-        grid = QtWidgets.QGridLayout()
-        grid.setSpacing(10)
-        headers = ['Axis', 'Minimum', 'Maximum', 'Lock']
-        width = [50, 100, 100, 25]
-        column = 0
-        for header in headers:
-            label = NXLabel(header, bold=True, align='center')
-            grid.addWidget(label, 0, column)
-            grid.setColumnMinimumWidth(column, width[column])
-            column += 1
-
-        row = 0
-        self.minbox = {}
-        self.maxbox = {}
-        self.lockbox = {}
-        for axis in range(self.ndim):
-            row += 1
-            self.minbox[axis] = NXSpinBox(self.set_limits)
-            self.maxbox[axis] = NXSpinBox(self.set_limits)
-            self.lockbox[axis] = NXCheckBox(slot=self.set_lock)
-            grid.addWidget(self.label(self.plotview.axis[axis].name), row, 0)
-            grid.addWidget(self.minbox[axis], row, 1)
-            grid.addWidget(self.maxbox[axis], row, 2)
-            grid.addWidget(self.lockbox[axis], row, 3,
-                           alignment=QtCore.Qt.AlignHCenter)
-
-        row += 1
-        self.plot_button = NXPushButton("Plot", self.plot_scan, self)
-        grid.addWidget(self.plot_button, row, 1)
-        self.save_button = NXPushButton("Save", self.save_scan, self)
-        grid.addWidget(self.save_button, row, 2)
-        self.overbox = NXCheckBox()
-        self.overbox.setVisible(False)
-        grid.addWidget(self.overbox, row, 3,
-                       alignment=QtCore.Qt.AlignHCenter)
-
         self.set_layout(
-            axis_layout, self.textboxes(('Scan', '')),
-            self.action_buttons(
-                ('Select Scan', self.select_scan),
-                ('Select Files', self.select_files)),
-            grid, self.checkboxes(
-                ("sum", "Sum Projections", False),
-                ("lines", "Plot Lines", False),
-                ("hide", "Hide Limits", False)),
-            self.copy_layout("Copy Limits"))
-        if self.ndim == 1:
-            self.checkbox["hide"].setVisible(False)
-        else:
-            self.checkbox["hide"].stateChanged.connect(self.hide_rectangle)
-
-        self.initialize()
-        self._rectangle = None
-        self.xbox.setFocus()
+            self.textboxes(('Scan', '')),
+            self.action_buttons(('Select Scan', self.select_scan),
+                                ('Select Files', self.select_files)),
+            self.action_buttons(('Plot', self.plot_scan),
+                                ('Save', self.save_scan)))
         self.file_box = None
-        self.scan_data = None
         self.scan_files = None
         self.scan_values = None
+        self.scan_data = None
+        self.scan_file = None
         self.files = None
-
-    def initialize(self):
-        for axis in range(self.ndim):
-            self.minbox[axis].data = self.maxbox[axis].data = \
-                self.plotview.axis[axis].centers
-            self.minbox[axis].setMaximum(self.minbox[axis].data.size-1)
-            self.maxbox[axis].setMaximum(self.maxbox[axis].data.size-1)
-            self.minbox[axis].diff = self.maxbox[axis].diff = None
-            self.block_signals(True)
-            self.minbox[axis].setValue(self.plotview.axis[axis].lo)
-            self.maxbox[axis].setValue(self.plotview.axis[axis].hi)
-            self.block_signals(False)
-
-        self.copywidget.setVisible(False)
-        for tab in [self.tabs[label] for label in self.tabs
-                    if self.tabs[label] is not self]:
-            if self.plotview.ndim == tab.plotview.ndim:
-                self.copywidget.setVisible(True)
-                self.copybox.add(self.labels[tab])
-                tab.copybox.add(self.tab_label)
-                if not tab.copywidget.isVisible():
-                    tab.copywidget.setVisible(True)
 
     def select_scan(self):
         scan_axis = self.treeview.node
@@ -3343,177 +3263,42 @@ class ScanTab(NXTab):
                                for f in self.files if self.files[f].vary]
             self.scan_values = [self.files[f].value for f in self.files
                                 if self.files[f].vary]
-        except Exception as error:
+            self.create_scan_file()
+        except Exception:
             raise NeXusError("Files not selected")
 
-    def get_axes(self):
-        return self.plotview.xtab.get_axes()
-
-    def set_axes(self):
-        axes = self.get_axes()
-        axes.insert(0, 'None')
-        self.xbox.clear()
-        self.xbox.add(*axes)
-        self.xbox.select(self.plotview.xaxis.name)
-        if self.ndim <= 2:
-            self.ylabel.setVisible(False)
-            self.ybox.setVisible(False)
-        else:
-            self.ylabel.setVisible(True)
-            self.ybox.setVisible(True)
-            self.ybox.clear()
-            self.ybox.add(*axes)
-            self.ybox.select(self.plotview.yaxis.name)
-
-    @property
-    def xaxis(self):
-        return self.xbox.currentText()
-
-    def set_xaxis(self):
-        if self.xaxis == self.yaxis:
-            self.ybox.select('None')
-        elif self.xbox.selected == 'None':
-            self.xbox.select(self.ybox.selected)
-            self.ybox.select('None')
-        self.update_overbox()
-
-    @property
-    def yaxis(self):
-        if self.ndim <= 2:
-            return 'None'
-        else:
-            return self.ybox.selected
-
-    def set_yaxis(self):
-        if self.xaxis == self.yaxis:
-            self.ybox.select('None')
-        elif self.ybox.selected != 'None' and self.xbox.selected == 'None':
-            self.xbox.select(self.ybox.selected)
-            self.ybox.select('None')
-        self.update_overbox()
-
-    def set_limits(self):
-        self.block_signals(True)
-        for axis in range(self.ndim):
-            if self.lockbox[axis].isChecked():
-                min_value = self.maxbox[axis].value() - self.maxbox[axis].diff
-                self.minbox[axis].setValue(min_value)
-            elif self.minbox[axis].value() > self.maxbox[axis].value():
-                self.maxbox[axis].setValue(self.minbox[axis].value())
-        self.block_signals(False)
-        self.draw_rectangle()
-
-    def get_limits(self, axis=None):
-        def get_indices(minbox, maxbox):
-            start, stop = minbox.index, maxbox.index+1
-            if minbox.reversed:
-                start, stop = len(maxbox.data)-stop, len(minbox.data)-start
-            return start, stop
-        if axis:
-            return get_indices(self.minbox[axis], self.maxbox[axis])
-        else:
-            return [get_indices(self.minbox[axis], self.maxbox[axis])
-                    for axis in range(self.ndim)]
-
-    def set_lock(self):
-        for axis in range(self.ndim):
-            if self.lockbox[axis].isChecked():
-                lo, hi = self.minbox[axis].value(), self.maxbox[axis].value()
-                self.minbox[axis].diff = self.maxbox[axis].diff = max(hi - lo,
-                                                                      0.0)
-                self.minbox[axis].setDisabled(True)
-            else:
-                self.minbox[axis].diff = self.maxbox[axis].diff = None
-                self.minbox[axis].setDisabled(False)
-
-    @property
-    def summed(self):
-        try:
-            return self.checkbox["sum"].isChecked()
-        except Exception:
-            return False
-
-    @summed.setter
-    def summed(self, value):
-        self.checkbox["sum"].setChecked(value)
-
-    @property
-    def lines(self):
-        try:
-            return self.checkbox["lines"].isChecked()
-        except Exception:
-            return False
-
-    @lines.setter
-    def lines(self, value):
-        self.checkbox["lines"].setChecked(value)
-
-    def get_projection(self):
-        if self.xaxis == 'None' and self.yaxis == 'None':
-            axes = []
-        elif self.yaxis == 'None':
-            x = self.get_axes().index(self.xaxis)
-            axes = [x]
-        else:
-            x = self.get_axes().index(self.xaxis)
-            y = self.get_axes().index(self.yaxis)
-            axes = [y, x]
-        limits = self.get_limits()
-        shape = self.plotview.data.nxsignal.shape
-        if (len(shape)-len(limits) > 0 and
-                len(shape)-len(limits) == shape.count(1)):
-            axes, limits = fix_projection(shape, axes, limits)
-        if self.plotview.rgb_image:
-            limits.append((None, None))
-        return axes, limits
-
-    def get_scan(self):
-        axes, limits = self.get_projection()
-        data = self.plotview.data.project(axes, limits, summed=self.summed)
-        data_signal = data.nxsignal
-        data_axes = data.nxaxes
-        scan_axis = self.scan_axis()
-        scan_shape = [len(scan_axis)] + list(data_signal.shape)
-        scan_field = NXfield(shape=scan_shape, dtype=data_signal.dtype,
-                             name=data_signal.nxname)
+    def create_scan_file(self):
+        import h5py as h5
+        import tempfile
+        signal = self.plotview.data.nxsignal
+        axes = self.plotview.data.nxaxes
+        scan_shape = (len(self.scan_axis()),) + signal.shape
+        scan_field = NXfield(name='data', shape=scan_shape, dtype=signal.dtype)
+        scan_field._create_memfile()
+        layout = h5.VirtualLayout(shape=scan_shape, dtype=signal.dtype)
         for i, f in enumerate(self.scan_files):
-            try:
-                scan_field[i] = f[self.data_path].project(
-                    axes, limits, summed=self.summed).nxsignal
-            except Exception as error:
-                raise NeXusError(f"Cannot read '{f}'")
-        del data[data_signal.nxname]
-        data.nxsignal = scan_field
-        data.nxaxes = [scan_axis, *data_axes]
-        data.title = self.data_path
-        return data
-
-    @property
-    def over(self):
-        return self.overbox.isChecked()
+            signal = f[self.data_path].nxsignal
+            layout[i] = h5.VirtualSource(signal.nxfilename, signal.nxfilepath,
+                                         shape=signal.shape)
+        scan_field._memfile.create_virtual_dataset(
+            'data', layout, fillvalue=signal.fillvalue)
+        self.scan_data = NXdata(scan_field, [self.scan_axis()] + axes)
+        self.scan_data.title = self.data_path
+        self.scan_file = nxload(
+            tempfile.mkstemp(suffix='.nxs')[1], mode='w', libver='latest')
+        self.scan_file['entry'] = NXentry(self.scan_data)
 
     def plot_scan(self):
         try:
-            self.scan_data = self.get_scan()
-            axes, limits = self.get_projection()
-            opts = {}
-            if self.lines:
-                opts['marker'] = 'None'
-                opts['linestyle'] = '-'
-            self.scanview.plot(self.scan_data, over=self.over, **opts)
+            self.scanview.plot(self.scan_data)
             self.scanview.make_active()
             self.scanview.raise_()
-            self.update_overbox()
         except NeXusError as error:
             report_error("Plotting Scan", error)
 
     def save_scan(self):
         try:
-            if self.scan_data:
-                data = self.scan_data
-            else:
-                data = self.get_scan()
-            keep_data(data)
+            keep_data(self.scan_data)
         except NeXusError as error:
             report_error("Saving Scan", error)
 
@@ -3525,130 +3310,12 @@ class ScanTab(NXTab):
             from .plotview import NXPlotView
             return NXPlotView('Scan')
 
-    def block_signals(self, block=True):
-        for axis in range(self.ndim):
-            self.minbox[axis].blockSignals(block)
-            self.maxbox[axis].blockSignals(block)
-
-    @property
-    def rectangle(self):
-        if self._rectangle not in self.plotview.ax.patches:
-            self._rectangle = NXpolygon(self.get_rectangle(), closed=True,
-                                        plotview=self.plotview).shape
-            self._rectangle.set_edgecolor(self.plotview._gridcolor)
-            self._rectangle.set_facecolor('none')
-            self._rectangle.set_linestyle('dotted')
-            self._rectangle.set_linewidth(2)
-        return self._rectangle
-
-    def get_rectangle(self):
-        xp = self.plotview.xaxis.dim
-        yp = self.plotview.yaxis.dim
-        x0 = self.minbox[xp].minBoundaryValue(self.minbox[xp].index)
-        x1 = self.maxbox[xp].maxBoundaryValue(self.maxbox[xp].index)
-        y0 = self.minbox[yp].minBoundaryValue(self.minbox[yp].index)
-        y1 = self.maxbox[yp].maxBoundaryValue(self.maxbox[yp].index)
-        xy = [(x0, y0), (x0, y1), (x1, y1), (x1, y0)]
-        if self.plotview.skew is not None:
-            return [self.plotview.transform(_x, _y) for _x, _y in xy]
-        else:
-            return xy
-
-    def draw_rectangle(self):
-        if self.ndim > 1:
-            self.rectangle.set_xy(self.get_rectangle())
-            self.plotview.draw()
-
-    def rectangle_visible(self):
-        return not self.checkbox["hide"].isChecked()
-
-    def hide_rectangle(self):
-        if self.checkbox["hide"].isChecked():
-            self.rectangle.set_visible(False)
-        else:
-            self.rectangle.set_visible(True)
-        self.plotview.draw()
-
-    def update_overbox(self):
-        if 'Scan' in self.plotviews:
-            ndim = self.plotviews['Scan'].ndim
-        else:
-            ndim = 0
-        for tab in self.labels:
-            if ndim == 1 and tab.xaxis == 'None' and tab.yaxis == 'None':
-                tab.overbox.setVisible(True)
-            else:
-                tab.overbox.setVisible(False)
-                tab.overbox.setChecked(False)
-
-    def update(self):
-        self.block_signals(True)
-        for axis in range(self.ndim):
-            lo, hi = self.plotview.axis[axis].get_limits()
-            minbox, maxbox = self.minbox[axis], self.maxbox[axis]
-            ilo, ihi = minbox.indexFromValue(lo), maxbox.indexFromValue(hi)
-            if (self.plotview.axis[axis] is self.plotview.xaxis or
-                    self.plotview.axis[axis] is self.plotview.yaxis):
-                ilo = ilo + 1
-                ihi = max(ilo, ihi-1)
-                if lo > minbox.value():
-                    minbox.setValue(minbox.valueFromIndex(ilo))
-                if hi < maxbox.value():
-                    maxbox.setValue(maxbox.valueFromIndex(ihi))
-        self.block_signals(False)
-        self.draw_rectangle()
-        self.sort_copybox()
-
-    def copy(self):
-        self.block_signals(True)
-        tab = self.tabs[self.copybox.selected]
-        for axis in range(self.ndim):
-            self.minbox[axis].setValue(tab.minbox[axis].value())
-            self.maxbox[axis].setValue(tab.maxbox[axis].value())
-            self.lockbox[axis].setCheckState(tab.lockbox[axis].checkState())
-        self.summed = tab.summed
-        self.lines = tab.lines
-        self.xbox.setCurrentIndex(tab.xbox.currentIndex())
-        if self.ndim > 1:
-            self.ybox.setCurrentIndex(tab.ybox.currentIndex())
-        self.block_signals(False)
-        self.draw_rectangle()
-
-    def reset(self):
-        self.xbox.select(self.plotview.xaxis.name)
-        self.ybox.select(self.plotview.yaxis.name)
-        self.block_signals(True)
-        for axis in range(self.ndim):
-            if (self.plotview.axis[axis] is self.plotview.xaxis or
-                    self.plotview.axis[axis] is self.plotview.yaxis):
-                self.minbox[axis].setValue(self.minbox[axis].data.min())
-                self.maxbox[axis].setValue(self.maxbox[axis].data.max())
-            else:
-                lo, hi = self.plotview.axis[axis].get_limits()
-                minbox, maxbox = self.minbox[axis], self.maxbox[axis]
-                ilo, ihi = minbox.indexFromValue(lo), maxbox.indexFromValue(hi)
-                minbox.setValue(minbox.valueFromIndex(ilo))
-                maxbox.setValue(maxbox.valueFromIndex(ihi))
-        self.block_signals(False)
-        self.update()
-
     def close(self):
-        for tab in [self.tabs[label] for label in self.tabs
-                    if self.tabs[label] is not self]:
-            if self.tab_label in tab.copybox:
-                tab.copybox.remove(self.tab_label)
-            if len(tab.copybox.items()) == 0:
-                tab.copywidget.setVisible(False)
-        try:
-            if self._rectangle:
-                self._rectangle.remove()
-            self.plotview.draw()
-        except Exception:
-            pass
         try:
             self.file_box.close()
         except Exception:
             pass
+        super().close()
 
 
 class ViewDialog(NXPanel):
