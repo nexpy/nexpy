@@ -20,17 +20,16 @@ conda-forge channel::
 
 You can install the package from the source code either by downloading one of 
 the `Github releases <https://github.com/nexpy/nexpy/releases>`_ or by cloning 
-the latest development version in the `NeXpy Git repository <https://github.com/nexpy/nexpy>`_::
+the latest development version in the 
+`NeXpy Git repository <https://github.com/nexpy/nexpy>`_::
 
     $ git clone https://github.com/nexpy/nexpy.git
 
-You can then install NeXpy by changing to the source directory and typing::
+Then use standard Python tools to build and/or install a distribution from
+within the source directory::
 
-    $ python setup.py install
-
-To install in an alternate location::
-
-    $ python setup.py install --prefix=/path/to/installation/dir
+    $ python -m build  # build a distribution
+    $ python -m pip install .  # install the package
 
 The Python API for reading and writing NeXus files is in a separate package, 
 `nexusformat <https://github.com/nexpy/nexusformat>`_, which is also available 
@@ -47,8 +46,8 @@ or::
 
 The package can also be installed from the source code using the setup commands
 described above. The source code is available either by downloading one of the 
-`Github releases <https://github.com/nexpy/nexusformat/releases>`_ or by cloning 
-the latest development version in the `NeXpy Git repository 
+`Github releases <https://github.com/nexpy/nexusformat/releases>`_ or by 
+cloning the latest development version in the `NeXpy Git repository 
 <https://github.com/nexpy/nexusformat>`_::
 
     $ git clone https://github.com/nexpy/nexusformat.git
@@ -57,12 +56,14 @@ Required Libraries
 ==================
 Python Command-Line API
 -----------------------
-The current version of NeXpy uses `h5py <http://h5py.org>`_ to read and write 
-NeXus files because of its ability to handle large data files. There is 
-therefore no dependency on the `NeXus C API 
-<http://download.nexusformat.org/doc/html/napi.html>`_. This also means that the current version cannot read and write HDF4 or XML NeXus files. These can be
-converted to HDF5 file using the NeXus command-line utility 
-`nxconvert <http://download.nexusformat.org/doc/html/utilities.html>`_`.
+NeXpy provides a GUI interface to the 
+`nexusformat API <https://github.com/nexpy/nexusformat>`_, which uses 
+`h5py <http://h5py.org>`_ to read and write HDF5 files that implement the 
+`NeXus data format standard <https://www.nexusformat.org>`_. It does not use 
+the NeXus C API, which means that the current version cannot read and write 
+legacy HDF4 or XML NeXus files. One of the 
+`NeXus conversion utilities <https://manual.nexusformat.org/utilities.html>`_ 
+should be used to convert such files to HDF5.
 
 If you only intend to utilize the Python API from the command-line, the only 
 other required libraries iare `NumPy <https://numpy.org>`_ and, if you want
@@ -82,18 +83,13 @@ scipy              https://scipy.org/
 
 NeXpy GUI
 ---------
-The GUI is built using the PyQt. The latest version supports PyQt4, PySide, 
-PyQt5, and should load whichever library it finds. None are listed as a 
-dependency but one or other must be installed. PyQt5 is included in the 
-`Anaconda default distribution <https://store.continuum.io/cshop/anaconda/>`_ 
-while PySide is included in the `Enthought Python Distribution
-<http://www.enthought.com>`_ or within Enthought's `Canopy Application
-<https://www.enthought.com/products/canopy/>`_.
+The GUI is built using the PyQt. The 
+`qtpy package <https://github.com/spyder-ide/qtpy>`_ is used to import an 
+installed PyQt library, either PyQt5 or PySide2.
 
 The GUI includes an `IPython shell <http://ipython.org/>`_ and a `Matplotlib
 plotting pane <http://matplotlib.sourceforge.net>`_. The IPython shell is
-embedded in the Qt GUI using an implementation based on the newly-released
-Jupyter QtConsole, which has replaced the old IPython QtConsole.
+embedded in the Qt GUI using an implementation based on the Jupyter QtConsole.
 
 Least-squares fitting of 1D data uses the `lmfit package 
 <https://lmfit.github.io/lmfit-py/>`_`.
@@ -110,25 +106,12 @@ pillow             https://pillow.readthedocs.io/
 ansi2html          https://pypi.python.org/pypi/ansi2html/
 =================  =================================================
 
-.. warning:: Some people have reported that NeXpy crashes on launch on some
-             Linux systems. We believe that this may be due to both PyQt4 and
-             PyQt5 being installed, although that doesn't cause a problem on 
-             all systems. If NeXpy crashes on launch, please try setting the
-             environment variable QT_API to either 'pyqt', for the PyQt4 
-             library, 'pyqt5' for the PyQt5 library, or 'pyside', for the 
-             PySide library, depending on what you have installed, *e.g.*, in 
-             BASH, type ::
-
-                 export QT_API=pyqt
-
 Additional Packages
 -------------------
-Additional functionality is provided by other external Python packages. 
-Least-squares fitting requires Matt Newville's least-squares fitting package, 
-`lmfit-py <http://newville.github.io/lmfit-py>`_. Importers may also require 
-libraries to read the imported files in their native format, *e.g.*, `spec2nexus 
-<http://spec2nexus.readthedocs.org/>`_ for reading SPEC files and 
-`FabIO <https://github.com/silx-kit/fabio>`_ for importing TIFF and CBF images. 
+Importers may require additional libraries to read the imported files in their 
+native format, *e.g.*, `spec2nexus <http://spec2nexus.readthedocs.org/>`_ for 
+reading SPEC files and `FabIO <https://github.com/silx-kit/fabio>`_ for 
+importing TIFF and CBF images. 
 
 From v0.9.1, a new 2D smoothing option is available in the list of 
 interpolations in the signal tab if `astropy <http://www.astropy.org>`_
@@ -146,6 +129,15 @@ astropy            http://www.astropy.org/
 
 .. note:: NeXpy should still run without these additional packages, but invoking
           the relevant menu items may trigger an exception.
+
+Running the GUI
+---------------
+To run from the installed location, add the $prefix/bin directory to your path 
+if you installed outside the python installation, and then run::
+
+    $ nexpy [-r]
+
+The -r option restores all files loaded in the previous session.
 
 Semantic Versioning
 -------------------
