@@ -18,11 +18,12 @@ import pkg_resources
 from matplotlib.legend import Legend
 from matplotlib.rcsetup import validate_aspect, validate_float
 from nexusformat.nexus import (NeXusError, NXattr, NXdata, NXentry, NXfield,
-                               NXgroup, NXlink, NXroot, nxgetcompression,
-                               nxgetencoding, nxgetlock, nxgetmaxsize,
-                               nxgetmemory, nxgetrecursive, nxload,
-                               nxsetcompression, nxsetencoding, nxsetlock,
-                               nxsetmaxsize, nxsetmemory, nxsetrecursive)
+                               NXgroup, NXlink, NXroot, NXvirtualfield,
+                               nxgetcompression, nxgetencoding, nxgetlock,
+                               nxgetmaxsize, nxgetmemory, nxgetrecursive,
+                               nxload, nxsetcompression, nxsetencoding,
+                               nxsetlock, nxsetmaxsize, nxsetmemory,
+                               nxsetrecursive)
 
 from .pyqt import QtCore, QtGui, QtWidgets, getOpenFileName, getSaveFileName
 from .utils import (confirm_action, convertHTML, display_message,
@@ -3268,20 +3269,11 @@ class ScanTab(NXTab):
             raise NeXusError("Files not selected")
 
     def create_scan_file(self):
-        import h5py as h5
         import tempfile
         signal = self.plotview.data.nxsignal
         axes = self.plotview.data.nxaxes
-        scan_shape = (len(self.scan_axis()),) + signal.shape
-        layout = h5.VirtualLayout(shape=scan_shape, dtype=signal.dtype)
-        for i, f in enumerate(self.scan_files):
-            signal = f[self.data_path].nxsignal
-            layout[i] = h5.VirtualSource(signal.nxfilename, signal.nxfilepath,
-                                         shape=signal.shape)
-        scan_field = NXfield(name='data', shape=scan_shape, dtype=signal.dtype)
-        scan_field._create_memfile()
-        scan_field._memfile.create_virtual_dataset(
-            'data', layout, fillvalue=signal.fillvalue)
+        files = [f[signal.nxpath].nxfilename for f in self.scan_files]
+        scan_field = NXvirtualfield(signal, files, name='data')
         self.scan_data = NXdata(scan_field, [self.scan_axis()] + axes)
         self.scan_data.title = self.data_path
         self.scan_file = nxload(
@@ -3313,6 +3305,8 @@ class ScanTab(NXTab):
     def close(self):
         try:
             self.file_box.close()
+            self.scan_file.close()
+            os.remove(self.scan_file.nxfilename)
         except Exception:
             pass
         super().close()
@@ -3373,6 +3367,9 @@ class ViewTab(NXTab):
             elif node.nxfilename and node.nxfilename != node.nxroot.nxfilename:
                 self.properties.add('linkfile', node.nxfilename,
                                     target_file_label)
+        elif isinstance(node, NXvirtualfield):
+            self.properties.add('vpath', node._vpath, 'Virtual Path')
+            self.properties.add('vfiles', node._vfiles, 'Virtual Files')
         elif node.nxfilename and node.nxfilename != node.nxroot.nxfilename:
             self.properties.add('target', node.nxfilepath, 'Target Path')
             self.properties.add('linkfile', node.nxfilename, target_file_label)
