@@ -19,11 +19,11 @@ from matplotlib.legend import Legend
 from matplotlib.rcsetup import validate_aspect, validate_float
 from nexusformat.nexus import (NeXusError, NXattr, NXdata, NXentry, NXfield,
                                NXgroup, NXlink, NXroot, NXvirtualfield,
-                               nxgetcompression, nxgetencoding, nxgetlock,
-                               nxgetmaxsize, nxgetmemory, nxgetrecursive,
-                               nxload, nxsetcompression, nxsetencoding,
-                               nxsetlock, nxsetmaxsize, nxsetmemory,
-                               nxsetrecursive)
+                               nxconsolidate, nxgetcompression, nxgetencoding,
+                               nxgetlock, nxgetmaxsize, nxgetmemory,
+                               nxgetrecursive, nxload, nxsetcompression,
+                               nxsetencoding, nxsetlock, nxsetmaxsize,
+                               nxsetmemory, nxsetrecursive)
 
 from .pyqt import QtCore, QtGui, QtWidgets, getOpenFileName, getSaveFileName
 from .utils import (confirm_action, convertHTML, display_message,
@@ -3211,7 +3211,7 @@ class ScanTab(NXTab):
         self.scroll_area.setWidget(self.scroll_widget)
 
     def update_files(self):
-        if self.scan_variable is None:
+        if self.scan_path:
             i = 0
             for f in self.files:
                 if self.files[f].vary:
@@ -3237,26 +3237,11 @@ class ScanTab(NXTab):
 
     @property
     def scan_header(self):
-        try:
-            return self.scan_variable.nxname.capitalize()
-        except AttributeError:
-            return 'Variable'
-
-    def scan_axis(self):
-        if self.scan_files is None:
-            raise NeXusError("Files not selected")
-        _values = self.scan_values
-        if self.scan_variable is not None:
-            _variable = self.scan_variable
-            _axis = NXfield(_values, dtype=_variable.dtype,
-                            name=_variable.nxname)
-            if 'long_name' in _variable.attrs:
-                _axis.attrs['long_name'] = _variable.attrs['long_name']
-            if 'units' in _variable.attrs:
-                _axis.attrs['units'] = _variable.attrs['units']
+        if self.scan_path and self.scan_path in self.plotview.data.nxroot:
+            return (
+                self.plotview.data.nxroot[self.scan_path].nxname.capitalize())
         else:
-            _axis = NXfield(_values, name='file_index', long_name='File Index')
-        return _axis
+            return 'Variable'
 
     def choose_files(self):
         try:
@@ -3270,12 +3255,8 @@ class ScanTab(NXTab):
 
     def create_scan_file(self):
         import tempfile
-        signal = self.plotview.data.nxsignal
-        axes = self.plotview.data.nxaxes
-        files = [f[signal.nxpath].nxfilename for f in self.scan_files]
-        scan_field = NXvirtualfield(signal, files, name='data')
-        self.scan_data = NXdata(scan_field, [self.scan_axis()] + axes)
-        self.scan_data.title = self.data_path
+        self.scan_data = nxconsolidate(self.scan_files, self.data_path,
+                                       self.scan_path)
         self.scan_file = nxload(
             tempfile.mkstemp(suffix='.nxs')[1], mode='w', libver='latest')
         self.scan_file['entry'] = NXentry(self.scan_data)
