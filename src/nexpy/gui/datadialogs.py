@@ -18,11 +18,12 @@ import pkg_resources
 from matplotlib.legend import Legend
 from matplotlib.rcsetup import validate_aspect, validate_float
 from nexusformat.nexus import (NeXusError, NXattr, NXdata, NXentry, NXfield,
-                               NXgroup, NXlink, NXroot, nxgetcompression,
-                               nxgetencoding, nxgetlock, nxgetmaxsize,
-                               nxgetmemory, nxgetrecursive, nxload,
-                               nxsetcompression, nxsetencoding, nxsetlock,
-                               nxsetmaxsize, nxsetmemory, nxsetrecursive)
+                               NXgroup, NXlink, NXroot, NXvirtualfield,
+                               nxconsolidate, nxgetcompression, nxgetencoding,
+                               nxgetlock, nxgetmaxsize, nxgetmemory,
+                               nxgetrecursive, nxload, nxsetcompression,
+                               nxsetencoding, nxsetlock, nxsetmaxsize,
+                               nxsetmemory, nxsetrecursive)
 
 from .pyqt import QtCore, QtGui, QtWidgets, getOpenFileName, getSaveFileName
 from .utils import (confirm_action, convertHTML, display_message,
@@ -1526,6 +1527,7 @@ class PlotScalarDialog(NXDialog):
                 ('over', 'Plot Over', False)),
             self.action_buttons(
                 ('Plot', self.plot_scan),
+                ('Copy', self.copy_scan),
                 ('Save', self.save_scan)),
             self.close_layout())
 
@@ -1679,6 +1681,13 @@ class PlotScalarDialog(NXDialog):
             self.get_scan().plot(**opts)
         except NeXusError as error:
             report_error("Plotting Scan", error)
+
+    def copy_scan(self):
+        try:
+            self.mainwindow.copied_node = self.mainwindow.copy_node(
+                self.get_scan())
+        except NeXusError as error:
+            report_error("Copying Scan", error)
 
     def save_scan(self):
         try:
@@ -2611,8 +2620,7 @@ class ProjectionTab(NXTab):
 
     def save_projection(self):
         try:
-            projection = self.get_projection()
-            keep_data(projection)
+            keep_data(self.get_projection())
         except NeXusError as error:
             report_error("Saving Projection", error)
 
@@ -3132,6 +3140,7 @@ class ScanTab(NXTab):
             self.action_buttons(('Select Scan', self.select_scan),
                                 ('Select Files', self.select_files)),
             self.action_buttons(('Plot', self.plot_scan),
+                                ('Copy', self.copy_scan),
                                 ('Save', self.save_scan)))
         self.file_box = None
         self.scan_files = None
@@ -3210,7 +3219,7 @@ class ScanTab(NXTab):
         self.scroll_area.setWidget(self.scroll_widget)
 
     def update_files(self):
-        if self.scan_variable is None:
+        if self.scan_path:
             i = 0
             for f in self.files:
                 if self.files[f].vary:
@@ -3236,26 +3245,11 @@ class ScanTab(NXTab):
 
     @property
     def scan_header(self):
-        try:
-            return self.scan_variable.nxname.capitalize()
-        except AttributeError:
-            return 'Variable'
-
-    def scan_axis(self):
-        if self.scan_files is None:
-            raise NeXusError("Files not selected")
-        _values = self.scan_values
-        if self.scan_variable is not None:
-            _variable = self.scan_variable
-            _axis = NXfield(_values, dtype=_variable.dtype,
-                            name=_variable.nxname)
-            if 'long_name' in _variable.attrs:
-                _axis.attrs['long_name'] = _variable.attrs['long_name']
-            if 'units' in _variable.attrs:
-                _axis.attrs['units'] = _variable.attrs['units']
+        if self.scan_path and self.scan_path in self.plotview.data.nxroot:
+            return (
+                self.plotview.data.nxroot[self.scan_path].nxname.capitalize())
         else:
-            _axis = NXfield(_values, name='file_index', long_name='File Index')
-        return _axis
+            return 'Variable'
 
     def choose_files(self):
         try:
@@ -3268,22 +3262,9 @@ class ScanTab(NXTab):
             raise NeXusError("Files not selected")
 
     def create_scan_file(self):
-        import h5py as h5
         import tempfile
-        signal = self.plotview.data.nxsignal
-        axes = self.plotview.data.nxaxes
-        scan_shape = (len(self.scan_axis()),) + signal.shape
-        layout = h5.VirtualLayout(shape=scan_shape, dtype=signal.dtype)
-        for i, f in enumerate(self.scan_files):
-            signal = f[self.data_path].nxsignal
-            layout[i] = h5.VirtualSource(signal.nxfilename, signal.nxfilepath,
-                                         shape=signal.shape)
-        scan_field = NXfield(name='data', shape=scan_shape, dtype=signal.dtype)
-        scan_field._create_memfile()
-        scan_field._memfile.create_virtual_dataset(
-            'data', layout, fillvalue=signal.fillvalue)
-        self.scan_data = NXdata(scan_field, [self.scan_axis()] + axes)
-        self.scan_data.title = self.data_path
+        self.scan_data = nxconsolidate(self.scan_files, self.data_path,
+                                       self.scan_path)
         self.scan_file = nxload(
             tempfile.mkstemp(suffix='.nxs')[1], mode='w', libver='latest')
         self.scan_file['entry'] = NXentry(self.scan_data)
@@ -3295,6 +3276,13 @@ class ScanTab(NXTab):
             self.scanview.raise_()
         except NeXusError as error:
             report_error("Plotting Scan", error)
+
+    def copy_scan(self):
+        try:
+            self.mainwindow.copied_node = self.mainwindow.copy_node(
+                self.scan_data)
+        except NeXusError as error:
+            report_error("Copying Scan", error)
 
     def save_scan(self):
         try:
@@ -3313,6 +3301,8 @@ class ScanTab(NXTab):
     def close(self):
         try:
             self.file_box.close()
+            self.scan_file.close()
+            os.remove(self.scan_file.nxfilename)
         except Exception:
             pass
         super().close()
@@ -3373,6 +3363,9 @@ class ViewTab(NXTab):
             elif node.nxfilename and node.nxfilename != node.nxroot.nxfilename:
                 self.properties.add('linkfile', node.nxfilename,
                                     target_file_label)
+        elif isinstance(node, NXvirtualfield):
+            self.properties.add('vpath', node._vpath, 'Virtual Path')
+            self.properties.add('vfiles', node._vfiles, 'Virtual Files')
         elif node.nxfilename and node.nxfilename != node.nxroot.nxfilename:
             self.properties.add('target', node.nxfilepath, 'Target Path')
             self.properties.add('linkfile', node.nxfilename, target_file_label)
@@ -3562,7 +3555,7 @@ class RemoteDialog(NXDialog):
     def __init__(self, parent=None):
 
         try:
-            import h5pyd
+            # import h5pyd
             from nexusformat.nexus import nxgetdomain, nxgetserver
         except ImportError:
             raise NeXusError("Please install h5pyd for remote data access")
