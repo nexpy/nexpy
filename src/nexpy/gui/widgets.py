@@ -961,9 +961,9 @@ class NXSlider(QtWidgets.QSlider):
 
     def setValue(self, value):
         if self.inverse:
-            super().setValue(self.maximum() - value)
+            super().setValue(self.maximum() - int(value))
         else:
-            super().setValue(value)
+            super().setValue(int(value))
 
 
 class NXpatch(object):
