@@ -276,25 +276,27 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
             s = f"{_class}=nx.{_class}\n" + s
         exec(s, self.window.user_ns)
 
+        default_script = ["import sys\n",
+                          "import os\n",
+                          "import h5py as h5\n",
+                          "import numpy as np\n",
+                          "import numpy.ma as ma\n",
+                          "import scipy as sp\n",
+                          "import matplotlib as mpl\n",
+                          "mpl.use('{}')\n".format(QtVersion),
+                          "from matplotlib import pylab, mlab, pyplot\n",
+                          "plt = pyplot\n",
+                          "os.chdir(os.path.expanduser('~'))\n"]
         config_file = os.path.join(self.nexpy_dir, 'config.py')
         if not os.path.exists(config_file):
-            s = ["import sys\n",
-                 "import os\n",
-                 "import h5py as h5\n",
-                 "import numpy as np\n",
-                 "import numpy.ma as ma\n",
-                 "import scipy as sp\n",
-                 "import matplotlib as mpl\n",
-                 "mpl.use('{}')\n".format(QtVersion),
-                 "from matplotlib import pylab, mlab, pyplot\n",
-                 "plt = pyplot\n",
-                 "os.chdir(os.path.expanduser('~'))\n"]
             with open(config_file, 'w') as f:
-                f.writelines(s)
-        else:
-            with open(config_file) as f:
-                s = f.readlines()
-        exec('\n'.join(s), self.window.user_ns)
+                f.writelines(default_script)
+        with open(config_file) as f:
+            s = f.readlines()
+        try:
+            exec('\n'.join(s), self.window.user_ns)
+        except Exception:
+            exec('\n'.join(default_script), self.window.user_ns)
         self.window.read_session()
         for i, filename in enumerate(args.filenames):
             try:

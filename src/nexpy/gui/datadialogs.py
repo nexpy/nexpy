@@ -3555,7 +3555,7 @@ class RemoteDialog(NXDialog):
     def __init__(self, parent=None):
 
         try:
-            import h5pyd
+            # import h5pyd
             from nexusformat.nexus import nxgetdomain, nxgetserver
         except ImportError:
             raise NeXusError("Please install h5pyd for remote data access")
