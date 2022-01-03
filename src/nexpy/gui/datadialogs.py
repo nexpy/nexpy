@@ -1527,6 +1527,7 @@ class PlotScalarDialog(NXDialog):
                 ('over', 'Plot Over', False)),
             self.action_buttons(
                 ('Plot', self.plot_scan),
+                ('Copy', self.copy_scan),
                 ('Save', self.save_scan)),
             self.close_layout())
 
@@ -1680,6 +1681,13 @@ class PlotScalarDialog(NXDialog):
             self.get_scan().plot(**opts)
         except NeXusError as error:
             report_error("Plotting Scan", error)
+
+    def copy_scan(self):
+        try:
+            self.mainwindow.copied_node = self.mainwindow.copy_node(
+                self.get_scan())
+        except NeXusError as error:
+            report_error("Copying Scan", error)
 
     def save_scan(self):
         try:
@@ -2612,8 +2620,7 @@ class ProjectionTab(NXTab):
 
     def save_projection(self):
         try:
-            projection = self.get_projection()
-            keep_data(projection)
+            keep_data(self.get_projection())
         except NeXusError as error:
             report_error("Saving Projection", error)
 
@@ -3133,6 +3140,7 @@ class ScanTab(NXTab):
             self.action_buttons(('Select Scan', self.select_scan),
                                 ('Select Files', self.select_files)),
             self.action_buttons(('Plot', self.plot_scan),
+                                ('Copy', self.copy_scan),
                                 ('Save', self.save_scan)))
         self.file_box = None
         self.scan_files = None
@@ -3268,6 +3276,13 @@ class ScanTab(NXTab):
             self.scanview.raise_()
         except NeXusError as error:
             report_error("Plotting Scan", error)
+
+    def copy_scan(self):
+        try:
+            self.mainwindow.copied_node = self.mainwindow.copy_node(
+                self.scan_data)
+        except NeXusError as error:
+            report_error("Copying Scan", error)
 
     def save_scan(self):
         try:
