@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2013-2021, NeXpy Development Team.
+# Copyright (c) 2013-2022, NeXpy Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -3300,9 +3300,9 @@ class ScanTab(NXTab):
 
     def close(self):
         try:
-            self.file_box.close()
             self.scan_file.close()
             os.remove(self.scan_file.nxfilename)
+            self.file_box.close()
         except Exception:
             pass
         super().close()
