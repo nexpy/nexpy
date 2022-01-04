@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2013-2021, NeXpy Development Team.
+# Copyright (c) 2013-2022, NeXpy Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -215,6 +215,7 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
         logging.info('Log level is ' + level)
         logging.info('Python ' + sys.version.split()[0] + ': '
                      + sys.executable)
+        logging.info(QtVersion + ' v' + QtCore.__version__)
         logging.info('IPython v' + ipython_version)
         logging.info('Matplotlib v' + mpl_version)
         logging.info('NeXpy v' + nexpy_version)
