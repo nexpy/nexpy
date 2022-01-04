@@ -27,40 +27,22 @@ The source code can be downloaded from the NeXpy Git repository:
     $ git clone https://github.com/nexpy/nexpy.git
 ```
 
-
-The Python API for reading and writing NeXus files is in a separate package, [nexusformat](https://github.com/nexpy/nexusformat), which is also available on [PyPI](https://pypi.python.org/pypi/nexusformat/) and conda-forge. It will be automatically installed as a NeXpy dependency if you use pip or conda. 
-
-If the NeXpy GUI is not required, the package may be used in a regular Python shell. It may be installed using:: 
-
-```
-    $ pip install nexusformat
-```
-
-or::
-
-```
-    $ conda install -c conda-forge nexusformat
-```
-
-The source code can also be downloaded from the NeXpy Git repository:::
-
-```
-    $ git clone https://github.com/nexpy/nexusformat.git
-```
-
 Prerequisites
 =============
 Python Command-Line API
 -----------------------
-The current version of NeXpy uses h5py to read and write NeXus files because
-of its ability to handle large data files. There is therefore no dependency 
-on the [NeXus C API](http://download.nexusformat.org/doc/html/napi.html). 
-This also means that the current version cannot read and write HDF4 or XML 
-NeXus files.
+NeXpy provides a GUI interface to the 
+[nexusformat API](https://github.com/nexpy/nexusformat), which uses 
+[h5py](https://www.h5py.org) to read and write HDF5 files that implement the 
+[NeXus data format standard](https://www.nexusformat.org). It does not use the 
+NeXus C API, which means that the current version cannot read and write legacy
+HDF4 or XML NeXus files. One of the 
+[NeXus conversion utilities](https://manual.nexusformat.org/utilities.html)
+should be used to convert such files to HDF5.
 
 If you only intend to utilize the Python API from the command-line, the only 
 other required libraries are [NumPy](http://numpy.org) and, if you want
-autocompletion within an IPython shell, [SciPy](http://scipy.org).
+autocompletion within an IPython shell, [SciPy](http://scipy.org). 
 
 * [nexusformat](https://github.com/nexpy/nexusformat)
 * [h5py](https://www.h5py.org)
@@ -69,52 +51,35 @@ autocompletion within an IPython shell, [SciPy](http://scipy.org).
 
 NeXpy GUI
 ---------
-The GUI is built using the PyQt. The latest version supports PyQt4, PySide, or, 
-with v0.10.0, PyQt5, and should load whichever library it finds. None are 
-listed as a dependency but one or other must be installed. PyQt5 is included in 
-the 
-[Anaconda default distribution](https://store.continuum.io/cshop/anaconda/) 
-while PySide is included in the 
-[Enthought Python Distribution](http://www.enthought.com) or within Enthought's 
-[Canopy Application](https://www.enthought.com/products/canopy/).
+The GUI is built using PyQt. The 
+[qtpy package](https://github.com/spyder-ide/qtpy) is used to import the 
+installed PyQt library, either PyQt5 or PySide2.
 
 The GUI includes an [IPython shell](http://ipython.org/) and a 
 [Matplotlib plotting pane](http://matplotlib.sourceforge.net). The IPython shell 
-is embedded in the Qt GUI using an implementation based on the newly-released
-Jupyter QtConsole, which has replaced the old IPython QtConsole. Least-squares
-fitting of 1D data requires [lmfit](https://lmfit.github.io/lmfit-py/).
+is embedded in the Qt GUI using an implementation based on the Jupyter 
+QtConsole. Least-squares fitting of 1D data requires 
+[lmfit](https://lmfit.github.io/lmfit-py/).
           
-* [jupyter](https://jupyter.org/)
+* [qtpy](https://github.com/spyder-ide/qtpy)
+* [qtconsole](https://qtconsole.readthedocs.io/)
 * [IPython](https://ipython.org/)
 * [matplotlib](https://matplotlib.sourceforge.net/)
 * [lmfit](https://lmfit.github.io/lmfit-py/)
 * [pillow](https://pillow.readthedocs.io/)
 * [ansi2html](https://pypi.org/project/ansi2html/)
 
-Some people have reported that NeXpy crashes on launch on some Linux systems.
-We believe that this may be due to both PyQt4 and PyQt5 being installed,
-although that doesn't cause a problem on all systems. If NeXpy crashes on
-launch, please try setting the environment variable QT_API to 'pyqt', for the 
-PyQt4 library, 'pyqt5' for the PyQt5 library, or 'pyside', for the PySide 
-library, depending on what you have installed, e.g., in BASH, type::
-
-```
-    $ export QT_API=pyqt
-```
-
 Additional Packages
 -------------------
-Additional functionality is provided by other external Python packages. 
-Least-squares fitting requires Matt Newville's least-squares fitting package, 
-[lmfit-py](http://newville.github.io/lmfit-py). Importers may also require 
-libraries to read the imported files in their native format, e.g., 
-[spec2nexus](http://spec2nexus.readthedocs.org/) for reading SPEC files. 
+Importers may require additional libraries to read the imported files in their 
+native format, e.g., [spec2nexus](http://spec2nexus.readthedocs.org/) for 
+reading SPEC files or [FabIO](https://github.com/silx-kit/fabio) for reading
+TIFF and CBF images.
 
-From v0.9.1, a new 2D smoothing option is available in the list of 
-interpolations in the signal tab if [astropy](<http://www.astropy.org>)
-is installed. It is labelled 'convolve' and provides, by default, a 
-2-pixel Gaussian smoothing of the data. The number of pixels can be 
-changed in the shell by setting `plotview.smooth`.
+A 2D smoothing option is available in the list of interpolations in the signal 
+tab if [astropy](<http://www.astropy.org>) is installed. It is labelled 
+'convolve' and provides, by default, a 2-pixel Gaussian smoothing of the data. 
+The number of pixels can be changed in the shell by setting `plotview.smooth`.
 
 The following packages are recommended.
 
@@ -124,13 +89,13 @@ The following packages are recommended.
 
 To run with the GUI
 ===================
-
 To run from the installed location, add the $prefix/bin directory to your path
-(only if you installed outside the python installation), and then run:
+if you installed outside the python installation, and then run:
 
 ```
-    $ nexpy
+    $ nexpy [-r]
 ```
+The `-r` option restores all files loaded in the previous session.
 
 User Support
 ============
