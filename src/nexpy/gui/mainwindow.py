@@ -2365,7 +2365,10 @@ class MainWindow(QtWidgets.QMainWindow):
     def close_files(self):
         for root in [n for n in self.user_ns
                      if isinstance(self.user_ns[n], NXroot)]:
-            self.user_ns[root].close()
+            try:
+                self.user_ns[root].close()
+            except Exception:
+                pass
 
     def close_widgets(self):
         windows = self.dialogs
