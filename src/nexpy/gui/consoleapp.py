@@ -284,7 +284,6 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
                           "import numpy.ma as ma\n",
                           "import scipy as sp\n",
                           "import matplotlib as mpl\n",
-                          "mpl.use('{}')\n".format(QtVersion),
                           "from matplotlib import pylab, mlab, pyplot\n",
                           "plt = pyplot\n",
                           "os.chdir(os.path.expanduser('~'))\n"]
