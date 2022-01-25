@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2013-2021, NeXpy Development Team.
+# Copyright (c) 2013-2022, NeXpy Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -308,7 +308,10 @@ class NXTreeView(QtWidgets.QTreeView):
 
     def selection_changed(self):
         """Enable and disable menu actions based on the selection."""
-        node = self.get_node()
+        try:
+            node = self.get_node()
+        except Exception:
+            return
         self.mainwindow.savefile_action.setEnabled(False)
         self.mainwindow.duplicate_action.setEnabled(False)
         self.mainwindow.remove_action.setEnabled(False)
@@ -395,7 +398,7 @@ class NXTreeView(QtWidgets.QTreeView):
                     (isinstance(node, NXgroup) and
                         ('fit' in node or 'model' in node))):
                     self.mainwindow.fit_action.setEnabled(True)
-            except Exception as error:
+            except Exception:
                 pass
         try:
             if (isinstance(node, NXdata) or 'default' in node.attrs or
@@ -420,7 +423,7 @@ class NXTreeView(QtWidgets.QTreeView):
                     if (node.plottable_data.is_image() or
                             (isinstance(node, NXfield) and node.is_image())):
                         self.mainwindow.plot_image_action.setEnabled(True)
-        except Exception as error:
+        except Exception:
             pass
 
     def expand_node(self, index):
