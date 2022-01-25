@@ -308,10 +308,6 @@ class NXTreeView(QtWidgets.QTreeView):
 
     def selection_changed(self):
         """Enable and disable menu actions based on the selection."""
-        try:
-            node = self.get_node()
-        except Exception:
-            return
         self.mainwindow.savefile_action.setEnabled(False)
         self.mainwindow.duplicate_action.setEnabled(False)
         self.mainwindow.remove_action.setEnabled(False)
@@ -339,6 +335,10 @@ class NXTreeView(QtWidgets.QTreeView):
         self.mainwindow.signal_action.setEnabled(False)
         self.mainwindow.default_action.setEnabled(False)
         self.mainwindow.fit_action.setEnabled(False)
+        try:
+            node = self.get_node()
+        except Exception:
+            node = None
         if node is None:
             self.mainwindow.reload_action.setEnabled(False)
             self.mainwindow.reload_all_action.setEnabled(False)
