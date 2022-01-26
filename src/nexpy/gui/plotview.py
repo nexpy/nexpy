@@ -32,10 +32,10 @@ import matplotlib as mpl
 import numpy as np
 from matplotlib.backend_bases import (FigureCanvasBase, FigureManagerBase,
                                       NavigationToolbar2)
-from matplotlib.backends.backend_qt import FigureManagerQT as FigureManager
-from matplotlib.backends.backend_qtagg import (FigureCanvasQTAgg as
-                                               FigureCanvas)
-from matplotlib.backends.backend_qtagg import NavigationToolbar2QT
+from matplotlib.backends.backend_qt5 import FigureManagerQT as FigureManager
+from matplotlib.backends.backend_qt5agg import (FigureCanvasQTAgg as
+                                                FigureCanvas)
+from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT
 from matplotlib.cm import ScalarMappable, cmap_d, get_cmap, register_cmap
 from matplotlib.colors import LogNorm, Normalize, SymLogNorm
 from matplotlib.figure import Figure

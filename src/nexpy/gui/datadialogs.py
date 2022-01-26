@@ -354,7 +354,7 @@ class NXWidget(QtWidgets.QWidget):
             box.currentIndexChanged.connect(slot)
         return box
 
-    def select_root(self, slot=None, text='Select Root', other=False):
+    def select_root(self, slot=None, text='Select Root'):
         layout = QtWidgets.QHBoxLayout()
         box = NXComboBox()
         roots = []
@@ -364,73 +364,49 @@ class NXWidget(QtWidgets.QWidget):
             raise NeXusError("No files loaded in the NeXus tree")
         for root in sorted(roots):
             box.addItem(root)
-        if not other:
-            try:
-                node = self.treeview.get_node()
-                idx = box.findText(node.nxroot.nxname)
-                if idx >= 0:
-                    box.setCurrentIndex(idx)
-            except Exception:
-                box.setCurrentIndex(0)
+        try:
+            node = self.treeview.get_node()
+            idx = box.findText(node.nxroot.nxname)
+            if idx >= 0:
+                box.setCurrentIndex(idx)
+        except Exception:
+            box.setCurrentIndex(0)
         layout.addWidget(box)
         if slot:
             layout.addWidget(NXPushButton(text, slot))
         layout.addStretch()
-        if not other:
-            self.root_box = box
-            self.root_layout = layout
-        else:
-            self.other_root_box = box
-            self.other_root_layout = layout
+        self.root_box = box
+        self.root_layout = layout
         return layout
 
     @property
     def root(self):
         return self.tree[self.root_box.currentText()]
 
-    @property
-    def other_root(self):
-        return self.tree[self.other_root_box.currentText()]
-
-    def select_entry(self, slot=None, text='Select Entry', other=False):
+    def select_entry(self, slot=None, text='Select Entry'):
         layout = QtWidgets.QHBoxLayout()
-        box = NXComboBox()
-        entries = []
-        for root in self.tree.NXroot:
-            for entry in root.NXentry:
-                entries.append(root.nxname+'/'+entry.nxname)
-        if not entries:
+        if not self.tree.entries:
             raise NeXusError("No entries in the NeXus tree")
-        for entry in sorted(entries):
-            box.addItem(entry)
-        if not other:
-            try:
-                node = self.treeview.get_node()
-                idx = box.findText(node.nxroot.nxname+'/'+node.nxentry.nxname)
-                if idx >= 0:
-                    box.setCurrentIndex(idx)
-            except Exception:
-                box.setCurrentIndex(0)
+        self.root_box = NXComboBox(
+            slot=self.switch_root, items=sorted(self.tree.entries))
+        self.entry_box = NXComboBox(
+            items=sorted(self.tree[self.root_box.selected].entries))
         layout.addStretch()
-        layout.addWidget(box)
+        layout.addWidget(self.root_box)
+        layout.addWidget(self.entry_box)
         if slot:
             layout.addWidget(NXPushButton(text, slot))
         layout.addStretch()
-        if not other:
-            self.entry_box = box
-            self.entry_layout = layout
-        else:
-            self.other_entry_box = box
-            self.other_entry_layout = layout
+        self.entry_layout = layout
         return layout
+
+    def switch_root(self):
+        self.entry_box.clear()
+        self.entry_box.add(*sorted(self.tree[self.root_box.selected].entries))
 
     @property
     def entry(self):
-        return self.tree[self.entry_box.currentText()]
-
-    @property
-    def other_entry(self):
-        return self.tree[self.other_entry_box.currentText()]
+        return self.tree[f"{self.root_box.selected}/{self.entry_box.selected}"]
 
     def read_parameter(self, root, path):
         """
