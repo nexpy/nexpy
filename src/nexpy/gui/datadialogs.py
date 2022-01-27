@@ -362,7 +362,7 @@ class NXWidget(QtWidgets.QWidget):
             roots.append(root.nxname)
         if not roots:
             raise NeXusError("No files loaded in the NeXus tree")
-        for root in sorted(roots):
+        for root in sorted(roots, key=natural_sort):
             box.addItem(root)
         try:
             node = self.treeview.get_node()
@@ -388,9 +388,11 @@ class NXWidget(QtWidgets.QWidget):
         if not self.tree.entries:
             raise NeXusError("No entries in the NeXus tree")
         self.root_box = NXComboBox(
-            slot=self.switch_root, items=sorted(self.tree.entries))
+            slot=self.switch_root,
+            items=sorted(self.tree.entries, key=natural_sort))
         self.entry_box = NXComboBox(
-            items=sorted(self.tree[self.root_box.selected].entries))
+            items=sorted(self.tree[self.root_box.selected].entries,
+                         key=natural_sort))
         layout.addStretch()
         layout.addWidget(self.root_box)
         layout.addWidget(self.entry_box)
