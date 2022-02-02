@@ -257,7 +257,8 @@ class NXWidget(QtWidgets.QWidget):
         filebox.addWidget(self.filename)
         return filebox
 
-    def directorybox(self, text="Choose Directory", slot=None, default=True):
+    def directorybox(self, text="Choose Directory", slot=None, default=True,
+                     suggestion=None):
         """
         Creates a text box and button for selecting a directory.
         """
@@ -267,7 +268,7 @@ class NXWidget(QtWidgets.QWidget):
             self.directorybutton = NXPushButton(text, self.choose_directory)
         self.directoryname = NXLineEdit(parent=self)
         self.directoryname.setMinimumWidth(300)
-        default_directory = self.get_default_directory()
+        default_directory = self.get_default_directory(suggestion=suggestion)
         if default and default_directory:
             self.directoryname.setText(default_directory)
         directorybox = QtWidgets.QHBoxLayout()
@@ -1192,7 +1193,7 @@ class GridParameter(object):
                 self.box.setValue(value)
             else:
                 if isinstance(value, NXfield):
-                    value = value.nxdata
+                    value = value.nxvalue
                 if isinstance(value, str):
                     self.box.setText(value)
                 else:
