@@ -147,12 +147,19 @@ class NXWidget(QtWidgets.QWidget):
     def set_title(self, title):
         self.setWindowTitle(title)
 
-    def close_layout(self, message=None, save=False, close=False):
+    def close_layout(self, message=None, save=False, close=False,
+                     progress=False):
         layout = QtWidgets.QHBoxLayout()
         self.status_message = NXLabel()
         if message:
             self.status_message.setText(message)
         layout.addWidget(self.status_message)
+        if progress:
+            self.progress_bar = QtWidgets.QProgressBar()
+            layout.addWidget(self.progress_bar)
+            self.progress_bar.setVisible(False)
+        else:
+            self.progress_bar = None
         layout.addStretch()
         layout.addWidget(self.close_buttons(save=save, close=close))
         return layout
@@ -471,6 +478,7 @@ class NXWidget(QtWidgets.QWidget):
             self.progress_bar.setVisible(True)
             self.progress_bar.setRange(start, stop)
             self.progress_bar.setValue(start)
+            self.status_message.setVisible(False)
 
     def update_progress(self, value=None):
         """
@@ -485,15 +493,10 @@ class NXWidget(QtWidgets.QWidget):
     def stop_progress(self):
         if self.progress_bar:
             self.progress_bar.setVisible(False)
+        self.status_message.setVisible(True)
 
     def progress_layout(self, save=False, close=False):
-        layout = QtWidgets.QHBoxLayout()
-        self.progress_bar = QtWidgets.QProgressBar()
-        layout.addWidget(self.progress_bar)
-        layout.addStretch()
-        layout.addWidget(self.close_buttons(save=save, close=close))
-        self.progress_bar.setVisible(False)
-        return layout
+        return self.close_layout(save=save, close=close, progress=True)
 
     def get_node(self):
         """
