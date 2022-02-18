@@ -20,10 +20,11 @@ from matplotlib.rcsetup import validate_aspect, validate_float
 from nexusformat.nexus import (NeXusError, NXattr, NXdata, NXentry, NXfield,
                                NXgroup, NXlink, NXroot, NXvirtualfield,
                                nxconsolidate, nxgetcompression, nxgetencoding,
-                               nxgetlock, nxgetmaxsize, nxgetmemory,
-                               nxgetrecursive, nxload, nxsetcompression,
-                               nxsetencoding, nxsetlock, nxsetmaxsize,
-                               nxsetmemory, nxsetrecursive)
+                               nxgetlock, nxgetlockexpiry, nxgetmaxsize,
+                               nxgetmemory, nxgetrecursive, nxload,
+                               nxsetcompression, nxsetencoding, nxsetlock,
+                               nxsetlockexpiry, nxsetmaxsize, nxsetmemory,
+                               nxsetrecursive)
 
 from .pyqt import QtCore, QtGui, QtWidgets, getOpenFileName, getSaveFileName
 from .utils import (confirm_action, convertHTML, display_message,
@@ -1845,6 +1846,7 @@ class PreferencesDialog(NXDialog):
                             'Compression Filter')
         self.parameters.add('encoding', nxgetencoding(), 'Text Encoding')
         self.parameters.add('lock', nxgetlock(), 'Lock Timeout (s)')
+        self.parameters.add('lockexpiry', nxgetlockexpiry(), 'Lock Expiry (s)')
         self.parameters.add('recursive', ['True', 'False'], 'File Recursion')
         self.parameters['recursive'].value = str(nxgetrecursive())
         styles = ['default', 'publication'] + sorted(
@@ -1867,6 +1869,8 @@ class PreferencesDialog(NXDialog):
         self.mainwindow.settings.set(
             'preferences', 'encoding', nxgetencoding())
         self.mainwindow.settings.set('preferences', 'lock', nxgetlock())
+        self.mainwindow.settings.set('preferences', 'lockexpiry',
+                                     nxgetlockexpiry())
         self.mainwindow.settings.set('preferences', 'recursive',
                                      nxgetrecursive())
         self.mainwindow.settings.set('preferences', 'style',
@@ -1879,6 +1883,7 @@ class PreferencesDialog(NXDialog):
         nxsetcompression(self.parameters['compression'].value)
         nxsetencoding(self.parameters['encoding'].value)
         nxsetlock(self.parameters['lock'].value)
+        nxsetlockexpiry(self.parameters['lockexpiry'].value)
         nxsetrecursive(self.parameters['recursive'].value)
         set_style(self.parameters['style'].value)
 
