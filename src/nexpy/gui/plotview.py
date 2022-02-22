@@ -2830,9 +2830,9 @@ class NXPlotAxis(object):
         self.hi = None
         self.diff = 0.0
         self.locked = True
-        if hasattr(axis, 'long_name'):
-            self.label = axis.long_name
-        elif hasattr(axis, 'units'):
+        if 'long_name' in axis.attrs:
+            self.label = axis.attrs['long_name']
+        elif 'units' in axis.attrs:
             self.label = f"{axis.nxname} ({axis.units})"
         else:
             self.label = axis.nxname
