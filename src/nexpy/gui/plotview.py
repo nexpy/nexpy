@@ -195,6 +195,15 @@ class NXCanvas(FigureCanvas):
         self.setSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding,
                            QtWidgets.QSizePolicy.MinimumExpanding)
 
+    def get_default_filename(self):
+        """Return a string suitable for use as a default filename."""
+        basename = (self.manager.get_window_title().replace('NeXpy: ', '')
+                    if self.manager is not None else '')
+        basename = (basename or 'image').replace(' ', '_')
+        filetype = self.get_default_filetype()
+        filename = basename + '.' + filetype
+        return filename
+
 
 class NXFigureManager(FigureManager):
     """Subclass of Matplotlib's FigureManager."""
