@@ -286,14 +286,14 @@ class Parser(object):
     def parser_mesh(self, nxdata, scan):
         """Data parser for 2-D mesh and hklmesh."""
         # 2-D parser: http://www.certif.com/spec_help/mesh.html
-        #  mesh motor1 start1 end1 intervals1 motor2 start2 end2 intervals2 time
+        # mesh motor1 start1 end1 intervals1 motor2 start2 end2 intervals2 time
         # 2-D parser: http://www.certif.com/spec_help/hklmesh.html
         #  hklmesh Q1 start1 end1 intervals1 Q2 start2 end2 intervals2 time
-        # mesh:    nexpy/examples/33id_spec.dat  scan 22  (also has MCA, thus 3-D data)
+        # mesh:    nexpy/examples/33id_spec.dat  scan 22  (MCA gives 3-D data)
         # hklmesh: nexpy/examples/33bm_spec.dat  scan 17  (no MCA data)
         from spec2nexus import utils
-        label1, start1, end1, intervals1, label2, start2, end2, intervals2, time = scan.scanCmd.split()[
-            1:]
+        (label1, start1, end1, intervals1, label2, start2, end2,
+         intervals2, time) = scan.scanCmd.split()[1:]
         if label1 not in scan.data:
             label1 = scan.L[0]      # mnemonic v. name
         if label2 not in scan.data:
