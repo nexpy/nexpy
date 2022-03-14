@@ -195,6 +195,15 @@ class NXCanvas(FigureCanvas):
         self.setSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding,
                            QtWidgets.QSizePolicy.MinimumExpanding)
 
+    def get_default_filename(self):
+        """Return a string suitable for use as a default filename."""
+        basename = (self.manager.get_window_title().replace('NeXpy: ', '')
+                    if self.manager is not None else '')
+        basename = (basename or 'image').replace(' ', '_')
+        filetype = self.get_default_filetype()
+        filename = basename + '.' + filetype
+        return filename
+
 
 class NXFigureManager(FigureManager):
     """Subclass of Matplotlib's FigureManager."""
@@ -2830,9 +2839,9 @@ class NXPlotAxis(object):
         self.hi = None
         self.diff = 0.0
         self.locked = True
-        if hasattr(axis, 'long_name'):
-            self.label = axis.long_name
-        elif hasattr(axis, 'units'):
+        if 'long_name' in axis.attrs:
+            self.label = axis.attrs['long_name']
+        elif 'units' in axis.attrs:
             self.label = f"{axis.nxname} ({axis.units})"
         else:
             self.label = axis.nxname

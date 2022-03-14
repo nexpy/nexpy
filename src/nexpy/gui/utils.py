@@ -38,10 +38,10 @@ except ImportError:
 from nexusformat.nexus import (NeXusError, NXcollection, NXdata, NXfield,
                                NXLock, NXLockException, NXnote,
                                nxgetcompression, nxgetencoding, nxgetlock,
-                               nxgetmaxsize, nxgetmemory, nxgetrecursive,
-                               nxload, nxsetcompression, nxsetencoding,
-                               nxsetlock, nxsetmaxsize, nxsetmemory,
-                               nxsetrecursive)
+                               nxgetlockexpiry, nxgetmaxsize, nxgetmemory,
+                               nxgetrecursive, nxload, nxsetcompression,
+                               nxsetencoding, nxsetlock, nxsetlockexpiry,
+                               nxsetmaxsize, nxsetmemory, nxsetrecursive)
 
 ansi_re = re.compile(r'\x1b' + r'\[([\dA-Fa-f;]*?)m')
 
@@ -152,15 +152,20 @@ def run_pythonw(script_path):
             warnings.warn(msg)
 
 
-def is_file_locked(filename, wait=5):
+def is_file_locked(filename, wait=5, expiry=None):
     _lock = NXLock(filename)
     try:
-        _lock.wait(wait)
-        return False
+        if expiry is None:
+            expiry = nxgetlockexpiry()
+        if _lock.is_stale(expiry=expiry):
+            return False
+        else:
+            _lock.wait(wait)
+            return False
     except NXLockException:
         lock_time = modification_time(_lock.lock_file)
         if confirm_action("File locked. Do you want to clear the lock?",
-                          f"{filename+lock_time}\nLock file created: ",
+                          f"{filename}\nCreated: {lock_time}",
                           answer="no"):
             _lock.clear()
             return False
@@ -623,6 +628,10 @@ def initialize_preferences(settings):
         nxsetlock(settings.get('preferences', 'lock'))
     else:
         settings.set('preferences', 'lock', nxgetlock())
+    if settings.has_option('preferences', 'lockexpiry'):
+        nxsetlockexpiry(settings.get('preferences', 'lockexpiry'))
+    else:
+        settings.set('preferences', 'lockexpiry', nxgetlockexpiry())
     if settings.has_option('preferences', 'recursive'):
         nxsetrecursive(settings.getboolean('preferences', 'recursive'))
     else:
