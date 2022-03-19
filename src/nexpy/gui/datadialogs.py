@@ -365,26 +365,18 @@ class NXWidget(QtWidgets.QWidget):
 
     def select_root(self, slot=None, text='Select Root'):
         layout = QtWidgets.QHBoxLayout()
-        box = NXComboBox()
-        roots = []
-        for root in self.tree.NXroot:
-            roots.append(root.nxname)
-        if not roots:
-            raise NeXusError("No files loaded in the NeXus tree")
-        for root in sorted(roots, key=natural_sort):
-            box.addItem(root)
+        if not self.tree.entries:
+            raise NeXusError("No entries in the NeXus tree")
+        self.root_box = NXComboBox(
+            items=sorted(self.tree.entries, key=natural_sort))
         try:
-            node = self.treeview.get_node()
-            idx = box.findText(node.nxroot.nxname)
-            if idx >= 0:
-                box.setCurrentIndex(idx)
+            self.root_box.select(self.treeview.node.nxroot.nxname)
         except Exception:
-            box.setCurrentIndex(0)
-        layout.addWidget(box)
+            pass
+        layout.addWidget(self.root_box)
         if slot:
             layout.addWidget(NXPushButton(text, slot))
         layout.addStretch()
-        self.root_box = box
         self.root_layout = layout
         return layout
 
