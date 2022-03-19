@@ -399,9 +399,18 @@ class NXWidget(QtWidgets.QWidget):
         self.root_box = NXComboBox(
             slot=self.switch_root,
             items=sorted(self.tree.entries, key=natural_sort))
+        try:
+            self.root_box.select(self.treeview.node.nxroot.nxname)
+        except Exception:
+            pass
         self.entry_box = NXComboBox(
             items=sorted(self.tree[self.root_box.selected].entries,
                          key=natural_sort))
+        try:
+            if not isinstance(self.treeview.node, NXroot):
+                self.entry_box.select(self.treeview.node.nxentry.nxname)
+        except Exception:
+            pass
         layout.addStretch()
         layout.addWidget(self.root_box)
         layout.addWidget(self.entry_box)
