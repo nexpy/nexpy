@@ -2398,13 +2398,18 @@ class ProjectionTab(NXTab):
         self.select_widget.setVisible(False)
         self.set_layout(axis_layout, grid,
                         self.checkboxes(("sum", "Sum Projections", False),
-                                        ("hide", "Hide Limits", False)),
+                                        ("hide", "Hide Limits", False),
+                                        ("weights", "Weight Data", False)),
                         self.checkboxes(("lines", "Plot Lines", False),
                                         ("select", "Plot Selection", False)),
                         self.select_widget,
                         self.copy_layout("Copy Limits"))
         self.checkbox["lines"].setVisible(False)
         self.checkbox["select"].setVisible(False)
+        if self.plotview.data.nxweights is None:
+            self.checkbox["weights"].setVisible(False)
+        elif self.plotview.weighted:
+            self.checkbox["weights"].setChecked(True)
         self.checkbox["hide"].stateChanged.connect(self.hide_rectangle)
         self.checkbox["select"].stateChanged.connect(self.set_select)
         self.checkbox["max"].stateChanged.connect(self.set_maximum)
@@ -2558,6 +2563,10 @@ class ProjectionTab(NXTab):
         self.overbox.setChecked(value)
 
     @property
+    def weights(self):
+        return self.checkbox["weights"].isChecked()
+
+    @property
     def select(self):
         return self.checkbox["select"].isChecked()
 
@@ -2625,7 +2634,8 @@ class ProjectionTab(NXTab):
                 fmt = '-'
             else:
                 fmt = 'o'
-            plotview.plot(projection, over=self.over, fmt=fmt)
+            plotview.plot(projection, weights=self.weights, over=self.over,
+                          fmt=fmt)
             self.update_overbox()
             if plotview.ndim > 1:
                 plotview.logv = self.plotview.logv
