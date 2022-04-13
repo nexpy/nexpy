@@ -2408,6 +2408,8 @@ class ProjectionTab(NXTab):
         self.checkbox["select"].setVisible(False)
         if self.plotview.data.nxweights is None:
             self.checkbox["weights"].setVisible(False)
+        elif self.plotview.weighted:
+            self.checkbox["weights"].setChecked(True)
         self.checkbox["hide"].stateChanged.connect(self.hide_rectangle)
         self.checkbox["select"].stateChanged.connect(self.set_select)
         self.checkbox["max"].stateChanged.connect(self.set_maximum)
