@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Index &#8212; NeXpy 0.14.0 documentation</title>
+    <title>Index &#8212; NeXpy 0.14.5 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/sphinxdoc.css" />
     <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
@@ -25,7 +25,7 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.14.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.14.5 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Index</a></li> 
       </ul>
     </div>  
@@ -81,6 +81,8 @@
         <li><a href="dialogs.html#nexpy.gui.datadialogs.NewDialog.accept">(nexpy.gui.datadialogs.NewDialog method)</a>
 </li>
         <li><a href="dialogs.html#nexpy.gui.datadialogs.NXDialog.accept">(nexpy.gui.datadialogs.NXDialog method)</a>
+</li>
+        <li><a href="dialogs.html#nexpy.gui.datadialogs.PasteDialog.accept">(nexpy.gui.datadialogs.PasteDialog method)</a>
 </li>
         <li><a href="dialogs.html#nexpy.gui.datadialogs.PlotDialog.accept">(nexpy.gui.datadialogs.PlotDialog method)</a>
 </li>
@@ -224,8 +226,6 @@
       <li><a href="treeapi.html#nexusformat.nexus.tree.NXfield.compression">compression (nexusformat.nexus.tree.NXfield property)</a>
 </li>
       <li><a href="treeapi.html#nexusformat.nexus.tree.NXfield.compression_opts">compression_opts (nexusformat.nexus.tree.NXfield property)</a>
-</li>
-      <li><a href="treeapi.html#nexusformat.nexus.tree.NXfield.convert">convert() (nexusformat.nexus.tree.NXfield method)</a>
 </li>
       <li><a href="treeapi.html#nexusformat.nexus.tree.NXFile.copy">copy() (nexusformat.nexus.tree.NXFile method)</a>
 
@@ -391,8 +391,12 @@
 </li>
       <li><a href="treeapi.html#nexusformat.nexus.tree.NXFile.is_accessible">is_accessible() (nexusformat.nexus.tree.NXFile method)</a>
 </li>
-      <li><a href="treeapi.html#nexusformat.nexus.tree.NXobject.is_external">is_external() (nexusformat.nexus.tree.NXobject method)</a>
+      <li><a href="treeapi.html#nexusformat.nexus.tree.NXlink.is_external">is_external() (nexusformat.nexus.tree.NXlink method)</a>
+
+      <ul>
+        <li><a href="treeapi.html#nexusformat.nexus.tree.NXobject.is_external">(nexusformat.nexus.tree.NXobject method)</a>
 </li>
+      </ul></li>
       <li><a href="treeapi.html#nexusformat.nexus.tree.NXdata.is_image">is_image() (nexusformat.nexus.tree.NXdata method)</a>
 
       <ul>
@@ -419,6 +423,8 @@
         <li><a href="treeapi.html#nexusformat.nexus.tree.NXobject.is_plottable">(nexusformat.nexus.tree.NXobject method)</a>
 </li>
       </ul></li>
+      <li><a href="treeapi.html#nexusformat.nexus.lock.NXLock.is_stale">is_stale() (nexusformat.nexus.lock.NXLock method)</a>
+</li>
       <li><a href="treeapi.html#nexusformat.nexus.tree.NXfield.is_string">is_string() (nexusformat.nexus.tree.NXfield method)</a>
 </li>
       <li><a href="treeapi.html#nexusformat.nexus.tree.NXgroup.items">items() (nexusformat.nexus.tree.NXgroup method)</a>
@@ -600,6 +606,8 @@
         <li><a href="treeapi.html#module-nexusformat.nexus.tree">module</a>
 </li>
       </ul></li>
+      <li><a href="treeapi.html#nexusformat.nexus.tree.NXdata.nxangles">nxangles (nexusformat.nexus.tree.NXdata property)</a>
+</li>
       <li><a href="treeapi.html#nexusformat.nexus.tree.NXaperture">NXaperture (class in nexusformat.nexus.tree)</a>
 </li>
       <li><a href="treeapi.html#nexusformat.nexus.tree.NXattenuator">NXattenuator (class in nexusformat.nexus.tree)</a>
@@ -643,6 +651,8 @@
       <li><a href="treeapi.html#nexusformat.nexus.tree.NXcollimator">NXcollimator (class in nexusformat.nexus.tree)</a>
 </li>
       <li><a href="treeapi.html#nexusformat.nexus.completer.nxcompleter">nxcompleter() (in module nexusformat.nexus.completer)</a>
+</li>
+      <li><a href="treeapi.html#nexusformat.nexus.tree.nxconsolidate">nxconsolidate() (in module nexusformat.nexus.tree)</a>
 </li>
       <li><a href="treeapi.html#nexusformat.nexus.tree.NXcrystal">NXcrystal (class in nexusformat.nexus.tree)</a>
 </li>
@@ -732,16 +742,18 @@
 </li>
       <li><a href="treeapi.html#nexusformat.nexus.tree.nxgetlock">nxgetlock() (in module nexusformat.nexus.tree)</a>
 </li>
+      <li><a href="treeapi.html#nexusformat.nexus.tree.nxgetlockexpiry">nxgetlockexpiry() (in module nexusformat.nexus.tree)</a>
+</li>
       <li><a href="treeapi.html#nexusformat.nexus.tree.nxgetmaxsize">nxgetmaxsize() (in module nexusformat.nexus.tree)</a>
 </li>
       <li><a href="treeapi.html#nexusformat.nexus.tree.nxgetmemory">nxgetmemory() (in module nexusformat.nexus.tree)</a>
 </li>
       <li><a href="treeapi.html#nexusformat.nexus.tree.nxgetrecursive">nxgetrecursive() (in module nexusformat.nexus.tree)</a>
 </li>
-      <li><a href="treeapi.html#nexusformat.nexus.tree.NXgoniometer">NXgoniometer (class in nexusformat.nexus.tree)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="treeapi.html#nexusformat.nexus.tree.NXgoniometer">NXgoniometer (class in nexusformat.nexus.tree)</a>
+</li>
       <li><a href="treeapi.html#nexusformat.nexus.tree.NXgrating">NXgrating (class in nexusformat.nexus.tree)</a>
 </li>
       <li><a href="treeapi.html#nexusformat.nexus.tree.NXgroup">NXgroup (class in nexusformat.nexus.tree)</a>
@@ -864,6 +876,8 @@
 </li>
       <li><a href="treeapi.html#nexusformat.nexus.tree.nxsetlock">nxsetlock() (in module nexusformat.nexus.tree)</a>
 </li>
+      <li><a href="treeapi.html#nexusformat.nexus.tree.nxsetlockexpiry">nxsetlockexpiry() (in module nexusformat.nexus.tree)</a>
+</li>
       <li><a href="treeapi.html#nexusformat.nexus.tree.nxsetmaxsize">nxsetmaxsize() (in module nexusformat.nexus.tree)</a>
 </li>
       <li><a href="treeapi.html#nexusformat.nexus.tree.nxsetmemory">nxsetmemory() (in module nexusformat.nexus.tree)</a>
@@ -910,6 +924,8 @@
       </ul></li>
       <li><a href="treeapi.html#nexusformat.nexus.tree.NXvelocity_selector">NXvelocity_selector (class in nexusformat.nexus.tree)</a>
 </li>
+      <li><a href="treeapi.html#nexusformat.nexus.tree.NXvirtualfield">NXvirtualfield (class in nexusformat.nexus.tree)</a>
+</li>
       <li><a href="treeapi.html#nexusformat.nexus.tree.NXdata.nxweights">nxweights (nexusformat.nexus.tree.NXdata attribute)</a>
 
       <ul>
@@ -943,6 +959,8 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="dialogs.html#nexpy.gui.datadialogs.NXWidget.parameter_stack">parameter_stack() (nexpy.gui.datadialogs.NXWidget method)</a>
+</li>
+      <li><a href="dialogs.html#nexpy.gui.datadialogs.PasteDialog">PasteDialog (class in nexpy.gui.datadialogs)</a>
 </li>
       <li><a href="treeapi.html#nexusformat.nexus.tree.NXobject.path_exists">path_exists() (nexusformat.nexus.tree.NXobject method)</a>
 </li>
@@ -1270,13 +1288,13 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.14.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.14.5 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Index</a></li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
-        &#169; Copyright 2013-2020, Ray Osborn.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.1.2.
+        &#169; Copyright Modified BSD License.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.3.2.
     </div>
   </body>
 </html>

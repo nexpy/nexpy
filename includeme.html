@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>Installation &#8212; NeXpy 0.14.0 documentation</title>
+    <title>Installation &#8212; NeXpy 0.14.5 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/sphinxdoc.css" />
     <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
@@ -34,7 +34,7 @@
         <li class="right" >
           <a href="index.html" title="NeXpy: A Python GUI to analyze NeXus data"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.14.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.14.5 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Installation</a></li> 
       </ul>
     </div>  
@@ -70,12 +70,10 @@ the latest development version in the
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ git clone https://github.com/nexpy/nexpy.git
 </pre></div>
 </div>
-<p>You can then install NeXpy by changing to the source directory and typing:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ python setup.py install
-</pre></div>
-</div>
-<p>To install in an alternate location:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ python setup.py install --prefix=/path/to/installation/dir
+<p>Then use standard Python tools to build and/or install a distribution from
+within the source directory:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ python -m build  # build a distribution
+$ python -m pip install .  # install the package
 </pre></div>
 </div>
 <p>The Python API for reading and writing NeXus files is in a separate package,
@@ -102,12 +100,14 @@ cloning the latest development version in the <a class="reference external" href
 <h1>Required Libraries<a class="headerlink" href="#required-libraries" title="Permalink to this headline">¶</a></h1>
 <section id="python-command-line-api">
 <h2>Python Command-Line API<a class="headerlink" href="#python-command-line-api" title="Permalink to this headline">¶</a></h2>
-<p>The current version of NeXpy uses <a class="reference external" href="http://h5py.org">h5py</a> to read and write
-NeXus files because of its ability to handle large data files. There is
-therefore no dependency on the <a class="reference external" href="http://download.nexusformat.org/doc/html/napi.html">NeXus C API</a>. This also means that the
-current version cannot read and write HDF4 or XML NeXus files. These can be
-converted to HDF5 file using the NeXus command-line utility
-<cite>nxconvert &lt;http://download.nexusformat.org/doc/html/utilities.html&gt;`_</cite>.</p>
+<p>NeXpy provides a GUI interface to the
+<a class="reference external" href="https://github.com/nexpy/nexusformat">nexusformat API</a>, which uses
+<a class="reference external" href="http://h5py.org">h5py</a> to read and write HDF5 files that implement the
+<a class="reference external" href="https://www.nexusformat.org">NeXus data format standard</a>. It does not use
+the NeXus C API, which means that the current version cannot read and write
+legacy HDF4 or XML NeXus files. One of the
+<a class="reference external" href="https://manual.nexusformat.org/utilities.html">NeXus conversion utilities</a>
+should be used to convert such files to HDF5.</p>
 <p>If you only intend to utilize the Python API from the command-line, the only
 other required libraries iare <a class="reference external" href="https://numpy.org">NumPy</a> and, if you want
 autocompletion within an IPython shell,  <a class="reference external" href="http://numpy.scipy.org">SciPy</a>.</p>
@@ -144,15 +144,12 @@ old-master branch (<a class="reference external" href="https://github.com/nexpy/
 </section>
 <section id="nexpy-gui">
 <h2>NeXpy GUI<a class="headerlink" href="#nexpy-gui" title="Permalink to this headline">¶</a></h2>
-<p>The GUI is built using the PyQt. The latest version supports PyQt4, PySide,
-PyQt5, and should load whichever library it finds. None are listed as a
-dependency but one or other must be installed. PyQt5 is included in the
-<a class="reference external" href="https://store.continuum.io/cshop/anaconda/">Anaconda default distribution</a>
-while PySide is included in the <a class="reference external" href="http://www.enthought.com">Enthought Python Distribution</a> or within Enthought’s <a class="reference external" href="https://www.enthought.com/products/canopy/">Canopy Application</a>.</p>
+<p>The GUI is built using the PyQt. The
+<a class="reference external" href="https://github.com/spyder-ide/qtpy">qtpy package</a> is used to import an
+installed PyQt library, either PyQt5 or PySide2.</p>
 <p>The GUI includes an <a class="reference external" href="http://ipython.org/">IPython shell</a> and a <a class="reference external" href="http://matplotlib.sourceforge.net">Matplotlib
 plotting pane</a>. The IPython shell is
-embedded in the Qt GUI using an implementation based on the newly-released
-Jupyter QtConsole, which has replaced the old IPython QtConsole.</p>
+embedded in the Qt GUI using an implementation based on the Jupyter QtConsole.</p>
 <p>Least-squares fitting of 1D data uses the <cite>lmfit package
 &lt;https://lmfit.github.io/lmfit-py/&gt;`_</cite>.</p>
 <table class="docutils align-default">
@@ -189,28 +186,13 @@ Jupyter QtConsole, which has replaced the old IPython QtConsole.</p>
 </tr>
 </tbody>
 </table>
-<div class="admonition warning">
-<p class="admonition-title">Warning</p>
-<p>Some people have reported that NeXpy crashes on launch on some
-Linux systems. We believe that this may be due to both PyQt4 and
-PyQt5 being installed, although that doesn’t cause a problem on
-all systems. If NeXpy crashes on launch, please try setting the
-environment variable QT_API to either ‘pyqt’, for the PyQt4
-library, ‘pyqt5’ for the PyQt5 library, or ‘pyside’, for the
-PySide library, depending on what you have installed, <em>e.g.</em>, in
-BASH, type</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">export</span> <span class="n">QT_API</span><span class="o">=</span><span class="n">pyqt</span>
-</pre></div>
-</div>
-</div>
 </section>
 <section id="additional-packages">
 <h2>Additional Packages<a class="headerlink" href="#additional-packages" title="Permalink to this headline">¶</a></h2>
-<p>Additional functionality is provided by other external Python packages.
-Least-squares fitting requires Matt Newville’s least-squares fitting package,
-<a class="reference external" href="http://newville.github.io/lmfit-py">lmfit-py</a>. Importers may also require
-libraries to read the imported files in their native format, <em>e.g.</em>, <a class="reference external" href="http://spec2nexus.readthedocs.org/">spec2nexus</a> for reading SPEC files and
-<a class="reference external" href="https://github.com/silx-kit/fabio">FabIO</a> for importing TIFF and CBF images.</p>
+<p>Importers may require additional libraries to read the imported files in their
+native format, <em>e.g.</em>, <a class="reference external" href="http://spec2nexus.readthedocs.org/">spec2nexus</a> for
+reading SPEC files and <a class="reference external" href="https://github.com/silx-kit/fabio">FabIO</a> for
+importing TIFF and CBF images.</p>
 <p>From v0.9.1, a new 2D smoothing option is available in the list of
 interpolations in the signal tab if <a class="reference external" href="http://www.astropy.org">astropy</a>
 is installed. It is labelled ‘convolve’ and provides, by default, a
@@ -243,6 +225,15 @@ changed in the shell by setting <code class="docutils literal notranslate"><span
 <p>NeXpy should still run without these additional packages, but invoking
 the relevant menu items may trigger an exception.</p>
 </div>
+</section>
+<section id="running-the-gui">
+<h2>Running the GUI<a class="headerlink" href="#running-the-gui" title="Permalink to this headline">¶</a></h2>
+<p>To run from the installed location, add the $prefix/bin directory to your path
+if you installed outside the python installation, and then run:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ nexpy [-r]
+</pre></div>
+</div>
+<p>The -r option restores all files loaded in the previous session.</p>
 </section>
 <section id="semantic-versioning">
 <h2>Semantic Versioning<a class="headerlink" href="#semantic-versioning" title="Permalink to this headline">¶</a></h2>
@@ -284,6 +275,7 @@ the packages on conda-forge.</p>
 <li><a class="reference internal" href="#python-command-line-api">Python Command-Line API</a></li>
 <li><a class="reference internal" href="#nexpy-gui">NeXpy GUI</a></li>
 <li><a class="reference internal" href="#additional-packages">Additional Packages</a></li>
+<li><a class="reference internal" href="#running-the-gui">Running the GUI</a></li>
 <li><a class="reference internal" href="#semantic-versioning">Semantic Versioning</a></li>
 <li><a class="reference internal" href="#user-support">User Support</a></li>
 <li><a class="reference internal" href="#acknowledgements">Acknowledgements</a></li>
@@ -333,13 +325,13 @@ the packages on conda-forge.</p>
         <li class="right" >
           <a href="index.html" title="NeXpy: A Python GUI to analyze NeXus data"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.14.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.14.5 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Installation</a></li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
-        &#169; Copyright 2013-2020, Ray Osborn.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.1.2.
+        &#169; Copyright Modified BSD License.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.3.2.
     </div>
   </body>
 </html>
