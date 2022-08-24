@@ -644,7 +644,7 @@ class NXPanel(NXDialog):
         self.set_title(title)
 
     def __repr__(self):
-        return 'NXPanel(f"{self.panel}")'
+        return f'NXPanel("{self.panel}")'
 
     def __contains__(self, label):
         """Implements 'k in d' test"""
