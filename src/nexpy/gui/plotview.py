@@ -36,7 +36,7 @@ from matplotlib.backends.backend_qt5 import FigureManagerQT as FigureManager
 from matplotlib.backends.backend_qt5agg import (FigureCanvasQTAgg as
                                                 FigureCanvas)
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT
-from matplotlib.cm import ScalarMappable, cmap_d, get_cmap, register_cmap
+from matplotlib.cm import ScalarMappable, get_cmap, register_cmap
 from matplotlib.colors import LogNorm, Normalize, SymLogNorm
 from matplotlib.figure import Figure
 from matplotlib.image import imread
@@ -51,7 +51,6 @@ try:
 except ImportError:
     from matplotlib.ticker import LogFormatter
 
-from matplotlib.cbook import mplDeprecation
 from matplotlib.transforms import nonsingular
 from mpl_toolkits.axisartist import Subplot
 from mpl_toolkits.axisartist.grid_finder import MaxNLocator
@@ -91,7 +90,12 @@ cmaps = ['viridis', 'inferno', 'magma', 'plasma',  # perceptually uniform
          'seismic', 'coolwarm', 'twilight', 'divgray',
          'RdBu', 'RdYlBu', 'RdYlGn']  # diverging
 
-cmaps = [cm for cm in cmaps if cm in cmap_d]
+try:
+    cmaps = [cm for cm in cmaps if cm in mpl.colormaps]
+except AttributeError:
+    from matplotlib.cm import cmap_d
+    cmaps = [cm for cm in cmaps if cm in cmap_d]
+
 if 'viridis' in cmaps:
     default_cmap = 'viridis'
 else:
@@ -121,7 +125,7 @@ markers = {'.': 'point', ',': 'pixel', '+': 'plus', 'x': 'x',
            '>': 'triangle_right', 'None': 'None'}
 logo = imread(resource_filename(
               'nexpy.gui', 'resources/icon/NeXpy.png'))[180:880, 50:1010]
-warnings.filterwarnings("ignore", category=mplDeprecation)
+warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 
 def new_figure_manager(label=None, *args, **kwargs):
