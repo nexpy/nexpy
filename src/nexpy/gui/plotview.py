@@ -36,7 +36,6 @@ from matplotlib.backends.backend_qt5 import FigureManagerQT as FigureManager
 from matplotlib.backends.backend_qt5agg import (FigureCanvasQTAgg as
                                                 FigureCanvas)
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT
-from matplotlib.cm import ScalarMappable, cmap_d, get_cmap, register_cmap
 from matplotlib.colors import LogNorm, Normalize, SymLogNorm
 from matplotlib.figure import Figure
 from matplotlib.image import imread
@@ -51,7 +50,6 @@ try:
 except ImportError:
     from matplotlib.ticker import LogFormatter
 
-from matplotlib.cbook import mplDeprecation
 from matplotlib.transforms import nonsingular
 from mpl_toolkits.axisartist import Subplot
 from mpl_toolkits.axisartist.grid_finder import MaxNLocator
@@ -80,18 +78,26 @@ from .widgets import (NXCheckBox, NXcircle, NXComboBox, NXDoubleSpinBox,
 active_plotview = None
 plotview = None
 plotviews = {}
-register_cmap('parula', parula_map())
-register_cmap('divgray', divgray_map())
+
 cmaps = ['viridis', 'inferno', 'magma', 'plasma',  # perceptually uniform
          'cividis', 'parula',
          'spring', 'summer', 'autumn', 'winter', 'cool', 'hot',  # sequential
          'bone', 'copper', 'gray', 'pink',
          'turbo', 'jet', 'spectral', 'rainbow', 'hsv',  # miscellaneous
          'tab10', 'tab20',  # qualitative
-         'seismic', 'coolwarm', 'twilight', 'divgray',
-         'RdBu', 'RdYlBu', 'RdYlGn']  # diverging
+         'seismic', 'coolwarm', 'twilight', 'divgray',  # diverging
+         'RdBu', 'RdYlBu', 'RdYlGn']
 
-cmaps = [cm for cm in cmaps if cm in cmap_d]
+if parse_version(mpl.__version__) >= parse_version('3.5.0'):
+    mpl.colormaps.register(parula_map())
+    mpl.colormaps.register(divgray_map())
+    cmaps = [cm for cm in cmaps if cm in mpl.colormaps]
+else:
+    from matplotlib.cm import get_cmap, register_cmap, cmap_d
+    register_cmap('parula', parula_map())
+    register_cmap('divgray', divgray_map())
+    cmaps = [cm for cm in cmaps if cm in cmap_d]
+
 if 'viridis' in cmaps:
     default_cmap = 'viridis'
 else:
@@ -121,7 +127,7 @@ markers = {'.': 'point', ',': 'pixel', '+': 'plus', 'x': 'x',
            '>': 'triangle_right', 'None': 'None'}
 logo = imread(resource_filename(
               'nexpy.gui', 'resources/icon/NeXpy.png'))[180:880, 50:1010]
-warnings.filterwarnings("ignore", category=mplDeprecation)
+warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 
 def new_figure_manager(label=None, *args, **kwargs):
@@ -1088,7 +1094,10 @@ class NXPlotView(QtWidgets.QDialog):
             else:
                 opts['interpolation'] = self.interpolation
 
-        cm = copy.copy(get_cmap(self.cmap))
+        if parse_version(mpl.__version__) >= parse_version('3.5.0'):
+            cm = copy.copy(mpl.colormaps[self.cmap])
+        else:
+            cm = copy.copy(get_cmap(self.cmap))
         cm.set_bad(self.bad)
         if self.rgb_image or self.regular_grid:
             opts['origin'] = 'lower'
@@ -2486,6 +2495,7 @@ class NXPlotView(QtWidgets.QDialog):
         self.vaxis.min = self.vaxis.lo = z.min()
         self.vaxis.max = self.vaxis.hi = z.max()
         self.set_data_norm()
+        from matplotlib.cm import ScalarMappable
         mapper = ScalarMappable(norm=self.norm, cmap=self.cmap)
         mapper.set_array(z)
         for r in range(len(vor.point_region)):
@@ -3011,13 +3021,13 @@ class NXPlotTab(QtWidgets.QWidget):
             self.image = True
             self.cmapcombo = NXComboBox(self.change_cmap, cmaps, default_cmap)
             self._cached_cmap = default_cmap
-            if cmaps.index('parula') > 0:
+            if 'parula' in cmaps:
                 self.cmapcombo.insertSeparator(
                     self.cmapcombo.findText('parula')+1)
-            if cmaps.index('seismic') > 0:
+            if 'seismic' in cmaps:
                 self.cmapcombo.insertSeparator(
                     self.cmapcombo.findText('seismic'))
-            if cmaps.index('tab10') > 0:
+            if 'tab10' in cmaps:
                 self.cmapcombo.insertSeparator(
                     self.cmapcombo.findText('tab10'))
             widgets.append(self.cmapcombo)
@@ -3466,7 +3476,10 @@ class NXPlotTab(QtWidgets.QWidget):
         if cmap is None:
             cmap = self._cached_cmap
         try:
-            cm = copy.copy(get_cmap(cmap))
+            if parse_version(mpl.__version__) >= parse_version('3.5.0'):
+                cm = copy.copy(mpl.colormaps[cmap])
+            else:
+                cm = copy.copy(get_cmap(cmap))
         except ValueError:
             raise NeXusError(f"'{cmap}' is not registered as a color map")
         cmap = cm.name

@@ -20,7 +20,7 @@ from .pyqt import QtCore, QtGui, QtWidgets
 from .utils import (boundaries, find_nearest, format_float, get_color,
                     natural_sort, report_error)
 
-warnings.filterwarnings("ignore", category=cbook.mplDeprecation)
+warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 bold_font = QtGui.QFont()
 bold_font.setBold(True)

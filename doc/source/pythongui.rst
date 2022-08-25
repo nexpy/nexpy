@@ -501,7 +501,7 @@ Script Menu
 
 Other Menus
 ^^^^^^^^^^^
-The Edit, View, Magic, and Help Menus mostly consist of menu items provided by 
+The Edit, View, and Help Menus mostly consist of menu items provided by 
 the Jupyter shell in the Jupyter Qt Console. All these operations act on the 
 shell text.
 
