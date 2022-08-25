@@ -18,10 +18,12 @@ import sys
 import traceback as tb
 from configparser import ConfigParser
 from datetime import datetime
+from pkg_resources import parse_version
 
 import numpy as np
 from IPython.core.ultratb import ColorTB
 from matplotlib import rcParams
+from matplotlib import __version__ as mplversion
 from matplotlib.colors import colorConverter, hex2color, rgb2hex
 
 from .pyqt import QtCore, QtWidgets
@@ -547,8 +549,12 @@ def parula_map():
 
 def divgray_map():
     """New divergent color map copied from the registered 'gray' map."""
-    from matplotlib.cm import get_cmap
-    cm = copy.copy(get_cmap('gray'))
+    if parse_version(mplversion) >= parse_version('3.5.0'):
+        from matplotlib import colormaps
+        cm = copy.copy(colormaps['gray'])
+    else:
+        from matplotlib.cm import get_cmap
+        cm = copy.copy(get_cmap('gray'))
     cm.name = 'divgray'
     return cm
 
