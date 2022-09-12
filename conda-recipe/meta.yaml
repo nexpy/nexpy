@@ -27,7 +27,7 @@ requirements:
     - qtpy
     - ipython
     - qtconsole
-    - ipykernel <=6.8 | >=16.5.2
+    - ipykernel <=6.8|>=6.15.2
     - matplotlib
     - lmfit >=1.0.3
     - ansi2html
