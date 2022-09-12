@@ -3204,7 +3204,7 @@ class ScanTab(NXTab):
             if (self.data_path in root and
                     root[self.data_path].nxsignal.exists()):
                 i += 1
-                if self.scan_path:
+                if self.scan_path in root:
                     self.files.add(name, root[self.scan_path], name, True)
                 else:
                     self.files.add(name, i, name, True)
