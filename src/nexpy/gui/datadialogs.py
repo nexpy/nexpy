@@ -3144,7 +3144,6 @@ class ScanTab(NXTab):
         self.scan_files = None
         self.scan_values = None
         self.scan_data = None
-        self.scan_file = None
         self.files = None
 
     def select_scan(self):
@@ -3255,17 +3254,10 @@ class ScanTab(NXTab):
                                for f in self.files if self.files[f].vary]
             self.scan_values = [self.files[f].value for f in self.files
                                 if self.files[f].vary]
-            self.create_scan_file()
+            self.scan_data = nxconsolidate(self.scan_files, self.data_path,
+                                           self.scan_path)
         except Exception:
             raise NeXusError("Files not selected")
-
-    def create_scan_file(self):
-        import tempfile
-        self.scan_data = nxconsolidate(self.scan_files, self.data_path,
-                                       self.scan_path)
-        self.scan_file = nxload(
-            tempfile.mkstemp(suffix='.nxs')[1], mode='w', libver='latest')
-        self.scan_file['entry'] = NXentry(self.scan_data)
 
     def plot_scan(self):
         try:
@@ -3298,8 +3290,6 @@ class ScanTab(NXTab):
 
     def close(self):
         try:
-            self.scan_file.close()
-            os.remove(self.scan_file.nxfilename)
             self.file_box.close()
         except Exception:
             pass
