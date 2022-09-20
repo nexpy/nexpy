@@ -12,9 +12,15 @@ from qtpy import QtCore, QtGui, QtWidgets
 if QtCore.PYQT5:
     QtVersion = 'PyQt5'
     os.environ['QT_API'] = 'pyqt5'
+elif QtCore.PYQT6:
+    QtVersion = 'PyQt6'
+    os.environ['QT_API'] = 'pyqt6'
 elif QtCore.PYSIDE2:
     QtVersion = 'PySide2'
     os.environ['QT_API'] = 'pyside2'
+elif QtCore.PYSIDE6:
+    QtVersion = 'PySide6'
+    os.environ['QT_API'] = 'pyside6'
 
 
 def getOpenFileName(*args, **kwargs):
