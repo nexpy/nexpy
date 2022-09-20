@@ -1,5 +1,4 @@
 *.py[cod]
-.pydevproject
 
 # C extensions
 *.so
@@ -61,3 +60,7 @@ Icon?
 
 # setuptools_scm
 src/nexpy/_version.py
+
+# miscellaneous system files
+.directoryhash
+ 
