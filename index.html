@@ -1,17 +1,18 @@
 
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
     <title>NeXpy: A Python GUI to analyze NeXus data &#8212; NeXpy 0.14.6 documentation</title>
-    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
-    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinxdoc.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="_static/doctools.js"></script>
     <link rel="shortcut icon" href="_static/favicon.ico"/>
     <link rel="index" title="Index" href="genindex.html" />
@@ -42,7 +43,7 @@
             
   <img alt="_images/nexpy-logo.png" src="_images/nexpy-logo.png" />
 <section id="nexpy-a-python-gui-to-analyze-nexus-data">
-<h1>NeXpy: A Python GUI to analyze NeXus data<a class="headerlink" href="#nexpy-a-python-gui-to-analyze-nexus-data" title="Permalink to this headline">¶</a></h1>
+<h1>NeXpy: A Python GUI to analyze NeXus data<a class="headerlink" href="#nexpy-a-python-gui-to-analyze-nexus-data" title="Permalink to this heading">¶</a></h1>
 <p>NeXpy provides a high-level python interface to HDF5 files, particularly those
 stored as <a class="reference external" href="http://www.nexusformat.org/">NeXus data</a>, within a simple GUI. It
 is designed to provide an intuitive interactive toolbox allowing users both to
@@ -56,11 +57,11 @@ reading and writing NeXus files is provided by the <a class="reference external"
 Notes</a>). This is a
 beta-release so please post any issues that you encounter on the
 <a class="reference external" href="https://github.com/nexpy/nexpy/issues">NeXpy GitHub</a>.</p>
-</aside>
+</div>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
 <p>NeXpy and nexusformat require Python 3.</p>
-</aside>
+</div>
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="includeme.html">Installation</a></li>
@@ -126,7 +127,7 @@ beta-release so please post any issues that you encounter on the
 </div>
 </section>
 <section id="indices-and-tables">
-<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this heading">¶</a></h1>
 <ul class="simple">
 <li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
 <li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
@@ -141,15 +142,19 @@ beta-release so please post any issues that you encounter on the
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
-  <h3><a href="#">Table of Contents</a></h3>
-  <ul>
+  <div>
+    <h3><a href="#">Table of Contents</a></h3>
+    <ul>
 <li><a class="reference internal" href="#">NeXpy: A Python GUI to analyze NeXus data</a></li>
 <li><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
 </ul>
 
-  <h4>Next topic</h4>
-  <p class="topless"><a href="includeme.html"
-                        title="next chapter">Installation</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="includeme.html"
+                          title="next chapter">Installation</a></p>
+  </div>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
@@ -161,12 +166,12 @@ beta-release so please post any issues that you encounter on the
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
       <input type="submit" value="Go" />
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script>document.getElementById('searchbox').style.display = "block"</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -189,7 +194,7 @@ beta-release so please post any issues that you encounter on the
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright Modified BSD License.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.3.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.1.1.
     </div>
   </body>
 </html>

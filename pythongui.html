@@ -1,17 +1,18 @@
 
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
     <title>Python Graphical User Interface &#8212; NeXpy 0.14.6 documentation</title>
-    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
-    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinxdoc.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="_static/doctools.js"></script>
     <link rel="shortcut icon" href="_static/favicon.ico"/>
     <link rel="index" title="Index" href="genindex.html" />
@@ -45,7 +46,7 @@
           <div class="body" role="main">
             
   <section id="python-graphical-user-interface">
-<h1>Python Graphical User Interface<a class="headerlink" href="#python-graphical-user-interface" title="Permalink to this headline">¶</a></h1>
+<h1>Python Graphical User Interface<a class="headerlink" href="#python-graphical-user-interface" title="Permalink to this heading">¶</a></h1>
 <p>A PyQT GUI has been created to make it easier to keep track of the loaded NeXus
 files and the results of any subsequent analysis. It is invoked from the command
 line by:</p>
@@ -56,7 +57,7 @@ line by:</p>
 <p class="admonition-title">Note</p>
 <p>This assumes that the Python ‘bin’ directory is in your standard shell
 path.</p>
-</aside>
+</div>
 <a class="reference internal image-reference" href="_images/nexpy-gui.png"><img alt="_images/nexpy-gui.png" class="align-center" src="_images/nexpy-gui.png" style="width: 90%;" /></a>
 <p>The illustration shows the main features of the GUI:</p>
 <dl class="simple">
@@ -105,9 +106,9 @@ a tooltip when the cursor hovers over it.</p>
 </dd>
 </dl>
 <section id="nexpy-menu-bar">
-<h2>NeXpy Menu Bar<a class="headerlink" href="#nexpy-menu-bar" title="Permalink to this headline">¶</a></h2>
+<h2>NeXpy Menu Bar<a class="headerlink" href="#nexpy-menu-bar" title="Permalink to this heading">¶</a></h2>
 <section id="file-menu">
-<h3>File Menu<a class="headerlink" href="#file-menu" title="Permalink to this headline">¶</a></h3>
+<h3>File Menu<a class="headerlink" href="#file-menu" title="Permalink to this heading">¶</a></h3>
 <dl>
 <dt><strong>New…</strong></dt><dd><p>Creates a new workspace in the tree.</p>
 </dd>
@@ -119,7 +120,7 @@ allow modifications to the file (see below).</p>
 the keyboard shortcut Ctrl+Shift+O (⌘+⇧+O on a Mac). Note
 that any changes to the file tree, using either the shell or GUI
 commands, will be automatically updated in the file.</p>
-</aside>
+</div>
 </dd>
 <dt><strong>Open Recent…</strong></dt><dd><p>Allows one of the 20 most recently opened or saved files to be opened.
 Hovering over one of the files in the list shows its absolute path.</p>
@@ -149,7 +150,7 @@ the data since originally opening the file.</p>
 the lock icon color is changed to red. If the file was
 previously unlocked, its mode is automatically changed to
 read-only when the modification is detected.</p>
-</aside>
+</div>
 </dd>
 <dt><strong>Remove</strong></dt><dd><p>Removes the root item from the tree.</p>
 <div class="admonition warning">
@@ -158,7 +159,7 @@ read-only when the modification is detected.</p>
 shell. However, if it had previously been assigned to another
 variable with a different name, that variable will not be
 deleted.</p>
-</aside>
+</div>
 </dd>
 <dt><strong>Collapse Tree</strong></dt><dd><p>Collapses all expanded items in the tree.</p>
 </dd>
@@ -168,7 +169,7 @@ directory.</p>
 <div class="admonition seealso">
 <p class="admonition-title">See also</p>
 <p><a class="reference internal" href="#importing-nexus-data">Importing NeXus Data</a></p>
-</aside>
+</div>
 </dd>
 <dt><strong>Export</strong></dt><dd><p>Exports data to a NeXus file or, for one-dimensional data, to a
 multi-column ASCII file.</p>
@@ -186,7 +187,7 @@ including deleting items.</p>
 irreversible. If the file contains critical data, click the
 checkbox to create a backup, which can be restored later if
 necessary.</p>
-</aside>
+</div>
 </dd>
 <dt><strong>Backup File</strong></dt><dd><p>Creates a backup of the selected file. The backup is stored in the user’s
 home directory in <code class="docutils literal notranslate"><span class="pre">~/.nexpy/backups</span></code> and may be restored if changes to
@@ -200,7 +201,7 @@ currently open file should be overwritten.</p>
 <p>This only applies to backups created during the current session.
 Previously saved backups can be restored using the <code class="docutils literal notranslate"><span class="pre">Manage</span>
 <span class="pre">Backups</span></code> menu item.</p>
-</aside>
+</div>
 </dd>
 <dt><strong>Manage Backups…</strong></dt><dd><p>Provides the ability to restore or delete an existing backup stored in
 <code class="docutils literal notranslate"><span class="pre">~/.nexpy/backups</span></code>. Restoring the backup is equivalent to opening the
@@ -226,11 +227,11 @@ plugins when NeXpy is restarted.</p>
 <p class="admonition-title">Note</p>
 <p>If a plugin of the same name exists in both directories, the
 user’s plugin is loaded.</p>
-</aside>
+</div>
 <div class="admonition seealso">
 <p class="admonition-title">See also</p>
 <p><a class="reference internal" href="#nexpy-plugins">NeXpy Plugins</a></p>
-</aside>
+</div>
 </dd>
 <dt><strong>Remove Plugin</strong></dt><dd><p>The selected NeXpy plugin module is removed from either the user’s
 NeXpy directory (<code class="docutils literal notranslate"><span class="pre">~/.nexpy/plugins</span></code>) or the package directory.</p>
@@ -243,7 +244,7 @@ in <code class="docutils literal notranslate"><span class="pre">~/.nexpy/backups
 </dl>
 </section>
 <section id="data-menu">
-<h3>Data Menu<a class="headerlink" href="#data-menu" title="Permalink to this headline">¶</a></h3>
+<h3>Data Menu<a class="headerlink" href="#data-menu" title="Permalink to this heading">¶</a></h3>
 <dl>
 <dt><strong>Plot Data</strong></dt><dd><p>Plots the selected tree item in the plotting pane. If the selected item is
 not a valid NXdata, NXmonitor, or NXlog group, a plot dialog allows the
@@ -257,7 +258,7 @@ one-dimensional data.</p>
 limits. If some of the new data lies outside the original plotting
 limits, the slider limits are increased to cover the expanded
 range.</p>
-</aside>
+</div>
 </dd>
 <dt><strong>Plot RGB(A) Image</strong></dt><dd><p>Plots the selected tree item as an RGB(A) image. In such images, the
 fastest varying dimension, which should be of size 3 or 4, contains the
@@ -286,7 +287,7 @@ selected.</p>
 <p class="admonition-title">Note</p>
 <p>If you click on the dropdown menus and hover over any item, a
 tooltip gives a description of its use.</p>
-</aside>
+</div>
 </dd>
 <dt><strong>Initialize Data</strong></dt><dd><p>Adds a NeXus field to the selected tree item with the specified shape and
 data type, but without a predefined value. This is useful when creating
@@ -314,26 +315,26 @@ to the group as an external link.</p>
 <p class="admonition-title">Note</p>
 <p>External links can only be modified through the parent file,
 which can be opened using the ‘Show Link’ menu item (see below).</p>
-</aside>
+</div>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
 <p>The file containing the external link is referenced using the
 file path to the parent file. If the files are moved without
 preserving their relative file paths, the link will be broken.</p>
-</aside>
+</div>
 </dd>
 <dt><strong>Delete Data</strong></dt><dd><p>Deletes the selected tree item.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>If the item was assigned to another variable in the shell, that
 variable will not be deleted.</p>
-</aside>
+</div>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
 <p>If the NeXus tree was loaded from a file with read/write
 access, the data will be immediately deleted from the file.
 This action is irreversible.</p>
-</aside>
+</div>
 </dd>
 <dt><strong>Show Link</strong></dt><dd><p>Selects the field or group to which the selected item is linked, if it is
 an NXlink object, <em>i.e.</em>, shown with a link icon. If the link is external,
@@ -347,7 +348,7 @@ compatible dimensions to plot the data against.</p>
 <p>The use of the ‘Add Data’ and ‘Set Signal’ menu items allows, in
 principle, an entire NeXus data tree to be constructed using menu
 calls.</p>
-</aside>
+</div>
 </dd>
 <dt><strong>Set Default</strong></dt><dd><p>This sets the <cite>default</cite> attribute in the parent group to the currently
 selected group, <em>i.e.</em>, if the selected group is an NXdata (NXentry) group,
@@ -359,7 +360,7 @@ the attribute will be set in the parent NXentry (NXroot) group. The
 group is also set as the default in the parent NXroot group
 provided one has not already been set. The default entry can be
 overridden.</p>
-</aside>
+</div>
 </dd>
 <dt><strong>Fit Data</strong></dt><dd><p>Fits the selected tree item. This assumes that the selected item is a valid
 NXdata group. The menu item triggers a dialog box, which allows functions
@@ -368,26 +369,26 @@ non-linear least-squares fitting module.</p>
 <div class="admonition seealso">
 <p class="admonition-title">See also</p>
 <p>See <a class="reference internal" href="#fitting-nexus-data">Fitting NeXus Data</a>.</p>
-</aside>
+</div>
 </dd>
 </dl>
 </section>
 <section id="window-menu">
-<h3>Window Menu<a class="headerlink" href="#window-menu" title="Permalink to this headline">¶</a></h3>
+<h3>Window Menu<a class="headerlink" href="#window-menu" title="Permalink to this heading">¶</a></h3>
 <dl>
 <dt><strong>Show Tree</strong></dt><dd><p>Brings the tree view to the front and give it keyboard focus.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>This has the keyboard shortcut of Ctrl+Shift+T (⌘+⇧+T on a
 Mac).</p>
-</aside>
+</div>
 </dd>
 <dt><strong>Show IPython Shell</strong></dt><dd><p>Brings the shell to the front and give it keyboard focus.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>This has the keyboard shortcut of Ctrl+Shift+I (⌘+⇧+I on a
 Mac).</p>
-</aside>
+</div>
 </dd>
 <dt><strong>Show Log File</strong></dt><dd><p>Opens a text window displaying the NeXpy log file(s). These files, which are
 stored in <code class="docutils literal notranslate"><span class="pre">~/.nexpy/nexpy.log</span></code>, <code class="docutils literal notranslate"><span class="pre">~/.nexpy/nexpy.log.1</span></code>, <em>etc</em>.,
@@ -398,7 +399,7 @@ are displayed in the shell to improve readability.</p>
 <p class="admonition-title">Note</p>
 <p>The log files contain ANSI markup to colorize the text, which can
 be rendered in the terminal using <code class="docutils literal notranslate"><span class="pre">less</span> <span class="pre">-r</span></code>.</p>
-</aside>
+</div>
 </dd>
 <dt><strong>Show Script Editor</strong></dt><dd><p>Shows the script editor. If multiple scripts are open, they are displayed as
 tabs in a single window. If no scripts are open, this will open a new
@@ -413,7 +414,7 @@ panels are displayed as tabs in a single window.</p>
 <p class="admonition-title">Note</p>
 <p>This is equivalent to clicking the Edit button in the Options
 Tab.</p>
-</aside>
+</div>
 </dd>
 <dt><strong>Show Limits Panel</strong></dt><dd><p>This opens a panel for the currently active plotting window that allows the
 axes and axis limits of the currently active plot to be changed, as well as
@@ -431,13 +432,13 @@ button is clicked, other settings, such as the aspect ratio,
 skew angle, color map, and log settings are also copied. This is
 therefore a very quick way of making direct comparisons between
 different data sets.</p>
-</aside>
+</div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>The plotting pane in the main window cannot be resized this way,
 because of the constraints of the other panes. Other plotting
 windows will copy the main window plotting size if requested.</p>
-</aside>
+</div>
 </dd>
 <dt><strong>Show Projection Panel</strong></dt><dd><p>This opens a panel for the currently active plotting window to allow
 projections along arbitrary axes to be plotted and/or saved. The
@@ -461,7 +462,7 @@ the plots are compatible.</p>
 <p>The projection panel can also be used to mask and unmask data
 within the dashed rectangle. See <a class="reference internal" href="pythonshell.html"><span class="doc">Python Interface to NeXus</span></a> for
 descriptions of masked arrays.</p>
-</aside>
+</div>
 </dd>
 <dt><strong>Show Scan Panel</strong></dt><dd><p>This opens a panel for plotting data across multiple files in the NeXpy
 tree. The limits are used to define projection of the currently plotted
@@ -480,7 +481,7 @@ corresponding file, where they can be edited if necessary.</p>
 <p>This is equivalent to clicking on the Home button in the Options
 Tab (see below). Right-clicking within the plot restores the
 axis limits but does not reset the signal limits.</p>
-</aside>
+</div>
 </dd>
 <dt><strong>New Plot Window</strong></dt><dd><p>Opens a new NeXpy plotting window, consisting of a Matplotlib plot pane and
 its associated axis panels. NeXpy plot commands will be directed to the
@@ -494,7 +495,7 @@ subsequent plots.</p>
 the standard Pyplot commands, <em>e.g.</em>, <code class="docutils literal notranslate"><span class="pre">plt.figure()</span></code>, they are
 numbered independently and will not be added to the NeXpy menu.
 They can be modified using the standard Pyplot commands.</p>
-</aside>
+</div>
 </dd>
 <dt><strong>Equalize Plot Sizes</strong></dt><dd><p>All plot windows are resized to match the main window.</p>
 </dd>
@@ -504,7 +505,7 @@ new windows are created, they are dynamically added to this list.</p>
 </dl>
 </section>
 <section id="script-menu">
-<h3>Script Menu<a class="headerlink" href="#script-menu" title="Permalink to this headline">¶</a></h3>
+<h3>Script Menu<a class="headerlink" href="#script-menu" title="Permalink to this heading">¶</a></h3>
 <dl>
 <dt><strong>New Script</strong></dt><dd><p>Opens a new script in an editable text window with syntax coloring. The
 Python code can be run within the IPython console at any time using the
@@ -521,7 +522,7 @@ the window and accessed within the script in the ‘sys.argv’ list.</p>
 <p>Script arguments are just text strings, so if the argument is a
 node on the tree, it must be referenced as a tree dictionary item,
 <em>e.g.</em>, <code class="docutils literal notranslate"><span class="pre">nxtree[sys.argv[1]]</span></code></p>
-</aside>
+</div>
 <p>Scripts are saved, by default, in <code class="docutils literal notranslate"><span class="pre">~/.nexpy/scripts</span></code>, and are
 automatically added to the bottom of the Script Menu.</p>
 </dd>
@@ -532,17 +533,17 @@ automatically added to the bottom of the Script Menu.</p>
 <p class="admonition-title">Note</p>
 <p>The currently selected node in the NeXpy tree can be referenced in
 the script as <code class="docutils literal notranslate"><span class="pre">treeview.node</span></code>.</p>
-</aside>
+</div>
 </section>
 <section id="other-menus">
-<h3>Other Menus<a class="headerlink" href="#other-menus" title="Permalink to this headline">¶</a></h3>
+<h3>Other Menus<a class="headerlink" href="#other-menus" title="Permalink to this heading">¶</a></h3>
 <p>The Edit, View, and Help Menus mostly consist of menu items provided by
 the Jupyter shell in the Jupyter Qt Console. All these operations act on the
 shell text.</p>
 </section>
 </section>
 <section id="adding-nexus-data-to-the-tree">
-<h2>Adding NeXus Data to the Tree<a class="headerlink" href="#adding-nexus-data-to-the-tree" title="Permalink to this headline">¶</a></h2>
+<h2>Adding NeXus Data to the Tree<a class="headerlink" href="#adding-nexus-data-to-the-tree" title="Permalink to this heading">¶</a></h2>
 <p>NXroot groups that are displayed in the tree pane are all children of a group
 of class NXtree, known as ‘tree’. If you create a NeXus group dynamically in the
 IPython shell, it can be added to the tree pane using the tree’s add method:</p>
@@ -560,17 +561,17 @@ tree nodes, <em>e.g.</em>, w4.</p>
 <p>The NXroot class is still considered to be the root of the NeXus tree
 in shell commands. The NXtree group is only used by the GUI and cannot
 be saved to a file.</p>
-</aside>
+</div>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
 <p>In Python, an object may be accessible within the shell with more
 than one name. NeXpy searches the shell dictionary for an object
 with the same ID as the added NeXus object and so may choose a
 different name. The object in the tree can be renamed.</p>
-</aside>
+</div>
 </section>
 <section id="plotting-nexus-data">
-<h2>Plotting NeXus Data<a class="headerlink" href="#plotting-nexus-data" title="Permalink to this headline">¶</a></h2>
+<h2>Plotting NeXus Data<a class="headerlink" href="#plotting-nexus-data" title="Permalink to this heading">¶</a></h2>
 <p>NXdata, NXmonitor, and NXlog data can be plotted by selecting a group on the
 tree and choosing “Plot Data” from the Data menu or by double-clicking the item
 on the tree (or right-clicking for over-plots). Below the plot pane, a series of
@@ -582,7 +583,7 @@ and sliders.</p>
 redefine the slider ranges by editing their respective minimum and/or
 maximum text boxes. The original range can be restored by clicking on
 the Home button in the Options Tab or right-clicking within the plot.</p>
-</aside>
+</div>
 <p><strong>Signal Tab</strong></p>
 <blockquote>
 <div><a class="reference internal image-reference" href="_images/signal-tab.png"><img alt="_images/signal-tab.png" class="align-center" src="_images/signal-tab.png" style="width: 75%;" /></a>
@@ -603,13 +604,13 @@ command-line <cite>symlog</cite> command (see below).</p>
 <p>For a one-dimensional plot, there is no signal tab. The intensity
 is adjusted using the y-tab. There is also no signal tab for an
 RGB(A) image, since the colors are defined by the RGB(A) values.</p>
-</aside>
+</div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>The interpolation methods are the default options provided by
 Matplotlib, which are only available for 2D data with a regular
 grid.</p>
-</aside>
+</div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>If the <a class="reference external" href="http://www.astropy.org">astropy</a> module is installed,
@@ -618,7 +619,7 @@ Strictly speaking, this is not an interpolation method, since it
 performs a Gaussian smoothing of the data, with a standard
 deviation set by the <cite>smooth</cite> option (see below). The default is
 2 pixels.</p>
-</aside>
+</div>
 </div></blockquote>
 <p><strong>X Tab</strong></p>
 <blockquote>
@@ -631,7 +632,7 @@ A checkbox allows the direction of the axes to be flipped.</p>
 <p class="admonition-title">Warning</p>
 <p>Flipping the axis directions does not flip the direction of the
 sliders.</p>
-</aside>
+</div>
 </div></blockquote>
 <p><strong>Y Tab</strong></p>
 <blockquote>
@@ -651,7 +652,7 @@ numerical analysis with caution.</p></li>
 <div class="admonition seealso">
 <p class="admonition-title">See also</p>
 <p><a class="reference internal" href="#fitting-nexus-data">Fitting NeXus Data</a></p>
-</aside>
+</div>
 </div></blockquote>
 <p><strong>Z Tab</strong></p>
 <blockquote>
@@ -667,7 +668,7 @@ limits are set to their minimum value.</p>
 <p>Projections are now averaged over the summed bins by default. To
 restore the previous behavior, click the ‘Sum’ checkbox in the
 Projection Tab.</p>
-</aside>
+</div>
 <p>When ‘Lock’ is checked, the difference between the limits of the selected
 z-axis is fixed. This allows successive images along the z-axis to be
 plotted by clicking the text-box arrows in increments of the difference
@@ -680,7 +681,7 @@ a replot using the toolbar (see below).</p>
 <p>Make sure that the value of both limit boxes is entered, <em>e.g.</em>,
 by pressing return after editing their values, before clicking on
 the ‘lock’ checkbox.</p>
-</aside>
+</div>
 <p>When stepping through the z-values, the ‘Autoscale’ checkbox determines
 whether the plot automatically scales the signal to the maximum intensity of
 the slice or is set to the current signal limits.</p>
@@ -688,7 +689,7 @@ the slice or is set to the current signal limits.</p>
 <p class="admonition-title">Note</p>
 <p>When ‘Autoscale’ is checked, it is not possible to adjust the
 limits in the Signal Tab.</p>
-</aside>
+</div>
 <img alt="_images/z-toolbar.png" class="align-right" src="_images/z-toolbar.png" />
 <p>The toolbar on the right provides further controls for replotting data as
 a function of z. The first button on the left forces a replot, <em>e.g.</em>, when
@@ -739,12 +740,12 @@ updated to the values under the current mouse location.</p>
 more detailed descriptions of the standard toolbar, including
 keyboard shortcuts. The ‘Aspect’ and ‘Add’ buttons are unique
 to NeXpy.</p>
-</aside>
+</div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>The aspect ratio of a plot can also be set from the IPython shell.
 See below.</p>
-</aside>
+</div>
 </div></blockquote>
 <p><strong>Command Line Options</strong></p>
 <blockquote>
@@ -758,7 +759,7 @@ the current image are exposed as <code class="docutils literal notranslate"><spa
 right plotting pane, either by selecting it in the Window menu or
 using one of the keyboard shortcuts, which are displayed in the
 menu, <em>e.g.</em>, &lt;Ctrl&gt;+2 (⌘+2 on a Mac) to select Figure 2.</p>
-</aside>
+</div>
 </div></blockquote>
 <ul>
 <li><p>Set Aspect Ratio:</p>
@@ -832,7 +833,7 @@ coordinates represent the shape center.</p>
 <p>Since the arguments are in the units of the axes, the circle will
 only be truly circular if the x and y units are the same, and the
 aspect ratio of the plot is equal.</p>
-</aside>
+</div>
 <p>All of the functions will accept additional keyword arguments used in
 drawing Matplotlib shapes, <em>e.g.</em>, to change the edge and fill colors, line
 properties, <em>etc</em>. See the <a class="reference external" href="http://matplotlib.org/api/patches_api.html#matplotlib.patches.Polygon">Matplotlib documentation</a>
@@ -859,7 +860,7 @@ full path to each plotted field, but setting the keyword argument,
 <p class="admonition-title">Note</p>
 <p>Legend labels, positions, and other attributes can be modified in
 the Customize Dialog.</p>
-</aside>
+</div>
 </li>
 <li><p>Convert to Symmetric Log Plot:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">plotview</span><span class="o">.</span><span class="n">symlog</span><span class="p">(</span><span class="n">linthresh</span><span class="p">,</span> <span class="n">linscale</span><span class="p">,</span> <span class="n">vmax</span><span class="p">)</span>
@@ -878,7 +879,7 @@ values, <code class="docutils literal notranslate"><span class="pre">linthresh=v
 <p>There are a number of diverging color maps, such as <code class="docutils literal notranslate"><span class="pre">coolwarm</span></code>,
 that are ideal for displaying symmetric log data. Some are available
 at the bottom of the color map dropdown menu in the Signal tab.</p>
-</aside>
+</div>
 </li>
 </ul>
 <p><strong>Keyboard Shortcuts</strong></p>
@@ -892,7 +893,7 @@ options.</p>
 (a) clicking within the window, (b) using the Window menu, or (c)
 typing Ctrl+’n’ (⌘+’n’ on a Mac), where ‘n’ is the plot window
 number.</p>
-</aside>
+</div>
 <ul class="simple">
 <li><p><strong>s</strong> - switch to the Signal tab.</p></li>
 <li><p><strong>x</strong> - switch to the X tab.</p></li>
@@ -913,7 +914,7 @@ number.</p>
 </div></blockquote>
 </section>
 <section id="configuring-nexpy">
-<h2>Configuring NeXpy<a class="headerlink" href="#configuring-nexpy" title="Permalink to this headline">¶</a></h2>
+<h2>Configuring NeXpy<a class="headerlink" href="#configuring-nexpy" title="Permalink to this heading">¶</a></h2>
 <p>When NeXpy if first launched, a private directory is created in the home
 directory, ~/.nexpy/. This is used to store log files, backups, plugins,
 and scripts. A configuration file, ~/.nexpy/config.py, is created to contain
@@ -946,7 +947,7 @@ that are commonly used:</p>
 edit the configuration file in ~/.nexpy/config.py.</p>
 </section>
 <section id="fitting-nexus-data">
-<h2>Fitting NeXus Data<a class="headerlink" href="#fitting-nexus-data" title="Permalink to this headline">¶</a></h2>
+<h2>Fitting NeXus Data<a class="headerlink" href="#fitting-nexus-data" title="Permalink to this heading">¶</a></h2>
 <p>NeXpy makes it easy to fit one-dimensional data using the
 <a class="reference external" href="https://lmfit.github.io/lmfit-py/">LMFIT package</a>, with a ‘Fit’ button in
 the Y-Tab of every one-dimensional plot. Alternatively, choosing ‘Fit Data’ from
@@ -965,7 +966,7 @@ plotting window and the fitting parameters displayed in a message window.</p>
 entered in the Fit Dialog. These values can be changed between
 fits if required, or reset to the overall range of the data using the
 <code class="docutils literal notranslate"><span class="pre">Reset</span> <span class="pre">Limits</span></code> button.</p>
-</aside>
+</div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>When the plotting window is selected, the keyboard shortcuts ‘l’ and
@@ -973,15 +974,15 @@ fits if required, or reset to the overall range of the data using the
 current cursor position in the canvas. Alternatively, the range can
 be selected by dragging with the right-mouse button (or with the
 Ctrl-key depressed).</p>
-</aside>
+</div>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
 <p>Some of the LMFIT functions have an additional option that is
 selected with the ‘form’ keyword. At present, the default
 option is automatically selected in NeXpy.</p>
-</aside>
+</div>
 <section id="saving-the-fit">
-<h3>Saving the Fit<a class="headerlink" href="#saving-the-fit" title="Permalink to this headline">¶</a></h3>
+<h3>Saving the Fit<a class="headerlink" href="#saving-the-fit" title="Permalink to this heading">¶</a></h3>
 <p>The original data, the fitted data, constituent models, and the parameters
 can all be saved to an NXprocess group in the Tree Pane for subsequent plotting,
 refitting, or saving to a NeXus file. The group, named ‘f1’, ‘f2’, etc.,
@@ -990,7 +991,7 @@ to fit this entry again, it will load the models and parameters from the
 saved fit.</p>
 </section>
 <section id="defining-a-model">
-<h3>Defining a Model<a class="headerlink" href="#defining-a-model" title="Permalink to this headline">¶</a></h3>
+<h3>Defining a Model<a class="headerlink" href="#defining-a-model" title="Permalink to this heading">¶</a></h3>
 <p>NeXpy makes available any of the models currently supplied by the <a class="reference external" href="https://lmfit.github.io/lmfit-py/">LMFIT
 package</a>, as well as a couple of extra
 models added to the NeXpy package, the OrderParameterModel and the
@@ -1039,10 +1040,10 @@ this list. However, we recommend that all new functions now adhere
 to LMFIT model definitions. The following description of the old
 system is retained to help with debugging or migrating to the new
 system.</p>
-</aside>
+</div>
 </section>
 <section id="defining-a-function">
-<h3>Defining a Function<a class="headerlink" href="#defining-a-function" title="Permalink to this headline">¶</a></h3>
+<h3>Defining a Function<a class="headerlink" href="#defining-a-function" title="Permalink to this heading">¶</a></h3>
 <p>User-defined functions can be added to their private functions directory in
 <code class="docutils literal notranslate"><span class="pre">~/.nexpy/functions</span></code>. The file must define the name of the function, a list of
 parameter names, and provide two modules to return the function values and
@@ -1080,16 +1081,16 @@ be entered manually before the fit in those cases.</p>
 <p class="admonition-title">Note</p>
 <p>If it is not possible to estimate starting parameters, just return
 values that do not trigger an exception.</p>
-</aside>
+</div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>The X-range used in ‘guessing’ the parameters can be adjusted by
 setting the X-axis limits in the Fit Dialog.</p>
-</aside>
+</div>
 </section>
 </section>
 <section id="importing-nexus-data">
-<h2>Importing NeXus Data<a class="headerlink" href="#importing-nexus-data" title="Permalink to this headline">¶</a></h2>
+<h2>Importing NeXus Data<a class="headerlink" href="#importing-nexus-data" title="Permalink to this heading">¶</a></h2>
 <p>NeXpy can import data stored in a number of other formats, including SPEC files,
 TIFF images, and text files, using the <a class="reference external" href="File:Import">File:Import</a> menus. If a file format is
 not currently supported, the user can write their own. The following is an
@@ -1108,7 +1109,7 @@ example of a module that reads the original format and returns NeXus data:</p>
 </pre></div>
 </div>
 <section id="existing-readers">
-<h3>Existing Readers<a class="headerlink" href="#existing-readers" title="Permalink to this headline">¶</a></h3>
+<h3>Existing Readers<a class="headerlink" href="#existing-readers" title="Permalink to this heading">¶</a></h3>
 <p>NeXpy is currently distributed with readers for the following format:</p>
 <p><strong>TIFF Images</strong></p>
 <p>This reader will import most TIFF images, including those with floating
@@ -1142,7 +1143,7 @@ version does not read the ASCII PHX files used to define instrumental
 parameters, but there are plans to add that in the future.</p>
 </section>
 <section id="defining-a-reader">
-<h3>Defining a Reader<a class="headerlink" href="#defining-a-reader" title="Permalink to this headline">¶</a></h3>
+<h3>Defining a Reader<a class="headerlink" href="#defining-a-reader" title="Permalink to this heading">¶</a></h3>
 <p>It is possible to add a reader to the <a class="reference external" href="File:Import">File:Import</a> menu using the existing
 samples as a guide in the nexpy.readers directory. User-defined import dialogs
 can be added to their private readers directory in <code class="docutils literal notranslate"><span class="pre">~/.nexpy/readers</span></code>.</p>
@@ -1196,11 +1197,11 @@ can be added to their private readers directory in <code class="docutils literal
 <p>See <a class="reference internal" href="dialogs.html#nexpy.gui.importdialog.BaseImportDialog" title="nexpy.gui.importdialog.BaseImportDialog"><code class="xref py py-class docutils literal notranslate"><span class="pre">nexpy.gui.importdialog.BaseImportDialog</span></code></a> and its parent
 <code class="xref py py-class docutils literal notranslate"><span class="pre">nexpy.gui.importdialog.BaseDialog</span></code> for other
 pre-defined methods.</p>
-</aside>
+</div>
 </section>
 </section>
 <section id="nexpy-plugins">
-<h2>NeXpy Plugins<a class="headerlink" href="#nexpy-plugins" title="Permalink to this headline">¶</a></h2>
+<h2>NeXpy Plugins<a class="headerlink" href="#nexpy-plugins" title="Permalink to this heading">¶</a></h2>
 <p>It is possible to customize NeXpy by adding new menus to the main menu bar
 with sub-menus that open dialog boxes for operations that are specific to a
 particular domain. These will be automatically loaded from either the
@@ -1248,7 +1249,7 @@ functions themselves.</p>
 <p>See <a class="reference internal" href="dialogs.html#nexpy.gui.datadialogs.BaseDialog" title="nexpy.gui.datadialogs.BaseDialog"><code class="xref py py-class docutils literal notranslate"><span class="pre">nexpy.gui.datadialogs.BaseDialog</span></code></a> for a list of
 pre-defined dialog methods if the dialog uses it as the parent
 class.</p>
-</aside>
+</div>
 <p>Here is the code:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">nexpy.gui.datadialogs</span> <span class="kn">import</span> <span class="n">BaseDialog</span><span class="p">,</span> <span class="n">GridParameters</span>
@@ -1332,8 +1333,9 @@ class.</p>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
-  <h3><a href="index.html">Table of Contents</a></h3>
-  <ul>
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
 <li><a class="reference internal" href="#">Python Graphical User Interface</a><ul>
 <li><a class="reference internal" href="#nexpy-menu-bar">NeXpy Menu Bar</a><ul>
 <li><a class="reference internal" href="#file-menu">File Menu</a></li>
@@ -1362,12 +1364,17 @@ class.</p>
 </li>
 </ul>
 
-  <h4>Previous topic</h4>
-  <p class="topless"><a href="pythonshell.html"
-                        title="previous chapter">Python Interface to NeXus</a></p>
-  <h4>Next topic</h4>
-  <p class="topless"><a href="treeapi.html"
-                        title="next chapter">NeXus Tree API Modules</a></p>
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="pythonshell.html"
+                          title="previous chapter">Python Interface to NeXus</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="treeapi.html"
+                          title="next chapter">NeXus Tree API Modules</a></p>
+  </div>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
@@ -1379,12 +1386,12 @@ class.</p>
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
       <input type="submit" value="Go" />
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script>document.getElementById('searchbox').style.display = "block"</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -1410,7 +1417,7 @@ class.</p>
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright Modified BSD License.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.3.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.1.1.
     </div>
   </body>
 </html>
