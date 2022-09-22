@@ -1207,20 +1207,6 @@ clause within a function that might, in some implementations, be
 embedded in another <code class="docutils literal notranslate"><span class="pre">with</span></code> clause. The file is only closed when the
 outermost context manager is exited.</p>
 </aside>
-<p>In v0.7.7, the ability to use a context manager directly with <code class="docutils literal notranslate"><span class="pre">NXroot</span></code>
-objects, rather than its associated <code class="docutils literal notranslate"><span class="pre">NXfile</span></code>, was added. This allows the use
-of a similar syntax to the Python <code class="docutils literal notranslate"><span class="pre">open</span></code> function, in which a <code class="docutils literal notranslate"><span class="pre">with</span></code>
-clause ensuring that the file is opened and closed, before and after the file
-access, respectively. To make this analogy clearer, <code class="docutils literal notranslate"><span class="pre">nxopen</span></code> was added as an
-alias to <code class="docutils literal notranslate"><span class="pre">nxload</span></code>.</p>
-<p>In the following code, a NeXus file is created, filled with NeXus objects and
-then closed.</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">nxopen</span><span class="p">(</span><span class="s1">&#39;nexus_file.nxs&#39;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">root</span><span class="p">:</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="n">root</span><span class="p">[</span><span class="s1">&#39;entry&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">NXentry</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="n">root</span><span class="p">[</span><span class="s1">&#39;entry/sample&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">NXsample</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="n">root</span><span class="p">[</span><span class="s1">&#39;entry/sample/temperature&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">NXfield</span><span class="p">(</span><span class="mf">40.0</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;K&#39;</span><span class="p">)</span>
-</pre></div>
-</div>
 </section>
 <section id="file-locking">
 <h3>File Locking<a class="headerlink" href="#file-locking" title="Permalink to this headline">¶</a></h3>
