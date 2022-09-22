@@ -4,12 +4,12 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
-    <title>Installation &#8212; NeXpy 0.14.5 documentation</title>
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="_static/sphinxdoc.css" />
-    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <title>Installation &#8212; NeXpy 0.14.6 documentation</title>
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
@@ -34,7 +34,7 @@
         <li class="right" >
           <a href="index.html" title="NeXpy: A Python GUI to analyze NeXus data"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.14.5 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.14.6 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Installation</a></li> 
       </ul>
     </div>  
@@ -62,7 +62,7 @@ conda-forge channel:</p>
 <p>You can add conda-forge to your default channels so that it is
 automatically searched when installing. Just type
 <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">config</span> <span class="pre">--add</span> <span class="pre">channels</span> <span class="pre">conda-forge</span></code>.</p>
-</div>
+</aside>
 <p>You can install the package from the source code either by downloading one of
 the <a class="reference external" href="https://github.com/nexpy/nexpy/releases">Github releases</a> or by cloning
 the latest development version in the
@@ -112,10 +112,6 @@ should be used to convert such files to HDF5.</p>
 other required libraries iare <a class="reference external" href="https://numpy.org">NumPy</a> and, if you want
 autocompletion within an IPython shell,  <a class="reference external" href="http://numpy.scipy.org">SciPy</a>.</p>
 <table class="docutils align-default">
-<colgroup>
-<col style="width: 26%" />
-<col style="width: 74%" />
-</colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>Library</p></th>
 <th class="head"><p>URL</p></th>
@@ -140,23 +136,19 @@ autocompletion within an IPython shell,  <a class="reference external" href="htt
 <p class="admonition-title">Note</p>
 <p>If you need to read HDF4 or XML files now, please clone the
 old-master branch (<a class="reference external" href="https://github.com/nexpy/nexpy/tree/old-master">https://github.com/nexpy/nexpy/tree/old-master</a>).</p>
-</div>
+</aside>
 </section>
 <section id="nexpy-gui">
 <h2>NeXpy GUI<a class="headerlink" href="#nexpy-gui" title="Permalink to this headline">¶</a></h2>
 <p>The GUI is built using the PyQt. The
 <a class="reference external" href="https://github.com/spyder-ide/qtpy">qtpy package</a> is used to import an
-installed PyQt library, either PyQt5 or PySide2.</p>
+installed PyQt library, either PyQt5, PyQt6, PySide2, or PySide6.</p>
 <p>The GUI includes an <a class="reference external" href="http://ipython.org/">IPython shell</a> and a <a class="reference external" href="http://matplotlib.sourceforge.net">Matplotlib
 plotting pane</a>. The IPython shell is
 embedded in the Qt GUI using an implementation based on the Jupyter QtConsole.</p>
 <p>Least-squares fitting of 1D data uses the <cite>lmfit package
 &lt;https://lmfit.github.io/lmfit-py/&gt;`_</cite>.</p>
 <table class="docutils align-default">
-<colgroup>
-<col style="width: 26%" />
-<col style="width: 74%" />
-</colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>Library</p></th>
 <th class="head"><p>URL</p></th>
@@ -189,7 +181,7 @@ embedded in the Qt GUI using an implementation based on the Jupyter QtConsole.</
 </section>
 <section id="additional-packages">
 <h2>Additional Packages<a class="headerlink" href="#additional-packages" title="Permalink to this headline">¶</a></h2>
-<p>Importers may require additional libraries to read the imported files in their
+<p>Importers may require additional libraries to read the imported files inir
 native format, <em>e.g.</em>, <a class="reference external" href="http://spec2nexus.readthedocs.org/">spec2nexus</a> for
 reading SPEC files and <a class="reference external" href="https://github.com/silx-kit/fabio">FabIO</a> for
 importing TIFF and CBF images.</p>
@@ -199,10 +191,6 @@ is installed. It is labelled ‘convolve’ and provides, by default, a
 2-pixel Gaussian smoothing of the data. The number of pixels can be
 changed in the shell by setting <code class="docutils literal notranslate"><span class="pre">plotview.smooth</span></code>.</p>
 <table class="docutils align-default">
-<colgroup>
-<col style="width: 23%" />
-<col style="width: 77%" />
-</colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>Library</p></th>
 <th class="head"><p>URL</p></th>
@@ -224,7 +212,7 @@ changed in the shell by setting <code class="docutils literal notranslate"><span
 <p class="admonition-title">Note</p>
 <p>NeXpy should still run without these additional packages, but invoking
 the relevant menu items may trigger an exception.</p>
-</div>
+</aside>
 </section>
 <section id="running-the-gui">
 <h2>Running the GUI<a class="headerlink" href="#running-the-gui" title="Permalink to this headline">¶</a></h2>
@@ -300,7 +288,7 @@ the packages on conda-forge.</p>
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
     </form>
     </div>
@@ -325,13 +313,13 @@ the packages on conda-forge.</p>
         <li class="right" >
           <a href="index.html" title="NeXpy: A Python GUI to analyze NeXus data"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.14.5 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.14.6 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Installation</a></li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright Modified BSD License.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.3.2.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.3.
     </div>
   </body>
 </html>
