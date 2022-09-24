@@ -19,12 +19,7 @@ from matplotlib.legend import Legend
 from matplotlib.rcsetup import validate_aspect, validate_float
 from nexusformat.nexus import (NeXusError, NXattr, NXdata, NXentry, NXfield,
                                NXgroup, NXlink, NXroot, NXvirtualfield,
-                               nxconsolidate, nxgetcompression, nxgetencoding,
-                               nxgetlock, nxgetlockexpiry, nxgetmaxsize,
-                               nxgetmemory, nxgetrecursive, nxload,
-                               nxsetcompression, nxsetencoding, nxsetlock,
-                               nxsetlockexpiry, nxsetmaxsize, nxsetmemory,
-                               nxsetrecursive)
+                               nxconsolidate, nxload, nxgetconfig, nxsetconfig)
 
 from .pyqt import QtCore, QtGui, QtWidgets, getOpenFileName, getSaveFileName
 from .utils import (confirm_action, convertHTML, display_message,
@@ -1840,16 +1835,19 @@ class PreferencesDialog(NXDialog):
 
     def __init__(self, parent=None):
         super().__init__(parent=parent, default=True)
+        cfg = nxgetconfig()
         self.parameters = GridParameters()
-        self.parameters.add('memory', nxgetmemory(), 'Memory Limit (MB)')
-        self.parameters.add('maxsize', nxgetmaxsize(), 'Array Size Limit')
-        self.parameters.add('compression', nxgetcompression(),
+        self.parameters.add('memory', cfg['memory'], 'Memory Limit (MB)')
+        self.parameters.add('maxsize', cfg['maxsize'], 'Array Size Limit')
+        self.parameters.add('compression', cfg['compression'],
                             'Compression Filter')
-        self.parameters.add('encoding', nxgetencoding(), 'Text Encoding')
-        self.parameters.add('lock', nxgetlock(), 'Lock Timeout (s)')
-        self.parameters.add('lockexpiry', nxgetlockexpiry(), 'Lock Expiry (s)')
+        self.parameters.add('encoding', cfg['encoding'], 'Text Encoding')
+        self.parameters.add('lock', cfg['lock'], 'Lock Timeout (s)')
+        self.parameters.add('lockexpiry', cfg['lockexpiry'], 'Lock Expiry (s)')
+        self.parameters.add('lockdirectory', cfg['lockdirectory'],
+                            'Lock Directory')
         self.parameters.add('recursive', ['True', 'False'], 'File Recursion')
-        self.parameters['recursive'].value = str(nxgetrecursive())
+        self.parameters['recursive'].value = str(cfg['recursive'])
         styles = ['default', 'publication'] + sorted(
             style for style in mpl.style.available if style != 'publication')
         self.parameters.add('style', styles, 'Plot Style')
@@ -1863,29 +1861,36 @@ class PreferencesDialog(NXDialog):
 
     def save_default(self):
         self.set_preferences()
-        self.mainwindow.settings.set('preferences', 'memory', nxgetmemory())
-        self.mainwindow.settings.set('preferences', 'maxsize', nxgetmaxsize())
+        cfg = nxgetconfig()
+        self.mainwindow.settings.set('preferences', 'memory', cfg['memory'])
+        self.mainwindow.settings.set('preferences', 'maxsize', cfg['maxsize'])
         self.mainwindow.settings.set('preferences', 'compression',
-                                     nxgetcompression())
-        self.mainwindow.settings.set(
-            'preferences', 'encoding', nxgetencoding())
-        self.mainwindow.settings.set('preferences', 'lock', nxgetlock())
+                                     cfg['compression'])
+        self.mainwindow.settings.set('preferences', 'encoding',
+                                     cfg['encoding'])
+        self.mainwindow.settings.set('preferences', 'lock', cfg['lock'])
         self.mainwindow.settings.set('preferences', 'lockexpiry',
-                                     nxgetlockexpiry())
+                                     cfg['lockexpiry'])
+        self.mainwindow.settings.set('preferences', 'lockdirectory',
+                                     cfg['lockdirectory'])
         self.mainwindow.settings.set('preferences', 'recursive',
-                                     nxgetrecursive())
+                                     cfg['recursive'])
         self.mainwindow.settings.set('preferences', 'style',
                                      self.parameters['style'].value)
         self.mainwindow.settings.save()
 
     def set_preferences(self):
-        nxsetmemory(self.parameters['memory'].value)
-        nxsetmaxsize(self.parameters['maxsize'].value)
-        nxsetcompression(self.parameters['compression'].value)
-        nxsetencoding(self.parameters['encoding'].value)
-        nxsetlock(self.parameters['lock'].value)
-        nxsetlockexpiry(self.parameters['lockexpiry'].value)
-        nxsetrecursive(self.parameters['recursive'].value)
+        lockdirectory = self.parameters['lockdirectory'].value
+        if not lockdirectory.strip():
+            lockdirectory = None
+        nxsetconfig(memory=self.parameters['memory'].value,
+                    maxsize=self.parameters['maxsize'].value,
+                    compression=self.parameters['compression'].value,
+                    encoding=self.parameters['encoding'].value,
+                    lock=self.parameters['lock'].value,
+                    lockexpiry=self.parameters['lockexpiry'].value,
+                    lockdirectory=lockdirectory,
+                    recursive=self.parameters['recursive'].value)
         set_style(self.parameters['style'].value)
 
     def accept(self):
