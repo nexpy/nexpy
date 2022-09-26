@@ -18,13 +18,13 @@ import sys
 import traceback as tb
 from configparser import ConfigParser
 from datetime import datetime
-from pkg_resources import parse_version
 
 import numpy as np
 from IPython.core.ultratb import ColorTB
-from matplotlib import rcParams
 from matplotlib import __version__ as mplversion
+from matplotlib import rcParams
 from matplotlib.colors import colorConverter, hex2color, rgb2hex
+from pkg_resources import parse_version
 
 from .pyqt import QtCore, QtWidgets
 
@@ -39,11 +39,7 @@ except ImportError:
 
 from nexusformat.nexus import (NeXusError, NXcollection, NXdata, NXfield,
                                NXLock, NXLockException, NXnote,
-                               nxgetcompression, nxgetencoding, nxgetlock,
-                               nxgetlockexpiry, nxgetmaxsize, nxgetmemory,
-                               nxgetrecursive, nxload, nxsetcompression,
-                               nxsetencoding, nxsetlock, nxsetlockexpiry,
-                               nxsetmaxsize, nxsetmemory, nxsetrecursive)
+                               nxgetconfig, nxload, nxsetconfig)
 
 ansi_re = re.compile(r'\x1b' + r'\[([\dA-Fa-f;]*?)m')
 
@@ -158,7 +154,7 @@ def is_file_locked(filename, wait=5, expiry=None):
     _lock = NXLock(filename)
     try:
         if expiry is None:
-            expiry = nxgetlockexpiry()
+            expiry = nxgetconfig('lockexpiry')
         if _lock.is_stale(expiry=expiry):
             return False
         else:
@@ -614,34 +610,39 @@ def load_image(filename):
 
 
 def initialize_preferences(settings):
+    cfg = nxgetconfig()
     if settings.has_option('preferences', 'memory'):
-        nxsetmemory(settings.get('preferences', 'memory'))
+        nxsetconfig(memory=settings.get('preferences', 'memory'))
     else:
-        settings.set('preferences', 'memory', nxgetmemory())
+        settings.set('preferences', 'memory', cfg['memory'])
     if settings.has_option('preferences', 'maxsize'):
-        nxsetmaxsize(settings.get('preferences', 'maxsize'))
+        nxsetconfig(maxsize=settings.get('preferences', 'maxsize'))
     else:
-        settings.set('preferences', 'maxsize', nxgetmaxsize())
+        settings.set('preferences', 'maxsize', cfg['maxsize'])
     if settings.has_option('preferences', 'compression'):
-        nxsetcompression(settings.get('preferences', 'compression'))
+        nxsetconfig(compression=settings.get('preferences', 'compression'))
     else:
-        settings.set('preferences', 'compression', nxgetcompression())
+        settings.set('preferences', 'compression', cfg['compression'])
     if settings.has_option('preferences', 'encoding'):
-        nxsetencoding(settings.get('preferences', 'encoding'))
+        nxsetconfig(encoding=settings.get('preferences', 'encoding'))
     else:
-        settings.set('preferences', 'encoding', nxgetencoding())
+        settings.set('preferences', 'encoding', cfg['encoding'])
     if settings.has_option('preferences', 'lock'):
-        nxsetlock(settings.get('preferences', 'lock'))
+        nxsetconfig(lock=settings.get('preferences', 'lock'))
     else:
-        settings.set('preferences', 'lock', nxgetlock())
+        settings.set('preferences', 'lock', cfg['lock'])
     if settings.has_option('preferences', 'lockexpiry'):
-        nxsetlockexpiry(settings.get('preferences', 'lockexpiry'))
+        nxsetconfig(lockexpiry=settings.get('preferences', 'lockexpiry'))
     else:
-        settings.set('preferences', 'lockexpiry', nxgetlockexpiry())
+        settings.set('preferences', 'lockexpiry', cfg['lockexpiry'])
+    if settings.has_option('preferences', 'lockdirectory'):
+        nxsetconfig(lockdirectory=settings.get('preferences', 'lockdirectory'))
+    else:
+        settings.set('preferences', 'lockdirectory', cfg['lockdirectory'])
     if settings.has_option('preferences', 'recursive'):
-        nxsetrecursive(settings.getboolean('preferences', 'recursive'))
+        nxsetconfig(recursive=settings.getboolean('preferences', 'recursive'))
     else:
-        settings.set('preferences', 'recursive', nxgetrecursive())
+        settings.set('preferences', 'recursive', cfg['recursive'])
     if settings.has_option('preferences', 'style'):
         set_style(settings.get('preferences', 'style'))
     else:

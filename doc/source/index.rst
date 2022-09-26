@@ -23,8 +23,6 @@ reading and writing NeXus files is provided by the `nexusformat
           beta-release so please post any issues that you encounter on the 
           `NeXpy GitHub <https://github.com/nexpy/nexpy/issues>`_. 
 
-.. warning:: NeXpy and nexusformat require Python 3.
-
 .. toctree::
    :maxdepth: 2
 
