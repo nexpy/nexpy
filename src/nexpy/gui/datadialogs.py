@@ -19,16 +19,16 @@ from matplotlib.legend import Legend
 from matplotlib.rcsetup import validate_aspect, validate_float
 from nexusformat.nexus import (NeXusError, NXattr, NXdata, NXentry, NXfield,
                                NXgroup, NXlink, NXroot, NXvirtualfield,
-                               nxconsolidate, nxload, nxgetconfig, nxsetconfig)
+                               nxconsolidate, nxgetconfig, nxload, nxsetconfig)
 
 from .pyqt import QtCore, QtGui, QtWidgets, getOpenFileName, getSaveFileName
 from .utils import (confirm_action, convertHTML, display_message,
-                    fix_projection, format_timestamp, get_color, human_size,
-                    import_plugin, keep_data, natural_sort, report_error,
-                    set_style, timestamp, wrap)
+                    fix_projection, format_mtime, format_timestamp, get_color,
+                    human_size, import_plugin, keep_data, natural_sort,
+                    report_error, set_style, timestamp, wrap)
 from .widgets import (NXCheckBox, NXColorBox, NXComboBox, NXDoubleSpinBox,
-                      NXLabel, NXLineEdit, NXpolygon, NXPushButton,
-                      NXScrollArea, NXSpinBox, NXStack)
+                      NXLabel, NXLineEdit, NXPlainTextEdit, NXpolygon,
+                      NXPushButton, NXScrollArea, NXSpinBox, NXStack)
 
 
 class NXWidget(QtWidgets.QWidget):
@@ -1829,6 +1829,72 @@ class ExportDialog(NXDialog):
 
         logging.info(f"Data saved as '{fname}'")
         super().accept()
+
+
+class LockDialog(NXDialog):
+    """Dialog to display file-based locks on NeXus files"""
+
+    def __init__(self, parent=None):
+
+        super().__init__(parent=parent)
+
+        self.lockdirectory = nxgetconfig('lockdirectory')
+
+        self.text_box = NXPlainTextEdit(wrap=False)
+        self.text_box.setReadOnly(True)
+        self.set_layout(self.text_box,
+                        self.action_buttons(('Clear Locks', self.clear_locks)),
+                        self.close_buttons(close=True))
+        self.set_title(f'Lock Directory: {self.lockdirectory}')
+        self.setMinimumWidth(800)
+
+        self.timer = QtCore.QTimer(self)
+        self.timer.timeout.connect(self.show_locks)
+        self.timer.start(5000)
+
+        self.show_locks()
+
+    def show_locks(self):
+        def _getmtime(entry):
+            return entry.stat().st_mtime
+        text = []
+        for f in sorted(os.scandir(self.lockdirectory), key=_getmtime):
+            if f.name.endswith('.lock'):
+                text.append(f'{format_mtime(f.stat().st_mtime)} {f.name}')
+        if text:
+            self.text_box.setPlainText('\n'.join(text))
+        else:
+            self.text_box.setPlainText('No Files')
+
+    def clear_locks(self):
+        def _getmtime(entry):
+            return entry.stat().st_mtime
+        dialog = NXDialog(parent=self)
+        locks = []
+        for f in sorted(os.scandir(self.lockdirectory), key=_getmtime):
+            if f.name.endswith('.lock'):
+                locks.append(self.checkboxes((f.name, f.name, False),
+                                             align='left'))
+        dialog.scroll_area = NXScrollArea()
+        dialog.scroll_widget = NXWidget()
+        dialog.scroll_widget.set_layout(*locks)
+        dialog.scroll_area.setWidget(dialog.scroll_widget)
+
+        dialog.set_layout(dialog.scroll_area,
+                          self.action_buttons(('Clear Lock', self.clear_lock)),
+                          dialog.close_buttons(close=True))
+
+        dialog.set_title('Clear Locks')
+        self.locks_dialog = dialog
+        self.locks_dialog.show()
+
+    def clear_lock(self):
+        for f in list(self.checkbox):
+            if self.checkbox[f].isChecked():
+                os.remove(os.path.join(self.lockdirectory, f))
+                del self.checkbox[f]
+        self.locks_dialog.close()
+        self.show_locks()
 
 
 class PreferencesDialog(NXDialog):
