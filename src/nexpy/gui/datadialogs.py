@@ -1898,7 +1898,10 @@ class LockDialog(NXDialog):
     def clear_lock(self):
         for f in list(self.checkbox):
             if self.checkbox[f].isChecked():
-                os.remove(os.path.join(self.lockdirectory, f))
+                try:
+                    os.remove(os.path.join(self.lockdirectory, f))
+                except FileNotFoundError:
+                    pass
                 del self.checkbox[f]
         self.locks_dialog.close()
         self.show_locks()
