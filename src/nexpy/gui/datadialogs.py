@@ -1854,13 +1854,19 @@ class LockDialog(NXDialog):
 
         self.show_locks()
 
+    def convert_name(self, name):
+        return '/' + name.replace('!!', '/')
+
     def show_locks(self):
+
         def _getmtime(entry):
             return entry.stat().st_mtime
+
         text = []
         for f in sorted(os.scandir(self.lockdirectory), key=_getmtime):
             if f.name.endswith('.lock'):
-                text.append(f'{format_mtime(f.stat().st_mtime)} {f.name}')
+                name = self.convert_name(f.name)
+                text.append(f'{format_mtime(f.stat().st_mtime)} {name}')
         if text:
             self.text_box.setPlainText('\n'.join(text))
         else:
@@ -1873,7 +1879,8 @@ class LockDialog(NXDialog):
         locks = []
         for f in sorted(os.scandir(self.lockdirectory), key=_getmtime):
             if f.name.endswith('.lock'):
-                locks.append(self.checkboxes((f.name, f.name, False),
+                name = self.convert_name(f.name)
+                locks.append(self.checkboxes((f.name, name, False),
                                              align='left'))
         dialog.scroll_area = NXScrollArea()
         dialog.scroll_widget = NXWidget()
