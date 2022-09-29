@@ -28,19 +28,19 @@ from pathlib import Path
 import pkg_resources
 from nexusformat.nexus import (NeXusError, NXdata, NXentry, NXfield, NXFile,
                                NXgroup, NXlink, NXobject, NXprocess, NXroot,
-                               nxcompleter, nxduplicate, nxload)
+                               nxcompleter, nxduplicate, nxgetconfig, nxload)
 from qtconsole.inprocess import QtInProcessKernelManager
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
 
 from .. import __version__
 from .datadialogs import (AddDialog, CustomizeDialog, DirectoryDialog,
                           ExportDialog, InitializeDialog, InstallPluginDialog,
-                          LimitDialog, LogDialog, ManageBackupsDialog,
-                          NewDialog, PasteDialog, PlotDialog, PlotScalarDialog,
-                          PreferencesDialog, ProjectionDialog, RemoteDialog,
-                          RemovePluginDialog, RenameDialog,
-                          RestorePluginDialog, ScanDialog, SignalDialog,
-                          UnlockDialog, ViewDialog)
+                          LimitDialog, LockDialog, LogDialog,
+                          ManageBackupsDialog, NewDialog, PasteDialog,
+                          PlotDialog, PlotScalarDialog, PreferencesDialog,
+                          ProjectionDialog, RemoteDialog, RemovePluginDialog,
+                          RenameDialog, RestorePluginDialog, ScanDialog,
+                          SignalDialog, UnlockDialog, ViewDialog)
 from .fitdialogs import FitDialog
 from .plotview import NXPlotView
 from .pyqt import QtCore, QtGui, QtWidgets, getOpenFileName, getSaveFileName
@@ -343,6 +343,10 @@ class MainWindow(QtWidgets.QMainWindow):
                                                    shortcut=unlock_shortcut,
                                                    triggered=self.unlock_file)
         self.add_menu_action(self.file_menu, self.unlockfile_action)
+
+        self.lock_action = QtWidgets.QAction(
+            "Show File Locks", self, triggered=self.show_locks)
+        self.add_menu_action(self.file_menu, self.lock_action)
 
         self.file_menu.addSeparator()
 
@@ -1227,6 +1231,18 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def nodefile_locked(self, node):
         return is_file_locked(node.nxfile.filename)
+
+    def show_locks(self):
+        try:
+            lockdirectory = nxgetconfig('lockdirectory')
+            if lockdirectory is None:
+                raise NeXusError("No lock file directory defined")
+            elif not os.path.exists(lockdirectory):
+                raise NeXusError(f"'{lockdirectory}' does not exist")
+            dialog = LockDialog(parent=self)
+            dialog.show()
+        except NeXusError as error:
+            report_error("Showing File Locks", error)
 
     def backup_file(self):
         try:

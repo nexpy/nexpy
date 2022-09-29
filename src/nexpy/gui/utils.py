@@ -610,43 +610,40 @@ def load_image(filename):
 
 
 def initialize_preferences(settings):
-    cfg = nxgetconfig()
-    if settings.has_option('preferences', 'memory'):
-        nxsetconfig(memory=settings.get('preferences', 'memory'))
-    else:
-        settings.set('preferences', 'memory', cfg['memory'])
-    if settings.has_option('preferences', 'maxsize'):
-        nxsetconfig(maxsize=settings.get('preferences', 'maxsize'))
-    else:
-        settings.set('preferences', 'maxsize', cfg['maxsize'])
-    if settings.has_option('preferences', 'compression'):
-        nxsetconfig(compression=settings.get('preferences', 'compression'))
-    else:
-        settings.set('preferences', 'compression', cfg['compression'])
-    if settings.has_option('preferences', 'encoding'):
-        nxsetconfig(encoding=settings.get('preferences', 'encoding'))
-    else:
-        settings.set('preferences', 'encoding', cfg['encoding'])
-    if settings.has_option('preferences', 'lock'):
-        nxsetconfig(lock=settings.get('preferences', 'lock'))
-    else:
-        settings.set('preferences', 'lock', cfg['lock'])
-    if settings.has_option('preferences', 'lockexpiry'):
-        nxsetconfig(lockexpiry=settings.get('preferences', 'lockexpiry'))
-    else:
-        settings.set('preferences', 'lockexpiry', cfg['lockexpiry'])
-    if settings.has_option('preferences', 'lockdirectory'):
-        nxsetconfig(lockdirectory=settings.get('preferences', 'lockdirectory'))
-    else:
-        settings.set('preferences', 'lockdirectory', cfg['lockdirectory'])
-    if settings.has_option('preferences', 'recursive'):
-        nxsetconfig(recursive=settings.getboolean('preferences', 'recursive'))
-    else:
-        settings.set('preferences', 'recursive', cfg['recursive'])
+    """Initialize NeXpy preferences.
+
+    For the nexusformat configuration parameters, precedence is given to
+    those that are defined by environment variables, since these might
+    be set by the system administrator. If any configuration parameter
+    has not been set before, default values are used.
+
+    The environment variable names are in upper case and preceded by 'NX_'
+
+    Parameters
+    ----------
+    settings : NXConfigParser
+        NXConfigParser instance containing NeXpy preferences.
+    """
+
+    def setconfig(parameter):
+        environment_variable = 'NX_'+parameter.upper()
+        if environment_variable in os.environ:
+            value = os.environ[environment_variable]
+        elif settings.has_option('preferences', parameter):
+            value = settings.get('preferences', parameter)
+        else:
+            value = nxgetconfig(parameter)
+        nxsetconfig(**{parameter: value})
+        settings.set('preferences', parameter, nxgetconfig(parameter))
+
+    for parameter in nxgetconfig():
+        setconfig(parameter)
+
     if settings.has_option('preferences', 'style'):
         set_style(settings.get('preferences', 'style'))
     else:
         settings.set('preferences', 'style', 'default')
+
     settings.save()
 
 
