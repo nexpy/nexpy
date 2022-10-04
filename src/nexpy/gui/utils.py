@@ -389,6 +389,14 @@ def is_timestamp(timestamp):
         return False
 
 
+def get_mtime(file_path):
+    """Return the file modification time for the specified file path."""
+    try:
+        return file_path.stat().st_mtime
+    except FileNotFoundError:  # due to a race condition
+        return 0.0
+
+
 def format_mtime(mtime):
     """Return the modification time as a formatted string."""
     return str(datetime.fromtimestamp(mtime))[:19]
