@@ -24,8 +24,8 @@ from nexusformat.nexus import (NeXusError, NXattr, NXdata, NXentry, NXfield,
 from .pyqt import QtCore, QtGui, QtWidgets, getOpenFileName, getSaveFileName
 from .utils import (confirm_action, convertHTML, display_message,
                     fix_projection, format_mtime, format_timestamp, get_color,
-                    human_size, import_plugin, keep_data, natural_sort,
-                    report_error, set_style, timestamp, wrap)
+                    get_mtime, human_size, import_plugin, keep_data,
+                    natural_sort, report_error, set_style, timestamp, wrap)
 from .widgets import (NXCheckBox, NXColorBox, NXComboBox, NXDoubleSpinBox,
                       NXLabel, NXLineEdit, NXPlainTextEdit, NXpolygon,
                       NXPushButton, NXScrollArea, NXSpinBox, NXStack)
@@ -1858,26 +1858,20 @@ class LockDialog(NXDialog):
         return '/' + name.replace('!!', '/')
 
     def show_locks(self):
-
-        def _getmtime(entry):
-            return entry.stat().st_mtime
-
         text = []
-        for f in sorted(os.scandir(self.lockdirectory), key=_getmtime):
+        for f in sorted(os.scandir(self.lockdirectory), key=get_mtime):
             if f.name.endswith('.lock'):
                 name = self.convert_name(f.name)
-                text.append(f'{format_mtime(f.stat().st_mtime)} {name}')
+                text.append(f'{format_mtime(get_mtime(f))} {name}')
         if text:
             self.text_box.setPlainText('\n'.join(text))
         else:
             self.text_box.setPlainText('No Files')
 
     def clear_locks(self):
-        def _getmtime(entry):
-            return entry.stat().st_mtime
         dialog = NXDialog(parent=self)
         locks = []
-        for f in sorted(os.scandir(self.lockdirectory), key=_getmtime):
+        for f in sorted(os.scandir(self.lockdirectory), key=get_mtime):
             if f.name.endswith('.lock'):
                 name = self.convert_name(f.name)
                 locks.append(self.checkboxes((f.name, name, False),
