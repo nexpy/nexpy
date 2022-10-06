@@ -169,8 +169,8 @@ class NXWidget(QtWidgets.QWidget):
             layout.addStretch()
         return layout
 
-    def label(self, label):
-        return NXLabel(str(label))
+    def label(self, label, **opts):
+        return NXLabel(str(label), **opts)
 
     def labels(self, *labels, **opts):
         if 'align' in opts:
@@ -1839,13 +1839,13 @@ class LockDialog(NXDialog):
         super().__init__(parent=parent)
 
         self.lockdirectory = nxgetconfig('lockdirectory')
-
         self.text_box = NXPlainTextEdit(wrap=False)
         self.text_box.setReadOnly(True)
-        self.set_layout(self.text_box,
+        self.set_layout(self.label(f'Lock Directory: {self.lockdirectory}'),
+                        self.text_box,
                         self.action_buttons(('Clear Locks', self.clear_locks)),
                         self.close_buttons(close=True))
-        self.set_title(f'Lock Directory: {self.lockdirectory}')
+        self.set_title(f'Locked Files')
         self.setMinimumWidth(800)
 
         self.timer = QtCore.QTimer(self)
@@ -1855,7 +1855,7 @@ class LockDialog(NXDialog):
         self.show_locks()
 
     def convert_name(self, name):
-        return '/' + name.replace('!!', '/')
+        return '/' + name.replace('!!', '/').replace('.lock', '')
 
     def show_locks(self):
         text = []
