@@ -754,13 +754,13 @@ class NXPlotView(QtWidgets.QDialog):
                 self.num = num
             else:
                 self.num = 1
-                if xmin:
+                if xmin is not None:
                     self.xaxis.lo = xmin
-                if xmax:
+                if xmax is not None:
                     self.xaxis.hi = xmax
-                if ymin:
+                if ymin is not None:
                     self.yaxis.lo = ymin
-                if ymax:
+                if ymax is not None:
                     self.yaxis.hi = ymax
                 if log:
                     logy = True
@@ -771,25 +771,25 @@ class NXPlotView(QtWidgets.QDialog):
 
         # Higher-dimensional plot
         else:
-            if xmin:
+            if xmin is not None:
                 self.xaxis.lo = xmin
             else:
                 self.xaxis.lo = self.xaxis.min
-            if xmax:
+            if xmax is not None:
                 self.xaxis.hi = xmax
             else:
                 self.xaxis.hi = self.xaxis.max
-            if ymin:
+            if ymin is not None:
                 self.yaxis.lo = ymin
             else:
                 self.yaxis.lo = self.yaxis.min
-            if ymax:
+            if ymax is not None:
                 self.yaxis.hi = ymax
             else:
                 self.yaxis.hi = self.yaxis.max
-            if vmin:
+            if vmin is not None:
                 self.vaxis.lo = vmin
-            if vmax:
+            if vmax is not None:
                 self.vaxis.hi = vmax
             self.reset_log()
             self.x, self.y, self.v = self.get_image()
@@ -1002,19 +1002,19 @@ class NXPlotView(QtWidgets.QDialog):
             xlo, xhi = ax.set_xlim(auto=True)
             ylo, yhi = ax.set_ylim(auto=True)
 
-            if self.xaxis.lo:
+            if self.xaxis.lo is not None:
                 ax.set_xlim(xmin=self.xaxis.lo)
             else:
                 self.xaxis.lo = xlo
-            if self.xaxis.hi:
+            if self.xaxis.hi is not None:
                 ax.set_xlim(xmax=self.xaxis.hi)
             else:
                 self.xaxis.hi = xhi
-            if self.yaxis.lo:
+            if self.yaxis.lo is not None:
                 ax.set_ylim(ymin=self.yaxis.lo)
             else:
                 self.yaxis.lo = ylo
-            if self.yaxis.hi:
+            if self.yaxis.hi is not None:
                 ax.set_ylim(ymax=self.yaxis.hi)
             else:
                 self.yaxis.hi = yhi
