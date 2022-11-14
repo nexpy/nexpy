@@ -287,10 +287,10 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.file_menu.addSeparator()
 
-        self.restore_action = QtWidgets.QAction(
+        self.restore_session_action = QtWidgets.QAction(
             "Restore Session", self, shortcut=QtGui.QKeySequence("Ctrl+R"),
             triggered=self.restore_session)
-        self.add_menu_action(self.file_menu, self.restore_action)
+        self.add_menu_action(self.file_menu, self.restore_session_action)
 
         self.file_menu.addSeparator()
 
@@ -355,9 +355,9 @@ class MainWindow(QtWidgets.QMainWindow):
             triggered=self.backup_file)
         self.add_menu_action(self.file_menu, self.backup_action)
 
-        self.restore_action = QtWidgets.QAction("Restore Backup...", self,
-                                                triggered=self.restore_file)
-        self.add_menu_action(self.file_menu, self.restore_action)
+        self.restore_backup_action = QtWidgets.QAction(
+            "Restore Backup...", self, triggered=self.restore_file)
+        self.add_menu_action(self.file_menu, self.restore_backup_action)
 
         self.manage_backups_action = QtWidgets.QAction(
             "Manage Backups...", self, triggered=self.manage_backups)
