@@ -33,9 +33,9 @@ import numpy as np
 from matplotlib.backend_bases import (FigureCanvasBase, FigureManagerBase,
                                       NavigationToolbar2)
 from matplotlib.backends.backend_qt import FigureManagerQT as FigureManager
+from matplotlib.backends.backend_qt import NavigationToolbar2QT
 from matplotlib.backends.backend_qtagg import (FigureCanvasQTAgg as
                                                FigureCanvas)
-from matplotlib.backends.backend_qtagg import NavigationToolbar2QT
 from matplotlib.colors import LogNorm, Normalize, SymLogNorm
 from matplotlib.figure import Figure
 from matplotlib.image import imread
@@ -3874,6 +3874,7 @@ class NXNavigationToolbar(NavigationToolbar2QT, QtWidgets.QToolBar):
 
         self.coordinates = coordinates
         self._actions = {}  # mapping of toolitem method names to QActions.
+        self._subplot_dialog = None
 
         for text, tooltip_text, image_file, callback in self.toolitems:
             if text is None:
