@@ -1,18 +1,17 @@
 
 <!DOCTYPE html>
 
-<html lang="en">
+<html>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
-    <title>Installation &#8212; NeXpy 0.14.6 documentation</title>
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="_static/sphinxdoc.css" />
-    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <title>Installation &#8212; NeXpy 0.14.8 documentation</title>
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
-    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="_static/doctools.js"></script>
     <link rel="shortcut icon" href="_static/favicon.ico"/>
     <link rel="index" title="Index" href="genindex.html" />
@@ -35,7 +34,7 @@
         <li class="right" >
           <a href="index.html" title="NeXpy: A Python GUI to analyze NeXus data"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.14.6 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.14.8 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Installation</a></li> 
       </ul>
     </div>  
@@ -46,7 +45,7 @@
           <div class="body" role="main">
             
   <section id="installation">
-<h1>Installation<a class="headerlink" href="#installation" title="Permalink to this heading">¶</a></h1>
+<h1>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h1>
 <p>Released versions of NeXpy are available on <a class="reference external" href="https://pypi.python.org/pypi/NeXpy/">PyPI</a> and as a <a class="reference external" href="https://anaconda.org/nexpy">Conda installation</a>.</p>
 <p>If you have the <a class="reference external" href="https://pypi.python.org/pypi/setuptools">Python Setup Tools</a>
 installed, then you can either install using ‘pip’:</p>
@@ -63,7 +62,7 @@ conda-forge channel:</p>
 <p>You can add conda-forge to your default channels so that it is
 automatically searched when installing. Just type
 <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">config</span> <span class="pre">--add</span> <span class="pre">channels</span> <span class="pre">conda-forge</span></code>.</p>
-</div>
+</aside>
 <p>You can install the package from the source code either by downloading one of
 the <a class="reference external" href="https://github.com/nexpy/nexpy/releases">Github releases</a> or by cloning
 the latest development version in the
@@ -98,9 +97,9 @@ cloning the latest development version in the <a class="reference external" href
 </div>
 </section>
 <section id="required-libraries">
-<h1>Required Libraries<a class="headerlink" href="#required-libraries" title="Permalink to this heading">¶</a></h1>
+<h1>Required Libraries<a class="headerlink" href="#required-libraries" title="Permalink to this headline">¶</a></h1>
 <section id="python-command-line-api">
-<h2>Python Command-Line API<a class="headerlink" href="#python-command-line-api" title="Permalink to this heading">¶</a></h2>
+<h2>Python Command-Line API<a class="headerlink" href="#python-command-line-api" title="Permalink to this headline">¶</a></h2>
 <p>NeXpy provides a GUI interface to the
 <a class="reference external" href="https://github.com/nexpy/nexusformat">nexusformat API</a>, which uses
 <a class="reference external" href="http://h5py.org">h5py</a> to read and write HDF5 files that implement the
@@ -137,10 +136,10 @@ autocompletion within an IPython shell,  <a class="reference external" href="htt
 <p class="admonition-title">Note</p>
 <p>If you need to read HDF4 or XML files now, please clone the
 old-master branch (<a class="reference external" href="https://github.com/nexpy/nexpy/tree/old-master">https://github.com/nexpy/nexpy/tree/old-master</a>).</p>
-</div>
+</aside>
 </section>
 <section id="nexpy-gui">
-<h2>NeXpy GUI<a class="headerlink" href="#nexpy-gui" title="Permalink to this heading">¶</a></h2>
+<h2>NeXpy GUI<a class="headerlink" href="#nexpy-gui" title="Permalink to this headline">¶</a></h2>
 <p>The GUI is built using the PyQt. The
 <a class="reference external" href="https://github.com/spyder-ide/qtpy">qtpy package</a> is used to import an
 installed PyQt library, either PyQt5, PyQt6, PySide2, or PySide6.</p>
@@ -181,7 +180,7 @@ embedded in the Qt GUI using an implementation based on the Jupyter QtConsole.</
 </table>
 </section>
 <section id="additional-packages">
-<h2>Additional Packages<a class="headerlink" href="#additional-packages" title="Permalink to this heading">¶</a></h2>
+<h2>Additional Packages<a class="headerlink" href="#additional-packages" title="Permalink to this headline">¶</a></h2>
 <p>Importers may require additional libraries to read the imported files in their
 native format, <em>e.g.</em>, <a class="reference external" href="http://spec2nexus.readthedocs.org/">spec2nexus</a> for
 reading SPEC files and <a class="reference external" href="https://github.com/silx-kit/fabio">FabIO</a> for
@@ -213,10 +212,10 @@ changed in the shell by setting <code class="docutils literal notranslate"><span
 <p class="admonition-title">Note</p>
 <p>NeXpy should still run without these additional packages, but invoking
 the relevant menu items may trigger an exception.</p>
-</div>
+</aside>
 </section>
 <section id="running-the-gui">
-<h2>Running the GUI<a class="headerlink" href="#running-the-gui" title="Permalink to this heading">¶</a></h2>
+<h2>Running the GUI<a class="headerlink" href="#running-the-gui" title="Permalink to this headline">¶</a></h2>
 <p>To run from the installed location, add the $prefix/bin directory to your path
 if you installed outside the python installation, and then run:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ nexpy [-r]
@@ -225,11 +224,11 @@ if you installed outside the python installation, and then run:</p>
 <p>The -r option restores all files loaded in the previous session.</p>
 </section>
 <section id="semantic-versioning">
-<h2>Semantic Versioning<a class="headerlink" href="#semantic-versioning" title="Permalink to this heading">¶</a></h2>
+<h2>Semantic Versioning<a class="headerlink" href="#semantic-versioning" title="Permalink to this headline">¶</a></h2>
 <p>NeXpy uses <a class="reference external" href="http://semver.org/spec/v2.0.0.html">Semantic Versioning</a>.</p>
 </section>
 <section id="user-support">
-<h2>User Support<a class="headerlink" href="#user-support" title="Permalink to this heading">¶</a></h2>
+<h2>User Support<a class="headerlink" href="#user-support" title="Permalink to this headline">¶</a></h2>
 <p>Consult the <a class="reference external" href="http://nexpy.github.io/nexpy/">NeXpy documentation</a> for details
 of both the Python command-line API and how to use the NeXpy GUI. If you have
 any general questions concerning the use of NeXpy, please address
@@ -237,7 +236,7 @@ them to the <a class="reference external" href="http://download.nexusformat.org/
 any bugs, please submit a <a class="reference external" href="https://github.com/nexpy/nexpy/issues">Github issue</a>, preferably with relevant tracebacks.</p>
 </section>
 <section id="acknowledgements">
-<h2>Acknowledgements<a class="headerlink" href="#acknowledgements" title="Permalink to this heading">¶</a></h2>
+<h2>Acknowledgements<a class="headerlink" href="#acknowledgements" title="Permalink to this headline">¶</a></h2>
 <p>The <a class="reference external" href="http://www.nexusformat.org">NeXus format</a> for neutron, x-ray and muon
 data is developed by an international collaboration under the supervision of the
 <a class="reference external" href="http://wiki.nexusformat.org/NIAC">NeXus International Advisory Committee</a>.
@@ -257,9 +256,8 @@ the packages on conda-forge.</p>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
-  <div>
-    <h3><a href="index.html">Table of Contents</a></h3>
-    <ul>
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
 <li><a class="reference internal" href="#">Installation</a></li>
 <li><a class="reference internal" href="#required-libraries">Required Libraries</a><ul>
 <li><a class="reference internal" href="#python-command-line-api">Python Command-Line API</a></li>
@@ -273,17 +271,12 @@ the packages on conda-forge.</p>
 </li>
 </ul>
 
-  </div>
-  <div>
-    <h4>Previous topic</h4>
-    <p class="topless"><a href="index.html"
-                          title="previous chapter">NeXpy: A Python GUI to analyze NeXus data</a></p>
-  </div>
-  <div>
-    <h4>Next topic</h4>
-    <p class="topless"><a href="pythonshell.html"
-                          title="next chapter">Python Interface to NeXus</a></p>
-  </div>
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="index.html"
+                        title="previous chapter">NeXpy: A Python GUI to analyze NeXus data</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="pythonshell.html"
+                        title="next chapter">Python Interface to NeXus</a></p>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
@@ -295,12 +288,12 @@ the packages on conda-forge.</p>
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
     </form>
     </div>
 </div>
-<script>document.getElementById('searchbox').style.display = "block"</script>
+<script>$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -320,13 +313,13 @@ the packages on conda-forge.</p>
         <li class="right" >
           <a href="index.html" title="NeXpy: A Python GUI to analyze NeXus data"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.14.6 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.14.8 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Installation</a></li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright Modified BSD License.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.1.1.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.3.
     </div>
   </body>
 </html>
