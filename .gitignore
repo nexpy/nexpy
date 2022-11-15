@@ -1,5 +1,4 @@
 *.py[cod]
-.pydevproject
 
 # C extensions
 *.so
@@ -58,3 +57,10 @@ Icon?
 
 # Virtual Studio Code
 .vscode
+
+# setuptools_scm
+src/nexpy/_version.py
+
+# miscellaneous system files
+.directoryhash
+ 

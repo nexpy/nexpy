@@ -68,8 +68,10 @@ def get_models():
 
     from lmfit.models import lmfit_models
     models = lmfit_models
-    del models['Expression']
-    del models['Gaussian-2D']
+    if 'Expression' in models:
+        del models['Expression']
+    if 'Gaussian-2D' in models:
+        del models['Gaussian-2D']
 
     filenames = set()
 
@@ -494,9 +496,9 @@ class FitTab(NXTab):
     def signal_mask(self):
         mask = self._data['signal'].mask
         if mask and mask.any():
-            mask_data = NXfield(self._data['signal'].nxdata.data[mask is True],
+            mask_data = NXfield(self._data['signal'].nxdata.data[mask == 1],
                                 name='mask')
-            mask_axis = NXfield(self._data['axis'].nxdata[mask is True],
+            mask_axis = NXfield(self._data['axis'].nxdata[mask == 1],
                                 name='axis')
             return NXdata(mask_data, mask_axis)
         else:

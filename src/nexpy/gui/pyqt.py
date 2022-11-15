@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2013-2021, NeXpy Development Team.
+# Copyright (c) 2013-2022, NeXpy Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -10,17 +10,17 @@ import os
 from qtpy import QtCore, QtGui, QtWidgets
 
 if QtCore.PYQT5:
-    QtVersion = 'Qt5Agg'
+    QtVersion = 'PyQt5' + ' v' + QtCore.__version__
     os.environ['QT_API'] = 'pyqt5'
+elif QtCore.PYQT6:
+    QtVersion = 'PyQt6' + ' v' + QtCore.__version__
+    os.environ['QT_API'] = 'pyqt6'
 elif QtCore.PYSIDE2:
-    QtVersion = 'Qt5Agg'
+    QtVersion = 'PySide2' + ' v' + QtCore.__version__
     os.environ['QT_API'] = 'pyside2'
-elif QtCore.PYQT4:
-    QtVersion = 'Qt4Agg'
-    os.environ['QT_API'] = 'pyqt'
-elif QtCore.PYSIDE:
-    QtVersion = 'Qt4Agg'
-    os.environ['QT_API'] = 'pyside'
+elif QtCore.PYSIDE6:
+    QtVersion = 'PySide6' + ' v' + QtCore.__version__
+    os.environ['QT_API'] = 'pyside6'
 
 
 def getOpenFileName(*args, **kwargs):

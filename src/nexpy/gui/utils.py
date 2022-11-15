@@ -21,8 +21,10 @@ from datetime import datetime
 
 import numpy as np
 from IPython.core.ultratb import ColorTB
+from matplotlib import __version__ as mplversion
 from matplotlib import rcParams
 from matplotlib.colors import colorConverter, hex2color, rgb2hex
+from pkg_resources import parse_version
 
 from .pyqt import QtCore, QtWidgets
 
@@ -37,11 +39,7 @@ except ImportError:
 
 from nexusformat.nexus import (NeXusError, NXcollection, NXdata, NXfield,
                                NXLock, NXLockException, NXnote,
-                               nxgetcompression, nxgetencoding, nxgetlock,
-                               nxgetmaxsize, nxgetmemory, nxgetrecursive,
-                               nxload, nxsetcompression, nxsetencoding,
-                               nxsetlock, nxsetmaxsize, nxsetmemory,
-                               nxsetrecursive)
+                               nxgetconfig, nxload, nxsetconfig)
 
 ansi_re = re.compile(r'\x1b' + r'\[([\dA-Fa-f;]*?)m')
 
@@ -152,15 +150,20 @@ def run_pythonw(script_path):
             warnings.warn(msg)
 
 
-def is_file_locked(filename, wait=5):
+def is_file_locked(filename, wait=5, expiry=None):
     _lock = NXLock(filename)
     try:
-        _lock.wait(wait)
-        return False
+        if expiry is None:
+            expiry = nxgetconfig('lockexpiry')
+        if _lock.is_stale(expiry=expiry):
+            return False
+        else:
+            _lock.wait(wait)
+            return False
     except NXLockException:
         lock_time = modification_time(_lock.lock_file)
         if confirm_action("File locked. Do you want to clear the lock?",
-                          f"{filename+lock_time}\nLock file created: ",
+                          f"{filename}\nCreated: {lock_time}",
                           answer="no"):
             _lock.clear()
             return False
@@ -386,6 +389,14 @@ def is_timestamp(timestamp):
         return False
 
 
+def get_mtime(file_path):
+    """Return the file modification time for the specified file path."""
+    try:
+        return file_path.stat().st_mtime
+    except FileNotFoundError:  # due to a race condition
+        return 0.0
+
+
 def format_mtime(mtime):
     """Return the modification time as a formatted string."""
     return str(datetime.fromtimestamp(mtime))[:19]
@@ -542,8 +553,12 @@ def parula_map():
 
 def divgray_map():
     """New divergent color map copied from the registered 'gray' map."""
-    from matplotlib.cm import get_cmap
-    cm = copy.copy(get_cmap('gray'))
+    if parse_version(mplversion) >= parse_version('3.5.0'):
+        from matplotlib import colormaps
+        cm = copy.copy(colormaps['gray'])
+    else:
+        from matplotlib.cm import get_cmap
+        cm = copy.copy(get_cmap('gray'))
     cm.name = 'divgray'
     return cm
 
@@ -603,34 +618,40 @@ def load_image(filename):
 
 
 def initialize_preferences(settings):
-    if settings.has_option('preferences', 'memory'):
-        nxsetmemory(settings.get('preferences', 'memory'))
-    else:
-        settings.set('preferences', 'memory', nxgetmemory())
-    if settings.has_option('preferences', 'maxsize'):
-        nxsetmaxsize(settings.get('preferences', 'maxsize'))
-    else:
-        settings.set('preferences', 'maxsize', nxgetmaxsize())
-    if settings.has_option('preferences', 'compression'):
-        nxsetcompression(settings.get('preferences', 'compression'))
-    else:
-        settings.set('preferences', 'compression', nxgetcompression())
-    if settings.has_option('preferences', 'encoding'):
-        nxsetencoding(settings.get('preferences', 'encoding'))
-    else:
-        settings.set('preferences', 'encoding', nxgetencoding())
-    if settings.has_option('preferences', 'lock'):
-        nxsetlock(settings.get('preferences', 'lock'))
-    else:
-        settings.set('preferences', 'lock', nxgetlock())
-    if settings.has_option('preferences', 'recursive'):
-        nxsetrecursive(settings.getboolean('preferences', 'recursive'))
-    else:
-        settings.set('preferences', 'recursive', nxgetrecursive())
+    """Initialize NeXpy preferences.
+
+    For the nexusformat configuration parameters, precedence is given to
+    those that are defined by environment variables, since these might
+    be set by the system administrator. If any configuration parameter
+    has not been set before, default values are used.
+
+    The environment variable names are in upper case and preceded by 'NX_'
+
+    Parameters
+    ----------
+    settings : NXConfigParser
+        NXConfigParser instance containing NeXpy preferences.
+    """
+
+    def setconfig(parameter):
+        environment_variable = 'NX_'+parameter.upper()
+        if environment_variable in os.environ:
+            value = os.environ[environment_variable]
+        elif settings.has_option('preferences', parameter):
+            value = settings.get('preferences', parameter)
+        else:
+            value = nxgetconfig(parameter)
+        nxsetconfig(**{parameter: value})
+        settings.set('preferences', parameter, nxgetconfig(parameter))
+
+    for parameter in nxgetconfig():
+        setconfig(parameter)
+
     if settings.has_option('preferences', 'style'):
         set_style(settings.get('preferences', 'style'))
     else:
         settings.set('preferences', 'style', 'default')
+
     settings.save()
 
 

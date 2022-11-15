@@ -16,7 +16,6 @@ of a Matplotlib plotting pane and a tree view for displaying NeXus data.
 # Imports
 # -----------------------------------------------------------------------------
 import glob
-import json
 import logging
 import os
 import re
@@ -27,26 +26,25 @@ from operator import attrgetter
 from pathlib import Path
 
 import pkg_resources
-from IPython.core.magic import magic_escapes
 from nexusformat.nexus import (NeXusError, NXdata, NXentry, NXfield, NXFile,
                                NXgroup, NXlink, NXobject, NXprocess, NXroot,
-                               nxcompleter, nxduplicate, nxload)
+                               nxcompleter, nxduplicate, nxgetconfig, nxload)
 from qtconsole.inprocess import QtInProcessKernelManager
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
 
 from .. import __version__
 from .datadialogs import (AddDialog, CustomizeDialog, DirectoryDialog,
                           ExportDialog, InitializeDialog, InstallPluginDialog,
-                          LimitDialog, LogDialog, ManageBackupsDialog,
-                          NewDialog, PasteDialog, PlotDialog, PlotScalarDialog,
-                          PreferencesDialog, ProjectionDialog, RemoteDialog,
-                          RemovePluginDialog, RenameDialog,
-                          RestorePluginDialog, ScanDialog, SignalDialog,
-                          UnlockDialog, ViewDialog)
+                          LimitDialog, LockDialog, LogDialog,
+                          ManageBackupsDialog, NewDialog, PasteDialog,
+                          PlotDialog, PlotScalarDialog, PreferencesDialog,
+                          ProjectionDialog, RemoteDialog, RemovePluginDialog,
+                          RenameDialog, RestorePluginDialog, ScanDialog,
+                          SignalDialog, UnlockDialog, ViewDialog)
 from .fitdialogs import FitDialog
 from .plotview import NXPlotView
 from .pyqt import QtCore, QtGui, QtWidgets, getOpenFileName, getSaveFileName
-from .scripteditor import NXScriptEditor, NXScriptWindow
+from .scripteditor import NXScriptWindow
 from .treeview import NXTreeView
 from .utils import (confirm_action, display_message, get_colors, get_name,
                     import_plugin, is_file_locked, load_image, natural_sort,
@@ -67,8 +65,6 @@ class NXRichJupyterWidget(RichJupyterWidget):
 
 
 class MainWindow(QtWidgets.QMainWindow):
-
-    _magic_menu_dict = {}
 
     def __init__(self, app, tree, settings, config):
         """ Create a MainWindow for the application.
@@ -234,7 +230,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.init_data_menu()
         self.init_plugin_menus()
         self.init_view_menu()
-        self.init_magic_menu()
         self.init_window_menu()
         self.init_script_menu()
         self.init_help_menu()
@@ -292,10 +287,10 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.file_menu.addSeparator()
 
-        self.restore_action = QtWidgets.QAction(
+        self.restore_session_action = QtWidgets.QAction(
             "Restore Session", self, shortcut=QtGui.QKeySequence("Ctrl+R"),
             triggered=self.restore_session)
-        self.add_menu_action(self.file_menu, self.restore_action)
+        self.add_menu_action(self.file_menu, self.restore_session_action)
 
         self.file_menu.addSeparator()
 
@@ -349,6 +344,10 @@ class MainWindow(QtWidgets.QMainWindow):
                                                    triggered=self.unlock_file)
         self.add_menu_action(self.file_menu, self.unlockfile_action)
 
+        self.lock_action = QtWidgets.QAction(
+            "Show File Locks", self, triggered=self.show_locks)
+        self.add_menu_action(self.file_menu, self.lock_action)
+
         self.file_menu.addSeparator()
 
         self.backup_action = QtWidgets.QAction(
@@ -356,9 +355,9 @@ class MainWindow(QtWidgets.QMainWindow):
             triggered=self.backup_file)
         self.add_menu_action(self.file_menu, self.backup_action)
 
-        self.restore_action = QtWidgets.QAction("Restore Backup...", self,
-                                                triggered=self.restore_file)
-        self.add_menu_action(self.file_menu, self.restore_action)
+        self.restore_backup_action = QtWidgets.QAction(
+            "Restore Backup...", self, triggered=self.restore_file)
+        self.add_menu_action(self.file_menu, self.restore_backup_action)
 
         self.manage_backups_action = QtWidgets.QAction(
             "Manage Backups...", self, triggered=self.manage_backups)
@@ -634,61 +633,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.add_menu_action(self.view_menu, self.reset_font_size, True)
 
         self.view_menu.addSeparator()
-
-        self.clear_action = QtWidgets.QAction(
-            "&Clear Screen", self, statusTip="Clear the console",
-            triggered=self.clear_magic_console)
-        self.add_menu_action(self.view_menu, self.clear_action)
-
-    def init_magic_menu(self):
-        self.magic_menu = self.menu_bar.addMenu("&Magic")
-        self.magic_menu_separator = self.magic_menu.addSeparator()
-
-        self.all_magic_menu = self._get_magic_menu("AllMagics",
-                                                   menulabel="&All Magics...")
-
-        # This action should usually not appear as it will be cleared when menu
-        # is updated at first kernel response. Though, it is necessary when
-        # connecting through X-forwarding, as in this case, the menu is not
-        # auto updated, SO DO NOT DELETE.
-        self.pop = QtWidgets.QAction("&Update All Magic Menu ", self,
-                                     triggered=self.update_all_magic_menu)
-        self.add_menu_action(self.all_magic_menu, self.pop)
-        # we need to populate the 'Magic Menu' once the kernel has answer at
-        # least once let's do it immediately, but it's assured to works
-        self.pop.trigger()
-
-        self.reset_action = QtWidgets.QAction(
-            "&Reset", self, statusTip="Clear all variables from workspace",
-            triggered=self.reset_magic_console)
-        self.add_menu_action(self.magic_menu, self.reset_action)
-
-        self.history_action = QtWidgets.QAction(
-            "&History", self, statusTip="show command history",
-            triggered=self.history_magic_console)
-        self.add_menu_action(self.magic_menu, self.history_action)
-
-        self.save_action = QtWidgets.QAction(
-            "E&xport History ", self,
-            statusTip="Export History as Python File",
-            triggered=self.save_magic_console)
-        self.add_menu_action(self.magic_menu, self.save_action)
-
-        self.who_action = QtWidgets.QAction(
-            "&Who", self, statusTip="List interactive variables",
-            triggered=self.who_magic_console)
-        self.add_menu_action(self.magic_menu, self.who_action)
-
-        self.who_ls_action = QtWidgets.QAction(
-            "Wh&o ls", self,
-            statusTip="Return a list of interactive variables",
-            triggered=self.who_ls_magic_console)
-        self.add_menu_action(self.magic_menu, self.who_ls_action)
-
-        self.whos_action = QtWidgets.QAction(
-            "Who&s", self, statusTip="List interactive variables with details",
-            triggered=self.whos_magic_console)
-        self.add_menu_action(self.magic_menu, self.whos_action)
 
     def init_window_menu(self):
         self.window_menu = self.menu_bar.addMenu("&Window")
@@ -1288,6 +1232,18 @@ class MainWindow(QtWidgets.QMainWindow):
     def nodefile_locked(self, node):
         return is_file_locked(node.nxfile.filename)
 
+    def show_locks(self):
+        try:
+            lockdirectory = nxgetconfig('lockdirectory')
+            if lockdirectory is None:
+                raise NeXusError("No lock file directory defined")
+            elif not os.path.exists(lockdirectory):
+                raise NeXusError(f"'{lockdirectory}' does not exist")
+            dialog = LockDialog(parent=self)
+            dialog.show()
+        except NeXusError as error:
+            report_error("Showing File Locks", error)
+
     def backup_file(self):
         try:
             node = self.treeview.get_node()
@@ -1830,118 +1786,6 @@ class MainWindow(QtWidgets.QMainWindow):
                 class_doc, class_fields, class_groups)
         self.nxclasses['NXgroup'] = ('', {}, {})
 
-    def _make_dynamic_magic(self, magic):
-        """Return a function `fun` that will execute `magic` on the console.
-
-        Parameters
-        ----------
-        magic : string
-            string that will be executed as is when the returned function is
-            called
-
-        Returns
-        -------
-        fun : function
-            function with no parameters, when called will execute `magic` on
-            the console at call time
-
-        See Also
-        --------
-        populate_all_magic_menu : generate the "All Magics..." menu
-
-        Notes
-        -----
-        `fun` execute `magic` the console at the moment it is triggered,
-        not the console at the moment it was created.
-
-        This function is mostly used to create the "All Magics..." Menu
-        at run time.
-        """
-        # need two level nested function to be sure to pass magic
-        # to active console **at run time**.
-        def inner_dynamic_magic():
-            self.console.execute(magic)
-        inner_dynamic_magic.__name__ = str("dynamics_magic_s")
-        return inner_dynamic_magic
-
-    def populate_all_magic_menu(self, display_data=None):
-        """Clean "All Magics..." menu and repopulate it with `display_data`
-
-        Parameters
-        ----------
-        display_data : dict,
-            dict of display_data for the magics dict of a MagicsManager.
-            Expects json data, as the result of %lsmagic
-
-        """
-        for v in self._magic_menu_dict.values():
-            v.clear()
-        self.all_magic_menu.clear()
-
-        if not display_data:
-            return
-
-        if display_data['status'] != 'ok':
-            self.log.warn(f"%%lsmagic user-expression failed: {display_data}")
-            return
-
-        data = display_data['data'].get('application/json', {})
-        if isinstance(data, dict):
-            mdict = data
-        elif isinstance(data, str):
-            mdict = json.loads(data)
-        else:
-            return
-
-        for mtype in sorted(mdict):
-            subdict = mdict[mtype]
-            prefix = magic_escapes[mtype]
-            for name in sorted(subdict):
-                mclass = subdict[name]
-                magic_menu = self._get_magic_menu(mclass)
-                pmagic = prefix + name
-
-                # Adding seperate QActions is needed for some window managers
-                xaction = QtWidgets.QAction(
-                    pmagic, self, triggered=self._make_dynamic_magic(pmagic))
-                xaction_all = QtWidgets.QAction(
-                    pmagic, self, triggered=self._make_dynamic_magic(pmagic))
-                magic_menu.addAction(xaction)
-                self.all_magic_menu.addAction(xaction_all)
-
-    def update_all_magic_menu(self):
-        """ Update the list of magics in the "All Magics..." Menu
-
-        Request the kernel with the list of available magics and populate the
-        menu with the list received back
-
-        """
-        self.console._silent_exec_callback('get_ipython().magic("lsmagic")',
-                                           self.populate_all_magic_menu)
-
-    def _get_magic_menu(self, menuidentifier, menulabel=None):
-        """return a submagic menu by name, and create it if needed
-
-        parameters:
-        -----------
-
-        menulabel : str
-            Label for the menu
-
-        Will infere the menu name from the identifier at creation if
-        menulabel not given. To do so you have too give menuidentifier
-        as a CamelCassedString
-        """
-        menu = self._magic_menu_dict.get(menuidentifier, None)
-        if not menu:
-            if not menulabel:
-                menulabel = re.sub(r"([a-zA-Z]+)([A-Z][a-z])", r"\g<1> \g<2>",
-                                   menuidentifier)
-            menu = QtWidgets.QMenu(menulabel, self.magic_menu)
-            self._magic_menu_dict[menuidentifier] = menu
-            self.magic_menu.insertMenu(self.magic_menu_separator, menu)
-        return menu
-
     def make_active_action(self, number, label):
         if label == 'Projection':
             self.active_action[number] = QtWidgets.QAction(
@@ -2317,27 +2161,6 @@ class MainWindow(QtWidgets.QMainWindow):
     def redo_console(self):
         self.console.redo()
 
-    def reset_magic_console(self):
-        self.console.execute("%reset")
-
-    def history_magic_console(self):
-        self.console.execute("%history")
-
-    def save_magic_console(self):
-        self.console.save_magic()
-
-    def clear_magic_console(self):
-        self.console.execute("%clear")
-
-    def who_magic_console(self):
-        self.console.execute("%who")
-
-    def who_ls_magic_console(self):
-        self.console.execute("%who_ls")
-
-    def whos_magic_console(self):
-        self.console.execute("%whos")
-
     def print_action_console(self):
         self.console.print_action.trigger()
 
@@ -2365,7 +2188,10 @@ class MainWindow(QtWidgets.QMainWindow):
     def close_files(self):
         for root in [n for n in self.user_ns
                      if isinstance(self.user_ns[n], NXroot)]:
-            self.user_ns[root].close()
+            try:
+                self.user_ns[root].close()
+            except Exception:
+                pass
 
     def close_widgets(self):
         windows = self.dialogs

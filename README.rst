@@ -85,7 +85,7 @@ NeXpy GUI
 ---------
 The GUI is built using the PyQt. The 
 `qtpy package <https://github.com/spyder-ide/qtpy>`_ is used to import an 
-installed PyQt library, either PyQt5 or PySide2.
+installed PyQt library, either PyQt5, PyQt6, PySide2, or PySide6.
 
 The GUI includes an `IPython shell <http://ipython.org/>`_ and a `Matplotlib
 plotting pane <http://matplotlib.sourceforge.net>`_. The IPython shell is

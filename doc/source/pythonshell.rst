@@ -5,12 +5,6 @@ The Python interface to NeXus is provided by the `nexusformat
 <https://github.com/nexpy/nexusformat>`_ package, which is distributed 
 separately from NeXpy. 
 
-.. seealso:: The source code includes a 
-             `Jupyter notebook 
-             <https://github.com/nexpy/nexusformat/blob/master/src/nexusformat/notebooks/nexusformat.ipynb>`_ 
-             that provides a tutorial for the Python API. It can be run in
-             `Google Colaboratory 
-             <https://colab.research.google.com/github/nexpy/nexusformat/blob/master/src/nexusformat/notebooks/nexusformat.ipynb>`_.
 
 The Python API can be used within a standard Python or IPython shell:: 
 
@@ -23,6 +17,13 @@ The Python API can be used within a standard Python or IPython shell::
 .. note:: Although wildcard imports are usually discouraged in Python, there
           should not be any name clashes using it here because all the 
           imported functions and variables start with 'nx' or 'NX'.
+
+.. seealso:: A 
+             `Jupyter notebook 
+             <https://github.com/nexpy/nexusformat/blob/master/src/nexusformat/notebooks/nexusformat.ipynb>`_ 
+             provides a tutorial for the Python API. It can be run in
+             `Google Colaboratory 
+             <https://colab.research.google.com/github/nexpy/nexusformat/blob/master/src/nexusformat/notebooks/nexusformat.ipynb>`_.
 
 
 Loading NeXus Data
@@ -1078,6 +1079,21 @@ closed automatically at the end.
           clause within a function that might, in some implementations, be 
           embedded in another ``with`` clause. The file is only closed when the
           outermost context manager is exited.
+
+In v0.7.7, the ability to use a context manager directly with ``NXroot``
+objects, rather than its associated ``NXfile``, was added. This allows the use
+of a similar syntax to the Python ``open`` function, in which a ``with``
+clause ensuring that the file is opened and closed, before and after the file
+access, respectively. To make this analogy clearer, ``nxopen`` was added as an
+alias to ``nxload``. 
+
+In the following code, a NeXus file is created, filled with NeXus objects and
+then closed.
+
+  >>> with nxopen('nexus_file.nxs', 'w') as root:
+  >>>     root['entry'] = NXentry()
+  >>>     root['entry/sample'] = NXsample()
+  >>>     root['entry/sample/temperature'] = NXfield(40.0, units='K')
 
 File Locking
 ------------

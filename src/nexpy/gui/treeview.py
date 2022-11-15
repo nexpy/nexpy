@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2013-2021, NeXpy Development Team.
+# Copyright (c) 2013-2022, NeXpy Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -308,13 +308,13 @@ class NXTreeView(QtWidgets.QTreeView):
 
     def selection_changed(self):
         """Enable and disable menu actions based on the selection."""
-        node = self.get_node()
         self.mainwindow.savefile_action.setEnabled(False)
         self.mainwindow.duplicate_action.setEnabled(False)
         self.mainwindow.remove_action.setEnabled(False)
         self.mainwindow.lockfile_action.setEnabled(False)
         self.mainwindow.unlockfile_action.setEnabled(False)
         self.mainwindow.backup_action.setEnabled(False)
+        self.mainwindow.restore_backup_action.setEnabled(False)
         self.mainwindow.plot_data_action.setEnabled(False)
         self.mainwindow.plot_line_action.setEnabled(False)
         self.mainwindow.overplot_data_action.setEnabled(False)
@@ -336,6 +336,10 @@ class NXTreeView(QtWidgets.QTreeView):
         self.mainwindow.signal_action.setEnabled(False)
         self.mainwindow.default_action.setEnabled(False)
         self.mainwindow.fit_action.setEnabled(False)
+        try:
+            node = self.get_node()
+        except Exception:
+            node = None
         if node is None:
             self.mainwindow.reload_action.setEnabled(False)
             self.mainwindow.reload_all_action.setEnabled(False)
@@ -364,7 +368,7 @@ class NXTreeView(QtWidgets.QTreeView):
                     self.mainwindow.lockfile_action.setEnabled(True)
                 self.mainwindow.backup_action.setEnabled(True)
                 if node.nxbackup:
-                    self.mainwindow.restore_action.setEnabled(True)
+                    self.mainwindow.restore_backup_action.setEnabled(True)
             if node.nxfilemode is None or node.nxfilemode == 'rw':
                 if self.mainwindow.copied_node is not None:
                     self.mainwindow.pastedata_action.setEnabled(True)
@@ -395,7 +399,7 @@ class NXTreeView(QtWidgets.QTreeView):
                     (isinstance(node, NXgroup) and
                         ('fit' in node or 'model' in node))):
                     self.mainwindow.fit_action.setEnabled(True)
-            except Exception as error:
+            except Exception:
                 pass
         try:
             if (isinstance(node, NXdata) or 'default' in node.attrs or
@@ -420,7 +424,7 @@ class NXTreeView(QtWidgets.QTreeView):
                     if (node.plottable_data.is_image() or
                             (isinstance(node, NXfield) and node.is_image())):
                         self.mainwindow.plot_image_action.setEnabled(True)
-        except Exception as error:
+        except Exception:
             pass
 
     def expand_node(self, index):
@@ -475,6 +479,7 @@ class NXTreeView(QtWidgets.QTreeView):
         self.addMenu(self.mainwindow.duplicate_action)
         self.addMenu(self.mainwindow.export_action)
         self.addMenu(self.mainwindow.backup_action)
+        self.addMenu(self.mainwindow.restore_backup_action)
         self.menu.addSeparator()
         self.addMenu(self.mainwindow.collapse_action)
         return self.menu

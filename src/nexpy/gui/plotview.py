@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2013-2021, NeXpy Development Team.
+# Copyright (c) 2013-2022, NeXpy Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -30,19 +30,18 @@ from posixpath import basename, dirname
 
 import matplotlib as mpl
 import numpy as np
-import pkg_resources
 from matplotlib.backend_bases import (FigureCanvasBase, FigureManagerBase,
                                       NavigationToolbar2)
-from matplotlib.backends.backend_qt5 import FigureManagerQT as FigureManager
-from matplotlib.backends.backend_qt5agg import (FigureCanvasQTAgg as
-                                                FigureCanvas)
-from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT
-from matplotlib.cm import ScalarMappable, cmap_d, get_cmap, register_cmap
+from matplotlib.backends.backend_qt import FigureManagerQT as FigureManager
+from matplotlib.backends.backend_qt import NavigationToolbar2QT
+from matplotlib.backends.backend_qtagg import (FigureCanvasQTAgg as
+                                               FigureCanvas)
 from matplotlib.colors import LogNorm, Normalize, SymLogNorm
 from matplotlib.figure import Figure
 from matplotlib.image import imread
 from matplotlib.lines import Line2D
 from matplotlib.ticker import AutoLocator, LogLocator, ScalarFormatter
+from pkg_resources import parse_version, resource_filename
 
 from .pyqt import QtCore, QtGui, QtWidgets
 
@@ -51,7 +50,6 @@ try:
 except ImportError:
     from matplotlib.ticker import LogFormatter
 
-from matplotlib.cbook import mplDeprecation
 from matplotlib.transforms import nonsingular
 from mpl_toolkits.axisartist import Subplot
 from mpl_toolkits.axisartist.grid_finder import MaxNLocator
@@ -80,18 +78,26 @@ from .widgets import (NXCheckBox, NXcircle, NXComboBox, NXDoubleSpinBox,
 active_plotview = None
 plotview = None
 plotviews = {}
-register_cmap('parula', parula_map())
-register_cmap('divgray', divgray_map())
+
 cmaps = ['viridis', 'inferno', 'magma', 'plasma',  # perceptually uniform
          'cividis', 'parula',
          'spring', 'summer', 'autumn', 'winter', 'cool', 'hot',  # sequential
          'bone', 'copper', 'gray', 'pink',
          'turbo', 'jet', 'spectral', 'rainbow', 'hsv',  # miscellaneous
          'tab10', 'tab20',  # qualitative
-         'seismic', 'coolwarm', 'twilight', 'divgray',
-         'RdBu', 'RdYlBu', 'RdYlGn']  # diverging
+         'seismic', 'coolwarm', 'twilight', 'divgray',  # diverging
+         'RdBu', 'RdYlBu', 'RdYlGn']
 
-cmaps = [cm for cm in cmaps if cm in cmap_d]
+if parse_version(mpl.__version__) >= parse_version('3.5.0'):
+    mpl.colormaps.register(parula_map())
+    mpl.colormaps.register(divgray_map())
+    cmaps = [cm for cm in cmaps if cm in mpl.colormaps]
+else:
+    from matplotlib.cm import get_cmap, register_cmap, cmap_d
+    register_cmap('parula', parula_map())
+    register_cmap('divgray', divgray_map())
+    cmaps = [cm for cm in cmaps if cm in cmap_d]
+
 if 'viridis' in cmaps:
     default_cmap = 'viridis'
 else:
@@ -119,9 +125,9 @@ markers = {'.': 'point', ',': 'pixel', '+': 'plus', 'x': 'x',
            'o': 'circle', 's': 'square', 'D': 'diamond', 'H': 'hexagon',
            'v': 'triangle_down', '^': 'triangle_up', '<': 'triangle_left',
            '>': 'triangle_right', 'None': 'None'}
-logo = imread(pkg_resources.resource_filename(
+logo = imread(resource_filename(
               'nexpy.gui', 'resources/icon/NeXpy.png'))[180:880, 50:1010]
-warnings.filterwarnings("ignore", category=mplDeprecation)
+warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 
 def new_figure_manager(label=None, *args, **kwargs):
@@ -194,6 +200,15 @@ class NXCanvas(FigureCanvas):
 
         self.setSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding,
                            QtWidgets.QSizePolicy.MinimumExpanding)
+
+    def get_default_filename(self):
+        """Return a string suitable for use as a default filename."""
+        basename = (self.manager.get_window_title().replace('NeXpy: ', '')
+                    if self.manager is not None else '')
+        basename = (basename or 'image').replace(' ', '_')
+        filetype = self.get_default_filetype()
+        filename = basename + '.' + filetype
+        return filename
 
 
 class NXFigureManager(FigureManager):
@@ -739,13 +754,13 @@ class NXPlotView(QtWidgets.QDialog):
                 self.num = num
             else:
                 self.num = 1
-                if xmin:
+                if xmin is not None:
                     self.xaxis.lo = xmin
-                if xmax:
+                if xmax is not None:
                     self.xaxis.hi = xmax
-                if ymin:
+                if ymin is not None:
                     self.yaxis.lo = ymin
-                if ymax:
+                if ymax is not None:
                     self.yaxis.hi = ymax
                 if log:
                     logy = True
@@ -756,25 +771,25 @@ class NXPlotView(QtWidgets.QDialog):
 
         # Higher-dimensional plot
         else:
-            if xmin:
+            if xmin is not None:
                 self.xaxis.lo = xmin
             else:
                 self.xaxis.lo = self.xaxis.min
-            if xmax:
+            if xmax is not None:
                 self.xaxis.hi = xmax
             else:
                 self.xaxis.hi = self.xaxis.max
-            if ymin:
+            if ymin is not None:
                 self.yaxis.lo = ymin
             else:
                 self.yaxis.lo = self.yaxis.min
-            if ymax:
+            if ymax is not None:
                 self.yaxis.hi = ymax
             else:
                 self.yaxis.hi = self.yaxis.max
-            if vmin:
+            if vmin is not None:
                 self.vaxis.lo = vmin
-            if vmax:
+            if vmax is not None:
                 self.vaxis.hi = vmax
             self.reset_log()
             self.x, self.y, self.v = self.get_image()
@@ -987,19 +1002,19 @@ class NXPlotView(QtWidgets.QDialog):
             xlo, xhi = ax.set_xlim(auto=True)
             ylo, yhi = ax.set_ylim(auto=True)
 
-            if self.xaxis.lo:
+            if self.xaxis.lo is not None:
                 ax.set_xlim(xmin=self.xaxis.lo)
             else:
                 self.xaxis.lo = xlo
-            if self.xaxis.hi:
+            if self.xaxis.hi is not None:
                 ax.set_xlim(xmax=self.xaxis.hi)
             else:
                 self.xaxis.hi = xhi
-            if self.yaxis.lo:
+            if self.yaxis.lo is not None:
                 ax.set_ylim(ymin=self.yaxis.lo)
             else:
                 self.yaxis.lo = ylo
-            if self.yaxis.hi:
+            if self.yaxis.hi is not None:
                 ax.set_ylim(ymax=self.yaxis.hi)
             else:
                 self.yaxis.hi = yhi
@@ -1079,7 +1094,10 @@ class NXPlotView(QtWidgets.QDialog):
             else:
                 opts['interpolation'] = self.interpolation
 
-        cm = copy.copy(get_cmap(self.cmap))
+        if parse_version(mpl.__version__) >= parse_version('3.5.0'):
+            cm = copy.copy(mpl.colormaps[self.cmap])
+        else:
+            cm = copy.copy(get_cmap(self.cmap))
         cm.set_bad(self.bad)
         if self.rgb_image or self.regular_grid:
             opts['origin'] = 'lower'
@@ -1353,7 +1371,7 @@ class NXPlotView(QtWidgets.QDialog):
 
     def update_colorbar(self):
         if self.colorbar:
-            if mpl.__version__ >= '3.1.0':
+            if parse_version(mpl.__version__) >= parse_version('3.1.0'):
                 self.colorbar.update_normal(self.image)
             else:
                 self.colorbar.set_norm(self.norm)
@@ -1361,7 +1379,7 @@ class NXPlotView(QtWidgets.QDialog):
             if self.vtab.qualitative:
                 vmin, vmax = [int(i+0.5) for i in self.image.get_clim()]
                 self.colorbar.set_ticks(range(vmin, vmax))
-                if mpl.__version__ >= '3.5.0':
+                if parse_version(mpl.__version__) >= parse_version('3.5.0'):
                     self.colorbar.ax.set_ylim(self.vaxis.min_data-0.5,
                                               self.vaxis.max_data+0.5)
 
@@ -1496,7 +1514,7 @@ class NXPlotView(QtWidgets.QDialog):
             self.vaxis.max = self.vaxis.hi = vmax
             self.colorbar.locator = AutoLocator()
             self.colorbar.formatter = ScalarFormatter()
-            if mpl.__version__ >= '3.1.0':
+            if parse_version(mpl.__version__) >= parse_version('3.1.0'):
                 self.image.set_norm(SymLogNorm(linthresh, linscale=linscale,
                                                vmin=-vmax, vmax=vmax))
             else:
@@ -2477,6 +2495,7 @@ class NXPlotView(QtWidgets.QDialog):
         self.vaxis.min = self.vaxis.lo = z.min()
         self.vaxis.max = self.vaxis.hi = z.max()
         self.set_data_norm()
+        from matplotlib.cm import ScalarMappable
         mapper = ScalarMappable(norm=self.norm, cmap=self.cmap)
         mapper.set_array(z)
         for r in range(len(vor.point_region)):
@@ -2830,9 +2849,9 @@ class NXPlotAxis(object):
         self.hi = None
         self.diff = 0.0
         self.locked = True
-        if hasattr(axis, 'long_name'):
-            self.label = axis.long_name
-        elif hasattr(axis, 'units'):
+        if 'long_name' in axis.attrs:
+            self.label = axis.attrs['long_name']
+        elif 'units' in axis.attrs:
             self.label = f"{axis.nxname} ({axis.units})"
         else:
             self.label = axis.nxname
@@ -3002,13 +3021,13 @@ class NXPlotTab(QtWidgets.QWidget):
             self.image = True
             self.cmapcombo = NXComboBox(self.change_cmap, cmaps, default_cmap)
             self._cached_cmap = default_cmap
-            if cmaps.index('parula') > 0:
+            if 'parula' in cmaps:
                 self.cmapcombo.insertSeparator(
                     self.cmapcombo.findText('parula')+1)
-            if cmaps.index('seismic') > 0:
+            if 'seismic' in cmaps:
                 self.cmapcombo.insertSeparator(
                     self.cmapcombo.findText('seismic'))
-            if cmaps.index('tab10') > 0:
+            if 'tab10' in cmaps:
                 self.cmapcombo.insertSeparator(
                     self.cmapcombo.findText('tab10'))
             widgets.append(self.cmapcombo)
@@ -3457,7 +3476,10 @@ class NXPlotTab(QtWidgets.QWidget):
         if cmap is None:
             cmap = self._cached_cmap
         try:
-            cm = copy.copy(get_cmap(cmap))
+            if parse_version(mpl.__version__) >= parse_version('3.5.0'):
+                cm = copy.copy(mpl.colormaps[cmap])
+            else:
+                cm = copy.copy(get_cmap(cmap))
         except ValueError:
             raise NeXusError(f"'{cmap}' is not registered as a color map")
         cmap = cm.name
@@ -3592,17 +3614,13 @@ class NXPlotTab(QtWidgets.QWidget):
 
     def init_toolbar(self):
         _backward_icon = QtGui.QIcon(
-            pkg_resources.resource_filename('nexpy.gui',
-                                            'resources/backward-icon.png'))
+            resource_filename('nexpy.gui', 'resources/backward-icon.png'))
         _pause_icon = QtGui.QIcon(
-            pkg_resources.resource_filename('nexpy.gui',
-                                            'resources/pause-icon.png'))
+            resource_filename('nexpy.gui', 'resources/pause-icon.png'))
         _forward_icon = QtGui.QIcon(
-            pkg_resources.resource_filename('nexpy.gui',
-                                            'resources/forward-icon.png'))
+            resource_filename('nexpy.gui', 'resources/forward-icon.png'))
         _refresh_icon = QtGui.QIcon(
-            pkg_resources.resource_filename('nexpy.gui',
-                                            'resources/refresh-icon.png'))
+            resource_filename('nexpy.gui', 'resources/refresh-icon.png'))
         self.toolbar = QtWidgets.QToolBar(parent=self)
         self.toolbar.setIconSize(QtCore.QSize(16, 16))
         self.add_action(_refresh_icon, self.plotview.replot_data, "Replot",
@@ -3856,6 +3874,7 @@ class NXNavigationToolbar(NavigationToolbar2QT, QtWidgets.QToolBar):
 
         self.coordinates = coordinates
         self._actions = {}  # mapping of toolitem method names to QActions.
+        self._subplot_dialog = None
 
         for text, tooltip_text, image_file, callback in self.toolitems:
             if text is None:
@@ -3893,7 +3912,7 @@ class NXNavigationToolbar(NavigationToolbar2QT, QtWidgets.QToolBar):
         pass
 
     def _icon(self, name, color=None):
-        return QtGui.QIcon(os.path.join(pkg_resources.resource_filename(
+        return QtGui.QIcon(os.path.join(resource_filename(
                                         'nexpy.gui', 'resources'), name))
 
     @property

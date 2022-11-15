@@ -14,7 +14,7 @@ from pygments.formatter import Formatter
 from .datadialogs import NXPanel, NXTab
 from .pyqt import QtCore, QtGui, QtWidgets, getSaveFileName
 from .utils import confirm_action
-from .widgets import NXLabel, NXLineEdit, NXPushButton
+from .widgets import NXLineEdit, NXPushButton
 
 
 def hex2QColor(c):
