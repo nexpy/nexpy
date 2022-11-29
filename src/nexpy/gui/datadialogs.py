@@ -3473,7 +3473,11 @@ class ViewTab(NXTab):
         hlayout.addLayout(layout)
         if (isinstance(node, NXfield) and node.shape is not None and
                 node.shape != () and node.shape != (1,)):
-            hlayout.addLayout(self.table())
+            try:
+                table = self.table()
+                hlayout.addLayout(table)
+            except OSError:
+                pass
         hlayout.addStretch()
         self.setLayout(hlayout)
 
