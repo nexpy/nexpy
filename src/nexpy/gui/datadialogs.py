@@ -3048,7 +3048,10 @@ class LimitTab(NXTab):
             tab.checkbox['sync'].setChecked(False)
 
     def update(self):
-        if not self.checkbox['sync'].isChecked():
+        if self.checkbox['sync'].isChecked():
+            if self.lockbox['signal'].isChecked():
+                self.update_signal()
+        else:
             self.update_limits()
             self.update_properties()
         for tab in [self.tabs[label] for label in self.tabs
@@ -3155,8 +3158,6 @@ class LimitTab(NXTab):
                     raise NeXusError('X-axis has zero range')
                 elif np.isclose(ymin, ymax):
                     raise NeXusError('Y-axis has zero range')
-                elif np.isclose(vmin, vmax):
-                    raise NeXusError('Signal has zero range')
                 self.plotview.change_axis(self.plotview.xtab,
                                           self.plotview.axis[x])
                 self.plotview.change_axis(self.plotview.ytab,
