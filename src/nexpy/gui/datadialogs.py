@@ -2918,9 +2918,12 @@ class LimitTab(NXTab):
         row += 1
         self.minbox['signal'] = NXDoubleSpinBox()
         self.maxbox['signal'] = NXDoubleSpinBox()
+        self.lockbox['signal'] = NXCheckBox()
         grid.addWidget(self.label(self.plotview.axis['signal'].name), row, 0)
         grid.addWidget(self.minbox['signal'], row, 1)
         grid.addWidget(self.maxbox['signal'], row, 2)
+        grid.addWidget(self.lockbox['signal'], row, 3,
+                       alignment=QtCore.Qt.AlignHCenter)
 
         self.parameters = GridParameters()
         figure_size = self.plotview.figure.get_size_inches()
@@ -3105,8 +3108,10 @@ class LimitTab(NXTab):
             self.minbox[axis].setValue(tab.minbox[axis].value())
             self.maxbox[axis].setValue(tab.maxbox[axis].value())
             self.lockbox[axis].setCheckState(tab.lockbox[axis].checkState())
-        self.minbox['signal'].setValue(tab.minbox['signal'].value())
-        self.maxbox['signal'].setValue(tab.maxbox['signal'].value())
+        if not self.lockbox['signal'].isChecked():
+            self.plotview.autoscale = False
+            self.minbox['signal'].setValue(tab.minbox['signal'].value())
+            self.maxbox['signal'].setValue(tab.maxbox['signal'].value())
         if self.tab_label != 'Main':
             self.parameters['xsize'].value = tab.parameters['xsize'].value
             self.parameters['ysize'].value = tab.parameters['ysize'].value
@@ -3158,7 +3163,6 @@ class LimitTab(NXTab):
                                           self.plotview.axis[y])
                 self.plotview.xtab.set_limits(xmin, xmax)
                 self.plotview.ytab.set_limits(ymin, ymax)
-                self.plotview.autoscale = False
                 self.plotview.vtab.set_limits(vmin, vmax)
                 if self.ndim > 2:
                     self.plotview.ztab.locked = False
@@ -3473,7 +3477,11 @@ class ViewTab(NXTab):
         hlayout.addLayout(layout)
         if (isinstance(node, NXfield) and node.shape is not None and
                 node.shape != () and node.shape != (1,)):
-            hlayout.addLayout(self.table())
+            try:
+                table = self.table()
+                hlayout.addLayout(table)
+            except OSError:
+                pass
         hlayout.addStretch()
         self.setLayout(hlayout)
 
