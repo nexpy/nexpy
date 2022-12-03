@@ -38,9 +38,9 @@ from .datadialogs import (AddDialog, CustomizeDialog, DirectoryDialog,
                           LimitDialog, LockDialog, LogDialog,
                           ManageBackupsDialog, NewDialog, PasteDialog,
                           PlotDialog, PlotScalarDialog, PreferencesDialog,
-                          ProjectionDialog, RemoteDialog, RemovePluginDialog,
-                          RenameDialog, RestorePluginDialog, ScanDialog,
-                          SignalDialog, UnlockDialog, ViewDialog)
+                          ProjectionDialog, RemovePluginDialog, RenameDialog,
+                          RestorePluginDialog, ScanDialog, SignalDialog,
+                          UnlockDialog, ViewDialog)
 from .fitdialogs import FitDialog
 from .plotview import NXPlotView
 from .pyqt import QtCore, QtGui, QtWidgets, getOpenFileName, getSaveFileName
@@ -962,14 +962,6 @@ class MainWindow(QtWidgets.QMainWindow):
             dialog.show()
         except NeXusError as error:
             report_error("Opening Directory", error)
-
-    def open_remote_file(self):
-        try:
-            dialog = RemoteDialog(parent=self)
-            dialog.setModal(False)
-            dialog.show()
-        except NeXusError as error:
-            report_error("Opening Remote File", error)
 
     def hover_recent_menu(self, action):
         position = QtGui.QCursor.pos()
