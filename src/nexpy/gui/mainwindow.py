@@ -267,14 +267,6 @@ class MainWindow(QtWidgets.QMainWindow):
             "Open Directory...", self, triggered=self.open_directory)
         self.add_menu_action(self.file_menu, self.opendirectory_action)
 
-        try:
-            import h5pyd
-            self.openremotefile_action = QtWidgets.QAction(
-                "Open Remote...", self, triggered=self.open_remote_file)
-            self.add_menu_action(self.file_menu, self.openremotefile_action)
-        except ImportError:
-            pass
-
         self.savefile_action = QtWidgets.QAction(
             "&Save as...", self, shortcut=QtGui.QKeySequence.Save,
             triggered=self.save_file)
