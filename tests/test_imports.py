@@ -32,7 +32,6 @@ def test_reader_import():
     os.environ['QT_API'] = 'pyqt5'
     try:
         import nexpy.gui.pyqt
-        import nexpy.readers.readspe
         import nexpy.readers.readspec
         import nexpy.readers.readstack
         import nexpy.readers.readtiff
