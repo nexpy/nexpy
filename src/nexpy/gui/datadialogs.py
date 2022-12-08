@@ -1067,7 +1067,7 @@ class GridParameters(dict):
             self[p].save()
 
 
-class GridParameter(object):
+class GridParameter:
     """
     A Parameter is an object to be set in a dialog box grid.
     """

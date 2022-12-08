@@ -11,7 +11,7 @@ from lmfit import Parameter, Parameters, __version__, fit_report, minimize
 from nexusformat.nexus import NXdata, NXfield, NXnote, NXparameters, NXprocess
 
 
-class Fit(object):
+class Fit:
     """Class defining the data, parameters, and results of a least-squares fit.
 
     Attributes
@@ -190,7 +190,7 @@ class Fit(object):
         return group
 
 
-class Function(object):
+class Function:
     """Class defining a function to be used in the fit.
 
     Attributes

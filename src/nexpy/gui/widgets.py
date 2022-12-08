@@ -966,7 +966,7 @@ class NXSlider(QtWidgets.QSlider):
             super().setValue(int(value))
 
 
-class NXpatch(object):
+class NXpatch:
     """Class for a draggable shape on the NXPlotView canvas."""
     lock = None
 

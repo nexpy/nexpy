@@ -101,7 +101,7 @@ class ImportDialog(NXImportDialog):
         return Parser(self.spec).toTree(scans)
 
 
-class Parser(object):
+class Parser:
     """Parse the spec data file object."""
 
     def __init__(self, spec_data=None):
