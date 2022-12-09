@@ -2768,7 +2768,7 @@ class NXPlotView(QtWidgets.QDialog):
         super().close()
 
 
-class NXPlotAxis(object):
+class NXPlotAxis:
     """Class containing plotted axis values and limits.
 
     Parameters

@@ -684,7 +684,7 @@ def set_style(style=None):
         use('default')
 
 
-class NXimporter(object):
+class NXimporter:
     def __init__(self, paths):
         self.paths = paths
 
