@@ -4352,6 +4352,8 @@ class ManageBackupsDialog(NXDialog):
                     backup)
                 self.checkbox[backup].setChecked(False)
                 self.checkbox[backup].setDisabled(True)
+                self.display_message(f"Backup file '{name}' has been opened",
+                                     "Please save the file for future use")
 
     def delete(self):
         backups = []
