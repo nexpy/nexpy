@@ -500,13 +500,15 @@ class NXTreeView(QtWidgets.QTreeView):
                 if node.nxfilemode and not node.file_exists():
                     _dir = node.nxfile._filedir
                     if not os.path.exists(_dir):
-                        display_message(f"'{_dir}' no longer exists")
+                        display_message("Files removed",
+                                        f"'{_dir}' no longer exists")
                         for _key in [k for k in self.tree
                                      if self.tree[k].nxfile._filedir == _dir]:
                             del self.tree[_key]
                         break
                     else:
                         display_message(
+                            "File removed",
                             f"'{node.nxfilename}' no longer exists")
                         del self.tree[key]
                 elif node.is_modified():

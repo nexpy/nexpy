@@ -38,9 +38,9 @@ from .datadialogs import (AddDialog, CustomizeDialog, DirectoryDialog,
                           LimitDialog, LockDialog, LogDialog,
                           ManageBackupsDialog, NewDialog, PasteDialog,
                           PlotDialog, PlotScalarDialog, PreferencesDialog,
-                          ProjectionDialog, RemoteDialog, RemovePluginDialog,
-                          RenameDialog, RestorePluginDialog, ScanDialog,
-                          SignalDialog, UnlockDialog, ViewDialog)
+                          ProjectionDialog, RemovePluginDialog, RenameDialog,
+                          RestorePluginDialog, ScanDialog, SignalDialog,
+                          UnlockDialog, ViewDialog)
 from .fitdialogs import FitDialog
 from .plotview import NXPlotView
 from .pyqt import QtCore, QtGui, QtWidgets, getOpenFileName, getSaveFileName
@@ -266,14 +266,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.opendirectory_action = QtWidgets.QAction(
             "Open Directory...", self, triggered=self.open_directory)
         self.add_menu_action(self.file_menu, self.opendirectory_action)
-
-        try:
-            import h5pyd
-            self.openremotefile_action = QtWidgets.QAction(
-                "Open Remote...", self, triggered=self.open_remote_file)
-            self.add_menu_action(self.file_menu, self.openremotefile_action)
-        except ImportError:
-            pass
 
         self.savefile_action = QtWidgets.QAction(
             "&Save as...", self, shortcut=QtGui.QKeySequence.Save,
@@ -962,14 +954,6 @@ class MainWindow(QtWidgets.QMainWindow):
             dialog.show()
         except NeXusError as error:
             report_error("Opening Directory", error)
-
-    def open_remote_file(self):
-        try:
-            dialog = RemoteDialog(parent=self)
-            dialog.setModal(False)
-            dialog.show()
-        except NeXusError as error:
-            report_error("Opening Remote File", error)
 
     def hover_recent_menu(self, action):
         position = QtGui.QCursor.pos()

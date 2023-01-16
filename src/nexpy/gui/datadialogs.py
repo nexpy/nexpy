@@ -1067,7 +1067,7 @@ class GridParameters(dict):
             self[p].save()
 
 
-class GridParameter(object):
+class GridParameter:
     """
     A Parameter is an object to be set in a dialog box grid.
     """
@@ -2918,9 +2918,12 @@ class LimitTab(NXTab):
         row += 1
         self.minbox['signal'] = NXDoubleSpinBox()
         self.maxbox['signal'] = NXDoubleSpinBox()
+        self.lockbox['signal'] = NXCheckBox()
         grid.addWidget(self.label(self.plotview.axis['signal'].name), row, 0)
         grid.addWidget(self.minbox['signal'], row, 1)
         grid.addWidget(self.maxbox['signal'], row, 2)
+        grid.addWidget(self.lockbox['signal'], row, 3,
+                       alignment=QtCore.Qt.AlignHCenter)
 
         self.parameters = GridParameters()
         figure_size = self.plotview.figure.get_size_inches()
@@ -3045,7 +3048,10 @@ class LimitTab(NXTab):
             tab.checkbox['sync'].setChecked(False)
 
     def update(self):
-        if not self.checkbox['sync'].isChecked():
+        if self.checkbox['sync'].isChecked():
+            if self.lockbox['signal'].isChecked():
+                self.update_signal()
+        else:
             self.update_limits()
             self.update_properties()
         for tab in [self.tabs[label] for label in self.tabs
@@ -3105,8 +3111,10 @@ class LimitTab(NXTab):
             self.minbox[axis].setValue(tab.minbox[axis].value())
             self.maxbox[axis].setValue(tab.maxbox[axis].value())
             self.lockbox[axis].setCheckState(tab.lockbox[axis].checkState())
-        self.minbox['signal'].setValue(tab.minbox['signal'].value())
-        self.maxbox['signal'].setValue(tab.maxbox['signal'].value())
+        if not self.lockbox['signal'].isChecked():
+            self.plotview.autoscale = False
+            self.minbox['signal'].setValue(tab.minbox['signal'].value())
+            self.maxbox['signal'].setValue(tab.maxbox['signal'].value())
         if self.tab_label != 'Main':
             self.parameters['xsize'].value = tab.parameters['xsize'].value
             self.parameters['ysize'].value = tab.parameters['ysize'].value
@@ -3150,15 +3158,12 @@ class LimitTab(NXTab):
                     raise NeXusError('X-axis has zero range')
                 elif np.isclose(ymin, ymax):
                     raise NeXusError('Y-axis has zero range')
-                elif np.isclose(vmin, vmax):
-                    raise NeXusError('Signal has zero range')
                 self.plotview.change_axis(self.plotview.xtab,
                                           self.plotview.axis[x])
                 self.plotview.change_axis(self.plotview.ytab,
                                           self.plotview.axis[y])
                 self.plotview.xtab.set_limits(xmin, xmax)
                 self.plotview.ytab.set_limits(ymin, ymax)
-                self.plotview.autoscale = False
                 self.plotview.vtab.set_limits(vmin, vmax)
                 if self.ndim > 2:
                     self.plotview.ztab.locked = False
@@ -3473,7 +3478,11 @@ class ViewTab(NXTab):
         hlayout.addLayout(layout)
         if (isinstance(node, NXfield) and node.shape is not None and
                 node.shape != () and node.shape != (1,)):
-            hlayout.addLayout(self.table())
+            try:
+                table = self.table()
+                hlayout.addLayout(table)
+            except OSError:
+                pass
         hlayout.addStretch()
         self.setLayout(hlayout)
 
@@ -3609,46 +3618,6 @@ class ViewTableModel(QtCore.QAbstractTableModel):
         self.headerDataChanged.emit(QtCore.Qt.Horizontal, 0,
                                     min(9, self.columns-1))
         self.headerDataChanged.emit(QtCore.Qt.Vertical, 0, min(9, self.rows-1))
-
-
-class RemoteDialog(NXDialog):
-    """Dialog to open a remote file.
-    """
-
-    def __init__(self, parent=None):
-
-        try:
-            # import h5pyd
-            from nexusformat.nexus import nxgetdomain, nxgetserver
-        except ImportError:
-            raise NeXusError("Please install h5pyd for remote data access")
-
-        super().__init__()
-
-        self.parameters = GridParameters()
-        self.parameters.add('server', nxgetserver(), 'Server')
-        self.parameters.add('domain', nxgetdomain(), 'Domain')
-        self.parameters.add('filepath', '', 'File Path')
-        self.set_layout(self.parameters.grid(width=200), self.close_buttons())
-        self.set_title('Open Remote File')
-
-    def accept(self):
-        try:
-            from nexusformat.nexus import nxloadremote
-            server = self.parameters['server'].value
-            domain = self.parameters['domain'].value
-            filepath = self.parameters['filepath'].value
-            root = nxloadremote(filepath, server=server, domain=domain)
-            name = self.treeview.tree.get_name(filepath)
-            self.treeview.tree[name] = \
-                self.mainwindow.user_ns[name] = root
-            logging.info(
-                f"Opening remote NeXus file '{root.nxfilename}' on "
-                f"'{root._file}' as workspace '{name}'")
-            super().accept()
-        except NeXusError as error:
-            report_error("Opening remote file", error)
-            super().reject()
 
 
 class AddDialog(NXDialog):
@@ -4383,6 +4352,8 @@ class ManageBackupsDialog(NXDialog):
                     backup)
                 self.checkbox[backup].setChecked(False)
                 self.checkbox[backup].setDisabled(True)
+                self.display_message(f"Backup file '{name}' has been opened",
+                                     "Please save the file for future use")
 
     def delete(self):
         backups = []

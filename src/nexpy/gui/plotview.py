@@ -2768,7 +2768,7 @@ class NXPlotView(QtWidgets.QDialog):
         super().close()
 
 
-class NXPlotAxis(object):
+class NXPlotAxis:
     """Class containing plotted axis values and limits.
 
     Parameters
@@ -3662,7 +3662,7 @@ class NXPlotTab(QtWidgets.QWidget):
         try:
             self.locked = True
             if self.playsteps == -1:
-                self.interval = self.timer.interval() / 2
+                self.interval = int(self.timer.interval() / 2)
             else:
                 self.playsteps = -1
                 self.interval = 1000
@@ -3686,7 +3686,7 @@ class NXPlotTab(QtWidgets.QWidget):
         try:
             self.locked = True
             if self.playsteps == 1:
-                self.interval = self.timer.interval() / 2
+                self.interval = int(self.timer.interval() / 2)
             else:
                 self.playsteps = 1
                 self.interval = 1000

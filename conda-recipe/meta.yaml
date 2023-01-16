@@ -1,10 +1,10 @@
 package:
   name: nexpy
-  version: "1.0.0rc1"
+  version: "1.0.0"
 
 source:
   git_url: https://github.com/nexpy/nexpy.git
-  git_tag: v1.0.0rc1
+  git_tag: v1.0.0
 
 build:
   entry_points:
@@ -27,7 +27,7 @@ requirements:
     - qtpy
     - ipython
     - qtconsole
-    - ipykernel <=6.8|>=6.15.2
+    - ipykernel >=6.15.2
     - matplotlib
     - lmfit >=1.0.3
     - ansi2html
