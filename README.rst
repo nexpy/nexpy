@@ -2,7 +2,7 @@ Installation
 ============
 Released versions of NeXpy are available on `PyPI 
 <https://pypi.python.org/pypi/NeXpy/>`_ and as a `Conda installation 
-<https://anaconda.org/nexpy>`_. 
+<https://anaconda.org/conda-forge/nexpy>`_. 
 
 If you have the `Python Setup Tools <https://pypi.python.org/pypi/setuptools>`_ 
 installed, then you can either install using 'pip'::
