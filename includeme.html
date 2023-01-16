@@ -45,14 +45,12 @@
             
   <section id="installation">
 <h1>Installation<a class="headerlink" href="#installation" title="Permalink to this heading">¶</a></h1>
-<p>Released versions of NeXpy are available on <a class="reference external" href="https://pypi.python.org/pypi/NeXpy/">PyPI</a> and as a <a class="reference external" href="https://anaconda.org/conda-forge/nexpy">Conda installation</a>.</p>
-<p>If you have the <a class="reference external" href="https://pypi.python.org/pypi/setuptools">Python Setup Tools</a>
-installed, then you can either install using ‘pip’:</p>
+<p>Released versions of NeXpy are available on <a class="reference external" href="https://pypi.python.org/pypi/NeXpy/">PyPI</a> and <a class="reference external" href="https://anaconda.org/conda-forge/nexpy">conda-forge</a>.</p>
+<p>You can therefore install using ‘pip’:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ pip install nexpy
 </pre></div>
 </div>
-<p>or, if you have an Anaconda installation, NeXpy is now available on the
-conda-forge channel:</p>
+<p>or ‘conda’:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ conda install -c conda-forge nexpy
 </pre></div>
 </div>
@@ -62,10 +60,9 @@ conda-forge channel:</p>
 automatically searched when installing. Just type
 <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">config</span> <span class="pre">--add</span> <span class="pre">channels</span> <span class="pre">conda-forge</span></code>.</p>
 </div>
-<p>You can install the package from the source code either by downloading one of
-the <a class="reference external" href="https://github.com/nexpy/nexpy/releases">Github releases</a> or by cloning
-the latest development version in the
-<a class="reference external" href="https://github.com/nexpy/nexpy">NeXpy Git repository</a>:</p>
+<p>If you have the <a class="reference external" href="https://pypi.python.org/pypi/setuptools">Python Setup Tools</a>, you can install the package
+from the source code either by downloading one of the <a class="reference external" href="https://github.com/nexpy/nexpy/releases">Github releases</a> or by cloning the latest
+development version in the <a class="reference external" href="https://github.com/nexpy/nexpy">NeXpy Git repository</a>:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ git clone https://github.com/nexpy/nexpy.git
 </pre></div>
 </div>
@@ -77,7 +74,7 @@ $ python -m pip install .  # install the package
 </div>
 <p>The Python API for reading and writing NeXus files is in a separate package,
 <a class="reference external" href="https://github.com/nexpy/nexusformat">nexusformat</a>, which is also available
-on <a class="reference external" href="https://pypi.python.org/pypi/nexusformat/">PyPI</a> and conda-forge.</p>
+on <a class="reference external" href="https://pypi.python.org/pypi/nexusformat">PyPI</a> and <a class="reference external" href="https://anaconda.org/conda-forge/nexusformat">conda-forge</a>.</p>
 <p>If the NeXpy GUI is not required, the package may be used in a regular Python
 shell. It may be installed using:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ pip install nexusformat
@@ -87,10 +84,9 @@ shell. It may be installed using:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ conda install -c conda-forge nexusformat
 </pre></div>
 </div>
-<p>The package can also be installed from the source code using the setup commands
-described above. The source code is available either by downloading one of the
-<a class="reference external" href="https://github.com/nexpy/nexusformat/releases">Github releases</a> or by
-cloning the latest development version in the <a class="reference external" href="https://github.com/nexpy/nexusformat">NeXpy Git repository</a>:</p>
+<p>The package can also be installed from the source code either by downloading
+one of the <a class="reference external" href="https://github.com/nexpy/nexusformat/releases">Github releases</a>
+or by cloning the latest development version in the <a class="reference external" href="https://github.com/nexpy/nexusformat">NeXpy Git repository</a>:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ git clone https://github.com/nexpy/nexusformat.git
 </pre></div>
 </div>
@@ -108,8 +104,8 @@ legacy HDF4 or XML NeXus files. One of the
 <a class="reference external" href="https://manual.nexusformat.org/utilities.html">NeXus conversion utilities</a>
 should be used to convert such files to HDF5.</p>
 <p>If you only intend to utilize the Python API from the command-line, the only
-other required libraries iare <a class="reference external" href="https://numpy.org">NumPy</a> and, if you want
-autocompletion within an IPython shell,  <a class="reference external" href="http://numpy.scipy.org">SciPy</a>.</p>
+other required libraries are <a class="reference external" href="https://numpy.org">NumPy</a> and <a class="reference external" href="http://numpy.scipy.org">SciPy</a>. Autocompletion is only available if <a href="#id5"><span class="problematic" id="id6">`</span></a>IPython
+&lt;<a class="reference external" href="https://ipython.org/">https://ipython.org/</a>&gt;1_ is installed.</p>
 <table class="docutils align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p>Library</p></th>
@@ -129,13 +125,11 @@ autocompletion within an IPython shell,  <a class="reference external" href="htt
 <tr class="row-odd"><td><p>scipy</p></td>
 <td><p><a class="reference external" href="https://scipy.org/">https://scipy.org/</a></p></td>
 </tr>
+<tr class="row-even"><td><p>IPython</p></td>
+<td><p><a class="reference external" href="https://ipython.org/">https://ipython.org/</a></p></td>
+</tr>
 </tbody>
 </table>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>If you need to read HDF4 or XML files now, please clone the
-old-master branch (<a class="reference external" href="https://github.com/nexpy/nexpy/tree/old-master">https://github.com/nexpy/nexpy/tree/old-master</a>).</p>
-</div>
 </section>
 <section id="nexpy-gui">
 <h2>NeXpy GUI<a class="headerlink" href="#nexpy-gui" title="Permalink to this heading">¶</a></h2>
