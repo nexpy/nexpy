@@ -6,13 +6,16 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
-    <title>NeXus Tree API Modules &#8212; NeXpy 0.14.8 documentation</title>
+    <title>NeXus Tree API Modules &#8212; NeXpy 1.0.0rc5 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/sphinxdoc.css" />
     <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="_static/doctools.js"></script>
     <script src="_static/sphinx_highlight.js"></script>
-    <link rel="icon" href="_static/favicon.ico"/>
+    <link rel="shortcut icon" href="_static/favicon.ico"/>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Adding a File Importer" href="readers.html" />
@@ -33,7 +36,7 @@
         <li class="right" >
           <a href="pythongui.html" title="Python Graphical User Interface"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.14.8 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 1.0.0rc5 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">NeXus Tree API Modules</a></li> 
       </ul>
     </div>  
@@ -1720,6 +1723,12 @@ set or if the NXfield array is defined as a masked array.</p>
 </dd></dl>
 
 <dl class="py property">
+<dt class="sig sig-object py" id="nexusformat.nexus.tree.NXfield.human_size">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">human_size</span></span><a class="headerlink" href="#nexusformat.nexus.tree.NXfield.human_size" title="Permalink to this definition">¶</a></dt>
+<dd><p>Human readable string of the number of bytes in the NXfield.</p>
+</dd></dl>
+
+<dl class="py property">
 <dt class="sig sig-object py" id="nexusformat.nexus.tree.NXfield.safe_attrs">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">safe_attrs</span></span><a class="headerlink" href="#nexusformat.nexus.tree.NXfield.safe_attrs" title="Permalink to this definition">¶</a></dt>
 <dd><p>Attributes that can be safely copied to derived NXfields.</p>
@@ -2832,7 +2841,7 @@ entries will be read automatically when they are referenced.</p></li>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>filename</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a>) – Name of the file to be saved.</p></li>
+<li><p><strong>filename</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a><em> or </em><em>Path</em>) – Name of the file to be saved.</p></li>
 <li><p><strong>group</strong> (<a class="reference internal" href="#nexusformat.nexus.tree.NXgroup" title="nexusformat.nexus.tree.NXgroup"><em>NXgroup</em></a>) – Group containing the tree to be saved.</p></li>
 <li><p><strong>mode</strong> (<em>{'w'</em><em>, </em><em>'w-'</em><em>, </em><em>'a'}</em><em>, </em><em>optional</em>) – Mode to be used opening the file, by default ‘w’.</p></li>
 </ul>
@@ -2900,151 +2909,80 @@ If not specified, the scan is constructed from file indices.</p></li>
 </dd></dl>
 
 <dl class="py class">
-<dt class="sig sig-object py" id="nexusformat.nexus.tree.NXroot">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nexusformat.nexus.tree.</span></span><span class="sig-name descname"><span class="pre">NXroot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXroot" title="Permalink to this definition">¶</a></dt>
-<dd><p>NXroot group, a subclass of the <cite>NXgroup</cite> class.</p>
-<p>This group has additional methods to lock or unlock the tree.</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="nexusformat.nexus.tree.NXroot.reload">
-<span class="sig-name descname"><span class="pre">reload</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXroot.reload" title="Permalink to this definition">¶</a></dt>
-<dd><p>Reload the NeXus file from disk.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="nexusformat.nexus.tree.NXroot.is_modified">
-<span class="sig-name descname"><span class="pre">is_modified</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXroot.is_modified" title="Permalink to this definition">¶</a></dt>
-<dd><p>True if the NeXus file has been modified by an external process.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="nexusformat.nexus.tree.NXroot.lock">
-<span class="sig-name descname"><span class="pre">lock</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXroot.lock" title="Permalink to this definition">¶</a></dt>
-<dd><p>Make the tree readonly.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="nexusformat.nexus.tree.NXroot.unlock">
-<span class="sig-name descname"><span class="pre">unlock</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXroot.unlock" title="Permalink to this definition">¶</a></dt>
-<dd><p>Make the tree modifiable.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="nexusformat.nexus.tree.NXroot.backup">
-<span class="sig-name descname"><span class="pre">backup</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXroot.backup" title="Permalink to this definition">¶</a></dt>
-<dd><p>Backup the NeXus file.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>filename</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a><em>, </em><em>optional</em>) – Name of file to contain the backup. If not specified, the backup is
-saved with a randomized name.</p></li>
-<li><p><strong>dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a><em>, </em><em>optional</em>) – Directory to contain the backup, by default the current directory.</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="nexusformat.nexus.tree.NXroot.restore">
-<span class="sig-name descname"><span class="pre">restore</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXroot.restore" title="Permalink to this definition">¶</a></dt>
-<dd><p>Restore a backup.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>filename</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a><em>, </em><em>optional</em>) – Name of file to restore the backup to. If no file name is given,
-the backup replaces the current NeXus file, provided ‘overwrite’
-has been set to True.</p></li>
-<li><p><strong>overwrite</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><em>bool</em></a><em>, </em><em>optional</em>) – True if the file is to be overwritten, by default False</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="nexusformat.nexus.tree.NXroot.close">
-<span class="sig-name descname"><span class="pre">close</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXroot.close" title="Permalink to this definition">¶</a></dt>
-<dd><p>Close the underlying HDF5 file.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="nexusformat.nexus.tree.NXroot.set_default">
-<span class="sig-name descname"><span class="pre">set_default</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">over</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXroot.set_default" title="Permalink to this definition">¶</a></dt>
-<dd><p>Override function to set default for plotting.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>over</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><em>bool</em></a>) – True if previous default should be overwritten</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py property">
-<dt class="sig sig-object py" id="nexusformat.nexus.tree.NXroot.plottable_data">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">plottable_data</span></span><a class="headerlink" href="#nexusformat.nexus.tree.NXroot.plottable_data" title="Permalink to this definition">¶</a></dt>
-<dd><p>The default data group to be plotted in this tree.</p>
-<p>This will return the default group if the <cite>default</cite> attribute has been
-set. Otherwise, the first NXdata, NXmonitor, or NXlog group will be
-returned.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Data group to be plotted.</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference internal" href="#nexusformat.nexus.tree.NXdata" title="nexusformat.nexus.tree.NXdata">NXdata</a></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py property">
-<dt class="sig sig-object py" id="nexusformat.nexus.tree.NXroot.nxfile">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">nxfile</span></span><a class="headerlink" href="#nexusformat.nexus.tree.NXroot.nxfile" title="Permalink to this definition">¶</a></dt>
-<dd><p>NXFile storing the NeXus data.</p>
-</dd></dl>
-
-<dl class="py property">
-<dt class="sig sig-object py" id="nexusformat.nexus.tree.NXroot.nxbackup">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">nxbackup</span></span><a class="headerlink" href="#nexusformat.nexus.tree.NXroot.nxbackup" title="Permalink to this definition">¶</a></dt>
-<dd><p>Path to the backup file if it exists.</p>
-</dd></dl>
-
-<dl class="py property">
-<dt class="sig sig-object py" id="nexusformat.nexus.tree.NXroot.mtime">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">mtime</span></span><a class="headerlink" href="#nexusformat.nexus.tree.NXroot.mtime" title="Permalink to this definition">¶</a></dt>
-<dd><p>Modification time of the last change to root group.</p>
-</dd></dl>
-
+<dt class="sig sig-object py" id="nexusformat.nexus.tree.NXaperture">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nexusformat.nexus.tree.</span></span><span class="sig-name descname"><span class="pre">NXaperture</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXaperture" title="Permalink to this definition">¶</a></dt>
+<dd><p>NXaperture group. This is a subclass of the NXgroup class.</p>
+<p>See the NXgroup documentation for more details.</p>
 </dd></dl>
 
 <dl class="py class">
-<dt class="sig sig-object py" id="nexusformat.nexus.tree.NXentry">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nexusformat.nexus.tree.</span></span><span class="sig-name descname"><span class="pre">NXentry</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXentry" title="Permalink to this definition">¶</a></dt>
-<dd><p>NXentry group, a subclass of the NXgroup class.</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="nexusformat.nexus.tree.NXentry.set_default">
-<span class="sig-name descname"><span class="pre">set_default</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">over</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXentry.set_default" title="Permalink to this definition">¶</a></dt>
-<dd><p>Set group as the default for plotting.</p>
-<p>This will set defaults for parents of the parent group unless they have
-been set previously.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>over</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><em>bool</em></a>) – True if previous default should be overwritten</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py property">
-<dt class="sig sig-object py" id="nexusformat.nexus.tree.NXentry.plottable_data">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">plottable_data</span></span><a class="headerlink" href="#nexusformat.nexus.tree.NXentry.plottable_data" title="Permalink to this definition">¶</a></dt>
-<dd><p>The default data group to be plotted in this entry.</p>
-<p>This will return the default group if the <cite>default</cite> attribute has been
-set. Otherwise, the first NXdata, NXmonitor, or NXlog group will be
-returned.</p>
-</dd></dl>
-
+<dt class="sig sig-object py" id="nexusformat.nexus.tree.NXattenuator">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nexusformat.nexus.tree.</span></span><span class="sig-name descname"><span class="pre">NXattenuator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXattenuator" title="Permalink to this definition">¶</a></dt>
+<dd><p>NXattenuator group. This is a subclass of the NXgroup class.</p>
+<p>See the NXgroup documentation for more details.</p>
 </dd></dl>
 
 <dl class="py class">
-<dt class="sig sig-object py" id="nexusformat.nexus.tree.NXsubentry">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nexusformat.nexus.tree.</span></span><span class="sig-name descname"><span class="pre">NXsubentry</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXsubentry" title="Permalink to this definition">¶</a></dt>
-<dd><p>NXsubentry group, a subclass of the NXsubentry class.</p>
+<dt class="sig sig-object py" id="nexusformat.nexus.tree.NXbeam_stop">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nexusformat.nexus.tree.</span></span><span class="sig-name descname"><span class="pre">NXbeam_stop</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXbeam_stop" title="Permalink to this definition">¶</a></dt>
+<dd><p>NXbeam_stop group. This is a subclass of the NXgroup class.</p>
+<p>See the NXgroup documentation for more details.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="nexusformat.nexus.tree.NXbeam">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nexusformat.nexus.tree.</span></span><span class="sig-name descname"><span class="pre">NXbeam</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXbeam" title="Permalink to this definition">¶</a></dt>
+<dd><p>NXbeam group. This is a subclass of the NXgroup class.</p>
+<p>See the NXgroup documentation for more details.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="nexusformat.nexus.tree.NXbending_magnet">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nexusformat.nexus.tree.</span></span><span class="sig-name descname"><span class="pre">NXbending_magnet</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXbending_magnet" title="Permalink to this definition">¶</a></dt>
+<dd><p>NXbending_magnet group. This is a subclass of the NXgroup class.</p>
+<p>See the NXgroup documentation for more details.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="nexusformat.nexus.tree.NXcapillary">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nexusformat.nexus.tree.</span></span><span class="sig-name descname"><span class="pre">NXcapillary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXcapillary" title="Permalink to this definition">¶</a></dt>
+<dd><p>NXcapillary group. This is a subclass of the NXgroup class.</p>
+<p>See the NXgroup documentation for more details.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="nexusformat.nexus.tree.NXcite">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nexusformat.nexus.tree.</span></span><span class="sig-name descname"><span class="pre">NXcite</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXcite" title="Permalink to this definition">¶</a></dt>
+<dd><p>NXcite group. This is a subclass of the NXgroup class.</p>
+<p>See the NXgroup documentation for more details.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="nexusformat.nexus.tree.NXcollection">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nexusformat.nexus.tree.</span></span><span class="sig-name descname"><span class="pre">NXcollection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXcollection" title="Permalink to this definition">¶</a></dt>
+<dd><p>NXcollection group. This is a subclass of the NXgroup class.</p>
+<p>See the NXgroup documentation for more details.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="nexusformat.nexus.tree.NXcollimator">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nexusformat.nexus.tree.</span></span><span class="sig-name descname"><span class="pre">NXcollimator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXcollimator" title="Permalink to this definition">¶</a></dt>
+<dd><p>NXcollimator group. This is a subclass of the NXgroup class.</p>
+<p>See the NXgroup documentation for more details.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="nexusformat.nexus.tree.NXcrystal">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nexusformat.nexus.tree.</span></span><span class="sig-name descname"><span class="pre">NXcrystal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXcrystal" title="Permalink to this definition">¶</a></dt>
+<dd><p>NXcrystal group. This is a subclass of the NXgroup class.</p>
+<p>See the NXgroup documentation for more details.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="nexusformat.nexus.tree.NXcylindrical_geometry">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nexusformat.nexus.tree.</span></span><span class="sig-name descname"><span class="pre">NXcylindrical_geometry</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXcylindrical_geometry" title="Permalink to this definition">¶</a></dt>
+<dd><p>NXcylindrical_geometry group. This is a subclass of the NXgroup class.</p>
+<p>See the NXgroup documentation for more details.</p>
 </dd></dl>
 
 <dl class="py class">
@@ -3470,117 +3408,6 @@ are defined</p>
 </dd></dl>
 
 <dl class="py class">
-<dt class="sig sig-object py" id="nexusformat.nexus.tree.NXmonitor">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nexusformat.nexus.tree.</span></span><span class="sig-name descname"><span class="pre">NXmonitor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">signal</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXmonitor" title="Permalink to this definition">¶</a></dt>
-<dd><p>NXmonitor group, a subclass of the NXdata class.</p>
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="nexusformat.nexus.tree.NXlog">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nexusformat.nexus.tree.</span></span><span class="sig-name descname"><span class="pre">NXlog</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXlog" title="Permalink to this definition">¶</a></dt>
-<dd><p>NXlog group, a subclass of the NXgroup class.</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="nexusformat.nexus.tree.NXlog.plot">
-<span class="sig-name descname"><span class="pre">plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXlog.plot" title="Permalink to this definition">¶</a></dt>
-<dd><p>Plot the logged values against the elapsed time.</p>
-<p>Valid Matplotlib parameters, specifying markers, colors, etc, can be
-specified using the ‘kwargs’ dictionary.</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="nexusformat.nexus.tree.NXsample">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nexusformat.nexus.tree.</span></span><span class="sig-name descname"><span class="pre">NXsample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXsample" title="Permalink to this definition">¶</a></dt>
-<dd><p>NXsample group. This is a subclass of the NXgroup class.</p>
-<p>See the NXgroup documentation for more details.</p>
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="nexusformat.nexus.tree.NXinstrument">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nexusformat.nexus.tree.</span></span><span class="sig-name descname"><span class="pre">NXinstrument</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXinstrument" title="Permalink to this definition">¶</a></dt>
-<dd><p>NXinstrument group. This is a subclass of the NXgroup class.</p>
-<p>See the NXgroup documentation for more details.</p>
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="nexusformat.nexus.tree.NXaperture">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nexusformat.nexus.tree.</span></span><span class="sig-name descname"><span class="pre">NXaperture</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXaperture" title="Permalink to this definition">¶</a></dt>
-<dd><p>NXaperture group. This is a subclass of the NXgroup class.</p>
-<p>See the NXgroup documentation for more details.</p>
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="nexusformat.nexus.tree.NXattenuator">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nexusformat.nexus.tree.</span></span><span class="sig-name descname"><span class="pre">NXattenuator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXattenuator" title="Permalink to this definition">¶</a></dt>
-<dd><p>NXattenuator group. This is a subclass of the NXgroup class.</p>
-<p>See the NXgroup documentation for more details.</p>
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="nexusformat.nexus.tree.NXbeam">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nexusformat.nexus.tree.</span></span><span class="sig-name descname"><span class="pre">NXbeam</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXbeam" title="Permalink to this definition">¶</a></dt>
-<dd><p>NXbeam group. This is a subclass of the NXgroup class.</p>
-<p>See the NXgroup documentation for more details.</p>
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="nexusformat.nexus.tree.NXbeam_stop">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nexusformat.nexus.tree.</span></span><span class="sig-name descname"><span class="pre">NXbeam_stop</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXbeam_stop" title="Permalink to this definition">¶</a></dt>
-<dd><p>NXbeam_stop group. This is a subclass of the NXgroup class.</p>
-<p>See the NXgroup documentation for more details.</p>
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="nexusformat.nexus.tree.NXbending_magnet">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nexusformat.nexus.tree.</span></span><span class="sig-name descname"><span class="pre">NXbending_magnet</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXbending_magnet" title="Permalink to this definition">¶</a></dt>
-<dd><p>NXbending_magnet group. This is a subclass of the NXgroup class.</p>
-<p>See the NXgroup documentation for more details.</p>
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="nexusformat.nexus.tree.NXcapillary">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nexusformat.nexus.tree.</span></span><span class="sig-name descname"><span class="pre">NXcapillary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXcapillary" title="Permalink to this definition">¶</a></dt>
-<dd><p>NXcapillary group. This is a subclass of the NXgroup class.</p>
-<p>See the NXgroup documentation for more details.</p>
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="nexusformat.nexus.tree.NXcite">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nexusformat.nexus.tree.</span></span><span class="sig-name descname"><span class="pre">NXcite</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXcite" title="Permalink to this definition">¶</a></dt>
-<dd><p>NXcite group. This is a subclass of the NXgroup class.</p>
-<p>See the NXgroup documentation for more details.</p>
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="nexusformat.nexus.tree.NXcollection">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nexusformat.nexus.tree.</span></span><span class="sig-name descname"><span class="pre">NXcollection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXcollection" title="Permalink to this definition">¶</a></dt>
-<dd><p>NXcollection group. This is a subclass of the NXgroup class.</p>
-<p>See the NXgroup documentation for more details.</p>
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="nexusformat.nexus.tree.NXcollimator">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nexusformat.nexus.tree.</span></span><span class="sig-name descname"><span class="pre">NXcollimator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXcollimator" title="Permalink to this definition">¶</a></dt>
-<dd><p>NXcollimator group. This is a subclass of the NXgroup class.</p>
-<p>See the NXgroup documentation for more details.</p>
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="nexusformat.nexus.tree.NXcrystal">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nexusformat.nexus.tree.</span></span><span class="sig-name descname"><span class="pre">NXcrystal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXcrystal" title="Permalink to this definition">¶</a></dt>
-<dd><p>NXcrystal group. This is a subclass of the NXgroup class.</p>
-<p>See the NXgroup documentation for more details.</p>
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="nexusformat.nexus.tree.NXdetector">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nexusformat.nexus.tree.</span></span><span class="sig-name descname"><span class="pre">NXdetector</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXdetector" title="Permalink to this definition">¶</a></dt>
-<dd><p>NXdetector group. This is a subclass of the NXgroup class.</p>
-<p>See the NXgroup documentation for more details.</p>
-</dd></dl>
-
-<dl class="py class">
 <dt class="sig sig-object py" id="nexusformat.nexus.tree.NXdetector_group">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nexusformat.nexus.tree.</span></span><span class="sig-name descname"><span class="pre">NXdetector_group</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXdetector_group" title="Permalink to this definition">¶</a></dt>
 <dd><p>NXdetector_group group. This is a subclass of the NXgroup class.</p>
@@ -3595,10 +3422,45 @@ specified using the ‘kwargs’ dictionary.</p>
 </dd></dl>
 
 <dl class="py class">
+<dt class="sig sig-object py" id="nexusformat.nexus.tree.NXdetector">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nexusformat.nexus.tree.</span></span><span class="sig-name descname"><span class="pre">NXdetector</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXdetector" title="Permalink to this definition">¶</a></dt>
+<dd><p>NXdetector group. This is a subclass of the NXgroup class.</p>
+<p>See the NXgroup documentation for more details.</p>
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="nexusformat.nexus.tree.NXdisk_chopper">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nexusformat.nexus.tree.</span></span><span class="sig-name descname"><span class="pre">NXdisk_chopper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXdisk_chopper" title="Permalink to this definition">¶</a></dt>
 <dd><p>NXdisk_chopper group. This is a subclass of the NXgroup class.</p>
 <p>See the NXgroup documentation for more details.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="nexusformat.nexus.tree.NXentry">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nexusformat.nexus.tree.</span></span><span class="sig-name descname"><span class="pre">NXentry</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXentry" title="Permalink to this definition">¶</a></dt>
+<dd><p>NXentry group, a subclass of the NXgroup class.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="nexusformat.nexus.tree.NXentry.set_default">
+<span class="sig-name descname"><span class="pre">set_default</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">over</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXentry.set_default" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set group as the default for plotting.</p>
+<p>This will set defaults for parents of the parent group unless they have
+been set previously.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>over</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><em>bool</em></a>) – True if previous default should be overwritten</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="nexusformat.nexus.tree.NXentry.plottable_data">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">plottable_data</span></span><a class="headerlink" href="#nexusformat.nexus.tree.NXentry.plottable_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>The default data group to be plotted in this entry.</p>
+<p>This will return the default group if the <cite>default</cite> attribute has been
+set. Otherwise, the first NXdata, NXmonitor, or NXlog group will be
+returned.</p>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py class">
@@ -3637,6 +3499,13 @@ specified using the ‘kwargs’ dictionary.</p>
 </dd></dl>
 
 <dl class="py class">
+<dt class="sig sig-object py" id="nexusformat.nexus.tree.NXfresnel_zone_plate">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nexusformat.nexus.tree.</span></span><span class="sig-name descname"><span class="pre">NXfresnel_zone_plate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXfresnel_zone_plate" title="Permalink to this definition">¶</a></dt>
+<dd><p>NXfresnel_zone_plate group. This is a subclass of the NXgroup class.</p>
+<p>See the NXgroup documentation for more details.</p>
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="nexusformat.nexus.tree.NXgeometry">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nexusformat.nexus.tree.</span></span><span class="sig-name descname"><span class="pre">NXgeometry</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXgeometry" title="Permalink to this definition">¶</a></dt>
 <dd><p>NXgeometry group. This is a subclass of the NXgroup class.</p>
@@ -3647,13 +3516,6 @@ specified using the ‘kwargs’ dictionary.</p>
 <dt class="sig sig-object py" id="nexusformat.nexus.tree.NXgrating">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nexusformat.nexus.tree.</span></span><span class="sig-name descname"><span class="pre">NXgrating</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXgrating" title="Permalink to this definition">¶</a></dt>
 <dd><p>NXgrating group. This is a subclass of the NXgroup class.</p>
-<p>See the NXgroup documentation for more details.</p>
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="nexusformat.nexus.tree.NXgoniometer">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nexusformat.nexus.tree.</span></span><span class="sig-name descname"><span class="pre">NXgoniometer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXgoniometer" title="Permalink to this definition">¶</a></dt>
-<dd><p>NXgoniometer group. This is a subclass of the NXgroup class.</p>
 <p>See the NXgroup documentation for more details.</p>
 </dd></dl>
 
@@ -3672,6 +3534,27 @@ specified using the ‘kwargs’ dictionary.</p>
 </dd></dl>
 
 <dl class="py class">
+<dt class="sig sig-object py" id="nexusformat.nexus.tree.NXinstrument">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nexusformat.nexus.tree.</span></span><span class="sig-name descname"><span class="pre">NXinstrument</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXinstrument" title="Permalink to this definition">¶</a></dt>
+<dd><p>NXinstrument group. This is a subclass of the NXgroup class.</p>
+<p>See the NXgroup documentation for more details.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="nexusformat.nexus.tree.NXlog">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nexusformat.nexus.tree.</span></span><span class="sig-name descname"><span class="pre">NXlog</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXlog" title="Permalink to this definition">¶</a></dt>
+<dd><p>NXlog group, a subclass of the NXgroup class.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="nexusformat.nexus.tree.NXlog.plot">
+<span class="sig-name descname"><span class="pre">plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXlog.plot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot the logged values against the elapsed time.</p>
+<p>Valid Matplotlib parameters, specifying markers, colors, etc, can be
+specified using the ‘kwargs’ dictionary.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="nexusformat.nexus.tree.NXmirror">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nexusformat.nexus.tree.</span></span><span class="sig-name descname"><span class="pre">NXmirror</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXmirror" title="Permalink to this definition">¶</a></dt>
 <dd><p>NXmirror group. This is a subclass of the NXgroup class.</p>
@@ -3683,6 +3566,12 @@ specified using the ‘kwargs’ dictionary.</p>
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nexusformat.nexus.tree.</span></span><span class="sig-name descname"><span class="pre">NXmoderator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXmoderator" title="Permalink to this definition">¶</a></dt>
 <dd><p>NXmoderator group. This is a subclass of the NXgroup class.</p>
 <p>See the NXgroup documentation for more details.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="nexusformat.nexus.tree.NXmonitor">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nexusformat.nexus.tree.</span></span><span class="sig-name descname"><span class="pre">NXmonitor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">signal</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXmonitor" title="Permalink to this definition">¶</a></dt>
+<dd><p>NXmonitor group, a subclass of the NXdata class.</p>
 </dd></dl>
 
 <dl class="py class">
@@ -3699,6 +3588,13 @@ specified using the ‘kwargs’ dictionary.</p>
 </dd></dl>
 
 <dl class="py class">
+<dt class="sig sig-object py" id="nexusformat.nexus.tree.NXoff_geometry">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nexusformat.nexus.tree.</span></span><span class="sig-name descname"><span class="pre">NXoff_geometry</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXoff_geometry" title="Permalink to this definition">¶</a></dt>
+<dd><p>NXoff_geometry group. This is a subclass of the NXgroup class.</p>
+<p>See the NXgroup documentation for more details.</p>
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="nexusformat.nexus.tree.NXorientation">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nexusformat.nexus.tree.</span></span><span class="sig-name descname"><span class="pre">NXorientation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXorientation" title="Permalink to this definition">¶</a></dt>
 <dd><p>NXorientation group. This is a subclass of the NXgroup class.</p>
@@ -3709,6 +3605,13 @@ specified using the ‘kwargs’ dictionary.</p>
 <dt class="sig sig-object py" id="nexusformat.nexus.tree.NXparameters">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nexusformat.nexus.tree.</span></span><span class="sig-name descname"><span class="pre">NXparameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXparameters" title="Permalink to this definition">¶</a></dt>
 <dd><p>NXparameters group. This is a subclass of the NXgroup class.</p>
+<p>See the NXgroup documentation for more details.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="nexusformat.nexus.tree.NXpdb">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nexusformat.nexus.tree.</span></span><span class="sig-name descname"><span class="pre">NXpdb</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXpdb" title="Permalink to this definition">¶</a></dt>
+<dd><p>NXpdb group. This is a subclass of the NXgroup class.</p>
 <p>See the NXgroup documentation for more details.</p>
 </dd></dl>
 
@@ -3747,9 +3650,130 @@ specified using the ‘kwargs’ dictionary.</p>
 </dd></dl>
 
 <dl class="py class">
+<dt class="sig sig-object py" id="nexusformat.nexus.tree.NXroot">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nexusformat.nexus.tree.</span></span><span class="sig-name descname"><span class="pre">NXroot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXroot" title="Permalink to this definition">¶</a></dt>
+<dd><p>NXroot group, a subclass of the <cite>NXgroup</cite> class.</p>
+<p>This group has additional methods to lock or unlock the tree.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="nexusformat.nexus.tree.NXroot.reload">
+<span class="sig-name descname"><span class="pre">reload</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXroot.reload" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reload the NeXus file from disk.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nexusformat.nexus.tree.NXroot.is_modified">
+<span class="sig-name descname"><span class="pre">is_modified</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXroot.is_modified" title="Permalink to this definition">¶</a></dt>
+<dd><p>True if the NeXus file has been modified by an external process.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nexusformat.nexus.tree.NXroot.lock">
+<span class="sig-name descname"><span class="pre">lock</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXroot.lock" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make the tree readonly.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nexusformat.nexus.tree.NXroot.unlock">
+<span class="sig-name descname"><span class="pre">unlock</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXroot.unlock" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make the tree modifiable.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nexusformat.nexus.tree.NXroot.backup">
+<span class="sig-name descname"><span class="pre">backup</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXroot.backup" title="Permalink to this definition">¶</a></dt>
+<dd><p>Backup the NeXus file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filename</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a><em>, </em><em>optional</em>) – Name of file to contain the backup. If not specified, the backup is
+saved with a randomized name.</p></li>
+<li><p><strong>dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a><em>, </em><em>optional</em>) – Directory to contain the backup, by default the current directory.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nexusformat.nexus.tree.NXroot.restore">
+<span class="sig-name descname"><span class="pre">restore</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXroot.restore" title="Permalink to this definition">¶</a></dt>
+<dd><p>Restore a backup.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filename</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a><em>, </em><em>optional</em>) – Name of file to restore the backup to. If no file name is given,
+the backup replaces the current NeXus file, provided ‘overwrite’
+has been set to True.</p></li>
+<li><p><strong>overwrite</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><em>bool</em></a><em>, </em><em>optional</em>) – True if the file is to be overwritten, by default False</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nexusformat.nexus.tree.NXroot.close">
+<span class="sig-name descname"><span class="pre">close</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXroot.close" title="Permalink to this definition">¶</a></dt>
+<dd><p>Close the underlying HDF5 file.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nexusformat.nexus.tree.NXroot.set_default">
+<span class="sig-name descname"><span class="pre">set_default</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">over</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXroot.set_default" title="Permalink to this definition">¶</a></dt>
+<dd><p>Override function to set default for plotting.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>over</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><em>bool</em></a>) – True if previous default should be overwritten</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="nexusformat.nexus.tree.NXroot.plottable_data">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">plottable_data</span></span><a class="headerlink" href="#nexusformat.nexus.tree.NXroot.plottable_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>The default data group to be plotted in this tree.</p>
+<p>This will return the default group if the <cite>default</cite> attribute has been
+set. Otherwise, the first NXdata, NXmonitor, or NXlog group will be
+returned.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Data group to be plotted.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#nexusformat.nexus.tree.NXdata" title="nexusformat.nexus.tree.NXdata">NXdata</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="nexusformat.nexus.tree.NXroot.nxfile">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">nxfile</span></span><a class="headerlink" href="#nexusformat.nexus.tree.NXroot.nxfile" title="Permalink to this definition">¶</a></dt>
+<dd><p>NXFile storing the NeXus data.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="nexusformat.nexus.tree.NXroot.nxbackup">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">nxbackup</span></span><a class="headerlink" href="#nexusformat.nexus.tree.NXroot.nxbackup" title="Permalink to this definition">¶</a></dt>
+<dd><p>Path to the backup file if it exists.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="nexusformat.nexus.tree.NXroot.mtime">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">mtime</span></span><a class="headerlink" href="#nexusformat.nexus.tree.NXroot.mtime" title="Permalink to this definition">¶</a></dt>
+<dd><p>Modification time of the last change to root group.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="nexusformat.nexus.tree.NXsample_component">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nexusformat.nexus.tree.</span></span><span class="sig-name descname"><span class="pre">NXsample_component</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXsample_component" title="Permalink to this definition">¶</a></dt>
 <dd><p>NXsample_component group. This is a subclass of the NXgroup class.</p>
+<p>See the NXgroup documentation for more details.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="nexusformat.nexus.tree.NXsample">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nexusformat.nexus.tree.</span></span><span class="sig-name descname"><span class="pre">NXsample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXsample" title="Permalink to this definition">¶</a></dt>
+<dd><p>NXsample group. This is a subclass of the NXgroup class.</p>
 <p>See the NXgroup documentation for more details.</p>
 </dd></dl>
 
@@ -3779,6 +3803,12 @@ specified using the ‘kwargs’ dictionary.</p>
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nexusformat.nexus.tree.</span></span><span class="sig-name descname"><span class="pre">NXsource</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXsource" title="Permalink to this definition">¶</a></dt>
 <dd><p>NXsource group. This is a subclass of the NXgroup class.</p>
 <p>See the NXgroup documentation for more details.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="nexusformat.nexus.tree.NXsubentry">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nexusformat.nexus.tree.</span></span><span class="sig-name descname"><span class="pre">NXsubentry</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXsubentry" title="Permalink to this definition">¶</a></dt>
+<dd><p>NXsubentry group, a subclass of the NXsubentry class.</p>
 </dd></dl>
 
 <dl class="py class">
@@ -3813,6 +3843,13 @@ specified using the ‘kwargs’ dictionary.</p>
 <dt class="sig sig-object py" id="nexusformat.nexus.tree.NXxraylens">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nexusformat.nexus.tree.</span></span><span class="sig-name descname"><span class="pre">NXxraylens</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXxraylens" title="Permalink to this definition">¶</a></dt>
 <dd><p>NXxraylens group. This is a subclass of the NXgroup class.</p>
+<p>See the NXgroup documentation for more details.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="nexusformat.nexus.tree.NXgoniometer">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nexusformat.nexus.tree.</span></span><span class="sig-name descname"><span class="pre">NXgoniometer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.tree.NXgoniometer" title="Permalink to this definition">¶</a></dt>
+<dd><p>NXgoniometer group. This is a subclass of the NXgroup class.</p>
 <p>See the NXgroup documentation for more details.</p>
 </dd></dl>
 
@@ -3884,15 +3921,15 @@ followed by the units attribute if it exists.</p>
 </dd></dl>
 
 <dl class="py class">
-<dt class="sig sig-object py" id="nexusformat.nexus.plot.PylabPlotter">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nexusformat.nexus.plot.</span></span><span class="sig-name descname"><span class="pre">PylabPlotter</span></span><a class="headerlink" href="#nexusformat.nexus.plot.PylabPlotter" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="nexusformat.nexus.plot.PyplotPlotter">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nexusformat.nexus.plot.</span></span><span class="sig-name descname"><span class="pre">PyplotPlotter</span></span><a class="headerlink" href="#nexusformat.nexus.plot.PyplotPlotter" title="Permalink to this definition">¶</a></dt>
 <dd><p>Matplotlib plotter class for 1D or 2D NeXus data.</p>
 <p>When the nexusformat package is used within NeXpy, plots are produced by
 calling the NXPlotView class function, ‘plot’. This provides a function
 with the same call signature for use outside NeXpy.</p>
 <dl class="py method">
-<dt class="sig sig-object py" id="nexusformat.nexus.plot.PylabPlotter.plot">
-<span class="sig-name descname"><span class="pre">plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_group</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fmt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xmin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ymin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ymax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vmin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.plot.PylabPlotter.plot" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="nexusformat.nexus.plot.PyplotPlotter.plot">
+<span class="sig-name descname"><span class="pre">plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_group</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fmt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xmin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ymin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ymax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vmin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nexusformat.nexus.plot.PyplotPlotter.plot" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plot the NXdata group.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -4290,6 +4327,7 @@ which is currently incompatible with the nexusformat classes.</p>
 <li><a class="reference internal" href="#nexusformat.nexus.tree.NXfield.ndim"><code class="docutils literal notranslate"><span class="pre">NXfield.ndim</span></code></a></li>
 <li><a class="reference internal" href="#nexusformat.nexus.tree.NXfield.size"><code class="docutils literal notranslate"><span class="pre">NXfield.size</span></code></a></li>
 <li><a class="reference internal" href="#nexusformat.nexus.tree.NXfield.nbytes"><code class="docutils literal notranslate"><span class="pre">NXfield.nbytes</span></code></a></li>
+<li><a class="reference internal" href="#nexusformat.nexus.tree.NXfield.human_size"><code class="docutils literal notranslate"><span class="pre">NXfield.human_size</span></code></a></li>
 <li><a class="reference internal" href="#nexusformat.nexus.tree.NXfield.safe_attrs"><code class="docutils literal notranslate"><span class="pre">NXfield.safe_attrs</span></code></a></li>
 <li><a class="reference internal" href="#nexusformat.nexus.tree.NXfield.reversed"><code class="docutils literal notranslate"><span class="pre">NXfield.reversed</span></code></a></li>
 <li><a class="reference internal" href="#nexusformat.nexus.tree.NXfield.plot_shape"><code class="docutils literal notranslate"><span class="pre">NXfield.plot_shape</span></code></a></li>
@@ -4404,27 +4442,17 @@ which is currently incompatible with the nexusformat classes.</p>
 <li><a class="reference internal" href="#nexusformat.nexus.tree.nxdir"><code class="docutils literal notranslate"><span class="pre">nxdir()</span></code></a></li>
 <li><a class="reference internal" href="#nexusformat.nexus.tree.nxconsolidate"><code class="docutils literal notranslate"><span class="pre">nxconsolidate()</span></code></a></li>
 <li><a class="reference internal" href="#nexusformat.nexus.tree.nxdemo"><code class="docutils literal notranslate"><span class="pre">nxdemo()</span></code></a></li>
-<li><a class="reference internal" href="#nexusformat.nexus.tree.NXroot"><code class="docutils literal notranslate"><span class="pre">NXroot</span></code></a><ul>
-<li><a class="reference internal" href="#nexusformat.nexus.tree.NXroot.reload"><code class="docutils literal notranslate"><span class="pre">NXroot.reload()</span></code></a></li>
-<li><a class="reference internal" href="#nexusformat.nexus.tree.NXroot.is_modified"><code class="docutils literal notranslate"><span class="pre">NXroot.is_modified()</span></code></a></li>
-<li><a class="reference internal" href="#nexusformat.nexus.tree.NXroot.lock"><code class="docutils literal notranslate"><span class="pre">NXroot.lock()</span></code></a></li>
-<li><a class="reference internal" href="#nexusformat.nexus.tree.NXroot.unlock"><code class="docutils literal notranslate"><span class="pre">NXroot.unlock()</span></code></a></li>
-<li><a class="reference internal" href="#nexusformat.nexus.tree.NXroot.backup"><code class="docutils literal notranslate"><span class="pre">NXroot.backup()</span></code></a></li>
-<li><a class="reference internal" href="#nexusformat.nexus.tree.NXroot.restore"><code class="docutils literal notranslate"><span class="pre">NXroot.restore()</span></code></a></li>
-<li><a class="reference internal" href="#nexusformat.nexus.tree.NXroot.close"><code class="docutils literal notranslate"><span class="pre">NXroot.close()</span></code></a></li>
-<li><a class="reference internal" href="#nexusformat.nexus.tree.NXroot.set_default"><code class="docutils literal notranslate"><span class="pre">NXroot.set_default()</span></code></a></li>
-<li><a class="reference internal" href="#nexusformat.nexus.tree.NXroot.plottable_data"><code class="docutils literal notranslate"><span class="pre">NXroot.plottable_data</span></code></a></li>
-<li><a class="reference internal" href="#nexusformat.nexus.tree.NXroot.nxfile"><code class="docutils literal notranslate"><span class="pre">NXroot.nxfile</span></code></a></li>
-<li><a class="reference internal" href="#nexusformat.nexus.tree.NXroot.nxbackup"><code class="docutils literal notranslate"><span class="pre">NXroot.nxbackup</span></code></a></li>
-<li><a class="reference internal" href="#nexusformat.nexus.tree.NXroot.mtime"><code class="docutils literal notranslate"><span class="pre">NXroot.mtime</span></code></a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#nexusformat.nexus.tree.NXentry"><code class="docutils literal notranslate"><span class="pre">NXentry</span></code></a><ul>
-<li><a class="reference internal" href="#nexusformat.nexus.tree.NXentry.set_default"><code class="docutils literal notranslate"><span class="pre">NXentry.set_default()</span></code></a></li>
-<li><a class="reference internal" href="#nexusformat.nexus.tree.NXentry.plottable_data"><code class="docutils literal notranslate"><span class="pre">NXentry.plottable_data</span></code></a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#nexusformat.nexus.tree.NXsubentry"><code class="docutils literal notranslate"><span class="pre">NXsubentry</span></code></a></li>
+<li><a class="reference internal" href="#nexusformat.nexus.tree.NXaperture"><code class="docutils literal notranslate"><span class="pre">NXaperture</span></code></a></li>
+<li><a class="reference internal" href="#nexusformat.nexus.tree.NXattenuator"><code class="docutils literal notranslate"><span class="pre">NXattenuator</span></code></a></li>
+<li><a class="reference internal" href="#nexusformat.nexus.tree.NXbeam_stop"><code class="docutils literal notranslate"><span class="pre">NXbeam_stop</span></code></a></li>
+<li><a class="reference internal" href="#nexusformat.nexus.tree.NXbeam"><code class="docutils literal notranslate"><span class="pre">NXbeam</span></code></a></li>
+<li><a class="reference internal" href="#nexusformat.nexus.tree.NXbending_magnet"><code class="docutils literal notranslate"><span class="pre">NXbending_magnet</span></code></a></li>
+<li><a class="reference internal" href="#nexusformat.nexus.tree.NXcapillary"><code class="docutils literal notranslate"><span class="pre">NXcapillary</span></code></a></li>
+<li><a class="reference internal" href="#nexusformat.nexus.tree.NXcite"><code class="docutils literal notranslate"><span class="pre">NXcite</span></code></a></li>
+<li><a class="reference internal" href="#nexusformat.nexus.tree.NXcollection"><code class="docutils literal notranslate"><span class="pre">NXcollection</span></code></a></li>
+<li><a class="reference internal" href="#nexusformat.nexus.tree.NXcollimator"><code class="docutils literal notranslate"><span class="pre">NXcollimator</span></code></a></li>
+<li><a class="reference internal" href="#nexusformat.nexus.tree.NXcrystal"><code class="docutils literal notranslate"><span class="pre">NXcrystal</span></code></a></li>
+<li><a class="reference internal" href="#nexusformat.nexus.tree.NXcylindrical_geometry"><code class="docutils literal notranslate"><span class="pre">NXcylindrical_geometry</span></code></a></li>
 <li><a class="reference internal" href="#nexusformat.nexus.tree.NXdata"><code class="docutils literal notranslate"><span class="pre">NXdata</span></code></a><ul>
 <li><a class="reference internal" href="#nexusformat.nexus.tree.NXdata.nxsignal"><code class="docutils literal notranslate"><span class="pre">NXdata.nxsignal</span></code></a></li>
 <li><a class="reference internal" href="#nexusformat.nexus.tree.NXdata.nxaxes"><code class="docutils literal notranslate"><span class="pre">NXdata.nxaxes</span></code></a></li>
@@ -4458,66 +4486,80 @@ which is currently incompatible with the nexusformat classes.</p>
 <li><a class="reference internal" href="#nexusformat.nexus.tree.NXdata.mask"><code class="docutils literal notranslate"><span class="pre">NXdata.mask</span></code></a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#nexusformat.nexus.tree.NXmonitor"><code class="docutils literal notranslate"><span class="pre">NXmonitor</span></code></a></li>
-<li><a class="reference internal" href="#nexusformat.nexus.tree.NXlog"><code class="docutils literal notranslate"><span class="pre">NXlog</span></code></a><ul>
-<li><a class="reference internal" href="#nexusformat.nexus.tree.NXlog.plot"><code class="docutils literal notranslate"><span class="pre">NXlog.plot()</span></code></a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#nexusformat.nexus.tree.NXsample"><code class="docutils literal notranslate"><span class="pre">NXsample</span></code></a></li>
-<li><a class="reference internal" href="#nexusformat.nexus.tree.NXinstrument"><code class="docutils literal notranslate"><span class="pre">NXinstrument</span></code></a></li>
-<li><a class="reference internal" href="#nexusformat.nexus.tree.NXaperture"><code class="docutils literal notranslate"><span class="pre">NXaperture</span></code></a></li>
-<li><a class="reference internal" href="#nexusformat.nexus.tree.NXattenuator"><code class="docutils literal notranslate"><span class="pre">NXattenuator</span></code></a></li>
-<li><a class="reference internal" href="#nexusformat.nexus.tree.NXbeam"><code class="docutils literal notranslate"><span class="pre">NXbeam</span></code></a></li>
-<li><a class="reference internal" href="#nexusformat.nexus.tree.NXbeam_stop"><code class="docutils literal notranslate"><span class="pre">NXbeam_stop</span></code></a></li>
-<li><a class="reference internal" href="#nexusformat.nexus.tree.NXbending_magnet"><code class="docutils literal notranslate"><span class="pre">NXbending_magnet</span></code></a></li>
-<li><a class="reference internal" href="#nexusformat.nexus.tree.NXcapillary"><code class="docutils literal notranslate"><span class="pre">NXcapillary</span></code></a></li>
-<li><a class="reference internal" href="#nexusformat.nexus.tree.NXcite"><code class="docutils literal notranslate"><span class="pre">NXcite</span></code></a></li>
-<li><a class="reference internal" href="#nexusformat.nexus.tree.NXcollection"><code class="docutils literal notranslate"><span class="pre">NXcollection</span></code></a></li>
-<li><a class="reference internal" href="#nexusformat.nexus.tree.NXcollimator"><code class="docutils literal notranslate"><span class="pre">NXcollimator</span></code></a></li>
-<li><a class="reference internal" href="#nexusformat.nexus.tree.NXcrystal"><code class="docutils literal notranslate"><span class="pre">NXcrystal</span></code></a></li>
-<li><a class="reference internal" href="#nexusformat.nexus.tree.NXdetector"><code class="docutils literal notranslate"><span class="pre">NXdetector</span></code></a></li>
 <li><a class="reference internal" href="#nexusformat.nexus.tree.NXdetector_group"><code class="docutils literal notranslate"><span class="pre">NXdetector_group</span></code></a></li>
 <li><a class="reference internal" href="#nexusformat.nexus.tree.NXdetector_module"><code class="docutils literal notranslate"><span class="pre">NXdetector_module</span></code></a></li>
+<li><a class="reference internal" href="#nexusformat.nexus.tree.NXdetector"><code class="docutils literal notranslate"><span class="pre">NXdetector</span></code></a></li>
 <li><a class="reference internal" href="#nexusformat.nexus.tree.NXdisk_chopper"><code class="docutils literal notranslate"><span class="pre">NXdisk_chopper</span></code></a></li>
+<li><a class="reference internal" href="#nexusformat.nexus.tree.NXentry"><code class="docutils literal notranslate"><span class="pre">NXentry</span></code></a><ul>
+<li><a class="reference internal" href="#nexusformat.nexus.tree.NXentry.set_default"><code class="docutils literal notranslate"><span class="pre">NXentry.set_default()</span></code></a></li>
+<li><a class="reference internal" href="#nexusformat.nexus.tree.NXentry.plottable_data"><code class="docutils literal notranslate"><span class="pre">NXentry.plottable_data</span></code></a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#nexusformat.nexus.tree.NXenvironment"><code class="docutils literal notranslate"><span class="pre">NXenvironment</span></code></a></li>
 <li><a class="reference internal" href="#nexusformat.nexus.tree.NXevent_data"><code class="docutils literal notranslate"><span class="pre">NXevent_data</span></code></a></li>
 <li><a class="reference internal" href="#nexusformat.nexus.tree.NXfermi_chopper"><code class="docutils literal notranslate"><span class="pre">NXfermi_chopper</span></code></a></li>
 <li><a class="reference internal" href="#nexusformat.nexus.tree.NXfilter"><code class="docutils literal notranslate"><span class="pre">NXfilter</span></code></a></li>
 <li><a class="reference internal" href="#nexusformat.nexus.tree.NXflipper"><code class="docutils literal notranslate"><span class="pre">NXflipper</span></code></a></li>
+<li><a class="reference internal" href="#nexusformat.nexus.tree.NXfresnel_zone_plate"><code class="docutils literal notranslate"><span class="pre">NXfresnel_zone_plate</span></code></a></li>
 <li><a class="reference internal" href="#nexusformat.nexus.tree.NXgeometry"><code class="docutils literal notranslate"><span class="pre">NXgeometry</span></code></a></li>
 <li><a class="reference internal" href="#nexusformat.nexus.tree.NXgrating"><code class="docutils literal notranslate"><span class="pre">NXgrating</span></code></a></li>
-<li><a class="reference internal" href="#nexusformat.nexus.tree.NXgoniometer"><code class="docutils literal notranslate"><span class="pre">NXgoniometer</span></code></a></li>
 <li><a class="reference internal" href="#nexusformat.nexus.tree.NXguide"><code class="docutils literal notranslate"><span class="pre">NXguide</span></code></a></li>
 <li><a class="reference internal" href="#nexusformat.nexus.tree.NXinsertion_device"><code class="docutils literal notranslate"><span class="pre">NXinsertion_device</span></code></a></li>
+<li><a class="reference internal" href="#nexusformat.nexus.tree.NXinstrument"><code class="docutils literal notranslate"><span class="pre">NXinstrument</span></code></a></li>
+<li><a class="reference internal" href="#nexusformat.nexus.tree.NXlog"><code class="docutils literal notranslate"><span class="pre">NXlog</span></code></a><ul>
+<li><a class="reference internal" href="#nexusformat.nexus.tree.NXlog.plot"><code class="docutils literal notranslate"><span class="pre">NXlog.plot()</span></code></a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#nexusformat.nexus.tree.NXmirror"><code class="docutils literal notranslate"><span class="pre">NXmirror</span></code></a></li>
 <li><a class="reference internal" href="#nexusformat.nexus.tree.NXmoderator"><code class="docutils literal notranslate"><span class="pre">NXmoderator</span></code></a></li>
+<li><a class="reference internal" href="#nexusformat.nexus.tree.NXmonitor"><code class="docutils literal notranslate"><span class="pre">NXmonitor</span></code></a></li>
 <li><a class="reference internal" href="#nexusformat.nexus.tree.NXmonochromator"><code class="docutils literal notranslate"><span class="pre">NXmonochromator</span></code></a></li>
 <li><a class="reference internal" href="#nexusformat.nexus.tree.NXnote"><code class="docutils literal notranslate"><span class="pre">NXnote</span></code></a></li>
+<li><a class="reference internal" href="#nexusformat.nexus.tree.NXoff_geometry"><code class="docutils literal notranslate"><span class="pre">NXoff_geometry</span></code></a></li>
 <li><a class="reference internal" href="#nexusformat.nexus.tree.NXorientation"><code class="docutils literal notranslate"><span class="pre">NXorientation</span></code></a></li>
 <li><a class="reference internal" href="#nexusformat.nexus.tree.NXparameters"><code class="docutils literal notranslate"><span class="pre">NXparameters</span></code></a></li>
+<li><a class="reference internal" href="#nexusformat.nexus.tree.NXpdb"><code class="docutils literal notranslate"><span class="pre">NXpdb</span></code></a></li>
 <li><a class="reference internal" href="#nexusformat.nexus.tree.NXpinhole"><code class="docutils literal notranslate"><span class="pre">NXpinhole</span></code></a></li>
 <li><a class="reference internal" href="#nexusformat.nexus.tree.NXpolarizer"><code class="docutils literal notranslate"><span class="pre">NXpolarizer</span></code></a></li>
 <li><a class="reference internal" href="#nexusformat.nexus.tree.NXpositioner"><code class="docutils literal notranslate"><span class="pre">NXpositioner</span></code></a></li>
 <li><a class="reference internal" href="#nexusformat.nexus.tree.NXprocess"><code class="docutils literal notranslate"><span class="pre">NXprocess</span></code></a></li>
 <li><a class="reference internal" href="#nexusformat.nexus.tree.NXreflections"><code class="docutils literal notranslate"><span class="pre">NXreflections</span></code></a></li>
+<li><a class="reference internal" href="#nexusformat.nexus.tree.NXroot"><code class="docutils literal notranslate"><span class="pre">NXroot</span></code></a><ul>
+<li><a class="reference internal" href="#nexusformat.nexus.tree.NXroot.reload"><code class="docutils literal notranslate"><span class="pre">NXroot.reload()</span></code></a></li>
+<li><a class="reference internal" href="#nexusformat.nexus.tree.NXroot.is_modified"><code class="docutils literal notranslate"><span class="pre">NXroot.is_modified()</span></code></a></li>
+<li><a class="reference internal" href="#nexusformat.nexus.tree.NXroot.lock"><code class="docutils literal notranslate"><span class="pre">NXroot.lock()</span></code></a></li>
+<li><a class="reference internal" href="#nexusformat.nexus.tree.NXroot.unlock"><code class="docutils literal notranslate"><span class="pre">NXroot.unlock()</span></code></a></li>
+<li><a class="reference internal" href="#nexusformat.nexus.tree.NXroot.backup"><code class="docutils literal notranslate"><span class="pre">NXroot.backup()</span></code></a></li>
+<li><a class="reference internal" href="#nexusformat.nexus.tree.NXroot.restore"><code class="docutils literal notranslate"><span class="pre">NXroot.restore()</span></code></a></li>
+<li><a class="reference internal" href="#nexusformat.nexus.tree.NXroot.close"><code class="docutils literal notranslate"><span class="pre">NXroot.close()</span></code></a></li>
+<li><a class="reference internal" href="#nexusformat.nexus.tree.NXroot.set_default"><code class="docutils literal notranslate"><span class="pre">NXroot.set_default()</span></code></a></li>
+<li><a class="reference internal" href="#nexusformat.nexus.tree.NXroot.plottable_data"><code class="docutils literal notranslate"><span class="pre">NXroot.plottable_data</span></code></a></li>
+<li><a class="reference internal" href="#nexusformat.nexus.tree.NXroot.nxfile"><code class="docutils literal notranslate"><span class="pre">NXroot.nxfile</span></code></a></li>
+<li><a class="reference internal" href="#nexusformat.nexus.tree.NXroot.nxbackup"><code class="docutils literal notranslate"><span class="pre">NXroot.nxbackup</span></code></a></li>
+<li><a class="reference internal" href="#nexusformat.nexus.tree.NXroot.mtime"><code class="docutils literal notranslate"><span class="pre">NXroot.mtime</span></code></a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#nexusformat.nexus.tree.NXsample_component"><code class="docutils literal notranslate"><span class="pre">NXsample_component</span></code></a></li>
+<li><a class="reference internal" href="#nexusformat.nexus.tree.NXsample"><code class="docutils literal notranslate"><span class="pre">NXsample</span></code></a></li>
 <li><a class="reference internal" href="#nexusformat.nexus.tree.NXsensor"><code class="docutils literal notranslate"><span class="pre">NXsensor</span></code></a></li>
 <li><a class="reference internal" href="#nexusformat.nexus.tree.NXshape"><code class="docutils literal notranslate"><span class="pre">NXshape</span></code></a></li>
 <li><a class="reference internal" href="#nexusformat.nexus.tree.NXslit"><code class="docutils literal notranslate"><span class="pre">NXslit</span></code></a></li>
 <li><a class="reference internal" href="#nexusformat.nexus.tree.NXsource"><code class="docutils literal notranslate"><span class="pre">NXsource</span></code></a></li>
+<li><a class="reference internal" href="#nexusformat.nexus.tree.NXsubentry"><code class="docutils literal notranslate"><span class="pre">NXsubentry</span></code></a></li>
 <li><a class="reference internal" href="#nexusformat.nexus.tree.NXtransformations"><code class="docutils literal notranslate"><span class="pre">NXtransformations</span></code></a></li>
 <li><a class="reference internal" href="#nexusformat.nexus.tree.NXtranslation"><code class="docutils literal notranslate"><span class="pre">NXtranslation</span></code></a></li>
 <li><a class="reference internal" href="#nexusformat.nexus.tree.NXuser"><code class="docutils literal notranslate"><span class="pre">NXuser</span></code></a></li>
 <li><a class="reference internal" href="#nexusformat.nexus.tree.NXvelocity_selector"><code class="docutils literal notranslate"><span class="pre">NXvelocity_selector</span></code></a></li>
 <li><a class="reference internal" href="#nexusformat.nexus.tree.NXxraylens"><code class="docutils literal notranslate"><span class="pre">NXxraylens</span></code></a></li>
+<li><a class="reference internal" href="#nexusformat.nexus.tree.NXgoniometer"><code class="docutils literal notranslate"><span class="pre">NXgoniometer</span></code></a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#module-nexusformat.nexus.plot">NeXus Plot Module</a><ul>
 <li><a class="reference internal" href="#nexusformat.nexus.plot.centers"><code class="docutils literal notranslate"><span class="pre">centers()</span></code></a></li>
 <li><a class="reference internal" href="#nexusformat.nexus.plot.boundaries"><code class="docutils literal notranslate"><span class="pre">boundaries()</span></code></a></li>
 <li><a class="reference internal" href="#nexusformat.nexus.plot.label"><code class="docutils literal notranslate"><span class="pre">label()</span></code></a></li>
-<li><a class="reference internal" href="#nexusformat.nexus.plot.PylabPlotter"><code class="docutils literal notranslate"><span class="pre">PylabPlotter</span></code></a><ul>
-<li><a class="reference internal" href="#nexusformat.nexus.plot.PylabPlotter.plot"><code class="docutils literal notranslate"><span class="pre">PylabPlotter.plot()</span></code></a></li>
+<li><a class="reference internal" href="#nexusformat.nexus.plot.PyplotPlotter"><code class="docutils literal notranslate"><span class="pre">PyplotPlotter</span></code></a><ul>
+<li><a class="reference internal" href="#nexusformat.nexus.plot.PyplotPlotter.plot"><code class="docutils literal notranslate"><span class="pre">PyplotPlotter.plot()</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -4596,13 +4638,13 @@ which is currently incompatible with the nexusformat classes.</p>
         <li class="right" >
           <a href="pythongui.html" title="Python Graphical User Interface"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 0.14.8 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 1.0.0rc5 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">NeXus Tree API Modules</a></li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright Modified BSD License.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 6.1.3.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.3.0.
     </div>
   </body>
 </html>
