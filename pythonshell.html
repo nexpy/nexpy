@@ -1216,12 +1216,12 @@ possible to define another directory with relaxed group and/or world
 permissions to store the lock files.</p>
 <section id="configuring-file-locks">
 <h4>Configuring File Locks<a class="headerlink" href="#configuring-file-locks" title="Permalink to this heading">¶</a></h4>
-<p>File-locking is configured using</p>
-<p>To turn on file-locking, call <code class="docutils literal notranslate"><span class="pre">nxsetlock</span></code> with the argument set to the
-number of seconds before an attempt to acquire a lock times out. A typical
-value is 10s and the current value can be read using <code class="docutils literal notranslate"><span class="pre">nxgetlock</span></code>. Then,
-the same context manager described above will also create and remove the
-lock file at the beginning and end of the <code class="docutils literal notranslate"><span class="pre">with</span></code> clause, respectively.</p>
+<p>File-locking is configured using <code class="docutils literal notranslate"><span class="pre">nxsetconfig</span></code> (see next section). File
+locking is enabled by setting a non-zero value for the <code class="docutils literal notranslate"><span class="pre">lock</span></code> parameter,
+which defines the length of time the process will wait before triggering
+a <code class="docutils literal notranslate"><span class="pre">NXLockException</span></code> exception. Then, the context manager described above
+will create and remove the  lock file at the beginning and end of the <code class="docutils literal notranslate"><span class="pre">with</span></code>
+clause, respectively.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">nxgetlock</span><span class="p">()</span>
 <span class="go">0</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">nxsetlock</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
