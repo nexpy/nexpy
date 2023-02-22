@@ -1031,12 +1031,6 @@ current cursor position in the canvas. Alternatively, the range can
 be selected by dragging with the right-mouse button (or with the
 Ctrl-key depressed).</p>
 </div>
-<div class="admonition warning">
-<p class="admonition-title">Warning</p>
-<p>Some of the LMFIT functions have an additional option that is
-selected with the ‘form’ keyword. At present, the default
-option is automatically selected in NeXpy.</p>
-</div>
 <section id="saving-the-fit">
 <h3>Saving the Fit<a class="headerlink" href="#saving-the-fit" title="Permalink to this heading">¶</a></h3>
 <p>The original data, the fitted data, constituent models, and the parameters
@@ -1098,52 +1092,6 @@ system is retained to help with debugging or migrating to the new
 system.</p>
 </div>
 </section>
-<section id="defining-a-function">
-<h3>Defining a Function<a class="headerlink" href="#defining-a-function" title="Permalink to this heading">¶</a></h3>
-<p>User-defined functions can be added to their private functions directory in
-<code class="docutils literal notranslate"><span class="pre">~/.nexpy/functions</span></code>. The file must define the name of the function, a list of
-parameter names, and provide two modules to return the function values and
-starting parameters, respectively.</p>
-<p>As an example, here is the complete Gaussian function:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-
-<span class="n">function_name</span> <span class="o">=</span> <span class="s1">&#39;Gaussian&#39;</span>
-<span class="n">parameters</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Integral&#39;</span><span class="p">,</span> <span class="s1">&#39;Sigma&#39;</span><span class="p">,</span> <span class="s1">&#39;Center&#39;</span><span class="p">]</span>
-
-<span class="n">factor</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span>
-
-<span class="k">def</span> <span class="nf">values</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">p</span><span class="p">):</span>
-    <span class="n">integral</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">center</span> <span class="o">=</span> <span class="n">p</span>
-    <span class="k">return</span> <span class="n">integral</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="p">(</span><span class="n">x</span><span class="o">-</span><span class="n">center</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="o">/</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">sigma</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span> <span class="o">/</span> <span class="p">(</span><span class="n">sigma</span> <span class="o">*</span> <span class="n">factor</span><span class="p">)</span>
-
-<span class="k">def</span> <span class="nf">guess</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
-    <span class="n">center</span> <span class="o">=</span> <span class="p">(</span><span class="n">x</span><span class="o">*</span><span class="n">y</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="o">/</span><span class="n">y</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
-    <span class="n">sigma</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="nb">abs</span><span class="p">(((</span><span class="n">x</span><span class="o">-</span><span class="n">center</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="o">*</span><span class="n">y</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="o">/</span><span class="n">y</span><span class="o">.</span><span class="n">sum</span><span class="p">()))</span>
-    <span class="n">integral</span> <span class="o">=</span> <span class="n">y</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">*</span> <span class="n">sigma</span> <span class="o">*</span> <span class="n">factor</span>
-    <span class="k">return</span> <span class="n">integral</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">center</span>
-</pre></div>
-</div>
-<p>NeXpy uses the function’s ‘guess’ module to produce starting parameters
-automatically when the function is loaded. When each function is added to the
-model, the estimated y-values produced by that function will be subtracted from
-the data before the next function estimate. It is useful therefore to choose the
-order of adding functions carefully. For example, if a peak is sitting on a
-sloping background, the background function should be loaded first since it is
-estimated from the first and last data points. This guess will be subtracted
-before estimating the peak parameters. Obviously, the more functions that are
-added, the less reliable the guesses will be. Starting parameters will have to
-be entered manually before the fit in those cases.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>If it is not possible to estimate starting parameters, just return
-values that do not trigger an exception.</p>
-</div>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>The X-range used in ‘guessing’ the parameters can be adjusted by
-setting the X-axis limits in the Fit Dialog.</p>
-</div>
-</section>
 </section>
 <section id="importing-nexus-data">
 <h2>Importing NeXus Data<a class="headerlink" href="#importing-nexus-data" title="Permalink to this heading">¶</a></h2>
@@ -1167,13 +1115,16 @@ example of a module that reads the original format and returns NeXus data:</p>
 <section id="existing-readers">
 <h3>Existing Readers<a class="headerlink" href="#existing-readers" title="Permalink to this heading">¶</a></h3>
 <p>NeXpy is currently distributed with readers for the following format:</p>
+<p><strong>SPEC Files</strong></p>
+<p>This reader will read multiple SPEC scans from a single SPEC log file, creating
+a separate NXentry for each scan. All the columns in each scan are read into
+the NXdata group, with the default signal defined by the last column. Mesh scans
+are converted to multi-dimensional data, with axes defined by the scan command.
+It is possible to plot different columns once the scans are imported.</p>
 <p><strong>TIFF Images</strong></p>
 <p>This reader will import most TIFF images, including those with floating
 point pixels. This currently uses the <a class="reference external" href="https://pypi.python.org/pypi/tifffile">tifffile</a> module. Use the <code class="docutils literal notranslate"><span class="pre">Open</span> <span class="pre">Image...</span></code>
 dialog to use the <a class="reference external" href="https://github.com/silx-kit/fabio">FabIO library</a>.</p>
-<p><strong>CBF Files</strong></p>
-<p>This reader will read files stored in the <a class="reference external" href="http://www.iucr.org/resources/cif/software/cbflib">Crystallographic Binary Format</a>, using the <a class="reference external" href="https://github.com/silx-kit/fabio">FabIO library</a>. Header information is stored in
-a NXnote.</p>
 <p><strong>Image Stack</strong></p>
 <p>This reader will read a stack of images, which are readable by <a class="reference external" href="https://github.com/silx-kit/fabio">FabIO</a>, <em>e.g.</em>, TIFF or CBF, into a
 three-dimensional NXdata group. The image stack must be stored in separate files
@@ -1184,19 +1135,6 @@ integer defining the stack sequence.</p>
 x and y values, and, optionally, errors. One or more header lines can be
 skipped. A more flexible text importer, allowing the selection of data from
 multiple columns, is under development.</p>
-<p><strong>SPEC Files</strong></p>
-<p>This reader will read multiple SPEC scans from a single SPEC log file, creating
-a separate NXentry for each scan. All the columns in each scan are read into
-the NXdata group, with the default signal defined by the last column. Mesh scans
-are converted to multi-dimensional data, with axes defined by the scan command.
-It is possible to plot different columns once the scans are imported.</p>
-<p><strong>SPE/NXSPE Files</strong></p>
-<p>This will read both the ASCII and binary (HDF5) versions of the neutron
-time-of-flight SPE intermediate format into standard-conforming NeXus files.
-The data is stored as S(phi,E), but, if the incident energy and (Q,E) bins are
-also defined, the data will will also be converted into S(Q,E). The current
-version does not read the ASCII PHX files used to define instrumental
-parameters, but there are plans to add that in the future.</p>
 </section>
 <section id="defining-a-reader">
 <h3>Defining a Reader<a class="headerlink" href="#defining-a-reader" title="Permalink to this heading">¶</a></h3>
@@ -1402,7 +1340,6 @@ class.</p>
 <li><a class="reference internal" href="#fitting-nexus-data">Fitting NeXus Data</a><ul>
 <li><a class="reference internal" href="#saving-the-fit">Saving the Fit</a></li>
 <li><a class="reference internal" href="#defining-a-model">Defining a Model</a></li>
-<li><a class="reference internal" href="#defining-a-function">Defining a Function</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#importing-nexus-data">Importing NeXus Data</a><ul>
