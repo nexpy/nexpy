@@ -267,11 +267,6 @@ save them as the default for subsequent sessions.</p>
 </dd>
 </dl>
 </section>
-<section id="edit-menu">
-<h3>Edit Menu<a class="headerlink" href="#edit-menu" title="Permalink to this heading">¶</a></h3>
-<p>This menu is for manipulating text within the IPython shell. It does not
-affect other components of the NeXpy GUI.</p>
-</section>
 <section id="data-menu">
 <h3>Data Menu<a class="headerlink" href="#data-menu" title="Permalink to this heading">¶</a></h3>
 <dl>
@@ -397,7 +392,7 @@ to be chosen and parameters to be initialized before calling a
 non-linear least-squares fitting module.</p>
 <div class="admonition seealso">
 <p class="admonition-title">See also</p>
-<p>See <a class="reference internal" href="#fitting-nexus-data">Fitting NeXus Data</a>.</p>
+<p><a class="reference internal" href="#fitting-nexus-data">Fitting NeXus Data</a>.</p>
 </div>
 </dd>
 </dl>
@@ -563,6 +558,39 @@ automatically added to the bottom of the Script Menu.</p>
 <p>The currently selected node in the NeXpy tree can be referenced in
 the script as <code class="docutils literal notranslate"><span class="pre">treeview.node</span></code>.</p>
 </div>
+<dl class="simple">
+<dt><strong>Open Startup Script</strong></dt><dd><p>Opens the startup script, <code class="docutils literal notranslate"><span class="pre">~/.nexpy/config.py</span></code>, which is run when NeXpy
+is launched. This can be used to customize imports and other settings
+that affect the IPython shell.</p>
+</dd>
+</dl>
+</section>
+<section id="help-menus">
+<h3>Help Menus<a class="headerlink" href="#help-menus" title="Permalink to this heading">¶</a></h3>
+<dl class="simple">
+<dt><strong>Open NeXpy Help Online</strong></dt><dd><p>Opens this documentation in a browser.</p>
+</dd>
+<dt><strong>Open NeXpy API Tutorial Online</strong></dt><dd><p>Opens an online <a class="reference external" href="https://github.com/nexpy/nexusformat/blob/master/src/nexusformat/notebooks/nexusformat.ipynb">Jupyter notebook</a>
+containing a practical tutorial on the <code class="docutils literal notranslate"><span class="pre">nexusformat</span></code> package.</p>
+</dd>
+<dt><strong>Open NeXus Base Classes Definitions Online</strong></dt><dd><p>Opens online <a href="#id9"><span class="problematic" id="id10">`documentation on the current NeXus base classes
+&lt;https://manual.nexusformat.org/classes/base_classes/`_</span></a>.</p>
+</dd>
+<dt><strong>Open IPython Help Online</strong></dt><dd><p>Opens online <a href="#id11"><span class="problematic" id="id12">`documentation on IPython &lt;https://ipython.readthedocs.io/`_</span></a>.</p>
+</dd>
+<dt><strong>Open Intro to IPython</strong></dt><dd><p>Outputs an introduction to IPython in the shell. Type ‘q’ to return to
+the shell.</p>
+</dd>
+<dt><strong>IPython Cheat Sheet</strong></dt><dd><p>Outputs the IPython Quick Reference Card in the shell. Type ‘q’ to return
+to the shell.</p>
+</dd>
+<dt><strong>Open Example File</strong></dt><dd><p>Launches a ‘Open File’ dialog allowing one of the example NeXus files
+distributed with NeXpy to be opened.</p>
+</dd>
+<dt><strong>Open Example Script</strong></dt><dd><p>Launches a ‘Open File’ dialog allowing one of the example NeXus scripts
+distributed with NeXpy to be opened in the Script Editor.</p>
+</dd>
+</dl>
 </section>
 <section id="other-menus">
 <h3>Other Menus<a class="headerlink" href="#other-menus" title="Permalink to this heading">¶</a></h3>
@@ -1362,10 +1390,10 @@ class.</p>
 <li><a class="reference internal" href="#">Python Graphical User Interface</a><ul>
 <li><a class="reference internal" href="#nexpy-menu-bar">NeXpy Menu Bar</a><ul>
 <li><a class="reference internal" href="#file-menu">File Menu</a></li>
-<li><a class="reference internal" href="#edit-menu">Edit Menu</a></li>
 <li><a class="reference internal" href="#data-menu">Data Menu</a></li>
 <li><a class="reference internal" href="#window-menu">Window Menu</a></li>
 <li><a class="reference internal" href="#script-menu">Script Menu</a></li>
+<li><a class="reference internal" href="#help-menus">Help Menus</a></li>
 <li><a class="reference internal" href="#other-menus">Other Menus</a></li>
 </ul>
 </li>
