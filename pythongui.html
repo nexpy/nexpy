@@ -1033,24 +1033,30 @@ all the peaks together.</p>
 <section id="modifying-constraints">
 <h3>Modifying Constraints<a class="headerlink" href="#modifying-constraints" title="Permalink to this heading">¶</a></h3>
 <p>LMFIT allows parameters to be bound to the values of one or more other
-parameters by arithmetic expressions. These expressions can be defined or
-modified by clicking on ‘Σ’ button at the end of the parameter row.</p>
+parameters by algebraic expressions. These expressions can be defined or
+modified by clicking on ‘Σ’ button at the end of the parameter row. Pull-down
+menus allow parameters to be inserted into the expressions.</p>
 </section>
 <section id="composing-models">
 <h3>Composing Models<a class="headerlink" href="#composing-models" title="Permalink to this heading">¶</a></h3>
-<p>When a model is added using the ‘Add Model’ button, it is, by default,
-added to any existing models to produce a composite model. LMFIT allows
-composite models to be combined using different operators (add, subtract,
-multiply, and divide), defined by an algebraic expression. For example, a
-BoseFactor model, with temperature its only parameter, is provided by NeXpy.
-If it is combined with a peak model, it will apply a detailed balance factor
-appropriate for modeling quasielastic neutron scattering.</p>
+<p>When models are added using the ‘Add Model’ button, they are combined to
+produce a composite model, in which they are added together by default.
+However, LMFIT allows composite models to be combined using different
+operators (add, subtract, multiply, and divide), defined by an algebraic
+expression. For example, a BoseFactor model, with temperature its only
+parameter, is provided by NeXpy. If it is combined with a peak model, using
+the ‘multiply’ operator, it will apply a detailed balance factor appropriate
+for modeling quasielastic neutron scattering.</p>
 <p>A ‘Compose Model’ button allows the algebraic expression combining the
 currently added models to be edited.</p>
 <p>It is also possible to combine a subset of models when plotting the fitted
 models, by selecting ‘Composite Model’ before clicking ‘Plot Model’. This
 allows, for example, several functions representing a background to be
 combined before they are plotted.</p>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference external" href="https://lmfit.github.io/lmfit-py/model.html#composite-models-adding-or-multiplying-models">LMFIT Composite Models</a></p>
+</div>
 </section>
 <section id="saving-the-fit">
 <h3>Saving the Fit<a class="headerlink" href="#saving-the-fit" title="Permalink to this heading">¶</a></h3>
