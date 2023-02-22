@@ -205,11 +205,13 @@ necessary.</p>
 </dd>
 <dt><strong>Show File Locks</strong></dt><dd><p>If a Lock Directory has been defined, this shows a listing of all files,
 whose access is blocked by a current lock file.</p>
+</dd>
+</dl>
 <div class="admonition seealso">
 <p class="admonition-title">See also</p>
-<p><a class="reference internal" href="#importing-nexus-data">Importing NeXus Data</a></p>
+<p>See <a class="reference internal" href="pythonshell.html#file-locking"><span class="std std-ref">File Locking</span></a> for more details.</p>
 </div>
-</dd>
+<dl>
 <dt><strong>Backup File</strong></dt><dd><p>Creates a backup of the selected file. The backup is stored in the user’s
 home directory in <code class="docutils literal notranslate"><span class="pre">~/.nexpy/backups</span></code> and may be restored if changes to
 the currently open file need to be reversed. Backups are saved for five
@@ -1212,10 +1214,6 @@ can be added to their private readers directory in <code class="docutils literal
         <span class="n">x</span> <span class="o">=</span> <span class="n">NXfield</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">z</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;x&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">NXentry</span><span class="p">(</span><span class="n">NXdata</span><span class="p">(</span><span class="n">z</span><span class="p">,(</span><span class="n">y</span><span class="p">,</span><span class="n">x</span><span class="p">)))</span>
 </pre></div>
-</div>
-<div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p>See <a class="reference internal" href="pythonshell.html#file-locking"><span class="std std-ref">File Locking</span></a> for more details.</p>
 </div>
 </section>
 </section>
