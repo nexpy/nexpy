@@ -209,7 +209,7 @@ whose access is blocked by a current lock file.</p>
 </dl>
 <div class="admonition seealso">
 <p class="admonition-title">See also</p>
-<p>See <a class="reference internal" href="pythonshell.html#file-locking"><span class="std std-ref">File Locking</span></a> for more details.</p>
+<p><a class="reference internal" href="pythonshell.html#file-locking"><span class="std std-ref">File Locking</span></a></p>
 </div>
 <dl>
 <dt><strong>Backup File</strong></dt><dd><p>Creates a backup of the selected file. The backup is stored in the user’s
@@ -217,7 +217,7 @@ home directory in <code class="docutils literal notranslate"><span class="pre">~
 the currently open file need to be reversed. Backups are saved for five
 days before being automatically deleted.</p>
 </dd>
-<dt><strong>Restore File…</strong></dt><dd><p>Restores the backup of this file. The user is prompted to confirm that the
+<dt><strong>Restore Backup…</strong></dt><dd><p>Restores the backup of this file. The user is prompted to confirm that the
 currently open file should be overwritten.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -262,9 +262,15 @@ NeXpy directory (<code class="docutils literal notranslate"><span class="pre">~/
 <dt><strong>Restore Plugin</strong></dt><dd><p>If a plugin is overwritten by installing another version, it is backed up
 in <code class="docutils literal notranslate"><span class="pre">~/.nexpy/backups</span></code>). This allows the old version to be restored.</p>
 </dd>
-<dt><strong>Print Shell</strong></dt><dd><p>Prints the contents of the IPython shell.</p>
+<dt><strong>Edit Preferences</strong></dt><dd><p>Open a dialog to set preferences for this session. It is also possible to
+save them as the default for subsequent sessions.</p>
 </dd>
 </dl>
+</section>
+<section id="edit-menu">
+<h3>Edit Menu<a class="headerlink" href="#edit-menu" title="Permalink to this heading">¶</a></h3>
+<p>This menu is for manipulating text within the IPython shell. It does not
+affect other components of the NeXpy GUI.</p>
 </section>
 <section id="data-menu">
 <h3>Data Menu<a class="headerlink" href="#data-menu" title="Permalink to this heading">¶</a></h3>
@@ -1356,6 +1362,7 @@ class.</p>
 <li><a class="reference internal" href="#">Python Graphical User Interface</a><ul>
 <li><a class="reference internal" href="#nexpy-menu-bar">NeXpy Menu Bar</a><ul>
 <li><a class="reference internal" href="#file-menu">File Menu</a></li>
+<li><a class="reference internal" href="#edit-menu">Edit Menu</a></li>
 <li><a class="reference internal" href="#data-menu">Data Menu</a></li>
 <li><a class="reference internal" href="#window-menu">Window Menu</a></li>
 <li><a class="reference internal" href="#script-menu">Script Menu</a></li>
