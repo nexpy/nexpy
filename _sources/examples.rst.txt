@@ -3,7 +3,8 @@ NeXpy Example Files
 *******************
 
 The following files are included in the NeXpy distribution and may be 
-accessed from the Help menu.
+accessed from the Help menu or downloaded from the `Github repository
+<https://github.com/nexpy/nexpy/tree/main/src/nexpy/examples>`_.
 
 Example data
 ============
