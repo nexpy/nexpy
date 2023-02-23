@@ -10,9 +10,6 @@ Example data
 Downloads
 ---------
 
-These downloads are also available online:
-https://github.com/nexpy/nexpy/tree/master/src/nexpy/examples
-
 * :download:`chopper.nxs <../../src/nexpy/examples/chopper.nxs>`
 * :download:`example.nxs <../../src/nexpy/examples/example.nxs>`
 
@@ -23,9 +20,6 @@ Example plugins
 
 Downloads
 ---------
-
-These downloads are also available online:
-https://github.com/nexpy/nexpy/tree/master/src/nexpy/examples/plugins
 
 * :download:`__init__.py <../../src/nexpy/examples/plugins/chopper/__init__.py>`
 * :download:`get_ei.py <../../src/nexpy/examples/plugins/chopper/get_ei.py>`
@@ -38,9 +32,6 @@ Example scripts
 
 Downloads
 ---------
-
-These downloads are also available online:
-https://github.com/nexpy/nexpy/tree/master/src/nexpy/examples/scripts
 
 * :download:`chopper_plot.py <../../src/nexpy/examples/scripts/chopper_plot.py>`
 
