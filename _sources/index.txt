@@ -30,9 +30,9 @@ reading and writing NeXus files is provided by the `nexusformat
    includeme
    pythonshell
    pythongui
-   treeapi
    readers
    examples
+   treeapi
 
 Indices and tables
 ==================
