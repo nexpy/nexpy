@@ -477,6 +477,12 @@ one-dimensional projections to be plotted over it.</p>
 <p>The x and y limits of the plot are displayed as a dashed rectangle, which
 can be hidden if ‘Hide Limits’ is checked. Dragging with the right-button
 depressed can be used to change the limits without replotting.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>On systems without a right mouse button, right-click dragging
+can usually be accomplished by other means, <em>e.g.</em>, two-finger
+drags on a trackpad or dragging with the [Ctrl]-key depressed.</p>
+</div>
 <p>All the open projection panels are displayed as tabs in a single window,
 with the option of copying projection values from one tab to the other if
 the plots are compatible.</p>
@@ -1006,9 +1012,19 @@ edit the configuration file using``Open Startup Script…`` in the Script Menu.<
 <h2>Fitting NeXus Data<a class="headerlink" href="#fitting-nexus-data" title="Permalink to this heading">¶</a></h2>
 <p>NeXpy makes it easy to fit one-dimensional data using the
 <a class="reference external" href="https://lmfit.github.io/lmfit-py/">LMFIT package</a>, with a ‘Fit’ button in
-the Y-Tab of every one-dimensional plot. Alternatively, choosing ‘Fit Data’ from
-the Data menu or using the keyboard shortcut Ctrl+Shift+F (⌘+⇧+F on a Mac),
-will fit data selected in the Tree Pane.</p>
+the Y-Tab of every one-dimensional plot.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If multiple data sets are plotted in the same window, the one to be
+fit can be selected using the pull-down menu on the far left of the
+Y-Tab. Multiple data sets can be selected for fitting at the same
+time, each one opening a new tab in the Fit Panel. Line plots of
+the models and their components will be plotted in the same color as
+the corresponding data.</p>
+</div>
+<p>Alternatively, choosing ‘Fit Data’ from the Data menu or using the keyboard
+shortcut Ctrl+Shift+F (⌘+⇧+F on a Mac), will fit data selected in the Tree
+Pane.</p>
 <p>Either method opens a dialog window that allows multiple fit models to be
 combined, with the option of fixing or limiting parameters. To help in
 selecting a model, click on the pull-down menu and the model description will
@@ -1029,6 +1045,14 @@ data. If multiple peaks are to be fitted, sensible starting parameters for
 each one can be determined by moving the x-limits to cover a single peak when
 adding the peak model. Then, the x-limits can be restored before fitting
 all the peaks together.</p>
+</section>
+<section id="masking-data">
+<h3>Masking Data<a class="headerlink" href="#masking-data" title="Permalink to this heading">¶</a></h3>
+<p>Data points can be masked so that they are excluded from the fit. Individual
+points can be removed by double-clicking on the point marker. A set of
+x-values can be excluded by right-click dragging over the required range and
+then clicking on ‘Mask Data’. Masks can be cleared by clicking on ‘Clear
+Masks’.</p>
 </section>
 <section id="modifying-constraints">
 <h3>Modifying Constraints<a class="headerlink" href="#modifying-constraints" title="Permalink to this heading">¶</a></h3>
@@ -1063,11 +1087,20 @@ combined before they are plotted.</p>
 <section id="saving-the-fit">
 <h3>Saving the Fit<a class="headerlink" href="#saving-the-fit" title="Permalink to this heading">¶</a></h3>
 <p>The original data, the fitted data, constituent models, and the parameters
-can all be saved to an NXprocess group in the Tree Pane for subsequent plotting,
-refitting, or saving to a NeXus file. The group, named ‘f1’, ‘f2’, etc.,
-is stored in the default scratch NXroot group, w0. If you choose
-to fit this entry again, it will load the models and parameters from the
-saved fit.</p>
+can all be saved to an NXprocess group in the Tree Pane, using the ‘Save Fit’
+button, for subsequent plotting, refitting, or copying to another NeXus file.
+The group, named ‘f1’, ‘f2’, etc., is stored in the default scratch NXroot
+group, w0. If you choose to fit this entry again, it will load the models and
+parameters from the saved fit.</p>
+</section>
+<section id="closing-the-fit-panel">
+<h3>Closing the Fit Panel<a class="headerlink" href="#closing-the-fit-panel" title="Permalink to this heading">¶</a></h3>
+<p>If the Fit Panel was opened by clicking the ‘Fit’ button in Y-Tab, line plots
+of the models and their components are superposed on the existing plot
+window. These line plots will be erased when the corresponding tab in the Fit
+Panel is closed. However, if the ‘Apply’ button is clicked before closing the
+tab, the line plot representing the combined model will be preserved until
+the plot window is closed.</p>
 </section>
 <section id="defining-a-model">
 <h3>Defining a Model<a class="headerlink" href="#defining-a-model" title="Permalink to this heading">¶</a></h3>
@@ -1360,9 +1393,11 @@ functions themselves.</p>
 <li><a class="reference internal" href="#configuring-nexpy">Configuring NeXpy</a></li>
 <li><a class="reference internal" href="#fitting-nexus-data">Fitting NeXus Data</a><ul>
 <li><a class="reference internal" href="#initializing-parameters">Initializing Parameters</a></li>
+<li><a class="reference internal" href="#masking-data">Masking Data</a></li>
 <li><a class="reference internal" href="#modifying-constraints">Modifying Constraints</a></li>
 <li><a class="reference internal" href="#composing-models">Composing Models</a></li>
 <li><a class="reference internal" href="#saving-the-fit">Saving the Fit</a></li>
+<li><a class="reference internal" href="#closing-the-fit-panel">Closing the Fit Panel</a></li>
 <li><a class="reference internal" href="#defining-a-model">Defining a Model</a></li>
 </ul>
 </li>
