@@ -95,10 +95,10 @@ in the NeXpy source code tree in the <em>readers</em> subdirectory.</p>
 <span class="linenos">19</span>
 <span class="linenos">20</span>        <span class="bp">self</span><span class="o">.</span><span class="n">set_layout</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filebox</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">progress_layout</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
 <span class="linenos">21</span>
-<span class="linenos">22</span>        <span class="bp">self</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">&quot;Import &quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">filetype</span><span class="p">))</span>
+<span class="linenos">22</span>        <span class="bp">self</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Import </span><span class="si">{</span><span class="n">filetype</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 <span class="linenos">23</span>
 <span class="linenos">24</span>    <span class="k">def</span> <span class="nf">get_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="linenos">25</span>       <span class="sd">&quot;&quot;&quot;Read the data and return either :class:`NXroot` or :class:`NXentry`&quot;&quot;&quot;</span>
+<span class="linenos">25</span>       <span class="sd">&quot;&quot;&quot;Read the data and return either a NXroot or NXentry group&quot;&quot;&quot;</span>
 <span class="linenos">26</span>       <span class="c1"># MUST define self.import_file as chosen file name</span>
 <span class="linenos">27</span>       <span class="c1"># use convenience method to get from dialog widget</span>
 <span class="linenos">28</span>       <span class="bp">self</span><span class="o">.</span><span class="n">import_file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_filename</span><span class="p">()</span>
@@ -119,7 +119,7 @@ an <em>NXroot</em> or <em>NXentry</em> object. This will be added to the NeXpy t
 <section id="features-from-the-superclass">
 <h2>Features from the Superclass<a class="headerlink" href="#features-from-the-superclass" title="Permalink to this heading">¶</a></h2>
 <p>Three GUI convenience elements are provided from the superclass
-<a class="reference internal" href="dialogs.html#nexpy.gui.importdialog.NXImportDialog" title="nexpy.gui.importdialog.NXImportDialog"><code class="xref py py-class docutils literal notranslate"><span class="pre">nexpy.gui.importdialog.NXImportDialog</span></code></a>:</p>
+<code class="xref py py-mod docutils literal notranslate"><span class="pre">nexpy.gui.importdialog.NXImportDialog</span></code>:</p>
 <p><em>ImportDialog.filebox</em>:
 Contains a “Choose File” button and a text box. Both can be
 used to set the path to the imported file. This can be

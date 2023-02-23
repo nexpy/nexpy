@@ -129,7 +129,7 @@ Hovering over one of the files in the list shows its absolute path.</p>
 </dd>
 <dt><strong>Open Image…</strong></dt><dd><p>Opens an image file and imports the image and any stored metadata into an
 NXdata group within a root tree item, called <code class="docutils literal notranslate"><span class="pre">images</span></code>. This will read
-TIFF and CBF files if <a class="reference external" href="https://github.com/silx-kit/fabio">FabIO</a>
+TIFF and CBF files if <a class="reference external" href="https://pythonhosted.org/fabio/">FabIO</a>
 is installed. JPEG, PNG, and GIF files are imported using <a class="reference external" href="https://pillow.readthedocs.io/">Pillow</a>. RGB(A) images contain three-dimensional
 arrays, including color (and transparency) layers, which can be displayed
 as two-dimensional images, with the y-axis inverted according to the usual
@@ -570,7 +570,7 @@ that affect the IPython shell.</p>
 <dl class="simple">
 <dt><strong>Open NeXpy Help Online</strong></dt><dd><p>Opens this documentation in a browser.</p>
 </dd>
-<dt><strong>Open NeXpy API Tutorial Online</strong></dt><dd><p>Opens an online <a class="reference external" href="https://github.com/nexpy/nexusformat/blob/master/src/nexusformat/notebooks/nexusformat.ipynb">Jupyter notebook</a>
+<dt><strong>Open NeXpy API Tutorial Online</strong></dt><dd><p>Opens an online <a class="reference external" href="https://colab.research.google.com/github/nexpy/nexusformat/blob/master/src/nexusformat/notebooks/nexusformat.ipynb">Jupyter notebook</a>
 containing a practical tutorial on the <code class="docutils literal notranslate"><span class="pre">nexusformat</span></code> package.</p>
 </dd>
 <dt><strong>Open NeXus Base Classes Definitions Online</strong></dt><dd><p>Opens online <a class="reference external" href="https://manual.nexusformat.org/classes/base_classes/">documentation on the current NeXus base classes</a>.</p>
@@ -792,7 +792,7 @@ scratch workspace ‘w0’.</p></li>
 updated to the values under the current mouse location.</p>
 <div class="admonition seealso">
 <p class="admonition-title">See also</p>
-<p>See the <a class="reference external" href="http://matplotlib.org/users/navigation_toolbar.html">Matplotlib documentation</a> for
+<p>See the <a class="reference external" href="https://matplotlib.org/users/navigation_toolbar.html">Matplotlib documentation</a> for
 more detailed descriptions of the standard toolbar, including
 keyboard shortcuts. The ‘Aspect’, ‘Export’, and ‘Add’ buttons
 are unique to NeXpy.</p>
@@ -822,7 +822,7 @@ menu, <em>e.g.</em>, &lt;Ctrl&gt;+2 (⌘+2 on a Mac) to select Figure 2.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">plotview</span><span class="o">.</span><span class="n">aspect</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">aspect</span><span class="o">&gt;</span>
 </pre></div>
 </div>
-<p><code class="docutils literal notranslate"><span class="pre">&lt;aspect&gt;</span></code> can be any of the values allowed by the <a class="reference external" href="http://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes.set_aspect">Matplotlib set_aspect</a>
+<p><code class="docutils literal notranslate"><span class="pre">&lt;aspect&gt;</span></code> can be any of the values allowed by the <a class="reference external" href="https://matplotlib.org/stable/api/axes_api.html#aspect-ratio">Matplotlib set_aspect</a>
 function, <em>i.e.</em>, ‘auto’, ‘equal’, or the numerical value of the
 ratio between the height and the width (if the units are identical). The
 ‘Aspect’ button (see above) toggles between ‘auto’ and ‘equal’. This can also
@@ -1071,10 +1071,10 @@ saved fit.</p>
 </section>
 <section id="defining-a-model">
 <h3>Defining a Model<a class="headerlink" href="#defining-a-model" title="Permalink to this heading">¶</a></h3>
-<p>NeXpy makes available any of the models currently supplied by the <a class="reference external" href="https://lmfit.github.io/lmfit-py/">LMFIT
-package</a>, as well as a couple of extra
-models added to the NeXpy package, the OrderParameterModel and the
-PDFdecayModel. If you wish to construct your own model, please refer to the
+<p>NeXpy makes available any of the models currently supplied by the <a class="reference external" href="https://lmfit.github.io/lmfit-py/builtin_models.html">LMFIT
+package</a>, as well as a
+couple of extra models added to the NeXpy package, the OrderParameterModel and
+the PDFdecayModel. If you wish to construct your own model, please refer to the
 LMFIT documentation for more details.</p>
 <p>User-defined models can be added as separate files to their private models
 directory in <code class="docutils literal notranslate"><span class="pre">~/.nexpy/models</span></code> (new to v0.12.6). As an example, here is the
@@ -1151,9 +1151,9 @@ It is possible to plot different columns once the scans are imported.</p>
 <p><strong>TIFF Images</strong></p>
 <p>This reader will import most TIFF images, including those with floating
 point pixels. This currently uses the <a class="reference external" href="https://pypi.python.org/pypi/tifffile">tifffile</a> module. Use the <code class="docutils literal notranslate"><span class="pre">Open</span> <span class="pre">Image...</span></code>
-dialog to use the <a class="reference external" href="https://github.com/silx-kit/fabio">FabIO library</a>.</p>
+dialog to use the <a class="reference external" href="https://pythonhosted.org/fabio/">FabIO library</a>.</p>
 <p><strong>Image Stack</strong></p>
-<p>This reader will read a stack of images, which are readable by <a class="reference external" href="https://github.com/silx-kit/fabio">FabIO</a>, <em>e.g.</em>, TIFF or CBF, into a
+<p>This reader will read a stack of images, which are readable by <a class="reference external" href="https://pythonhosted.org/fabio/">FabIO</a>, <em>e.g.</em>, TIFF or CBF, into a
 three-dimensional NXdata group. The image stack must be stored in separate files
 in a single directory, that are grouped with a common prefix followed by an
 integer defining the stack sequence.</p>
