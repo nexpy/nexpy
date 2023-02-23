@@ -33,5 +33,6 @@ Example scripts
 Downloads
 ---------
 
+* :download:`chopper_plot.py <../../src/nexpy/examples/scripts/example.py>`
 * :download:`chopper_plot.py <../../src/nexpy/examples/scripts/chopper_plot.py>`
 
