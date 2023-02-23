@@ -9,14 +9,13 @@ separately from NeXpy.
 The Python API can be used within a standard Python or IPython shell:: 
 
  $ python
- Python 3.7.2 (default, Dec 29 2018, 00:00:04) 
- [Clang 4.0.1 (tags/RELEASE_401/final)] :: Anaconda, Inc. on darwin
+ Python 3.10.6 | packaged by conda-forge | (main, Aug 22 2022, 20:41:54) [Clang 13.0.1 ] on darwin
  Type "help", "copyright", "credits" or "license" for more information.
  >>> from nexusformat.nexus import *
 
-.. note:: Although wildcard imports are usually discouraged in Python, there
-          should not be any name clashes using it here because all the 
-          imported functions and variables start with 'nx' or 'NX'.
+.. note:: Although wildcard imports are usually discouraged in Python, all the 
+          imported functions and variables start with 'nx' or 'NX', so the
+          risk of namespace conflicts should be small.
 
 .. seealso:: A 
              `Jupyter notebook 
@@ -59,22 +58,20 @@ can be displayed by printing the 'tree' property::
       pulse_time = 2854.947473649946
         @units = 'microsecond'
 
-Individual data items are immediately available from the command-line::
+Individual data items are immediately accessible from the command-line::
 
  >>> print(a.entry.run_number)
  7326
 
-Note that only the tree structure and the values of smaller data sets are read
-from the file to avoid using up memory unnecessarily. In the above example, only
+Only the tree structure and the values of smaller data sets are read from the 
+file to avoid using up memory unnecessarily. In the above example, only
 the types and dimensions of the larger data sets are displayed in the tree.
 Data is loaded only when it is needed, for plotting or calculations, either as 
 a complete array, if memory allows, or as a series of slabs (see below).
 
-.. note:: The maximum size in MB of data that will be read from a file can
-          be determined by calling ``nxgetmemory()``. If the NXfield is larger 
-          than this value, the data will have to be read as a series of slabs. 
-          The default value is 2000, but it may be increased by calling
-          ``nxsetmemory`` with the new value.
+.. note:: The maximum size of data that will be read from a file into memory 
+          can be configured using ``nxsetconfig``. Details of other
+          configuration variables are described later.
 
 There is a second optional argument to the load module that defines the access
 mode for the existing data. For example, the following opens the file in 
@@ -113,14 +110,14 @@ This file can then be loaded again::
  >>> b=nxload('function.nxs')
  >>> print(b.tree)
  root:NXroot
-  @HDF5_Version = '1.8.17'
-  @file_name = 'function.nxs'
-  @file_time = '2017-10-12T20:02:53.953375'
-  @h5py_version = '2.7.0'
-  @nexusformat_version = '0.4.10'
+   @HDF5_Version = '1.12.2'
+  @file_name = '/home/username/function.nxs'
+  @file_time = '2023-02-10T15:50:17.419158'
+  @h5py_version = '3.7.0'
+  @nexusformat_version = '1.0.0'
   entry:NXentry
     data:NXdata
-      @axes = ['axis1' 'axis2']
+      @axes = ['axis1', 'axis2']
       @signal = 'signal'
       axis1 = float64(101)
       axis2 = float64(101)
@@ -132,9 +129,9 @@ This file can then be loaded again::
 
 NeXus Objects
 =============
-NeXus data is stored as a hierarchical tree structure, much like a computer file 
-system. NeXus data structures consist of groups, with base class NXgroup, which 
-can contain fields, with base class NXfield, and/or other groups.
+NeXus data are stored in a hierarchical tree structure, much like a computer 
+file system. NeXus data structures consist of groups, with base class NXgroup, 
+which can contain fields, with base class NXfield, and/or other groups.
 
 NeXus Fields
 ------------
@@ -150,9 +147,13 @@ There are three ways to create an NXfield.
 
   The data value is given by the first positional argument, and may be a Python
   scalar or string, or a NumPy array. In this method, keyword arguments can be
-  used to define NXfield attributes.
+  used to define NXfield `attributes`_.
 
-2. Attribute assignment as the child of a NeXus group::
+2. Dictionary assignment to the NeXus group::
+
+    >>> a['entry/sample/temperature']=40.0
+
+3. Attribute assignment as the child of a NeXus group::
 
     >>> a.entry.sample.temperature=40.0
 
@@ -161,18 +162,16 @@ There are three ways to create an NXfield.
     >>> a.entry.sample.temperature
     NXfield(40.0)
 
-3. Dictionary assignment to the NeXus group::
-
-    >>> a['entry/sample/temperature']=40.0
-
-  This is equivalent to the second method, but should be used if there is a 
-  danger of a name clash with an NXfield method, *e.g.*, if the NXfield is 
-  called 'plot'.
+  Dictionary and attribute assignments are equivalent, but dictionary 
+  assignments should always be used if there is a danger of a name clash with, 
+  for example, group or field methods. They are also recommended when writing 
+  scripts. Attribute assignments are allowed because they are much faster to 
+  type in interactive sessions. 
   
 .. note:: When using the NeXpy GUI shell (see :doc:`pythongui`), it is possible 
           to use tab completion to check for possible name clashes with NXfield 
-          methods. Autocompletion can be added as an extension to other IPython 
-          sessions::
+          methods. Autocompletion can be added as an extension to IPython 
+          sessions as well::
           
             >>> from nexusformat.nexus.completer import load_ipython_extension
             >>> load_ipython_extension(get_ipython()) 
@@ -182,10 +181,10 @@ normally inherited automatically from the data type of the Python object,
 although it is possible to define alternative (but compatible) datatypes. For 
 example, a float64 array can be converted to float32 on assignment::
 
-  >>> x=np.linspace(0,2*np.pi,101)
+  >>> x=np.linspace(0, 2*np.pi,101)
   >>> x.dtype
   dtype('float64')
-  >>> a=NXfield(x,dtype='float32')
+  >>> a=NXfield(x, dtype='float32')
   >>> a.dtype
   dtype('float32')
   >>> b=NXfield('Some Text')
@@ -199,11 +198,8 @@ example, a float64 array can be converted to float32 on assignment::
              the HDF5 file. These use a special object dtype defined by h5py 
              (see the `h5py documentation 
              <http://docs.h5py.org/en/latest/special.html#variable-length-strings>`_).
-             As of v0.3.0, if you wish to store fixed length strings, specify 
-             a dtype of kind 'S', *e.g.*, 'S10' when creating the NXfield. Any
-             dtype of kind 'U' (for unicode string in Python 3), will be 
-             automatically converted to the variable-length string dtype since
-             HDF5 cannot convert them.
+             If you wish to store fixed length strings, specify a dtype of 
+             kind 'S', *e.g.*, 'S10' when creating the NXfield.
 
 .. warning:: If you wish to store an array of strings containing Unicode
              characters as fixed-length strings, convert them to byte strings
@@ -216,10 +212,10 @@ example, a float64 array can be converted to float32 on assignment::
                >>> a.dtype
                dtype('S2')
 
-Similarly, the shape and dimension sizes of an integer or float array is 
-inherited from the assigned NumPy array. It is possible to initialize an NXfield
-array without specifying the data values in advance, *e.g.*, if the data has to
-be created in slabs::
+The shape and dimension sizes of an integer or float array are inherited from 
+the assigned NumPy array. It is possible to initialize an NXfield array 
+without specifying the data values in advance, *e.g.*, if the data is too 
+large to be stored in memory and has to be written as slabs::
 
   >>> a=NXfield(dtype=np.float32, shape=[2048,2048,2048])
   >>> a
@@ -227,6 +223,7 @@ be created in slabs::
 
 More details of handling large arrays are given below.
 
+.. _attributes:
 NeXus attributes
 ^^^^^^^^^^^^^^^^  
 The NeXus standard allows additional attributes to be attached to NXfields to
@@ -305,13 +302,13 @@ If the size of an array is too large to be loaded into memory (see
 `Loading NeXus Data`_), the NXfield can be created without any initial values, 
 and then filled incrementally as slabs::
 
- >>> entry.data.z = NXfield(shape=(1000,1000,1000), dtype=np.float32)
+ >>> entry['data/z'] = NXfield(shape=(1000,1000,1000), dtype=np.float32)
  >>> for i in range(1000):
          entry.data.z[i,:,:] = np.ones(shape=(1000,1000), dtype=np.float32)
              ...
 
 If ``entry`` in the above example is already stored in a NeXus file (with write
-access), then ``entry.data.z`` is automatically updated in the file. If it is 
+access), then ``entry['data/z']`` is automatically updated in the file. If it is 
 not stored in a file, the field is stored in an HDF5 core memory file that will 
 be copied to the NeXus file when it is saved.
 
@@ -364,7 +361,7 @@ NeXus Groups
 ------------
 NeXus groups are defined as subclasses of the NXgroup class, with the class name 
 defining the type of information they contain, *e.g.*, the NXsample class 
-contains metadata that define the measurement sample, such as its temperature or 
+contains metadata that define the measured sample, such as its temperature or 
 lattice parameters. The initialization parameters can be used to populate the 
 group with other predefined NeXus objects, either groups or fields::
 
@@ -377,11 +374,12 @@ group with other predefined NeXus objects, either groups or fields::
 
 In this example, it was necessary to use the keyword form to add the NXfield 
 'temperature' since its name is otherwise undefined within the NXsample group. 
-However, the name is set automatically if the NXfield is added as an attribute 
-or dictionary assignment::
+However, the name is set automatically if the NXfield is assigned to the 
+group::
 
  >>> sample = NXsample()
- >>> sample.temperature=NXfield(40.0, units='K')
+ >>> sample['temperature']=NXfield(40.0, units='K')
+ >>> print(sample.tree)
  sample:NXsample
    temperature = 40.0
      @units = 'K'
@@ -398,7 +396,7 @@ dictionary items::
 
 If a group is not created as another group attribute, its internal name defaults
 to the class name without the 'NX' prefix. This can be useful in automatically
-creating nested groups with minimal typing::
+creating nested groups::
 
  >>> a=NXentry(NXsample(temperature=40.0),NXinstrument(NXdetector(distance=10.8)))
  >>> print(a.tree)
@@ -457,7 +455,7 @@ attribute::
 
  >>> phi=NXfield(np.linspace(0,2*np.pi,101), name='polar_angle')
  >>> data=NXfield(np.sin(phi), name='intensity')
- >>> a=NXdata(data,(phi))
+ >>> a=NXdata(data,(phi,))
  >>> print(a.tree)
  data:NXdata
    @axes = 'polar_angle'
@@ -468,13 +466,13 @@ attribute::
 .. note:: In the above example, the x-axis, ``phi``, was defined as a tuple in the
           second positional argument of the NXdata call. It could also have been
           defined as a list. However, in the case of one-dimensional signals, it
-          would also have been acceptable just to call NXdata(data, phi), 
+          would also have been acceptable just to call ``NXdata(data, phi)``, 
           *i.e.*, without embedding the axis in a tuple or list. 
 
 It is also possible to define the plottable signal and axes using the 
 ``nxsignal`` and ``nxaxes`` properties, respectively::
 
- >>> phi=np.linspace(0,2*np.pi,101)
+ >>> phi=np.linspace(0,2*np.pi, 101)
  >>> a=NXdata()
  >>> a.nxsignal=NXfield(np.sin(phi), name='intensity')
  >>> a.nxaxes=NXfield(phi, name='polar_angle')
@@ -493,10 +491,11 @@ Similarly, signal errors can be added using the ``nxerrors`` property::
    @axes = 'polar_angle'
    @signal = 'intensity'
    intensity = float64(101)
-     @uncertainties = 'intensity_errors'
    intensity_errors = float64(101)
    polar_angle = float64(101)
 
+.. note:: In a NXdata group, errors for each field are defined by another 
+          field with '_errors' appended to the name.
 
 NeXus Links
 -----------
@@ -509,7 +508,7 @@ For example, the polar angle and time-of-flight arrays may logically be stored
 with the detector information in a NXdetector group that is one of the 
 NXinstrument subgroups::
 
- >>> print(entry.instrument.tree)
+ >>> print(entry['instrument'].tree)
  instrument:NXinstrument
    detector:NXdetector
     distance = float32(128)
@@ -522,7 +521,7 @@ NXinstrument subgroups::
 
 However, they may also be needed as plotting axes in a NXdata group::
 
- >>> print(entry.data.tree)
+ >>> print(entry['data'].tree)
  data:NXdata
    @axes = ['polar_angle' 'time_of_flight']
    @signal = data
@@ -546,21 +545,21 @@ attributes of the parent to the NXlink object can be accessed directly through
 the child object. The parent object can be referenced directly, if required,
 using the ``nxlink`` attribute::
 
- >>> entry.data.time_of_flight
+ >>> entry['data/time_of_flight']
  NXlink('/entry/instrument/detector/time_of_flight')
- >>> entry.data.time_of_flight.nxdata
+ >>> entry['data/time_of_flight'].nxdata
  array([   500.,    502.,    504., ...,  16998.,  17000.,  17002.], dtype=float32) 
- >>> entry.data.time_of_flight.units
+ >>> entry['data/time_of_flight'].units
  'microsecond'
- >>> entry.data.time_of_flight.nxlink
+ >>> entry['data/time_of_flight'].nxlink
  NXfield(dtype=float32,shape=(8252,))
 
 .. note:: The absolute path of the data with respect to the root object of the 
           NeXus tree is given by the nxpath property::
 
-           >>> entry.data.time_of_flight.nxpath
+           >>> entry['data/time_of_flight'].nxpath
            '/entry/data/time_of_flight'
-           >>> entry.data.time_of_flight.nxlink.nxpath
+           >>> entry['data/time_of_flight'].nxlink.nxpath
            '/entry/instrument/bank1/time_of_flight'
 
 Creating a Link
@@ -576,12 +575,12 @@ to another group::
        detector:NXdetector
          polar_angle = float64(192)
            @units = 'radian'
- >>> root.entry.data.polar_angle=NXlink(root.entry.instrument.detector.polar_angle)
+ >>> root['entry/data/polar_angle']=NXlink(root['entry/instrument/detector/polar_angle'])
 
 It is also possible to create links using the makelink method, which takes the 
 parent object and, optionally, a new name as arguments::
 
- >>> root.entry.data.makelink(root.entry.instrument.detector.polar_angle)
+ >>> root['entry/data'].makelink(root['entry/instrument/detector/polar_angle'])
  >>> print(root.tree)
  root:NXroot
    entry:NXentry
@@ -596,7 +595,7 @@ parent object and, optionally, a new name as arguments::
            @units = 'radian'
 
 .. note:: After creating the link, both the parent and target objects have an 
-          additional attribute, 'target', showing the absolute path of the 
+          additional attribute, ``target``, showing the absolute path of the 
           parent.
 
 .. seealso:: :mod:`nexusformat.nexus.tree.NXgroup.makelink`
@@ -606,7 +605,7 @@ External Links
 It is also possible to link to a NeXus field that is stored in another file.
 This is accomplished using a similar syntax to internal links.
 
- >>> root.entry.data.data = NXlink('/counts', file='external_counts.nxs')
+ >>> root['entry/data/data'] = NXlink('/counts', file='external_counts.nxs')
  
 In the case of external links, the first argument is the absolute path of the 
 linked object within the external file, while the second argument is the 
@@ -616,9 +615,9 @@ By default, the target file path is converted to a relative path with respect
 to the parent file. If it is required to store the absolute file path, add the
 keyword argument, ``abspath=True``.
 
- >>> root.entry.data.data = NXlink('/counts', 
-                                   file='/home/user/external_counts.nxs',
-                                   abspath=True)
+ >>> root['entry/data/data'] = NXlink('/counts', 
+                                      file='/home/user/external_counts.nxs',
+                                      abspath=True)
  
 .. warning:: If the files are moved without preserving their relative file 
              paths, the parent file will still open but the link will be broken.
@@ -807,23 +806,23 @@ must match (although the names could be different)::
    x = [ 1.5  2.5  3.5]
    y = [ 0.49874749  0.29923607 -0.17539161]
 
-If data errors are included in the NXdata group (with an additional array named 
-'errors'), then the errors are propagated according to the operand::
+If data errors are included in the NXdata group, then the errors are 
+propagated according to the operand::
 
  >>> print(a.tree)
  data:NXdata
    @axes = 'x'
    @signal = 'y'
-   errors = [ 0.99874671  0.77360981  0.59226956]
    x = [ 1.5  2.5  3.5]
    y = [ 0.99749499  0.59847214  0.35078323]
+   y_errors = [ 0.99874671  0.77360981  0.59226956]
  >>> print((a+a).tree)
  data:NXdata
    @axes = 'x'
    @signal = 'y'
-   errors = [ 1.41244114  1.09404949  0.83759564]
    x = [ 1.5  2.5  3.5]
    y = [ 1.99498997  1.19694429  0.70156646]
+   y_errors = [ 1.41244114  1.09404949  0.83759564]
 
 Some statistical operations can be performed on the NXdata group.
 
@@ -908,43 +907,6 @@ are set by the values of the axis::
 
 Unless the slice reduces one of the axes to a single item, the rank of the data
 remains the same. To project data along one of the axes, and so reduce the rank
-by one, the data can be summed along that axis using the sum() method::
-
- >>> x=y=np.linspace(0,2*np.pi,41)
- >>> X,Y=np.meshgrid(x,y)
- >>> a=NXdata(np.sin(X)*np.sin(Y), (y,x))
- >>> print(a.tree)
- data:NXdata
-   @axes = ['axis1' 'axis2']
-   @signal = 'signal'
-   axis1 = float64(41)
-   axis2 = float64(41)
-   signal = float64(41x41)
- >>> print(a.sum(0).tree)
- data:NXdata
-   @axes = ['axis2']
-   @signal = 'signal'
-   @summed_bins = 41
-   axis1 = 3.141592653589793
-     @maximum = 6.283185307179586
-     @minimum = 0.0
-     @summed_bins = 41
-   axis2 = float64(41)
-   signal = float64(41)
-   title = 'data'
-
-It is also possible to slice whole NXdata groups. In this case, the slicing
-works on the multidimensional NXfield, but the full NXdata group is returned
-with both the signal data and the associated axes limited by the slice
-parameters. If either of the limits along any one axis is a float, the limits
-are set by the values of the axis::
-
- >>> a=NXdata(np.sin(x),x)
- >>> a[1.5:2.5].x
- NXfield(name=x,value=[ 1.57079633  1.72787596  1.88495559 ...,  2.19911486  2.35619449])
-
-Unless the slice reduces one of the axes to a single item, the rank of the data
-remains the same. To project data along one of the axes, and so reduce the rank
 by one, the data can be summed along that axis using the sum() method. This
 employs the NumPy array sum() method::
 
@@ -964,42 +926,46 @@ employs the NumPy array sum() method::
    @signal = 'signal'
    axis2 = float64(41)
    signal = float64(41)
-     @long_name = 'Integral from 0.0 to 6.28318530718 '
+     @long_name = 'Integral from 0.0 to 6.28318530718'
 
-* ``NXdata.project(axes, limits)``:
-    The project() method projects the data along a specified 1D axis or 2D axes 
-    summing over the limits, which are specified as a list of tuples for each 
-    dimension. If the axis is not to be limited, then specify the limit as 
-    *None*. The data should be at least two-dimensional and the values are 
-    assumed to be floating point. 
+This can be extended to higher dimensions, using a tuple as the sum() argument.
+The following code projects a NXdata group, whose signal is a
+three-dimensional array, down to a one-dimensional NXdata group. The average
+values of the summed axes are stored as fields, with attributes showing the
+range of the summation.
 
-    >>> x=np.linspace(0, 3., 4)
-    >>> y=np.linspace(0, 2., 3)
-    >>> X,Y=np.meshgrid(x,y)
-    >>> a=NXdata(X*Y,(y,x))
-    >>> print(a.tree)
-    data:NXdata
-      @axes = ['axis1' 'axis2']
-      @signal = 'signal'
-      axis1 = [ 0.  1.  2.]
-      axis2 = [ 0.  1.  2.  3.]
-      signal = float64(3x4)
-    >>> print(a.signal)
-    [[ 0.  0.  0.  0.]
-     [ 0.  1.  2.  3.]
-     [ 0.  2.  4.  6.]]
-    >>> print(a.project([0],[(None,None),(0.5,2.5)]).tree)
-    data:NXdata
-      @axes = 'axis1'
-      @signal = 'signal'
-      axis1 = [ 0.  1.  2.]
-      axis2 = 1.5
-        @maximum = 2.0
-        @minimum = 1.0
-      signal = [ 0.  3.  6.]
+ >>> signal=NXfield(np.arange(60).reshape((3,4,5)), name='v')
+ >>> x=NXfield(np.arange(5.0), name='x')
+ >>> y=NXfield(np.arange(4.0), name='y')
+ >>> z=NXfield(np.arange(3.0), name='z')
+ >>> d=NXdata(signal, (z, y, x))
+ >>> print(d.tree)
+ data:NXdata
+   @axes = ['z', 'y', 'x']
+   @signal = 'v'
+   v = int64(3x4x5)
+   x = float64(5)
+   y = float64(4)
+   z = [0. 1. 2.]
+ >>> print(d.sum((0,1)).tree)
+ data:NXdata
+   @axes = 'x'
+   @signal = 'v'
+   @summed_bins = 12
+   title = 'data/data'
+   v = int64(5)
+   x = float64(5)
+   y = 1.5
+     @maximum = 3.0
+     @minimum = 0.0
+     @summed_bins = 4
+   z = 1.0
+     @maximum = 2.0
+     @minimum = 0.0
+     @summed_bins = 3
 
-    The :doc:`pythongui` provides a menu-based approach to simplify the plotting 
-    of data projections.
+The :doc:`pythongui` provides a menu-based approach to simplify the plotting 
+of 1D and 2D data projections of multidimensional data.
 
 Saving NeXus Data
 =================
@@ -1114,13 +1080,27 @@ mechanisms might prove unreliable (*e.g.*, on NFS-mounted disks).
 
                >>> root.lock()
 
-             This operation does *not* add a file lock. 
+             This operation will prevent the current process from writing to
+             the file, but it does *not* add a file lock to prevent I/O
+             conflicts with other processes. 
 
-To turn on file-locking, call ``nxsetlock`` with the argument set to the 
-number of seconds before an attempt to acquire a lock times out. A typical
-value is 10s and the current value can be read using ``nxgetlock``. Then, 
-the same context manager described above will also create and remove the 
-lock file at the beginning and end of the ``with`` clause, respectively.
+A new file is created with the same name as the NeXus file, with the
+additional extension '.lock'. Other processes using the *nexusformat* package
+will wait until the lock is cleared before performing any further I/O
+operations. By default, this lock file is created in the same directory as
+the NeXus file, but this will fail if the user does not have sufficient
+permissions to create the file in that directory. For this reason, it is
+possible to define another directory with relaxed group and/or world
+permissions to store the lock files.
+
+Configuring File Locks
+^^^^^^^^^^^^^^^^^^^^^^
+File-locking is configured using ``nxsetconfig`` (see next section). File
+locking is enabled by setting a non-zero value for the ``lock`` parameter,
+which defines the length of time the process will wait before triggering
+a ``NXLockException`` exception. Then, the context manager described above
+will create and remove the  lock file at the beginning and end of the ``with``
+clause, respectively.
 
   >>> nxgetlock()
   0
@@ -1143,35 +1123,80 @@ stale lock is encountered, it may be cleared by calling ``clear_lock``::
 
 Configuration Parameters
 ========================
-The nexusformat package uses a number of parameters to configure its default
-behavior. These may be read and/or modified using the following functions.
+The *nexusformat* package uses a number of parameters to configure its default
+behavior. These are stored internally in a dictionary, which may be read or
+modified using the ``nxgetconfig`` and ``nxsetconfig`` functions, respectively.
 
-* ``nxgetcompression(), nxsetcompression()``:
+  >>> nxgetconfig()
+  {'compression': 'gzip',
+   'encoding': 'utf-8',
+   'lock': 0,
+   'lockexpiry': 28800,
+   'lockdirectory': None,
+   'maxsize': 10000,
+   'memory': 2000,
+   'recursive': False}
+  >>> nxsetconfig(memory=4000)
+  >>> nxgetconfig('memory')
+  4000
+
+Here is a list of the current configuration parameters and their defaults.
+
+* ``compression``:
     This sets the default HDF5 compression filter. The default is 'gzip'.
 
-* ``nxgetencoding(), nxsetencoding()``:
-    This sets the default encoding for input strings. This is usually 'utf-8'
-    but the default is set to the system default, defined by 
-    ``sys.getfilesystemencoding()``.
+* ``encoding``:
+    This sets the default encoding for input strings. The default is 'utf-8'.
 
-* ``nxgetlock(), nxsetlock(value=10)``:
+* ``lock``:
     This sets the number of seconds before an attempted file lock acquisition 
-    times out. If the value is 0, file locking is disabled. If ``nxsetlock`` is
-    called without an argument, the default is 10 seconds.
+    times out. The default is 10 seconds. If set to 0, file locking is
+    disabled (but see below).
 
-* ``nxgetmaxsize(), nxsetmaxsize(value)``:
+* ``lockexpiry``:
+    This sets the number of seconds before a file lock is considered stale.
+    If the lock file is older than this value, a new lock can be acquired.
+    The default is 28,800 seconds (8 hours).
+
+* ``lockdirectory``:
+    This defines the path to a directory, in which to store the lock files.
+    The directory should be set to allow users to create files. The default
+    is None, in which case, file locks are stored in the same directory as
+    the NeXus file to be locked.
+
+.. note:: If ``lockdirectory`` is defined, the ``lock`` parameter is
+          automatically set to 10 seconds if the currently set value is 0,
+          *i.e.,* defining a lock directory is enough to enable file locking.
+
+* ``maxsize``:
     This sets the maximum size of an array before HDF5 chunking and compression
-    is turned on by default. The default is 10000.
+    is turned on by default. The default is 10,000.
 
-* ``nxgetmemory(), nxsetmemory(value)``:
+* ``memory``:
     This sets the memory limit (in MB) for loading arrays into memory. If a 
     field contains data that is larger than this limit, it can only be 
     accessed as a series of smaller slabs using the standard slicing syntax. 
     The default is 2000 MB.
 
-* ``nxgetrecursive(), nxsetrecursive(value)``:
+* ``recursive``:
     This sets the default method of loading NeXus files. If the value is set 
     to `True`, all objects in the file are loaded (lazily) into memory. If set
     to `False`, only the first two levels of hierarchy are initially loaded. 
     Lower levels are loaded when they are referenced. This includes tests for
     the existence of object paths in the file. The default is `False`.
+
+Environment variables
+---------------------
+The configuration parameters can also be set by defining environment variables,
+defined either in a user's login files or by a system administrator. This is
+particularly useful for setting a system-wide lock-file directory for all
+users accessing the same data.
+
+When the *nexusformat* package is loaded, environment variables take
+precedence over the package defaults. The user can still override them
+manually by calling ``nxsetconfig``. 
+
+All of the configuration parameters defined in the previous section can be
+defined. The equivalent environment variable name is constructed by prefixing
+the parameter name in upper case by 'NX_', *e.g.*, 'NX_COMPRESSION',
+'NX_ENCODING', *etc*.

@@ -1,9 +1,10 @@
 Introduction
 ============
-NeXpy provides a high-level python interface to NeXus data contained within a 
-simple GUI. It is designed to provide an intuitive interactive toolbox allowing 
-users both to access existing NeXus files and to create new NeXus-conforming 
-data structures without expert knowledge of the file format.
+NeXpy provides a high-level python interface to HDF5 files, particularly those
+stored as NeXus data, within a simple GUI. It is designed to provide an 
+intuitive interactive toolbox allowing users both to access existing NeXus 
+files and to create new NeXus-conforming data structures without expert 
+knowledge of the file format.
 
 See the [NeXpy documentation](http://nexpy.github.io/nexpy) for more details.
 
@@ -41,31 +42,35 @@ HDF4 or XML NeXus files. One of the
 should be used to convert such files to HDF5.
 
 If you only intend to utilize the Python API from the command-line, the only 
-other required libraries are [NumPy](http://numpy.org) and, if you want
-autocompletion within an IPython shell, [SciPy](http://scipy.org). 
+other required libraries are [NumPy](http://numpy.org) and 
+[SciPy](http://scipy.org). Autocompletion of group and field paths within an
+open file is available if [IPython](https://ipython.org/) is installed.
 
 * [nexusformat](https://github.com/nexpy/nexusformat)
 * [h5py](https://www.h5py.org)
 * [numpy](https://numpy.org/)
 * [scipy](https://scipy.org/)
+* [IPython](https://ipython.org/)
 
 NeXpy GUI
 ---------
 The GUI is built using PyQt. The 
-[qtpy package](https://github.com/spyder-ide/qtpy) is used to import the 
-installed PyQt library, either PyQt5, PyQt6, PySide2, or PySide6.
+[qtpy package](https://github.com/spyder-ide/qtpy) is used to import whatever 
+PyQt library is installed, whether PyQt5, PyQt6, PySide2, or PySide6.
 
-The GUI includes an [IPython shell](http://ipython.org/) and a 
-[Matplotlib plotting pane](http://matplotlib.sourceforge.net). The IPython shell 
-is embedded in the Qt GUI using an implementation based on the Jupyter 
-QtConsole. Least-squares fitting of 1D data requires 
-[lmfit](https://lmfit.github.io/lmfit-py/).
+The GUI embeds an [IPython shell](http://ipython.org/) and
+[Matplotlib plotting pane](http://matplotlib.sourceforge.net), within a Qt
+GUI based on the Jupyter QtConsole with an in-process kernel. 
+
+Least-squares fitting of 1D data uses the
+[LMFIT package](https://lmfit.github.io/lmfit-py/).
           
 * [qtpy](https://github.com/spyder-ide/qtpy)
 * [qtconsole](https://qtconsole.readthedocs.io/)
 * [IPython](https://ipython.org/)
 * [matplotlib](https://matplotlib.sourceforge.net/)
 * [lmfit](https://lmfit.github.io/lmfit-py/)
+* [pylatexenc](https://pylatexenc.readthedocs.io/)
 * [pillow](https://pillow.readthedocs.io/)
 * [ansi2html](https://pypi.org/project/ansi2html/)
 

@@ -17,35 +17,36 @@ line by::
 The illustration shows the main features of the GUI:
 
 **1) Tree Pane**
-    This contains the tree structure of NeXus files opened in the File menu, 
-    non-NeXus files that have been imported and converted into the NeXus format
-    using one of the NeXus readers, and NXroot, NXentry, or NXdata groups added 
-    from the shell. Various actions on the data can be performed by
-    right-clicking a tree item, include plotting, renaming, fitting and 
+    This contains the tree structure of NeXus or HDF5 files opened in the File
+    menu, non-NeXus files that have been imported and converted into the NeXus
+    format using one of the NeXus readers, and NXroot, NXentry, or NXdata
+    groups added from the shell. Various actions on the data can be performed
+    by right-clicking a tree item, include plotting, renaming, fitting and 
     deleting the data.
     
 **2) Plot Pane**
     This contains plots produced by (a) the Data\:Plot Data menu item, which 
-    operates on the NeXus data selected in the tree, (b) right-clicking on NeXus 
-    data in the tree, or (c) using NeXus data Plot methods from the shell. If an 
-    NXdata, NXmonitor, or NXlog group is plotted, the rank, dimensions, and 
-    plotting axes are determined automatically. If the rank of the data is 
-    greater than two, a two-dimensional slice is extracted from the data. The 
-    GUI allows the selection of alternative slices using one of the axis panels
-    (see below). If an NXfield is selected, the axes can be chosen from other 
-    NXfields in the same group. It is possible to open other plot windows and 
-    switch between them using the Window menu or keyboard shortcuts (see below).
+    operates on the NeXus data selected in the tree, (b) double-clicking on
+    NeXus data in the tree, or (c) using NeXus data ``plot`` methods from the
+    shell. If an NXdata, NXmonitor, or NXlog group is plotted, the rank,
+    dimensions, and plotting axes are determined automatically. If the rank of
+    the data is greater than two, a two-dimensional slice is extracted from the
+    data. The GUI allows the selection of alternative slices using one of the
+    axis panels (see below). If an NXfield is selected, the axes can be chosen
+    from other NXfields in the same group. It is possible to open other plot
+    windows and switch between them using the Window menu or keyboard
+    shortcuts (see below).
 
 **3) Shell Pane**
     This is an IPython shell, with NeXpy already imported (as * so no prefixes 
-    are necessary), along with NumPy (as np) and Pylab (as plt). Any assignments 
-    to items in the tree pane are automatically reflected in the tree pane, and 
-    new NXroot or NXentry objects can be added to the tree from the 
-    IPython shell. NeXus data plots commands from the shell will appear in the 
-    plot pane, and Matplotlib commands can be used to modify the plot 
-    characteristics. The shell has enhanced features such as autocompletion of
-    NeXus dictionaries and attributes and tooltips containing module docstrings 
-    when you open the module parentheses.
+    are necessary), along with NumPy (as 'np'), Pyplot (as 'plt'), and
+    Matplotlib (as 'mpl'). Any assignments to items in the tree pane are
+    automatically reflected in the tree pane, and new NXroot or NXentry objects
+    can be added to the tree from the IPython shell. NeXus data plots commands
+    from the shell will appear in the plot pane, and Matplotlib commands can be
+    used to modify the plot characteristics. The shell has enhanced features
+    such as autocompletion of NeXus dictionaries and attributes and tooltips
+    containing module docstrings when you open the module parentheses.
     
 **4) Axis Panels**
     The tabbed panels below the plot can be used to modify the plots. The 
@@ -54,8 +55,8 @@ The illustration shows the main features of the GUI:
     limits. For rank two or more, a projection panel allows the plotting of 
     projections along different directions, using the current axis limits. For 
     ranks greater than two, a 'z' panel allows the other dimensions to be 
-    varied. Finally, the 'options' panel provides access to the standard 
-    Matplotlib tools for modifying the plots.
+    varied. Finally, the 'options' panel provides access to the a number of
+    tools for modifying the plot and saving/exporting the plotted data.
 
 **5) Status Bar**
     The values and attributes of the currently selected item in the tree are
@@ -87,12 +88,12 @@ File Menu
 
 **Open Image...**
     Opens an image file and imports the image and any stored metadata into an 
-    NXdata group within a root tree item, called ``images``. This will read TIFF
-    and CBF files if `FabIO <https://github.com/silx-kit/fabio>`_ is installed. 
-    JPEG, PNG, and GIF files are imported using `Pillow 
+    NXdata group within a root tree item, called ``images``. This will read
+    TIFF and CBF files if `FabIO <https://pythonhosted.org/fabio/>`_
+    is installed. JPEG, PNG, and GIF files are imported using `Pillow 
     <https://pillow.readthedocs.io/>`_. RGB(A) images contain three-dimensional
-    arrays, including color (and transparency) layers, which can be displayed as 
-    two-dimensional images, with the y-axis inverted according to the usual 
+    arrays, including color (and transparency) layers, which can be displayed
+    as two-dimensional images, with the y-axis inverted according to the usual 
     image convention, using ``Plot RGB(A) Image``.
 
 **Open Directory...**
@@ -103,9 +104,16 @@ File Menu
     Saves the selected tree item to a new NeXus file. 
 
 **Duplicate...**
-    Makes a copy of the NeXus tree, leaving the original untouched. If any 
+    Makes a copy of the selected item, leaving the original untouched. If any 
     field in the original tree is too large to be stored in memory, its data 
-    is stored in an HDF5 core memory file until the tree is saved to a file. 
+    is stored in an HDF5 core memory file until the tree is saved to a file.
+
+**Restore Session**
+    Loads all the files that were open at the end of the previous NeXpy
+    session.
+
+    .. note:: When launching NeXpy, files from the previous session can be
+              opened using the ``-r`` switch.
 
 **Reload**
     Reloads the NeXus file. This is useful if another application has modified
@@ -116,21 +124,27 @@ File Menu
               previously unlocked, its mode is automatically changed to 
               read-only when the modification is detected.
 
+**Reload All**
+    Reloads all open NeXus files that have been modified by extermal processes.
+
 **Remove**
-    Removes the root item from the tree.
+    Removes the root item from the NeXpy tree.
 
     .. warning:: This will also remove the item with the same name from the 
                  shell. However, if it had previously been assigned to another
                  variable with a different name, that variable will not be 
-                 deleted. 
+                 deleted.
+
+**Remove All**
+    Removes all items from the NeXpy tree.
 
 **Collapse Tree**
     Collapses all expanded items in the tree.
 
 **Import**
     Imports data from other formats. Some importers are provided with the NeXpy
-    distribution, but others will be loaded from the user's ``~/.nexpy/readers`` 
-    directory.
+    distribution, but others will be loaded from the user's
+    ``~/.nexpy/readers`` directory.
  
     .. seealso:: `Importing NeXus Data`_
 
@@ -153,13 +167,19 @@ File Menu
                  checkbox to create a backup, which can be restored later if
                  necessary.
 
+**Show File Locks**
+    If a Lock Directory has been defined, this shows a listing of all files,
+    whose access is blocked by a current lock file.
+
+.. seealso:: :ref:`File Locking` 
+
 **Backup File**
     Creates a backup of the selected file. The backup is stored in the user's
     home directory in ``~/.nexpy/backups`` and may be restored if changes to
     the currently open file need to be reversed. Backups are saved for five
     days before being automatically deleted.
 
-**Restore File...**
+**Restore Backup...**
     Restores the backup of this file. The user is prompted to confirm that the
     currently open file should be overwritten. 
     
@@ -206,8 +226,9 @@ File Menu
     If a plugin is overwritten by installing another version, it is backed up
     in ``~/.nexpy/backups``). This allows the old version to be restored.
 
-**Print Shell**
-    Prints the contents of the IPython shell.
+**Edit Preferences**
+    Open a dialog to set preferences for this session. It is also possible to
+    save them as the default for subsequent sessions.
 
 Data Menu
 ^^^^^^^^^
@@ -333,7 +354,7 @@ Data Menu
     to be chosen and parameters to be initialized before calling a 
     non-linear least-squares fitting module. 
 
-    .. seealso:: See `Fitting NeXus Data`_.
+    .. seealso:: `Fitting NeXus Data`_.
 
 Window Menu
 ^^^^^^^^^^^
@@ -499,11 +520,48 @@ Script Menu
 .. note:: The currently selected node in the NeXpy tree can be referenced in 
           the script as ``treeview.node``.
 
+**Open Startup Script**
+    Opens the startup script, ``~/.nexpy/config.py``, which is run when NeXpy
+    is launched. This can be used to customize imports and other settings
+    that affect the IPython shell.
+
+Help Menus
+^^^^^^^^^^
+**Open NeXpy Help Online**
+    Opens this documentation in a browser.
+
+**Open NeXpy API Tutorial Online**
+    Opens an online `Jupyter notebook 
+    <https://colab.research.google.com/github/nexpy/nexusformat/blob/master/src/nexusformat/notebooks/nexusformat.ipynb>`_
+    containing a practical tutorial on the ``nexusformat`` package.
+
+**Open NeXus Base Classes Definitions Online**
+    Opens online `documentation on the current NeXus base classes
+    <https://manual.nexusformat.org/classes/base_classes/>`_.
+
+**Open IPython Help Online**
+    Opens online `documentation on IPython <https://ipython.readthedocs.io/>`_.
+
+**Open Intro to IPython**
+    Outputs an introduction to IPython in the shell. Type 'q' to return to 
+    the shell.
+
+**IPython Cheat Sheet**
+    Outputs the IPython Quick Reference Card in the shell. Type 'q' to return
+    to the shell.
+
+**Open Example File**
+    Launches a 'Open File' dialog allowing one of the example NeXus files
+    distributed with NeXpy to be opened.
+
+**Open Example Script**
+    Launches a 'Open File' dialog allowing one of the example NeXus scripts
+    distributed with NeXpy to be opened in the Script Editor.
+
 Other Menus
 ^^^^^^^^^^^
-The Edit, View, and Help Menus mostly consist of menu items provided by 
-the Jupyter shell in the Jupyter Qt Console. All these operations act on the 
-shell text.
+The Edit and View Menus consist of menu items provided by the Jupyter Qt
+Console. All these operations act on the shell text.
 
 Adding NeXus Data to the Tree
 -----------------------------
@@ -677,12 +735,12 @@ and sliders.
   
 **Options Tab**
 
-    .. imageRe: [lmfit/lmfit-py] Documentation/docstring updates and code cleanup (#653):: /images/options-tab.png
+    .. image:: /images/options-tab.png
        :align: center
        :width: 90%
 
-    The options tab provides the standard Matplotlib toolbar. You can view with 
-    the addition of one extra button. From left to right, the buttons are:
+    The options tab is based on the standard Matplotlib toolbar, with the 
+    the addition of extra buttons. From left to right, the buttons are:
     
     * **Home** - restores all plotting limits to their original values. 
     * **Arrows** - cycles through the limits of previous plots.
@@ -707,13 +765,13 @@ and sliders.
     updated to the values under the current mouse location.
 
     .. seealso:: See the `Matplotlib documentation  
-                 <http://matplotlib.org/users/navigation_toolbar.html>`_ for
+                 <https://matplotlib.org/users/navigation_toolbar.html>`_ for
                  more detailed descriptions of the standard toolbar, including 
-                 keyboard shortcuts. The 'Aspect' and 'Add' buttons are unique
-                 to NeXpy.
+                 keyboard shortcuts. The 'Aspect', 'Export', and 'Add' buttons
+                 are unique to NeXpy.
 
-    .. note:: The aspect ratio of a plot can also be set from the IPython shell.
-              See below.
+    .. note:: The aspect ratio of a plot can also be set from the IPython 
+              shell. See below.
 
 **Command Line Options**
 
@@ -732,7 +790,7 @@ and sliders.
     >>> plotview.aspect = <aspect>
 
   ``<aspect>`` can be any of the values allowed by the `Matplotlib set_aspect 
-  <http://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes.set_aspect>`_
+  <https://matplotlib.org/stable/api/axes_api.html#aspect-ratio>`_
   function, *i.e.*, 'auto', 'equal', or the numerical value of the 
   ratio between the height and the width (if the units are identical). The 
   'Aspect' button (see above) toggles between 'auto' and 'equal'. This can also
@@ -908,7 +966,7 @@ that are commonly used::
  plt = pyplot
 
 If you require a different set of imports or prefer alternative abbreviations,
-edit the configuration file in ~/.nexpy/config.py.
+edit the configuration file using``Open Startup Script...`` in the Script Menu.
 
 Fitting NeXus Data
 ------------------
@@ -928,22 +986,50 @@ be displayed as a tooltip when you hover over it.
    :width: 90%
 
 The fit can be plotted, along with the constituent models in the main
-plotting window and the fitting parameters displayed in a message window. 
+plotting window and the fitting parameters displayed in the Fit Panel.
 
-.. note:: The fit is only performed over the range set by the X-axis limits 
-          entered in the Fit Dialog. These values can be changed between
-          fits if required, or reset to the overall range of the data using the
-          ``Reset Limits`` button.
+.. note:: The data are only fitted within the x-limits of the current plot.
+          This can be used, for example, to perform piece-wise fits of
+          multiple peaks before a final fit that combines them all together. 
 
-.. note:: When the plotting window is selected, the keyboard shortcuts 'l' and 
-          'r' can be used to set the X-axis limits in the fit dialog to the 
-          current cursor position in the canvas. Alternatively, the range can 
-          be selected by dragging with the right-mouse button (or with the 
-          Ctrl-key depressed).
+Initializing Parameters
+^^^^^^^^^^^^^^^^^^^^^^^
+LMFIT models often define a function to *guess* initial parameters from the
+data. If multiple peaks are to be fitted, sensible starting parameters for
+each one can be determined by moving the x-limits to cover a single peak when
+adding the peak model. Then, the x-limits can be restored before fitting
+all the peaks together.
 
-.. warning:: Some of the LMFIT functions have an additional option that is 
-             selected with the 'form' keyword. At present, the default 
-             option is automatically selected in NeXpy.
+Modifying Constraints
+^^^^^^^^^^^^^^^^^^^^^
+Parameters can be fixed or constrained with minimum and maximum limits
+in the Fit Panel. However, LMFIT also allows parameters to be bound to the
+values of one or more other parameters by algebraic expressions. These
+expressions can be defined or modified by clicking on 'Σ' button at the end of
+the parameter row. Pull-down menus allow parameters from any of the currently
+added models to be inserted into these expressions.
+
+Composing Models
+^^^^^^^^^^^^^^^^
+When models are added using the 'Add Model' button, they are combined to
+produce a composite model, in which they are added together by default.
+However, LMFIT allows composite models to be combined using different
+operators (add, subtract, multiply, and divide), defined by an algebraic
+expression. For example, a BoseFactor model, with temperature its only
+parameter, is provided by NeXpy. If it is combined with a peak model, using
+the 'multiply' operator, it will apply a detailed balance factor appropriate
+for modeling quasielastic neutron scattering. 
+
+A 'Compose Model' button allows the algebraic expression combining the
+currently added models to be edited.
+
+It is also possible to combine a subset of models when plotting the fitted
+models, by selecting 'Composite Model' before clicking 'Plot Model'. This
+allows, for example, several functions representing a background to be
+combined before they are plotted.
+
+.. seealso:: `LMFIT Composite Models 
+             <https://lmfit.github.io/lmfit-py/model.html#composite-models-adding-or-multiplying-models>`_
 
 Saving the Fit
 ^^^^^^^^^^^^^^^^
@@ -957,9 +1043,9 @@ saved fit.
 Defining a Model
 ^^^^^^^^^^^^^^^^
 NeXpy makes available any of the models currently supplied by the `LMFIT 
-package <https://lmfit.github.io/lmfit-py/>`_, as well as a couple of extra
-models added to the NeXpy package, the OrderParameterModel and the 
-PDFdecayModel. If you wish to construct your own model, please refer to the
+package <https://lmfit.github.io/lmfit-py/builtin_models.html>`_, as well as a 
+couple of extra models added to the NeXpy package, the OrderParameterModel and
+the PDFdecayModel. If you wish to construct your own model, please refer to the
 LMFIT documentation for more details. 
 
 User-defined models can be added as separate files to their private models 
@@ -995,58 +1081,12 @@ code for the OrderParameterModel that is distributed with NeXpy::
             """Estimate initial model parameter values from data."""
             return self.make_params(amplitude=data.max(), Tc=x.mean(), beta=0.33)
 
-
 .. warning:: Prior to v0.12.6, NeXpy defined its own system for generating 
              fitting functions. This system is now deprecated, but legacy 
              functions are still available at the end of the model list. If you
              have produced your own functions in the past, they will also be on
              this list. However, we recommend that all new functions now adhere
-             to LMFIT model definitions. The following description of the old
-             system is retained to help with debugging or migrating to the new
-             system.
-
-Defining a Function
-^^^^^^^^^^^^^^^^^^^
-User-defined functions can be added to their private functions directory in 
-``~/.nexpy/functions``. The file must define the name of the function, a list of 
-parameter names, and provide two modules to return the function values and 
-starting parameters, respectively. 
-
-As an example, here is the complete Gaussian function::
-
- import numpy as np
-
- function_name = 'Gaussian'
- parameters = ['Integral', 'Sigma', 'Center']
-
- factor = np.sqrt(2*np.pi)
-
- def values(x, p):
-     integral, sigma, center = p
-     return integral * np.exp(-(x-center)**2/(2*sigma**2)) / (sigma * factor)
-
- def guess(x, y):
-     center = (x*y).sum()/y.sum()
-     sigma = np.sqrt(abs(((x-center)**2*y).sum()/y.sum()))
-     integral = y.max() * sigma * factor
-     return integral, sigma, center
-
-NeXpy uses the function's 'guess' module to produce starting parameters
-automatically when the function is loaded. When each function is added to the 
-model, the estimated y-values produced by that function will be subtracted from 
-the data before the next function estimate. It is useful therefore to choose the
-order of adding functions carefully. For example, if a peak is sitting on a 
-sloping background, the background function should be loaded first since it is
-estimated from the first and last data points. This guess will be subtracted
-before estimating the peak parameters. Obviously, the more functions that are 
-added, the less reliable the guesses will be. Starting parameters will have to 
-be entered manually before the fit in those cases.
-
-.. note:: If it is not possible to estimate starting parameters, just return
-          values that do not trigger an exception. 
-
-.. note:: The X-range used in 'guessing' the parameters can be adjusted by 
-          setting the X-axis limits in the Fit Dialog.
+             to LMFIT model definitions.
 
 Importing NeXus Data
 --------------------
@@ -1071,24 +1111,25 @@ Existing Readers
 ^^^^^^^^^^^^^^^^
 NeXpy is currently distributed with readers for the following format:
 
+**SPEC Files**
+
+This reader will read multiple SPEC scans from a single SPEC log file, creating
+a separate NXentry for each scan. All the columns in each scan are read into 
+the NXdata group, with the default signal defined by the last column. Mesh scans
+are converted to multi-dimensional data, with axes defined by the scan command.
+It is possible to plot different columns once the scans are imported.
+
 **TIFF Images**
 
 This reader will import most TIFF images, including those with floating
 point pixels. This currently uses the `tifffile  
 <https://pypi.python.org/pypi/tifffile>`_ module. Use the ``Open Image...``
-dialog to use the `FabIO library <https://github.com/silx-kit/fabio>`_.
-
-**CBF Files**
-
-This reader will read files stored in the `Crystallographic Binary Format 
-<http://www.iucr.org/resources/cif/software/cbflib>`_, using the `FabIO library
-<https://github.com/silx-kit/fabio>`_. Header information is stored in 
-a NXnote.
+dialog to use the `FabIO library <https://pythonhosted.org/fabio/>`_.
 
 **Image Stack**
 
 This reader will read a stack of images, which are readable by `FabIO 
-<https://github.com/silx-kit/fabio>`_, *e.g.*, TIFF or CBF, into a
+<https://pythonhosted.org/fabio/>`_, *e.g.*, TIFF or CBF, into a
 three-dimensional NXdata group. The image stack must be stored in separate files 
 in a single directory, that are grouped with a common prefix followed by an 
 integer defining the stack sequence.
@@ -1099,23 +1140,6 @@ This reader will read ASCII data stored in two or three columns, containing the
 x and y values, and, optionally, errors. One or more header lines can be 
 skipped. A more flexible text importer, allowing the selection of data from 
 multiple columns, is under development.
-
-**SPEC Files**
-
-This reader will read multiple SPEC scans from a single SPEC log file, creating
-a separate NXentry for each scan. All the columns in each scan are read into 
-the NXdata group, with the default signal defined by the last column. Mesh scans
-are converted to multi-dimensional data, with axes defined by the scan command.
-It is possible to plot different columns once the scans are imported.
-
-**SPE/NXSPE Files**
-
-This will read both the ASCII and binary (HDF5) versions of the neutron 
-time-of-flight SPE intermediate format into standard-conforming NeXus files. 
-The data is stored as S(phi,E), but, if the incident energy and (Q,E) bins are 
-also defined, the data will will also be converted into S(Q,E). The current
-version does not read the ASCII PHX files used to define instrumental 
-parameters, but there are plans to add that in the future.
 
 Defining a Reader
 ^^^^^^^^^^^^^^^^^
@@ -1145,16 +1169,16 @@ Here is an example of an import dialog::
 
  import numpy as np
  from nexusformat.nexus import *
- from nexpy.gui.importdialog import BaseImportDialog
+ from nexpy.gui.importdialog import NXImportDialog
 
  filetype = "TIFF Image" #Defines the Import Menu label
 
- class ImportDialog(BaseImportDialog):
+ class ImportDialog(NXImportDialog):
      """Dialog to import a TIFF image"""
  
      def __init__(self, parent=None):
 
-         super(ImportDialog, self).__init__(parent)
+         super().__init__(parent)
         
          self.set_layout(self.filebox(), self.close_buttons())
   
@@ -1167,10 +1191,6 @@ Here is an example of an import dialog::
          y = NXfield(range(z.shape[0]), name='y')      
          x = NXfield(range(z.shape[1]), name='x')
          return NXentry(NXdata(z,(y,x)))
-
-.. seealso:: See :class:`nexpy.gui.importdialog.BaseImportDialog` and its parent
-             :class:`nexpy.gui.importdialog.BaseDialog` for other
-             pre-defined methods.
 
 NeXpy Plugins
 -------------
@@ -1223,14 +1243,10 @@ means that the function can be called without an argument), a couple of
 buttons to activate different parts of the analysis, and finally the
 functions themselves.
 
-.. seealso:: See :class:`nexpy.gui.datadialogs.BaseDialog` for a list of
-             pre-defined dialog methods if the dialog uses it as the parent
-             class.
-
 Here is the code::
 
   import numpy as np
-  from nexpy.gui.datadialogs import BaseDialog, GridParameters
+  from nexpy.gui.datadialogs import GridParameters, NXDialog
   from nexpy.gui.mainwindow import report_error
   from nexusformat.nexus import NeXusError
 
@@ -1243,7 +1259,7 @@ Here is the code::
           report_error("Getting Incident Energy", error)
         
 
-  class EnergyDialog(BaseDialog):
+  class EnergyDialog(NXDialog):
 
       def __init__(self, parent=None):
 

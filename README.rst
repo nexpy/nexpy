@@ -1,16 +1,14 @@
 Installation
 ============
 Released versions of NeXpy are available on `PyPI 
-<https://pypi.python.org/pypi/NeXpy/>`_ and as a `Conda installation 
+<https://pypi.python.org/pypi/NeXpy/>`_ and `conda-forge 
 <https://anaconda.org/conda-forge/nexpy>`_. 
 
-If you have the `Python Setup Tools <https://pypi.python.org/pypi/setuptools>`_ 
-installed, then you can either install using 'pip'::
+You can therefore install using 'pip'::
 
     $ pip install nexpy
 
-or, if you have an Anaconda installation, NeXpy is now available on the 
-conda-forge channel::
+or 'conda'::
 
     $ conda install -c conda-forge nexpy
 
@@ -18,10 +16,12 @@ conda-forge channel::
           automatically searched when installing. Just type 
           ``conda config --add channels conda-forge``. 
 
-You can install the package from the source code either by downloading one of 
-the `Github releases <https://github.com/nexpy/nexpy/releases>`_ or by cloning 
-the latest development version in the 
-`NeXpy Git repository <https://github.com/nexpy/nexpy>`_::
+If you have the `Python Setup Tools 
+<https://pypi.python.org/pypi/setuptools>`_, you can install the package 
+from the source code either by downloading one of the `Github releases 
+<https://github.com/nexpy/nexpy/releases>`_ or by cloning the latest 
+development version in the `NeXpy Git repository 
+<https://github.com/nexpy/nexpy>`_::
 
     $ git clone https://github.com/nexpy/nexpy.git
 
@@ -33,9 +33,10 @@ within the source directory::
 
 The Python API for reading and writing NeXus files is in a separate package, 
 `nexusformat <https://github.com/nexpy/nexusformat>`_, which is also available 
-on `PyPI <https://pypi.python.org/pypi/nexusformat/>`_ and conda-forge. 
+on `PyPI <https://pypi.python.org/pypi/nexusformat>`_ and `conda-forge
+<https://anaconda.org/conda-forge/nexusformat>`_. 
 
-If the NeXpy GUI is not required, the package may be used in a regular Python
+If the NeXpy GUI is not required, the package may be used in any Python
 shell. It may be installed using:: 
 
     $ pip install nexusformat
@@ -44,10 +45,9 @@ or::
 
     $ conda install -c conda-forge nexusformat
 
-The package can also be installed from the source code using the setup commands
-described above. The source code is available either by downloading one of the 
-`Github releases <https://github.com/nexpy/nexusformat/releases>`_ or by 
-cloning the latest development version in the `NeXpy Git repository 
+The package can also be installed from the source code either by downloading 
+one of the `Github releases <https://github.com/nexpy/nexusformat/releases>`_ 
+or by cloning the latest development version in the `NeXpy Git repository 
 <https://github.com/nexpy/nexusformat>`_::
 
     $ git clone https://github.com/nexpy/nexusformat.git
@@ -66,8 +66,10 @@ legacy HDF4 or XML NeXus files. One of the
 should be used to convert such files to HDF5.
 
 If you only intend to utilize the Python API from the command-line, the only 
-other required libraries iare `NumPy <https://numpy.org>`_ and, if you want
-autocompletion within an IPython shell,  `SciPy <http://numpy.scipy.org>`_.
+other required libraries are `NumPy <https://numpy.org>`_ and `SciPy 
+<http://scipy.org>`_. Autocompletion of group and field paths within an
+open file is available if `IPython 
+<https://ipython.org/>`_ is installed.
 
 =================  =================================================
 Library            URL
@@ -76,23 +78,21 @@ nexusformat        https://github.com/nexpy/nexusformat
 h5py               https://www.h5py.org
 numpy              https://numpy.org/
 scipy              https://scipy.org/
+IPython            https://ipython.org/
 =================  =================================================
-
-.. note:: If you need to read HDF4 or XML files now, please clone the 
-          old-master branch (https://github.com/nexpy/nexpy/tree/old-master).
 
 NeXpy GUI
 ---------
 The GUI is built using the PyQt. The 
-`qtpy package <https://github.com/spyder-ide/qtpy>`_ is used to import an 
-installed PyQt library, either PyQt5, PyQt6, PySide2, or PySide6.
+`qtpy package <https://github.com/spyder-ide/qtpy>`_ is used to import
+whatever PyQt library is installed, whether PyQt5, PyQt6, PySide2, or PySide6.
 
-The GUI includes an `IPython shell <http://ipython.org/>`_ and a `Matplotlib
-plotting pane <http://matplotlib.sourceforge.net>`_. The IPython shell is
-embedded in the Qt GUI using an implementation based on the Jupyter QtConsole.
+NeXpy embeds an `IPython shell <http://ipython.org/>`_ and 
+`Matplotlib plotting pane <http://matplotlib.sourceforge.net>`_, within a Qt 
+GUI based on the Jupyter QtConsole with an in-process kernel.
 
-Least-squares fitting of 1D data uses the `lmfit package 
-<https://lmfit.github.io/lmfit-py/>`_`.
+Least-squares fitting of 1D data uses the `LMFIT package 
+<https://lmfit.github.io/lmfit-py/>`_.
 
 =================  =================================================
 Library            URL
@@ -110,7 +110,7 @@ Additional Packages
 -------------------
 Importers may require additional libraries to read the imported files in their 
 native format, *e.g.*, `spec2nexus <http://spec2nexus.readthedocs.org/>`_ for 
-reading SPEC files and `FabIO <https://github.com/silx-kit/fabio>`_ for 
+reading SPEC files and `FabIO <https://pythonhosted.org/fabio/>`_ for 
 importing TIFF and CBF images. 
 
 From v0.9.1, a new 2D smoothing option is available in the list of 
@@ -128,7 +128,7 @@ astropy            http://www.astropy.org/
 =================  ==========================================================
 
 .. note:: NeXpy should still run without these additional packages, but invoking
-          the relevant menu items may trigger an exception.
+          the relevant menu items may trigger a warning.
 
 Running the GUI
 ---------------
@@ -157,7 +157,7 @@ Acknowledgements
 ----------------
 The `NeXus format <http://www.nexusformat.org>`_ for neutron, x-ray and muon 
 data is developed by an international collaboration under the supervision of the 
-`NeXus International Advisory Committee <http://wiki.nexusformat.org/NIAC>`_. 
+`NeXus International Advisory Committee <https://www.nexusformat.org/NIAC.html>`_. 
 The Python tree API used in NeXpy was originally developed by Paul Kienzle, who
 also wrote the standard Python interface to the NeXus C-API. The original 
 version of NeXpy was initially developed by Boyana Norris, Jason Sarich, and 

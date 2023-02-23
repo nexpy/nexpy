@@ -31,7 +31,8 @@ sys.path.insert(0, os.path.abspath(os.path.join('..', '..', 'src')))
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = ['sphinx.ext.autodoc', 'sphinx.ext.intersphinx',
-              'sphinx.ext.mathjax', 'sphinx.ext.napoleon']
+              'sphinx.ext.mathjax', 'sphinx.ext.napoleon',
+              'sphinx.ext.autosectionlabel']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']

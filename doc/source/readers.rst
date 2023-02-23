@@ -31,16 +31,15 @@ Start with this basic template:
    #!/usr/bin/env python 
    # -*- coding: utf-8 -*-
    
-   '''describe this importer'''
+   """describe this importer"""
    
-   import numpy as np
    from nexpy.api.nexus import *
-   from nexpy.gui.importdialog import BaseImportDialog
+   from nexpy.gui.importdialog import NXImportDialog
    
    filetype = 'my file format'   # these words go in the import menu
 
-   class ImportDialog(BaseImportDialog):
-       '''Dialog to import my file format'''
+   class ImportDialog(NXImportDialog):
+       """Dialog to import my file format"""
     
        def __init__(self, parent=None):
            super(ImportDialog, self).__init__(parent)
@@ -50,10 +49,10 @@ Start with this basic template:
 
            self.set_layout(self.filebox(), self.progress_layout(save=True))
   
-           self.set_title("Import "+str(filetype))
+           self.set_title(f"Import {filetype}")
  
        def get_data(self):
-          '''read the data and return either :class:`NXroot` or :class:`NXentry`'''
+          """Read the data and return either a NXroot or NXentry group"""
           # MUST define self.import_file as chosen file name
           # use convenience method to get from dialog widget
           self.import_file = self.get_filename()
@@ -66,7 +65,7 @@ About the GUI layout
 --------------------
 
 Each importer needs to layout the GUI buttons in 
-*class ImportDialog(BaseImportDialog)* necessary for defining the imported file 
+*class ImportDialog(NXImportDialog)* necessary for defining the imported file 
 and its attributes and the single module, *get_data()*, which returns either
 an *NXroot* or *NXentry* object. This will be added to the NeXpy tree.
 
@@ -74,7 +73,7 @@ Features from the Superclass
 ----------------------------
 
 Three GUI convenience elements are provided from the superclass 
-:class:`nexpy.gui.importdialog.BaseImportDialog`:
+:mod:`nexpy.gui.importdialog.NXImportDialog`:
 
 *ImportDialog.filebox*: 
 Contains a "Choose File" button and a text box. Both can be 
