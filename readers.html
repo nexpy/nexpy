@@ -18,8 +18,8 @@
     <link rel="shortcut icon" href="_static/favicon.ico"/>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="NeXpy NXDialog Class" href="dialogs.html" />
-    <link rel="prev" title="NeXus Tree API Modules" href="treeapi.html" /> 
+    <link rel="next" title="Example data" href="example_data.html" />
+    <link rel="prev" title="Python Graphical User Interface" href="pythongui.html" /> 
   </head><body>
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
@@ -31,10 +31,10 @@
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="dialogs.html" title="NeXpy NXDialog Class"
+          <a href="example_data.html" title="Example data"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="treeapi.html" title="NeXus Tree API Modules"
+          <a href="pythongui.html" title="Python Graphical User Interface"
              accesskey="P">previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="index.html">NeXpy 1.0.0rc5 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Adding a File Importer</a></li> 
@@ -77,50 +77,49 @@ in the NeXpy source code tree in the <em>readers</em> subdirectory.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="ch">#!/usr/bin/env python</span>
 <span class="linenos"> 2</span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="linenos"> 3</span>
-<span class="linenos"> 4</span><span class="sd">&#39;&#39;&#39;describe this importer&#39;&#39;&#39;</span>
+<span class="linenos"> 4</span><span class="sd">&quot;&quot;&quot;describe this importer&quot;&quot;&quot;</span>
 <span class="linenos"> 5</span>
-<span class="linenos"> 6</span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="linenos"> 7</span><span class="kn">from</span> <span class="nn">nexpy.api.nexus</span> <span class="kn">import</span> <span class="o">*</span>
-<span class="linenos"> 8</span><span class="kn">from</span> <span class="nn">nexpy.gui.importdialog</span> <span class="kn">import</span> <span class="n">BaseImportDialog</span>
-<span class="linenos"> 9</span>
-<span class="linenos">10</span><span class="n">filetype</span> <span class="o">=</span> <span class="s1">&#39;my file format&#39;</span>   <span class="c1"># these words go in the import menu</span>
-<span class="linenos">11</span>
-<span class="linenos">12</span><span class="k">class</span> <span class="nc">ImportDialog</span><span class="p">(</span><span class="n">BaseImportDialog</span><span class="p">):</span>
-<span class="linenos">13</span>    <span class="sd">&#39;&#39;&#39;Dialog to import my file format&#39;&#39;&#39;</span>
-<span class="linenos">14</span>
-<span class="linenos">15</span>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="linenos">16</span>        <span class="nb">super</span><span class="p">(</span><span class="n">ImportDialog</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
-<span class="linenos">17</span>
-<span class="linenos">18</span>        <span class="bp">self</span><span class="o">.</span><span class="n">accepted</span> <span class="o">=</span> <span class="kc">False</span>
-<span class="linenos">19</span>        <span class="bp">self</span><span class="o">.</span><span class="n">import_file</span> <span class="o">=</span> <span class="kc">None</span>     <span class="c1"># must set in self.get_data()</span>
-<span class="linenos">20</span>
-<span class="linenos">21</span>        <span class="bp">self</span><span class="o">.</span><span class="n">set_layout</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filebox</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">progress_layout</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
-<span class="linenos">22</span>
-<span class="linenos">23</span>        <span class="bp">self</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">&quot;Import &quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">filetype</span><span class="p">))</span>
-<span class="linenos">24</span>
-<span class="linenos">25</span>    <span class="k">def</span> <span class="nf">get_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="linenos">26</span>       <span class="sd">&#39;&#39;&#39;read the data and return either :class:`NXroot` or :class:`NXentry`&#39;&#39;&#39;</span>
-<span class="linenos">27</span>       <span class="c1"># MUST define self.import_file as chosen file name</span>
-<span class="linenos">28</span>       <span class="c1"># use convenience method to get from dialog widget</span>
-<span class="linenos">29</span>       <span class="bp">self</span><span class="o">.</span><span class="n">import_file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_filename</span><span class="p">()</span>
-<span class="linenos">30</span>
-<span class="linenos">31</span>       <span class="n">x</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">10</span><span class="p">)</span>     <span class="c1"># example data</span>
-<span class="linenos">32</span>       <span class="n">y</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">11</span><span class="p">)</span>
-<span class="linenos">33</span>       <span class="k">return</span> <span class="n">NXroot</span><span class="p">(</span><span class="n">NXentry</span><span class="p">(</span><span class="n">NXdata</span><span class="p">(</span><span class="n">y</span><span class="p">,</span><span class="n">x</span><span class="p">)))</span>
+<span class="linenos"> 6</span><span class="kn">from</span> <span class="nn">nexpy.api.nexus</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="linenos"> 7</span><span class="kn">from</span> <span class="nn">nexpy.gui.importdialog</span> <span class="kn">import</span> <span class="n">NXImportDialog</span>
+<span class="linenos"> 8</span>
+<span class="linenos"> 9</span><span class="n">filetype</span> <span class="o">=</span> <span class="s1">&#39;my file format&#39;</span>   <span class="c1"># these words go in the import menu</span>
+<span class="linenos">10</span>
+<span class="linenos">11</span><span class="k">class</span> <span class="nc">ImportDialog</span><span class="p">(</span><span class="n">NXImportDialog</span><span class="p">):</span>
+<span class="linenos">12</span>    <span class="sd">&quot;&quot;&quot;Dialog to import my file format&quot;&quot;&quot;</span>
+<span class="linenos">13</span>
+<span class="linenos">14</span>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="linenos">15</span>        <span class="nb">super</span><span class="p">(</span><span class="n">ImportDialog</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
+<span class="linenos">16</span>
+<span class="linenos">17</span>        <span class="bp">self</span><span class="o">.</span><span class="n">accepted</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="linenos">18</span>        <span class="bp">self</span><span class="o">.</span><span class="n">import_file</span> <span class="o">=</span> <span class="kc">None</span>     <span class="c1"># must set in self.get_data()</span>
+<span class="linenos">19</span>
+<span class="linenos">20</span>        <span class="bp">self</span><span class="o">.</span><span class="n">set_layout</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filebox</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">progress_layout</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+<span class="linenos">21</span>
+<span class="linenos">22</span>        <span class="bp">self</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">&quot;Import &quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">filetype</span><span class="p">))</span>
+<span class="linenos">23</span>
+<span class="linenos">24</span>    <span class="k">def</span> <span class="nf">get_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="linenos">25</span>       <span class="sd">&quot;&quot;&quot;Read the data and return either :class:`NXroot` or :class:`NXentry`&quot;&quot;&quot;</span>
+<span class="linenos">26</span>       <span class="c1"># MUST define self.import_file as chosen file name</span>
+<span class="linenos">27</span>       <span class="c1"># use convenience method to get from dialog widget</span>
+<span class="linenos">28</span>       <span class="bp">self</span><span class="o">.</span><span class="n">import_file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_filename</span><span class="p">()</span>
+<span class="linenos">29</span>
+<span class="linenos">30</span>       <span class="n">x</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">10</span><span class="p">)</span>     <span class="c1"># example data</span>
+<span class="linenos">31</span>       <span class="n">y</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">11</span><span class="p">)</span>
+<span class="linenos">32</span>       <span class="k">return</span> <span class="n">NXroot</span><span class="p">(</span><span class="n">NXentry</span><span class="p">(</span><span class="n">NXdata</span><span class="p">(</span><span class="n">y</span><span class="p">,</span><span class="n">x</span><span class="p">)))</span>
 </pre></div>
 </div>
 </section>
 <section id="about-the-gui-layout">
 <h2>About the GUI layout<a class="headerlink" href="#about-the-gui-layout" title="Permalink to this heading">¶</a></h2>
 <p>Each importer needs to layout the GUI buttons in
-<em>class ImportDialog(BaseImportDialog)</em> necessary for defining the imported file
+<em>class ImportDialog(NXImportDialog)</em> necessary for defining the imported file
 and its attributes and the single module, <em>get_data()</em>, which returns either
 an <em>NXroot</em> or <em>NXentry</em> object. This will be added to the NeXpy tree.</p>
 </section>
 <section id="features-from-the-superclass">
 <h2>Features from the Superclass<a class="headerlink" href="#features-from-the-superclass" title="Permalink to this heading">¶</a></h2>
 <p>Three GUI convenience elements are provided from the superclass
-<a class="reference internal" href="dialogs.html#nexpy.gui.importdialog.BaseImportDialog" title="nexpy.gui.importdialog.BaseImportDialog"><code class="xref py py-class docutils literal notranslate"><span class="pre">nexpy.gui.importdialog.BaseImportDialog</span></code></a>:</p>
+<a class="reference internal" href="dialogs.html#nexpy.gui.importdialog.NXImportDialog" title="nexpy.gui.importdialog.NXImportDialog"><code class="xref py py-class docutils literal notranslate"><span class="pre">nexpy.gui.importdialog.NXImportDialog</span></code></a>:</p>
 <p><em>ImportDialog.filebox</em>:
 Contains a “Choose File” button and a text box. Both can be
 used to set the path to the imported file. This can be
@@ -152,13 +151,13 @@ This should be placed at the bottom of all import dialogs.</p>
   </div>
   <div>
     <h4>Previous topic</h4>
-    <p class="topless"><a href="treeapi.html"
-                          title="previous chapter">NeXus Tree API Modules</a></p>
+    <p class="topless"><a href="pythongui.html"
+                          title="previous chapter">Python Graphical User Interface</a></p>
   </div>
   <div>
     <h4>Next topic</h4>
-    <p class="topless"><a href="dialogs.html"
-                          title="next chapter">NeXpy NXDialog Class</a></p>
+    <p class="topless"><a href="example_data.html"
+                          title="next chapter">Example data</a></p>
   </div>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
@@ -191,10 +190,10 @@ This should be placed at the bottom of all import dialogs.</p>
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="dialogs.html" title="NeXpy NXDialog Class"
+          <a href="example_data.html" title="Example data"
              >next</a> |</li>
         <li class="right" >
-          <a href="treeapi.html" title="NeXus Tree API Modules"
+          <a href="pythongui.html" title="Python Graphical User Interface"
              >previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="index.html">NeXpy 1.0.0rc5 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Adding a File Importer</a></li> 
