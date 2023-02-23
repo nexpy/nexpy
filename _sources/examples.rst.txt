@@ -2,37 +2,20 @@
 NeXpy Example Files
 *******************
 
+The following files are included in the NeXpy distribution and may be 
+accessed from the Help menu.
+
 Example data
 ============
 
 .. include:: ../../src/nexpy/examples/README.rst
-
-Downloads
----------
-
-* :download:`chopper.nxs <../../src/nexpy/examples/chopper.nxs>`
-* :download:`example.nxs <../../src/nexpy/examples/example.nxs>`
 
 Example plugins
 ===============
 
 .. include:: ../../src/nexpy/examples/plugins/README.rst
 
-Downloads
----------
-
-* :download:`__init__.py <../../src/nexpy/examples/plugins/chopper/__init__.py>`
-* :download:`get_ei.py <../../src/nexpy/examples/plugins/chopper/get_ei.py>`
-* :download:`convert_qe <../../src/nexpy/examples/plugins/chopper/convert_qe.py>`
-
 Example scripts
 ===============
 
 .. include:: ../../src/nexpy/examples/scripts/README.rst
-
-Downloads
----------
-
-* :download:`example.py <../../src/nexpy/examples/scripts/example.py>`
-* :download:`chopper_plot.py <../../src/nexpy/examples/scripts/chopper_plot.py>`
-
