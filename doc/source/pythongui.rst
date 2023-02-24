@@ -436,7 +436,11 @@ Window Menu
 
     The x and y limits of the plot are displayed as a dashed rectangle, which 
     can be hidden if 'Hide Limits' is checked. Dragging with the right-button
-    depressed can be used to change the limits without replotting. 
+    depressed can be used to change the limits without replotting.
+
+    .. note:: On systems without a right mouse button, right-click dragging
+              can usually be accomplished by other means, *e.g.*, two-finger
+              drags on a trackpad or dragging with the [Ctrl]-key depressed. 
     
     All the open projection panels are displayed as tabs in a single window, 
     with the option of copying projection values from one tab to the other if 
@@ -972,9 +976,18 @@ Fitting NeXus Data
 ------------------
 NeXpy makes it easy to fit one-dimensional data using the 
 `LMFIT package <https://lmfit.github.io/lmfit-py/>`_, with a 'Fit' button in
-the Y-Tab of every one-dimensional plot. Alternatively, choosing 'Fit Data' from
-the Data menu or using the keyboard shortcut Ctrl+Shift+F (⌘+⇧+F on a Mac), 
-will fit data selected in the Tree Pane.
+the Y-Tab of every one-dimensional plot. 
+
+.. note:: If multiple data sets are plotted in the same window, the one to be
+          fit can be selected using the pull-down menu on the far left of the
+          Y-Tab. Multiple data sets can be selected for fitting at the same
+          time, each one opening a new tab in the Fit Panel. Line plots of
+          the models and their components will be plotted in the same color as
+          the corresponding data.
+
+Alternatively, choosing 'Fit Data' from the Data menu or using the keyboard
+shortcut Ctrl+Shift+F (⌘+⇧+F on a Mac), will fit data selected in the Tree
+Pane.
 
 Either method opens a dialog window that allows multiple fit models to be 
 combined, with the option of fixing or limiting parameters. To help in 
@@ -990,7 +1003,7 @@ plotting window and the fitting parameters displayed in the Fit Panel.
 
 .. note:: The data are only fitted within the x-limits of the current plot.
           This can be used, for example, to perform piece-wise fits of
-          multiple peaks before a final fit that combines them all together. 
+          multiple peaks before a final fit that combines them all together.
 
 Initializing Parameters
 ^^^^^^^^^^^^^^^^^^^^^^^
@@ -999,6 +1012,14 @@ data. If multiple peaks are to be fitted, sensible starting parameters for
 each one can be determined by moving the x-limits to cover a single peak when
 adding the peak model. Then, the x-limits can be restored before fitting
 all the peaks together.
+
+Masking Data
+^^^^^^^^^^^^
+Data points can be masked so that they are excluded from the fit. Individual
+points can be removed by double-clicking on the point marker. A set of
+x-values can be excluded by right-click dragging over the required range and
+then clicking on 'Mask Data'. Masks can be cleared by clicking on 'Clear
+Masks'.
 
 Modifying Constraints
 ^^^^^^^^^^^^^^^^^^^^^
@@ -1034,11 +1055,20 @@ combined before they are plotted.
 Saving the Fit
 ^^^^^^^^^^^^^^^^
 The original data, the fitted data, constituent models, and the parameters
-can all be saved to an NXprocess group in the Tree Pane for subsequent plotting, 
-refitting, or saving to a NeXus file. The group, named 'f1', 'f2', etc., 
-is stored in the default scratch NXroot group, w0. If you choose 
-to fit this entry again, it will load the models and parameters from the 
-saved fit.
+can all be saved to an NXprocess group in the Tree Pane, using the 'Save Fit'
+button, for subsequent plotting, refitting, or copying to another NeXus file.
+The group, named 'f1', 'f2', etc., is stored in the default scratch NXroot
+group, w0. If you choose to fit this entry again, it will load the models and
+parameters from the saved fit.
+
+Closing the Fit Panel
+^^^^^^^^^^^^^^^^^^^^^
+If the Fit Panel was opened by clicking the 'Fit' button in Y-Tab, line plots
+of the models and their components are superposed on the existing plot
+window. These line plots will be erased when the corresponding tab in the Fit
+Panel is closed. However, if the 'Apply' button is clicked before closing the
+tab, the line plot representing the combined model will be preserved until
+the plot window is closed.
 
 Defining a Model
 ^^^^^^^^^^^^^^^^
