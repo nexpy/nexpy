@@ -347,7 +347,7 @@ def format_float(value, width=6):
 
 def human_size(bytes, width=0, decimals=2):
     """Convert a file size to human-readable form"""
-    size = np.float(bytes)
+    size = float(bytes)
     for unit in [' B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB']:
         if size < 1000.0 or unit == 'EB':
             break
