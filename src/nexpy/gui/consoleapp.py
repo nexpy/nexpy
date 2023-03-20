@@ -37,7 +37,7 @@ from .. import __version__ as nexpy_version
 from .mainwindow import MainWindow
 from .treeview import NXtree
 from .utils import (NXConfigParser, NXGarbageCollector, NXLogger,
-                    initialize_preferences, report_exception, timestamp_age)
+                    initialize_settings, report_exception, timestamp_age)
 
 # -----------------------------------------------------------------------------
 # Globals
@@ -166,7 +166,7 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
         """Initialize access to the NeXpy settings file."""
         self.settings_file = os.path.join(self.nexpy_dir, 'settings.ini')
         self.settings = NXConfigParser(self.settings_file)
-        initialize_preferences(self.settings)
+        initialize_settings(self.settings)
 
         def backup_age(backup):
             try:

@@ -37,10 +37,10 @@ from .datadialogs import (AddDialog, CustomizeDialog, DirectoryDialog,
                           ExportDialog, InitializeDialog, InstallPluginDialog,
                           LimitDialog, LockDialog, LogDialog,
                           ManageBackupsDialog, NewDialog, PasteDialog,
-                          PlotDialog, PlotScalarDialog, PreferencesDialog,
-                          ProjectionDialog, RemovePluginDialog, RenameDialog,
-                          RestorePluginDialog, ScanDialog, SignalDialog,
-                          UnlockDialog, ViewDialog)
+                          PlotDialog, PlotScalarDialog, ProjectionDialog,
+                          RemovePluginDialog, RenameDialog,
+                          RestorePluginDialog, ScanDialog, SettingsDialog,
+                          SignalDialog, UnlockDialog, ViewDialog)
 from .fitdialogs import FitDialog
 from .plotview import NXPlotView
 from .pyqt import QtCore, QtGui, QtWidgets, getOpenFileName, getSaveFileName
@@ -385,9 +385,9 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.file_menu.addSeparator()
 
-        self.preferences_action = QtWidgets.QAction(
-            "Edit Preferences", self, triggered=self.edit_preferences)
-        self.add_menu_action(self.file_menu, self.preferences_action)
+        self.settings_action = QtWidgets.QAction(
+            "Edit Settings", self, triggered=self.edit_settings)
+        self.add_menu_action(self.file_menu, self.settings_action)
 
         self.quit_action = QtWidgets.QAction("&Quit", self,
                                              shortcut=QtGui.QKeySequence.Quit,
@@ -1847,12 +1847,12 @@ class MainWindow(QtWidgets.QMainWindow):
         except NeXusError as error:
             report_error("Resetting Plot Limits", error)
 
-    def edit_preferences(self):
+    def edit_settings(self):
         try:
-            dialog = PreferencesDialog(parent=self)
+            dialog = SettingsDialog(parent=self)
             dialog.show()
         except NeXusError as error:
-            report_error("Editing Preferences", error)
+            report_error("Editing Settings", error)
 
     def show_tree(self):
         self.raise_()
