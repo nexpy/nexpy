@@ -386,7 +386,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.file_menu.addSeparator()
 
         self.settings_action = QtWidgets.QAction(
-            "Edit Settings", self, triggered=self.edit_settings)
+            "Edit Settings...", self, triggered=self.edit_settings)
         self.add_menu_action(self.file_menu, self.settings_action)
 
         self.quit_action = QtWidgets.QAction("&Quit", self,
