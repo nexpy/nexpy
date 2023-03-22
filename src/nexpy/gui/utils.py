@@ -726,8 +726,7 @@ class NXConfigParser(ConfigParser, object):
             self.add_section('recent')
         if 'session' not in sections:
             self.add_section('session')
-        if 'recentFiles' in self.options('recent'):
-            self.fix_recent()
+        self.update_settings()
 
     def set(self, section, option, value=None):
         if value is not None:
@@ -746,13 +745,18 @@ class NXConfigParser(ConfigParser, object):
         for option in self.options(section):
             self.remove_option(section, option)
 
-    def fix_recent(self):
+    def update_settings(self):
         """Perform backward compatibility fix"""
-        paths = [f.strip() for f
-                 in self.get('recent', 'recentFiles').split(',')]
-        for path in paths:
-            self.set("recent", path)
-        self.remove_option("recent", "recentFiles")
+        if 'preferences' in self.sections():
+            for option in self.options('preferences'):
+                self.set('settings', option, self.get('preferences', option))
+            self.remove_section('preferences')
+        if 'recentFiles' in self.options('recent'):
+            paths = [f.strip() for f
+                     in self.get('recent', 'recentFiles').split(',')]
+            for path in paths:
+                self.set("recent", path)
+            self.remove_option("recent", "recentFiles")
         self.save()
 
 
