@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
-    <title>Python Graphical User Interface &#8212; NeXpy 1.0.0rc5 documentation</title>
+    <title>Python Graphical User Interface &#8212; NeXpy 1.0.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/sphinxdoc.css" />
     <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
@@ -36,7 +36,7 @@
         <li class="right" >
           <a href="pythonshell.html" title="Python Interface to NeXus"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 1.0.0rc5 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 1.0.0 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Python Graphical User Interface</a></li> 
       </ul>
     </div>  
@@ -1117,7 +1117,7 @@ code for the OrderParameterModel that is distributed with NeXpy:</p>
 <span class="kn">from</span> <span class="nn">lmfit.model</span> <span class="kn">import</span> <span class="n">Model</span>
 
 <span class="k">class</span> <span class="nc">OrderParameterModel</span><span class="p">(</span><span class="n">Model</span><span class="p">):</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;A model to describe the temperature dependence of an order parameter</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;A model to describe the temperature dependence of an order parameter</span>
 <span class="sd">    with three Parameters: ``amplitude``, ``Tc``, and ``beta``.</span>
 
 <span class="sd">    .. math::</span>
@@ -1138,7 +1138,7 @@ code for the OrderParameterModel that is distributed with NeXpy:</p>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">op</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">guess</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">negative</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Estimate initial model parameter values from data.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Estimate initial model parameter values from data.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">make_params</span><span class="p">(</span><span class="n">amplitude</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span> <span class="n">Tc</span><span class="o">=</span><span class="n">x</span><span class="o">.</span><span class="n">mean</span><span class="p">(),</span> <span class="n">beta</span><span class="o">=</span><span class="mf">0.33</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -1227,7 +1227,7 @@ can be added to their private readers directory in <code class="docutils literal
 <span class="n">filetype</span> <span class="o">=</span> <span class="s2">&quot;TIFF Image&quot;</span> <span class="c1">#Defines the Import Menu label</span>
 
 <span class="k">class</span> <span class="nc">ImportDialog</span><span class="p">(</span><span class="n">NXImportDialog</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Dialog to import a TIFF image&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Dialog to import a TIFF image&quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 
@@ -1458,7 +1458,7 @@ functions themselves.</p>
         <li class="right" >
           <a href="pythonshell.html" title="Python Interface to NeXus"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 1.0.0rc5 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 1.0.0 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Python Graphical User Interface</a></li> 
       </ul>
     </div>
