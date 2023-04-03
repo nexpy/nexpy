@@ -70,7 +70,7 @@ from .datadialogs import (CustomizeDialog, ExportDialog, LimitDialog,
                           ProjectionDialog, ScanDialog)
 from .utils import (boundaries, centers, divgray_map, find_nearest,
                     fix_projection, get_color, iterable, keep_data, parula_map,
-                    report_error, report_exception)
+                    report_error, report_exception, xtec_map)
 from .widgets import (NXCheckBox, NXcircle, NXComboBox, NXDoubleSpinBox,
                       NXellipse, NXLabel, NXpolygon, NXPushButton, NXrectangle,
                       NXSlider, NXSpinBox)
@@ -84,17 +84,19 @@ cmaps = ['viridis', 'inferno', 'magma', 'plasma',  # perceptually uniform
          'spring', 'summer', 'autumn', 'winter', 'cool', 'hot',  # sequential
          'bone', 'copper', 'gray', 'pink',
          'turbo', 'jet', 'spectral', 'rainbow', 'hsv',  # miscellaneous
-         'tab10', 'tab20',  # qualitative
+         'tab10', 'tab20', 'xtec',  # qualitative
          'seismic', 'coolwarm', 'twilight', 'divgray',  # diverging
          'RdBu', 'RdYlBu', 'RdYlGn']
 
 if parse_version(mpl.__version__) >= parse_version('3.5.0'):
     mpl.colormaps.register(parula_map())
+    mpl.colormaps.register(xtec_map())
     mpl.colormaps.register(divgray_map())
     cmaps = [cm for cm in cmaps if cm in mpl.colormaps]
 else:
     from matplotlib.cm import get_cmap, register_cmap, cmap_d
     register_cmap('parula', parula_map())
+    register_cmap('xtec', xtec_map())
     register_cmap('divgray', divgray_map())
     cmaps = [cm for cm in cmaps if cm in cmap_d]
 
@@ -105,7 +107,7 @@ else:
 divergent_cmaps = ['seismic', 'coolwarm', 'twilight', 'divgray',
                    'RdBu', 'RdYlBu', 'RdYlGn',
                    'PiYG', 'PRGn', 'BrBG', 'PuOr', 'RdGy', 'Spectral', 'bwr']
-qualitative_cmaps = ['tab10', 'tab20']
+qualitative_cmaps = ['tab10', 'tab20', 'xtec']
 interpolations = [
     'nearest', 'bilinear', 'bicubic', 'spline16', 'spline36', 'hanning',
     'hamming', 'hermite', 'kaiser', 'quadric', 'catrom', 'gaussian', 'bessel',
@@ -3715,8 +3717,8 @@ class NXProjectionTab(QtWidgets.QWidget):
         self.plot_button = NXPushButton("Plot", self.plot_projection, self)
         self.sumbox = NXCheckBox("Sum", self.plotview.replot_data)
         self.panel_button = NXPushButton("Open Panel", self.open_panel, self)
-        self.panel_combo = NXComboBox(slot=self.open_panel, items=[
-                                      'Projection', 'Limits', 'Scan'])
+        self.panel_combo = NXComboBox(slot=self.open_panel,
+                                      items=['Projection', 'Limits', 'Scan'])
 
         self.layout = QtWidgets.QHBoxLayout()
         self.layout.addStretch()
