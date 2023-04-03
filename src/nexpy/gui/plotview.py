@@ -866,9 +866,10 @@ class NXPlotView(QtWidgets.QDialog):
             for i in range(len(idx)):
                 if idx.count(slice(None, None, None)) > 2:
                     try:
-                        idx[i] = self.axes[i].index(0.0)
                         if self.axes[i].shape[0] == _signal.shape[i]+1:
-                            idx[i] += 1
+                            idx[i] = self.axes[i].centers().index(0.0)
+                        else:
+                            idx[i] = self.axes[i].index(0.0)
                     except Exception:
                         idx[i] = 0
             if self.weighted:
@@ -912,7 +913,7 @@ class NXPlotView(QtWidgets.QDialog):
             if self.ndim > 2:
                 for i in range(self.ndim-2):
                     self.axis[i].lo = self.axis[i].hi \
-                        = float(self.axis[i].data[idx[i]])
+                        = float(self.axis[i].centers[idx[i]])
                 self.zaxis = self.axis[self.ndim - 3]
                 self.zaxis.lo = self.zaxis.hi = self.axis[self.ndim - 3].lo
             else:
