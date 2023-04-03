@@ -1231,10 +1231,11 @@ class NXPlotView(QtWidgets.QDialog):
                 self.vaxis.lo = 0.5
             else:
                 self.vaxis.lo = -0.5
-            if self.cmap == 'tab10':
-                self.vaxis.hi = self.vaxis.lo + 10.0
-            elif self.cmap == 'tab20':
-                self.vaxis.hi = self.vaxis.lo + 20.0
+            if parse_version(mpl.__version__) >= parse_version('3.5.0'):
+                nc = len(mpl.colormaps[self.cmap].colors)
+            else:
+                nc = len(get_cmap(self.cmap).colors)
+            self.vaxis.hi = self.vaxis.lo + nc
         elif self.vaxis.lo is None or self.autoscale:
             self.vaxis.lo = np.min(self.finite_v)
         if self.vtab.log and not self.vtab.symmetric:
@@ -1382,8 +1383,12 @@ class NXPlotView(QtWidgets.QDialog):
                 vmin, vmax = [int(i+0.5) for i in self.image.get_clim()]
                 self.colorbar.set_ticks(range(vmin, vmax))
                 if parse_version(mpl.__version__) >= parse_version('3.5.0'):
-                    self.colorbar.ax.set_ylim(self.vaxis.min_data-0.5,
-                                              self.vaxis.max_data+0.5)
+                    if self.cmap == 'xtec':
+                        vmin, vmax = (0.5, self.vaxis.max_data+0.5)
+                    else:
+                        vmin, vmax = (self.vaxis.min_data-0.5,
+                                      self.vaxis.max_data+0.5)
+                    self.colorbar.ax.set_ylim(vmin, vmax)
 
     def grid_helper(self):
         """Define the locator used in skew transforms."""
