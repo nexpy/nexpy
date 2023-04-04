@@ -551,6 +551,19 @@ def parula_map():
     return LinearSegmentedColormap.from_list('parula', cm_data)
 
 
+def xtec_map():
+    """Generate a color map for use with the XTEC package.
+
+    The color map data is the same as the 'tab10' map, but with the lowest
+    value set to 'white'.
+    """
+    from matplotlib import colormaps
+    from matplotlib.colors import ListedColormap
+    cm_data = list(colormaps['tab10'].colors)
+    cm_data.insert(0, [1.0, 1.0, 1.0])
+    return ListedColormap(cm_data, name='xtec')
+
+
 def divgray_map():
     """New divergent color map copied from the registered 'gray' map."""
     if parse_version(mplversion) >= parse_version('3.5.0'):

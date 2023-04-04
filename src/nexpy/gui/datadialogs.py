@@ -11,6 +11,7 @@ import numbers
 import os
 import shutil
 from operator import attrgetter
+from pathlib import PosixPath as Path
 
 import matplotlib as mpl
 import numpy as np
@@ -398,6 +399,7 @@ class NXWidget(QtWidgets.QWidget):
                 self.entry_box.select(self.treeview.node.nxentry.nxname)
         except Exception:
             pass
+        self.data_box = None
         layout.addStretch()
         layout.addWidget(self.root_box)
         layout.addWidget(self.entry_box)
@@ -410,10 +412,68 @@ class NXWidget(QtWidgets.QWidget):
     def switch_root(self):
         self.entry_box.clear()
         self.entry_box.add(*sorted(self.tree[self.root_box.selected].entries))
+        if self.data_box:
+            self.switch_entry()
 
     @property
     def entry(self):
         return self.tree[f"{self.root_box.selected}/{self.entry_box.selected}"]
+
+    def select_data(self, slot=None, text='Select Data'):
+        layout = QtWidgets.QHBoxLayout()
+        if not self.tree.entries:
+            raise NeXusError("No entries in the NeXus tree")
+        self.root_box = NXComboBox(
+            slot=self.switch_root,
+            items=sorted(self.tree.entries, key=natural_sort))
+        try:
+            self.root_box.select(self.treeview.node.nxroot.nxname)
+        except Exception:
+            pass
+        self.entry_box = NXComboBox(
+            slot=self.switch_entry,
+            items=sorted(self.tree[self.root_box.selected].entries,
+                         key=natural_sort))
+        try:
+            if not isinstance(self.treeview.node, NXroot):
+                self.entry_box.select(self.treeview.node.nxentry.nxname)
+        except Exception:
+            pass
+        entry_path = Path(self.entry.nxpath)
+        paths = []
+        for node in self.entry.walk():
+            if node.nxclass == 'NXdata':
+                paths.append(str(Path(node.nxpath).relative_to(entry_path)))
+        self.data_box = NXComboBox(items=sorted(paths, key=natural_sort))
+        try:
+            if not isinstance(self.treeview.node, NXroot):
+                self.data_box.select(self.treeview.node.nxentry.nxname)
+        except Exception:
+            pass
+        layout.addStretch()
+        layout.addWidget(self.root_box)
+        layout.addWidget(self.entry_box)
+        layout.addWidget(self.data_box)
+        if slot:
+            layout.addWidget(NXPushButton(text, slot))
+        layout.addStretch()
+        self.entry_layout = layout
+        return layout
+
+    def switch_entry(self):
+        self.data_box.clear()
+        entry_path = Path(self.entry.nxpath)
+        paths = []
+        for node in self.entry.walk():
+            if node.nxclass == 'NXdata':
+                paths.append(str(Path(node.nxpath).relative_to(entry_path)))
+        self.data_box.add(*sorted(paths, key=natural_sort))
+
+    @property
+    def selected_data(self):
+        return self.tree[
+            f"{self.root_box.selected}/{self.entry_box.selected}/"
+            f"{self.data_box.selected}"]
 
     def read_parameter(self, root, path):
         """
