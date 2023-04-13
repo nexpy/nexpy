@@ -25,6 +25,11 @@ import xml.etree.ElementTree as ET
 from operator import attrgetter
 from pathlib import Path
 
+if sys.version_info < (3, 10):
+    from importlib_metadata import entry_points
+else:
+    from importlib.metadata import entry_points
+
 import pkg_resources
 from nexusformat.nexus import (NeXusError, NXdata, NXentry, NXfield, NXFile,
                                NXgroup, NXlink, NXobject, NXprocess, NXroot,
@@ -559,32 +564,54 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def init_plugin_menus(self):
         """Add an menu item for every module in the plugin menus"""
+        plugins = {}
         self.plugin_names = set()
-        private_path = self.plugin_dir
-        if os.path.isdir(private_path):
-            for name in os.listdir(private_path):
-                if (os.path.isdir(os.path.join(private_path, name)) and
-                        not (name.startswith('_') or name.startswith('.'))):
-                    self.plugin_names.add(name)
-        public_path = pkg_resources.resource_filename('nexpy', 'plugins')
-        for name in os.listdir(public_path):
-            if (os.path.isdir(os.path.join(public_path, name)) and
-                    not (name.startswith('_') or name.startswith('.'))):
+        private_path = Path(self.plugin_dir)
+        for plugin_path in private_path.iterdir():
+            name = plugin_path.name
+            if (plugin_path.is_dir() and not
+                    (name.startswith('_') or name.startswith('.'))):
+                self.plugin_names.add(name)
+        public_path = Path(pkg_resources.resource_filename('nexpy', 'plugins'))
+        for plugin_path in public_path.iterdir():
+            name = plugin_path.name
+            if (plugin_path.is_dir() and not
+                    (name.startswith('_') or name.startswith('.'))):
                 self.plugin_names.add(name)
         plugin_paths = [private_path, public_path]
         for plugin_name in set(sorted(self.plugin_names)):
             try:
-                self.add_plugin_menu(plugin_name, plugin_paths)
+                plugin_module = import_plugin(plugin_name, plugin_paths)
+                plugins[plugin_name] = plugin_module.plugin_menu
             except Exception as error:
                 logging.info(
                     f'The "{plugin_name}" plugin could not be added '
                     'to the main menu\n' + 33*' ' + f'{error}')
+                self.plugin_names.remove(plugin_name)
+        for entry in entry_points(group='nexpy.plugins'):
+            plugin_name = entry.module.split('.')[-1]
+            if plugin_name in self.plugin_names:
+                continue
+            else:
+                self.plugin_names.add(plugin_name)
+            try:
+                plugins[plugin_name] = entry.load()
+            except Exception as error:
+                logging.info(
+                    f'"{plugin_name}" could not be added to the main menu\n'
+                    + 33*' ' + f'{error}')
+        for plugin in sorted(plugins):
+            try:
+                name, actions = plugins[plugin]()
+                self.add_plugin_menu(name, actions)
+            except Exception as error:
+                logging.info(
+                    f'The "{plugin}" plugin could not be added '
+                    'to the main menu\n' + 33*' ' + f'{error}')
 
-    def add_plugin_menu(self, plugin_name, plugin_paths):
-        plugin_module = import_plugin(plugin_name, plugin_paths)
-        name, actions = plugin_module.plugin_menu()
-        plugin_menu = self.menu_bar.addMenu(name)
-        for action in actions:
+    def add_plugin_menu(self, plugin_name, plugin_actions):
+        plugin_menu = self.menu_bar.addMenu(plugin_name)
+        for action in plugin_actions:
             self.add_menu_action(plugin_menu, QtWidgets.QAction(
                 action[0], self, triggered=action[1]))
 
