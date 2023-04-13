@@ -699,7 +699,7 @@ def set_style(style=None):
 
 class NXimporter:
     def __init__(self, paths):
-        self.paths = paths
+        self.paths = [str(p) for p in paths]
 
     def __enter__(self):
         for path in reversed(self.paths):
