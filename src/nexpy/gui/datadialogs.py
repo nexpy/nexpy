@@ -4515,21 +4515,36 @@ class RemovePluginDialog(NXDialog):
                                                                     'plugins'))
         self.backup_dir = Path(self.mainwindow.backup_dir)
 
-        plugins = []
+        local_plugins = []
         for item in self.local_directory.iterdir():
             if item.is_dir():
-                plugins.append(self.checkboxes((str(item), str(item), False),
-                                               align='left'))
+                local_plugins.append(
+                    self.checkboxes((str(item), '   ' + item.name, False),
+                                    align='left'))
+        nexpy_plugins = []
         for item in self.nexpy_directory.iterdir():
             if item.is_dir():
-                plugins.append(self.checkboxes((str(item), str(item), False),
-                                               align='left'))
+                nexpy_plugins.append(
+                    self.checkboxes((str(item), '   ' + item.name, False),
+                                    align='left'))
 
-        if len(plugins) == 0:
+        if len(local_plugins) == 0 and len(nexpy_plugins) == 0:
             self.display_message('Removing Plugins', 'No plugins to remove')
             self.reject()
-
-        self.set_layout(*plugins, self.close_buttons())
+        elif len(local_plugins) == 0:
+            self.set_layout(NXLabel("NeXpy Plugins", bold=True),
+                            *nexpy_plugins,
+                            self.close_buttons())
+        elif len(nexpy_plugins) == 0:
+            self.set_layout(NXLabel("Local Plugins", bold=True),
+                            *local_plugins,
+                            self.close_buttons())
+        else:
+            self.set_layout(NXLabel("Local Plugins", bold=True),
+                            *local_plugins, 
+                            NXLabel("NeXpy Plugins", bold=True),
+                            *nexpy_plugins,
+                            self.close_buttons())
 
         self.set_title('Removing Plugin')
 
@@ -4546,7 +4561,7 @@ class RemovePluginDialog(NXDialog):
                         'plugins', str(backup_path.joinpath(plugin_name)))
                 self.mainwindow.settings.save()
             else:
-                return
+                continue
         for action in [action for action
                        in self.mainwindow.menuBar().actions()
                        if action.text().lower() == plugin_name.lower()]:
