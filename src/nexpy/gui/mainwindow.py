@@ -568,46 +568,53 @@ class MainWindow(QtWidgets.QMainWindow):
         self.plugin_names = set()
         private_path = Path(self.plugin_dir)
         for plugin_path in private_path.iterdir():
-            name = plugin_path.name
-            if (plugin_path.is_dir() and not
-                    (name.startswith('_') or name.startswith('.'))):
-                self.plugin_names.add(name)
+            plugin_name = plugin_path.name
+            if (plugin_path.is_dir() and not (plugin_name.startswith('_') or
+                                              plugin_name.startswith('.'))):
+                self.plugin_names.add(plugin_name)
         public_path = Path(pkg_resources.resource_filename('nexpy', 'plugins'))
         for plugin_path in public_path.iterdir():
-            name = plugin_path.name
-            if (plugin_path.is_dir() and not
-                    (name.startswith('_') or name.startswith('.'))):
-                self.plugin_names.add(name)
+            plugin_name = plugin_path.name
+            if plugin_name in self.plugin_names:
+                logging.warning(
+                    f'Duplicate plugin "{plugin_name}" not installed\n'
+                    + 36 * ' ' + f'located in "{plugin_path}"')
+                continue
+            if (plugin_path.is_dir() and not (plugin_name.startswith('_') or
+                                              plugin_name.startswith('.'))):
+                self.plugin_names.add(plugin_name)
         plugin_paths = [private_path, public_path]
         for plugin_name in set(sorted(self.plugin_names)):
             try:
                 plugin_module = import_plugin(plugin_name, plugin_paths)
                 plugins[plugin_name] = plugin_module.plugin_menu
             except Exception as error:
-                logging.info(
+                logging.warning(
                     f'The "{plugin_name}" plugin could not be added '
-                    'to the main menu\n' + 33*' ' + f'{error}')
+                    'to the main menu\n' + 36*' ' + f'Error: {error}')
                 self.plugin_names.remove(plugin_name)
         for entry in entry_points(group='nexpy.plugins'):
             plugin_name = entry.module.split('.')[-1]
             if plugin_name in self.plugin_names:
+                logging.warning(
+                    f'Duplicate plugin "{entry.module}" not installed')
                 continue
             else:
                 self.plugin_names.add(plugin_name)
             try:
                 plugins[plugin_name] = entry.load()
             except Exception as error:
-                logging.info(
+                logging.warning(
                     f'"{plugin_name}" could not be added to the main menu\n'
-                    + 33*' ' + f'{error}')
+                    + 36*' ' + f'Error: {error}')
         for plugin in sorted(plugins):
             try:
-                name, actions = plugins[plugin]()
-                self.add_plugin_menu(name, actions)
+                plugin_name, actions = plugins[plugin]()
+                self.add_plugin_menu(plugin_name, actions)
             except Exception as error:
-                logging.info(
+                logging.warning(
                     f'The "{plugin}" plugin could not be added '
-                    'to the main menu\n' + 33*' ' + f'{error}')
+                    'to the main menu\n' + 36*' ' + f'Error: {error}')
 
     def add_plugin_menu(self, plugin_name, plugin_actions):
         plugin_menu = self.menu_bar.addMenu(plugin_name)
@@ -876,9 +883,9 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.add_menu_action(self.import_menu, import_action, self)
                 self.importer[import_action] = import_module
             except Exception as error:
-                logging.info(
+                logging.warning(
                     f'The "{import_name}" importer could not be added '
-                    'to the Import menu\n' + 33*' ' + f'{error}')
+                    'to the Import menu\n' + 36*' ' + f'Error: {error}')
 
     def new_workspace(self):
         try:
