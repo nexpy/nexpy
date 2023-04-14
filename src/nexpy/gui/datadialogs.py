@@ -4541,7 +4541,7 @@ class RemovePluginDialog(NXDialog):
                             self.close_buttons())
         else:
             self.set_layout(NXLabel("Local Plugins", bold=True),
-                            *local_plugins, 
+                            *local_plugins,
                             NXLabel("NeXpy Plugins", bold=True),
                             *nexpy_plugins,
                             self.close_buttons())
