@@ -216,6 +216,10 @@ File Menu
     .. note:: If a plugin of the same name exists in both directories, the 
               user's plugin is loaded.
 
+    .. note:: With NeXpy v1.0.3, plugins can also be loaded directly from
+              external packages, in which the plugin modules are declared
+              using the ``nexpy.readers`` entry point.
+
     .. seealso:: `NeXpy Plugins`_
     
 **Remove Plugin**
@@ -1226,18 +1230,48 @@ NeXpy Plugins
 -------------
 It is possible to customize NeXpy by adding new menus to the main menu bar 
 with sub-menus that open dialog boxes for operations that are specific to a 
-particular domain. These will be automatically loaded from either the 
-``nexpy.plugins`` directory within the installed NeXpy distribution or from the
-users' ``~/.nexpy/plugins`` directory.
+particular domain. 
 
-The new menu should be defined as a Python package, *i.e.*, by creating a 
-sub-directory within the plugins directory that contains ``__init__.py`` to 
-define the menu actions.
+Installing Plugins
+^^^^^^^^^^^^^^^^^^
+NeXpy searches for plugin modules in two ways.
+
+1. The plugin code can be installed in either the ``nexpy.plugins``
+   directory within the installed NeXpy distribution or from the
+   users' ``~/.nexpy/plugins`` directory.
+
+2. The plugin code can be contained within an installed package, which
+   declares it using an entry point labelled ``nexpy.readers``.
+
+   .. note:: The use of plugin entry points requires NeXpy v1.0.3.
+
+   .. seealso:: Information on defining entry points in external packages
+                is available in the `Setup Tools documentation
+                <https://setuptools.pypa.io/en/latest/userguide/entry_point.html>`_.
+
+Plugins are loaded from the users' directory, the NeXpy distribution's plugin
+directory, and external package entry points, *in that order*. Warnings about
+failures to load duplicate plugins are contained within the NeXpy log file.
+
+.. note:: If a previously installed plugin is now available in an external
+          package (in NeXpy v1.0.3 and later versions), please remove the
+          prior installation using the ``Remove Plugin...`` dialog. It may
+          be restored from a backup using the ``Restore Plugin...`` dialog
+          if necessary.
+
+Defining Plugins
+^^^^^^^^^^^^^^^^
+The modules that are accessed through the plugin menu should be defined
+as a Python package, *i.e.*, by creating a sub-directory that contains 
+``__init__.py``. This must contain a function, ``plugin_menu``, which returns
+the name to be added to the top-level NeXpy menu bar, and a list of tuples,
+each of which contains the sub-menu name and the corresponding function
+triggered by clicking on it.
 
 There is an example package, ``chopper``, in the ``nexpy.examples`` directory,
-to show how plugins can work. It adds a top-level menu item, ``chopper``, that
+to show how plugins can work. It adds a top-level menu item, ``Chopper``, that
 has a couple of menu items to perform data analysis on the example file, 
-``chopper.nxs``, which is distributed with NeXpy.
+``chopper.nxs``, which is also distributed with NeXpy.
 
 Here is the ``__init__.py`` file::
 
