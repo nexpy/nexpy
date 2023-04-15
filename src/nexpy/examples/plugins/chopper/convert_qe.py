@@ -45,7 +45,7 @@ class ConvertDialog(NXDialog):
 
     def read_parameters(self):
         self.L1 = - self.entry['sample/distance']
-        self.L2 = np.mean(self.entry['instrument/detector/distance'])
+        self.L2 = self.entry['instrument/detector/distance'].average()
         self.m1 = self.entry['monitor1']
         self.t_m1 = self.m1.moment()
         self.d_m1 = self.entry['monitor1/distance']
