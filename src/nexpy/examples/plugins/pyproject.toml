@@ -5,6 +5,9 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "chopper_plugin"
 version = "1.0.0"
+dependencies = [
+    "nexpy"
+]
 
 [project.entry-points."nexpy.plugins"]
 chopper = "chopper:plugin_menu"
