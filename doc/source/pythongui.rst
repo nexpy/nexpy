@@ -1229,35 +1229,32 @@ Here is an example of an import dialog::
 NeXpy Plugins
 -------------
 It is possible to customize NeXpy by adding new menus to the main menu bar 
-with sub-menus that open dialog boxes for operations that are specific to a 
-particular domain. 
+with sub-menus that open GUI dialogs or perform operations that are 
+specific to a specialized application. 
 
 Installing Plugins
 ^^^^^^^^^^^^^^^^^^
 NeXpy searches for plugin modules in two ways.
 
-1. The plugin code can be installed in either the ``nexpy.plugins``
-   directory within the installed NeXpy distribution or from the
-   users' ``~/.nexpy/plugins`` directory.
+1. The plugin code can be installed using the ``Install Plugin...`` dialog
+   either locally in the user's ``~/.nexpy/plugins``directory or in the 
+   ``nexpy.plugins`` directory within the installed NeXpy distribution.
 
 2. The plugin code can be contained within an installed package, which
-   declares it using an entry point labelled ``nexpy.readers``.
+   declares it using an entry point labelled ``nexpy.plugins``. An 
+   example package, that is installable using ``pip install .`` is 
+   available in the NeXpy package examples directory.
 
-   .. note:: The use of plugin entry points requires NeXpy v1.0.3.
+   .. note:: With NeXpy v1.0.3, the use of plugin entry points is now the
+             recommended method of defining new plugins. If a previously
+             installed plugin is now available in an external package, 
+             please remove the prior installation using the
+             ``Remove Plugin...`` dialog.
 
-   .. seealso:: Information on defining entry points in external packages
-                is available in the `Setup Tools documentation
-                <https://setuptools.pypa.io/en/latest/userguide/entry_point.html>`_.
-
-Plugins are loaded from the users' directory, the NeXpy distribution's plugin
-directory, and external package entry points, *in that order*. Warnings about
-failures to load duplicate plugins are contained within the NeXpy log file.
-
-.. note:: If a previously installed plugin is now available in an external
-          package (in NeXpy v1.0.3 and later versions), please remove the
-          prior installation using the ``Remove Plugin...`` dialog. It may
-          be restored from a backup using the ``Restore Plugin...`` dialog
-          if necessary.
+Plugins are loaded from the users' directory, the NeXpy distribution's 
+plugin directory, and external package entry points, *in that order*. 
+Duplicate plugins will not be loaded, but a warning will be added to the 
+NeXpy log file.
 
 Defining Plugins
 ^^^^^^^^^^^^^^^^
@@ -1268,12 +1265,57 @@ the name to be added to the top-level NeXpy menu bar, and a list of tuples,
 each of which contains the sub-menu name and the corresponding function
 triggered by clicking on it.
 
-There is an example package, ``chopper``, in the ``nexpy.examples`` directory,
-to show how plugins can work. It adds a top-level menu item, ``Chopper``, that
-has a couple of menu items to perform data analysis on the example file, 
-``chopper.nxs``, which is also distributed with NeXpy.
+There is an example package, ``chopper_plugin``, in the ``nexpy.examples``
+directory, to show how plugins should be configured. It adds a top-level 
+menu item, ``Chopper``, that has a couple of sub-menu items to perform 
+data analysis on the example file, ``chopper.nxs``, which is also 
+distributed with NeXpy.
 
-Here is the ``__init__.py`` file::
+Here is the structure of the ``chopper_plugin`` package::
+
+    chopper_plugin:
+    └── pyproject.toml
+        └── chopper
+            ├── __init.py__
+            ├── convert_qe.py
+            └── get_ei.py
+
+.. note:: If the plugin is to be installed using the ``Install Plugin...``
+          dialog, just select the ``chopper`` sub-directory in the above 
+          file tree.
+
+Here is the ``pyproject.toml`` file::
+
+    [build-system]
+    requires = ["setuptools", "setuptools-scm"]
+    build-backend = "setuptools.build_meta"
+
+    [project]
+    name = "chopper_plugin"
+    version = "1.0.0"
+    dependencies = [
+        "nexpy"
+    ]
+
+    [project.entry-points."nexpy.plugins"]
+    chopper = "chopper:plugin_menu"
+
+This is sufficient to install the plugin using ``pip`` and make it 
+discoverable by NeXpy. If the plugin is embedded as a directory within a 
+larger package, adjust the entry point so that it points to the plugin 
+sub-directory's ``__init__.py`` file containing the ``plugin_menu`` 
+function. For example, if the plugin modules are contained within the
+``plugins`` sub-directory of ``mypackage``, add the following entry point::
+
+    [project.entry-points."nexpy.plugins"]
+    plugin_name = "mypackage.plugins.plugin_name:plugin_menu"
+
+.. seealso:: Information on defining entry points in external packages
+             that do not use a ``pyproject.toml`` file is available in 
+             the `Setup Tools documentation
+             <https://setuptools.pypa.io/en/latest/userguide/entry_point.html>`_.
+
+Here is the ``__init__.py`` file, which defines the ``plugin_menu`` function::
 
   from . import get_ei, convert_qe
 
@@ -1305,9 +1347,7 @@ a grid defines a set of parameters, functions to read those parameters from
 the PySide text boxes (here, they are decorated with ``@property``, which
 means that the function can be called without an argument), a couple of
 buttons to activate different parts of the analysis, and finally the
-functions themselves.
-
-Here is the code::
+functions themselves::
 
   import numpy as np
   from nexpy.gui.datadialogs import GridParameters, NXDialog

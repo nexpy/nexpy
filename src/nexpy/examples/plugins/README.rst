@@ -3,9 +3,9 @@
 ------------------------
 About the example plugin
 ------------------------
-This contains an example of a package that provides a plugin menu to NeXpy. 
-The entire plugins directory can be copied to another location to form the
-template of another plugin, which should be given a unique name.
+This contains an example of a package, ``chopper_plugin`` that provides a
+plugin menu to NeXpy. The entire directory can be copied to another location
+to form the template of another plugin, which should be given a unique name.
 
 The package has an example ``pyproject.toml`` file, which defines the name
 of the package and an entry point labelled ``nexpy.readers``, which 
