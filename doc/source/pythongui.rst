@@ -1275,10 +1275,10 @@ Here is the structure of the ``chopper_plugin`` package::
 
     chopper_plugin:
     └── pyproject.toml
-        └── chopper
-            ├── __init.py__
-            ├── convert_qe.py
-            └── get_ei.py
+    └── chopper
+        ├── __init.py__
+        ├── convert_qe.py
+        └── get_ei.py
 
 .. note:: If the plugin is to be installed using the ``Install Plugin...``
           dialog, just select the ``chopper`` sub-directory in the above 
@@ -1301,11 +1301,12 @@ Here is the ``pyproject.toml`` file::
     chopper = "chopper:plugin_menu"
 
 This is sufficient to install the plugin using ``pip`` and make it 
-discoverable by NeXpy. If the plugin is embedded as a directory within a 
-larger package, adjust the entry point so that it points to the plugin 
-sub-directory's ``__init__.py`` file containing the ``plugin_menu`` 
-function. For example, if the plugin modules are contained within the
-``plugins`` sub-directory of ``mypackage``, add the following entry point::
+discoverable by NeXpy through ``nexpy.plugins`` entry point. If the 
+plugin is embedded within a larger package, adjust the entry point so 
+that it points to the sub-directory containing the ``__init__.py`` file 
+that defines the ``plugin_menu`` function. For example, if the plugin 
+modules are contained within the ``plugins`` sub-directory of 
+``mypackage``, add the following entry point::
 
     [project.entry-points."nexpy.plugins"]
     plugin_name = "mypackage.plugins.plugin_name:plugin_menu"
