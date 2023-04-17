@@ -572,10 +572,12 @@ class MainWindow(QtWidgets.QMainWindow):
             if (plugin_path.is_dir() and not (plugin_name.startswith('_') or
                                               plugin_name.startswith('.'))):
                 self.plugin_names.add(plugin_name)
+                logging.info(
+                    f'Installing "{plugin_name}" plugin from "{plugin_path}"')
         public_path = Path(pkg_resources.resource_filename('nexpy', 'plugins'))
         for plugin_path in public_path.iterdir():
             plugin_name = plugin_path.name
-            if plugin_name in self.plugin_names:
+            if plugin_name.lower() in [p.lower() for p in self.plugin_names]:
                 logging.warning(
                     f'Duplicate plugin "{plugin_name}" not installed\n'
                     + 36 * ' ' + f'located in "{plugin_path}"')
@@ -583,6 +585,8 @@ class MainWindow(QtWidgets.QMainWindow):
             if (plugin_path.is_dir() and not (plugin_name.startswith('_') or
                                               plugin_name.startswith('.'))):
                 self.plugin_names.add(plugin_name)
+                logging.info(
+                    f'Installing "{plugin_name}" plugin from "{plugin_path}"')
         plugin_paths = [private_path, public_path]
         for plugin_name in set(sorted(self.plugin_names)):
             try:
@@ -595,11 +599,14 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.plugin_names.remove(plugin_name)
         for entry in entry_points(group='nexpy.plugins'):
             plugin_name = entry.module.split('.')[-1]
-            if plugin_name in self.plugin_names:
+            if plugin_name.lower() in [p.lower() for p in self.plugin_names]:
                 logging.warning(
                     f'Duplicate plugin "{entry.module}" not installed')
                 continue
             else:
+                logging.info(
+                    f'Installing "{plugin_name}" '
+                    f'plugin from "{entry.module}" module')
                 self.plugin_names.add(plugin_name)
             try:
                 plugins[plugin_name] = entry.load()
