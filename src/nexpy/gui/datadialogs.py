@@ -4517,13 +4517,13 @@ class RemovePluginDialog(NXDialog):
 
         local_plugins = []
         for item in self.local_directory.iterdir():
-            if item.is_dir():
+            if item.is_dir() and not item.name.startswith('_'):
                 local_plugins.append(
                     self.checkboxes((str(item), '   ' + item.name, False),
                                     align='left'))
         nexpy_plugins = []
         for item in self.nexpy_directory.iterdir():
-            if item.is_dir():
+            if item.is_dir() and not item.name.startswith('_'):
                 nexpy_plugins.append(
                     self.checkboxes((str(item), '   ' + item.name, False),
                                     align='left'))
