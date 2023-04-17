@@ -174,14 +174,22 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
             except ValueError:
                 return 0
         backups = self.settings.options('backups')
-        for backup in backups:
+        plugins = self.settings.options('plugins')
+        total_backups = backups + plugins
+        for backup in total_backups:
             if not (os.path.exists(backup) and
                     os.path.realpath(backup).startswith(self.backup_dir)):
-                self.settings.remove_option('backups', backup)
+                if backup in backups:
+                    self.settings.remove_option('backups', backup)
+                elif backup in plugins:
+                    self.settings.remove_option('plugins', backup)
             elif backup_age(backup) > 5:
                 try:
                     shutil.rmtree(os.path.dirname(os.path.realpath(backup)))
-                    self.settings.remove_option('backups', backup)
+                    if backup in backups:
+                        self.settings.remove_option('backups', backup)
+                    elif backup in plugins:
+                        self.settings.remove_option('plugins', backup)
                 except OSError:
                     pass
         self.settings.save()
