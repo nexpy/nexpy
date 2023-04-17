@@ -1240,21 +1240,21 @@ NeXpy searches for plugin modules in two ways.
    either locally in the user's ``~/.nexpy/plugins``directory or in the 
    ``nexpy.plugins`` directory within the installed NeXpy distribution.
 
-2. The plugin code can be contained within an installed package, which
-   declares it using an entry point labelled ``nexpy.plugins``. An 
-   example package, that is installable using ``pip install .`` is 
-   available in the NeXpy package examples directory.
+2. The plugin code can be contained within an external installed package,
+   which declares an entry point labelled ``nexpy.plugins``. An example 
+   package, that is installable using ``pip install .`` is available in 
+   the NeXpy package examples directory.
 
-   .. note:: With NeXpy v1.0.3, the use of plugin entry points is now the
-             recommended method of defining new plugins. If a previously
-             installed plugin is now available in an external package, 
-             please remove the prior installation using the
-             ``Remove Plugin...`` dialog.
+   .. note:: The second method was introduced in NeXpy v1.0.3. It is 
+             recommended for new plugins. 
 
 Plugins are loaded from the users' directory, the NeXpy distribution's 
-plugin directory, and external package entry points, *in that order*. 
-Duplicate plugins will not be loaded, but a warning will be added to the 
-NeXpy log file.
+plugin directory, and external package entry points, *in that order*,
+for backward compatibility with existing installations. Duplicate 
+plugins will not be loaded, but a warning will be added to the NeXpy log 
+file. If a previously installed plugin is now available in an external
+package, please remove the prior installation using the 
+``Remove Plugin...`` dialog.
 
 Defining Plugins
 ^^^^^^^^^^^^^^^^
