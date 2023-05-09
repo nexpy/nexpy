@@ -26,7 +26,7 @@ requirements:
     - h5py
     - qtpy
     - ipython
-    - qtconsole
+    - qtconsole >= 5.4.3
     - ipykernel >=6.15.2
     - matplotlib
     - lmfit >=1.0.3
