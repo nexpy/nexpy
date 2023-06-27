@@ -310,6 +310,7 @@ class NXTreeView(QtWidgets.QTreeView):
         """Enable and disable menu actions based on the selection."""
         self.mainwindow.savefile_action.setEnabled(False)
         self.mainwindow.duplicate_action.setEnabled(False)
+        self.mainwindow.reload_action.setEnabled(False)
         self.mainwindow.remove_action.setEnabled(False)
         self.mainwindow.lockfile_action.setEnabled(False)
         self.mainwindow.unlockfile_action.setEnabled(False)
@@ -341,14 +342,12 @@ class NXTreeView(QtWidgets.QTreeView):
         except Exception:
             node = None
         if node is None:
-            self.mainwindow.reload_action.setEnabled(False)
             self.mainwindow.reload_all_action.setEnabled(False)
             self.mainwindow.remove_all_action.setEnabled(False)
             self.mainwindow.collapse_action.setEnabled(False)
             self.mainwindow.view_action.setEnabled(False)
             return
         else:
-            self.mainwindow.reload_action.setEnabled(True)
             self.mainwindow.reload_all_action.setEnabled(True)
             self.mainwindow.remove_all_action.setEnabled(True)
             self.mainwindow.collapse_action.setEnabled(True)
@@ -359,6 +358,7 @@ class NXTreeView(QtWidgets.QTreeView):
                 self.mainwindow.add_action.setEnabled(True)
         if isinstance(node, NXroot):
             self.mainwindow.savefile_action.setEnabled(True)
+            self.mainwindow.reload_action.setEnabled(True)
             self.mainwindow.remove_action.setEnabled(True)
             if node.nxfilemode:
                 self.mainwindow.duplicate_action.setEnabled(True)
@@ -469,8 +469,10 @@ class NXTreeView(QtWidgets.QTreeView):
         self.addMenu(self.mainwindow.default_action)
         self.menu.addSeparator()
         self.addMenu(self.mainwindow.reload_action)
+        self.addMenu(self.mainwindow.reload_all_action)
         self.menu.addSeparator()
         self.addMenu(self.mainwindow.remove_action)
+        self.addMenu(self.mainwindow.remove_all_action)
         self.menu.addSeparator()
         self.addMenu(self.mainwindow.unlockfile_action)
         self.addMenu(self.mainwindow.lockfile_action)
