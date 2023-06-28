@@ -1341,10 +1341,7 @@ class DirectoryDialog(NXDialog):
             self.checkbox[f] = NXCheckBox(checked=True)
             grid.addWidget(NXLabel(f), i, 0)
             grid.addWidget(self.checkbox[f], i, 1)
-        scroll_widget = NXWidget()
-        scroll_widget.set_layout(grid)
-        scroll_area = NXScrollArea(scroll_widget)
-        self.set_layout(prefix_layout, scroll_area, self.close_layout())
+        self.set_layout(prefix_layout, NXScrollArea(grid), self.close_layout())
         self.prefix_box.setFocus()
 
     @property
@@ -1597,7 +1594,6 @@ class PlotScalarDialog(NXDialog):
         self.prefix_box = NXLineEdit()
         self.prefix_box.textChanged.connect(self.select_prefix)
         prefix_layout = self.make_layout(NXLabel('Prefix'), self.prefix_box)
-        self.scroll_area = NXScrollArea()
         self.files = GridParameters()
         i = 0
         for name in sorted(self.tree, key=natural_sort):
@@ -1611,9 +1607,7 @@ class PlotScalarDialog(NXDialog):
                     self.files[name].checkbox.stateChanged.connect(
                         self.update_files)
         self.file_grid = self.files.grid(header=('File', self.scan_header, ''))
-        self.scroll_widget = NXWidget()
-        self.scroll_widget.set_layout(self.make_layout(self.file_grid))
-        self.scroll_area.setWidget(self.scroll_widget)
+        self.scroll_area = NXScrollArea(self.make_layout(self.file_grid))
         self.file_box.set_layout(prefix_layout, self.scroll_area,
                                  self.file_box.close_layout())
         self.file_box.close_box.accepted.connect(self.choose_files)
@@ -1635,10 +1629,8 @@ class PlotScalarDialog(NXDialog):
                     self.files[name].checkbox.stateChanged.connect(
                         self.update_files)
         self.file_grid = self.files.grid(header=('File', self.scan_header, ''))
-        self.scroll_widget.deleteLater()
-        self.scroll_widget = NXWidget()
-        self.scroll_widget.set_layout(self.make_layout(self.file_grid))
-        self.scroll_area.setWidget(self.scroll_widget)
+        self.scroll_area.widget().deleteLater()
+        self.scroll_area = NXScrollArea(self.make_layout(self.file_grid))
 
     def update_files(self):
         if self.scan_variable is None:
