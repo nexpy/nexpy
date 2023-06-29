@@ -13,7 +13,7 @@ import math
 import warnings
 
 import numpy as np
-from matplotlib import cbook, colors
+from matplotlib import colors
 from matplotlib.patches import Ellipse, Polygon, Rectangle
 
 from .pyqt import QtCore, QtGui, QtWidgets
@@ -100,19 +100,24 @@ class NXSortModel(QtCore.QSortFilterProxyModel):
 class NXScrollArea(QtWidgets.QScrollArea):
     """Scroll area embedding a widget."""
 
-    def __init__(self, widget=None, horizontal=False, parent=None):
+    def __init__(self, content=None, horizontal=False, parent=None):
         """Initialize the scroll area.
 
         Parameters
         ----------
-        widget : QtWidgets.QWidget
-            Widget contained within the scroll area.
+        content : QtWidgets.QWidget or QtWidgets.QLayout
+            Widget or layout to be contained within the scroll area.
         horizontal : bool
             True if a horizontal scroll bar is enabled, default False.
         """
         super().__init__(parent=parent)
-        if widget:
-            self.setWidget(widget)
+        if content:
+            if isinstance(content, QtWidgets.QWidget):
+                self.setWidget(content)
+            elif isinstance(content, QtWidgets.QLayout):
+                widget = QtWidgets.QWidget()
+                widget.setLayout(content)
+                self.setWidget(widget)
         if not horizontal:
             self.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.setWidgetResizable(True)
@@ -120,6 +125,10 @@ class NXScrollArea(QtWidgets.QScrollArea):
                            QtWidgets.QSizePolicy.Expanding)
 
     def setWidget(self, widget):
+        if isinstance(widget, QtWidgets.QLayout):
+            w = QtWidgets.QWidget()
+            w.setLayout(widget)
+            widget = w
         super().setWidget(widget)
         widget.setMinimumWidth(widget.sizeHint().width() +
                                self.verticalScrollBar().sizeHint().width())
