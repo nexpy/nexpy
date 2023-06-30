@@ -20,7 +20,7 @@ requirements:
 
   run:
     - python >=3.7
-    - nexusformat >=1.0.0
+    - nexusformat >=1.0.2
     - numpy
     - scipy
     - h5py
