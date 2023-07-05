@@ -1615,22 +1615,11 @@ class PlotScalarDialog(NXDialog):
 
     def select_prefix(self):
         prefix = self.prefix_box.text()
-        self.files = GridParameters()
-        i = 0
-        for name in [n for n in sorted(self.tree, key=natural_sort)
-                     if n.startswith(prefix)]:
-            root = self.tree[name]
-            if self.data_path in root:
-                i += 1
-                if self.scan_path:
-                    self.files.add(name, root[self.scan_path], name, True)
-                else:
-                    self.files.add(name, i, name, True)
-                    self.files[name].checkbox.stateChanged.connect(
-                        self.update_files)
-        self.file_grid = self.files.grid(header=('File', self.scan_header, ''))
-        self.scroll_area.widget().deleteLater()
-        self.scroll_area = NXScrollArea(self.make_layout(self.file_grid))
+        for f in self.files:
+            if f.startswith(prefix):
+                self.files[f].checkbox.setChecked(True)
+            else:
+                self.files[f].checkbox.setChecked(False)
 
     def update_files(self):
         if self.scan_variable is None:
