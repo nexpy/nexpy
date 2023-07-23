@@ -6,16 +6,13 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
-    <title>NeXpy Example Files &#8212; NeXpy 1.0.0 documentation</title>
+    <title>NeXpy Example Files &#8212; NeXpy 1.0.3 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/sphinxdoc.css" />
     <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-    <script src="_static/jquery.js"></script>
-    <script src="_static/underscore.js"></script>
-    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="_static/doctools.js"></script>
     <script src="_static/sphinx_highlight.js"></script>
-    <link rel="shortcut icon" href="_static/favicon.ico"/>
+    <link rel="icon" href="_static/favicon.ico"/>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="NeXus Tree API Modules" href="treeapi.html" />
@@ -36,7 +33,7 @@
         <li class="right" >
           <a href="readers.html" title="Adding a File Importer"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 1.0.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 1.0.3 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">NeXpy Example Files</a></li> 
       </ul>
     </div>  
@@ -80,10 +77,21 @@ spectrometer</p></td>
 <h2>Example plugins<a class="headerlink" href="#example-plugins" title="Permalink to this heading">¶</a></h2>
 <section id="about-the-example-plugin">
 <h3>About the example plugin<a class="headerlink" href="#about-the-example-plugin" title="Permalink to this heading">¶</a></h3>
-<p>This contains an example of a package that provides a plugin menu to NeXpy. If
-the package is copied to ~/.nexpy/plugins, a new menu item should appear in the
-main NeXpy menu. The two menu items are designed to operated on <code class="docutils literal notranslate"><span class="pre">chopper.nxs</span></code>,
-which is included as an example file.</p>
+<p>This contains an example of a package, <code class="docutils literal notranslate"><span class="pre">chopper_plugin</span></code> that provides a
+plugin menu to NeXpy. The entire directory can be copied to another location
+to form the template of another plugin, which should be given a unique name.</p>
+<p>The package has an example <code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code> file, which defines the name
+of the package and an entry point labelled <code class="docutils literal notranslate"><span class="pre">nexpy.readers</span></code>, which
+allows NeXpy to discover the plugin when the package has been installed,
+using <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-m</span> <span class="pre">pip</span> <span class="pre">install</span> <span class="pre">.</span></code>.</p>
+<p>Alternatively, the <code class="docutils literal notranslate"><span class="pre">chopper</span></code> sub-directory could be installed either
+locally or within the installed NeXpy package using the <code class="docutils literal notranslate"><span class="pre">Install</span> <span class="pre">Plugin...</span></code>
+dialog. However, installing the plugin as an external package with an
+entry point is now the preferred method for making the plugin discoverable.</p>
+<p>In this example, a menu item, ‘Chopper’, is added to the top-level NeXpy
+menu, with two sub-menu items designed to operated on <code class="docutils literal notranslate"><span class="pre">chopper.nxs</span></code>,
+which is included as an example file. When loaded, select the <code class="docutils literal notranslate"><span class="pre">chopper</span></code>
+root in the NeXpy tree before clicking on either menu item.</p>
 <p>The requirement for a plugin is that a function <code class="docutils literal notranslate"><span class="pre">plugin_menu</span></code> initializes
 the submenu items in the package’s <code class="docutils literal notranslate"><span class="pre">__init__.py</span></code>. These would normally
 initiate dialog boxes that are defined within files in the package, although
@@ -191,13 +199,13 @@ that <code class="docutils literal notranslate"><span class="pre">chopper.nxs</s
         <li class="right" >
           <a href="readers.html" title="Adding a File Importer"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 1.0.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 1.0.3 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">NeXpy Example Files</a></li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright Modified BSD License.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.3.0.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 6.1.3.
     </div>
   </body>
 </html>

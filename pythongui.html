@@ -6,16 +6,13 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
-    <title>Python Graphical User Interface &#8212; NeXpy 1.0.0 documentation</title>
+    <title>Python Graphical User Interface &#8212; NeXpy 1.0.3 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/sphinxdoc.css" />
     <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-    <script src="_static/jquery.js"></script>
-    <script src="_static/underscore.js"></script>
-    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="_static/doctools.js"></script>
     <script src="_static/sphinx_highlight.js"></script>
-    <link rel="shortcut icon" href="_static/favicon.ico"/>
+    <link rel="icon" href="_static/favicon.ico"/>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Adding a File Importer" href="readers.html" />
@@ -36,7 +33,7 @@
         <li class="right" >
           <a href="pythonshell.html" title="Python Interface to NeXus"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 1.0.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 1.0.3 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Python Graphical User Interface</a></li> 
       </ul>
     </div>  
@@ -250,6 +247,12 @@ plugins when NeXpy is restarted.</p>
 <p class="admonition-title">Note</p>
 <p>If a plugin of the same name exists in both directories, the
 user’s plugin is loaded.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>With NeXpy v1.0.3, plugins can also be loaded directly from
+external packages, in which the plugin modules are declared
+using the <code class="docutils literal notranslate"><span class="pre">nexpy.readers</span></code> entry point.</p>
 </div>
 <div class="admonition seealso">
 <p class="admonition-title">See also</p>
@@ -1251,18 +1254,96 @@ can be added to their private readers directory in <code class="docutils literal
 <section id="nexpy-plugins">
 <h2>NeXpy Plugins<a class="headerlink" href="#nexpy-plugins" title="Permalink to this heading">¶</a></h2>
 <p>It is possible to customize NeXpy by adding new menus to the main menu bar
-with sub-menus that open dialog boxes for operations that are specific to a
-particular domain. These will be automatically loaded from either the
-<code class="docutils literal notranslate"><span class="pre">nexpy.plugins</span></code> directory within the installed NeXpy distribution or from the
-users’ <code class="docutils literal notranslate"><span class="pre">~/.nexpy/plugins</span></code> directory.</p>
-<p>The new menu should be defined as a Python package, <em>i.e.</em>, by creating a
-sub-directory within the plugins directory that contains <code class="docutils literal notranslate"><span class="pre">__init__.py</span></code> to
-define the menu actions.</p>
-<p>There is an example package, <code class="docutils literal notranslate"><span class="pre">chopper</span></code>, in the <code class="docutils literal notranslate"><span class="pre">nexpy.examples</span></code> directory,
-to show how plugins can work. It adds a top-level menu item, <code class="docutils literal notranslate"><span class="pre">chopper</span></code>, that
-has a couple of menu items to perform data analysis on the example file,
-<code class="docutils literal notranslate"><span class="pre">chopper.nxs</span></code>, which is distributed with NeXpy.</p>
-<p>Here is the <code class="docutils literal notranslate"><span class="pre">__init__.py</span></code> file:</p>
+with sub-menus that open GUI dialogs or perform operations that are
+specific to a specialized application.</p>
+<section id="installing-plugins">
+<h3>Installing Plugins<a class="headerlink" href="#installing-plugins" title="Permalink to this heading">¶</a></h3>
+<p>NeXpy searches for plugin modules in two ways.</p>
+<ol class="arabic">
+<li><p>The plugin code can be installed using the <code class="docutils literal notranslate"><span class="pre">Install</span> <span class="pre">Plugin...</span></code> dialog
+either locally in the user’s <code class="docutils literal notranslate"><span class="pre">~/.nexpy/plugins``directory</span> <span class="pre">or</span> <span class="pre">in</span> <span class="pre">the</span>
+<span class="pre">``nexpy.plugins</span></code> directory within the installed NeXpy distribution.</p></li>
+<li><p>The plugin code can be contained within an external installed package,
+which declares an entry point labelled <code class="docutils literal notranslate"><span class="pre">nexpy.plugins</span></code>. An example
+package, that is installable using <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">.</span></code> is available in
+the NeXpy package examples directory.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The second method was introduced in NeXpy v1.0.3. It is
+recommended for new plugins.</p>
+</div>
+</li>
+</ol>
+<p>Plugins are loaded from the users’ directory, the NeXpy distribution’s
+plugin directory, and external package entry points, <em>in that order</em>,
+for backward compatibility with existing installations. Duplicate
+plugins will not be loaded, but a warning will be added to the NeXpy log
+file. If a previously installed plugin is now available in an external
+package, please remove the prior installation using the
+<code class="docutils literal notranslate"><span class="pre">Remove</span> <span class="pre">Plugin...</span></code> dialog.</p>
+</section>
+<section id="defining-plugins">
+<h3>Defining Plugins<a class="headerlink" href="#defining-plugins" title="Permalink to this heading">¶</a></h3>
+<p>The modules that are accessed through the plugin menu should be defined
+as a Python package, <em>i.e.</em>, by creating a sub-directory that contains
+<code class="docutils literal notranslate"><span class="pre">__init__.py</span></code>. This must contain a function, <code class="docutils literal notranslate"><span class="pre">plugin_menu</span></code>, which returns
+the name to be added to the top-level NeXpy menu bar, and a list of tuples,
+each of which contains the sub-menu name and the corresponding function
+triggered by clicking on it.</p>
+<p>There is an example package, <code class="docutils literal notranslate"><span class="pre">chopper_plugin</span></code>, in the <code class="docutils literal notranslate"><span class="pre">nexpy.examples</span></code>
+directory, to show how plugins should be configured. It adds a top-level
+menu item, <code class="docutils literal notranslate"><span class="pre">Chopper</span></code>, that has a couple of sub-menu items to perform
+data analysis on the example file, <code class="docutils literal notranslate"><span class="pre">chopper.nxs</span></code>, which is also
+distributed with NeXpy.</p>
+<p>Here is the structure of the <code class="docutils literal notranslate"><span class="pre">chopper_plugin</span></code> package:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>chopper_plugin:
+└── pyproject.toml
+└── chopper
+    ├── __init.py__
+    ├── convert_qe.py
+    └── get_ei.py
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If the plugin is to be installed using the <code class="docutils literal notranslate"><span class="pre">Install</span> <span class="pre">Plugin...</span></code>
+dialog, just select the <code class="docutils literal notranslate"><span class="pre">chopper</span></code> sub-directory in the above
+file tree.</p>
+</div>
+<p>Here is the <code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code> file:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">build</span><span class="o">-</span><span class="n">system</span><span class="p">]</span>
+<span class="n">requires</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;setuptools&quot;</span><span class="p">,</span> <span class="s2">&quot;setuptools-scm&quot;</span><span class="p">]</span>
+<span class="n">build</span><span class="o">-</span><span class="n">backend</span> <span class="o">=</span> <span class="s2">&quot;setuptools.build_meta&quot;</span>
+
+<span class="p">[</span><span class="n">project</span><span class="p">]</span>
+<span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;chopper_plugin&quot;</span>
+<span class="n">version</span> <span class="o">=</span> <span class="s2">&quot;1.0.0&quot;</span>
+<span class="n">dependencies</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;nexpy&quot;</span>
+<span class="p">]</span>
+
+<span class="p">[</span><span class="n">project</span><span class="o">.</span><span class="n">entry</span><span class="o">-</span><span class="n">points</span><span class="o">.</span><span class="s2">&quot;nexpy.plugins&quot;</span><span class="p">]</span>
+<span class="n">chopper</span> <span class="o">=</span> <span class="s2">&quot;chopper:plugin_menu&quot;</span>
+</pre></div>
+</div>
+<p>This is sufficient to install the plugin using <code class="docutils literal notranslate"><span class="pre">pip</span></code> and make it
+discoverable by NeXpy through <code class="docutils literal notranslate"><span class="pre">nexpy.plugins</span></code> entry point. If the
+plugin is embedded within a larger package, adjust the entry point so
+that it points to the sub-directory containing the <code class="docutils literal notranslate"><span class="pre">__init__.py</span></code> file
+that defines the <code class="docutils literal notranslate"><span class="pre">plugin_menu</span></code> function. For example, if the plugin
+modules are contained within the <code class="docutils literal notranslate"><span class="pre">plugins</span></code> sub-directory of
+<code class="docutils literal notranslate"><span class="pre">mypackage</span></code>, add the following entry point:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">project</span><span class="o">.</span><span class="n">entry</span><span class="o">-</span><span class="n">points</span><span class="o">.</span><span class="s2">&quot;nexpy.plugins&quot;</span><span class="p">]</span>
+<span class="n">plugin_name</span> <span class="o">=</span> <span class="s2">&quot;mypackage.plugins.plugin_name:plugin_menu&quot;</span>
+</pre></div>
+</div>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p>Information on defining entry points in external packages
+that do not use a <code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code> file is available in
+the <a class="reference external" href="https://setuptools.pypa.io/en/latest/userguide/entry_point.html">Setup Tools documentation</a>.</p>
+</div>
+<p>Here is the <code class="docutils literal notranslate"><span class="pre">__init__.py</span></code> file, which defines the <code class="docutils literal notranslate"><span class="pre">plugin_menu</span></code> function:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">get_ei</span><span class="p">,</span> <span class="n">convert_qe</span>
 
 <span class="k">def</span> <span class="nf">plugin_menu</span><span class="p">():</span>
@@ -1291,8 +1372,7 @@ a grid defines a set of parameters, functions to read those parameters from
 the PySide text boxes (here, they are decorated with <code class="docutils literal notranslate"><span class="pre">&#64;property</span></code>, which
 means that the function can be called without an argument), a couple of
 buttons to activate different parts of the analysis, and finally the
-functions themselves.</p>
-<p>Here is the code:</p>
+functions themselves:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">nexpy.gui.datadialogs</span> <span class="kn">import</span> <span class="n">GridParameters</span><span class="p">,</span> <span class="n">NXDialog</span>
 <span class="kn">from</span> <span class="nn">nexpy.gui.mainwindow</span> <span class="kn">import</span> <span class="n">report_error</span>
@@ -1367,6 +1447,7 @@ functions themselves.</p>
 </div>
 </section>
 </section>
+</section>
 
 
             <div class="clearer"></div>
@@ -1406,7 +1487,11 @@ functions themselves.</p>
 <li><a class="reference internal" href="#defining-a-reader">Defining a Reader</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#nexpy-plugins">NeXpy Plugins</a></li>
+<li><a class="reference internal" href="#nexpy-plugins">NeXpy Plugins</a><ul>
+<li><a class="reference internal" href="#installing-plugins">Installing Plugins</a></li>
+<li><a class="reference internal" href="#defining-plugins">Defining Plugins</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -1458,13 +1543,13 @@ functions themselves.</p>
         <li class="right" >
           <a href="pythonshell.html" title="Python Interface to NeXus"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 1.0.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 1.0.3 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Python Graphical User Interface</a></li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright Modified BSD License.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.3.0.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 6.1.3.
     </div>
   </body>
 </html>
