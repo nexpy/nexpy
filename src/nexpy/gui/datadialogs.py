@@ -1942,7 +1942,7 @@ class LockDialog(NXDialog):
         self.show_locks()
 
 
-class PreferencesDialog(NXDialog):
+class SettingsDialog(NXDialog):
 
     def __init__(self, parent=None):
         super().__init__(parent=parent, default=True)
@@ -1963,34 +1963,34 @@ class PreferencesDialog(NXDialog):
             style for style in mpl.style.available if style != 'publication')
         self.parameters.add('style', styles, 'Plot Style')
         self.parameters['style'].value = self.mainwindow.settings.get(
-            'preferences', 'style')
+            'settings', 'style')
         self.set_layout(self.parameters.grid(),
                         self.action_buttons(('Save As Default',
                                             self.save_default)),
                         self.close_layout(save=True))
-        self.set_title('NeXpy Preferences')
+        self.set_title('NeXpy Settings')
 
     def save_default(self):
-        self.set_preferences()
+        self.set_nexpy_settings()
         cfg = nxgetconfig()
-        self.mainwindow.settings.set('preferences', 'memory', cfg['memory'])
-        self.mainwindow.settings.set('preferences', 'maxsize', cfg['maxsize'])
-        self.mainwindow.settings.set('preferences', 'compression',
+        self.mainwindow.settings.set('settings', 'memory', cfg['memory'])
+        self.mainwindow.settings.set('settings', 'maxsize', cfg['maxsize'])
+        self.mainwindow.settings.set('settings', 'compression',
                                      cfg['compression'])
-        self.mainwindow.settings.set('preferences', 'encoding',
+        self.mainwindow.settings.set('settings', 'encoding',
                                      cfg['encoding'])
-        self.mainwindow.settings.set('preferences', 'lock', cfg['lock'])
-        self.mainwindow.settings.set('preferences', 'lockexpiry',
+        self.mainwindow.settings.set('settings', 'lock', cfg['lock'])
+        self.mainwindow.settings.set('settings', 'lockexpiry',
                                      cfg['lockexpiry'])
-        self.mainwindow.settings.set('preferences', 'lockdirectory',
+        self.mainwindow.settings.set('settings', 'lockdirectory',
                                      cfg['lockdirectory'])
-        self.mainwindow.settings.set('preferences', 'recursive',
+        self.mainwindow.settings.set('settings', 'recursive',
                                      cfg['recursive'])
-        self.mainwindow.settings.set('preferences', 'style',
+        self.mainwindow.settings.set('settings', 'style',
                                      self.parameters['style'].value)
         self.mainwindow.settings.save()
 
-    def set_preferences(self):
+    def set_nexpy_settings(self):
         lockdirectory = self.parameters['lockdirectory'].value
         if not lockdirectory.strip():
             lockdirectory = None
@@ -2005,7 +2005,7 @@ class PreferencesDialog(NXDialog):
         set_style(self.parameters['style'].value)
 
     def accept(self):
-        self.set_preferences()
+        self.set_nexpy_settings()
         super().accept()
 
 

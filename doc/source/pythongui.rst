@@ -230,8 +230,8 @@ File Menu
     If a plugin is overwritten by installing another version, it is backed up
     in ``~/.nexpy/backups``). This allows the old version to be restored.
 
-**Edit Preferences**
-    Open a dialog to set preferences for this session. It is also possible to
+**Edit Settings**
+    Open a dialog to modify settings for this session. It is also possible to
     save them as the default for subsequent sessions.
 
 Data Menu
