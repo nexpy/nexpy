@@ -764,13 +764,14 @@ class NXConfigParser(ConfigParser, object):
             for option in self.options('preferences'):
                 self.set('settings', option, self.get('preferences', option))
             self.remove_section('preferences')
+            self.save()
         if 'recentFiles' in self.options('recent'):
             paths = [f.strip() for f
                      in self.get('recent', 'recentFiles').split(',')]
             for path in paths:
                 self.set("recent", path)
             self.remove_option("recent", "recentFiles")
-        self.save()
+            self.save()
 
 
 class NXLogger(io.StringIO):
