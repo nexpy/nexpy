@@ -586,6 +586,12 @@ class NXWidget(QtWidgets.QWidget):
     def update(self):
         pass
 
+    def activate(self):
+        self.setVisible(True)
+        self.raise_()
+        self.activateWindow()
+        self.setFocus()
+
     def closeEvent(self, event):
         self.stop_thread()
         event.accept()
