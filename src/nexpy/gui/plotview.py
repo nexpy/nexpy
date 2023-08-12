@@ -67,7 +67,7 @@ from nexusformat.nexus import NeXusError, NXdata, NXfield
 
 from .. import __version__
 from .datadialogs import (CustomizeDialog, ExportDialog, LimitDialog,
-                          ProjectionDialog, ScanDialog)
+                          ProjectionDialog, ScanDialog, StyleDialog)
 from .utils import (boundaries, centers, divgray_map, find_nearest,
                     fix_projection, get_color, iterable, keep_data, parula_map,
                     report_error, report_exception, xtec_map)
@@ -3869,8 +3869,9 @@ class NXNavigationToolbar(NavigationToolbar2QT, QtWidgets.QToolBar):
         (None, None, None, None),
         ('Aspect', 'Set aspect ratio to equal', 'equal', 'set_aspect'),
         (None, None, None, None),
-        ('Subplots', 'Configure subplots', 'subplots', 'configure_subplots'),
         ('Customize', 'Customize plot', 'customize', 'edit_parameters'),
+        ('Style', 'Modify style', 'modify-style', 'modify_style'),
+        ('Subplots', 'Configure subplots', 'subplots', 'configure_subplots'),
         ('Save', 'Save the figure', 'export-figure', 'save_figure'),
         ('Export', 'Export data', 'export-data', 'export_data'),
         ('Add', 'Add plot data to tree', 'hand', 'add_data')
@@ -3953,6 +3954,15 @@ class NXNavigationToolbar(NavigationToolbar2QT, QtWidgets.QToolBar):
         self.plotview.panels['Customize'].activate(self.plotview.label)
         self.plotview.panels['Customize'].setVisible(True)
         self.plotview.panels['Customize'].raise_()
+
+    def modify_style(self):
+        """Launch the Style Panel."""
+        self.plotview.make_active()
+        if not self.plotview.mainwindow.panel_is_running('Style'):
+            self.plotview.panels['Style'] = StyleDialog()
+        self.plotview.panels['Style'].activate(self.plotview.label)
+        self.plotview.panels['Style'].setVisible(True)
+        self.plotview.panels['Style'].raise_()
 
     def add_data(self):
         """Save the currently plotted data to the scratch workspace."""

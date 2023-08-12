@@ -2435,6 +2435,74 @@ class CustomizeTab(NXTab):
         self.plotview.draw()
 
 
+class StyleDialog(NXPanel):
+
+    def __init__(self, parent=None):
+        super().__init__('Style', title='Style Panel', parent=parent)
+        self.tab_class = StyleTab
+        self.plotview_sort = True
+
+
+class StyleTab(NXTab):
+
+    def __init__(self, label, parent=None):
+        super().__init__(label, parent=parent)
+
+        self.plotview = self.active_plotview
+
+        self.parameters = GridParameters()
+        self.parameters.add('title', 0, 'Title Font Size')
+        self.parameters.add('xlabel', 0, 'X-Label Font Size')
+        self.parameters.add('ylabel', 0, 'Y-Label Font Size')
+        self.parameters.add('ticks', 0, 'Tick Font Size')
+        if self.plotview.image is not None:
+            self.parameters.add('colorbar', 10, 'Colorbar Font Size')
+        self.set_layout(
+            self.parameters.grid(header=('Label', 'Font Size'), width=100),
+            self.action_buttons(('Use Tight Layout', self.tight_layout),
+                                ('Save As Default', self.save_default)))
+        self.update()
+        self.set_title('Plot Style')
+
+    def update(self):
+        p = self.parameters
+        p['title'].value = self.plotview.ax.title.get_fontsize()
+        p['xlabel'].value = self.plotview.ax.xaxis.label.get_fontsize()
+        p['ylabel'].value = self.plotview.ax.yaxis.label.get_fontsize()
+        p['ticks'].value = self.plotview.ax.get_xticklabels()[0].get_fontsize()
+        if self.plotview.image is not None:
+            p['colorbar'].value = (
+                self.plotview.colorbar.ax.get_yticklabels()[0].get_fontsize())
+
+    def tight_layout(self):
+        self.plotview.figure.tight_layout()
+        self.plotview.draw()
+
+    def save_default(self):
+        p = self.parameters
+        mpl.rcParams['axes.titlesize'] = p['title'].value
+        mpl.rcParams['axes.labelsize'] = p['xlabel'].value
+        mpl.rcParams['xtick.labelsize'] = p['ticks'].value
+        mpl.rcParams['ytick.labelsize'] = p['ticks'].value
+        self.apply()
+
+    def apply(self):
+        p = self.parameters
+        self.plotview.ax.title.set_fontsize(p['title'].value)
+        self.plotview.ax.xaxis.label.set_fontsize(p['xlabel'].value)
+        self.plotview.ax.yaxis.label.set_fontsize(p['ylabel'].value)
+        tick_size = p['ticks'].value
+        for label in self.plotview.ax.get_xticklabels():
+            label.set_fontsize(tick_size)
+        for label in self.plotview.ax.get_yticklabels():
+            label.set_fontsize(tick_size)
+        cb_size = p['colorbar'].value
+        if self.plotview.image is not None:
+            for label in self.plotview.colorbar.ax.get_yticklabels():
+                label.set_fontsize(cb_size)
+        self.plotview.draw()
+
+
 class ProjectionDialog(NXPanel):
     """Dialog to set plot window limits"""
 
