@@ -2450,36 +2450,77 @@ class StyleTab(NXTab):
 
         self.plotview = self.active_plotview
 
-        self.parameters = GridParameters()
-        self.parameters.add('title', 0, 'Title Font Size')
-        self.parameters.add('xlabel', 0, 'X-Label Font Size')
-        self.parameters.add('ylabel', 0, 'Y-Label Font Size')
-        self.parameters.add('ticks', 0, 'Tick Font Size')
-        if self.plotview.image is not None:
-            self.parameters.add('colorbar', 10, 'Colorbar Font Size')
+        self.parameters = {}
+        pl = self.parameters['labels'] = self.label_parameters()
+        self.update_label_parameters()
+        pf = self.parameters['fonts'] = self.font_parameters()
+        self.update_font_parameters()
         self.set_layout(
-            self.parameters.grid(header=('Label', 'Font Size'), width=100),
-            self.action_buttons(('Use Tight Layout', self.tight_layout),
-                                ('Save As Default', self.save_default)))
-        self.update()
+            pl.grid(header=False, width=250),
+            self.make_layout(pf.grid(header=False, width=100), align='center'),
+            self.action_buttons(('Make Sizes Default', self.save_default)),
+            self.action_buttons(('Adjust Layout', self.adjust_layout),
+                                ('Tighten Layout', self.tight_layout),
+                                ('Reset Layout', self.reset_layout)))
         self.set_title('Plot Style')
 
-    def update(self):
-        p = self.parameters
+    def label_parameters(self):
+        p = GridParameters()
+        p.add('title', self.plotview.title, 'Title')
+        p.add('xlabel', self.plotview.xaxis.label, 'X-Axis Label')
+        p.add('ylabel', self.plotview.yaxis.label, 'Y-Axis Label')
+        p.grid(title='Plot Labels', header=False, width=200)
+        return p
+
+    def update_label_parameters(self):
+        p = self.parameters['labels']
+        p['title'].value = self.plotview.title
+        p['xlabel'].value = self.plotview.xaxis.label
+        p['ylabel'].value = self.plotview.yaxis.label
+
+    def font_parameters(self):
+        p = GridParameters()
+        p.add('title', 0, 'Title Font Size')
+        p.add('xlabel', 0, 'X-Label Font Size')
+        p.add('ylabel', 0, 'Y-Label Font Size')
+        p.add('ticks', 0, 'Tick Font Size')
+        if self.plotview.image is not None:
+            p.add('colorbar', 10, 'Colorbar Font Size')
+        return p
+
+    def update_font_parameters(self):
+        p = self.parameters['fonts']
         p['title'].value = self.plotview.ax.title.get_fontsize()
         p['xlabel'].value = self.plotview.ax.xaxis.label.get_fontsize()
         p['ylabel'].value = self.plotview.ax.yaxis.label.get_fontsize()
         p['ticks'].value = self.plotview.ax.get_xticklabels()[0].get_fontsize()
-        if self.plotview.image is not None:
+        if self.plotview.colorbar is not None:
             p['colorbar'].value = (
                 self.plotview.colorbar.ax.get_yticklabels()[0].get_fontsize())
 
+    def update(self):
+        self.update_label_parameters()
+        self.update_font_parameters()
+
     def tight_layout(self):
+        pars = self.plotview.figure.subplotpars
+        self.previous_layout = {'left': pars.left, 'right': pars.right,
+                                'bottom': pars.bottom, 'top': pars.right}
         self.plotview.figure.tight_layout()
         self.plotview.draw()
 
+    def reset_layout(self):
+        self.plotview.figure.subplots_adjust(**self.previous_layout)
+        self.plotview.draw()
+
+    def adjust_layout(self):
+        pars = self.plotview.figure.subplotpars
+        self.previous_layout = {'left': pars.left, 'right': pars.right,
+                                'bottom': pars.bottom, 'top': pars.right}
+        self.plotview.otab.configure_subplots()
+
     def save_default(self):
-        p = self.parameters
+        p = self.parameters['fonts']
         mpl.rcParams['axes.titlesize'] = p['title'].value
         mpl.rcParams['axes.labelsize'] = p['xlabel'].value
         mpl.rcParams['xtick.labelsize'] = p['ticks'].value
@@ -2487,17 +2528,24 @@ class StyleTab(NXTab):
         self.apply()
 
     def apply(self):
-        p = self.parameters
-        self.plotview.ax.title.set_fontsize(p['title'].value)
-        self.plotview.ax.xaxis.label.set_fontsize(p['xlabel'].value)
-        self.plotview.ax.yaxis.label.set_fontsize(p['ylabel'].value)
-        tick_size = p['ticks'].value
+        pl = self.parameters['labels']
+        self.plotview.title = pl['title'].value
+        self.plotview.ax.set_title(self.plotview.title)
+        self.plotview.xaxis.label = pl['xlabel'].value
+        self.plotview.ax.set_xlabel(self.plotview.xaxis.label)
+        self.plotview.yaxis.label = pl['ylabel'].value
+        self.plotview.ax.set_ylabel(self.plotview.yaxis.label)
+        pf = self.parameters['fonts']
+        self.plotview.ax.title.set_fontsize(pf['title'].value)
+        self.plotview.ax.xaxis.label.set_fontsize(pf['xlabel'].value)
+        self.plotview.ax.yaxis.label.set_fontsize(pf['ylabel'].value)
+        tick_size = pf['ticks'].value
         for label in self.plotview.ax.get_xticklabels():
             label.set_fontsize(tick_size)
         for label in self.plotview.ax.get_yticklabels():
             label.set_fontsize(tick_size)
-        cb_size = p['colorbar'].value
-        if self.plotview.image is not None:
+        if self.plotview.colorbar is not None:
+            cb_size = pf['colorbar'].value
             for label in self.plotview.colorbar.ax.get_yticklabels():
                 label.set_fontsize(cb_size)
         self.plotview.draw()
