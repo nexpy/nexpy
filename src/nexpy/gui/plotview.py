@@ -3871,7 +3871,6 @@ class NXNavigationToolbar(NavigationToolbar2QT, QtWidgets.QToolBar):
         (None, None, None, None),
         ('Customize', 'Customize plot', 'customize', 'edit_parameters'),
         ('Style', 'Modify style', 'modify-style', 'modify_style'),
-        ('Subplots', 'Configure subplots', 'subplots', 'configure_subplots'),
         ('Save', 'Save the figure', 'export-figure', 'save_figure'),
         ('Export', 'Export data', 'export-data', 'export_data'),
         ('Add', 'Add plot data to tree', 'hand', 'add_data')
