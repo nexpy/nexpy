@@ -586,6 +586,12 @@ class NXWidget(QtWidgets.QWidget):
     def update(self):
         pass
 
+    def activate(self):
+        self.setVisible(True)
+        self.raise_()
+        self.activateWindow()
+        self.setFocus()
+
     def closeEvent(self, event):
         self.stop_thread()
         event.accept()
@@ -1942,7 +1948,7 @@ class LockDialog(NXDialog):
         self.show_locks()
 
 
-class PreferencesDialog(NXDialog):
+class SettingsDialog(NXDialog):
 
     def __init__(self, parent=None):
         super().__init__(parent=parent, default=True)
@@ -1963,34 +1969,34 @@ class PreferencesDialog(NXDialog):
             style for style in mpl.style.available if style != 'publication')
         self.parameters.add('style', styles, 'Plot Style')
         self.parameters['style'].value = self.mainwindow.settings.get(
-            'preferences', 'style')
+            'settings', 'style')
         self.set_layout(self.parameters.grid(),
                         self.action_buttons(('Save As Default',
                                             self.save_default)),
                         self.close_layout(save=True))
-        self.set_title('NeXpy Preferences')
+        self.set_title('NeXpy Settings')
 
     def save_default(self):
-        self.set_preferences()
+        self.set_nexpy_settings()
         cfg = nxgetconfig()
-        self.mainwindow.settings.set('preferences', 'memory', cfg['memory'])
-        self.mainwindow.settings.set('preferences', 'maxsize', cfg['maxsize'])
-        self.mainwindow.settings.set('preferences', 'compression',
+        self.mainwindow.settings.set('settings', 'memory', cfg['memory'])
+        self.mainwindow.settings.set('settings', 'maxsize', cfg['maxsize'])
+        self.mainwindow.settings.set('settings', 'compression',
                                      cfg['compression'])
-        self.mainwindow.settings.set('preferences', 'encoding',
+        self.mainwindow.settings.set('settings', 'encoding',
                                      cfg['encoding'])
-        self.mainwindow.settings.set('preferences', 'lock', cfg['lock'])
-        self.mainwindow.settings.set('preferences', 'lockexpiry',
+        self.mainwindow.settings.set('settings', 'lock', cfg['lock'])
+        self.mainwindow.settings.set('settings', 'lockexpiry',
                                      cfg['lockexpiry'])
-        self.mainwindow.settings.set('preferences', 'lockdirectory',
+        self.mainwindow.settings.set('settings', 'lockdirectory',
                                      cfg['lockdirectory'])
-        self.mainwindow.settings.set('preferences', 'recursive',
+        self.mainwindow.settings.set('settings', 'recursive',
                                      cfg['recursive'])
-        self.mainwindow.settings.set('preferences', 'style',
+        self.mainwindow.settings.set('settings', 'style',
                                      self.parameters['style'].value)
         self.mainwindow.settings.save()
 
-    def set_preferences(self):
+    def set_nexpy_settings(self):
         lockdirectory = self.parameters['lockdirectory'].value
         if not lockdirectory.strip():
             lockdirectory = None
@@ -2005,7 +2011,7 @@ class PreferencesDialog(NXDialog):
         set_style(self.parameters['style'].value)
 
     def accept(self):
-        self.set_preferences()
+        self.set_nexpy_settings()
         super().accept()
 
 
@@ -2426,6 +2432,122 @@ class CustomizeTab(NXTab):
                     p['smooth_line'].set_linestyle(p['smooth_linestyle'])
         self.set_grid()
         self.update()
+        self.plotview.draw()
+
+
+class StyleDialog(NXPanel):
+
+    def __init__(self, parent=None):
+        super().__init__('Style', title='Style Panel', parent=parent)
+        self.tab_class = StyleTab
+        self.plotview_sort = True
+
+
+class StyleTab(NXTab):
+
+    def __init__(self, label, parent=None):
+        super().__init__(label, parent=parent)
+
+        self.plotview = self.active_plotview
+
+        self.parameters = {}
+        pl = self.parameters['labels'] = self.label_parameters()
+        self.update_label_parameters()
+        pf = self.parameters['fonts'] = self.font_parameters()
+        self.update_font_parameters()
+        self.set_layout(
+            pl.grid(header=False, width=250),
+            self.make_layout(pf.grid(header=False, width=100), align='center'),
+            self.action_buttons(('Make Sizes Default', self.save_default)),
+            self.action_buttons(('Adjust Layout', self.adjust_layout),
+                                ('Tighten Layout', self.tight_layout),
+                                ('Reset Layout', self.reset_layout)))
+        self.set_title('Plot Style')
+
+    def label_parameters(self):
+        p = GridParameters()
+        p.add('title', self.plotview.title, 'Title')
+        p.add('xlabel', self.plotview.xaxis.label, 'X-Axis Label')
+        p.add('ylabel', self.plotview.yaxis.label, 'Y-Axis Label')
+        p.grid(title='Plot Labels', header=False, width=200)
+        return p
+
+    def update_label_parameters(self):
+        p = self.parameters['labels']
+        p['title'].value = self.plotview.title
+        p['xlabel'].value = self.plotview.xaxis.label
+        p['ylabel'].value = self.plotview.yaxis.label
+
+    def font_parameters(self):
+        p = GridParameters()
+        p.add('title', 0, 'Title Font Size')
+        p.add('xlabel', 0, 'X-Label Font Size')
+        p.add('ylabel', 0, 'Y-Label Font Size')
+        p.add('ticks', 0, 'Tick Font Size')
+        if self.plotview.image is not None:
+            p.add('colorbar', 10, 'Colorbar Font Size')
+        return p
+
+    def update_font_parameters(self):
+        p = self.parameters['fonts']
+        p['title'].value = self.plotview.ax.title.get_fontsize()
+        p['xlabel'].value = self.plotview.ax.xaxis.label.get_fontsize()
+        p['ylabel'].value = self.plotview.ax.yaxis.label.get_fontsize()
+        p['ticks'].value = self.plotview.ax.get_xticklabels()[0].get_fontsize()
+        if self.plotview.colorbar is not None:
+            p['colorbar'].value = (
+                self.plotview.colorbar.ax.get_yticklabels()[0].get_fontsize())
+
+    def update(self):
+        self.update_label_parameters()
+        self.update_font_parameters()
+
+    def tight_layout(self):
+        pars = self.plotview.figure.subplotpars
+        self.previous_layout = {'left': pars.left, 'right': pars.right,
+                                'bottom': pars.bottom, 'top': pars.right}
+        self.plotview.figure.tight_layout()
+        self.plotview.draw()
+
+    def reset_layout(self):
+        self.plotview.figure.subplots_adjust(**self.previous_layout)
+        self.plotview.draw()
+
+    def adjust_layout(self):
+        pars = self.plotview.figure.subplotpars
+        self.previous_layout = {'left': pars.left, 'right': pars.right,
+                                'bottom': pars.bottom, 'top': pars.right}
+        self.plotview.otab.configure_subplots()
+
+    def save_default(self):
+        p = self.parameters['fonts']
+        mpl.rcParams['axes.titlesize'] = p['title'].value
+        mpl.rcParams['axes.labelsize'] = p['xlabel'].value
+        mpl.rcParams['xtick.labelsize'] = p['ticks'].value
+        mpl.rcParams['ytick.labelsize'] = p['ticks'].value
+        self.apply()
+
+    def apply(self):
+        pl = self.parameters['labels']
+        self.plotview.title = pl['title'].value
+        self.plotview.ax.set_title(self.plotview.title)
+        self.plotview.xaxis.label = pl['xlabel'].value
+        self.plotview.ax.set_xlabel(self.plotview.xaxis.label)
+        self.plotview.yaxis.label = pl['ylabel'].value
+        self.plotview.ax.set_ylabel(self.plotview.yaxis.label)
+        pf = self.parameters['fonts']
+        self.plotview.ax.title.set_fontsize(pf['title'].value)
+        self.plotview.ax.xaxis.label.set_fontsize(pf['xlabel'].value)
+        self.plotview.ax.yaxis.label.set_fontsize(pf['ylabel'].value)
+        tick_size = pf['ticks'].value
+        for label in self.plotview.ax.get_xticklabels():
+            label.set_fontsize(tick_size)
+        for label in self.plotview.ax.get_yticklabels():
+            label.set_fontsize(tick_size)
+        if self.plotview.colorbar is not None:
+            cb_size = pf['colorbar'].value
+            for label in self.plotview.colorbar.ax.get_yticklabels():
+                label.set_fontsize(cb_size)
         self.plotview.draw()
 
 

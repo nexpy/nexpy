@@ -630,8 +630,8 @@ def load_image(filename):
     return data
 
 
-def initialize_preferences(settings):
-    """Initialize NeXpy preferences.
+def initialize_settings(settings):
+    """Initialize NeXpy settings.
 
     For the nexusformat configuration parameters, precedence is given to
     those that are defined by environment variables, since these might
@@ -643,27 +643,27 @@ def initialize_preferences(settings):
     Parameters
     ----------
     settings : NXConfigParser
-        NXConfigParser instance containing NeXpy preferences.
+        NXConfigParser instance containing NeXpy settings.
     """
 
     def setconfig(parameter):
         environment_variable = 'NX_'+parameter.upper()
         if environment_variable in os.environ:
             value = os.environ[environment_variable]
-        elif settings.has_option('preferences', parameter):
-            value = settings.get('preferences', parameter)
+        elif settings.has_option('settings', parameter):
+            value = settings.get('settings', parameter)
         else:
             value = nxgetconfig(parameter)
         nxsetconfig(**{parameter: value})
-        settings.set('preferences', parameter, nxgetconfig(parameter))
+        settings.set('settings', parameter, nxgetconfig(parameter))
 
     for parameter in nxgetconfig():
         setconfig(parameter)
 
-    if settings.has_option('preferences', 'style'):
-        set_style(settings.get('preferences', 'style'))
+    if settings.has_option('settings', 'style'):
+        set_style(settings.get('settings', 'style'))
     else:
-        settings.set('preferences', 'style', 'default')
+        settings.set('settings', 'style', 'default')
 
     settings.save()
 
@@ -733,14 +733,13 @@ class NXConfigParser(ConfigParser, object):
             self.add_section('backups')
         if 'plugins' not in sections:
             self.add_section('plugins')
-        if 'preferences' not in sections:
-            self.add_section('preferences')
+        if 'settings' not in sections:
+            self.add_section('settings')
         if 'recent' not in sections:
             self.add_section('recent')
         if 'session' not in sections:
             self.add_section('session')
-        if 'recentFiles' in self.options('recent'):
-            self.fix_recent()
+        self.fix_compatibility()
 
     def set(self, section, option, value=None):
         if value is not None:
@@ -759,14 +758,20 @@ class NXConfigParser(ConfigParser, object):
         for option in self.options(section):
             self.remove_option(section, option)
 
-    def fix_recent(self):
-        """Perform backward compatibility fix"""
-        paths = [f.strip() for f
-                 in self.get('recent', 'recentFiles').split(',')]
-        for path in paths:
-            self.set("recent", path)
-        self.remove_option("recent", "recentFiles")
-        self.save()
+    def fix_compatibility(self):
+        """Perform backward compatibility fixes"""
+        if 'preferences' in self.sections():
+            for option in self.options('preferences'):
+                self.set('settings', option, self.get('preferences', option))
+            self.remove_section('preferences')
+            self.save()
+        if 'recentFiles' in self.options('recent'):
+            paths = [f.strip() for f
+                     in self.get('recent', 'recentFiles').split(',')]
+            for path in paths:
+                self.set("recent", path)
+            self.remove_option("recent", "recentFiles")
+            self.save()
 
 
 class NXLogger(io.StringIO):
