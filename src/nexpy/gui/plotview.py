@@ -226,11 +226,6 @@ class NXFigureManager(FigureManager):
                 self.canvas.toolbar.update()
         self.canvas.figure.add_axobserver(notify_axes_change)
 
-    def resize(self, width, height):
-        extra_width = self.window.width() - self.canvas.width()
-        extra_height = self.window.height() - self.canvas.height()
-        self.window.resize(width+extra_width, height+extra_height)
-
     def set_window_title(self, title):
         try:
             self.window.setWindowTitle(title)
