@@ -648,6 +648,9 @@ class NXDialog(QtWidgets.QDialog, NXWidget):
                                         QtCore.Qt.NoModifier)
                 QtCore.QCoreApplication.postEvent(widget, event)
                 return True
+            elif key == QtCore.Qt.Key_Escape:
+                event.ignore()
+                return True
         return QtWidgets.QWidget.eventFilter(self, widget, event)
 
     def closeEvent(self, event):
