@@ -229,7 +229,7 @@ class NXFigureManager(FigureManager):
     def set_window_title(self, title):
         try:
             self.window.setWindowTitle(title)
-        except AttributeError as exception:
+        except AttributeError:
             pass
 
 
@@ -638,7 +638,7 @@ class NXPlotView(QtWidgets.QDialog):
             self.raise_()
         try:
             self.canvas._update_screen(self.screen)
-        except Exception as error:
+        except Exception:
             pass
         self.canvas.activateWindow()
         self.canvas.setFocus()
@@ -1155,7 +1155,7 @@ class NXPlotView(QtWidgets.QDialog):
         p['offset'] = 0.0
         try:
             p['smooth_function'] = interp1d(self.x, self.y, kind='cubic')
-        except Exception as error:
+        except Exception:
             p['smooth_function'] = None
         p['smooth_line'] = None
         p['smooth_linestyle'] = 'None'
@@ -1336,7 +1336,7 @@ class NXPlotView(QtWidgets.QDialog):
                 else:
                     self.image.set_interpolation(self.interpolation)
             self.replot_axes()
-        except Exception as error:
+        except Exception:
             pass
 
     def replot_axes(self, draw=True):
@@ -1897,7 +1897,7 @@ class NXPlotView(QtWidgets.QDialog):
             self._axis_offsets = value
             self.ax.ticklabel_format(useOffset=self._axis_offsets)
             self.draw()
-        except Exception as error:
+        except Exception:
             pass
 
     def set_plot_defaults(self):
@@ -2714,7 +2714,7 @@ class NXPlotView(QtWidgets.QDialog):
             if self.label in self.panels[panel].tabs:
                 try:
                     self.panels[panel].tabs[self.label].update()
-                except Exception as error:
+                except Exception:
                     pass
 
     def remove_panels(self):
