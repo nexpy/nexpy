@@ -3902,6 +3902,7 @@ class NXNavigationToolbar(NavigationToolbar2QT, QtWidgets.QToolBar):
             labelAction.setVisible(True)
 
         NavigationToolbar2.__init__(self, canvas)
+        self.setStyleSheet('color: #333')
         self.plotview = canvas.parent()
         self.zoom()
 
