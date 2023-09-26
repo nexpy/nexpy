@@ -36,6 +36,10 @@ try:
     import fabio
 except ImportError:
     fabio = None
+try:
+    import darkdetect
+except ImportError:
+    darkdetect = None
 
 from nexusformat.nexus import (NeXusError, NXcollection, NXdata, NXfield,
                                NXLock, NXLockException, NXnote,
@@ -414,7 +418,10 @@ def convertHTML(text):
     """Replaces ANSI color codes with HTML"""
     try:
         from ansi2html import Ansi2HTMLConverter
-        conv = Ansi2HTMLConverter(dark_bg=False, inline=True)
+        if darkdetect and darkdetect.isDark():
+            conv = Ansi2HTMLConverter(dark_bg=True, inline=True)
+        else:
+            conv = Ansi2HTMLConverter(dark_bg=False, inline=True)
         return conv.convert(text).replace('AAAAAA', 'FFFFFF')
     except ImportError:
         return ansi_re.sub('', text)
