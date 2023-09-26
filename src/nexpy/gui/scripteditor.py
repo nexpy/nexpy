@@ -99,6 +99,7 @@ class NXScriptTextEdit(QtWidgets.QPlainTextEdit):
         self.blockCountChanged.connect(parent.update_line_numbers)
         self.scrollbar = NXScrollBar(parent=self)
         self.setVerticalScrollBar(self.scrollbar)
+        self.setStyleSheet('background-color: white')
         if slot:
             self.scrollbar.valueChanged.connect(slot)
 
