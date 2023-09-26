@@ -30,8 +30,7 @@ from posixpath import basename, dirname
 
 import matplotlib as mpl
 import numpy as np
-from matplotlib.backend_bases import (FigureCanvasBase, FigureManagerBase,
-                                      NavigationToolbar2)
+from matplotlib.backend_bases import FigureManagerBase, NavigationToolbar2
 from matplotlib.backends.backend_qt import FigureManagerQT as FigureManager
 from matplotlib.backends.backend_qt import NavigationToolbar2QT
 from matplotlib.backends.backend_qtagg import (FigureCanvasQTAgg as
@@ -446,9 +445,7 @@ class NXPlotView(QtWidgets.QDialog):
         ----------
         event : PyQt QKeyEvent
         """
-        key = self.canvas._get_key(event)
-        if key is not None:
-            FigureCanvasBase.key_press_event(self.canvas, key, guiEvent=event)
+        self.canvas.keyPressEvent(event)
 
     def on_button_press(self, event):
         """Handle mouse button press events in the Matplotlib canvas.
@@ -3905,6 +3902,7 @@ class NXNavigationToolbar(NavigationToolbar2QT, QtWidgets.QToolBar):
             labelAction.setVisible(True)
 
         NavigationToolbar2.__init__(self, canvas)
+        self.setStyleSheet('color: #333')
         self.plotview = canvas.parent()
         self.zoom()
 

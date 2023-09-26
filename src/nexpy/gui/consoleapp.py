@@ -317,7 +317,15 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
 
     def init_colors(self):
         """Configure the coloring of the widget"""
-        self.window.console.set_default_style()
+        try:
+            import darkdetect
+            if darkdetect.isDark():
+                self.window.console.set_default_style('linux')
+                self.window.statusBar().setStyleSheet('background-color:#333')
+            else:
+                self.window.console.set_default_style()
+        except ImportError:
+            self.window.console.set_default_style()
 
     def init_signal(self):
         """allow clean shutdown on sigint"""

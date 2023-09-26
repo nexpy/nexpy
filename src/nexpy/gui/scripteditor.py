@@ -28,7 +28,14 @@ class QFormatter(Formatter):
 
     def __init__(self):
 
-        Formatter.__init__(self, style='tango')
+        try:
+            import darkdetect
+            if darkdetect.isDark():
+                Formatter.__init__(self, style='monokai')
+            else:
+                Formatter.__init__(self, style='tango')
+        except ImportError:
+            Formatter.__init__(self, style='tango')
         self.data = []
 
         self.styles = {}
