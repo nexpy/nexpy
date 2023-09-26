@@ -28,7 +28,14 @@ class QFormatter(Formatter):
 
     def __init__(self):
 
-        Formatter.__init__(self, style='tango')
+        try:
+            import darkdetect
+            if darkdetect.isDark():
+                Formatter.__init__(self, style='monokai')
+            else:
+                Formatter.__init__(self, style='tango')
+        except ImportError:
+            Formatter.__init__(self, style='tango')
         self.data = []
 
         self.styles = {}
@@ -99,7 +106,6 @@ class NXScriptTextEdit(QtWidgets.QPlainTextEdit):
         self.blockCountChanged.connect(parent.update_line_numbers)
         self.scrollbar = NXScrollBar(parent=self)
         self.setVerticalScrollBar(self.scrollbar)
-        self.setStyleSheet('background-color: white')
         if slot:
             self.scrollbar.valueChanged.connect(slot)
 
