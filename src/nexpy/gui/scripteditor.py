@@ -13,7 +13,7 @@ from pygments.formatter import Formatter
 
 from .datadialogs import NXPanel, NXTab
 from .pyqt import QtCore, QtGui, QtWidgets, getSaveFileName
-from .utils import confirm_action
+from .utils import confirm_action, in_dark_mode
 from .widgets import NXLineEdit, NXPushButton
 
 
@@ -28,13 +28,9 @@ class QFormatter(Formatter):
 
     def __init__(self):
 
-        try:
-            import darkdetect
-            if darkdetect.isDark():
-                Formatter.__init__(self, style='monokai')
-            else:
-                Formatter.__init__(self, style='tango')
-        except ImportError:
+        if in_dark_mode():
+            Formatter.__init__(self, style='monokai')
+        else:
             Formatter.__init__(self, style='tango')
         self.data = []
 

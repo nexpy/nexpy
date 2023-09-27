@@ -36,7 +36,7 @@ from nexusformat.nexus import NXroot, nxclasses, nxversion
 from .. import __version__ as nexpy_version
 from .mainwindow import MainWindow
 from .treeview import NXtree
-from .utils import (NXConfigParser, NXGarbageCollector, NXLogger,
+from .utils import (NXConfigParser, NXGarbageCollector, NXLogger, in_dark_mode,
                     initialize_settings, report_exception, timestamp_age)
 
 # -----------------------------------------------------------------------------
@@ -317,14 +317,9 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
 
     def init_colors(self):
         """Configure the coloring of the widget"""
-        try:
-            import darkdetect
-            if darkdetect.isDark():
-                self.window.console.set_default_style('linux')
-                self.window.statusBar().setStyleSheet('background-color:#333')
-            else:
-                self.window.console.set_default_style()
-        except ImportError:
+        if in_dark_mode():
+            self.window.console.set_default_style('linux')
+        else:
             self.window.console.set_default_style()
 
     def init_signal(self):
