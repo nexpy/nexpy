@@ -33,8 +33,7 @@ import numpy as np
 from matplotlib.backend_bases import FigureManagerBase, NavigationToolbar2
 from matplotlib.backends.backend_qt import FigureManagerQT as FigureManager
 from matplotlib.backends.backend_qt import NavigationToolbar2QT
-from matplotlib.backends.backend_qtagg import (FigureCanvasQTAgg as
-                                               FigureCanvas)
+from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.colors import LogNorm, Normalize, SymLogNorm
 from matplotlib.figure import Figure
 from matplotlib.image import imread
@@ -68,8 +67,9 @@ from .. import __version__
 from .datadialogs import (CustomizeDialog, ExportDialog, LimitDialog,
                           ProjectionDialog, ScanDialog, StyleDialog)
 from .utils import (boundaries, centers, divgray_map, find_nearest,
-                    fix_projection, get_color, iterable, keep_data, parula_map,
-                    report_error, report_exception, xtec_map)
+                    fix_projection, get_color, in_dark_mode, iterable,
+                    keep_data, parula_map, report_error, report_exception,
+                    xtec_map)
 from .widgets import (NXCheckBox, NXcircle, NXComboBox, NXDoubleSpinBox,
                       NXellipse, NXLabel, NXpolygon, NXPushButton, NXrectangle,
                       NXSlider, NXSpinBox)
@@ -93,7 +93,7 @@ if parse_version(mpl.__version__) >= parse_version('3.5.0'):
     mpl.colormaps.register(divgray_map())
     cmaps = [cm for cm in cmaps if cm in mpl.colormaps]
 else:
-    from matplotlib.cm import get_cmap, register_cmap, cmap_d
+    from matplotlib.cm import cmap_d, get_cmap, register_cmap
     register_cmap('parula', parula_map())
     register_cmap('xtec', xtec_map())
     register_cmap('divgray', divgray_map())
@@ -3902,7 +3902,9 @@ class NXNavigationToolbar(NavigationToolbar2QT, QtWidgets.QToolBar):
             labelAction.setVisible(True)
 
         NavigationToolbar2.__init__(self, canvas)
-        self.setStyleSheet('color: #333')
+        if in_dark_mode() and (
+                parse_version(QtCore.__version__) <= parse_version('5.15')):
+            self.setStyleSheet('color: black')
         self.plotview = canvas.parent()
         self.zoom()
 
