@@ -3860,9 +3860,9 @@ class NXNavigationToolbar(NavigationToolbar2QT, QtWidgets.QToolBar):
         ('Zoom', 'Zoom to rectangle', 'zoom_to_rect', 'zoom'),
         (None, None, None, None),
         ('Aspect', 'Set aspect ratio to equal', 'equal', 'set_aspect'),
-        (None, None, None, None),
         ('Customize', 'Customize plot', 'customize', 'edit_parameters'),
         ('Style', 'Modify style', 'modify-style', 'modify_style'),
+        (None, None, None, None),
         ('Save', 'Save the figure', 'export-figure', 'save_figure'),
         ('Export', 'Export data', 'export-data', 'export_data'),
         ('Add', 'Add plot data to tree', 'hand', 'add_data')
