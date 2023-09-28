@@ -33,6 +33,8 @@ requirements:
     - ansi2html
     - pylatexenc
     - pillow
+    - mplcursors
+    - darkdetect
 
 test:
   imports:
