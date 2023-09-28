@@ -18,6 +18,8 @@ import shutil
 import signal
 import sys
 import tempfile
+from pkg_resources import parse_version
+
 
 from .pyqt import QtCore, QtGui, QtWidgets, QtVersion
 
@@ -319,6 +321,8 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
         """Configure the coloring of the widget"""
         if in_dark_mode():
             self.window.console.set_default_style('linux')
+            if parse_version(QtCore.__version__) <= parse_version('5.15'):
+                self.window.statusBar().setStyleSheet('color: black')
         else:
             self.window.console.set_default_style()
 

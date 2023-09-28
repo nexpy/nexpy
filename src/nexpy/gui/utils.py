@@ -701,6 +701,8 @@ def set_style(style=None):
 
 
 def in_dark_mode():
+    if sys.version_info < (3, 9):
+        return False
     try:
         import darkdetect
         if darkdetect.isDark():
