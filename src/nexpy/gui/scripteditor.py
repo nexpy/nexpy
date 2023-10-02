@@ -24,7 +24,7 @@ def hex2QColor(c):
     return QtGui.QColor(r, g, b)
 
 
-class QFormatter(Formatter):
+class NXFormatter(Formatter):
 
     def __init__(self):
 
@@ -50,6 +50,9 @@ class QFormatter(Formatter):
                 qtf.setFontUnderline(True)
             self.styles[str(token)] = qtf
 
+    def __repr__(self):
+        return f"NXFormatter(style='{self.style_name}')"
+
     def format(self, tokensource, outfile):
         self.data = []
         for ttype, value in tokensource:
@@ -58,13 +61,13 @@ class QFormatter(Formatter):
             self.data.extend([self.styles[t], ]*v)
 
 
-class Highlighter(QtGui.QSyntaxHighlighter):
+class NXHighlighter(QtGui.QSyntaxHighlighter):
 
     def __init__(self, parent):
 
-        QtGui.QSyntaxHighlighter.__init__(self, parent)
+        super().__init__(parent)
 
-        self.formatter = QFormatter()
+        self.formatter = NXFormatter()
         self.lexer = pygments.lexers.PythonLexer()
 
     def highlightBlock(self, text):
@@ -180,7 +183,7 @@ class NXScriptEditor(NXTab):
         else:
             self.delete_button.setVisible(False)
 
-        self.hl = Highlighter(self.text_box.document())
+        self.hl = NXHighlighter(self.text_box.document())
 
         self.text_box.setFocus()
         self.number_box.setFocusPolicy(QtCore.Qt.NoFocus)
