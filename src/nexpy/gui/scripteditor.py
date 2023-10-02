@@ -29,15 +29,13 @@ class NXFormatter(Formatter):
     def __init__(self):
 
         if in_dark_mode():
-            Formatter.__init__(self, style='monokai')
+            super().__init__(style='monokai')
         else:
-            Formatter.__init__(self, style='tango')
+            super().__init__(style='tango')
         self.data = []
-
         self.styles = {}
         for token, style in self.style:
             qtf = QtGui.QTextCharFormat()
-
             if style['color']:
                 qtf.setForeground(hex2QColor(style['color']))
             if style['bgcolor']:
@@ -149,10 +147,6 @@ class NXScriptEditor(NXTab):
 
         self.number_box = QtWidgets.QPlainTextEdit('1')
         self.number_box.setFont(QtGui.QFont('Courier'))
-        self.number_box.setStyleSheet(
-            "QPlainTextEdit {background-color: " +
-            self.palette().color(QtGui.QPalette.Window).name() +
-            "; padding: 0; margin: 0; border: 0}")
         self.number_box.setFixedWidth(35)
         self.number_box.setHorizontalScrollBarPolicy(
             QtCore.Qt.ScrollBarAlwaysOff)
@@ -187,6 +181,14 @@ class NXScriptEditor(NXTab):
 
         self.text_box.setFocus()
         self.number_box.setFocusPolicy(QtCore.Qt.NoFocus)
+        self.define_style()
+
+    def define_style(self):
+        self.number_box.setStyleSheet(
+            "background-color: " +
+            self.palette().color(QtGui.QPalette.Window).name() +
+            "; padding: 0; margin: 0; border: 0")
+        self.highlighter = NXHighlighter(self.text_box.document())
 
     def get_text(self):
         text = self.text_box.document().toPlainText().strip()
