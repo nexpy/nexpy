@@ -13,32 +13,28 @@ A minimal application using the Qt console-style Jupyter frontend.
 import logging
 import logging.handlers
 import os
-import pkg_resources
 import shutil
 import signal
 import sys
 import tempfile
-from pkg_resources import parse_version
 
-
-from .pyqt import QtCore, QtGui, QtWidgets, QtVersion
-
+import pkg_resources
 from IPython import __version__ as ipython_version
 from jupyter_client.consoleapp import JupyterConsoleApp, app_aliases, app_flags
 from jupyter_core.application import JupyterApp, base_aliases, base_flags
 from matplotlib import __version__ as mpl_version
+from nexusformat.nexus import NXroot, nxclasses, nxversion
 from qtconsole import __version__
 from qtconsole.jupyter_widget import JupyterWidget
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
 from traitlets import Any, CBool, Dict, Unicode
 from traitlets.config.application import boolean_flag, catch_config_error
 
-from nexusformat.nexus import NXroot, nxclasses, nxversion
-
 from .. import __version__ as nexpy_version
 from .mainwindow import MainWindow
+from .pyqt import QtCore, QtGui, QtVersion, QtWidgets
 from .treeview import NXtree
-from .utils import (NXConfigParser, NXGarbageCollector, NXLogger, in_dark_mode,
+from .utils import (NXConfigParser, NXGarbageCollector, NXLogger, define_mode,
                     initialize_settings, report_exception, timestamp_age)
 
 # -----------------------------------------------------------------------------
@@ -319,12 +315,7 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
 
     def init_colors(self):
         """Configure the coloring of the widget"""
-        if in_dark_mode():
-            self.window.console.set_default_style('linux')
-            if parse_version(QtCore.__version__) <= parse_version('5.15'):
-                self.window.statusBar().setStyleSheet('color: black')
-        else:
-            self.window.console.set_default_style()
+        define_mode()
 
     def init_signal(self):
         """allow clean shutdown on sigint"""

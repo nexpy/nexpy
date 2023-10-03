@@ -24,20 +24,18 @@ def hex2QColor(c):
     return QtGui.QColor(r, g, b)
 
 
-class QFormatter(Formatter):
+class NXFormatter(Formatter):
 
     def __init__(self):
 
         if in_dark_mode():
-            Formatter.__init__(self, style='monokai')
+            super().__init__(style='monokai')
         else:
-            Formatter.__init__(self, style='tango')
+            super().__init__(style='tango')
         self.data = []
-
         self.styles = {}
         for token, style in self.style:
             qtf = QtGui.QTextCharFormat()
-
             if style['color']:
                 qtf.setForeground(hex2QColor(style['color']))
             if style['bgcolor']:
@@ -50,6 +48,9 @@ class QFormatter(Formatter):
                 qtf.setFontUnderline(True)
             self.styles[str(token)] = qtf
 
+    def __repr__(self):
+        return f"NXFormatter(style='{self.style_name}')"
+
     def format(self, tokensource, outfile):
         self.data = []
         for ttype, value in tokensource:
@@ -58,13 +59,13 @@ class QFormatter(Formatter):
             self.data.extend([self.styles[t], ]*v)
 
 
-class Highlighter(QtGui.QSyntaxHighlighter):
+class NXHighlighter(QtGui.QSyntaxHighlighter):
 
     def __init__(self, parent):
 
-        QtGui.QSyntaxHighlighter.__init__(self, parent)
+        super().__init__(parent)
 
-        self.formatter = QFormatter()
+        self.formatter = NXFormatter()
         self.lexer = pygments.lexers.PythonLexer()
 
     def highlightBlock(self, text):
@@ -146,10 +147,6 @@ class NXScriptEditor(NXTab):
 
         self.number_box = QtWidgets.QPlainTextEdit('1')
         self.number_box.setFont(QtGui.QFont('Courier'))
-        self.number_box.setStyleSheet(
-            "QPlainTextEdit {background-color: " +
-            self.palette().color(QtGui.QPalette.Window).name() +
-            "; padding: 0; margin: 0; border: 0}")
         self.number_box.setFixedWidth(35)
         self.number_box.setHorizontalScrollBarPolicy(
             QtCore.Qt.ScrollBarAlwaysOff)
@@ -180,10 +177,24 @@ class NXScriptEditor(NXTab):
         else:
             self.delete_button.setVisible(False)
 
-        self.hl = Highlighter(self.text_box.document())
+        self.hl = NXHighlighter(self.text_box.document())
 
         self.text_box.setFocus()
         self.number_box.setFocusPolicy(QtCore.Qt.NoFocus)
+        self.define_style()
+
+    def define_style(self):
+        if in_dark_mode():
+            self.number_box.setStyleSheet('color: white; '
+                                          'background-color: #444; '
+                                          'padding: 0; margin: 0; border: 0')
+            self.text_box.setStyleSheet('background-color: black')
+        else:
+            self.number_box.setStyleSheet('color: black; '
+                                          'background-color: #eee; '
+                                          'padding: 0; margin: 0; border: 0')
+            self.text_box.setStyleSheet('background-color: white')
+        self.highlighter = NXHighlighter(self.text_box.document())
 
     def get_text(self):
         text = self.text_box.document().toPlainText().strip()
