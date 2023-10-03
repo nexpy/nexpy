@@ -748,9 +748,9 @@ class NXListener(QtCore.QObject):
     change_signal = QtCore.Signal(str)
 
     def start(self, fn):
-        Thread(target=self._execute, args=(fn,), daemon=True).start()
+        Thread(target=self.listen, args=(fn,), daemon=True).start()
 
-    def _execute(self, fn):
+    def listen(self, fn):
         fn(self)
 
     def respond(self, signal):
