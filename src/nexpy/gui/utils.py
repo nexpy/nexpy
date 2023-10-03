@@ -15,11 +15,14 @@ import logging
 import os
 import re
 import sys
+import time
 import traceback as tb
 from configparser import ConfigParser
 from datetime import datetime
+from threading import Thread
 
 import numpy as np
+from darkdetect import isDark, theme
 from IPython.core.ultratb import ColorTB
 from matplotlib import __version__ as mplversion
 from matplotlib import rcParams
@@ -704,8 +707,7 @@ def in_dark_mode():
     if sys.version_info < (3, 9):
         return False
     try:
-        import darkdetect
-        if darkdetect.isDark():
+        if isDark():
             return True
         else:
             return False
@@ -713,7 +715,49 @@ def in_dark_mode():
         return False
 
 
-class NXimporter:
+def mode_listener(listener):
+    old_mode = theme()
+    while True:
+        current_mode = theme()
+        if current_mode != old_mode:
+            old_mode = current_mode
+            listener.respond(current_mode)
+        time.sleep(5)
+
+
+def define_mode(mode=None):
+    from .consoleapp import _mainwindow
+    if mode is None:
+        mode = theme()
+    if mode == 'Dark':
+        _mainwindow.console.set_default_style('linux')
+        if parse_version(QtCore.__version__) <= parse_version('5.15'):
+            _mainwindow.statusBar().setStyleSheet('color: black')
+    else:
+        _mainwindow.console.set_default_style()
+    for dialog in _mainwindow.dialogs:
+        if dialog.windowTitle() == 'Script Editor':
+            for tab in dialog.tabs:
+                dialog.tabs[tab].define_style()
+        elif dialog.windowTitle().startswith('Log File'):
+            dialog.format_log()
+
+
+class NXListener(QtCore.QObject):
+
+    change_signal = QtCore.Signal(str)
+
+    def start(self, fn):
+        Thread(target=self._execute, args=(fn,), daemon=True).start()
+
+    def _execute(self, fn):
+        fn(self)
+
+    def respond(self, signal):
+        self.change_signal.emit(signal)
+
+
+class NXImporter:
     def __init__(self, paths):
         self.paths = [str(p) for p in paths]
 
@@ -727,7 +771,7 @@ class NXimporter:
 
 
 def import_plugin(name, paths):
-    with NXimporter(paths):
+    with NXImporter(paths):
         plugin_module = importlib.import_module(name)
         if hasattr(plugin_module, '__file__'):  # Not a namespace module
             return plugin_module

@@ -4412,14 +4412,17 @@ class LogDialog(NXDialog):
         self.show_log()
 
     def show_log(self):
+        self.format_log()
+        self.setVisible(True)
+        self.raise_()
+        self.activateWindow()
+
+    def format_log(self):
         with open(self.file_name, 'r') as f:
             self.text_box.setText(convertHTML(f.read()))
         self.text_box.verticalScrollBar().setValue(
             self.text_box.verticalScrollBar().maximum())
         self.setWindowTitle(f"Log File: {self.file_name}")
-        self.setVisible(True)
-        self.raise_()
-        self.activateWindow()
 
     def reject(self):
         super().reject()
