@@ -184,10 +184,16 @@ class NXScriptEditor(NXTab):
         self.define_style()
 
     def define_style(self):
-        self.number_box.setStyleSheet(
-            "background-color: " +
-            self.palette().color(QtGui.QPalette.Window).name() +
-            "; padding: 0; margin: 0; border: 0")
+        if in_dark_mode():
+            self.number_box.setStyleSheet('color: white; '
+                                          'background-color: #444; '
+                                          'padding: 0; margin: 0; border: 0')
+            self.text_box.setStyleSheet('background-color: black')
+        else:
+            self.number_box.setStyleSheet('color: black; '
+                                          'background-color: #eee; '
+                                          'padding: 0; margin: 0; border: 0')
+            self.text_box.setStyleSheet('background-color: white')
         self.highlighter = NXHighlighter(self.text_box.document())
 
     def get_text(self):

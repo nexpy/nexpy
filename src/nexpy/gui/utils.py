@@ -727,20 +727,28 @@ def mode_listener(listener):
 
 def define_mode(mode=None):
     from .consoleapp import _mainwindow
+    if parse_version(QtCore.__version__) <= parse_version('5.15'):
+        legacy_pyqt = True
+    else:
+        legacy_pyqt = False
+
     if mode is None:
         mode = theme()
     if mode == 'Dark':
         _mainwindow.console.set_default_style('linux')
-        if parse_version(QtCore.__version__) <= parse_version('5.15'):
+        if legacy_pyqt:
             _mainwindow.statusBar().setStyleSheet('color: black')
     else:
         _mainwindow.console.set_default_style()
     for dialog in _mainwindow.dialogs:
         if dialog.windowTitle() == 'Script Editor':
-            for tab in dialog.tabs:
-                dialog.tabs[tab].define_style()
+            for tab in [dialog.tabs[t] for t in dialog.tabs]:
+                tab.define_style()
         elif dialog.windowTitle().startswith('Log File'):
             dialog.format_log()
+    if legacy_pyqt:
+        for plotview in _mainwindow.plotviews.values():
+            plotview.otab.setStyleSheet('color: black')
 
 
 class NXListener(QtCore.QObject):
