@@ -51,10 +51,9 @@ from .plotview import NXPlotView
 from .pyqt import QtCore, QtGui, QtWidgets, getOpenFileName, getSaveFileName
 from .scripteditor import NXScriptWindow
 from .treeview import NXTreeView
-from .utils import (NXListener, confirm_action, define_mode, display_message,
-                    get_colors, get_name, import_plugin, is_file_locked,
-                    load_image, mode_listener, natural_sort, report_error,
-                    timestamp)
+from .utils import (confirm_action, define_mode, display_message, get_colors,
+                    get_name, import_plugin, is_file_locked, load_image,
+                    natural_sort, report_error, timestamp)
 
 
 class NXRichJupyterWidget(RichJupyterWidget):
@@ -196,9 +195,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.setWindowTitle('NeXpy v'+__version__)
         self.statusBar().showMessage('Ready')
 
-        listener = NXListener()
-        listener.change_signal.connect(self.change_mode)
-        listener.start(mode_listener)
+        self.app.app.paletteChanged.connect(self.change_mode)
 
         self.treeview.selection_changed()
         self.shellview.setFocus()
@@ -213,8 +210,8 @@ class MainWindow(QtWidgets.QMainWindow):
         from .plotview import active_plotview
         return active_plotview
 
-    def change_mode(self, mode=None):
-        define_mode(mode)
+    def change_mode(self):
+        define_mode()
 
     # Populate the menu bar with common actions and shortcuts
     def add_menu_action(self, menu, action, defer_shortcut=False):
