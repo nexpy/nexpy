@@ -22,7 +22,6 @@ from datetime import datetime
 from threading import Thread
 
 import numpy as np
-from darkdetect import isDark, theme
 from IPython.core.ultratb import ColorTB
 from matplotlib import __version__ as mplversion
 from matplotlib import rcParams
@@ -704,50 +703,36 @@ def set_style(style=None):
 
 
 def in_dark_mode():
-    if sys.version_info < (3, 9):
-        return False
     try:
-        if isDark():
-            return True
-        else:
-            return False
-    except ImportError:
+        from .consoleapp import _mainwindow
+        app = _mainwindow.app.app
+        return (app.palette().window().color().value() <
+                app.palette().windowText().color().value())
+    except Exception:
         return False
 
 
-def mode_listener(listener):
-    old_mode = theme()
-    while True:
-        current_mode = theme()
-        if current_mode != old_mode:
-            old_mode = current_mode
-            listener.respond(current_mode)
-        time.sleep(5)
+def define_mode():
 
-
-def define_mode(mode=None):
     from .consoleapp import _mainwindow
-    if parse_version(QtCore.__version__) <= parse_version('5.15'):
-        legacy_pyqt = True
-    else:
-        legacy_pyqt = False
-
-    if mode is None:
-        mode = theme()
-    if mode == 'Dark':
+    if in_dark_mode():
         _mainwindow.console.set_default_style('linux')
-        if legacy_pyqt:
-            _mainwindow.statusBar().setStyleSheet('color: black')
+        _mainwindow.statusBar().setPalette(_mainwindow.app.app.palette())
     else:
         _mainwindow.console.set_default_style()
+        _mainwindow.statusBar().setPalette(_mainwindow.app.app.palette())
+
     for dialog in _mainwindow.dialogs:
         if dialog.windowTitle() == 'Script Editor':
             for tab in [dialog.tabs[t] for t in dialog.tabs]:
                 tab.define_style()
         elif dialog.windowTitle().startswith('Log File'):
             dialog.format_log()
-    if legacy_pyqt:
-        for plotview in _mainwindow.plotviews.values():
+
+    for plotview in _mainwindow.plotviews.values():
+        if in_dark_mode():
+            plotview.otab.setStyleSheet('color: white')
+        else:
             plotview.otab.setStyleSheet('color: black')
 
 
