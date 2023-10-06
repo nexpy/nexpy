@@ -34,7 +34,6 @@ requirements:
     - pylatexenc
     - pillow
     - mplcursors
-    - darkdetect
 
 test:
   imports:

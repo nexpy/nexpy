@@ -104,7 +104,6 @@ lmfit              https://lmfit.github.io/lmfit-py/
 pylatexenc         https://pylatexenc.readthedocs.io/
 pillow             https://pillow.readthedocs.io/
 ansi2html          https://pypi.python.org/pypi/ansi2html/
-darkdetect         https://github.com/albertosottile/darkdetect/
 mplcursors         https://mplcursors.readthedocs.io/
 =================  =================================================
 
