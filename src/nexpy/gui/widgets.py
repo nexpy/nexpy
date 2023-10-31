@@ -1350,7 +1350,7 @@ class NXrectangle(NXpatch):
 class NXpolygon(NXpatch):
 
     def __init__(self, xy, closed=True, plotview=None, **opts):
-        shape = Polygon(xy, closed, **opts)
+        shape = Polygon(xy, closed=closed, **opts)
         if 'linewidth' not in opts:
             shape.set_linewidth(1.0)
         if 'color' not in opts and 'facecolor' not in opts:
