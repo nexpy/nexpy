@@ -1,18 +1,18 @@
 
 <!DOCTYPE html>
 
-<html lang="en">
+<html>
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
-
-    <title>Python Graphical User Interface &#8212; NeXpy 1.0.3 documentation</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Python Graphical User Interface &#8212; NeXpy 1.0.6 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/sphinxdoc.css" />
     <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
-    <script src="_static/sphinx_highlight.js"></script>
-    <link rel="icon" href="_static/favicon.ico"/>
+    <link rel="shortcut icon" href="_static/favicon.ico"/>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Adding a File Importer" href="readers.html" />
@@ -25,15 +25,12 @@
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="right" >
           <a href="readers.html" title="Adding a File Importer"
              accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="pythonshell.html" title="Python Interface to NeXus"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 1.0.3 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 1.0.6 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Python Graphical User Interface</a></li> 
       </ul>
     </div>  
@@ -43,8 +40,8 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <section id="python-graphical-user-interface">
-<h1>Python Graphical User Interface<a class="headerlink" href="#python-graphical-user-interface" title="Permalink to this heading">¶</a></h1>
+  <div class="section" id="python-graphical-user-interface">
+<h1>Python Graphical User Interface<a class="headerlink" href="#python-graphical-user-interface" title="Permalink to this headline">¶</a></h1>
 <p>A PyQT GUI has been created to make it easier to keep track of the loaded NeXus
 files and the results of any subsequent analysis. It is invoked from the command
 line by:</p>
@@ -104,10 +101,10 @@ displayed in the status bar.</p>
 a tooltip when the cursor hovers over it.</p>
 </dd>
 </dl>
-<section id="nexpy-menu-bar">
-<h2>NeXpy Menu Bar<a class="headerlink" href="#nexpy-menu-bar" title="Permalink to this heading">¶</a></h2>
-<section id="file-menu">
-<h3>File Menu<a class="headerlink" href="#file-menu" title="Permalink to this heading">¶</a></h3>
+<div class="section" id="nexpy-menu-bar">
+<h2>NeXpy Menu Bar<a class="headerlink" href="#nexpy-menu-bar" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="file-menu">
+<h3>File Menu<a class="headerlink" href="#file-menu" title="Permalink to this headline">¶</a></h3>
 <dl>
 <dt><strong>New…</strong></dt><dd><p>Creates a new workspace in the tree.</p>
 </dd>
@@ -265,13 +262,13 @@ NeXpy directory (<code class="docutils literal notranslate"><span class="pre">~/
 <dt><strong>Restore Plugin</strong></dt><dd><p>If a plugin is overwritten by installing another version, it is backed up
 in <code class="docutils literal notranslate"><span class="pre">~/.nexpy/backups</span></code>). This allows the old version to be restored.</p>
 </dd>
-<dt><strong>Edit Preferences</strong></dt><dd><p>Open a dialog to set preferences for this session. It is also possible to
+<dt><strong>Edit Settings</strong></dt><dd><p>Open a dialog to modify settings for this session. It is also possible to
 save them as the default for subsequent sessions.</p>
 </dd>
 </dl>
-</section>
-<section id="data-menu">
-<h3>Data Menu<a class="headerlink" href="#data-menu" title="Permalink to this heading">¶</a></h3>
+</div>
+<div class="section" id="data-menu">
+<h3>Data Menu<a class="headerlink" href="#data-menu" title="Permalink to this headline">¶</a></h3>
 <dl>
 <dt><strong>Plot Data</strong></dt><dd><p>Plots the selected tree item in the plotting pane. If the selected item is
 not a valid NXdata, NXmonitor, or NXlog group, a plot dialog allows the
@@ -399,9 +396,9 @@ non-linear least-squares fitting module.</p>
 </div>
 </dd>
 </dl>
-</section>
-<section id="window-menu">
-<h3>Window Menu<a class="headerlink" href="#window-menu" title="Permalink to this heading">¶</a></h3>
+</div>
+<div class="section" id="window-menu">
+<h3>Window Menu<a class="headerlink" href="#window-menu" title="Permalink to this headline">¶</a></h3>
 <dl>
 <dt><strong>Show Tree</strong></dt><dd><p>Brings the tree view to the front and give it keyboard focus.</p>
 <div class="admonition note">
@@ -536,9 +533,9 @@ They can be modified using the standard Pyplot commands.</p>
 new windows are created, they are dynamically added to this list.</p>
 </dd>
 </dl>
-</section>
-<section id="script-menu">
-<h3>Script Menu<a class="headerlink" href="#script-menu" title="Permalink to this heading">¶</a></h3>
+</div>
+<div class="section" id="script-menu">
+<h3>Script Menu<a class="headerlink" href="#script-menu" title="Permalink to this headline">¶</a></h3>
 <dl>
 <dt><strong>New Script</strong></dt><dd><p>Opens a new script in an editable text window with syntax coloring. The
 Python code can be run within the IPython console at any time using the
@@ -573,9 +570,9 @@ is launched. This can be used to customize imports and other settings
 that affect the IPython shell.</p>
 </dd>
 </dl>
-</section>
-<section id="help-menus">
-<h3>Help Menus<a class="headerlink" href="#help-menus" title="Permalink to this heading">¶</a></h3>
+</div>
+<div class="section" id="help-menus">
+<h3>Help Menus<a class="headerlink" href="#help-menus" title="Permalink to this headline">¶</a></h3>
 <dl class="simple">
 <dt><strong>Open NeXpy Help Online</strong></dt><dd><p>Opens this documentation in a browser.</p>
 </dd>
@@ -599,15 +596,15 @@ distributed with NeXpy to be opened.</p>
 distributed with NeXpy to be opened in the Script Editor.</p>
 </dd>
 </dl>
-</section>
-<section id="other-menus">
-<h3>Other Menus<a class="headerlink" href="#other-menus" title="Permalink to this heading">¶</a></h3>
+</div>
+<div class="section" id="other-menus">
+<h3>Other Menus<a class="headerlink" href="#other-menus" title="Permalink to this headline">¶</a></h3>
 <p>The Edit and View Menus consist of menu items provided by the Jupyter Qt
 Console. All these operations act on the shell text.</p>
-</section>
-</section>
-<section id="adding-nexus-data-to-the-tree">
-<h2>Adding NeXus Data to the Tree<a class="headerlink" href="#adding-nexus-data-to-the-tree" title="Permalink to this heading">¶</a></h2>
+</div>
+</div>
+<div class="section" id="adding-nexus-data-to-the-tree">
+<h2>Adding NeXus Data to the Tree<a class="headerlink" href="#adding-nexus-data-to-the-tree" title="Permalink to this headline">¶</a></h2>
 <p>NXroot groups that are displayed in the tree pane are all children of a group
 of class NXtree, known as ‘tree’. If you create a NeXus group dynamically in the
 IPython shell, it can be added to the tree pane using the tree’s add method:</p>
@@ -633,9 +630,9 @@ than one name. NeXpy searches the shell dictionary for an object
 with the same ID as the added NeXus object and so may choose a
 different name. The object in the tree can be renamed.</p>
 </div>
-</section>
-<section id="plotting-nexus-data">
-<h2>Plotting NeXus Data<a class="headerlink" href="#plotting-nexus-data" title="Permalink to this heading">¶</a></h2>
+</div>
+<div class="section" id="plotting-nexus-data">
+<h2>Plotting NeXus Data<a class="headerlink" href="#plotting-nexus-data" title="Permalink to this headline">¶</a></h2>
 <p>NXdata, NXmonitor, and NXlog data can be plotted by selecting a group on the
 tree and choosing “Plot Data” from the Data menu or by double-clicking the item
 on the tree (or right-clicking for over-plots). Below the plot pane, a series of
@@ -977,9 +974,9 @@ number.</p>
 <li><p><strong>O</strong> - open dialog to customize plots.</p></li>
 </ul>
 </div></blockquote>
-</section>
-<section id="configuring-nexpy">
-<h2>Configuring NeXpy<a class="headerlink" href="#configuring-nexpy" title="Permalink to this heading">¶</a></h2>
+</div>
+<div class="section" id="configuring-nexpy">
+<h2>Configuring NeXpy<a class="headerlink" href="#configuring-nexpy" title="Permalink to this headline">¶</a></h2>
 <p>When NeXpy if first launched, a private directory is created in the home
 directory, ~/.nexpy/. This is used to store log files, backups, plugins,
 and scripts. A configuration file, ~/.nexpy/config.py, is created to contain
@@ -1010,9 +1007,9 @@ that are commonly used:</p>
 </div>
 <p>If you require a different set of imports or prefer alternative abbreviations,
 edit the configuration file using``Open Startup Script…`` in the Script Menu.</p>
-</section>
-<section id="fitting-nexus-data">
-<h2>Fitting NeXus Data<a class="headerlink" href="#fitting-nexus-data" title="Permalink to this heading">¶</a></h2>
+</div>
+<div class="section" id="fitting-nexus-data">
+<h2>Fitting NeXus Data<a class="headerlink" href="#fitting-nexus-data" title="Permalink to this headline">¶</a></h2>
 <p>NeXpy makes it easy to fit one-dimensional data using the
 <a class="reference external" href="https://lmfit.github.io/lmfit-py/">LMFIT package</a>, with a ‘Fit’ button in
 the Y-Tab of every one-dimensional plot.</p>
@@ -1041,33 +1038,33 @@ plotting window and the fitting parameters displayed in the Fit Panel.</p>
 This can be used, for example, to perform piece-wise fits of
 multiple peaks before a final fit that combines them all together.</p>
 </div>
-<section id="initializing-parameters">
-<h3>Initializing Parameters<a class="headerlink" href="#initializing-parameters" title="Permalink to this heading">¶</a></h3>
+<div class="section" id="initializing-parameters">
+<h3>Initializing Parameters<a class="headerlink" href="#initializing-parameters" title="Permalink to this headline">¶</a></h3>
 <p>LMFIT models often define a function to <em>guess</em> initial parameters from the
 data. If multiple peaks are to be fitted, sensible starting parameters for
 each one can be determined by moving the x-limits to cover a single peak when
 adding the peak model. Then, the x-limits can be restored before fitting
 all the peaks together.</p>
-</section>
-<section id="masking-data">
-<h3>Masking Data<a class="headerlink" href="#masking-data" title="Permalink to this heading">¶</a></h3>
+</div>
+<div class="section" id="masking-data">
+<h3>Masking Data<a class="headerlink" href="#masking-data" title="Permalink to this headline">¶</a></h3>
 <p>Data points can be masked so that they are excluded from the fit. Individual
 points can be removed by double-clicking on the point marker. A set of
 x-values can be excluded by right-click dragging over the required range and
 then clicking on ‘Mask Data’. Masks can be cleared by clicking on ‘Clear
 Masks’.</p>
-</section>
-<section id="modifying-constraints">
-<h3>Modifying Constraints<a class="headerlink" href="#modifying-constraints" title="Permalink to this heading">¶</a></h3>
+</div>
+<div class="section" id="modifying-constraints">
+<h3>Modifying Constraints<a class="headerlink" href="#modifying-constraints" title="Permalink to this headline">¶</a></h3>
 <p>Parameters can be fixed or constrained with minimum and maximum limits
 in the Fit Panel. However, LMFIT also allows parameters to be bound to the
 values of one or more other parameters by algebraic expressions. These
 expressions can be defined or modified by clicking on ‘Σ’ button at the end of
 the parameter row. Pull-down menus allow parameters from any of the currently
 added models to be inserted into these expressions.</p>
-</section>
-<section id="composing-models">
-<h3>Composing Models<a class="headerlink" href="#composing-models" title="Permalink to this heading">¶</a></h3>
+</div>
+<div class="section" id="composing-models">
+<h3>Composing Models<a class="headerlink" href="#composing-models" title="Permalink to this headline">¶</a></h3>
 <p>When models are added using the ‘Add Model’ button, they are combined to
 produce a composite model, in which they are added together by default.
 However, LMFIT allows composite models to be combined using different
@@ -1086,27 +1083,27 @@ combined before they are plotted.</p>
 <p class="admonition-title">See also</p>
 <p><a class="reference external" href="https://lmfit.github.io/lmfit-py/model.html#composite-models-adding-or-multiplying-models">LMFIT Composite Models</a></p>
 </div>
-</section>
-<section id="saving-the-fit">
-<h3>Saving the Fit<a class="headerlink" href="#saving-the-fit" title="Permalink to this heading">¶</a></h3>
+</div>
+<div class="section" id="saving-the-fit">
+<h3>Saving the Fit<a class="headerlink" href="#saving-the-fit" title="Permalink to this headline">¶</a></h3>
 <p>The original data, the fitted data, constituent models, and the parameters
 can all be saved to an NXprocess group in the Tree Pane, using the ‘Save Fit’
 button, for subsequent plotting, refitting, or copying to another NeXus file.
 The group, named ‘f1’, ‘f2’, etc., is stored in the default scratch NXroot
 group, w0. If you choose to fit this entry again, it will load the models and
 parameters from the saved fit.</p>
-</section>
-<section id="closing-the-fit-panel">
-<h3>Closing the Fit Panel<a class="headerlink" href="#closing-the-fit-panel" title="Permalink to this heading">¶</a></h3>
+</div>
+<div class="section" id="closing-the-fit-panel">
+<h3>Closing the Fit Panel<a class="headerlink" href="#closing-the-fit-panel" title="Permalink to this headline">¶</a></h3>
 <p>If the Fit Panel was opened by clicking the ‘Fit’ button in Y-Tab, line plots
 of the models and their components are superposed on the existing plot
 window. These line plots will be erased when the corresponding tab in the Fit
 Panel is closed. However, if the ‘Apply’ button is clicked before closing the
 tab, the line plot representing the combined model will be preserved until
 the plot window is closed.</p>
-</section>
-<section id="defining-a-model">
-<h3>Defining a Model<a class="headerlink" href="#defining-a-model" title="Permalink to this heading">¶</a></h3>
+</div>
+<div class="section" id="defining-a-model">
+<h3>Defining a Model<a class="headerlink" href="#defining-a-model" title="Permalink to this headline">¶</a></h3>
 <p>NeXpy makes available any of the models currently supplied by the <a class="reference external" href="https://lmfit.github.io/lmfit-py/builtin_models.html">LMFIT
 package</a>, as well as a
 couple of extra models added to the NeXpy package, the OrderParameterModel and
@@ -1120,7 +1117,7 @@ code for the OrderParameterModel that is distributed with NeXpy:</p>
 <span class="kn">from</span> <span class="nn">lmfit.model</span> <span class="kn">import</span> <span class="n">Model</span>
 
 <span class="k">class</span> <span class="nc">OrderParameterModel</span><span class="p">(</span><span class="n">Model</span><span class="p">):</span>
-<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;A model to describe the temperature dependence of an order parameter</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;A model to describe the temperature dependence of an order parameter</span>
 <span class="sd">    with three Parameters: ``amplitude``, ``Tc``, and ``beta``.</span>
 
 <span class="sd">    .. math::</span>
@@ -1141,7 +1138,7 @@ code for the OrderParameterModel that is distributed with NeXpy:</p>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">op</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">guess</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">negative</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Estimate initial model parameter values from data.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Estimate initial model parameter values from data.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">make_params</span><span class="p">(</span><span class="n">amplitude</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span> <span class="n">Tc</span><span class="o">=</span><span class="n">x</span><span class="o">.</span><span class="n">mean</span><span class="p">(),</span> <span class="n">beta</span><span class="o">=</span><span class="mf">0.33</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -1154,10 +1151,10 @@ have produced your own functions in the past, they will also be on
 this list. However, we recommend that all new functions now adhere
 to LMFIT model definitions.</p>
 </div>
-</section>
-</section>
-<section id="importing-nexus-data">
-<h2>Importing NeXus Data<a class="headerlink" href="#importing-nexus-data" title="Permalink to this heading">¶</a></h2>
+</div>
+</div>
+<div class="section" id="importing-nexus-data">
+<h2>Importing NeXus Data<a class="headerlink" href="#importing-nexus-data" title="Permalink to this headline">¶</a></h2>
 <p>NeXpy can import data stored in a number of other formats, including SPEC files,
 TIFF images, and text files, using the <a class="reference external" href="File:Import">File:Import</a> menus. If a file format is
 not currently supported, the user can write their own. The following is an
@@ -1175,8 +1172,8 @@ example of a module that reads the original format and returns NeXus data:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">nxtree</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">get_data</span><span class="p">(</span><span class="s1">&#39;image.tif&#39;</span><span class="p">))</span>
 </pre></div>
 </div>
-<section id="existing-readers">
-<h3>Existing Readers<a class="headerlink" href="#existing-readers" title="Permalink to this heading">¶</a></h3>
+<div class="section" id="existing-readers">
+<h3>Existing Readers<a class="headerlink" href="#existing-readers" title="Permalink to this headline">¶</a></h3>
 <p>NeXpy is currently distributed with readers for the following format:</p>
 <p><strong>SPEC Files</strong></p>
 <p>This reader will read multiple SPEC scans from a single SPEC log file, creating
@@ -1198,9 +1195,9 @@ integer defining the stack sequence.</p>
 x and y values, and, optionally, errors. One or more header lines can be
 skipped. A more flexible text importer, allowing the selection of data from
 multiple columns, is under development.</p>
-</section>
-<section id="defining-a-reader">
-<h3>Defining a Reader<a class="headerlink" href="#defining-a-reader" title="Permalink to this heading">¶</a></h3>
+</div>
+<div class="section" id="defining-a-reader">
+<h3>Defining a Reader<a class="headerlink" href="#defining-a-reader" title="Permalink to this headline">¶</a></h3>
 <p>It is possible to add a reader to the <a class="reference external" href="File:Import">File:Import</a> menu using the existing
 samples as a guide in the nexpy.readers directory. User-defined import dialogs
 can be added to their private readers directory in <code class="docutils literal notranslate"><span class="pre">~/.nexpy/readers</span></code>.</p>
@@ -1230,7 +1227,7 @@ can be added to their private readers directory in <code class="docutils literal
 <span class="n">filetype</span> <span class="o">=</span> <span class="s2">&quot;TIFF Image&quot;</span> <span class="c1">#Defines the Import Menu label</span>
 
 <span class="k">class</span> <span class="nc">ImportDialog</span><span class="p">(</span><span class="n">NXImportDialog</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Dialog to import a TIFF image&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;Dialog to import a TIFF image&quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 
@@ -1249,15 +1246,15 @@ can be added to their private readers directory in <code class="docutils literal
         <span class="k">return</span> <span class="n">NXentry</span><span class="p">(</span><span class="n">NXdata</span><span class="p">(</span><span class="n">z</span><span class="p">,(</span><span class="n">y</span><span class="p">,</span><span class="n">x</span><span class="p">)))</span>
 </pre></div>
 </div>
-</section>
-</section>
-<section id="nexpy-plugins">
-<h2>NeXpy Plugins<a class="headerlink" href="#nexpy-plugins" title="Permalink to this heading">¶</a></h2>
+</div>
+</div>
+<div class="section" id="nexpy-plugins">
+<h2>NeXpy Plugins<a class="headerlink" href="#nexpy-plugins" title="Permalink to this headline">¶</a></h2>
 <p>It is possible to customize NeXpy by adding new menus to the main menu bar
 with sub-menus that open GUI dialogs or perform operations that are
 specific to a specialized application.</p>
-<section id="installing-plugins">
-<h3>Installing Plugins<a class="headerlink" href="#installing-plugins" title="Permalink to this heading">¶</a></h3>
+<div class="section" id="installing-plugins">
+<h3>Installing Plugins<a class="headerlink" href="#installing-plugins" title="Permalink to this headline">¶</a></h3>
 <p>NeXpy searches for plugin modules in two ways.</p>
 <ol class="arabic">
 <li><p>The plugin code can be installed using the <code class="docutils literal notranslate"><span class="pre">Install</span> <span class="pre">Plugin...</span></code> dialog
@@ -1281,9 +1278,9 @@ plugins will not be loaded, but a warning will be added to the NeXpy log
 file. If a previously installed plugin is now available in an external
 package, please remove the prior installation using the
 <code class="docutils literal notranslate"><span class="pre">Remove</span> <span class="pre">Plugin...</span></code> dialog.</p>
-</section>
-<section id="defining-plugins">
-<h3>Defining Plugins<a class="headerlink" href="#defining-plugins" title="Permalink to this heading">¶</a></h3>
+</div>
+<div class="section" id="defining-plugins">
+<h3>Defining Plugins<a class="headerlink" href="#defining-plugins" title="Permalink to this headline">¶</a></h3>
 <p>The modules that are accessed through the plugin menu should be defined
 as a Python package, <em>i.e.</em>, by creating a sub-directory that contains
 <code class="docutils literal notranslate"><span class="pre">__init__.py</span></code>. This must contain a function, <code class="docutils literal notranslate"><span class="pre">plugin_menu</span></code>, which returns
@@ -1445,9 +1442,9 @@ functions themselves:</p>
         <span class="nb">super</span><span class="p">(</span><span class="n">EnergyDialog</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">accept</span><span class="p">()</span>
 </pre></div>
 </div>
-</section>
-</section>
-</section>
+</div>
+</div>
+</div>
 
 
             <div class="clearer"></div>
@@ -1523,7 +1520,7 @@ functions themselves:</p>
     </form>
     </div>
 </div>
-<script>document.getElementById('searchbox').style.display = "block"</script>
+<script>$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -1535,21 +1532,18 @@ functions themselves:</p>
           <a href="genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="right" >
           <a href="readers.html" title="Adding a File Importer"
              >next</a> |</li>
         <li class="right" >
           <a href="pythonshell.html" title="Python Interface to NeXus"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 1.0.3 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 1.0.6 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Python Graphical User Interface</a></li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright Modified BSD License.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 6.1.3.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.5.0.
     </div>
   </body>
 </html>

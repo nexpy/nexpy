@@ -9,13 +9,17 @@ NeXpy: A Python GUI to analyze NeXus data
 =========================================
 
 NeXpy provides a high-level python interface to HDF5 files, particularly those
-stored as `NeXus data <http://www.nexusformat.org/>`_, within a simple GUI. It 
+stored as `NeXus data <http://www.nexusformat.org/>`__, within a simple GUI. It 
 is designed to provide an intuitive interactive toolbox allowing users both to 
 access existing NeXus files and to create new NeXus-conforming data structures 
 without expert knowledge of the file format. The underlying Python API for 
 reading and writing NeXus files is provided by the `nexusformat 
-<https://github.com/nexpy/nexusformat>`_ package, which utilizes 
-`h5py <http://www.h5py.org/>`_.
+<https://github.com/nexpy/nexusformat>`__ package, which utilizes 
+`h5py <http://www.h5py.org/>`__.
+
+.. note:: NeXpy v1.0.6 is now available for `download
+          <https://pypi.python.org/pypi/NeXpy/>`__ (`Release Notes 
+          <https://github.com/nexpy/nexpy/releases>`__). 
 
 .. toctree::
    :maxdepth: 2

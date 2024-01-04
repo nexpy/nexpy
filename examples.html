@@ -1,18 +1,18 @@
 
 <!DOCTYPE html>
 
-<html lang="en">
+<html>
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
-
-    <title>NeXpy Example Files &#8212; NeXpy 1.0.3 documentation</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NeXpy Example Files &#8212; NeXpy 1.0.6 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/sphinxdoc.css" />
     <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
-    <script src="_static/sphinx_highlight.js"></script>
-    <link rel="icon" href="_static/favicon.ico"/>
+    <link rel="shortcut icon" href="_static/favicon.ico"/>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="NeXus Tree API Modules" href="treeapi.html" />
@@ -25,15 +25,12 @@
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="right" >
           <a href="treeapi.html" title="NeXus Tree API Modules"
              accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="readers.html" title="Adding a File Importer"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 1.0.3 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 1.0.6 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">NeXpy Example Files</a></li> 
       </ul>
     </div>  
@@ -43,16 +40,21 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <section id="nexpy-example-files">
-<h1>NeXpy Example Files<a class="headerlink" href="#nexpy-example-files" title="Permalink to this heading">¶</a></h1>
+  <div class="section" id="nexpy-example-files">
+<h1>NeXpy Example Files<a class="headerlink" href="#nexpy-example-files" title="Permalink to this headline">¶</a></h1>
 <p>The following files are included in the NeXpy distribution and may be
 accessed from the Help menu or downloaded from the <a class="reference external" href="https://github.com/nexpy/nexpy/tree/main/src/nexpy/examples">Github repository</a>.</p>
-<section id="example-data">
-<h2>Example data<a class="headerlink" href="#example-data" title="Permalink to this heading">¶</a></h2>
-<section id="about-these-example-data-files">
-<h3>About these example data files<a class="headerlink" href="#about-these-example-data-files" title="Permalink to this heading">¶</a></h3>
+<div class="section" id="example-data">
+<h2>Example data<a class="headerlink" href="#example-data" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="about-these-example-data-files">
+<h3>About these example data files<a class="headerlink" href="#about-these-example-data-files" title="Permalink to this headline">¶</a></h3>
 <p>These files are examples of data files that may be read by <strong>NeXpy</strong>.</p>
 <table class="docutils align-default">
+<colgroup>
+<col style="width: 29%" />
+<col style="width: 16%" />
+<col style="width: 56%" />
+</colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>file</p></th>
 <th class="head"><p>type</p></th>
@@ -71,12 +73,12 @@ spectrometer</p></td>
 </tr>
 </tbody>
 </table>
-</section>
-</section>
-<section id="example-plugins">
-<h2>Example plugins<a class="headerlink" href="#example-plugins" title="Permalink to this heading">¶</a></h2>
-<section id="about-the-example-plugin">
-<h3>About the example plugin<a class="headerlink" href="#about-the-example-plugin" title="Permalink to this heading">¶</a></h3>
+</div>
+</div>
+<div class="section" id="example-plugins">
+<h2>Example plugins<a class="headerlink" href="#example-plugins" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="about-the-example-plugin">
+<h3>About the example plugin<a class="headerlink" href="#about-the-example-plugin" title="Permalink to this headline">¶</a></h3>
 <p>This contains an example of a package, <code class="docutils literal notranslate"><span class="pre">chopper_plugin</span></code> that provides a
 plugin menu to NeXpy. The entire directory can be copied to another location
 to form the template of another plugin, which should be given a unique name.</p>
@@ -106,12 +108,12 @@ be saved to the NXmonochromator group.</p>
 from angular and time-of-flight coordinates into Q and energy transfer. After
 choosing Q and energy bin sizes, the converted data can be plotted and/or
 saved as a new NXdata group within the NeXus root.</p>
-</section>
-</section>
-<section id="example-scripts">
-<h2>Example scripts<a class="headerlink" href="#example-scripts" title="Permalink to this heading">¶</a></h2>
-<section id="about-these-example-scripts">
-<h3>About these example scripts<a class="headerlink" href="#about-these-example-scripts" title="Permalink to this heading">¶</a></h3>
+</div>
+</div>
+<div class="section" id="example-scripts">
+<h2>Example scripts<a class="headerlink" href="#example-scripts" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="about-these-example-scripts">
+<h3>About these example scripts<a class="headerlink" href="#about-these-example-scripts" title="Permalink to this headline">¶</a></h3>
 <p>These files are examples of scripts that can be run from the script editor
 within NeXpy. If they are copied to ~/.nexpy/scripts, they can be opened
 directly from the Scripts Menu.</p>
@@ -121,9 +123,9 @@ of NumPy arrays. A similar example is given in the NeXpy documentation.</p>
 <p><strong>chopper_plot.py</strong></p>
 <p>A script to plot a sequence of cuts, displaced along the y-axis. It assumes
 that <code class="docutils literal notranslate"><span class="pre">chopper.nxs</span></code>, which is one of the example files, has been loaded.</p>
-</section>
-</section>
-</section>
+</div>
+</div>
+</div>
 
 
             <div class="clearer"></div>
@@ -179,7 +181,7 @@ that <code class="docutils literal notranslate"><span class="pre">chopper.nxs</s
     </form>
     </div>
 </div>
-<script>document.getElementById('searchbox').style.display = "block"</script>
+<script>$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -191,21 +193,18 @@ that <code class="docutils literal notranslate"><span class="pre">chopper.nxs</s
           <a href="genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="right" >
           <a href="treeapi.html" title="NeXus Tree API Modules"
              >next</a> |</li>
         <li class="right" >
           <a href="readers.html" title="Adding a File Importer"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 1.0.3 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 1.0.6 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">NeXpy Example Files</a></li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright Modified BSD License.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 6.1.3.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.5.0.
     </div>
   </body>
 </html>

@@ -1,18 +1,18 @@
 
 <!DOCTYPE html>
 
-<html lang="en">
+<html>
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
-
-    <title>Python Interface to NeXus &#8212; NeXpy 1.0.3 documentation</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Python Interface to NeXus &#8212; NeXpy 1.0.6 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/sphinxdoc.css" />
     <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
-    <script src="_static/sphinx_highlight.js"></script>
-    <link rel="icon" href="_static/favicon.ico"/>
+    <link rel="shortcut icon" href="_static/favicon.ico"/>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Python Graphical User Interface" href="pythongui.html" />
@@ -25,15 +25,12 @@
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="right" >
           <a href="pythongui.html" title="Python Graphical User Interface"
              accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="includeme.html" title="Installation"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 1.0.3 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 1.0.6 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Python Interface to NeXus</a></li> 
       </ul>
     </div>  
@@ -43,8 +40,8 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <section id="python-interface-to-nexus">
-<h1>Python Interface to NeXus<a class="headerlink" href="#python-interface-to-nexus" title="Permalink to this heading">¶</a></h1>
+  <div class="section" id="python-interface-to-nexus">
+<h1>Python Interface to NeXus<a class="headerlink" href="#python-interface-to-nexus" title="Permalink to this headline">¶</a></h1>
 <p>The Python interface to NeXus is provided by the <a class="reference external" href="https://github.com/nexpy/nexusformat">nexusformat</a> package, which is distributed
 separately from NeXpy.</p>
 <p>The Python API can be used within a standard Python or IPython shell:</p>
@@ -67,8 +64,8 @@ risk of namespace conflicts should be small.</p>
 provides a tutorial for the Python API. It can be run in
 <a class="reference external" href="https://colab.research.google.com/github/nexpy/nexusformat/blob/master/src/nexusformat/notebooks/nexusformat.ipynb">Google Colaboratory</a>.</p>
 </div>
-<section id="loading-nexus-data">
-<h2>Loading NeXus Data<a class="headerlink" href="#loading-nexus-data" title="Permalink to this heading">¶</a></h2>
+<div class="section" id="loading-nexus-data">
+<h2>Loading NeXus Data<a class="headerlink" href="#loading-nexus-data" title="Permalink to this headline">¶</a></h2>
 <p>The entire tree structure of a NeXus file can be loaded by a single command:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">=</span><span class="n">nxload</span><span class="p">(</span><span class="s1">&#39;sns/data/ARCS_7326_tof.nxs&#39;</span><span class="p">)</span>
 </pre></div>
@@ -124,7 +121,7 @@ read/write mode:</p>
 </div>
 <p>The default mode is ‘r’, <em>i.e.</em>, readonly access. The <cite>nxload</cite> function will
 accept any mode values allowed when opening h5py files, such as ‘r+’, ‘w’,
-‘w-’, and ‘a’ (see the
+‘w-‘, and ‘a’ (see the
 <a class="reference external" href="http://docs.h5py.org/en/stable/high/file.html">h5py documentation</a> for more
 details), but once open, the mode values are stored as ‘r’ or ‘rw’.</p>
 <div class="admonition warning">
@@ -136,11 +133,11 @@ file can be made using the <code class="docutils literal notranslate"><span clas
 </div>
 <div class="admonition seealso">
 <p class="admonition-title">See also</p>
-<p><a class="reference internal" href="treeapi.html#nexusformat.nexus.tree.NXroot.backup" title="nexusformat.nexus.tree.NXroot.backup"><code class="xref py py-mod docutils literal notranslate"><span class="pre">nexusformat.nexus.tree.NXroot.backup</span></code></a></p>
+<p><code class="xref py py-mod docutils literal notranslate"><span class="pre">nexusformat.nexus.tree.NXroot.backup</span></code></p>
 </div>
-</section>
-<section id="creating-nexus-data">
-<h2>Creating NeXus Data<a class="headerlink" href="#creating-nexus-data" title="Permalink to this heading">¶</a></h2>
+</div>
+<div class="section" id="creating-nexus-data">
+<h2>Creating NeXus Data<a class="headerlink" href="#creating-nexus-data" title="Permalink to this headline">¶</a></h2>
 <p>It is just as easy to create new NeXus data sets from scratch using NumPy
 arrays. The following example shows the creation of a simple function, which is
 then saved to a file:</p>
@@ -176,14 +173,14 @@ then saved to a file:</p>
 NXentry group, in order to produce a standard-compliant file. See
 <a class="reference internal" href="#saving-nexus-data">Saving NeXus Data</a> for more details.</p>
 </div>
-</section>
-<section id="nexus-objects">
-<h2>NeXus Objects<a class="headerlink" href="#nexus-objects" title="Permalink to this heading">¶</a></h2>
+</div>
+<div class="section" id="nexus-objects">
+<h2>NeXus Objects<a class="headerlink" href="#nexus-objects" title="Permalink to this headline">¶</a></h2>
 <p>NeXus data are stored in a hierarchical tree structure, much like a computer
 file system. NeXus data structures consist of groups, with base class NXgroup,
 which can contain fields, with base class NXfield, and/or other groups.</p>
-<section id="nexus-fields">
-<h3>NeXus Fields<a class="headerlink" href="#nexus-fields" title="Permalink to this heading">¶</a></h3>
+<div class="section" id="nexus-fields">
+<h3>NeXus Fields<a class="headerlink" href="#nexus-fields" title="Permalink to this headline">¶</a></h3>
 <p>NeXus data values are stored in NeXus objects of class ‘NXfield’. The NXfield
 class wraps standard NumPy arrays, scalars, and Python strings so that
 additional metadata (or attributes) and methods can be associated with them.</p>
@@ -287,8 +284,8 @@ large to be stored in memory and has to be written as slabs:</p>
 </pre></div>
 </div>
 <p>More details of handling large arrays are given below.</p>
-<section id="nexus-attributes">
-<span id="attributes"></span><h4>NeXus attributes<a class="headerlink" href="#nexus-attributes" title="Permalink to this heading">¶</a></h4>
+<div class="section" id="nexus-attributes">
+<h4>NeXus attributes<a class="headerlink" href="#nexus-attributes" title="Permalink to this headline">¶</a></h4>
 <p>The NeXus standard allows additional attributes to be attached to NXfields to
 contain metadata</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="p">[</span><span class="s1">&#39;entry/sample/temperature&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">units</span><span class="o">=</span><span class="s1">&#39;K&#39;</span>
@@ -309,9 +306,9 @@ group.</p>
 <span class="go">    @units = &#39;K&#39;</span>
 </pre></div>
 </div>
-</section>
-<section id="masked-arrays">
-<h4>Masked Arrays<a class="headerlink" href="#masked-arrays" title="Permalink to this heading">¶</a></h4>
+</div>
+<div class="section" id="masked-arrays">
+<h4>Masked Arrays<a class="headerlink" href="#masked-arrays" title="Permalink to this headline">¶</a></h4>
 <p>NumPy has the ability to store arrays with masks to remove missing or invalid
 data from computations of, <em>e.g.</em>, averages or maxima. Since Matplotlib is able
 to handle masked arrays and removes masked data from plots, this is a convenient
@@ -360,9 +357,9 @@ manually, but it is recommended that modifications to the mask use
 the methods described above.</p>
 </div>
 <p>Masks can also be set using the Projection panel in the <a class="reference internal" href="pythongui.html"><span class="doc">Python Graphical User Interface</span></a>.</p>
-</section>
-<section id="large-arrays">
-<h4>Large Arrays<a class="headerlink" href="#large-arrays" title="Permalink to this heading">¶</a></h4>
+</div>
+<div class="section" id="large-arrays">
+<h4>Large Arrays<a class="headerlink" href="#large-arrays" title="Permalink to this headline">¶</a></h4>
 <p>If the size of an array is too large to be loaded into memory (see
 <a class="reference internal" href="#loading-nexus-data">Loading NeXus Data</a>), the NXfield can be created without any initial values,
 and then filled incrementally as slabs:</p>
@@ -409,7 +406,7 @@ NXfield <code class="docutils literal notranslate"><span class="pre">resize</spa
 </ul>
 <div class="admonition seealso">
 <p class="admonition-title">See also</p>
-<p><a class="reference internal" href="treeapi.html#nexusformat.nexus.tree.NXfield.resize" title="nexusformat.nexus.tree.NXfield.resize"><code class="xref py py-mod docutils literal notranslate"><span class="pre">nexusformat.nexus.tree.NXfield.resize</span></code></a></p>
+<p><code class="xref py py-mod docutils literal notranslate"><span class="pre">nexusformat.nexus.tree.NXfield.resize</span></code></p>
 </div>
 <ul>
 <li><p>Fill value:</p>
@@ -427,10 +424,10 @@ been written, whether to a file or in core memory, using the <code class="docuti
 <span class="gp">&gt;&gt;&gt; </span><span class="n">z</span><span class="o">.</span><span class="n">compression</span> <span class="o">=</span> <span class="s1">&#39;lzf&#39;</span>
 </pre></div>
 </div>
-</section>
-</section>
-<section id="nexus-groups">
-<h3>NeXus Groups<a class="headerlink" href="#nexus-groups" title="Permalink to this heading">¶</a></h3>
+</div>
+</div>
+<div class="section" id="nexus-groups">
+<h3>NeXus Groups<a class="headerlink" href="#nexus-groups" title="Permalink to this headline">¶</a></h3>
 <p>NeXus groups are defined as subclasses of the NXgroup class, with the class name
 defining the type of information they contain, <em>e.g.</em>, the NXsample class
 contains metadata that define the measured sample, such as its temperature or
@@ -484,10 +481,10 @@ creating nested groups:</p>
 <div class="admonition seealso">
 <p class="admonition-title">See also</p>
 <p>Existing NeXus objects can also be inserted directly into groups.
-See <a class="reference internal" href="treeapi.html#nexusformat.nexus.tree.NXgroup.insert" title="nexusformat.nexus.tree.NXgroup.insert"><code class="xref py py-mod docutils literal notranslate"><span class="pre">nexusformat.nexus.tree.NXgroup.insert</span></code></a></p>
+See <code class="xref py py-mod docutils literal notranslate"><span class="pre">nexusformat.nexus.tree.NXgroup.insert</span></code></p>
 </div>
-<section id="nxdata-groups">
-<h4>NXdata Groups<a class="headerlink" href="#nxdata-groups" title="Permalink to this heading">¶</a></h4>
+<div class="section" id="nxdata-groups">
+<h4>NXdata Groups<a class="headerlink" href="#nxdata-groups" title="Permalink to this headline">¶</a></h4>
 <p>NXdata groups contain data ready to be plotted. That means that the group should
 consist of an NXfield containing the signal and one or more NXfields containing
 the axes. NeXus defines a method of associating axes with the appropriate
@@ -581,10 +578,10 @@ would also have been acceptable just to call <code class="docutils literal notra
 <p>In a NXdata group, errors for each field are defined by another
 field with ‘_errors’ appended to the name.</p>
 </div>
-</section>
-</section>
-<section id="nexus-links">
-<h3>NeXus Links<a class="headerlink" href="#nexus-links" title="Permalink to this heading">¶</a></h3>
+</div>
+</div>
+<div class="section" id="nexus-links">
+<h3>NeXus Links<a class="headerlink" href="#nexus-links" title="Permalink to this headline">¶</a></h3>
 <p>NeXus allows groups and fields to be assigned to multiple locations through the
 use of links. These objects have the class NXlink and contain the attribute
 <code class="docutils literal notranslate"><span class="pre">target</span></code>, which identifies the parent object. It is also possible to link to
@@ -651,8 +648,8 @@ NeXus tree is given by the nxpath property:</p>
 </pre></div>
 </div>
 </div>
-<section id="creating-a-link">
-<h4>Creating a Link<a class="headerlink" href="#creating-a-link" title="Permalink to this heading">¶</a></h4>
+<div class="section" id="creating-a-link">
+<h4>Creating a Link<a class="headerlink" href="#creating-a-link" title="Permalink to this headline">¶</a></h4>
 <p>Links can be created using the target object as the argument assigned
 to another group:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">root</span><span class="o">.</span><span class="n">tree</span><span class="p">)</span>
@@ -691,11 +688,11 @@ parent.</p>
 </div>
 <div class="admonition seealso">
 <p class="admonition-title">See also</p>
-<p><a class="reference internal" href="treeapi.html#nexusformat.nexus.tree.NXgroup.makelink" title="nexusformat.nexus.tree.NXgroup.makelink"><code class="xref py py-mod docutils literal notranslate"><span class="pre">nexusformat.nexus.tree.NXgroup.makelink</span></code></a></p>
+<p><code class="xref py py-mod docutils literal notranslate"><span class="pre">nexusformat.nexus.tree.NXgroup.makelink</span></code></p>
 </div>
-</section>
-<section id="external-links">
-<h4>External Links<a class="headerlink" href="#external-links" title="Permalink to this heading">¶</a></h4>
+</div>
+<div class="section" id="external-links">
+<h4>External Links<a class="headerlink" href="#external-links" title="Permalink to this headline">¶</a></h4>
 <p>It is also possible to link to a NeXus field that is stored in another file.
 This is accomplished using a similar syntax to internal links.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">root</span><span class="p">[</span><span class="s1">&#39;entry/data/data&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">NXlink</span><span class="p">(</span><span class="s1">&#39;/counts&#39;</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="s1">&#39;external_counts.nxs&#39;</span><span class="p">)</span>
@@ -717,11 +714,11 @@ keyword argument, <code class="docutils literal notranslate"><span class="pre">a
 <p>If the files are moved without preserving their relative file
 paths, the parent file will still open but the link will be broken.</p>
 </div>
-</section>
-</section>
-</section>
-<section id="plotting-nexus-data">
-<h2>Plotting NeXus Data<a class="headerlink" href="#plotting-nexus-data" title="Permalink to this heading">¶</a></h2>
+</div>
+</div>
+</div>
+<div class="section" id="plotting-nexus-data">
+<h2>Plotting NeXus Data<a class="headerlink" href="#plotting-nexus-data" title="Permalink to this headline">¶</a></h2>
 <p>NXdata, NXmonitor, and NXlog groups all have a plot method, which automatically
 determines what should be plotted:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
@@ -765,8 +762,8 @@ able to identify plottable data. If the <code class="docutils literal notranslat
 the default NXentry and/or NXdata groups are used. Otherwise, the
 first valid NXdata group found in an iterative search is used.</p>
 </div>
-<section id="additional-plot-methods">
-<h3>Additional Plot Methods<a class="headerlink" href="#additional-plot-methods" title="Permalink to this heading">¶</a></h3>
+<div class="section" id="additional-plot-methods">
+<h3>Additional Plot Methods<a class="headerlink" href="#additional-plot-methods" title="Permalink to this headline">¶</a></h3>
 <p>As a convenience, additional plot methods can be used instead of adding extra
 keywords.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="o">.</span><span class="n">oplot</span><span class="p">()</span>
@@ -776,14 +773,14 @@ keywords.</p>
 </div>
 <p>These are equivalent to setting the ‘over’, ‘log’, and ‘image’ keywords to True
 when invoking the plot method.</p>
-</section>
-</section>
-<section id="manipulating-nexus-data">
-<h2>Manipulating NeXus Data<a class="headerlink" href="#manipulating-nexus-data" title="Permalink to this heading">¶</a></h2>
-<section id="arithmetic-operations">
-<h3>Arithmetic Operations<a class="headerlink" href="#arithmetic-operations" title="Permalink to this heading">¶</a></h3>
-<section id="nxfield">
-<h4>NXfield<a class="headerlink" href="#nxfield" title="Permalink to this heading">¶</a></h4>
+</div>
+</div>
+<div class="section" id="manipulating-nexus-data">
+<h2>Manipulating NeXus Data<a class="headerlink" href="#manipulating-nexus-data" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="arithmetic-operations">
+<h3>Arithmetic Operations<a class="headerlink" href="#arithmetic-operations" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="nxfield">
+<h4>NXfield<a class="headerlink" href="#nxfield" title="Permalink to this headline">¶</a></h4>
 <p>NXfields usually consist of arrays of numeric data with associated metadata, the
 NeXus attributes (the exception is when they contain character strings). This
 makes them similar to NumPy arrays, and this module allows the use of NXfields
@@ -859,9 +856,9 @@ NXfield:</p>
 </pre></div>
 </div>
 </div>
-</section>
-<section id="nxdata">
-<h4>NXdata<a class="headerlink" href="#nxdata" title="Permalink to this heading">¶</a></h4>
+</div>
+<div class="section" id="nxdata">
+<h4>NXdata<a class="headerlink" href="#nxdata" title="Permalink to this headline">¶</a></h4>
 <p>Similar operations can also be performed on whole NXdata groups. If two NXdata
 groups are to be added, the rank and dimensions of the main signal array
 must match (although the names could be different):</p>
@@ -987,12 +984,12 @@ the signal is one-dimensional:</p>
 </dl>
 </li>
 </ul>
-</section>
-</section>
-<section id="slicing">
-<h3>Slicing<a class="headerlink" href="#slicing" title="Permalink to this heading">¶</a></h3>
-<section id="id2">
-<h4>NXfield<a class="headerlink" href="#id2" title="Permalink to this heading">¶</a></h4>
+</div>
+</div>
+<div class="section" id="slicing">
+<h3>Slicing<a class="headerlink" href="#slicing" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id2">
+<h4>NXfield<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h4>
 <p>A slice of an NXfield can be obtained using the usual Python indexing syntax:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">=</span><span class="n">NXfield</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span><span class="mi">101</span><span class="p">))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">51</span><span class="p">])</span>
@@ -1005,9 +1002,9 @@ themselves (assuming the array is monotonic):</p>
 <span class="go">[ 0.50265482  0.56548668  0.62831853 ...,  1.38230077  1.44513262 1.50796447]</span>
 </pre></div>
 </div>
-</section>
-<section id="id3">
-<h4>NXdata<a class="headerlink" href="#id3" title="Permalink to this heading">¶</a></h4>
+</div>
+<div class="section" id="id3">
+<h4>NXdata<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h4>
 <p>It is also possible to slice whole NXdata groups. In this case, the slicing
 works on the multidimensional NXfield, but the full NXdata group is returned
 with both the signal data and the associated axes limited by the slice
@@ -1079,36 +1076,36 @@ range of the summation.</p>
 </div>
 <p>The <a class="reference internal" href="pythongui.html"><span class="doc">Python Graphical User Interface</span></a> provides a menu-based approach to simplify the plotting
 of 1D and 2D data projections of multidimensional data.</p>
-</section>
-</section>
-</section>
-<section id="saving-nexus-data">
-<h2>Saving NeXus Data<a class="headerlink" href="#saving-nexus-data" title="Permalink to this heading">¶</a></h2>
+</div>
+</div>
+</div>
+<div class="section" id="saving-nexus-data">
+<h2>Saving NeXus Data<a class="headerlink" href="#saving-nexus-data" title="Permalink to this headline">¶</a></h2>
 <p>Every NeXus object, whether it is a group or a field, has a save() method as
 illustrated in <a class="reference internal" href="#creating-nexus-data">Creating NeXus Data</a>.:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">root</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="s1">&#39;example.nxs&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
-<section id="nxroot-groups">
-<h3>NXroot Groups<a class="headerlink" href="#nxroot-groups" title="Permalink to this heading">¶</a></h3>
+<div class="section" id="nxroot-groups">
+<h3>NXroot Groups<a class="headerlink" href="#nxroot-groups" title="Permalink to this headline">¶</a></h3>
 <p>If the NeXus object is a NXroot group, the save() method saves the whole NeXus
 tree. The filename can only be omitted if the tree is being saved to a file that
 was loaded with read/write access. In this case, the format argument is ignored.
 If the tree was loaded with readonly access, any modifications must be saved to
 a new file specified by the filename argument.</p>
-</section>
-<section id="other-objects">
-<h3>Other Objects<a class="headerlink" href="#other-objects" title="Permalink to this heading">¶</a></h3>
+</div>
+<div class="section" id="other-objects">
+<h3>Other Objects<a class="headerlink" href="#other-objects" title="Permalink to this headline">¶</a></h3>
 <p>If the object is not a NXroot group, a new file will be created containing the
 selected object and its children. A filename <em>must</em> be specified. Saving
 non-NXroot data allows parts of a NeXus tree to be saved for later use, <em>e.g.</em>,
 to store an NXsample group that will be added to other files. The saved NeXus
 object is wrapped in an NXroot group and an NXentry group (with name ‘entry’),
 if necessary, in order to produce a valid NeXus file.</p>
-</section>
-</section>
-<section id="nexus-file-operations">
-<h2>NeXus File Operations<a class="headerlink" href="#nexus-file-operations" title="Permalink to this heading">¶</a></h2>
+</div>
+</div>
+<div class="section" id="nexus-file-operations">
+<h2>NeXus File Operations<a class="headerlink" href="#nexus-file-operations" title="Permalink to this headline">¶</a></h2>
 <p>Changes to a NeXus tree that has been loaded from disk or saved to a file are
 automatically updated in the HDF5 file, assuming that it is opened with
 read/write permissions. This means that the tree is always an accurate
@@ -1143,8 +1140,8 @@ should be explicitly closed by calling <code class="docutils literal notranslate
 The current status of the file can be determined by calling
 <code class="docutils literal notranslate"><span class="pre">root.nxfile.is_open()</span></code>.</p>
 </div>
-<section id="multiple-operations">
-<h3>Multiple operations<a class="headerlink" href="#multiple-operations" title="Permalink to this heading">¶</a></h3>
+<div class="section" id="multiple-operations">
+<h3>Multiple operations<a class="headerlink" href="#multiple-operations" title="Permalink to this headline">¶</a></h3>
 <p>When a change is made to a NeXus file, which is open with read/write access, it
 is automatically opened, updated, and then closed to ensure that any changes
 are flushed to the file and other processes can read the file if necessary.
@@ -1179,9 +1176,9 @@ then closed.</p>
 <span class="gp">&gt;&gt;&gt; </span>    <span class="n">root</span><span class="p">[</span><span class="s1">&#39;entry/sample/temperature&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">NXfield</span><span class="p">(</span><span class="mf">40.0</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;K&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
-</section>
-<section id="file-locking">
-<h3>File Locking<a class="headerlink" href="#file-locking" title="Permalink to this heading">¶</a></h3>
+</div>
+<div class="section" id="file-locking">
+<h3>File Locking<a class="headerlink" href="#file-locking" title="Permalink to this headline">¶</a></h3>
 <p>The context manager can also be used to lock the NeXus file to prevent other
 processes from accessing the file. According to the <a class="reference external" href="https://support.hdfgroup.org/HDF5/hdf5-quest.html#gconc">HDF5 documentation</a>, concurrent read
 access is supported if the HDF5 library has been built as thread-safe. This
@@ -1211,8 +1208,8 @@ the NeXus file, but this will fail if the user does not have sufficient
 permissions to create the file in that directory. For this reason, it is
 possible to define another directory with relaxed group and/or world
 permissions to store the lock files.</p>
-<section id="configuring-file-locks">
-<h4>Configuring File Locks<a class="headerlink" href="#configuring-file-locks" title="Permalink to this heading">¶</a></h4>
+<div class="section" id="configuring-file-locks">
+<h4>Configuring File Locks<a class="headerlink" href="#configuring-file-locks" title="Permalink to this headline">¶</a></h4>
 <p>File-locking is configured using <code class="docutils literal notranslate"><span class="pre">nxsetconfig</span></code> (see next section). File
 locking is enabled by setting a non-zero value for the <code class="docutils literal notranslate"><span class="pre">lock</span></code> parameter,
 which defines the length of time the process will wait before triggering
@@ -1241,11 +1238,11 @@ stale lock is encountered, it may be cleared by calling <code class="docutils li
 <p>This lock is advisory. It is only guaranteed to work if the external
 process is also using <em>nexusformat</em>.</p>
 </div>
-</section>
-</section>
-</section>
-<section id="configuration-parameters">
-<h2>Configuration Parameters<a class="headerlink" href="#configuration-parameters" title="Permalink to this heading">¶</a></h2>
+</div>
+</div>
+</div>
+<div class="section" id="configuration-parameters">
+<h2>Configuration Parameters<a class="headerlink" href="#configuration-parameters" title="Permalink to this headline">¶</a></h2>
 <p>The <em>nexusformat</em> package uses a number of parameters to configure its default
 behavior. These are stored internally in a dictionary, which may be read or
 modified using the <code class="docutils literal notranslate"><span class="pre">nxgetconfig</span></code> and <code class="docutils literal notranslate"><span class="pre">nxsetconfig</span></code> functions, respectively.</p>
@@ -1329,8 +1326,8 @@ the existence of object paths in the file. The default is <cite>False</cite>.</p
 </dl>
 </li>
 </ul>
-<section id="environment-variables">
-<h3>Environment variables<a class="headerlink" href="#environment-variables" title="Permalink to this heading">¶</a></h3>
+<div class="section" id="environment-variables">
+<h3>Environment variables<a class="headerlink" href="#environment-variables" title="Permalink to this headline">¶</a></h3>
 <p>The configuration parameters can also be set by defining environment variables,
 defined either in a user’s login files or by a system administrator. This is
 particularly useful for setting a system-wide lock-file directory for all
@@ -1342,9 +1339,9 @@ manually by calling <code class="docutils literal notranslate"><span class="pre"
 defined. The equivalent environment variable name is constructed by prefixing
 the parameter name in upper case by ‘<a href="#id5"><span class="problematic" id="id6">NX_</span></a>’, <em>e.g.</em>, ‘NX_COMPRESSION’,
 ‘NX_ENCODING’, <em>etc</em>.</p>
-</section>
-</section>
-</section>
+</div>
+</div>
+</div>
 
 
             <div class="clearer"></div>
@@ -1442,7 +1439,7 @@ the parameter name in upper case by ‘<a href="#id5"><span class="problematic" 
     </form>
     </div>
 </div>
-<script>document.getElementById('searchbox').style.display = "block"</script>
+<script>$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -1454,21 +1451,18 @@ the parameter name in upper case by ‘<a href="#id5"><span class="problematic" 
           <a href="genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="right" >
           <a href="pythongui.html" title="Python Graphical User Interface"
              >next</a> |</li>
         <li class="right" >
           <a href="includeme.html" title="Installation"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 1.0.3 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 1.0.6 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Python Interface to NeXus</a></li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright Modified BSD License.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 6.1.3.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.5.0.
     </div>
   </body>
 </html>
