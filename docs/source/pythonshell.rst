@@ -2,7 +2,7 @@
 Python Interface to NeXus
 *************************
 The Python interface to NeXus is provided by the `nexusformat 
-<https://github.com/nexpy/nexusformat>`_ package, which is distributed 
+<https://github.com/nexpy/nexusformat>`__ package, which is distributed 
 separately from NeXpy. 
 
 
@@ -19,10 +19,10 @@ The Python API can be used within a standard Python or IPython shell::
 
 .. seealso:: A 
              `Jupyter notebook 
-             <https://github.com/nexpy/nexusformat/blob/master/src/nexusformat/notebooks/nexusformat.ipynb>`_ 
+             <https://github.com/nexpy/nexusformat/blob/master/src/nexusformat/notebooks/nexusformat.ipynb>`__ 
              provides a tutorial for the Python API. It can be run in
              `Google Colaboratory 
-             <https://colab.research.google.com/github/nexpy/nexusformat/blob/master/src/nexusformat/notebooks/nexusformat.ipynb>`_.
+             <https://colab.research.google.com/github/nexpy/nexusformat/blob/master/src/nexusformat/notebooks/nexusformat.ipynb>`__.
 
 
 Loading NeXus Data
@@ -82,7 +82,7 @@ read/write mode::
 The default mode is 'r', *i.e.*, readonly access. The `nxload` function will 
 accept any mode values allowed when opening h5py files, such as 'r+', 'w', 
 'w-', and 'a' (see the 
-`h5py documentation <http://docs.h5py.org/en/stable/high/file.html>`_ for more 
+`h5py documentation <http://docs.h5py.org/en/stable/high/file.html>`__ for more 
 details), but once open, the mode values are stored as 'r' or 'rw'.
 
 .. warning:: If the file is opened in read/write mode, any changes are made 
@@ -197,7 +197,7 @@ example, a float64 array can be converted to float32 on assignment::
 .. warning:: By default, Python strings are stored as variable-length strings in
              the HDF5 file. These use a special object dtype defined by h5py 
              (see the `h5py documentation 
-             <http://docs.h5py.org/en/latest/special.html#variable-length-strings>`_).
+             <http://docs.h5py.org/en/latest/special.html#variable-length-strings>`__).
              If you wish to store fixed length strings, specify a dtype of 
              kind 'S', *e.g.*, 'S10' when creating the NXfield.
 
@@ -224,6 +224,7 @@ large to be stored in memory and has to be written as slabs::
 More details of handling large arrays are given below.
 
 .. _attributes:
+
 NeXus attributes
 ^^^^^^^^^^^^^^^^  
 The NeXus standard allows additional attributes to be attached to NXfields to
@@ -635,50 +636,54 @@ determines what should be plotted::
 
 Note that the plot method uses the NeXus attributes within the groups to
 determine automatically which NXfield is the signal, what its rank and
-dimensions are, and which NXfields define the plottable axes. The same command
-will work for one-dimensional or two-dimensional data. If you plot
-higher-dimensional data, the top two-dimensional slice is plotted. Alternative
-two-dimensional slices can be specified using slice indices on the NXdata group.
+dimensions are, and which NXfields define the plottable axes. The same
+command will work for one-dimensional or two-dimensional data. If you
+plot higher-dimensional data, the top two-dimensional slice is plotted.
+Alternative two-dimensional slices can be specified using slice indices
+on the NXdata group.
 
 .. note:: If the ``interpretation`` attribute is set to 'rgb' or 'rgba' and the
           final dimension is of size 3 or 4, the NXdata group will be plotted
           as an image using the colors defined by the final dimension. By
           default, images are displayed with the origin in the top-left corner.
  
-If the data is one-dimensional, it is possible to overplot more than one data
-set using 'over=True'. By default, each plot has a new color, but conventional
-Matplotlib keywords can be used to change markers and colors::
+If the data is one-dimensional, it is possible to overplot more than one
+data set using 'over=True'. By default, each plot has a new color, but
+conventional Matplotlib keywords can be used to change markers and
+colors::
 
  >>> data.plot(log=True)
  >>> data.plot('r-')
  >>> data.plot(over=True, log=True, color='r')
 
-If the NXdata group contains RGB(A) image data, *i.e.*, the signal is a 
-three-dimensional array, in which the fastest varying dimension, which should be 
-of size 3 or 4, contains the RGB(A) values for each two-dimensional pixel, then
-the image can be plotted using the 'image=True'.
+If the NXdata group contains RGB(A) image data, *i.e.*, the signal is a
+three-dimensional array, in which the fastest varying dimension, which
+should be of size 3 or 4, contains the RGB(A) values for each
+two-dimensional pixel, then the image can be plotted using the
+'image=True'.
 
  >>> data.plot(image=True)
 
-By convention, the first pixel of an image is in the upper-left corner, rather 
-than the lower-left used in other two-dimensional plots.
+By convention, the first pixel of an image is in the upper-left corner,
+rather than the lower-left used in other two-dimensional plots.
 
-.. note:: The plot method also works on NXroot and NXentry groups, if they are 
-          able to identify plottable data. If the ``default`` attribute is set, 
-          the default NXentry and/or NXdata groups are used. Otherwise, the 
-          first valid NXdata group found in an iterative search is used.
+.. note:: The plot method also works on NXroot and NXentry groups, if 
+          they are able to identify plottable data. If the ``default`` 
+          attribute is set, the default NXentry and/or NXdata groups 
+          are used. Otherwise, the first valid NXdata group found in an 
+          iterative search is used.
  
 Additional Plot Methods
 -----------------------
-As a convenience, additional plot methods can be used instead of adding extra
-keywords.
+As a convenience, additional plot methods can be used instead of adding
+extra keywords.
 
  >>> data.oplot()
  >>> data.logplot()
  >>> data.implot()
  
-These are equivalent to setting the 'over', 'log', and 'image' keywords to True
-when invoking the plot method.
+These are equivalent to setting the 'over', 'log', and 'image' keywords
+to True when invoking the plot method.
 
 Manipulating NeXus Data
 =======================
@@ -686,10 +691,11 @@ Arithmetic Operations
 ---------------------
 NXfield
 ^^^^^^^
-NXfields usually consist of arrays of numeric data with associated metadata, the 
-NeXus attributes (the exception is when they contain character strings). This 
-makes them similar to NumPy arrays, and this module allows the use of NXfields 
-in numerical operations as if they were NumPy ndarrays::
+NXfields usually consist of arrays of numeric data with associated
+metadata, the NeXus attributes (the exception is when they contain
+character strings). This makes them similar to NumPy arrays, and this
+module allows the use of NXfields in numerical operations as if they
+were NumPy ndarrays::
 
  >>> x = NXfield((1.0,2.0,3.0,4.0))
  >>> print(x+1)
@@ -713,21 +719,21 @@ in numerical operations as if they were NumPy ndarrays::
  >>> (x+y).dtype
  dtype('float64')
 
-Such operations return valid NXfield objects containing the same attributes 
-as the first NXobject in the expression. The 'reshape' and 'transpose' methods 
-also return NXfield objects.
+Such operations return valid NXfield objects containing the same
+attributes as the first NXobject in the expression. The 'reshape' and
+'transpose' methods also return NXfield objects.
 
-NXfields can be compared to other NXfields (this is a comparison of their NumPy 
-arrays)::
+NXfields can be compared to other NXfields (this is a comparison of
+their NumPy arrays)::
 
  >>> y=NXfield(np.array((1.5,2.5,3.5)),name='y')
  >>> x == y
  True
 
-NXfields are technically not a sub-class of the NumPy ``ndarray`` class, but they 
-are cast as NumPy arrays when required by NumPy operations, returning either 
-another NXfield or, in some cases, an array that can easily be converted to an 
-NXfield::
+NXfields are technically not a sub-class of the NumPy ``ndarray`` class,
+but they are cast as NumPy arrays when required by NumPy operations,
+returning either another NXfield or, in some cases, an array that can
+easily be converted to an NXfield::
 
  >>> x = NXfield((1.0,2.0,3.0,4.0)) 
  >>> x.size
@@ -867,8 +873,8 @@ Some statistical operations can be performed on the NXdata group.
      NXfield([ 0. ,  1.5,  3. ])   
 
 * ``NXdata.moment(order=1)``:
-    Returns an NXfield containing the first moment of the NXdata group assuming 
-    the signal is one-dimensional::
+    Returns an NXfield containing the first moment of the NXdata group
+    assuming the signal is one-dimensional::
     
      >>> x=np.linspace(0, 10., 11)
      >>> y=np.exp(-(x-3)**2)
@@ -895,20 +901,20 @@ themselves (assuming the array is monotonic)::
 
 NXdata
 ^^^^^^
-It is also possible to slice whole NXdata groups. In this case, the slicing
-works on the multidimensional NXfield, but the full NXdata group is returned
-with both the signal data and the associated axes limited by the slice
-parameters. If either of the limits along any one axis is a float, the limits
-are set by the values of the axis::
+It is also possible to slice whole NXdata groups. In this case, the
+slicing works on the multidimensional NXfield, but the full NXdata group
+is returned with both the signal data and the associated axes limited by
+the slice parameters. If either of the limits along any one axis is a
+float, the limits are set by the values of the axis::
 
  >>> a=NXdata(np.sin(x),x)
  >>> a[1.5:2.5].x
  NXfield(name=x,value=[ 1.57079633  1.72787596  1.88495559 ...,  2.19911486  2.35619449])
 
-Unless the slice reduces one of the axes to a single item, the rank of the data
-remains the same. To project data along one of the axes, and so reduce the rank
-by one, the data can be summed along that axis using the sum() method. This
-employs the NumPy array sum() method::
+Unless the slice reduces one of the axes to a single item, the rank of
+the data remains the same. To project data along one of the axes, and so
+reduce the rank by one, the data can be summed along that axis using the
+sum() method. This employs the NumPy array sum() method::
 
  >>> x=y=NXfield(np.linspace(0,2*np.pi,41))
  >>> X,Y=np.meshgrid(x,y)
@@ -1004,7 +1010,7 @@ modified by an external process, in which case, the file should be reloaded.
 
 When a file is loaded, using the ``nxload`` function, the ``nxfile`` attribute
 of the root group is an ``NXFile`` object, which is thin wrapper over the 
-underlying `h5py.File <http://docs.h5py.org/en/stable/high/file.html>`_ 
+underlying `h5py.File <http://docs.h5py.org/en/stable/high/file.html>`__ 
 object::
 
   >>> root = nxload('chopper.nxs', 'r')
@@ -1015,7 +1021,7 @@ object::
 
 The ``nxload`` function can also be used to create a new file with the mode set 
 to 'w'. Any keywords accepted by 
-`h5py.File <http://docs.h5py.org/en/stable/high/file.html>`_ can be used to 
+`h5py.File <http://docs.h5py.org/en/stable/high/file.html>`__ can be used to 
 customize the new HDF5 file, *e.g.*, to turn on SWMR mode.
 
 .. warning:: There is usually no need to call the ``nxfile`` attribute except
@@ -1065,7 +1071,7 @@ File Locking
 ------------
 The context manager can also be used to lock the NeXus file to prevent other
 processes from accessing the file. According to the `HDF5 documentation 
-<https://support.hdfgroup.org/HDF5/hdf5-quest.html#gconc>`_, concurrent read 
+<https://support.hdfgroup.org/HDF5/hdf5-quest.html#gconc>`__, concurrent read 
 access is supported if the HDF5 library has been built as thread-safe. This
 appears to be the default with conda installations, for example. However, 
 concurrent read and write access is only allowed when using SWMR mode. To 
@@ -1196,7 +1202,7 @@ When the *nexusformat* package is loaded, environment variables take
 precedence over the package defaults. The user can still override them
 manually by calling ``nxsetconfig``. 
 
-All of the configuration parameters defined in the previous section can be
-defined. The equivalent environment variable name is constructed by prefixing
-the parameter name in upper case by 'NX_', *e.g.*, 'NX_COMPRESSION',
-'NX_ENCODING', *etc*.
+All of the configuration parameters defined in the previous section can
+be defined. The equivalent environment variable name is constructed by
+prefixing the parameter name in upper case by 'NX\_', *e.g.*,
+'NX_COMPRESSION', 'NX_ENCODING', *etc*.
