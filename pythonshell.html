@@ -285,7 +285,7 @@ large to be stored in memory and has to be written as slabs:</p>
 </div>
 <p>More details of handling large arrays are given below.</p>
 <div class="section" id="nexus-attributes">
-<h4>NeXus attributes<a class="headerlink" href="#nexus-attributes" title="Permalink to this headline">¶</a></h4>
+<span id="attributes"></span><h4>NeXus attributes<a class="headerlink" href="#nexus-attributes" title="Permalink to this headline">¶</a></h4>
 <p>The NeXus standard allows additional attributes to be attached to NXfields to
 contain metadata</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="p">[</span><span class="s1">&#39;entry/sample/temperature&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">units</span><span class="o">=</span><span class="s1">&#39;K&#39;</span>
@@ -727,10 +727,11 @@ determines what should be plotted:</p>
 <a class="reference internal image-reference" href="_images/simple-plot.png"><img alt="_images/simple-plot.png" class="align-center" src="_images/simple-plot.png" style="width: 80%;" /></a>
 <p>Note that the plot method uses the NeXus attributes within the groups to
 determine automatically which NXfield is the signal, what its rank and
-dimensions are, and which NXfields define the plottable axes. The same command
-will work for one-dimensional or two-dimensional data. If you plot
-higher-dimensional data, the top two-dimensional slice is plotted. Alternative
-two-dimensional slices can be specified using slice indices on the NXdata group.</p>
+dimensions are, and which NXfields define the plottable axes. The same
+command will work for one-dimensional or two-dimensional data. If you
+plot higher-dimensional data, the top two-dimensional slice is plotted.
+Alternative two-dimensional slices can be specified using slice indices
+on the NXdata group.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>If the <code class="docutils literal notranslate"><span class="pre">interpretation</span></code> attribute is set to ‘rgb’ or ‘rgba’ and the
@@ -738,41 +739,44 @@ final dimension is of size 3 or 4, the NXdata group will be plotted
 as an image using the colors defined by the final dimension. By
 default, images are displayed with the origin in the top-left corner.</p>
 </div>
-<p>If the data is one-dimensional, it is possible to overplot more than one data
-set using ‘over=True’. By default, each plot has a new color, but conventional
-Matplotlib keywords can be used to change markers and colors:</p>
+<p>If the data is one-dimensional, it is possible to overplot more than one
+data set using ‘over=True’. By default, each plot has a new color, but
+conventional Matplotlib keywords can be used to change markers and
+colors:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">log</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="s1">&#39;r-&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">over</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">log</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>If the NXdata group contains RGB(A) image data, <em>i.e.</em>, the signal is a
-three-dimensional array, in which the fastest varying dimension, which should be
-of size 3 or 4, contains the RGB(A) values for each two-dimensional pixel, then
-the image can be plotted using the ‘image=True’.</p>
+three-dimensional array, in which the fastest varying dimension, which
+should be of size 3 or 4, contains the RGB(A) values for each
+two-dimensional pixel, then the image can be plotted using the
+‘image=True’.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">image</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>By convention, the first pixel of an image is in the upper-left corner, rather
-than the lower-left used in other two-dimensional plots.</p>
+<p>By convention, the first pixel of an image is in the upper-left corner,
+rather than the lower-left used in other two-dimensional plots.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>The plot method also works on NXroot and NXentry groups, if they are
-able to identify plottable data. If the <code class="docutils literal notranslate"><span class="pre">default</span></code> attribute is set,
-the default NXentry and/or NXdata groups are used. Otherwise, the
-first valid NXdata group found in an iterative search is used.</p>
+<p>The plot method also works on NXroot and NXentry groups, if
+they are able to identify plottable data. If the <code class="docutils literal notranslate"><span class="pre">default</span></code>
+attribute is set, the default NXentry and/or NXdata groups
+are used. Otherwise, the first valid NXdata group found in an
+iterative search is used.</p>
 </div>
 <div class="section" id="additional-plot-methods">
 <h3>Additional Plot Methods<a class="headerlink" href="#additional-plot-methods" title="Permalink to this headline">¶</a></h3>
-<p>As a convenience, additional plot methods can be used instead of adding extra
-keywords.</p>
+<p>As a convenience, additional plot methods can be used instead of adding
+extra keywords.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="o">.</span><span class="n">oplot</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="o">.</span><span class="n">logplot</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="o">.</span><span class="n">implot</span><span class="p">()</span>
 </pre></div>
 </div>
-<p>These are equivalent to setting the ‘over’, ‘log’, and ‘image’ keywords to True
-when invoking the plot method.</p>
+<p>These are equivalent to setting the ‘over’, ‘log’, and ‘image’ keywords
+to True when invoking the plot method.</p>
 </div>
 </div>
 <div class="section" id="manipulating-nexus-data">
@@ -781,10 +785,11 @@ when invoking the plot method.</p>
 <h3>Arithmetic Operations<a class="headerlink" href="#arithmetic-operations" title="Permalink to this headline">¶</a></h3>
 <div class="section" id="nxfield">
 <h4>NXfield<a class="headerlink" href="#nxfield" title="Permalink to this headline">¶</a></h4>
-<p>NXfields usually consist of arrays of numeric data with associated metadata, the
-NeXus attributes (the exception is when they contain character strings). This
-makes them similar to NumPy arrays, and this module allows the use of NXfields
-in numerical operations as if they were NumPy ndarrays:</p>
+<p>NXfields usually consist of arrays of numeric data with associated
+metadata, the NeXus attributes (the exception is when they contain
+character strings). This makes them similar to NumPy arrays, and this
+module allows the use of NXfields in numerical operations as if they
+were NumPy ndarrays:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">NXfield</span><span class="p">((</span><span class="mf">1.0</span><span class="p">,</span><span class="mf">2.0</span><span class="p">,</span><span class="mf">3.0</span><span class="p">,</span><span class="mf">4.0</span><span class="p">))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">x</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
 <span class="go">[ 2.  3.  4.  5.]</span>
@@ -808,20 +813,20 @@ in numerical operations as if they were NumPy ndarrays:</p>
 <span class="go">dtype(&#39;float64&#39;)</span>
 </pre></div>
 </div>
-<p>Such operations return valid NXfield objects containing the same attributes
-as the first NXobject in the expression. The ‘reshape’ and ‘transpose’ methods
-also return NXfield objects.</p>
-<p>NXfields can be compared to other NXfields (this is a comparison of their NumPy
-arrays):</p>
+<p>Such operations return valid NXfield objects containing the same
+attributes as the first NXobject in the expression. The ‘reshape’ and
+‘transpose’ methods also return NXfield objects.</p>
+<p>NXfields can be compared to other NXfields (this is a comparison of
+their NumPy arrays):</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">y</span><span class="o">=</span><span class="n">NXfield</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">((</span><span class="mf">1.5</span><span class="p">,</span><span class="mf">2.5</span><span class="p">,</span><span class="mf">3.5</span><span class="p">)),</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;y&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">==</span> <span class="n">y</span>
 <span class="go">True</span>
 </pre></div>
 </div>
-<p>NXfields are technically not a sub-class of the NumPy <code class="docutils literal notranslate"><span class="pre">ndarray</span></code> class, but they
-are cast as NumPy arrays when required by NumPy operations, returning either
-another NXfield or, in some cases, an array that can easily be converted to an
-NXfield:</p>
+<p>NXfields are technically not a sub-class of the NumPy <code class="docutils literal notranslate"><span class="pre">ndarray</span></code> class,
+but they are cast as NumPy arrays when required by NumPy operations,
+returning either another NXfield or, in some cases, an array that can
+easily be converted to an NXfield:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">NXfield</span><span class="p">((</span><span class="mf">1.0</span><span class="p">,</span><span class="mf">2.0</span><span class="p">,</span><span class="mf">3.0</span><span class="p">,</span><span class="mf">4.0</span><span class="p">))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">.</span><span class="n">size</span>
 <span class="go">4</span>
@@ -971,8 +976,8 @@ summation:</p>
 </dl>
 </li>
 <li><dl>
-<dt><code class="docutils literal notranslate"><span class="pre">NXdata.moment(order=1)</span></code>:</dt><dd><p>Returns an NXfield containing the first moment of the NXdata group assuming
-the signal is one-dimensional:</p>
+<dt><code class="docutils literal notranslate"><span class="pre">NXdata.moment(order=1)</span></code>:</dt><dd><p>Returns an NXfield containing the first moment of the NXdata group
+assuming the signal is one-dimensional:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">10.</span><span class="p">,</span> <span class="mi">11</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">y</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="p">(</span><span class="n">x</span><span class="o">-</span><span class="mi">3</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">=</span><span class="n">NXdata</span><span class="p">(</span><span class="n">y</span><span class="p">,</span><span class="n">x</span><span class="p">)</span>
@@ -988,8 +993,8 @@ the signal is one-dimensional:</p>
 </div>
 <div class="section" id="slicing">
 <h3>Slicing<a class="headerlink" href="#slicing" title="Permalink to this headline">¶</a></h3>
-<div class="section" id="id2">
-<h4>NXfield<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id1">
+<h4>NXfield<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h4>
 <p>A slice of an NXfield can be obtained using the usual Python indexing syntax:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">=</span><span class="n">NXfield</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span><span class="mi">101</span><span class="p">))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">51</span><span class="p">])</span>
@@ -1003,22 +1008,22 @@ themselves (assuming the array is monotonic):</p>
 </pre></div>
 </div>
 </div>
-<div class="section" id="id3">
-<h4>NXdata<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h4>
-<p>It is also possible to slice whole NXdata groups. In this case, the slicing
-works on the multidimensional NXfield, but the full NXdata group is returned
-with both the signal data and the associated axes limited by the slice
-parameters. If either of the limits along any one axis is a float, the limits
-are set by the values of the axis:</p>
+<div class="section" id="id2">
+<h4>NXdata<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h4>
+<p>It is also possible to slice whole NXdata groups. In this case, the
+slicing works on the multidimensional NXfield, but the full NXdata group
+is returned with both the signal data and the associated axes limited by
+the slice parameters. If either of the limits along any one axis is a
+float, the limits are set by the values of the axis:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">=</span><span class="n">NXdata</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">x</span><span class="p">),</span><span class="n">x</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="p">[</span><span class="mf">1.5</span><span class="p">:</span><span class="mf">2.5</span><span class="p">]</span><span class="o">.</span><span class="n">x</span>
 <span class="go">NXfield(name=x,value=[ 1.57079633  1.72787596  1.88495559 ...,  2.19911486  2.35619449])</span>
 </pre></div>
 </div>
-<p>Unless the slice reduces one of the axes to a single item, the rank of the data
-remains the same. To project data along one of the axes, and so reduce the rank
-by one, the data can be summed along that axis using the sum() method. This
-employs the NumPy array sum() method:</p>
+<p>Unless the slice reduces one of the axes to a single item, the rank of
+the data remains the same. To project data along one of the axes, and so
+reduce the rank by one, the data can be summed along that axis using the
+sum() method. This employs the NumPy array sum() method:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">=</span><span class="n">y</span><span class="o">=</span><span class="n">NXfield</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span><span class="mi">41</span><span class="p">))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">X</span><span class="p">,</span><span class="n">Y</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">=</span><span class="n">NXdata</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">X</span><span class="p">)</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">Y</span><span class="p">),</span> <span class="p">(</span><span class="n">y</span><span class="p">,</span><span class="n">x</span><span class="p">))</span>
@@ -1335,10 +1340,10 @@ users accessing the same data.</p>
 <p>When the <em>nexusformat</em> package is loaded, environment variables take
 precedence over the package defaults. The user can still override them
 manually by calling <code class="docutils literal notranslate"><span class="pre">nxsetconfig</span></code>.</p>
-<p>All of the configuration parameters defined in the previous section can be
-defined. The equivalent environment variable name is constructed by prefixing
-the parameter name in upper case by ‘<a href="#id5"><span class="problematic" id="id6">NX_</span></a>’, <em>e.g.</em>, ‘NX_COMPRESSION’,
-‘NX_ENCODING’, <em>etc</em>.</p>
+<p>All of the configuration parameters defined in the previous section can
+be defined. The equivalent environment variable name is constructed by
+prefixing the parameter name in upper case by ‘NX_’, <em>e.g.</em>,
+‘NX_COMPRESSION’, ‘NX_ENCODING’, <em>etc</em>.</p>
 </div>
 </div>
 </div>
@@ -1385,8 +1390,8 @@ the parameter name in upper case by ‘<a href="#id5"><span class="problematic" 
 </ul>
 </li>
 <li><a class="reference internal" href="#slicing">Slicing</a><ul>
-<li><a class="reference internal" href="#id2">NXfield</a></li>
-<li><a class="reference internal" href="#id3">NXdata</a></li>
+<li><a class="reference internal" href="#id1">NXfield</a></li>
+<li><a class="reference internal" href="#id2">NXdata</a></li>
 </ul>
 </li>
 </ul>
