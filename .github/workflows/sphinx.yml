@@ -16,10 +16,6 @@ jobs:
       contents: write
     steps:
     - uses: actions/checkout@v4
-    - name: Install dependencies
-      run:  |
-        python -m pip install importlib
-        python -m pip install nexpy
     - name: Build HTML
       uses: ammaraskar/sphinx-action@master
     - name: Upload artifacts
