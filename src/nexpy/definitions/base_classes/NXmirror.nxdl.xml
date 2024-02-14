@@ -3,7 +3,7 @@
 <!--
 # NeXus - Neutron and X-ray Common Data Format
 # 
-# Copyright (C) 2008-2021 NeXus International Advisory Committee (NIAC)
+# Copyright (C) 2008-2022 NeXus International Advisory Committee (NIAC)
 # 
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -28,7 +28,8 @@
 	type="group" extends="NXobject">
     <doc>A beamline mirror or supermirror.</doc>
 
-    <group type="NXgeometry"><doc><!-- TODO explain what this group means --></doc>
+    <group type="NXgeometry" deprecated="Use the field `depends_on` and :ref:`NXtransformations` to position the mirror and NXoff_geometry to describe its shape instead">
+        <doc><!-- TODO explain what this group means --></doc>
     </group>
     <field name="type">
       <enumeration>
@@ -108,11 +109,16 @@
     <field name="layer_thickness" type="NX_FLOAT" units="NX_LENGTH">
       <doc> An array describing the thickness of each layer</doc>
     </field>
-    <group type="NXshape" name="shape">
+    <group type="NXshape" name="shape" deprecated="Use NXoff_geometry instead">
         <doc>A NXshape group describing the shape of the mirror</doc>
     </group>
     <group name="figure_data" type="NXdata">
         <doc>Numerical description of the surface figure of the mirror.</doc>
+    </group>
+    <group type="NXoff_geometry" minOccurs="0">
+       <doc>
+           This group describes the shape of the beam line component
+        </doc>
     </group>
     <attribute name="default">
         <doc>
@@ -127,6 +133,32 @@
             for a summary of the discussion.
         </doc>
     </attribute>
+    <field name="depends_on" type="NX_CHAR">
+        <doc>
+            NeXus positions components by applying a set of translations and rotations
+            to apply to the component starting from 0, 0, 0. The order of these operations
+            is critical and forms what NeXus calls a dependency chain. The depends_on
+            field defines the path to the top most operation of the dependency chain or the
+            string "." if located in the origin. Usually these operations are stored in a
+            NXtransformations group. But NeXus allows them to be stored anywhere.
+
+            Given a flat mirror, the reference plane is the plane which contains the "entry" surface of the mirror. The reference
+            point of the mirror in the x and y axis is the centre of the mirror on that plane. The reference plane is orthogonal
+            to the z axis and the location of this plane is the reference point on the z axis. The mirror faces negative z values.
+
+            .. image:: mirror/mirror.png
+              :width: 40%
+
+        </doc>
+    </field>
+    <group type="NXtransformations">
+        <doc>
+            This is the group recommended for holding the chain of translation
+            and rotation operations necessary to position the component within
+            the instrument. The dependency chain may however traverse similar groups in
+            other component groups.
+        </doc>
+    </group>
     <!-- TODO need more parameters here, such as ...
         list from Rainer Gehrke, DESY (some items may already be present)
 

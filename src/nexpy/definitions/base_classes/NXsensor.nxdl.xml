@@ -3,7 +3,7 @@
 <!--
 # NeXus - Neutron and X-ray Common Data Format
 # 
-# Copyright (C) 2008-2021 NeXus International Advisory Committee (NIAC)
+# Copyright (C) 2008-2022 NeXus International Advisory Committee (NIAC)
 # 
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -43,8 +43,10 @@
 	<field name="attached_to">
 		<doc>where sensor is attached to ("sample" | "can")</doc>
 	</field>
-	<group name="geometry" type="NXgeometry">
-		<doc>Defines the axes for logged vector quantities if they are not the global instrument axes</doc>
+        <group name="geometry" type="NXgeometry" deprecated="Use the field `depends_on` and :ref:`NXtransformations` to position the beamstop and NXoff_geometry to describe its shape instead">
+		<doc>
+			Defines the axes for logged vector quantities if they are not the global instrument axes.
+		</doc>
 	</group>
 	<field name="measurement">
 		<doc>name for measured signal</doc>
@@ -147,6 +149,11 @@
 	<group name="external_field_full" type="NXorientation">
 		<doc>For complex external fields not satisfied by External_field_brief</doc>
 	</group>
+        <group type="NXoff_geometry" minOccurs="0">
+                <doc>
+                         This group describes the shape of the sensor when necessary.
+                </doc>
+        </group>
     <attribute name="default">
         <doc>
             .. index:: plotting
@@ -160,5 +167,27 @@
             for a summary of the discussion.
         </doc>
     </attribute>
+    <field name="depends_on" type="NX_CHAR">
+        <doc>
+            NeXus positions components by applying a set of translations and rotations
+            to apply to the component starting from 0, 0, 0. The order of these operations
+            is critical and forms what NeXus calls a dependency chain. The depends_on
+            field defines the path to the top most operation of the dependency chain or the
+            string "." if located in the origin. Usually these operations are stored in a
+            NXtransformations group. But NeXus allows them to be stored anywhere.
+
+            .. todo::
+              Add a definition for the reference point of a sensor.
+              
+        </doc>
+    </field>
+    <group type="NXtransformations">
+        <doc>
+            This is the group recommended for holding the chain of translation
+            and rotation operations necessary to position the component within
+            the instrument. The dependency chain may however traverse similar groups in
+            other component groups.
+        </doc>
+    </group>
 </definition>
 

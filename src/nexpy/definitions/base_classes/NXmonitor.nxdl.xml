@@ -3,7 +3,7 @@
 <!--
 # NeXus - Neutron and X-ray Common Data Format
 # 
-# Copyright (C) 2008-2021 NeXus International Advisory Committee (NIAC)
+# Copyright (C) 2008-2022 NeXus International Advisory Committee (NIAC)
 # 
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -30,7 +30,7 @@
         A monitor of incident beam data. 
         
         It is similar to the :ref:`NXdata` groups containing
-        monitor data and its associated dimension scale, e.g. time_of_flight or
+        monitor data and its associated axis coordinates, e.g. time_of_flight or
         wavelength in pulsed neutron instruments. However, it may also include
         integrals, or scalar monitor counts, which are often used in both in both
         pulsed and steady-state instrumentation.
@@ -54,7 +54,7 @@
     <field name="preset" type="NX_NUMBER" units="NX_ANY">
         <doc>preset value for time or monitor</doc>
     </field>
-    <field name="distance" type="NX_FLOAT" units="NX_LENGTH">
+    <field name="distance" type="NX_FLOAT" units="NX_LENGTH" deprecated="Use transformations/distance instead">
         <doc>Distance of monitor from sample</doc>
     </field>
     <field name="range" type="NX_FLOAT" units="NX_ANY">
@@ -96,13 +96,12 @@
                 ``1 &lt;= dataRank &lt;= NX_MAXRANK=32``.  
                 At least one ``dim`` must have length ``n``.
             </doc>
-            <dim index="0" value="n"><!-- index="0": cannot know to which dimension this applies a priori --></dim>
         </dimensions>
     </field>
     <field name="sampled_fraction" type="NX_FLOAT" units="NX_DIMENSIONLESS">
         <doc>Proportion of incident beam sampled by the monitor (0&lt;x&lt;1)</doc>
     </field>
-    <group type="NXgeometry">
+    <group type="NXgeometry" deprecated="Use the field `depends_on` and :ref:`NXtransformations` to position the monitor and NXoff_geometry to describe its shape instead">
         <doc>Geometry of the monitor</doc>
     </group>
     <field name="count_time" type="NX_FLOAT" units="NX_TIME">
@@ -113,6 +112,11 @@
             pauses or times lost due beam unavailability
 	    </doc>
     </field>
+    <group type="NXoff_geometry" minOccurs="0">
+       <doc>
+           This group describes the shape of the beam line component
+        </doc>
+    </group>
     <attribute name="default">
         <doc>
             .. index:: plotting
@@ -126,4 +130,31 @@
             for a summary of the discussion.
         </doc>
     </attribute>
+    <field name="depends_on" type="NX_CHAR">
+        <doc>
+            NeXus positions components by applying a set of translations and rotations
+            to apply to the component starting from 0, 0, 0. The order of these operations
+            is critical and forms what NeXus calls a dependency chain. The depends_on
+            field defines the path to the top most operation of the dependency chain or the
+            string "." if located in the origin. Usually these operations are stored in a
+            NXtransformations group. But NeXus allows them to be stored anywhere.
+
+            The reference plane of the monitor contains the surface of the detector that faces the source
+            and is the entry point of the beam. The reference point of the monitor in the x and y axis is
+            its centre on this surface. The reference plane is orthogonal to the the z axis and the
+            reference point on this z axis is where they intersect.
+
+            .. image:: monitor/monitor.png
+              :width: 40%
+
+        </doc>
+    </field>
+    <group type="NXtransformations">
+        <doc>
+            This is the group recommended for holding the chain of translation
+            and rotation operations necessary to position the component within
+            the instrument. The dependency chain may however traverse similar groups in
+            other component groups.
+        </doc>
+    </group>
 </definition>

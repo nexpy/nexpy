@@ -3,7 +3,7 @@
 <!--
 # NeXus - Neutron and X-ray Common Data Format
 # 
-# Copyright (C) 2008-2021 NeXus International Advisory Committee (NIAC)
+# Copyright (C) 2008-2022 NeXus International Advisory Committee (NIAC)
 # 
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -49,7 +49,7 @@
     vertical plane.
   </doc>
 
-  <group type="NXgeometry">
+  <group type="NXgeometry" deprecated="Use the field `depends_on` and :ref:`NXtransformations` to position the crystal and NXoff_geometry to describe its shape instead">
     <doc>Position of crystal</doc>
   </group>
   <field name="usage" type="NX_CHAR">
@@ -229,11 +229,15 @@
     <doc>
       Polar (scattering) angle at which crystal assembly is positioned.  
       Note: some instrument geometries call this term 2theta.
+      Note: it is recommended to use NXtransformations instead.
     </doc>
     <dimensions><dim index="1" value="i"/></dimensions>
   </field>
   <field name="azimuthal_angle" type="NX_FLOAT" units="NX_ANGLE">
-    <doc>Azimuthal angle at which crystal assembly is positioned</doc>
+    <doc>
+      Azimuthal angle at which crystal assembly is positioned.
+      Note: it is recommended to use NXtransformations instead.
+    </doc>
     <dimensions><dim index="1" value="i"/></dimensions>
   </field>
   <field name="bragg_angle" type="NX_FLOAT" units="NX_ANGLE">
@@ -255,8 +259,13 @@
   <group type="NXdata" name="transmission">
     <doc>crystal transmission versus wavelength</doc>
   </group>
-  <group type="NXshape" name="shape">
+  <group type="NXshape" name="shape" deprecated="Use NXoff_geometry instead to describe the shape of the monochromator">
     <doc>A NXshape group describing the shape of the crystal arrangement</doc>
+  </group>
+  <group type="NXoff_geometry" minOccurs="0">
+   <doc>
+     This group describes the shape of the beam line component
+    </doc>
   </group>
   <attribute name="default">
       <doc>
@@ -271,6 +280,24 @@
           for a summary of the discussion.
       </doc>
   </attribute>
+  <field name="depends_on" type="NX_CHAR">
+      <doc>
+          NeXus positions components by applying a set of translations and rotations
+          to apply to the component starting from 0, 0, 0. The order of these operations
+          is critical and forms what NeXus calls a dependency chain. The depends_on
+          field defines the path to the top most operation of the dependency chain or the
+          string "." if located in the origin. Usually these operations are stored in a
+          NXtransformations group. But NeXus allows them to be stored anywhere.
+
+          .. todo::
+            Add a definition for the reference point of a crystal.
+      </doc>
+  </field>
+  <group type="NXtransformations">
+    <doc>
+      Transformations used by this component to define its position and orientation.
+    </doc>
+  </group>
   <!-- TODO need more parameters here, such as ...
        list from Rainer Gehrke, DESY (some items may already be present)
 

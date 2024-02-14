@@ -3,7 +3,7 @@
 <!--
 # NeXus - Neutron and X-ray Common Data Format
 #
-# Copyright (C) 2008-2021 NeXus International Advisory Committee (NIAC)
+# Copyright (C) 2008-2022 NeXus International Advisory Committee (NIAC)
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -31,11 +31,19 @@
             >
 
   <symbols>
-    <doc>These symbols will be used below to coordinate datasets with the same shape.</doc>
-    <symbol name="np"><doc>number of scan points (only present in scanning measurements)</doc></symbol>
+    <doc>
+      These symbols will be used below to illustrate the coordination of the rank and sizes of datasets and the 
+      preferred ordering of the dimensions. Each of these are optional (so the rank of the datasets 
+      will vary according to the situation) and the general ordering principle is slowest to fastest.
+      The type of each dimension should follow the order of scan points, detector output (e.g. pixels),
+      then time-of-flight (i.e. spectroscopy, spectrometry). Note that the output of a detector is not limited 
+      to single values (0D), lists (1D) and images (2), but three or higher dimensional arrays can be produced 
+      by a detector at each trigger.
+    </doc>
+    
+    <symbol name="nP"><doc>number of scan points (only present in scanning measurements)</doc></symbol>
     <symbol name="i"><doc>number of detector pixels in the first (slowest) direction</doc></symbol>
     <symbol name="j"><doc>number of detector pixels in the second (faster) direction</doc></symbol>
-    <symbol name="k"><doc>number of detector pixels in the third (if necessary, fastest) direction</doc></symbol>
     <symbol name="tof"><doc>number of bins in the time-of-flight histogram</doc></symbol>
   </symbols>
 
@@ -89,10 +97,33 @@
   </field>
 
   <field name="data" type="NX_NUMBER" units="NX_ANY">
-    <doc>Data values from the detector.</doc>
+    <doc>
+      Data values from the detector. The rank and dimension ordering should follow a principle of
+      slowest to fastest measurement axes and may be explicitly specified in application definitions.
+      
+      Mechanical scanning of objects (e.g. sample position/angle, incident beam energy, etc) tends to be
+      the slowest part of an experiment and so any such scan axes should be allocated to the first dimensions
+      of the array. Note that in some cases it may be useful to represent a 2D set of scan points as a single
+      scan-axis in the data array, especially if the scan pattern doesn't fit a rectangular array nicely.
+      Repetition of an experiment in a time series tends to be used similar to a slow scan axis
+      and so will often be in the first dimension of the data array.
+      
+      The next fastest axes are typically the readout of the detector. A point detector will not add any dimensions
+      (as it is just a single value per scan point) to the data array, a strip detector will add one dimension, an 
+      imaging detector will add two dimensions (e.g. X, Y axes) and detectors outputting higher dimensional data 
+      will add the corresponding number of dimensions. Note that the detector dimensions don't necessarily have to
+      be written in order of the actual readout speeds - the slowest to fastest rule principle is only a guide.
+      
+      Finally, detectors that operate in a time-of-flight mode, such as a neutron spectrometer or a silicon drift 
+      detector (used for X-ray fluorescence) tend to have their dimension(s) added to the last dimensions in the data array.
+      
+      The type of each dimension should should follow the order of scan points, detector pixels, 
+      then time-of-flight (i.e. spectroscopy, spectrometry). The rank and dimension sizes (see symbol list) 
+      shown here are merely illustrative of coordination between related datasets.
+    </doc>
 
     <dimensions rank="4">
-      <dim index="1" value="np" />
+      <dim index="1" value="nP" />
       <dim index="2" value="i" />
       <dim index="3" value="j" />
       <dim index="4" value="tof" />
@@ -110,13 +141,13 @@
 
   <field name="data_errors" type="NX_NUMBER" units="NX_ANY">
     <doc>
-      The best estimate of the uncertainty in the data value. Where
+      The best estimate of the uncertainty in the data value (array size should match the data field). Where
       possible, this should be the standard deviation, which has the same units
       as the data. The form data_error is deprecated.
     </doc>
 
     <dimensions rank="4">
-      <dim index="1" value="np" />
+      <dim index="1" value="nP" />
       <dim index="2" value="i" />
       <dim index="3" value="j" />
       <dim index="4" value="tof" />
@@ -126,9 +157,14 @@
 
   <field name="x_pixel_offset" type="NX_FLOAT" units="NX_LENGTH">
     <doc>
-  Offset from the detector center in x-direction.
-  Can be multidimensional when needed.
+      Offset from the detector center in x-direction.
+      Can be multidimensional when needed.
     </doc>
+
+    <dimensions rank="2">
+      <dim index="1" value="i" />
+      <dim index="2" value="j" />
+    </dimensions>
 
     <attribute name="axis" type="NX_POSINT"
       deprecated="see: https://github.com/nexusformat/definitions/issues/436">
@@ -151,9 +187,14 @@
 
   <field name="y_pixel_offset" type="NX_FLOAT" units="NX_LENGTH">
     <doc>
-  Offset from the detector center in the y-direction.
-  Can be multidimensional when different values are required for each pixel.
+      Offset from the detector center in the y-direction.
+      Can be multidimensional when different values are required for each pixel.
     </doc>
+
+    <dimensions rank="2">
+      <dim index="1" value="i" />
+      <dim index="2" value="j" />
+    </dimensions>
 
     <attribute name="axis" type="NX_POSINT"
       deprecated="see: https://github.com/nexusformat/definitions/issues/436">
@@ -177,9 +218,14 @@
 
   <field name="z_pixel_offset" type="NX_FLOAT" units="NX_LENGTH">
     <doc>
-	Offset from the detector center in the z-direction.
-	Can be multidimensional when different values are required for each pixel.
+      Offset from the detector center in the z-direction.
+      Can be multidimensional when different values are required for each pixel.
     </doc>
+
+    <dimensions rank="2">
+      <dim index="1" value="i" />
+      <dim index="2" value="j" />
+    </dimensions>
 
     <attribute name="axis" type="NX_POSINT"
       deprecated="see: https://github.com/nexusformat/definitions/issues/436">
@@ -207,10 +253,12 @@
       nature of the detector: Most often it is the distance of the
       detector assembly. But there are irregular detectors. In this
       case the distance must be specified for each detector pixel.
+
+      Note, it is recommended to use NXtransformations instead.
     </doc>
 
     <dimensions rank="3">
-      <dim index="1" value="np" />
+      <dim index="1" value="nP" />
       <dim index="2" value="i" />
       <dim index="3" value="j" />
     </dimensions>
@@ -226,10 +274,12 @@
       But there are irregular detectors.
       In this
       case, the polar_angle  must be specified for each detector pixel.
+
+      Note, it is recommended to use NXtransformations instead.
     </doc>
 
     <dimensions rank="3">
-      <dim index="1" value="np" />
+      <dim index="1" value="nP" />
       <dim index="2" value="i" />
       <dim index="3" value="j" />
     </dimensions>
@@ -245,10 +295,12 @@
       But there are irregular detectors.
       In this
       case, the azimuthal_angle  must be specified for each detector pixel.
+
+      Note, it is recommended to use NXtransformations instead.
     </doc>
 
     <dimensions rank="3">
-      <dim index="1" value="np" />
+      <dim index="1" value="nP" />
       <dim index="2" value="i" />
       <dim index="3" value="j" />
     </dimensions>
@@ -266,7 +318,7 @@
     <doc>Local name for the detector</doc>
   </field>
 
-  <group type="NXgeometry">
+  <group type="NXgeometry" deprecated="Use the field `depends_on` and :ref:`NXtransformations` to position the detector and NXoff_geometry to describe its shape instead">
     <doc>Position and orientation of detector</doc>
   </group>
 
@@ -303,7 +355,7 @@
     <doc>Detector dead time</doc>
 
     <dimensions rank="3">
-      <dim index="1" value="np" />
+      <dim index="1" value="nP" />
       <dim index="2" value="i" />
       <dim index="3" value="j" />
     </dimensions>
@@ -369,6 +421,18 @@
     </doc>
   </field>
 
+  <group name="CHANNELNAME_channel" type="NXdetector_channel">
+      <doc>
+          Group containing the description and metadata for a single channel from a multi-channel
+          detector.
+
+          Given an :ref:`NXdata` group linked as part of an NXdetector group that has an axis with
+          named channels (see the example in :ref:`NXdata &lt;/NXdata@default_slice-attribute&gt;`),
+          the NXdetector will have a series of NXdetector_channel groups, one for each channel,
+          named CHANNELNAME_channel.
+      </doc>
+  </group>
+
   <group name="efficiency" type="NXdata">
     <doc>Spectral efficiency of detector with respect to e.g. wavelength</doc>
     <attribute name="signal">
@@ -396,10 +460,9 @@
     <field name="efficiency" type="NX_FLOAT" units="NX_DIMENSIONLESS">
       <doc>efficiency of the detector</doc>
 
-      <dimensions rank="3">
+      <dimensions rank="2">
         <dim index="1" value="i" />
         <dim index="2" value="j" />
-        <dim index="3" value="k" />
       </dimensions>
     </field>
 
@@ -418,10 +481,9 @@
            have the same dimensionality.
       </doc>
 
-      <dimensions rank="3">
+      <dimensions rank="2">
         <dim index="1" value="i" />
         <dim index="2" value="j" />
-        <dim index="3" value="k" />
       </dimensions>
     </field>
   </group>
@@ -438,7 +500,7 @@
       the rank of this field should be less than or equal to (detector rank + 1).
     </doc>
     <dimensions rank="3">
-      <dim index="1" value="np" />
+      <dim index="1" value="nP" />
       <dim index="2" value="i" />
       <dim index="3" value="j" />
     </dimensions>
@@ -447,14 +509,14 @@
   <field name="start_time" type="NX_FLOAT" units="NX_TIME">
     <doc>start time for each frame, with the ``start`` attribute as absolute reference</doc>
     <dimensions rank="1">
-       <dim index="1" value="np"/>
+       <dim index="1" value="nP"/>
     </dimensions>
     <attribute name="start" type="NX_DATE_TIME" />
   </field>
   <field name="stop_time" type="NX_FLOAT" units="NX_TIME">
     <doc>stop time for each frame, with the ``start`` attribute as absolute reference</doc>
     <dimensions rank="1">
-      <dim index="1" value="np"/>
+      <dim index="1" value="nP"/>
     </dimensions>
     <attribute name="start" type="NX_DATE_TIME" />
   </field>
@@ -486,7 +548,7 @@
     <doc>Elapsed actual counting time</doc>
 
     <dimensions rank="1">
-      <dim index="1" value="np" />
+      <dim index="1" value="nP" />
     </dimensions>
   </field>
 
@@ -506,7 +568,7 @@
     </doc>
 
     <dimensions rank="1">
-      <dim index="1" value="nBrightFrames" />
+      <dim index="1" value="nP" />
     </dimensions>
   </field>
 
@@ -530,7 +592,7 @@
 
   <field name="frame_start_number" type="NX_INT">
     <doc>
-      This is the start number of the first frame of a scan. In PX one
+      This is the start number of the first frame of a scan. In protein crystallography measurements one
       often scans a couple of frames on a give sample, then does something else,
       then returns to the same sample and scans some more frames. Each time with
       a new data file. This number helps concatenating such measurements.
@@ -646,10 +708,62 @@
       <dim index="2" value="j"/>
     </dimensions>
   </field>
+
+  <field name="image_key" type="NX_INT" >
+    <doc>
+      This field allow to distinguish different types of exposure to the same detector "data" field.
+      Some techniques require frequent (re-)calibration inbetween measuremnts and this way of
+      recording the different measurements preserves the chronological order with is important for
+      correct processing.
+
+      This is used for example in tomography (`:ref:`NXtomo`) sample projections,
+      dark and flat images, a magic number is recorded per frame.
+
+      The key is as follows:
+
+      * projection (sample) = 0
+      * flat field = 1
+      * dark field = 2
+      * invalid = 3
+      * background (no sample, but buffer where applicable) = 4
+
+      In cases where the data is of type :ref:`NXlog` this can also be an NXlog.
+    </doc>
+    <dimensions rank="1">
+      <dim index="1" value="np" />
+    </dimensions>
+  </field>
+
   <field name="countrate_correction_applied" type="NX_BOOLEAN" >
     <doc>
-      True when a count-rate correction has already been applied in the
-      electronics, false otherwise.
+      Counting detectors usually are not able to measure all incoming particles,
+      especially at higher count-rates. Count-rate correction is applied to
+      account for these errors.
+
+      True when count-rate correction has been applied, false otherwise.
+    </doc>
+  </field>
+  <field name="countrate_correction_lookup_table" type="NX_NUMBER" >
+    <doc>
+      The countrate_correction_lookup_table defines the LUT used for count-rate
+      correction. It maps a measured count :math:`c` to its corrected value
+      :math:`countrate\_correction\_lookup\_table[c]`.
+
+      :math:`m` denotes the length of the table.
+    </doc>
+    <dimensions rank="1">
+      <dim index="1" value="m"/>
+    </dimensions>
+  </field>
+  <field name="virtual_pixel_interpolation_applied" type="NX_BOOLEAN" >
+    <doc>
+      True when virtual pixel interpolation has been applied, false otherwise.
+
+      When virtual pixel interpolation is applied, values of some pixels may
+      contain interpolated values. For example, to account for space between
+      readout chips on a module, physical pixels on edges and corners between
+      chips may have larger sensor areas and counts may be distributed between
+      their logical pixels.
     </doc>
   </field>
   <field name="bit_depth_readout" type="NX_INT">
@@ -701,19 +815,31 @@
      This is time for each frame. This is exposure_time + readout time.
    </doc>
    <dimensions rank="1">
-      <dim index="1" value="NP" />
+      <dim index="1" value="nP" />
     </dimensions>
   </field>
   <field name="gain_setting" type="NX_CHAR">
-    <doc>The gain setting of the detector. This influences background etc.</doc>
-    <enumeration>
-      <item value="high"/>
-      <item value="standard"/>
-      <item value="fast"/>
-      <item value="auto"/>
-    </enumeration>
+    <doc>
+      The gain setting of the detector. This is a detector-specific value
+      meant to document the gain setting of the detector during data
+      collection, for detectors with multiple available gain settings.
+
+      Examples of gain settings include:
+
+      * ``standard``
+      * ``fast``
+      * ``auto``
+      * ``high``
+      * ``medium``
+      * ``low``
+      * ``mixed high to medium``
+      * ``mixed medium to low``
+
+      Developers are encouraged to use one of these terms, or to submit
+      additional terms to add to the list.
+    </doc>
   </field>
-  <field name="saturation_value" type="NX_INT">
+  <field name="saturation_value" type="NX_NUMBER">
     <doc>
       The value at which the detector goes into saturation.
       Especially common to CCD detectors, the data
@@ -722,9 +848,11 @@
       For example, given a saturation_value and an underload_value, the valid
       pixels are those less than or equal to the saturation_value and greater
       than or equal to the underload_value.
+
+      The precise type should match the type of the data.
     </doc>
   </field>
-  <field name="underload_value" type="NX_INT">
+  <field name="underload_value" type="NX_NUMBER">
     <doc>
       The lowest value at which pixels for this detector would be reasonably
       measured. The data is known to be invalid below this value.
@@ -732,6 +860,8 @@
       For example, given a saturation_value and an underload_value, the valid
       pixels are those less than or equal to the saturation_value and greater
       than or equal to the underload_value.
+
+      The precise type should match the type of the data.
     </doc>
   </field>
   <field name="number_of_cycles" type="NX_INT">
@@ -770,10 +900,6 @@
     <doc>
       For use in special cases where the data in NXdetector
       is represented in several parts, each with a separate geometry.
-
-      Use one or more instances of the NXdetector_module
-      group to declare regions of interest or some other
-      subdivision of a detector.
     </doc>
   </group>
   <choice name="pixel_shape">
@@ -817,4 +943,25 @@
           for a summary of the discussion.
       </doc>
   </attribute>
+  <field name="depends_on" type="NX_CHAR">
+      <doc>
+          NeXus positions components by applying a set of translations and rotations
+          to apply to the component starting from 0, 0, 0. The order of these operations
+          is critical and forms what NeXus calls a dependency chain. The depends_on
+          field defines the path to the top most operation of the dependency chain or the
+          string "." if located in the origin. Usually these operations are stored in a
+          NXtransformations group. But NeXus allows them to be stored anywhere.
+
+          The reference point of the detector is the center of the first pixel.
+          In complex geometries the NXoff_geometry groups can be used to provide an unambiguous reference.
+      </doc>
+  </field>
+  <group type="NXtransformations">
+      <doc>
+          This is the group recommended for holding the chain of translation
+          and rotation operations necessary to position the component within
+          the instrument. The dependency chain may however traverse similar groups in
+          other component groups.
+      </doc>
+  </group>
 </definition>

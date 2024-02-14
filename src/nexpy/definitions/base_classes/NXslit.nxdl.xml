@@ -3,7 +3,7 @@
 <!--
 # NeXus - Neutron and X-ray Common Data Format
 # 
-# Copyright (C) 2014-2021 NeXus International Advisory Committee (NIAC)
+# Copyright (C) 2014-2022 NeXus International Advisory Committee (NIAC)
 # 
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -41,6 +41,15 @@
 			on "." i.e. the origin of the coordinate system.
 			If desired the location of the slit can also be described relative to
 			an NXbeam, which will allow a simple description of a non-centred slit.
+
+			The reference plane of the slit is orthogonal to the z axis and includes the
+			surface that is the entry surface of the slit. The reference point of the slit
+			is the centre of the slit opening in the x and y axis on the reference plane.
+			The reference point on the z axis is the reference plane.
+
+			.. image:: slit/slit.png
+				:width: 40%
+
 		</doc>
 	</field>
 	<field name="x_gap" type="NX_NUMBER" units="NX_LENGTH">
@@ -68,4 +77,12 @@
             for a summary of the discussion.
         </doc>
     </attribute>
+    <group type="NXtransformations">
+        <doc>
+            This is the group recommended for holding the chain of translation
+            and rotation operations necessary to position the component within
+            the instrument. The dependency chain may however traverse similar groups in
+            other component groups.
+        </doc>
+    </group>
 </definition>

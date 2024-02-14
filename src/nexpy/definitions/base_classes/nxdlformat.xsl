@@ -169,7 +169,6 @@ line breaks are VERY TRICKY here, be careful how you edit!
           <xsl:value-of select="@name"/> (<xsl:choose>
                <xsl:when test="@category='base'">base class</xsl:when>
                <xsl:when test="@category='application'">application definition</xsl:when>
-               <xsl:when test="@category='contributed'">contributed definition</xsl:when>
           </xsl:choose>)<xsl:text><!-- tricky line break here -->
 </xsl:text></xsl:template>
      
@@ -178,7 +177,7 @@ line breaks are VERY TRICKY here, be careful how you edit!
 <!--
      # NeXus - Neutron and X-ray Common Data Format
      # 
-     # Copyright (C) 2008-2021 NeXus International Advisory Committee (NIAC)
+     # Copyright (C) 2008-2022 NeXus International Advisory Committee (NIAC)
      # 
      # This library is free software; you can redistribute it and/or
      # modify it under the terms of the GNU Lesser General Public

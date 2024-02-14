@@ -3,7 +3,7 @@
 <!--
 # NeXus - Neutron and X-ray Common Data Format
 # 
-# Copyright (C) 2008-2021 NeXus International Advisory Committee (NIAC)
+# Copyright (C) 2008-2022 NeXus International Advisory Committee (NIAC)
 # 
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -40,11 +40,11 @@
     </doc>
     <!-- 
         TODO compare with SHADOW definition "screen"
-        TODO  SHADOW: http://ftp.esrf.eu/pub/scisoft/shadow       or (older)   http://www.nanotech.wisc.edu/shadow  
+        TODO  SHADOW: https://github.com/oasys-kit/shadow3
     -->
 
     <field name="distance" type="NX_FLOAT" units="NX_LENGTH">
-        <doc>Distance from sample</doc>
+        <doc>Distance from sample. Note, it is recommended to use NXtransformations instead.</doc>
     </field>
     <field name="type">
         <doc>Type or composition of attenuator, e.g. polythene</doc>
@@ -88,4 +88,36 @@
             for a summary of the discussion.
         </doc>
     </attribute>
+    <field name="depends_on" type="NX_CHAR">
+      <doc>
+        NeXus positions components by applying a set of translations and rotations
+        to apply to the component starting from 0, 0, 0. The order of these operations
+        is critical and forms what NeXus calls a dependency chain. The depends_on
+        field defines the path to the top most operation of the dependency chain or the
+        string "." if located in the origin. Usually these operations are stored in a
+        NXtransformations group. But NeXus allows them to be stored anywhere.
+
+        The reference point of the attenuator is its center in the x and y axis. The reference point on the z axis is the
+        surface of the attenuator pointing towards the source.
+
+        In complex (asymmetic) geometries an NXoff_geometry group can be used to provide an unambiguous reference.
+
+        .. image:: attenuator/attenuator.png
+            :width: 40%
+
+      </doc>
+    </field>
+    <group type="NXtransformations">
+      <doc>
+        This is the group recommended for holding the chain of translation
+        and rotation operations necessary to position the component within
+        the instrument. The dependency chain may however traverse similar groups in
+        other component groups.
+      </doc>
+    </group>
+    <group name="shape" type="NXoff_geometry">
+      <doc>
+        Shape of this component. Particulary useful to define the origin for position and orientation in non-standard cases.
+      </doc>
+    </group>
 </definition>

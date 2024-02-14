@@ -3,7 +3,7 @@
 <!--
 # NeXus - Neutron and X-ray Common Data Format
 # 
-# Copyright (C) 2008-2021 NeXus International Advisory Committee (NIAC)
+# Copyright (C) 2008-2022 NeXus International Advisory Committee (NIAC)
 # 
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -27,11 +27,14 @@
     name="NXmoderator" 
 	type="group" extends="NXobject">
     <doc>A neutron moderator</doc>
-    <group type="NXgeometry">
+    <group type="NXgeometry" deprecated="Use the field `depends_on` and :ref:`NXtransformations` to position the moderator and NXoff_geometry to describe its shape instead">
         <doc>"Engineering" position of moderator</doc>
     </group>
     <field name="distance" type="NX_FLOAT" units="NX_LENGTH">
-        <doc>Effective distance as seen by measuring radiation</doc>
+        <doc>
+          Effective distance as seen by measuring radiation.
+          Note, it is recommended to use NXtransformations instead.
+        </doc>
     </field>
     <field name="type">
         <enumeration>
@@ -68,6 +71,11 @@
     <group type="NXdata" name="pulse_shape">
         <doc>moderator pulse shape</doc>
     </group>
+    <group type="NXoff_geometry" minOccurs="0">
+       <doc>
+           This group describes the shape of the moderator
+        </doc>
+    </group>
     <attribute name="default">
         <doc>
             .. index:: plotting
@@ -81,5 +89,30 @@
             for a summary of the discussion.
         </doc>
     </attribute>
+    <field name="depends_on" type="NX_CHAR">
+        <doc>
+            NeXus positions components by applying a set of translations and rotations
+            to apply to the component starting from 0, 0, 0. The order of these operations
+            is critical and forms what NeXus calls a dependency chain. The depends_on
+            field defines the path to the top most operation of the dependency chain or the
+            string "." if located in the origin. Usually these operations are stored in a
+            NXtransformations group. But NeXus allows them to be stored anywhere.
+
+            The reference point of the moderator is its center in the x and y axis. The reference point on the z axis is the
+            surface of the moderator pointing towards the source (the negative part of the z axis).
+
+            .. image:: moderator/moderator.png
+              :width: 40%
+
+        </doc>
+    </field>
+    <group type="NXtransformations">
+        <doc>
+            This is the group recommended for holding the chain of translation
+            and rotation operations necessary to position the component within
+            the instrument. The dependency chain may however traverse similar groups in
+            other component groups.
+        </doc>
+    </group>
 </definition>
 

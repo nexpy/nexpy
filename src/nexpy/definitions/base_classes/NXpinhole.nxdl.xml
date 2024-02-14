@@ -3,7 +3,7 @@
 <!--
 # NeXus - Neutron and X-ray Common Data Format
 # 
-# Copyright (C) 2014-2021 NeXus International Advisory Committee (NIAC)
+# Copyright (C) 2014-2022 NeXus International Advisory Committee (NIAC)
 # 
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -41,11 +41,27 @@
 			on "." i.e. the origin of the coordinate system.
 			If desired the location of the slit can also be described relative to
 			an NXbeam, which will allow a simple description of a non-centred pinhole.
+
+			The reference direction of the pinhole is parallel with the z axis. The reference
+			point of the pinhole is its center in the x and y axis. The reference point on the z axis is the
+			plane which overlaps the side of the opening of the pin hole pointing towards the source (minus on the z axis).
+
+			.. image:: pinhole/pinhole.png
+				:width: 40%
+
 		</doc>
 	</field>
 	<field name="diameter" type="NX_NUMBER" units="NX_LENGTH">
 		<doc>Size of the circular hole defining the transmitted beam size.</doc>
 	</field>
+    <group type="NXtransformations" minOccurs="0">
+        <doc>
+            This is the group recommended for holding the chain of translation
+            and rotation operations necessary to position the component within
+            the instrument. The dependency chain may however traverse similar groups in
+            other component groups.
+        </doc>
+    </group>
     <attribute name="default">
         <doc>
             .. index:: plotting

@@ -3,7 +3,7 @@
 <!--
 # NeXus - Neutron and X-ray Common Data Format
 # 
-# Copyright (C) 2008-2021 NeXus International Advisory Committee (NIAC)
+# Copyright (C) 2008-2022 NeXus International Advisory Committee (NIAC)
 # 
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -239,7 +239,7 @@
 	<field name="preparation_date" type="NX_DATE_TIME">
 		<doc>Date of preparation of the sample</doc>
 	</field>
-	<group name="geometry" type="NXgeometry">
+        <group name="geometry" type="NXgeometry" deprecated="Use the field `depends_on` and :ref:`NXtransformations` to position the sample and NXoff_geometry to describe its shape instead">
 		<doc>The position and orientation of the center of mass of the sample</doc>
 	</group>
 	<group type="NXbeam">
@@ -331,9 +331,6 @@
 	<group name="transmission" type="NXdata">
 		<doc>As a function of Wavelength</doc>
 	</group>
-	<group name="temperature" type="NXlog">
-		<doc>temperature.value is a link to e.g. temperature_env.sensor1.value</doc>
-	</group>
 	<group name="temperature_log" type="NXlog"
 		deprecated="use ``temperature``, see: https://github.com/nexusformat/definitions/issues/816">
 		<doc>temperature_log.value is a link to e.g. temperature_env.sensor1.value_log.value</doc>
@@ -365,18 +362,30 @@
 		<doc>
 			Optional rotation angle for the case when the powder diagram has 
 			been obtained through an omega-2theta scan like from a traditional 
-			single detector powder diffractometer
+			single detector powder diffractometer.
+			Note, it is recommended to use NXtransformations instead.
 		</doc>
 	</field>
 	<field name="x_translation" type="NX_FLOAT" units="NX_LENGTH">
-   <doc>Translation of the sample along the X-direction of the laboratory coordinate system</doc>
-  </field>
-  <field name="distance" type="NX_FLOAT" units="NX_LENGTH">
-   <doc>Translation of the sample along the Z-direction of the laboratory coordinate system</doc>
-  </field>
+		<doc>
+			Translation of the sample along the X-direction of the laboratory coordinate system
+			Note, it is recommended to use NXtransformations instead.
+		</doc>
+	</field>
+	<field name="distance" type="NX_FLOAT" units="NX_LENGTH">
+		<doc>
+			Translation of the sample along the Z-direction of the laboratory coordinate system.
+			Note, it is recommended to use NXtransformations instead.
+		</doc>
+	</field>
 	<group type="NXpositioner">
 	  <doc>Any positioner (motor, PZT, ...) used to locate the sample</doc>
 	</group>
+        <group type="NXoff_geometry" minOccurs="0">
+         <doc>
+           This group describes the shape of the sample
+          </doc>
+        </group>
     <attribute name="default">
         <doc>
             .. index:: plotting
@@ -390,5 +399,23 @@
             for a summary of the discussion.
         </doc>
     </attribute>
+    <field name="depends_on" type="NX_CHAR">
+        <doc>
+            NeXus positions components by applying a set of translations and rotations
+            to apply to the component starting from 0, 0, 0. The order of these operations
+            is critical and forms what NeXus calls a dependency chain. The depends_on
+            field defines the path to the top most operation of the dependency chain or the
+            string "." if located in the origin. Usually these operations are stored in a
+            NXtransformations group. But NeXus allows them to be stored anywhere.
+        </doc>
+    </field>
+    <group type="NXtransformations">
+        <doc>
+            This is the group recommended for holding the chain of translation
+            and rotation operations necessary to position the component within
+            the instrument. The dependency chain may however traverse similar groups in
+            other component groups.
+        </doc>
+    </group>
 </definition>
 

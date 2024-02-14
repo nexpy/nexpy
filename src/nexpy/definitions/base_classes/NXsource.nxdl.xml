@@ -3,7 +3,7 @@
 <!--
 # NeXus - Neutron and X-ray Common Data Format
 # 
-# Copyright (C) 2008-2021 NeXus International Advisory Committee (NIAC)
+# Copyright (C) 2008-2022 NeXus International Advisory Committee (NIAC)
 # 
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -163,9 +163,16 @@
 		<doc>For storage rings, the current at the end of the most recent injection.</doc>
 		<attribute name="time" type="NX_DATE_TIME"><doc>date and time of the most recent injection.</doc></attribute>
 	</field>
-	<group name="geometry" type="NXgeometry">
-		<doc>"Engineering" location of source</doc>
+        <group name="geometry" type="NXgeometry" deprecated="Use the field `depends_on` and :ref:`NXtransformations` to position the source and NXoff_geometry to describe its shape instead">
+		<doc>
+			"Engineering" location of source.
+		</doc>
 	</group>
+        <group type="NXoff_geometry" minOccurs="0">
+           <doc>
+               This group describes the shape of the beam line component
+            </doc>
+        </group>
 	<group type="NXdata" name="distribution">
 	  <doc>The wavelength or energy distribution of the source</doc>
 	</group>
@@ -182,4 +189,29 @@
             for a summary of the discussion.
         </doc>
     </attribute>
+    <field name="depends_on" type="NX_CHAR">
+        <doc>
+            NeXus positions components by applying a set of translations and rotations
+            to apply to the component starting from 0, 0, 0. The order of these operations
+            is critical and forms what NeXus calls a dependency chain. The depends_on
+            field defines the path to the top most operation of the dependency chain or the
+            string "." if located in the origin. Usually these operations are stored in a
+            NXtransformations group. But NeXus allows them to be stored anywhere.
+
+            The reference point of the source plane is its center in the x and y axis. The source is considered infinitely thin in the
+            z axis.
+
+            .. image:: source/source.png
+              :width: 40%
+
+        </doc>
+    </field>
+    <group type="NXtransformations">
+        <doc>
+            This is the group recommended for holding the chain of translation
+            and rotation operations necessary to position the component within
+            the instrument. The dependency chain may however traverse similar groups in
+            other component groups.
+        </doc>
+    </group>
 </definition>

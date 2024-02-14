@@ -2,9 +2,9 @@
 <?xml-stylesheet type="text/xsl" href="nxdlformat.xsl" ?>
 <!--
 # NeXus - Neutron and X-ray Common Data Format
-# 
-# Copyright (C) 2008-2021 NeXus International Advisory Committee (NIAC)
-# 
+#
+# Copyright (C) 2008-2022 NeXus International Advisory Committee (NIAC)
+#
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
 # License as published by the Free Software Foundation; either
@@ -24,13 +24,13 @@
 <definition xmlns="http://definition.nexusformat.org/nxdl/3.1" category="base"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://definition.nexusformat.org/nxdl/3.1 ../nxdl.xsd"
-    name="NXroot" 
+    name="NXroot"
     type="group" extends="NXobject">
     <doc>Definition of the root NeXus group.</doc>
     <attribute name="NX_class">
         <doc>
-            The root of any NeXus data file is an ``NXroot`` class 
-            (no other choice is allowed for a valid NeXus data file).  
+            The root of any NeXus data file is an ``NXroot`` class
+            (no other choice is allowed for a valid NeXus data file).
             This attribute cements that definition.
         </doc>
         <enumeration>
@@ -49,7 +49,7 @@
     <attribute name="NeXus_version">
         <doc>
             Version of NeXus API used in writing the file.
-            
+
             Only used when the NAPI has written the file.
             Note that this is different from the version of the
             base class or application definition version number.
@@ -61,7 +61,7 @@
     <attribute name="HDF5_Version">
         <doc>
             Version of HDF5 library used in writing the file.
-            
+
             Note this attribute is spelled with uppercase "V",
             different than other version attributes.
         </doc>
@@ -83,14 +83,18 @@
     </group>
     <attribute name="default">
         <doc>
+            .. index:: find the default plottable data
             .. index:: plotting
-            
-            Declares which :ref:`NXentry` group contains 
+            .. index:: default attribute value
+
+            Declares which :ref:`NXentry` group contains
             the data to be shown by default.
-            It is needed to resolve ambiguity when 
-            more than one :ref:`NXentry` group exists. 
-            The value is the name of the default :ref:`NXentry` group.
-            
+            It is used to resolve ambiguity when
+            more than one :ref:`NXentry` group exists.
+            The value :ref:`names &lt;validItemName>` the default :ref:`NXentry` group.  The
+            value must be the name of a child of the current group. The child must be a
+            NeXus group or a link to a NeXus group.
+
             It is recommended (as of NIAC2014) to use this attribute
             to help define the path to the default dataset to be plotted.
             See https://www.nexusformat.org/2014_How_to_find_default_data.html
