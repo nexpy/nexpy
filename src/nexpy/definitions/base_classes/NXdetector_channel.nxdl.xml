@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="nxdlformat.xsl" ?>
+<!--
+# NeXus - Neutron and X-ray Common Data Format
+#
+# Copyright (C) 2008-2022 NeXus International Advisory Committee (NIAC)
+#
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 3 of the License, or (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+# For further information, see http://www.nexusformat.org
+-->
+<definition category="base" extends="NXobject" name="NXdetector_channel"
+            type="group"
+            xsi:schemaLocation="http://definition.nexusformat.org/nxdl/3.1 ../nxdl.xsd"
+            xmlns="http://definition.nexusformat.org/nxdl/3.1"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xmlns:xs="http://www.w3.org/2001/XMLSchema"
+            xmlns:ns="http://definition.nexusformat.org/nxdl/@NXDL_RELEASE@"
+            >
+
+  <symbols>
+    <doc>
+      These symbols will be used below to illustrate the coordination of the rank and sizes of datasets and the 
+      preferred ordering of the dimensions. Each of these are optional (so the rank of the datasets 
+      will vary according to the situation) and the general ordering principle is slowest to fastest.
+      The type of each dimension should follow the order of scan points, detector output (e.g. pixels),
+      then time-of-flight (i.e. spectroscopy, spectrometry). Note that the output of a detector is not limited 
+      to single values (0D), lists (1D) and images (2D), but three or higher dimensional arrays can be produced 
+      by a detector at each trigger.
+    </doc>
+    
+    <symbol name="dataRank"><doc>Rank of the ``data`` field associated with this detector</doc></symbol>
+    <symbol name="nP"><doc>number of scan points</doc></symbol>
+    <symbol name="i"><doc>number of detector pixels in the slowest direction</doc></symbol>
+    <symbol name="j"><doc>number of detector pixels in the second slowest direction</doc></symbol>
+    <symbol name="k"><doc>number of detector pixels in the third slowest direction</doc></symbol>
+  </symbols>
+
+  <doc>
+    Description and metadata for a single channel from a multi-channel detector.
+
+    Given an :ref:`NXdata` group linked as part of an NXdetector group that has an axis with named channels (see the
+    example in :ref:`NXdata &lt;/NXdata@default_slice-attribute&gt;`), the NXdetector will have a series of NXdetector_channel groups, one for each
+    channel, named CHANNELNAME_channel.
+
+    Example, given these axes in the NXdata group::
+    
+      @axes = ["image_id", "channel", ".", "."]
+
+    And this list of channels in the NXdata group::
+    
+      channel = ["threshold_1", "threshold_2", "difference"]
+
+    The NXdetector group would have three NXdetector_channel groups::
+    
+      detector:NXdetector
+        ...
+        threshold_1_channel:NXdetector_channel
+          threshold_energy = float
+          flatfield = float[i, j]
+          pixel_mask = uint[i, j]
+          flatfield_applied = bool
+          pixel_mask_applied = bool
+        threshold_2_channel:NXdetector_channel
+          threshold_energy = float
+          flatfield = float[i, j]
+          pixel_mask = uint[i, j]
+          flatfield_applied = bool
+          pixel_mask_applied = bool
+        difference_channel:NXdetector_channel
+          threshold_energy = float[2]
+  </doc>
+
+  <field name="threshold_energy" type="NX_FLOAT" units="NX_ENERGY">
+    <doc>Energy at which a photon will be recorded</doc>
+  </field>
+
+  <field name="flatfield_applied" type="NX_BOOLEAN" >
+    <doc>
+      True when the flat field correction has been applied in the
+      electronics, false otherwise.
+    </doc>
+  </field>
+
+  <field name="flatfield" type="NX_NUMBER">
+    <doc>Response of each pixel given a constant input</doc>
+      <dimensions rank="dataRank">
+          <dim index="1" value="i" />
+          <dim index="2" value="j" />
+          <dim index="3" value="k" required="false"/>
+      </dimensions>
+  </field>
+
+  <field name="flatfield_errors" type="NX_FLOAT" >
+    <doc>
+        Errors of the flat field correction data.
+        The form flatfield_error is deprecated.
+    </doc>
+    <dimensions rank="2">
+      <dim index="1" value="i"/>
+      <dim index="2" value="j"/>
+    </dimensions>
+  </field>
+
+  <field name="pixel_mask_applied" type="NX_BOOLEAN" >
+    <doc>
+      True when the pixel mask correction has been applied in the
+      electronics, false otherwise.
+    </doc>
+  </field>
+
+  <field name="pixel_mask" type="NX_INT">
+    <doc>
+      Custom pixel mask for this channel. May include nP as the first dimension for
+      masks that vary for each scan point.
+    </doc>
+      <dimensions rank="dataRank">
+          <dim index="2" value="i" />
+          <dim index="3" value="j" />
+          <dim index="4" value="k" required="false"/>
+      </dimensions>
+  </field>
+
+  <field name="saturation_value" type="NX_NUMBER">
+    <doc>
+      The value at which the detector goes into saturation.
+      Especially common to CCD detectors, the data
+      is known to be invalid above this value.
+
+      For example, given a saturation_value and an underload_value, the valid
+      pixels are those less than or equal to the saturation_value and greater
+      than or equal to the underload_value.
+
+      The precise type should match the type of the data.
+    </doc>
+  </field>
+
+  <field name="underload_value" type="NX_NUMBER">
+    <doc>
+      The lowest value at which pixels for this detector would be reasonably
+      measured. The data is known to be invalid below this value.
+
+      For example, given a saturation_value and an underload_value, the valid
+      pixels are those less than or equal to the saturation_value and greater
+      than or equal to the underload_value.
+
+      The precise type should match the type of the data.
+    </doc>
+  </field>
+</definition>

@@ -3,7 +3,7 @@
 <!--
 # NeXus - Neutron and X-ray Common Data Format
 #
-# Copyright (C) 2008-2021 NeXus International Advisory Committee (NIAC)
+# Copyright (C) 2008-2022 NeXus International Advisory Committee (NIAC)
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -49,8 +49,8 @@
 		can be used to accomodate non standard clocks.
 
 
-		This method of storing logged data helps to distinguish
-		instances in which a variable is a dimension scale of the data, in which case it is stored
+		This method of storing logged data helps to distinguish instances in which a variable contains signal or
+		axis coordinate values of plottable data, in which case it is stored
 		in an :ref:`NXdata` group, and instances in which it is logged during the
 		run, when it should be stored in an :ref:`NXlog` group.
 

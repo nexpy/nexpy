@@ -2,9 +2,9 @@
 <?xml-stylesheet type="text/xsl" href="nxdlformat.xsl" ?>
 <!--
 # NeXus - Neutron and X-ray Common Data Format
-# 
-# Copyright (C) 2008-2021 NeXus International Advisory Committee (NIAC)
-# 
+#
+# Copyright (C) 2008-2022 NeXus International Advisory Committee (NIAC)
+#
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
 # License as published by the Free Software Foundation; either
@@ -21,8 +21,8 @@
 #
 # For further information, see http://www.nexusformat.org
 -->
-<definition name="NXentry" 
-	type="group" 
+<definition name="NXentry"
+	type="group"
 	extends="NXobject"
 	category="base"
 	xmlns="http://definition.nexusformat.org/nxdl/3.1"
@@ -32,55 +32,59 @@
 
 	<attribute name="default">
 		<doc>
+			.. index:: find the default plottable data
 			.. index:: plotting
-			
-			Declares which :ref:`NXdata` (or :ref:`NXsubentry`) group 
-			contains the data to be shown by default.
-			It is needed to resolve ambiguity when more than one :ref:`NXdata` group exists. 
-			The value is the name of the default :ref:`NXdata` group.
-			
-			It is recommended (as of NIAC2014 [#]_) to use this attribute
-			to help define the path to the default dataset to be plotted.
-			
-			.. [#] NIAC2014 discussion summary:
-			    https://www.nexusformat.org/2014_How_to_find_default_data.html
+			.. index:: default attribute value
+
+			Declares which :ref:`NXdata` group contains the data
+			to be shown by default.
+			It is used to resolve ambiguity when
+			one :ref:`NXdata` group exists.
+			The value :ref:`names &lt;validItemName>` a child group.  If that group
+			itself has a ``default`` attribute, continue this chain until an
+			:ref:`NXdata` group is reached.
+
+			For more information about how NeXus identifies the default
+			plottable data, see the
+			:ref:`Find Plottable Data, v3 &lt;Find-Plottable-Data-v3&gt;`
+			section.
 		</doc>
 	</attribute>
-	
+
 	<doc>
-		(**required**) :ref:`NXentry` describes the measurement. 
-		
+		(**required**) :ref:`NXentry` describes the measurement.
+
 		The top-level NeXus group which contains all the data and associated
-		information that comprise a single measurement. 
+		information that comprise a single measurement.
 		It is mandatory that there is at least one
 		group of this type in the NeXus file.	</doc>
-	
+
 	<group type="NXdata">
 		<doc>
 			The data group
-		
+
 			.. note:: Before the NIAC2016 meeting [#]_, at least one
 			   :ref:`NXdata` group was required in each :ref:`NXentry` group.
-			   At the NIAC2016 meeting, it was decided to make :ref:`NXdata` 
-			   an optional group in :ref:`NXentry` groups for data files that 
+			   At the NIAC2016 meeting, it was decided to make :ref:`NXdata`
+			   an optional group in :ref:`NXentry` groups for data files that
 			   do not use an application definition.
-			   It is recommended strongly that all NeXus data files provide 
-			   a NXdata group.  
-			   It is permissable to omit the NXdata group only when 
+			   It is recommended strongly that all NeXus data files provide
+			   a NXdata group.
+			   It is permissable to omit the NXdata group only when
 			   defining the default plot is not practical or possible
 			   from the available data.
-			   
-			   For example, neutron event data may not have anything that 
+
+			   For example, neutron event data may not have anything that
 			   makes a useful plot without extensive processing.
-			   
+
 			   Certain application definitions override this decision and
 			   require an :ref:`NXdata` group
 			   in the :ref:`NXentry` group.  The ``minOccurs=0`` attribute
-			   in the application definition will indicate the 
+			   in the application definition will indicate the
 			   :ref:`NXdata` group
 			   is optional, otherwise, it is required.
-	
-			   .. [#] NIAC2016: 
+
+			   .. [#] NIAC2016:
 			      https://www.nexusformat.org/NIAC2016.html,
 			      https://github.com/nexusformat/NIAC/issues/16
 
@@ -96,8 +100,8 @@
 	</field>
 	<field name="experiment_identifier">
 		<doc>
-			Unique identifier for the experiment, 
-			defined by the facility, 
+			Unique identifier for the experiment,
+			defined by the facility,
 			possibly linked to the proposals
 		</doc>
 	</field>
@@ -131,12 +135,17 @@
 		<doc>
 			(alternate use: see same field in :ref:`NXsubentry` for preferred)
 			
-			Official NeXus NXDL schema to which this entry conforms.
+			Official NeXus NXDL schema to which this entry conforms which must be
+			the name of the NXDL file (case sensitive without the file extension)
+			that the NXDL schema is defined in. 
+			
+			For example the ``definition`` field for a file that conformed to the 
+			*NXarpes.nxdl.xml* definition must contain the string **NXarpes**.
 			
 			This field is provided so that :ref:`NXentry` can be the overlay position
-			in a NeXus data file for an application definition and its 
+			in a NeXus data file for an application definition and its
 			set of groups, fields, and attributes.
-			
+
 			*It is advised* to use :ref:`NXsubentry`, instead, as the overlay position.
 		</doc>
 		<attribute name="version"><doc>NXDL version number</doc></attribute>
@@ -145,7 +154,7 @@
 	<field name="definition_local" deprecated="see same field in :ref:`NXsubentry` for preferred use">
 		<doc>
 			Local NXDL schema extended from the entry
-			specified in the ``definition`` field. 
+			specified in the ``definition`` field.
 			This contains any locally-defined,
 			additional fields in the entry.
 		</doc>
@@ -202,7 +211,7 @@
 		<attribute name="type">
 			<doc>The mime type should be an ``image/*``</doc>
 			<enumeration>
-				<!-- 
+				<!--
 					This is not perfect.
 					How do we set a default value for the type attribute?
 				 -->
@@ -219,4 +228,3 @@
 	<group type="NXprocess" />
 	<group type="NXsubentry" />
 </definition>
-

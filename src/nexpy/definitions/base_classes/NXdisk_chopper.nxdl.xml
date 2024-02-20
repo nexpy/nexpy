@@ -3,7 +3,7 @@
 <!--
 # NeXus - Neutron and X-ray Common Data Format
 #
-# Copyright (C) 2008-2021 NeXus International Advisory Committee (NIAC)
+# Copyright (C) 2008-2022 NeXus International Advisory Committee (NIAC)
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -118,13 +118,22 @@
 		</doc>
 	</field>
 	<field name="distance" type="NX_FLOAT" units="NX_LENGTH">
-		<doc>Effective distance to the origin</doc>
+		<doc>
+			Effective distance to the origin.
+			Note, it is recommended to use NXtransformations instead.
+		</doc>
 	</field>
 	<field name="wavelength_range" type="NX_FLOAT" units="NX_WAVELENGTH">
 		<doc>Low and high values of wavelength range transmitted</doc>
 		<dimensions><dim index="1" value="2"/></dimensions>
 	</field>
-	<group type="NXgeometry" />
+        <group type="NXgeometry" deprecated="Use the field `depends_on` and :ref:`NXtransformations` to position the chopper and NXoff_geometry to describe its shape instead">
+        </group>
+        <group type="NXoff_geometry" minOccurs="0">
+           <doc>
+               This group describes the shape of the beam line component
+            </doc>
+        </group>
     <attribute name="default">
         <doc>
             .. index:: plotting
@@ -138,4 +147,33 @@
             for a summary of the discussion.
         </doc>
     </attribute>
+    <field name="depends_on" type="NX_CHAR">
+        <doc>
+            NeXus positions components by applying a set of translations and rotations
+            to apply to the component starting from 0, 0, 0. The order of these operations
+            is critical and forms what NeXus calls a dependency chain. The depends_on
+            field defines the path to the top most operation of the dependency chain or the
+            string "." if located in the origin. Usually these operations are stored in a
+            NXtransformations group. But NeXus allows them to be stored anywhere.
+
+            The reference plane of the disk chopper includes the surface of the spinning disk which faces
+            the source. The reference point in the x and y axis is the point on this surface which is the
+            centre of the axle which the disk is spinning around. The reference plane is orthogonal to
+            the z axis and its position is the reference point on that axis.
+                    
+            Note: This reference point in almost all practical cases is not where the beam passes though.
+                    
+            .. image:: disk_chopper/disk_chopper.png
+                :width: 40%
+
+        </doc>
+    </field>
+    <group type="NXtransformations">
+        <doc>
+            This is the group recommended for holding the chain of translation
+            and rotation operations necessary to position the component within
+            the instrument. The dependency chain may however traverse similar groups in
+            other component groups.
+        </doc>
+    </group>
 </definition>

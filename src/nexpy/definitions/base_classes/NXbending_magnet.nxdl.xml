@@ -3,7 +3,7 @@
 <!--
 # NeXus - Neutron and X-ray Common Data Format
 # 
-# Copyright (C) 2008-2021 NeXus International Advisory Committee (NIAC)
+# Copyright (C) 2008-2022 NeXus International Advisory Committee (NIAC)
 # 
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -41,11 +41,13 @@
   <field name="source_distance_x" type="NX_FLOAT" units="NX_LENGTH">
     <doc>
       Distance of source point from particle beam waist in X (horizontal) direction.
+      Note, it is recommended to use NXtransformations instead to place component.
     </doc>
   </field>
   <field name="source_distance_y" type="NX_FLOAT" units="NX_LENGTH">
     <doc>
       Distance of source point from particle beam waist in Y (vertical) direction.
+      Note, it is recommended to use NXtransformations instead to place component.
     </doc>
   </field>
   <field name="divergence_x_plus" type="NX_FLOAT" units="NX_ANGLE">
@@ -73,7 +75,12 @@
     </doc>
   </field>
 	<group name="spectrum" type="NXdata"><doc>bending magnet spectrum</doc></group>
-  <group type="NXgeometry"><doc>"Engineering" position of bending magnet</doc></group>
+  <group type="NXgeometry" deprecated="Use the field `depends_on` and :ref:`NXtransformations` to position the bending magnet and NXoff_geometry to describe its shape instead"><doc>"Engineering" position of bending magnet</doc></group>
+  <group type="NXoff_geometry" minOccurs="0">
+   <doc>
+     This group describes the shape of the beam line component
+    </doc>
+  </group>
   <attribute name="default">
       <doc>
           .. index:: plotting
@@ -87,5 +94,27 @@
           for a summary of the discussion.
       </doc>
   </attribute>
+  <field name="depends_on" type="NX_CHAR">
+    <doc>
+        NeXus positions components by applying a set of translations and rotations
+        to apply to the component starting from 0, 0, 0. The order of these operations
+        is critical and forms what NeXus calls a dependency chain. The depends_on
+        field defines the path to the top most operation of the dependency chain or the
+        string "." if located in the origin. Usually these operations are stored in a
+        NXtransformations group. But NeXus allows them to be stored anywhere.
+
+        .. todo::
+          Add a definition for the reference point of a bending magnet.
+
+    </doc>
+  </field>
+  <group type="NXtransformations">
+    <doc>
+        This is the group recommended for holding the chain of translation
+        and rotation operations necessary to position the component within
+        the instrument. The dependency chain may however traverse similar groups in
+        other component groups.
+    </doc>
+  </group>
   
 </definition>
