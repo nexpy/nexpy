@@ -7,6 +7,7 @@
 # The full license is in the file COPYING, distributed with this software.
 # -----------------------------------------------------------------------------
 import argparse
+import os
 import sys
 
 import nexpy
@@ -25,6 +26,9 @@ def main():
     parser.add_argument('-f', '--faulthandler', action='store_true',
                         help='enable faulthandler for system crashes')
     args, extra_args = parser.parse_known_args()
+
+    for i, f in enumerate(args.filenames):
+        args.filenames[i] = os.path.abspath(os.path.expanduser(f))
 
     if sys.platform == 'darwin':
         from nexpy.gui.utils import run_pythonw
