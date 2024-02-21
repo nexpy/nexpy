@@ -291,8 +291,7 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
                           "import scipy as sp\n",
                           "import matplotlib as mpl\n",
                           "from matplotlib import pylab, mlab, pyplot\n",
-                          "plt = pyplot\n",
-                          "os.chdir(os.path.expanduser('~'))\n"]
+                          "plt = pyplot\n"]
         config_file = os.path.join(self.nexpy_dir, 'config.py')
         if not os.path.exists(config_file):
             with open(config_file, 'w') as f:
