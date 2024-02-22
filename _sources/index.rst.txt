@@ -8,14 +8,54 @@
 NeXpy: A Python GUI to analyze NeXus data
 =========================================
 
-NeXpy provides a high-level python interface to HDF5 files, particularly
-those stored as `NeXus data <http://www.nexusformat.org/>`__, within a
-simple GUI. It is designed to provide an intuitive interactive toolbox
-allowing users both to access existing NeXus files and to create new
-NeXus-conforming data structures without expert knowledge of the file
-format. The underlying Python API for reading and writing NeXus files is
-provided by the `nexusformat <https://github.com/nexpy/nexusformat>`__
-package, which utilizes `h5py <http://www.h5py.org/>`__.
+NeXpy provides a high-level Python interface to HDF5 files,
+particularly those stored as `NeXus data
+<http://www.nexusformat.org/>`__, within a simple GUI. It is designed to
+provide an intuitive interactive toolbox allowing users both to access
+existing NeXus files and to create new NeXus-conforming data structures
+without expert knowledge of the file format.
+
+.. image:: /images/scan-panel.png
+   :align: center
+   :width: 90%
+
+This documentation describes two packages. 
+
+**NeXpy**
+  `NeXpy <https://github.com/nexpy/nexpy>`__ provides the GUI
+  interface for loading, inspecting, plotting, and manipulating NeXus
+  data, with an embedded IPython shell and script editor.
+
+  .. image:: https://img.shields.io/pypi/v/nexpy.svg
+     :target: https://pypi.python.org/pypi/nexpy
+
+  .. image:: https://img.shields.io/pypi/dm/nexpy?label=PyPI%20downloads
+     :target: https://pypi.python.org/pypi/nexpy
+
+  .. image:: https://img.shields.io/conda/vn/conda-forge/nexpy
+     :target: https://anaconda.org/conda-forge/nexpy
+
+  .. image:: https://img.shields.io/conda/dn/conda-forge/nexpy?label=conda-forge%20downloads
+     :target: https://anaconda.org/conda-forge/nexpy
+
+**nexusformat**
+  The API for reading and writing NeXus data is provided by the
+  `nexusformat <https://github.com/nexpy/nexusformat>`__ package, which
+  utilizes `h5py <http://www.h5py.org/>`__ for file storage.
+
+  .. image:: https://img.shields.io/pypi/v/nexusformat.svg
+     :target: https://pypi.python.org/pypi/nexusformat
+
+  .. image:: https://img.shields.io/pypi/dm/nexusformat?label=PyPI%20downloads
+     :target: https://pypi.python.org/pypi/nexusformat
+
+  .. image:: https://img.shields.io/conda/vn/conda-forge/nexusformat
+     :target: https://anaconda.org/conda-forge/nexusformat
+
+  .. image:: https://img.shields.io/conda/dn/conda-forge/nexusformat?label=conda-forge%20downloads
+     :target: https://anaconda.org/conda-forge/nexusformat
+
+----
 
 .. toctree::
    :maxdepth: 2
