@@ -33,9 +33,10 @@ This documentation describes two packages.
      :target: https://anaconda.org/conda-forge/nexpy
 
 **nexusformat**
-  The API for reading and writing NeXus data is provided by the
-  `nexusformat <https://github.com/nexpy/nexusformat>`__ package, which
-  utilizes `h5py <http://www.h5py.org/>`__ for file storage.
+  The API for reading, modifying, and writing NeXus data is provided by
+  the `nexusformat <https://github.com/nexpy/nexusformat>`__ package,
+  which utilizes `h5py <http://www.h5py.org/>`__ for loading and saving
+  the data in HDF5 files.
 
   .. image:: https://img.shields.io/pypi/v/nexusformat.svg
      :target: https://pypi.python.org/pypi/nexusformat
