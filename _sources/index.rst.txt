@@ -29,13 +29,7 @@ This documentation describes two packages.
   .. image:: https://img.shields.io/pypi/v/nexpy.svg
      :target: https://pypi.python.org/pypi/nexpy
 
-  .. image:: https://img.shields.io/pypi/dm/nexpy?label=PyPI%20downloads
-     :target: https://pypi.python.org/pypi/nexpy
-
   .. image:: https://img.shields.io/conda/vn/conda-forge/nexpy
-     :target: https://anaconda.org/conda-forge/nexpy
-
-  .. image:: https://img.shields.io/conda/dn/conda-forge/nexpy?label=conda-forge%20downloads
      :target: https://anaconda.org/conda-forge/nexpy
 
 **nexusformat**
@@ -46,13 +40,7 @@ This documentation describes two packages.
   .. image:: https://img.shields.io/pypi/v/nexusformat.svg
      :target: https://pypi.python.org/pypi/nexusformat
 
-  .. image:: https://img.shields.io/pypi/dm/nexusformat?label=PyPI%20downloads
-     :target: https://pypi.python.org/pypi/nexusformat
-
   .. image:: https://img.shields.io/conda/vn/conda-forge/nexusformat
-     :target: https://anaconda.org/conda-forge/nexusformat
-
-  .. image:: https://img.shields.io/conda/dn/conda-forge/nexusformat?label=conda-forge%20downloads
      :target: https://anaconda.org/conda-forge/nexusformat
 
 ----
