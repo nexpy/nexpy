@@ -15,10 +15,10 @@ import logging
 import os
 import re
 import sys
-import time
 import traceback as tb
 from configparser import ConfigParser
 from datetime import datetime
+from pathlib import Path
 from threading import Thread
 
 import numpy as np
@@ -427,9 +427,7 @@ def convertHTML(text):
 
 def get_name(filename, entries=[]):
     """Return a valid object name from a filename."""
-    name = os.path.splitext(os.path.basename(filename))[0].replace(' ', '_')
-    name = "".join([c for c in name.replace('-', '_')
-                    if c.isalpha() or c.isdigit() or c == '_'])
+    name = re.sub('\W|^(?=\d)','_', Path(filename).stem)
     if name in entries:
         ind = []
         for key in entries:
