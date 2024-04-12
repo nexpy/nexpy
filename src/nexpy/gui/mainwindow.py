@@ -1032,8 +1032,10 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.recent_file_actions[action] = (i, recent_file)
             self.settings.purge('recent')
             for recent_file in recent_files:
-                self.settings.set('recent', recent_file)
-        self.settings.set('session', filename)
+                if "=" not in recent_file:
+                    self.settings.set('recent', recent_file)
+        if "=" not in filename:
+            self.settings.set('session', filename)
         self.settings.save()
 
     def save_file(self):
