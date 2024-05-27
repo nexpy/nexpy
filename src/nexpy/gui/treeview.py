@@ -117,6 +117,7 @@ class NXtree(NXgroup):
 
     def get_name(self, filename):
         return get_name(filename, self._shell)
+
     def get_new_name(self):
         ind = []
         for key in self._shell:

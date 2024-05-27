@@ -1483,7 +1483,8 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.treeview.status_message(node)
                 signals = [node.nxsignal]
                 signals.extend([node[signal] for signal
-                                in node.attrs['auxiliary_signals']])
+                                in node.attrs['auxiliary_signals']
+                                if signal != node.nxsignal.nxname])
                 colors = get_colors(len(signals))
                 for i, signal in enumerate(signals):
                     if i == 0:
@@ -1492,6 +1493,7 @@ class MainWindow(QtWidgets.QMainWindow):
                     else:
                         signal.oplot(marker='None', linestyle='-',
                                      color=colors[i])
+                self.plotview.ax.set_title(node.nxroot.nxname + node.nxpath)
                 self.plotview.otab.home()
                 self.plotview.legend(signal=True)
                 self.plotview.make_active()
