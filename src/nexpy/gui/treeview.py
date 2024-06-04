@@ -13,7 +13,7 @@ from nexusformat.nexus import (NeXusError, NXdata, NXentry, NXfield, NXgroup,
                                NXlink, NXroot, nxload)
 
 from .pyqt import QtCore, QtGui, QtWidgets
-from .utils import display_message, modification_time, report_error
+from .utils import display_message, get_name, modification_time, report_error
 from .widgets import NXSortModel
 
 
@@ -116,22 +116,7 @@ class NXtree(NXgroup):
             raise NeXusError(f"{name} not in the tree")
 
     def get_name(self, filename):
-        name = os.path.splitext(
-            os.path.basename(filename))[0].replace(' ', '_')
-        name = "".join([c for c in name.replace('-', '_')
-                        if c.isalpha() or c.isdigit() or c == '_'])
-        if name in self._shell:
-            ind = []
-            for key in self._shell:
-                try:
-                    if key.startswith(name+'_'):
-                        ind.append(int(key[len(name)+1:]))
-                except ValueError:
-                    pass
-            if ind == []:
-                ind = [0]
-            name = name+'_'+str(sorted(ind)[-1]+1)
-        return name
+        return get_name(filename, self._shell)
 
     def get_new_name(self):
         ind = []

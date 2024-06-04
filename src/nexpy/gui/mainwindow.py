@@ -1032,8 +1032,10 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.recent_file_actions[action] = (i, recent_file)
             self.settings.purge('recent')
             for recent_file in recent_files:
-                self.settings.set('recent', recent_file)
-        self.settings.set('session', filename)
+                if "=" not in recent_file:
+                    self.settings.set('recent', recent_file)
+        if "=" not in filename:
+            self.settings.set('session', filename)
         self.settings.save()
 
     def save_file(self):
@@ -1481,7 +1483,8 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.treeview.status_message(node)
                 signals = [node.nxsignal]
                 signals.extend([node[signal] for signal
-                                in node.attrs['auxiliary_signals']])
+                                in node.attrs['auxiliary_signals']
+                                if signal != node.nxsignal.nxname])
                 colors = get_colors(len(signals))
                 for i, signal in enumerate(signals):
                     if i == 0:
@@ -1490,6 +1493,7 @@ class MainWindow(QtWidgets.QMainWindow):
                     else:
                         signal.oplot(marker='None', linestyle='-',
                                      color=colors[i])
+                self.plotview.ax.set_title(node.nxroot.nxname + node.nxpath)
                 self.plotview.otab.home()
                 self.plotview.legend(signal=True)
                 self.plotview.make_active()
