@@ -1784,9 +1784,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 raise NeXusError("Select an NXdata group")
             if 'Fit' not in self.panels:
                 self.panels['Fit'] = FitDialog()
-            data = node.weighted_data()
-            data._group = node._group
-            self.panels['Fit'].activate(data)
+            self.panels['Fit'].activate(node.weighted_data())
             logging.info(f"Fitting invoked on'{node.nxpath}'")
         except NeXusError as error:
             report_error("Fitting Data", error)

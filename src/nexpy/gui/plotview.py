@@ -1475,7 +1475,6 @@ class NXPlotView(QtWidgets.QDialog):
             self.panels['Fit'] = FitDialog()
         if self.weighted:
             data = self.plots[self.num]['data'].weighted_data()
-            data._group = self.plots[self.num]['data']._group
         else:
             data = self.plots[self.num]['data']
         self.panels['Fit'].activate(data, plotview=self,
