@@ -322,6 +322,7 @@ class NXTreeView(QtWidgets.QTreeView):
         self.mainwindow.signal_action.setEnabled(False)
         self.mainwindow.default_action.setEnabled(False)
         self.mainwindow.fit_action.setEnabled(False)
+        self.mainwindow.fit_weighted_action.setEnabled(False)
         try:
             node = self.get_node()
         except Exception:
@@ -380,9 +381,13 @@ class NXTreeView(QtWidgets.QTreeView):
                 if isinstance(node, NXdata):
                     self.mainwindow.signal_action.setEnabled(True)
             try:
-                if ((isinstance(node, NXdata) and node.plot_rank == 1) or
-                    (isinstance(node, NXgroup) and
-                        ('fit' in node or 'model' in node))):
+                if isinstance(node, NXdata) and node.plot_rank == 1:
+                    self.mainwindow.fit_action.setEnabled(True)
+                    if node.nxweights is not None:
+                        self.mainwindow.fit_weighted_action.setEnabled(
+                            True)
+                elif (isinstance(node, NXgroup) and
+                      ('fit' in node or 'model' in node)):
                     self.mainwindow.fit_action.setEnabled(True)
             except Exception:
                 pass
@@ -449,6 +454,7 @@ class NXTreeView(QtWidgets.QTreeView):
         self.addMenu(self.mainwindow.link_action)
         self.menu.addSeparator()
         self.addMenu(self.mainwindow.fit_action)
+        self.addMenu(self.mainwindow.fit_weighted_action)
         self.menu.addSeparator()
         self.addMenu(self.mainwindow.signal_action)
         self.addMenu(self.mainwindow.default_action)

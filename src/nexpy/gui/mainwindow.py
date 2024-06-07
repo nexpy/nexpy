@@ -566,6 +566,11 @@ class MainWindow(QtWidgets.QMainWindow):
             "Fit Data", self, shortcut=QtGui.QKeySequence("Ctrl+Shift+F"),
             triggered=self.fit_data)
         self.add_menu_action(self.data_menu, self.fit_action)
+        self.fit_weighted_action = QtWidgets.QAction(
+            "Fit Weighted Data", self,
+            shortcut=QtGui.QKeySequence("Ctrl+Shift+Alt+F"),
+            triggered=self.fit_weighted_data)
+        self.add_menu_action(self.data_menu, self.fit_weighted_action)
 
     def init_plugin_menus(self):
         """Add an menu item for every module in the plugin menus"""
@@ -1762,6 +1767,24 @@ class MainWindow(QtWidgets.QMainWindow):
             if 'Fit' not in self.panels:
                 self.panels['Fit'] = FitDialog()
             self.panels['Fit'].activate(node)
+            logging.info(f"Fitting invoked on'{node.nxpath}'")
+        except NeXusError as error:
+            report_error("Fitting Data", error)
+
+    def fit_weighted_data(self):
+        try:
+            node = self.treeview.get_node()
+            if node is None:
+                return
+            elif isinstance(node, NXdata):
+                if node.ndim > 1:
+                    raise NeXusError(
+                        "Fitting only enabled for one-dimensional data")
+            else:
+                raise NeXusError("Select an NXdata group")
+            if 'Fit' not in self.panels:
+                self.panels['Fit'] = FitDialog()
+            self.panels['Fit'].activate(node.weighted_data())
             logging.info(f"Fitting invoked on'{node.nxpath}'")
         except NeXusError as error:
             report_error("Fitting Data", error)

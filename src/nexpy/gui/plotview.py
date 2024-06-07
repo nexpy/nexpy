@@ -1473,8 +1473,11 @@ class NXPlotView(QtWidgets.QDialog):
         from .fitdialogs import FitDialog
         if not self.mainwindow.panel_is_running('Fit'):
             self.panels['Fit'] = FitDialog()
-        self.panels['Fit'].activate(self.plots[self.num]['data'],
-                                    plotview=self,
+        if self.weighted:
+            data = self.plots[self.num]['data'].weighted_data()
+        else:
+            data = self.plots[self.num]['data']
+        self.panels['Fit'].activate(data, plotview=self,
                                     color=self.plots[self.num]['color'])
 
     def symlog(self, linthresh=None, linscale=None, vmax=None):
