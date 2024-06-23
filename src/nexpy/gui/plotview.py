@@ -135,16 +135,16 @@ def new_figure_manager(label=None, *args, **kwargs):
     """Create a new figure manager instance.
 
     A new figure number is generated. with numbers > 100 preserved for
-    the Projection and Fit windows.
+    windows given a specific label.
 
     Parameters
     ----------
     label : str
-        The label used to define
+        The label used to for specialized plot windows, default is None.
     """
     if label is None:
         label = ''
-    if label == 'Projection' or label == 'Scan' or label == 'Fit':
+    if label and label != 'Main':
         nums = [plotviews[p].number for p in plotviews
                 if plotviews[p].number > 100]
         if nums:
