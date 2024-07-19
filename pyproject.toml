@@ -1,6 +1,70 @@
 [build-system]
-requires = ["setuptools>=45", "wheel", "setuptools_scm[toml]>=6.2"]
+requires = ["setuptools >= 61", "setuptools_scm[toml]>=8"]
 build-backend = "setuptools.build_meta"
 
+[project]
+name = "NeXpy"
+dynamic = ["version"]
+description = "Python GUI to analyze NeXus data"
+readme = "README.md"
+license = {file = "COPYING"}
+authors = [{name = "Raymond Osborn", email = "rayosborn@mac.com"}]
+classifiers = [
+  "Development Status :: 5 - Production/Stable",
+  "Modified BSD License",
+  "Intended Audience :: Developers",
+  "Intended Audience :: Science/Research",
+  "Topic :: Scientific/Engineering",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Scientific/Engineering",
+  "Topic :: Scientific/Engineering :: Visualization",
+]
+
+keywords = [
+    "neutron scattering",
+    "x-ray scattering",
+    "data analysis",
+    "visualization",
+]
+requires-python = ">=3.8"
+dependencies = [
+    "nexusformat >= 1.0.6",
+    "qtconsole >= 5.4.3",
+    "ipython",
+    "ipykernel >= 6.15.2",
+    "matplotlib",
+    "lmfit >= 1.0.3",
+    "pylatexenc",
+    "ansi2html",
+    "pillow",
+    "mplcursors",
+]
+
+[project.optional-dependencies]
+testing = ["pytest"]
+spec = ["spec2nexus"]
+fabio = ["fabio"]
+
+[project.urls]
+Homepage = "https://nexpy.github.io/nexpy"
+Repository = "https://github.com/nexpy/nexpy.git"
+Issues = "https://github.com/nexpy/nexpy/issues"
+Documentation = "https://nexpy.github.io/nexpy"
+Changelog = "https://github.com/nexpy/nexpy/releases"
+
+[project.gui-scripts]
+nexpy = "nexpy.nexpygui:main"
+
 [tool.setuptools_scm]
-write_to = "src/nexpy/_version.py"
+version_file = "src/nexpy/_version.py"
+
+[tool.setuptools.package-data]
+"nexpy.gui.resources" = ["*.*", "*/*.*"]
+"nexpy.definitions" = ["*/*.xml"]
+"nexpy.examples" = ["*.*", "*/*.*", "*/*/*.*", "*/*/*/*.*"]
+
