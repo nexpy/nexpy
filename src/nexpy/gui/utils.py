@@ -26,7 +26,7 @@ from IPython.core.ultratb import ColorTB
 from matplotlib import __version__ as mplversion
 from matplotlib import rcParams
 from matplotlib.colors import colorConverter, hex2color, rgb2hex
-from pkg_resources import parse_version
+from packaging.version import parse as pv
 
 from .pyqt import QtCore, QtWidgets
 
@@ -569,7 +569,7 @@ def xtec_map():
 
 def divgray_map():
     """New divergent color map copied from the registered 'gray' map."""
-    if parse_version(mplversion) >= parse_version('3.5.0'):
+    if pv(mplversion) >= pv('3.5.0'):
         from matplotlib import colormaps
         cm = copy.copy(colormaps['gray'])
     else:

@@ -43,6 +43,7 @@ dependencies = [
     "ansi2html",
     "pillow",
     "mplcursors",
+    "packaging",
 ]
 
 [project.optional-dependencies]
