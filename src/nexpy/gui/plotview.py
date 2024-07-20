@@ -24,7 +24,6 @@ plotviews : dict
 """
 import copy
 import numbers
-import os
 import warnings
 from posixpath import basename, dirname
 
@@ -66,10 +65,10 @@ from nexusformat.nexus import NeXusError, NXdata, NXfield
 from .. import __version__
 from .datadialogs import (CustomizeDialog, ExportDialog, LimitDialog,
                           ProjectionDialog, ScanDialog, StyleDialog)
-from .utils import (boundaries, centers, divgray_map, find_nearest,
-                    fix_projection, get_color, in_dark_mode, iterable,
-                    keep_data, parula_map, report_error, report_exception,
-                    xtec_map)
+from .utils import (boundaries, centers, divgray_map, esource_file,
+                    find_nearest, fix_projection, get_color, in_dark_mode,
+                    iterable, keep_data, parula_map, report_error,
+                    report_exception, resource_file, resource_icon, xtec_map)
 from .widgets import (NXCheckBox, NXcircle, NXComboBox, NXDoubleSpinBox,
                       NXellipse, NXLabel, NXpolygon, NXPushButton, NXrectangle,
                       NXSlider, NXSpinBox)
@@ -126,8 +125,7 @@ markers = {'.': 'point', ',': 'pixel', '+': 'plus', 'x': 'x',
            'o': 'circle', 's': 'square', 'D': 'diamond', 'H': 'hexagon',
            'v': 'triangle_down', '^': 'triangle_up', '<': 'triangle_left',
            '>': 'triangle_right', 'None': 'None'}
-logo = imread(resource_filename(
-              'nexpy.gui', 'resources/icon/NeXpy.png'))[180:880, 50:1010]
+logo = imread(resource_file('NeXpy.png'))[180:880, 50:1010]
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 
@@ -3616,14 +3614,11 @@ class NXPlotTab(QtWidgets.QWidget):
         self.plotview.fit_data()
 
     def init_toolbar(self):
-        _backward_icon = QtGui.QIcon(
-            resource_filename('nexpy.gui', 'resources/backward-icon.png'))
-        _pause_icon = QtGui.QIcon(
-            resource_filename('nexpy.gui', 'resources/pause-icon.png'))
-        _forward_icon = QtGui.QIcon(
-            resource_filename('nexpy.gui', 'resources/forward-icon.png'))
-        _refresh_icon = QtGui.QIcon(
-            resource_filename('nexpy.gui', 'resources/refresh-icon.png'))
+
+        _backward_icon = resource_icon('backward-icon.png')
+        _pause_icon = resource_icon('pause-icon.png')
+        _forward_icon = resource_icon('forward-icon.png')
+        _refresh_icon = resource_icon('refresh-icon.png')
         self.toolbar = QtWidgets.QToolBar(parent=self)
         self.toolbar.setIconSize(QtCore.QSize(16, 16))
         self.add_action(_refresh_icon, self.plotview.replot_data, "Replot",
@@ -3918,8 +3913,7 @@ class NXNavigationToolbar(NavigationToolbar2QT, QtWidgets.QToolBar):
         pass
 
     def _icon(self, name, color=None):
-        return QtGui.QIcon(os.path.join(resource_filename(
-                                        'nexpy.gui', 'resources'), name))
+        return resource_icon(name)
 
     @property
     def active_mode(self):

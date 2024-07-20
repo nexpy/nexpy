@@ -8,12 +8,12 @@
 
 import os
 
-import pkg_resources
 from nexusformat.nexus import (NeXusError, NXdata, NXentry, NXfield, NXgroup,
                                NXlink, NXroot, nxload)
 
 from .pyqt import QtCore, QtGui, QtWidgets
-from .utils import display_message, get_name, modification_time, report_error
+from .utils import (display_message, get_name, modification_time, report_error,
+                    resource_icon)
 from .widgets import NXSortModel
 
 
@@ -165,22 +165,12 @@ class NXTreeItem(QtGui.QStandardItem):
         self.tree = self.root.nxgroup
         self.path = self.root.nxname + node.nxpath
         if isinstance(node, NXlink):
-            self._linked = QtGui.QIcon(
-                pkg_resources.resource_filename('nexpy.gui',
-                                                'resources/link-icon.png'))
+            self._linked = resource_icon('link-icon.png')
         elif isinstance(node, NXroot):
-            self._locked = QtGui.QIcon(
-                pkg_resources.resource_filename('nexpy.gui',
-                                                'resources/lock-icon.png'))
-            self._locked_modified = QtGui.QIcon(
-                pkg_resources.resource_filename('nexpy.gui',
-                                                'resources/lock-red-icon.png'))
-            self._unlocked = QtGui.QIcon(
-                pkg_resources.resource_filename('nexpy.gui',
-                                                'resources/unlock-icon.png'))
-            self._unlocked_modified = QtGui.QIcon(
-                pkg_resources.resource_filename(
-                    'nexpy.gui', 'resources/unlock-red-icon.png'))
+            self._locked = resource_icon('lock-icon.png')
+            self._locked_modified = resource_icon('lock-red-icon.png')
+            self._unlocked = resource_icon('unlock-icon.png')
+            self._unlocked_modified = resource_icon('unlock-red-icon.png')
         super().__init__(node.nxname)
 
     @property
