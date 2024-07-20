@@ -65,7 +65,8 @@ nexpy = "nexpy.nexpygui:main"
 version_file = "src/nexpy/_version.py"
 
 [tool.setuptools.package-data]
-"nexpy.gui.resources" = ["*.*", "*/*.*"]
+"nexpy.gui.frills.models" = ["*.py"]
+"nexpy.gui.resources" = ["*.*"]
 "nexpy.definitions" = ["*/*.xml"]
 "nexpy.examples" = ["*.*", "*/*.*", "*/*/*.*", "*/*/*/*.*"]
 
