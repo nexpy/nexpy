@@ -18,6 +18,7 @@ import sys
 import traceback as tb
 from configparser import ConfigParser
 from datetime import datetime
+from importlib.resources import files as package_files
 from pathlib import Path
 from threading import Thread
 
@@ -28,7 +29,7 @@ from matplotlib import rcParams
 from matplotlib.colors import colorConverter, hex2color, rgb2hex
 from packaging.version import parse as pv
 
-from .pyqt import QtCore, QtWidgets
+from .pyqt import QtCore, QtGui, QtWidgets
 
 try:
     from astropy.convolution import Kernel
@@ -633,6 +634,14 @@ def load_image(filename):
     return data
 
 
+def resource_file(filename):
+    return str(package_files('nexpy.gui.resources').joinpath(filename))
+
+
+def resource_icon(filename):
+    return QtGui.QIcon(get_resource_file(filename))
+
+
 def initialize_settings(settings):
     """Initialize NeXpy settings.
 
@@ -760,6 +769,21 @@ class NXImporter:
         for path in self.paths:
             sys.path.remove(path)
 
+# import importlib.util
+# import os
+
+# def import_module_from_path(module_name, module_path):
+#     spec = importlib.util.spec_from_file_location(module_name, module_path)
+#     module = importlib.util.module_from_spec(spec)
+#     spec.loader.exec_module(module)
+#     return module
+
+# # Example usage
+# directory = "/path/to/your/directory"
+# module_name = "your_module"
+# module_path = os.path.join(directory, f"{module_name}.py")
+
+# imported_module = import_module_from_path(module_name, module_path)
 
 def import_plugin(name, paths):
     with NXImporter(paths):
@@ -791,6 +815,9 @@ class NXConfigParser(ConfigParser, object):
         if 'session' not in sections:
             self.add_section('session')
         self.fix_compatibility()
+
+    def __repr__(self):
+        return f"NXConfigParser('{self.file}')"
 
     def set(self, section, option, value=None):
         if value is not None:
