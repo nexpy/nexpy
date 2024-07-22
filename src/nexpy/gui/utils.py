@@ -639,7 +639,7 @@ def resource_file(filename):
 
 
 def resource_icon(filename):
-    return QtGui.QIcon(get_resource_file(filename))
+    return QtGui.QIcon(resource_file(filename))
 
 
 def initialize_settings(settings):
