@@ -19,6 +19,7 @@ import traceback as tb
 from configparser import ConfigParser
 from datetime import datetime
 from importlib.resources import files as package_files
+from importlib.util import module_from_spec, spec_from_file_location
 from pathlib import Path
 from threading import Thread
 
@@ -27,7 +28,7 @@ from IPython.core.ultratb import ColorTB
 from matplotlib import __version__ as mplversion
 from matplotlib import rcParams
 from matplotlib.colors import colorConverter, hex2color, rgb2hex
-from packaging.version import parse as pv
+from packaging.version import Version
 
 from .pyqt import QtCore, QtGui, QtWidgets
 
@@ -570,7 +571,7 @@ def xtec_map():
 
 def divgray_map():
     """New divergent color map copied from the registered 'gray' map."""
-    if pv(mplversion) >= pv('3.5.0'):
+    if Version(mplversion) >= Version('3.5.0'):
         from matplotlib import colormaps
         cm = copy.copy(colormaps['gray'])
     else:
@@ -632,6 +633,18 @@ def load_image(filename):
             data.CBF_header = note
     data.title = filename
     return data
+
+
+def import_plugin(plugin_name, plugin_path):
+    if plugin_path.is_dir():
+        plugin_path = plugin_path.joinpath('__init__.py')
+    if (spec := spec_from_file_location(plugin_name, plugin_path)) is not None:
+        module = module_from_spec(spec)
+        sys.modules[spec.name] = module
+        spec.loader.exec_module(module)
+        return module
+    else:
+        return None
 
 
 def resource_file(filename):
@@ -755,43 +768,6 @@ class NXListener(QtCore.QObject):
 
     def respond(self, signal):
         self.change_signal.emit(signal)
-
-
-class NXImporter:
-    def __init__(self, paths):
-        self.paths = [str(p) for p in paths]
-
-    def __enter__(self):
-        for path in reversed(self.paths):
-            sys.path.insert(0, path)
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        for path in self.paths:
-            sys.path.remove(path)
-
-# import importlib.util
-# import os
-
-# def import_module_from_path(module_name, module_path):
-#     spec = importlib.util.spec_from_file_location(module_name, module_path)
-#     module = importlib.util.module_from_spec(spec)
-#     spec.loader.exec_module(module)
-#     return module
-
-# # Example usage
-# directory = "/path/to/your/directory"
-# module_name = "your_module"
-# module_path = os.path.join(directory, f"{module_name}.py")
-
-# imported_module = import_module_from_path(module_name, module_path)
-
-def import_plugin(name, paths):
-    with NXImporter(paths):
-        plugin_module = importlib.import_module(name)
-        if hasattr(plugin_module, '__file__'):  # Not a namespace module
-            return plugin_module
-        else:
-            raise ImportError('Plugin cannot be a namespace module')
 
 
 class NXConfigParser(ConfigParser, object):

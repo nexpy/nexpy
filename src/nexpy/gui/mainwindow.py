@@ -22,6 +22,7 @@ import re
 import sys
 import webbrowser
 import xml.etree.ElementTree as ET
+from importlib.resources import files as package_files
 from operator import attrgetter
 from pathlib import Path
 
@@ -575,41 +576,25 @@ class MainWindow(QtWidgets.QMainWindow):
     def init_plugin_menus(self):
         """Add an menu item for every module in the plugin menus"""
         plugins = {}
-        self.plugin_names = set()
-        private_path = Path(self.plugin_dir)
-        for plugin_path in private_path.iterdir():
+        plugin_names = set()
+        for plugin_path in self.plugin_dir.iterdir():
             plugin_name = plugin_path.name
-            if (plugin_path.is_dir() and not (plugin_name.startswith('_') or
+            if (not plugin_path.is_dir() and (plugin_name.startswith('_') or
                                               plugin_name.startswith('.'))):
-                self.plugin_names.add(plugin_name)
-                logging.info(
-                    f'Installing "{plugin_name}" plugin from "{plugin_path}"')
-        public_path = Path(pkg_resources.resource_filename('nexpy', 'plugins'))
-        for plugin_path in public_path.iterdir():
-            plugin_name = plugin_path.name
-            if plugin_name.lower() in [p.lower() for p in self.plugin_names]:
-                logging.warning(
-                    f'Duplicate plugin "{plugin_name}" not installed\n'
-                    + 36 * ' ' + f'located in "{plugin_path}"')
                 continue
-            if (plugin_path.is_dir() and not (plugin_name.startswith('_') or
-                                              plugin_name.startswith('.'))):
-                self.plugin_names.add(plugin_name)
+            plugin_names.add(plugin_name)
+            try:
+                plugin_module = import_plugin(plugin_name, plugin_path)
+                plugins[plugin_name] = plugin_module.plugin_menu
                 logging.info(
                     f'Installing "{plugin_name}" plugin from "{plugin_path}"')
-        plugin_paths = [private_path, public_path]
-        for plugin_name in set(sorted(self.plugin_names)):
-            try:
-                plugin_module = import_plugin(plugin_name, plugin_paths)
-                plugins[plugin_name] = plugin_module.plugin_menu
             except Exception as error:
                 logging.warning(
                     f'The "{plugin_name}" plugin could not be added '
                     'to the main menu\n' + 36*' ' + f'Error: {error}')
-                self.plugin_names.remove(plugin_name)
         for entry in entry_points(group='nexpy.plugins'):
             plugin_name = entry.module.split('.')[-1]
-            if plugin_name.lower() in [p.lower() for p in self.plugin_names]:
+            if plugin_name.lower() in [p.lower() for p in plugin_names]:
                 logging.warning(
                     f'Duplicate plugin "{entry.module}" not installed')
                 continue
@@ -617,7 +602,6 @@ class MainWindow(QtWidgets.QMainWindow):
                 logging.info(
                     f'Installing "{plugin_name}" '
                     f'plugin from "{entry.module}" module')
-                self.plugin_names.add(plugin_name)
             try:
                 plugins[plugin_name] = entry.load()
             except Exception as error:
@@ -876,24 +860,22 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def init_import_menu(self):
         """Add an import menu item for every module in the readers directory"""
-        self.import_names = set()
+        import_files = {}
         self.import_menu = self.file_menu.addMenu("Import")
         private_path = self.reader_dir
-        if os.path.isdir(private_path):
-            for filename in os.listdir(private_path):
-                name, ext = os.path.splitext(filename)
-                if name != '__init__' and ext.startswith('.py'):
-                    self.import_names.add(name)
-        public_path = pkg_resources.resource_filename('nexpy', 'readers')
-        for filename in os.listdir(public_path):
-            name, ext = os.path.splitext(filename)
-            if name != '__init__' and ext.startswith('.py'):
-                self.import_names.add(name)
+        if private_path.is_dir():
+            for f in private_path.glob('*.py'):
+                if f.stem != '__init__':
+                    import_files[f.stem] = private_path.joinpath(f.name)
+        public_path = package_files('nexpy').joinpath('readers')
+        for f in public_path.glob('*.py'):
+            if f.stem != '__init__':
+                import_files[f.stem] = public_path.joinpath(f.name)
         self.importer = {}
-        import_paths = [private_path, public_path]
-        for import_name in sorted(self.import_names):
+        for import_name in sorted(import_files):
             try:
-                import_module = import_plugin(import_name, import_paths)
+                import_module = import_plugin(import_name,
+                                              import_files[import_name])
                 import_action = QtWidgets.QAction(
                     "Import "+import_module.filetype, self,
                     triggered=self.show_import_dialog)
