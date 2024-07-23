@@ -182,7 +182,7 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
                     self.settings.remove_option('plugins', backup)
             elif backup_age(backup) > 5:
                 try:
-                    shutil.rmtree(backup.parent)
+                    shutil.rmtree(Path(backup).parent)
                     if backup in backups:
                         self.settings.remove_option('backups', backup)
                     elif backup in plugins:
