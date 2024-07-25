@@ -31,7 +31,6 @@ if sys.version_info < (3, 10):
 else:
     from importlib.metadata import entry_points
 
-import pkg_resources
 from nexusformat.nexus import (NeXusError, NXdata, NXentry, NXfield, NXFile,
                                NXgroup, NXlink, NXobject, NXprocess, NXroot,
                                nxcompleter, nxduplicate, nxgetconfig, nxload)
@@ -1772,8 +1771,8 @@ class MainWindow(QtWidgets.QMainWindow):
             report_error("Fitting Data", error)
 
     def input_base_classes(self):
-        base_class_path = pkg_resources.resource_filename(
-            'nexpy', 'definitions/base_classes')
+        base_class_path = package_files('nexpy.definitions').joinpath(
+            'base_classes')
         nxdl_files = map(os.path.basename, glob.glob(
             os.path.join(base_class_path, '*.nxdl.xml')))
         pattern = re.compile(r'[\t\n ]+')
@@ -2091,14 +2090,12 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def open_example_file(self):
         default_directory = self.default_directory
-        self.default_directory = pkg_resources.resource_filename('nexpy',
-                                                                 'examples')
+        self.default_directory = package_files('nexpy').joinpath('examples')
         self.open_file()
         self.default_directory = default_directory
 
     def open_example_script(self):
-        script_dir = pkg_resources.resource_filename(
-            'nexpy', os.path.join('examples', 'scripts'))
+        script_dir = package_files('nexpy').joinpath('examples', 'scripts')
         file_filter = ';;'.join(("Python Files (*.py)",
                                  "Any Files (*.* *)"))
         file_name = getOpenFileName(self, 'Open Script', script_dir,
