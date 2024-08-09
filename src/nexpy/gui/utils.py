@@ -19,7 +19,7 @@ import traceback as tb
 from configparser import ConfigParser
 from datetime import datetime
 
-if sys.version_info < (3, 9):
+if sys.version_info < (3, 10):
     from importlib_resources import files as package_files
 else:
     from importlib.resources import files as package_files
