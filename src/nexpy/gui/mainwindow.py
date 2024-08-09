@@ -22,7 +22,6 @@ import re
 import sys
 import webbrowser
 import xml.etree.ElementTree as ET
-from importlib.resources import files as package_files
 from operator import attrgetter
 from pathlib import Path
 
@@ -53,7 +52,7 @@ from .scripteditor import NXScriptWindow
 from .treeview import NXTreeView
 from .utils import (confirm_action, define_mode, display_message, get_colors,
                     get_name, import_plugin, is_file_locked, load_image,
-                    natural_sort, report_error, timestamp)
+                    natural_sort, package_files, report_error, timestamp)
 
 
 class NXRichJupyterWidget(RichJupyterWidget):

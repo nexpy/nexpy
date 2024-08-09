@@ -10,7 +10,6 @@ import logging
 import numbers
 import os
 import shutil
-from importlib.resources import files as package_files
 from operator import attrgetter
 from pathlib import Path
 
@@ -26,7 +25,8 @@ from .pyqt import QtCore, QtGui, QtWidgets, getOpenFileName, getSaveFileName
 from .utils import (confirm_action, convertHTML, display_message,
                     fix_projection, format_mtime, format_timestamp, get_color,
                     get_mtime, human_size, import_plugin, keep_data,
-                    natural_sort, report_error, set_style, timestamp, wrap)
+                    natural_sort, package_files, report_error, set_style,
+                    timestamp, wrap)
 from .widgets import (NXCheckBox, NXColorBox, NXComboBox, NXDoubleSpinBox,
                       NXLabel, NXLineEdit, NXPlainTextEdit, NXpolygon,
                       NXPushButton, NXScrollArea, NXSpinBox, NXStack)

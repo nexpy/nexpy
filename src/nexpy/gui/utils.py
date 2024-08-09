@@ -18,7 +18,12 @@ import sys
 import traceback as tb
 from configparser import ConfigParser
 from datetime import datetime
-from importlib.resources import files as package_files
+
+if sys.version_info < (3, 9):
+    from importlib_resources import files as package_files
+else:
+    from importlib.resources import files as package_files
+
 from importlib.util import module_from_spec, spec_from_file_location
 from pathlib import Path
 from threading import Thread

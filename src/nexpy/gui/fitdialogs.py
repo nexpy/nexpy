@@ -11,7 +11,6 @@ import re
 import sys
 import types
 from importlib import import_module
-from importlib.resources import files as package_files
 from itertools import cycle
 from pathlib import Path
 
@@ -24,7 +23,7 @@ from nexusformat.nexus import (NeXusError, NXdata, NXentry, NXfield, NXnote,
 from .datadialogs import NXDialog, NXPanel, NXTab
 from .plotview import NXPlotView, linestyles
 from .pyqt import QtCore, QtWidgets
-from .utils import display_message, format_float, report_error
+from .utils import display_message, format_float, package_files, report_error
 from .widgets import (NXCheckBox, NXColorBox, NXComboBox, NXLabel, NXLineEdit,
                       NXMessageBox, NXPushButton, NXrectangle, NXScrollArea)
 
