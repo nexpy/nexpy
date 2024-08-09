@@ -35,10 +35,10 @@ from matplotlib.backends.backend_qt import NavigationToolbar2QT
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.colors import LogNorm, Normalize, SymLogNorm
 from matplotlib.figure import Figure
-from matplotlib.image import imread
 from matplotlib.lines import Line2D
 from matplotlib.ticker import AutoLocator, LogLocator, ScalarFormatter
-from packaging.version import parse as pv
+from packaging.version import Version
+from PIL import Image
 
 from .pyqt import QtCore, QtGui, QtWidgets
 
@@ -67,8 +67,8 @@ from .datadialogs import (CustomizeDialog, ExportDialog, LimitDialog,
                           ProjectionDialog, ScanDialog, StyleDialog)
 from .utils import (boundaries, centers, divgray_map, find_nearest,
                     fix_projection, get_color, in_dark_mode, iterable,
-                    keep_data, parula_map, report_error, report_exception,
-                    resource_file, resource_icon, xtec_map)
+                    keep_data, load_image, parula_map, report_error,
+                    report_exception, resource_file, resource_icon, xtec_map)
 from .widgets import (NXCheckBox, NXcircle, NXComboBox, NXDoubleSpinBox,
                       NXellipse, NXLabel, NXpolygon, NXPushButton, NXrectangle,
                       NXSlider, NXSpinBox)
@@ -86,7 +86,7 @@ cmaps = ['viridis', 'inferno', 'magma', 'plasma',  # perceptually uniform
          'seismic', 'coolwarm', 'twilight', 'divgray',  # diverging
          'RdBu', 'RdYlBu', 'RdYlGn']
 
-if pv(mpl.__version__) >= pv('3.5.0'):
+if Version(mpl.__version__) >= Version('3.5.0'):
     mpl.colormaps.register(parula_map())
     mpl.colormaps.register(xtec_map())
     mpl.colormaps.register(divgray_map())
@@ -125,8 +125,9 @@ markers = {'.': 'point', ',': 'pixel', '+': 'plus', 'x': 'x',
            'o': 'circle', 's': 'square', 'D': 'diamond', 'H': 'hexagon',
            'v': 'triangle_down', '^': 'triangle_up', '<': 'triangle_left',
            '>': 'triangle_right', 'None': 'None'}
-logo = imread(resource_file('NeXpy.png'))[180:880, 50:1010]
-warnings.filterwarnings("ignore", category=DeprecationWarning)
+logo = load_image(resource_file('NeXpy.png'))[180:880, 50:1010]
+logo["title"] = '"NeXpy"'
+# warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 
 def new_figure_manager(label=None, *args, **kwargs):
@@ -606,7 +607,7 @@ class NXPlotView(QtWidgets.QDialog):
 
     def display_logo(self):
         """Display the NeXpy logo in the plotting pane."""
-        self.plot(NXdata(logo, title='NeXpy'), image=True)
+        self.plot(logo, image=True)
         self.ax.xaxis.set_visible(False)
         self.ax.yaxis.set_visible(False)
         self.ax.title.set_visible(False)
@@ -1087,7 +1088,7 @@ class NXPlotView(QtWidgets.QDialog):
             else:
                 opts['interpolation'] = self.interpolation
 
-        if pv(mpl.__version__) >= pv('3.5.0'):
+        if Version(mpl.__version__) >= Version('3.5.0'):
             cm = copy.copy(mpl.colormaps[self.cmap])
         else:
             cm = copy.copy(get_cmap(self.cmap))
@@ -1222,7 +1223,7 @@ class NXPlotView(QtWidgets.QDialog):
                 self.vaxis.lo = 0.5
             else:
                 self.vaxis.lo = -0.5
-            if pv(mpl.__version__) >= pv('3.5.0'):
+            if Version(mpl.__version__) >= Version('3.5.0'):
                 nc = len(mpl.colormaps[self.cmap].colors)
             else:
                 nc = len(get_cmap(self.cmap).colors)
@@ -1365,7 +1366,7 @@ class NXPlotView(QtWidgets.QDialog):
 
     def update_colorbar(self):
         if self.colorbar:
-            if pv(mpl.__version__) >= pv('3.1.0'):
+            if Version(mpl.__version__) >= Version('3.1.0'):
                 self.colorbar.update_normal(self.image)
             else:
                 self.colorbar.set_norm(self.norm)
@@ -1373,7 +1374,7 @@ class NXPlotView(QtWidgets.QDialog):
             if self.vtab.qualitative:
                 vmin, vmax = [int(i+0.5) for i in self.image.get_clim()]
                 self.colorbar.set_ticks(range(vmin, vmax))
-                if pv(mpl.__version__) >= pv('3.5.0'):
+                if Version(mpl.__version__) >= Version('3.5.0'):
                     if self.cmap == 'xtec':
                         vmin, vmax = (0.5, self.vaxis.max_data+0.5)
                     else:
@@ -1515,7 +1516,7 @@ class NXPlotView(QtWidgets.QDialog):
             self.vaxis.max = self.vaxis.hi = vmax
             self.colorbar.locator = AutoLocator()
             self.colorbar.formatter = ScalarFormatter()
-            if pv(mpl.__version__) >= pv('3.1.0'):
+            if Version(mpl.__version__) >= Version('3.1.0'):
                 self.image.set_norm(SymLogNorm(linthresh, linscale=linscale,
                                                vmin=-vmax, vmax=vmax))
             else:
@@ -3477,7 +3478,7 @@ class NXPlotTab(QtWidgets.QWidget):
         if cmap is None:
             cmap = self._cached_cmap
         try:
-            if pv(mpl.__version__) >= pv('3.5.0'):
+            if Version(mpl.__version__) >= Version('3.5.0'):
                 cm = copy.copy(mpl.colormaps[cmap])
             else:
                 cm = copy.copy(get_cmap(cmap))
@@ -3901,7 +3902,7 @@ class NXNavigationToolbar(NavigationToolbar2QT, QtWidgets.QToolBar):
 
         NavigationToolbar2.__init__(self, canvas)
         if in_dark_mode() and (
-                pv(QtCore.__version__) <= pv('5.15')):
+                Version(QtCore.__version__) <= Version('5.15')):
             self.setStyleSheet('color: black')
         self.plotview = canvas.parent()
         self.zoom()

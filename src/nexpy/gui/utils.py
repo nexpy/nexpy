@@ -29,6 +29,7 @@ from matplotlib import __version__ as mplversion
 from matplotlib import rcParams
 from matplotlib.colors import colorConverter, hex2color, rgb2hex
 from packaging.version import Version
+from PIL import Image
 
 from .pyqt import QtCore, QtGui, QtWidgets
 
@@ -42,8 +43,8 @@ except ImportError:
     fabio = None
 
 from nexusformat.nexus import (NeXusError, NXcollection, NXdata, NXfield,
-                               NXLock, NXLockException, NXnote,
-                               nxgetconfig, nxload, nxsetconfig)
+                               NXLock, NXLockException, NXnote, nxgetconfig,
+                               nxload, nxsetconfig)
 
 ansi_re = re.compile(r'\x1b' + r'\[([\dA-Fa-f;]*?)m')
 
@@ -131,8 +132,9 @@ def run_pythonw(script_path):
         return
     import platform
     import warnings
-    from distutils.version import StrictVersion
-    if (StrictVersion(platform.release()) > StrictVersion('19.0.0') and
+
+    from packaging.version import Version
+    if (Version(platform.release()) > Version('19.0.0') and
             'CONDA_PREFIX' in os.environ):
         pythonw_path = Path(sys.exec_prefix).joinpath('bin', 'pythonw')
         if pythonw_path.exists():
@@ -589,10 +591,9 @@ def cmyk_to_rgb(c, m, y, k):
 
 
 def load_image(filename):
-    if os.path.splitext(filename.lower())[1] in ['.png', '.jpg', '.jpeg',
-                                                 '.gif']:
-        from matplotlib.image import imread
-        im = imread(filename)
+    if Path(filename).suffix.lower() in ['.png', '.jpg', '.jpeg', '.gif']:
+        with Image.open(filename) as PIL_image:
+            im = np.array(PIL_image)
         z = NXfield(im, name='z')
         y = NXfield(range(z.shape[0]), name='y')
         x = NXfield(range(z.shape[1]), name='x')
@@ -623,14 +624,14 @@ def load_image(filename):
             for k, v in im.header.items():
                 if v or v == 0:
                     header[k] = v
-            data.header = header
+            data["header"] = header
         if im.getclassname() == 'CbfImage':
             note = NXnote(type='text/plain', file_name=filename)
-            note.data = im.header.pop('_array_data.header_contents', '')
-            note.description = im.header.pop(
+            note["data"] = im.header.pop('_array_data.header_contents', '')
+            note["description"] = im.header.pop(
                 '_array_data.header_convention', '')
-            data.CBF_header = note
-    data.title = filename
+            data["CBF_header"] = note
+    data["title"] = filename
     return data
 
 

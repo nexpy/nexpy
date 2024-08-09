@@ -10,12 +10,12 @@ import logging
 import numbers
 import os
 import shutil
+from importlib.resources import files as package_files
 from operator import attrgetter
 from pathlib import Path
 
 import matplotlib as mpl
 import numpy as np
-import pkg_resources
 from matplotlib.legend import Legend
 from matplotlib.rcsetup import validate_aspect, validate_float
 from nexusformat.nexus import (NeXusError, NXattr, NXdata, NXentry, NXfield,
@@ -1875,9 +1875,7 @@ class ExportDialog(NXDialog):
             output[output == str(np.nan)] = ''
             np.savetxt(fname, output, header=header, delimiter=self.delimiter,
                        comments='', fmt='%s')
-
         logging.info(f"Data saved as '{fname}'")
-        super().accept()
 
 
 class LockDialog(NXDialog):
