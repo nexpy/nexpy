@@ -88,14 +88,13 @@ class ImportDialog(NXImportDialog):
 
     def choose_directory(self):
         super().choose_directory()
-        files = self.get_filesindirectory()
         self.get_extensions()
         self.get_prefixes()
         self.filter_box.setVisible(True)
 
     def get_prefixes(self):
-        files = [f for f in self.get_filesindirectory()
-                 if f.endswith(self.get_extension())]
+        files = [f.name for f in self.get_filesindirectory()
+                 if f.suffix == self.get_extension()]
         self.prefix_combo.clear()
         prefixes = []
         for file in files:
@@ -134,7 +133,7 @@ class ImportDialog(NXImportDialog):
 
     def get_extensions(self):
         files = self.get_filesindirectory()
-        extensions = set([os.path.splitext(f)[-1] for f in files])
+        extensions = set([f.suffix for f in files])
         self.extension_combo.clear()
         for extension in extensions:
             self.extension_combo.addItem(extension)
@@ -169,9 +168,9 @@ class ImportDialog(NXImportDialog):
                 self.extension_combo.findText(text))
         self.get_prefixes()
 
-    def get_index(self, file):
+    def get_index(self, filename):
         return int(re.match(fr'^(.*?)([0-9]*){self.suffix}[.](.*)$',
-                            file).groups()[1])
+                            str(filename)).groups()[1])
 
     def get_indices(self):
         try:
@@ -215,7 +214,7 @@ class ImportDialog(NXImportDialog):
             import fabio
         except ImportError:
             raise NeXusError("Please install the 'fabio' module")
-        im = fabio.open(filename)
+        im = fabio.open(str(filename))
         return im
 
     def read_images(self, filenames):

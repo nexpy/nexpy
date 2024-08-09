@@ -285,11 +285,10 @@ class NXWidget(QtWidgets.QWidget):
         Opens a file dialog and sets the file text box to the chosen path.
         """
         dirname = self.get_default_directory(self.filename.text())
-        filename = getOpenFileName(self, 'Open File', dirname)
-        if os.path.exists(filename):
-            dirname = os.path.dirname(filename)
+        filename = Path(getOpenFileName(self, 'Open File', dirname))
+        if filename.exists():
             self.filename.setText(str(filename))
-            self.set_default_directory(dirname)
+            self.set_default_directory(filename.parent)
 
     def get_filename(self):
         """
@@ -299,10 +298,10 @@ class NXWidget(QtWidgets.QWidget):
 
     def choose_directory(self):
         """Opens a file dialog and sets the directory text box to the path."""
-        dirname = self.get_default_directory()
+        dirname = str(self.get_default_directory())
         dirname = QtWidgets.QFileDialog.getExistingDirectory(
             self, 'Choose Directory', dirname)
-        if os.path.exists(dirname):  # avoids problems if <Cancel> was selected
+        if Path(dirname).exists():  # avoids problems if <Cancel> was selected
             self.directoryname.setText(str(dirname))
             self.set_default_directory(dirname)
 
@@ -312,19 +311,21 @@ class NXWidget(QtWidgets.QWidget):
 
     def get_default_directory(self, suggestion=None):
         """Return the most recent default directory for open/save dialogs."""
-        if suggestion is None or not os.path.exists(suggestion):
+        if suggestion is None or not Path(suggestion).exists():
             suggestion = self.default_directory
-        if os.path.exists(suggestion):
-            if not os.path.isdir(suggestion):
-                suggestion = os.path.dirname(suggestion)
-        suggestion = os.path.abspath(suggestion)
+        suggestion = Path(suggestion)
+        if suggestion.exists():
+            if not suggestion.is_dir:
+                suggestion = suggestion.parent
+        suggestion = suggestion.resolve()
         return suggestion
 
     def set_default_directory(self, suggestion):
         """Defines the default directory to use for open/save dialogs."""
-        if os.path.exists(suggestion):
-            if not os.path.isdir(suggestion):
-                suggestion = os.path.dirname(suggestion)
+        suggestion = Path(suggestion)
+        if suggestion.exists():
+            if not suggestion.is_dir():
+                suggestion = suggestion.parent
             self.default_directory = suggestion
             self.mainwindow.default_directory = self.default_directory
 
@@ -337,14 +338,12 @@ class NXWidget(QtWidgets.QWidget):
         e.g., 'data2.tif' comes before 'data10.tif'.
         """
         if directory:
-            os.chdir(directory)
+            directory = Path(directory)
         else:
-            os.chdir(self.get_directory())
+            directory = Path(self.get_directory())
         if not extension.startswith('.'):
             extension = '.'+extension
-        from glob import glob
-        filenames = glob(prefix+'*'+extension)
-        return sorted(filenames, key=natural_sort)
+        return sorted(directory.glob(prefix+'*'+extension), key=natural_sort)
 
     def select_box(self, choices, default=None, slot=None):
         box = NXComboBox()
@@ -1322,9 +1321,9 @@ class NewDialog(NXDialog):
         else:
             self.tree[root] = NXroot()
             self.treeview.select_node(self.tree[root])
-        dir = os.path.join(self.mainwindow.backup_dir, timestamp())
-        os.mkdir(dir)
-        fname = os.path.join(dir, root+'_backup.nxs')
+        dir = self.mainwindow.backup_dir / timestamp()
+        dir.mkdir()
+        fname = dir.joinpath(root+'_backup.nxs')
         self.tree[root].save(fname, 'w')
         self.treeview.update()
         logging.info(f"New workspace '{root}' created")
@@ -1367,7 +1366,7 @@ class DirectoryDialog(NXDialog):
 
     def accept(self):
         for i, f in enumerate(self.files):
-            fname = os.path.join(self.directory, f)
+            fname = Path(self.directory).joinpath(f)
             if i == 0:
                 self.mainwindow.load_file(fname, wait=1)
             else:
@@ -1844,7 +1843,7 @@ class ExportDialog(NXDialog):
                                     self.data.nxname+'.nxs',
                                     self.mainwindow.file_filter)
             if fname:
-                self.set_default_directory(os.path.dirname(fname))
+                self.set_default_directory(Path(fname).parent)
             else:
                 super().reject()
                 return
@@ -1860,7 +1859,7 @@ class ExportDialog(NXDialog):
             fname = getSaveFileName(self, "Choose a Filename",
                                     self.data.nxname+'.txt')
             if fname:
-                self.set_default_directory(os.path.dirname(fname))
+                self.set_default_directory(Path(fname).parent)
             else:
                 super().reject()
                 return
@@ -1888,7 +1887,7 @@ class LockDialog(NXDialog):
 
         super().__init__(parent=parent)
 
-        self.lockdirectory = nxgetconfig('lockdirectory')
+        self.lockdirectory = Path(nxgetconfig('lockdirectory'))
         self.text_box = NXPlainTextEdit(wrap=False)
         self.text_box.setReadOnly(True)
         self.set_layout(self.label(f'Lock Directory: {self.lockdirectory}'),
@@ -1909,10 +1908,10 @@ class LockDialog(NXDialog):
 
     def show_locks(self):
         text = []
-        for f in sorted(os.scandir(self.lockdirectory), key=get_mtime):
-            if f.name.endswith('.lock'):
+        for f in sorted(self.lockdirectory.iterdir(), key=get_mtime):
+            if f.suffix == '.lock':
                 name = self.convert_name(f.name)
-                text.append(f'{format_mtime(get_mtime(f))} {name}')
+                text.append(f'{format_mtime(f.st_mtime)} {name}')
         if text:
             self.text_box.setPlainText('\n'.join(text))
         else:
@@ -1921,8 +1920,8 @@ class LockDialog(NXDialog):
     def clear_locks(self):
         dialog = NXDialog(parent=self)
         locks = []
-        for f in sorted(os.scandir(self.lockdirectory), key=get_mtime):
-            if f.name.endswith('.lock'):
+        for f in sorted(self.lockdirectory.iterdir(), key=get_mtime):
+            if f.suffix == '.lock':
                 name = self.convert_name(f.name)
                 locks.append(self.checkboxes((f.name, name, False),
                                              align='left'))
@@ -1942,8 +1941,9 @@ class LockDialog(NXDialog):
     def clear_lock(self):
         for f in list(self.checkbox):
             if self.checkbox[f].isChecked():
+                lock_path = Path(self.lockdirectory).joinpath(f)
                 try:
-                    os.remove(os.path.join(self.lockdirectory, f))
+                    lock_path.unlink()
                 except FileNotFoundError:
                     pass
                 del self.checkbox[f]
@@ -4387,7 +4387,7 @@ class LogDialog(NXDialog):
         self.file_combo = NXComboBox(self.show_log)
         for file_name in self.get_filesindirectory(
                 'nexpy', extension='.log*', directory=self.log_directory):
-            self.file_combo.add(file_name)
+            self.file_combo.add(str(file_name))
         self.file_combo.select('nexpy.log')
         self.issue_button = NXPushButton('Open NeXpy Issue', self.open_issue)
         footer_layout = self.make_layout(self.issue_button,
@@ -4401,7 +4401,7 @@ class LogDialog(NXDialog):
 
     @property
     def file_name(self):
-        return os.path.join(self.log_directory, self.file_combo.currentText())
+        return self.log_directory / self.file_combo.currentText()
 
     def open_issue(self):
         import webbrowser
@@ -4439,7 +4439,7 @@ class UnlockDialog(NXDialog):
         self.setWindowTitle("Unlock File")
         self.node = node
 
-        file_size = os.path.getsize(self.node.nxfilename)
+        file_size = Path(self.node.nxfilename).stat().st_size
         if file_size < 10000000:
             default = True
         else:
@@ -4456,8 +4456,8 @@ class UnlockDialog(NXDialog):
     def accept(self):
         try:
             if self.checkbox['backup'].isChecked():
-                dir = os.path.join(self.mainwindow.backup_dir, timestamp())
-                os.mkdir(dir)
+                dir = self.mainwindow.backup_dir / timestamp()
+                dir.mkdir()
                 self.node.backup(dir=dir)
                 self.mainwindow.settings.set('backups', self.node.nxbackup)
                 self.mainwindow.settings.save()
@@ -4483,19 +4483,21 @@ class ManageBackupsDialog(NXDialog):
         options = reversed(self.mainwindow.settings.options('backups'))
         backups = []
         for backup in options:
-            if os.path.exists(backup):
-                backups.append(backup)
+            backup_path = Path(backup).resolve()
+            if backup_path.exists() and (
+                    self.backup_dir in backup_path.parents):
+                backups.append(backup_path)
             else:
                 self.mainwindow.settings.remove_option('backups', backup)
         self.mainwindow.settings.save()
         self.scroll_area = NXScrollArea()
         items = []
         for backup in backups:
-            date = format_timestamp(os.path.basename(os.path.dirname(backup)))
+            date = format_timestamp(backup.parent.name)
             name = self.get_name(backup)
-            size = os.path.getsize(backup)
+            size = backup.stat().st_size
             items.append(
-                self.checkboxes((backup,
+                self.checkboxes((str(backup),
                                  f"{date}: {name} ({human_size(size)})",
                                  False), align='left'))
         self.scroll_widget = NXWidget()
@@ -4510,7 +4512,7 @@ class ManageBackupsDialog(NXDialog):
         self.set_title('Manage Backups')
 
     def get_name(self, backup):
-        name, ext = os.path.splitext(os.path.basename(backup))
+        name, ext = Path(backup).stem, Path(backup).suffix
         return name[:name.find('_backup')] + ext
 
     def restore(self):
@@ -4533,13 +4535,13 @@ class ManageBackupsDialog(NXDialog):
             if self.confirm_action("Delete selected backups?",
                                    "\n".join(backups)):
                 for backup in backups:
-                    if (os.path.exists(backup) and
-                            os.path.realpath(backup).startswith(
-                                self.backup_dir)):
-                        os.remove(os.path.realpath(backup))
-                        os.rmdir(os.path.dirname(os.path.realpath(backup)))
+                    backup_path = Path(backup).resolve()
+                    if backup_path.exists() and (
+                            self.backup_dir in backup_path.parents):
+                        backup_path.unlink()
+                        backup_path.parent.rmdir()
                         self.mainwindow.settings.remove_option('backups',
-                                                               backup)
+                                                               str(backup))
                     self.checkbox[backup].setChecked(False)
                     self.checkbox[backup].setDisabled(True)
                 self.mainwindow.settings.save()
@@ -4553,8 +4555,7 @@ class InstallPluginDialog(NXDialog):
         super().__init__(parent=parent)
 
         self.local_directory = self.mainwindow.plugin_dir
-        self.nexpy_directory = pkg_resources.resource_filename('nexpy',
-                                                               'plugins')
+        self.nexpy_directory = package_files('nexpy').joinpath('plugins')
         self.backup_dir = self.mainwindow.backup_dir
 
         self.setWindowTitle("Install Plugin")
@@ -4575,9 +4576,9 @@ class InstallPluginDialog(NXDialog):
             report_error("Installing Plugin", error)
 
     def install_plugin(self):
-        plugin_directory = self.get_directory()
-        plugin_name = os.path.basename(os.path.normpath(plugin_directory))
-        plugin_path = os.path.dirname(plugin_directory)
+        plugin_directory = Path(self.get_directory())
+        plugin_name = plugin_directory.name
+        plugin_path = plugin_directory.parent
         name, actions = self.get_menu_info(plugin_name, plugin_path)
         if name is None:
             raise NeXusError("This directory does not contain a valid plugin")
@@ -4585,15 +4586,15 @@ class InstallPluginDialog(NXDialog):
             plugin_path = self.local_directory
         else:
             plugin_path = self.nexpy_directory
-        installed_path = os.path.join(plugin_path, plugin_name)
-        if os.path.exists(installed_path):
+        installed_path = plugin_path / plugin_name
+        if installed_path.exists():
             if self.confirm_action("Overwrite plugin?",
                                    f"Plugin '{plugin_name}' already exists"):
-                backup = os.path.join(self.backup_dir, timestamp())
-                os.mkdir(backup)
+                backup = self.backup_dir / timestamp()
+                backup.mkdir()
                 shutil.move(installed_path, backup)
                 self.mainwindow.settings.set('plugins',
-                                             os.path.join(backup, plugin_name))
+                                             backup.joinpath(plugin_name))
                 self.mainwindow.settings.save()
             else:
                 return
@@ -4619,10 +4620,9 @@ class RemovePluginDialog(NXDialog):
 
         super().__init__(parent=parent)
 
-        self.local_directory = Path(self.mainwindow.plugin_dir)
-        self.nexpy_directory = Path(pkg_resources.resource_filename('nexpy',
-                                                                    'plugins'))
-        self.backup_dir = Path(self.mainwindow.backup_dir)
+        self.local_directory = self.mainwindow.plugin_dir
+        self.nexpy_directory = package_files('nexpy').joinpath('plugins')
+        self.backup_dir = self.mainwindow.backup_dir
 
         local_plugins = []
         for item in self.local_directory.iterdir():
@@ -4667,7 +4667,7 @@ class RemovePluginDialog(NXDialog):
                     backup_path.mkdir()
                     shutil.move(str(plugin_path), str(backup_path))
                     self.mainwindow.settings.set(
-                        'plugins', str(backup_path.joinpath(plugin_name)))
+                        'plugins', backup_path.joinpath(plugin_name))
                 self.mainwindow.settings.save()
             else:
                 continue
@@ -4692,23 +4692,18 @@ class RestorePluginDialog(NXDialog):
         super().__init__(parent=parent, default=True)
 
         self.local_directory = self.mainwindow.plugin_dir
-        self.nexpy_directory = pkg_resources.resource_filename('nexpy',
-                                                               'plugins')
+        self.nexpy_directory = package_files('nexpy') / 'plugins'
         self.backup_dir = self.mainwindow.backup_dir
 
         options = reversed(self.mainwindow.settings.options('plugins'))
-        self.plugins = []
-        for plugin in options:
-            if os.path.exists(plugin):
-                self.plugins.append(plugin)
-            else:
-                self.mainwindow.settings.remove_option('plugins', plugin)
+        self.plugins = [Path(plugin) for plugin in options
+                        if Path(plugin).exists()]
         self.mainwindow.settings.save()
         plugin_list = []
         for plugin in self.plugins:
-            date = format_timestamp(os.path.basename(os.path.dirname(plugin)))
+            date = format_timestamp(plugin.parent.name)
             name = self.get_name(plugin)
-            if plugin is self.plugins[0]:
+            if plugin == self.plugins[0]:
                 checked = True
             else:
                 checked = False
@@ -4726,7 +4721,7 @@ class RestorePluginDialog(NXDialog):
         self.set_title('Restore Plugin')
 
     def get_name(self, plugin):
-        return os.path.basename(plugin)
+        return Path(plugin).name
 
     def get_menu_info(self, plugin_name, plugin_path):
         try:
@@ -4736,19 +4731,19 @@ class RestorePluginDialog(NXDialog):
             report_error("Restoring Plugin", error)
 
     def remove_backup(self, backup):
-        shutil.rmtree(os.path.dirname(os.path.realpath(backup)))
-        self.mainwindow.settings.remove_option('plugins', backup)
+        Path(backup).parent.rmdir()
+        self.mainwindow.settings.remove_option('plugins', str(backup))
         self.mainwindow.settings.save()
 
     def restore(self):
         plugin_name = None
         for plugin_directory in self.plugins:
             if self.radiobutton[plugin_directory].isChecked():
-                plugin_name = os.path.basename(plugin_directory)
+                plugin_name = Path(plugin_directory).name
                 break
         if plugin_name is None:
             return
-        plugin_path = os.path.dirname(plugin_directory)
+        plugin_path = plugin_directory.parent
         name, actions = self.get_menu_info(plugin_name, plugin_path)
         if name is None:
             raise NeXusError("This directory does not contain a valid plugin")
@@ -4756,15 +4751,15 @@ class RestorePluginDialog(NXDialog):
             plugin_path = self.local_directory
         else:
             plugin_path = self.nexpy_directory
-        restored_path = os.path.join(plugin_path, plugin_name)
-        if os.path.exists(restored_path):
+        restored_path = plugin_path / plugin_name
+        if restored_path.exists():
             if self.confirm_action("Overwrite plugin?",
                                    f"Plugin '{plugin_name}' already exists"):
-                backup_path = os.path.join(self.backup_dir, timestamp())
-                os.mkdir(backup_path)
+                backup_path = self.backup_dir / timestamp()
+                backup_path.mkdir()
                 shutil.move(restored_path, backup_path)
                 self.mainwindow.settings.set(
-                    'plugins', os.path.join(backup_path, plugin_name))
+                    'plugins', backup_path.joinpath(plugin_name))
                 self.mainwindow.settings.save()
             else:
                 return

@@ -6,7 +6,7 @@
 # The full license is in the file COPYING, distributed with this software.
 # -----------------------------------------------------------------------------
 
-import os
+from pathlib import Path
 
 from nexusformat.nexus import (NeXusError, NXdata, NXentry, NXfield, NXgroup,
                                NXlink, NXroot, nxload)
@@ -143,7 +143,7 @@ class NXtree(NXgroup):
                     del self._shell[shell_names[0]]
 
     def node_from_file(self, fname):
-        fname = os.path.abspath(fname)
+        fname = str(Path(fname).resolve())
         names = [name for name in self if self[name].nxfilename]
         try:
             return [name for name in names
@@ -482,7 +482,7 @@ class NXTreeView(QtWidgets.QTreeView):
                 node = self.tree._entries[key]
                 if node.nxfilemode and not node.file_exists():
                     _dir = node.nxfile._filedir
-                    if not os.path.exists(_dir):
+                    if not Path(_dir).exists():
                         display_message("Files removed",
                                         f"'{_dir}' no longer exists")
                         for _key in [k for k in self.tree

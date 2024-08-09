@@ -134,15 +134,14 @@ def run_pythonw(script_path):
     from distutils.version import StrictVersion
     if (StrictVersion(platform.release()) > StrictVersion('19.0.0') and
             'CONDA_PREFIX' in os.environ):
-        pythonw_path = os.path.join(sys.exec_prefix, 'bin', 'pythonw')
-        if os.path.exists(pythonw_path):
-            cwd = os.getcwd()
+        pythonw_path = Path(sys.exec_prefix).joinpath('bin', 'pythonw')
+        if pythonw_path.exists():
             cmd = [pythonw_path, script_path]
             env = os.environ.copy()
             if len(sys.argv) > 1:
                 cmd.extend(sys.argv[1:])
             import subprocess
-            result = subprocess.run(cmd, env=env, cwd=cwd)
+            result = subprocess.run(cmd, env=env, cwd=Path.cwd())
             sys.exit(result.returncode)
         else:
             msg = ("'pythonw' executable not found.\n"
@@ -204,7 +203,7 @@ def wrap(text, length):
 def natural_sort(key):
     """Sort numbers according to their value, not their first character"""
     import re
-    return [int(t) if t.isdigit() else t for t in re.split(r'(\d+)', key)]
+    return [int(t) if t.isdigit() else t for t in re.split(r'(\d+)', str(key))]
 
 
 def clamp(value, min_value, max_value):
@@ -284,7 +283,7 @@ def keep_data(data):
     """
     from .consoleapp import _nexpy_dir, _tree
     if 'w0' not in _tree:
-        _tree['w0'] = nxload(os.path.join(_nexpy_dir, 'w0.nxs'), 'rw')
+        _tree['w0'] = nxload(_nexpy_dir.joinpath('w0.nxs'), 'rw')
     ind = []
     for key in _tree['w0']:
         try:
@@ -396,7 +395,7 @@ def is_timestamp(timestamp):
 def get_mtime(file_path):
     """Return the file modification time for the specified file path."""
     try:
-        return file_path.stat().st_mtime
+        return Path(file_path).stat().st_mtime
     except FileNotFoundError:  # due to a race condition
         return 0.0
 
@@ -408,7 +407,7 @@ def format_mtime(mtime):
 
 def modification_time(filename):
     try:
-        _mtime = os.path.getmtime(filename)
+        _mtime = Path(filename).stat().st_mtime
         return str(datetime.fromtimestamp(_mtime))
     except FileNotFoundError:
         return ''

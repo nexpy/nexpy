@@ -94,13 +94,12 @@ class MainWindow(QtWidgets.QMainWindow):
         self.config = config
         self.copied_node = None
 
-        self.default_directory = os.path.expanduser('~')
+        self.default_directory = Path.home()
         self.nexpy_dir = self.app.nexpy_dir
         self.backup_dir = self.app.backup_dir
         self.plugin_dir = self.app.plugin_dir
         self.reader_dir = self.app.reader_dir
         self.script_dir = self.app.script_dir
-        self.function_dir = self.app.function_dir
         self.scratch_file = self.app.scratch_file
         self.settings_file = self.app.settings_file
 
@@ -851,7 +850,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.recent_menu.hovered.connect(self.hover_recent_menu)
         self.recent_file_actions = {}
         for i, recent_file in enumerate(recent_files):
-            action = QtWidgets.QAction(os.path.basename(recent_file), self,
+            action = QtWidgets.QAction(Path(recent_file).name, self,
                                        triggered=self.open_recent_file)
             action.setToolTip(recent_file)
             self.add_menu_action(self.recent_menu, action, self)
@@ -896,19 +895,19 @@ class MainWindow(QtWidgets.QMainWindow):
         if fname in [self.tree[root].nxfilename for root in self.tree]:
             raise NeXusError('File already open')
             return
-        elif not os.path.exists(fname):
+        elif not Path(fname).exists():
             raise NeXusError(f"'{fname}' does not exist")
         elif is_file_locked(fname, wait=wait):
             logging.info(
                 f"NeXus file '{fname}' is locked by an external process.")
             return
         name = self.tree.get_name(fname)
-        if Path(self.backup_dir) in Path(fname).parents:
+        if self.backup_dir in Path(fname).parents:
             name = name.replace('_backup', '')
             self.tree[name] = nxload(fname, 'rw')
         else:
             self.tree[name] = nxload(fname)
-            self.default_directory = os.path.dirname(fname)
+            self.default_directory = Path(fname).parent
         self.treeview.update()
         self.treeview.select_node(self.tree[name])
         self.treeview.setFocus()
@@ -948,7 +947,7 @@ class MainWindow(QtWidgets.QMainWindow):
                                      "JPEG/PNG Files (*.jpg *.jpeg *.png)"))
             fname = getOpenFileName(self, 'Open Image File',
                                     self.default_directory, file_filter)
-            if fname is None or not os.path.exists(fname):
+            if fname is None or not Path(fname).exists():
                 return
             data = load_image(fname)
             if 'images' not in self.tree:
@@ -958,7 +957,7 @@ class MainWindow(QtWidgets.QMainWindow):
             node = self.tree['images'][name]
             self.treeview.select_node(node)
             self.treeview.setFocus()
-            self.default_directory = os.path.dirname(fname)
+            self.default_directory = Path(fname).parent
             logging.info(
                 f"Image file '{fname}' opened as 'images{node.nxpath}'")
         except NeXusError as error:
@@ -966,19 +965,19 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def open_directory(self):
         try:
-            directory = self.default_directory
+            directory = str(self.default_directory)
             directory = QtWidgets.QFileDialog.getExistingDirectory(
                 self, 'Choose Directory', directory)
-            if directory is None or not os.path.exists(directory):
+            if directory is None or not Path(directory).exists():
                 return
-            tree_files = [self.tree[root].nxfilename for root in self.tree]
-            nxfiles = sorted([f for f in os.listdir(directory)
-                              if ((f.endswith('.nxs') or f.endswith('.nx5') or
-                                   f.endswith('.h5') or f.endswith('hdf5') or
-                                   f.endswith('hdf') or f.endswith('.cxi') or
-                                   f.endswith('nxspe')) and
-                              os.path.join(directory, f) not in tree_files and
-                              not os.path.islink(os.path.join(directory, f)))],
+            tree_files = [Path(self.tree[root].nxfilename)
+                          for root in self.tree]
+            nxfiles = sorted([f.name for f in Path(directory).iterdir()
+                              if (f.suffix.lower() in 
+                                  ('.nxs', '.nx5', '.h5', 'hdf5', 'hdf',
+                                   '.cxi', 'nxspe') and
+                                  f not in tree_files and
+                                  not f.is_symlink())],
                              key=natural_sort)
             if len(nxfiles) == 0:
                 raise NeXusError("No NeXus files found in directory")
@@ -1007,10 +1006,10 @@ class MainWindow(QtWidgets.QMainWindow):
                 try:
                     action = [k for k, v in self.recent_file_actions.items()
                               if v[0] == i][0]
-                    action.setText(os.path.basename(recent_file))
+                    action.setText(Path(recent_file).name)
                     action.setToolTip(recent_file)
                 except IndexError:
-                    action = QtWidgets.QAction(os.path.basename(recent_file),
+                    action = QtWidgets.QAction(Path(recent_file).name,
                                                self,
                                                triggered=self.open_recent_file)
                     action.setToolTip(recent_file)
@@ -1030,7 +1029,7 @@ class MainWindow(QtWidgets.QMainWindow):
             if node is None or not isinstance(node, NXroot):
                 raise NeXusError("Only NXroot groups can be saved")
             name = node.nxname
-            default_name = os.path.join(self.default_directory, name)
+            default_name = Path(self.default_directory).joinpath(name)
             fname = getSaveFileName(self, "Choose a Filename", default_name,
                                     self.file_filter)
             if fname:
@@ -1046,7 +1045,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.tree[name] = self.user_ns[name] = root
                 self.treeview.select_node(self.tree[name])
                 self.treeview.update()
-                self.default_directory = os.path.dirname(fname)
+                self.default_directory = Path(fname).parent
                 self.settings.remove_option('recent', old_fname)
                 self.settings.remove_option('session', old_fname)
                 self.update_files(fname)
@@ -1061,7 +1060,7 @@ class MainWindow(QtWidgets.QMainWindow):
             if isinstance(node, NXroot):
                 if node.nxfile:
                     name = self.tree.get_new_name()
-                    default_name = os.path.join(self.default_directory, name)
+                    default_name = self.default_directory.joinpath(name)
                     fname = getSaveFileName(self, "Choose a Filename",
                                             default_name, self.file_filter)
                     if fname:
@@ -1196,8 +1195,8 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.treeview.select_node(self.tree[name])
                 self.treeview.setFocus()
                 try:
-                    self.default_directory = os.path.dirname(
-                        self.import_dialog.import_file)
+                    self.default_directory = Path(
+                        self.import_dialog.import_file).parent
                 except Exception:
                     pass
                 logging.info(f"Workspace '{name}' imported")
@@ -1255,7 +1254,7 @@ class MainWindow(QtWidgets.QMainWindow):
             lockdirectory = nxgetconfig('lockdirectory')
             if lockdirectory is None:
                 raise NeXusError("No lock file directory defined")
-            elif not os.path.exists(lockdirectory):
+            elif not Path(lockdirectory).exists():
                 raise NeXusError(f"'{lockdirectory}' does not exist")
             dialog = LockDialog(parent=self)
             dialog.show()
@@ -1268,8 +1267,8 @@ class MainWindow(QtWidgets.QMainWindow):
             if node is not None and not node.file_exists():
                 raise NeXusError(f"{node.nxfilename} does not exist")
             if isinstance(node, NXroot):
-                dir = os.path.join(self.nexpy_dir, 'backups', timestamp())
-                os.mkdir(dir)
+                dir = self.nexpy_dir.joinpath('backups', timestamp())
+                dir.mkdir()
                 node.backup(dir=dir)
                 self.settings.set('backups', node.nxbackup)
                 self.settings.save()
@@ -1578,7 +1577,7 @@ class MainWindow(QtWidgets.QMainWindow):
             node = node.nxlink
         self._memroot['entry'][node.nxname] = node
         self._memroot['entry'].attrs['link'] = [node.nxname, node.nxpath,
-                                                str(node.nxfilename)]
+                                                node.nxfilename]
         return self._memroot['entry'][node.nxname]
 
     @property
@@ -1678,12 +1677,11 @@ class MainWindow(QtWidgets.QMainWindow):
             if isinstance(node, NXlink):
                 if (node.nxfilename and
                         node.nxfilename != node.nxroot.nxfilename):
-                    fname = node.nxfilename
-                    if not os.path.isabs(fname):
-                        fname = os.path.join(
-                            os.path.dirname(node.nxroot.nxfilename),
+                    fname = Path(node.nxfilename)
+                    if not Path(fname).is_absolute():
+                        fname = Path(node.nxroot.nxfilename).parent.joinpath(
                             node.nxfilename)
-                    if not os.path.exists(fname):
+                    if not fname.exists():
                         raise NeXusError("External file does not exist")
                     name = self.tree.node_from_file(fname)
                     if name is None:
@@ -1773,14 +1771,12 @@ class MainWindow(QtWidgets.QMainWindow):
     def input_base_classes(self):
         base_class_path = package_files('nexpy.definitions').joinpath(
             'base_classes')
-        nxdl_files = map(os.path.basename, glob.glob(
-            os.path.join(base_class_path, '*.nxdl.xml')))
+        nxdl_files = [p.name for p in base_class_path.glob('*.nxdl.xml')]
         pattern = re.compile(r'[\t\n ]+')
         self.nxclasses = {}
         for nxdl_file in nxdl_files:
             class_name = nxdl_file.split('.')[0]
-            xml_root = ET.parse(os.path.join(base_class_path,
-                                             nxdl_file)).getroot()
+            xml_root = ET.parse(base_class_path.joinpath(nxdl_file)).getroot()
             class_doc = ''
             class_groups = {}
             class_fields = {}
@@ -2021,7 +2017,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def open_script(self):
         try:
-            script_dir = os.path.join(self.nexpy_dir, 'scripts')
+            script_dir = self.nexpy_dir.joinpath('scripts')
             file_filter = ';;'.join(("Python Files (*.py)",
                                      "Any Files (*.* *)"))
             file_name = getOpenFileName(self, 'Open Script', script_dir,
@@ -2034,7 +2030,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def open_startup_script(self):
         try:
-            file_name = os.path.join(self.nexpy_dir, 'config.py')
+            file_name = self.nexpy_dir / 'config.py'
             self.open_script_window(file_name)
             logging.info(f"NeXus script '{file_name}' opened")
         except NeXusError as error:
@@ -2049,25 +2045,25 @@ class MainWindow(QtWidgets.QMainWindow):
             report_error("Opening Script", error)
 
     def add_script_directory(self, directory, menu):
-        names = sorted(os.listdir(directory))
+        names = sorted(path.name for path in directory.iterdir())
         for name in names:
-            if os.path.isdir(os.path.join(directory, name)):
-                d = os.path.join(directory, name)
-                m = menu.addMenu(name)
-                self.add_script_directory(d, m)
-            elif name.endswith('.py'):
-                self.add_script_action(os.path.join(directory, name), menu)
+            item_path = directory / name
+            if item_path.is_dir():
+                submenu = menu.addMenu(name)
+                self.add_script_directory(item_path, submenu)
+            elif item_path.suffix == '.py':
+                self.add_script_action(item_path, menu)
 
     def add_script_action(self, file_name, menu):
-        name = os.path.basename(file_name)
+        name = Path(file_name).name
         script_action = QtWidgets.QAction(name, self,
                                           triggered=self.open_script_file)
         self.add_menu_action(menu, script_action, self)
-        self.scripts[script_action] = (menu, file_name)
+        self.scripts[script_action] = (menu, str(file_name))
 
     def remove_script_action(self, file_name):
         for action, (menu, name) in self.scripts.items():
-            if name == file_name:
+            if name == str(file_name):
                 menu.removeAction(action)
 
     def _open_nexpy_online_help(self):
@@ -2103,8 +2099,6 @@ class MainWindow(QtWidgets.QMainWindow):
         if file_name:
             self.open_script_window(file_name)
             logging.info(f"NeXus script '{file_name}' opened")
-
-    # minimize/maximize/fullscreen actions:
 
     def toggle_menu_bar(self):
         menu_bar = self.menu_bar

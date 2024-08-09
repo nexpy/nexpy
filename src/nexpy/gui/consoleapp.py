@@ -151,9 +151,6 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
         self.plugin_dir = self.nexpy_dir / 'plugins'
         self.reader_dir = self.nexpy_dir / 'readers'
         self.script_dir = self.nexpy_dir / 'scripts'
-        self.function_dir = self.nexpy_dir / 'functions'
-        self.model_dir = self.nexpy_dir / 'models'
-        sys.path.append(self.function_dir)
         self.scratch_file = self.nexpy_dir / 'w0.nxs'
         if not self.scratch_file.exists():
             NXroot().save(self.scratch_file)
@@ -175,7 +172,7 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
         total_backups = backups + plugins
         for backup in total_backups:
             if not (Path(backup).exists() and
-                    Path(self.backup_dir) in Path(backup).parents):
+                    self.backup_dir in Path(backup).parents):
                 if backup in backups:
                     self.settings.remove_option('backups', backup)
                 elif backup in plugins:

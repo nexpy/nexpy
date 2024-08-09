@@ -5,8 +5,8 @@
 #
 # The full license is in the file COPYING, distributed with this software.
 # -----------------------------------------------------------------------------
-import os
 import tempfile
+from pathlib import Path
 
 import pygments
 from pygments.formatter import Formatter
@@ -126,12 +126,12 @@ class NXScriptWindow(NXPanel):
 
     def activate(self, file_name):
         if file_name:
-            label = os.path.basename(file_name)
+            label = Path(file_name).name
         else:
             label = f'Untitled {self.count+1}'
         super().activate(label, file_name)
         if file_name:
-            self.tab.default_directory = os.path.dirname(file_name)
+            self.tab.default_directory = Path(file_name).parent
         else:
             self.tab.default_directory = self.mainwindow.script_dir
 
@@ -221,7 +221,7 @@ class NXScriptEditor(NXTab):
                 f.write(self.get_text())
             args = self.argument_box.text()
             self.mainwindow.console.execute(f'run -i {file_name} {args}')
-            os.remove(file_name)
+            Path(file_name).unlink()
         else:
             self.mainwindow.console.execute(self.get_text())
 
@@ -244,7 +244,7 @@ class NXScriptEditor(NXTab):
             with open(file_name, 'w') as f:
                 f.write(self.get_text())
             self.file_name = file_name
-            self.tab_label = os.path.basename(self.file_name)
+            self.tab_label = Path(self.file_name).name
             self.mainwindow.add_script_action(self.file_name,
                                               self.mainwindow.script_menu)
             self.delete_button.setVisible(True)
@@ -254,6 +254,6 @@ class NXScriptEditor(NXTab):
             if confirm_action(
                     f"Are you sure you want to delete '{self.file_name}'?",
                     "This cannot be reversed"):
-                os.remove(self.file_name)
+                Path(self.file_name).unlink()
                 self.mainwindow.remove_script_action(self.file_name)
                 self.panel.close()
