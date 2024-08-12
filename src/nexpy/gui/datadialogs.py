@@ -1876,6 +1876,7 @@ class ExportDialog(NXDialog):
             np.savetxt(fname, output, header=header, delimiter=self.delimiter,
                        comments='', fmt='%s')
         logging.info(f"Data saved as '{fname}'")
+        super().accept()
 
 
 class LockDialog(NXDialog):
