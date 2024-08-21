@@ -1910,7 +1910,7 @@ class LockDialog(NXDialog):
         for f in sorted(self.lockdirectory.iterdir(), key=get_mtime):
             if f.suffix == '.lock':
                 name = self.convert_name(f.name)
-                text.append(f'{format_mtime(f.st_mtime)} {name}')
+                text.append(f'{format_mtime(f.stat().st_mtime)} {name}')
         if text:
             self.text_box.setPlainText('\n'.join(text))
         else:
