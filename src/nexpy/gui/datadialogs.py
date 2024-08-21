@@ -4386,7 +4386,7 @@ class LogDialog(NXDialog):
         self.file_combo = NXComboBox(self.show_log)
         for file_name in self.get_filesindirectory(
                 'nexpy', extension='.log*', directory=self.log_directory):
-            self.file_combo.add(str(file_name))
+            self.file_combo.add(file_name.name)
         self.file_combo.select('nexpy.log')
         self.issue_button = NXPushButton('Open NeXpy Issue', self.open_issue)
         footer_layout = self.make_layout(self.issue_button,
