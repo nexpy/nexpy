@@ -804,7 +804,7 @@ class NXConfigParser(ConfigParser, object):
         if value is not None:
             super().set(section, option, str(value))
         else:
-            super().set(section, option)
+            super().set(section, str(option))
 
     def optionxform(self, optionstr):
         return optionstr
