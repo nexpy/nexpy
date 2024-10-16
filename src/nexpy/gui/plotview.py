@@ -63,7 +63,6 @@ except ImportError:
 
 from nexusformat.nexus import NeXusError, NXdata, NXfield
 
-from .. import __version__
 from .datadialogs import (CustomizeDialog, ExportDialog, LimitDialog,
                           ProjectionDialog, ScanDialog, StyleDialog)
 from .utils import (boundaries, centers, divgray_map, find_nearest,
@@ -1062,7 +1061,7 @@ class NXPlotView(QtWidgets.QDialog):
             self.set_data_limits()
             self.set_data_norm()
             self.figure.clf()
-            if self._skew_angle and self._aspect == 'equal':
+            if self._skew_angle and self._aspect != 'auto':
                 ax = self.figure.add_subplot(Subplot(self.figure, 1, 1, 1,
                                              grid_helper=self.grid_helper()))
                 self.skewed = True
@@ -1114,8 +1113,16 @@ class NXPlotView(QtWidgets.QDialog):
             self.colorbar.formatter = self.formatter
             self.update_colorbar()
 
-        xlo, ylo = self.transform(self.xaxis.lo, self.yaxis.lo)
-        xhi, yhi = self.transform(self.xaxis.hi, self.yaxis.hi)
+        if self.skewed:
+            if self._skew_angle < 90.0:
+                xlo, ylo = self.transform(self.xaxis.lo, self.yaxis.lo)
+                xhi, yhi = self.transform(self.xaxis.hi, self.yaxis.hi)
+            else:
+                xlo, yhi = self.transform(self.xaxis.lo, self.yaxis.hi)
+                xhi, ylo = self.transform(self.xaxis.hi, self.yaxis.lo)
+        else:
+            xlo, ylo = self.xaxis.lo, self.yaxis.lo
+            xhi, yhi = self.xaxis.hi, self.yaxis.hi
 
         ax.set_xlim(xlo, xhi)
         ax.set_ylim(ylo, yhi)
@@ -4042,11 +4049,6 @@ class NXNavigationToolbar(NavigationToolbar2QT, QtWidgets.QToolBar):
                 self.plotview.plot_smooth()
             except Exception:
                 pass
-        try:
-            xdim = self.plotview.xtab.axis.dim
-            ydim = self.plotview.ytab.axis.dim
-        except AttributeError:
-            return
         self.plotview.zoom = {'x': (xmin, xmax),
                               'y': (ymin, ymax)}
         self.plotview.update_panels()
