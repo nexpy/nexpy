@@ -656,7 +656,7 @@ class NXDialog(QtWidgets.QDialog, NXWidget):
     def closeEvent(self, event):
         try:
             self.mainwindow.dialogs.remove(self)
-        except Exception as error:
+        except Exception:
             pass
         event.accept()
 
@@ -870,7 +870,7 @@ class NXPanel(NXDialog):
     def is_running(self):
         try:
             return self.count >= 0
-        except RuntimeError as error:
+        except RuntimeError:
             return False
 
     def close(self):
@@ -1684,7 +1684,7 @@ class PlotScalarDialog(NXDialog):
                                for f in self.files if self.files[f].vary]
             self.scan_values = [self.files[f].value for f in self.files
                                 if self.files[f].vary]
-        except Exception as error:
+        except Exception:
             raise NeXusError("Files not selected")
 
     def get_scan(self):
@@ -1695,7 +1695,7 @@ class PlotScalarDialog(NXDialog):
         for i, f in enumerate(self.scan_files):
             try:
                 field[i] = f[self.data_path]
-            except Exception as error:
+            except Exception:
                 raise NeXusError(f"Cannot read '{f}'")
             field[i] = f[self.data_path]
         return NXdata(field, axis, title=self.data_path)
@@ -1895,7 +1895,7 @@ class LockDialog(NXDialog):
                         self.text_box,
                         self.action_buttons(('Clear Locks', self.clear_locks)),
                         self.close_buttons(close=True))
-        self.set_title(f'Locked Files')
+        self.set_title('Locked Files')
         self.setMinimumWidth(800)
 
         self.timer = QtCore.QTimer(self)
@@ -2379,7 +2379,6 @@ class CustomizeTab(NXTab):
             self.plotview._gridalpha = pi['gridalpha'].value
             if 'badcolor' in pi:
                 self.plotview.image.cmap.set_bad(pi['badcolor'].value)
-            # reset in case plotview.aspect changed by plotview.skew
             self.plotview.skew = _skew_angle
             self.plotview.aspect = self.plotview._aspect
             if pi['cb_minorticks'].value == 'On':
@@ -3428,7 +3427,7 @@ class ScanTab(NXTab):
                         self.files.add(name, i, name, True)
                         self.files[name].checkbox.stateChanged.connect(
                             self.update_files)
-            except Exception as error:
+            except Exception:
                 pass
         self.file_grid = self.files.grid(header=('File', self.scan_header, ''))
         self.scroll_widget = NXWidget()
@@ -4059,9 +4058,9 @@ class InitializeDialog(NXDialog):
         try:
             shape = ast.literal_eval(shape)
             try:
-                it = iter(shape)
+                iter(shape)
                 return shape
-            except Exception:
+            except TypeError:
                 if isinstance(shape, numbers.Integral):
                     return (shape,)
                 else:
