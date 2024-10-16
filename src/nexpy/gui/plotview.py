@@ -1062,7 +1062,7 @@ class NXPlotView(QtWidgets.QDialog):
             self.set_data_limits()
             self.set_data_norm()
             self.figure.clf()
-            if self._skew_angle and self._aspect == 'equal':
+            if self._skew_angle and self._aspect != 'auto':
                 ax = self.figure.add_subplot(Subplot(self.figure, 1, 1, 1,
                                              grid_helper=self.grid_helper()))
                 self.skewed = True
