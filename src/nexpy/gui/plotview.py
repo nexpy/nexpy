@@ -1114,8 +1114,16 @@ class NXPlotView(QtWidgets.QDialog):
             self.colorbar.formatter = self.formatter
             self.update_colorbar()
 
-        xlo, ylo = self.transform(self.xaxis.lo, self.yaxis.lo)
-        xhi, yhi = self.transform(self.xaxis.hi, self.yaxis.hi)
+        if self.skewed:
+            if self._skew_angle < 90.0:
+                xlo, ylo = self.transform(self.xaxis.lo, self.yaxis.lo)
+                xhi, yhi = self.transform(self.xaxis.hi, self.yaxis.hi)
+            else:
+                xlo, yhi = self.transform(self.xaxis.lo, self.yaxis.hi)
+                xhi, ylo = self.transform(self.xaxis.hi, self.yaxis.lo)
+        else:
+            xlo, ylo = self.xaxis.lo, self.yaxis.lo
+            xhi, yhi = self.xaxis.hi, self.yaxis.hi
 
         ax.set_xlim(xlo, xhi)
         ax.set_ylim(ylo, yhi)
