@@ -63,7 +63,6 @@ except ImportError:
 
 from nexusformat.nexus import NeXusError, NXdata, NXfield
 
-from .. import __version__
 from .datadialogs import (CustomizeDialog, ExportDialog, LimitDialog,
                           ProjectionDialog, ScanDialog, StyleDialog)
 from .utils import (boundaries, centers, divgray_map, find_nearest,
@@ -4050,11 +4049,6 @@ class NXNavigationToolbar(NavigationToolbar2QT, QtWidgets.QToolBar):
                 self.plotview.plot_smooth()
             except Exception:
                 pass
-        try:
-            xdim = self.plotview.xtab.axis.dim
-            ydim = self.plotview.ytab.axis.dim
-        except AttributeError:
-            return
         self.plotview.zoom = {'x': (xmin, xmax),
                               'y': (ymin, ymax)}
         self.plotview.update_panels()
