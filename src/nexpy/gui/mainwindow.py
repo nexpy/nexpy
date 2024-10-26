@@ -1150,7 +1150,6 @@ class MainWindow(QtWidgets.QMainWindow):
             for name in self.tree:
                 node = self.tree[name]
                 if node.is_modified():
-                    path = node.nxpath
                     root = node.nxroot
                     root.reload()
                     logging.info(f"'{name}' reloaded")
@@ -1882,7 +1881,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.make_active(number)
 
     def new_plot_window(self):
-        new_plotview = NXPlotView(parent=self)
+        return NXPlotView(parent=self)
 
     def close_window(self):
         windows = self.dialogs
