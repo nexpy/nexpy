@@ -876,6 +876,7 @@ class NXPlotView(QtWidgets.QDialog):
                 signal = _signal[()].reshape(self.shape)
         if signal.dtype == bool:
             signal.dtype = np.int8
+
         self.signal = signal
 
         if over:
@@ -1217,6 +1218,8 @@ class NXPlotView(QtWidgets.QDialog):
     @property
     def finite_v(self):
         """Plotted signal array excluding NaNs and infinities."""
+        if np.isnan(self.v).all() or np.isinf(self.v).all():
+            raise NeXusError('Data only contains NaNs or infinities')
         return self.v[np.isfinite(self.v)]
 
     def set_data_limits(self):
