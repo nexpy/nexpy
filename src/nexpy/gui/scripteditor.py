@@ -161,11 +161,13 @@ class NXScriptEditor(NXTab):
         self.argument_box = NXLineEdit(width=200)
         save_button = NXPushButton('Save', self.save_script)
         save_as_button = NXPushButton('Save as...', self.save_script_as)
+        self.reload_button = NXPushButton('Reload', self.reload_script)
         self.delete_button = NXPushButton('Delete', self.delete_script)
         close_button = NXPushButton('Close Tab', self.panel.close)
         button_layout = self.make_layout(run_button, self.argument_box,
                                          'stretch',
                                          save_button, save_as_button,
+                                         self.reload_button,
                                          self.delete_button, close_button)
         self.set_layout(self.text_layout, button_layout)
 
@@ -248,6 +250,16 @@ class NXScriptEditor(NXTab):
             self.mainwindow.add_script_action(self.file_name,
                                               self.mainwindow.script_menu)
             self.delete_button.setVisible(True)
+
+    def reload_script(self):
+        if self.file_name:
+            if confirm_action(
+                    f"Are you sure you want to reload '{self.file_name}'?",
+                    "This will overwrite the current script"):
+                with open(self.file_name, 'r') as f:
+                    text = f.read()
+                self.text_box.setPlainText(text)
+                self.update_line_numbers()
 
     def delete_script(self):
         if self.file_name:
