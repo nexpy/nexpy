@@ -7,7 +7,6 @@
 # -----------------------------------------------------------------------------
 
 import copy
-import datetime
 import gc
 import importlib
 import io
@@ -427,7 +426,7 @@ def convertHTML(text):
 
 def get_name(filename, entries=[]):
     """Return a valid object name from a filename."""
-    name = re.sub('\W|^(?=\d)','_', Path(filename).stem)
+    name = re.sub(r'\W|^(?=\d)','_', Path(filename).stem)
     if name in entries:
         ind = []
         for key in entries:
@@ -607,7 +606,7 @@ def load_image(filename):
     else:
         try:
             im = fabio.open(filename)
-        except Exception as error:
+        except Exception:
             if fabio:
                 raise NeXusError("Unable to open image")
             else:
