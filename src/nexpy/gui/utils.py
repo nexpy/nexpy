@@ -7,7 +7,6 @@
 # -----------------------------------------------------------------------------
 
 import copy
-import datetime
 import gc
 import importlib
 import io
@@ -607,7 +606,7 @@ def load_image(filename):
     else:
         try:
             im = fabio.open(filename)
-        except Exception as error:
+        except Exception:
             if fabio:
                 raise NeXusError("Unable to open image")
             else:
