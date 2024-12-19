@@ -3251,12 +3251,13 @@ class LimitTab(NXTab):
     def update_properties(self):
         if self.ndim > 1:
             self.properties = {'aspect': self.plotview.aspect,
-                               'cmap': self.plotview.cmap,
-                               'interpolation': self.plotview.interpolation,
-                               'logv': self.plotview.logv,
                                'logx': self.plotview.logx,
                                'logy': self.plotview.logy,
                                'skew': self.plotview.skew}
+            if not self.lockbox['signal'].isChecked():
+                self.properties['cmap'] = self.plotview.cmap
+                self.properties['interpolation'] = self.plotview.interpolation
+                self.properties['logv'] = self.plotview.logv
         else:
             self.properties = {}
 
