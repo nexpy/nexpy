@@ -1024,6 +1024,7 @@ class NXPlotView(QtWidgets.QDialog):
 
         self.image = None
         self.colorbar = None
+        self.skewed = False
 
     def get_image(self):
         """Initialize the plot's signal and axis values.
@@ -1351,8 +1352,9 @@ class NXPlotView(QtWidgets.QDialog):
         ax = self.figure.gca()
         xmin, xmax = self.xaxis.get_limits()
         ymin, ymax = self.yaxis.get_limits()
-        xmin, ymin = self.transform(xmin, ymin)
-        xmax, ymax = self.transform(xmax, ymax)
+        if self.skewed:
+            xmin, ymin = self.transform(xmin, ymin)
+            xmax, ymax = self.transform(xmax, ymax)
         if ((self.xaxis.reversed and not self.xtab.flipped) or
                 (not self.xaxis.reversed and self.xtab.flipped)):
             ax.set_xlim(xmax, xmin)
@@ -1755,8 +1757,7 @@ class NXPlotView(QtWidgets.QDialog):
                 _skew_angle = None
         except (ValueError, TypeError):
             if (skew_angle is None or str(skew_angle) == '' or
-                str(skew_angle) == 'None' or
-                    str(skew_angle) == 'none'):
+                str(skew_angle) == 'None' or str(skew_angle) == 'none'):
                 _skew_angle = None
             else:
                 return
