@@ -24,7 +24,6 @@ plotviews : dict
 """
 import copy
 import numbers
-import warnings
 from posixpath import basename, dirname
 
 import matplotlib as mpl
@@ -38,9 +37,8 @@ from matplotlib.figure import Figure
 from matplotlib.lines import Line2D
 from matplotlib.ticker import AutoLocator, LogLocator, ScalarFormatter
 from packaging.version import Version
-from PIL import Image
 
-from .pyqt import QtCore, QtGui, QtWidgets
+from .pyqt import QtCore, QtWidgets
 
 try:
     from matplotlib.ticker import LogFormatterSciNotation as LogFormatter
@@ -62,7 +60,6 @@ except ImportError:
 
 from nexusformat.nexus import NeXusError, NXdata, NXfield
 
-from .. import __version__
 from .datadialogs import (CustomizeDialog, ExportDialog, LimitDialog,
                           ProjectionDialog, ScanDialog, StyleDialog)
 from .utils import (boundaries, centers, divgray_map, find_nearest,
@@ -4037,14 +4034,11 @@ class NXNavigationToolbar(NavigationToolbar2QT, QtWidgets.QToolBar):
                 self.plotview.plot_smooth()
             except Exception:
                 pass
-        try:
-            xdim = self.plotview.xtab.axis.dim
-            ydim = self.plotview.ytab.axis.dim
-        except AttributeError:
-            return
-        self.plotview.zoom = {'x': (xmin, xmax),
-                              'y': (ymin, ymax)}
-        self.plotview.update_panels()
+        if (hasattr(self.plotview.xtab.axis, 'dim') and
+                hasattr(self.plotview.ytab.axis, 'dim')):
+            self.plotview.zoom = {'x': (xmin, xmax),
+                                  'y': (ymin, ymax)}
+            self.plotview.update_panels()
 
     def _update_view(self):
         super()._update_view()
