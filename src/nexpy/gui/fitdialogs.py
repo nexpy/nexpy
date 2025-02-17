@@ -516,7 +516,11 @@ class FitTab(NXTab):
         axis = self._data['axis']
         signal = self._data['signal']
         if self.cursor and self.cursor.selections:
-            idx = self.cursor.selections[0].target.index
+            try:
+                idx = self.cursor.selections[0].index
+            except AttributeError:
+                raise NeXusError("Please update the 'mplcursors' package")
+            idx = self.cursor.selections[0].index
             if np.ma.is_masked(signal.nxvalue[idx]):
                 signal[idx] = np.ma.nomask
             else:
