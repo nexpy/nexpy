@@ -3803,9 +3803,20 @@ class NXProjectionTab(QtWidgets.QWidget):
     def set_parameters(self):
         value = self.parameter_box.text().strip().lower()
         if self.parameter_combo.selected == 'Aspect':
+            if value != 'auto' and value != 'equal':
+                try:
+                    value = float(value)
+                except ValueError:
+                    display_message('Aspect Ratio', 'Invalid aspect ratio.')
+                    return
             if value != self.plotview.aspect:
                 self.plotview.aspect = value
         elif self.parameter_combo.selected == 'Skew':
+            try:
+                value = float(value)
+            except ValueError:
+                display_message('Skew Angle', 'Invalid skew angle.')
+                return
             if value != self.plotview.skew:
                 self.plotview.skew = value
 
