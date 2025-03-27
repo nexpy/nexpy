@@ -54,7 +54,6 @@ from mpl_toolkits.axisartist.grid_finder import MaxNLocator
 from mpl_toolkits.axisartist.grid_helper_curvelinear import \
     GridHelperCurveLinear
 from scipy.interpolate import interp1d
-from scipy.spatial import Voronoi, voronoi_plot_2d
 
 try:
     import mplcursors
@@ -65,13 +64,13 @@ from nexusformat.nexus import NeXusError, NXdata, NXfield
 
 from .datadialogs import (CustomizeDialog, ExportDialog, LimitDialog,
                           ProjectionDialog, ScanDialog, StyleDialog)
-from .utils import (boundaries, centers, divgray_map, find_nearest,
-                    fix_projection, get_color, in_dark_mode, iterable,
-                    keep_data, parula_map, report_error, report_exception,
-                    xtec_map)
+from .utils import (boundaries, centers, display_message, divgray_map,
+                    find_nearest, fix_projection, get_color, in_dark_mode,
+                    iterable, keep_data, parula_map, report_error,
+                    report_exception, rotate_data, xtec_map)
 from .widgets import (NXCheckBox, NXcircle, NXComboBox, NXDoubleSpinBox,
-                      NXellipse, NXLabel, NXpolygon, NXPushButton, NXrectangle,
-                      NXSlider, NXSpinBox)
+                      NXellipse, NXLabel, NXLineEdit, NXpolygon, NXPushButton,
+                      NXrectangle, NXSlider, NXSpinBox, NXTextBox)
 
 active_plotview = None
 plotview = None
@@ -390,7 +389,7 @@ class NXPlotView(QtWidgets.QDialog):
         self._smooth_func = None
         self._smooth_line = None
         self._aspect = 'auto'
-        self._skew_angle = None
+        self._skew_angle = 90.0
         self._bad = 'black'
         self._legend = None
         self._grid = False
@@ -1297,7 +1296,7 @@ class NXPlotView(QtWidgets.QDialog):
             axes, limits = fix_projection(self.data.nxsignal.shape, axes,
                                           limits)
         try:
-            self.plotdata = self.data.project(axes, limits, summed=self.summed)
+            self.plotdata = self.data.project(axes, limits)
             if self.weighted:
                 self.plotdata = self.plotdata.weighted_data()
             if self.ndim == 3 and not self._skew_angle:
@@ -1694,6 +1693,7 @@ class NXPlotView(QtWidgets.QDialog):
                     self.ax.set_aspect(self.get_aspect())
                 self.canvas.draw()
                 self.update_panels()
+                self.update_tabs()
             except Exception:
                 pass
 
@@ -1769,6 +1769,33 @@ class NXPlotView(QtWidgets.QDialog):
             self._aspect = 'equal'
         if self.image is not None:
             self.replot_data(newaxis=True)
+        self.update_tabs()
+
+    def rotate(self, angle=45.0):
+        """
+        Return a NXdata group that rotates the currently plotted data.
+
+        Parameters
+        ----------
+        angle : float, optional
+            angle of rotation in degrees. The default is 45.
+
+        Returns
+        -------
+        NXdata
+            Rotated data as a new NXdata object.
+
+        Notes
+        -----
+        The rotation is done about the geometric center of the plot.
+        """
+        if self.plotdata.ndim != 2:
+            raise NeXusError('Can only rotate 2D data.')
+        try:
+            angle = float(angle)
+        except (ValueError, TypeError):
+            raise NeXusError('Rotation angle must be a number.')
+        return rotate_data(self.plotdata, angle, aspect=self.get_aspect())
 
     @property
     def autoscale(self):
@@ -1782,14 +1809,6 @@ class NXPlotView(QtWidgets.QDialog):
     def autoscale(self, value=True):
         """Set the ztab autoscale checkbox to True or False"""
         self.ztab.scalebox.setChecked(value)
-
-    @property
-    def summed(self):
-        """Return True if the projection tab is set to sum the data."""
-        if self.ptab.summed:
-            return True
-        else:
-            return False
 
     @property
     def cmap(self):
@@ -2496,6 +2515,8 @@ class NXPlotView(QtWidgets.QDialog):
 
         self.figure.clf()
         x, y, z = x.nxdata, y.nxdata, z.nxdata
+
+        from scipy.spatial import Voronoi, voronoi_plot_2d
         vor = Voronoi([(x[i, j], y[i, j]) for i in range(z.shape[0])
                        for j in range(z.shape[1])])
         if 'show_vertices' not in opts:
@@ -2611,7 +2632,6 @@ class NXPlotView(QtWidgets.QDialog):
                     self.tab_widget.insertTab(
                         self.tab_widget.indexOf(self.otab),
                         self.ptab, 'projections')
-                self.ptab.set_axes()
             if self.ndim > 2:
                 self.ztab.set_axis(self.zaxis)
                 self.ztab.locked = True
@@ -2653,6 +2673,7 @@ class NXPlotView(QtWidgets.QDialog):
             self.vtab.set_range()
             self.vtab.set_limits(self.vaxis.lo, self.vaxis.hi)
             self.vtab.set_sliders(self.vaxis.lo, self.vaxis.hi)
+        self.ptab.update_parameters()
         self.block_signals(False)
 
     def change_axis(self, tab, axis):
@@ -3721,135 +3742,39 @@ class NXProjectionTab(QtWidgets.QWidget):
 
         self.plotview = plotview
 
-        self.xlabel = NXLabel('X-Axis:')
-        self.xbox = NXComboBox(self.set_xaxis)
-        self.ylabel = NXLabel('Y-Axis:')
-        self.ybox = NXComboBox(self.set_yaxis)
-        self.save_button = NXPushButton("Save", self.save_projection, self)
-        self.plot_button = NXPushButton("Plot", self.plot_projection, self)
-        self.sumbox = NXCheckBox("Sum", self.plotview.replot_data)
-        self.panel_button = NXPushButton("Open Panel", self.open_panel, self)
         self.panel_combo = NXComboBox(slot=self.open_panel,
                                       items=['Projection', 'Limits', 'Scan'])
+        self.panel_button = NXPushButton("Open Panel", self.open_panel, self)
+        self.parameter_combo = NXComboBox(slot=self.update_parameters,
+                                          items=['Aspect', 'Skew'])
+        self.parameter_box = NXLineEdit(slot=self.set_parameters,
+                                        width=60, align='right')
+        self.rotation_label = NXLabel('Rotation')
+        self.rotation_box = NXTextBox(0.0, width=60, align='right')
+        self.plot_button = NXPushButton("Plot", self.plot, self)
 
         self.layout = QtWidgets.QHBoxLayout()
-        self.layout.addStretch()
-        self.layout.addWidget(self.xlabel)
-        self.layout.addWidget(self.xbox)
-        self.layout.addWidget(self.ylabel)
-        self.layout.addWidget(self.ybox)
-        self.layout.addWidget(self.save_button)
-        self.layout.addWidget(self.plot_button)
-        self.layout.addWidget(self.sumbox)
         self.layout.addStretch()
         self.layout.addWidget(self.panel_button)
         self.layout.addWidget(self.panel_combo)
         self.layout.addStretch()
+        self.layout.addWidget(self.parameter_combo)
+        self.layout.addWidget(self.parameter_box)
+        self.layout.addStretch()
+        self.layout.addWidget(self.rotation_label)
+        self.layout.addWidget(self.rotation_box)
+        self.layout.addWidget(self.plot_button)
+        self.layout.addStretch()
         self.setLayout(self.layout)
 
-        self.setTabOrder(self.xbox, self.ybox)
-        self.setTabOrder(self.ybox, self.save_button)
-        self.setTabOrder(self.save_button, self.plot_button)
-        self.setTabOrder(self.plot_button, self.sumbox)
-        self.setTabOrder(self.sumbox, self.panel_button)
+        self.setTabOrder(self.panel_combo, self.panel_button)
+        self.setTabOrder(self.panel_button, self.parameter_combo)
+        self.setTabOrder(self.parameter_combo, self.parameter_box)
+        self.setTabOrder(self.parameter_box, self.rotation_box)
+        self.setTabOrder(self.rotation_box, self.plot_button)
 
     def __repr__(self):
         return f'NXProjectionTab("{self.plotview.label}")'
-
-    def get_axes(self):
-        return [self.plotview.axis[axis].name
-                for axis in range(self.plotview.ndim)]
-
-    def set_axes(self):
-        axes = self.get_axes()
-        self.xbox.clear()
-        self.xbox.addItems(axes)
-        self.xbox.setCurrentIndex(self.xbox.findText(self.plotview.xaxis.name))
-        if self.plotview.ndim <= 2:
-            self.ylabel.setVisible(False)
-            self.ybox.setVisible(False)
-            self.layout.setSpacing(20)
-        else:
-            self.ylabel.setVisible(True)
-            self.ybox.setVisible(True)
-            self.ybox.clear()
-            axes.insert(0, 'None')
-            self.ybox.addItems(axes)
-            self.ybox.setCurrentIndex(
-                self.ybox.findText(self.plotview.yaxis.name))
-            self.layout.setSpacing(5)
-
-    @property
-    def xaxis(self):
-        return self.xbox.currentText()
-
-    def set_xaxis(self):
-        if self.xaxis == self.yaxis:
-            self.ybox.setCurrentIndex(self.ybox.findText('None'))
-
-    @property
-    def yaxis(self):
-        if self.plotview.ndim <= 2:
-            return 'None'
-        else:
-            return self.ybox.currentText()
-
-    def set_yaxis(self):
-        if self.yaxis == self.xaxis:
-            for idx in range(self.xbox.count()):
-                if self.xbox.itemText(idx) != self.yaxis:
-                    self.xbox.setCurrentIndex(idx)
-                    break
-
-    @property
-    def summed(self):
-        try:
-            return self.sumbox.isChecked()
-        except Exception:
-            return False
-
-    def get_projection(self):
-        x = self.get_axes().index(self.xaxis)
-        if self.yaxis == 'None':
-            axes = [x]
-        else:
-            y = self.get_axes().index(self.yaxis)
-            axes = [y, x]
-        limits = [(self.plotview.axis[axis].lo,
-                   self.plotview.axis[axis].hi)
-                  for axis in range(self.plotview.ndim)]
-        xaxis = self.plotview.xaxis
-        xdim, xlo, xhi = xaxis.dim, xaxis.lo, xaxis.hi
-        yaxis = self.plotview.yaxis
-        ydim, ylo, yhi = yaxis.dim, yaxis.lo, yaxis.hi
-        limits[xdim] = (xlo, xhi)
-        limits[ydim] = (ylo, yhi)
-        for axis in axes:
-            if axis not in [ydim, xdim]:
-                limits[axis] = (None, None)
-        shape = self.plotview.data.nxsignal.shape
-        if (len(shape)-len(limits) > 0 and
-                len(shape)-len(limits) == shape.count(1)):
-            axes, limits = fix_projection(shape, axes, limits)
-        if self.plotview.rgb_image:
-            limits.append((None, None))
-        return axes, limits
-
-    def save_projection(self):
-        axes, limits = self.get_projection()
-        keep_data(self.plotview.data.project(axes, limits, summed=self.summed))
-
-    def plot_projection(self):
-        axes, limits = self.get_projection()
-        if 'Projection' in plotviews:
-            projection = plotviews['Projection']
-        else:
-            projection = NXPlotView('Projection')
-        projection.plot(self.plotview.data.project(
-            axes, limits, summed=self.summed), fmt='o')
-        plotviews[projection.label].make_active()
-        if 'Projection' in self.plotview.mainwindow.panels:
-            self.plotview.mainwindow.panels['Projection'].update()
 
     def open_panel(self):
         panel = self.panel_combo.selected
@@ -3861,6 +3786,58 @@ class NXProjectionTab(QtWidgets.QWidget):
         self.plotview.panels[panel].activate(self.plotview.label)
         self.plotview.panels[panel].setVisible(True)
         self.plotview.panels[panel].raise_()
+
+    def update_parameters(self):
+        if self.parameter_combo.selected == 'Aspect':
+            if isinstance(self.plotview.aspect, float):
+                self.parameter_box.setText(f"{self.plotview.aspect:.2f}")
+            else:
+                self.parameter_box.setText(self.plotview.aspect)
+        elif self.parameter_combo.selected == 'Skew':
+            if self.plotview.skew is None:
+                self.parameter_box.setText(90.0)
+            else:
+                self.parameter_box.setText(f"{self.plotview.skew:.2f}")
+        self.rotation_box.setValue(0.0)
+        
+    def set_parameters(self):
+        value = self.parameter_box.text().strip().lower()
+        if self.parameter_combo.selected == 'Aspect':
+            if value != 'auto' and value != 'equal':
+                try:
+                    value = float(value)
+                except ValueError:
+                    display_message('Aspect Ratio', 'Invalid aspect ratio.')
+                    return
+            if value != self.plotview.aspect:
+                self.plotview.aspect = value
+        elif self.parameter_combo.selected == 'Skew':
+            try:
+                value = float(value)
+            except ValueError:
+                display_message('Skew Angle', 'Invalid skew angle.')
+                return
+            if value != self.plotview.skew:
+                self.plotview.skew = value
+
+    def plot(self):
+        if self.plotview.aspect == 'auto':
+            display_message('Rotation Plot', 'Aspect ratio must be defined.')
+            return
+        rotation_angle = float(self.rotation_box.value())
+        rotated_data = self.plotview.rotate(rotation_angle)
+        if 'aspect' in rotated_data.attrs:
+            aspect = rotated_data.attrs['aspect']
+        else:
+            aspect = 1.0
+        kwargs = {'aspect': aspect,
+                  'cmap': self.plotview.cmap,
+                  'interpolation': self.plotview.interpolation,
+                  'log': self.plotview.vtab.log,
+                  'vmin': self.plotview.vtab.minbox.value(),
+                  'vmax': self.plotview.vtab.maxbox.value()}
+        plotview = NXPlotView()
+        plotview.plot(rotated_data, **kwargs)
 
 
 class NXNavigationToolbar(NavigationToolbar2QT, QtWidgets.QToolBar):
