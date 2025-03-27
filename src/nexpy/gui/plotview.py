@@ -3830,18 +3830,14 @@ class NXProjectionTab(QtWidgets.QWidget):
             aspect = rotated_data.attrs['aspect']
         else:
             aspect = 1.0
-        plotviews = self.plotview.mainwindow.plotviews
         kwargs = {'aspect': aspect,
                   'cmap': self.plotview.cmap,
                   'interpolation': self.plotview.interpolation,
                   'log': self.plotview.vtab.log,
                   'vmin': self.plotview.vtab.minbox.value(),
                   'vmax': self.plotview.vtab.maxbox.value()}
-        if 'Rotation' in plotviews:
-            plotviews['Rotation'].plot(rotated_data, **kwargs)
-        else:
-            rotation_plot = NXPlotView('Rotation')
-            rotation_plot.plot(rotated_data, **kwargs)
+        plotview = NXPlotView()
+        plotview.plot(rotated_data, **kwargs)
 
 
 class NXNavigationToolbar(NavigationToolbar2QT, QtWidgets.QToolBar):
