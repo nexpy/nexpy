@@ -2738,6 +2738,7 @@ class NXPlotView(QtWidgets.QDialog):
             self.replot_data(newaxis=True)
             self.vtab.set_axis(self.vaxis)
         self.update_panels()
+        self.update_tabs()
         self.otab.update()
 
     def update_panels(self):
