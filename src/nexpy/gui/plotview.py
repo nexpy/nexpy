@@ -69,8 +69,9 @@ from .utils import (boundaries, centers, display_message, divgray_map,
                     iterable, keep_data, parula_map, report_error,
                     report_exception, rotate_data, xtec_map)
 from .widgets import (NXCheckBox, NXcircle, NXComboBox, NXDoubleSpinBox,
-                      NXellipse, NXLabel, NXLineEdit, NXpolygon, NXPushButton,
-                      NXrectangle, NXSlider, NXSpinBox, NXTextBox)
+                      NXellipse, NXLabel, NXline, NXLineEdit, NXpolygon,
+                      NXPushButton, NXrectangle, NXSlider, NXSpinBox,
+                      NXTextBox)
 
 active_plotview = None
 plotview = None
@@ -467,6 +468,10 @@ class NXPlotView(QtWidgets.QDialog):
                            for i in range(self.ndim)]
         else:
             self.xp, self.yp, self.xdata, self.ydata = None, None, None, None
+        if 'shift' in event.modifiers:
+            self.rotate_line = NXline(self)
+            self.rotate_line.connect()
+            self.rotate_line.on_press(event)
 
     def on_key_press(self, event):
         """Handle key press events in the Matplotlib canvas.
@@ -556,7 +561,7 @@ class NXPlotView(QtWidgets.QDialog):
             self.ztab.axiscombo.setFocus()
         elif event.key == 'p' and self.ndim > 1:
             self.tab_widget.setCurrentIndex(self.tab_widget.indexOf(self.ptab))
-            self.ptab.xbox.setFocus()
+            self.ptab.panel_button.setFocus()
         elif event.key == 'o':
             self.tab_widget.setCurrentIndex(self.tab_widget.indexOf(self.otab))
         elif event.key == 'A':
@@ -3743,9 +3748,9 @@ class NXProjectionTab(QtWidgets.QWidget):
 
         self.plotview = plotview
 
+        self.panel_button = NXPushButton("Open Panel", self.open_panel, self)
         self.panel_combo = NXComboBox(slot=self.open_panel,
                                       items=['Projection', 'Limits', 'Scan'])
-        self.panel_button = NXPushButton("Open Panel", self.open_panel, self)
         self.parameter_combo = NXComboBox(slot=self.update_parameters,
                                           items=['Aspect', 'Skew'])
         self.parameter_box = NXLineEdit(slot=self.set_parameters,
@@ -3839,6 +3844,18 @@ class NXProjectionTab(QtWidgets.QWidget):
                   'vmax': self.plotview.vtab.maxbox.value()}
         plotview = NXPlotView()
         plotview.plot(rotated_data, **kwargs)
+
+    def read_rotation_angle(self):
+        self.plotview.rotate_line.disconnect()
+        xmin, ymin = self.plotview.rotate_line.start_point
+        xmax, ymax = self.plotview.rotate_line.end_point
+        try:
+            self.rotation_box.setValue(
+                np.degrees(np.arctan((ymax - ymin) / (xmax - xmin))))
+        except ZeroDivisionError:
+            self.rotation_box.setValue(90.0)
+        self.plotview.tab_widget.setCurrentWidget(self)
+        self.rotation_box.setFocus()
 
 
 class NXNavigationToolbar(NavigationToolbar2QT, QtWidgets.QToolBar):
