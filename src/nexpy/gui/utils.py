@@ -733,6 +733,155 @@ def define_mode():
             plotview.otab.setStyleSheet('color: black')
 
 
+def rotate_point(point, angle=45.0, center=[0.0, 0.0], aspect=1.0):
+    """
+    Rotate a point around a given center by a given angle
+
+    Parameters
+    ----------
+    point: 2-element list
+        The point to rotate
+    angle: float
+        The angle of the rotation in degrees
+    center: 2-element list
+        The center of the rotation
+    aspect: float
+        The aspect ratio, i.e., the ratio of y-axis to the x-axis units
+
+    Returns
+    -------
+    2-element list
+        The rotated point
+    """
+    cp = np.subtract(point, center)
+    angle = np.radians(angle)
+    px = cp[0] * np.cos(angle) - aspect * cp[1] * np.sin(angle)
+    py = (cp[0] * np.sin(angle) / aspect) + cp[1] * np.cos(angle)
+    return list(np.add([px, py], center))
+
+
+def rotate_data(data, angle=45, aspect='equal'):
+    """
+    Rotate a 2D NXdata object by a specified angle.
+
+    Parameters
+    ----------
+    data : NXdata
+        NXdata object containing the 2D data to be rotated.
+    angle : float, optional
+        Angle of rotation in degrees. Default is 45.
+    aspect : str or float, optional
+        Aspect ratio of the data for rotation calculations. If a float is 
+        provided, it is used to adjust the rotation angle. Default is 'equal'.
+
+    Returns
+    -------
+    NXdata
+        A new NXdata object containing the rotated data and axes.
+
+    Raises
+    ------
+    NeXusError
+        If the input data is not 2D.
+
+    Notes
+    -----
+    The rotation is performed about the geometric center of the data using
+    the scipy.ndimage.rotate function. The axes are recalculated to match 
+    the new dimensions of the rotated data.
+    """
+    if data.ndim != 2:
+        raise NeXusError('Can only rotate 2D data.')
+    elif aspect == 'auto':
+        raise NeXusError('Aspect ratio must be defined.')
+    elif aspect == 'equal':
+        aspect = 1.0
+
+    if np.isclose(angle, 0.0):
+        return data
+    elif np.isclose(np.abs(angle), 90.0):
+        signal = NXfield(np.swapaxes(data.nxsignal, 0, 1), name=data.nxsignal,
+                         attrs=data.nxsignal.safe_attrs)
+        if data.nxerrors is not None:
+            errors = NXfield(np.swapaxes(data.nxerrors, 0, 1),
+                             name=data.nxerrors,
+                             attrs=data.nxerrors.safe_attrs)
+        else:
+            errors = None
+        if data.nxweights is not None:
+            weights = NXfield(np.swapaxes(data.nxweights, 0, 1),
+                              name=data.nxweights,
+                              attrs=data.nxweights.safe_attrs)
+        else:
+            weights = None
+        y = data.nxaxes[0]
+        x = data.nxaxes[1]
+        result = NXdata(signal, (x, y), errors=errors, weights=weights)
+        return result
+
+    original_data = data.nxsignal
+    original_errors = data.nxerrors
+    original_weights = data.nxweights
+    x = data.nxaxes[1]
+    y = data.nxaxes[0]
+    x0 = (x[0] + x[-1])/2
+    y0 = (y[0] + y[-1])/2
+    x_name = f"{x.nxname} * cos({angle}°) - {y.nxname} * sin({angle}°)"
+    y_name = f"{x.nxname} * sin({angle}°) + {y.nxname} * cos({angle}°)"
+
+    corners = [rotate_point((x.min(), y.min()), angle, (x0, y0), aspect),
+               rotate_point((x.max(), y.min()), angle, (x0, y0), aspect),
+               rotate_point((x.max(), y.max()), angle, (x0, y0), aspect),
+               rotate_point((x.min(), y.max()), angle, (x0, y0), aspect)]
+    xmin, ymin = np.min(corners, axis=0)
+    xmax, ymax = np.max(corners, axis=0)
+
+    angle = np.radians(angle)
+
+    from scipy.ndimage import rotate, zoom
+
+    if not np.isclose(aspect, 1.0):
+        ny, nx = original_data.shape
+        zoom_y = aspect * (((y.max() - y.min()) * nx) /
+                           ((x.max() - x.min()) * ny))
+        original_data = zoom(original_data, (zoom_y, 1), order=1)
+    else:
+        rotated_aspect = None
+
+    # The angle is negative because scipy assumes a top-left origin
+    angle = - np.degrees(angle)
+
+    rotated_data = NXfield(rotate(original_data, angle, axes=(1,0),
+                                  reshape=True, order=1, mode='constant',
+                                  cval=0.0), name=data.nxsignal.nxname)
+    if np.all(original_data >= 0.0):
+        vmin = np.min(original_data[np.nonzero(original_data)])
+        rotated_data[(rotated_data!=0) & (np.abs(rotated_data)<vmin)] = vmin
+    ny, nx = rotated_data.shape
+    rotated_x = NXfield(np.linspace(xmin, xmax, nx), name='rotated_x',
+                        long_name=x_name)
+    rotated_y = NXfield(np.linspace(ymin, ymax, ny), name='rotated_y',
+                        long_name=y_name)
+    rotated_aspect = ((xmax - xmin) * ny) / ((ymax - ymin) * nx)
+    if original_errors is not None:
+        rotated_errors = NXfield(rotate(original_errors, angle, axes=(1,0),
+                                        reshape=True, order=1,
+                                        mode='constant', cval=0.0),
+                                 name=data.nxerrors.nxname)
+    if original_weights is not None:
+        rotated_weights = NXfield(rotate(original_weights, angle, axes=(1,0),
+                                         reshape=True, order=1,
+                                         mode='constant', cval=0.0),
+                                  name=data.nxweights.nxname)
+    result = NXdata(rotated_data, (rotated_y, rotated_x), title=data.nxtitle)
+    result.attrs['aspect'] = rotated_aspect
+    if original_errors is not None:
+        result.nxerrors = rotated_errors
+    if original_weights is not None:
+        result.nxweights = rotated_weights
+    return result
+
+
 class NXListener(QtCore.QObject):
 
     change_signal = QtCore.Signal(str)

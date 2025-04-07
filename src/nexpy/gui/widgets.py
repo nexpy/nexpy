@@ -998,7 +998,7 @@ class NXpatch:
         return getattr(self.shape, name)
 
     def connect(self):
-        'connect to all the events we need'
+        """Connect this patch to the plotting window canvas events."""
         self.plotview.deactivate()
         self.cidpress = self.canvas.mpl_connect(
             'button_press_event', self.on_press)
@@ -1008,6 +1008,7 @@ class NXpatch:
             'motion_notify_event', self.on_motion)
 
     def is_inside(self, event):
+        """Check if the event is inside the shape."""
         if event.inaxes != self.shape.axes:
             return False
         contains, _ = self.shape.contains(event)
@@ -1376,3 +1377,58 @@ class NXpolygon(NXpatch):
         xy0, xp, yp = self.press
         dxy = (x-xp, y-yp)
         self.polygon.set_xy(xy0+dxy)
+
+
+class NXline:
+
+    def __init__(self, plotview=None, callback=None):
+        if plotview:
+            self.plotview = plotview
+        else:
+            from .plotview import get_plotview
+            self.plotview = get_plotview()
+        self.callback = callback
+        self.ax = self.plotview.ax
+        self.canvas = self.plotview.canvas
+        self.line = None
+        self.start_point = None
+        self.connect()
+
+    def connect(self):
+        self.cidpress = self.canvas.mpl_connect('button_press_event',
+                                                self.on_press)
+        self.cidrelease = self.canvas.mpl_connect('button_release_event',
+                                                  self.on_release)
+        self.cidmotion = self.canvas.mpl_connect('motion_notify_event',
+                                                 self.on_move)
+        self.plotview.deactivate()
+
+    def disconnect(self):
+        """Disconnect all the stored connection ids."""
+        self.canvas.mpl_disconnect(self.cidpress)
+        self.canvas.mpl_disconnect(self.cidrelease)
+        self.canvas.mpl_disconnect(self.cidmotion)
+        self.plotview.activate()
+
+    def on_press(self, event):
+        if event.inaxes != self.ax:
+            return
+        self.start_point = (event.xdata, event.ydata)
+        self.line, = self.ax.plot([event.xdata], [event.ydata], ':w', lw=4)
+
+    def on_move(self, event):
+        if self.start_point is None or event.inaxes != self.ax:
+            return
+        self.line.set_data([self.start_point[0], event.xdata],
+                           [self.start_point[1], event.ydata])
+        self.canvas.draw()
+
+    def on_release(self, event):
+        if event.inaxes != self.ax:
+            return
+        self.end_point = (event.xdata, event.ydata)
+        if self.callback:
+            self.callback(self.start_point, self.end_point)
+        self.disconnect()
+        self.line.remove()
+        self.canvas.draw()
