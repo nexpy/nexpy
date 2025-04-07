@@ -1381,16 +1381,18 @@ class NXpolygon(NXpatch):
 
 class NXline:
 
-    def __init__(self, plotview=None):
+    def __init__(self, plotview=None, callback=None):
         if plotview:
             self.plotview = plotview
         else:
             from .plotview import get_plotview
             self.plotview = get_plotview()
+        self.callback = callback
         self.ax = self.plotview.ax
         self.canvas = self.plotview.canvas
         self.line = None
         self.start_point = None
+        self.connect()
 
     def connect(self):
         self.cidpress = self.canvas.mpl_connect('button_press_event',
@@ -1412,7 +1414,7 @@ class NXline:
         if event.inaxes != self.ax:
             return
         self.start_point = (event.xdata, event.ydata)
-        self.line, = self.ax.plot([event.xdata], [event.ydata], ':r', lw=4)
+        self.line, = self.ax.plot([event.xdata], [event.ydata], ':w', lw=4)
 
     def on_move(self, event):
         if self.start_point is None or event.inaxes != self.ax:
@@ -1425,6 +1427,8 @@ class NXline:
         if event.inaxes != self.ax:
             return
         self.end_point = (event.xdata, event.ydata)
-        self.plotview.ptab.read_rotation_angle()
+        if self.callback:
+            self.callback(self.start_point, self.end_point)
+        self.disconnect()
         self.line.remove()
         self.canvas.draw()

@@ -469,9 +469,7 @@ class NXPlotView(QtWidgets.QDialog):
         else:
             self.xp, self.yp, self.xdata, self.ydata = None, None, None, None
         if 'shift' in event.modifiers:
-            self.rotate_line = NXline(self)
-            self.rotate_line.connect()
-            self.rotate_line.on_press(event)
+            self.ptab.draw_rotated_line(event)
 
     def on_key_press(self, event):
         """Handle key press events in the Matplotlib canvas.
@@ -3845,17 +3843,53 @@ class NXProjectionTab(QtWidgets.QWidget):
         plotview = NXPlotView()
         plotview.plot(rotated_data, **kwargs)
 
-    def read_rotation_angle(self):
-        self.plotview.rotate_line.disconnect()
-        xmin, ymin = self.plotview.rotate_line.start_point
-        xmax, ymax = self.plotview.rotate_line.end_point
+    def draw_rotated_line(self, event):
+        self.rotate_line = NXline(self.plotview, self.plot_rotated_line)
+        self.rotate_line.on_press(event)
+
+    def plot_rotated_line(self, start_point, end_point):
+        if self.plotview.aspect == 'auto':
+            display_message('Rotation Plot', 'Aspect ratio must be defined.')
+            return
+        elif self.plotview.aspect == 'equal':
+            try:
+                aspect = float(self.plotview.get_aspect())
+            except ValueError:
+                aspect = 1.0
+        else:
+            aspect = self.plotview.aspect
+        xmin, ymin = start_point
+        xmax, ymax = end_point
         try:
-            self.rotation_box.setValue(
-                np.degrees(np.arctan((ymax - ymin) / (xmax - xmin))))
+            rotation_angle = np.degrees(np.arctan(aspect * (ymax - ymin) /
+                                                  (xmax - xmin)))
+            if np.abs(rotation_angle) < 5.0:
+                rotation_angle = 0.0
+            elif np.abs(np.abs(rotation_angle) - 90.0) < 5.0:
+                rotation_angle = 90.0
+            else:
+                rotation_angle = np.round(rotation_angle)
         except ZeroDivisionError:
-            self.rotation_box.setValue(90.0)
+            rotation_angle = 90.0
+        rotation_angle = -rotation_angle
+        self.rotation_box.setValue(rotation_angle)
         self.plotview.tab_widget.setCurrentWidget(self)
         self.rotation_box.setFocus()
+        rotated_data = self.plotview.rotate(rotation_angle)
+        angle = np.radians(rotation_angle)
+        rotated_y = ((xmin * np.sin(angle) / aspect) + ymin * np.cos(angle))
+        rotated_xmin = (xmin * np.cos(angle) - aspect * ymin * np.sin(angle))
+        rotated_xmax = (xmax * np.cos(angle) - aspect * ymax * np.sin(angle))
+        rotated_line = rotated_data[rotated_y]
+        label = f"Rotation: {self.plotview.label}"
+        if label in plotviews:
+            plotview = plotviews[label]
+            plotview.plot(rotated_line, over=True)
+        else:
+            plotview = NXPlotView(label)
+            plotview.plot(rotated_line)
+            plotviews[label].xtab.minbox.setValue(rotated_xmin)
+            plotviews[label].xtab.maxbox.setValue(rotated_xmax)
 
 
 class NXNavigationToolbar(NavigationToolbar2QT, QtWidgets.QToolBar):
