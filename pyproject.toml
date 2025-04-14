@@ -10,17 +10,17 @@ readme = "README.md"
 license = {file = "COPYING"}
 authors = [{name = "Raymond Osborn", email = "rayosborn@mac.com"}]
 classifiers = [
-  "Development Status :: 5 - Production/Stable",
+  "Development Status :: 4 - Beta",
   "Modified BSD License",
   "Intended Audience :: Developers",
   "Intended Audience :: Science/Research",
   "Topic :: Scientific/Engineering",
   "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.8",
   "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
   "Topic :: Scientific/Engineering",
   "Topic :: Scientific/Engineering :: Visualization",
 ]
@@ -31,7 +31,7 @@ keywords = [
     "data analysis",
     "visualization",
 ]
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 dependencies = [
     "nexusformat >= 1.0.6",
     "qtconsole >= 5.4.3",
@@ -70,4 +70,3 @@ version_file = "src/nexpy/_version.py"
 "nexpy.gui.resources" = ["*.*"]
 "nexpy.definitions" = ["*/*.xml"]
 "nexpy.examples" = ["*.*", "*/*.*", "*/*/*.*", "*/*/*/*.*"]
-
