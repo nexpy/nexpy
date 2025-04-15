@@ -17,6 +17,13 @@ import sys
 import traceback as tb
 from configparser import ConfigParser
 from datetime import datetime
+
+if sys.version_info < (3, 10):
+    from importlib_resources import files as package_files
+else:
+    from importlib.resources import files as package_files
+
+from importlib.util import module_from_spec, spec_from_file_location
 from pathlib import Path
 from threading import Thread
 
@@ -25,9 +32,10 @@ from IPython.core.ultratb import ColorTB
 from matplotlib import __version__ as mplversion
 from matplotlib import rcParams
 from matplotlib.colors import colorConverter, hex2color, rgb2hex
-from pkg_resources import parse_version
+from packaging.version import Version
+from PIL import Image
 
-from .pyqt import QtCore, QtWidgets
+from .pyqt import QtCore, QtGui, QtWidgets
 
 try:
     from astropy.convolution import Kernel
@@ -39,8 +47,8 @@ except ImportError:
     fabio = None
 
 from nexusformat.nexus import (NeXusError, NXcollection, NXdata, NXfield,
-                               NXLock, NXLockException, NXnote,
-                               nxgetconfig, nxload, nxsetconfig)
+                               NXLock, NXLockException, NXnote, nxgetconfig,
+                               nxload, nxsetconfig)
 
 ansi_re = re.compile(r'\x1b' + r'\[([\dA-Fa-f;]*?)m')
 
@@ -128,18 +136,18 @@ def run_pythonw(script_path):
         return
     import platform
     import warnings
-    from distutils.version import StrictVersion
-    if (StrictVersion(platform.release()) > StrictVersion('19.0.0') and
+
+    from packaging.version import Version
+    if (Version(platform.release()) > Version('19.0.0') and
             'CONDA_PREFIX' in os.environ):
-        pythonw_path = os.path.join(sys.exec_prefix, 'bin', 'pythonw')
-        if os.path.exists(pythonw_path):
-            cwd = os.getcwd()
+        pythonw_path = Path(sys.exec_prefix).joinpath('bin', 'pythonw')
+        if pythonw_path.exists():
             cmd = [pythonw_path, script_path]
             env = os.environ.copy()
             if len(sys.argv) > 1:
                 cmd.extend(sys.argv[1:])
             import subprocess
-            result = subprocess.run(cmd, env=env, cwd=cwd)
+            result = subprocess.run(cmd, env=env, cwd=Path.cwd())
             sys.exit(result.returncode)
         else:
             msg = ("'pythonw' executable not found.\n"
@@ -201,7 +209,7 @@ def wrap(text, length):
 def natural_sort(key):
     """Sort numbers according to their value, not their first character"""
     import re
-    return [int(t) if t.isdigit() else t for t in re.split(r'(\d+)', key)]
+    return [int(t) if t.isdigit() else t for t in re.split(r'(\d+)', str(key))]
 
 
 def clamp(value, min_value, max_value):
@@ -281,7 +289,7 @@ def keep_data(data):
     """
     from .consoleapp import _nexpy_dir, _tree
     if 'w0' not in _tree:
-        _tree['w0'] = nxload(os.path.join(_nexpy_dir, 'w0.nxs'), 'rw')
+        _tree['w0'] = nxload(_nexpy_dir.joinpath('w0.nxs'), 'rw')
     ind = []
     for key in _tree['w0']:
         try:
@@ -393,7 +401,7 @@ def is_timestamp(timestamp):
 def get_mtime(file_path):
     """Return the file modification time for the specified file path."""
     try:
-        return file_path.stat().st_mtime
+        return Path(file_path).stat().st_mtime
     except FileNotFoundError:  # due to a race condition
         return 0.0
 
@@ -405,7 +413,7 @@ def format_mtime(mtime):
 
 def modification_time(filename):
     try:
-        _mtime = os.path.getmtime(filename)
+        _mtime = Path(filename).stat().st_mtime
         return str(datetime.fromtimestamp(_mtime))
     except FileNotFoundError:
         return ''
@@ -568,7 +576,7 @@ def xtec_map():
 
 def divgray_map():
     """New divergent color map copied from the registered 'gray' map."""
-    if parse_version(mplversion) >= parse_version('3.5.0'):
+    if Version(mplversion) >= Version('3.5.0'):
         from matplotlib import colormaps
         cm = copy.copy(colormaps['gray'])
     else:
@@ -587,10 +595,9 @@ def cmyk_to_rgb(c, m, y, k):
 
 
 def load_image(filename):
-    if os.path.splitext(filename.lower())[1] in ['.png', '.jpg', '.jpeg',
-                                                 '.gif']:
-        from matplotlib.image import imread
-        im = imread(filename)
+    if Path(filename).suffix.lower() in ['.png', '.jpg', '.jpeg', '.gif']:
+        with Image.open(filename) as PIL_image:
+            im = np.array(PIL_image)
         z = NXfield(im, name='z')
         y = NXfield(range(z.shape[0]), name='y')
         x = NXfield(range(z.shape[1]), name='x')
@@ -621,15 +628,35 @@ def load_image(filename):
             for k, v in im.header.items():
                 if v or v == 0:
                     header[k] = v
-            data.header = header
+            data["header"] = header
         if im.getclassname() == 'CbfImage':
             note = NXnote(type='text/plain', file_name=filename)
-            note.data = im.header.pop('_array_data.header_contents', '')
-            note.description = im.header.pop(
+            note["data"] = im.header.pop('_array_data.header_contents', '')
+            note["description"] = im.header.pop(
                 '_array_data.header_convention', '')
-            data.CBF_header = note
-    data.title = filename
+            data["CBF_header"] = note
+    data["title"] = filename
     return data
+
+
+def import_plugin(plugin_name, plugin_path):
+    if plugin_path.is_dir():
+        plugin_path = plugin_path.joinpath('__init__.py')
+    if (spec := spec_from_file_location(plugin_name, plugin_path)) is not None:
+        module = module_from_spec(spec)
+        sys.modules[spec.name] = module
+        spec.loader.exec_module(module)
+        return module
+    else:
+        return None
+
+
+def resource_file(filename):
+    return str(package_files('nexpy.gui.resources').joinpath(filename))
+
+
+def resource_icon(filename):
+    return QtGui.QIcon(resource_file(filename))
 
 
 def initialize_settings(settings):
@@ -896,28 +923,6 @@ class NXListener(QtCore.QObject):
         self.change_signal.emit(signal)
 
 
-class NXImporter:
-    def __init__(self, paths):
-        self.paths = [str(p) for p in paths]
-
-    def __enter__(self):
-        for path in reversed(self.paths):
-            sys.path.insert(0, path)
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        for path in self.paths:
-            sys.path.remove(path)
-
-
-def import_plugin(name, paths):
-    with NXImporter(paths):
-        plugin_module = importlib.import_module(name)
-        if hasattr(plugin_module, '__file__'):  # Not a namespace module
-            return plugin_module
-        else:
-            raise ImportError('Plugin cannot be a namespace module')
-
-
 class NXConfigParser(ConfigParser, object):
     """A ConfigParser subclass that preserves the case of option names"""
 
@@ -940,11 +945,14 @@ class NXConfigParser(ConfigParser, object):
             self.add_section('session')
         self.fix_compatibility()
 
+    def __repr__(self):
+        return f"NXConfigParser('{self.file}')"
+
     def set(self, section, option, value=None):
         if value is not None:
             super().set(section, option, str(value))
         else:
-            super().set(section, option)
+            super().set(section, str(option))
 
     def optionxform(self, optionstr):
         return optionstr

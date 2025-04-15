@@ -6,14 +6,14 @@
 # The full license is in the file COPYING, distributed with this software.
 # -----------------------------------------------------------------------------
 
-import os
+from pathlib import Path
 
-import pkg_resources
 from nexusformat.nexus import (NeXusError, NXdata, NXentry, NXfield, NXgroup,
                                NXlink, NXroot, nxload)
 
 from .pyqt import QtCore, QtGui, QtWidgets
-from .utils import display_message, get_name, modification_time, report_error
+from .utils import (display_message, get_name, modification_time, report_error,
+                    resource_icon)
 from .widgets import NXSortModel
 
 
@@ -143,7 +143,7 @@ class NXtree(NXgroup):
                     del self._shell[shell_names[0]]
 
     def node_from_file(self, fname):
-        fname = os.path.abspath(fname)
+        fname = str(Path(fname).resolve())
         names = [name for name in self if self[name].nxfilename]
         try:
             return [name for name in names
@@ -165,22 +165,12 @@ class NXTreeItem(QtGui.QStandardItem):
         self.tree = self.root.nxgroup
         self.path = self.root.nxname + node.nxpath
         if isinstance(node, NXlink):
-            self._linked = QtGui.QIcon(
-                pkg_resources.resource_filename('nexpy.gui',
-                                                'resources/link-icon.png'))
+            self._linked = resource_icon('link-icon.png')
         elif isinstance(node, NXroot):
-            self._locked = QtGui.QIcon(
-                pkg_resources.resource_filename('nexpy.gui',
-                                                'resources/lock-icon.png'))
-            self._locked_modified = QtGui.QIcon(
-                pkg_resources.resource_filename('nexpy.gui',
-                                                'resources/lock-red-icon.png'))
-            self._unlocked = QtGui.QIcon(
-                pkg_resources.resource_filename('nexpy.gui',
-                                                'resources/unlock-icon.png'))
-            self._unlocked_modified = QtGui.QIcon(
-                pkg_resources.resource_filename(
-                    'nexpy.gui', 'resources/unlock-red-icon.png'))
+            self._locked = resource_icon('lock-icon.png')
+            self._locked_modified = resource_icon('lock-red-icon.png')
+            self._unlocked = resource_icon('unlock-icon.png')
+            self._unlocked_modified = resource_icon('unlock-red-icon.png')
         super().__init__(node.nxname)
 
     @property
@@ -492,7 +482,7 @@ class NXTreeView(QtWidgets.QTreeView):
                 node = self.tree._entries[key]
                 if node.nxfilemode and not node.file_exists():
                     _dir = node.nxfile._filedir
-                    if not os.path.exists(_dir):
+                    if not Path(_dir).exists():
                         display_message("Files removed",
                                         f"'{_dir}' no longer exists")
                         for _key in [k for k in self.tree

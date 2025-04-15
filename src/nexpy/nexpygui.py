@@ -7,8 +7,8 @@
 # The full license is in the file COPYING, distributed with this software.
 # -----------------------------------------------------------------------------
 import argparse
-import os
 import sys
+from pathlib import Path
 
 import nexpy
 
@@ -28,7 +28,7 @@ def main():
     args, extra_args = parser.parse_known_args()
 
     for i, f in enumerate(args.filenames):
-        args.filenames[i] = os.path.abspath(os.path.expanduser(f))
+        args.filenames[i] = f"{Path(f).resolve()}"
 
     if sys.platform == 'darwin':
         from nexpy.gui.utils import run_pythonw

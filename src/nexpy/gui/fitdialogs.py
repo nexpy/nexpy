@@ -5,16 +5,16 @@
 #
 # The full license is in the file COPYING, distributed with this software.
 # -----------------------------------------------------------------------------
-import importlib
 import inspect
 import os
 import re
 import sys
 import types
+from importlib import import_module
 from itertools import cycle
+from pathlib import Path
 
 import numpy as np
-import pkg_resources
 from lmfit import Model, Parameters
 from lmfit import __version__ as lmfit_version
 from nexusformat.nexus import (NeXusError, NXdata, NXentry, NXfield, NXnote,
@@ -23,7 +23,7 @@ from nexusformat.nexus import (NeXusError, NXdata, NXentry, NXfield, NXnote,
 from .datadialogs import NXDialog, NXPanel, NXTab
 from .plotview import NXPlotView, linestyles
 from .pyqt import QtCore, QtWidgets
-from .utils import display_message, format_float, report_error
+from .utils import display_message, format_float, package_files, report_error
 from .widgets import (NXCheckBox, NXColorBox, NXComboBox, NXLabel, NXLineEdit,
                       NXMessageBox, NXPushButton, NXrectangle, NXScrollArea)
 
@@ -32,26 +32,17 @@ def get_functions():
     """Return a list of available functions and models."""
 
     filenames = set()
-    private_path = os.path.join(os.path.expanduser('~'), '.nexpy', 'functions')
-    if os.path.isdir(private_path):
+    private_path = Path.home() / '.nexpy' / 'functions'
+    if private_path.is_dir():
         sys.path.append(private_path)
-        for file_ in os.listdir(private_path):
-            name, ext = os.path.splitext(file_)
-            if name != '__init__' and ext.startswith('.py'):
-                filenames.add(name)
-
-    functions_path = pkg_resources.resource_filename('nexpy.api.frills',
-                                                     'functions')
-    sys.path.append(functions_path)
-    for file_ in os.listdir(functions_path):
-        name, ext = os.path.splitext(file_)
-        if name != '__init__' and ext.startswith('.py'):
-            filenames.add(name)
+        for f in private_path.glob('*.py'):
+            if f.stem != '__init__':
+                filenames.add(f.stem)
 
     functions = {}
     for name in sorted(filenames):
         try:
-            module = importlib.import_module(name)
+            module = import_module(name)
             if hasattr(module, 'function_name'):
                 functions[module.function_name] = module
         except ImportError:
@@ -75,25 +66,22 @@ def get_models():
 
     filenames = set()
 
-    models_path = pkg_resources.resource_filename('nexpy.api.frills',
-                                                  'models')
+    models_path = package_files('nexpy.api.frills.models')
     sys.path.append(models_path)
-    for file_ in os.listdir(models_path):
-        name, ext = os.path.splitext(file_)
-        if name != '__init__' and ext.startswith('.py'):
-            filenames.add(name)
+    for f in models_path.glob("*.py"):
+        if f.stem != '__init__':
+            filenames.add(f.stem)
 
-    private_path = os.path.join(os.path.expanduser('~'), '.nexpy', 'models')
-    if os.path.isdir(private_path):
+    private_path = Path.home() / '.nexpy' / 'models'
+    if private_path.is_dir():
         sys.path.append(private_path)
-        for file_ in os.listdir(private_path):
-            name, ext = os.path.splitext(file_)
-            if name != '__init__' and ext.startswith('.py'):
-                filenames.add(name)
+        for f in private_path.glob('*.py'):
+            if f.stem != '__init__':
+                filenames.add(f.stem)
 
     for name in sorted(filenames):
         try:
-            module = importlib.import_module(name)
+            module = import_module(name)
             models.update(dict((n.strip('Model'), m)
                                for n, m in inspect.getmembers(module,
                                                               inspect.isclass)
@@ -1013,6 +1001,8 @@ class FitTab(NXTab):
         self.remove_rectangle()
 
     def plot_model(self, model=False):
+        if 'Fit' not in self.plotviews:
+            self.plot_data()
         model_name = self.plot_combo.currentText()
         if model is False:
             if model_name == 'Composite Model':

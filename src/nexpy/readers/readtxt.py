@@ -25,7 +25,7 @@ Two GUI elements are provided for convenience:
                             the dialog. This should be placed at the
                             bottom of all import dialogs.
 """
-import os
+from pathlib import Path
 
 import numpy as np
 from nexpy.gui.importdialog import NXImportDialog
@@ -102,8 +102,9 @@ class ImportDialog(NXImportDialog):
     def read_file(self):
         if self.get_filename() == '':
             self.choose_file()
-        if os.path.exists(self.get_filename()):
-            self.import_file = self.get_filename()
+        file_path = Path(self.get_filename())
+        if file_path.exists():
+            self.import_file = file_path
             with open(self.import_file, 'r') as f:
                 text = f.read()
                 self.textbox.setText(text.replace('\t', ' \t\u25B3'))

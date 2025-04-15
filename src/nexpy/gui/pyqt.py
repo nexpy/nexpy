@@ -23,7 +23,12 @@ elif QtCore.PYSIDE6:
     os.environ['QT_API'] = 'pyside6'
 
 
+def convert_paths(*args):
+    return [str(arg) if isinstance(arg, os.PathLike) else arg for arg in args]
+
+
 def getOpenFileName(*args, **kwargs):
+    args = convert_paths(*args)
     fname = QtWidgets.QFileDialog.getOpenFileName(*args, **kwargs)
     if isinstance(fname, tuple):
         fname = fname[0]
@@ -31,6 +36,7 @@ def getOpenFileName(*args, **kwargs):
 
 
 def getSaveFileName(*args, **kwargs):
+    args = convert_paths(*args)
     fname = QtWidgets.QFileDialog.getSaveFileName(*args, **kwargs)
     if isinstance(fname, tuple):
         fname = fname[0]

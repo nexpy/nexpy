@@ -17,8 +17,8 @@ import shutil
 import signal
 import sys
 import tempfile
+from pathlib import Path
 
-import pkg_resources
 from IPython import __version__ as ipython_version
 from jupyter_client.consoleapp import JupyterConsoleApp, app_aliases, app_flags
 from jupyter_core.application import JupyterApp, base_aliases, base_flags
@@ -35,7 +35,8 @@ from .mainwindow import MainWindow
 from .pyqt import QtCore, QtGui, QtVersion, QtWidgets
 from .treeview import NXtree
 from .utils import (NXConfigParser, NXGarbageCollector, NXLogger, define_mode,
-                    initialize_settings, report_exception, timestamp_age)
+                    initialize_settings, report_exception, resource_icon,
+                    timestamp_age)
 
 # -----------------------------------------------------------------------------
 # Globals
@@ -134,56 +135,51 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
 
     def init_dir(self):
         """Initialize NeXpy home directory"""
-        home_dir = os.path.abspath(os.path.expanduser('~'))
-        nexpy_dir = os.path.join(home_dir, '.nexpy')
-        if not os.path.exists(nexpy_dir):
-            parent = os.path.dirname(nexpy_dir)
-            if not os.access(parent, os.W_OK):
+        nexpy_dir = Path.home() / '.nexpy'
+        if not nexpy_dir.exists():
+            if not os.access(Path.home(), os.W_OK):
                 nexpy_dir = tempfile.mkdtemp()
             else:
-                os.mkdir(nexpy_dir)
+                nexpy_dir.mkdir(exist_ok=True)
         for subdirectory in ['backups', 'functions', 'models', 'plugins',
                              'readers', 'scripts']:
-            directory = os.path.join(nexpy_dir, subdirectory)
-            if not os.path.exists(directory):
-                os.mkdir(directory)
+            directory = nexpy_dir / subdirectory
+            directory.mkdir(exist_ok=True)
         global _nexpy_dir
         self.nexpy_dir = _nexpy_dir = nexpy_dir
-        self.backup_dir = os.path.join(self.nexpy_dir, 'backups')
-        self.plugin_dir = os.path.join(self.nexpy_dir, 'plugins')
-        self.reader_dir = os.path.join(self.nexpy_dir, 'readers')
-        self.script_dir = os.path.join(self.nexpy_dir, 'scripts')
-        self.function_dir = os.path.join(self.nexpy_dir, 'functions')
-        self.model_dir = os.path.join(self.nexpy_dir, 'models')
-        sys.path.append(self.function_dir)
-        self.scratch_file = os.path.join(self.nexpy_dir, 'w0.nxs')
-        if not os.path.exists(self.scratch_file):
+        self.backup_dir = self.nexpy_dir / 'backups'
+        self.plugin_dir = self.nexpy_dir / 'plugins'
+        self.reader_dir = self.nexpy_dir / 'readers'
+        self.script_dir = self.nexpy_dir / 'scripts'
+        self.scratch_file = self.nexpy_dir / 'w0.nxs'
+        if not self.scratch_file.exists():
             NXroot().save(self.scratch_file)
 
     def init_settings(self):
         """Initialize access to the NeXpy settings file."""
-        self.settings_file = os.path.join(self.nexpy_dir, 'settings.ini')
+        self.settings_file = self.nexpy_dir / 'settings.ini'
         self.settings = NXConfigParser(self.settings_file)
         initialize_settings(self.settings)
 
         def backup_age(backup):
             try:
-                return timestamp_age(os.path.basename(os.path.dirname(backup)))
+                return timestamp_age(Path(backup).parent.name)
             except ValueError:
                 return 0
+
         backups = self.settings.options('backups')
         plugins = self.settings.options('plugins')
         total_backups = backups + plugins
         for backup in total_backups:
-            if not (os.path.exists(backup) and
-                    os.path.realpath(backup).startswith(self.backup_dir)):
+            if not (Path(backup).exists() and
+                    self.backup_dir in Path(backup).parents):
                 if backup in backups:
                     self.settings.remove_option('backups', backup)
                 elif backup in plugins:
                     self.settings.remove_option('plugins', backup)
             elif backup_age(backup) > 5:
                 try:
-                    shutil.rmtree(os.path.dirname(os.path.realpath(backup)))
+                    shutil.rmtree(Path(backup).parent)
                     if backup in backups:
                         self.settings.remove_option('backups', backup)
                     elif backup in plugins:
@@ -194,7 +190,7 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
 
     def init_log(self):
         """Initialize the NeXpy logger."""
-        log_file = os.path.join(self.nexpy_dir, 'nexpy.log')
+        log_file = self.nexpy_dir / 'nexpy.log'
         handler = logging.handlers.RotatingFileHandler(log_file,
                                                        maxBytes=50000,
                                                        backupCount=5)
@@ -247,13 +243,9 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
         sys.excepthook = report_exception
         try:
             if 'svg' in QtGui.QImageReader.supportedImageFormats():
-                self.app.icon = QtGui.QIcon(
-                    pkg_resources.resource_filename(
-                        'nexpy.gui', 'resources/icon/NeXpy.svg'))
+                self.app.icon = resource_icon('NeXpy.svg')
             else:
-                self.app.icon = QtGui.QIcon(
-                    pkg_resources.resource_filename(
-                        'nexpy.gui', 'resources/icon/NeXpy.png'))
+                self.app.icon = resource_icon('NeXpy.png')
             QtWidgets.QApplication.setWindowIcon(self.app.icon)
             self.icon_pixmap = QtGui.QPixmap(
                 self.app.icon.pixmap(QtCore.QSize(64, 64)))
@@ -292,8 +284,8 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
                           "import matplotlib as mpl\n",
                           "from matplotlib import pylab, mlab, pyplot\n",
                           "plt = pyplot\n"]
-        config_file = os.path.join(self.nexpy_dir, 'config.py')
-        if not os.path.exists(config_file):
+        config_file = self.nexpy_dir / 'config.py'
+        if not config_file.exists():
             with open(config_file, 'w') as f:
                 f.writelines(default_script)
         with open(config_file) as f:
@@ -305,8 +297,7 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
         self.window.read_session()
         for i, filename in enumerate(args.filenames):
             try:
-                fname = os.path.expanduser(filename)
-                self.window.load_file(fname)
+                self.window.load_file(filename)
             except Exception:
                 pass
         if args.restore:

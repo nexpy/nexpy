@@ -24,8 +24,6 @@ plotviews : dict
 """
 import copy
 import numbers
-import os
-import warnings
 from posixpath import basename, dirname
 
 import matplotlib as mpl
@@ -36,12 +34,11 @@ from matplotlib.backends.backend_qt import NavigationToolbar2QT
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.colors import LogNorm, Normalize, SymLogNorm
 from matplotlib.figure import Figure
-from matplotlib.image import imread
 from matplotlib.lines import Line2D
 from matplotlib.ticker import AutoLocator, LogLocator, ScalarFormatter
-from pkg_resources import parse_version, resource_filename
+from packaging.version import Version
 
-from .pyqt import QtCore, QtGui, QtWidgets
+from .pyqt import QtCore, QtWidgets
 
 try:
     from matplotlib.ticker import LogFormatterSciNotation as LogFormatter
@@ -66,8 +63,9 @@ from .datadialogs import (CustomizeDialog, ExportDialog, LimitDialog,
                           ProjectionDialog, ScanDialog, StyleDialog)
 from .utils import (boundaries, centers, display_message, divgray_map,
                     find_nearest, fix_projection, get_color, in_dark_mode,
-                    iterable, keep_data, parula_map, report_error,
-                    report_exception, rotate_data, xtec_map)
+                    iterable, keep_data, load_image, parula_map, report_error,
+                    report_exception, resource_file, resource_icon,
+                    rotate_data, xtec_map)
 from .widgets import (NXCheckBox, NXcircle, NXComboBox, NXDoubleSpinBox,
                       NXellipse, NXLabel, NXline, NXLineEdit, NXpolygon,
                       NXPushButton, NXrectangle, NXSlider, NXSpinBox,
@@ -86,7 +84,7 @@ cmaps = ['viridis', 'inferno', 'magma', 'plasma',  # perceptually uniform
          'seismic', 'coolwarm', 'twilight', 'divgray',  # diverging
          'RdBu', 'RdYlBu', 'RdYlGn']
 
-if parse_version(mpl.__version__) >= parse_version('3.5.0'):
+if Version(mpl.__version__) >= Version('3.5.0'):
     mpl.colormaps.register(parula_map())
     mpl.colormaps.register(xtec_map())
     mpl.colormaps.register(divgray_map())
@@ -125,9 +123,9 @@ markers = {'.': 'point', ',': 'pixel', '+': 'plus', 'x': 'x',
            'o': 'circle', 's': 'square', 'D': 'diamond', 'H': 'hexagon',
            'v': 'triangle_down', '^': 'triangle_up', '<': 'triangle_left',
            '>': 'triangle_right', 'None': 'None'}
-logo = imread(resource_filename(
-              'nexpy.gui', 'resources/icon/NeXpy.png'))[180:880, 50:1010]
-warnings.filterwarnings("ignore", category=DeprecationWarning)
+logo = load_image(resource_file('NeXpy.png'))[180:880, 50:1010]
+logo["title"] = '"NeXpy"'
+# warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 
 def new_figure_manager(label=None, *args, **kwargs):
@@ -609,7 +607,7 @@ class NXPlotView(QtWidgets.QDialog):
 
     def display_logo(self):
         """Display the NeXpy logo in the plotting pane."""
-        self.plot(NXdata(logo, title='NeXpy'), image=True)
+        self.plot(logo, image=True)
         self.ax.xaxis.set_visible(False)
         self.ax.yaxis.set_visible(False)
         self.ax.title.set_visible(False)
@@ -1092,7 +1090,7 @@ class NXPlotView(QtWidgets.QDialog):
             else:
                 opts['interpolation'] = self.interpolation
 
-        if parse_version(mpl.__version__) >= parse_version('3.5.0'):
+        if Version(mpl.__version__) >= Version('3.5.0'):
             cm = copy.copy(mpl.colormaps[self.cmap])
         else:
             cm = copy.copy(get_cmap(self.cmap))
@@ -1237,7 +1235,7 @@ class NXPlotView(QtWidgets.QDialog):
                 self.vaxis.lo = 0.5
             else:
                 self.vaxis.lo = -0.5
-            if parse_version(mpl.__version__) >= parse_version('3.5.0'):
+            if Version(mpl.__version__) >= Version('3.5.0'):
                 nc = len(mpl.colormaps[self.cmap].colors)
             else:
                 nc = len(get_cmap(self.cmap).colors)
@@ -1381,7 +1379,7 @@ class NXPlotView(QtWidgets.QDialog):
 
     def update_colorbar(self):
         if self.colorbar:
-            if parse_version(mpl.__version__) >= parse_version('3.1.0'):
+            if Version(mpl.__version__) >= Version('3.1.0'):
                 self.colorbar.update_normal(self.image)
             else:
                 self.colorbar.set_norm(self.norm)
@@ -1389,7 +1387,7 @@ class NXPlotView(QtWidgets.QDialog):
             if self.vtab.qualitative:
                 vmin, vmax = [int(i+0.5) for i in self.image.get_clim()]
                 self.colorbar.set_ticks(range(vmin, vmax))
-                if parse_version(mpl.__version__) >= parse_version('3.5.0'):
+                if Version(mpl.__version__) >= Version('3.5.0'):
                     if self.cmap == 'xtec':
                         vmin, vmax = (0.5, self.vaxis.max_data+0.5)
                     else:
@@ -1531,7 +1529,7 @@ class NXPlotView(QtWidgets.QDialog):
             self.vaxis.max = self.vaxis.hi = vmax
             self.colorbar.locator = AutoLocator()
             self.colorbar.formatter = ScalarFormatter()
-            if parse_version(mpl.__version__) >= parse_version('3.1.0'):
+            if Version(mpl.__version__) >= Version('3.1.0'):
                 self.image.set_norm(SymLogNorm(linthresh, linscale=linscale,
                                                vmin=-vmax, vmax=vmax))
             else:
@@ -3515,7 +3513,7 @@ class NXPlotTab(QtWidgets.QWidget):
         if cmap is None:
             cmap = self._cached_cmap
         try:
-            if parse_version(mpl.__version__) >= parse_version('3.5.0'):
+            if Version(mpl.__version__) >= Version('3.5.0'):
                 cm = copy.copy(mpl.colormaps[cmap])
             else:
                 cm = copy.copy(get_cmap(cmap))
@@ -3652,14 +3650,11 @@ class NXPlotTab(QtWidgets.QWidget):
         self.plotview.fit_data()
 
     def init_toolbar(self):
-        _backward_icon = QtGui.QIcon(
-            resource_filename('nexpy.gui', 'resources/backward-icon.png'))
-        _pause_icon = QtGui.QIcon(
-            resource_filename('nexpy.gui', 'resources/pause-icon.png'))
-        _forward_icon = QtGui.QIcon(
-            resource_filename('nexpy.gui', 'resources/forward-icon.png'))
-        _refresh_icon = QtGui.QIcon(
-            resource_filename('nexpy.gui', 'resources/refresh-icon.png'))
+
+        _backward_icon = resource_icon('backward-icon.png')
+        _pause_icon = resource_icon('pause-icon.png')
+        _forward_icon = resource_icon('forward-icon.png')
+        _refresh_icon = resource_icon('refresh-icon.png')
         self.toolbar = QtWidgets.QToolBar(parent=self)
         self.toolbar.setIconSize(QtCore.QSize(16, 16))
         self.add_action(_refresh_icon, self.plotview.replot_data, "Replot",
@@ -3946,7 +3941,7 @@ class NXNavigationToolbar(NavigationToolbar2QT, QtWidgets.QToolBar):
 
         NavigationToolbar2.__init__(self, canvas)
         if in_dark_mode() and (
-                parse_version(QtCore.__version__) <= parse_version('5.15')):
+                Version(QtCore.__version__) <= Version('5.15')):
             self.setStyleSheet('color: black')
         self.plotview = canvas.parent()
         self.zoom()
@@ -3958,8 +3953,7 @@ class NXNavigationToolbar(NavigationToolbar2QT, QtWidgets.QToolBar):
         pass
 
     def _icon(self, name, color=None):
-        return QtGui.QIcon(os.path.join(resource_filename(
-                                        'nexpy.gui', 'resources'), name))
+        return resource_icon(name)
 
     @property
     def active_mode(self):

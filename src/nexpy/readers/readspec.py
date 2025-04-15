@@ -8,7 +8,7 @@
 """
 Module to read in a SPEC file and convert it to NeXus.
 """
-import os
+from pathlib import Path
 
 import numpy as np
 from nexpy.gui.importdialog import NXImportDialog
@@ -75,10 +75,10 @@ class ImportDialog(NXImportDialog):
         from spec2nexus.spec import SpecDataFile
         dirname = self.get_default_directory(self.filename.text())
         filename = getOpenFileName(self, 'Open file', dirname)
-        if os.path.exists(filename):
+        if Path(filename).exists():
             self.filename.setText(str(filename))
             self.spec = SpecDataFile(self.get_filename())
-            self.set_default_directory(os.path.dirname(filename))
+            self.set_default_directory(Path(filename).parent)
             all_scans = self.get_scan_numbers()
             scan_min = all_scans[0]
             self.scanmin.setText(str(scan_min))
@@ -88,7 +88,7 @@ class ImportDialog(NXImportDialog):
     def get_data(self):
         """Read the data and return :class:`NXroot` or :class:`NXentry`."""
         self.import_file = self.get_filename()
-        if not os.path.exists(self.import_file):
+        if not Path(self.import_file).exists():
             return None
         if self.spec is None:
             return None
@@ -113,7 +113,7 @@ class Parser:
     def openFile(self, filename):
         """Open the SPEC file and get its data."""
         from spec2nexus.spec import SpecDataFile
-        if os.path.exists(filename):
+        if Path(filename).exists():
             self.SPECfile = SpecDataFile(filename)
 
     def toTree(self, scan_list=[]):
