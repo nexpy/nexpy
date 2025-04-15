@@ -63,8 +63,9 @@ from .datadialogs import (CustomizeDialog, ExportDialog, LimitDialog,
                           ProjectionDialog, ScanDialog, StyleDialog)
 from .utils import (boundaries, centers, display_message, divgray_map,
                     find_nearest, fix_projection, get_color, in_dark_mode,
-                    iterable, keep_data, parula_map, report_error,
-                    report_exception, rotate_data, xtec_map)
+                    iterable, keep_data, load_image, parula_map, report_error,
+                    report_exception, resource_file, resource_icon,
+                    rotate_data, xtec_map)
 from .widgets import (NXCheckBox, NXcircle, NXComboBox, NXDoubleSpinBox,
                       NXellipse, NXLabel, NXline, NXLineEdit, NXpolygon,
                       NXPushButton, NXrectangle, NXSlider, NXSpinBox,
