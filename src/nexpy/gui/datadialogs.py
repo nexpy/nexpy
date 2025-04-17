@@ -3797,10 +3797,13 @@ class AddDialog(NXDialog):
 
         self.node = node
 
+
         class_layout = QtWidgets.QHBoxLayout()
         self.class_box = NXComboBox()
         if isinstance(self.node, NXgroup):
             names = ['NXgroup', 'NXfield', 'NXattr']
+            from nexusformat.nexus.validate import GroupValidator
+            self.validator = GroupValidator(self.node.nxclass)
         else:
             names = ['NXattr']
         for name in names:
@@ -3840,24 +3843,14 @@ class AddDialog(NXDialog):
         if class_name == "NXgroup":
             combo_label = NXLabel("Group Class:")
             self.combo_box = NXComboBox(self.select_combo)
-            standard_groups = sorted(
-                list(set([g for g in
-                          self.mainwindow.nxclasses[self.node.nxclass][2]])))
-            for name in standard_groups:
+            self.standard_groups = self.validator.valid_groups
+            for name in self.standard_groups:
                 self.combo_box.addItem(name)
-                self.combo_box.setItemData(
-                    self.combo_box.count() - 1,
-                    wrap(self.mainwindow.nxclasses[name][0], 40),
-                    QtCore.Qt.ToolTipRole)
             self.combo_box.insertSeparator(self.combo_box.count())
             other_groups = sorted([g for g in self.mainwindow.nxclasses
-                                   if g not in standard_groups])
+                                   if g not in self.standard_groups])
             for name in other_groups:
                 self.combo_box.addItem(name)
-                self.combo_box.setItemData(
-                    self.combo_box.count() - 1,
-                    wrap(self.mainwindow.nxclasses[name][0], 40),
-                    QtCore.Qt.ToolTipRole)
             grid.addWidget(combo_label, 0, 0)
             grid.addWidget(self.combo_box, 0, 1)
             grid.addWidget(name_label, 1, 0)
@@ -3866,15 +3859,9 @@ class AddDialog(NXDialog):
         elif class_name == "NXfield":
             combo_label = NXLabel()
             self.combo_box = NXComboBox(self.select_combo)
-            fields = sorted(list(set([g for g in
-                            self.mainwindow.nxclasses[self.node.nxclass][1]])))
-            for name in fields:
+            self.standard_fields = self.validator.valid_fields
+            for name in self.standard_fields:
                 self.combo_box.addItem(name)
-                self.combo_box.setItemData(
-                    self.combo_box.count() - 1,
-                    wrap(self.mainwindow.nxclasses[self.node.nxclass][1]
-                         [name][2], 40),
-                    QtCore.Qt.ToolTipRole)
             grid.addWidget(name_label, 0, 0)
             grid.addWidget(self.name_box, 0, 1)
             grid.addWidget(self.combo_box, 0, 2)
@@ -3922,7 +3909,12 @@ class AddDialog(NXDialog):
 
     def set_name(self, name):
         if self.class_name == 'NXgroup':
-            name = name[2:]
+            if (name in self.standard_groups and 
+                    '@type' in self.standard_groups[name]):
+                self.combo_box.setCurrentText(
+                    self.standard_groups[name]['@type'])
+            else:
+                name = name[2:]
         self.name_box.setText(name)
 
     def get_value(self):
@@ -4005,11 +3997,6 @@ class InitializeDialog(NXDialog):
                         self.mainwindow.nxclasses[self.node.nxclass][1]])))
         for name in fields:
             self.combo_box.addItem(name)
-            self.combo_box.setItemData(
-                self.combo_box.count()-1,
-                wrap(self.mainwindow.nxclasses[self.node.nxclass][1][name][2],
-                     40),
-                QtCore.Qt.ToolTipRole)
         grid.addWidget(name_label, 0, 0)
         grid.addWidget(self.name_box, 0, 1)
         grid.addWidget(self.combo_box, 0, 2)
@@ -4128,19 +4115,11 @@ class RenameDialog(NXDialog):
                           self.mainwindow.nxclasses[parent_class][2]])))
             for name in standard_groups:
                 self.combo_box.addItem(name)
-                self.combo_box.setItemData(
-                    self.combo_box.count() - 1,
-                    wrap(self.mainwindow.nxclasses[name][0], 40),
-                    QtCore.Qt.ToolTipRole)
             self.combo_box.insertSeparator(self.combo_box.count())
             other_groups = sorted([g for g in self.mainwindow.nxclasses
                                    if g not in standard_groups])
             for name in other_groups:
                 self.combo_box.addItem(name)
-                self.combo_box.setItemData(
-                    self.combo_box.count() - 1,
-                    wrap(self.mainwindow.nxclasses[name][0], 40),
-                    QtCore.Qt.ToolTipRole)
             self.combo_box.insertSeparator(self.combo_box.count())
             self.combo_box.addItem('NXgroup')
             self.combo_box.setCurrentIndex(
@@ -4156,11 +4135,6 @@ class RenameDialog(NXDialog):
                                 self.mainwindow.nxclasses[parent_class][1]])))
                 for name in fields:
                     self.combo_box.addItem(name)
-                    self.combo_box.setItemData(
-                        self.combo_box.count() - 1,
-                        wrap(self.mainwindow.nxclasses[parent_class][1]
-                             [name][2], 40),
-                        QtCore.Qt.ToolTipRole)
                 if self.node.nxname in fields:
                     self.combo_box.setCurrentIndex(
                         self.combo_box.findText(self.node.nxname))
