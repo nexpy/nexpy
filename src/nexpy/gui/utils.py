@@ -1028,8 +1028,6 @@ class NXGarbageCollector(QtCore.QObject):
 
 class NXValidationHandler(logging.Handler):
 
-    validate_signal = QtCore.Signal(str)
-
     def __init__(self):
         """
         Initialize a NXValidationHandler object.
@@ -1040,20 +1038,7 @@ class NXValidationHandler(logging.Handler):
         """
         from io import StringIO
         logging.Handler.__init__(self)
-        QtCore.QObject.__init__(self)
         self.buffer = StringIO()
-
-    def emit(self, record):
-        """
-        Emit a logging record.
-
-        Format the record and write it to the buffer. Then, emit
-        the validate_signal with the formatted record as its
-        argument.
-        """
-        msg = self.format(record)
-        self.buffer.write(msg + "\n")
-        self.validate_signal.emit(msg)
 
 
 class Gaussian3DKernel(Kernel):
