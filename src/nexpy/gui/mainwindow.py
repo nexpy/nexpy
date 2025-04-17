@@ -15,9 +15,7 @@ of a Matplotlib plotting pane and a tree view for displaying NeXus data.
 # -----------------------------------------------------------------------------
 # Imports
 # -----------------------------------------------------------------------------
-import glob
 import logging
-import os
 import re
 import sys
 import webbrowser
@@ -33,6 +31,7 @@ else:
 from nexusformat.nexus import (NeXusError, NXdata, NXentry, NXfield, NXFile,
                                NXgroup, NXlink, NXobject, NXprocess, NXroot,
                                nxcompleter, nxduplicate, nxgetconfig, nxload)
+from nexusformat.nexus.utils import get_base_classes
 from qtconsole.inprocess import QtInProcessKernelManager
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
 
@@ -181,7 +180,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.setCentralWidget(mainwindow)
 
-        self.input_base_classes()
+        self.nxclasses = get_base_classes()
 
         self.init_menu_bar()
 
@@ -1765,58 +1764,6 @@ class MainWindow(QtWidgets.QMainWindow):
             logging.info(f"Fitting invoked on'{node.nxpath}'")
         except NeXusError as error:
             report_error("Fitting Data", error)
-
-    def input_base_classes(self):
-        base_class_path = package_files('nexpy.definitions').joinpath(
-            'base_classes')
-        nxdl_files = [p.name for p in base_class_path.glob('*.nxdl.xml')]
-        pattern = re.compile(r'[\t\n ]+')
-        self.nxclasses = {}
-        for nxdl_file in nxdl_files:
-            class_name = nxdl_file.split('.')[0]
-            xml_root = ET.parse(base_class_path.joinpath(nxdl_file)).getroot()
-            class_doc = ''
-            class_groups = {}
-            class_fields = {}
-            for child in xml_root:
-                name = dtype = units = doc = ''
-                if child.tag.endswith('doc'):
-                    try:
-                        class_doc = re.sub(pattern, ' ', child.text).strip()
-                    except TypeError:
-                        pass
-                if child.tag.endswith('field'):
-                    try:
-                        name = child.attrib['name']
-                        dtype = child.attrib['type']
-                        units = child.attrib['units']
-                    except KeyError:
-                        pass
-                    for element in child:
-                        if element.tag.endswith('doc'):
-                            try:
-                                doc = re.sub(pattern, ' ',
-                                             element.text).strip()
-                            except TypeError:
-                                pass
-                    class_fields[name] = (dtype, units, doc)
-                elif child.tag.endswith('group'):
-                    try:
-                        dtype = child.attrib['type']
-                        name = child.attrib['name']
-                    except KeyError:
-                        pass
-                    for element in child:
-                        if element.tag.endswith('doc'):
-                            try:
-                                doc = re.sub(pattern, ' ',
-                                             element.text).strip()
-                            except TypeError:
-                                pass
-                    class_groups[dtype] = (name, doc)
-            self.nxclasses[class_name] = (
-                class_doc, class_fields, class_groups)
-        self.nxclasses['NXgroup'] = ('', {}, {})
 
     def make_active_action(self, number, label):
         if label == 'Projection':
