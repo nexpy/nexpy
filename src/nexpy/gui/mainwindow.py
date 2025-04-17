@@ -16,10 +16,8 @@ of a Matplotlib plotting pane and a tree view for displaying NeXus data.
 # Imports
 # -----------------------------------------------------------------------------
 import logging
-import re
 import sys
 import webbrowser
-import xml.etree.ElementTree as ET
 from operator import attrgetter
 from pathlib import Path
 
@@ -43,7 +41,8 @@ from .datadialogs import (AddDialog, CustomizeDialog, DirectoryDialog,
                           PlotDialog, PlotScalarDialog, ProjectionDialog,
                           RemovePluginDialog, RenameDialog,
                           RestorePluginDialog, ScanDialog, SettingsDialog,
-                          SignalDialog, UnlockDialog, ViewDialog)
+                          SignalDialog, UnlockDialog, ValidateDialog,
+                          ViewDialog)
 from .fitdialogs import FitDialog
 from .plotview import NXPlotView
 from .pyqt import QtCore, QtGui, QtWidgets, getOpenFileName, getSaveFileName
@@ -501,6 +500,12 @@ class MainWindow(QtWidgets.QMainWindow):
             "View Data", self, shortcut=QtGui.QKeySequence("Ctrl+Alt+V"),
             triggered=self.view_data)
         self.add_menu_action(self.data_menu, self.view_action)
+
+        self.validate_action = QtWidgets.QAction(
+            "Validate Data", self,
+            shortcut=QtGui.QKeySequence("Ctrl+Alt+Shift+V"),
+            triggered=self.validate_data)
+        self.add_menu_action(self.data_menu, self.validate_action)
 
         self.add_action = QtWidgets.QAction("Add Data", self,
                                             triggered=self.add_data)
@@ -1515,6 +1520,15 @@ class MainWindow(QtWidgets.QMainWindow):
         except NeXusError as error:
             report_error("Viewing Data", error)
 
+    def validate_data(self):
+        try:
+            node = self.treeview.get_node()
+            if not self.panel_is_running('Validate'):
+                self.panels['Validate'] = ValidateDialog()
+            self.panels['Validate'].activate(node)
+        except NeXusError as error:
+            report_error("Validating Data", error)
+        
     def add_data(self):
         try:
             node = self.treeview.get_node()

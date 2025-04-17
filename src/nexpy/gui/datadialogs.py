@@ -8,7 +8,6 @@
 import bisect
 import logging
 import numbers
-import os
 import shutil
 from operator import attrgetter
 from pathlib import Path
@@ -26,7 +25,7 @@ from .utils import (confirm_action, convertHTML, display_message,
                     fix_projection, format_mtime, format_timestamp, get_color,
                     get_mtime, human_size, import_plugin, keep_data,
                     natural_sort, package_files, report_error, set_style,
-                    timestamp, wrap)
+                    timestamp)
 from .widgets import (NXCheckBox, NXColorBox, NXComboBox, NXDoubleSpinBox,
                       NXLabel, NXLineEdit, NXPlainTextEdit, NXpolygon,
                       NXPushButton, NXScrollArea, NXSpinBox, NXStack)
@@ -235,6 +234,8 @@ class NXWidget(QtWidgets.QWidget):
         else:
             layout = QtWidgets.QHBoxLayout()
         group = QtWidgets.QButtonGroup()
+        if 'slot' in opts:
+            group.buttonClicked.connect(opts['slot'])
         self.radiogroup.append(group)
         if align != 'left':
             layout.addStretch()
@@ -3783,6 +3784,104 @@ class ViewTableModel(QtCore.QAbstractTableModel):
         self.headerDataChanged.emit(QtCore.Qt.Horizontal, 0,
                                     min(9, self.columns-1))
         self.headerDataChanged.emit(QtCore.Qt.Vertical, 0, min(9, self.rows-1))
+
+
+class ValidateDialog(NXPanel):
+    """Dialog to view a NeXus field"""
+
+    def __init__(self, parent=None):
+        super().__init__('Validate', title='Validation Panel', apply=False,
+                         reset=False, parent=parent)
+        self.tab_class = ValidateTab
+
+    def activate(self, node):
+        label = node.nxroot.nxname + node.nxpath
+        if label not in self.tabs:
+            tab = ValidateTab(label, node, parent=self)
+            self.add(label, tab, idx=self.idx(label))
+        else:
+            self.tab = label
+        self.setVisible(True)
+        self.raise_()
+        self.activateWindow()
+
+
+class ValidateTab(NXTab):
+    """Dialog to display output NeXus validation results."""
+
+    def __init__(self, label, node, parent=None):
+
+        super().__init__(label, parent=parent)
+
+        self.node = node
+
+        actions = self.action_buttons(
+            ('Validate Entry', self.validate),
+            ('Check Base Class', self.check),
+            ('Inspect Base Class', self.inspect))
+        for button in ['Validate Entry', 'Check Base Class',
+                       'Inspect Base Class']:
+            self.pushbutton[button].setCheckable(True)
+        if self.node.nxclass != 'NXentry' and self.node.nxclass != 'NXroot':
+            self.pushbutton['Validate Entry'].setVisible(False)
+        self.text_box = QtWidgets.QTextEdit()
+        self.text_box.setMinimumWidth(800)
+        self.text_box.setMinimumHeight(600)
+        self.text_box.setFocusPolicy(QtCore.Qt.StrongFocus)
+        self.text_box.setReadOnly(True)
+        radio_buttons = self.radiobuttons(('info', 'Info', False),
+                                          ('warning', 'Warning', True),
+                                          ('error', 'Error', False),
+                                          slot=self.select_level)
+        self.set_layout(actions, self.text_box, radio_buttons)
+        full_path = self.node.nxroot.nxname + self.node.nxpath
+        self.set_title(f"Validation Results for {full_path}")
+        self.check()
+
+    @property
+    def log_level(self):
+        if self.radiobutton['info'].isChecked():
+            return 'info'
+        elif self.radiobutton['warning'].isChecked():
+            return 'warning'
+        else:
+            return 'error'
+
+    def validate(self):
+        self.node.validate(level=self.log_level)
+        self.show_log()
+        self.pushbutton['Validate Entry'].setChecked(True)
+        for button in ['Check Base Class', 'Inspect Base Class']:
+            self.pushbutton[button].setChecked(False)
+
+    def check(self):
+        self.node.check(level=self.log_level)
+        self.show_log()
+        self.pushbutton['Check Base Class'].setChecked(True)
+        for button in ['Validate Entry', 'Inspect Base Class']:
+            self.pushbutton[button].setChecked(False)
+
+    def inspect(self):
+        self.node.inspect()
+        self.show_log()
+        self.pushbutton['Inspect Base Class'].setChecked(True)
+        for button in ['Validate Entry', 'Check Base Class']:
+            self.pushbutton[button].setChecked(False)
+
+    def select_level(self):
+        if self.pushbutton['Validate Entry'].isChecked():
+            self.validate()
+        elif self.pushbutton['Check Base Class'].isChecked():
+            self.check()
+        elif self.pushbutton['Inspect Base Class'].isChecked():
+            self.inspect()
+
+    def show_log(self):
+        handler = logging.getLogger('NXValidate').handlers[0]
+        self.text_box.setText(convertHTML(handler.flush()))
+        self.setVisible(True)
+        self.raise_()
+        self.activateWindow()
 
 
 class AddDialog(NXDialog):

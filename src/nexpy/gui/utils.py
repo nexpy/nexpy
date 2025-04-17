@@ -1026,19 +1026,18 @@ class NXGarbageCollector(QtCore.QObject):
                     gc.collect(2)
 
 
-class NXValidationHandler(logging.Handler):
+class NXValidationHandler(logging.handlers.BufferingHandler):
 
-    def __init__(self):
-        """
-        Initialize a NXValidationHandler object.
+    def shouldFlush(self, record):
+        return False
 
-        This is a logging handler that converts log records into a
-        string and emits a validate_signal with the string as its
-        argument.
-        """
-        from io import StringIO
-        logging.Handler.__init__(self)
-        self.buffer = StringIO()
+    def flush(self):
+        text = []
+        if self.buffer:
+            for record in self.buffer:
+                text.append(self.format(record))
+            self.buffer.clear()
+        return "\n".join(text)
 
 
 class Gaussian3DKernel(Kernel):
