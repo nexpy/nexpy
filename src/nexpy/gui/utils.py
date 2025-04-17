@@ -8,7 +8,6 @@
 
 import copy
 import gc
-import importlib
 import io
 import logging
 import os
@@ -1025,6 +1024,36 @@ class NXGarbageCollector(QtCore.QObject):
                 gc.collect(1)
                 if l2 > self.threshold[2]:
                     gc.collect(2)
+
+
+class NXValidationHandler(logging.Handler):
+
+    validate_signal = QtCore.Signal(str)
+
+    def __init__(self):
+        """
+        Initialize a NXValidationHandler object.
+
+        This is a logging handler that converts log records into a
+        string and emits a validate_signal with the string as its
+        argument.
+        """
+        from io import StringIO
+        logging.Handler.__init__(self)
+        QtCore.QObject.__init__(self)
+        self.buffer = StringIO()
+
+    def emit(self, record):
+        """
+        Emit a logging record.
+
+        Format the record and write it to the buffer. Then, emit
+        the validate_signal with the formatted record as its
+        argument.
+        """
+        msg = self.format(record)
+        self.buffer.write(msg + "\n")
+        self.validate_signal.emit(msg)
 
 
 class Gaussian3DKernel(Kernel):
