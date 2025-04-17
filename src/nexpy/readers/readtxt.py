@@ -33,6 +33,7 @@ from nexpy.gui.utils import report_error
 from nexpy.gui.widgets import (NXCheckBox, NXComboBox, NXLabel, NXLineEdit,
                                NXPushButton)
 from nexusformat.nexus import NXdata, NXentry, NXfield, NXgroup
+from nexusformat.nexus.validate import GroupValidator
 from qtpy import QtWidgets
 
 filetype = "Text File"
@@ -60,8 +61,8 @@ class ImportDialog(NXImportDialog):
         self.delcombo = NXComboBox(items=self.delimiters)
 
         self.groupbox = NXLineEdit('data')
-        standard_groups = sorted(list(set([g for g in
-                                 self.mainwindow.nxclasses['NXentry'][2]])))
+        validator = GroupValidator('NXentry')
+        standard_groups = validator.valid_groups
         other_groups = sorted([g for g in self.mainwindow.nxclasses
                                if g not in standard_groups])
         self.groupcombo = NXComboBox(self.select_class, standard_groups)
