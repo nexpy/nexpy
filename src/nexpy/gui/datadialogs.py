@@ -3829,8 +3829,8 @@ class ValidateTab(NXTab):
                                                  self.choose_definitions,
                                                  suggestion=self.definitions)
         actions = self.action_buttons(
-            ('Validate Entry', self.validate),
             ('Check Base Class', self.check),
+            ('Validate Entry', self.validate),
             ('Inspect Base Class', self.inspect))
         for button in ['Validate Entry', 'Check Base Class',
                        'Inspect Base Class']:
@@ -3850,7 +3850,6 @@ class ValidateTab(NXTab):
                         radio_buttons)
         full_path = self.node.nxroot.nxname + self.node.nxpath
         self.set_title(f"Validation Results for {full_path}")
-        self.check()
 
     def choose_definitions(self):
         """Opens a file dialog to locate the definitions directory."""
