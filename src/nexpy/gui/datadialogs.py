@@ -8,7 +8,6 @@
 import bisect
 import logging
 import numbers
-import os
 import shutil
 from operator import attrgetter
 from pathlib import Path
@@ -26,7 +25,7 @@ from .utils import (confirm_action, convertHTML, display_message,
                     fix_projection, format_mtime, format_timestamp, get_color,
                     get_mtime, human_size, import_plugin, keep_data,
                     natural_sort, package_files, report_error, set_style,
-                    timestamp, wrap)
+                    timestamp)
 from .widgets import (NXCheckBox, NXColorBox, NXComboBox, NXDoubleSpinBox,
                       NXLabel, NXLineEdit, NXPlainTextEdit, NXpolygon,
                       NXPushButton, NXScrollArea, NXSpinBox, NXStack)
@@ -235,6 +234,8 @@ class NXWidget(QtWidgets.QWidget):
         else:
             layout = QtWidgets.QHBoxLayout()
         group = QtWidgets.QButtonGroup()
+        if 'slot' in opts:
+            group.buttonClicked.connect(opts['slot'])
         self.radiogroup.append(group)
         if align != 'left':
             layout.addStretch()
@@ -1965,6 +1966,8 @@ class SettingsDialog(NXDialog):
         self.parameters.add('lockexpiry', cfg['lockexpiry'], 'Lock Expiry (s)')
         self.parameters.add('lockdirectory', cfg['lockdirectory'],
                             'Lock Directory')
+        self.parameters.add('definitions', cfg['definitions'],
+                            'NeXus Definitions Directory')
         self.parameters.add('recursive', ['True', 'False'], 'File Recursion')
         self.parameters['recursive'].value = str(cfg['recursive'])
         styles = ['default', 'publication'] + sorted(
@@ -1992,6 +1995,8 @@ class SettingsDialog(NXDialog):
                                      cfg['lockexpiry'])
         self.mainwindow.settings.set('settings', 'lockdirectory',
                                      cfg['lockdirectory'])
+        self.mainwindow.settings.set('settings', 'definitions',
+                                     cfg['definitions'])
         self.mainwindow.settings.set('settings', 'recursive',
                                      cfg['recursive'])
         self.mainwindow.settings.set('settings', 'style',
@@ -1999,16 +2004,20 @@ class SettingsDialog(NXDialog):
         self.mainwindow.settings.save()
 
     def set_nexpy_settings(self):
-        lockdirectory = self.parameters['lockdirectory'].value
-        if not lockdirectory.strip():
-            lockdirectory = None
+        def check_value(value):
+            if not value.strip():
+                return None
+            return value
         nxsetconfig(memory=self.parameters['memory'].value,
                     maxsize=self.parameters['maxsize'].value,
                     compression=self.parameters['compression'].value,
                     encoding=self.parameters['encoding'].value,
                     lock=self.parameters['lock'].value,
                     lockexpiry=self.parameters['lockexpiry'].value,
-                    lockdirectory=lockdirectory,
+                    lockdirectory=check_value(
+                        self.parameters['lockdirectory'].value),
+                    definitions=check_value(
+                        self.parameters['definitions'].value),
                     recursive=self.parameters['recursive'].value)
         set_style(self.parameters['style'].value)
 
@@ -3785,6 +3794,123 @@ class ViewTableModel(QtCore.QAbstractTableModel):
         self.headerDataChanged.emit(QtCore.Qt.Vertical, 0, min(9, self.rows-1))
 
 
+class ValidateDialog(NXPanel):
+    """Dialog to view a NeXus field"""
+
+    def __init__(self, parent=None):
+        super().__init__('Validate', title='Validation Panel', apply=False,
+                         reset=False, parent=parent)
+        self.tab_class = ValidateTab
+
+    def activate(self, node):
+        label = node.nxroot.nxname + node.nxpath
+        if label not in self.tabs:
+            tab = ValidateTab(label, node, parent=self)
+            self.add(label, tab, idx=self.idx(label))
+        else:
+            self.tab = label
+        self.setVisible(True)
+        self.raise_()
+        self.activateWindow()
+
+
+class ValidateTab(NXTab):
+    """Dialog to display output NeXus validation results."""
+
+    def __init__(self, label, node, parent=None):
+
+        super().__init__(label, parent=parent)
+
+        self.node = node
+
+        from nexusformat.nexus.utils import get_definitions
+        self.definitions = get_definitions(nxgetconfig('definitions'))
+        self.definitions_box = self.directorybox('NeXus Definitions Directory',
+                                                 self.choose_definitions,
+                                                 suggestion=self.definitions)
+        actions = self.action_buttons(
+            ('Check Base Class', self.check),
+            ('Validate Entry', self.validate),
+            ('Inspect Base Class', self.inspect))
+        for button in ['Validate Entry', 'Check Base Class',
+                       'Inspect Base Class']:
+            self.pushbutton[button].setCheckable(True)
+        if self.node.nxclass != 'NXentry' and self.node.nxclass != 'NXroot':
+            self.pushbutton['Validate Entry'].setVisible(False)
+        self.text_box = QtWidgets.QTextEdit()
+        self.text_box.setMinimumWidth(800)
+        self.text_box.setMinimumHeight(600)
+        self.text_box.setFocusPolicy(QtCore.Qt.StrongFocus)
+        self.text_box.setReadOnly(True)
+        radio_buttons = self.radiobuttons(('info', 'Info', False),
+                                          ('warning', 'Warning', True),
+                                          ('error', 'Error', False),
+                                          slot=self.select_level)
+        self.set_layout(self.definitions_box, actions, self.text_box,
+                        radio_buttons)
+        full_path = self.node.nxroot.nxname + self.node.nxpath
+        self.set_title(f"Validation Results for {full_path}")
+
+    def choose_definitions(self):
+        """Opens a file dialog to locate the definitions directory."""
+        dirname = str(self.definitions)
+        dirname = QtWidgets.QFileDialog.getExistingDirectory(
+            self, 'Choose Definitions Directory', dirname)
+        dirname = Path(dirname)
+        if dirname.exists():
+            if dirname.joinpath('base_classes').exists():
+                self.definitions = dirname
+                self.directoryname.setText(str(dirname))
+            else:
+                display_message("Definitions directory is not valid")
+        self.check()
+
+    @property
+    def log_level(self):
+        if self.radiobutton['info'].isChecked():
+            return 'info'
+        elif self.radiobutton['warning'].isChecked():
+            return 'warning'
+        else:
+            return 'error'
+
+    def validate(self):
+        self.node.validate(level=self.log_level, definitions=self.definitions)
+        self.show_log()
+        self.pushbutton['Validate Entry'].setChecked(True)
+        for button in ['Check Base Class', 'Inspect Base Class']:
+            self.pushbutton[button].setChecked(False)
+
+    def check(self):
+        self.node.check(level=self.log_level, definitions=self.definitions)
+        self.show_log()
+        self.pushbutton['Check Base Class'].setChecked(True)
+        for button in ['Validate Entry', 'Inspect Base Class']:
+            self.pushbutton[button].setChecked(False)
+
+    def inspect(self):
+        self.node.inspect(definitions=self.definitions)
+        self.show_log()
+        self.pushbutton['Inspect Base Class'].setChecked(True)
+        for button in ['Validate Entry', 'Check Base Class']:
+            self.pushbutton[button].setChecked(False)
+
+    def select_level(self):
+        if self.pushbutton['Validate Entry'].isChecked():
+            self.validate()
+        elif self.pushbutton['Check Base Class'].isChecked():
+            self.check()
+        elif self.pushbutton['Inspect Base Class'].isChecked():
+            self.inspect()
+
+    def show_log(self):
+        handler = logging.getLogger('NXValidate').handlers[0]
+        self.text_box.setText(convertHTML(handler.flush()))
+        self.setVisible(True)
+        self.raise_()
+        self.activateWindow()
+
+
 class AddDialog(NXDialog):
     """Dialog to add a NeXus node"""
 
@@ -3797,10 +3923,13 @@ class AddDialog(NXDialog):
 
         self.node = node
 
+
         class_layout = QtWidgets.QHBoxLayout()
         self.class_box = NXComboBox()
         if isinstance(self.node, NXgroup):
             names = ['NXgroup', 'NXfield', 'NXattr']
+            from nexusformat.nexus.validate import GroupValidator
+            self.validator = GroupValidator(self.node.nxclass)
         else:
             names = ['NXattr']
         for name in names:
@@ -3840,24 +3969,14 @@ class AddDialog(NXDialog):
         if class_name == "NXgroup":
             combo_label = NXLabel("Group Class:")
             self.combo_box = NXComboBox(self.select_combo)
-            standard_groups = sorted(
-                list(set([g for g in
-                          self.mainwindow.nxclasses[self.node.nxclass][2]])))
-            for name in standard_groups:
+            self.standard_groups = self.validator.valid_groups
+            for name in self.standard_groups:
                 self.combo_box.addItem(name)
-                self.combo_box.setItemData(
-                    self.combo_box.count() - 1,
-                    wrap(self.mainwindow.nxclasses[name][0], 40),
-                    QtCore.Qt.ToolTipRole)
             self.combo_box.insertSeparator(self.combo_box.count())
             other_groups = sorted([g for g in self.mainwindow.nxclasses
-                                   if g not in standard_groups])
+                                   if g not in self.standard_groups])
             for name in other_groups:
                 self.combo_box.addItem(name)
-                self.combo_box.setItemData(
-                    self.combo_box.count() - 1,
-                    wrap(self.mainwindow.nxclasses[name][0], 40),
-                    QtCore.Qt.ToolTipRole)
             grid.addWidget(combo_label, 0, 0)
             grid.addWidget(self.combo_box, 0, 1)
             grid.addWidget(name_label, 1, 0)
@@ -3866,15 +3985,9 @@ class AddDialog(NXDialog):
         elif class_name == "NXfield":
             combo_label = NXLabel()
             self.combo_box = NXComboBox(self.select_combo)
-            fields = sorted(list(set([g for g in
-                            self.mainwindow.nxclasses[self.node.nxclass][1]])))
-            for name in fields:
+            self.standard_fields = self.validator.valid_fields
+            for name in self.standard_fields:
                 self.combo_box.addItem(name)
-                self.combo_box.setItemData(
-                    self.combo_box.count() - 1,
-                    wrap(self.mainwindow.nxclasses[self.node.nxclass][1]
-                         [name][2], 40),
-                    QtCore.Qt.ToolTipRole)
             grid.addWidget(name_label, 0, 0)
             grid.addWidget(self.name_box, 0, 1)
             grid.addWidget(self.combo_box, 0, 2)
@@ -3922,7 +4035,12 @@ class AddDialog(NXDialog):
 
     def set_name(self, name):
         if self.class_name == 'NXgroup':
-            name = name[2:]
+            if (name in self.standard_groups and 
+                    '@type' in self.standard_groups[name]):
+                self.combo_box.setCurrentText(
+                    self.standard_groups[name]['@type'])
+            else:
+                name = name[2:]
         self.name_box.setText(name)
 
     def get_value(self):
@@ -4005,11 +4123,6 @@ class InitializeDialog(NXDialog):
                         self.mainwindow.nxclasses[self.node.nxclass][1]])))
         for name in fields:
             self.combo_box.addItem(name)
-            self.combo_box.setItemData(
-                self.combo_box.count()-1,
-                wrap(self.mainwindow.nxclasses[self.node.nxclass][1][name][2],
-                     40),
-                QtCore.Qt.ToolTipRole)
         grid.addWidget(name_label, 0, 0)
         grid.addWidget(self.name_box, 0, 1)
         grid.addWidget(self.combo_box, 0, 2)
@@ -4128,19 +4241,11 @@ class RenameDialog(NXDialog):
                           self.mainwindow.nxclasses[parent_class][2]])))
             for name in standard_groups:
                 self.combo_box.addItem(name)
-                self.combo_box.setItemData(
-                    self.combo_box.count() - 1,
-                    wrap(self.mainwindow.nxclasses[name][0], 40),
-                    QtCore.Qt.ToolTipRole)
             self.combo_box.insertSeparator(self.combo_box.count())
             other_groups = sorted([g for g in self.mainwindow.nxclasses
                                    if g not in standard_groups])
             for name in other_groups:
                 self.combo_box.addItem(name)
-                self.combo_box.setItemData(
-                    self.combo_box.count() - 1,
-                    wrap(self.mainwindow.nxclasses[name][0], 40),
-                    QtCore.Qt.ToolTipRole)
             self.combo_box.insertSeparator(self.combo_box.count())
             self.combo_box.addItem('NXgroup')
             self.combo_box.setCurrentIndex(
@@ -4156,11 +4261,6 @@ class RenameDialog(NXDialog):
                                 self.mainwindow.nxclasses[parent_class][1]])))
                 for name in fields:
                     self.combo_box.addItem(name)
-                    self.combo_box.setItemData(
-                        self.combo_box.count() - 1,
-                        wrap(self.mainwindow.nxclasses[parent_class][1]
-                             [name][2], 40),
-                        QtCore.Qt.ToolTipRole)
                 if self.node.nxname in fields:
                     self.combo_box.setCurrentIndex(
                         self.combo_box.findText(self.node.nxname))

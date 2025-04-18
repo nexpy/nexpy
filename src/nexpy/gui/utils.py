@@ -8,7 +8,6 @@
 
 import copy
 import gc
-import importlib
 import io
 import logging
 import os
@@ -1025,6 +1024,20 @@ class NXGarbageCollector(QtCore.QObject):
                 gc.collect(1)
                 if l2 > self.threshold[2]:
                     gc.collect(2)
+
+
+class NXValidationHandler(logging.handlers.BufferingHandler):
+
+    def shouldFlush(self, record):
+        return False
+
+    def flush(self):
+        text = []
+        if self.buffer:
+            for record in self.buffer:
+                text.append(self.format(record))
+            self.buffer.clear()
+        return "\n".join(text)
 
 
 class Gaussian3DKernel(Kernel):

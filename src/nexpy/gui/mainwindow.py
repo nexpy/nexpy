@@ -15,13 +15,9 @@ of a Matplotlib plotting pane and a tree view for displaying NeXus data.
 # -----------------------------------------------------------------------------
 # Imports
 # -----------------------------------------------------------------------------
-import glob
 import logging
-import os
-import re
 import sys
 import webbrowser
-import xml.etree.ElementTree as ET
 from operator import attrgetter
 from pathlib import Path
 
@@ -33,6 +29,7 @@ else:
 from nexusformat.nexus import (NeXusError, NXdata, NXentry, NXfield, NXFile,
                                NXgroup, NXlink, NXobject, NXprocess, NXroot,
                                nxcompleter, nxduplicate, nxgetconfig, nxload)
+from nexusformat.nexus.utils import get_base_classes
 from qtconsole.inprocess import QtInProcessKernelManager
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
 
@@ -44,7 +41,8 @@ from .datadialogs import (AddDialog, CustomizeDialog, DirectoryDialog,
                           PlotDialog, PlotScalarDialog, ProjectionDialog,
                           RemovePluginDialog, RenameDialog,
                           RestorePluginDialog, ScanDialog, SettingsDialog,
-                          SignalDialog, UnlockDialog, ViewDialog)
+                          SignalDialog, UnlockDialog, ValidateDialog,
+                          ViewDialog)
 from .fitdialogs import FitDialog
 from .plotview import NXPlotView
 from .pyqt import QtCore, QtGui, QtWidgets, getOpenFileName, getSaveFileName
@@ -181,7 +179,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.setCentralWidget(mainwindow)
 
-        self.input_base_classes()
+        self.nxclasses = get_base_classes()
 
         self.init_menu_bar()
 
@@ -502,6 +500,12 @@ class MainWindow(QtWidgets.QMainWindow):
             "View Data", self, shortcut=QtGui.QKeySequence("Ctrl+Alt+V"),
             triggered=self.view_data)
         self.add_menu_action(self.data_menu, self.view_action)
+
+        self.validate_action = QtWidgets.QAction(
+            "Validate Data", self,
+            shortcut=QtGui.QKeySequence("Ctrl+Alt+Shift+V"),
+            triggered=self.validate_data)
+        self.add_menu_action(self.data_menu, self.validate_action)
 
         self.add_action = QtWidgets.QAction("Add Data", self,
                                             triggered=self.add_data)
@@ -1516,6 +1520,15 @@ class MainWindow(QtWidgets.QMainWindow):
         except NeXusError as error:
             report_error("Viewing Data", error)
 
+    def validate_data(self):
+        try:
+            node = self.treeview.get_node()
+            if not self.panel_is_running('Validate'):
+                self.panels['Validate'] = ValidateDialog()
+            self.panels['Validate'].activate(node)
+        except NeXusError as error:
+            report_error("Validating Data", error)
+        
     def add_data(self):
         try:
             node = self.treeview.get_node()
@@ -1765,58 +1778,6 @@ class MainWindow(QtWidgets.QMainWindow):
             logging.info(f"Fitting invoked on'{node.nxpath}'")
         except NeXusError as error:
             report_error("Fitting Data", error)
-
-    def input_base_classes(self):
-        base_class_path = package_files('nexpy.definitions').joinpath(
-            'base_classes')
-        nxdl_files = [p.name for p in base_class_path.glob('*.nxdl.xml')]
-        pattern = re.compile(r'[\t\n ]+')
-        self.nxclasses = {}
-        for nxdl_file in nxdl_files:
-            class_name = nxdl_file.split('.')[0]
-            xml_root = ET.parse(base_class_path.joinpath(nxdl_file)).getroot()
-            class_doc = ''
-            class_groups = {}
-            class_fields = {}
-            for child in xml_root:
-                name = dtype = units = doc = ''
-                if child.tag.endswith('doc'):
-                    try:
-                        class_doc = re.sub(pattern, ' ', child.text).strip()
-                    except TypeError:
-                        pass
-                if child.tag.endswith('field'):
-                    try:
-                        name = child.attrib['name']
-                        dtype = child.attrib['type']
-                        units = child.attrib['units']
-                    except KeyError:
-                        pass
-                    for element in child:
-                        if element.tag.endswith('doc'):
-                            try:
-                                doc = re.sub(pattern, ' ',
-                                             element.text).strip()
-                            except TypeError:
-                                pass
-                    class_fields[name] = (dtype, units, doc)
-                elif child.tag.endswith('group'):
-                    try:
-                        dtype = child.attrib['type']
-                        name = child.attrib['name']
-                    except KeyError:
-                        pass
-                    for element in child:
-                        if element.tag.endswith('doc'):
-                            try:
-                                doc = re.sub(pattern, ' ',
-                                             element.text).strip()
-                            except TypeError:
-                                pass
-                    class_groups[dtype] = (name, doc)
-            self.nxclasses[class_name] = (
-                class_doc, class_fields, class_groups)
-        self.nxclasses['NXgroup'] = ('', {}, {})
 
     def make_active_action(self, number, label):
         if label == 'Projection':

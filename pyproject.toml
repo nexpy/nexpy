@@ -43,6 +43,7 @@ dependencies = [
     "ansi2html",
     "pillow",
     "mplcursors",
+    "pygments",
     "packaging",
     "importlib_resources; python_version <= '3.9'"
 ]

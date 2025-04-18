@@ -301,6 +301,7 @@ class NXTreeView(QtWidgets.QTreeView):
         self.mainwindow.plot_image_action.setEnabled(False)
         self.mainwindow.export_action.setEnabled(False)
         self.mainwindow.rename_action.setEnabled(False)
+        self.mainwindow.validate_action.setEnabled(False)
         self.mainwindow.add_action.setEnabled(False)
         self.mainwindow.initialize_action.setEnabled(False)
         self.mainwindow.copydata_action.setEnabled(False)
@@ -336,6 +337,7 @@ class NXTreeView(QtWidgets.QTreeView):
             self.mainwindow.savefile_action.setEnabled(True)
             self.mainwindow.reload_action.setEnabled(True)
             self.mainwindow.remove_action.setEnabled(True)
+            self.mainwindow.validate_action.setEnabled(True)
             if node.nxfilemode:
                 self.mainwindow.duplicate_action.setEnabled(True)
                 if node.nxfilemode == 'r':
@@ -353,6 +355,8 @@ class NXTreeView(QtWidgets.QTreeView):
                 self.mainwindow.delete_action.setEnabled(True)
         else:
             self.mainwindow.copydata_action.setEnabled(True)
+            if isinstance(node, NXgroup):
+                self.mainwindow.validate_action.setEnabled(True)
             if isinstance(node, NXlink):
                 self.mainwindow.link_action.setEnabled(True)
             if isinstance(node, NXdata):
@@ -430,6 +434,7 @@ class NXTreeView(QtWidgets.QTreeView):
         self.addMenu(self.mainwindow.plot_image_action)
         self.menu.addSeparator()
         self.addMenu(self.mainwindow.view_action)
+        self.addMenu(self.mainwindow.validate_action)
         self.addMenu(self.mainwindow.add_action)
         self.addMenu(self.mainwindow.initialize_action)
         self.addMenu(self.mainwindow.rename_action)
