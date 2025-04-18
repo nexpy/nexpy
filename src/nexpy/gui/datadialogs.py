@@ -3823,6 +3823,11 @@ class ValidateTab(NXTab):
 
         self.node = node
 
+        from nexusformat.nexus.utils import get_definitions
+        self.definitions = get_definitions(nxgetconfig('definitions'))
+        self.definitions_box = self.directorybox('NeXus Definitions Directory',
+                                                 self.choose_definitions,
+                                                 suggestion=self.definitions)
         actions = self.action_buttons(
             ('Validate Entry', self.validate),
             ('Check Base Class', self.check),
@@ -3841,9 +3846,24 @@ class ValidateTab(NXTab):
                                           ('warning', 'Warning', True),
                                           ('error', 'Error', False),
                                           slot=self.select_level)
-        self.set_layout(actions, self.text_box, radio_buttons)
+        self.set_layout(self.definitions_box, actions, self.text_box,
+                        radio_buttons)
         full_path = self.node.nxroot.nxname + self.node.nxpath
         self.set_title(f"Validation Results for {full_path}")
+        self.check()
+
+    def choose_definitions(self):
+        """Opens a file dialog to locate the definitions directory."""
+        dirname = str(self.definitions)
+        dirname = QtWidgets.QFileDialog.getExistingDirectory(
+            self, 'Choose Definitions Directory', dirname)
+        dirname = Path(dirname)
+        if dirname.exists():
+            if dirname.joinpath('base_classes').exists():
+                self.definitions = dirname
+                self.directoryname.setText(str(dirname))
+            else:
+                display_message("Definitions directory is not valid")
         self.check()
 
     @property
@@ -3856,21 +3876,21 @@ class ValidateTab(NXTab):
             return 'error'
 
     def validate(self):
-        self.node.validate(level=self.log_level)
+        self.node.validate(level=self.log_level, definitions=self.definitions)
         self.show_log()
         self.pushbutton['Validate Entry'].setChecked(True)
         for button in ['Check Base Class', 'Inspect Base Class']:
             self.pushbutton[button].setChecked(False)
 
     def check(self):
-        self.node.check(level=self.log_level)
+        self.node.check(level=self.log_level, definitions=self.definitions)
         self.show_log()
         self.pushbutton['Check Base Class'].setChecked(True)
         for button in ['Validate Entry', 'Inspect Base Class']:
             self.pushbutton[button].setChecked(False)
 
     def inspect(self):
-        self.node.inspect()
+        self.node.inspect(definitions=self.definitions)
         self.show_log()
         self.pushbutton['Inspect Base Class'].setChecked(True)
         for button in ['Validate Entry', 'Check Base Class']:
@@ -3885,8 +3905,7 @@ class ValidateTab(NXTab):
             self.inspect()
 
     def show_log(self):
-        handlers = logging.getLogger('NXValidate').handlers
-        handler = handlers[0]
+        handler = logging.getLogger('NXValidate').handlers[0]
         self.text_box.setText(convertHTML(handler.flush()))
         self.setVisible(True)
         self.raise_()
