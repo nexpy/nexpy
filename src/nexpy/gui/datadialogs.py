@@ -1966,6 +1966,8 @@ class SettingsDialog(NXDialog):
         self.parameters.add('lockexpiry', cfg['lockexpiry'], 'Lock Expiry (s)')
         self.parameters.add('lockdirectory', cfg['lockdirectory'],
                             'Lock Directory')
+        self.parameters.add('definitions', cfg['definitions'],
+                            'NeXus Definitions Directory')
         self.parameters.add('recursive', ['True', 'False'], 'File Recursion')
         self.parameters['recursive'].value = str(cfg['recursive'])
         styles = ['default', 'publication'] + sorted(
@@ -1993,6 +1995,8 @@ class SettingsDialog(NXDialog):
                                      cfg['lockexpiry'])
         self.mainwindow.settings.set('settings', 'lockdirectory',
                                      cfg['lockdirectory'])
+        self.mainwindow.settings.set('settings', 'definitions',
+                                     cfg['definitions'])
         self.mainwindow.settings.set('settings', 'recursive',
                                      cfg['recursive'])
         self.mainwindow.settings.set('settings', 'style',
@@ -2000,16 +2004,20 @@ class SettingsDialog(NXDialog):
         self.mainwindow.settings.save()
 
     def set_nexpy_settings(self):
-        lockdirectory = self.parameters['lockdirectory'].value
-        if not lockdirectory.strip():
-            lockdirectory = None
+        def check_value(value):
+            if not value.strip():
+                return None
+            return value
         nxsetconfig(memory=self.parameters['memory'].value,
                     maxsize=self.parameters['maxsize'].value,
                     compression=self.parameters['compression'].value,
                     encoding=self.parameters['encoding'].value,
                     lock=self.parameters['lock'].value,
                     lockexpiry=self.parameters['lockexpiry'].value,
-                    lockdirectory=lockdirectory,
+                    lockdirectory=check_value(
+                        self.parameters['lockdirectory'].value),
+                    definitions=check_value(
+                        self.parameters['definitions'].value),
                     recursive=self.parameters['recursive'].value)
         set_style(self.parameters['style'].value)
 
@@ -3877,7 +3885,8 @@ class ValidateTab(NXTab):
             self.inspect()
 
     def show_log(self):
-        handler = logging.getLogger('NXValidate').handlers[0]
+        handlers = logging.getLogger('NXValidate').handlers
+        handler = handlers[0]
         self.text_box.setText(convertHTML(handler.flush()))
         self.setVisible(True)
         self.raise_()
