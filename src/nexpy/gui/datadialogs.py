@@ -3848,7 +3848,8 @@ class ValidateTab(NXTab):
                                                 self.choose_application)
             if 'definition' in entry:
                 self.application = entry['definition'].nxvalue
-                application_file = self.definitions / Path(self.application)
+                application_file = self.definitions.joinpath(
+                    'applications', Path(self.application+'.nxdl.xml'))
                 if application_file.is_file():
                     self.application = application_file
                     self.filename.setText(str(application_file))
@@ -3858,6 +3859,7 @@ class ValidateTab(NXTab):
                 self.application = None
         else:
             self.pushbutton['Validate Entry'].setVisible(False)
+            self.application_box = None
 
         self.text_box = QtWidgets.QTextEdit()
         self.text_box.setMinimumWidth(800)
@@ -3886,19 +3888,34 @@ class ValidateTab(NXTab):
         if dirname.exists():
             if dirname.joinpath('base_classes').exists():
                 self.definitions = dirname
+                nxsetconfig(definitions=str(self.definitions))
                 self.directoryname.setText(str(dirname))
+                if self.application_box is not None:
+                    application_name = Path(self.filename.text()).name
+                    application_file = self.definitions.joinpath(
+                        'applications', Path(application_name))
+                    if application_file.is_file():
+                        self.application = application_file
+                        self.filename.setText(str(application_file))
+                if self.pushbutton['Check Base Class'].isChecked():
+                    self.check()
+                elif self.pushbutton['Validate Entry'].isChecked():
+                    self.validate()
+                elif self.pushbutton['Inspect Base Class'].isChecked():
+                    self.inspect()
             else:
                 display_message("Definitions directory is not valid")
-        self.check()
 
     def choose_application(self):
         """Opens a file dialog to locate an application definition."""
         applications_directory = self.definitions.joinpath('applications')
         dirname = str(applications_directory)
         application = Path(getOpenFileName(self, 'Open Application', dirname))
-        if application.exists():
+        if application.is_file():
             self.application = application
             self.filename.setText(str(application))
+            if self.pushbutton['Validate Entry'].isChecked():
+                self.validate()
 
     @property
     def log_level(self):
