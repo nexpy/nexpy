@@ -3835,8 +3835,30 @@ class ValidateTab(NXTab):
         for button in ['Validate Entry', 'Check Base Class',
                        'Inspect Base Class']:
             self.pushbutton[button].setCheckable(True)
-        if self.node.nxclass != 'NXentry' and self.node.nxclass != 'NXroot':
+
+        if self.node.nxclass == 'NXroot':
+            entry = self.node.NXentry[0]
+        elif self.node.nxclass == 'NXentry':
+            entry = self.node
+        else:
+            entry = None
+        if entry is not None:
+            self.pushbutton['Validate Entry'].setVisible(True)
+            self.application_box = self.filebox('Application Definition',
+                                                self.choose_application)
+            if 'definition' in entry:
+                self.application = entry['definition'].nxvalue
+                application_file = self.definitions / Path(self.application)
+                if application_file.is_file():
+                    self.application = application_file
+                    self.filename.setText(str(application_file))
+                else:
+                    self.filename.setText(self.application)
+            else:
+                self.application = None
+        else:
             self.pushbutton['Validate Entry'].setVisible(False)
+
         self.text_box = QtWidgets.QTextEdit()
         self.text_box.setMinimumWidth(800)
         self.text_box.setMinimumHeight(600)
@@ -3846,8 +3868,12 @@ class ValidateTab(NXTab):
                                           ('warning', 'Warning', True),
                                           ('error', 'Error', False),
                                           slot=self.select_level)
-        self.set_layout(self.definitions_box, actions, self.text_box,
-                        radio_buttons)
+        if entry is not None:
+            self.set_layout(self.definitions_box, self.application_box,
+                            actions, self.text_box, radio_buttons)
+        else:
+            self.set_layout(self.definitions_box, actions, self.text_box,
+                            radio_buttons)
         full_path = self.node.nxroot.nxname + self.node.nxpath
         self.set_title(f"Validation Results for {full_path}")
 
@@ -3865,6 +3891,15 @@ class ValidateTab(NXTab):
                 display_message("Definitions directory is not valid")
         self.check()
 
+    def choose_application(self):
+        """Opens a file dialog to locate an application definition."""
+        applications_directory = self.definitions.joinpath('applications')
+        dirname = str(applications_directory)
+        application = Path(getOpenFileName(self, 'Open Application', dirname))
+        if application.exists():
+            self.application = application
+            self.filename.setText(str(application))
+
     @property
     def log_level(self):
         if self.radiobutton['info'].isChecked():
@@ -3875,7 +3910,8 @@ class ValidateTab(NXTab):
             return 'error'
 
     def validate(self):
-        self.node.validate(level=self.log_level, definitions=self.definitions)
+        self.node.validate(level=self.log_level, application=self.application,
+                           definitions=self.definitions)
         self.show_log()
         self.pushbutton['Validate Entry'].setChecked(True)
         for button in ['Check Base Class', 'Inspect Base Class']:
