@@ -3838,7 +3838,7 @@ class ValidateTab(NXTab):
 
         if self.node.nxclass == 'NXroot':
             entry = self.node.NXentry[0]
-        elif self.node.nxclass == 'NXentry':
+        elif self.node.nxclass in ['NXentry', 'NXsubentry']:
             entry = self.node
         else:
             entry = None
