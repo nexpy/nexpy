@@ -8,7 +8,6 @@
 import bisect
 import logging
 import numbers
-import shutil
 from operator import attrgetter
 from pathlib import Path
 
@@ -23,9 +22,8 @@ from nexusformat.nexus import (NeXusError, NXattr, NXdata, NXentry, NXfield,
 from .pyqt import QtCore, QtGui, QtWidgets, getOpenFileName, getSaveFileName
 from .utils import (confirm_action, convertHTML, display_message,
                     fix_projection, format_mtime, format_timestamp, get_color,
-                    get_mtime, human_size, import_plugin, keep_data,
-                    natural_sort, package_files, report_error, set_style,
-                    timestamp)
+                    get_mtime, human_size, keep_data, load_plugin,
+                    natural_sort, report_error, set_style, timestamp)
 from .widgets import (NXCheckBox, NXColorBox, NXComboBox, NXDoubleSpinBox,
                       NXLabel, NXLineEdit, NXPlainTextEdit, NXpolygon,
                       NXPushButton, NXScrollArea, NXSpinBox, NXStack)
@@ -841,6 +839,7 @@ class NXPanel(NXDialog):
         self.tab.apply()
 
     def cleanup(self):
+        """Close all tabs and panels."""
         try:
             if self.count > 0:
                 for tab in self.tabs:
@@ -864,6 +863,7 @@ class NXPanel(NXDialog):
             pass
 
     def closeEvent(self, event):
+        """Customise close events to ensure tabs and panels are closed."""
         self.cleanup()
         event.accept()
 
@@ -874,6 +874,7 @@ class NXPanel(NXDialog):
             return False
 
     def close(self):
+        """Close this tab and its panel if it is the last tab."""
         try:
             if self.count > 0:
                 self.remove(self.labels[self.tab])
@@ -4699,229 +4700,72 @@ class ManageBackupsDialog(NXDialog):
                 self.mainwindow.settings.save()
 
 
-class InstallPluginDialog(NXDialog):
-    """Dialog to install a NeXus plugin"""
+class ManagePluginsDialog(NXDialog):
+    """Dialog to manage NeXus plugins"""
 
     def __init__(self, parent=None):
 
         super().__init__(parent=parent)
 
-        self.local_directory = self.mainwindow.plugin_dir
-        self.nexpy_directory = package_files('nexpy').joinpath('plugins')
-        self.backup_dir = self.mainwindow.backup_dir
+        self.plugins = self.mainwindow.plugins.copy()
 
-        self.setWindowTitle("Install Plugin")
+        self.settings = self.mainwindow.settings
+        for plugin in [p for p in self.settings.options('plugins')
+                       if p not in self.plugins]:
+            self.plugins[plugin] = load_plugin(plugin)
 
-        self.set_layout(
-            self.directorybox('Choose plugin directory'),
-            self.radiobuttons(
-                ('local', 'Install locally', True),
-                ('nexpy', 'Install in NeXpy', False)),
-            self.close_buttons())
-        self.set_title('Installing Plugin')
+        self.grid = QtWidgets.QGridLayout()
+        self.grid.setSpacing(10)
+        headers = ['Package', 'Menu Name', 'Order']
+        width = [100, 50, 50]
+        column = 0
+        for header in headers:
+            label = NXLabel(header, bold=True, align='center')
+            self.grid.addWidget(label, 0, column)
+            self.grid.setColumnMinimumWidth(column, width[column])
+            column += 1
 
-    def get_menu_info(self, plugin_name, plugin_path):
-        try:
-            plugin_module = import_plugin(plugin_name, [plugin_path])
-            return plugin_module.plugin_menu()
-        except Exception as error:
-            report_error("Installing Plugin", error)
+        self.order_options = list(range(1, len(self.plugins)+1)) +['Disabled']
+        for row, plugin in enumerate(self.plugins):
+            p = self.plugins[plugin]
+            self.grid.addWidget(NXLabel(p['package']), row+1, 0)
+            self.grid.addWidget(NXLabel(p['menu']), row+1, 1)
+            self.grid.addWidget(NXComboBox(items=self.order_options,
+                                           default=p['order'] or 'Disabled',
+                                           align='center'), row+1, 2)
 
-    def install_plugin(self):
-        plugin_directory = Path(self.get_directory())
-        plugin_name = plugin_directory.name
-        plugin_path = plugin_directory.parent
-        name, actions = self.get_menu_info(plugin_name, plugin_path)
-        if name is None:
-            raise NeXusError("This directory does not contain a valid plugin")
-        if self.radiobutton['local'].isChecked():
-            plugin_path = self.local_directory
-        else:
-            plugin_path = self.nexpy_directory
-        installed_path = plugin_path / plugin_name
-        if installed_path.exists():
-            if self.confirm_action("Overwrite plugin?",
-                                   f"Plugin '{plugin_name}' already exists"):
-                backup = self.backup_dir / timestamp()
-                backup.mkdir()
-                shutil.move(installed_path, backup)
-                self.mainwindow.settings.set('plugins',
-                                             backup.joinpath(plugin_name))
-                self.mainwindow.settings.save()
-            else:
-                return
-        shutil.copytree(plugin_directory, installed_path)
-        for action in [action for action
-                       in self.mainwindow.menuBar().actions()
-                       if action.text() == name]:
-            self.mainwindow.menuBar().removeAction(action)
-        self.mainwindow.add_plugin_menu(name, actions)
+        self.set_layout(self.grid, self.close_buttons(save=True))
+        self.set_title('Managing Plugins')
+
+    def update_plugins(self):
+        for row, plugin in enumerate(self.plugins):
+            p = self.plugins[plugin]
+            order = self.grid.itemAtPosition(row+1, 2).widget().currentText()
+            p['order'] = order
+        order_set = [int(p['order']) for p in self.plugins.values()
+                     if p['order'] != 'Disabled']
+        if sorted(order_set) != list(range(1, len(order_set)+1)):
+            raise NeXusError("Plugin order must be unique and sequential")
+
+    def sorted_plugins(self):
+        plugins = {k: v for k, v in self.plugins.items()
+                   if v.get('order') != 'Disabled'}
+        return sorted(plugins, key=lambda k: plugins[k]['order'])
 
     def accept(self):
         try:
-            self.install_plugin()
+            self.update_plugins()
+            for name in [p['menu'] for p in self.plugins.values()]:
+                self.mainwindow.remove_plugin_menu(name)
+            for plugin in self.sorted_plugins():
+                p = self.plugins[plugin]
+                name, actions = p['menu'], p['actions']
+                self.mainwindow.add_plugin_menu(
+                    name, actions, before=self.mainwindow.view_menu)
+            for plugin in self.plugins:
+                self.settings.set('plugins', plugin,
+                                  self.plugins[plugin]['order'])
+            self.settings.save()
             super().accept()
         except NeXusError as error:
-            report_error("Installing plugin", error)
-
-
-class RemovePluginDialog(NXDialog):
-    """Dialog to remove a NeXus plugin"""
-
-    def __init__(self, parent=None):
-
-        super().__init__(parent=parent)
-
-        self.local_directory = self.mainwindow.plugin_dir
-        self.nexpy_directory = package_files('nexpy').joinpath('plugins')
-        self.backup_dir = self.mainwindow.backup_dir
-
-        local_plugins = []
-        for item in self.local_directory.iterdir():
-            if item.is_dir() and not item.name.startswith('_'):
-                local_plugins.append(
-                    self.checkboxes((str(item), '   ' + item.name, False),
-                                    align='left'))
-        nexpy_plugins = []
-        for item in self.nexpy_directory.iterdir():
-            if item.is_dir() and not item.name.startswith('_'):
-                nexpy_plugins.append(
-                    self.checkboxes((str(item), '   ' + item.name, False),
-                                    align='left'))
-
-        if len(local_plugins) == 0 and len(nexpy_plugins) == 0:
-            self.display_message('Removing Plugins', 'No plugins to remove')
-            self.reject()
-        elif len(local_plugins) == 0:
-            self.set_layout(NXLabel("NeXpy Plugins", bold=True),
-                            *nexpy_plugins,
-                            self.close_buttons())
-        elif len(nexpy_plugins) == 0:
-            self.set_layout(NXLabel("Local Plugins", bold=True),
-                            *local_plugins,
-                            self.close_buttons())
-        else:
-            self.set_layout(NXLabel("Local Plugins", bold=True),
-                            *local_plugins,
-                            NXLabel("NeXpy Plugins", bold=True),
-                            *nexpy_plugins,
-                            self.close_buttons())
-
-        self.set_title('Removing Plugin')
-
-    def remove_plugin(self):
-        for plugin_path in self.checkbox:
-            plugin_name = Path(plugin_path).name
-            if self.checkbox[plugin_path].isChecked():
-                if self.confirm_action(f"Remove '{plugin_path}'?",
-                                       "This cannot be reversed"):
-                    backup_path = self.backup_dir / timestamp()
-                    backup_path.mkdir()
-                    shutil.move(str(plugin_path), str(backup_path))
-                    self.mainwindow.settings.set(
-                        'plugins', backup_path.joinpath(plugin_name))
-                self.mainwindow.settings.save()
-            else:
-                continue
-        for action in [action for action
-                       in self.mainwindow.menuBar().actions()
-                       if action.text().lower() == plugin_name.lower()]:
-            self.mainwindow.menuBar().removeAction(action)
-
-    def accept(self):
-        try:
-            self.remove_plugin()
-            super().accept()
-        except NeXusError as error:
-            report_error("Removing plugin", error)
-
-
-class RestorePluginDialog(NXDialog):
-    """Dialog to restore plugins from backups"""
-
-    def __init__(self, parent=None):
-
-        super().__init__(parent=parent, default=True)
-
-        self.local_directory = self.mainwindow.plugin_dir
-        self.nexpy_directory = package_files('nexpy') / 'plugins'
-        self.backup_dir = self.mainwindow.backup_dir
-
-        options = reversed(self.mainwindow.settings.options('plugins'))
-        self.plugins = [Path(plugin) for plugin in options
-                        if Path(plugin).exists()]
-        self.mainwindow.settings.save()
-        plugin_list = []
-        for plugin in self.plugins:
-            date = format_timestamp(plugin.parent.name)
-            name = self.get_name(plugin)
-            if plugin == self.plugins[0]:
-                checked = True
-            else:
-                checked = False
-            plugin_list.append((plugin, f"{date}: {name}", checked))
-        items = []
-        items.append(self.radiobuttons(*plugin_list, align='left',
-                                       vertical=True))
-        items.append(self.radiobuttons(('local', 'Install locally', True),
-                                       ('nexpy', 'Install in NeXpy', False)))
-        items.append(self.action_buttons(('Restore Plugin', self.restore)))
-        items.append(self.close_buttons(close=True))
-
-        self.set_layout(*items)
-
-        self.set_title('Restore Plugin')
-
-    def get_name(self, plugin):
-        return Path(plugin).name
-
-    def get_menu_info(self, plugin_name, plugin_path):
-        try:
-            plugin_module = import_plugin(plugin_name, [plugin_path])
-            return plugin_module.plugin_menu()
-        except Exception as error:
-            report_error("Restoring Plugin", error)
-
-    def remove_backup(self, backup):
-        Path(backup).parent.rmdir()
-        self.mainwindow.settings.remove_option('plugins', str(backup))
-        self.mainwindow.settings.save()
-
-    def restore(self):
-        plugin_name = None
-        for plugin_directory in self.plugins:
-            if self.radiobutton[plugin_directory].isChecked():
-                plugin_name = Path(plugin_directory).name
-                break
-        if plugin_name is None:
-            return
-        plugin_path = plugin_directory.parent
-        name, actions = self.get_menu_info(plugin_name, plugin_path)
-        if name is None:
-            raise NeXusError("This directory does not contain a valid plugin")
-        if self.radiobutton['local'].isChecked():
-            plugin_path = self.local_directory
-        else:
-            plugin_path = self.nexpy_directory
-        restored_path = plugin_path / plugin_name
-        if restored_path.exists():
-            if self.confirm_action("Overwrite plugin?",
-                                   f"Plugin '{plugin_name}' already exists"):
-                backup_path = self.backup_dir / timestamp()
-                backup_path.mkdir()
-                shutil.move(restored_path, backup_path)
-                self.mainwindow.settings.set(
-                    'plugins', backup_path.joinpath(plugin_name))
-                self.mainwindow.settings.save()
-            else:
-                return
-        shutil.copytree(plugin_directory, restored_path)
-        self.remove_backup(plugin_directory)
-
-        for action in [action for action
-                       in self.mainwindow.menuBar().actions()
-                       if action.text() == name]:
-            self.mainwindow.menuBar().removeAction(action)
-        self.mainwindow.add_plugin_menu(name, actions)
-
-        self.accept()
+            report_error("Managing plugins", error)
