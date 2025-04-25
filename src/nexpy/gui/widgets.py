@@ -326,7 +326,7 @@ class NXMessageBox(QtWidgets.QMessageBox):
 class NXComboBox(QtWidgets.QComboBox):
     """Dropdown menu for selecting a set of options."""
 
-    def __init__(self, slot=None, items=[], default=None):
+    def __init__(self, slot=None, items=[], default=None, align=None):
         """Initialize the dropdown menu with an initial list of items
 
         Parameters
@@ -337,6 +337,8 @@ class NXComboBox(QtWidgets.QComboBox):
             A list of options to initialize the dropdown menu
         default : str, optional
             The option to be set as default when the menu is initialized
+        align : str, optional
+            The alignment of the dropdown menu text
         """
         super().__init__()
         self.setSizeAdjustPolicy(QtWidgets.QComboBox.AdjustToContents)
@@ -345,9 +347,18 @@ class NXComboBox(QtWidgets.QComboBox):
         if items:
             self.addItems([str(item) for item in items])
             if default:
-                self.setCurrentIndex(self.findText(default))
+                self.setCurrentIndex(self.findText(str(default)))
         if slot:
             self.activated.connect(slot)
+        if align:
+            self.setEditable(True)
+            if align == 'center':
+                self.lineEdit().setAlignment(QtCore.Qt.AlignCenter)
+            elif align == 'right':
+                self.lineEdit().setAlignment(QtCore.Qt.AlignRight)
+            elif align == 'left':
+                self.lineEdit().setAlignment(QtCore.Qt.AlignLeft)
+            self.lineEdit().setReadOnly(True)
 
     def __iter__(self):
         """Implement key iteration."""
