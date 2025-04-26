@@ -6,7 +6,6 @@
 # The full license is in the file COPYING, distributed with this software.
 # -----------------------------------------------------------------------------
 import inspect
-import os
 import re
 import sys
 import types
@@ -580,7 +579,7 @@ class FitTab(NXTab):
         try:
             match = re.match(r'([a-zA-Z]*)(\d*)', name)
             return match.group(1), match.group(2)
-        except Exception as error:
+        except Exception:
             return None, None
 
     def load_fit(self, group):
