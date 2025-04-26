@@ -596,7 +596,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.plugin_actions = []
         for plugin in sorted_plugins():
-            if plugin == 0:
+            if self.plugins[plugin]['order'] == 'Disabled':
                 continue
             try:
                 menu = self.plugins[plugin]['menu']
