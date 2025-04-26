@@ -11,7 +11,7 @@ license = {file = "COPYING"}
 authors = [{name = "Raymond Osborn", email = "rayosborn@mac.com"}]
 classifiers = [
   "Development Status :: 4 - Beta",
-  "Modified BSD License",
+  "License :: OSI Approved :: BSD License",
   "Intended Audience :: Developers",
   "Intended Audience :: Science/Research",
   "Topic :: Scientific/Engineering",
@@ -33,7 +33,7 @@ keywords = [
 ]
 requires-python = ">=3.9"
 dependencies = [
-    "nexusformat >= 1.0.6",
+    "nexusformat >= 2.0.0b1",
     "qtconsole >= 5.4.3",
     "ipython",
     "ipykernel >= 6.15.2",
