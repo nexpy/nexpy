@@ -33,25 +33,31 @@ keywords = [
 ]
 requires-python = ">=3.9"
 dependencies = [
-    "nexusformat >= 2.0.0b1",
-    "qtconsole >= 5.4.3",
-    "ipython",
-    "ipykernel >= 6.15.2",
-    "matplotlib",
-    "lmfit >= 1.0.3",
-    "pylatexenc",
     "ansi2html",
-    "pillow",
+    "fabio",
+    "h5py",
+    "ipython",
+    "jupyter_client",
+    "jupyter_core",
+    "lmfit",
+    "matplotlib",
     "mplcursors",
-    "pygments",
+    "nexusformat >= 2.0.0b1",
+    "numpy",
     "packaging",
+    "pillow",
+    "pygments",
+    "pylatexenc",
+    "qtconsole",
+    "qtpy",
+    "scipy",
+    "traitlets",
     "importlib_resources; python_version <= '3.9'"
 ]
 
 [project.optional-dependencies]
 testing = ["pytest"]
 spec = ["spec2nexus"]
-fabio = ["fabio"]
 
 [project.urls]
 Homepage = "https://nexpy.github.io/nexpy"
