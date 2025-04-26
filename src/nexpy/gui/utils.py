@@ -22,6 +22,7 @@ if sys.version_info < (3, 10):
 else:
     from importlib.resources import files as package_files
 
+from importlib import metadata
 from importlib.util import module_from_spec, spec_from_file_location
 from pathlib import Path
 from threading import Thread
@@ -411,6 +412,7 @@ def format_mtime(mtime):
 
 
 def modification_time(filename):
+    """Return the file modification time for the specified file path."""
     try:
         _mtime = Path(filename).stat().st_mtime
         return str(datetime.fromtimestamp(_mtime))
@@ -449,6 +451,7 @@ def get_name(filename, entries=[]):
 
 
 def get_color(color):
+    """Convert color to hex string."""
     return rgb2hex(colorConverter.to_rgb(color))
 
 
@@ -594,6 +597,30 @@ def cmyk_to_rgb(c, m, y, k):
 
 
 def load_image(filename):
+    """
+    Load an image file and convert it to a NeXus NXdata object.
+
+    The image can be in any format supported by PIL (Python Imaging Library)
+    or fabio. The data is stored in a NXfield in the NXdata object with the
+    name 'z'. The axes are named 'y' and 'x' and are also stored in NXfield
+    objects.
+
+    If the image is in color, the data is stored in a 3D array and the
+    interpretation of the array is set to 'rgb-image' or 'rgba-image' depending
+    on the number of color channels.
+
+    The title of the NXdata object is set to the name of the file.
+
+    Parameters
+    ----------
+    filename : str
+        The name of the image file to load.
+
+    Returns
+    -------
+    data : NXdata
+        The loaded image as a NeXus NXdata object.
+    """
     if Path(filename).suffix.lower() in ['.png', '.jpg', '.jpeg', '.gif']:
         with Image.open(filename) as PIL_image:
             im = np.array(PIL_image)
@@ -638,7 +665,64 @@ def load_image(filename):
     return data
 
 
+def load_plugin(plugin, order=None):
+    """
+    Load a specified plugin and return its configuration details.
+
+    This function determines if the provided `plugin` parameter is a
+    directory or an entry point from the `nexpy.plugins` group. If it is
+    a directory, it imports the plugin module, retrieves the menu name
+    and actions from the `plugin_menu` function, and returns them along
+    with the package name and plugin path. If it is an entry point, it
+    loads the entry point, retrieves the menu name and actions, and
+    returns them along with the package name and plugin module.
+
+    Parameters
+    ----------
+    plugin : str
+        The path to the plugin directory or the name of the plugin
+        module.
+
+    Returns
+    -------
+    tuple
+        A tuple containing the package name, plugin path or module name,
+        menu name, and a list of menu actions.
+    """
+
+    if Path(plugin).is_dir():
+        path = Path(plugin)
+        package = path.name
+        module = import_plugin(package, path)
+        menu, actions = module.plugin_menu()
+        return {'package': package, 'menu': menu, 'actions': actions,
+                'order': order}
+    elif plugin in [e.module for
+                    e in metadata.entry_points(group='nexpy.plugins')]:
+        entry = metadata.entry_points(module=plugin)[0]
+        package = entry.dist.name
+        menu, actions = entry.load()()
+        return {'package': package, 'menu': menu, 'actions': actions,
+                'order': order}
+    else:
+        raise NeXusError(f'"{plugin}" is not a valid plugin')
+
 def import_plugin(plugin_name, plugin_path):
+    """
+    Import a plugin module from a given path.
+
+    Parameters
+    ----------
+    plugin_name : str
+        The name of the plugin.
+    plugin_path : Path
+        The path to the plugin module.
+
+    Returns
+    -------
+    module : module
+        The imported plugin module, or None if the import failed.
+    """
     if plugin_path.is_dir():
         plugin_path = plugin_path.joinpath('__init__.py')
     if (spec := spec_from_file_location(plugin_name, plugin_path)) is not None:
@@ -650,11 +734,34 @@ def import_plugin(plugin_name, plugin_path):
         return None
 
 
+def is_installed(package_name):
+    """
+    Check if a package is installed.
+
+    Parameters
+    ----------
+    package_name : str
+        Name of the package to check.
+
+    Returns
+    -------
+    bool
+        True if the package is installed, False otherwise.
+    """
+    try:
+        metadata.version(package_name)
+        return True
+    except metadata.PackageNotFoundError:
+        return False
+
+
 def resource_file(filename):
+    """Return the full path to a resource file within the NeXpy package."""
     return str(package_files('nexpy.gui.resources').joinpath(filename))
 
 
 def resource_icon(filename):
+    """Return a Qt icon from a resource file within the NeXpy package."""
     return QtGui.QIcon(resource_file(filename))
 
 
@@ -692,6 +799,15 @@ def initialize_settings(settings):
         set_style(settings.get('settings', 'style'))
     else:
         settings.set('settings', 'style', 'default')
+
+    if 'plugins' not in settings.sections():
+        settings.add_section('plugins')
+
+    if 'readers' not in settings.sections():
+        settings.add_section('readers')
+
+    if 'writers' not in settings.sections():
+        settings.add_section('writers')
 
     settings.save()
 

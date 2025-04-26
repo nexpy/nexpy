@@ -17,6 +17,7 @@ import shutil
 import signal
 import sys
 import tempfile
+from importlib.metadata import entry_points
 from pathlib import Path
 
 from IPython import __version__ as ipython_version
@@ -141,8 +142,8 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
                 nexpy_dir = tempfile.mkdtemp()
             else:
                 nexpy_dir.mkdir(exist_ok=True)
-        for subdirectory in ['backups', 'functions', 'models', 'plugins',
-                             'readers', 'scripts']:
+        for subdirectory in ['backups', 'models', 'plugins', 'readers',
+                             'writers', 'scripts']:
             directory = nexpy_dir / subdirectory
             directory.mkdir(exist_ok=True)
         global _nexpy_dir
@@ -150,6 +151,7 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
         self.backup_dir = self.nexpy_dir / 'backups'
         self.plugin_dir = self.nexpy_dir / 'plugins'
         self.reader_dir = self.nexpy_dir / 'readers'
+        self.writer_dir = self.nexpy_dir / 'writers'
         self.script_dir = self.nexpy_dir / 'scripts'
         self.scratch_file = self.nexpy_dir / 'w0.nxs'
         if not self.scratch_file.exists():
@@ -168,22 +170,16 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
                 return 0
 
         backups = self.settings.options('backups')
-        plugins = self.settings.options('plugins')
-        total_backups = backups + plugins
-        for backup in total_backups:
+        for backup in backups:
             if not (Path(backup).exists() and
                     self.backup_dir in Path(backup).parents):
                 if backup in backups:
                     self.settings.remove_option('backups', backup)
-                elif backup in plugins:
-                    self.settings.remove_option('plugins', backup)
             elif backup_age(backup) > 5:
                 try:
                     shutil.rmtree(Path(backup).parent)
                     if backup in backups:
                         self.settings.remove_option('backups', backup)
-                    elif backup in plugins:
-                        self.settings.remove_option('plugins', backup)
                 except OSError:
                     pass
         self.settings.save()
@@ -223,6 +219,25 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
         logging.info('NeXpy v' + nexpy_version)
         logging.info('nexusformat v' + nxversion)
         sys.stdout = sys.stderr = NXLogger()
+
+    def init_plugins(self):
+        """Initialize the NeXpy plugins."""
+        def initialize_plugin(plugin_group, plugin_dir):
+            plugin = None
+            plugins = self.settings.options(plugin_group)
+            for path in plugin_dir.iterdir():
+                if (path.is_dir() and not (path.name.startswith('_') or
+                                           path.name.startswith('.'))):
+                    plugin  = str(path)
+                    if plugin not in plugins:
+                        self.settings.set(plugin_group, plugin, value=None)
+            for entry in entry_points(group='nexpy.'+plugin_group):
+                plugin = entry.module
+                if plugin not in plugins:
+                    self.settings.set(plugin_group, plugin, value=None)
+        initialize_plugin('plugins', self.plugin_dir)
+        initialize_plugin('readers', self.reader_dir)
+        initialize_plugin('writers', self.writer_dir)
 
     def init_tree(self):
         """Initialize the NeXus tree used in the tree view."""
@@ -329,6 +344,7 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
         self.init_dir()
         self.init_settings()
         self.init_log()
+        self.init_plugins()
         self.init_tree()
         self.init_config()
         self.init_gui()
@@ -342,8 +358,12 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
         # draw the window
         self.window.show()
 
+        # Issue startup messages
+        self.window.start()
+
         # Start the application main loop.
         self.app.exec_()
+
 
 # -----------------------------------------------------------------------------
 # Main entry point

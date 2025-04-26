@@ -1,10 +1,10 @@
 package:
   name: nexpy
-  version: "1.0.10"
+  version: "2.0.0"
 
 source:
   git_url: https://github.com/nexpy/nexpy.git
-  git_tag: v1.0.10
+  git_tag: v2.0.0
 
 build:
   entry_points:
@@ -14,26 +14,31 @@ build:
 
 requirements:
   build:
-    - python >=3.7
+    - python >=3.9
     - setuptools
     - setuptools_scm
 
   run:
-    - python >=3.7
-    - nexusformat >=1.0.7
-    - numpy
-    - scipy
-    - h5py
-    - qtpy >= 2.4
-    - ipython
-    - qtconsole >= 5.4.3
-    - ipykernel >=6.15.2
-    - matplotlib
-    - lmfit >=1.0.3
+    - python >= 3.9
     - ansi2html
-    - pylatexenc
-    - pillow
+    - fabio
+    - h5py
+    - ipython
+    - jupyter_client
+    - jupyter_core
+    - lmfit
+    - matplotlib
     - mplcursors
+    - nexusformat >= 2.0.0b1
+    - numpy
+    - packaging
+    - pillow
+    - pygments
+    - pylatexenc
+    - qtconsole
+    - qtpy
+    - scipy
+    - traitlets
 
 test:
   imports:

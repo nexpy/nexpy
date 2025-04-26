@@ -9,7 +9,6 @@
 """
 Module to read in a folder of image files and convert them to NeXus.
 """
-import os
 import re
 
 import numpy as np
@@ -115,7 +114,7 @@ class ImportDialog(NXImportDialog):
                 raise ValueError
             self.set_indices(min, max)
             self.rangebox.setVisible(True)
-        except Exception as error:
+        except Exception:
             self.set_indices('', '')
             self.rangebox.setVisible(False)
 
@@ -137,7 +136,7 @@ class ImportDialog(NXImportDialog):
         self.extension_combo.clear()
         for extension in extensions:
             self.extension_combo.addItem(extension)
-        if not self.get_extension() or not self.get_extension() in extensions:
+        if not self.get_extension() or self.get_extension() not in extensions:
             if '.tif' in extensions:
                 self.set_extension('.tif')
             elif '.tiff' in extensions:
@@ -238,10 +237,6 @@ class ImportDialog(NXImportDialog):
         else:
             self.import_file = self.get_directory()
         filenames = self.get_files()
-        try:
-            import fabio
-        except ImportError:
-            raise NeXusError("Please install the 'fabio' module")
         im = self.read_image(filenames[0])
         v0 = im.data
         x = NXfield(range(v0.shape[1]), dtype=np.uint16, name='x')
@@ -264,7 +259,7 @@ class ImportDialog(NXImportDialog):
                     self.progress_bar.setValue(j)
                 self.update_progress()
                 v[i:i+chunk_size, :, :] = self.read_images(files)
-            except IndexError as error:
+            except IndexError:
                 pass
         global maximum
         v.maximum = maximum

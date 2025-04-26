@@ -21,11 +21,6 @@ import webbrowser
 from operator import attrgetter
 from pathlib import Path
 
-if sys.version_info < (3, 10):
-    from importlib_metadata import entry_points
-else:
-    from importlib.metadata import entry_points
-
 from nexusformat.nexus import (NeXusError, NXdata, NXentry, NXfield, NXFile,
                                NXgroup, NXlink, NXobject, NXprocess, NXroot,
                                nxcompleter, nxduplicate, nxgetconfig, nxload)
@@ -35,12 +30,11 @@ from qtconsole.rich_jupyter_widget import RichJupyterWidget
 
 from .. import __version__
 from .datadialogs import (AddDialog, CustomizeDialog, DirectoryDialog,
-                          ExportDialog, InitializeDialog, InstallPluginDialog,
-                          LimitDialog, LockDialog, LogDialog,
-                          ManageBackupsDialog, NewDialog, PasteDialog,
+                          ExportDialog, InitializeDialog, LimitDialog,
+                          LockDialog, LogDialog, ManageBackupsDialog,
+                          ManagePluginsDialog, NewDialog, PasteDialog,
                           PlotDialog, PlotScalarDialog, ProjectionDialog,
-                          RemovePluginDialog, RenameDialog,
-                          RestorePluginDialog, ScanDialog, SettingsDialog,
+                          RenameDialog, ScanDialog, SettingsDialog,
                           SignalDialog, UnlockDialog, ValidateDialog,
                           ViewDialog)
 from .fitdialogs import FitDialog
@@ -50,7 +44,8 @@ from .scripteditor import NXScriptWindow
 from .treeview import NXTreeView
 from .utils import (confirm_action, define_mode, display_message, get_colors,
                     get_name, import_plugin, is_file_locked, load_image,
-                    natural_sort, package_files, report_error, timestamp)
+                    load_plugin, natural_sort, package_files, report_error,
+                    timestamp)
 
 
 class NXRichJupyterWidget(RichJupyterWidget):
@@ -96,6 +91,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.backup_dir = self.app.backup_dir
         self.plugin_dir = self.app.plugin_dir
         self.reader_dir = self.app.reader_dir
+        self.writer_dir = self.app.writer_dir
         self.script_dir = self.app.script_dir
         self.scratch_file = self.app.scratch_file
         self.settings_file = self.app.settings_file
@@ -196,6 +192,12 @@ class MainWindow(QtWidgets.QMainWindow):
         self.treeview.selection_changed()
         self.shellview.setFocus()
 
+    def start(self):
+        if self.new_plugins:
+            display_message(
+                "New plugins are available", 
+                "Visit the 'Manage Plugins' menu to enable/disable them.")
+            
     @property
     def plotview(self):
         from .plotview import plotview
@@ -242,7 +244,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.setMenuBar(self.menu_bar)
 
     def init_file_menu(self):
-        self.file_menu = self.menu_bar.addMenu("&File")
+        self.file_menu = QtWidgets.QMenu("&File", self)
+        self.menu_bar.addMenu(self.file_menu)
 
         self.file_menu.addSeparator()
 
@@ -377,17 +380,9 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.file_menu.addSeparator()
 
-        self.install_plugin_action = QtWidgets.QAction(
-            "Install Plugin...", self, triggered=self.install_plugin)
-        self.add_menu_action(self.file_menu, self.install_plugin_action)
-
-        self.remove_plugin_action = QtWidgets.QAction(
-            "Remove Plugin...", self, triggered=self.remove_plugin)
-        self.add_menu_action(self.file_menu, self.remove_plugin_action)
-
-        self.restore_plugin_action = QtWidgets.QAction(
-            "Restore Plugin...", self, triggered=self.restore_plugin)
-        self.add_menu_action(self.file_menu, self.restore_plugin_action)
+        self.manage_plugins_action = QtWidgets.QAction(
+            "Manage Plugins...", self, triggered=self.manage_plugins)
+        self.add_menu_action(self.file_menu, self.manage_plugins_action)
 
         self.file_menu.addSeparator()
 
@@ -407,7 +402,8 @@ class MainWindow(QtWidgets.QMainWindow):
             self.add_menu_action(self.file_menu, self.quit_action)
 
     def init_edit_menu(self):
-        self.edit_menu = self.menu_bar.addMenu("&Edit")
+        self.edit_menu = QtWidgets.QMenu("&Edit", self)
+        self.menu_bar.addMenu(self.edit_menu)
 
         self.undo_action = QtWidgets.QAction(
             "&Undo", self, shortcut=QtGui.QKeySequence.Undo,
@@ -461,7 +457,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.add_menu_action(self.edit_menu, self.print_action, True)
 
     def init_data_menu(self):
-        self.data_menu = self.menu_bar.addMenu("Data")
+        self.data_menu = QtWidgets.QMenu("Data", self)
+        self.menu_bar.addMenu(self.data_menu)
 
         self.plot_data_action = QtWidgets.QAction(
             "&Plot Data", self, shortcut=QtGui.QKeySequence("Ctrl+P"),
@@ -576,56 +573,51 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def init_plugin_menus(self):
         """Add an menu item for every module in the plugin menus"""
-        plugins = {}
-        plugin_names = set()
-        for plugin_path in self.plugin_dir.iterdir():
-            plugin_name = plugin_path.name
-            if (not plugin_path.is_dir() and (plugin_name.startswith('_') or
-                                              plugin_name.startswith('.'))):
-                continue
-            plugin_names.add(plugin_name)
-            try:
-                plugin_module = import_plugin(plugin_name, plugin_path)
-                plugins[plugin_name] = plugin_module.plugin_menu
-                logging.info(
-                    f'Installing "{plugin_name}" plugin from "{plugin_path}"')
-            except Exception as error:
-                logging.warning(
-                    f'The "{plugin_name}" plugin could not be added '
-                    'to the main menu\n' + 36*' ' + f'Error: {error}')
-        for entry in entry_points(group='nexpy.plugins'):
-            plugin_name = entry.module.split('.')[-1]
-            if plugin_name.lower() in [p.lower() for p in plugin_names]:
-                logging.warning(
-                    f'Duplicate plugin "{entry.module}" not installed')
-                continue
+        self.plugins = {}
+        self.new_plugins = False
+        for plugin in self.settings.options('plugins'):
+            plugin_order = self.settings.get('plugins', plugin)
+            if plugin_order is None:
+                self.new_plugins = True
+                logging.info(f'New plugin "{plugin}" found but not installed')
             else:
-                logging.info(
-                    f'Installing "{plugin_name}" '
-                    f'plugin from "{entry.module}" module')
-            try:
-                plugins[plugin_name] = entry.load()
-            except Exception as error:
-                logging.warning(
-                    f'"{plugin_name}" could not be added to the main menu\n'
-                    + 36*' ' + f'Error: {error}')
-        for plugin in sorted(plugins):
-            try:
-                plugin_name, actions = plugins[plugin]()
-                self.add_plugin_menu(plugin_name, actions)
-            except Exception as error:
-                logging.warning(
-                    f'The "{plugin}" plugin could not be added '
-                    'to the main menu\n' + 36*' ' + f'Error: {error}')
+                try:
+                    self.plugins[plugin] = load_plugin(plugin, plugin_order)
+                    logging.info(f'Installing plugin from "{plugin}"')
+                except Exception as error:
+                    logging.warning(
+                        f'The "{plugin}" plugin could not be added to the '
+                        'main menu\n' + 36*' ' + f'Error: {error}')
 
-    def add_plugin_menu(self, plugin_name, plugin_actions):
-        plugin_menu = self.menu_bar.addMenu(plugin_name)
-        for action in plugin_actions:
-            self.add_menu_action(plugin_menu, QtWidgets.QAction(
-                action[0], self, triggered=action[1]))
+        def sorted_plugins():
+            return sorted(self.plugins, key=lambda k: self.plugins[k]['order'])
+
+        installed_plugins = []
+
+        self.plugin_actions = []
+        for plugin in sorted_plugins():
+            if plugin == 0:
+                continue
+            try:
+                menu = self.plugins[plugin]['menu']
+                actions = self.plugins[plugin]['actions']
+                package = self.plugins[plugin]['package']
+                if menu in installed_plugins:
+                    logging.warning(
+                        f'Duplicate plugin menu "{menu}" not added')
+                else:
+                    self.add_plugin_menu(menu, actions)
+                    installed_plugins.append(menu)
+                    logging.info(f'Plugin menu "{menu}" added')
+            except Exception as error:
+                logging.warning(
+                    f'Plugin menu "{menu}" from {package} '
+                    'could not be added to the main menu\n' + 
+                    36*' ' + f'Error: {error}')
 
     def init_view_menu(self):
-        self.view_menu = self.menu_bar.addMenu("&View")
+        self.view_menu = QtWidgets.QMenu("&View", self)
+        self.menu_bar.addMenu(self.view_menu)
 
         if sys.platform != 'darwin':
             # disable on OSX, where there is always a menu bar
@@ -663,7 +655,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.view_menu.addSeparator()
 
     def init_window_menu(self):
-        self.window_menu = self.menu_bar.addMenu("&Window")
+        self.window_menu = QtWidgets.QMenu("&Window", self)
+        self.menu_bar.addMenu(self.window_menu)
+
         if sys.platform == 'darwin':
             # add min/maximize actions to OSX, which lacks default bindings.
             self.minimizeAct = QtWidgets.QAction(
@@ -777,7 +771,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.window_separator = self.window_menu.addSeparator()
 
     def init_script_menu(self):
-        self.script_menu = self.menu_bar.addMenu("&Script")
+        self.script_menu = QtWidgets.QMenu("&Script", self)
+        self.menu_bar.addMenu(self.script_menu)
+
         self.new_script_action = QtWidgets.QAction("New Script...", self,
                                                    triggered=self.new_script)
         self.add_menu_action(self.script_menu, self.new_script_action)
@@ -801,7 +797,8 @@ class MainWindow(QtWidgets.QMainWindow):
         # a QAction.MenuRole like HelpMenuRole otherwise it will lose
         # this search field functionality
 
-        self.help_menu = self.menu_bar.addMenu("&Help")
+        self.help_menu = QtWidgets.QMenu("&Help", self)
+        self.menu_bar.addMenu(self.help_menu)
 
         # Help Menu
 
@@ -849,7 +846,8 @@ class MainWindow(QtWidgets.QMainWindow):
     def init_recent_menu(self):
         """Add recent files menu item for recently opened files"""
         recent_files = self.settings.options('recent')
-        self.recent_menu = self.file_menu.addMenu("Open Recent")
+        self.recent_menu = QtWidgets.QMenu("Open Recent", self)
+        self.file_menu.addMenu(self.recent_menu)
         self.recent_menu.hovered.connect(self.hover_recent_menu)
         self.recent_file_actions = {}
         for i, recent_file in enumerate(recent_files):
@@ -862,7 +860,8 @@ class MainWindow(QtWidgets.QMainWindow):
     def init_import_menu(self):
         """Add an import menu item for every module in the readers directory"""
         import_files = {}
-        self.import_menu = self.file_menu.addMenu("Import")
+        self.import_menu = QtWidgets.QMenu("Import", self)
+        self.file_menu.addMenu(self.import_menu)
         private_path = self.reader_dir
         if private_path.is_dir():
             for f in private_path.glob('*.py'):
@@ -1337,26 +1336,30 @@ class MainWindow(QtWidgets.QMainWindow):
         except NeXusError as error:
             report_error("Purging Scratch File", error)
 
-    def install_plugin(self):
-        try:
-            dialog = InstallPluginDialog(parent=self)
-            dialog.show()
-        except NeXusError as error:
-            report_error("Installing Plugin", error)
+    def add_plugin_menu(self, plugin_name, plugin_actions, before=None):
+        if before is not None:
+            plugin_menu = QtWidgets.QMenu(plugin_name, self)
+            self.menu_bar.insertMenu(before.menuAction(), plugin_menu)
+        else:
+            plugin_menu = QtWidgets.QMenu(plugin_name, self)
+            self.menu_bar.addMenu(plugin_menu)
+        for action in plugin_actions:
+            self.add_menu_action(plugin_menu, QtWidgets.QAction(
+                action[0], self, triggered=action[1]))
+            self.plugin_actions.append(action)
 
-    def remove_plugin(self):
-        try:
-            dialog = RemovePluginDialog(parent=self)
-            dialog.show()
-        except NeXusError as error:
-            report_error("Removing Plugin", error)
+    def remove_plugin_menu(self, plugin_name):
+        for action in [action for action
+                       in self.menuBar().actions()
+                       if action.text().lower() == plugin_name.lower()]:
+            self.menuBar().removeAction(action)
 
-    def restore_plugin(self):
+    def manage_plugins(self):
         try:
-            dialog = RestorePluginDialog(parent=self)
+            dialog = ManagePluginsDialog(parent=self)
             dialog.show()
         except NeXusError as error:
-            report_error("Restoring Plugin", error)
+            report_error("Managing Plugins", error)
 
     def plot_data(self):
         try:
@@ -2008,7 +2011,8 @@ class MainWindow(QtWidgets.QMainWindow):
         for name in names:
             item_path = directory / name
             if item_path.is_dir():
-                submenu = menu.addMenu(name)
+                submenu = QtWidgets.QMenu(name, self)
+                menu.addMenu(submenu)
                 self.add_script_directory(item_path, submenu)
             elif item_path.suffix == '.py':
                 self.add_script_action(item_path, menu)

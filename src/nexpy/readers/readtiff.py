@@ -32,11 +32,11 @@ class ImportDialog(NXImportDialog):
         if not self.import_file:
             raise NeXusError("No file specified")
         try:
-            import tifffile as TIFF
+            import fabio
         except ImportError:
-            raise NeXusError("Please install the 'tifffile' module")
-        im = TIFF.imread(self.import_file)
-        z = NXfield(im, name='z')
+            raise NeXusError("Please install the 'fabio' module")
+        im = fabio.open(str(self.import_file))
+        z = NXfield(im.data, name='z')
         y = NXfield(np.arange(z.shape[0], dtype=float), name='y')
         x = NXfield(np.arange(z.shape[1], dtype=float), name='x')
 
