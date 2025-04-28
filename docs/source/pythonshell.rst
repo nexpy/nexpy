@@ -1,26 +1,26 @@
 *************************
 Python Interface to NeXus
 *************************
-The Python interface to NeXus is provided by the `nexusformat 
-<https://github.com/nexpy/nexusformat>`__ package, which is distributed 
-separately from NeXpy. 
+The Python interface to NeXus is provided by the `nexusformat
+<https://github.com/nexpy/nexusformat>`__ package, which is distributed
+separately from NeXpy.
 
 
-The Python API can be used within a standard Python or IPython shell:: 
+The Python API can be used within a standard Python or IPython shell::
 
  $ python
  Python 3.10.6 | packaged by conda-forge | (main, Aug 22 2022, 20:41:54) [Clang 13.0.1 ] on darwin
  Type "help", "copyright", "credits" or "license" for more information.
  >>> from nexusformat.nexus import *
 
-.. note:: Although wildcard imports are usually discouraged in Python, 
-          all the imported functions and variables start with 'nx' or 
+.. note:: Although wildcard imports are usually discouraged in Python,
+          all the imported functions and variables start with 'nx' or
           'NX', so the risk of namespace conflicts should be small.
 
-.. seealso:: A `Jupyter notebook 
-             <https://github.com/nexpy/nexusformat/blob/master/src/nexusformat/notebooks/nexusformat.ipynb>`__ 
+.. seealso:: A `Jupyter notebook
+             <https://github.com/nexpy/nexusformat/blob/master/src/nexusformat/notebooks/nexusformat.ipynb>`__
              provides a tutorial for the Python API. It can be run in
-             `Google Colaboratory 
+             `Google Colaboratory
              <https://colab.research.google.com/github/nexpy/nexusformat/blob/master/src/nexusformat/notebooks/nexusformat.ipynb>`__.
 
 
@@ -69,8 +69,8 @@ displayed in the tree. Data is loaded only when it is needed, for
 plotting or calculations, either as a complete array, if memory allows,
 or as a series of slabs (see below).
 
-.. note:: The maximum size of data that will be read from a file into 
-          memory can be configured using ``nxsetconfig``. Details of 
+.. note:: The maximum size of data that will be read from a file into
+          memory can be configured using ``nxsetconfig``. Details of
           other configuration variables are described later.
 
 There is a second optional argument to the load module that defines the
@@ -85,10 +85,10 @@ will accept any mode values allowed when opening h5py files, such as
 <http://docs.h5py.org/en/stable/high/file.html>`__ for more details),
 but once open, the mode values are stored as 'r' or 'rw'.
 
-.. warning:: If the file is opened in read/write mode, any changes are 
-             made automatically to the file itself. In particular, any 
-             deletions of file objects will be irreversible. If 
-             necessary, a backup of the file can be made using the 
+.. warning:: If the file is opened in read/write mode, any changes are
+             made automatically to the file itself. In particular, any
+             deletions of file objects will be irreversible. If
+             necessary, a backup of the file can be made using the
              ``backup`` function.
 
 .. seealso:: :mod:`nexusformat.nexus.tree.NXroot.backup`
@@ -98,7 +98,7 @@ Creating NeXus Data
 It is just as easy to create new NeXus data sets from scratch using
 NumPy arrays. The following example shows the creation of a simple
 function, which is then saved to a file::
- 
+
  >>> import numpy as np
  >>> x=y=np.linspace(0,2*np.pi,101)
  >>> X,Y=np.meshgrid(x,y)
@@ -124,8 +124,8 @@ This file can then be loaded again::
       axis2 = float64(101)
       signal = float64(101x101)
 
-.. note:: The save() method automatically wraps any valid NeXus data in 
-          an NXentry group, in order to produce a standard-compliant 
+.. note:: The save() method automatically wraps any valid NeXus data in
+          an NXentry group, in order to produce a standard-compliant
           file. See `Saving NeXus Data`_ for more details.
 
 NeXus Objects
@@ -140,7 +140,7 @@ NeXus Fields
 NeXus data values are stored in NeXus objects of class 'NXfield'. The
 NXfield class wraps standard NumPy arrays, scalars, and Python strings
 so that additional metadata (or attributes) and methods can be
-associated with them. 
+associated with them.
 
 There are three ways to create an NXfield.
 
@@ -169,15 +169,15 @@ There are three ways to create an NXfield.
   assignments should always be used if there is a danger of a name clash
   with, for example, group or field methods. They are also recommended
   when writing scripts. Attribute assignments are allowed because they
-  are much faster to type in interactive sessions. 
-  
-.. note:: When using the NeXpy GUI shell (see :doc:`pythongui`), it is 
-          possible to use tab completion to check for possible name 
-          clashes with NXfield methods. Autocompletion can be added as 
+  are much faster to type in interactive sessions.
+
+.. note:: When using the NeXpy GUI shell (see :doc:`pythongui`), it is
+          possible to use tab completion to check for possible name
+          clashes with NXfield methods. Autocompletion can be added as
           an extension to IPython sessions as well::
-          
+
             >>> from nexusformat.nexus.completer import load_ipython_extension
-            >>> load_ipython_extension(get_ipython()) 
+            >>> load_ipython_extension(get_ipython())
 
 The data in an NXfield can be of type integer, float, or character. The
 type is normally inherited automatically from the data type of the
@@ -195,21 +195,21 @@ float32 on assignment::
   >>> b.dtype, b.shape
   (dtype('O'), ())
 
-.. note:: Numeric dtypes can be defined either as a string, *e.g.*, 
+.. note:: Numeric dtypes can be defined either as a string, *e.g.*,
           'int16', 'float32', or using the NumPy dtypes, *e.g.*,
           np.int16, np.float32.
 
-.. warning:: By default, Python strings are stored as variable-length 
-             strings in the HDF5 file. These use a special object dtype 
-             defined by h5py (see the `h5py documentation 
-             <http://docs.h5py.org/en/latest/special.html#variable-length-strings>`__). If you wish to store 
-             fixed length strings, specify a dtype of kind 'S', *e.g.*, 
+.. warning:: By default, Python strings are stored as variable-length
+             strings in the HDF5 file. These use a special object dtype
+             defined by h5py (see the `h5py documentation
+             <http://docs.h5py.org/en/latest/special.html#variable-length-strings>`__). If you wish to store
+             fixed length strings, specify a dtype of kind 'S', *e.g.*,
              'S10' when creating the NXfield.
 
 .. warning:: If you wish to store an array of strings containing Unicode
-             characters as fixed-length strings, convert them to byte 
+             characters as fixed-length strings, convert them to byte
              strings first using UTF-8 encoding, *e.g.*::
-             
+
                >>> text_array = ['a', 'b', 'c', 'd', 'é']
                >>> a=NXfield([t.encode('utf8') for t in text_array], dtype='S')
                >>> a
@@ -231,7 +231,7 @@ More details of handling large arrays are given below.
 .. _attributes:
 
 NeXus attributes
-^^^^^^^^^^^^^^^^  
+^^^^^^^^^^^^^^^^
 The NeXus standard allows additional attributes to be attached to
 NXfields to contain metadata ::
 
@@ -251,7 +251,7 @@ When a NeXus tree is printed, the attributes are prefixed by '@'::
  >>> print(a.entry.sample.tree)
  sample:NXsample
    temperature = 40.0
-     @units = 'K' 
+     @units = 'K'
 
 Masked Arrays
 ^^^^^^^^^^^^^
@@ -260,7 +260,7 @@ invalid data from computations of, *e.g.*, averages or maxima. Since
 Matplotlib is able to handle masked arrays and removes masked data from
 plots, this is a convenient way of preventing bad data from
 contaminating statistical analyses, while preserving all the data
-values, good and bad, *i.e.*, masks can be turned on and off. 
+values, good and bad, *i.e.*, masks can be turned on and off.
 
 NeXpy uses the same syntax as NumPy for masking and unmasking data.
 
@@ -277,11 +277,11 @@ NeXpy uses the same syntax as NumPy for masking and unmasking data.
  NXfield(masked_array(data=[1, 2, 3, 4, --, 6],
               mask=[False, False, False, False,  True, False],
         fill_value=999999))
- 
-.. warning:: If you perform any operations on a masked array, those 
-             operations are not performed on the masked values. It is 
-             not advisable to remove a mask if you have modified the 
-             unmasked values. 
+
+.. warning:: If you perform any operations on a masked array, those
+             operations are not performed on the masked values. It is
+             not advisable to remove a mask if you have modified the
+             unmasked values.
 
 If the NXfield does not have a parent group, the mask is stored within
 the field as in NumPy arrays. However, if the NXfield has a parent
@@ -298,11 +298,11 @@ the masked NXfield.
 
 The mask can then be saved to the NeXus file if required.
 
-.. warning:: In principle, the NXfield containing the mask can be 
-             modified manually, but it is recommended that 
+.. warning:: In principle, the NXfield containing the mask can be
+             modified manually, but it is recommended that
              modifications to the mask use the methods described above.
-             
-Masks can also be set using the Projection panel in the 
+
+Masks can also be set using the Projection panel in the
 :doc:`pythongui`.
 
 Large Arrays
@@ -323,14 +323,14 @@ HDF5 core memory file that will be copied to the NeXus file when it is
 saved.
 
 When initializing the NXfield, it is possible to specify a number of
-HDF5 attributes that specify how the data are stored. 
+HDF5 attributes that specify how the data are stored.
 
 * Compression::
 
     >>> z = NXfield(shape=(1000,1000,1000), dtype=np.float32, compression='lzf')
 
   This specifies the compression filter used. For large arrays, the data
-  are compressed with the ``gzip`` filter by default. 
+  are compressed with the ``gzip`` filter by default.
 
 * Chunk size::
 
@@ -359,7 +359,7 @@ HDF5 attributes that specify how the data are stored.
 
   Slabs that are not initialized will contain the specified fill value.
   This is normally set to zero by default.
-  
+
 All these values can be adjusted at the command line until the first
 slab has been written, whether to a file or in core memory, using the
 ``compression``, ``chunks``, ``maxshape`` or ``fillvalue`` properties,
@@ -396,14 +396,14 @@ assigned to the group::
    temperature = 40.0
      @units = 'K'
 
-The NeXus objects in a group (NXfields or NXgroups) can be accessed as  
+The NeXus objects in a group (NXfields or NXgroups) can be accessed as
 dictionary items::
 
  >>> sample['temperature'] = 40.0
  >>> sample.keys()
  dict_keys(['temperature'])
- 
-.. note:: It is also possible to reference objects by their complete 
+
+.. note:: It is also possible to reference objects by their complete
           paths with respect to the root object, *e.g.*,
           root['/entry/sample/temperature'].
 
@@ -420,7 +420,7 @@ in automatically creating nested groups::
    sample:NXsample
      temperature = 40.0
 
-.. seealso:: Existing NeXus objects can also be inserted directly into 
+.. seealso:: Existing NeXus objects can also be inserted directly into
              groups. See :mod:`nexusformat.nexus.tree.NXgroup.insert`
 
 NXdata Groups
@@ -452,16 +452,16 @@ not been defined within an NXfield so default names were assigned::
    signal = float64(101x101)
 
 .. note:: The plottable signal and axes are identified by the 'signal'
-          and 'axes' attributes of the NXdata group. The 'axes' 
-          attribute defines the axes as a list of NXfield names. The 
+          and 'axes' attributes of the NXdata group. The 'axes'
+          attribute defines the axes as a list of NXfield names. The
           NXdata constructor sets these attributes automatically.
 
-.. warning:: NumPy stores arrays by default in C, or row-major, order, 
-             *i.e.*, in the array 'signal(axis1,axis2)', axis2 is the 
-             fastest to vary. In most image formats, *e.g.*, TIFF 
-             files, the x-axis is assumed to be the fastest varying 
-             axis, so we are adopting the same convention and plotting 
-             as ``signal[y,x]``. The :doc:`pythongui` allows the x and 
+.. warning:: NumPy stores arrays by default in C, or row-major, order,
+             *i.e.*, in the array 'signal(axis1,axis2)', axis2 is the
+             fastest to vary. In most image formats, *e.g.*, TIFF
+             files, the x-axis is assumed to be the fastest varying
+             axis, so we are adopting the same convention and plotting
+             as ``signal[y,x]``. The :doc:`pythongui` allows the x and
              y axes to be swapped.
 
 Names can be assigned explicitly when creating the NXfield through the
@@ -477,14 +477,14 @@ Names can be assigned explicitly when creating the NXfield through the
    intensity = float64(101)
    polar_angle = float64(101)
 
-.. note:: In the above example, the x-axis, ``phi``, was defined as a 
-          tuple in the second positional argument of the NXdata call. 
-          It could also have been defined as a list. However, in the 
-          case of one-dimensional signals, it would also have been 
-          acceptable just to call ``NXdata(data, phi)``, *i.e.*, 
-          without embedding the axis in a tuple or list. 
+.. note:: In the above example, the x-axis, ``phi``, was defined as a
+          tuple in the second positional argument of the NXdata call.
+          It could also have been defined as a list. However, in the
+          case of one-dimensional signals, it would also have been
+          acceptable just to call ``NXdata(data, phi)``, *i.e.*,
+          without embedding the axis in a tuple or list.
 
-It is also possible to define the plottable signal and axes using the 
+It is also possible to define the plottable signal and axes using the
 ``nxsignal`` and ``nxaxes`` properties, respectively::
 
  >>> phi=np.linspace(0,2*np.pi, 101)
@@ -509,7 +509,7 @@ Similarly, signal errors can be added using the ``nxerrors`` property::
    intensity_errors = float64(101)
    polar_angle = float64(101)
 
-.. note:: In a NXdata group, errors for each field are defined by 
+.. note:: In a NXdata group, errors for each field are defined by
           another field with '_errors' appended to the name.
 
 NeXus Links
@@ -548,13 +548,13 @@ However, they may also be needed as plotting axes in a NXdata group::
    time_of_flight = float32(8252)
      @target = '/entry/instrument/detector/time_of_flight'
      @units = 'microsecond'
- 
+
 Links allow the same data to be used in different contexts without using
 more memory or disk space.
 
-.. note:: In earlier verions, links were required to have the same name 
-          as their parents, but this restriction has now been lifted. 
-        
+.. note:: In earlier verions, links were required to have the same name
+          as their parents, but this restriction has now been lifted.
+
 In the Python API, the user who is only interested in accessing the data
 does not need to worry if the object is parent or child. The data values
 and NeXus attributes of the parent to the NXlink object can be accessed
@@ -564,13 +564,13 @@ directly, if required, using the ``nxlink`` attribute::
  >>> entry['data/time_of_flight']
  NXlink('/entry/instrument/detector/time_of_flight')
  >>> entry['data/time_of_flight'].nxdata
- array([   500.,    502.,    504., ...,  16998.,  17000.,  17002.], dtype=float32) 
+ array([   500.,    502.,    504., ...,  16998.,  17000.,  17002.], dtype=float32)
  >>> entry['data/time_of_flight'].units
  'microsecond'
  >>> entry['data/time_of_flight'].nxlink
  NXfield(dtype=float32,shape=(8252,))
 
-.. note:: The absolute path of the data with respect to the root object 
+.. note:: The absolute path of the data with respect to the root object
           of the NeXus tree is given by the nxpath property::
 
            >>> entry['data/time_of_flight'].nxpath
@@ -610,8 +610,8 @@ takes the parent object and, optionally, a new name as arguments::
            @target = '/entry/instrument/detector/polar_angle'
            @units = 'radian'
 
-.. note:: After creating the link, both the parent and target objects 
-          have an additional attribute, ``target``, showing the 
+.. note:: After creating the link, both the parent and target objects
+          have an additional attribute, ``target``, showing the
           absolute path of the parent.
 
 .. seealso:: :mod:`nexusformat.nexus.tree.NXgroup.makelink`
@@ -622,7 +622,7 @@ It is also possible to link to a NeXus field that is stored in another
 file. This is accomplished using a similar syntax to internal links.
 
  >>> root['entry/data/data'] = NXlink('/counts', file='external_counts.nxs')
- 
+
 In the case of external links, the first argument is the absolute path
 of the linked object within the external file, while the second argument
 is the absolute or relative file path of the external file.
@@ -631,12 +631,12 @@ By default, the target file path is converted to a relative path with
 respect to the parent file. If it is required to store the absolute file
 path, add the keyword argument, ``abspath=True``.
 
- >>> root['entry/data/data'] = NXlink('/counts', 
+ >>> root['entry/data/data'] = NXlink('/counts',
                                       file='/home/user/external_counts.nxs',
                                       abspath=True)
- 
-.. warning:: If the files are moved without preserving their relative 
-             file paths, the parent file will still open but the link 
+
+.. warning:: If the files are moved without preserving their relative
+             file paths, the parent file will still open but the link
              will be broken.
 
 Plotting NeXus Data
@@ -658,12 +658,12 @@ plot higher-dimensional data, the top two-dimensional slice is plotted.
 Alternative two-dimensional slices can be specified using slice indices
 on the NXdata group.
 
-.. note:: If the ``interpretation`` attribute is set to 'rgb' or 'rgba' 
-          and the final dimension is of size 3 or 4, the NXdata group 
-          will be plotted as an image using the colors defined by the 
-          final dimension. By default, images are displayed with the 
+.. note:: If the ``interpretation`` attribute is set to 'rgb' or 'rgba'
+          and the final dimension is of size 3 or 4, the NXdata group
+          will be plotted as an image using the colors defined by the
+          final dimension. By default, images are displayed with the
           origin in the top-left corner.
- 
+
 If the data is one-dimensional, it is possible to overplot more than one
 data set using 'over=True'. By default, each plot has a new color, but
 conventional Matplotlib keywords can be used to change markers and
@@ -684,12 +684,12 @@ two-dimensional pixel, then the image can be plotted using the
 By convention, the first pixel of an image is in the upper-left corner,
 rather than the lower-left used in other two-dimensional plots.
 
-.. note:: The plot method also works on NXroot and NXentry groups, if 
-          they are able to identify plottable data. If the ``default`` 
-          attribute is set, the default NXentry and/or NXdata groups 
-          are used. Otherwise, the first valid NXdata group found in an 
+.. note:: The plot method also works on NXroot and NXentry groups, if
+          they are able to identify plottable data. If the ``default``
+          attribute is set, the default NXentry and/or NXdata groups
+          are used. Otherwise, the first valid NXdata group found in an
           iterative search is used.
- 
+
 Additional Plot Methods
 -----------------------
 As a convenience, additional plot methods can be used instead of adding
@@ -698,7 +698,7 @@ extra keywords.
  >>> data.oplot()
  >>> data.logplot()
  >>> data.implot()
- 
+
 These are equivalent to setting the 'over', 'log', and 'image' keywords
 to True when invoking the plot method.
 
@@ -752,7 +752,7 @@ but they are cast as NumPy arrays when required by NumPy operations,
 returning either another NXfield or, in some cases, an array that can
 easily be converted to an NXfield::
 
- >>> x = NXfield((1.0,2.0,3.0,4.0)) 
+ >>> x = NXfield((1.0,2.0,3.0,4.0))
  >>> x.size
  4
  >>> x.sum()
@@ -829,7 +829,7 @@ signal array must match (although the names could be different)::
    x = [ 1.5  2.5  3.5]
    y = [ 0.49874749  0.29923607 -0.17539161]
 
-If data errors are included in the NXdata group, then the errors are 
+If data errors are included in the NXdata group, then the errors are
 propagated according to the operand::
 
  >>> print(a.tree)
@@ -875,7 +875,7 @@ Some statistical operations can be performed on the NXdata group.
      >>> a.sum(0).nxsignal
      NXfield([ 0.  3.  6.  9.])
      >>> a.sum(1).nxsignal
-     NXfield([  0.   6.  12.])   
+     NXfield([  0.   6.  12.])
 
 * ``NXdata.average(axis=None)``:
     Returns the average of the NXdata signal data. This is identical to
@@ -887,12 +887,12 @@ Some statistical operations can be performed on the NXdata group.
      >>> a.average(0).nxsignal
      NXfield([ 0.,  1.,  2.,  3.])
      >>> a.average(1).nxsignal
-     NXfield([ 0. ,  1.5,  3. ])   
+     NXfield([ 0. ,  1.5,  3. ])
 
 * ``NXdata.moment(order=1)``:
     Returns an NXfield containing the first moment of the NXdata group
     assuming the signal is one-dimensional::
-    
+
      >>> x=np.linspace(0, 10., 11)
      >>> y=np.exp(-(x-3)**2)
      >>> a=NXdata(y,x)
@@ -902,8 +902,8 @@ Some statistical operations can be performed on the NXdata group.
 
 Slicing
 -------
-NXfield
-^^^^^^^
+NXfields
+^^^^^^^^
 A slice of an NXfield can be obtained using the usual Python indexing
 syntax::
 
@@ -917,8 +917,8 @@ values themselves (assuming the array is monotonic)::
  >>> print(x[0.5:1.5])
  [ 0.50265482  0.56548668  0.62831853 ...,  1.38230077  1.44513262 1.50796447]
 
-NXdata
-^^^^^^
+NXdata Groups
+^^^^^^^^^^^^^
 It is also possible to slice whole NXdata groups. In this case, the
 slicing works on the multidimensional NXfield, but the full NXdata group
 is returned with both the signal data and the associated axes limited by
@@ -1017,6 +1017,52 @@ added to other files. The saved NeXus object is wrapped in an NXroot
 group and an NXentry group (with name 'entry'), if necessary, in order
 to produce a valid NeXus file.
 
+Validating NeXus Data
+=====================
+
+.. note:: Validation is only possible in v2.0.0. See :doc:`includeme`
+          for more details.
+
+NeXus groups can be checked against the current definitions of the NeXus
+standard to look for non-compliant entries. The results are colorized,
+with errors printed in red, warnings printed in orange, and
+informational messages in black. Keyword arguments allow the results to
+be filtered, with only warnings and errors output by default.
+
+NXgroup objects have the following methods.
+
+* check():
+    This checks the contents of the NeXus group and its children against
+    the base class definition.
+
+    >>> root['entry/sample'].check(errors=True)
+
+* validate():
+    This validates a NXentry group against the application definition
+    specified by the ``definition`` field or against another file
+    specified as a keyword argument. This checks that the fields and
+    groups required by the application definition are included. This
+    method can only be applied to NXentry, NXsubentry, and NXroot groups
+    (in which the first entry is selected).
+
+    >>> root['data'].validate(info=True)
+
+* inspect():
+    This displays the base class definition as formatted XML.
+
+    >>> root['entry'].inspect(info=True)
+
+.. note:: By default, the groups are compared against the NeXus
+          definition files contained within the package. Alternative
+          definitions my be defined, either by setting the path to the
+          definitions directory using `nxgetconfig(definitions="/path/
+          to/definitions")` or by defining the NX_DEFINITIONS
+          environment variable. The path should contain subdirectories
+          named 'base_classes', 'applications' and
+          'contributed_definitions'.
+
+
+
 NeXus File Operations
 =====================
 Changes to a NeXus tree that has been loaded from disk or saved to a
@@ -1024,9 +1070,9 @@ file are automatically updated in the HDF5 file, assuming that it is
 opened with read/write permissions. This means that the tree is always
 an accurate representation of the current state of the NeXus file,
 unless it has been modified by an external process, in which case, the
-file should be reloaded. 
+file should be reloaded.
 
-.. note:: In the :doc:`pythongui`, the lock icon color for an 
+.. note:: In the :doc:`pythongui`, the lock icon color for an
           externally modified file changes to red.
 
 When a file is loaded, using the ``nxload`` function, the ``nxfile``
@@ -1045,10 +1091,10 @@ mode set to 'w'. Any keywords accepted by `h5py.File
 <http://docs.h5py.org/en/stable/high/file.html>`__ can be used to
 customize the new HDF5 file, *e.g.*, to turn on SWMR mode.
 
-.. warning:: There is usually no need to call the ``nxfile`` attribute 
-             except to invoke the context manager (see next section). 
-             If it is referenced, the underlying ``h5py.File`` object 
-             is left open. It should be explicitly closed by calling 
+.. warning:: There is usually no need to call the ``nxfile`` attribute
+             except to invoke the context manager (see next section).
+             If it is referenced, the underlying ``h5py.File`` object
+             is left open. It should be explicitly closed by calling
              ``root.nxfile.close()``. The current status of the file can be determined by calling ``root.nxfile.is_open()``.
 
 Multiple operations
@@ -1065,11 +1111,11 @@ open/close operations::
   >>>     root['entry/sample/temperature'] = NXfield(40.0, units='K')
   >>>     root['entry/sample/mass'] = NXfield(5.0, units='g')
 
-The file will be opened at the start of the of the ``with`` clause and 
+The file will be opened at the start of the of the ``with`` clause and
 closed automatically at the end.
 
 .. note:: This context manager can be nested so it is safe to add a ``with``
-          clause within a function that might, in some implementations, be 
+          clause within a function that might, in some implementations, be
           embedded in another ``with`` clause. The file is only closed when the
           outermost context manager is exited.
 
@@ -1078,7 +1124,7 @@ objects, rather than its associated ``NXfile``, was added. This allows
 the use of a similar syntax to the Python ``open`` function, in which a
 ``with`` clause ensuring that the file is opened and closed, before and
 after the file access, respectively. To make this analogy clearer,
-``nxopen`` was added as an alias to ``nxload``. 
+``nxopen`` was added as an alias to ``nxload``.
 
 In the following code, a NeXus file is created, filled with NeXus
 objects and then closed.
@@ -1103,16 +1149,16 @@ mechanism, which is designed to work even when the processes are running
 on separate nodes and when other file-locking mechanisms might prove
 unreliable (*e.g.*, on NFS-mounted disks).
 
-.. warning:: Unfortunately, the word 'lock' can cause confusion because 
-             it is commonly used to refer to two different operations. 
-             The other one is to switch a file from read/write to 
+.. warning:: Unfortunately, the word 'lock' can cause confusion because
+             it is commonly used to refer to two different operations.
+             The other one is to switch a file from read/write to
              read-only mode, *e.g.*, ::
 
                >>> root.lock()
 
-             This operation will prevent the current process from 
-             writing to the file, but it does *not* add a file lock to 
-             prevent I/O conflicts with other processes. 
+             This operation will prevent the current process from
+             writing to the file, but it does *not* add a file lock to
+             prevent I/O conflicts with other processes.
 
 A new file is created with the same name as the NeXus file, with the
 additional extension '.lock'. Other processes using the *nexusformat*
@@ -1149,7 +1195,7 @@ appended. If a stale lock is encountered, it may be cleared by calling
   >>> root.nxfile.is_locked()
   False
 
-.. note:: This lock is advisory. It is only guaranteed to work if the 
+.. note:: This lock is advisory. It is only guaranteed to work if the
           external process is also using *nexusformat*.
 
 Configuration Parameters
@@ -1199,9 +1245,9 @@ defaults.
     The default is None, in which case, file locks are stored in the
     same directory as the NeXus file to be locked.
 
-    .. note:: If ``lockdirectory`` is defined, the ``lock`` parameter  
-              is automatically set to 10 seconds if the currently set 
-              value is 0, *i.e.,* defining a lock directory is enough 
+    .. note:: If ``lockdirectory`` is defined, the ``lock`` parameter
+              is automatically set to 10 seconds if the currently set
+              value is 0, *i.e.,* defining a lock directory is enough
               to enable file locking.
 
 * ``maxsize``:
@@ -1231,7 +1277,7 @@ lock-file directory for all users accessing the same data.
 
 When the *nexusformat* package is loaded, environment variables take
 precedence over the package defaults. The user can still override them
-manually by calling ``nxsetconfig``. 
+manually by calling ``nxsetconfig``.
 
 All of the configuration parameters defined in the previous section can
 be defined. The equivalent environment variable name is constructed by
