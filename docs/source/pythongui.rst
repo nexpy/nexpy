@@ -1,9 +1,9 @@
 *******************************
 Python Graphical User Interface
 *******************************
-A PyQT GUI has been created to make it easier to keep track of the loaded NeXus 
-files and the results of any subsequent analysis. It is invoked from the command 
-line by::
+A PyQT GUI has been created to make it easier to keep track of the
+loaded NeXus files and the results of any subsequent analysis. It is
+invoked from the command line by::
 
  > nexpy
 
@@ -23,7 +23,7 @@ The illustration shows the main features of the GUI:
     NXentry, or NXdata groups added from the shell. Various actions on
     the data can be performed by right-clicking a tree item, include
     plotting, renaming, fitting and deleting the data.
-    
+
 **2) Plot Pane**
     This contains plots produced by (a) the Data\:Plot Data menu item,
     which operates on the NeXus data selected in the tree, (b)
@@ -49,7 +49,7 @@ The illustration shows the main features of the GUI:
     characteristics. The shell has enhanced features such as
     autocompletion of NeXus dictionaries and attributes and tooltips
     containing module docstrings when you open the module parentheses.
-    
+
 **4) Axis Panels**
     The tabbed panels below the plot can be used to modify the plots.
     The number of panels depends on the rank of the original data. The
@@ -80,10 +80,10 @@ File Menu
     Opens a new NeXus file as read-only. It is possible unlock the file
     to allow modifications to the file (see below).
 
-    .. note:: It is possible to open a file in directly read/write mode 
-              using the keyboard shortcut Ctrl+Shift+O (⌘+⇧+O on a 
-              Mac). Note that any changes to the file tree, using 
-              either the shell or GUI commands, will be automatically 
+    .. note:: It is possible to open a file in directly read/write mode
+              using the keyboard shortcut Ctrl+Shift+O (⌘+⇧+O on a
+              Mac). Note that any changes to the file tree, using
+              either the shell or GUI commands, will be automatically
               updated in the file.
 
 **Open Recent...**
@@ -108,7 +108,7 @@ File Menu
     not reopen files already loaded into the tree.
 
 **Save as...**
-    Saves the selected tree item to a new NeXus file. 
+    Saves the selected tree item to a new NeXus file.
 
 **Duplicate...**
     Makes a copy of the selected item, leaving the original untouched.
@@ -120,16 +120,16 @@ File Menu
     Loads all the files that were open at the end of the previous NeXpy
     session.
 
-    .. note:: When launching NeXpy, files from the previous session can 
+    .. note:: When launching NeXpy, files from the previous session can
               be opened using the ``-r`` switch.
 
 **Reload**
     Reloads the NeXus file. This is useful if another application has
     modified the data since originally opening the file.
 
-    .. note:: If an external process has modified the currently loaded 
-              file, the lock icon color is changed to red. If the file 
-              was previously unlocked, its mode is automatically 
+    .. note:: If an external process has modified the currently loaded
+              file, the lock icon color is changed to red. If the file
+              was previously unlocked, its mode is automatically
               changed to read-only when the modification is detected.
 
 **Reload All**
@@ -138,9 +138,9 @@ File Menu
 **Remove**
     Removes the root item from the NeXpy tree.
 
-    .. warning:: This will also remove the item with the same name from 
-                 the shell. However, if it had previously been assigned 
-                 to another variable with a different name, that 
+    .. warning:: This will also remove the item with the same name from
+                 the shell. However, if it had previously been assigned
+                 to another variable with a different name, that
                  variable will not be deleted.
 
 **Remove All**
@@ -153,33 +153,33 @@ File Menu
     Imports data from other formats. Some importers are provided with
     the NeXpy distribution, but others will be loaded from the user's
     ``~/.nexpy/readers`` directory.
- 
+
     .. seealso:: `Importing NeXus Data`_
 
 **Export**
-    Exports data to a NeXus file or, for one-dimensional data, to a 
+    Exports data to a NeXus file or, for one-dimensional data, to a
     multi-column ASCII file.
 
 **Lock File**
     Changes the file access mode to read-only. This will prevent further
     changes to the tree using either the GUI or the shell. Locked files
-    are displayed with a padlock icon. 
+    are displayed with a padlock icon.
 
 **Unlock File**
     Changes the file access mode to read/write. If the root tree item
     has been saved to a file, any subsequent changes will automatically
-    update the file, including deleting items. 
+    update the file, including deleting items.
 
-    .. warning:: Any changes to an unlocked file will be immediate and 
-                 irreversible. If the file contains critical data, 
-                 click the checkbox to create a backup, which can be 
+    .. warning:: Any changes to an unlocked file will be immediate and
+                 irreversible. If the file contains critical data,
+                 click the checkbox to create a backup, which can be
                  restored later if necessary.
 
 **Show File Locks**
     If a Lock Directory has been defined, this shows a listing of all
     files, whose access is blocked by a current lock file.
 
-    .. seealso:: :ref:`File Locking` 
+    .. seealso:: :ref:`File Locking`
 
 **Backup File**
     Creates a backup of the selected file. The backup is stored in the
@@ -189,12 +189,12 @@ File Menu
 
 **Restore Backup...**
     Restores the backup of this file. The user is prompted to confirm
-    that the currently open file should be overwritten. 
-    
-    .. note:: This only applies to backups created during the current 
-              session. Previously saved backups can be restored using 
+    that the currently open file should be overwritten.
+
+    .. note:: This only applies to backups created during the current
+              session. Previously saved backups can be restored using
               the ``Manage Backups`` menu item.
-    
+
 **Manage Backups...**
     Provides the ability to restore or delete an existing backup stored
     in ``~/.nexpy/backups``. Restoring the backup is equivalent to
@@ -214,7 +214,7 @@ File Menu
 
 **Close Scratch File...**
     Closes the scratch file.
-     
+
 **Install Plugin**
     A directory containing a NeXpy plugin module can be installed either
     in the user's NeXpy directory (``~/.nexpy/plugins``) or in the
@@ -222,15 +222,15 @@ File Menu
     plugin menu is appended to the existing menus, but will be loaded in
     alphabetical order of the other plugins when NeXpy is restarted.
 
-    .. note:: If a plugin of the same name exists in both directories, 
+    .. note:: If a plugin of the same name exists in both directories,
               the user's plugin is loaded.
 
-    .. note:: With NeXpy v1.0.3, plugins can also be loaded directly 
-              from external packages, in which the plugin modules are 
+    .. note:: With NeXpy v1.0.3, plugins can also be loaded directly
+              from external packages, in which the plugin modules are
               declared using the ``nexpy.readers`` entry point.
 
     .. seealso:: `NeXpy Plugins`_
-    
+
 **Remove Plugin**
     The selected NeXpy plugin module is removed from either the user's
     NeXpy directory (``~/.nexpy/plugins``) or the package directory.
@@ -256,16 +256,16 @@ Data Menu
     Overplots the selected tree item in the plotting pane. This only
     works on one-dimensional data.
 
-    .. note:: The new plot is overlaid on the original plot using the 
-              same axis limits. If some of the new data lies outside 
-              the original plotting limits, the slider limits are 
-              increased to cover the expanded range. 
+    .. note:: The new plot is overlaid on the original plot using the
+              same axis limits. If some of the new data lies outside
+              the original plotting limits, the slider limits are
+              increased to cover the expanded range.
 
 **Plot RGB(A) Image**
     Plots the selected tree item as an RGB(A) image. In such images, the
     fastest varying dimension, which should be of size 3 or 4, contains
     the RGB(A) values for each pixel. By convention, the first pixel is
-    in the upper-left corner, rather than the lower-left. 
+    in the upper-left corner, rather than the lower-left.
 
 **View Data**
     Provides a tabular view of the selected item, whether it is a group
@@ -276,21 +276,21 @@ Data Menu
 **Add Data**
     Adds data to the selected tree item. If the selected item is a
     group, the added data can be a group or field. If the selected item
-    is a field, the added data must be a field attribute. 
-    
+    is a field, the added data must be a field attribute.
+
     When adding a field, the 'Add Data' dialog allows the name, value
     and data type to be specified. A dropdown menu can be used to enter
     field names that are defined by the NeXus standard, but the user is
     free to enter alternative names. The value field can be any valid
     Python expression, including NumPy functions such as np.linspace().
-    
+
     When adding a group, the 'Add Data' dialog allows the name and class
     of the group to be specified. A dropdown menu display can be used to
     enter one of the defined NeXus classes. Those above the dashed line
     are valid in the context of the selected tree item, but any of the
     other classes can also be selected.
 
-    .. note:: If you click on the dropdown menus and hover over any 
+    .. note:: If you click on the dropdown menus and hover over any
               item, a tooltip gives a description of its use.
 
 **Initialize Data**
@@ -301,14 +301,14 @@ Data Menu
     array, or a tuple (or list) of integers, for a multidimensional
     array. As with the 'Add Data' dialog, dropdown menus show the field
     names defined by the NeXus standard.
-    
+
 **Rename Data**
     Renames the selected tree item. If the item is a group, its class
     can also be changed. Dropdown menus provide a list of valid group
     classes or field names defined by the NeXus standard.
 
 **Copy Data**
-    Copies the selected tree item to a copy buffer. 
+    Copies the selected tree item to a copy buffer.
 
 **Paste Data**
     Pastes the copy buffer to the selected group. If the selected group
@@ -317,29 +317,29 @@ Data Menu
     currently stored in a file and any field in the copy buffer is too
     large to be stored in memory, its data is copied to an HDF5
     memory-mapped file using the h5py copy module.
-    
+
 **Paste As Link**
     Pastes a link to the copied node in the selected group. If the
     copied node and the selected group have different roots, the copied
     node is added to the group as an external link.
-    
-    .. note:: External links can only be modified through the parent 
-              file, which can be opened using the 'Show Link' menu item 
+
+    .. note:: External links can only be modified through the parent
+              file, which can be opened using the 'Show Link' menu item
               (see below).
 
-    .. warning:: The file containing the external link is referenced 
-                 using the file path to the parent file. If the files 
-                 are moved without preserving their relative file 
+    .. warning:: The file containing the external link is referenced
+                 using the file path to the parent file. If the files
+                 are moved without preserving their relative file
                  paths, the link will be broken.
 
 **Delete Data**
     Deletes the selected tree item.
 
-    .. note:: If the item was assigned to another variable in the 
+    .. note:: If the item was assigned to another variable in the
               shell, that variable will not be deleted.
 
-    .. warning:: If the NeXus tree was loaded from a file with 
-                 read/write access, the data will be immediately 
+    .. warning:: If the NeXus tree was loaded from a file with
+                 read/write access, the data will be immediately
                  deleted from the file. This action is irreversible.
 
 **Show Link**
@@ -347,15 +347,15 @@ Data Menu
     it is an NXlink object, *i.e.*, shown with a link icon. If the link
     is external, the linked file is automatically opened and the linked
     object is selected.
- 
+
 **Set Signal**
     Sets the plottable signal either to the selected field or to any
     field within the selected group. A dialog box allows the user to
     specify axes with compatible dimensions to plot the data against.
 
-    .. note:: The use of the 'Add Data' and 'Set Signal' menu items 
-              allows, in principle, an entire NeXus data tree to be 
-              constructed using menu calls. 
+    .. note:: The use of the 'Add Data' and 'Set Signal' menu items
+              allows, in principle, an entire NeXus data tree to be
+              constructed using menu calls.
 
 **Set Default**
     This sets the `default` attribute in the parent group to the
@@ -364,16 +364,16 @@ Data Menu
     (NXroot) group. The `default` attribute is used to identify the
     default data to be plotted.
 
-    .. note:: When a NXdata group is set as the default, the parent 
-              NXentry group is also set as the default in the parent 
-              NXroot group provided one has not already been set. The 
-              default entry can be overridden. 
+    .. note:: When a NXdata group is set as the default, the parent
+              NXentry group is also set as the default in the parent
+              NXroot group provided one has not already been set. The
+              default entry can be overridden.
 
 **Fit Data**
     Fits the selected tree item. This assumes that the selected item is
     a valid NXdata group. The menu item triggers a dialog box, which
     allows functions to be chosen and parameters to be initialized
-    before calling a non-linear least-squares fitting module. 
+    before calling a non-linear least-squares fitting module.
 
     .. seealso:: `Fitting NeXus Data`_.
 
@@ -382,13 +382,13 @@ Window Menu
 **Show Tree**
     Brings the tree view to the front and give it keyboard focus.
 
-    .. note:: This has the keyboard shortcut of Ctrl+Shift+T (⌘+⇧+T on 
+    .. note:: This has the keyboard shortcut of Ctrl+Shift+T (⌘+⇧+T on
               a Mac).
 
 **Show IPython Shell**
     Brings the shell to the front and give it keyboard focus.
 
-    .. note:: This has the keyboard shortcut of Ctrl+Shift+I (⌘+⇧+I on 
+    .. note:: This has the keyboard shortcut of Ctrl+Shift+I (⌘+⇧+I on
               a Mac).
 
 **Show Log File**
@@ -399,7 +399,7 @@ Window Menu
     GUI and the IPython shell. Only one-line summaries are displayed in
     the shell to improve readability.
 
-    .. note:: The log files contain ANSI markup to colorize the text, 
+    .. note:: The log files contain ANSI markup to colorize the text,
               which can be rendered in the terminal using ``less -r``.
 
 **Show Script Editor**
@@ -418,7 +418,7 @@ Window Menu
        :align: center
        :width: 90%
 
-    .. note:: This is equivalent to clicking the Edit button in the 
+    .. note:: This is equivalent to clicking the Edit button in the
               Options Tab.
 
 **Show Limits Panel**
@@ -436,15 +436,15 @@ Window Menu
        :align: center
        :width: 90%
 
-    .. note:: When the settings in one tab are copied to another and 
-              the Apply button is clicked, other settings, such as the 
-              aspect ratio, skew angle, color map, and log settings are 
-              also copied. This is therefore a very quick way of making 
-              direct comparisons between different data sets. 
+    .. note:: When the settings in one tab are copied to another and
+              the Apply button is clicked, other settings, such as the
+              aspect ratio, skew angle, color map, and log settings are
+              also copied. This is therefore a very quick way of making
+              direct comparisons between different data sets.
 
-    .. note:: The plotting pane in the main window cannot be resized 
-              this way, because of the constraints of the other tree 
-              and shell panes. Other plotting windows will copy the 
+    .. note:: The plotting pane in the main window cannot be resized
+              this way, because of the constraints of the other tree
+              and shell panes. Other plotting windows will copy the
               main window plotting size if requested.
 
 **Show Projection Panel**
@@ -465,11 +465,11 @@ Window Menu
     right-button depressed can be used to change the limits without
     replotting.
 
-    .. note:: On systems without a right mouse button, right-click 
+    .. note:: On systems without a right mouse button, right-click
               dragging can usually be accomplished by other means,
-              *e.g.*, two-finger drags on a trackpad or dragging with 
-              the [Ctrl]-key depressed. 
-    
+              *e.g.*, two-finger drags on a trackpad or dragging with
+              the [Ctrl]-key depressed.
+
     All the open projection panels are displayed as tabs in a single
     window, with the option of copying projection values from one tab to
     the other if the plots are compatible.
@@ -478,8 +478,8 @@ Window Menu
        :align: center
        :width: 90%
 
-    .. note:: The projection panel can also be used to mask and unmask 
-              data within the dashed rectangle. See :doc:`pythonshell` 
+    .. note:: The projection panel can also be used to mask and unmask
+              data within the dashed rectangle. See :doc:`pythonshell`
               for descriptions of masked arrays.
 
 **Show Scan Panel**
@@ -492,7 +492,7 @@ Window Menu
     used to define the loaded files to be included in the scan. Values
     of the scanned variable are automatically read from the file and
     entered in the box by the corresponding file, where they can be
-    edited if necessary. 
+    edited if necessary.
 
     .. image:: /images/scan-panel.png
        :align: center
@@ -501,9 +501,9 @@ Window Menu
 **Reset Plot Limits**
     This restores the axis and signal limits to the original values.
 
-    .. note:: This is equivalent to clicking on the Home button in the 
-              Options Tab (see below). Right-clicking within the plot 
-              restores the axis limits but does not reset the signal 
+    .. note:: This is equivalent to clicking on the Home button in the
+              Options Tab (see below). Right-clicking within the plot
+              restores the axis limits but does not reset the signal
               limits.
 
 **New Plot Window**
@@ -514,10 +514,10 @@ Window Menu
     along with their labels ('Main', 'Figure 1', 'Figure 2', *etc*.).
     These are used to switch the focus for subsequent plots.
 
-    .. note:: If Matplotlib windows are opened from the IPython shell 
+    .. note:: If Matplotlib windows are opened from the IPython shell
               using the standard Pyplot commands, *e.g.*,
-              ``plt.figure()``, they are numbered independently and 
-              will not be added to the NeXpy menu. They can be modified 
+              ``plt.figure()``, they are numbered independently and
+              will not be added to the NeXpy menu. They can be modified
               using the standard Pyplot commands.
 
 **Equalize Plot Sizes**
@@ -525,7 +525,7 @@ Window Menu
 
 **Main, Figure 1, Figure 2...**
     These menu items set the selected plotting window to be active. As
-    new windows are created, they are dynamically added to this list. 
+    new windows are created, they are dynamically added to this list.
 
 Script Menu
 ^^^^^^^^^^^
@@ -533,8 +533,8 @@ Script Menu
     Opens a new script in an editable text window with syntax coloring.
     The Python code can be run within the IPython console at any time
     using the console namespace. That means that all the items on the
-    NeXpy tree are also accessible without further imports. 
-    
+    NeXpy tree are also accessible without further imports.
+
     The scripts can be saved for future use from within NeXpy or from
     the terminal command line. They can therefore be formatted as a
     Python standalone script to be either run as ``python script.py`` or
@@ -543,16 +543,16 @@ Script Menu
     separate text window at the bottom of the window and accessed within
     the script in the 'sys.argv' list.
 
-    .. note:: Script arguments are just text strings, so if the 
+    .. note:: Script arguments are just text strings, so if the
               argument is a node on the tree, it must be referenced as a tree dictionary item, *e.g.*, ``nxtree[sys.argv[1]]``
 
-    Scripts are saved, by default, in ``~/.nexpy/scripts``, and are 
+    Scripts are saved, by default, in ``~/.nexpy/scripts``, and are
     automatically added to the bottom of the Script Menu.
 
 **Open Script**
     Opens an existing Python script file in an editable text window.
 
-.. note:: The currently selected node in the NeXpy tree can be 
+.. note:: The currently selected node in the NeXpy tree can be
           referenced in the script as ``treeview.node``.
 
 **Open Startup Script**
@@ -566,7 +566,7 @@ Help Menus
     Opens this documentation in a browser.
 
 **Open NeXpy API Tutorial Online**
-    Opens an online `Jupyter notebook 
+    Opens an online `Jupyter notebook
     <https://colab.research.google.com/github/nexpy/nexusformat/blob/master/src/nexusformat/notebooks/nexusformat.ipynb>`__
     containing a practical tutorial on the ``nexusformat`` package.
 
@@ -613,16 +613,16 @@ the tree's add method::
 If the group is an NXroot group, it will have the name used in the
 shell. If the group is not an NXroot group, the data will be wrapped
 automatically in an NXroot group and given a default name that doesn't
-conflict with existing tree nodes, *e.g.*, w4. 
+conflict with existing tree nodes, *e.g.*, w4.
 
-.. note:: The NXroot class is still considered to be the root of the 
-          NeXus tree in shell commands. The NXtree group is only used 
+.. note:: The NXroot class is still considered to be the root of the
+          NeXus tree in shell commands. The NXtree group is only used
           by the GUI and cannot be saved to a file.
 
-.. warning:: In Python, an object may be accessible within the shell 
-             with more than one name. NeXpy searches the shell 
-             dictionary for an object with the same ID as the added 
-             NeXus object and so may choose a different name. The 
+.. warning:: In Python, an object may be accessible within the shell
+             with more than one name. NeXpy searches the shell
+             dictionary for an object with the same ID as the added
+             NeXus object and so may choose a different name. The
              object in the tree can be renamed.
 
 Plotting NeXus Data
@@ -633,9 +633,9 @@ double-clicking the item on the tree (or right-clicking for over-plots).
 Below the plot pane, a series of tabs allow manipulation of the plot
 limits and parameters using text boxes and sliders.
 
-.. note:: The slider ranges are initially set by the data limits. You 
-          can redefine the slider ranges by editing their respective 
-          minimum and/or maximum text boxes. The original range can be 
+.. note:: The slider ranges are initially set by the data limits. You
+          can redefine the slider ranges by editing their respective
+          minimum and/or maximum text boxes. The original range can be
           restored by clicking on the Home button in the Options Tab or right-clicking within the plot.
 
 **Signal Tab**
@@ -648,13 +648,13 @@ limits and parameters using text boxes and sliders.
     intensity limits, a checkbox to plot the intensity on a log scale,
     and two dropdown menus to select a color palette and a 2D
     interpolation method.
-    
+
     The color palettes are divided into three sections, separating
     perceptually uniform palettes at the top, miscellaneous palettes,
     and diverging palettes at the bottom. See the `Matplotlib
     documentation <http://matplotlib.org/users/colormaps.html>`__ for
     more details.
-    
+
     If a diverging color scale is used, the signal is assumed to be
     symmetric about 0, so the minimum box and slider are disabled and
     their values set to the negative of the maximum values. If a log
@@ -662,21 +662,21 @@ limits and parameters using text boxes and sliders.
     <http://matplotlib.org/users/colormapnorms.html#symmetric-logarithmic>`__
     is displayed, with threshold and scale parameters adjustable using
     the command-line `symlog` command (see below).
-    
-    .. note:: For a one-dimensional plot, there is no signal tab. The 
-              intensity is adjusted using the y-tab. There is also no 
-              signal tab for an RGB(A) image, since the colors are 
+
+    .. note:: For a one-dimensional plot, there is no signal tab. The
+              intensity is adjusted using the y-tab. There is also no
+              signal tab for an RGB(A) image, since the colors are
               defined by the RGB(A) values.
 
-    .. note:: The interpolation methods are the default options 
-              provided by Matplotlib, which are only available for 2D 
-              data with a regular grid. 
-              
-    .. note:: If the `astropy <http://www.astropy.org>`__ module is 
-              installed, the interpolation dropdown menu includes a 
-              `convolve` option. Strictly speaking, this is not an 
-              interpolation method, since it performs a Gaussian 
-              smoothing of the data, with a standard deviation set by 
+    .. note:: The interpolation methods are the default options
+              provided by Matplotlib, which are only available for 2D
+              data with a regular grid.
+
+    .. note:: If the `astropy <http://www.astropy.org>`__ module is
+              installed, the interpolation dropdown menu includes a
+              `convolve` option. Strictly speaking, this is not an
+              interpolation method, since it performs a Gaussian
+              smoothing of the data, with a standard deviation set by
               the `smooth` option (see below). The default is 2 pixels.
 
 **X Tab**
@@ -690,8 +690,8 @@ limits and parameters using text boxes and sliders.
     or y, respectively. The names correspond to the axis names in the
     NXdata group. A checkbox allows the direction of the axes to be
     flipped.
-    
-    .. warning:: Flipping the axis directions does not flip the 
+
+    .. warning:: Flipping the axis directions does not flip the
                  direction of the sliders.
 
 **Y Tab**
@@ -704,13 +704,13 @@ limits and parameters using text boxes and sliders.
 
     #. Since multiple one-dimensional data sets can be plotted on the
        same figure, an additional pull-down menu is added on the
-       left-hand side to select them. 
+       left-hand side to select them.
     #. Selecting the 'smooth' checkbox adds a line that smoothly
        interpolates one-dimensional data. This uses the `SciPy interp1d
        function
        <https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.interp1d.html>`__.
        This option is provided to add guides-to-the-eye, and should be
-       used for numerical analysis with caution.  
+       used for numerical analysis with caution.
     #. The 'Fit' button will open a panel for fitting the data using the
        `LMFIT package <https://lmfit.github.io/lmfit-py/>`__.
 
@@ -731,10 +731,10 @@ limits and parameters using text boxes and sliders.
     slice if plotted, *i.e.*, all the z-axis limits are set to their
     minimum value.
 
-    .. note:: Projections are now averaged over the summed bins by 
-              default. To restore the previous behavior, click the 
+    .. note:: Projections are now averaged over the summed bins by
+              default. To restore the previous behavior, click the
               'Sum' checkbox in the Projection Tab.
-    
+
     When 'Lock' is checked, the difference between the limits of the
     selected z-axis is fixed. This allows successive images along the
     z-axis to be plotted by clicking the text-box arrows in increments
@@ -744,21 +744,21 @@ limits and parameters using text boxes and sliders.
     Otherwise, the data is only replotted when you force a replot using
     the toolbar (see below).
 
-    .. note:: Make sure that the value of both limit boxes is entered, 
-              *e.g.*, by pressing return after editing their values, 
-              before clicking on the 'lock' checkbox. 
-        
+    .. note:: Make sure that the value of both limit boxes is entered,
+              *e.g.*, by pressing return after editing their values,
+              before clicking on the 'lock' checkbox.
+
     When stepping through the z-values, the 'Autoscale' checkbox
     determines whether the plot automatically scales the signal to the
     maximum intensity of the slice or is set to the current signal
-    limits.     
-    
-    .. note:: When 'Autoscale' is checked, it is not possible to adjust 
+    limits.
+
+    .. note:: When 'Autoscale' is checked, it is not possible to adjust
               the limits in the Signal Tab.
 
     .. image:: /images/z-toolbar.png
        :align: right
-    
+
     The toolbar on the right provides further controls for replotting
     data as a function of z. The first button on the left forces a
     replot, *e.g.*, when you have changed z-axis limits or turned on
@@ -766,7 +766,7 @@ limits and parameters using text boxes and sliders.
     z-values automatically, with 'back', 'pause', and 'forward'
     controls. The default speed is one frame per second, but after the
     first click on the play button, subsequent clicks will reduce the
-    frame interval by a factor two.     
+    frame interval by a factor two.
 
 **Projection Tab**
 
@@ -779,7 +779,7 @@ limits and parameters using text boxes and sliders.
     projection axes are selected using the dropdown boxes. For a
     one-dimensional projection, select 'None' from the y box. This is a
     short-cut to making projections with the Projection Panel.
-  
+
 **Options Tab**
 
     .. image:: /images/options-tab.png
@@ -789,8 +789,8 @@ limits and parameters using text boxes and sliders.
     The options tab is based on the standard Matplotlib toolbar, with
     the the addition of extra buttons. From left to right, the buttons
     are:
-    
-    * **Home** - restores all plotting limits to their original values. 
+
+    * **Home** - restores all plotting limits to their original values.
     * **Arrows** - cycles through the limits of previous plots.
     * **Pan** - enables panning mode (disabling zoom mode).
     * **Zoom** - enables zoom mode (disabling pan mode).
@@ -798,7 +798,7 @@ limits and parameters using text boxes and sliders.
       automatically to fill the available space or setting the x and y
       scales to be equal. This is only valid if the units of the x and y
       axes are identical.
-    * **Subplot** - configures the spacing around the plot. 
+    * **Subplot** - configures the spacing around the plot.
     * **Edit** - opens the Customize Panel to edit both image and point
       plots. Use this to change the title and axis labels, modify the
       image aspect ratio and skew angles, turn axis grids on or off and
@@ -813,10 +813,10 @@ limits and parameters using text boxes and sliders.
     On the far right of the toolbar, the data and axis values are
     dynamically updated to the values under the current mouse location.
 
-    .. seealso:: See the `Matplotlib documentation  
-                 <https://matplotlib.org/users/navigation_toolbar.html>`__ for more detailed descriptions of the 
-                 standard toolbar, including keyboard shortcuts. The 
-                 'Aspect', 'Export', and 'Add' buttons are unique to 
+    .. seealso:: See the `Matplotlib documentation
+                 <https://matplotlib.org/users/navigation_toolbar.html>`__ for more detailed descriptions of the
+                 standard toolbar, including keyboard shortcuts. The
+                 'Aspect', 'Export', and 'Add' buttons are unique to
                  NeXpy.
 
     .. note:: The aspect ratio of a plot can also be set from the
@@ -827,11 +827,11 @@ limits and parameters using text boxes and sliders.
     It is possible to modify some of the plotting features from the
     IPython shell. The current plotting pane, the default Matplotlib
     axis instance, and the current image are exposed as ``plotview``,
-    ``plotview.ax``, and ``plotview.image``, respectively. 
-    
-    .. note:: Before making any changes, make sure that you have 
-              selected the right plotting pane, either by selecting it 
-              in the Window menu or using one of the keyboard 
+    ``plotview.ax``, and ``plotview.image``, respectively.
+
+    .. note:: Before making any changes, make sure that you have
+              selected the right plotting pane, either by selecting it
+              in the Window menu or using one of the keyboard
               shortcuts, which are displayed in the menu, *e.g.*, <Ctrl>
               +2 (⌘+2 on a Mac) to select Figure 2.
 
@@ -888,7 +888,7 @@ limits and parameters using text boxes and sliders.
   changed. This can be useful if the map is not available in the Signal
   Tab. See the `Matplotlib documentation
   <http://matplotlib.org/api/pyplot_api.html#matplotlib.pyplot.set_cmap>`__
-  for more details.    
+  for more details.
 
 * Draw Shapes::
 
@@ -936,8 +936,8 @@ limits and parameters using text boxes and sliders.
   will contain the full path to each plotted field, but setting the
   keyword argument, ``nameonly=True`` will restrict the label to the
   field name.
-  
-  .. note:: Legend labels, positions, and other attributes can be 
+
+  .. note:: Legend labels, positions, and other attributes can be
             modified in the Customize Dialog.
 
 * Convert to Symmetric Log Plot:
@@ -951,15 +951,15 @@ limits and parameters using text boxes and sliders.
   <http://matplotlib.org/users/colormapnorms.html#symmetric-logarithmic>`__
   for more details. The maximum and minimum signal values are set to +/-
   vmax.
-  
+
   Calling ``symlog`` will set the ``linthresh`` and ``linscale``
   parameters for future plots. Call it without any parameters to set
   them to their default values, ``linthresh=vmax/10`` and
   ``linscale=0.1``.
-  
-  .. note:: There are a number of diverging color maps, such as 
-            ``coolwarm``, that are ideal for displaying symmetric log 
-            data. Some are available at the bottom of the color map 
+
+  .. note:: There are a number of diverging color maps, such as
+            ``coolwarm``, that are ideal for displaying symmetric log
+            data. Some are available at the bottom of the color map
             dropdown menu in the Signal tab.
 
 **Keyboard Shortcuts**
@@ -968,10 +968,10 @@ limits and parameters using text boxes and sliders.
     plotting window. These can be used to switch between tabs or set
     various plotting options.
 
-    .. note:: Keyboard focus can be switched to a particular plotting 
+    .. note:: Keyboard focus can be switched to a particular plotting
               window by (a) clicking within the window, (b) using the Window menu, or (c) typing Ctrl+'n' (⌘+'n' on a Mac), where 'n' is the plot window number.
 
-    * **s** - switch to the Signal tab. 
+    * **s** - switch to the Signal tab.
     * **x** - switch to the X tab.
     * **y** - switch to the Y tab.
     * **z** - switch to the Z tab.
@@ -985,7 +985,7 @@ limits and parameters using text boxes and sliders.
     * **E** - toggle the aspect ratio between 'equal' and 'automatic'.
     * **S** - save plot to a graphics file.
     * **A** - add plotted data to the tree pane.
-    * **O** - open dialog to customize plots. 
+    * **O** - open dialog to customize plots.
 
 Configuring NeXpy
 -----------------
@@ -993,7 +993,7 @@ When NeXpy if first launched, a private directory is created in the home
 directory, ~/.nexpy/. This is used to store log files, backups, plugins,
 and scripts. A configuration file, ~/.nexpy/config.py, is created to
 contain Python commands that should be run at the start of every
-session. 
+session.
 
 By default, the configuration file contains a number of imports,
 including all the functions and classes defined by the nexusformat
@@ -1006,7 +1006,7 @@ package. ::
 This file could also be used to change the default parameters used by
 the nexusformat package to define, *e.g.*, memory limits, maximum loaded
 array sizes, file locking, default HDF5 compression, and default string
-encodings. See :doc:`pythonshell` for more details. 
+encodings. See :doc:`pythonshell` for more details.
 
 For convenience, the configuration file also imports a number of other
 modules that are commonly used::
@@ -1027,15 +1027,15 @@ Script...`` in the Script Menu.
 
 Fitting NeXus Data
 ------------------
-NeXpy makes it easy to fit one-dimensional data using the 
+NeXpy makes it easy to fit one-dimensional data using the
 `LMFIT package <https://lmfit.github.io/lmfit-py/>`__, with a 'Fit' button in
-the Y-Tab of every one-dimensional plot. 
+the Y-Tab of every one-dimensional plot.
 
-.. note:: If multiple data sets are plotted in the same window, the one 
-          to be fit can be selected using the pull-down menu on the far 
-          left of the Y-Tab. Multiple data sets can be selected for 
-          fitting at the same time, each one opening a new tab in the 
-          Fit Panel. Line plots of the models and their components will 
+.. note:: If multiple data sets are plotted in the same window, the one
+          to be fit can be selected using the pull-down menu on the far
+          left of the Y-Tab. Multiple data sets can be selected for
+          fitting at the same time, each one opening a new tab in the
+          Fit Panel. Line plots of the models and their components will
           be plotted in the same color as the corresponding data.
 
 Alternatively, choosing 'Fit Data' from the Data menu or using the
@@ -1054,9 +1054,9 @@ description will be displayed as a tooltip when you hover over it.
 The fit can be plotted, along with the constituent models in the main
 plotting window and the fitting parameters displayed in the Fit Panel.
 
-.. note:: The data are only fitted within the x-limits of the current 
-          plot. This can be used, for example, to perform piece-wise 
-          fits of multiple peaks before a final fit that combines them 
+.. note:: The data are only fitted within the x-limits of the current
+          plot. This can be used, for example, to perform piece-wise
+          fits of multiple peaks before a final fit that combines them
           all together.
 
 Initializing Parameters
@@ -1093,7 +1093,7 @@ operators (add, subtract, multiply, and divide), defined by an algebraic
 expression. For example, a BoseFactor model, with temperature its only
 parameter, is provided by NeXpy. If it is combined with a peak model,
 using the 'multiply' operator, it will apply a detailed balance factor
-appropriate for modeling quasielastic neutron scattering. 
+appropriate for modeling quasielastic neutron scattering.
 
 A 'Compose Model' button allows the algebraic expression combining the
 currently added models to be edited.
@@ -1103,7 +1103,7 @@ fitted models, by selecting 'Composite Model' before clicking 'Plot
 Model'. This allows, for example, several functions representing a
 background to be combined before they are plotted.
 
-.. seealso:: `LMFIT Composite Models 
+.. seealso:: `LMFIT Composite Models
              <https://lmfit.github.io/lmfit-py/model.html#composite-models-adding-or-multiplying-models>`__
 
 Saving the Fit
@@ -1131,7 +1131,7 @@ NeXpy makes available any of the models currently supplied by the `LMFIT
 package <https://lmfit.github.io/lmfit-py/builtin_models.html>`__, as
 well as a couple of extra models added to the NeXpy package, the
 OrderParameterModel and the PDFdecayModel. If you wish to construct your
-own model, please refer to the LMFIT documentation for more details. 
+own model, please refer to the LMFIT documentation for more details.
 
 User-defined models can be added as separate files to their private
 models directory in ``~/.nexpy/models`` (new to v0.12.6). As an example,
@@ -1150,8 +1150,8 @@ NeXpy::
 
             f(x; A, Tc, \beta) = A ((Tc - x[x<Tc])/ Tc)^\beta
 
-        where the parameter ``amplitude`` corresponds to :math:`A`, ``Tc`` to 
-        :math:`Tc`, and ``beta`` to :math:`\beta`. 
+        where the parameter ``amplitude`` corresponds to :math:`A`, ``Tc`` to
+        :math:`Tc`, and ``beta`` to :math:`\beta`.
         """
         def __init__(self, **kwargs):
 
@@ -1167,12 +1167,12 @@ NeXpy::
             """Estimate initial model parameter values from data."""
             return self.make_params(amplitude=data.max(), Tc=x.mean(), beta=0.33)
 
-.. warning:: Prior to v0.12.6, NeXpy defined its own system for 
-             generating fitting functions. This system is now 
-             deprecated, but legacy functions are still available at 
-             the end of the model list. If you have produced your own 
-             functions in the past, they will also be on this list. 
-             However, we recommend that all new functions now adhere to 
+.. warning:: Prior to v0.12.6, NeXpy defined its own system for
+             generating fitting functions. This system is now
+             deprecated, but legacy functions are still available at
+             the end of the model list. If you have produced your own
+             functions in the past, they will also be on this list.
+             However, we recommend that all new functions now adhere to
              LMFIT model definitions.
 
 Importing NeXus Data
@@ -1187,7 +1187,7 @@ and returns NeXus data::
      from libtiff import TIFF
      im = TIFF.open(filename)
      z = im.read_image()
-     y = range(z.shape[0])     
+     y = range(z.shape[0])
      x = range(z.shape[1])
      return NXentry(NXdata(z,(y,x)))
 
@@ -1243,20 +1243,20 @@ Here is an example of an import dialog::
  """
  Module to read in a TIFF file and convert it to NeXus.
 
- Each importer needs to layout the GUI buttons necessary for defining 
- the imported file and its attributes and a single module, get_data, 
- which returns an NXroot or NXentry object. This will be added to the 
+ Each importer needs to layout the GUI buttons necessary for defining
+ the imported file and its attributes and a single module, get_data,
+ which returns an NXroot or NXentry object. This will be added to the
  NeXpy tree.
 
  Two GUI elements are provided for convenience:
 
-     ImportDialog.filebox: Contains a "Choose File" button and a text 
-                           box. Both can be used to set the path to the 
-                           imported file. This can be retrieved as 
+     ImportDialog.filebox: Contains a "Choose File" button and a text
+                           box. Both can be used to set the path to the
+                           imported file. This can be retrieved as
                            string using self.get_filename().
-     ImportDialog.close_buttons: Contains a "Cancel" and "OK" button to 
-                                 close the dialog. This should be 
-                                 placed at the bottom of all import 
+     ImportDialog.close_buttons: Contains a "Cancel" and "OK" button to
+                                 close the dialog. This should be
+                                 placed at the bottom of all import
                                  dialogs.
  """
 
@@ -1268,36 +1268,36 @@ Here is an example of an import dialog::
 
  class ImportDialog(NXImportDialog):
      """Dialog to import a TIFF image"""
- 
+
      def __init__(self, parent=None):
 
          super().__init__(parent)
-        
+
          self.set_layout(self.filebox(), self.close_buttons())
-  
+
          self.set_title("Import "+str(filetype))
- 
+
      def get_data(self):
          from libtiff import TIFF
          im = TIFF.open(self.get_filename())
          z = NXfield(im.read_image(), name='z')
-         y = NXfield(range(z.shape[0]), name='y')      
+         y = NXfield(range(z.shape[0]), name='y')
          x = NXfield(range(z.shape[1]), name='x')
          return NXentry(NXdata(z,(y,x)))
 
 NeXpy Plugins
 -------------
-It is possible to customize NeXpy by adding new menus to the main menu 
-bar with sub-menus that open GUI dialogs orperform operations that are 
-specific to a specialized application. 
+It is possible to customize NeXpy by adding new menus to the main menu
+bar with sub-menus that open GUI dialogs orperform operations that are
+specific to a specialized application.
 
 Installing Plugins
 ^^^^^^^^^^^^^^^^^^
 NeXpy searches for plugin modules in two ways.
 
-1. The plugin code can be installed using the ``Install Plugin...`` 
-   dialog either locally in the user's ``~/.nexpy/plugins``directory or 
-   in the ``nexpy.plugins`` directory within the installed NeXpy 
+1. The plugin code can be installed using the ``Install Plugin...``
+   dialog either locally in the user's ``~/.nexpy/plugins``directory or
+   in the ``nexpy.plugins`` directory within the installed NeXpy
    distribution.
 
 2. The plugin code can be contained within an external installed
@@ -1305,8 +1305,8 @@ NeXpy searches for plugin modules in two ways.
    example package, that is installable using ``pip install .`` is
    available in the NeXpy package examples directory.
 
-   .. note:: The second method was introduced in NeXpy v1.0.3. It is 
-             recommended for new plugins. 
+   .. note:: The second method was introduced in NeXpy v1.0.3. It is
+             recommended for new plugins.
 
 Plugins are loaded from the users' directory, the NeXpy distribution's
 plugin directory, and external package entry points, *in that order*,
@@ -1340,8 +1340,8 @@ Here is the structure of the ``chopper_plugin`` package::
         ├── convert_qe.py
         └── get_ei.py
 
-.. note:: If the plugin is to be installed using the 
-          ``Install Plugin...`` dialog, just select the ``chopper`` 
+.. note:: If the plugin is to be installed using the
+          ``Install Plugin...`` dialog, just select the ``chopper``
           sub-directory in the above file tree.
 
 Here is the ``pyproject.toml`` file::
@@ -1372,7 +1372,7 @@ modules are contained within the ``plugins`` sub-directory of
     plugin_name = "mypackage.plugins.plugin_name:plugin_menu"
 
 .. seealso:: Information on defining entry points in external packages
-             that do not use a ``pyproject.toml`` file is available in 
+             that do not use a ``pyproject.toml`` file is available in
              the `Setup Tools documentation
              <https://setuptools.pypa.io/en/latest/userguide/entry_point.html>`__.
 
@@ -1394,7 +1394,7 @@ in a separately installed package in the Python path.
 
 These files should open a dialog box and perform the required
 operations, after which the results can either be saved to a new NeXus
-file or saved as modifications to an existing tree item. 
+file or saved as modifications to an existing tree item.
 
 For example, ``get_ei.py`` reads the monitor spectra contained within
 the currently selected node on the tree, which should have been
@@ -1422,7 +1422,7 @@ analysis, and finally the functions themselves::
           dialog.show()
       except NeXusError as error:
           report_error("Getting Incident Energy", error)
-        
+
 
   class EnergyDialog(NXDialog):
 
@@ -1432,22 +1432,22 @@ analysis, and finally the functions themselves::
 
           self.select_entry()
           self.parameters = GridParameters()
-          self.parameters.add('m1', self.entry['monitor1/distance'], 
+          self.parameters.add('m1', self.entry['monitor1/distance'],
                               'Monitor 1 Distance')
-          self.parameters.add('m2', self.entry['monitor2/distance'], 
+          self.parameters.add('m2', self.entry['monitor2/distance'],
                               'Monitor 2 Distance')
-          self.parameters.add('Ei', 
-                              self.entry['instrument/monochromator/energy'], 
+          self.parameters.add('Ei',
+                              self.entry['instrument/monochromator/energy'],
                               'Incident Energy')
-          self.parameters.add('mod', self.entry['instrument/source/distance'], 
+          self.parameters.add('mod', self.entry['instrument/source/distance'],
                               'Moderator Distance')
           action_buttons = self.action_buttons(('Get Ei', self.get_ei))
-          self.set_layout(self.entry_layout, self.parameters.grid(), 
+          self.set_layout(self.entry_layout, self.parameters.grid(),
                           action_buttons, self.close_buttons(save=True))
           self.set_title('Get Incident Energy')
 
           self.m1 = self.entry['monitor1']
-          self.m2 = self.entry['monitor2'] 
+          self.m2 = self.entry['monitor2']
 
       @property
       def m1_distance(self):
@@ -1470,7 +1470,7 @@ analysis, and finally the functions themselves::
           m1_time = self.m1[t-200.0:t+200.0].moment()
           t = 2286.26 * self.m2_distance / np.sqrt(self.Ei)
           m2_time = self.m2[t-200.0:t+200.0].moment()
-          self.parameters['Ei'].value = (2286.26 * 
+          self.parameters['Ei'].value = (2286.26 *
                                          (self.m2_distance - self.m1_distance) /
                                          (m2_time - m1_time))**2
 

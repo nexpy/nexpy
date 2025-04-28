@@ -1,8 +1,8 @@
 Installation
 ============
-Released versions of NeXpy are available on `PyPI 
-<https://pypi.python.org/pypi/NeXpy/>`__ and `conda-forge 
-<https://anaconda.org/conda-forge/nexpy>`__. 
+Released versions of NeXpy are available on `PyPI
+<https://pypi.python.org/pypi/NeXpy/>`__ and `conda-forge
+<https://anaconda.org/conda-forge/nexpy>`__.
 
 You can therefore install using 'pip'::
 
@@ -12,9 +12,9 @@ or 'conda'::
 
     $ conda install -c conda-forge nexpy
 
-.. note:: You can add conda-forge to your default channels so that it is 
-          automatically searched when installing. Just type 
-          ``conda config --add channels conda-forge``. 
+.. note:: You can add conda-forge to your default channels so that it is
+          automatically searched when installing. Just type
+          ``conda config --add channels conda-forge``.
 
 If you have the `Python Setup Tools
 <https://pypi.python.org/pypi/setuptools>`__, you can install the
@@ -34,10 +34,10 @@ from within the source directory::
 The Python API for reading and writing NeXus files is in a separate
 package, `nexusformat <https://github.com/nexpy/nexusformat>`__, which
 is also available on `PyPI <https://pypi.python.org/pypi/nexusformat>`__
-and `conda-forge <https://anaconda.org/conda-forge/nexusformat>`__. 
+and `conda-forge <https://anaconda.org/conda-forge/nexusformat>`__.
 
 If the NeXpy GUI is not required, the package may be used in any Python
-shell. It may be installed using:: 
+shell. It may be installed using::
 
     $ pip install nexusformat
 
@@ -52,6 +52,24 @@ latest development version in the `NeXpy Git repository
 <https://github.com/nexpy/nexusformat>`__::
 
     $ git clone https://github.com/nexpy/nexusformat.git
+
+Version 2.0.0
+-------------
+In preparation for the release of v2.0.0, beta versions of both packages
+have been uploaded to the `PyPI server
+<https://pypi.org/project/NeXpy/2.0.0b1/>`__. Users are invited to test
+it by installing using pip::
+
+    $ pip install nexpy==2.0.0b1
+
+New features include the ability to rotate 2D plots, validate NeXus
+groups against the standard, and enable/disable/reorder plugin menus
+dynamically.
+
+See the `release notes
+<https://github.com/nexpy/nexpy/releases/tag/v2.0.0b1>`__ for more
+details. Please report any issues to `Github
+<https://github.com/nexpy/nexpy/issues>`__ with relevant tracebacks.
 
 Required Libraries
 ==================
@@ -92,7 +110,7 @@ NeXpy embeds an `IPython shell <http://ipython.org/>`__ and `Matplotlib
 plotting pane <http://matplotlib.sourceforge.net>`__, within a Qt GUI
 based on the Jupyter QtConsole with an in-process kernel.
 
-Least-squares fitting of 1D data uses the `LMFIT package 
+Least-squares fitting of 1D data uses the `LMFIT package
 <https://lmfit.github.io/lmfit-py/>`__.
 
 =================  =================================================
@@ -110,15 +128,15 @@ mplcursors         https://mplcursors.readthedocs.io/
 
 Additional Packages
 -------------------
-Importers may require additional libraries to read the imported files in their 
-native format, *e.g.*, `spec2nexus <http://spec2nexus.readthedocs.org/>`__ for 
-reading SPEC files and `FabIO <https://pythonhosted.org/fabio/>`__ for 
-importing TIFF and CBF images. 
+Importers may require additional libraries to read the imported files in their
+native format, *e.g.*, `spec2nexus <http://spec2nexus.readthedocs.org/>`__ for
+reading SPEC files and `FabIO <https://pythonhosted.org/fabio/>`__ for
+importing TIFF and CBF images.
 
-From v0.9.1, a new 2D smoothing option is available in the list of 
+From v0.9.1, a new 2D smoothing option is available in the list of
 interpolations in the signal tab if `astropy <http://www.astropy.org>`__
-is installed. It is labelled 'convolve' and provides, by default, a 
-2-pixel Gaussian smoothing of the data. The number of pixels can be 
+is installed. It is labelled 'convolve' and provides, by default, a
+2-pixel Gaussian smoothing of the data. The number of pixels can be
 changed in the shell by setting ``plotview.smooth``.
 
 =================  ==========================================================
@@ -134,7 +152,7 @@ astropy            http://www.astropy.org/
 
 Running the GUI
 ---------------
-To run from the installed location, add the $prefix/bin directory to your path 
+To run from the installed location, add the $prefix/bin directory to your path
 if you installed outside the python installation, and then run::
 
     $ nexpy [-r]
