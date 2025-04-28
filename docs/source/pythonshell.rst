@@ -1055,8 +1055,8 @@ NXgroup objects have the following methods.
 .. note:: By default, the groups are compared against the NeXus
           definition files contained within the package. Alternative
           definitions my be defined, either by setting the path to the
-          definitions directory using `nxgetconfig(definitions="/path/
-          to/definitions")` or by defining the NX_DEFINITIONS
+          definitions directory using ```nxsetconfig(definitions="/path/
+          to/definitions")``` or by defining the NX_DEFINITIONS
           environment variable. The path should contain subdirectories
           named 'base_classes', 'applications' and
           'contributed_definitions'.
