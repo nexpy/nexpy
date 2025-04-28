@@ -1336,6 +1336,7 @@ be read or modified using the <code class="docutils literal notranslate"><span c
 functions, respectively.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">nxgetconfig</span><span class="p">()</span>
 <span class="go">{&#39;compression&#39;: &#39;gzip&#39;,</span>
+<span class="go"> &#39;definitions&#39;: None,</span>
 <span class="go"> &#39;encoding&#39;: &#39;utf-8&#39;,</span>
 <span class="go"> &#39;lock&#39;: 0,</span>
 <span class="go"> &#39;lockexpiry&#39;: 28800,</span>
@@ -1354,6 +1355,13 @@ defaults.</p>
 <li><dl class="simple">
 <dt><code class="docutils literal notranslate"><span class="pre">compression</span></code>:</dt><dd><p>This sets the default HDF5 compression filter. The default is
 ‘gzip’.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">definitions</span></code>:</dt><dd><p>This sets the path to the directory containing NeXus base class and
+application definitions. The default is None, in which case the
+definitions installed with the package are used.</p>
 </dd>
 </dl>
 </li>
@@ -1429,7 +1437,7 @@ manually by calling <code class="docutils literal notranslate"><span class="pre"
 <p>All of the configuration parameters defined in the previous section can
 be defined. The equivalent environment variable name is constructed by
 prefixing the parameter name in upper case by ‘NX_’, <em>e.g.</em>,
-‘NX_COMPRESSION’, ‘NX_ENCODING’, <em>etc</em>.</p>
+‘NX_COMPRESSION’, ‘NX_DEFINITIONS’, ‘NX_ENCODING’, <em>etc</em>.</p>
 </div>
 </div>
 </div>

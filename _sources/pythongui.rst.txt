@@ -215,30 +215,10 @@ File Menu
 **Close Scratch File...**
     Closes the scratch file.
 
-**Install Plugin**
-    A directory containing a NeXpy plugin module can be installed either
-    in the user's NeXpy directory (``~/.nexpy/plugins``) or in the
-    package directory if the user has the necessary privilege. The
-    plugin menu is appended to the existing menus, but will be loaded in
-    alphabetical order of the other plugins when NeXpy is restarted.
-
-    .. note:: If a plugin of the same name exists in both directories,
-              the user's plugin is loaded.
-
-    .. note:: With NeXpy v1.0.3, plugins can also be loaded directly
-              from external packages, in which the plugin modules are
-              declared using the ``nexpy.readers`` entry point.
+**Manage Plugins**
+    This opens a dialog, in which plugins that have been discovered within the Python distribution can be enabled or disabled. The order of the plugins in the menu bar can also be changed.
 
     .. seealso:: `NeXpy Plugins`_
-
-**Remove Plugin**
-    The selected NeXpy plugin module is removed from either the user's
-    NeXpy directory (``~/.nexpy/plugins``) or the package directory.
-
-**Restore Plugin**
-    If a plugin is overwritten by installing another version, it is
-    backed up in ``~/.nexpy/backups``). This allows the old version to
-    be restored.
 
 **Edit Settings**
     Open a dialog to modify settings for this session. It is also

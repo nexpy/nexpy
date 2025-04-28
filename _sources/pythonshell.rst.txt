@@ -1207,6 +1207,7 @@ functions, respectively.
 
   >>> nxgetconfig()
   {'compression': 'gzip',
+   'definitions': None,
    'encoding': 'utf-8',
    'lock': 0,
    'lockexpiry': 28800,
@@ -1224,6 +1225,11 @@ defaults.
 * ``compression``:
     This sets the default HDF5 compression filter. The default is
     'gzip'.
+
+* ``definitions``:
+    This sets the path to the directory containing NeXus base class and
+    application definitions. The default is None, in which case the
+    definitions installed with the package are used.
 
 * ``encoding``:
     This sets the default encoding for input strings. The default is
@@ -1282,4 +1288,4 @@ manually by calling ``nxsetconfig``.
 All of the configuration parameters defined in the previous section can
 be defined. The equivalent environment variable name is constructed by
 prefixing the parameter name in upper case by 'NX\_', *e.g.*,
-'NX_COMPRESSION', 'NX_ENCODING', *etc*.
+'NX_COMPRESSION', 'NX_DEFINITIONS', 'NX_ENCODING', *etc*.
