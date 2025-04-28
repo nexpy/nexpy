@@ -273,6 +273,23 @@ Data Menu
     attributes, are displayed. For multidimensional data, a 10 x 10 slab
     of values is displayed, with spin boxes to select the slab offsets.
 
+**Validate Data**
+    Displays a text window, in which the contents of the selected group
+    are checked against the NeXus standard. There are options to check
+    that the group contents conform to the base class or, in the case of
+    NXentry, NXsubentry, and NXroot groups, to validate the group
+    contents against an application definition. The definitions are, by
+    default, stored in the installed package, but it is possible to
+    select a different definitions directory, as well as a different
+    application definition file. The XML definition of the group's base
+    class can also be displayed.
+
+    .. image:: /images/validation-panel.png
+       :align: center
+       :width: 90%
+
+.. note:: Group validation is only available in NeXpy v2.0.0.
+
 **Add Data**
     Adds data to the selected tree item. If the selected item is a
     group, the added data can be a group or field. If the selected item
@@ -721,7 +738,7 @@ limits and parameters using text boxes and sliders.
 
     .. image:: /images/z-tab.png
        :align: center
-       :width: 75%
+       :width: 90%
 
     If the data rank is three or more, the 2D plot *vs* x and y is a
     projection along the remaining axes. The z-tab sets the limits for
@@ -772,13 +789,27 @@ limits and parameters using text boxes and sliders.
 
     .. image:: /images/projection-tab.png
        :align: center
-       :width: 75%
+       :width: 90%
 
-    The projection tab allows the data to be projected along one or two
-    dimensions. The limits are set by the x, y, and z-tabs, while the
-    projection axes are selected using the dropdown boxes. For a
-    one-dimensional projection, select 'None' from the y box. This is a
-    short-cut to making projections with the Projection Panel.
+    The projection tab allows the Projection, Limits, and Scan panels to
+    be opened. In v2.0.0, it also allows the aspect ratio and skew angle
+    to be defined and a new plot window to be opened containing the
+    currently plotted two-dimensional data rotated at an arbitrary
+    angle. This allows projections to be applied along non-orthogonal
+    axes.
+
+    .. note:: In v2.0.0, arbitrary one-dimensional cuts through the
+              current two-dimensional plot can be plotted in a new
+              window by dragging along the required line with the Shift
+              key depressed. Subsequent cuts will be overplotted in
+              this window until it is closed.
+
+    .. image:: /images/rotation-plot.png
+       :align: center
+       :width: 90%
+
+
+
 
 **Options Tab**
 
@@ -1293,28 +1324,30 @@ specific to a specialized application.
 
 Installing Plugins
 ^^^^^^^^^^^^^^^^^^
-NeXpy searches for plugin modules in two ways.
+NeXpy plugins are contained within external packages, which are
+installed separately. The package metadata should declare an entry point
+labelled ``nexpy.plugins``, which points to the package module
+containing the plugin code. Details of what this code should contain are
+given in the next section.
 
-1. The plugin code can be installed using the ``Install Plugin...``
-   dialog either locally in the user's ``~/.nexpy/plugins``directory or
-   in the ``nexpy.plugins`` directory within the installed NeXpy
-   distribution.
+An example package, that is installable using ``pip install  .`` is
+available in the NeXpy package examples directory.
 
-2. The plugin code can be contained within an external installed
-   package, which declares an entry point labelled ``nexpy.plugins``. An
-   example package, that is installable using ``pip install .`` is
-   available in the NeXpy package examples directory.
+.. note:: The plugin code can also be installed in the user's home
+          directory (in ``~/.nexpy/plugins``), which will be searched
+          on startup for any valid plugin modules. These do not have to
+          be configured as installable packages. However, in v2.0.0,
+          plugins can no longer be installed into the NeXpy pacakge
+          itself.
 
-   .. note:: The second method was introduced in NeXpy v1.0.3. It is
-             recommended for new plugins.
+In v2.0.0, a new "Manage Plugins" dialog allows any plugins to be
+enabled/disabled, and their order in the menu bar changed. Duplicate
+menu names will not be loaded, but a warning will be added to the NeXpy
+log file.
 
-Plugins are loaded from the users' directory, the NeXpy distribution's
-plugin directory, and external package entry points, *in that order*,
-for backward compatibility with existing installations. Duplicate
-plugins will not be loaded, but a warning will be added to the NeXpy log
-file. If a previously installed plugin is now available in an external
-package, please remove the prior installation using the ``Remove
-Plugin...`` dialog.
+.. image:: /images/manage-plugins.png
+   :align: center
+   :width: 60%
 
 Defining Plugins
 ^^^^^^^^^^^^^^^^
@@ -1340,9 +1373,8 @@ Here is the structure of the ``chopper_plugin`` package::
         ├── convert_qe.py
         └── get_ei.py
 
-.. note:: If the plugin is to be installed using the
-          ``Install Plugin...`` dialog, just select the ``chopper``
-          sub-directory in the above file tree.
+.. note:: If the plugin is stored in ``~/.nexpy/plugins``, just include
+          the ``chopper`` sub-directory in the above file tree.
 
 Here is the ``pyproject.toml`` file::
 

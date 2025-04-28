@@ -305,6 +305,23 @@ or a field. All the metadata associated with the item, including any
 attributes, are displayed. For multidimensional data, a 10 x 10 slab
 of values is displayed, with spin boxes to select the slab offsets.</p>
 </dd>
+<dt><strong>Validate Data</strong></dt><dd><p>Displays a text window, in which the contents of the selected group
+are checked against the NeXus standard. There are options to check
+that the group contents conform to the base class or, in the case of
+NXentry, NXsubentry, and NXroot groups, to validate the group
+contents against an application definition. The definitions are, by
+default, stored in the installed package, but it is possible to
+select a different definitions directory, as well as a different
+application definition file. The XML definition of the group’s base
+class can also be displayed.</p>
+<a class="reference internal image-reference" href="_images/validation-panel.png"><img alt="_images/validation-panel.png" class="align-center" src="_images/validation-panel.png" style="width: 90%;" /></a>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Group validation is only available in NeXpy v2.0.0.</p>
+</div>
+<dl>
 <dt><strong>Add Data</strong></dt><dd><p>Adds data to the selected tree item. If the selected item is a
 group, the added data can be a group or field. If the selected item
 is a field, the added data must be a field attribute.</p>
@@ -752,7 +769,7 @@ used for numerical analysis with caution.</p></li>
 </div></blockquote>
 <p><strong>Z Tab</strong></p>
 <blockquote>
-<div><a class="reference internal image-reference" href="_images/z-tab.png"><img alt="_images/z-tab.png" class="align-center" src="_images/z-tab.png" style="width: 75%;" /></a>
+<div><a class="reference internal image-reference" href="_images/z-tab.png"><img alt="_images/z-tab.png" class="align-center" src="_images/z-tab.png" style="width: 90%;" /></a>
 <p>If the data rank is three or more, the 2D plot <em>vs</em> x and y is a
 projection along the remaining axes. The z-tab sets the limits for
 those projections. It contains a dropdown menu for selecting the
@@ -801,12 +818,22 @@ frame interval by a factor two.</p>
 </div></blockquote>
 <p><strong>Projection Tab</strong></p>
 <blockquote>
-<div><a class="reference internal image-reference" href="_images/projection-tab.png"><img alt="_images/projection-tab.png" class="align-center" src="_images/projection-tab.png" style="width: 75%;" /></a>
-<p>The projection tab allows the data to be projected along one or two
-dimensions. The limits are set by the x, y, and z-tabs, while the
-projection axes are selected using the dropdown boxes. For a
-one-dimensional projection, select ‘None’ from the y box. This is a
-short-cut to making projections with the Projection Panel.</p>
+<div><a class="reference internal image-reference" href="_images/projection-tab.png"><img alt="_images/projection-tab.png" class="align-center" src="_images/projection-tab.png" style="width: 90%;" /></a>
+<p>The projection tab allows the Projection, Limits, and Scan panels to
+be opened. In v2.0.0, it also allows the aspect ratio and skew angle
+to be defined and a new plot window to be opened containing the
+currently plotted two-dimensional data rotated at an arbitrary
+angle. This allows projections to be applied along non-orthogonal
+axes.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>In v2.0.0, arbitrary one-dimensional cuts through the
+current two-dimensional plot can be plotted in a new
+window by dragging along the required line with the Shift
+key depressed. Subsequent cuts will be overplotted in
+this window until it is closed.</p>
+</div>
+<a class="reference internal image-reference" href="_images/rotation-plot.png"><img alt="_images/rotation-plot.png" class="align-center" src="_images/rotation-plot.png" style="width: 90%;" /></a>
 </div></blockquote>
 <p><strong>Options Tab</strong></p>
 <blockquote>
@@ -1313,30 +1340,27 @@ bar with sub-menus that open GUI dialogs orperform operations that are
 specific to a specialized application.</p>
 <div class="section" id="installing-plugins">
 <h3>Installing Plugins<a class="headerlink" href="#installing-plugins" title="Permalink to this headline">¶</a></h3>
-<p>NeXpy searches for plugin modules in two ways.</p>
-<ol class="arabic">
-<li><p>The plugin code can be installed using the <code class="docutils literal notranslate"><span class="pre">Install</span> <span class="pre">Plugin...</span></code>
-dialog either locally in the user’s <code class="docutils literal notranslate"><span class="pre">~/.nexpy/plugins``directory</span> <span class="pre">or</span>
-<span class="pre">in</span> <span class="pre">the</span> <span class="pre">``nexpy.plugins</span></code> directory within the installed NeXpy
-distribution.</p></li>
-<li><p>The plugin code can be contained within an external installed
-package, which declares an entry point labelled <code class="docutils literal notranslate"><span class="pre">nexpy.plugins</span></code>. An
-example package, that is installable using <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">.</span></code> is
+<p>NeXpy plugins are contained within external packages, which are
+installed separately. The package metadata should declare an entry point
+labelled <code class="docutils literal notranslate"><span class="pre">nexpy.plugins</span></code>, which points to the package module
+containing the plugin code. Details of what this code should contain are
+given in the next section.</p>
+<p>An example package, that is installable using <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span>&#160; <span class="pre">.</span></code> is
 available in the NeXpy package examples directory.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>The second method was introduced in NeXpy v1.0.3. It is
-recommended for new plugins.</p>
+<p>The plugin code can also be installed in the user’s home
+directory (in <code class="docutils literal notranslate"><span class="pre">~/.nexpy/plugins</span></code>), which will be searched
+on startup for any valid plugin modules. These do not have to
+be configured as installable packages. However, in v2.0.0,
+plugins can no longer be installed into the NeXpy pacakge
+itself.</p>
 </div>
-</li>
-</ol>
-<p>Plugins are loaded from the users’ directory, the NeXpy distribution’s
-plugin directory, and external package entry points, <em>in that order</em>,
-for backward compatibility with existing installations. Duplicate
-plugins will not be loaded, but a warning will be added to the NeXpy log
-file. If a previously installed plugin is now available in an external
-package, please remove the prior installation using the <code class="docutils literal notranslate"><span class="pre">Remove</span>
-<span class="pre">Plugin...</span></code> dialog.</p>
+<p>In v2.0.0, a new “Manage Plugins” dialog allows any plugins to be
+enabled/disabled, and their order in the menu bar changed. Duplicate
+menu names will not be loaded, but a warning will be added to the NeXpy
+log file.</p>
+<a class="reference internal image-reference" href="_images/manage-plugins.png"><img alt="_images/manage-plugins.png" class="align-center" src="_images/manage-plugins.png" style="width: 60%;" /></a>
 </div>
 <div class="section" id="defining-plugins">
 <h3>Defining Plugins<a class="headerlink" href="#defining-plugins" title="Permalink to this headline">¶</a></h3>
@@ -1362,9 +1386,8 @@ sub-menu items to perform data analysis on the example file,
 </div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>If the plugin is to be installed using the
-<code class="docutils literal notranslate"><span class="pre">Install</span> <span class="pre">Plugin...</span></code> dialog, just select the <code class="docutils literal notranslate"><span class="pre">chopper</span></code>
-sub-directory in the above file tree.</p>
+<p>If the plugin is stored in <code class="docutils literal notranslate"><span class="pre">~/.nexpy/plugins</span></code>, just include
+the <code class="docutils literal notranslate"><span class="pre">chopper</span></code> sub-directory in the above file tree.</p>
 </div>
 <p>Here is the <code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code> file:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">build</span><span class="o">-</span><span class="n">system</span><span class="p">]</span>

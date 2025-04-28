@@ -1012,8 +1012,8 @@ assuming the signal is one-dimensional:</p>
 </div>
 <div class="section" id="slicing">
 <h3>Slicing<a class="headerlink" href="#slicing" title="Permalink to this headline">¶</a></h3>
-<div class="section" id="id1">
-<h4>NXfield<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="nxfields">
+<h4>NXfields<a class="headerlink" href="#nxfields" title="Permalink to this headline">¶</a></h4>
 <p>A slice of an NXfield can be obtained using the usual Python indexing
 syntax:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">=</span><span class="n">NXfield</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span><span class="mi">101</span><span class="p">))</span>
@@ -1028,8 +1028,8 @@ values themselves (assuming the array is monotonic):</p>
 </pre></div>
 </div>
 </div>
-<div class="section" id="id2">
-<h4>NXdata<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id1">
+<h4>NXdata Groups<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h4>
 <p>It is also possible to slice whole NXdata groups. In this case, the
 slicing works on the multidimensional NXfield, but the full NXdata group
 is returned with both the signal data and the associated axes limited by
@@ -1129,6 +1129,63 @@ saved for later use, <em>e.g.</em>, to store an NXsample group that will be
 added to other files. The saved NeXus object is wrapped in an NXroot
 group and an NXentry group (with name ‘entry’), if necessary, in order
 to produce a valid NeXus file.</p>
+</div>
+</div>
+<div class="section" id="validating-nexus-data">
+<h2>Validating NeXus Data<a class="headerlink" href="#validating-nexus-data" title="Permalink to this headline">¶</a></h2>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Validation is only possible in v2.0.0. See <a class="reference internal" href="includeme.html"><span class="doc">Installation</span></a>
+for more details.</p>
+</div>
+<p>NeXus groups can be checked against the current definitions of the NeXus
+standard to look for non-compliant entries. The results are colorized,
+with errors printed in red, warnings printed in orange, and
+informational messages in black. Keyword arguments allow the results to
+be filtered, with only warnings and errors output by default.</p>
+<p>NXgroup objects have the following methods.</p>
+<ul>
+<li><dl>
+<dt>check():</dt><dd><p>This checks the contents of the NeXus group and its children against
+the base class definition.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">root</span><span class="p">[</span><span class="s1">&#39;entry/sample&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">check</span><span class="p">(</span><span class="n">errors</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</li>
+<li><dl>
+<dt>validate():</dt><dd><p>This validates a NXentry group against the application definition
+specified by the <code class="docutils literal notranslate"><span class="pre">definition</span></code> field or against another file
+specified as a keyword argument. This checks that the fields and
+groups required by the application definition are included. This
+method can only be applied to NXentry, NXsubentry, and NXroot groups
+(in which the first entry is selected).</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">root</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">info</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</li>
+<li><dl>
+<dt>inspect():</dt><dd><p>This displays the base class definition as formatted XML.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">root</span><span class="p">[</span><span class="s1">&#39;entry&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">inspect</span><span class="p">(</span><span class="n">info</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>By default, the groups are compared against the NeXus
+definition files contained within the package. Alternative
+definitions my be defined, either by setting the path to the
+definitions directory using <cite>nxgetconfig(definitions=”/path/
+to/definitions”)</cite> or by defining the NX_DEFINITIONS
+environment variable. The path should contain subdirectories
+named ‘base_classes’, ‘applications’ and
+‘contributed_definitions’.</p>
 </div>
 </div>
 <div class="section" id="nexus-file-operations">
@@ -1419,8 +1476,8 @@ prefixing the parameter name in upper case by ‘NX_’, <em>e.g.</em>,
 </ul>
 </li>
 <li><a class="reference internal" href="#slicing">Slicing</a><ul>
-<li><a class="reference internal" href="#id1">NXfield</a></li>
-<li><a class="reference internal" href="#id2">NXdata</a></li>
+<li><a class="reference internal" href="#nxfields">NXfields</a></li>
+<li><a class="reference internal" href="#id1">NXdata Groups</a></li>
 </ul>
 </li>
 </ul>
@@ -1430,6 +1487,7 @@ prefixing the parameter name in upper case by ‘NX_’, <em>e.g.</em>,
 <li><a class="reference internal" href="#other-objects">Other Objects</a></li>
 </ul>
 </li>
+<li><a class="reference internal" href="#validating-nexus-data">Validating NeXus Data</a></li>
 <li><a class="reference internal" href="#nexus-file-operations">NeXus File Operations</a><ul>
 <li><a class="reference internal" href="#multiple-operations">Multiple operations</a></li>
 <li><a class="reference internal" href="#file-locking">File Locking</a><ul>
