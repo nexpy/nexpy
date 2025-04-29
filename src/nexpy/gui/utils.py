@@ -23,6 +23,7 @@ else:
     from importlib.resources import files as package_files
 
 from importlib import metadata
+from importlib.metadata import PackageNotFoundError, entry_points
 from importlib.util import module_from_spec, spec_from_file_location
 from pathlib import Path
 from threading import Thread
@@ -697,15 +698,16 @@ def load_plugin(plugin, order=None):
         menu, actions = module.plugin_menu()
         return {'package': package, 'menu': menu, 'actions': actions,
                 'order': order}
-    elif plugin in [e.module for
-                    e in metadata.entry_points(group='nexpy.plugins')]:
-        entry = metadata.entry_points(module=plugin)[0]
-        package = entry.dist.name
-        menu, actions = entry.load()()
-        return {'package': package, 'menu': menu, 'actions': actions,
-                'order': order}
     else:
-        raise NeXusError(f'"{plugin}" is not a valid plugin')
+        entry = next((e for e in entry_points()['nexpy.plugins']
+                      if e.module == plugin), None)
+        if entry is not None:
+            package = entry.dist.name
+            menu, actions = entry.load()()
+            return {'package': package, 'menu': menu, 'actions': actions,
+                    'order': order}
+        else:
+            raise PackageNotFoundError(f"'{plugin}' is not installed")
 
 def import_plugin(plugin_name, plugin_path):
     """
@@ -751,7 +753,7 @@ def is_installed(package_name):
     try:
         metadata.version(package_name)
         return True
-    except metadata.PackageNotFoundError:
+    except PackageNotFoundError:
         return False
 
 

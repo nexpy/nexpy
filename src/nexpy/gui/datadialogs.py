@@ -4712,7 +4712,10 @@ class ManagePluginsDialog(NXDialog):
         self.settings = self.mainwindow.settings
         for plugin in [p for p in self.settings.options('plugins')
                        if p not in self.plugins]:
-            self.plugins[plugin] = load_plugin(plugin)
+            try:
+                self.plugins[plugin] = load_plugin(plugin)
+            except Exception as error:
+                report_error("Managing plugins", error)
 
         self.grid = QtWidgets.QGridLayout()
         self.grid.setSpacing(10)
