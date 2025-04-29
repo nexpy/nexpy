@@ -231,10 +231,11 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
                     plugin  = str(path)
                     if plugin not in plugins:
                         self.settings.set(plugin_group, plugin, value=None)
-            for entry in entry_points(group='nexpy.'+plugin_group):
-                plugin = entry.module
-                if plugin not in plugins:
-                    self.settings.set(plugin_group, plugin, value=None)
+            if 'nexpy.' + plugin_group in entry_points():
+                for entry in entry_points()['nexpy.'+plugin_group]:
+                    plugin = entry.module
+                    if plugin not in plugins:
+                        self.settings.set(plugin_group, plugin, value=None)
         initialize_plugin('plugins', self.plugin_dir)
         initialize_plugin('readers', self.reader_dir)
         initialize_plugin('writers', self.writer_dir)
