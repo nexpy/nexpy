@@ -28,9 +28,6 @@ from .widgets import (GridParameters, NXCheckBox, NXComboBox, NXDialog,
                       NXSpinBox, NXTab, NXWidget)
 
 
-BaseDialog = NXDialog
-
-
 class NewDialog(NXDialog):
     """Dialog to produce a new workspace in the tree view."""
 

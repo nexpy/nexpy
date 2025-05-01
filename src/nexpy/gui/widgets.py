@@ -680,9 +680,6 @@ class NXDialog(QtWidgets.QDialog, NXWidget):
         QtWidgets.QDialog.reject(self)
 
 
-BaseDialog = NXDialog
-
-
 class NXPanel(NXDialog):
 
     def __init__(self, panel, title='title', tabs={}, close=True,
