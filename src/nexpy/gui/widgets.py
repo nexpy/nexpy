@@ -9,21 +9,1296 @@
 """
 A set of customized widgets both for dialogs and plot objects.
 """
+import bisect
 import math
 import warnings
+from operator import attrgetter
+from pathlib import Path
 
 import numpy as np
 from matplotlib import colors
 from matplotlib.patches import Ellipse, Polygon, Rectangle
+from nexusformat.nexus import NeXusError, NXfield, NXroot
 
-from .pyqt import QtCore, QtGui, QtWidgets
-from .utils import (boundaries, find_nearest, format_float, get_color,
-                    natural_sort, report_error)
+from .pyqt import QtCore, QtGui, QtWidgets, getOpenFileName
+from .utils import (boundaries, confirm_action, display_message, find_nearest,
+                    format_float, get_color, natural_sort, report_error)
 
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 bold_font = QtGui.QFont()
 bold_font.setBold(True)
+
+
+class NXWidget(QtWidgets.QWidget):
+    """Customized widget for NeXpy widgets"""
+
+    def __init__(self, parent=None):
+
+        from .consoleapp import _mainwindow
+        self.mainwindow = _mainwindow
+        if parent is None:
+            parent = self.mainwindow
+        super().__init__(parent=parent)
+        self.set_attributes()
+
+    def set_attributes(self):
+        self.treeview = self.mainwindow.treeview
+        self.tree = self.treeview.tree
+        self.plotview = self.mainwindow.plotview
+        self.plotviews = self.mainwindow.plotviews
+        self.active_plotview = self.mainwindow.active_plotview
+        self.default_directory = self.mainwindow.default_directory
+        self.import_file = None     # must define in subclass
+        self.nexus_filter = ';;'.join((
+            "NeXus Files (*.nxs *.nx5 *.h5 *.hdf *.hdf5)",
+            "Any Files (*.* *)"))
+        self.textbox = {}
+        self.pushbutton = {}
+        self.checkbox = {}
+        self.radiobutton = {}
+        self.radiogroup = []
+        self.mainwindow.radiogroup = self.radiogroup
+        self.confirm_action = confirm_action
+        self.display_message = display_message
+        self.report_error = report_error
+        self.thread = None
+        self.bold_font = QtGui.QFont()
+        self.bold_font.setBold(True)
+        self.accepted = False
+
+    def set_layout(self, *items, **opts):
+        self.layout = QtWidgets.QVBoxLayout()
+        for item in items:
+            if isinstance(item, QtWidgets.QLayout):
+                self.layout.addLayout(item)
+            elif isinstance(item, QtWidgets.QWidget):
+                self.layout.addWidget(item)
+            elif item == 'stretch':
+                self.layout.addStretch()
+        spacing = opts.pop('spacing', 10)
+        self.layout.setSpacing(spacing)
+        self.setLayout(self.layout)
+        return self.layout
+
+    def make_layout(self, *items, **opts):
+        vertical = opts.pop('vertical', False)
+        align = opts.pop('align', 'center')
+        spacing = opts.pop('spacing', 20)
+        if vertical:
+            layout = QtWidgets.QVBoxLayout()
+        else:
+            layout = QtWidgets.QHBoxLayout()
+            if align == 'center' or align == 'right':
+                layout.addStretch()
+        for item in items:
+            if isinstance(item, QtWidgets.QLayout):
+                layout.addLayout(item)
+            elif isinstance(item, QtWidgets.QWidget):
+                layout.addWidget(item)
+            elif item == 'stretch':
+                layout.addStretch()
+            elif isinstance(item, str):
+                layout.addWidget(NXLabel(item))
+        if not vertical:
+            if align == 'center' or align == 'left':
+                layout.addStretch()
+        layout.setSpacing(spacing)
+        return layout
+
+    def add_layout(self, *items, stretch=False):
+        for item in items:
+            if isinstance(item, QtWidgets.QLayout):
+                self.layout.addLayout(item)
+            elif isinstance(item, QtWidgets.QWidget):
+                self.layout.addWidget(item)
+            elif isinstance(item, str):
+                self.layout.addWidget(NXLabel(item))
+        if stretch:
+            self.layout.addStretch()
+
+    def insert_layout(self, index, *items):
+        for item in reversed(list(items)):
+            if isinstance(item, QtWidgets.QLayout):
+                self.layout.insertLayout(index, item)
+            elif isinstance(item, QtWidgets.QWidget):
+                self.layout.insertWidget(index, item)
+            elif isinstance(item, str):
+                self.layout.addWidget(NXLabel(item))
+
+    def spacer(self, width=0, height=0):
+        return QtWidgets.QSpacerItem(width, height)
+
+    def widget(self, item):
+        widget = QtWidgets.QWidget()
+        widget.layout = QtWidgets.QVBoxLayout()
+        if isinstance(item, QtWidgets.QLayout):
+            widget.layout.addLayout(item)
+        elif isinstance(item, QtWidgets.QWidget):
+            widget.layout.addWidget(item)
+        widget.setVisible(True)
+        return widget
+
+    def set_title(self, title):
+        self.setWindowTitle(title)
+
+    def close_layout(self, message=None, save=False, close=False,
+                     progress=False):
+        layout = QtWidgets.QHBoxLayout()
+        self.status_message = NXLabel()
+        if message:
+            self.status_message.setText(message)
+        layout.addWidget(self.status_message)
+        if progress:
+            self.progress_bar = QtWidgets.QProgressBar()
+            layout.addWidget(self.progress_bar)
+            self.progress_bar.setVisible(False)
+        else:
+            self.progress_bar = None
+        layout.addStretch()
+        layout.addWidget(self.close_buttons(save=save, close=close))
+        return layout
+
+    def action_buttons(self, *items):
+        layout = QtWidgets.QHBoxLayout()
+        layout.addStretch()
+        for label, action in items:
+            self.pushbutton[label] = NXPushButton(label, action)
+            layout.addWidget(self.pushbutton[label])
+            layout.addStretch()
+        return layout
+
+    def label(self, label, **opts):
+        return NXLabel(str(label), **opts)
+
+    def labels(self, *labels, **opts):
+        if 'align' in opts:
+            align = opts['align']
+        else:
+            align = 'center'
+        layout = QtWidgets.QVBoxLayout()
+        for label in labels:
+            horizontal_layout = QtWidgets.QHBoxLayout()
+            if align == 'center' or align == 'right':
+                horizontal_layout.addStretch()
+            label_widget = NXLabel(str(label))
+            if 'header' in opts:
+                label_widget.setFont(self.bold_font)
+            horizontal_layout.addWidget(label_widget)
+            if align == 'center' or align == 'left':
+                horizontal_layout.addStretch()
+            layout.addLayout(horizontal_layout)
+        return layout
+
+    def textboxes(self, *items, **opts):
+        if 'layout' in opts and opts['layout'] == 'horizontal':
+            layout = QtWidgets.QHBoxLayout()
+        else:
+            layout = QtWidgets.QVBoxLayout()
+        for item in items:
+            label, value = item
+            item_layout = QtWidgets.QHBoxLayout()
+            label_box = NXLabel(label)
+            self.textbox[label] = NXLineEdit(value)
+            item_layout.addWidget(label_box)
+            item_layout.addWidget(self.textbox[label])
+            layout.addLayout(item_layout)
+        return layout
+
+    def checkboxes(self, *items, **opts):
+        if 'align' in opts:
+            align = opts['align']
+        else:
+            align = 'center'
+        if 'vertical' in opts and opts['vertical'] is True:
+            layout = QtWidgets.QVBoxLayout()
+        else:
+            layout = QtWidgets.QHBoxLayout()
+        if align != 'left':
+            layout.addStretch()
+        for label, text, checked in items:
+            self.checkbox[label] = NXCheckBox(text)
+            self.checkbox[label].setChecked(checked)
+            layout.addWidget(self.checkbox[label])
+            layout.addStretch()
+        return layout
+
+    def radiobuttons(self, *items, **opts):
+        if 'align' in opts:
+            align = opts['align']
+        else:
+            align = 'center'
+        if 'vertical' in opts and opts['vertical'] is True:
+            layout = QtWidgets.QVBoxLayout()
+        else:
+            layout = QtWidgets.QHBoxLayout()
+        group = QtWidgets.QButtonGroup()
+        if 'slot' in opts:
+            group.buttonClicked.connect(opts['slot'])
+        self.radiogroup.append(group)
+        if align != 'left':
+            layout.addStretch()
+        for label, text, checked in items:
+            self.radiobutton[label] = QtWidgets.QRadioButton(text)
+            self.radiobutton[label].setChecked(checked)
+            layout.addWidget(self.radiobutton[label])
+            layout.addStretch()
+            group.addButton(self.radiobutton[label])
+        return layout
+
+    def filebox(self, text="Choose File", slot=None):
+        """
+        Creates a text box and button for selecting a file.
+        """
+        if slot:
+            self.filebutton = NXPushButton(text, slot)
+        else:
+            self.filebutton = NXPushButton(text, self.choose_file)
+        self.filename = NXLineEdit(parent=self)
+        self.filename.setMinimumWidth(300)
+        filebox = QtWidgets.QHBoxLayout()
+        filebox.addWidget(self.filebutton)
+        filebox.addWidget(self.filename)
+        return filebox
+
+    def directorybox(self, text="Choose Directory", slot=None, default=True,
+                     suggestion=None):
+        """
+        Creates a text box and button for selecting a directory.
+        """
+        if slot:
+            self.directorybutton = NXPushButton(text, slot)
+        else:
+            self.directorybutton = NXPushButton(text, self.choose_directory)
+        self.directoryname = NXLineEdit(parent=self)
+        self.directoryname.setMinimumWidth(300)
+        default_directory = self.get_default_directory(suggestion=suggestion)
+        if default and default_directory:
+            self.directoryname.setText(default_directory)
+        directorybox = QtWidgets.QHBoxLayout()
+        directorybox.addWidget(self.directorybutton)
+        directorybox.addWidget(self.directoryname)
+        return directorybox
+
+    def choose_file(self):
+        """
+        Opens a file dialog and sets the file text box to the chosen path.
+        """
+        dirname = self.get_default_directory(self.filename.text())
+        filename = Path(getOpenFileName(self, 'Open File', dirname))
+        if filename.exists():
+            self.filename.setText(str(filename))
+            self.set_default_directory(filename.parent)
+
+    def get_filename(self):
+        """
+        Returns the selected file.
+        """
+        return self.filename.text()
+
+    def choose_directory(self):
+        """Opens a file dialog and sets the directory text box to the path."""
+        dirname = str(self.get_default_directory())
+        dirname = QtWidgets.QFileDialog.getExistingDirectory(
+            self, 'Choose Directory', dirname)
+        if Path(dirname).exists():  # avoids problems if <Cancel> was selected
+            self.directoryname.setText(str(dirname))
+            self.set_default_directory(dirname)
+
+    def get_directory(self):
+        """Return the selected directory."""
+        return self.directoryname.text()
+
+    def get_default_directory(self, suggestion=None):
+        """Return the most recent default directory for open/save dialogs."""
+        if suggestion is None or not Path(suggestion).exists():
+            suggestion = self.default_directory
+        suggestion = Path(suggestion)
+        if suggestion.exists():
+            if not suggestion.is_dir:
+                suggestion = suggestion.parent
+        suggestion = suggestion.resolve()
+        return suggestion
+
+    def set_default_directory(self, suggestion):
+        """Defines the default directory to use for open/save dialogs."""
+        suggestion = Path(suggestion)
+        if suggestion.exists():
+            if not suggestion.is_dir():
+                suggestion = suggestion.parent
+            self.default_directory = suggestion
+            self.mainwindow.default_directory = self.default_directory
+
+    def get_filesindirectory(self, prefix='', extension='.*', directory=None):
+        """
+        Returns a list of files in the selected directory.
+
+        The files are sorted using a natural sort algorithm that preserves the
+        numeric order when a file name consists of text and index so that,
+        e.g., 'data2.tif' comes before 'data10.tif'.
+        """
+        if directory:
+            directory = Path(directory)
+        else:
+            directory = Path(self.get_directory())
+        if not extension.startswith('.'):
+            extension = '.'+extension
+        return sorted(directory.glob(prefix+'*'+extension), key=natural_sort)
+
+    def select_box(self, choices, default=None, slot=None):
+        box = NXComboBox()
+        for choice in choices:
+            box.add(choice)
+        if default in choices:
+            idx = box.findText(default)
+            box.setCurrentIndex(idx)
+        else:
+            box.setCurrentIndex(0)
+        if slot:
+            box.currentIndexChanged.connect(slot)
+        return box
+
+    def select_root(self, slot=None, text='Select Root'):
+        layout = QtWidgets.QHBoxLayout()
+        if not self.tree.entries:
+            raise NeXusError("No entries in the NeXus tree")
+        self.root_box = NXComboBox(
+            items=sorted(self.tree.entries, key=natural_sort))
+        try:
+            self.root_box.select(self.treeview.node.nxroot.nxname)
+        except Exception:
+            pass
+        layout.addWidget(self.root_box)
+        if slot:
+            layout.addWidget(NXPushButton(text, slot))
+        layout.addStretch()
+        self.root_layout = layout
+        return layout
+
+    @property
+    def root(self):
+        return self.tree[self.root_box.currentText()]
+
+    def select_entry(self, slot=None, text='Select Entry'):
+        layout = QtWidgets.QHBoxLayout()
+        if not self.tree.entries:
+            raise NeXusError("No entries in the NeXus tree")
+        self.root_box = NXComboBox(
+            slot=self.switch_root,
+            items=sorted(self.tree.entries, key=natural_sort))
+        try:
+            self.root_box.select(self.treeview.node.nxroot.nxname)
+        except Exception:
+            pass
+        self.entry_box = NXComboBox(
+            items=sorted(self.tree[self.root_box.selected].entries,
+                         key=natural_sort))
+        try:
+            if not isinstance(self.treeview.node, NXroot):
+                self.entry_box.select(self.treeview.node.nxentry.nxname)
+        except Exception:
+            pass
+        self.data_box = None
+        layout.addStretch()
+        layout.addWidget(self.root_box)
+        layout.addWidget(self.entry_box)
+        if slot:
+            layout.addWidget(NXPushButton(text, slot))
+        layout.addStretch()
+        self.entry_layout = layout
+        return layout
+
+    def switch_root(self):
+        self.entry_box.clear()
+        self.entry_box.add(*sorted(self.tree[self.root_box.selected].entries))
+        if self.data_box:
+            self.switch_entry()
+
+    @property
+    def entry(self):
+        return self.tree[f"{self.root_box.selected}/{self.entry_box.selected}"]
+
+    def select_data(self, slot=None, text='Select Data'):
+        layout = QtWidgets.QHBoxLayout()
+        if not self.tree.entries:
+            raise NeXusError("No entries in the NeXus tree")
+        self.root_box = NXComboBox(
+            slot=self.switch_root,
+            items=sorted(self.tree.entries, key=natural_sort))
+        try:
+            self.root_box.select(self.treeview.node.nxroot.nxname)
+        except Exception:
+            pass
+        self.entry_box = NXComboBox(
+            slot=self.switch_entry,
+            items=sorted(self.tree[self.root_box.selected].entries,
+                         key=natural_sort))
+        try:
+            if not isinstance(self.treeview.node, NXroot):
+                self.entry_box.select(self.treeview.node.nxentry.nxname)
+        except Exception:
+            pass
+        entry_path = Path(self.entry.nxpath)
+        paths = []
+        for node in self.entry.walk():
+            if node.nxclass == 'NXdata':
+                paths.append(str(Path(node.nxpath).relative_to(entry_path)))
+        self.data_box = NXComboBox(items=sorted(paths, key=natural_sort))
+        try:
+            if not isinstance(self.treeview.node, NXroot):
+                self.data_box.select(self.treeview.node.nxentry.nxname)
+        except Exception:
+            pass
+        layout.addStretch()
+        layout.addWidget(self.root_box)
+        layout.addWidget(self.entry_box)
+        layout.addWidget(self.data_box)
+        if slot:
+            layout.addWidget(NXPushButton(text, slot))
+        layout.addStretch()
+        self.entry_layout = layout
+        return layout
+
+    def switch_entry(self):
+        self.data_box.clear()
+        entry_path = Path(self.entry.nxpath)
+        paths = []
+        for node in self.entry.walk():
+            if node.nxclass == 'NXdata':
+                paths.append(str(Path(node.nxpath).relative_to(entry_path)))
+        self.data_box.add(*sorted(paths, key=natural_sort))
+
+    @property
+    def selected_data(self):
+        return self.tree[
+            f"{self.root_box.selected}/{self.entry_box.selected}/"
+            f"{self.data_box.selected}"]
+
+    def read_parameter(self, root, path):
+        """
+        Read the value from the NeXus path.
+
+        It will return 'None' if the path is not valid.
+        """
+        try:
+            value = root[path].nxdata
+            if isinstance(value, np.ndarray) and value.size == 1:
+                return np.float32(value)
+            else:
+                return value
+        except NeXusError:
+            return None
+
+    def parameter_stack(self, parameters, width=None):
+        """Initialize layouts containing a grid selection box and each grid."""
+        return NXStack([p for p in parameters],
+                       [parameters[p].widget(header=False, width=width)
+                        for p in parameters])
+
+    def grid(self, rows, cols, headers=None, spacing=10):
+        pass
+
+    def hide_grid(self, grid):
+        for row in range(grid.rowCount()):
+            for column in range(grid.columnCount()):
+                item = grid.itemAtPosition(row, column)
+                if item is not None:
+                    widget = item.widget()
+                    if widget is not None:
+                        widget.setVisible(False)
+
+    def show_grid(self, grid):
+        for row in range(grid.rowCount()):
+            for column in range(grid.columnCount()):
+                item = grid.itemAtPosition(row, column)
+                if item is not None:
+                    widget = item.widget()
+                    if widget is not None:
+                        widget.setVisible(True)
+
+    def delete_grid(self, grid):
+        for row in range(grid.rowCount()):
+            for column in range(grid.columnCount()):
+                item = grid.itemAtPosition(row, column)
+                if item is not None:
+                    widget = item.widget()
+                    if widget is not None:
+                        widget.setVisible(False)
+                        grid.removeWidget(widget)
+                        widget.deleteLater()
+        grid.deleteLater()
+
+    def start_progress(self, limits):
+        start, stop = limits
+        if self.progress_bar:
+            self.progress_bar.setVisible(True)
+            self.progress_bar.setRange(start, stop)
+            self.progress_bar.setValue(start)
+            self.status_message.setVisible(False)
+
+    def update_progress(self, value=None):
+        """
+        Call the main QApplication.processEvents
+
+        This ensures that GUI items like progress bars get updated
+        """
+        if self.progress_bar and value is not None:
+            self.progress_bar.setValue(value)
+        self.mainwindow._app.processEvents()
+
+    def stop_progress(self):
+        if self.progress_bar:
+            self.progress_bar.setVisible(False)
+        self.status_message.setVisible(True)
+
+    def progress_layout(self, save=False, close=False):
+        return self.close_layout(save=save, close=close, progress=True)
+
+    def get_node(self):
+        """
+        Return the node currently selected in the treeview
+        """
+        return self.treeview.get_node()
+
+    def start_thread(self):
+        if self.thread:
+            self.stop_thread()
+        self.thread = QtCore.QThread()
+        return self.thread
+
+    def stop_thread(self):
+        if isinstance(self.thread, QtCore.QThread):
+            self.thread.exit()
+            self.thread.wait()
+            self.thread.deleteLater()
+        self.thread = None
+
+    def resize(self, width=None, height=None):
+        self.mainwindow._app.processEvents()
+        self.adjustSize()
+        self.mainwindow._app.processEvents()
+        if width is None or height is None:
+            super().resize(self.minimumSizeHint())
+        else:
+            super().resize(width, height)
+
+    def update(self):
+        pass
+
+    def activate(self):
+        self.setVisible(True)
+        self.raise_()
+        self.activateWindow()
+        self.setFocus()
+
+    def closeEvent(self, event):
+        self.stop_thread()
+        event.accept()
+
+
+class NXDialog(QtWidgets.QDialog, NXWidget):
+    """Base dialog class for NeXpy dialogs"""
+
+    def __init__(self, parent=None, default=False):
+        from .consoleapp import _mainwindow
+        self.mainwindow = _mainwindow
+        if parent is None:
+            parent = self.mainwindow
+        QtWidgets.QDialog.__init__(self, parent=parent)
+        self.set_attributes()
+        self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
+        self.setSizeGripEnabled(True)
+        self.mainwindow.dialogs.append(self)
+        if not default:
+            self.installEventFilter(self)
+
+    def __repr__(self):
+        return 'NXDialog(' + self.__class__.__name__ + ')'
+
+    def close_buttons(self, save=False, close=False):
+        """
+        Creates a box containing the standard Cancel and OK buttons.
+        """
+        self.close_box = QtWidgets.QDialogButtonBox(self)
+        self.close_box.setOrientation(QtCore.Qt.Horizontal)
+        if save:
+            self.close_box.setStandardButtons(
+                QtWidgets.QDialogButtonBox.Cancel |
+                QtWidgets.QDialogButtonBox.Save)
+        elif close:
+            self.close_box.setStandardButtons(QtWidgets.QDialogButtonBox.Close)
+        else:
+            self.close_box.setStandardButtons(
+                QtWidgets.QDialogButtonBox.Cancel |
+                QtWidgets.QDialogButtonBox.Ok)
+        self.close_box.accepted.connect(self.accept)
+        self.close_box.rejected.connect(self.reject)
+        return self.close_box
+
+    buttonbox = close_buttons  # For backward compatibility
+
+    def eventFilter(self, widget, event):
+        """Prevent closure of dialog when pressing [Return] or [Enter]"""
+        if event.type() == QtCore.QEvent.KeyPress:
+            key = event.key()
+            if key == QtCore.Qt.Key_Return or key == QtCore.Qt.Key_Enter:
+                event = QtGui.QKeyEvent(QtCore.QEvent.KeyPress,
+                                        QtCore.Qt.Key_Tab,
+                                        QtCore.Qt.NoModifier)
+                QtCore.QCoreApplication.postEvent(widget, event)
+                return True
+            elif key == QtCore.Qt.Key_Escape:
+                event.ignore()
+                return True
+        return QtWidgets.QWidget.eventFilter(self, widget, event)
+
+    def closeEvent(self, event):
+        try:
+            self.mainwindow.dialogs.remove(self)
+        except Exception:
+            pass
+        event.accept()
+
+    def accept(self):
+        """
+        Accepts the result.
+
+        This usually needs to be subclassed in each dialog.
+        """
+        self.accepted = True
+        if self in self.mainwindow.dialogs:
+            self.mainwindow.dialogs.remove(self)
+        QtWidgets.QDialog.accept(self)
+
+    def reject(self):
+        """
+        Cancels the dialog without saving the result.
+        """
+        self.accepted = False
+        if self in self.mainwindow.dialogs:
+            self.mainwindow.dialogs.remove(self)
+        QtWidgets.QDialog.reject(self)
+
+
+BaseDialog = NXDialog
+
+
+class NXPanel(NXDialog):
+
+    def __init__(self, panel, title='title', tabs={}, close=True,
+                 apply=True, reset=True, parent=None):
+        super().__init__(parent=parent)
+        self.tab_class = NXTab
+        self.plotview_sort = False
+        self.tabwidget = QtWidgets.QTabWidget(parent=self)
+        self.tabwidget.currentChanged.connect(self.update)
+        self.tabwidget.setElideMode(QtCore.Qt.ElideLeft)
+        self.tabs = {}
+        self.labels = {}
+        self.panel = panel
+        self.title = title
+        for label in tabs:
+            self.tabs[label] = tabs[label]
+            self.labels[tabs[label]] = label
+        if close:
+            self.set_layout(self.tabwidget, self.close_buttons(apply, reset))
+        else:
+            self.set_layout(self.tabwidget)
+        self.set_title(title)
+
+    def __repr__(self):
+        return f'NXPanel("{self.panel}")'
+
+    def __contains__(self, label):
+        """Implements 'k in d' test"""
+        return label in self.tabs
+
+    def close_buttons(self, apply=True, reset=True):
+        """
+        Creates a box containing the standard Apply, Reset and Close buttons.
+        """
+        box = QtWidgets.QDialogButtonBox(self)
+        box.setOrientation(QtCore.Qt.Horizontal)
+        if apply and reset:
+            box.setStandardButtons(QtWidgets.QDialogButtonBox.Apply |
+                                   QtWidgets.QDialogButtonBox.Reset |
+                                   QtWidgets.QDialogButtonBox.Close)
+        elif apply:
+            box.setStandardButtons(QtWidgets.QDialogButtonBox.Apply |
+                                   QtWidgets.QDialogButtonBox.Close)
+        elif reset:
+            box.setStandardButtons(QtWidgets.QDialogButtonBox.Reset |
+                                   QtWidgets.QDialogButtonBox.Close)
+        else:
+            box.setStandardButtons(QtWidgets.QDialogButtonBox.Close)
+        box.setFocusPolicy(QtCore.Qt.NoFocus)
+        if apply:
+            self.apply_button = box.button(QtWidgets.QDialogButtonBox.Apply)
+            self.apply_button.setFocusPolicy(QtCore.Qt.StrongFocus)
+            self.apply_button.setDefault(True)
+            self.apply_button.clicked.connect(self.apply)
+        if reset:
+            self.reset_button = box.button(QtWidgets.QDialogButtonBox.Reset)
+            self.reset_button.setFocusPolicy(QtCore.Qt.StrongFocus)
+            self.reset_button.clicked.connect(self.reset)
+        self.close_button = box.button(QtWidgets.QDialogButtonBox.Close)
+        self.close_button.setFocusPolicy(QtCore.Qt.StrongFocus)
+        self.close_button.clicked.connect(self.close)
+        self.close_box = box
+        return self.close_box
+
+    @property
+    def tab(self):
+        return self.tabwidget.currentWidget()
+
+    @tab.setter
+    def tab(self, label):
+        self.tabwidget.setCurrentWidget(self.tabs[label])
+
+    @property
+    def count(self):
+        return self.tabwidget.count()
+
+    def tab_list(self):
+        if self.plotview_sort:
+            return [tab.tab_label for tab in
+                    sorted(self.labels, key=attrgetter('plotview.number'))]
+        else:
+            return sorted(self.tabs)
+
+    def add(self, label, tab=None, idx=None):
+        if label in self.tabs:
+            raise NeXusError(f"'{label}' already in {self.title}")
+        self.tabs[label] = tab
+        self.labels[tab] = label
+        tab.panel = self
+        if idx is not None:
+            self.tabwidget.insertTab(idx, tab, label)
+        else:
+            self.tabwidget.addTab(tab, label)
+        self.tabwidget.setCurrentWidget(tab)
+        self.tabwidget.tabBar().setTabToolTip(self.tabwidget.indexOf(tab),
+                                              label)
+
+    def remove(self, label):
+        if label in self.tabs:
+            removed_tab = self.tabs[label]
+            if removed_tab.copybox:
+                for tab in [self.tabs[label] for label in self.tabs
+                            if self.tabs[label] is not removed_tab]:
+                    if label in tab.copybox:
+                        tab.copybox.remove(label)
+                    if len(tab.copybox.items()) == 0:
+                        tab.copywidget.setVisible(False)
+            removed_tab.close()
+            self.tabwidget.removeTab(self.tabwidget.indexOf(removed_tab))
+            del self.labels[self.tabs[label]]
+            del self.tabs[label]
+            removed_tab.deleteLater()
+        if self.count == 0:
+            self.setVisible(False)
+
+    def idx(self, label):
+        if self.plotview_sort and label in self.plotviews:
+            pv = self.plotviews[label]
+            numbers = sorted([t.plotview.number for t in self.labels])
+            return bisect.bisect_left(numbers, pv.number)
+        else:
+            return bisect.bisect_left(sorted(list(self.tabs)), label)
+
+    def activate(self, label, *args, **kwargs):
+        if label not in self.tabs:
+            kwargs['parent'] = self
+            tab = self.tab_class(label, *args, **kwargs)
+            self.add(label, tab, idx=self.idx(label))
+        else:
+            self.tab = label
+            self.tab.update()
+        self.update()
+        self.setVisible(True)
+        self.raise_()
+        self.activateWindow()
+
+    def update(self):
+        if self.count > 0:
+            for tab in [self.tabs[label] for label in self.tabs
+                        if self.tabs[label] is not self.tab]:
+                tab.setSizePolicy(QtWidgets.QSizePolicy.Ignored,
+                                  QtWidgets.QSizePolicy.Ignored)
+            self.tab.setSizePolicy(QtWidgets.QSizePolicy.Minimum,
+                                   QtWidgets.QSizePolicy.Minimum)
+            self.tab.resize()
+            self.resize()
+
+    def copy(self):
+        self.tab.copy()
+
+    def reset(self):
+        self.tab.reset()
+
+    def apply(self):
+        self.tab.apply()
+
+    def cleanup(self):
+        """Close all tabs and panels."""
+        try:
+            if self.count > 0:
+                for tab in self.tabs:
+                    self.tabs[tab].close()
+        except Exception:
+            pass
+        try:
+            if self.panel in self.mainwindow.panels:
+                del self.mainwindow.panels[self.panel]
+        except Exception:
+            pass
+        try:
+            if self.panel in self.plotviews:
+                self.plotviews[self.panel].close()
+        except Exception:
+            pass
+        try:
+            if self in self.mainwindow.dialogs:
+                self.mainwindow.dialogs.remove(self)
+        except Exception:
+            pass
+
+    def closeEvent(self, event):
+        """Customise close events to ensure tabs and panels are closed."""
+        self.cleanup()
+        event.accept()
+
+    def is_running(self):
+        try:
+            return self.count >= 0
+        except RuntimeError:
+            return False
+
+    def close(self):
+        """Close this tab and its panel if it is the last tab."""
+        try:
+            if self.count > 0:
+                self.remove(self.labels[self.tab])
+            if self.count == 0:
+                super().close()
+        except RuntimeError:
+            self.cleanup()
+            try:
+                super().close()
+            except Exception:
+                pass
+
+
+class NXTab(NXWidget):
+    """Subclass of NXWidget for use as the main widget in a tab."""
+
+    def __init__(self, label, parent=None):
+        super().__init__(parent=parent)
+        self._tab_label = label
+        if parent:
+            self.panel = parent
+            self.tabs = parent.tabs
+            self.labels = parent.labels
+        else:
+            self.panel = None
+            self.tabs = {}
+            self.labels = {}
+        self.copybox = None
+
+    def __repr__(self):
+        return self.__class__.__name__ + '("' + self.tab_label + '")'
+
+    @property
+    def index(self):
+        if self.panel:
+            return self.panel.tabwidget.indexOf(self)
+        else:
+            return None
+
+    @property
+    def tab_label(self):
+        return self._tab_label
+
+    @tab_label.setter
+    def tab_label(self, value):
+        if self.panel:
+            old_label = self.tab_label
+            self._tab_label = str(value)
+            self.panel.tabwidget.setTabText(self.index, self._tab_label)
+            self.panel.labels[self] = self._tab_label
+            self.panel.tabs[self._tab_label] = self
+            del self.panel.tabs[old_label]
+
+    def copy_layout(self, text="Copy", sync=None):
+        self.copywidget = QtWidgets.QWidget()
+        copylayout = QtWidgets.QHBoxLayout()
+        self.copybox = NXComboBox()
+        self.copy_button = NXPushButton(text, self.copy, self)
+        copylayout.addStretch()
+        copylayout.addWidget(self.copybox)
+        copylayout.addWidget(self.copy_button)
+        if sync:
+            copylayout.addLayout(self.checkboxes(('sync', sync, False)))
+        copylayout.addStretch()
+        self.copywidget.setLayout(copylayout)
+        self.copywidget.setVisible(False)
+        return self.copywidget
+
+    def update(self):
+        pass
+
+    def copy(self):
+        pass
+
+    def sort_copybox(self):
+        if self.copybox:
+            selected = self.copybox.selected
+            tabs = self.copybox.items()
+            self.copybox.clear()
+            for tab in [tab for tab in self.panel.tab_list() if tab in tabs]:
+                self.copybox.add(tab)
+            if selected in self.copybox:
+                self.copybox.select(selected)
+
+
+class GridParameters(dict):
+    """
+    A dictionary of parameters to be entered in a dialog box grid.
+
+    All keys must be strings, and valid Python symbol names, and all values
+    must be of class GridParameter.
+    """
+
+    def __init__(self, **kwds):
+        super().__init__(self)
+        self.result = None
+        self.status_layout = None
+        self.update(**kwds)
+
+    def __setitem__(self, key, value):
+        if value is not None and not isinstance(value, GridParameter):
+            raise ValueError(f"'{value}' is not a GridParameter")
+        super().__setitem__(key, value)
+        value.name = key
+
+    def add(self, name, value=None, label=None, vary=None, slot=None,
+            color=False, spinbox=None, readonly=False, width=None):
+        """
+        Convenience function for adding a Parameter:
+
+        Example
+        -------
+        p = GridParameters()
+        p.add(name, value=XX, ...)
+
+        is equivalent to:
+        p[name] = GridParameter(name=name, value=XX, ....
+        """
+        self.__setitem__(name, GridParameter(value=value, name=name,
+                                             label=label, vary=vary,
+                                             slot=slot, readonly=readonly,
+                                             color=color, spinbox=spinbox,
+                                             width=width))
+
+    def grid(self, header=True, title=None, width=None, spacing=2):
+        grid = QtWidgets.QGridLayout()
+        grid.setSpacing(spacing)
+        if isinstance(header, list) or isinstance(header, tuple):
+            headers = header
+            header = True
+        else:
+            headers = ['Parameter', 'Value', 'Fit?']
+        row = 0
+        if title:
+            title_label = NXLabel(title, bold=True, align='center')
+            grid.addWidget(title_label, row, 0, 1, 2)
+            row += 1
+        if header:
+            parameter_label = NXLabel(headers[0], bold=True, align='center')
+            grid.addWidget(parameter_label, 0, 0)
+            value_label = NXLabel(headers[1], bold=True, align='center')
+            grid.addWidget(value_label, row, 1)
+            row += 1
+        vary = False
+        for p in self.values():
+            grid.addWidget(p.label, row, 0)
+            if p.colorbox:
+                grid.addWidget(p.colorbox, row, 1, QtCore.Qt.AlignHCenter)
+            else:
+                grid.addWidget(p.box, row, 1, QtCore.Qt.AlignHCenter)
+            if width:
+                if p.colorbox:
+                    p.colorbox.setFixedWidth(width)
+                else:
+                    p.box.setFixedWidth(width)
+            if p.vary is not None:
+                grid.addWidget(p.checkbox, row, 2, QtCore.Qt.AlignHCenter)
+                vary = True
+            row += 1
+        if header and vary:
+            fit_label = NXLabel(headers[2], bold=True)
+            grid.addWidget(fit_label, 0, 2, QtCore.Qt.AlignHCenter)
+        self.grid_layout = grid
+        return grid
+
+    def widget(self, header=True, title=None, width=None):
+        w = QtWidgets.QWidget()
+        layout = QtWidgets.QVBoxLayout()
+        layout.addLayout(self.grid(header=header, title=title, width=width))
+        layout.addStretch()
+        w.setLayout(layout)
+        return w
+
+    def hide_grid(self):
+        grid = self.grid_layout
+        for row in range(grid.rowCount()):
+            for column in range(grid.columnCount()):
+                item = grid.itemAtPosition(row, column)
+                if item is not None:
+                    widget = item.widget()
+                    if widget is not None:
+                        widget.setVisible(False)
+
+    def show_grid(self):
+        grid = self.grid_layout
+        for row in range(grid.rowCount()):
+            for column in range(grid.columnCount()):
+                item = grid.itemAtPosition(row, column)
+                if item is not None:
+                    widget = item.widget()
+                    if widget is not None:
+                        widget.setVisible(True)
+
+    def delete_grid(self):
+        grid = self.grid_layout
+        for row in range(grid.rowCount()):
+            for column in range(grid.columnCount()):
+                item = grid.itemAtPosition(row, column)
+                if item is not None:
+                    widget = item.widget()
+                    if widget is not None:
+                        widget.setVisible(False)
+                        grid.removeWidget(widget)
+                        widget.deleteLater()
+
+    def set_parameters(self):
+        from lmfit import Parameter, Parameters
+        self.lmfit_parameters = Parameters()
+        for p in [p for p in self if self[p].vary]:
+            self.lmfit_parameters[p] = Parameter(self[p].name, self[p].value)
+
+    def get_parameters(self, parameters):
+        for p in parameters:
+            self[p].value = parameters[p].value
+
+    def refine_parameters(self, residuals, **opts):
+        from lmfit import fit_report, minimize
+        self.set_parameters()
+        if self.status_layout:
+            self.status_message.setText('Fitting...')
+        self.result = minimize(residuals, self.lmfit_parameters, **opts)
+        self.fit_report = self.result.message+'\n'+fit_report(self.result)
+        if self.status_layout:
+            self.status_message.setText(self.result.message)
+        self.get_parameters(self.result.params)
+
+    def report_layout(self):
+        layout = QtWidgets.QHBoxLayout()
+        self.status_message = NXLabel()
+        if self.result is None:
+            self.status_message.setText('Waiting to refine')
+        else:
+            self.status_message.setText(self.result.message)
+        layout.addWidget(self.status_message)
+        layout.addStretch()
+        layout.addWidget(NXPushButton('Show Report', self.show_report))
+        self.status_layout = layout
+        return layout
+
+    def show_report(self):
+        if self.result is None:
+            return
+        message_box = QtWidgets.QMessageBox()
+        message_box.setText("Fit Results")
+        message_box.setInformativeText(self.fit_report)
+        message_box.setStandardButtons(QtWidgets.QMessageBox.Ok)
+        spacer = QtWidgets.QSpacerItem(500, 0,
+                                       QtWidgets.QSizePolicy.Minimum,
+                                       QtWidgets.QSizePolicy.Expanding)
+        layout = message_box.layout()
+        layout.addItem(spacer, layout.rowCount(), 0, 1, layout.columnCount())
+        message_box.exec_()
+
+    def restore_parameters(self):
+        for p in [p for p in self if self[p].vary]:
+            self[p].value = self[p].init_value
+
+    def save(self):
+        for p in self:
+            self[p].save()
+
+
+class GridParameter:
+    """
+    A Parameter is an object to be set in a dialog box grid.
+    """
+
+    def __init__(self, name=None, value=None, label=None, vary=None, slot=None,
+                 color=False, spinbox=False, readonly=False, width=None):
+        """
+        Parameters
+        ----------
+        name : str, optional
+            Name of the parameter.
+        value : float, optional
+            Numerical Parameter value or NXfield containing the initial value
+        label : str, optional
+            Label used in the dialog box.
+        vary : bool or None, optional
+            Whether the Parameter is fixed during a fit.
+        slot : function or None, optional
+            Function to be called when the parameter is changed.
+        color : bool, optional
+            Whether the field contains a color value, default False.
+        spinbox : bool, optional
+            Whether the field should be a spin box, default False.
+        """
+        self.name = name
+        self._value = value
+        if isinstance(value, list) or isinstance(value, tuple):
+            self.colorbox = None
+            self.box = NXComboBox()
+            for v in value:
+                self.box.addItem(str(v))
+            if slot is not None:
+                self.box.currentIndexChanged.connect(slot)
+        else:
+            if color:
+                if value == 'auto':
+                    value = None
+                self.colorbox = NXColorBox(value)
+                value = self.colorbox.color_text
+                self.box = self.colorbox.textbox
+            elif spinbox:
+                self.box = NXDoubleSpinBox(slot=slot)
+                self.colorbox = None
+            else:
+                self.box = NXLineEdit(align='right', slot=slot, width=width)
+                self.colorbox = None
+            if value is not None:
+                self.box.blockSignals(True)
+                if isinstance(value, NXfield):
+                    if value.shape == () or value.shape == (1,):
+                        self.field = value
+                        self.value = self.field.nxvalue
+                    else:
+                        raise NeXusError(
+                            "Cannot set a grid parameter to an array")
+                else:
+                    self.field = None
+                    self.value = value
+                self.box.blockSignals(False)
+            if readonly:
+                self.box.setReadOnly(True)
+        self.init_value = self.value
+        if vary is not None:
+            self.checkbox = NXCheckBox()
+            self.vary = vary
+        else:
+            self.checkbox = self.vary = None
+        self.label = NXLabel(label)
+
+    def set(self, value=None, vary=None):
+        """
+        Set or update Parameter attributes.
+
+        Parameters
+        ----------
+        value : float, optional
+            Numerical Parameter value.
+        vary : bool, optional
+            Whether the Parameter is fixed during a fit.
+        """
+        if value is not None:
+            self._val = value
+        if vary is not None:
+            self.vary = vary
+
+    def __repr__(self):
+        s = []
+        if self.name is not None:
+            s.append(f"'{self.name}'")
+        sval = repr(self.value)
+        s.append(sval)
+        return f"<GridParameter {', '.join(s)}>"
+
+    def save(self):
+        if isinstance(self.field, NXfield):
+            self.field.nxdata = np.array(self.value).astype(self.field.dtype)
+
+    @property
+    def value(self):
+        if isinstance(self.box, NXComboBox):
+            return self.box.currentText()
+        elif isinstance(self.box, NXDoubleSpinBox):
+            return self.box.value()
+        else:
+            _value = self.box.text()
+            try:
+                return np.array(_value).astype(self.field.dtype).item()
+            except AttributeError:
+                try:
+                    return float(_value)
+                except ValueError:
+                    return _value
+
+    @value.setter
+    def value(self, value):
+        self._value = value
+        if value is not None:
+            if isinstance(self.box, NXComboBox):
+                idx = self.box.findText(value)
+                if idx >= 0:
+                    self.box.setCurrentIndex(idx)
+            elif isinstance(self.box, NXDoubleSpinBox):
+                self.box.setValue(value)
+            else:
+                if isinstance(value, NXfield):
+                    value = value.nxvalue
+                if isinstance(value, str):
+                    self.box.setText(value)
+                else:
+                    try:
+                        self.box.setText(f'{value:.6g}')
+                    except TypeError:
+                        self.box.setText(str(value))
+            if self.colorbox:
+                self.colorbox.update_color()
+
+    @property
+    def vary(self):
+        if self.checkbox is not None:
+            return self.checkbox.isChecked()
+        else:
+            return None
+
+    @vary.setter
+    def vary(self, value):
+        if self.checkbox is not None:
+            if value:
+                self.checkbox.setCheckState(QtCore.Qt.Checked)
+            else:
+                self.checkbox.setCheckState(QtCore.Qt.Unchecked)
+
+    def disable(self, vary=None):
+        if vary is not None:
+            self.vary = vary
+        self.checkbox.setEnabled(False)
+
+    def enable(self, vary=None):
+        if vary is not None:
+            self.vary = vary
+        self.checkbox.setEnabled(True)
 
 
 class NXStack(QtWidgets.QWidget):
