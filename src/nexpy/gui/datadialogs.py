@@ -29,10 +29,23 @@ from .widgets import (GridParameters, NXCheckBox, NXComboBox, NXDialog,
 
 
 class NewDialog(NXDialog):
-    """Dialog to produce a new workspace in the tree view."""
 
     def __init__(self, parent=None):
 
+        """
+        Initialize dialog to produce a new workspace in the tree view.
+
+        Parameters
+        ----------
+        parent : QWidget, optional
+            Parent of the dialog. Default is None.
+
+        Notes
+        -----
+        The dialog will contain a grid with two entries to name the root
+        and entry of the new workspace. The 'save' button is included to
+        commit the new workspace to the tree view.
+        """
         super().__init__(parent=parent)
 
         self.names = GridParameters()
@@ -43,6 +56,14 @@ class NewDialog(NXDialog):
                         self.close_layout(save=True))
 
     def accept(self):
+        """
+        Complete creating a new workspace in the tree view.
+
+        The workspace is added to the tree view and the current file is
+        saved as a backup in the backup directory. The backup file name
+        is stored in the settings under 'backups' and the current
+        session is set to the backup file name.
+        """
         root = self.names['root'].value
         entry = self.names['entry'].value
         if self.names['entry'].vary:
@@ -64,10 +85,31 @@ class NewDialog(NXDialog):
 
 
 class DirectoryDialog(NXDialog):
-    """Dialog to select files in a directory to be opened."""
 
     def __init__(self, files, directory=None, parent=None):
 
+        """
+        Initialize the dialog to select files in a directory to be
+        opened.
+
+        Parameters
+        ----------
+        files : list of str
+            List of files to be displayed in the dialog.
+        directory : str, optional
+            Directory of the files. Default is to use the current
+            directory.
+        parent : QWidget, optional
+            Parent of the dialog. Default is None.
+
+        Notes
+        -----
+        The dialog displays a checkbox for each file. The user can
+        select files by checking the checkbox. The user can also select
+        files by entering a prefix in the 'Prefix' field and all files
+        starting with that prefix will be selected. The dialog will
+        close when the user clicks on the 'Close' button.
+        """
         super().__init__(parent=parent)
 
         self.directory = directory
@@ -84,9 +126,14 @@ class DirectoryDialog(NXDialog):
 
     @property
     def files(self):
+        """List of files selected in the dialog."""
         return [f for f in self.checkbox if self.checkbox[f].isChecked()]
 
     def select_prefix(self):
+        """
+        Select files in the dialog that start with the prefix in the
+        'Prefix' field.
+        """
         prefix = self.prefix_box.text()
         for f in self.checkbox:
             if f.startswith(prefix):
@@ -95,6 +142,14 @@ class DirectoryDialog(NXDialog):
                 self.checkbox[f].setChecked(False)
 
     def accept(self):
+        """
+        Complete selecting files in the dialog.
+
+        The selected files are added to the tree view and the current
+        file is saved as a backup in the backup directory. The backup
+        file name is stored in the settings under 'backups' and the
+        current session is set to the backup file name.
+        """
         for i, f in enumerate(self.files):
             fname = Path(self.directory).joinpath(f)
             if i == 0:
@@ -106,10 +161,21 @@ class DirectoryDialog(NXDialog):
 
 
 class PlotDialog(NXDialog):
-    """Dialog to plot arbitrary NeXus data in one or two dimensions"""
 
     def __init__(self, node, parent=None, lines=False):
 
+        """
+        Initialize the dialog to plot arbitrary NeXus data in 1D or 2D.
+
+        Parameters
+        ----------
+        node : NXfield or NXgroup
+            The NeXus field or group to be plotted.
+        parent : QWidget, optional
+            The parent window of the dialog, by default None
+        lines : bool, optional
+            Whether to plot the data with lines, by default False
+        """
         super().__init__(parent=parent)
 
         if isinstance(node, NXfield):
@@ -159,6 +225,13 @@ class PlotDialog(NXDialog):
 
     @property
     def signal(self):
+        """
+        The selected signal to be plotted.
+
+        If the selected signal is a link that refers to a file, the
+        actual linked signal is returned. Otherwise, the selected signal
+        itself is returned.
+        """
         _signal = self.group[self.signal_combo.currentText()]
         if isinstance(_signal, NXlink) and _signal._filename is None:
             return _signal.nxlink
@@ -167,6 +240,12 @@ class PlotDialog(NXDialog):
 
     @property
     def signal_path(self):
+        """
+        The path of the selected signal.
+
+        If the selected signal is in a root group, the absolute path is
+        returned. Otherwise, the relative path is returned.
+        """
         signal = self.group[self.signal_combo.currentText()]
         if signal.nxroot.nxclass == "NXroot":
             return signal.nxroot.nxname + signal.nxpath
@@ -175,9 +254,16 @@ class PlotDialog(NXDialog):
 
     @property
     def ndim(self):
+        """The number of dimensions of the selected signal."""
         return self.signal.ndim
 
     def choose_signal(self):
+        """
+        Set up the axis boxes when a new signal is chosen.
+
+        This will create new axis boxes for each axis of the signal and
+        remove any remaining boxes for the old signal.
+        """
         row = 0
         self.axis_boxes = {}
         for axis in range(self.ndim):
@@ -190,6 +276,23 @@ class PlotDialog(NXDialog):
             row += 1
 
     def axis_box(self, axis):
+        """
+        Create a dropdown box for selecting an axis.
+
+        This will create a dropdown box of all the NXfields in the same
+        group as the selected signal. The box will be initialized to the
+        default axis if it is among the available options.
+
+        Parameters
+        ----------
+        axis : int
+            The axis for which to create the dropdown box.
+
+        Returns
+        -------
+        box : NXComboBox
+            The created dropdown box.
+        """
         box = NXComboBox()
         axes = []
         for node in self.group.values():
@@ -210,6 +313,14 @@ class PlotDialog(NXDialog):
         return box
 
     def remove_axis(self, axis):
+        """
+        Remove an axis box from the grid layout.
+
+        Parameters
+        ----------
+        axis : int
+            The axis for which to remove the dropdown box.
+        """
         row = axis + 1
         for column in range(2):
             item = self.grid.itemAtPosition(row, column)
@@ -221,6 +332,25 @@ class PlotDialog(NXDialog):
                     widget.deleteLater()
 
     def check_axis(self, node, axis):
+        """
+        Check whether a node can be used as an axis for a signal.
+
+        The node must be a one-dimensional field with a length that matches
+        the length of the signal in the given axis. If the node is a
+        zero-dimensional field, it is also accepted.
+
+        Parameters
+        ----------
+        node : NXfield or NXgroup
+            The node to check.
+        axis : int
+            The axis for which to check the node.
+
+        Returns
+        -------
+        result : bool
+            True if the node can be used as an axis, False otherwise.
+        """
         if isinstance(node, NXgroup) or node.ndim > 1:
             return False
         axis_len = self.signal.shape[axis]
@@ -234,6 +364,24 @@ class PlotDialog(NXDialog):
             return False
 
     def get_axis(self, axis):
+        """
+        Return the axis for the given axis number.
+
+        Parameters
+        ----------
+        axis : int
+            The axis number.
+
+        Returns
+        -------
+        axis : NXfield
+            The axis.
+
+        If the selected axis is 'NXfield index', a new NXfield is
+        created with values from 0 to the length of the signal in the
+        given axis. Otherwise, the selected NXfield is returned with its
+        values and attributes.
+        """
         def plot_axis(axis):
             return NXfield(axis.nxvalue, name=axis.nxname, attrs=axis.attrs)
         axis_name = self.axis_boxes[axis].currentText()
@@ -244,6 +392,20 @@ class PlotDialog(NXDialog):
             return plot_axis(self.group[axis_name])
 
     def get_axes(self):
+        """
+        Return a list of NXfields containing the selected axes.
+
+        The axes are determined from the values in the axis boxes. If
+        the selected axis is 'NXfield index', a new NXfield is created
+        with values from 0 to the length of the signal in the given axis.
+        Otherwise, the selected NXfield is returned with its values and
+        attributes.
+
+        Raises
+        ------
+        NeXusError
+            If there are duplicate axes selected.
+        """
         axes = [self.get_axis(axis) for axis in range(self.ndim)]
         names = [axis.nxname for axis in axes]
         if len(names) != len(set(names)):
@@ -251,6 +413,18 @@ class PlotDialog(NXDialog):
         return axes
 
     def accept(self):
+        """
+        Plot the data using the selected options.
+
+        If the selected options are invalid (e.g. duplicate axes are
+        selected), a NeXusError is raised and reported.
+
+        Otherwise, the data is plotted using the NXdata.plot method with
+        the selected options. The signal path is stored as an attribute
+        of the plotted data.
+
+        After plotting, the dialog is closed with accept().
+        """
         try:
             kwargs = {}
             if self.ndim == 1:
@@ -270,10 +444,19 @@ class PlotDialog(NXDialog):
 
 
 class PlotScalarDialog(NXDialog):
-    """Dialog to plot scalar values against values in another tree."""
 
     def __init__(self, node, parent=None, **kwargs):
 
+        """
+        Initialize dialog to plot a scalar value against a scan axis.
+
+        Parameters
+        ----------
+        node : NXfield or NXgroup
+            The NeXus field or group to be plotted.
+        parent : QWidget, optional
+            The parent window of the dialog, by default None
+        """
         super().__init__(parent=parent)
         self.setAttribute(QtCore.Qt.WA_DeleteOnClose, True)
 
@@ -312,6 +495,13 @@ class PlotScalarDialog(NXDialog):
         self.scan_values = None
 
     def select_scan(self):
+        """
+        Set the scan axis of the dialog to the currently selected node.
+
+        The currently selected node must be a scalar NXfield. If the
+        selected node is not a scalar NXfield, a NeXusError is raised and
+        reported.
+        """
         scan_axis = self.treeview.node
         if not isinstance(scan_axis, NXfield):
             display_message("Scan Panel", "Scan axis must be a NXfield")
@@ -321,6 +511,17 @@ class PlotScalarDialog(NXDialog):
             self.textbox['Scan'].setText(self.treeview.node.nxpath)
 
     def select_files(self):
+        """
+        Create a dialog to select files to plot.
+
+        The dialog will show a list of files with checkboxes. The list of
+        files is determined by the data_path argument passed to the
+        constructor. The list of files is filtered to only include files
+        that have a scan axis with the scan_path argument. If no scan_path
+        argument is provided, all files are included. The dialog also
+        allows the user to select a prefix for the files. The selected
+        files are returned as a list of (file name, scan value) tuples.
+        """
         if self.file_box in self.mainwindow.dialogs:
             try:
                 self.file_box.close()
@@ -352,6 +553,7 @@ class PlotScalarDialog(NXDialog):
         self.file_box.show()
 
     def select_prefix(self):
+        """Select all files in the list that start with a prefix."""
         prefix = self.prefix_box.text()
         for f in self.files:
             if f.startswith(prefix):
@@ -360,6 +562,10 @@ class PlotScalarDialog(NXDialog):
                 self.files[f].checkbox.setChecked(False)
 
     def update_files(self):
+        """
+        Set the scan value of each file in the dialog to its position
+        in the list, or clear the scan value if the file does not vary.
+        """
         if self.scan_variable is None:
             i = 0
             for f in self.files:
@@ -371,14 +577,17 @@ class PlotScalarDialog(NXDialog):
 
     @property
     def data_path(self):
+        """The path of the selected data signal."""
         return self.group[self.signal_combo.selected].nxpath
 
     @property
     def scan_path(self):
+        """The path of the scan variable, as entered by the user."""
         return self.textbox['Scan'].text()
 
     @property
     def scan_variable(self):
+        """The NXfield object associated with the scan variable."""
         if self.scan_path and self.scan_path in self.group.nxroot:
             return self.group.nxroot[self.scan_path]
         else:
@@ -386,12 +595,27 @@ class PlotScalarDialog(NXDialog):
 
     @property
     def scan_header(self):
+        """The name of the scan axis."""
         try:
             return self.scan_variable.nxname.capitalize()
         except AttributeError:
             return 'Variable'
 
     def scan_axis(self):
+        """
+        Return the scan axis for the selected files.
+
+        If the scan variable is not given, return an axis with name 'file_index'
+        and long_name 'File Index' with values from 1 to the number of files
+        selected.  If the scan variable is given, return an axis with the
+        same dtype, name, and attributes (long_name and units) as the
+        variable, with the values set to the values given in the files.
+
+        Raises
+        ------
+        NeXusError
+            If the files have not been selected.
+        """
         if self.scan_values is None:
             raise NeXusError("Files not selected")
         _values = self.scan_values
@@ -408,6 +632,14 @@ class PlotScalarDialog(NXDialog):
         return _axis
 
     def choose_files(self):
+        """
+        Set the scan files and values.
+
+        Raises
+        ------
+        NeXusError
+            If the files have not been selected.
+        """
         try:
             self.scan_files = [self.tree[self.files[f].name]
                                for f in self.files if self.files[f].vary]
@@ -417,6 +649,24 @@ class PlotScalarDialog(NXDialog):
             raise NeXusError("Files not selected")
 
     def get_scan(self):
+        """
+        Return an NXdata object containing the scan data.
+
+        The scan data is constructed from the selected files and the
+        selected signal. The scan values are used to create a new axis
+        and the signal values are read from each file and stored in the
+        new field.
+
+        Returns
+        -------
+        NXdata
+            The scan data.
+
+        Raises
+        ------
+        NeXusError
+            If the files have not been selected.
+        """
         signal = self.group[self.data_path]
         axis = self.scan_axis()
         shape = [len(axis)]
@@ -430,6 +680,17 @@ class PlotScalarDialog(NXDialog):
         return NXdata(field, axis, title=self.data_path)
 
     def plot_scan(self):
+        """
+        Plot the scan data.
+
+        This will plot the scan data using the selected options and
+        append it to the current plot.
+
+        Raises
+        ------
+        NeXusError
+            If the data cannot be plotted.
+        """
         try:
             opts = {}
             if self.checkbox['lines'].isChecked():
@@ -441,6 +702,17 @@ class PlotScalarDialog(NXDialog):
             report_error("Plotting Scan", error)
 
     def copy_scan(self):
+        """
+        Copy the scan data to the clipboard.
+
+        This will copy the scan data to the clipboard so that it can be
+        pasted into another application.
+
+        Raises
+        ------
+        NeXusError
+            If the data cannot be copied.
+        """
         try:
             self.mainwindow.copied_node = self.mainwindow.copy_node(
                 self.get_scan())
@@ -448,12 +720,35 @@ class PlotScalarDialog(NXDialog):
             report_error("Copying Scan", error)
 
     def save_scan(self):
+        """
+        Save the scan data to the clipboard.
+
+        This will save the scan data to the clipboard so that it can be
+        pasted into another application.
+
+        Raises
+        ------
+        NeXusError
+            If the data cannot be saved.
+        """
         try:
             keep_data(self.get_scan())
         except NeXusError as error:
             report_error("Saving Scan", error)
 
     def close(self):
+        """
+        Close the dialog.
+
+        This will close the dialog and remove any temporary file that
+        was created. If the file cannot be closed, an error message will
+        be displayed.
+
+        Raises
+        ------
+        NeXusError
+            If the dialog cannot be closed.
+        """
         try:
             self.file_box.close()
         except Exception:
@@ -465,6 +760,22 @@ class ExportDialog(NXDialog):
 
     def __init__(self, node, parent=None):
 
+        """
+        Initialize the dialog to export data.
+
+        The dialog is initialized with two tabs, the first for exporting
+        to a NeXus file and the second for exporting to a text file. The
+        NeXus tab allows the entry name and data name to be set. The text
+        tab allows the delimiter, title, headers, errors and fields to be
+        set.
+
+        Parameters
+        ----------
+        node : NXfield
+            The field to be exported.
+        parent : QWidget, optional
+            The parent window of the dialog, by default None
+        """
         super().__init__(parent=parent)
 
         self.tabwidget = QtWidgets.QTabWidget(parent=self)
@@ -532,18 +843,33 @@ class ExportDialog(NXDialog):
 
     @property
     def header(self):
+        """True if header should be included in exported text file."""
         return self.checkbox['header'].isChecked()
 
     @property
     def title(self):
+        """True if title should be included in exported text file."""
         return self.checkbox['title'].isChecked()
 
     @property
     def errors(self):
+        """True if errors should be included in exported text file."""
         return self.checkbox['errors'].isChecked()
 
     @property
     def export_fields(self):
+        """
+        The fields to be exported.
+
+        If the checkbox for exporting all fields is checked, this
+        will return all fields in the data. Otherwise, it will return
+        the x, y, and error fields.
+
+        Returns
+        -------
+        list of NXfields
+            The fields to be exported.
+        """
         if self.checkbox['fields'].isChecked():
             return self.all_fields
         else:
@@ -551,6 +877,19 @@ class ExportDialog(NXDialog):
 
     @property
     def delimiter(self):
+        """
+        The delimiter to use in exported text files.
+
+        The delimiter is selected by the user in the export dialog.
+        If the user selects 'Tab', the delimiter is '\\t' (encoded as a
+        raw string literal). Otherwise, the delimiter is the selected
+        character (space, comma, colon, or semicolon).
+
+        Returns
+        -------
+        str
+            The delimiter character.
+        """
         delimiter = self.text_options['delimiter'].value
         if delimiter == 'Tab':
             return '\\t'.encode('utf8').decode('unicode_escape')
@@ -565,9 +904,25 @@ class ExportDialog(NXDialog):
 
     @property
     def name(self):
+        """The name of the data to be exported."""
         return self.nexus_options['data'].value
 
     def accept(self):
+        """
+        Save the data to a file.
+
+        This method is called when the Export button is clicked.
+        If the current tab is the NeXus tab, the data is saved to a
+        NeXus file. Otherwise, it is saved as a text file.
+
+        If the title or header checkboxes are checked, the title
+        and/or header are added to the text file.
+
+        The data is saved with the specified delimiter and the
+        specified fields are included in the text file.
+
+        If the user cancels the dialog, this method does nothing.
+        """
         if self.tabwidget.currentWidget() is self.nexus_tab:
             fname = getSaveFileName(self, "Choose a Filename",
                                     self.data.nxname+'.nxs',
@@ -614,6 +969,23 @@ class LockDialog(NXDialog):
 
     def __init__(self, parent=None):
 
+        """
+        Initialize the dialog to show file-based locks on NeXus files.
+
+        Parameters
+        ----------
+        parent : QWidget, optional
+            The parent window of the dialog, by default None
+
+        Attributes
+        ----------
+        lockdirectory : Path
+            The directory where the file-based locks are stored.
+        text_box : NXPlainTextEdit
+            The text box to display the list of locked files.
+        timer : QTimer
+            Timer to update the list of locked files every 5 seconds.
+        """
         super().__init__(parent=parent)
 
         self.lockdirectory = Path(nxgetconfig('lockdirectory'))
@@ -633,9 +1005,32 @@ class LockDialog(NXDialog):
         self.show_locks()
 
     def convert_name(self, name):
+        """
+        Convert the name of a file-based lock to the NeXus path it
+        refers to.
+
+        The lock file name is the NeXus path with '!!' separating the
+        directories and the extension '.lock'.
+
+        Parameters
+        ----------
+        name : str
+            The name of the lock file.
+
+        Returns
+        -------
+        str
+            The NeXus path of the file being locked.
+        """
         return '/' + name.replace('!!', '/').replace('.lock', '')
 
     def show_locks(self):
+        """
+        Update the text box with the list of locked files, sorted by
+        the date the lock was created.
+
+        The text box is cleared if there are no locked files.
+        """
         text = []
         for f in sorted(self.lockdirectory.iterdir(), key=get_mtime):
             if f.suffix == '.lock':
@@ -647,6 +1042,16 @@ class LockDialog(NXDialog):
             self.text_box.setPlainText('No Files')
 
     def clear_locks(self):
+        """
+        Open a dialog to show the list of locked files and allow the
+        user to clear locks.
+
+        The dialog contains a scrollable area with a checkbox for each
+        locked file. The user can check the box for each file whose lock
+        should be cleared and click the 'Clear Lock' button. The locks
+        are cleared as soon as the button is clicked and the dialog is
+        automatically closed.
+        """
         dialog = NXDialog(parent=self)
         locks = []
         for f in sorted(self.lockdirectory.iterdir(), key=get_mtime):
@@ -668,6 +1073,14 @@ class LockDialog(NXDialog):
         self.locks_dialog.show()
 
     def clear_lock(self):
+        """
+        Clear selected locks.
+
+        This method is called when the 'Clear Lock' button is clicked.
+        It clears the selected locks by deleting the lock file and
+        removes the corresponding checkbox from the list of locks.
+        Finally, it closes the dialog and updates the list of locks.
+        """
         for f in list(self.checkbox):
             if self.checkbox[f].isChecked():
                 lock_path = Path(self.lockdirectory).joinpath(f)
@@ -683,6 +1096,15 @@ class LockDialog(NXDialog):
 class SettingsDialog(NXDialog):
 
     def __init__(self, parent=None):
+        """
+        Initialize the dialog to set NeXpy settings.
+
+        The dialog is initialized with the current settings and contains
+        a grid of parameters. The user can change the parameters and
+        click the 'Save As Default' button to save the new settings as
+        the default settings. The dialog can be closed by clicking the
+        'Close' button.
+        """
         super().__init__(parent=parent, default=True)
         cfg = nxgetconfig()
         self.parameters = GridParameters()
@@ -711,6 +1133,15 @@ class SettingsDialog(NXDialog):
         self.set_title('NeXpy Settings')
 
     def save_default(self):
+        """
+        Save the current settings as the default settings.
+
+        This method is called when the 'Save As Default' button is
+        clicked. It sets the default NeXpy settings to the current
+        values and saves them in the configuration file. The default
+        settings are used when NeXpy is started. The dialog is closed
+        after saving the settings.
+        """
         self.set_nexpy_settings()
         cfg = nxgetconfig()
         self.mainwindow.settings.set('settings', 'memory', cfg['memory'])
@@ -733,6 +1164,14 @@ class SettingsDialog(NXDialog):
         self.mainwindow.settings.save()
 
     def set_nexpy_settings(self):
+        """
+        Set NeXpy settings based on the current values in the dialog.
+
+        This method is called when the 'Save As Default' button is
+        clicked. It sets the default NeXpy settings to the current
+        values in the dialog and saves them in the configuration file.
+        The default settings are used when NeXpy is started.
+        """
         def check_value(value):
             if not value.strip():
                 return None
@@ -751,6 +1190,15 @@ class SettingsDialog(NXDialog):
         set_style(self.parameters['style'].value)
 
     def accept(self):
+        """
+        Save the current settings as the default settings.
+
+        This method is called when the dialog is accepted. It sets the
+        default NeXpy settings to the current values in the dialog and
+        saves them in the configuration file. The default settings are
+        used when NeXpy is started. The dialog is closed after saving
+        the settings.
+        """
         self.set_nexpy_settings()
         super().accept()
 
@@ -758,6 +1206,18 @@ class SettingsDialog(NXDialog):
 class CustomizeDialog(NXPanel):
 
     def __init__(self, parent=None):
+        """
+        Initialize the Customize Panel.
+
+        The Customize Panel is initialized with the given parent and its
+        tab class is set to CustomizeTab. The plotview_sort flag is set to
+        True to sort the plotviews in the Customize Panel.
+
+        Parameters
+        ----------
+        parent : QWidget, optional
+            The parent of the Customize Panel. The default is None.
+        """
         super().__init__('Customize', title='Customize Panel', parent=parent)
         self.tab_class = CustomizeTab
         self.plotview_sort = True
@@ -768,6 +1228,21 @@ class CustomizeTab(NXTab):
     legend_location = {v: k for k, v in Legend.codes.items()}
 
     def __init__(self, label, parent=None):
+        """
+        Initialize the Customize Tab.
+
+        The Customize Tab is initialized with the given label and
+        parent. The active plotview is saved as an instance variable.
+        The Customize Tab is divided into sections for labels, plots,
+        and grid. The labels section contains parameters for the title,
+        x-axis label, y-axis label, and legend. The plots section
+        contains parameters for each plot, including line style, marker
+        style, marker size, line width, color, and label. The grid
+        section contains parameters for the grid style and line width.
+        The parameters are saved in a dictionary as instance variables.
+        The layout of the Customize Tab is set to a vertical layout with
+        a grid layout for each section.
+        """
         super().__init__(label, parent=parent)
 
         from .plotview import linestyles, markers
@@ -801,12 +1276,32 @@ class CustomizeTab(NXTab):
         self.parameters['labels']['title'].box.setFocus()
 
     def plot_label(self, plot):
+        """
+        Return a string label for the given plot.
+
+        The label is a concatenation of the plot number and the path of
+        the plot.
+        """
         return str(plot) + ': ' + self.plots[plot]['path']
 
     def label_plot(self, label):
+        """
+        Return the plot number from the given label string.
+
+        The label is a concatenation of the plot number and the path of
+        the plot.
+        """
         return int(label[:label.index(':')])
 
     def update(self):
+        """
+        Update the Customize Tab after a change in the active plotview.
+
+        If the active plotview is an image, the image parameters are
+        updated. If the active plotview is a plot, the plot parameters
+        are updated. Any plots that are no longer in the active plotview
+        are removed.
+        """
         self.update_label_parameters()
         if self.plotview.image is not None:
             self.update_image_parameters()
@@ -826,6 +1321,15 @@ class CustomizeTab(NXTab):
                     self.plot_stack.remove(label)
 
     def label_parameters(self):
+        """
+        Return the parameters for the plot labels.
+
+        Returns
+        -------
+        GridParameters
+            A GridParameters object containing parameters for the plot title,
+            x-axis label, and y-axis label.
+        """
         parameters = GridParameters()
         parameters.add('title', self.plotview.title, 'Title')
         parameters.add('xlabel', self.plotview.xaxis.label, 'X-Axis Label')
@@ -834,12 +1338,32 @@ class CustomizeTab(NXTab):
         return parameters
 
     def update_label_parameters(self):
+        """
+        Update the Customize Tab label parameters from the active plotview.
+
+        This function is called whenever the active plotview changes,
+        and it updates the parameters in the Customize Tab label section
+        with the title, x-axis label, and y-axis label of the active
+        plotview.
+        """
         p = self.parameters['labels']
         p['title'].value = self.plotview.title
         p['xlabel'].value = self.plotview.xaxis.label
         p['ylabel'].value = self.plotview.yaxis.label
 
     def image_parameters(self):
+        """
+        Return the parameters for image plots.
+
+        Returns
+        -------
+        GridParameters
+            A GridParameters object containing parameters for image plots.
+            The parameters include aspect ratio, skew angle, grid, grid color,
+            grid style, grid alpha, minor ticks, and color bar minor ticks.
+            If the image has a colormap with a bad color, there is also a
+            bad color parameter.
+        """
         parameters = GridParameters()
         parameters.add('aspect', self.plotview._aspect, 'Aspect Ratio')
         parameters.add('skew', self.plotview._skew_angle, 'Skew Angle')
@@ -860,6 +1384,15 @@ class CustomizeTab(NXTab):
         return parameters
 
     def update_image_parameters(self):
+        """
+        Update the tab image parameters from the active plotview.
+
+        This function is called whenever the active plotview changes,
+        and it updates the parameters in the Customize Tab image section
+        with the aspect ratio, skew angle, grid, grid color, grid style,
+        grid alpha, minor ticks, and color bar minor ticks of the active
+        plotview.
+        """
         p = self.parameters['image']
         p['aspect'].value = self.plotview._aspect
         p['skew'].value = self.plotview._skew_angle
@@ -886,6 +1419,26 @@ class CustomizeTab(NXTab):
             pass
 
     def plot_parameters(self, plot):
+        """
+        Create a GridParameters object for a plot.
+
+        This function creates a GridParameters object that contains
+        parameters for a plot, including legend label, legend, legend
+        order, color, line style, line width, marker, marker style,
+        marker size, z-order, scale, and offset. The parameters are
+        initialized with the values from the active plotview, and the
+        function returns the GridParameters object.
+
+        Parameters
+        ----------
+        plot : str
+            The label of the plot for which to create the parameters.
+
+        Returns
+        -------
+        GridParameters
+            A GridParameters object containing parameters for the plot.
+        """
         p = self.plots[plot]
         parameters = GridParameters()
         parameters.add('legend_label', p['legend_label'], 'Legend Label')
@@ -911,6 +1464,18 @@ class CustomizeTab(NXTab):
         return parameters
 
     def update_plot_parameters(self, plot):
+        """
+        Update the parameters for a given plot.
+
+        This function is called when the properties of a plot are changed
+        outside of the Parameters tab. It updates the parameters in the
+        Parameters tab with the new values from the plot.
+
+        Parameters
+        ----------
+        plot : str
+            The label of the plot to update.
+        """
         self.block_signals(True)
         label = self.plot_label(plot)
         p, pp = self.plots[plot], self.parameters[label]
@@ -939,6 +1504,18 @@ class CustomizeTab(NXTab):
         self.block_signals(False)
 
     def grid_parameters(self):
+        """
+        Return the parameters for the plot attributes.
+
+        These parameters are used in the Parameters Tab of the Customize Dialog
+        to set the plot attributes.
+
+        Returns
+        -------
+        GridParameters
+            A GridParameters object containing parameters for the plot legend,
+            label, grid, grid color, grid style, grid alpha, and minor ticks.
+        """
         parameters = GridParameters()
         parameters.add('legend', ['None']+[key.title()
                        for key in Legend.codes], 'Legend')
@@ -954,6 +1531,11 @@ class CustomizeTab(NXTab):
         return parameters
 
     def update_grid_parameters(self):
+        """
+        Update the parameters for the plot attributes in the Parameters
+        Tab of the Customize Dialog with the current values from the
+        plot.
+        """
         p = self.parameters['grid']
         if self.plotview.ax.get_legend() and not self.is_empty_legend():
             _loc = self.plotview.ax.get_legend()._loc
@@ -977,11 +1559,18 @@ class CustomizeTab(NXTab):
             p['minorticks'].value = 'Off'
 
     def is_empty_legend(self):
+        """True if the legend is empty."""
         labels = [self.plot_label(plot) for plot in self.plots]
         return 'Yes' not in [self.parameters[label]['legend'].value
                              for label in labels]
 
     def get_legend_order(self):
+        """
+        Return the order of the legend labels.
+
+        The order is a list of the position of each plot in the list of
+        plots, starting from 0.
+        """
         order = []
         for plot in self.plots:
             label = self.plot_label(plot)
@@ -989,9 +1578,35 @@ class CustomizeTab(NXTab):
         return order
 
     def plot_index(self, plot):
+        """
+        Return the index of the given plot in the list of plots.
+
+        Parameters
+        ----------
+        plot : int
+            The index of the plot in the list of plots.
+
+        Returns
+        -------
+        index : int
+            The index of the given plot in the list of plots.
+        """
         return list(self.plots).index(plot)
 
     def update_legend_order(self):
+        """
+        Update the legend order when the user changes the legend order in the
+        Customize dialog.
+
+        If the user selects a legend order that is not in the list of current
+        legend orders, it will be added to the list of legend orders. If the
+        user selects a legend order that is already in the list of legend
+        orders, it will be replaced with the new order.
+
+        If the user selects a legend order that is less than 0 or greater than
+        or equal to the length of the list of plots, a ValueError will be
+        raised.
+        """
         current_label = self.plot_stack.box.selected
         current_plot = self.label_plot(current_label)
         current_order = self.legend_order[self.plot_index(current_plot)]
@@ -1021,6 +1636,13 @@ class CustomizeTab(NXTab):
         self.legend_order = self.get_legend_order()
 
     def set_legend(self):
+        """
+        Set the legend of the plot.
+
+        If the legend is set to 'None', the legend is removed.
+        Otherwise, the legend is set with the specified label and
+        location.
+        """
         legend_location = self.parameters['grid']['legend'].value.lower()
         label_selection = self.parameters['grid']['label'].value
         if legend_location == 'none' or self.is_empty_legend():
@@ -1039,6 +1661,14 @@ class CustomizeTab(NXTab):
                 self.plotview.legend(signal=True, loc=legend_location)
 
     def set_grid(self):
+        """
+        Set the grid of the plot.
+
+        If the grid is set to 'On', it is added to the plot. The grid
+        color, style, and alpha are set with the specified values.
+        The minor ticks are set according to the specified setting.
+        If the grid is set to 'Off', it is removed from the plot.
+        """
         if self.plotview.image is None:
             p = self.parameters['grid']
         else:
@@ -1064,6 +1694,15 @@ class CustomizeTab(NXTab):
                 self.plotview.grid(False)
 
     def scale_plot(self):
+        """
+        Scale a plot.
+
+        When the scale parameter is changed, the plot is rescaled
+        and the offset parameter is updated to be in the same units
+        as the scaled plot. The single step of the offset spinbox
+        is set to 1% of the offset value, and the range of the spinbox
+        is set to be 10 times the absolute value of the offset.
+        """
         plot = self.label_plot(self.plot_stack.box.selected)
         label = self.plot_label(plot)
         scale = self.parameters[label]['scale'].value
@@ -1082,14 +1721,32 @@ class CustomizeTab(NXTab):
         self.plotview.draw()
 
     def block_signals(self, block=True):
+        """
+        Block or unblock signals on the legend order spin boxes.
+
+        This method is used to prevent recursive calls to the
+        legend_order_changed method when the legend order is being
+        changed by the legend_order_changed method itself.
+        """
         for p in [parameter for parameter in self.parameters if
                   parameter not in ['labels', 'grid']]:
             self.parameters[p]['legend_order'].box.blockSignals(block)
 
     def reset(self):
+        """
+        Reset the Customize Tab parameters to their current values in
+        the plotview, and update the Customize Tab display accordingly.
+        """
         self.update()
 
     def apply(self):
+        """
+        Apply the Customize Tab parameters to the plotview.
+
+        This method is called when the "Apply" button is clicked. It
+        applies all the changes made in the Customize Tab to the
+        plotview, and updates the Customize Tab display accordingly.
+        """
         pl = self.parameters['labels']
         self.plotview.title = pl['title'].value
         self.plotview.ax.set_title(self.plotview.title)
@@ -1177,6 +1834,14 @@ class CustomizeTab(NXTab):
 class StyleDialog(NXPanel):
 
     def __init__(self, parent=None):
+        """
+        Initialize the Style Panel.
+
+        Parameters
+        ----------
+        parent : QWidget, optional
+            The parent of the Style Panel. The default is None.
+        """
         super().__init__('Style', title='Style Panel', parent=parent)
         self.tab_class = StyleTab
         self.plotview_sort = True
@@ -1185,6 +1850,16 @@ class StyleDialog(NXPanel):
 class StyleTab(NXTab):
 
     def __init__(self, label, parent=None):
+        """
+        Initialize the Style Tab.
+
+        Parameters
+        ----------
+        label : str
+            The label for the tab.
+        parent : QWidget, optional
+            The parent of the tab. The default is None.
+        """
         super().__init__(label, parent=parent)
 
         self.plotview = self.active_plotview
@@ -1204,6 +1879,15 @@ class StyleTab(NXTab):
         self.set_title('Plot Style')
 
     def label_parameters(self):
+        """
+        Create a GridParameters object for the plot labels.
+
+        This function creates a GridParameters object that contains
+        parameters for the plot labels, including the title, x-axis
+        label, and y-axis label. The parameters are initialized with
+        the values from the active plotview, and the function returns
+        the GridParameters object.
+        """
         p = GridParameters()
         p.add('title', self.plotview.title, 'Title')
         p.add('xlabel', self.plotview.xaxis.label, 'X-Axis Label')
@@ -1212,12 +1896,29 @@ class StyleTab(NXTab):
         return p
 
     def update_label_parameters(self):
+        """
+        Update the parameters for the plot labels.
+
+        This function is called whenever the properties of the plot labels
+        are changed outside of the Style Tab. It updates the parameters in
+        the Style Tab with the new values from the plot.
+        """
         p = self.parameters['labels']
         p['title'].value = self.plotview.title
         p['xlabel'].value = self.plotview.xaxis.label
         p['ylabel'].value = self.plotview.yaxis.label
 
     def font_parameters(self):
+        """
+        Create a GridParameters object for the plot fonts.
+
+        This function creates a GridParameters object that contains
+        parameters for the font sizes of the plot labels, including
+        the title, x-axis label, y-axis label, tick labels, and colorbar
+        labels (if the plot is an image). The parameters are initialized
+        with a value of 0, and the function returns the GridParameters
+        object.
+        """
         p = GridParameters()
         p.add('title', 0, 'Title Font Size')
         p.add('xlabel', 0, 'X-Label Font Size')
@@ -1228,6 +1929,13 @@ class StyleTab(NXTab):
         return p
 
     def update_font_parameters(self):
+        """
+        Update the parameters for the plot fonts.
+
+        This function is called whenever the font sizes of the plot labels
+        are changed outside of the Style Tab. It updates the parameters in
+        the Style Tab with the new values from the plot.
+        """
         p = self.parameters['fonts']
         p['title'].value = self.plotview.ax.title.get_fontsize()
         p['xlabel'].value = self.plotview.ax.xaxis.label.get_fontsize()
@@ -1238,10 +1946,26 @@ class StyleTab(NXTab):
                 self.plotview.colorbar.ax.get_yticklabels()[0].get_fontsize())
 
     def update(self):
+        """
+        Update the parameters in the Customize Tab to match the active
+        plotview.
+
+        This function is called whenever the active plotview is changed.
+        It updates the parameters in the Customize Tab to match the
+        active plotview.
+        """
         self.update_label_parameters()
         self.update_font_parameters()
 
     def tight_layout(self):
+        """
+        Call matplotlib's tight_layout function on the figure.
+
+        This function calls matplotlib's tight_layout function on the
+        figure of the active plotview. The current layout is saved
+        before calling tight_layout, so that the layout can be reset
+        if needed.
+        """
         pars = self.plotview.figure.subplotpars
         self.previous_layout = {'left': pars.left, 'right': pars.right,
                                 'bottom': pars.bottom, 'top': pars.right}
@@ -1249,16 +1973,41 @@ class StyleTab(NXTab):
         self.plotview.draw()
 
     def reset_layout(self):
+        """
+        Reset the layout of the active plotview to its previous state.
+
+        This function resets the layout of the active plotview to its
+        previous state, which is saved when the tight_layout function
+        is called. This is useful if the automatic layout adjustment
+        done by tight_layout is not what you want. The original layout
+        is restored, and the plot is redrawn.
+        """
         self.plotview.figure.subplots_adjust(**self.previous_layout)
         self.plotview.draw()
 
     def adjust_layout(self):
+        """
+        Call the configure_subplots method of the Options Tab to adjust
+        the layout of the active plotview.
+
+        The current layout is saved before calling configure_subplots,
+        so that the layout can be reset if needed.
+        """
         pars = self.plotview.figure.subplotpars
         self.previous_layout = {'left': pars.left, 'right': pars.right,
                                 'bottom': pars.bottom, 'top': pars.right}
         self.plotview.otab.configure_subplots()
 
     def save_default(self):
+        """
+        Save the current font settings as the default settings.
+
+        This method is called when the 'Save As Default' button is
+        clicked. It sets the default Matplotlib settings to the current
+        values and saves them in the configuration file. The default
+        settings are used when NeXpy is started. The dialog is closed
+        after saving the settings.
+        """
         p = self.parameters['fonts']
         mpl.rcParams['axes.titlesize'] = p['title'].value
         mpl.rcParams['axes.labelsize'] = p['xlabel'].value
@@ -1267,6 +2016,13 @@ class StyleTab(NXTab):
         self.apply()
 
     def apply(self):
+        """
+        Apply the current font settings to the active plotview.
+
+        This method applies the current font settings to the active
+        plotview, and redraws the plot. The font sizes of the title,
+        axis labels, tick labels, and colorbar labels are updated.
+        """
         pl = self.parameters['labels']
         self.plotview.title = pl['title'].value
         self.plotview.ax.set_title(self.plotview.title)
@@ -1291,9 +2047,16 @@ class StyleTab(NXTab):
 
 
 class ProjectionDialog(NXPanel):
-    """Dialog to set plot window limits"""
 
     def __init__(self, parent=None):
+        """
+        Initialize the dialog to set plot window limits.
+
+        Parameters
+        ----------
+        parent : QWidget, optional
+            The parent window of the dialog, by default None
+        """
         super().__init__('Projection', title='Projection Panel', apply=False,
                          parent=parent)
         self.tab_class = ProjectionTab
@@ -1301,10 +2064,20 @@ class ProjectionDialog(NXPanel):
 
 
 class ProjectionTab(NXTab):
-    """Tab to set plot window limits"""
 
     def __init__(self, label, parent=None):
 
+        """
+        Initialize the dialog to set plot window limits.
+
+        Parameters
+        ----------
+        label : str
+            The label used to identify this dialog. It can be
+            used as the key to select an instance in the 'dialogs' dictionary.
+        parent : QWidget, optional
+            The parent window of the dialog, by default None
+        """
         super().__init__(label, parent=parent)
 
         self.plotview = self.active_plotview
@@ -1397,6 +2170,15 @@ class ProjectionTab(NXTab):
         self.xbox.setFocus()
 
     def initialize(self):
+        """
+        Initialize the projection limits and copy widgets.
+
+        This function is called when the dialog is first created and
+        after the data has been changed. It sets the minimum and maximum
+        limits to the centers of the data and sets the current limits to
+        the current limits of the plot. The copy widgets are also
+        updated to reflect the current state of the other tabs.
+        """
         for axis in range(self.ndim):
             self.minbox[axis].data = self.maxbox[axis].data = \
                 self.plotview.axis[axis].centers
@@ -1419,9 +2201,32 @@ class ProjectionTab(NXTab):
                     tab.copywidget.setVisible(True)
 
     def get_axes(self):
+        """
+        Return a list of NXfields containing the selected axes.
+
+        The axes are determined from the values in the axis boxes. If
+        the selected axis is 'NXfield index', a new NXfield is created
+        with values from 0 to the length of the signal in the given axis.
+        Otherwise, the selected NXfield is returned with its values and
+        attributes.
+
+        Raises
+        ------
+        NeXusError
+            If there are duplicate axes selected.
+        """
         return self.plotview.xtab.get_axes()
 
     def set_axes(self):
+        """
+        Set the axes in the tab.
+
+        This function clears the current axes in the x and y boxes and
+        adds the axes returned by get_axes. If the number of dimensions
+        is less than or equal to 2, then the y label and box are hidden.
+        Otherwise, the y label and box are shown and the axes are selected
+        as the current y-axis of the plotview.
+        """
         axes = self.get_axes()
         self.xbox.clear()
         self.xbox.add(*axes)
@@ -1439,15 +2244,23 @@ class ProjectionTab(NXTab):
 
     @property
     def xaxis(self):
+        """Name of the selected x-axis."""
         return self.xbox.currentText()
 
     def set_xaxis(self):
+        """
+        Set the x-axis of the plotview to the selected axis.
+
+        If the selected axis is the same as the current y-axis, then
+        the y-axis is reset to 'None'.
+        """
         if self.xaxis == self.yaxis:
             self.ybox.select('None')
         self.update_overbox()
 
     @property
     def yaxis(self):
+        """Name of the selected y-axis."""
         if self.ndim <= 2:
             return 'None'
         else:
@@ -1455,6 +2268,17 @@ class ProjectionTab(NXTab):
         self.update_overbox()
 
     def set_yaxis(self):
+        """
+        Set the y-axis of the plotview to the selected axis.
+
+        If the selected axis is the same as the current x-axis, then
+        the x-axis is reset to the first axis that is not the same as
+        the y-axis. If the y-axis is 'None', then the overbox is shown
+        (if the plot is 1D), the lines and select checkboxes are shown,
+        and the select mode is set to select. Otherwise, the overbox is
+        hidden, the lines and select checkboxes are hidden, and the
+        select mode is unset. Finally, the panel is updated.
+        """
         if self.yaxis == self.xaxis:
             for idx in range(self.xbox.count()):
                 if self.xbox.itemText(idx) != self.yaxis:
@@ -1475,6 +2299,17 @@ class ProjectionTab(NXTab):
         self.panel.update()
 
     def set_limits(self):
+        """
+        Set the limits of the projection plot.
+
+        This function is called when the limits of any of the axes
+        are changed. It checks if the limits are locked and, if so,
+        updates the minimum limit to be equal to the maximum limit minus
+        the difference between the two limits. Otherwise, if the minimum
+        limit is greater than the maximum limit, it updates the maximum
+        limit to be equal to the minimum limit. Finally, it updates the
+        plot by calling draw_rectangle.
+        """
         self.block_signals(True)
         for axis in range(self.ndim):
             if self.lockbox[axis].isChecked():
@@ -1486,6 +2321,21 @@ class ProjectionTab(NXTab):
         self.draw_rectangle()
 
     def get_limits(self, axis=None):
+        """
+        Return the limits of the plot for the given axis.
+
+        Parameters
+        ----------
+        axis : int or None
+            The axis for which to return the limits. If None, return the
+            limits for all axes.
+
+        Returns
+        -------
+        limits : list of tuples of int
+            The limits of the plot for the given axis or axes. Each tuple
+            is a pair of start and stop indices.
+        """
         def get_indices(minbox, maxbox):
             start, stop = minbox.index, maxbox.index+1
             if minbox.reversed:
@@ -1498,6 +2348,14 @@ class ProjectionTab(NXTab):
                     for axis in range(self.ndim)]
 
     def set_lock(self):
+        """
+        Enable or disable the 'Lock' checkboxes.
+
+        If the 'Lock' checkbox is checked, the difference between the
+        minimum and maximum values of the axis is fixed, and the minimum
+        value box is disabled. If the box is unchecked, the difference
+        is set to None, and the minimum value box is enabled.
+        """
         for axis in range(self.ndim):
             if self.lockbox[axis].isChecked():
                 lo, hi = self.minbox[axis].value(), self.maxbox[axis].value()
@@ -1510,6 +2368,7 @@ class ProjectionTab(NXTab):
 
     @property
     def summed(self):
+        """True if the 'Sum' checkbox is checked."""
         try:
             return self.checkbox["sum"].isChecked()
         except Exception:
@@ -1521,6 +2380,7 @@ class ProjectionTab(NXTab):
 
     @property
     def lines(self):
+        """True if the 'Lines' checkbox is checked."""
         try:
             return self.checkbox["lines"].isChecked()
         except Exception:
@@ -1532,6 +2392,7 @@ class ProjectionTab(NXTab):
 
     @property
     def over(self):
+        """True if the 'Over' checkbox is checked."""
         return self.overbox.isChecked()
 
     @over.setter
@@ -1541,13 +2402,21 @@ class ProjectionTab(NXTab):
 
     @property
     def weights(self):
+        """True if the 'Weights' checkbox is checked."""
         return self.checkbox["weights"].isChecked()
 
     @property
     def select(self):
+        """True if the 'Select' checkbox is checked."""
         return self.checkbox["select"].isChecked()
 
     def set_select(self):
+        """
+        Show or hide the 'Select' widget.
+
+        If the 'Select' checkbox is checked, show the 'Select' widget.
+        Otherwise, hide the 'Select' widget.
+        """
         if self.checkbox["select"].isChecked():
             self.select_widget.setVisible(True)
         else:
@@ -1555,14 +2424,42 @@ class ProjectionTab(NXTab):
         self.panel.update()
 
     def set_maximum(self):
+        """
+        Uncheck the 'Minimum' checkbox if the 'Maximum' checkbox is
+        checked.
+        
+        If the 'Maximum' checkbox is checked, uncheck the 'Minimum'
+        checkbox.
+        """
         if self.checkbox["max"].isChecked():
             self.checkbox["min"].setChecked(False)
 
     def set_minimum(self):
+        """
+        Uncheck the 'Maximum' checkbox if the 'Minimum' checkbox is
+        checked.
+        
+        If the 'Minimum' checkbox is checked, uncheck the 'Maximum'
+        checkbox.
+        """
         if self.checkbox["min"].isChecked():
             self.checkbox["max"].setChecked(False)
 
     def get_projection(self):
+        """
+        Return the data projected onto the selected axes.
+
+        Returns
+        -------
+        data : NXdata
+            The projected data.
+
+        Notes
+        -----
+        If the 'Select' checkbox is checked, the data is selected
+        according to the parameters in the 'Select' tab before
+        projection.
+        """
         x = self.get_axes().index(self.xaxis)
         if self.yaxis == 'None':
             axes = [x]
@@ -1593,12 +2490,35 @@ class ProjectionTab(NXTab):
             return data
 
     def save_projection(self):
+        """
+        Save the projected data to the scratch workspace.
+
+        Notes
+        -----
+        If the data does not exist in the scratch workspace, a new data
+        group is created with the projected data. If the data does
+        exist, the projected data replace the existing data.
+        """
         try:
             keep_data(self.get_projection())
         except NeXusError as error:
             report_error("Saving Projection", error)
 
     def plot_projection(self):
+        """
+        Plot the projected data.
+
+        Notes
+        -----
+        If the 'Plot' parameter is set to None, a new plotting window is
+        created with the projected data. If the 'Plot' parameter is set to
+        an existing plotting window, the projected data are added to
+        that window. If the 'Over' parameter is set to True, the projected
+        data are plotted over the existing data in the plotting window.
+        If the 'Weights' parameter is set, the projected data are weighted
+        by those values. If the 'Lines' parameter is set to True, the
+        projected data are plotted with lines.
+        """
         try:
             projection = self.get_projection()
             if self.plot:
@@ -1625,12 +2545,20 @@ class ProjectionTab(NXTab):
 
     @property
     def plot(self):
+        """The plotview that the projected data are plotted in."""
         if 'Projection' in self.plotviews:
             return self.plotviews['Projection']
         else:
             return None
 
     def mask_data(self):
+        """
+        Mask the data in the currently defined limits.
+
+        The data are masked by setting the corresponding elements of the
+        signal array to np.ma.masked. The plot is then updated to show
+        the masked data.
+        """
         try:
             limits = tuple(slice(x, y) for x, y in self.get_limits())
             self.plotview.data.nxsignal[limits] = np.ma.masked
@@ -1639,6 +2567,19 @@ class ProjectionTab(NXTab):
             report_error("Masking Data", error)
 
     def unmask_data(self):
+        """
+        Unmask the data in the currently defined limits.
+
+        The data are unmasked by setting the corresponding elements of
+        the signal array to np.ma.nomask. The plot is then updated to
+        show the unmasked data.
+
+        Notes
+        -----
+        If no data are masked after unmasking, the signal array is reset
+        to np.ma.nomask, so that the entire signal array is available
+        for plotting.
+        """
         try:
             limits = tuple(slice(x, y) for x, y in self.get_limits())
             self.plotview.data.nxsignal.mask[limits] = np.ma.nomask
@@ -1649,12 +2590,21 @@ class ProjectionTab(NXTab):
             report_error("Masking Data", error)
 
     def block_signals(self, block=True):
+        """
+        Block signals from the limits boxes.
+
+        Parameters
+        ----------
+        block : bool
+            True to block signals, False to unblock signals
+        """
         for axis in range(self.ndim):
             self.minbox[axis].blockSignals(block)
             self.maxbox[axis].blockSignals(block)
 
     @property
     def rectangle(self):
+        """The rectangle defining the projection limits."""
         if self._rectangle not in self.plotview.ax.patches:
             self._rectangle = NXpolygon(self.get_rectangle(), closed=True,
                                         plotview=self.plotview).shape
@@ -1665,6 +2615,14 @@ class ProjectionTab(NXTab):
         return self._rectangle
 
     def get_rectangle(self):
+        """
+        Return the coordinates of the rectangle defining the projection limits.
+
+        The coordinates are returned as a list of four tuples, each tuple
+        containing the x and y coordinates of a vertex of the rectangle.
+        If the plot is skewed, the coordinates are transformed to the
+        skewed coordinates.
+        """
         xp = self.plotview.xaxis.dim
         yp = self.plotview.yaxis.dim
         x0 = self.minbox[xp].minBoundaryValue(self.minbox[xp].index)
@@ -1678,13 +2636,36 @@ class ProjectionTab(NXTab):
             return xy
 
     def draw_rectangle(self):
+        """
+        Redraw the rectangle in the plot based on the current limits.
+
+        Notes
+        -----
+        The coordinates of the rectangle are obtained from the limits of
+        the x and y axes. If the plot is skewed, the coordinates are
+        transformed to the skewed coordinates.
+        """
         self.rectangle.set_xy(self.get_rectangle())
         self.plotview.draw()
 
     def rectangle_visible(self):
+        """
+        Return True if the rectangle defining the projection limits
+        should be visible.
+
+        The rectangle is visible unless the 'Hide Limits' checkbox is
+        checked.
+        """
         return not self.checkbox["hide"].isChecked()
 
     def hide_rectangle(self):
+        """
+        Hide or show the rectangle defining the projection limits based
+        on the 'Hide Limits' checkbox.
+
+        If the checkbox is checked, hide the rectangle. Otherwise, show
+        it.
+        """
         if self.checkbox["hide"].isChecked():
             self.rectangle.set_visible(False)
         else:
@@ -1692,6 +2673,16 @@ class ProjectionTab(NXTab):
         self.plotview.draw()
 
     def update_overbox(self):
+        """
+        Update the overbox in the tabs of the dialog.
+
+        This function is called whenever the data in the plot are changed.
+        It checks if the data are one-dimensional and if the y-axis is 'None',
+        and if so, sets the overbox to be visible. Otherwise, it hides the
+        overbox and sets the checkbox to False. This is used to enable
+        plotting additional one-dimensional projections over the current
+        projection.
+        """
         if 'Projection' in self.plotviews:
             ndim = self.plotviews['Projection'].ndim
         else:
@@ -1704,6 +2695,17 @@ class ProjectionTab(NXTab):
                 tab.overbox.setChecked(False)
 
     def update(self):
+        """
+        Update the limits boxes and the rectangle in the plot based on
+        the current limits of the axes.
+
+        Notes
+        -----
+        If the limits of the x or y axes have changed, the limits boxes
+        are updated to reflect the new limits. The rectangle is then
+        redrawn based on the updated limits. The copybox is also updated
+        to reflect the current limits.
+        """
         self.block_signals(True)
         for axis in range(self.ndim):
             lo, hi = self.plotview.axis[axis].get_limits()
@@ -1722,6 +2724,15 @@ class ProjectionTab(NXTab):
         self.sort_copybox()
 
     def copy(self):
+        """
+        Copy the limits and other properties from the selected tab.
+
+        Notes
+        -----
+        This function is called when the 'Copy' button is clicked. It
+        copies the limits and other properties from the selected tab and
+        updates the limits boxes and the rectangle in the plot.
+        """
         self.block_signals(True)
         tab = self.tabs[self.copybox.selected]
         for axis in range(self.ndim):
@@ -1737,6 +2748,18 @@ class ProjectionTab(NXTab):
         self.update_overbox()
 
     def reset(self):
+        """
+        Reset the limits boxes and the rectangle in the plot to the
+        current limits of the axes.
+
+        Notes
+        -----
+        This function is called when the 'Reset' button is clicked. It
+        resets the limits boxes and the rectangle in the plot to the
+        current limits of the axes. The limits boxes are updated to
+        reflect the current limits of the axes. The rectangle is then
+        redrawn based on the updated limits.
+        """
         self.block_signals(True)
         for axis in range(self.ndim):
             if (self.plotview.axis[axis] is self.plotview.xaxis or
@@ -1753,6 +2776,15 @@ class ProjectionTab(NXTab):
         self.update()
 
     def close(self):
+        """
+        Close the dialog and remove the rectangle from the plot.
+
+        Notes
+        -----
+        This function is called when the dialog is closed. It removes the
+        rectangle from the plot and redraws the plot. If an exception is
+        raised, it is ignored.
+        """
         try:
             if self._rectangle:
                 self._rectangle.remove()
@@ -1762,19 +2794,43 @@ class ProjectionTab(NXTab):
 
 
 class LimitDialog(NXPanel):
-    """Dialog to set plot window limits"""
 
     def __init__(self, parent=None):
+        """
+        Initialize the dialog to set plot window limits.
+
+        The dialog is initialized with the given parent and its
+        tab class is set to LimitTab. The plotview_sort flag is set to
+        True to sort the plotviews in the dialog.
+
+        Parameters
+        ----------
+        parent : QWidget, optional
+            The parent of the dialog. The default is None.
+        """
         super().__init__('Limits', title='Limits Panel', parent=parent)
         self.tab_class = LimitTab
         self.plotview_sort = True
 
 
 class LimitTab(NXTab):
-    """Tab to set plot window limits"""
 
     def __init__(self, label, parent=None):
 
+        """
+        Initialize the dialog to set plot window limits.
+
+        The dialog is initialized with the given parent and the
+        given label. It is divided into sections for axes, limits,
+        and figure size. The axes section contains parameters for
+        the x-axis and y-axis. The limits section contains parameters
+        for the minimum, maximum, and lock for each axis. The figure
+        size section contains parameters for the horizontal and
+        vertical size of the plot window. The parameters are saved
+        in a dictionary as instance variables. The layout of the
+        dialog is set to a vertical layout with a grid layout for
+        each section.
+        """
         super().__init__(label, parent=parent)
 
         self.plotview = self.active_plotview
@@ -1844,6 +2900,15 @@ class LimitTab(NXTab):
         self.initialize()
 
     def initialize(self):
+        """
+        Initialize the projection limits and copy widgets.
+
+        This function is called when the dialog is first created and
+        after the data has been changed. It sets the minimum and maximum
+        limits to the centers of the data and sets the current limits to
+        the current limits of the plot. The copy widgets are also
+        updated to reflect the current state of the other tabs.
+        """
         for axis in range(self.ndim):
             self.minbox[axis].data = self.maxbox[axis].data = \
                 self.plotview.axis[axis].centers
@@ -1868,9 +2933,32 @@ class LimitTab(NXTab):
                     tab.copywidget.setVisible(True)
 
     def get_axes(self):
+        """
+        Return a list of NXfields containing the selected axes.
+
+        The axes are determined from the values in the axis boxes. If
+        the selected axis is 'NXfield index', a new NXfield is created
+        with values from 0 to the length of the signal in the given
+        axis. Otherwise, the selected NXfield is returned with its
+        values and attributes.
+
+        Raises
+        ------
+        NeXusError
+            If there are duplicate axes selected.
+        """
         return self.plotview.xtab.get_axes()
 
     def set_axes(self):
+        """
+        Set the axes in the tab.
+
+        This function clears the current axes in the x and y boxes and
+        adds the axes returned by get_axes. If the number of dimensions
+        is less than or equal to 2, then the y label and box are hidden.
+        Otherwise, the y label and box are shown and the axes are selected
+        as the current y-axis of the plotview.
+        """
         if self.ndim > 1:
             axes = self.get_axes()
             self.xbox.clear()
@@ -1884,9 +2972,16 @@ class LimitTab(NXTab):
 
     @property
     def xaxis(self):
+        """Axis selected in the x box."""
         return self.xbox.selected
 
     def set_xaxis(self):
+        """
+        Set the x-axis of the plotview to the selected axis.
+
+        If the selected axis is the same as the current y-axis, then
+        the y-axis is reset to 'None'.
+        """
         if self.xaxis == self.yaxis:
             if self.yaxis == self.plotview.yaxis.name:
                 self.ybox.select(self.plotview.xaxis.name)
@@ -1895,9 +2990,21 @@ class LimitTab(NXTab):
 
     @property
     def yaxis(self):
+        """Axis selected in the y box."""
         return self.ybox.selected
 
     def set_yaxis(self):
+        """
+        Set the y-axis of the plotview to the selected axis.
+
+        If the selected axis is the same as the current x-axis, then
+        the x-axis is reset to the first axis that is not the same as
+        the y-axis. If the y-axis is 'None', then the overbox is shown
+        (if the plot is 1D), the lines and select checkboxes are shown,
+        and the select mode is set to select. Otherwise, the overbox is
+        hidden, the lines and select checkboxes are hidden, and the
+        select mode is unset. Finally, the panel is updated.
+        """
         if self.yaxis == self.xaxis:
             if self.xaxis == self.plotview.xaxis.name:
                 self.xbox.select(self.plotview.yaxis.name)
@@ -1905,6 +3012,17 @@ class LimitTab(NXTab):
                 self.xbox.select(self.plotview.xaxis.name)
 
     def set_limits(self):
+        """
+        Set the limits of the projection plot.
+
+        This function is called when the limits of any of the axes
+        are changed. It checks if the limits are locked and, if so,
+        updates the minimum limit to be equal to the maximum limit minus
+        the difference between the two limits. Otherwise, if the minimum
+        limit is greater than the maximum limit, it updates the maximum
+        limit to be equal to the minimum limit. Finally, it updates the
+        plot by calling draw_rectangle.
+        """
         self.block_signals(True)
         for axis in range(self.ndim):
             if self.lockbox[axis].isChecked():
@@ -1915,6 +3033,21 @@ class LimitTab(NXTab):
         self.block_signals(False)
 
     def get_limits(self, axis=None):
+        """
+        Return the limits of the plot for the given axis.
+
+        Parameters
+        ----------
+        axis : int or None
+            The axis for which to return the limits. If None, return the
+            limits for all axes.
+
+        Returns
+        -------
+        limits : list of tuples of int
+            The limits of the plot for the given axis or axes. Each tuple
+            is a pair of start and stop indices.
+        """
         def get_indices(minbox, maxbox):
             start, stop = minbox.index, maxbox.index+1
             if minbox.reversed:
@@ -1927,6 +3060,14 @@ class LimitTab(NXTab):
                     for axis in range(self.ndim)]
 
     def set_lock(self):
+        """
+        Enable or disable the 'Lock' checkboxes.
+
+        If the 'Lock' checkbox is checked, the difference between the
+        minimum and maximum values of the axis is fixed, and the minimum
+        value box is disabled. If the box is unchecked, the difference
+        is set to None, and the minimum value box is enabled.
+        """
         for axis in range(self.ndim):
             if self.lockbox[axis].isChecked():
                 lo, hi = self.minbox[axis].value(), self.maxbox[axis].value()
@@ -1938,6 +3079,14 @@ class LimitTab(NXTab):
                 self.minbox[axis].setDisabled(False)
 
     def block_signals(self, block=True):
+        """
+        Block signals from the limits boxes.
+
+        Parameters
+        ----------
+        block : bool
+            True to block signals, False to unblock signals
+        """
         for axis in range(self.ndim):
             self.minbox[axis].blockSignals(block)
             self.maxbox[axis].blockSignals(block)
@@ -1945,11 +3094,28 @@ class LimitTab(NXTab):
         self.maxbox['signal'].blockSignals(block)
 
     def choose_sync(self):
+        """
+        If the 'Sync' checkbox is checked, uncheck the 'Sync' checkbox
+        in the tab from which the limits are being copied.
+        """
         if self.checkbox['sync'].isChecked():
             tab = self.tabs[self.copybox.selected]
             tab.checkbox['sync'].setChecked(False)
 
     def update(self):
+        """
+        Update the limits boxes and the rectangle in the plot based on
+        the current limits of the axes.
+
+        Notes
+        -----
+        If the 'Sync' checkbox is checked, the limits of the axes are
+        updated from the tab from which the limits are being copied.
+        Otherwise, the limits of the axes are updated from the current
+        limits of the axes. The limits boxes are then updated to reflect
+        the new limits. The rectangle is then redrawn based on the updated
+        limits. The copybox is also updated to reflect the current limits.
+        """
         if self.checkbox['sync'].isChecked():
             if self.lockbox['signal'].isChecked():
                 self.update_signal()
@@ -1964,6 +3130,17 @@ class LimitTab(NXTab):
         self.sort_copybox()
 
     def update_limits(self):
+        """
+        Update the limits boxes and the rectangle in the plot based on
+        the current limits of the axes.
+
+        Notes
+        -----
+        The limits of the axes are updated from the current limits of
+        the axes. The limits boxes are then updated to reflect the new
+        limits. The rectangle is then redrawn based on the updated
+        limits. The figure size is also updated.
+        """
         self.block_signals(True)
         self.set_axes()
         for axis in range(self.ndim):
@@ -1977,6 +3154,17 @@ class LimitTab(NXTab):
         self.block_signals(False)
 
     def update_signal(self):
+        """
+        Update the signal limits boxes and the rectangle in the plot
+        based on the current limits of the signal axis.
+
+        Notes
+        -----
+        The limits of the signal axis are updated from the current
+        limits of the signal axis. The limits boxes are then updated to
+        reflect the new limits. The rectangle is then redrawn based on
+        the updated limits.
+        """
         minbox, maxbox = self.plotview.vtab.minbox, self.plotview.vtab.maxbox
         self.minbox['signal'].setRange(minbox.minimum(), minbox.maximum())
         self.maxbox['signal'].setRange(maxbox.minimum(), maxbox.maximum())
@@ -1986,6 +3174,15 @@ class LimitTab(NXTab):
         self.maxbox['signal'].setValue(maxbox.value())
 
     def update_properties(self):
+        """
+        Update the properties dictionary from the current state of the
+        plot.
+
+        The properties dictionary contains the aspect, logx, logy, and
+        skew of the plot. If the 'Sync' checkbox is not checked, the
+        cmap, interpolation, and logv are also included in the
+        dictionary.
+        """
         if self.ndim > 1:
             self.properties = {'aspect': self.plotview.aspect,
                                'logx': self.plotview.logx,
@@ -1999,12 +3196,41 @@ class LimitTab(NXTab):
             self.properties = {}
 
     def copy_properties(self, tab):
+        """
+        Copy properties from another tab to this tab.
+
+        Parameters
+        ----------
+        tab : LimitTab
+            The tab from which to copy the properties.
+
+        Notes
+        -----
+        This function is called when the 'Copy' button is clicked. It
+        compares the properties dictionary of the current tab with the
+        properties dictionary of the selected tab, and copies any
+        properties that are different into the copied_properties
+        dictionary. The copied_properties dictionary is used to update
+        the plot when the 'Apply' button is clicked.
+        """
         self.update_properties()
         for p in self.properties:
             if self.properties[p] != tab.properties[p]:
                 self.copied_properties[p] = tab.properties[p]
 
     def copy(self):
+        """
+        Copy properties from another tab to this tab.
+
+        Notes
+        -----
+        This function is called when the 'Copy' button is clicked. It
+        copies the properties from the selected tab to this tab,
+        including the x and y axes, limits, and checkbox states.
+        If the 'Sync' checkbox is not checked, it also copies the
+        cmap, interpolation, and logv properties. It then updates the
+        plot based on the new properties.
+        """
         tab = self.tabs[self.copybox.selected]
         self.copy_properties(tab)
         self.block_signals(True)
@@ -2025,10 +3251,27 @@ class LimitTab(NXTab):
         self.block_signals(False)
 
     def reset(self):
+        """
+        Reset the plot to the original size and view.
+
+        This function is called when the 'Reset' button is clicked. It
+        resets the plot to its original size and view, and updates the
+        display accordingly.
+        """
         self.plotview.otab.home()
         self.update()
 
     def apply(self):
+        """
+        Apply the current limits and options to the plot.
+
+        This function is called when the 'Apply' button is clicked. It
+        applies the current limits and options to the plot, and redraws
+        the plot. If the limits of the x or y axes have changed, the
+        limits boxes are updated to reflect the new limits. The image
+        is then redrawn based on the updated limits. The copy widgets
+        are also updated to reflect the current state of the other tabs.
+        """
         try:
             self.block_signals(True)
             if self.tab_label != 'Main':
@@ -2088,6 +3331,11 @@ class LimitTab(NXTab):
             self.block_signals(False)
 
     def close(self):
+        """
+        Remove this tab from the copybox of all other tabs and from the
+        list of tabs that are being synced. If the copybox of another
+        tab is empty after removing this tab, hide the copybox.
+        """
         for tab in [self.tabs[label] for label in self.tabs
                     if self.tabs[label] is not self]:
             if (tab.copybox.selected == self.tab_label and
@@ -2100,9 +3348,16 @@ class LimitTab(NXTab):
 
 
 class ScanDialog(NXPanel):
-    """Dialog to set plot window limits"""
 
     def __init__(self, parent=None):
+        """
+        Initialize the dialog to generate parametric scans.
+
+        Parameters
+        ----------
+        parent : QWidget, optional
+            The parent window of the dialog, by default None
+        """
         super().__init__('Scan', title='Scan Panel', apply=False,
                          reset=False, parent=parent)
         self.tab_class = ScanTab
@@ -2110,10 +3365,19 @@ class ScanDialog(NXPanel):
 
 
 class ScanTab(NXTab):
-    """Tab to generate parametric scans."""
 
     def __init__(self, label, parent=None):
 
+        """
+        Initialize a ScanTab object.
+
+        Parameters
+        ----------
+        label : str
+            The title of the tab
+        parent : QWidget, optional
+            The parent of the tab
+        """
         super().__init__(label, parent=parent)
 
         self.set_layout(
@@ -2130,6 +3394,13 @@ class ScanTab(NXTab):
         self.files = None
 
     def select_scan(self):
+        """
+        Set the scan axis of the dialog to the currently selected node.
+
+        The currently selected node must be a scalar NXfield. If the
+        selected node is not a scalar NXfield, a NeXusError is raised and
+        reported.
+        """
         scan_axis = self.treeview.node
         if not isinstance(scan_axis, NXfield):
             display_message("Scan Panel", "Scan axis must be a NXfield")
@@ -2139,6 +3410,17 @@ class ScanTab(NXTab):
             self.textbox['Scan'].setText(self.treeview.node.nxpath)
 
     def select_files(self):
+        """
+        Create a dialog to select files to plot.
+
+        The dialog will show a list of files with checkboxes. The list of
+        files is determined by the data_path argument passed to the
+        constructor. The list of files is filtered to only include files
+        that have a scan axis with the scan_path argument. If no scan_path
+        argument is provided, all files are included. The dialog also
+        allows the user to select a prefix for the files. The selected
+        files are returned as a list of (file name, scan value) tuples.
+        """
         if self.file_box in self.mainwindow.dialogs:
             try:
                 self.file_box.close()
@@ -2177,6 +3459,10 @@ class ScanTab(NXTab):
         self.file_box.show()
 
     def select_prefix(self):
+        """
+        Select files in the dialog that start with the prefix in the
+        'Prefix' field.
+        """
         prefix = self.prefix_box.text()
         self.files = GridParameters()
         i = 0
@@ -2199,6 +3485,10 @@ class ScanTab(NXTab):
         self.scroll_area.setWidget(self.scroll_widget)
 
     def update_files(self):
+        """
+        Set the scan value of each file in the dialog to its position
+        in the list, or clear the scan value if the file does not vary.
+        """
         if self.scan_path:
             i = 0
             for f in self.files:
@@ -2210,14 +3500,17 @@ class ScanTab(NXTab):
 
     @property
     def data_path(self):
+        """Return the path to the data to be plotted."""
         return self.plotview.data.nxpath
 
     @property
     def scan_path(self):
+        """The path of the scan variable, as entered by the user."""
         return self.textbox['Scan'].text()
 
     @property
     def scan_variable(self):
+        """The NXfield object associated with the scan variable."""
         if self.scan_path and self.scan_path in self.plotview.data.nxroot:
             return self.plotview.data.nxroot[self.scan_path]
         else:
@@ -2225,6 +3518,7 @@ class ScanTab(NXTab):
 
     @property
     def scan_header(self):
+        """The name of the scan variable, as entered by the user."""
         if self.scan_path and self.scan_path in self.plotview.data.nxroot:
             return (
                 self.plotview.data.nxroot[self.scan_path].nxname.capitalize())
@@ -2232,6 +3526,14 @@ class ScanTab(NXTab):
             return 'Variable'
 
     def choose_files(self):
+        """
+        Set the scan files and values.
+
+        Raises
+        ------
+        NeXusError
+            If the files have not been selected.
+        """
         try:
             self.scan_files = [self.tree[self.files[f].name]
                                for f in self.files if self.files[f].vary]
@@ -2243,6 +3545,17 @@ class ScanTab(NXTab):
             raise NeXusError("Files not selected")
 
     def plot_scan(self):
+        """
+        Plot the scan data.
+
+        This will plot the scan data using the selected options and
+        append it to the current plot.
+
+        Raises
+        ------
+        NeXusError
+            If the data cannot be plotted.
+        """
         try:
             self.scanview.plot(self.scan_data)
             self.scanview.make_active()
@@ -2251,6 +3564,17 @@ class ScanTab(NXTab):
             report_error("Plotting Scan", error)
 
     def copy_scan(self):
+        """
+        Copy the scan data to the clipboard.
+
+        This will copy the scan data to the clipboard so that it can be
+        pasted into another application.
+
+        Raises
+        ------
+        NeXusError
+            If the data cannot be copied.
+        """
         try:
             self.mainwindow.copied_node = self.mainwindow.copy_node(
                 self.scan_data)
@@ -2258,6 +3582,17 @@ class ScanTab(NXTab):
             report_error("Copying Scan", error)
 
     def save_scan(self):
+        """
+        Save the scan data to a file.
+
+        This will save the scan data to a NeXus file using the standard
+        NeXus file dialog.
+
+        Raises
+        ------
+        NeXusError
+            If the data cannot be saved.
+        """
         try:
             keep_data(self.scan_data)
         except NeXusError as error:
@@ -2265,6 +3600,7 @@ class ScanTab(NXTab):
 
     @property
     def scanview(self):
+        """The plot view for the scan data."""
         if 'Scan' in self.plotviews:
             return self.plotviews['Scan']
         else:
@@ -2272,6 +3608,12 @@ class ScanTab(NXTab):
             return NXPlotView('Scan')
 
     def close(self):
+        """
+        Close the dialog.
+
+        This will close the dialog and remove it from the list of
+        dialogs. It will also close the file dialog if it is open.
+        """
         try:
             self.file_box.close()
         except Exception:
@@ -2280,14 +3622,33 @@ class ScanTab(NXTab):
 
 
 class ViewDialog(NXPanel):
-    """Dialog to view a NeXus field"""
 
     def __init__(self, parent=None):
+        """
+        Initialize the View Panel.
+
+        The View Panel is initialized with the given parent and its
+        tab class is set to ViewTab. The apply and reset flags are set to
+        False.
+
+        Parameters
+        ----------
+        parent : QWidget, optional
+            The parent of the dialog. The default is None.
+        """
         super().__init__('View', title='View Panel', apply=False, reset=False,
                          parent=parent)
         self.tab_class = ViewTab
 
     def activate(self, node):
+        """
+        Activate a tab showing the properties of a NeXus node.
+        
+        Parameters
+        ----------
+        node : NXobject
+            The node to be displayed
+        """
         label = node.nxroot.nxname + node.nxpath
         if label not in self.tabs:
             tab = ViewTab(label, node, parent=self)
@@ -2303,6 +3664,18 @@ class ViewTab(NXTab):
 
     def __init__(self, label, node, parent=None):
 
+        """
+        Initialize a ViewTab object.
+
+        Parameters
+        ----------
+        label : str
+            The title of the tab
+        node : NXobject
+            The NeXus node to be displayed
+        parent : QWidget, optional
+            The parent of the tab
+        """
         super().__init__(label, parent=parent)
 
         self.node = node
@@ -2392,6 +3765,13 @@ class ViewTab(NXTab):
         self.setWindowTitle(node.nxroot.nxname+node.nxpath)
 
     def table(self):
+        """
+        Create a table view for displaying the data in a NeXus field.
+
+        If the data is more than two dimensions, add a row of spinboxes
+        to allow the user to select the indices of the data to be
+        displayed.
+        """
         layout = QtWidgets.QVBoxLayout()
 
         title_layout = QtWidgets.QHBoxLayout()
@@ -2439,6 +3819,13 @@ class ViewTab(NXTab):
         return layout
 
     def choose_data(self):
+        """
+        Slot to be called when the user changes the values of the spin
+        boxes used to select the data to be displayed in the table view.
+        The selected data is passed to the table model, which updates
+        the table view. The table view is then resized to fit the new
+        data.
+        """
         idx = [int(s.value()) for s in self.spinboxes]
         if len(idx) > 1:
             origin = [idx[-2], idx[-1]]
@@ -2451,6 +3838,7 @@ class ViewTab(NXTab):
         self.set_size()
 
     def set_size(self):
+        """Resizes the table view to fit the contents of the table."""
         self.table_view.resizeColumnsToContents()
         vwidth = self.table_view.verticalHeader().width()
         hwidth = self.table_view.horizontalHeader().length()
@@ -2463,11 +3851,45 @@ class ViewTab(NXTab):
 class ViewTableModel(QtCore.QAbstractTableModel):
 
     def __init__(self, data, parent=None):
+        """
+        Constructor for ViewTableModel
+        
+        Parameters
+        ----------
+        data : array-like
+            Data to be displayed in the table
+        parent : QObject, optional
+            Parent object
+        
+        Notes
+        -----
+        The data is reshaped to a 2D array if it is not already.
+        The origin of the data is recorded and used to determine the
+        table's row and column headers.
+        """
         super().__init__(parent=parent)
         self._data = self.get_data(data)
         self.origin = [0, 0]
 
     def get_data(self, data):
+        """
+        Reshape the data to a 2D array if it is not already
+
+        Parameters
+        ----------
+        data : array-like
+            Data to be displayed in the table
+
+        Returns
+        -------
+        reshaped_data : array-like
+            Data reshaped to a 2D array
+
+        Notes
+        -----
+        The number of rows and columns is stored in the instance
+        variables self.rows and self.columns.
+        """
         if len(data.shape) == 0:
             self.rows = 1
             self.columns = 1
@@ -2482,12 +3904,37 @@ class ViewTableModel(QtCore.QAbstractTableModel):
             return data
 
     def rowCount(self, parent=None):
+        """Number of rows in the table"""
         return self.rows
 
     def columnCount(self, parent=None):
+        """Number of columns in the table"""
         return self.columns
 
     def data(self, index, role):
+        """
+        Data to be displayed in the table
+
+        Parameters
+        ----------
+        index : QModelIndex
+            Index of the cell
+        role : int
+            Role of the data
+
+        Returns
+        -------
+        data : str
+            Data to be displayed in the table
+
+        Notes
+        -----
+        The data is converted to a string, removing any square brackets
+        from the start and end of the string. If the string is longer
+        than 10 characters, it is truncated to 10 characters and an
+        elipsis is appended. If the data cannot be converted to a float,
+        the string is returned as is.
+        """
         if not index.isValid():
             return None
         try:
@@ -2505,6 +3952,23 @@ class ViewTableModel(QtCore.QAbstractTableModel):
         return None
 
     def headerData(self, position, orientation, role):
+        """
+        Data to be displayed in the table header
+
+        Parameters
+        ----------
+        position : int
+            Index of the header element
+        orientation : Qt.Orientation
+            Orientation of the header
+        role : int
+            Role of the data
+
+        Returns
+        -------
+        data : str
+            Data to be displayed in the table header
+        """
         if (orientation == QtCore.Qt.Horizontal and
                 role == QtCore.Qt.DisplayRole):
             return str(self.origin[1] + range(10)[position])
@@ -2514,6 +3978,20 @@ class ViewTableModel(QtCore.QAbstractTableModel):
         return None
 
     def choose_data(self, data, origin):
+        """
+        Choose new data to be displayed in the table
+
+        Parameters
+        ----------
+        data : array-like
+            New data to be displayed in the table
+        origin : list of int
+            Origin of the new data
+
+        Notes
+        -----
+        The table view will be updated to display the new data.
+        """
         self.layoutAboutToBeChanged.emit()
         self._data = self.get_data(data)
         self.origin = origin
@@ -2527,11 +4005,27 @@ class ValidateDialog(NXPanel):
     """Dialog to view a NeXus field"""
 
     def __init__(self, parent=None):
+        """
+        Initialize the dialog to view a NeXus field.
+
+        Parameters
+        ----------
+        parent : QWidget, optional
+            The parent window of the dialog, by default None
+        """
         super().__init__('Validate', title='Validation Panel', apply=False,
                          reset=False, parent=parent)
         self.tab_class = ValidateTab
 
     def activate(self, node):
+        """
+        Activate a tab showing the results of NeXus validation of a NeXus node.
+
+        Parameters
+        ----------
+        node : NXobject
+            The node to be validated
+        """
         label = node.nxroot.nxname + node.nxpath
         if label not in self.tabs:
             tab = ValidateTab(label, node, parent=self)
@@ -2544,10 +4038,21 @@ class ValidateDialog(NXPanel):
 
 
 class ValidateTab(NXTab):
-    """Dialog to display output NeXus validation results."""
 
     def __init__(self, label, node, parent=None):
 
+        """
+        Initialize the dialog to view a NeXus field.
+
+        Parameters
+        ----------
+        label : str
+            The title of the tab
+        node : NXobject
+            The NeXus node to be validated
+        parent : QWidget, optional
+            The parent window of the dialog, by default None
+        """
         super().__init__(label, parent=parent)
 
         self.node = node
@@ -2609,7 +4114,13 @@ class ValidateTab(NXTab):
         self.set_title(f"Validation Results for {full_path}")
 
     def choose_definitions(self):
-        """Opens a file dialog to locate the definitions directory."""
+        """
+        Opens a file dialog and sets the definitions directory text box
+        to the chosen path. Checks that the directory contains a
+        base_classes directory and if it does, sets the definitions to
+        this new directory and reloads the application definition and
+        runs the currently selected validation action.
+        """
         dirname = str(self.definitions)
         dirname = QtWidgets.QFileDialog.getExistingDirectory(
             self, 'Choose Definitions Directory', dirname)
@@ -2636,7 +4147,13 @@ class ValidateTab(NXTab):
                 display_message("Definitions directory is not valid")
 
     def choose_application(self):
-        """Opens a file dialog to locate an application definition."""
+        """
+        Opens a file dialog and sets the application definition text box
+        to the chosen path. Checks that the file is an application
+        definition and if it is, sets the application definition to
+        this new file and reloads the application definition and runs
+        the currently selected validation action.
+        """
         applications_directory = self.definitions.joinpath('applications')
         dirname = str(applications_directory)
         application = Path(getOpenFileName(self, 'Open Application', dirname))
@@ -2648,6 +4165,7 @@ class ValidateTab(NXTab):
 
     @property
     def log_level(self):
+        """The current log level ('info', 'warning', or 'error')"""
         if self.radiobutton['info'].isChecked():
             return 'info'
         elif self.radiobutton['warning'].isChecked():
@@ -2656,6 +4174,13 @@ class ValidateTab(NXTab):
             return 'error'
 
     def validate(self):
+        """
+        Validates the NeXus entry against the given application
+        definition and definitions. Calls self.show_log() to show the
+        validation results and then sets the Validate Entry button to
+        True and the Check Base Class and Inspect Base Class buttons to
+        False.
+        """
         self.node.validate(level=self.log_level, application=self.application,
                            definitions=self.definitions)
         self.show_log()
@@ -2664,6 +4189,12 @@ class ValidateTab(NXTab):
             self.pushbutton[button].setChecked(False)
 
     def check(self):
+        """
+        Checks the NeXus group for compliance with the NeXus base
+        classes. Calls self.show_log() to show the validation results
+        and then sets the Check Base Class button to True and the
+        Validate Entry and Inspect Base Class buttons to False.
+        """
         self.node.check(level=self.log_level, definitions=self.definitions)
         self.show_log()
         self.pushbutton['Check Base Class'].setChecked(True)
@@ -2671,6 +4202,12 @@ class ValidateTab(NXTab):
             self.pushbutton[button].setChecked(False)
 
     def inspect(self):
+        """
+        Inspects the NeXus base class of the entry. Calls
+        self.show_log() to show the inspection results and then sets the
+        Inspect Base Class button to True and the Validate Entry and
+        Check Base Class buttons to False.
+        """
         self.node.inspect(definitions=self.definitions)
         self.show_log()
         self.pushbutton['Inspect Base Class'].setChecked(True)
@@ -2678,6 +4215,10 @@ class ValidateTab(NXTab):
             self.pushbutton[button].setChecked(False)
 
     def select_level(self):
+        """
+        Slot for the level radio buttons. Runs the validation action
+        that is currently selected by the user.
+        """
         if self.pushbutton['Validate Entry'].isChecked():
             self.validate()
         elif self.pushbutton['Check Base Class'].isChecked():
@@ -2686,6 +4227,10 @@ class ValidateTab(NXTab):
             self.inspect()
 
     def show_log(self):
+        """
+        Shows the validation log. Called by the validation actions to
+        show the results of the validation action.
+        """
         handler = logging.getLogger('NXValidate').handlers[0]
         self.text_box.setText(convertHTML(handler.flush()))
         self.setVisible(True)
@@ -2694,7 +4239,6 @@ class ValidateTab(NXTab):
 
 
 class AddDialog(NXDialog):
-    """Dialog to add a NeXus node"""
 
     data_types = ['char', 'float32', 'float64', 'int8', 'uint8', 'int16',
                   'uint16', 'int32', 'uint32', 'int64', 'uint64']
@@ -2702,6 +4246,22 @@ class AddDialog(NXDialog):
     def __init__(self, node, parent=None):
 
         super().__init__(parent=parent)
+        """
+        Initialize the dialog to add a NeXus field or attribute.
+
+        The dialog is initialized with a combo box and a button. The
+        combo box contains all the NeXus classes that can be added to
+        the given node. The button is labeled "Add" and calls the
+        select_class slot when clicked.
+
+        Parameters
+        ----------
+        node : NXobject
+            The NeXus node to which a NeXus field or attribute will be
+            added.
+        parent : QWidget, optional
+            The parent window of the dialog, by default None
+        """
 
         self.node = node
 
@@ -2732,6 +4292,13 @@ class AddDialog(NXDialog):
         self.setLayout(self.layout)
 
     def select_class(self):
+        """
+        Slot to select the class of the NeXus field or attribute to be
+        added.
+
+        Depending on the selected class, the dialog is updated with the
+        appropriate entry fields.
+        """
         self.class_name = self.class_box.currentText()
         if self.class_name == "NXgroup":
             self.layout.insertLayout(1, self.define_grid("NXgroup"))
@@ -2743,6 +4310,31 @@ class AddDialog(NXDialog):
         self.class_box.setDisabled(True)
 
     def define_grid(self, class_name):
+        """
+        Defines a grid of entry fields for adding a NeXus field or
+        attribute.
+
+        The grid is defined based on the class of the NeXus field or
+        attribute. For a NeXus group, the grid includes a combo box to
+        select the group class and an entry field for the group name.
+        For a NeXus field, the grid includes a combo box to select the
+        field name, an entry field for the field value, an entry field
+        for the field units, and a combo box to select the field
+        datatype. For a NeXus attribute, the grid includes an entry
+        field for the attribute name and an entry field for the
+        attribute value.
+
+        Parameters
+        ----------
+        class_name : str
+            The class of the NeXus field or attribute to be added.
+
+        Returns
+        -------
+        grid : QGridLayout
+            The grid of entry fields for adding a NeXus field or
+            attribute.
+        """
         grid = QtWidgets.QGridLayout()
         grid.setSpacing(10)
 
@@ -2810,12 +4402,20 @@ class AddDialog(NXDialog):
         return grid
 
     def select_combo(self):
+        """Set the name box to the selected item in the combo box."""
         self.set_name(self.combo_box.currentText())
 
     def get_name(self):
+        """Return the text of the name box."""
         return self.name_box.text()
 
     def set_name(self, name):
+        """
+        Set the name box to the specified name. If the name is a
+        standard group, set the combo box to the corresponding type. If
+        the name is not a standard group, strip any leading "NX" from
+        the name.
+        """
         if self.class_name == 'NXgroup':
             if (name in self.standard_groups and 
                     '@type' in self.standard_groups[name]):
@@ -2826,6 +4426,14 @@ class AddDialog(NXDialog):
         self.name_box.setText(name)
 
     def get_value(self):
+        """
+        Return the value of the text box as a python object. If the
+        value is empty, return None. If the value is a string, return
+        the string. If the value is a number, return the number as a
+        python object. If the value is a numpy expression, return the
+        result of the expression. If the value can not be interpreted as
+        a python object, return the value as a string.
+        """
         value = self.value_box.text()
         if value:
             dtype = self.get_type()
@@ -2841,9 +4449,16 @@ class AddDialog(NXDialog):
             return None
 
     def get_units(self):
+        """Return the text of the units box."""
         return self.units_box.text()
 
     def get_type(self):
+        """
+        Return the type of the object as a string. If the object is a
+        group, return the name of the group class. If the object is a
+        field, return the type of the field as a numpy dtype name. If
+        the type is 'auto', return None.
+        """
         if self.class_name == 'NXgroup':
             return self.combo_box.currentText()
         else:
@@ -2854,6 +4469,16 @@ class AddDialog(NXDialog):
                 return dtype
 
     def accept(self):
+        """
+        Add a new NeXus object to the tree.
+
+        If the object is a group, it is added with the specified class
+        name. If the object is a field or attribute, it is added with the
+        specified value and type. If the object is a field, it is added
+        with units if specified. The object is added to the tree at the
+        current node, and the node is updated in the tree. The dialog is
+        then closed.
+        """
         name = self.get_name()
         if self.class_name == "NXgroup":
             nxclass = self.get_type()
@@ -2882,13 +4507,22 @@ class AddDialog(NXDialog):
 
 
 class InitializeDialog(NXDialog):
-    """Dialog to initialize a NeXus field node"""
 
     data_types = ['float32', 'float64', 'int8', 'uint8', 'int16',
                   'uint16', 'int32', 'uint32', 'int64', 'uint64']
 
     def __init__(self, node, parent=None):
 
+        """
+        Initialize dialog to initialize NeXus data.
+
+        Parameters
+        ----------
+        node : NXobject
+            The NeXus node to be initialized.
+        parent : QWidget, optional
+            The parent window of the dialog, by default None
+        """
         super().__init__(parent=parent)
 
         self.node = node
@@ -2932,20 +4566,25 @@ class InitializeDialog(NXDialog):
         self.setLayout(self.layout)
 
     def select_combo(self):
+        """Set the name box to the selected item in the combo box."""
         self.set_name(self.combo_box.currentText())
 
     def get_name(self):
+        """Return the text of the name box."""
         return self.name_box.text()
 
     def set_name(self, name):
+        """Set the text of the name box."""
         self.name_box.setText(name)
 
     @property
     def dtype(self):
+        """Return the dtype of the data."""
         return np.dtype(self.type_box.currentText())
 
     @property
     def shape(self):
+        """Return the shape of the data."""
         shape = self.shape_box.text().strip()
         if shape == '':
             raise NeXusError("Invalid shape")
@@ -2965,12 +4604,20 @@ class InitializeDialog(NXDialog):
 
     @property
     def fillvalue(self):
+        """Return the fill value of the data."""
         try:
             return np.asarray(eval(self.fill_box.text()), dtype=self.dtype)
         except Exception:
             raise NeXusError("Invalid fill value")
 
     def accept(self):
+        """
+        Initialize the data in the given node and close the dialog.
+
+        This will validate the name, dtype, shape, and fillvalue of the
+        data. If any of these are invalid, an error message will be
+        shown and the dialog will not be closed.
+        """
         try:
             name = self.get_name().strip()
             if name:
@@ -2989,10 +4636,24 @@ class InitializeDialog(NXDialog):
 
 
 class RenameDialog(NXDialog):
-    """Dialog to rename a NeXus node"""
 
     def __init__(self, node, parent=None):
 
+        """
+        Initialize the dialog to rename a NeXus field or attribute.
+
+        The dialog is initialized with a single line edit box and a
+        button labeled "Rename". The button is connected to the rename
+        slot, which changes the name of the given node to the text in
+        the box and then closes the dialog.
+
+        Parameters
+        ----------
+        node : NXobject
+            The NeXus field or attribute to be renamed.
+        parent : QWidget, optional
+            The parent window of the dialog, by default None
+        """
         super().__init__(parent=parent)
 
         self.node = node
@@ -3005,6 +4666,23 @@ class RenameDialog(NXDialog):
         self.setLayout(self.layout)
 
     def define_grid(self):
+        """
+        Defines a grid of entry fields for renaming a NeXus field or
+        attribute.
+
+        The grid is defined based on the class of the NeXus field or
+        attribute. For a NeXus group, the grid includes a combo box to
+        select the group class and a line edit box to enter the new name
+        of the group. For a NeXus field or attribute, the grid includes
+        a combo box to select the field name and a line edit box to
+        enter the new name of the field or attribute.
+
+        Returns
+        -------
+        grid : QGridLayout
+            The grid of entry fields for renaming a NeXus field or
+            attribute.
+        """
         grid = QtWidgets.QGridLayout()
         grid.setSpacing(10)
         name_label = NXLabel("New Name:")
@@ -3053,15 +4731,25 @@ class RenameDialog(NXDialog):
         return grid
 
     def get_name(self):
+        """Returns the name of the object to be renamed."""
         return self.name_box.text()
 
     def set_name(self):
+        """Sets the name of the object to be renamed."""
         self.name_box.setText(self.combo_box.currentText())
 
     def get_class(self):
+        """Returns the class of the object to be renamed."""
         return self.combo_box.currentText()
 
     def accept(self):
+        """
+        Renames the node, and if the node is a group, changes its class.
+
+        The node is renamed to the name in the name box. If the node is
+        a group, its class is changed to the class selected in the
+        combo box. The dialog is then closed.
+        """
         name = self.get_name()
         if name and name != self.node.nxname:
             self.node.rename(name)
@@ -3072,10 +4760,25 @@ class RenameDialog(NXDialog):
 
 
 class PasteDialog(NXDialog):
-    """Dialog to paste to a NeXus group."""
 
     def __init__(self, node, link=False, parent=None):
 
+        """
+        Initialize the dialog to paste a node.
+
+        The dialog is initialized with the pasted node's name and
+        a checkbox to link the pasted node to the original node.
+
+        Parameters
+        ----------
+        node : NXobject
+            The parent node of the pasted node.
+        link : bool, optional
+            Whether to link the pasted node to the original node, by
+            default False.
+        parent : QWidget, optional
+            The parent window of the dialog, by default None.
+        """
         super().__init__(parent=parent)
 
         self.node = node
@@ -3095,6 +4798,23 @@ class PasteDialog(NXDialog):
         self.set_title(f"Pasting '{path}'")
 
     def accept(self):
+        """
+        Pasts the node into the given node.
+
+        The pasted node is inserted into the given node with the name
+        given in the name box. If the link checkbox is checked, the
+        pasted node is pasted as a link to the original node. The
+        dialog is then closed.
+
+        If the node is a group, the pasted node is added to the group.
+        If the node is a field, the pasted node is added to the
+        parent group of the field.
+
+        Parameters
+        ----------
+        node : NXobject
+            The node into which the pasted node is to be inserted.
+        """
         name = self.copied_node.nxname = self.parameters['name'].value
         try:
             if self.link:
@@ -3111,10 +4831,19 @@ class PasteDialog(NXDialog):
 
 
 class SignalDialog(NXDialog):
-    """Dialog to set the signal of NXdata"""
 
     def __init__(self, node, parent=None):
 
+        """
+        Initialize the dialog to choose a signal from a group.
+
+        Parameters
+        ----------
+        node : NXfield or NXgroup
+            The NeXus field or group from which to choose a signal.
+        parent : QWidget, optional
+            The parent window of the dialog, by default None.
+        """
         super().__init__(parent=parent)
 
         if isinstance(node, NXfield):
@@ -3163,13 +4892,21 @@ class SignalDialog(NXDialog):
 
     @property
     def signal(self):
+        """ The selected signal. """
         return self.group[self.signal_combo.currentText()]
 
     @property
     def ndim(self):
+        """ The number of dimensions of the selected signal. """
         return len(self.signal.shape)
 
     def choose_signal(self):
+        """
+        Set up the axis boxes when a new signal is chosen.
+
+        This will create new axis boxes for each axis of the signal and
+        remove any remaining boxes for the old signal.
+        """
         row = 1
         self.axis_boxes = {}
         for axis in range(self.ndim):
@@ -3183,6 +4920,23 @@ class SignalDialog(NXDialog):
             row += 1
 
     def axis_box(self, axis=0):
+        """
+        Create a dropdown box for selecting an axis.
+
+        This will create a dropdown box of all the NXfields in the same
+        group as the selected signal. The box will be initialized to the
+        default axis if it is among the available options.
+
+        Parameters
+        ----------
+        axis : int
+            The axis for which to create the dropdown box.
+
+        Returns
+        -------
+        box : NXComboBox
+            The created dropdown box.
+        """
         box = NXComboBox(self.choose_axis)
         axes = []
         for node in self.group.values():
@@ -3203,6 +4957,14 @@ class SignalDialog(NXDialog):
         return box
 
     def choose_axis(self):
+        """
+        Check if the selected axes are valid.
+
+        This function is connected to the currentIndexChanged signal of
+        each axis box. It checks if the selected axes are valid by
+        checking if there are any duplicate axes selected. If there are,
+        it displays a message box with an error message.
+        """
         axes = [self.axis_boxes[axis].currentText()
                 for axis in range(self.ndim)]
         axes = [axis_name for axis_name in axes if axis_name != 'None']
@@ -3210,6 +4972,14 @@ class SignalDialog(NXDialog):
             display_message("Cannot have duplicate axes")
 
     def remove_axis(self, axis):
+        """
+        Remove an axis box from the grid layout.
+
+        Parameters
+        ----------
+        axis : int
+            The axis for which to remove the dropdown box.
+        """
         row = axis + 1
         for column in range(2):
             item = self.grid.itemAtPosition(row, column)
@@ -3221,6 +4991,25 @@ class SignalDialog(NXDialog):
                     widget.deleteLater()
 
     def check_axis(self, node, axis):
+        """
+        Check if a node can be used as an axis for a signal.
+
+        The node must be a one-dimensional field with a length that
+        matches the length of the signal in the given axis. If the
+        node is a zero-dimensional field, it is also accepted.
+
+        Parameters
+        ----------
+        node : NXfield or NXgroup
+            The node to check.
+        axis : int
+            The axis for which to check the node.
+
+        Returns
+        -------
+        result : bool
+            True if the node can be used as an axis, False otherwise.
+        """
         if len(node.shape) > 1:
             return False
         try:
@@ -3232,6 +5021,19 @@ class SignalDialog(NXDialog):
         return False
 
     def get_axis(self, axis):
+        """
+        Return the axis for the given axis number.
+
+        Parameters
+        ----------
+        axis : int
+            The axis number.
+
+        Returns
+        -------
+        axis : NXfield or None
+            The axis or None if the selected axis is 'None'.
+        """
         axis_name = self.axis_boxes[axis].currentText()
         if axis_name == 'None':
             return None
@@ -3239,9 +5041,33 @@ class SignalDialog(NXDialog):
             return self.group[axis_name]
 
     def get_axes(self):
+        """
+        Return a list of NXfields containing the selected axes.
+
+        The axes are determined from the values in the axis boxes. If
+        the selected axis is 'None', None is returned for that axis.
+        Otherwise, the selected NXfield is returned with its values and
+        attributes.
+
+        Returns
+        -------
+        axes : list of NXfield
+            The axes.
+        """
         return [self.get_axis(axis) for axis in range(self.ndim)]
 
     def accept(self):
+        """
+        Set the signal and axes for the group.
+
+        Set the signal and axes for the group according to the values in
+        the signal and axis boxes. If the selected axes are invalid
+        (e.g. duplicate axes are selected), a NeXusError is raised and
+        reported.
+
+        Otherwise, the signal and axes are set and the dialog is closed
+        with accept().
+        """
         try:
             self.group.nxsignal = self.signal
             self.group.nxaxes = self.get_axes()
@@ -3252,10 +5078,22 @@ class SignalDialog(NXDialog):
 
 
 class LogDialog(NXDialog):
-    """Dialog to display a NeXpy log file"""
 
     def __init__(self, parent=None):
 
+        """
+        Initialize the dialog to display the NeXpy log file.
+
+        The dialog shows the contents of the NeXpy log file in a text
+        box. The file can be selected from a drop down box. The dialog
+        also has an 'Open NeXpy Issue' button that opens the NeXpy
+        issues page on GitHub.
+
+        Parameters
+        ----------
+        parent : QWidget, optional
+            The parent window of the dialog, by default None
+        """
         super().__init__(parent=parent)
 
         self.log_directory = self.mainwindow.nexpy_dir
@@ -3282,23 +5120,41 @@ class LogDialog(NXDialog):
 
     @property
     def file_name(self):
+        """Return the full path to the selected log file"""
         return self.log_directory / self.file_combo.currentText()
 
     def open_issue(self):
+        """Open the NeXpy issues page on GitHub in a browser."""
         import webbrowser
         url = "https://github.com/nexpy/nexpy/issues"
         webbrowser.open(url, new=1, autoraise=True)
 
     def mouseReleaseEvent(self, event):
+        """Show the log file when the dialog is clicked"""
         self.show_log()
 
     def show_log(self):
+        """
+        Show the selected log file in the dialog.
+
+        Format the log file, make the dialog visible, raise it to the
+        top of the window stack, and give it focus.
+        """
         self.format_log()
         self.setVisible(True)
         self.raise_()
         self.activateWindow()
 
     def format_log(self):
+        """
+        Format the selected log file and show it in the dialog.
+
+        This method reads the log file, formats it as HTML, and sets the
+        text box to show the formatted log. The vertical scrollbar is
+        set to the bottom of the text to show the most recent log
+        messages. The window title is also set to the name of the log
+        file.
+        """
         with open(self.file_name, 'r') as f:
             self.text_box.setText(convertHTML(f.read()))
         self.text_box.verticalScrollBar().setValue(
@@ -3306,15 +5162,33 @@ class LogDialog(NXDialog):
         self.setWindowTitle(f"Log File: {self.file_name}")
 
     def reject(self):
+        """
+        Close the dialog and remove the reference to it from the main
+        window.
+        """
         super().reject()
         self.mainwindow.log_window = None
 
 
 class UnlockDialog(NXDialog):
-    """Dialog to unlock a file"""
 
     def __init__(self, node, parent=None):
 
+        """
+        Initialize the dialog to unlock a file.
+
+        The dialog is initialized with a label describing the action,
+        a checkbox to backup the file, and a button to unlock the file.
+        The checkbox is checked by default if the file is smaller than
+        10MB.
+
+        Parameters
+        ----------
+        node : NXroot
+            The root of the NeXus tree.
+        parent : QWidget, optional
+            The parent window of the dialog, by default None
+        """
         super().__init__(parent=parent)
 
         self.setWindowTitle("Unlock File")
@@ -3335,6 +5209,19 @@ class UnlockDialog(NXDialog):
         self.set_title('Unlocking File')
 
     def accept(self):
+        """
+        Unlock the file.
+
+        If the checkbox is checked, the file is backed up to
+        the backup directory before unlocking. The backup file
+        name is stored in the settings under 'backups' and the
+        current session is set to the backup file name.
+
+        If the file is not backed up, the file is unlocked
+        without saving the backup file name.
+
+        If there is an error, an error message is displayed.
+        """
         try:
             if self.checkbox['backup'].isChecked():
                 dir = self.mainwindow.backup_dir / timestamp()
@@ -3353,10 +5240,26 @@ class UnlockDialog(NXDialog):
 
 
 class ManageBackupsDialog(NXDialog):
-    """Dialog to restore or purge backup files"""
 
     def __init__(self, parent=None):
 
+        """
+        Initialize the dialog to manage backups.
+
+        The dialog shows a list of backups, with the date, name and size
+        of each backup. The user can check the boxes of the backups to
+        be restored or deleted.
+
+        The dialog contains buttons to restore or delete the selected
+        backups.
+
+        The dialog is closed by clicking the 'Close' button.
+
+        Parameters
+        ----------
+        parent : QWidget, optional
+            The parent window of the dialog, by default None
+        """
         super().__init__(parent=parent, default=True)
 
         self.backup_dir = self.mainwindow.backup_dir
@@ -3393,10 +5296,19 @@ class ManageBackupsDialog(NXDialog):
         self.set_title('Manage Backups')
 
     def get_name(self, backup):
+        """Get the name of the backup file."""
         name, ext = Path(backup).stem, Path(backup).suffix
         return name[:name.find('_backup')] + ext
 
     def restore(self):
+        """
+        Restore the selected backup files.
+
+        The selected backup files are restored and loaded into the
+        tree view. The backup files are disabled in the dialog and
+        the display message is updated to indicate that the files
+        have been opened and should be saved for future use.
+        """
         for backup in self.checkbox:
             if self.checkbox[backup].isChecked():
                 name = self.tree.get_name(self.get_name(backup))
@@ -3408,6 +5320,13 @@ class ManageBackupsDialog(NXDialog):
                                      "Please save the file for future use")
 
     def delete(self):
+        """
+        Delete the selected backup files.
+
+        The selected backup files are deleted and removed from the list
+        of backups. The display message is updated to indicate that the
+        files have been deleted.
+        """
         backups = []
         for backup in self.checkbox:
             if self.checkbox[backup].isChecked():
@@ -3429,10 +5348,22 @@ class ManageBackupsDialog(NXDialog):
 
 
 class ManagePluginsDialog(NXDialog):
-    """Dialog to manage NeXus plugins"""
 
     def __init__(self, parent=None):
 
+        """
+        Initialize the dialog to manage plugins.
+
+        The dialog is initialized with a grid of widgets showing the
+        package name, menu name, and order of each plugin. The order
+        can be set to either a number or 'Disabled'. The settings are
+        saved when the dialog is closed.
+
+        Parameters
+        ----------
+        parent : QWidget, optional
+            The parent window of the dialog, by default None
+        """
         super().__init__(parent=parent)
 
         self.plugins = self.mainwindow.plugins.copy()
@@ -3469,6 +5400,11 @@ class ManagePluginsDialog(NXDialog):
         self.set_title('Managing Plugins')
 
     def update_plugins(self):
+        """
+        Set the order of plugins in the settings from the current dialog box
+        layout. Check that the order is unique and sequential, otherwise
+        raise a NeXusError.
+        """
         for row, plugin in enumerate(self.plugins):
             p = self.plugins[plugin]
             order = self.grid.itemAtPosition(row+1, 2).widget().currentText()
@@ -3479,11 +5415,35 @@ class ManagePluginsDialog(NXDialog):
             raise NeXusError("Plugin order must be unique and sequential")
 
     def sorted_plugins(self):
+        """
+        Return a sorted list of plugins in the order of their menu
+        appearance.
+        
+        Only plugins with an order that is not 'Disabled' are included
+        in the sorted list. The list is sorted by the order of the
+        plugins.
+        """
         plugins = {k: v for k, v in self.plugins.items()
                    if v.get('order') != 'Disabled'}
         return sorted(plugins, key=lambda k: plugins[k]['order'])
 
     def accept(self):
+        """
+        Save the updated plugin configuration and refresh the main window.
+
+        This method updates the order of plugins, removes existing plugin
+        menus, and adds them back in the updated order. It saves the
+        updated plugin settings to the configuration file and closes the
+        dialog. If an error occurs, it reports the error without applying 
+        the changes.
+
+        Raises
+        ------
+        NeXusError
+            If the plugin order is not unique and sequential, or if there
+            is an error in managing the plugins.
+        """
+
         try:
             self.update_plugins()
             for name in [p['menu'] for p in self.plugins.values()]:
