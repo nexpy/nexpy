@@ -1124,7 +1124,7 @@ class GridParameters(dict):
                                        QtWidgets.QSizePolicy.Expanding)
         layout = message_box.layout()
         layout.addItem(spacer, layout.rowCount(), 0, 1, layout.columnCount())
-        message_box.exec_()
+        message_box.exec()
 
     def restore_parameters(self):
         for p in [p for p in self if self[p].vary]:

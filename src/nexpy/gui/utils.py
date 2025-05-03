@@ -63,7 +63,7 @@ def report_error(context, error):
     message_box.setStandardButtons(QtWidgets.QMessageBox.Ok)
     message_box.setDefaultButton(QtWidgets.QMessageBox.Ok)
     message_box.setIcon(QtWidgets.QMessageBox.Warning)
-    return message_box.exec_()
+    return message_box.exec()
 
 
 def confirm_action(query, information=None, answer=None, icon=None):
@@ -85,7 +85,7 @@ def confirm_action(query, information=None, answer=None, icon=None):
     if icon:
         message_box.setIconPixmap(icon)
 
-    response = message_box.exec_()
+    response = message_box.exec()
     if (response == QtWidgets.QMessageBox.Yes or
             response == QtWidgets.QMessageBox.Ok):
         return True
@@ -103,7 +103,7 @@ def display_message(message, information=None, width=None):
         message_box.setStyleSheet(f"QLabel{{min-width:{width} px; }}")
     else:
         message_box.setStyleSheet("QLabel{min-width:250 px; }")
-    return message_box.exec_()
+    return message_box.exec()
 
 
 def report_exception(*args):
@@ -122,7 +122,7 @@ def report_exception(*args):
     message_box.setIcon(QtWidgets.QMessageBox.Warning)
     layout = message_box.layout()
     layout.setColumnMinimumWidth(layout.columnCount()-1, 600)
-    return message_box.exec_()
+    return message_box.exec()
 
 
 def run_pythonw(script_path):

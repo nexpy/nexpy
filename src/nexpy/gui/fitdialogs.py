@@ -1111,7 +1111,7 @@ class FitTab(NXTab):
                                        QtWidgets.QSizePolicy.Expanding)
         layout = message_box.layout()
         layout.addItem(spacer, layout.rowCount(), 0, 1, layout.columnCount())
-        message_box.exec_()
+        message_box.exec()
 
     def save_fit(self):
         """Saves fit results to an NXprocess group"""

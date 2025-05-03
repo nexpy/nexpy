@@ -1541,7 +1541,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 elif node.nxfilemode == 'r':
                     raise NeXusError("NeXus file is locked")
                 dialog = AddDialog(node, parent=self)
-                dialog.exec_()
+                dialog.exec()
             else:
                 self.new_workspace()
         except NeXusError as error:
@@ -1557,7 +1557,7 @@ class MainWindow(QtWidgets.QMainWindow):
                     raise NeXusError("NeXus file is locked")
                 elif isinstance(node, NXgroup):
                     dialog = InitializeDialog(node, parent=self)
-                    dialog.exec_()
+                    dialog.exec()
                 else:
                     raise NeXusError(
                         "An NXfield can only be added to an NXgroup")
@@ -1575,7 +1575,7 @@ class MainWindow(QtWidgets.QMainWindow):
                           node.nxgroup.nxfilemode != 'r'):
                         path = node.nxpath
                         dialog = RenameDialog(node, parent=self)
-                        dialog.exec_()
+                        dialog.exec()
                         logging.info(f"'{path}' renamed as '{node.nxpath}'")
                     else:
                         raise NeXusError("NeXus file is locked")
