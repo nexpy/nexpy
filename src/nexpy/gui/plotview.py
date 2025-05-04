@@ -213,16 +213,31 @@ class NXFigureManager(FigureManager):
     """Subclass of Matplotlib's FigureManager."""
 
     def __init__(self, canvas, num):
+        """
+        Initialize the figure manager.
+
+        Parameters
+        ----------
+        canvas : NXCanvas
+            The canvas to be managed.
+        num : int
+            The number of the figure.
+
+        Notes
+        -----
+        Also sets up the canvas to notify the toolbar of changes to the
+        axes.
+        """
         FigureManagerBase.__init__(self, canvas, num)
         self._status_and_tool_height = 0
 
         def notify_axes_change(fig):
-            # This will be called whenever the current axes is changed
             if self.canvas.toolbar is not None:
                 self.canvas.toolbar.update()
         self.canvas.figure.add_axobserver(notify_axes_change)
 
     def set_window_title(self, title):
+        """Set the window title."""
         try:
             self.window.setWindowTitle(title)
         except AttributeError:
@@ -230,7 +245,8 @@ class NXFigureManager(FigureManager):
 
 
 class NXPlotView(QtWidgets.QDialog):
-    """Qt widget containing a NeXpy plot.
+    """
+    Qt dialog containing a NeXpy plot.
 
     The widget consists of a QVBoxLayout containing a matplotlib canvas
     over a tab widget, which contains NXPlotTab objects for adjusting
@@ -302,6 +318,19 @@ class NXPlotView(QtWidgets.QDialog):
 
     def __init__(self, label=None, parent=None):
 
+        """
+        Initialize the NXPlotView window.
+
+        Parameters
+        ----------
+        label : str, optional
+            The label used to identify this dialog. It can be
+            used as the key to select an instance in the 'dialogs' dictionary.
+            If a label is not given, the window will be labeled as
+            "Figure 1", "Figure 2", etc.
+        parent : QWidget, optional
+            The parent window of the dialog, by default None
+        """
         if parent is not None:
             self.mainwindow = parent
         else:
@@ -433,10 +462,12 @@ class NXPlotView(QtWidgets.QDialog):
         return f'NXPlotView("{self.label}")'
 
     def keyPressEvent(self, event):
-        """Override the QWidget keyPressEvent.
+        """
+        Override the QWidget keyPressEvent.
 
-        This converts the event into a Matplotlib KeyEvent so that keyboard
-        shortcuts entered outside the canvas are treated as canvas shortcuts.
+        This converts the event into a Matplotlib KeyEvent so that
+        keyboard shortcuts entered outside the canvas are treated as
+        canvas shortcuts.
 
         Parameters
         ----------
@@ -445,7 +476,8 @@ class NXPlotView(QtWidgets.QDialog):
         self.canvas.keyPressEvent(event)
 
     def on_button_press(self, event):
-        """Handle mouse button press events in the Matplotlib canvas.
+        """
+        Handle mouse button press events in the Matplotlib canvas.
 
         If there is a mouse click within the plotting axes, the x and y values
         are stored in self.xdata and self.ydata. In addition, a right-click
@@ -470,7 +502,8 @@ class NXPlotView(QtWidgets.QDialog):
             self.ptab.draw_rotated_line(event)
 
     def on_key_press(self, event):
-        """Handle key press events in the Matplotlib canvas.
+        """
+        Handle key press events in the Matplotlib canvas.
 
         The following keys are defined:
 
@@ -583,11 +616,13 @@ class NXPlotView(QtWidgets.QDialog):
             self.otab.zoom()
 
     def resizeEvent(self, event):
+        """Handle a resize event in the canvas and updae panels."""
         self.update_panels()
         super().resizeEvent(event)
 
     def activate(self):
-        """Restore original signal connections.
+        """
+        Restore original signal connections.
 
         This assumes a previous call to the deactivate function, which sets the
         current value of _active_mode.
@@ -615,6 +650,7 @@ class NXPlotView(QtWidgets.QDialog):
 
     @property
     def screen(self):
+        """Return the screen associated with this window."""
         if self.windowHandle():
             return self.windowHandle().screen()
         else:
@@ -1137,6 +1173,13 @@ class NXPlotView(QtWidgets.QDialog):
         self.vaxis.min, self.vaxis.max = self.image.get_clim()
 
     def add_plot(self):
+        """
+        Add a plot to the current plotview.
+
+        This function creates a dictionary of plot attributes and adds
+        it to the dictionary of plots. It also adds the plot to the
+        combobox of available plots.
+        """
         if self.num == 1:
             self.plots = {}
             self.ytab.plotcombo.clear()
@@ -1177,7 +1220,7 @@ class NXPlotView(QtWidgets.QDialog):
 
     @property
     def signal_group(self):
-        """Determine path of signal group."""
+        """The path of the signal group."""
         if self.data.nxroot.nxclass == "NXroot":
             return dirname(self.data.nxroot.nxname +
                            self.data.nxsignal.nxpath) + '/'
@@ -1188,12 +1231,13 @@ class NXPlotView(QtWidgets.QDialog):
 
     @property
     def signal_path(self):
-        """Determine full path of signal."""
+        """The full path of the signal."""
         return self.signal_group + self.signal.nxname
 
     @property
     def shape(self):
-        """Shape of the original NXdata signal array.
+        """
+        Shape of the original NXdata signal array.
 
         This removes any dimension of size 1. Also, a dimension is
         removed if the data contain RGB layers.
@@ -1224,7 +1268,23 @@ class NXPlotView(QtWidgets.QDialog):
         return self.v[np.isfinite(self.v)]
 
     def set_data_limits(self):
-        """Set the vaxis data and limits for 2D plots."""
+        """
+        Set the limits of the plotted data.
+
+        The upper limit is set to the maximum of the data. The lower
+        limit is set to the minimum of the data or to the negative of
+        the upper limit if the limits are set to be symmetric. If the
+        data are plotted on a log scale and the limits are set to be
+        symmetric, the lower limit is set to the negative of the upper
+        limit divided by 10. If the data are plotted on a log scale and
+        the limits are not set to be symmetric, the lower limit is set
+        to the minimum of the data divided by 10. If the data are
+        qualitative, the lower and upper limits are set to 0.5 and the
+        number of colors in the colormap minus 0.5, respectively. If the
+        limits are set to be locked together, the lower limit is set to
+        the upper limit minus the difference between the upper and lower
+        limits.
+        """
         self.vaxis.data = self.v
         if self.vaxis.hi is None or self.autoscale:
             self.vaxis.hi = self.vaxis.max = np.max(self.finite_v)
@@ -1246,7 +1306,15 @@ class NXPlotView(QtWidgets.QDialog):
             self.vtab.set_limits(*self.vaxis.log_limits())
 
     def set_data_norm(self):
-        """Set the normalization for 2D plots."""
+        """
+        Set the norm for the data.
+
+        The norm is set to a Normalize or LogNorm depending on whether the data
+        are plotted on a linear or log scale. If the data are plotted on a log
+        scale and the data are symmetric about zero, a SymLogNorm is used with
+        the linthresh and linscale parameters set to the hi value divided by 10
+        and 0.1, respectively.
+        """
         if self.vtab.log:
             if self.vtab.symmetric:
                 if self._linthresh:
@@ -1326,7 +1394,13 @@ class NXPlotView(QtWidgets.QDialog):
         self.grid(self._grid, self._minorgrid)
 
     def replot_image(self):
-        """Replot the image."""
+        """
+        Replot the image data.
+
+        This is called by replot_data when the image data has changed.
+        It updates the image data, sets the norm and color limits, and
+        redraws the colorbar and axes. Finally, it redraws the image.
+        """
         try:
             self.set_data_limits()
             self.set_data_norm()
@@ -1348,7 +1422,14 @@ class NXPlotView(QtWidgets.QDialog):
             pass
 
     def replot_axes(self, draw=True):
-        """Adjust the x and y axis limits in the plot."""
+        """
+        Replot the axes.
+
+        This is called by replot_data when the axes limits have changed.
+        It updates the x and y limits of the axes, and the x and y
+        labels. If the plot is 1D, it also replots the smooth curve. If
+        draw is True, it redraws the axes and updates the panels.
+        """
         ax = self.figure.gca()
         xmin, xmax = self.xaxis.get_limits()
         ymin, ymax = self.yaxis.get_limits()
@@ -1378,6 +1459,15 @@ class NXPlotView(QtWidgets.QDialog):
         self.update_panels()
 
     def update_colorbar(self):
+        """
+        Update the colorbar.
+
+        This is called by replot_data when the data limits have changed.
+        It updates the colorbar norm and color limits, and the colorbar
+        ticks if the plot is qualitative. If the plot is qualitative
+        and matplotlib version is >= 3.5.0, it also updates the colorbar
+        y-axis limits.
+        """
         if self.colorbar:
             if Version(mpl.__version__) >= Version('3.1.0'):
                 self.colorbar.update_normal(self.image)
@@ -1482,6 +1572,25 @@ class NXPlotView(QtWidgets.QDialog):
         self.draw()
 
     def fit_data(self):
+        """
+        Fit the selected data.
+
+        This will trigger a dialog box, which allows functions to be
+        chosen and parameters to be initialized before calling a
+        non-linear least-squares fitting module.
+
+        If the selected node is an NXdata group, it will be fitted. If
+        the selected node is an NXentry or NXprocess group and its title
+        starts with 'Fit', the data field of this group will be fitted.
+        In all other cases, a NeXusError is raised.
+
+        If the data is more than one-dimensional, a NeXusError is
+        raised.
+
+        See also
+        --------
+        :ref:`Fitting NeXus Data`_.
+        """
         from .fitdialogs import FitDialog
         if not self.mainwindow.panel_is_running('Fit'):
             self.panels['Fit'] = FitDialog()
@@ -1493,12 +1602,12 @@ class NXPlotView(QtWidgets.QDialog):
                                     color=self.plots[self.num]['color'])
 
     def symlog(self, linthresh=None, linscale=None, vmax=None):
-        """Use symmetric log normalization in the current plot.
+        """
+        Use symmetric log normalization in the current plot.
 
-           This implements SymLogNorm, which requires the definition of
-           a region close to zero where a linear interpolation is
-           utilized. The current data is replotted with the new
-           normalization.
+        This implements SymLogNorm, which requires the definition of a
+        region close to zero where a linear interpolation is utilized.
+        The current data is replotted with the new normalization.
 
         Parameters
         ----------
@@ -1590,6 +1699,7 @@ class NXPlotView(QtWidgets.QDialog):
         self.update_tabs()
 
     def reset_log(self):
+        """Reset the log flag for all plot tabs."""
         for tab in [self.xtab, self.ytab, self.vtab]:
             tab.block_signals(True)
             tab.logbox.setChecked(False)
@@ -1597,6 +1707,7 @@ class NXPlotView(QtWidgets.QDialog):
 
     @property
     def logx(self):
+        """True if the x axis is plotted on a log scale."""
         return self.xtab.log
 
     @logx.setter
@@ -1605,6 +1716,7 @@ class NXPlotView(QtWidgets.QDialog):
 
     @property
     def logy(self):
+        """True if the y axis is plotted on a log scale."""
         return self.ytab.log
 
     @logy.setter
@@ -1613,6 +1725,7 @@ class NXPlotView(QtWidgets.QDialog):
 
     @property
     def logv(self):
+        """True if the signal is plotted on a log scale."""
         return self.vtab.log
 
     @logv.setter
@@ -1620,6 +1733,15 @@ class NXPlotView(QtWidgets.QDialog):
         self.vtab.log = value
 
     def get_aspect(self):
+        """
+        Return the aspect ratio of the plot.
+
+        If the plot is a 2D image and the aspect ratio is 'equal', then the
+        aspect ratio is calculated from the scaling factors of the x and y axes.
+        If the 'Set Aspect' button is checked, then the aspect ratio is returned
+        as a numerical value. Otherwise, the aspect ratio is returned as
+        'auto' or 'equal'.
+        """
         if self.image and self._aspect == 'equal':
             self.otab._actions['set_aspect'].setChecked(True)
             _axes = self.plotdata.nxaxes
@@ -1645,12 +1767,13 @@ class NXPlotView(QtWidgets.QDialog):
 
     @property
     def aspect(self):
-        """Return the currently set aspect ratio value."""
+        """The currently set aspect ratio value."""
         return self._aspect
 
     @aspect.setter
     def aspect(self, aspect):
-        """Set the aspect ratio of the x and y axes.
+        """
+        Set the aspect ratio of the x and y axes.
 
         If set to a numerical value, this is the ratio of the y-axis
         unit length to the x-axis unit length. This parameter is
@@ -1699,7 +1822,8 @@ class NXPlotView(QtWidgets.QDialog):
                 pass
 
     def get_skew_angle(self, xdim, ydim):
-        """Return the skew angle defined by the NXdata attributes.
+        """
+        Return the skew angle defined by the NXdata attributes.
 
         If the original data is two- or three-dimensional and the
         'angles' attribute has been defined, this returns the value
@@ -1725,12 +1849,13 @@ class NXPlotView(QtWidgets.QDialog):
 
     @property
     def skew(self):
-        """Return the skew angle for a 2D plot."""
+        """The skew angle for a 2D plot."""
         return self._skew_angle
 
     @skew.setter
     def skew(self, skew_angle):
-        """Set the skew angle for a 2D plot.
+        """
+        Set the skew angle for a 2D plot.
 
         This defines the transformation values stored in 'grid_helper'.
         The data are replotted and the Customize Panel is updated.
@@ -1813,12 +1938,13 @@ class NXPlotView(QtWidgets.QDialog):
 
     @property
     def cmap(self):
-        """Return the color map set in the vtab."""
+        """The color map set in the vtab."""
         return self.vtab.cmap
 
     @cmap.setter
     def cmap(self, cmap):
-        """Set the color map.
+        """
+        Set the color map.
 
         Parameters
         ----------
@@ -1835,23 +1961,25 @@ class NXPlotView(QtWidgets.QDialog):
 
     @property
     def colors(self):
+        """The list of colors cycled in Matplotlib."""
         return mpl.rcParams['axes.prop_cycle'].by_key()['color']
 
     @property
     def bad(self):
-        """Return the color defined for bad pixels."""
+        """The color defined for bad pixels."""
         return self._bad
 
     @bad.setter
     def bad(self, bad):
-        """Set the bad pixel color.
+        """
+        Set the bad pixel color.
 
         Parameters
         ----------
         bad : str or tuple
-            Value of the bad color. This can use any of the standard forms
-            recognized by Matplotlib, including hex color codes, RGBA tuples,
-            and their equivalent names.
+            Value of the bad color. This can use any of the standard
+            forms recognized by Matplotlib, including hex color codes,
+            RGBA tuples, and their equivalent names.
 
         Raises
         ------
@@ -1869,7 +1997,8 @@ class NXPlotView(QtWidgets.QDialog):
 
     @property
     def interpolations(self):
-        """Return valid interpolations for the current plot.
+        """
+        Return valid interpolations for the current plot.
 
         If the axes are not all equally spaced, then 2D plots use
         pcolormesh, which cannot use any Matplotlib interpolation
@@ -1885,12 +2014,11 @@ class NXPlotView(QtWidgets.QDialog):
 
     @property
     def interpolation(self):
-        """Return the currently selected interpolation method."""
+        """The currently selected interpolation method."""
         return self.vtab.interpolation
 
     @interpolation.setter
     def interpolation(self, interpolation):
-        """Set the interpolation method and replot the data."""
         self.vtab.interpolation = interpolation
 
     def interpolate(self):
@@ -1907,23 +2035,21 @@ class NXPlotView(QtWidgets.QDialog):
 
     @property
     def smooth(self):
-        """Return standard deviation in pixels of Gaussian smoothing."""
+        """The standard deviation in pixels of Gaussian smoothing."""
         return self._stddev
 
     @smooth.setter
     def smooth(self, value):
-        """Set standard deviation in pixels of Gaussian smoothing."""
         self._stddev = value
         self.interpolate()
 
     @property
     def offsets(self):
-        """Return the axis offset used in tick labels."""
+        """The axis offset used in tick labels."""
         return self._axis_offsets
 
     @offsets.setter
     def offsets(self, value):
-        """Set the axis offset used in tick labels and redraw plot."""
         try:
             self._axis_offsets = value
             self.ax.ticklabel_format(useOffset=self._axis_offsets)
@@ -1932,6 +2058,7 @@ class NXPlotView(QtWidgets.QDialog):
             pass
 
     def set_plot_defaults(self):
+        """Set plotting parameters to the Matplotlib defaults."""
         self._grid = mpl.rcParams['axes.grid']
         self._gridcolor = mpl.rcParams['grid.color']
         self._gridstyle = mpl.rcParams['grid.linestyle']
@@ -1943,6 +2070,22 @@ class NXPlotView(QtWidgets.QDialog):
         self.set_minorticks(default=True)
 
     def set_minorticks(self, default=False):
+        """
+        Set minor ticks on or off.
+
+        Parameters
+        ----------
+        default : bool, optional
+            If True, the value is set to the Matplotlib default. The
+            default is False.
+
+        If ``default`` is True, the value of the minor ticks is set to
+        the Matplotlib default, and the color bar minor ticks are set to
+        the same value. Otherwise, the value of the minor ticks is set
+        to the value of the instance variable ``_minorticks`` and the
+        color bar minor ticks are set to the value of the instance
+        variable ``_cb_minorticks``.
+        """
         if default:
             self._minorticks = (mpl.rcParams['xtick.minor.visible'] or
                                 mpl.rcParams['ytick.minor.visible'])
@@ -1998,9 +2141,11 @@ class NXPlotView(QtWidgets.QDialog):
             return False
 
     def get_size(self):
+        """Return the size of the NXPlotView figure."""
         return tuple(self.figure.get_size_inches())
 
     def set_size(self, width, height):
+        """Set the size of the NXPlotView figure."""
         if self.label == 'Main':
             raise NeXusError(
                 "Cannot change the size of the main window programmatically")
@@ -2133,6 +2278,17 @@ class NXPlotView(QtWidgets.QDialog):
         self.draw()
 
     def draw_skewed_grid(self, minor=False, **opts):
+        """
+        Draw grid lines on a skewed plot.
+
+        Parameters
+        ----------
+        minor : bool
+            If True, both major and minor gridlines are displayed.
+        opts : dict
+            Valid options for displaying grids. If not set, the default
+            Matplotlib styles are used.
+        """
         self.remove_skewed_grid()
         self._majorlines = (
             self.xlines(self.ax.xaxis.get_majorticklocs(), **opts) +
@@ -2144,6 +2300,16 @@ class NXPlotView(QtWidgets.QDialog):
                 self.ylines(self.ax.yaxis.get_minorticklocs(), **opts))
 
     def remove_skewed_grid(self, major=True, minor=True):
+        """
+        Remove skewed grid lines.
+
+        Parameters
+        ----------
+        major : bool
+            If True, major gridlines are removed. Defaults to True.
+        minor : bool
+            If True, minor gridlines are removed. Defaults to True.
+        """
         if major:
             for line in self._majorlines:
                 try:
@@ -2159,7 +2325,8 @@ class NXPlotView(QtWidgets.QDialog):
         self._majorlines = self._minorlines = []
 
     def vlines(self, x, ymin=None, ymax=None, y=None, **opts):
-        """Plot vertical lines at x-value(s).
+        """
+        Plot vertical lines at x-value(s).
 
         Parameters
         ----------
@@ -2195,7 +2362,8 @@ class NXPlotView(QtWidgets.QDialog):
     vline = vlines
 
     def hlines(self, y, xmin=None, xmax=None, x=None, **opts):
-        """Plot horizontal line at y-value(s).
+        """
+        Plot horizontal line at y-value(s).
 
         Parameters
         ----------
@@ -2233,7 +2401,8 @@ class NXPlotView(QtWidgets.QDialog):
     hline = hlines
 
     def crosshairs(self, x, y, **opts):
-        """Plot crosshairs centered at (x,y).
+        """
+        Plot crosshairs centered at (x,y).
 
         Parameters
         ----------
@@ -2257,7 +2426,8 @@ class NXPlotView(QtWidgets.QDialog):
         return crosshairs
 
     def xlines(self, x, ymin=None, ymax=None, **opts):
-        """Plot line at constant x-values.
+        """
+        Plot line at constant x-values.
 
         This is similar to vlines, but the line will be skewed if the
         plot is skewed.
@@ -2302,7 +2472,8 @@ class NXPlotView(QtWidgets.QDialog):
     xline = xlines
 
     def ylines(self, y, xmin=None, xmax=None, **opts):
-        """Plot line at constant y-value.
+        """
+        Plot line at constant y-value.
 
         This is similar to hlines, but the line will be skewed if the
         plot is skewed.
@@ -2349,7 +2520,8 @@ class NXPlotView(QtWidgets.QDialog):
     yline = ylines
 
     def circle(self, x, y, radius, **opts):
-        """Plot circle.
+        """
+        Plot circle.
 
         Parameters
         ----------
@@ -2385,7 +2557,8 @@ class NXPlotView(QtWidgets.QDialog):
         return circle
 
     def ellipse(self, x, y, dx, dy, **opts):
-        """Plot ellipse.
+        """
+        Plot ellipse.
 
         Parameters
         ----------
@@ -2421,7 +2594,8 @@ class NXPlotView(QtWidgets.QDialog):
         return ellipse
 
     def rectangle(self, x, y, dx, dy, **opts):
-        """Plot rectangle.
+        """
+        Plot rectangle.
 
         Note
         ----
@@ -2461,7 +2635,8 @@ class NXPlotView(QtWidgets.QDialog):
         return rectangle
 
     def polygon(self, xy, closed=True, **opts):
-        """Plot closed polygon.
+        """
+        Plot closed polygon.
 
         Note
         ----
@@ -2496,7 +2671,8 @@ class NXPlotView(QtWidgets.QDialog):
         return polygon
 
     def voronoi(self, x, y, z, **opts):
-        """Output Voronoi plot based z(x,y) where x and y are pixel centers.
+        """
+        Output Voronoi plot based z(x,y) where x and y are bin centers.
 
         Parameters
         ----------
@@ -2551,6 +2727,22 @@ class NXPlotView(QtWidgets.QDialog):
         self.otab.push_current()
 
     def mpl_plot(self, ax=None, title=False, colorbar=False, **kwargs):
+        """
+        Generates a Matplotlib plot based on the current plot..
+
+        Parameters
+        ----------
+        ax : matplotlib.axes.Axes, optional
+            The axes to plot in, by default None
+        title : bool, optional
+            Whether to copy the title from the original plot, by default
+            False
+        colorbar : bool, optional
+            Whether to copy the colorbar from the original plot, by
+            default False
+        **kwargs : dict
+            Additional keyword arguments to pass to the plot function
+        """
         import matplotlib.pyplot as plt
         from nexusformat.nexus.plot import plotview as pv
         label = kwargs.pop('label', None)
@@ -2599,13 +2791,31 @@ class NXPlotView(QtWidgets.QDialog):
                                        frameon=False))
 
     def block_signals(self, block=True):
+        """Block or unblock signals from tabs."""
         self.xtab.block_signals(block)
         self.ytab.block_signals(block)
         self.ztab.block_signals(block)
         self.vtab.block_signals(block)
 
     def init_tabs(self):
-        """Initialize tabs for a new plot."""
+        """
+        Initialize the tabs of the plotview.
+
+        This function is called when a new plotview is created. It is
+        also called when the plotview is reinitialized, e.g. when the
+        user changes the axis on the plot from 1D to 2D or 3D and back.
+        It is called after the axes have been set.
+
+        It sets the axis for each of the tabs and sets the visibility of
+        each of the tabs and their widgets based on the number of
+        dimensions in the plot and the type of plot.
+
+        It also sets the axis on the ztab if the number of dimensions is
+        > 2.
+
+        Finally, it sets the visibility of the widgets on the vtab based
+        on whether the plot is an RGB image or not.
+        """
         self.block_signals(True)
         self.xtab.set_axis(self.xaxis)
         self.ytab.set_axis(self.yaxis)
@@ -2662,7 +2872,15 @@ class NXPlotView(QtWidgets.QDialog):
         self.block_signals(False)
 
     def update_tabs(self):
-        """Update tabs when limits have changed."""
+        """
+        Update the tabs after a change in the limits of the axes.
+
+        This function is called whenever the limits of the axes
+        are changed, either by the user or by a change in the data
+        or the plot type.  The function updates the tabs by setting
+        the range and limits of the x, y, and v tabs, and then
+        calling the update_parameters method of the ptab.
+        """
         self.block_signals(True)
         self.xtab.set_range()
         self.xtab.set_limits(self.xaxis.lo, self.xaxis.hi)
@@ -2678,7 +2896,8 @@ class NXPlotView(QtWidgets.QDialog):
         self.block_signals(False)
 
     def change_axis(self, tab, axis):
-        """Replace the axis in a plot tab.
+        """
+        Replace the axis in a plot tab.
 
         Parameters
         ----------
@@ -2801,6 +3020,7 @@ class NXPlotView(QtWidgets.QDialog):
         event.accept()
 
     def close(self):
+        """Close this window and its associated panels."""
         self.close_view()
         super().close()
 
@@ -2837,6 +3057,20 @@ class NXPlotAxis:
     """
 
     def __init__(self, axis, dim=None, dimlen=None):
+        """
+        Initialize a plotted axis.
+
+        Parameters
+        ----------
+        axis : NXfield
+            Field containing the axis values and metadata.
+        dim : int
+            No. of the axis dimensions (not currently used).
+        dimlen : int
+            Length of equivalent dimension in the signal array. This is
+            used to determine if the axis values are bin centers or
+            boundaries.
+        """
         self.name = axis.nxname
         self.data = axis.nxdata
         self.dim = dim
@@ -2897,7 +3131,8 @@ class NXPlotAxis:
         return f'NXPlotAxis("{self.name}")'
 
     def set_data(self, axis, dimlen=None):
-        """Initialize the axis data values.
+        """
+        Initialize the axis data values.
 
         This also determines if the values are all equally spaced,
         which is used to determine the Matplotlib image function, and
@@ -2939,10 +3174,12 @@ class NXPlotAxis:
 
     @property
     def min_range(self):
+        """The minimum range for the axis."""
         return self.max_range*1e-6
 
     @property
     def max_range(self):
+        """The maximum range for the axis."""
         return self.max - self.min
 
 
@@ -2952,39 +3189,39 @@ class NXReplotSignal(QtCore.QObject):
 
 
 class NXPlotTab(QtWidgets.QWidget):
-    """Tab widget for setting axis limits and options.
-
-    Parameters
-    ----------
-    name : str
-        Name of the axis.
-    axis : bool
-        If True, this tab represents a plot axis.
-    log : bool
-        If True, a log checkbox should be included.
-    zaxis : bool
-        If True, this is a tab for selecting the z-axis.
-    image : bool
-        If True, this is a tab for defining signal options, such as the
-        color map or interpolation method.
-    plotview : NXPlotView
-        Parent window containing this tab.
-
-    Attributes
-    ----------
-    name : str
-        Name of the axis
-    plotview : NXPlotView
-        Parent window.
-    minbox, maxbox : NXSpinBox, NXDoubleSpinBox
-        Text boxes for defining the minimum and maximum plot values.
-    minslider, maxslider : QSlider
-        Sliders for adjusting minimum and maximum plot values.
-    """
 
     def __init__(self, name=None, axis=True, zaxis=False, image=False,
                  plotview=None):
 
+        """
+        Initialize the NXPlotTab widget.
+
+        Parameters
+        ----------
+        name : str
+            Name of the axis.
+        axis : bool
+            If True, this tab represents a plot axis.
+        zaxis : bool
+            If True, this is a tab for selecting the z-axis.
+        image : bool
+            If True, this is a tab for defining signal options, such as the
+            color map or interpolation method.
+        plotview : NXPlotView
+            Parent window containing this tab.
+
+        Attributes
+        ----------
+        name : str
+            Name of the axis
+        plotview : NXPlotView
+            Parent window.
+        minbox, maxbox : NXSpinBox, NXDoubleSpinBox
+            Text boxes for defining the minimum and maximum plot values.
+        minslider, maxslider : QSlider
+            Sliders for adjusting minimum and maximum plot values.
+
+        """
         super().__init__()
 
         self.name = name
@@ -3099,7 +3336,8 @@ class NXPlotTab(QtWidgets.QWidget):
         return f'NXPlotTab("{self.name}")'
 
     def set_axis(self, axis):
-        """Set the axis values and limits for the tab.
+        """
+        Set the axis values and limits for the tab.
 
         This sets the minimum and maximum values of the tab spin boxes
         and sliders. If this is a signal axis (name = 'v'), then
@@ -3163,18 +3401,34 @@ class NXPlotTab(QtWidgets.QWidget):
         self.block_signals(False)
 
     def select_plot(self):
+        """
+        Update the current plot selection.
+
+        This is called whenever the plot selection changes. It updates
+        the plotview's num attribute and the current plot data. It also
+        gets the smoothing value from the selected plot.
+        """
         self.plotview.num = int(self.plotcombo.currentText())
         self.plotview.plotdata = self.plotview.plots[self.plotview.num]['data']
         self.smoothing = self.plotview.plots[self.plotview.num]['smoothing']
 
     @property
     def offset(self):
+        """The offset value for this axis."""
         try:
             return float(self._axis.get_offset_text()._text)
         except Exception:
             return 0.0
 
     def edit_maxbox(self):
+        """
+        Update the axis limits and sliders if the maximum value has
+        changed.
+
+        This is called whenever the maximum value in the spinbox is
+        changed. It updates the axis limits, sets the sliders to the new
+        values, and updates the plot.
+/*******  918b72e1-9a33-4f08-a61a-424b719c4459  *******/
         if self.maxbox.text() == self.maxbox.old_value:
             return
         elif self.maxbox.value() <= self.axis.data.min():
