@@ -29,14 +29,13 @@ from qtconsole.inprocess import QtInProcessKernelManager
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
 
 from .. import __version__
-from .datadialogs import (AddDialog, CustomizeDialog, DirectoryDialog,
-                          ExportDialog, InitializeDialog, LimitDialog,
-                          LockDialog, LogDialog, ManageBackupsDialog,
-                          ManagePluginsDialog, NewDialog, PasteDialog,
-                          PlotDialog, PlotScalarDialog, ProjectionDialog,
-                          RenameDialog, ScanDialog, SettingsDialog,
-                          SignalDialog, UnlockDialog, ValidateDialog,
-                          ViewDialog)
+from .dialogs import (AddDialog, CustomizeDialog, DirectoryDialog,
+                      ExportDialog, InitializeDialog, LimitDialog, LockDialog,
+                      LogDialog, ManageBackupsDialog, ManagePluginsDialog,
+                      NewDialog, PasteDialog, PlotDialog, PlotScalarDialog,
+                      ProjectionDialog, RenameDialog, ScanDialog,
+                      SettingsDialog, SignalDialog, UnlockDialog,
+                      ValidateDialog, ViewDialog)
 from .fitdialogs import FitDialog
 from .plotview import NXPlotView
 from .pyqt import QtCore, QtGui, QtWidgets, getOpenFileName, getSaveFileName

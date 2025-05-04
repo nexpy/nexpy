@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2013-2021, NeXpy Development Team.
+# Copyright (c) 2013-2025, NeXpy Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -11,10 +11,9 @@ from pathlib import Path
 import pygments
 from pygments.formatter import Formatter
 
-from .datadialogs import NXPanel, NXTab
 from .pyqt import QtCore, QtGui, QtWidgets, getSaveFileName
 from .utils import confirm_action, in_dark_mode
-from .widgets import NXLineEdit, NXPushButton
+from .widgets import NXLineEdit, NXPanel, NXPushButton, NXTab
 
 
 def hex2QColor(c):

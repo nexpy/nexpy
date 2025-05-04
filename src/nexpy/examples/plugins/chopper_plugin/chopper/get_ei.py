@@ -1,7 +1,8 @@
 import numpy as np
-from nexpy.gui.datadialogs import GridParameters, NXDialog
-from nexpy.gui.utils import report_error
 from nexusformat.nexus import NeXusError
+
+from nexpy.gui.utils import report_error
+from nexpy.gui.widgets import GridParameters, NXDialog
 
 
 def show_dialog():

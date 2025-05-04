@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2013-2021, NeXpy Development Team.
+# Copyright (c) 2013-2025, NeXpy Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -9,7 +9,7 @@
 """
 Base class for import dialogs
 """
-from .datadialogs import NXDialog
+from .utils import NXDialog
 
 filetype = "Text File"  # Defines the Import Menu label
 

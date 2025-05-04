@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2013-2021, NeXpy Development Team.
+# Copyright (c) 2013-2025, NeXpy Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -19,38 +19,12 @@ from lmfit import __version__ as lmfit_version
 from nexusformat.nexus import (NeXusError, NXdata, NXentry, NXfield, NXnote,
                                NXparameters, NXprocess, nxload)
 
-from .datadialogs import NXDialog, NXPanel, NXTab
 from .plotview import NXPlotView, linestyles
 from .pyqt import QtCore, QtWidgets
 from .utils import display_message, format_float, package_files, report_error
-from .widgets import (NXCheckBox, NXColorBox, NXComboBox, NXLabel, NXLineEdit,
-                      NXMessageBox, NXPushButton, NXrectangle, NXScrollArea)
-
-
-def get_functions():
-    """Return a list of available functions and models."""
-
-    filenames = set()
-    private_path = Path.home() / '.nexpy' / 'functions'
-    if private_path.is_dir():
-        sys.path.append(private_path)
-        for f in private_path.glob('*.py'):
-            if f.stem != '__init__':
-                filenames.add(f.stem)
-
-    functions = {}
-    for name in sorted(filenames):
-        try:
-            module = import_module(name)
-            if hasattr(module, 'function_name'):
-                functions[module.function_name] = module
-        except ImportError:
-            pass
-
-    return functions
-
-
-all_functions = get_functions()
+from .widgets import (NXCheckBox, NXColorBox, NXComboBox, NXDialog, NXLabel,
+                      NXLineEdit, NXMessageBox, NXPanel, NXPushButton,
+                      NXrectangle, NXScrollArea, NXTab)
 
 
 def get_models():

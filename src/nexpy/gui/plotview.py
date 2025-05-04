@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2013-2022, NeXpy Development Team.
+# Copyright (c) 2013-2025, NeXpy Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -59,8 +59,8 @@ except ImportError:
 
 from nexusformat.nexus import NeXusError, NXdata, NXfield
 
-from .datadialogs import (CustomizeDialog, ExportDialog, LimitDialog,
-                          ProjectionDialog, ScanDialog, StyleDialog)
+from .dialogs import (CustomizeDialog, ExportDialog, LimitDialog,
+                      ProjectionDialog, ScanDialog, StyleDialog)
 from .utils import (boundaries, centers, display_message, divgray_map,
                     find_nearest, fix_projection, get_color, in_dark_mode,
                     iterable, keep_data, load_image, parula_map, report_error,
