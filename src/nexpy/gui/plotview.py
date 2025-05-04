@@ -3428,7 +3428,7 @@ class NXPlotTab(QtWidgets.QWidget):
         This is called whenever the maximum value in the spinbox is
         changed. It updates the axis limits, sets the sliders to the new
         values, and updates the plot.
-/*******  918b72e1-9a33-4f08-a61a-424b719c4459  *******/
+        """
         if self.maxbox.text() == self.maxbox.old_value:
             return
         elif self.maxbox.value() <= self.axis.data.min():
@@ -3452,7 +3452,14 @@ class NXPlotTab(QtWidgets.QWidget):
         self.block_signals(False)
 
     def read_maxbox(self):
-        """Update plot based on the maxbox value."""
+        """
+        Update the axis limits and sliders if the maximum value has
+        changed.
+
+        This is called whenever the maximum value in the spinbox is
+        changed. It updates the axis limits, sets the sliders to the new
+        values, and updates the plot.
+        """
         self.block_signals(True)
         hi = self.maxbox.value()
         if self.name == 'x' or self.name == 'y' or self.name == 'v':
@@ -3482,6 +3489,14 @@ class NXPlotTab(QtWidgets.QWidget):
         self.block_signals(False)
 
     def edit_minbox(self):
+        """
+        Update the axis limits and sliders if the minimum value has
+        changed.
+
+        This is called whenever the minimum value in the spinbox is
+        changed. It updates the axis limits, sets the sliders to the new
+        values, and updates the plot.
+        """
         if self.minbox.text() == self.minbox.old_value:
             return
         elif self.minbox.value() >= self.axis.data.max():
@@ -3502,6 +3517,14 @@ class NXPlotTab(QtWidgets.QWidget):
         self.block_signals(False)
 
     def read_minbox(self):
+        """
+        Update the axis limits and sliders if the minimum value has
+        changed.
+
+        This is called whenever the minimum value in the spinbox is
+        changed. It updates the axis limits, sets the sliders to the new
+        values, and updates the plot.
+        """
         self.block_signals(True)
         lo = self.minbox.value()
         if self.name == 'x' or self.name == 'y' or self.name == 'v':
@@ -3520,6 +3543,14 @@ class NXPlotTab(QtWidgets.QWidget):
         self.block_signals(False)
 
     def read_maxslider(self):
+        """
+        Update the axis limits and sliders if the maximum slider has
+        changed.
+
+        This is called whenever the maximum slider is changed. It
+        updates the axis limits, sets the sliders to the new values, and
+        updates the plot.
+        """
         self.block_signals(True)
         if self.name == 'v' and self.symmetric:
             _range = max(self.axis.max, self.axis.min_range)
@@ -3550,6 +3581,14 @@ class NXPlotTab(QtWidgets.QWidget):
         self.block_signals(False)
 
     def read_minslider(self):
+        """
+        Update the axis limits and sliders if the minimum slider has
+        changed.
+
+        This is called whenever the minimum slider is changed. It
+        updates the axis limits, sets the sliders to the new values, and
+        updates the plot.
+        """
         self.block_signals(True)
         self.axis.hi = self.maxbox.value()
         _range = max(self.axis.hi - self.axis.min, self.axis.min_range)
@@ -3570,6 +3609,20 @@ class NXPlotTab(QtWidgets.QWidget):
         self.block_signals(False)
 
     def set_sliders(self, lo, hi):
+        """
+        Set the sliders to the given values.
+
+        This function sets the sliders to the given values and updates
+        the plot. If the given values are close, it will move them away
+        from each other by the minimum range.
+
+        Parameters
+        ----------
+        lo : float
+            The lower value of the slider.
+        hi : float
+            The upper value of the slider.
+        """
         lo, hi = float(lo), float(hi)
         if np.isclose(lo, hi):
             lo = lo - self.axis.min_range
@@ -3622,9 +3675,11 @@ class NXPlotTab(QtWidgets.QWidget):
 
     @QtCore.Slot()
     def reset(self):
+        """Reset the limits in the plot to the current axes limits."""
         self.set_limits(self.axis.min, self.axis.max)
 
     def block_signals(self, block=True):
+        """Block or unblock signals from the boxes and sliders."""
         if block:
             self._block_count += 1
             if self._block_count > 1:
@@ -3654,6 +3709,7 @@ class NXPlotTab(QtWidgets.QWidget):
 
     @property
     def log(self):
+        """True if the axis is on a log scale."""
         try:
             return self.logbox.isChecked()
         except Exception:
@@ -3671,6 +3727,7 @@ class NXPlotTab(QtWidgets.QWidget):
             pass
 
     def change_log(self):
+        """Change the axis to a log scale."""
         try:
             if not self.log:
                 self.axis.lo = self.axis.min
@@ -3680,6 +3737,7 @@ class NXPlotTab(QtWidgets.QWidget):
 
     @property
     def locked(self):
+        """True if the axis is locked."""
         try:
             return self.lockbox.isChecked()
         except Exception:
@@ -3703,14 +3761,17 @@ class NXPlotTab(QtWidgets.QWidget):
             pass
 
     def change_lock(self):
+        """Toggle the lock on the axis."""
         self.locked = self.locked
 
     def change_scale(self):
+        """Toggle the scale on the axis and replot if necessary."""
         if self.scalebox.isChecked():
             self.plotview.replot_image()
 
     @property
     def flipped(self):
+        """True if the axis is flipped."""
         try:
             return self.flipbox.isChecked()
         except Exception:
@@ -3724,6 +3785,7 @@ class NXPlotTab(QtWidgets.QWidget):
             pass
 
     def flip_axis(self):
+        """Replot with the axis flipped."""
         try:
             self.plotview.replot_axes()
         except Exception:
@@ -3758,7 +3820,8 @@ class NXPlotTab(QtWidgets.QWidget):
 
     @cmap.setter
     def cmap(self, cmap):
-        """Set the color map.
+        """
+        Set the color map.
 
         If the color map is available but was not included in the
         default list when NeXpy was launched, it is added to the list.
@@ -3815,10 +3878,11 @@ class NXPlotTab(QtWidgets.QWidget):
 
     @property
     def symmetric(self):
-        """Return True if a divergent color map has been selected."""
+        """True if a divergent color map has been selected."""
         return self.is_symmetric_cmap(self.cmap)
 
     def is_symmetric_cmap(self, cmap):
+        """True if the color map is divergent."""
         return cmap in divergent_cmaps
 
     def make_symmetric(self):
@@ -3844,6 +3908,7 @@ class NXPlotTab(QtWidgets.QWidget):
             return False
 
     def is_qualitative_cmap(self, cmap):
+        """Return True if the color map is qualitative."""
         return cmap in qualitative_cmaps
 
     def make_qualitative(self):
@@ -3856,10 +3921,12 @@ class NXPlotTab(QtWidgets.QWidget):
         self.minslider.setEnabled(False)
 
     def change_interpolation(self):
+        """Change the interpolation method of the current plot."""
         self.interpolation = self.interpcombo.currentText()
 
     @property
     def interpolation(self):
+        """The currently selected interpolation method."""
         return self.interpcombo.currentText()
 
     @interpolation.setter
@@ -3876,6 +3943,7 @@ class NXPlotTab(QtWidgets.QWidget):
             self._cached_interpolation = self.interpolation
 
     def toggle_smoothing(self):
+        """Toggle smoothing on and off."""
         try:
             self.plotview.plot_smooth()
         except NeXusError as error:
@@ -3883,6 +3951,7 @@ class NXPlotTab(QtWidgets.QWidget):
             self.reset_smoothing()
 
     def reset_smoothing(self):
+        """Reset smoothing to off."""
         if self.smoothbox:
             self.smoothbox.blockSignals(True)
             self.smoothbox.setChecked(False)
@@ -3890,6 +3959,7 @@ class NXPlotTab(QtWidgets.QWidget):
 
     @property
     def smoothing(self):
+        """True if smoothing is selected."""
         if self.smoothbox:
             return self.smoothbox.isChecked()
         else:
@@ -3901,10 +3971,10 @@ class NXPlotTab(QtWidgets.QWidget):
             self.smoothbox.setChecked(smoothing)
 
     def fit_data(self):
+        """Fit the plot to the data."""
         self.plotview.fit_data()
 
     def init_toolbar(self):
-
         _backward_icon = resource_icon('backward-icon.png')
         _pause_icon = resource_icon('pause-icon.png')
         _forward_icon = resource_icon('forward-icon.png')
