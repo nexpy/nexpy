@@ -1,14 +1,11 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2018-2021, NeXpy Development Team.
+# Copyright (c) 2018-2025, NeXpy Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file COPYING, distributed with this software.
 # -----------------------------------------------------------------------------
 
-"""
-A set of customized widgets both for dialogs and plot objects.
-"""
 import bisect
 import math
 import warnings
@@ -31,10 +28,16 @@ bold_font.setBold(True)
 
 
 class NXWidget(QtWidgets.QWidget):
-    """Customized widget for NeXpy widgets"""
 
     def __init__(self, parent=None):
+        """
+        Initialize a NeXpy widget.
 
+        Parameters
+        ----------
+        parent : QWidget, optional
+            The parent window of the dialog, by default None
+        """
         from .consoleapp import _mainwindow
         self.mainwindow = _mainwindow
         if parent is None:
@@ -43,6 +46,57 @@ class NXWidget(QtWidgets.QWidget):
         self.set_attributes()
 
     def set_attributes(self):
+        """
+        Initialize the attributes of the widget.
+
+        This method should be called by a subclass' __init__ method. It
+        sets the attributes of the widget, such as the tree view, the
+        tree, the plot view, the main window, default directory, and
+        more.
+
+        Attributes
+        ----------
+        treeview : NXTreeView
+            The tree view of the main window.
+        tree : NXTree
+            The tree of the main window.
+        plotview : NXPlotView
+            The active plot view of the main window.
+        plotviews : list of NXPlotView
+            The list of plot views of the main window.
+        active_plotview : NXPlotView
+            The active plot view of the main window.
+        default_directory : str
+            The default directory for file dialogs.
+        import_file : str or None
+            The file to import when the dialog is opened, by default
+            None.
+        nexus_filter : str
+            A string of file filters for the file dialog.
+        textbox : dict
+            A dictionary of text boxes.
+        pushbutton : dict
+            A dictionary of push buttons.
+        checkbox : dict
+            A dictionary of check boxes.
+        radiobutton : dict
+            A dictionary of radio buttons.
+        radiogroup : list of QButtonGroup
+            A list of radio button groups.
+        confirm_action : function
+            A function to ask for confirmation before performing an
+            action.
+        display_message : function
+            A function to display a message in the status bar.
+        report_error : function
+            A function to report an error.
+        thread : QThread or None
+            A thread to run a long-running task, by default None.
+        bold_font : QFont
+            A bold font.
+        accepted : bool
+            A flag indicating whether the dialog was accepted or not.
+        """
         self.treeview = self.mainwindow.treeview
         self.tree = self.treeview.tree
         self.plotview = self.mainwindow.plotview
@@ -68,6 +122,23 @@ class NXWidget(QtWidgets.QWidget):
         self.accepted = False
 
     def set_layout(self, *items, **opts):
+        """
+        Set the layout of the dialog.
+
+        Parameters
+        ----------
+        *items : layouts or widgets
+            A variable number of layouts or widgets to add to the
+            dialog.
+        **opts : dict
+            Options for the layout. The 'spacing' key sets the spacing
+            between items in the layout. The default value is 10.
+
+        Returns
+        -------
+        layout : QVBoxLayout
+            The layout of the dialog.
+        """
         self.layout = QtWidgets.QVBoxLayout()
         for item in items:
             if isinstance(item, QtWidgets.QLayout):
@@ -82,6 +153,26 @@ class NXWidget(QtWidgets.QWidget):
         return self.layout
 
     def make_layout(self, *items, **opts):
+        """
+        Create a layout from a list of items.
+
+        Parameters
+        ----------
+        *items : layouts, widgets, or strings
+            A variable number of items to add to the layout. A string
+            will be added as a label. A stretch can be added by passing
+            the string 'stretch'.
+        **opts : dict
+            Options for the layout. The 'vertical' key sets whether the
+            layout is vertical or horizontal. The 'align' key sets the
+            alignment of the layout. The 'spacing' key sets the spacing
+            between items in the layout. The default value is 20.
+
+        Returns
+        -------
+        layout : QVBoxLayout or QHBoxLayout
+            The created layout.
+        """
         vertical = opts.pop('vertical', False)
         align = opts.pop('align', 'center')
         spacing = opts.pop('spacing', 20)
@@ -107,6 +198,18 @@ class NXWidget(QtWidgets.QWidget):
         return layout
 
     def add_layout(self, *items, stretch=False):
+        """
+        Add items to the layout of the dialog.
+
+        Parameters
+        ----------
+        *items : layouts, widgets, or strings
+            A variable number of items to add to the layout. A string
+            will be added as a label.
+        stretch : bool, optional
+            Add a stretch to the layout after adding all the items.
+            The default value is False.
+        """
         for item in items:
             if isinstance(item, QtWidgets.QLayout):
                 self.layout.addLayout(item)
@@ -118,6 +221,17 @@ class NXWidget(QtWidgets.QWidget):
             self.layout.addStretch()
 
     def insert_layout(self, index, *items):
+        """
+        Insert items into the layout at the given index.
+
+        Parameters
+        ----------
+        index : int
+            The index to insert the items at.
+        *items : layouts, widgets, or strings
+            A variable number of items to insert into the layout. A
+            string will be added as a label.
+        """
         for item in reversed(list(items)):
             if isinstance(item, QtWidgets.QLayout):
                 self.layout.insertLayout(index, item)
@@ -127,9 +241,23 @@ class NXWidget(QtWidgets.QWidget):
                 self.layout.addWidget(NXLabel(item))
 
     def spacer(self, width=0, height=0):
+        """Add a spacer to the layout."""
         return QtWidgets.QSpacerItem(width, height)
 
     def widget(self, item):
+        """
+        Wrap a layout or widget in a QWidget.
+
+        Parameters
+        ----------
+        item : QLayout or QWidget
+            The item to wrap in a QWidget.
+
+        Returns
+        -------
+        QWidget
+            The widget containing the item.
+        """
         widget = QtWidgets.QWidget()
         widget.layout = QtWidgets.QVBoxLayout()
         if isinstance(item, QtWidgets.QLayout):
@@ -140,10 +268,38 @@ class NXWidget(QtWidgets.QWidget):
         return widget
 
     def set_title(self, title):
+        """Set the title of the dialog."""
         self.setWindowTitle(title)
 
     def close_layout(self, message=None, save=False, close=False,
                      progress=False):
+        """
+        Create a layout for close buttons.
+        
+        The layout contains a progress bar, buttons, and a status
+        message at the bottom of the dialog window.
+
+        Parameters
+        ----------
+        message : str, optional
+            The message to display in the status message widget. Default
+            is None.
+        save : bool, optional
+            Whether the save button should be displayed. Default is
+            False.
+        close : bool, optional
+            Whether the close button should be displayed. Default is
+            False.
+        progress : bool, optional
+            Whether the progress bar should be displayed. Default is
+            False.
+
+        Returns
+        -------
+        layout : QLayout
+            The layout containing the status message widget, progress
+            bar, and buttons.
+        """
         layout = QtWidgets.QHBoxLayout()
         self.status_message = NXLabel()
         if message:
@@ -160,6 +316,20 @@ class NXWidget(QtWidgets.QWidget):
         return layout
 
     def action_buttons(self, *items):
+        """
+        Create a layout of buttons for the dialog window.
+
+        Parameters
+        ----------
+        items : list of tuples
+            A list of tuples, where each tuple contains a label and an
+            action function.
+
+        Returns
+        -------
+        layout : QLayout
+            The layout containing the buttons.
+        """
         layout = QtWidgets.QHBoxLayout()
         layout.addStretch()
         for label, action in items:
@@ -169,9 +339,32 @@ class NXWidget(QtWidgets.QWidget):
         return layout
 
     def label(self, label, **opts):
+        """Create a label widget."""
         return NXLabel(str(label), **opts)
 
     def labels(self, *labels, **opts):
+        """
+        Create a layout of labels for the dialog window.
+
+        Parameters
+        ----------
+        *labels : list of str
+            A list of strings to be displayed as labels.
+        **opts : dict, optional
+            A dictionary of options. The following options are
+            recognized:
+            - align : str, optional
+                The alignment of the labels. The value can be 'left',
+                'center', or 'right'. By default, 'center'.
+            - header : bool, optional
+                If True, the font of the labels will be bold. By
+                default, False.
+
+        Returns
+        -------
+        layout : QLayout
+            The layout containing the labels.
+        """
         if 'align' in opts:
             align = opts['align']
         else:
@@ -191,6 +384,24 @@ class NXWidget(QtWidgets.QWidget):
         return layout
 
     def textboxes(self, *items, **opts):
+        """
+        Create a layout of text boxes for the dialog window.
+
+        Parameters
+        ----------
+        *items : list of tuples
+            A list of tuples, where each tuple contains a label and a value.
+        **opts : dict, optional
+            A dictionary of options. The following options are recognized:
+            - layout : str, optional
+                The orientation of the layout. The value can be 'horizontal'
+                or 'vertical'. By default, 'vertical'.
+
+        Returns
+        -------
+        layout : QLayout
+            The layout containing the text boxes.
+        """
         if 'layout' in opts and opts['layout'] == 'horizontal':
             layout = QtWidgets.QHBoxLayout()
         else:
@@ -206,6 +417,29 @@ class NXWidget(QtWidgets.QWidget):
         return layout
 
     def checkboxes(self, *items, **opts):
+        """
+        Create a layout of checkboxes for the dialog window.
+
+        Parameters
+        ----------
+        *items : list of tuples
+            A list of tuples, where each tuple contains a label, a text,
+            and a boolean value.
+        **opts : dict, optional
+            A dictionary of options. The following options are
+            recognized:
+            - align : str, optional
+                The alignment of the labels. The value can be 'left',
+                'center', or 'right'. By default, 'center'.
+            - vertical : bool, optional
+                If True, the checkboxes are laid out vertically. By
+                default, False.
+
+        Returns
+        -------
+        layout : QLayout
+            The layout containing the checkboxes.
+        """
         if 'align' in opts:
             align = opts['align']
         else:
@@ -224,6 +458,33 @@ class NXWidget(QtWidgets.QWidget):
         return layout
 
     def radiobuttons(self, *items, **opts):
+        """
+        Create a layout of radio buttons for the dialog window.
+
+        Parameters
+        ----------
+        *items : list of tuples
+            A list of tuples, where each tuple contains a label, a text,
+            and a boolean value.
+        **opts : dict, optional
+            A dictionary of options. The following options are
+            recognized:
+            - align : str, optional
+                The alignment of the labels. The value can be 'left',
+                'center', or 'right'. By default, 'center'.
+            - vertical : bool, optional
+                If True, the radio buttons are laid out vertically. By
+                default, False.
+            - slot : callable, optional
+                A function to be called when a radio button is clicked.
+                The function should take one argument, the radio button
+                that was clicked.
+
+        Returns
+        -------
+        layout : QLayout
+            The layout containing the radio buttons.
+        """
         if 'align' in opts:
             align = opts['align']
         else:
@@ -248,7 +509,20 @@ class NXWidget(QtWidgets.QWidget):
 
     def filebox(self, text="Choose File", slot=None):
         """
-        Creates a text box and button for selecting a file.
+        Create a horizontal box layout with a button and a line edit.
+
+        Parameters
+        ----------
+        text : str, optional
+            The text to display on the button. By default, 'Choose File'.
+        slot : callable, optional
+            A function to be called when the button is clicked. If None,
+            the function defaults to self.choose_file.
+
+        Returns
+        -------
+        layout : QLayout
+            The horizontal box layout containing the button and line edit.
         """
         if slot:
             self.filebutton = NXPushButton(text, slot)
@@ -264,7 +538,31 @@ class NXWidget(QtWidgets.QWidget):
     def directorybox(self, text="Choose Directory", slot=None, default=True,
                      suggestion=None):
         """
-        Creates a text box and button for selecting a directory.
+        Create a horizontal box layout with a button and a line edit for
+        selecting a directory.
+
+        Parameters
+        ----------
+        text : str, optional
+            The text to display on the button. By default, 'Choose
+            Directory'.
+        slot : callable, optional
+            A function to be called when the button is clicked. If None,
+            the function defaults to self.choose_directory.
+        default : bool, optional
+            If True, set the default directory for the line edit.
+            Otherwise, leave it blank. Default is True.
+        suggestion : str, optional
+            A suggestion for the default directory. If given, it will be
+            used to set the default directory. Otherwise, the default
+            directory will be determined by the value of the
+            'homedirectory' attribute of the nxgetconfig dictionary.
+
+        Returns
+        -------
+        layout : QLayout
+            The horizontal box layout containing the button and line
+            edit.
         """
         if slot:
             self.directorybutton = NXPushButton(text, slot)
@@ -282,7 +580,12 @@ class NXWidget(QtWidgets.QWidget):
 
     def choose_file(self):
         """
-        Opens a file dialog and sets the file text box to the chosen path.
+        Open a file dialog for selecting a file.
+        
+        The initial directory is set to the value of the line edit. If a
+        file is selected, the text of the line edit is set to the
+        selected file and the default directory of the line edit is set
+        to the parent directory of the selected file.
         """
         dirname = self.get_default_directory(self.filename.text())
         filename = Path(getOpenFileName(self, 'Open File', dirname))
@@ -291,13 +594,11 @@ class NXWidget(QtWidgets.QWidget):
             self.set_default_directory(filename.parent)
 
     def get_filename(self):
-        """
-        Returns the selected file.
-        """
+        """Return the selected file."""
         return self.filename.text()
 
     def choose_directory(self):
-        """Opens a file dialog and sets the directory text box to the path."""
+        """Open a file dialog and sets the text box to the path."""
         dirname = str(self.get_default_directory())
         dirname = QtWidgets.QFileDialog.getExistingDirectory(
             self, 'Choose Directory', dirname)
@@ -310,7 +611,7 @@ class NXWidget(QtWidgets.QWidget):
         return self.directoryname.text()
 
     def get_default_directory(self, suggestion=None):
-        """Return the most recent default directory for open/save dialogs."""
+        """Return the default directory for open/save dialogs."""
         if suggestion is None or not Path(suggestion).exists():
             suggestion = self.default_directory
         suggestion = Path(suggestion)
@@ -321,7 +622,7 @@ class NXWidget(QtWidgets.QWidget):
         return suggestion
 
     def set_default_directory(self, suggestion):
-        """Defines the default directory to use for open/save dialogs."""
+        """Define the default directory to use for open/save dialogs."""
         suggestion = Path(suggestion)
         if suggestion.exists():
             if not suggestion.is_dir():
@@ -331,11 +632,23 @@ class NXWidget(QtWidgets.QWidget):
 
     def get_filesindirectory(self, prefix='', extension='.*', directory=None):
         """
-        Returns a list of files in the selected directory.
+        Return a sorted list of files in the selected directory that
+        match the given prefix and extension.
 
-        The files are sorted using a natural sort algorithm that preserves the
-        numeric order when a file name consists of text and index so that,
-        e.g., 'data2.tif' comes before 'data10.tif'.
+        Parameters
+        ----------
+        prefix : str, optional
+            The prefix of the files to select. Default is an empty string.
+        extension : str, optional
+            The extension of the files to select. Default is '.*'.
+        directory : str or Path, optional
+            The directory from which to select the files. If None, the
+            current directory is used. Default is None.
+
+        Returns
+        -------
+        list of Path
+            A sorted list of files with the given prefix and extension.
         """
         if directory:
             directory = Path(directory)
@@ -346,6 +659,25 @@ class NXWidget(QtWidgets.QWidget):
         return sorted(directory.glob(prefix+'*'+extension), key=natural_sort)
 
     def select_box(self, choices, default=None, slot=None):
+        """
+        Create a dropdown box from a list of choices.
+
+        Parameters
+        ----------
+        choices : list
+            The list of choices from which to select.
+        default : str, optional
+            The default choice. If None, the first choice is selected.
+            Default is None.
+        slot : callable, optional
+            A function to be called when the selection is changed.
+            Default is None.
+
+        Returns
+        -------
+        box : NXComboBox
+            The created dropdown box.
+        """
         box = NXComboBox()
         for choice in choices:
             box.add(choice)
@@ -359,6 +691,24 @@ class NXWidget(QtWidgets.QWidget):
         return box
 
     def select_root(self, slot=None, text='Select Root'):
+        """
+        Create a dropdown box from a list of the root entries in the
+        NeXus tree.
+
+        Parameters
+        ----------
+        slot : callable, optional
+            A function to be called when the selection is changed.
+            Default is None.
+        text : str, optional
+            The text to be displayed on the button to change the root.
+            Default is 'Select Root'.
+
+        Returns
+        -------
+        layout : QLayout
+            The created layout containing the dropdown box and button.
+        """
         layout = QtWidgets.QHBoxLayout()
         if not self.tree.entries:
             raise NeXusError("No entries in the NeXus tree")
@@ -377,9 +727,28 @@ class NXWidget(QtWidgets.QWidget):
 
     @property
     def root(self):
+        """The selected root entry."""
         return self.tree[self.root_box.currentText()]
 
     def select_entry(self, slot=None, text='Select Entry'):
+        """
+        Create a dropdown box from a list of the root entries and a list
+        of the entries within the selected root entry in the NeXus tree.
+
+        Parameters
+        ----------
+        slot : callable, optional
+            A function to be called when the selection is changed.
+            Default is None.
+        text : str, optional
+            The text to be displayed on the button to change the entry.
+            Default is 'Select Entry'.
+
+        Returns
+        -------
+        layout : QLayout
+            The created layout containing the dropdown boxes and button.
+        """
         layout = QtWidgets.QHBoxLayout()
         if not self.tree.entries:
             raise NeXusError("No entries in the NeXus tree")
@@ -409,6 +778,13 @@ class NXWidget(QtWidgets.QWidget):
         return layout
 
     def switch_root(self):
+        """
+        Called when the root is changed in the select_entry widget.
+
+        Updates the available entries in the select_entry widget and,
+        if the select_data widget is being used, updates the available
+        data in the select_data widget.
+        """
         self.entry_box.clear()
         self.entry_box.add(*sorted(self.tree[self.root_box.selected].entries))
         if self.data_box:
@@ -416,9 +792,33 @@ class NXWidget(QtWidgets.QWidget):
 
     @property
     def entry(self):
+        """The selected entry."""
         return self.tree[f"{self.root_box.selected}/{self.entry_box.selected}"]
 
     def select_data(self, slot=None, text='Select Data'):
+        """
+        Creates a widget to select data from the NeXus tree.
+
+        The widget consists of a root selector, an entry selector, a
+        data selector, and an optional push button. The root selector is
+        used to select the root of the data tree, the entry selector is
+        used to select the entry that contains the data, and the data
+        selector is used to select the actual data. The optional push
+        button can be used to perform an action when the data is
+        selected.
+
+        Parameters
+        ----------
+        slot : callable, optional
+            A callable that is called when the data is selected.
+        text : str, optional
+            The text to display on the push button.
+
+        Returns
+        -------
+        layout : QHBoxLayout
+            The layout of the select_data widget.
+        """
         layout = QtWidgets.QHBoxLayout()
         if not self.tree.entries:
             raise NeXusError("No entries in the NeXus tree")
@@ -460,6 +860,10 @@ class NXWidget(QtWidgets.QWidget):
         return layout
 
     def switch_entry(self):
+        """
+        Update the data box with the names of all NXdata nodes in the
+        current entry.
+        """
         self.data_box.clear()
         entry_path = Path(self.entry.nxpath)
         paths = []
@@ -470,15 +874,30 @@ class NXWidget(QtWidgets.QWidget):
 
     @property
     def selected_data(self):
+        """The selected data."""
         return self.tree[
             f"{self.root_box.selected}/{self.entry_box.selected}/"
             f"{self.data_box.selected}"]
 
     def read_parameter(self, root, path):
         """
-        Read the value from the NeXus path.
+        Read a parameter from the given root and path.
 
-        It will return 'None' if the path is not valid.
+        Returns the value of the parameter as a float if it is a single
+        value, otherwise returns the value as is. If the parameter is
+        not found, returns None.
+
+        Parameters
+        ----------
+        root : NXroot
+            The root of the NeXus file.
+        path : str
+            The path of the parameter in the NeXus file.
+
+        Returns
+        -------
+        value : float or None
+            The value of the parameter or None if it is not found.
         """
         try:
             value = root[path].nxdata
@@ -490,15 +909,40 @@ class NXWidget(QtWidgets.QWidget):
             return None
 
     def parameter_stack(self, parameters, width=None):
-        """Initialize layouts containing a grid selection box and each grid."""
+        """
+        Create a stack of parameter widgets from the given parameters.
+
+        Parameters
+        ----------
+        parameters : dict
+            A dictionary of parameter names and their corresponding
+            values.
+        width : int, optional
+            The width of each widget in the stack. If not given, the
+            width of the first widget is used.
+
+        Returns
+        -------
+        stack : NXStack
+            A stack of parameter widgets.
+        """
         return NXStack([p for p in parameters],
                        [parameters[p].widget(header=False, width=width)
                         for p in parameters])
 
     def grid(self, rows, cols, headers=None, spacing=10):
+        """To be replaced with a grid layout in subclasses."""
         pass
 
     def hide_grid(self, grid):
+        """
+        Hide all widgets in the given grid layout.
+
+        Parameters
+        ----------
+        grid : QGridLayout
+            The grid layout to be hidden.
+        """
         for row in range(grid.rowCount()):
             for column in range(grid.columnCount()):
                 item = grid.itemAtPosition(row, column)
@@ -508,6 +952,14 @@ class NXWidget(QtWidgets.QWidget):
                         widget.setVisible(False)
 
     def show_grid(self, grid):
+        """
+        Show all widgets in the given grid layout.
+
+        Parameters
+        ----------
+        grid : QGridLayout
+            The grid layout to be shown.
+        """
         for row in range(grid.rowCount()):
             for column in range(grid.columnCount()):
                 item = grid.itemAtPosition(row, column)
@@ -517,6 +969,14 @@ class NXWidget(QtWidgets.QWidget):
                         widget.setVisible(True)
 
     def delete_grid(self, grid):
+        """
+        Delete all widgets in the given grid layout and then delete the grid.
+
+        Parameters
+        ----------
+        grid : QGridLayout
+            The grid layout to be deleted.
+        """
         for row in range(grid.rowCount()):
             for column in range(grid.columnCount()):
                 item = grid.itemAtPosition(row, column)
@@ -529,6 +989,15 @@ class NXWidget(QtWidgets.QWidget):
         grid.deleteLater()
 
     def start_progress(self, limits):
+        """
+        Set up a progress bar with the given limits.
+
+        Parameters
+        ----------
+        limits : tuple
+            A tuple of two integers, the start and stop values for the
+            progress bar.
+        """
         start, stop = limits
         if self.progress_bar:
             self.progress_bar.setVisible(True)
@@ -538,35 +1007,62 @@ class NXWidget(QtWidgets.QWidget):
 
     def update_progress(self, value=None):
         """
-        Call the main QApplication.processEvents
+        Update the progress bar with the given value.
 
-        This ensures that GUI items like progress bars get updated
+        If the value is not given, the progress bar is not updated.
+        Otherwise, the progress bar is updated with the given value.
+
+        Parameters
+        ----------
+        value : int or None
+            The value to update the progress bar with. If None, the
+            progress bar is not updated.
         """
         if self.progress_bar and value is not None:
             self.progress_bar.setValue(value)
         self.mainwindow._app.processEvents()
 
     def stop_progress(self):
+        """
+        Stop the progress bar and make the status message visible.
+
+        The progress bar is hidden and the status message is shown.
+        """
         if self.progress_bar:
             self.progress_bar.setVisible(False)
         self.status_message.setVisible(True)
 
     def progress_layout(self, save=False, close=False):
+        """
+        Create a layout for the progress bar with close buttons.
+
+        Parameters
+        ----------
+        save : bool, optional
+            Whether to include a save button. Default is False.
+        close : bool, optional
+            Whether to include a close button. Default is False.
+
+        Returns
+        -------
+        layout : QLayout
+            The layout containing the progress bar and buttons.
+        """
         return self.close_layout(save=save, close=close, progress=True)
 
     def get_node(self):
-        """
-        Return the node currently selected in the treeview
-        """
+        """Return the currently selected node in the tree view."""
         return self.treeview.get_node()
 
     def start_thread(self):
+        """Start a new thread using QThread."""
         if self.thread:
             self.stop_thread()
         self.thread = QtCore.QThread()
         return self.thread
 
     def stop_thread(self):
+        """Stop the current thread."""
         if isinstance(self.thread, QtCore.QThread):
             self.thread.exit()
             self.thread.wait()
@@ -574,6 +1070,18 @@ class NXWidget(QtWidgets.QWidget):
         self.thread = None
 
     def resize(self, width=None, height=None):
+        """
+        Resize the dialog to the given width and height. If either the
+        width or height are not given, the dialog will be resized to its
+        minimum size hint.
+
+        Parameters
+        ----------
+        width : int, optional
+            The width of the dialog. Default is None.
+        height : int, optional
+            The height of the dialog. Default is None.
+        """
         self.mainwindow._app.processEvents()
         self.adjustSize()
         self.mainwindow._app.processEvents()
@@ -583,23 +1091,51 @@ class NXWidget(QtWidgets.QWidget):
             super().resize(width, height)
 
     def update(self):
+        """To be replaced in subclasses."""
         pass
 
     def activate(self):
+        """
+        Make this dialog active and visible.
+
+        This will bring the dialog to the front of other windows and
+        give it focus.
+        """
         self.setVisible(True)
         self.raise_()
         self.activateWindow()
         self.setFocus()
 
     def closeEvent(self, event):
+        """
+        Stop the thread and close the dialog.
+
+        This is called when the dialog is closed. It will stop any
+        currently running thread and close the dialog.
+        """
         self.stop_thread()
         event.accept()
 
 
 class NXDialog(QtWidgets.QDialog, NXWidget):
-    """Base dialog class for NeXpy dialogs"""
 
     def __init__(self, parent=None, default=False):
+        """
+        Initialize a NeXpy dialog.
+
+        Parameters
+        ----------
+        parent : QWidget, optional
+            The parent window of the dialog. Default is None.
+        default : bool, optional
+            Whether this is the default dialog. If True, the dialog
+            will not be added to the list of dialogs and will not have
+            event filtering. Default is False.
+
+        Notes
+        -----
+        If parent is None, the parent will be set to the main window.
+        """
         from .consoleapp import _mainwindow
         self.mainwindow = _mainwindow
         if parent is None:
@@ -617,7 +1153,21 @@ class NXDialog(QtWidgets.QDialog, NXWidget):
 
     def close_buttons(self, save=False, close=False):
         """
-        Creates a box containing the standard Cancel and OK buttons.
+        Create a standard dialog close button box.
+
+        Parameters
+        ----------
+        save : bool, optional
+            If True, the button box will have a 'Save' button
+            instead of an 'Ok' button. Default is False.
+        close : bool, optional
+            If True, the button box will have a 'Close' button
+            instead of an 'Ok' button. Default is False.
+
+        Returns
+        -------
+        QtWidgets.QDialogButtonBox
+            The created button box.
         """
         self.close_box = QtWidgets.QDialogButtonBox(self)
         self.close_box.setOrientation(QtCore.Qt.Horizontal)
@@ -638,7 +1188,26 @@ class NXDialog(QtWidgets.QDialog, NXWidget):
     buttonbox = close_buttons  # For backward compatibility
 
     def eventFilter(self, widget, event):
-        """Prevent closure of dialog when pressing [Return] or [Enter]"""
+        """
+        Filter events for widgets in the dialog.
+
+        This function is called for every event that occurs within the
+        dialog in order to prevent closure when pressing Return or
+        Enter. It is also used to catch the Escape key to reject the
+        dialog.
+
+        Parameters
+        ----------
+        widget : QtWidgets.QWidget
+            The widget that generated the event.
+        event : QtCore.QEvent
+            The event that occurred.
+
+        Returns
+        -------
+        bool
+            True if the event was handled.
+        """
         if event.type() == QtCore.QEvent.KeyPress:
             key = event.key()
             if key == QtCore.Qt.Key_Return or key == QtCore.Qt.Key_Enter:
@@ -653,6 +1222,11 @@ class NXDialog(QtWidgets.QDialog, NXWidget):
         return QtWidgets.QWidget.eventFilter(self, widget, event)
 
     def closeEvent(self, event):
+        """
+        Called when the dialog is closed.
+
+        This removes the dialog from the main window's list of dialogs.
+        """
         try:
             self.mainwindow.dialogs.remove(self)
         except Exception:
@@ -684,6 +1258,26 @@ class NXPanel(NXDialog):
 
     def __init__(self, panel, title='title', tabs={}, close=True,
                  apply=True, reset=True, parent=None):
+        """
+        Initialize a NeXpy panel.
+
+        Parameters
+        ----------
+        panel : NXPanel
+            The parent panel
+        title : str, optional
+            The title of the dialog, by default 'title'
+        tabs : dict, optional
+            A dictionary of tabs to add, by default {}
+        close : bool, optional
+            Whether to add close buttons, by default True
+        apply : bool, optional
+            Whether to add an apply button, by default True
+        reset : bool, optional
+            Whether to add a reset button, by default True
+        parent : QWidget, optional
+            The parent window of the dialog, by default None
+        """
         super().__init__(parent=parent)
         self.tab_class = NXTab
         self.plotview_sort = False
@@ -712,7 +1306,19 @@ class NXPanel(NXDialog):
 
     def close_buttons(self, apply=True, reset=True):
         """
-        Creates a box containing the standard Apply, Reset and Close buttons.
+        Create a box with Apply, Reset, and Close buttons.
+
+        Parameters
+        ----------
+        apply : bool, optional
+            Whether to add an Apply button, by default True
+        reset : bool, optional
+            Whether to add a Reset button, by default True
+
+        Returns
+        -------
+        QtWidgets.QDialogButtonBox
+            The dialog box with Apply, Reset, and Close buttons
         """
         box = QtWidgets.QDialogButtonBox(self)
         box.setOrientation(QtCore.Qt.Horizontal)
@@ -746,6 +1352,7 @@ class NXPanel(NXDialog):
 
     @property
     def tab(self):
+        """The current tab"""
         return self.tabwidget.currentWidget()
 
     @tab.setter
@@ -754,9 +1361,11 @@ class NXPanel(NXDialog):
 
     @property
     def count(self):
+        """The number of tabs"""
         return self.tabwidget.count()
 
     def tab_list(self):
+        """The list of tabs"""
         if self.plotview_sort:
             return [tab.tab_label for tab in
                     sorted(self.labels, key=attrgetter('plotview.number'))]
@@ -764,6 +1373,23 @@ class NXPanel(NXDialog):
             return sorted(self.tabs)
 
     def add(self, label, tab=None, idx=None):
+        """
+        Add a tab to the tabwidget.
+
+        Parameters
+        ----------
+        label : str
+            The label of the tab
+        tab : QWidget, optional
+            The tab to be added, by default None
+        idx : int, optional
+            The index of the tab, by default None
+
+        Raises
+        ------
+        NeXusError
+            If the label is already in the panel
+        """
         if label in self.tabs:
             raise NeXusError(f"'{label}' already in {self.title}")
         self.tabs[label] = tab
@@ -778,6 +1404,16 @@ class NXPanel(NXDialog):
                                               label)
 
     def remove(self, label):
+        """
+        Remove the tab with the given label.
+
+        If the tab is not present in the panel, do nothing.
+
+        Parameters
+        ----------
+        label : str
+            The label of the tab to be removed
+        """
         if label in self.tabs:
             removed_tab = self.tabs[label]
             if removed_tab.copybox:
@@ -796,6 +1432,23 @@ class NXPanel(NXDialog):
             self.setVisible(False)
 
     def idx(self, label):
+        """
+        Return the index of the given label in the sorted list of labels.
+
+        The labels are sorted alphabetically unless the `plotview_sort`
+        attribute is set to True, in which case the plotviews are sorted
+        by their number.
+
+        Parameters
+        ----------
+        label : str
+            The label of the tab for which the index is to be returned.
+
+        Returns
+        -------
+        idx : int
+            The index of the given label in the sorted list of labels.
+        """
         if self.plotview_sort and label in self.plotviews:
             pv = self.plotviews[label]
             numbers = sorted([t.plotview.number for t in self.labels])
@@ -804,6 +1457,22 @@ class NXPanel(NXDialog):
             return bisect.bisect_left(sorted(list(self.tabs)), label)
 
     def activate(self, label, *args, **kwargs):
+        """
+        Activate the tab with the given label.
+
+        If the tab does not exist, create it using the given arguments
+        and keyword arguments. If the tab does exist, simply update it.
+
+        Parameters
+        ----------
+        label : str
+            The label of the tab to be activated.
+        *args : any
+            Additional arguments to be passed to the tab constructor.
+        **kwargs : any
+            Additional keyword arguments to be passed to the tab
+            constructor.
+        """
         if label not in self.tabs:
             kwargs['parent'] = self
             tab = self.tab_class(label, *args, **kwargs)
@@ -817,6 +1486,13 @@ class NXPanel(NXDialog):
         self.activateWindow()
 
     def update(self):
+        """
+        Update the size policies of the tabs.
+
+        If there are any tabs, set the size policy of all but the
+        current tab to Ignored. Set the size policy of the current tab
+        to Minimum. Resize the current tab and the containing window.
+        """
         if self.count > 0:
             for tab in [self.tabs[label] for label in self.tabs
                         if self.tabs[label] is not self.tab]:
@@ -828,12 +1504,15 @@ class NXPanel(NXDialog):
             self.resize()
 
     def copy(self):
+        """Copy the current tab to a new tab."""
         self.tab.copy()
 
     def reset(self):
+        """Reset the current tab."""
         self.tab.reset()
 
     def apply(self):
+        """Apply the current tab."""
         self.tab.apply()
 
     def cleanup(self):
@@ -861,11 +1540,12 @@ class NXPanel(NXDialog):
             pass
 
     def closeEvent(self, event):
-        """Customise close events to ensure tabs and panels are closed."""
+        """Ensure tabs and panels are closed when closing the window."""
         self.cleanup()
         event.accept()
 
     def is_running(self):
+        """Return True if any tabs are running."""
         try:
             return self.count >= 0
         except RuntimeError:
@@ -887,9 +1567,23 @@ class NXPanel(NXDialog):
 
 
 class NXTab(NXWidget):
-    """Subclass of NXWidget for use as the main widget in a tab."""
 
     def __init__(self, label, parent=None):
+        """
+        Initialize a NeXpy tab with the given label and parent.
+
+        If the parent is given, the tab is added to the parent. If the
+        parent is not given, the tab is created without a parent and the
+        tabs and labels dictionaries are also created without a parent.
+
+        Parameters
+        ----------
+        label : str
+            The label of the tab
+        parent : NXTabPanel, optional
+            The parent of the tab. If not given, the tab is created
+            without a parent.
+        """
         super().__init__(parent=parent)
         self._tab_label = label
         if parent:
@@ -907,6 +1601,7 @@ class NXTab(NXWidget):
 
     @property
     def index(self):
+        """Return the index of the tab in the tab widget."""
         if self.panel:
             return self.panel.tabwidget.indexOf(self)
         else:
@@ -914,6 +1609,7 @@ class NXTab(NXWidget):
 
     @property
     def tab_label(self):
+        """Return the label of the tab."""
         return self._tab_label
 
     @tab_label.setter
@@ -927,6 +1623,22 @@ class NXTab(NXWidget):
             del self.panel.tabs[old_label]
 
     def copy_layout(self, text="Copy", sync=None):
+        """
+        Create a widget to copy the tab to another tab.
+
+        Parameters
+        ----------
+        text : str, optional
+            The text to display on the copy button.
+        sync : str, optional
+            If given, add a checkbox to allow synchronizing the tabs.
+
+        Returns
+        -------
+        widget : QWidget
+            The widget with the copy button and the drop-down list of tab
+            labels to copy to.
+        """
         self.copywidget = QtWidgets.QWidget()
         copylayout = QtWidgets.QHBoxLayout()
         self.copybox = NXComboBox()
@@ -942,12 +1654,20 @@ class NXTab(NXWidget):
         return self.copywidget
 
     def update(self):
+        """To be implemented by subclasses."""
         pass
 
     def copy(self):
+        """To be implemented by subclasses."""
         pass
 
     def sort_copybox(self):
+        """
+        Sort the copybox by the order of the tabs in the panel.
+
+        Select the original selected tab if it still exists in the
+        copybox.
+        """
         if self.copybox:
             selected = self.copybox.selected
             tabs = self.copybox.items()
@@ -959,20 +1679,41 @@ class NXTab(NXWidget):
 
 
 class GridParameters(dict):
-    """
-    A dictionary of parameters to be entered in a dialog box grid.
-
-    All keys must be strings, and valid Python symbol names, and all values
-    must be of class GridParameter.
-    """
 
     def __init__(self, **kwds):
+        """
+        Initialize a dictionary of parameters for a dialog box grid.
+
+        The keyword arguments should contain the parameters to be
+        displayed in the grid. The values of the arguments should be
+        either None or a GridParameter object. If None, a GridParameter
+        will be created. The name of each GridParameter will be the key
+        of the argument, and the value will be the value of the argument.
+
+        Parameters
+        ----------
+        **kwds : keyword arguments
+            The parameters to be displayed in the grid.
+        """
         super().__init__(self)
         self.result = None
         self.status_layout = None
         self.update(**kwds)
 
     def __setitem__(self, key, value):
+        """
+        Set the value of a key in the dictionary.
+
+        The value should be a GridParameter. If the value is not a
+        GridParameter, a ValueError will be raised.
+
+        Parameters
+        ----------
+        key : str
+            The key in the dictionary to be set.
+        value : GridParameter
+            The value to be set.
+        """
         if value is not None and not isinstance(value, GridParameter):
             raise ValueError(f"'{value}' is not a GridParameter")
         super().__setitem__(key, value)
@@ -981,15 +1722,28 @@ class GridParameters(dict):
     def add(self, name, value=None, label=None, vary=None, slot=None,
             color=False, spinbox=None, readonly=False, width=None):
         """
-        Convenience function for adding a Parameter:
+        Add a parameter to the grid.
 
-        Example
-        -------
-        p = GridParameters()
-        p.add(name, value=XX, ...)
-
-        is equivalent to:
-        p[name] = GridParameter(name=name, value=XX, ....
+        Parameters
+        ----------
+        name : str
+            Name of the parameter.
+        value : float, optional
+            Numerical Parameter value or NXfield containing the initial value
+        label : str, optional
+            Label used in the dialog box.
+        vary : bool or None, optional
+            Whether the Parameter is fixed during a fit.
+        slot : function or None, optional
+            Function to be called when the parameter is changed.
+        color : bool, optional
+            Whether the field contains a color value, default False.
+        spinbox : bool, optional
+            Whether the field should be a spin box, default False.
+        readonly : bool, optional
+            Whether the field is read-only, default False.
+        width : int, optional
+            Width of the box, default None
         """
         self.__setitem__(name, GridParameter(value=value, name=name,
                                              label=label, vary=vary,
@@ -998,6 +1752,32 @@ class GridParameters(dict):
                                              width=width))
 
     def grid(self, header=True, title=None, width=None, spacing=2):
+        """
+        Creates a grid layout from the parameters in the
+        GridParameterSet.
+
+        Parameters
+        ----------
+        header : bool, list or tuple, optional
+            Whether to include a header row with column labels. If a
+            list or tuple, the labels to be used are the elements of the
+            list or tuple. By default, the labels are ['Parameter',
+            'Value', 'Fit?'].
+        title : str, optional
+            A title to be placed above the grid. By default, there is no
+            title.
+        width : int, optional
+            The width of the boxes in the grid. By default, the width is
+            not specified.
+        spacing : int, optional
+            The spacing between rows in the grid. By default, the
+            spacing is 2.
+
+        Returns
+        -------
+        grid : QGridLayout
+            The grid layout of the parameters in the GridParameterSet.
+        """
         grid = QtWidgets.QGridLayout()
         grid.setSpacing(spacing)
         if isinstance(header, list) or isinstance(header, tuple):
@@ -1039,6 +1819,24 @@ class GridParameters(dict):
         return grid
 
     def widget(self, header=True, title=None, width=None):
+        """
+        Return a QWidget with the parameters in a grid layout.
+        
+        Parameters
+        ----------
+        header : bool, optional
+            Whether to include a header row with parameter names,
+            by default True
+        title : str, optional
+            The title to be displayed, by default None
+        width : int, optional
+            The width of each parameter box, by default None
+        
+        Returns
+        -------
+        QWidget
+            The widget containing the grid layout.
+        """
         w = QtWidgets.QWidget()
         layout = QtWidgets.QVBoxLayout()
         layout.addLayout(self.grid(header=header, title=title, width=width))
@@ -1047,6 +1845,7 @@ class GridParameters(dict):
         return w
 
     def hide_grid(self):
+        """Hide all widgets in the parameter grid layout."""
         grid = self.grid_layout
         for row in range(grid.rowCount()):
             for column in range(grid.columnCount()):
@@ -1057,6 +1856,7 @@ class GridParameters(dict):
                         widget.setVisible(False)
 
     def show_grid(self):
+        """Show all widgets in the parameter grid layout."""
         grid = self.grid_layout
         for row in range(grid.rowCount()):
             for column in range(grid.columnCount()):
@@ -1067,6 +1867,7 @@ class GridParameters(dict):
                         widget.setVisible(True)
 
     def delete_grid(self):
+        """Delete all widgets in the parameter grid layout."""
         grid = self.grid_layout
         for row in range(grid.rowCount()):
             for column in range(grid.columnCount()):
@@ -1079,16 +1880,47 @@ class GridParameters(dict):
                         widget.deleteLater()
 
     def set_parameters(self):
+        """
+        Set the parameters to be used for fitting.
+
+        This creates an instance of a Parameters object from the
+        parameters that are to be varied in the fit. The Parameters
+        object is an ordered dictionary of Parameter objects.
+        """
         from lmfit import Parameter, Parameters
         self.lmfit_parameters = Parameters()
         for p in [p for p in self if self[p].vary]:
             self.lmfit_parameters[p] = Parameter(self[p].name, self[p].value)
 
     def get_parameters(self, parameters):
+        """
+        Update the values of all parameters in the GridParameterSet from
+        the parameters returned by a fit.
+
+        Parameters
+        ----------
+        parameters : lmfit.Parameters
+            The parameters returned by a fit.
+        """
         for p in parameters:
             self[p].value = parameters[p].value
 
     def refine_parameters(self, residuals, **opts):
+        """
+        Refine the parameters in the GridParameterSet using a least-squares fit.
+
+        Parameters
+        ----------
+        residuals : callable
+            A function that returns the residuals between the data and the
+            model, given the values of the parameters.
+        **opts : keyword arguments
+            Options for the fit.
+
+        Notes
+        -----
+        The parameters are updated with the best-fit values.
+        """
         from lmfit import fit_report, minimize
         self.set_parameters()
         if self.status_layout:
@@ -1100,6 +1932,22 @@ class GridParameters(dict):
         self.get_parameters(self.result.params)
 
     def report_layout(self):
+        """
+        Create a layout that displays the status of the fit.
+
+        If the fit has not been performed, the text of the status
+        message will be 'Waiting to refine'. If the fit has been
+        performed, the text of the status message will be the
+        message returned by the fit, such as 'Successfully terminated
+        [from] lmfit' or 'Aborted [from] lmfit'. The layout also
+        contains a button that shows the full report of the fit when
+        clicked.
+
+        Returns
+        -------
+        layout : QHBoxLayout
+            The layout containing the status message and the button.
+        """
         layout = QtWidgets.QHBoxLayout()
         self.status_message = NXLabel()
         if self.result is None:
@@ -1113,6 +1961,15 @@ class GridParameters(dict):
         return layout
 
     def show_report(self):
+        """
+        Show the full report of the fit in a message box.
+
+        If the fit has not been performed, this function does not do
+        anything. Otherwise, it creates a message box with the title
+        'Fit Results' and the informative text set to the full report
+        of the fit. The message box contains an OK button to close the
+        box.
+        """
         if self.result is None:
             return
         message_box = QtWidgets.QMessageBox()
@@ -1127,22 +1984,38 @@ class GridParameters(dict):
         message_box.exec()
 
     def restore_parameters(self):
+        """
+        Restore the initial values of all parameters in the grid.
+
+        This method is used to reset the parameters to their initial
+        values. It is called when the user clicks the 'Cancel' button in
+        the fit dialog.
+        """
         for p in [p for p in self if self[p].vary]:
             self[p].value = self[p].init_value
 
     def save(self):
+        """
+        Save all parameters in the grid to a file.
+
+        This method is used to save the values of all parameters in the
+        grid to a file. The file is written as a NeXus file with a
+        single NXprocess group containing the data, model, and
+        parameters. The file name is the name of the data set plus
+        '.nxs'. The data, model, and parameters are written using the
+        write_group method of the NeXpy NXprocess class.
+        """
         for p in self:
             self[p].save()
 
 
 class GridParameter:
-    """
-    A Parameter is an object to be set in a dialog box grid.
-    """
 
     def __init__(self, name=None, value=None, label=None, vary=None, slot=None,
                  color=False, spinbox=False, readonly=False, width=None):
         """
+        Initialize a GridParameter object.
+
         Parameters
         ----------
         name : str, optional
@@ -1230,11 +2103,14 @@ class GridParameter:
         return f"<GridParameter {', '.join(s)}>"
 
     def save(self):
+        """Save the current parameter to the underlying NeXus field."""
+
         if isinstance(self.field, NXfield):
             self.field.nxdata = np.array(self.value).astype(self.field.dtype)
 
     @property
     def value(self):
+        """The current value of the parameter."""
         if isinstance(self.box, NXComboBox):
             return self.box.currentText()
         elif isinstance(self.box, NXDoubleSpinBox):
@@ -1274,6 +2150,7 @@ class GridParameter:
 
     @property
     def vary(self):
+        """True if the parameter is fixed during a fit."""
         if self.checkbox is not None:
             return self.checkbox.isChecked()
         else:
@@ -1288,31 +2165,22 @@ class GridParameter:
                 self.checkbox.setCheckState(QtCore.Qt.Unchecked)
 
     def disable(self, vary=None):
+        """Disable the parameter."""
         if vary is not None:
             self.vary = vary
         self.checkbox.setEnabled(False)
 
     def enable(self, vary=None):
+        """Enable the parameter."""
         if vary is not None:
             self.vary = vary
         self.checkbox.setEnabled(True)
 
 
 class NXStack(QtWidgets.QWidget):
-    """Widget containing a stack of widgets selected by a dropdown menu.
-
-    Attributes
-    ----------
-    layout : QtWidgets.QVBoxLayout
-        Layout of the entire stack.
-    stack : QtWidgets.QStackedWidget
-        Widget containing the stacked widgets.
-    box : QtWidgets.QComboBox
-        Pull-down menu containing the stack options.
-    """
 
     def __init__(self, labels, widgets, parent=None):
-        """Initialize the widget stack.
+        """Initialize the NeXpy widget stack.
 
         Parameters
         ----------
@@ -1336,7 +2204,8 @@ class NXStack(QtWidgets.QWidget):
         self.setLayout(self.layout)
 
     def add(self, label, widget):
-        """Add a widget to the stack.
+        """
+        Add a widget to the stack.
 
         Parameters
         ----------
@@ -1349,6 +2218,14 @@ class NXStack(QtWidgets.QWidget):
         self.stack.addWidget(widget)
 
     def remove(self, label):
+        """
+        Remove a widget from the stack.
+
+        Parameters
+        ----------
+        label : str
+            Label used to select the widget in the QComboBox
+        """
         if label in self.widgets:
             self.stack.removeWidget(self.widgets[label])
             del self.widgets[label]
@@ -1358,9 +2235,32 @@ class NXStack(QtWidgets.QWidget):
 class NXSortModel(QtCore.QSortFilterProxyModel):
 
     def __init__(self, parent=None):
+        """
+        Initialize a proxy model for sorting items with natural sorting.
+
+        Parameters
+        ----------
+        parent : QObject, optional
+            The parent object of the proxy model, by default None.
+        """
         super().__init__(parent=parent)
 
     def lessThan(self, left, right):
+        """
+        Reimplemented from QSortFilterProxyModel.
+
+        Compares two QModelIndex by natural sorting of their text.
+
+        Parameters
+        ----------
+        left : QModelIndex
+        right : QModelIndex
+
+        Returns
+        -------
+        bool
+            True if left is less than right, False otherwise.
+        """
         try:
             left_text = self.sourceModel().itemFromIndex(left).text()
             right_text = self.sourceModel().itemFromIndex(right).text()
@@ -1370,8 +2270,6 @@ class NXSortModel(QtCore.QSortFilterProxyModel):
 
 
 class NXScrollArea(QtWidgets.QScrollArea):
-    """Scroll area embedding a widget."""
-
     def __init__(self, content=None, horizontal=False, parent=None):
         """Initialize the scroll area.
 
@@ -1397,6 +2295,14 @@ class NXScrollArea(QtWidgets.QScrollArea):
                            QtWidgets.QSizePolicy.Expanding)
 
     def setWidget(self, widget):
+        """
+        Set the widget contained within the scroll area.
+
+        Parameters
+        ----------
+        widget : QtWidgets.QWidget or QtWidgets.QLayout
+            Widget or layout to be contained within the scroll area.
+        """
         if isinstance(widget, QtWidgets.QLayout):
             w = QtWidgets.QWidget()
             w.setLayout(widget)
@@ -1407,29 +2313,25 @@ class NXScrollArea(QtWidgets.QScrollArea):
 
 
 class NXLabel(QtWidgets.QLabel):
-    """A text label.
-
-    This is being subclassed from the PyQt QLabel class because of a bug in
-    recent versions of PyQt5 (>11) that requires the box to be repainted
-    after any programmatic changes.
-    """
 
     def __init__(self, text=None, parent=None, bold=False, width=None,
                  align='left'):
-        """Initialize the edit window and optionally set the alignment
+        """
+        Initialize a label with a given text, parent, and styling.
 
         Parameters
         ----------
         text : str, optional
-            The default text.
-        parent : QWidget
-            Parent of the NXLineEdit box.
+            The text to be displayed in the label, default None.
+        parent : QWidget, optional
+            The parent window of the label, default None.
         bold : bool, optional
-            True if the label text is bold, default False.
+            Whether to render the text in bold, default False.
         width : int, optional
-            Fixed width of label.
-        align : 'left', 'center', 'right'
-            Alignment of text.
+            The width of the label in pixels, default None.
+        align : str, optional
+            The alignment of the text in the label, either 'left',
+            'center', or 'right', default 'left'.
         """
         super().__init__(parent=parent)
         if text:
@@ -1458,27 +2360,28 @@ class NXLabel(QtWidgets.QLabel):
 
 
 class NXLineEdit(QtWidgets.QLineEdit):
-    """An editable text box.
-
-    This is being subclassed from the PyQt QLineEdit class because of a bug in
-    recent versions of PyQt5 (>11) that requires the box to be repainted
-    after any programmatic changes.
-    """
 
     def __init__(self, text=None, parent=None, slot=None, readonly=False,
                  width=None, align='left'):
-        """Initialize the edit window and optionally set the alignment
+        """
+        Initialize an line edit box.
 
         Parameters
         ----------
         text : str, optional
-            The default text.
-        parent : QWidget
-            Parent of the NXLineEdit box.
-        slot: func, optional
-            Slot to be used for editingFinished signals.
-        right : bool, optional
-            If True, make the box text right-aligned.
+            The text to be displayed in the line edit box, default None.
+        parent : QWidget, optional
+            The parent window of the line edit box, default None.
+        slot : function, optional
+            If given, connect the textChanged signal to the slot.
+        readonly : bool, optional
+            Whether to render the line edit box as read-only, default
+            False.
+        width : int, optional
+            The width of the line edit box in pixels, default None.
+        align : str, optional
+            The alignment of the text in the line edit box, either
+            'left', 'center', or 'right', default 'left'.
         """
         super().__init__(parent=parent)
         if slot:
@@ -1497,7 +2400,8 @@ class NXLineEdit(QtWidgets.QLineEdit):
             self.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
 
     def setText(self, text):
-        """Function to set the text in the box.
+        """
+        Function to set the text in the box.
 
         Parameters
         ----------
@@ -1536,6 +2440,21 @@ class NXPlainTextEdit(QtWidgets.QPlainTextEdit):
     """An editable text window."""
 
     def __init__(self, text=None, wrap=True, parent=None):
+        """
+        Initialize the plain text editor.
+
+        Parameters
+        ----------
+        text : str, optional
+            The initial text of the window. If given, the text is set.
+            If not given, the window is empty.
+        wrap : bool, optional
+            If True, the text wraps to the next line if it is longer
+            than the window. If False, the text does not wrap, by
+            default True.
+        parent : QWidget, optional
+            The parent window of the text box, by default None.
+        """
         super().__init__(parent=parent)
         self.setFont(QtGui.QFont('Courier'))
         if not wrap:
@@ -1564,8 +2483,8 @@ class NXPlainTextEdit(QtWidgets.QPlainTextEdit):
         Parameters
         ----------
         tab_spaces : int, optional
-            Number of spaces to replace tabs (default is 4). If set to 0, tab
-            characters are not replaced.
+            Number of spaces to replace tabs (default is 4). If set to
+            0, tab characters are not replaced.
 
         Returns
         -------
@@ -1580,9 +2499,23 @@ class NXPlainTextEdit(QtWidgets.QPlainTextEdit):
 
 
 class NXMessageBox(QtWidgets.QMessageBox):
-    """A scrollable message box"""
 
     def __init__(self, title, text, *args, **kwargs):
+
+        """
+        Initialize a scrollable message box.
+
+        Parameters
+        ----------
+        title : str
+            The title of the message box.
+        text : str
+            The text of the message box.
+        *args :
+            Additional arguments to pass to super().__init__.
+        **kwargs :
+            Additional keyword arguments to pass to super().__init__.
+        """
         super().__init__(*args, **kwargs)
         scroll = NXScrollArea(parent=self)
         self.content = QtWidgets.QWidget()
@@ -1596,10 +2529,10 @@ class NXMessageBox(QtWidgets.QMessageBox):
 
 
 class NXComboBox(QtWidgets.QComboBox):
-    """Dropdown menu for selecting a set of options."""
 
     def __init__(self, slot=None, items=[], default=None, align=None):
-        """Initialize the dropdown menu with an initial list of items
+        """
+        Initialize the dropdown menu with an initial list of items
 
         Parameters
         ----------
@@ -1637,7 +2570,7 @@ class NXComboBox(QtWidgets.QComboBox):
         return self.items().__iter__()
 
     def __next__(self):
-        """Implements key iteration."""
+        """Implement key iteration."""
         return self.items().__next__()
 
     def __contains__(self, item):
@@ -1647,9 +2580,9 @@ class NXComboBox(QtWidgets.QComboBox):
     def keyPressEvent(self, event):
         """Function to enable the use of cursor keys to make selections.
 
-        `Up` and `Down` keys are used to select options in the dropdown menu.
-        `Left` and `Right` keys ar used to expand the dropdown menu to
-        display the options.
+        `Up` and `Down` keys are used to select options in the dropdown
+        menu. `Left` and `Right` keys ar used to expand the dropdown
+        menu to display the options.
 
         Parameters
         ----------
@@ -1666,10 +2599,12 @@ class NXComboBox(QtWidgets.QComboBox):
             self.parent().keyPressEvent(event)
 
     def findText(self, value, **kwargs):
-        """Function to return the index of a text value.
+        """
+        Function to return the index of a text value.
 
-        This is needed since h5py now returns byte strings, which will trigger
-        ValueErrors unless they are converted to unicode strings.
+        This is needed since h5py now returns byte strings, which will
+        trigger ValueErrors unless they are converted to unicode
+        strings.
 
         Parameters
         ----------
@@ -1686,7 +2621,8 @@ class NXComboBox(QtWidgets.QComboBox):
         return super().findText(str(value), **kwargs)
 
     def add(self, *items):
-        """Add items to the list of options.
+        """
+        Add items to the list of options.
 
         Parameters
         ----------
@@ -1698,7 +2634,8 @@ class NXComboBox(QtWidgets.QComboBox):
                 self.addItem(str(item))
 
     def insert(self, idx, item):
-        """Insert item at the specified index.
+        """
+        Insert item at the specified index.
 
         Parameters
         ----------
@@ -1711,7 +2648,8 @@ class NXComboBox(QtWidgets.QComboBox):
             self.insertItem(idx, str(item))
 
     def remove(self, item):
-        """Remove item from the list of options.
+        """
+        Remove item from the list of options.
 
         Parameters
         ----------
@@ -1722,7 +2660,8 @@ class NXComboBox(QtWidgets.QComboBox):
             self.removeItem(self.findText(str(item)))
 
     def items(self):
-        """Return a list of the dropdown menu options.
+        """
+        Return a list of the dropdown menu options.
 
         Returns
         -------
@@ -1736,7 +2675,8 @@ class NXComboBox(QtWidgets.QComboBox):
         self.model().sort(0)
 
     def select(self, item):
-        """Select the option matching the text.
+        """
+        Select the option matching the text.
 
         Parameters
         ----------
@@ -1748,7 +2688,8 @@ class NXComboBox(QtWidgets.QComboBox):
 
     @property
     def selected(self):
-        """Return the currently selected option.
+        """
+        Return the currently selected option.
 
         Returns
         -------
@@ -1759,7 +2700,6 @@ class NXComboBox(QtWidgets.QComboBox):
 
 
 class NXCheckBox(QtWidgets.QCheckBox):
-    """A checkbox with associated label and slot function."""
 
     def __init__(self, label=None, slot=None, checked=False):
         """Initialize the checkbox.
@@ -1780,7 +2720,8 @@ class NXCheckBox(QtWidgets.QCheckBox):
             self.stateChanged.connect(slot)
 
     def keyPressEvent(self, event):
-        """Function to enable the use of cursor keys to change the state.
+        """
+        Function to enable the use of cursor keys to change the state.
 
         `Up` and `Down` keys are used to toggle the checkbox state.
 
@@ -1803,7 +2744,8 @@ class NXPushButton(QtWidgets.QPushButton):
     """A button with associated label and slot function."""
 
     def __init__(self, label, slot, checkable=False, width=None, parent=None):
-        """Initialize button
+        """
+        Initialize button.
 
         Parameters
         ----------
@@ -1825,7 +2767,8 @@ class NXPushButton(QtWidgets.QPushButton):
             self.setFixedWidth(width)
 
     def keyPressEvent(self, event):
-        """Function to enable the use of keys to press the button.
+        """
+        Function to enable the use of keys to press the button.
 
         `Return`, Enter`, and `Space` keys activate the slot function.
 
@@ -1843,11 +2786,19 @@ class NXPushButton(QtWidgets.QPushButton):
 
 
 class NXColorButton(QtWidgets.QPushButton):
-    """Push button for selecting colors."""
 
     colorChanged = QtCore.Signal(QtGui.QColor)
 
     def __init__(self, parent=None):
+
+        """
+        Initialize a button for selecting colors.
+
+        Parameters
+        ----------
+        parent : QObject, optional
+            Parent of the color button.
+        """
         super().__init__(parent=parent)
         self.setFixedWidth(18)
         self.setStyleSheet("width:18px; height:18px; "
@@ -1858,16 +2809,33 @@ class NXColorButton(QtWidgets.QPushButton):
         self._color = QtGui.QColor()
 
     def choose_color(self):
+        """
+        Open a color dialog and set the button color if a valid color
+        is chosen.
+
+        This function is called when the button is clicked.
+        """
         color = QtWidgets.QColorDialog.getColor(self._color,
                                                 self.parentWidget())
         if color.isValid():
             self.set_color(color)
 
     def get_color(self):
+        """Return the button color."""
         return self._color
 
     @QtCore.Slot(QtGui.QColor)
     def set_color(self, color):
+        """
+        Set the color of the button.
+
+        Parameters
+        ----------
+        color : QtGui.QColor
+            Color to be set.
+
+        This function is a slot and can be connected to a signal.
+        """
         if color != self._color:
             self._color = color
             self.colorChanged.emit(self._color)
@@ -1880,7 +2848,8 @@ class NXColorButton(QtWidgets.QPushButton):
 
 
 class NXColorBox(QtWidgets.QWidget):
-    """Text box and color square for selecting colors.
+    """
+    Text box and color square for selecting colors.
 
     This utilizes the ColorButton class in the formlayout package.
 
@@ -1895,7 +2864,8 @@ class NXColorBox(QtWidgets.QWidget):
     """
 
     def __init__(self, color='#ffffff', label=None, width=None, parent=None):
-        """Initialize the text and color box.
+        """
+        Initialize the text and color box.
 
         The selected color can be changed by entering a valid text string or
         by selecting the color using the standard system GUI.
@@ -1940,7 +2910,7 @@ class NXColorBox(QtWidgets.QWidget):
             self.textbox.setText(self.color_text)
 
     def update_text(self, color):
-        """Set the text box string following a change to the color button."""
+        """Set the text box string following a change to the color."""
         self.color_text = colors.to_hex(color.getRgbF())
         self.textbox.setText(self.color_text)
 
@@ -1960,14 +2930,8 @@ class NXColorBox(QtWidgets.QWidget):
 
 
 class NXSpinBox(QtWidgets.QSpinBox):
-    """Subclass of QSpinBox with floating values.
-
-    Parameters
-    ----------
-    slot : function
-        PyQt slot triggered by changing values
-    data : array-like, optional
-        Values of data to be adjusted by the spin box.
+    """
+    Subclass of QSpinBox with floating values.
 
     Attributes
     ----------
@@ -1985,6 +2949,16 @@ class NXSpinBox(QtWidgets.QSpinBox):
     """
 
     def __init__(self, slot=None, data=None):
+        """
+        Initialize the spin box with optional slot and data.
+
+        Parameters
+        ----------
+        slot : function, optional
+            PyQt slot triggered by changing values
+        data : array-like, optional
+            Values of data to be adjusted by the spin box.
+        """
         super().__init__()
         self.data = data
         self.validator = QtGui.QDoubleValidator()
@@ -2001,7 +2975,8 @@ class NXSpinBox(QtWidgets.QSpinBox):
         self.app = QtWidgets.QApplication.instance()
 
     def value(self):
-        """Return the value of the spin box.
+        """
+        Return the value of the spin box.
 
         Returns
         -------
@@ -2015,7 +2990,8 @@ class NXSpinBox(QtWidgets.QSpinBox):
 
     @property
     def centers(self):
-        """The values of the data points based on bin centers.
+        """
+        The values of the data points based on bin centers.
 
         Returns
         -------
@@ -2031,6 +3007,7 @@ class NXSpinBox(QtWidgets.QSpinBox):
 
     @property
     def boundaries(self):
+        """The values of the data points based on bin boundaries."""
         if self.data is None:
             return None
         else:
@@ -2038,31 +3015,90 @@ class NXSpinBox(QtWidgets.QSpinBox):
 
     @property
     def index(self):
-        """Return the current index of the spin box."""
+        """The current index of the spin box."""
         return super().value()
 
     @property
     def reversed(self):
-        """Return `True` if the data are in reverse order."""
+        """True if the data are in reverse order."""
         if self.data[-1] < self.data[0]:
             return True
         else:
             return False
 
     def setValue(self, value):
+        """
+        Set the value of the spin box.
+
+        This is used to set the spin box value by an external program.
+        The value is converted to an index and then set. The spin box
+        is then updated.
+
+        Parameters
+        ----------
+        value : str or int or float
+            The value to set the spin box to
+        """
         super().setValue(self.valueFromText(value))
         self.repaint()
 
     def valueFromText(self, text):
+        """
+        Convert a string to an index value for the spin box.
+
+        This is used to set the spin box value by an external program.
+        The value is converted to an index and then set. The spin box
+        is then updated.
+
+        Parameters
+        ----------
+        text : str or int or float
+            The value to set the spin box to
+
+        Returns
+        -------
+        int
+            Index value for the spin box
+        """
         return self.indexFromValue(float(str(text)))
 
     def textFromValue(self, value):
+        """
+        Convert a value to a string for the spin box.
+
+        This is used to set the spin box value by an external program.
+        The value is converted to a string and then set. The spin box
+        is then updated.
+
+        Parameters
+        ----------
+        value : int or float
+            The value to set the spin box to
+
+        Returns
+        -------
+        str
+            String value for the spin box
+        """
         try:
             return format_float(float(f'{self.centers[value]:.4g}'))
         except Exception:
             return ''
 
     def valueFromIndex(self, idx):
+        """
+        Convert an index to a value for the spin box.
+
+        Parameters
+        ----------
+        idx : int
+            Index of the spin box
+
+        Returns
+        -------
+        float
+            The value of the spin box at the given index
+        """
         if idx < 0:
             return self.centers[0]
         elif idx > self.maximum():
@@ -2071,9 +3107,35 @@ class NXSpinBox(QtWidgets.QSpinBox):
             return self.centers[idx]
 
     def indexFromValue(self, value):
+        """
+        Convert a value to an index for the spin box.
+
+        Parameters
+        ----------
+        value : float
+            Value of the spin box
+
+        Returns
+        -------
+        int
+            Index of the spin box
+        """
         return (np.abs(self.centers - value)).argmin()
 
     def minBoundaryValue(self, idx):
+        """
+        Return the minimum boundary value with the given index.
+
+        Parameters
+        ----------
+        idx : int
+            Index of the spin box
+
+        Returns
+        -------
+        float
+            Minimum boundary value of the spin box at the given index
+        """
         if idx <= 0:
             return self.boundaries[0]
         elif idx >= len(self.centers) - 1:
@@ -2082,6 +3144,19 @@ class NXSpinBox(QtWidgets.QSpinBox):
             return self.boundaries[idx]
 
     def maxBoundaryValue(self, idx):
+        """
+        Return the maximum boundary value with the given index.
+
+        Parameters
+        ----------
+        idx : int
+            Index of the spin box
+
+        Returns
+        -------
+        float
+            Maximum boundary value of the spin box at the given index
+        """
         if idx <= 0:
             return self.boundaries[1]
         elif idx >= len(self.centers) - 1:
@@ -2090,13 +3165,42 @@ class NXSpinBox(QtWidgets.QSpinBox):
             return self.boundaries[idx+1]
 
     def validate(self, input_value, pos):
+        """
+        Validate the input value using the validator.
+
+        Parameters
+        ----------
+        input_value : str
+            Value to be validated
+
+        pos : int
+            Position of the input value in the spin box
+
+        Returns
+        -------
+        tuple
+            A tuple of (QValidator.State, str, int)
+        """
         return self.validator.validate(input_value, pos)
 
     @property
     def tolerance(self):
+        """The tolerance for the spin box."""
         return self.diff / 100.0
 
     def stepBy(self, steps):
+        """
+        Step the spin box by the given number of steps.
+
+        If the difference value is valid, the spin box is stepped by the
+        given number of steps. The pause flag is set to False unless the
+        stepped value is out of range, in which case it is set to True.
+
+        Parameters
+        ----------
+        steps : int
+            Number of steps to step the spin box
+        """
         self.pause = False
         if self.diff:
             value = self.value() + steps * self.diff
@@ -2113,18 +3217,21 @@ class NXSpinBox(QtWidgets.QSpinBox):
                 self.pause = True
 
     def timerEvent(self, event):
+        """
+        Process events and handle timer events.
+
+        This function is called whenever the timer times out. It
+        processes any pending events and calls the base class function
+        to handle the timer event when the left mouse button is pressed.
+        """
         self.app.processEvents()
         if self.app.mouseButtons() & QtCore.Qt.LeftButton:
             super().timerEvent(event)
 
 
 class NXDoubleSpinBox(QtWidgets.QDoubleSpinBox):
-    """Subclass of QDoubleSpinBox.
-
-    Parameters
-    ----------
-    slot : function
-        PyQt slot triggered by changing values
+    """
+    Subclass of QDoubleSpinBox.
 
     Attributes
     ----------
@@ -2138,6 +3245,26 @@ class NXDoubleSpinBox(QtWidgets.QDoubleSpinBox):
     """
 
     def __init__(self, slot=None, editing=None):
+        """
+        Initialize a NeXpy spin box with optional slot and editing.
+
+        Parameters
+        ----------
+        slot : function
+            PyQt slot triggered by changing values
+        editing : function
+            Function to be called when editing is finished
+
+        Attributes
+        ----------
+        validator : QDoubleValidator
+            Function to ensure only floating point values are entered.
+        old_value : float
+            Previously stored value.
+        diff : float
+            Difference between maximum and minimum values when the box is
+            locked.
+        """
         super().__init__()
         self.validator = QtGui.QDoubleValidator()
         self.validator.setRange(-np.inf, np.inf)
@@ -2158,9 +3285,37 @@ class NXDoubleSpinBox(QtWidgets.QDoubleSpinBox):
         self.app = QtWidgets.QApplication.instance()
 
     def validate(self, input_value, position):
+        """
+        Validate the input value using the validator.
+
+        Parameters
+        ----------
+        input_value : str
+            Value to be validated
+
+        position : int
+            Position of the input value in the spin box
+
+        Returns
+        -------
+        tuple
+            A tuple of (QValidator.State, str, int)
+        """
         return self.validator.validate(input_value, position)
 
     def setSingleStep(self, value):
+        """
+        Set the single step size of the spin box. 
+        
+        The step is determined by taking the nearest value of the array
+        [1, 2, 5, 10] that is closest to the absolute value of the input
+        divided by 10 to the power of the number of digits in the value.
+
+        Parameters
+        ----------
+        value : float
+            Value to be used to determine the step size
+        """
         value = abs(value)
         if value == 0:
             stepsize = 0.01
@@ -2171,6 +3326,18 @@ class NXDoubleSpinBox(QtWidgets.QDoubleSpinBox):
         super().setSingleStep(stepsize)
 
     def stepBy(self, steps):
+        """
+        Step the spin box by the given number of steps.
+
+        If the difference value is valid, the spin box is stepped by the
+        given number of steps. The pause flag is set to False unless the
+        stepped value is out of range, in which case it is set to True.
+
+        Parameters
+        ----------
+        steps : int
+            Number of steps to step the spin box
+        """
         if self.diff:
             self.setValue(self.value() + steps * self.diff)
         else:
@@ -2178,6 +3345,12 @@ class NXDoubleSpinBox(QtWidgets.QDoubleSpinBox):
         self.old_value = self.text()
 
     def valueFromText(self, text):
+        """
+        Return the value from the text in the spin box.
+        
+        If the value is not in the range of the spin box, the range is
+        extended to include the value.
+        """
         value = float(text)
         if value > self.maximum():
             self.setMaximum(value)
@@ -2186,12 +3359,29 @@ class NXDoubleSpinBox(QtWidgets.QDoubleSpinBox):
         return value
 
     def textFromValue(self, value):
+        """
+        Return the text representation of the given value.
+
+        If the value is greater than 1e6, it is formatted with the
+        default precision. Otherwise, it is formatted with a precision of
+        8 digits.
+        """
         if value > 1e6:
             return format_float(value)
         else:
             return format_float(value, width=8)
 
     def setValue(self, value):
+        """
+        Set the value of the spin box.
+
+        The number of decimal places is adjusted depending on the value.
+        If the value is 0, two decimal places are used. Otherwise, the
+        number of decimal places is set to the number of digits
+        required to represent the absolute value of the number.
+        If the value is out of range of the spin box, the range is
+        extended to include the value.
+        """
         if value == 0:
             self.setDecimals(2)
         else:
@@ -2208,24 +3398,34 @@ class NXDoubleSpinBox(QtWidgets.QDoubleSpinBox):
         self.repaint()
 
     def timerEvent(self, event):
+        """
+        Process events and handle timer events.
+
+        This function is called whenever the timer times out. It
+        processes any pending events and calls the base class function
+        to handle the timer event when the left mouse button is pressed.
+        """
         self.app.processEvents()
         if self.app.mouseButtons() & QtCore.Qt.LeftButton:
             super().timerEvent(event)
 
 
 class NXSlider(QtWidgets.QSlider):
-    """Subclass of QSlider.
-
-    Parameters
-    ----------
-    slot : function
-        PyQt slot triggered by changing values
-    move : bool
-        True if the slot is triggered by moving the slider. Otherwise,
-        it is only triggered on release.
-    """
 
     def __init__(self, slot=None, move=True, inverse=False):
+
+        """
+        Initialize the slider.
+
+        Parameters
+        ----------
+        slot : function, optional
+            The function to be called when the slider is released.
+        move : bool, optional
+            If True, the function is also called when the slider is moved.
+        inverse : bool, optional
+            If True, the slider is inverted.
+        """
         super().__init__(QtCore.Qt.Horizontal)
         self.setFocusPolicy(QtCore.Qt.NoFocus)
         self.setMinimumWidth(100)
@@ -2245,6 +3445,13 @@ class NXSlider(QtWidgets.QSlider):
                 self.sliderMoved.connect(slot)
 
     def value(self):
+        """
+        Return the value of the slider as an integer.
+
+        The value is returned as an integer unless the slider is
+        inverted, in which case the value is the maximum value of the
+        slider minus the integer value of the slider.
+        """
         _value = super().value()
         if self.inverse:
             return self.maximum() - _value
@@ -2252,6 +3459,13 @@ class NXSlider(QtWidgets.QSlider):
             return _value
 
     def setValue(self, value):
+        """
+        Set the value of the slider.
+
+        If the slider is inverted, the value is the maximum value of the
+        slider minus the integer value of the slider. Otherwise, the
+        value is simply set to the integer value of the slider.
+        """
         if self.inverse:
             super().setValue(self.maximum() - int(value))
         else:
@@ -2260,9 +3474,28 @@ class NXSlider(QtWidgets.QSlider):
 
 class NXpatch:
     """Class for a draggable shape on the NXPlotView canvas."""
+
     lock = None
 
     def __init__(self, shape, border_tol=0.1, resize=True, plotview=None):
+        """
+        Initialize the NXpatch object.
+
+        Parameters
+        ----------
+        shape : matplotlib.patches
+            The Matplotlib shape to be made draggable.
+        border_tol : float, optional
+            The fraction of the axes that the shape must be within to
+            be considered in the axes. This is used to determine whether
+            or not the shape can be resized. The default is 0.1.
+        resize : bool, optional
+            If True, the shape can be resized. If False, the shape can
+            only be dragged. The default is True.
+        plotview : NXPlotView, optional
+            The parent window of the shape. If None, the default is to
+            use the most recently created NXPlotView window.
+        """
         if plotview:
             self.plotview = plotview
         else:
@@ -2291,7 +3524,7 @@ class NXpatch:
             'motion_notify_event', self.on_motion)
 
     def is_inside(self, event):
-        """Check if the event is inside the shape."""
+        """True if the event is inside the shape."""
         if event.inaxes != self.shape.axes:
             return False
         contains, _ = self.shape.contains(event)
@@ -2302,9 +3535,11 @@ class NXpatch:
 
     def initialize(self, xp, yp):
         """Function to be overridden by shape sub-class."""
+        pass
 
     def update(self, x, y):
         """Function to be overridden by shape sub-class."""
+        pass
 
     def on_press(self, event):
         """Store coordinates on button press if over the object."""
@@ -2338,33 +3573,40 @@ class NXpatch:
         self.plotview.activate()
 
     def remove(self):
+        """Remove the shape from the plotview and canvas."""
         if self in self.plotview.shapes:
             self.plotview.shapes.remove(self)
         self.shape.remove()
         self.plotview.draw()
 
     def set_facecolor(self, color):
+        """Set the facecolor of the shape."""
         self.shape.set_facecolor(color)
         self.plotview.draw()
 
     def set_edgecolor(self, color):
+        """Set the edgecolor of the shape."""
         self.shape.set_edgecolor(color)
         self.plotview.draw()
 
     def set_color(self, color):
+        """Set the facecolor and edgecolor of the shape."""
         self.shape.set_facecolor(color)
         self.shape.set_edgecolor(color)
         self.plotview.draw()
 
     def set_alpha(self, alpha):
+        """Set the alpha value of the shape."""
         self.shape.set_alpha(alpha)
         self.plotview.draw()
 
     def set_linestyle(self, linestyle):
+        """Set the linestyle of the shape."""
         self.shape.set_linestyle(linestyle)
         self.plotview.draw()
 
     def set_linewidth(self, linewidth):
+        """Set the linewidth of the shape."""
         self.shape.set_linewidth(linewidth)
         self.plotview.draw()
 
@@ -2373,6 +3615,27 @@ class NXcircle(NXpatch):
 
     def __init__(self, x, y, r, border_tol=0.1, resize=True, plotview=None,
                  **opts):
+        """
+        Initialize the NXcircle object.
+
+        Parameters
+        ----------
+        x, y : float
+            x and y values of circle center
+        r : float
+            radius of circle
+        border_tol : float, optional
+            the tolerance for when the mouse is considered to be over the
+            border of the shape. The default is 0.1.
+        resize : bool, optional
+            If True, the shape can be resized. If False, the shape can
+            only be dragged. The default is True.
+        plotview : NXPlotView, optional
+            The parent window of the shape. If None, the default is to
+            use the most recently created NXPlotView window.
+        opts : dict
+            Valid options for displaying shapes.
+        """
         x, y, r = float(x), float(y), float(r)
         shape = Ellipse((x, y), 2*r, 2*r, **opts)
         if 'linewidth' not in opts:
@@ -2391,37 +3654,46 @@ class NXcircle(NXpatch):
 
     @property
     def transform(self):
+        """Return the transform of the plotview."""
         return self.plotview.ax.transData.transform
 
     @property
     def inverse_transform(self):
+        """Return the inverse transform of the plotview."""
         return self.plotview.ax.transData.inverted().transform
 
     @property
     def center(self):
+        """The center of the circle."""
         return self.circle.center
 
     @property
     def radius(self):
+        """The radius of the circle."""
         return abs(self.circle.width) / 2.0
 
     @property
     def width(self):
+        """The width of the circle."""
         return abs(self.circle.width)
 
     @property
     def height(self):
+        """The height of the circle."""
         return 2 * (self.inverse_transform((0, self.pixel_radius)) -
                     self.inverse_transform((0, 0)))[1]
 
     @property
     def pixel_radius(self):
+        """The pixel radius of the circle."""
         return (self.transform((self.radius, 0)) - self.transform((0, 0)))[0]
 
     def pixel_shift(self, x, y, x0, y0):
+        """Return the pixel shift in x and y directions."""
         return tuple(self.transform((x, y)) - self.transform((x0, y0)))
 
     def radius_shift(self, x, y, xp, yp, x0, y0):
+        """Return the radius shift in x and y directions."""
         xt, yt = self.pixel_shift(x, y, x0, y0)
         r = np.sqrt(xt**2 + yt**2)
         xt, yt = self.pixel_shift(xp, yp, x0, y0)
@@ -2430,15 +3702,32 @@ class NXcircle(NXpatch):
                 self.inverse_transform((r0, 0)))[0]
 
     def set_center(self, x, y):
+        """Set the center of the circle."""
         self.circle.center = x, y
         self.plotview.draw()
 
     def set_radius(self, radius):
+        """Set the radius of the circle."""
         self.circle.width = 2.0 * radius
         self.circle.height = self.height
         self.plotview.draw()
 
     def initialize(self, xp, yp):
+        """
+        Initialize the shape for dragging or resizing.
+
+        Parameters
+        ----------
+        xp, yp : float
+            x and y values of mouse click
+
+        Returns
+        -------
+        x0, y0, w0, h0, xp, yp, expand : tuple
+            x and y values of center of shape, width and height of
+            shape, x and y values of mouse click, and whether the shape
+            is being resized or dragged
+        """
         x0, y0 = self.circle.center
         w0, h0 = self.width, self.height
         xt, yt = self.pixel_shift(xp, yp, x0, y0)
@@ -2451,6 +3740,23 @@ class NXcircle(NXpatch):
         return x0, y0, w0, h0, xp, yp, expand
 
     def update(self, x, y):
+        """
+        Update the shape based on the mouse position.
+
+        Parameters
+        ----------
+        x, y : float
+            x and y values of the mouse click
+
+        Notes
+        -----
+        If the shape is being resized, the radius of the circle is
+        changed by an amount proportional to the distance from the
+        center of the circle to the current mouse position. If the
+        shape is being dragged, the center of the circle is changed
+        by an amount proportional to the distance from the center of
+        the circle to the current mouse position.
+        """
         x0, y0, w0, h0, xp, yp, expand = self.press
         if expand:
             self.circle.width = self.width + \
@@ -2464,6 +3770,27 @@ class NXellipse(NXpatch):
 
     def __init__(self, x, y, dx, dy, border_tol=0.2, resize=True,
                  plotview=None, **opts):
+        """
+        Initialize the NXellipse object.
+
+        Parameters
+        ----------
+        x, y : float
+            x and y values of ellipse center
+        dx, dy : float
+            x and y widths of ellipse
+        border_tol : float, optional
+            the tolerance for when the mouse is considered to be over
+            the border of the shape. The default is 0.2.
+        resize : bool, optional
+            If True, the shape can be resized. If False, the shape can
+            only be dragged. The default is True.
+        plotview : NXPlotView, optional
+            The parent window of the shape. If None, the default is to
+            use the most recently created NXPlotView window.
+        opts : dict
+            Valid options for displaying shapes.
+        """
         shape = Ellipse((float(x), float(y)), dx, dy, **opts)
         if 'linewidth' not in opts:
             shape.set_linewidth(1.0)
@@ -2480,29 +3807,50 @@ class NXellipse(NXpatch):
 
     @property
     def center(self):
+        """The center of the ellipse."""
         return self.ellipse.center
 
     @property
     def width(self):
+        """The width of the ellipse."""
         return self.ellipse.width
 
     @property
     def height(self):
+        """The height of the ellipse."""
         return self.ellipse.height
 
     def set_center(self, x, y):
+        """Set the center of the ellipse."""
         self.ellipse.set_center((x, y))
         self.plotview.draw()
 
     def set_width(self, width):
+        """Set the width of the ellipse."""
         self.ellipse.width = width
         self.plotview.draw()
 
     def set_height(self, height):
+        """Set the height of the ellipse."""
         self.ellipse.height = height
         self.plotview.draw()
 
     def initialize(self, xp, yp):
+        """
+        Initialize the shape for dragging or resizing.
+
+        Parameters
+        ----------
+        xp, yp : float
+            x and y values of mouse click
+
+        Returns
+        -------
+        x0, y0, w0, h0, xp, yp, expand : tuple
+            x and y values of center of shape, width and height of
+            shape, x and y values of mouse click, and whether the shape
+            is being resized or dragged
+        """
         x0, y0 = self.ellipse.center
         w0, h0 = self.ellipse.width, self.ellipse.height
         bt = self.border_tol
@@ -2521,6 +3869,23 @@ class NXellipse(NXpatch):
         return x0, y0, w0, h0, xp, yp, expand
 
     def update(self, x, y):
+        """
+        Update the shape based on the mouse position.
+
+        Parameters
+        ----------
+        x, y : float
+            x and y values of the mouse click
+
+        Notes
+        -----
+        If the shape is being resized, the width or height of the
+        ellipse is changed by an amount proportional to the distance
+        from the center of the ellipse to the current mouse position. If
+        the shape is being dragged, the center of the ellipse is changed
+        by an amount proportional to the distance from the center of the
+        ellipse to the current mouse position.
+        """
         x0, y0, w0, h0, xp, yp, expand = self.press
         dx, dy = (x-xp, y-yp)
         bt = self.border_tol
@@ -2545,6 +3910,27 @@ class NXrectangle(NXpatch):
 
     def __init__(self, x, y, dx, dy, border_tol=0.1, resize=True,
                  plotview=None, **opts):
+        """
+        Initialize the NXrectangle object.
+
+        Parameters
+        ----------
+        x, y : float
+            x and y values of lower left corner
+        dx, dy : float
+            x and y widths of rectangle
+        border_tol : float, optional
+            the tolerance for when the mouse is considered to be over the
+            border of the shape. The default is 0.1.
+        resize : bool, optional
+            If True, the shape can be resized. If False, the shape can
+            only be dragged. The default is True.
+        plotview : NXPlotView, optional
+            The parent window of the shape. If None, the default is to
+            use the most recently created NXPlotView window.
+        opts : dict
+            Valid options for displaying shapes.
+        """
         shape = Rectangle((float(x), float(y)), float(dx), float(dy), **opts)
         if 'linewidth' not in opts:
             shape.set_linewidth(1.0)
@@ -2561,45 +3947,121 @@ class NXrectangle(NXpatch):
 
     @property
     def width(self):
+        """The width of the rectangle."""
         return self.rectangle.get_width()
 
     @property
     def height(self):
+        """The height of the rectangle."""
         return self.rectangle.get_height()
 
     @property
     def xy(self):
+        """The x and y values of the lower left corner."""
         return self.rectangle.xy
 
     def set_bounds(self, x, y, dx, dy):
+        """
+        Set the bounds of the rectangle.
+
+        Parameters
+        ----------
+        x, y : float
+            x and y values of lower left corner
+        dx, dy : float
+            x and y widths of rectangle
+        """
         self.rectangle.set_bounds(x, y, dx, dy)
         self.plotview.draw()
 
     def set_left(self, left):
+        """
+        Set the left edge of the rectangle.
+
+        Parameters
+        ----------
+        left : float
+            the new x-coordinate of the left edge of the rectangle
+        """
         self.rectangle.set_x(left)
         self.plotview.draw()
 
     def set_right(self, right):
+        """
+        Set the right edge of the rectangle.
+
+        Parameters
+        ----------
+        right : float
+            the new x-coordinate of the right edge of the rectangle
+        """
         self.rectangle.set_x(right - self.rectangle.get_width())
         self.plotview.draw()
 
     def set_bottom(self, bottom):
+        """
+        Set the bottom edge of the rectangle.
+
+        Parameters
+        ----------
+        bottom : float
+            the new y-coordinate of the bottom edge of the rectangle
+        """
         self.rectangle.set_y(bottom)
         self.plotview.draw()
 
     def set_top(self, top):
+        """
+        Set the top edge of the rectangle.
+
+        Parameters
+        ----------
+        top : float
+            the new y-coordinate of the top edge of the rectangle
+        """
         self.rectangle.set_y(top - self.rectangle.get_height())
         self.plotview.draw()
 
     def set_width(self, width):
+        """
+        Set the width of the rectangle.
+
+        Parameters
+        ----------
+        width : float
+            the new width of the rectangle
+        """
         self.rectangle.set_width(width)
         self.plotview.draw()
 
     def set_height(self, height):
+        """
+        Set the height of the rectangle.
+
+        Parameters
+        ----------
+        height : float
+            the new height of the rectangle
+        """
         self.rectangle.set_height(height)
         self.plotview.draw()
 
     def initialize(self, xp, yp):
+        """
+        Initialize the shape for dragging or resizing.
+
+        Parameters
+        ----------
+        xp, yp : float
+            x and y values of mouse click
+
+        Returns
+        -------
+        x0, y0, w0, h0, xp, yp, expand : tuple
+            x and y values of center of shape, width and height of
+            shape, x and y values of mouse click, and whether the shape
+            is being resized or dragged
+        """
         x0, y0 = self.rectangle.xy
         w0, h0 = self.rectangle.get_width(), self.rectangle.get_height()
         bt = self.border_tol
@@ -2612,6 +4074,23 @@ class NXrectangle(NXpatch):
         return x0, y0, w0, h0, xp, yp, expand
 
     def update(self, x, y):
+        """
+        Update the shape based on the mouse position.
+
+        Parameters
+        ----------
+        x, y : float
+            x and y values of the mouse click
+
+        Notes
+        -----
+        If the shape is being resized, the width or height of the
+        rectangle is changed by an amount proportional to the distance
+        from the center of the rectangle to the current mouse position.
+        If the shape is being dragged, the center of the rectangle is
+        changed by an amount proportional to the distance from the
+        center of the rectangle to the current mouse position.
+        """
         x0, y0, w0, h0, xp, yp, expand = self.press
         dx, dy = (x-xp, y-yp)
         bt = self.border_tol
@@ -2634,6 +4113,22 @@ class NXrectangle(NXpatch):
 class NXpolygon(NXpatch):
 
     def __init__(self, xy, closed=True, plotview=None, **opts):
+        """
+        Initialize the NXpolygon object.
+
+        Parameters
+        ----------
+        xy : tuple
+            x and y values of vertices of the polygon
+        closed : bool, optional
+            If True, the polygon is closed. If False, the polygon is open.
+            The default is True.
+        plotview : NXPlotView, optional
+            The parent window of the shape. If None, the default is to
+            use the most recently created NXPlotView window.
+        opts : dict
+            Valid options for displaying shapes.
+        """
         shape = Polygon(xy, closed=closed, **opts)
         if 'linewidth' not in opts:
             shape.set_linewidth(1.0)
@@ -2650,13 +4145,43 @@ class NXpolygon(NXpatch):
 
     @property
     def xy(self):
+        """x and y values of vertices of polygon"""
         return self.polygon.xy
 
     def initialize(self, xp, yp):
+        """
+        Initialize the shape for dragging or resizing.
+
+        Parameters
+        ----------
+        xp, yp : float
+            x and y values of mouse click
+
+        Returns
+        -------
+        xy0 : array
+            x and y values of vertices of polygon
+        xp, yp : float
+            x and y values of mouse click
+        """
         xy0 = self.polygon.xy
         return xy0, xp, yp
 
     def update(self, x, y):
+        """
+        Update the shape based on the mouse position.
+
+        Parameters
+        ----------
+        x, y : float
+            x and y values of the mouse click
+
+        Notes
+        -----
+        The center of the polygon is changed by an amount proportional
+        to the distance from the center of the polygon to the current
+        mouse position.
+        """
         xy0, xp, yp = self.press
         dxy = (x-xp, y-yp)
         self.polygon.set_xy(xy0+dxy)
@@ -2665,6 +4190,19 @@ class NXpolygon(NXpatch):
 class NXline:
 
     def __init__(self, plotview=None, callback=None):
+        """
+        Initialize the NXline object.
+
+        Parameters
+        ----------
+        plotview : NXPlotView or None
+            The parent window of the shape. If None, the default is to
+            use the most recently created NXPlotView window.
+        callback : callable or None
+            A callback function to be called when the line is drawn. The
+            function should take two arguments, the x and y values of
+            the line. If None, the default is to do nothing.
+        """
         if plotview:
             self.plotview = plotview
         else:
@@ -2678,6 +4216,15 @@ class NXline:
         self.connect()
 
     def connect(self):
+        """
+        Connect to the canvas button press, release and motion events.
+
+        The Matplotlib events are connected to the following methods:
+        - 'button_press_event' to on_press
+        - 'button_release_event' to on_release
+        - 'motion_notify_event' to on_move
+        The plotview is deactivated to prevent zooming and panning.
+        """
         self.cidpress = self.canvas.mpl_connect('button_press_event',
                                                 self.on_press)
         self.cidrelease = self.canvas.mpl_connect('button_release_event',
@@ -2694,12 +4241,14 @@ class NXline:
         self.plotview.activate()
 
     def on_press(self, event):
+        """Store coordinates on button press if over the object."""
         if event.inaxes != self.ax:
             return
         self.start_point = (event.xdata, event.ydata)
         self.line, = self.ax.plot([event.xdata], [event.ydata], ':w', lw=4)
 
     def on_move(self, event):
+        """Move the object if motion activated over the object."""
         if self.start_point is None or event.inaxes != self.ax:
             return
         self.line.set_data([self.start_point[0], event.xdata],
@@ -2707,6 +4256,7 @@ class NXline:
         self.canvas.draw()
 
     def on_release(self, event):
+        """Reset the data when the button is released."""
         if event.inaxes != self.ax:
             return
         self.end_point = (event.xdata, event.ydata)

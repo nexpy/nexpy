@@ -3975,6 +3975,13 @@ class NXPlotTab(QtWidgets.QWidget):
         self.plotview.fit_data()
 
     def init_toolbar(self):
+        """
+        Initialize the toolbar for the PlotView.
+
+        The toolbar contains a replot button, play back, pause, and play
+        forward buttons. The play back and play forward buttons trigger
+        a slideshow of the data. The pause button stops the slideshow.
+        """
         _backward_icon = resource_icon('backward-icon.png')
         _pause_icon = resource_icon('pause-icon.png')
         _forward_icon = resource_icon('forward-icon.png')
@@ -3996,6 +4003,20 @@ class NXPlotTab(QtWidgets.QWidget):
         self.playsteps = 0
 
     def add_action(self, icon, slot, tooltip, checkable=True):
+        """
+        Add a toolbar action to the toolbar.
+
+        Parameters
+        ----------
+        icon : QIcon
+            The icon for the action.
+        slot : callable
+            The function to call when the action is triggered.
+        tooltip : str
+            The tooltip for the action.
+        checkable : bool, optional
+            Whether the action is checkable. The default is True.
+        """
         action = self.toolbar.addAction(icon, '', slot)
         action.setToolTip(tooltip)
         if checkable:
@@ -4004,6 +4025,13 @@ class NXPlotTab(QtWidgets.QWidget):
         return action
 
     def slideshow(self):
+        """
+        Step through the slices of the data in the maximum box.
+
+        This is used to create a slideshow of the data. The maximum box
+        is stepped by playsteps, which can be positive or negative. If
+        the pause button is checked, the slideshow is paused.
+        """
         if self.plotview.ndim < 3:
             return
         try:
@@ -4015,6 +4043,14 @@ class NXPlotTab(QtWidgets.QWidget):
             raise e
 
     def playback(self):
+        """
+        Play the data slices backward in a slideshow.
+
+        The function sets up a timer to play the data slices backward.
+        The playsteps are set to -1, and the interval is adjusted to
+        control the playback speed. The playback action is set to
+        checked while the playforward action is set to unchecked.
+        """
         if self.plotview.ndim < 3:
             return
         try:
@@ -4033,12 +4069,26 @@ class NXPlotTab(QtWidgets.QWidget):
             raise e
 
     def pause(self):
+        """
+        Pause the slideshow.
+
+        This function stops the slideshow and resets the playsteps
+        to 0. It also unchecks the playback and playforward actions.
+        """
         self.playsteps = 0
         self.playback_action.setChecked(False)
         self.playforward_action.setChecked(False)
         self.timer.stop()
 
     def playforward(self):
+        """
+        Play the data slices forward in a slideshow.
+
+        The function sets up a timer to play the data slices forward.
+        The playsteps are set to 1, and the interval is adjusted to
+        control the playback speed. The playforward action is set to
+        checked while the playback action is set to unchecked.
+        """
         if self.plotview.ndim < 3:
             return
         try:
@@ -4061,6 +4111,15 @@ class NXProjectionTab(QtWidgets.QWidget):
 
     def __init__(self, plotview=None):
 
+        """
+        Initialize the NXProjectionTab.
+
+        Parameters
+        ----------
+        plotview : NXPlotView or None
+            The plotview window to be used to generate the projection.
+            If None, the currently active plotview window is used.
+        """
         super().__init__()
 
         self.plotview = plotview
@@ -4100,6 +4159,15 @@ class NXProjectionTab(QtWidgets.QWidget):
         return f'NXProjectionTab("{self.plotview.label}")'
 
     def open_panel(self):
+        """
+        Open a panel for the selected plotview.
+
+        The panel is selected with the :attr:`panel_combo` and can be
+        one of 'Projection', 'Limits', or 'Scan'. The selected panel
+        is either created or reused if it is already open. The panel
+        is first activated for the selected plotview and then raised
+        to the top of the screen.
+        """
         panel = self.panel_combo.selected
         dialogs = {'Projection': ProjectionDialog, 'Limits': LimitDialog,
                    'Scan': ScanDialog}
@@ -4111,6 +4179,19 @@ class NXProjectionTab(QtWidgets.QWidget):
         self.plotview.panels[panel].raise_()
 
     def update_parameters(self):
+        """
+        Update the parameters in the parameter box and rotation box.
+
+        This function is called whenever the selection in the parameter
+        combo box changes. It updates the parameter box with the current
+        value of the selected parameter and resets the rotation box to
+        zero. The selected parameter is either 'Aspect' or 'Skew'. If
+        the selected parameter is 'Aspect', the parameter box is set
+        to the current aspect ratio of the plotview. If the selected
+        parameter is 'Skew', the parameter box is set to the current
+        skew angle of the plotview in degrees. The rotation box is
+        always reset to zero.
+        """
         if self.parameter_combo.selected == 'Aspect':
             if isinstance(self.plotview.aspect, float):
                 self.parameter_box.setText(f"{self.plotview.aspect:.2f}")
@@ -4124,6 +4205,15 @@ class NXProjectionTab(QtWidgets.QWidget):
         self.rotation_box.setValue(0.0)
         
     def set_parameters(self):
+        """
+        Set the selected parameter to the value in the parameter box.
+
+        The selected parameter is either 'Aspect' or 'Skew'. If the
+        selected parameter is 'Aspect', the value in the parameter box
+        should be a float or the string 'auto' or 'equal'. If the
+        selected parameter is 'Skew', the value in the parameter box
+        should be a float.
+        """
         value = self.parameter_box.text().strip().lower()
         if self.parameter_combo.selected == 'Aspect':
             if value != 'auto' and value != 'equal':
@@ -4144,6 +4234,17 @@ class NXProjectionTab(QtWidgets.QWidget):
                 self.plotview.skew = value
 
     def plot(self):
+        """
+        Plot the rotated data.
+
+        This function is called when the user presses the 'Plot' button
+        in the Customize Tab. It rotates the data by the angle in the
+        rotation box, and then plots the rotated data in a new window.
+        The aspect ratio of the plot is set to the value in the aspect
+        box, or to 1.0 if the box is empty. The color map,
+        interpolation, log flag, and minimum and maximum values are
+        taken from the current plotting window.
+        """
         if self.plotview.aspect == 'auto':
             display_message('Rotation Plot', 'Aspect ratio must be defined.')
             return
@@ -4163,10 +4264,52 @@ class NXProjectionTab(QtWidgets.QWidget):
         plotview.plot(rotated_data, **kwargs)
 
     def draw_rotated_line(self, event):
+        """
+        Draw a rotated line on the plot.
+
+        The line is drawn from the mouse position in the event to the
+        edge of the plot, and is rotated by the angle in the rotation
+        box. The angle is in degrees, and is applied to the right of the
+        line as it is drawn. If the angle is zero, the line is drawn
+        from the left edge of the plot to the right edge of the plot. If
+        the angle is 90 degrees, the line is drawn from the top edge of
+        the plot to the bottom edge of the plot. If the angle is
+        negative, the line is drawn in the opposite direction, i.e.,
+        from the right to the left if the angle is negative.
+
+        Parameters
+        ----------
+        event : QMouseEvent
+            The mouse event that triggered the drawing of the line.
+        """
         self.rotate_line = NXline(self.plotview, self.plot_rotated_line)
         self.rotate_line.on_press(event)
 
     def plot_rotated_line(self, start_point, end_point):
+        """
+        Plot the rotated line on a new plotview.
+
+        The line is rotated by the angle in the rotation box, and is
+        drawn from the start point to the end point. The angle is in
+        degrees, and is applied to the right of the line as it is drawn.
+        If the angle is zero, the line is drawn from the left edge of
+        the plot to the right edge of the plot. If the angle is 90
+        degrees, the line is drawn from the top edge of the plot to the
+        bottom edge of the plot. If the angle is negative, the line is
+        drawn in the opposite direction, i.e., from the right to the
+        left if the angle is negative.
+
+        The rotated line is plotted on a new plotview with the same
+        aspect ratio as the original plotview. The rotated line is also
+        labeled with the angle of rotation.
+
+        Parameters
+        ----------
+        start_point : tuple
+            The starting point of the line.
+        end_point : tuple
+            The ending point of the line.
+        """
         if self.plotview.aspect == 'auto':
             display_message('Rotation Plot', 'Aspect ratio must be defined.')
             return
@@ -4231,6 +4374,19 @@ class NXNavigationToolbar(NavigationToolbar2QT, QtWidgets.QToolBar):
     )
 
     def __init__(self, canvas, parent=None, coordinates=True):
+        """
+        Initialize the navigation toolbar.
+
+        Parameters
+        ----------
+        canvas : NXCanvas
+            The figure canvas this toolbar belongs to.
+        parent : QWidget, optional
+            The parent widget, by default None
+        coordinates : bool, optional
+            Whether to display the coordinates of the mouse position, by
+            default True
+        """
         QtWidgets.QToolBar.__init__(self, parent=parent)
         self.setAllowedAreas(QtCore.Qt.BottomToolBarArea)
 
@@ -4250,9 +4406,6 @@ class NXNavigationToolbar(NavigationToolbar2QT, QtWidgets.QToolBar):
                 if tooltip_text is not None:
                     a.setToolTip(tooltip_text)
 
-        # Add the (x, y) location widget at the right side of the toolbar
-        # The stretch factor is 1 which means any resizing of the toolbar
-        # will resize this label instead of the buttons.
         if self.coordinates:
             self.locLabel = QtWidgets.QLabel("", self)
             self.locLabel.setAlignment(
@@ -4274,20 +4427,24 @@ class NXNavigationToolbar(NavigationToolbar2QT, QtWidgets.QToolBar):
         return f'NXNavigationToolbar("{self.plotview.label}")'
 
     def _init_toolbar(self):
+        """Function added for backward compatibility."""
         pass
 
     def _icon(self, name, color=None):
+        """Return an icon for the toolbar."""
         return resource_icon(name)
 
     @property
     def active_mode(self):
+        """The active mode (Zoom or Pan or None)."""
         try:
             return self.mode.value
         except AttributeError:
             return self.mode
 
     def home(self, autoscale=True):
-        """Redraw the plot with the original limits.
+        """
+        Redraw the plot with the original limits.
 
         This also redraws the grid, if the axes are skewed, since this is not
         automatically handled by Matplotlib.
@@ -4333,10 +4490,12 @@ class NXNavigationToolbar(NavigationToolbar2QT, QtWidgets.QToolBar):
         dialog.show()
 
     def release(self, event):
-        """Disconnect signals and remove rubber bands after a right-click zoom.
+        """
+        Disconnect signals and remove rubber bands after a right-click
+        zoom.
 
-        There have been multiple changes in Matplotlib in the zoom code, but
-        this attempts to follow them in a backwards-compatible way.
+        There have been multiple changes in Matplotlib in the zoom code,
+        but this attempts to follow them in a backwards-compatible way.
         """
         if hasattr(self, '_zoom_info') and self._zoom_info:
             try:
@@ -4389,6 +4548,7 @@ class NXNavigationToolbar(NavigationToolbar2QT, QtWidgets.QToolBar):
         self._update_release()
 
     def _update_release(self):
+        """Update the limits of the axes after a pan or zoom."""
         xmin, xmax = self.plotview.ax.get_xlim()
         ymin, ymax = self.plotview.ax.get_ylim()
         xmin, ymin = self.plotview.inverse_transform(xmin, ymin)
@@ -4405,6 +4565,7 @@ class NXNavigationToolbar(NavigationToolbar2QT, QtWidgets.QToolBar):
         self.plotview.update_panels()
 
     def _update_view(self):
+        """Update the limits of the axes and the limits boxes."""
         super()._update_view()
         ls = self.plotview.limits
         self.plotview.xtab.axis.min, self.plotview.xtab.axis.max = ls[0], ls[1]
@@ -4450,6 +4611,12 @@ class NXNavigationToolbar(NavigationToolbar2QT, QtWidgets.QToolBar):
         self.plotview.update_panels()
 
     def toggle_aspect(self):
+        """
+        Toggle the aspect ratio between 'auto' and 'equal'.
+
+        If the 'Aspect Ratio' button is checked, the aspect ratio is set
+        to 'auto'. Otherwise, it is set to 'equal'.
+        """
         try:
             if self._actions['set_aspect'].isChecked():
                 self.plotview.aspect = 'auto'
@@ -4460,6 +4627,15 @@ class NXNavigationToolbar(NavigationToolbar2QT, QtWidgets.QToolBar):
             report_error("Setting Aspect Ratio", error)
 
     def set_aspect(self):
+        """
+        Set the aspect ratio to 'equal' if the 'Aspect Ratio' button is
+        checked or to 'auto' if it is not.
+
+        If the 'Aspect Ratio' button is checked, the aspect ratio is set
+        to 'equal'. Otherwise, it is set to 'auto'. If the aspect ratio
+        cannot be set, the 'Aspect Ratio' button is unchecked and an
+        error message is displayed.
+        """
         try:
             if self._actions['set_aspect'].isChecked():
                 self.plotview.aspect = 'equal'
@@ -4470,6 +4646,11 @@ class NXNavigationToolbar(NavigationToolbar2QT, QtWidgets.QToolBar):
             report_error("Setting Aspect Ratio", error)
 
     def mouse_move(self, event):
+        """
+        Handle a mouse move event by updating the message bar.
+        
+        Also set the focus on the canvas.
+        """
         try:
             self._update_cursor(event)
         except AttributeError:

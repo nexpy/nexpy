@@ -9,7 +9,7 @@
 """
 Base class for import dialogs
 """
-from .utils import NXDialog
+from .widgets import NXDialog
 
 filetype = "Text File"  # Defines the Import Menu label
 
