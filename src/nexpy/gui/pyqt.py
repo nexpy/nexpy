@@ -24,10 +24,12 @@ elif QtCore.PYSIDE6:
 
 
 def convert_paths(*args):
+    """Convert any PathLike objects to strings."""
     return [str(arg) if isinstance(arg, os.PathLike) else arg for arg in args]
 
 
 def getOpenFileName(*args, **kwargs):
+    """Open a file dialog and return the selected file name."""
     args = convert_paths(*args)
     fname = QtWidgets.QFileDialog.getOpenFileName(*args, **kwargs)
     if isinstance(fname, tuple):
@@ -36,6 +38,7 @@ def getOpenFileName(*args, **kwargs):
 
 
 def getSaveFileName(*args, **kwargs):
+    """Open a dialog to select a file to save and return its name."""
     args = convert_paths(*args)
     fname = QtWidgets.QFileDialog.getSaveFileName(*args, **kwargs)
     if isinstance(fname, tuple):

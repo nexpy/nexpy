@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2013-2021, NeXpy Development Team.
+# Copyright (c) 2013-2025, NeXpy Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -51,6 +51,7 @@ from nexusformat.nexus import (NeXusError, NXcollection, NXdata, NXfield,
                                NXLock, NXLockException, NXnote, nxgetconfig,
                                nxload, nxsetconfig)
 
+
 ansi_re = re.compile(r'\x1b' + r'\[([\dA-Fa-f;]*?)m')
 
 
@@ -63,7 +64,7 @@ def report_error(context, error):
     message_box.setStandardButtons(QtWidgets.QMessageBox.Ok)
     message_box.setDefaultButton(QtWidgets.QMessageBox.Ok)
     message_box.setIcon(QtWidgets.QMessageBox.Warning)
-    return message_box.exec_()
+    return message_box.exec()
 
 
 def confirm_action(query, information=None, answer=None, icon=None):
@@ -85,7 +86,7 @@ def confirm_action(query, information=None, answer=None, icon=None):
     if icon:
         message_box.setIconPixmap(icon)
 
-    response = message_box.exec_()
+    response = message_box.exec()
     if (response == QtWidgets.QMessageBox.Yes or
             response == QtWidgets.QMessageBox.Ok):
         return True
@@ -103,7 +104,7 @@ def display_message(message, information=None, width=None):
         message_box.setStyleSheet(f"QLabel{{min-width:{width} px; }}")
     else:
         message_box.setStyleSheet("QLabel{min-width:250 px; }")
-    return message_box.exec_()
+    return message_box.exec()
 
 
 def report_exception(*args):
@@ -122,14 +123,16 @@ def report_exception(*args):
     message_box.setIcon(QtWidgets.QMessageBox.Warning)
     layout = message_box.layout()
     layout.setColumnMinimumWidth(layout.columnCount()-1, 600)
-    return message_box.exec_()
+    return message_box.exec()
 
 
 def run_pythonw(script_path):
-    """Execute the NeXpy startup script using 'pythonw' on MacOS.
+    """
+    Execute the NeXpy startup script using 'pythonw' on MacOS.
 
-    This relaunches the script in a subprocess using a framework build of
-    Python in order to fix the frozen menubar issue in MacOS 10.15 Catalina.
+    This relaunches the script in a subprocess using a framework build
+    of Python in order to fix the frozen menubar issue in MacOS 10.15
+    Catalina.
 
     Based on https://github.com/napari/napari/pull/1554.
     """
@@ -161,6 +164,23 @@ def run_pythonw(script_path):
 
 
 def is_file_locked(filename, wait=5, expiry=None):
+    """
+    Check if a file is locked.
+
+    Parameters
+    ----------
+    filename : str
+        name of file to check
+    wait : int, optional
+        number of seconds to wait for file to be unlocked
+    expiry : int, optional
+        age in seconds at which a lock is considered stale and can be
+        cleared
+
+    Returns
+    -------
+    True if the file is locked, False if it is not.
+    """
     _lock = NXLock(filename)
     try:
         if expiry is None:
@@ -208,13 +228,14 @@ def wrap(text, length):
 
 
 def natural_sort(key):
-    """Sort numbers according to their value, not their first character"""
+    """Sort numbers according to their value."""
     import re
     return [int(t) if t.isdigit() else t for t in re.split(r'(\d+)', str(key))]
 
 
 def clamp(value, min_value, max_value):
-    """Return value constrained to be within defined limits
+    """
+    Return value constrained to be within defined limits
 
     Parameters
     ----------
@@ -234,7 +255,8 @@ def clamp(value, min_value, max_value):
 
 
 def centers(axis, dimlen):
-    """Return the centers of the axis bins.
+    """
+    Return the centers of the axis bins.
 
     This works regardless if the axis contains bin boundaries or
     centers.
@@ -254,7 +276,8 @@ def centers(axis, dimlen):
 
 
 def boundaries(axis, dimlen):
-    """Return the boundaries of the axis bins.
+    """
+    Return the boundaries of the axis bins.
 
     This works regardless if the axis contains bin boundaries or
     centers.
@@ -280,13 +303,13 @@ def boundaries(axis, dimlen):
 
 
 def keep_data(data):
-    """Store the data in the scratch workspace.
+    """
+    Store the data in the scratch workspace.
 
     Parameters
     ----------
     data : NXdata
         NXdata group containing the data to be stored
-
     """
     from .consoleapp import _nexpy_dir, _tree
     if 'w0' not in _tree:
@@ -305,7 +328,8 @@ def keep_data(data):
 
 
 def fix_projection(shape, axes, limits):
-    """Fix the axes and limits for data with dimension sizes of 1.
+    """
+    Fix the axes and limits for data with dimension sizes of 1.
 
     If the shape contains dimensions of size 1, they need to be added
     back to the list of axis dimensions and slice limits before calling
@@ -387,12 +411,12 @@ def restore_timestamp(formatted_timestamp):
 
 
 def timestamp_age(timestamp):
-    """Return the number of days since the timestamp"""
+    """Return the number of days since the timestamp."""
     return (datetime.now() - read_timestamp(timestamp)).days
 
 
 def is_timestamp(timestamp):
-    """Return true if the string is formatted as a directory timestamp."""
+    """Return True if the string is formatted as a timestamp."""
     try:
         return isinstance(read_timestamp(timestamp), datetime)
     except ValueError:
@@ -422,7 +446,7 @@ def modification_time(filename):
 
 
 def convertHTML(text):
-    """Replaces ANSI color codes with HTML"""
+    """Replace ANSI color codes with HTML"""
     try:
         from ansi2html import Ansi2HTMLConverter
         if in_dark_mode():
@@ -457,7 +481,8 @@ def get_color(color):
 
 
 def get_colors(n, first=None, last=None):
-    """Return a list of colors interpolating between the first and last.
+    """
+    Return a list of colors interpolating between the first and last.
 
     The function accepts both strings representing hex colors and tuples
     containing RGB values, which must be between 0 and 1.
@@ -490,7 +515,8 @@ def get_colors(n, first=None, last=None):
 
 
 def parula_map():
-    """Generate a color map similar to Matlab's Parula for use in NeXpy.
+    """
+    Generate a color map similar to Matlab's Parula for use in NeXpy.
 
     The color map data are from the 'fake_parula' function provided by
     Ander Biguri, "Perceptually uniform colormaps"
@@ -565,7 +591,8 @@ def parula_map():
 
 
 def xtec_map():
-    """Generate a color map for use with the XTEC package.
+    """
+    Generate a color map for use with the XTEC package.
 
     The color map data is the same as the 'tab10' map, but with the lowest
     value set to 'white'.
@@ -758,17 +785,18 @@ def is_installed(package_name):
 
 
 def resource_file(filename):
-    """Return the full path to a resource file within the NeXpy package."""
+    """Return the full path to a resource file within the package."""
     return str(package_files('nexpy.gui.resources').joinpath(filename))
 
 
 def resource_icon(filename):
-    """Return a Qt icon from a resource file within the NeXpy package."""
+    """Return a Qt icon from a resource file within the package."""
     return QtGui.QIcon(resource_file(filename))
 
 
 def initialize_settings(settings):
-    """Initialize NeXpy settings.
+    """
+    Initialize NeXpy settings.
 
     For the nexusformat configuration parameters, precedence is given to
     those that are defined by environment variables, since these might
@@ -815,6 +843,16 @@ def initialize_settings(settings):
 
 
 def set_style(style=None):
+    """
+    Set the style of Matplotlib plots.
+
+    Parameters
+    ----------
+    style : str, optional
+        Name of the style sheet to use. If None, the default style is
+        used. If 'publication', the style is set to a format suitable
+        for publication.
+    """
     from matplotlib.style import use
     if style == 'publication':
         use('default')
@@ -844,6 +882,20 @@ def set_style(style=None):
 
 
 def in_dark_mode():
+    """
+    Return True if the application is in dark mode, False otherwise.
+
+    This works by comparing the value of the window and windowText colors
+    in the application's palette. If the window color is darker than the
+    windowText color, the application is in dark mode. Otherwise, it is
+    in light mode. If the application is not properly initialized, this
+    function will return False.
+
+    Returns
+    -------
+    bool
+        True if the application is in dark mode, False otherwise.
+    """
     try:
         from .consoleapp import _mainwindow
         app = _mainwindow.app.app
@@ -854,7 +906,16 @@ def in_dark_mode():
 
 
 def define_mode():
+    """
+    Define the display mode for the application.
 
+    This function changes the style of the console, the colors of the
+    status bar, and the colors of the script editor text boxes based on
+    the value of the in_dark_mode function.
+
+    This function is typically called when the application is first
+    launched or when the user changes the display mode from the menu.
+    """
     from .consoleapp import _mainwindow
     if in_dark_mode():
         _mainwindow.console.set_default_style('linux')
@@ -915,8 +976,9 @@ def rotate_data(data, angle=45, aspect='equal'):
     angle : float, optional
         Angle of rotation in degrees. Default is 45.
     aspect : str or float, optional
-        Aspect ratio of the data for rotation calculations. If a float is 
-        provided, it is used to adjust the rotation angle. Default is 'equal'.
+        Aspect ratio of the data for rotation calculations. If a float
+        is provided, it is used to adjust the rotation angle. Default is
+        'equal'.
 
     Returns
     -------
@@ -930,9 +992,9 @@ def rotate_data(data, angle=45, aspect='equal'):
 
     Notes
     -----
-    The rotation is performed about the geometric center of the data using
-    the scipy.ndimage.rotate function. The axes are recalculated to match 
-    the new dimensions of the rotated data.
+    The rotation is performed about the geometric center of the data
+    using the scipy.ndimage.rotate function. The axes are recalculated
+    to match the new dimensions of the rotated data.
     """
     if data.ndim != 2:
         raise NeXusError('Can only rotate 2D data.')
@@ -1031,19 +1093,45 @@ class NXListener(QtCore.QObject):
     change_signal = QtCore.Signal(str)
 
     def start(self, fn):
+        """
+        Start the listener thread.
+
+        Parameters
+        ----------
+        fn : callable
+            A callable object that takes one argument, the listener
+            object.
+        """
         Thread(target=self.listen, args=(fn,), daemon=True).start()
 
     def listen(self, fn):
+        """Listen for changes in the signal."""
         fn(self)
 
     def respond(self, signal):
+        """Respond to a change in the signal."""
         self.change_signal.emit(signal)
 
 
 class NXConfigParser(ConfigParser, object):
-    """A ConfigParser subclass that preserves the case of option names"""
 
     def __init__(self, settings_file):
+        """
+        Initialize the NXConfigParser object.
+
+        Parameters
+        ----------
+        settings_file : str
+            The name of the settings file to read from and write to.
+
+        Notes
+        -----
+        The settings file is read in and the sections 'backups',
+        'plugins', 'settings', 'recent', and 'session' are added if they
+        do not already exist. The internal representation of the
+        ConfigParser object is fixed for compatibility with older
+        versions of NeXpy.
+        """
         super().__init__(allow_no_value=True)
         self.file = settings_file
         self._optcre = re.compile(  # makes '=' the only valid delimiter
@@ -1066,19 +1154,23 @@ class NXConfigParser(ConfigParser, object):
         return f"NXConfigParser('{self.file}')"
 
     def set(self, section, option, value=None):
+        """Set an option in the specified section."""
         if value is not None:
             super().set(section, option, str(value))
         else:
             super().set(section, str(option))
 
     def optionxform(self, optionstr):
+        """Do not convert options to lowercase."""
         return optionstr
 
     def save(self):
+        """Save the settings file."""
         with open(self.file, 'w') as f:
             self.write(f)
 
     def purge(self, section):
+        """Remove all options in the specified section."""
         for option in self.options(section):
             self.remove_option(section, option)
 
@@ -1099,7 +1191,8 @@ class NXConfigParser(ConfigParser, object):
 
 
 class NXLogger(io.StringIO):
-    """File-like stream object that redirects writes to the default logger.
+    """
+    File-like stream object that redirects writes to the default logger.
 
     An NXLogger instance is used to provide a temporary redirect of
     sys.stdout and sys.stderr before the IPython kernel starts up.
@@ -1117,15 +1210,25 @@ class NXLogger(io.StringIO):
 
 
 class NXGarbageCollector(QtCore.QObject):
-    """Perform Python garbage collection manually every 10 seconds.
+    """
+    Perform Python garbage collection manually every 10 seconds.
 
-    This is done to ensure that garbage collection only happens in the GUI
-    thread, as otherwise Qt can crash. It is based on code by Fabio Zadrozny
+    This is done to ensure that garbage collection only happens in the
+    GUI thread, as otherwise Qt can crash. It is based on code by Fabio
+    Zadrozny
     (https://pydev.blogspot.com/2014/03/should-python-garbage-collector-be.html)
     """
 
     def __init__(self, parent=None):
 
+        """
+        Initialize the garbage collector object.
+
+        The garbage collector is disabled and a timer is set up to
+        manually collect garbage every 10 seconds. This is done to
+        prevent garbage collection from happening in a non-GUI thread,
+        which can crash Qt.
+        """
         QtCore.QObject.__init__(self, parent=parent)
         self.timer = QtCore.QTimer(self)
         self.timer.timeout.connect(self.check)
@@ -1135,6 +1238,7 @@ class NXGarbageCollector(QtCore.QObject):
         self.timer.start(10000)
 
     def check(self):
+        """Manually collect garbage."""
         l0, l1, l2 = gc.get_count()
         if l0 > self.threshold[0]:
             gc.collect(0)
@@ -1147,9 +1251,11 @@ class NXGarbageCollector(QtCore.QObject):
 class NXValidationHandler(logging.handlers.BufferingHandler):
 
     def shouldFlush(self, record):
+        """Disable flushing the buffer on every record."""
         return False
 
     def flush(self):
+        """Flush the buffer on completion."""
         text = []
         if self.buffer:
             for record in self.buffer:
@@ -1164,6 +1270,16 @@ class Gaussian3DKernel(Kernel):
     _is_bool = False
 
     def __init__(self, stddev, **kwargs):
+        """
+        Initialize a Gaussian 3D kernel for use in image processing.
+
+        Parameters
+        ----------
+        stddev : float
+            Standard deviation of the Gaussian kernel. The resulting
+            kernel will have a size of 8*stddev, rounded up to the
+            nearest odd integer.
+        """
         def _round_up_to_odd_integer(value):
             import math
             i = int(math.ceil(value))

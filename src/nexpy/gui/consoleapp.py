@@ -363,7 +363,7 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
         self.window.start()
 
         # Start the application main loop.
-        self.app.exec_()
+        self.app.exec()
 
 
 # -----------------------------------------------------------------------------

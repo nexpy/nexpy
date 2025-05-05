@@ -29,14 +29,13 @@ from qtconsole.inprocess import QtInProcessKernelManager
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
 
 from .. import __version__
-from .datadialogs import (AddDialog, CustomizeDialog, DirectoryDialog,
-                          ExportDialog, InitializeDialog, LimitDialog,
-                          LockDialog, LogDialog, ManageBackupsDialog,
-                          ManagePluginsDialog, NewDialog, PasteDialog,
-                          PlotDialog, PlotScalarDialog, ProjectionDialog,
-                          RenameDialog, ScanDialog, SettingsDialog,
-                          SignalDialog, UnlockDialog, ValidateDialog,
-                          ViewDialog)
+from .dialogs import (AddDialog, CustomizeDialog, DirectoryDialog,
+                      ExportDialog, InitializeDialog, LimitDialog, LockDialog,
+                      LogDialog, ManageBackupsDialog, ManagePluginsDialog,
+                      NewDialog, PasteDialog, PlotDialog, PlotScalarDialog,
+                      ProjectionDialog, RenameDialog, ScanDialog,
+                      SettingsDialog, SignalDialog, UnlockDialog,
+                      ValidateDialog, ViewDialog)
 from .fitdialogs import FitDialog
 from .plotview import NXPlotView
 from .pyqt import QtCore, QtGui, QtWidgets, getOpenFileName, getSaveFileName
@@ -51,6 +50,23 @@ from .utils import (confirm_action, define_mode, display_message, get_colors,
 class NXRichJupyterWidget(RichJupyterWidget):
 
     def _is_complete(self, source, interactive=True):
+        """Check if source is a complete block of code.
+
+        Parameters
+        ----------
+        source : str
+            Source code to check.
+        interactive : bool, optional
+            If True, consider IPython syntax like '%%' cell magics.
+            Default is True.
+
+        Returns
+        -------
+        complete : bool
+            True if source is complete.
+        indent : str
+            Indentation to apply to the next input, if any.
+        """
         shell = self.kernel_manager.kernel.shell
         status, indent_spaces = shell.input_transformer_manager.check_complete(
             source)
@@ -193,6 +209,12 @@ class MainWindow(QtWidgets.QMainWindow):
         self.shellview.setFocus()
 
     def start(self):
+        """
+        Called after the application has finished initializing to check
+        if there are any new plugins available that were not available
+        when the application was last run. If so, a message is displayed
+        to the user to manage the plugins.
+        """
         if self.new_plugins:
             display_message(
                 "New plugins are available", 
@@ -200,15 +222,18 @@ class MainWindow(QtWidgets.QMainWindow):
             
     @property
     def plotview(self):
+        """Return the current plotview"""
         from .plotview import plotview
         return plotview
 
     @property
     def active_plotview(self):
+        """Return the active plotview"""
         from .plotview import active_plotview
         return active_plotview
 
     def change_mode(self):
+        """Called when the application palette changes"""
         define_mode()
 
     # Populate the menu bar with common actions and shortcuts
@@ -231,7 +256,7 @@ class MainWindow(QtWidgets.QMainWindow):
             action.setShortcutContext(QtCore.Qt.ApplicationShortcut)
 
     def init_menu_bar(self):
-        # create menu in the order they should appear in the menu bar
+        """Initialize the menu bar"""
         self.menu_bar = QtWidgets.QMenuBar()
         self.init_file_menu()
         self.init_edit_menu()
@@ -244,6 +269,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.setMenuBar(self.menu_bar)
 
     def init_file_menu(self):
+        """Initialize the File menu"""
         self.file_menu = QtWidgets.QMenu("&File", self)
         self.menu_bar.addMenu(self.file_menu)
 
@@ -402,6 +428,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.add_menu_action(self.file_menu, self.quit_action)
 
     def init_edit_menu(self):
+        """Initialize the Edit menu."""
         self.edit_menu = QtWidgets.QMenu("&Edit", self)
         self.menu_bar.addMenu(self.edit_menu)
 
@@ -457,6 +484,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.add_menu_action(self.edit_menu, self.print_action, True)
 
     def init_data_menu(self):
+        """Initialize the Data menu."""
         self.data_menu = QtWidgets.QMenu("Data", self)
         self.menu_bar.addMenu(self.data_menu)
 
@@ -616,6 +644,7 @@ class MainWindow(QtWidgets.QMainWindow):
                     36*' ' + f'Error: {error}')
 
     def init_view_menu(self):
+        """Initialize the View menu"""
         self.view_menu = QtWidgets.QMenu("&View", self)
         self.menu_bar.addMenu(self.view_menu)
 
@@ -655,6 +684,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.view_menu.addSeparator()
 
     def init_window_menu(self):
+        """Initialize the Window menu"""
         self.window_menu = QtWidgets.QMenu("&Window", self)
         self.menu_bar.addMenu(self.window_menu)
 
@@ -771,6 +801,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.window_separator = self.window_menu.addSeparator()
 
     def init_script_menu(self):
+        """Initialize the Script menu."""
         self.script_menu = QtWidgets.QMenu("&Script", self)
         self.menu_bar.addMenu(self.script_menu)
 
@@ -791,16 +822,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.add_script_directory(self.script_dir, self.script_menu)
 
     def init_help_menu(self):
-        # please keep the Help menu in Mac Os even if empty. It will
-        # automatically contain a search field to search inside menus and
-        # please keep it spelled in English, as long as Qt Doesn't support
-        # a QAction.MenuRole like HelpMenuRole otherwise it will lose
-        # this search field functionality
-
+        """Initialize the Help menu."""
         self.help_menu = QtWidgets.QMenu("&Help", self)
         self.menu_bar.addMenu(self.help_menu)
-
-        # Help Menu
 
         self.nexpyHelpAct = QtWidgets.QAction(
             "Open NeXpy &Help Online", self,
@@ -887,6 +911,7 @@ class MainWindow(QtWidgets.QMainWindow):
                     'to the Import menu\n' + 36*' ' + f'Error: {error}')
 
     def new_workspace(self):
+        """Dialog to create a new workspace"""
         try:
             dialog = NewDialog(parent=self)
             dialog.show()
@@ -894,6 +919,24 @@ class MainWindow(QtWidgets.QMainWindow):
             report_error("Creating New Workspace", error)
 
     def load_file(self, fname, wait=5, recent=True):
+        """
+        Load a NeXus file into the GUI.
+
+        Parameters
+        ----------
+        fname : str
+            Name of the file to be loaded.
+        wait : int, optional
+            Number of seconds to wait for a file to be unlocked, by default 5.
+        recent : bool, optional
+            Whether to add the file to the list of recently opened files,
+            by default True.
+
+        Raises
+        ------
+        NeXusError
+            If the file is already open, doesn't exist, or is locked.
+        """
         if fname in [self.tree[root].nxfilename for root in self.tree]:
             raise NeXusError('File already open')
             return
@@ -917,6 +960,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.update_files(fname, recent=recent)
 
     def open_file(self):
+        """Open a NeXus file in read-only mode."""
         try:
             fname = getOpenFileName(self, 'Open File (Read Only)',
                                     self.default_directory,  self.file_filter)
@@ -926,6 +970,7 @@ class MainWindow(QtWidgets.QMainWindow):
             report_error("Opening File", error)
 
     def open_editable_file(self):
+        """Open a NeXus file in read-write mode."""
         try:
             fname = getOpenFileName(self, 'Open File (Read/Write)',
                                     self.default_directory, self.file_filter)
@@ -935,6 +980,7 @@ class MainWindow(QtWidgets.QMainWindow):
             report_error("Opening File (Read/Write)", error)
 
     def open_recent_file(self):
+        """Open a recently openedNeXus file in read-only mode."""
         try:
             fname = self.recent_file_actions[self.sender()][1]
             self.load_file(fname)
@@ -942,6 +988,7 @@ class MainWindow(QtWidgets.QMainWindow):
             report_error("Opening Recent File", error)
 
     def open_image(self):
+        """Open an image file."""
         try:
             file_filter = ';;'.join(("Any Files (*.* *)",
                                      "TIFF Files (*.tiff *.tif)",
@@ -966,6 +1013,7 @@ class MainWindow(QtWidgets.QMainWindow):
             report_error("Opening Image File", error)
 
     def open_directory(self):
+        """Open a directory of NeXus files."""
         try:
             directory = str(self.default_directory)
             directory = QtWidgets.QFileDialog.getExistingDirectory(
@@ -989,6 +1037,7 @@ class MainWindow(QtWidgets.QMainWindow):
             report_error("Opening Directory", error)
 
     def hover_recent_menu(self, action):
+        """Show the tooltip for a recent file menu action."""
         position = QtGui.QCursor.pos()
         position.setX(position.x() + 80)
         QtWidgets.QToolTip.showText(
@@ -996,6 +1045,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.recent_menu, self.recent_menu.actionGeometry(action))
 
     def update_files(self, filename, recent=True):
+        """Update the list of recently opened files."""
         if recent:
             recent_files = self.settings.options('recent')
             try:
@@ -1026,6 +1076,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.settings.save()
 
     def save_file(self):
+        """Save a NeXus file."""
         try:
             node = self.treeview.get_node()
             if node is None or not isinstance(node, NXroot):
@@ -1057,6 +1108,7 @@ class MainWindow(QtWidgets.QMainWindow):
             report_error("Saving File", error)
 
     def duplicate(self):
+        """Duplicate a NeXus file."""
         try:
             node = self.treeview.get_node()
             if isinstance(node, NXroot):
@@ -1093,11 +1145,13 @@ class MainWindow(QtWidgets.QMainWindow):
             report_error("Duplicating File", error)
 
     def read_session(self):
+        """Read a session file."""
         self.previous_session = self.settings.options('session')
         self.settings.purge('session')
         self.settings.save()
 
     def restore_session(self):
+        """Restore a session file."""
         for filename in self.previous_session:
             try:
                 self.load_file(filename, recent=False)
@@ -1106,6 +1160,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.treeview.select_top()
 
     def reload(self):
+        """Reload a NeXus file."""
         try:
             node = self.treeview.get_node()
             if not node.file_exists():
@@ -1126,6 +1181,7 @@ class MainWindow(QtWidgets.QMainWindow):
             report_error("Reloading File", error)
 
     def reload_all(self):
+        """Reload all modified NeXus files in the tree."""
         try:
             if not confirm_action("Reload all modified files?"):
                 return
@@ -1140,6 +1196,7 @@ class MainWindow(QtWidgets.QMainWindow):
             report_error("Reloading All Modified Files", error)
 
     def remove(self):
+        """Remove a NeXus file from the tree."""
         try:
             node = self.treeview.get_node()
             name = node.nxname
@@ -1154,6 +1211,7 @@ class MainWindow(QtWidgets.QMainWindow):
             report_error("Removing File", error)
 
     def remove_all(self):
+        """Remove all NeXus files from the tree."""
         try:
             if not confirm_action("Remove all files?"):
                 return
@@ -1167,9 +1225,11 @@ class MainWindow(QtWidgets.QMainWindow):
             report_error("Removing All Files", error)
 
     def collapse_tree(self):
+        """Collapse the tree."""
         self.treeview.collapse()
 
     def show_import_dialog(self):
+        """Show the import dialog."""
         try:
             import_module = self.importer[self.sender()]
             self.import_dialog = import_module.ImportDialog(parent=self)
@@ -1178,6 +1238,13 @@ class MainWindow(QtWidgets.QMainWindow):
             report_error("Importing File", error)
 
     def import_data(self):
+        """
+        Import a file using the selected import plugin.
+
+        This function is called when the import dialog is accepted. It
+        imports the data using the selected plugin, adds it to the tree,
+        and selects the new node in the treeview.
+        """
         try:
             if self.import_dialog.accepted:
                 imported_data = self.import_dialog.get_data()
@@ -1205,6 +1272,7 @@ class MainWindow(QtWidgets.QMainWindow):
             report_error("Importing File", error)
 
     def export_data(self):
+        """Export data to an external file."""
         try:
             node = self.treeview.get_node()
             if isinstance(node, NXdata):
@@ -1216,6 +1284,7 @@ class MainWindow(QtWidgets.QMainWindow):
             report_error("Exporting Data", error)
 
     def lock_file(self):
+        """Lock the current file, preventing it from being modified."""
         try:
             node = self.treeview.get_node()
             if isinstance(node, NXroot) and node.nxfilemode:
@@ -1228,6 +1297,7 @@ class MainWindow(QtWidgets.QMainWindow):
             report_error("Locking File", error)
 
     def unlock_file(self):
+        """Unlock the current file, allowing it to be modified."""
         try:
             node = self.treeview.get_node()
             if not (isinstance(node, NXroot) and node.nxfilemode):
@@ -1248,9 +1318,11 @@ class MainWindow(QtWidgets.QMainWindow):
             report_error("Unlocking File", error)
 
     def nodefile_locked(self, node):
+        """Return True if the file is locked."""
         return is_file_locked(node.nxfile.filename)
 
     def show_locks(self):
+        """Show the file locks dialog."""
         try:
             lockdirectory = nxgetconfig('lockdirectory')
             if lockdirectory is None:
@@ -1263,6 +1335,7 @@ class MainWindow(QtWidgets.QMainWindow):
             report_error("Showing File Locks", error)
 
     def backup_file(self):
+        """Backup the current file."""
         try:
             node = self.treeview.get_node()
             if node is not None and not node.file_exists():
@@ -1284,6 +1357,7 @@ class MainWindow(QtWidgets.QMainWindow):
             report_error("Backing Up File", error)
 
     def restore_file(self):
+        """Restore the current file."""
         try:
             node = self.treeview.get_node()
             if isinstance(node, NXroot):
@@ -1300,6 +1374,7 @@ class MainWindow(QtWidgets.QMainWindow):
             report_error("Restoring File", error)
 
     def manage_backups(self):
+        """Open the dialog to manage file backups."""
         try:
             dialog = ManageBackupsDialog(parent=self)
             dialog.show()
@@ -1307,12 +1382,14 @@ class MainWindow(QtWidgets.QMainWindow):
             report_error("Managing Backups", error)
 
     def open_scratch_file(self):
+        """Open the scratch file in the tree."""
         try:
             self.tree['w0'] = nxload(self.scratch_file, 'rw')
         except NeXusError as error:
             report_error("Opening Scratch File", error)
 
     def purge_scratch_file(self):
+        """Purge the scratch file of all its contents."""
         try:
             if 'w0' in self.tree:
                 if confirm_action(
@@ -1324,6 +1401,7 @@ class MainWindow(QtWidgets.QMainWindow):
             report_error("Purging Scratch File", error)
 
     def close_scratch_file(self):
+        """Close the scratch file and remove it from the tree."""
         try:
             if 'w0' in self.tree:
                 if confirm_action(
@@ -1337,6 +1415,7 @@ class MainWindow(QtWidgets.QMainWindow):
             report_error("Purging Scratch File", error)
 
     def add_plugin_menu(self, plugin_name, plugin_actions, before=None):
+        """Add a menu item for a plugin to the menu bar."""
         if before is not None:
             plugin_menu = QtWidgets.QMenu(plugin_name, self)
             self.menu_bar.insertMenu(before.menuAction(), plugin_menu)
@@ -1349,12 +1428,14 @@ class MainWindow(QtWidgets.QMainWindow):
             self.plugin_actions.append(action)
 
     def remove_plugin_menu(self, plugin_name):
+        """Remove a menu item for a plugin from the menu bar."""
         for action in [action for action
                        in self.menuBar().actions()
                        if action.text().lower() == plugin_name.lower()]:
             self.menuBar().removeAction(action)
 
     def manage_plugins(self):
+        """Open the dialog to manage plugins."""
         try:
             dialog = ManagePluginsDialog(parent=self)
             dialog.show()
@@ -1362,6 +1443,13 @@ class MainWindow(QtWidgets.QMainWindow):
             report_error("Managing Plugins", error)
 
     def plot_data(self):
+        """
+        Plot the selected data.
+
+        If the selected data is a group, it must have plottable data. If
+        the selected data is a field, it must be plottable or be a
+        scalar.
+        """
         try:
             node = self.treeview.get_node()
             if node is not None:
@@ -1388,6 +1476,7 @@ class MainWindow(QtWidgets.QMainWindow):
             report_error("Plotting Data", error)
 
     def overplot_data(self):
+        """Overplot the selected data."""
         try:
             node = self.treeview.get_node()
             if node is not None:
@@ -1400,6 +1489,7 @@ class MainWindow(QtWidgets.QMainWindow):
             report_error("Overplotting Data", error)
 
     def plot_line(self):
+        """Plot the selected data as a line."""
         try:
             node = self.treeview.get_node()
             if node is not None:
@@ -1421,6 +1511,7 @@ class MainWindow(QtWidgets.QMainWindow):
             report_error("Plotting Data", error)
 
     def overplot_line(self):
+        """Overplot the selected data as a line."""
         try:
             node = self.treeview.get_node()
             if node is not None:
@@ -1433,6 +1524,7 @@ class MainWindow(QtWidgets.QMainWindow):
             report_error("Overplotting Data", error)
 
     def multiplot_data(self):
+        """Plot all the signals in the selected group"""
         try:
             node = self.treeview.get_node()
             if node is not None:
@@ -1460,6 +1552,7 @@ class MainWindow(QtWidgets.QMainWindow):
             report_error("Plotting Data", error)
 
     def multiplot_lines(self):
+        """Plot all the signals in the selected group as lines"""
         try:
             node = self.treeview.get_node()
             if node is not None:
@@ -1491,6 +1584,7 @@ class MainWindow(QtWidgets.QMainWindow):
             report_error("Plotting Data", error)
 
     def plot_weighted_data(self):
+        """Plot the selected data with weights."""
         try:
             node = self.treeview.get_node()
             if node is not None:
@@ -1503,6 +1597,11 @@ class MainWindow(QtWidgets.QMainWindow):
             report_error("Plotting Weighted Data", error)
 
     def plot_image(self):
+        """
+        Plot the selected data as an image.
+        
+        This is meant for nodes that contain RGB(A) image data.
+        """
         try:
             node = self.treeview.get_node()
             if node is not None:
@@ -1515,6 +1614,13 @@ class MainWindow(QtWidgets.QMainWindow):
             report_error("Plotting RGB(A) Image Data", error)
 
     def view_data(self):
+        """
+        View the selected data.
+
+        This will display the selected data in a table, with its
+        metadata (attributes, etc.) displayed above the table. The table
+        can be sorted by clicking on the column headers.
+        """
         try:
             node = self.treeview.get_node()
             if not self.panel_is_running('View'):
@@ -1524,6 +1630,13 @@ class MainWindow(QtWidgets.QMainWindow):
             report_error("Viewing Data", error)
 
     def validate_data(self):
+        """
+        Validate the selected data.
+
+        This will run the NeXus validation tools on the selected data,
+        displaying any errors or warnings in a new window. The window
+        will be reused if it is already open.
+        """
         try:
             node = self.treeview.get_node()
             if not self.panel_is_running('Validate'):
@@ -1533,6 +1646,13 @@ class MainWindow(QtWidgets.QMainWindow):
             report_error("Validating Data", error)
         
     def add_data(self):
+        """
+        Add a new NeXus group to the selected node.
+
+        A dialog will appear asking for the new group's name and type.
+        If the selected node is None, the user will be prompted to
+        create a new workspace instead.
+        """
         try:
             node = self.treeview.get_node()
             if node is not None:
@@ -1541,13 +1661,19 @@ class MainWindow(QtWidgets.QMainWindow):
                 elif node.nxfilemode == 'r':
                     raise NeXusError("NeXus file is locked")
                 dialog = AddDialog(node, parent=self)
-                dialog.exec_()
+                dialog.exec()
             else:
                 self.new_workspace()
         except NeXusError as error:
             report_error("Adding Data", error)
 
     def initialize_data(self):
+        """
+        Opens a dialog to initialize data in the selected group.
+        
+        This can be used to initialize a new NXfield or to add an
+        existing NXfield to an NXgroup.
+        """
         try:
             node = self.treeview.get_node()
             if node is not None:
@@ -1557,7 +1683,7 @@ class MainWindow(QtWidgets.QMainWindow):
                     raise NeXusError("NeXus file is locked")
                 elif isinstance(node, NXgroup):
                     dialog = InitializeDialog(node, parent=self)
-                    dialog.exec_()
+                    dialog.exec()
                 else:
                     raise NeXusError(
                         "An NXfield can only be added to an NXgroup")
@@ -1565,6 +1691,12 @@ class MainWindow(QtWidgets.QMainWindow):
             report_error("Initializing Data", error)
 
     def rename_data(self):
+        """
+        Rename the selected data.
+        
+        Opens a dialog allowing the user to enter a new name for the
+        selected data.
+        """
         try:
             if self is not None:
                 node = self.treeview.get_node()
@@ -1575,7 +1707,7 @@ class MainWindow(QtWidgets.QMainWindow):
                           node.nxgroup.nxfilemode != 'r'):
                         path = node.nxpath
                         dialog = RenameDialog(node, parent=self)
-                        dialog.exec_()
+                        dialog.exec()
                         logging.info(f"'{path}' renamed as '{node.nxpath}'")
                     else:
                         raise NeXusError("NeXus file is locked")
@@ -1583,6 +1715,31 @@ class MainWindow(QtWidgets.QMainWindow):
             report_error("Renaming Data", error)
 
     def copy_node(self, node):
+        """
+        Copies the given node into a temporary NeXus file.
+
+        This method is used by the 'copy' and 'cut' actions to copy a node
+        into a temporary NeXus file. The temporary file is created in a
+        tempfile and is deleted when the application is closed. The method
+        returns the copied node.
+
+        The method first creates a new temporary NeXus file with a single
+        group named 'entry'. It then copies the given node into the 'entry'
+        group. If the given node is an NXlink, it is resolved to the actual
+        node. The method then sets the 'link' attribute of the 'entry' group
+        to a tuple containing the name, path, and filename of the copied
+        node.
+
+        Parameters
+        ----------
+        node : NXobject
+            The node to be copied.
+
+        Returns
+        -------
+        NXobject
+            The copied node.
+        """
         import tempfile
         self._memroot = nxload(tempfile.mkstemp(suffix='.nxs')[1], mode='w',
                                driver='core', backing_store=False)
@@ -1596,12 +1753,22 @@ class MainWindow(QtWidgets.QMainWindow):
 
     @property
     def copied_link(self):
+        """The link to the copied data in the core memory NeXus file."""
         try:
             return self._memroot['entry'].attrs['link']
         except Exception:
             return None
 
     def copy_data(self):
+        """
+        Copy a node to the core memory NeXus file.
+
+        This method copies the currently selected node to a temporary
+        NeXus file in core memory. If the currently selected node is an
+        NXroot, a NeXusError is raised. The copied node is stored in the
+        'copied_node' attribute of the main window. The method logs a
+        message to the log file if successful.
+        """
         try:
             node = self.treeview.get_node()
             if not isinstance(node, NXroot):
@@ -1614,6 +1781,15 @@ class MainWindow(QtWidgets.QMainWindow):
             report_error("Copying Data", error)
 
     def cut_data(self):
+        """
+        Cut the selected data.
+
+        This method cuts the currently selected node from the selected
+        group and copies it into the core memory NeXus file. If the
+        currently selected node is an NXroot, a NeXusError is raised. The
+        copied node is stored in the 'copied_node' attribute of the main
+        window. The method logs a message to the log file if successful.
+        """
         try:
             node = self.treeview.get_node()
             if isinstance(node, NXroot):
@@ -1633,6 +1809,15 @@ class MainWindow(QtWidgets.QMainWindow):
             report_error("Cutting Data", error)
 
     def paste_data(self):
+        """
+        Paste data from the copy buffer into the selected node.
+
+        This method pastes the data in the copy buffer into the selected
+        node. If the selected node is an NXgroup, the data is pasted into
+        the group. If the selected node is an NXfield, a NeXusError is
+        raised. If the NeXus file is locked, a NeXusError is raised. The
+        method logs a message to the log file if successful.
+        """
         try:
             node = self.treeview.get_node()
             if node.nxfilemode and node.nxfilemode == 'r':
@@ -1654,6 +1839,16 @@ class MainWindow(QtWidgets.QMainWindow):
             report_error("Pasting Data", error)
 
     def paste_link(self):
+        """
+        Paste the data in the copy buffer as a link.
+
+        This method will paste the data in the copy buffer into the
+        selected node as a link. If the selected node is an NXgroup and
+        the NeXus file is not locked, a dialog will appear asking for
+        the name of the link. The method logs a message to the log file
+        if successful.
+        """
+        
         try:
             node = self.treeview.get_node()
             if isinstance(node, NXgroup) and self.copied_link is not None:
@@ -1669,6 +1864,16 @@ class MainWindow(QtWidgets.QMainWindow):
             report_error("Pasting Data as Link", error)
 
     def delete_data(self):
+        """
+        Delete a NeXus node from the tree.
+
+        This method will delete the selected NeXus node from the tree.
+        If the selected node is an NXroot, a NeXusError is raised. If the
+        selected node is in an externally linked NXgroup, a NeXusError is
+        raised. If the NeXus file for the selected node is locked, a
+        NeXusError is raised. If the user confirms the deletion, the
+        method logs a message to the log file if successful.
+        """
         try:
             node = self.treeview.get_node()
             if isinstance(node, NXroot) and node.nxfilemode:
@@ -1686,6 +1891,12 @@ class MainWindow(QtWidgets.QMainWindow):
             report_error("Deleting Data", error)
 
     def show_link(self):
+        """
+        Select the field or group to which the selected item is linked,
+        if it is an NXlink object, *i.e.*, shown with a link icon. If
+        the link is external, the linked file is automatically opened
+        and the linked object is selected.
+        """
         try:
             node = self.treeview.get_node()
             if isinstance(node, NXlink):
@@ -1712,6 +1923,23 @@ class MainWindow(QtWidgets.QMainWindow):
             report_error("Showing Link", error)
 
     def set_signal(self):
+        """
+        Set the plottable signal either to the selected field or to any
+        field within the selected group. A dialog box allows the user to
+        specify axes with compatible dimensions to plot the data
+        against.
+
+        The dialog box will be invoked if the selected node is an
+        NXobject and the NeXus file is not locked. If the NeXus file is
+        locked, a NeXusError is raised. The method logs a message to the
+        log file if successful.
+
+        Note
+        ----
+        The use of the 'Add Data' and 'Set Signal' menu items allows, in
+        principle, an entire NeXus data tree to be constructed using
+        menu calls.
+        """
         try:
             node = self.treeview.get_node()
             if isinstance(node, NXobject):
@@ -1725,6 +1953,20 @@ class MainWindow(QtWidgets.QMainWindow):
             report_error("Setting Signal", error)
 
     def set_default(self):
+        """
+        Set the default attribute in the parent group to the currently
+        selected group, *i.e.*, if the selected group is an NXdata
+        (NXentry) group, the attribute will be set in the parent NXentry
+        (NXroot) group. The default attribute is used to identify the
+        default data to be plotted.
+
+        Note
+        ----
+        When a NXdata group is set as the default, the parent NXentry
+        group is also set as the default in the parent NXroot group
+        provided one has not already been set. The default entry can be
+        overridden.
+        """
         try:
             node = self.treeview.get_node()
             if isinstance(node, NXentry) or isinstance(node, NXdata):
@@ -1742,6 +1984,25 @@ class MainWindow(QtWidgets.QMainWindow):
             report_error("Setting Default", error)
 
     def fit_data(self):
+        """
+        Fit the selected data.
+
+        This will trigger a dialog box, which allows functions to be
+        chosen and parameters to be initialized before calling a
+        non-linear least-squares fitting module.
+
+        If the selected node is an NXdata group, it will be fitted. If
+        the selected node is an NXentry or NXprocess group and its title
+        starts with 'Fit', the data field of this group will be fitted.
+        In all other cases, a NeXusError is raised.
+
+        If the data is more than one-dimensional, a NeXusError is
+        raised.
+
+        See also
+        --------
+        :ref:`Fitting NeXus Data`_.
+        """
         try:
             node = self.treeview.get_node()
             if node is None:
@@ -1765,6 +2026,25 @@ class MainWindow(QtWidgets.QMainWindow):
             report_error("Fitting Data", error)
 
     def fit_weighted_data(self):
+        """
+        Fit the selected data with weights.
+
+        This will trigger a dialog box, which allows functions to be
+        chosen and parameters to be initialized before calling a
+        non-linear least-squares fitting module.
+
+        If the selected node is an NXdata group, it will be fitted. If
+        the selected node is an NXentry or NXprocess group and its title
+        starts with 'Fit', the data field of this group will be fitted.
+        In all other cases, a NeXusError is raised.
+
+        If the data is more than one-dimensional, a NeXusError is
+        raised.
+
+        See also
+        --------
+        :ref:`Fitting NeXus Data`_.
+        """
         try:
             node = self.treeview.get_node()
             if node is None:
@@ -1783,6 +2063,17 @@ class MainWindow(QtWidgets.QMainWindow):
             report_error("Fitting Data", error)
 
     def make_active_action(self, number, label):
+        """
+        Create an action for a new window and add it to the 'Window'
+        menu.
+        
+        Parameters
+        ----------
+        number : int
+            The number of the window, used to generate the shortcut key.
+        label : str
+            The label of the window, used to create the action text.
+        """
         if label == 'Projection':
             self.active_action[number] = QtWidgets.QAction(
                 label, self, shortcut=QtGui.QKeySequence("Ctrl+Shift+Alt+P"),
@@ -1821,9 +2112,20 @@ class MainWindow(QtWidgets.QMainWindow):
         self.make_active(number)
 
     def new_plot_window(self):
+        """Create a new plot window"""
         return NXPlotView(parent=self)
 
     def close_window(self):
+        """
+        Close the currently active window.
+
+        If the window is a dialog, it will be closed. If the window is a
+        plot window, it will be closed and removed from the 'Window'
+        menu. If the window is not a dialog and not a plot window, it
+        will be ignored.
+
+        If an exception is raised, it is ignored.
+        """
         windows = self.dialogs
         windows += [self.plotviews[pv]
                     for pv in self.plotviews if pv != 'Main']
@@ -1836,11 +2138,35 @@ class MainWindow(QtWidgets.QMainWindow):
                 pass
 
     def equalize_windows(self):
+        """
+        Resize all plot windows except the main window and the currently
+        active window to the size of the currently active window.
+
+        This is done by iterating over all the plot windows in the
+        plotviews dictionary, and resizing each one to the size of the
+        currently active window. The currently active window is not
+        resized.
+        """
         for label in [label for label in self.plotviews
                       if (label != 'Main' and label != self.plotview.label)]:
             self.plotviews[label].resize(self.plotview.size())
 
     def update_active(self, number):
+        """
+        Update the active window in 'Window' menu.
+
+        This is called whenever a new window is created or an existing
+        window is closed. It iterates over all the actions in the
+        'Window' menu and checks which action is currently checked. It
+        then unchecks the previously active action and checks the
+        action of the currently active window. If the number does not
+        correspond to any window, it does nothing.
+
+        Parameters
+        ----------
+        number : int
+            The number of the window to be made active.
+        """
         for num in self.active_action:
             if self.active_action[num].isChecked():
                 self.previous_active = num
@@ -1849,17 +2175,42 @@ class MainWindow(QtWidgets.QMainWindow):
             self.active_action[number].setChecked(True)
 
     def make_active(self, number):
+        """
+        Make a window active.
+
+        This function makes the window with the given number active. It
+        does this by updating the active window in the 'Window' menu, and
+        calling the make_active method of the window.
+
+        Parameters
+        ----------
+        number : int
+            The number of the window to be made active.
+        """
         if number in self.active_action:
             self.update_active(number)
             self.plotviews[self.active_action[number].text()].make_active()
 
     def reset_axes(self):
+        """
+        Reset the plot limits to the original values.
+
+        This function makes the window with the given number active and
+        resets the plot limits to the original values. It does this by
+        calling the reset_plot_limits method of the window.
+        """
         try:
             self.plotview.reset_plot_limits()
         except NeXusError as error:
             report_error("Resetting Plot Limits", error)
 
     def edit_settings(self):
+        """
+        Edit NeXpy settings.
+
+        This function launches the Settings Dialog, which is used to
+        edit the various settings used by NeXpy.
+        """
         try:
             dialog = SettingsDialog(parent=self)
             dialog.show()
@@ -1867,18 +2218,21 @@ class MainWindow(QtWidgets.QMainWindow):
             report_error("Editing Settings", error)
 
     def show_tree(self):
+        """Bring the tree view to the front and give it focus."""
         self.raise_()
         self.treeview.raise_()
         self.treeview.activateWindow()
         self.treeview.setFocus()
 
     def show_shell(self):
+        """Bring the shell view to the front and give it focus."""
         self.raise_()
         self.shellview.raise_()
         self.shellview.activateWindow()
         self.shellview.setFocus()
 
     def show_log(self):
+        """Display the log file in a separate window"""
         try:
             if self.log_window in self.dialogs:
                 self.log_window.show_log()
@@ -1888,6 +2242,19 @@ class MainWindow(QtWidgets.QMainWindow):
             report_error("Showing Log File", error)
 
     def panel_is_running(self, panel):
+        """
+        Check if a panel is running.
+
+        Parameters
+        ----------
+        panel : str
+            The name of the panel to check.
+
+        Returns
+        -------
+        bool
+            True if the panel is running, False otherwise.
+        """
         if panel in self.panels:
             if self.panels[panel].is_running():
                 return True
@@ -1898,6 +2265,7 @@ class MainWindow(QtWidgets.QMainWindow):
             return False
 
     def show_customize_panel(self):
+        """Show the customize panel."""
         try:
             if not self.panel_is_running('Customize'):
                 self.panels['Customize'] = CustomizeDialog()
@@ -1906,6 +2274,7 @@ class MainWindow(QtWidgets.QMainWindow):
             report_error("Showing Customize Panel", error)
 
     def show_limits_panel(self):
+        """Show the limits panel."""
         try:
             if not self.panel_is_running('Limits'):
                 self.panels['Limits'] = LimitDialog()
@@ -1914,6 +2283,7 @@ class MainWindow(QtWidgets.QMainWindow):
             report_error("Showing Limits Panel", error)
 
     def show_all_limits(self):
+        """Show the limits panel for all currently open plots."""
         try:
             original_plotview = self.plotview
             if not self.panel_is_running('Limits'):
@@ -1928,6 +2298,7 @@ class MainWindow(QtWidgets.QMainWindow):
             report_error("Showing Limits Panel", error)
 
     def show_projection_panel(self):
+        """Show the projection panel."""
         if (self.active_plotview.label == 'Projection'
                 or self.plotview.ndim == 1):
             if ('Projection' in self.panels and
@@ -1943,6 +2314,7 @@ class MainWindow(QtWidgets.QMainWindow):
             report_error("Showing Projection Panel", error)
 
     def show_scan_panel(self):
+        """Show the scan panel."""
         if self.plotview.label == 'Projection':
             if 'Scan' in self.panels:
                 self.panels['Scan'].raise_()
@@ -1956,6 +2328,7 @@ class MainWindow(QtWidgets.QMainWindow):
             report_error("Showing Scan Panel", error)
 
     def show_script_window(self):
+        """Show the script editor opening a new script if necessary."""
         if not self.panel_is_running('Editor'):
             self.panels['Editor'] = NXScriptWindow()
         if self.panels['Editor'].count == 0:
@@ -1965,11 +2338,13 @@ class MainWindow(QtWidgets.QMainWindow):
             self.panels['Editor'].activateWindow()
 
     def open_script_window(self, file_name):
+        """Open the script editor."""
         if 'Editor' not in self.panels:
             self.panels['Editor'] = NXScriptWindow()
         self.panels['Editor'].activate(file_name)
 
     def new_script(self):
+        """Open an editor for a new script."""
         try:
             file_name = None
             self.open_script_window(file_name)
@@ -1978,6 +2353,7 @@ class MainWindow(QtWidgets.QMainWindow):
             report_error("Editing New Script", error)
 
     def open_script(self):
+        """Open an existing script file in the script editor."""
         try:
             script_dir = self.nexpy_dir.joinpath('scripts')
             file_filter = ';;'.join(("Python Files (*.py)",
@@ -1991,6 +2367,7 @@ class MainWindow(QtWidgets.QMainWindow):
             report_error("Editing Script", error)
 
     def open_startup_script(self):
+        """Open the startup script in the script editor."""
         try:
             file_name = self.nexpy_dir / 'config.py'
             self.open_script_window(file_name)
@@ -1999,6 +2376,7 @@ class MainWindow(QtWidgets.QMainWindow):
             report_error("Editing Startup Script", error)
 
     def open_script_file(self):
+        """Open the script file selected in the Script Menu."""
         try:
             file_name = self.scripts[self.sender()][1]
             self.open_script_window(file_name)
@@ -2007,6 +2385,17 @@ class MainWindow(QtWidgets.QMainWindow):
             report_error("Opening Script", error)
 
     def add_script_directory(self, directory, menu):
+        """
+        Recursively add actions for Python scripts in directory to the
+        provided menu.
+
+        Parameters
+        ----------
+        directory : Path
+            The directory to search for Python scripts.
+        menu : QMenu
+            The menu to add the actions to.
+        """
         names = sorted(path.name for path in directory.iterdir())
         for name in names:
             item_path = directory / name
@@ -2018,6 +2407,16 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.add_script_action(item_path, menu)
 
     def add_script_action(self, file_name, menu):
+        """
+        Add an action for a Python script to the provided menu.
+
+        Parameters
+        ----------
+        file_name : Path
+            The path to the Python script.
+        menu : QMenu
+            The menu to add the action to.
+        """
         name = Path(file_name).name
         script_action = QtWidgets.QAction(name, self,
                                           triggered=self.open_script_file)
@@ -2025,35 +2424,49 @@ class MainWindow(QtWidgets.QMainWindow):
         self.scripts[script_action] = (menu, str(file_name))
 
     def remove_script_action(self, file_name):
+        """
+        Remove an action for a Python script from the menu.
+
+        Parameters
+        ----------
+        file_name : Path
+            The path to the Python script.
+        """
         for action, (menu, name) in self.scripts.items():
             if name == str(file_name):
                 menu.removeAction(action)
 
     def _open_nexpy_online_help(self):
+        """Open the NeXpy online help in a web browser."""
         url = "https://nexpy.github.io/nexpy/"
         webbrowser.open(url, new=1, autoraise=True)
 
     def _open_nexusformat_online_notebook(self):
+        """Open the Nexusformat online notebook in a web browser."""
         url = (
             "https://colab.research.google.com/github/nexpy/nexusformat/blob/"
             "master/src/nexusformat/notebooks/nexusformat.ipynb")
         webbrowser.open(url, new=1, autoraise=True)
 
     def _open_nexus_online_help(self):
+        """Open the Nexus base classes in a web browser."""
         url = "http://download.nexusformat.org/doc/html/classes/base_classes/"
         webbrowser.open(url, new=1, autoraise=True)
 
     def _open_ipython_online_help(self):
+        """Open the IPython online help in a web browser."""
         url = "https://ipython.readthedocs.io/en/stable/"
         webbrowser.open(url, new=1, autoraise=True)
 
     def open_example_file(self):
+        """Open an example NeXus file in read-only mode."""
         default_directory = self.default_directory
         self.default_directory = package_files('nexpy').joinpath('examples')
         self.open_file()
         self.default_directory = default_directory
 
     def open_example_script(self):
+        """Open an example NeXus script in the script editor."""
         script_dir = package_files('nexpy').joinpath('examples', 'scripts')
         file_filter = ';;'.join(("Python Files (*.py)",
                                  "Any Files (*.* *)"))
@@ -2064,6 +2477,7 @@ class MainWindow(QtWidgets.QMainWindow):
             logging.info(f"NeXus script '{file_name}' opened")
 
     def toggle_menu_bar(self):
+        """Toggle the visibility of the menu bar."""
         menu_bar = self.menu_bar
         if menu_bar.isVisible():
             menu_bar.setVisible(False)
@@ -2071,20 +2485,21 @@ class MainWindow(QtWidgets.QMainWindow):
             menu_bar.setVisible(True)
 
     def toggleMinimized(self):
+        """Toggle the window between minimized and normal."""
         if not self.isMinimized():
             self.showMinimized()
         else:
             self.showNormal()
 
     def toggleMaximized(self):
+        """Toggle the window between maximized and normal."""
         if not self.isMaximized():
             self.showMaximized()
         else:
             self.showNormal()
 
-    # Min/Max imizing while in full screen give a bug
-    # when going out of full screen, at least on OSX
     def toggleFullScreen(self):
+        """Toggle the window between full screen and normal."""
         if not self.isFullScreen():
             self.showFullScreen()
             if sys.platform == 'darwin':
@@ -2097,26 +2512,32 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.minimizeAct.setEnabled(True)
 
     def set_paging_console(self, paging):
+        """Set the paging of the console."""
         self.console._set_paging(paging)
 
     def restart_kernel_console(self):
+        """Restart the kernel in the console."""
         self.console.request_restart_kernel()
 
     def interrupt_kernel_console(self):
+        """Interrupt the kernel in the console."""
         self.console.request_interrupt_kernel()
 
     def toggle_confirm_restart_console(self):
+        """Toggle the confirm restart flag in the console."""
         widget = self.console
         widget.confirm_restart = not widget.confirm_restart
         self.confirm_restart_kernel_action.setChecked(widget.confirm_restart)
 
     def update_restart_checkbox(self):
+        """Update the confirm restart flag in the console."""
         if self.console is None:
             return
         widget = self.console
         self.confirm_restart_kernel_action.setChecked(widget.confirm_restart)
 
     def cut_console(self):
+        """Cut text in the console."""
         widget = self.app.app.focusWidget()
         if widget == self.console._control:
             widget = self.console
@@ -2127,6 +2548,7 @@ class MainWindow(QtWidgets.QMainWindow):
             pass
 
     def copy_console(self):
+        """Copy text in the console."""
         widget = self.app.app.focusWidget()
         if widget == self.console._control:
             widget = self.console
@@ -2136,9 +2558,11 @@ class MainWindow(QtWidgets.QMainWindow):
             pass
 
     def copy_raw_console(self):
+        """Copy raw text in the console."""
         self.console._copy_raw_action.trigger()
 
     def paste_console(self):
+        """Paste text in the console."""
         widget = self.app.app.focusWidget()
         if widget == self.console._control:
             widget = self.console
@@ -2149,36 +2573,49 @@ class MainWindow(QtWidgets.QMainWindow):
             pass
 
     def undo_console(self):
+        """Undo text in the console."""
         self.console.undo()
 
     def redo_console(self):
+        """Redo text in the console."""
         self.console.redo()
 
     def print_action_console(self):
+        """Print text in the console."""
         self.console.print_action.trigger()
 
-    def export_action_console(self):
-        self.console.export_action.trigger()
-
     def select_all_console(self):
+        """Select all text in the console."""
         self.console.select_all_action.trigger()
 
     def increase_font_size_console(self):
+        """Increase font size in the console."""
         self.console.increase_font_size.trigger()
 
     def decrease_font_size_console(self):
+        """Decrease font size in the console."""
         self.console.decrease_font_size.trigger()
 
     def reset_font_size_console(self):
+        """Reset font size in the console."""
         self.console.reset_font_size.trigger()
 
     def intro_console(self):
+        """Print the IPython intro in the console."""
         self.console.execute("?")
 
     def quickref_console(self):
+        """Print the IPython quickref in the console."""
         self.console.execute("%quickref")
 
     def close_files(self):
+        """
+        Close all open NeXus files in the user namespace.
+
+        This should be called before the application is closed to ensure
+        that any changes are flushed to the files and other processes
+        can read the files if necessary.
+        """
         for root in [n for n in self.user_ns
                      if isinstance(self.user_ns[n], NXroot)]:
             try:
@@ -2187,6 +2624,10 @@ class MainWindow(QtWidgets.QMainWindow):
                 pass
 
     def close_widgets(self):
+        """
+        Close all open dialog windows, including plot windows
+        other than the main window.
+        """
         windows = self.dialogs
         windows += [self.plotviews[pv]
                     for pv in self.plotviews if pv != 'Main']
@@ -2197,7 +2638,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 pass
 
     def closeEvent(self, event):
-        """Customize the close process to confirm request to quit NeXpy."""
+        """Customize the close event to confirm request to quit."""
         if confirm_action("Are you sure you want to quit NeXpy?",
                           icon=self.app.icon_pixmap):
             self.console.kernel_client.stop_channels()

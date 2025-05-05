@@ -15,7 +15,7 @@ def test_gui_import():
     try:
         import nexpy.gui.pyqt
         import nexpy.gui.consoleapp
-        import nexpy.gui.datadialogs
+        import nexpy.gui.dialogs
         import nexpy.gui.fitdialogs
         import nexpy.gui.importdialog
         import nexpy.gui.mainwindow

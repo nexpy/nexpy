@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2013-2022, NeXpy Development Team.
+# Copyright (c) 2013-2025, NeXpy Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -30,11 +30,27 @@ class NXtree(NXgroup):
     _attrs = {}
 
     def __init__(self):
+        """Initialize the NXtree group."""
         self._class = 'NXtree'
         self._name = 'tree'
         self._entries = {}
 
     def __setitem__(self, key, value):
+        """
+        Add a NeXus tree to the shell.
+
+        Parameters
+        ----------
+        key : str
+            The name of the tree in the shell.
+        value : NXroot
+            The root group of the tree.
+
+        Raises
+        ------
+        NeXusError
+            If the tree already exists in the shell.
+        """
         if isinstance(value, NXroot):
             if key not in self._entries:
                 value._group = self
@@ -48,11 +64,30 @@ class NXtree(NXgroup):
             raise NeXusError("Value must be an NXroot group")
 
     def __delitem__(self, key):
+        """
+        Delete a NeXus tree from the shell.
+
+        Parameters
+        ----------
+        key : str
+            The name of the tree in the shell.
+
+        Raises
+        ------
+        NeXusError
+            If the tree does not exist in the shell.
+        """
         del self._entries[key]
         del self._shell[key]
         self.set_changed()
 
     def set_changed(self):
+        """
+        Mark the tree as changed.
+
+        This method is called when the tree changes. It updates the tree
+        view and the shell.
+        """
         self.sync_shell_names()
         if self._model:
             self.sync_children(self._item)
@@ -64,6 +99,19 @@ class NXtree(NXgroup):
             self._view.status_message(self._view.node)
 
     def sync_children(self, item):
+        """
+        Synchronize the children of a tree item with its NeXus group.
+
+        If the NeXus group is a loaded NXgroup, this method adds
+        children to the tree item if they are missing and removes them
+        if they no longer exist in the NeXus group. This method should
+        only be called by the set_changed method.
+
+        Parameters
+        ----------
+        item : NXTreeItem
+            The tree item to be synchronized.
+        """
         if isinstance(item.node, NXgroup):
             children = []
             if item.hasChildren():
@@ -80,6 +128,23 @@ class NXtree(NXgroup):
         item.node.set_unchanged()
 
     def add(self, node):
+        """
+        Add a NeXus group to the tree.
+
+        If the NeXus group is a loaded NXgroup, it is added to the tree
+        with its name. If the NeXus group is not loaded, it is added to
+        a new NXroot group with a default name.
+
+        Parameters
+        ----------
+        node : NXgroup
+            The NeXus group to be added to the tree.
+
+        Raises
+        ------
+        NeXusError
+            If the node is not a NeXus group.
+        """
         if isinstance(node, NXgroup):
             shell_names = self.get_shell_names(node)
             if shell_names:
@@ -103,11 +168,47 @@ class NXtree(NXgroup):
             raise NeXusError("Only an NXgroup can be added to the tree")
 
     def load(self, filename, mode='r'):
+        """
+        Load a NeXus file into the tree.
+
+        Parameters
+        ----------
+        filename : str
+            The name of the NeXus file to be loaded.
+        mode : str, optional
+            The mode to open the file, by default 'r'.
+
+        Returns
+        -------
+        NXroot
+            The root group of the loaded tree.
+        """
         name = self.get_name(filename)
         self[name] = nxload(filename, mode)
         return self[name]
 
     def reload(self, name):
+        """
+        Reload a NeXus tree.
+
+        If the tree is a loaded NXroot, reload it from the file. If the
+        tree is not a loaded NXroot, do nothing.
+
+        Parameters
+        ----------
+        name : str
+            The name of the tree to be reloaded.
+
+        Returns
+        -------
+        NXroot
+            The reloaded tree if it is a loaded NXroot, otherwise None.
+
+        Raises
+        ------
+        NeXusError
+            If the tree is not a loaded NXroot.
+        """
         if name in self:
             if isinstance(self[name], NXroot):
                 self[name].reload()
@@ -116,9 +217,37 @@ class NXtree(NXgroup):
             raise NeXusError(f"{name} not in the tree")
 
     def get_name(self, filename):
+        """
+        Return a name for a NeXus tree to be loaded.
+
+        If a tree with the same filename exists, append a number to the
+        name.
+
+        Parameters
+        ----------
+        filename : str
+            The name of the NeXus file to be loaded.
+
+        Returns
+        -------
+        str
+            A name for the loaded tree.
+        """
         return get_name(filename, self._shell)
 
     def get_new_name(self):
+        """
+        Return a new name for a NeXus tree.
+
+        The name is derived from the names of existing trees. If no
+        trees exist, the name is 'w0'. If trees exist, the name is the
+        largest number plus one, prefixed with 'w'.
+
+        Returns
+        -------
+        str
+            A new name for the tree.
+        """
         ind = []
         for key in self._shell:
             try:
@@ -131,10 +260,31 @@ class NXtree(NXgroup):
         return 'w'+str(sorted(ind)[-1]+1)
 
     def get_shell_names(self, node):
+        """
+        Return the names of the object in the shell namespace.
+
+        Parameters
+        ----------
+        node : NXobject
+            The NeXus object for which to retrieve the names.
+
+        Returns
+        -------
+        list of str
+            The names of the object in the shell namespace.
+        """
         return [obj[0] for obj in self._shell.items() if id(obj[1]) == id(node)
                 and not obj[0].startswith('_')]
 
     def sync_shell_names(self):
+        """
+        Ensure that the shell names are in sync with the tree.
+
+        This method checks if the key in the tree is the same as the key
+        in the shell namespace. If not, it assigns the tree key to the
+        shell. If the previous key exists in the shell, it is deleted.
+
+        """
         for key, value in self.items():
             shell_names = self.get_shell_names(value)
             if key not in shell_names:
@@ -143,6 +293,19 @@ class NXtree(NXgroup):
                     del self._shell[shell_names[0]]
 
     def node_from_file(self, fname):
+        """
+        Return the name of the tree item with filename fname.
+
+        Parameters
+        ----------
+        fname : str
+            The name of the file for which to return the tree item name.
+
+        Returns
+        -------
+        str
+            The name of the tree item if found, None otherwise.
+        """
         fname = str(Path(fname).resolve())
         names = [name for name in self if self[name].nxfilename]
         try:
@@ -160,6 +323,20 @@ class NXTreeItem(QtGui.QStandardItem):
     """
 
     def __init__(self, node=None):
+        """
+        Constructor for the NXTreeItem class.
+
+        Parameters
+        ----------
+        node : NXnode or None
+            The NeXus node for which to create the tree item.
+
+        Initializes the name, root, tree, and path attributes from the
+        node. If the node is a link, sets the linked icon. If the node is
+        a root, sets the locked, locked modified, unlocked, and unlocked
+        modified icons. Calls the parent class constructor with the
+        node name.
+        """
         self.name = node.nxname
         self.root = node.nxroot
         self.tree = self.root.nxgroup
@@ -175,17 +352,31 @@ class NXTreeItem(QtGui.QStandardItem):
 
     @property
     def node(self):
+        """The selected node in the tree."""
         return self.tree[self.path]
 
     def __repr__(self):
         return f"NXTreeItem('{self.path}')"
 
     def text(self):
+        """The name of the tree item."""
         return self.name
 
     def data(self, role=QtCore.Qt.DisplayRole):
         """
-        Returns the data to be displayed in the tree.
+        Return the data for the tree item in the given role.
+
+        Parameters
+        ----------
+        role : int, optional
+            The role of the data, by default QtCore.Qt.DisplayRole
+
+        Returns
+        -------
+        str or QIcon or None
+            The name of the tree item for the DisplayRole and EditRole,
+            a tooltip for the ToolTipRole, and a QIcon for the
+            DecorationRole or None if the node is not a root or link.
         """
         if role == QtCore.Qt.DisplayRole or role == QtCore.Qt.EditRole:
             return self.name
@@ -219,6 +410,7 @@ class NXTreeItem(QtGui.QStandardItem):
                 return None
 
     def children(self):
+        """Return a list of child items."""
         items = []
         if self.hasChildren():
             for row in range(self.rowCount()):
@@ -226,6 +418,7 @@ class NXTreeItem(QtGui.QStandardItem):
         return items
 
     def walk(self):
+        """Yield the tree item and its children."""
         yield self
         for child in self.children():
             for item in child.walk():
@@ -235,6 +428,16 @@ class NXTreeItem(QtGui.QStandardItem):
 class NXTreeView(QtWidgets.QTreeView):
 
     def __init__(self, tree, parent=None):
+        """
+        Initialize a NeXus tree view.
+
+        Parameters
+        ----------
+        tree : NXtree
+            The root of the tree.
+        parent : QWidget, optional
+            The parent of the view.
+        """
         super().__init__(parent=parent)
 
         self.tree = tree
@@ -279,10 +482,18 @@ class NXTreeView(QtWidgets.QTreeView):
         return 'NXTreeView("nxtree")'
 
     def update(self):
+        """Update the tree view."""
         super().update()
 
     def selection_changed(self):
-        """Enable and disable menu actions based on the selection."""
+        """
+        Enable or disable menu items based on the selected node.
+
+        This slot is connected to the selectionChanged signal of the
+        tree view. It enables or disables actions based on whether the
+        currently selected node is a root, group, link, field, or data
+        item and whether it is modifiable or not.
+        """
         self.mainwindow.savefile_action.setEnabled(False)
         self.mainwindow.duplicate_action.setEnabled(False)
         self.mainwindow.reload_action.setEnabled(False)
@@ -412,6 +623,14 @@ class NXTreeView(QtWidgets.QTreeView):
             pass
 
     def expand_node(self, index):
+        """
+        Expand the node at index in the treeview.
+
+        Parameters
+        ----------
+        index : QModelIndex
+            The index of the node to expand.
+        """
         item = self._model.itemFromIndex(self.proxymodel.mapToSource(index))
         if item and item.node:
             group = item.node
@@ -419,10 +638,24 @@ class NXTreeView(QtWidgets.QTreeView):
                 _entries = group[name].entries
 
     def addMenu(self, action):
+        """Add an action to the menu."""
         if action.isEnabled():
             self.menu.addAction(action)
 
     def popMenu(self, node):
+        """
+        Create a context menu for the treeview.
+
+        Parameters
+        ----------
+        node : Node
+            The node at the context menu position.
+
+        Returns
+        -------
+        menu : QMenu
+            The context menu.
+        """
         self.menu = QtWidgets.QMenu(self)
         self.addMenu(self.mainwindow.plot_data_action)
         self.addMenu(self.mainwindow.plot_line_action)
@@ -473,6 +706,15 @@ class NXTreeView(QtWidgets.QTreeView):
         return self.menu
 
     def status_message(self, message):
+        """
+        Display a status message in the status bar of the main window.
+
+        Parameters
+        ----------
+        message : str or Node
+            The message to display. If a Node, it will be converted to a
+            string using its _str_name() or _str_attrs() method.
+        """
         if isinstance(message, NXfield) or isinstance(message, NXgroup):
             text = message._str_name()+' '+message._str_attrs()
         elif isinstance(message, NXlink):
@@ -482,6 +724,18 @@ class NXTreeView(QtWidgets.QTreeView):
         self.mainwindow.statusBar().showMessage(text.replace('\n', '; '))
 
     def check_modified_files(self):
+        """
+        Check the files in the tree for modifications.
+
+        This checks the files in the tree for three conditions:
+
+        1. If a file no longer exists, it is removed from the tree.
+        2. If a file has been modified by another process, it is locked.
+        3. If a file has been locked by another process, the lock flag is set.
+
+        If any of these conditions are met, the tree is refreshed. If any of
+        the checks fail, the refresh interval is set to 1 minute.
+        """
         try:
             for key in list(self.tree._entries):
                 node = self.tree._entries[key]
@@ -519,9 +773,11 @@ class NXTreeView(QtWidgets.QTreeView):
 
     @property
     def node(self):
+        """The currently selected node."""
         return self.get_node()
 
     def get_node(self):
+        """Return the currently selected node using the proxy model."""
         item = self._model.itemFromIndex(
             self.proxymodel.mapToSource(self.currentIndex()))
         if item:
@@ -530,6 +786,19 @@ class NXTreeView(QtWidgets.QTreeView):
             return None
 
     def get_index(self, node):
+        """
+        Return the index of the node in the tree using the proxy model.
+
+        Parameters
+        ----------
+        node : NXobject
+            The NeXus node to find in the tree.
+
+        Returns
+        -------
+        QModelIndex
+            The index of the node in the tree using the proxy model.
+        """
         items = self._model.findItems(node.nxname, QtCore.Qt.MatchRecursive)
         for item in items:
             if node is item.node:
@@ -537,6 +806,14 @@ class NXTreeView(QtWidgets.QTreeView):
         return None
 
     def select_node(self, node):
+        """
+        Select the node in the tree.
+
+        Parameters
+        ----------
+        node : NXobject
+            The NeXus node to select in the tree.
+        """
         idx = self.get_index(node)
         if idx:
             self.setCurrentIndex(idx)
@@ -544,6 +821,13 @@ class NXTreeView(QtWidgets.QTreeView):
                                      QtCore.QItemSelectionModel.Select)
 
     def select_top(self):
+        """
+        Select the first node in the tree and set focus to the treeview.
+
+        This is called when the application is started and when a new
+        file is opened. It is a convenience method to quickly select the
+        first node in the tree and set focus to the treeview.
+        """
         try:
             self.select_node(self.tree[self.tree.__dir__()[0]])
             self.setFocus()
@@ -551,6 +835,22 @@ class NXTreeView(QtWidgets.QTreeView):
             pass
 
     def selectionChanged(self, new, old):
+        """
+        Called whenever the selection in the treeview changes.
+
+        This method is connected to the selectionChanged signal of the
+        treeview. It is called whenever the selection in the treeview
+        changes. If an item is selected, the status bar of the main
+        window is updated with the path of the selected node. If no
+        item is selected, the status bar is cleared.
+
+        Parameters
+        ----------
+        new : QItemSelection
+            The new selection in the treeview.
+        old : QItemSelection
+            The old selection in the treeview.
+        """
         super().selectionChanged(new, old)
         if new.indexes():
             node = self.get_node()
@@ -559,6 +859,16 @@ class NXTreeView(QtWidgets.QTreeView):
             self.status_message('')
 
     def collapse(self, index=None):
+        """
+        Collapse a node in the tree.
+
+        Parameters
+        ----------
+        index : QModelIndex or None, optional
+            The index of the node to collapse. If None, the entire tree
+            is collapsed and the first node is selected. The default is
+            None.
+        """
         if index:
             super().collapse(index)
         else:
@@ -566,6 +876,19 @@ class NXTreeView(QtWidgets.QTreeView):
             self.setCurrentIndex(self.model().index(0, 0))
 
     def on_context_menu(self, point):
+        """
+        Called when the context menu is requested in the treeview.
+
+        This method is connected to the customContextMenuRequested signal
+        of the treeview. It is called whenever the context menu is
+        requested in the treeview. If a node is selected, the context
+        menu for that node is displayed at the requested point.
+
+        Parameters
+        ----------
+        point : QPoint
+            The position of the context menu in the treeview.
+        """
         node = self.get_node()
         if node is not None:
-            self.popMenu(self.get_node()).exec_(self.mapToGlobal(point))
+            self.popMenu(self.get_node()).exec(self.mapToGlobal(point))

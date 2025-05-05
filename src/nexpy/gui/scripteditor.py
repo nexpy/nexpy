@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2013-2021, NeXpy Development Team.
+# Copyright (c) 2013-2025, NeXpy Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -11,13 +11,13 @@ from pathlib import Path
 import pygments
 from pygments.formatter import Formatter
 
-from .datadialogs import NXPanel, NXTab
 from .pyqt import QtCore, QtGui, QtWidgets, getSaveFileName
 from .utils import confirm_action, in_dark_mode
-from .widgets import NXLineEdit, NXPushButton
+from .widgets import NXLineEdit, NXPanel, NXPushButton, NXTab
 
 
 def hex2QColor(c):
+    """Convert a hex color code to a QColor."""
     r = int(c[0:2], 16)
     g = int(c[2:4], 16)
     b = int(c[4:6], 16)
@@ -28,6 +28,7 @@ class NXFormatter(Formatter):
 
     def __init__(self):
 
+        """Initialize the formatter for the syntax highlighter."""
         if in_dark_mode():
             super().__init__(style='monokai')
         else:
@@ -52,6 +53,21 @@ class NXFormatter(Formatter):
         return f"NXFormatter(style='{self.style_name}')"
 
     def format(self, tokensource, outfile):
+        """
+        Format a source of tokens into a list of styles.
+
+        Parameters
+        ----------
+        tokensource : iterable
+            An iterable of (token_type, token_value) pairs.
+        outfile : file-like
+            Ignored, but required by the Formatter API.
+
+        Returns
+        -------
+        data : list
+            A list of styles, one for each character in the source.
+        """
         self.data = []
         for ttype, value in tokensource:
             v = len(value)
@@ -63,6 +79,14 @@ class NXHighlighter(QtGui.QSyntaxHighlighter):
 
     def __init__(self, parent):
 
+        """
+        Initialize the syntax highlighter.
+
+        Parameters
+        ----------
+        parent : QWidget
+            The parent of the syntax highlighter.
+        """
         super().__init__(parent)
 
         self.formatter = NXFormatter()
@@ -70,9 +94,17 @@ class NXHighlighter(QtGui.QSyntaxHighlighter):
 
     def highlightBlock(self, text):
         """
-        Takes a block and applies format to the document.
-        """
+        Highlight the given block of text.
 
+        The given text is the block of text which the syntax highlighter
+        should highlight. The text is formatted according to the
+        highlighting rules defined by the syntax highlighter.
+
+        Parameters
+        ----------
+        text : str
+            The block of text to be highlighted.
+        """
         text = str(self.document().toPlainText())+'\n'
         pygments.highlight(text, self.lexer, self.formatter)
         p = self.currentBlock().position()
@@ -86,6 +118,10 @@ class NXHighlighter(QtGui.QSyntaxHighlighter):
 class NXScrollBar(QtWidgets.QScrollBar):
 
     def sliderChange(self, change):
+        """
+        Reimplement QScrollBar.sliderChange to allow scrolling to be
+        caught by a slot when the slider is moved.
+        """
         if (self.signalsBlocked() and
                 change == QtWidgets.QAbstractSlider.SliderValueChange):
             self.blockSignals(False)
@@ -94,6 +130,17 @@ class NXScrollBar(QtWidgets.QScrollBar):
 class NXScriptTextEdit(QtWidgets.QPlainTextEdit):
 
     def __init__(self, slot=None, parent=None):
+        """
+        Initialize the script text editor.
+
+        Parameters
+        ----------
+        slot : function, optional
+            If given, connect the slot to the valueChanged signal of the
+            vertical scrollbar.
+        parent : QWidget, optional
+            The parent of the script text editor.
+        """
         super().__init__(parent)
         self.setFont(QtGui.QFont('Courier'))
         self.setMinimumWidth(700)
@@ -111,12 +158,21 @@ class NXScriptTextEdit(QtWidgets.QPlainTextEdit):
 
     @property
     def count(self):
+        """The number of blocks in the text box."""
         return self.blockCount()
 
 
 class NXScriptWindow(NXPanel):
 
     def __init__(self, parent=None):
+        """
+        Initialize the script window.
+
+        Parameters
+        ----------
+        parent : QWidget, optional
+            The parent of the script window.
+        """
         super().__init__('Editor', title='Script Editor', close=False,
                          parent=parent)
         self.tab_class = NXScriptEditor
@@ -125,6 +181,15 @@ class NXScriptWindow(NXPanel):
         return 'NXScriptWindow()'
 
     def activate(self, file_name):
+        """
+        Activate a script window.
+
+        Parameters
+        ----------
+        file_name : str, optional
+            If given, open the file for editing. If not given, create a
+            new empty script window.
+        """
         if file_name:
             label = Path(file_name).name
         else:
@@ -137,10 +202,22 @@ class NXScriptWindow(NXPanel):
 
 
 class NXScriptEditor(NXTab):
-    """Dialog to plot arbitrary NeXus data in one or two dimensions"""
-
+ 
     def __init__(self, label, file_name=None, parent=None):
 
+        """
+        Initialize the script editor.
+
+        Parameters
+        ----------
+        label : str
+            The name of the tab.
+        file_name : str, optional
+            The name of the file to be edited. If given, open the file
+            for editing. If not given, create a new empty script window.
+        parent : QWidget, optional
+            The parent of the script editor.
+        """
         super().__init__(label, parent=parent)
 
         self.file_name = file_name
@@ -186,6 +263,7 @@ class NXScriptEditor(NXTab):
         self.define_style()
 
     def define_style(self):
+        """Modify the style when changing to light or dark mode."""
         if in_dark_mode():
             self.number_box.setStyleSheet('color: white; '
                                           'background-color: #444; '
@@ -199,10 +277,25 @@ class NXScriptEditor(NXTab):
         self.highlighter = NXHighlighter(self.text_box.document())
 
     def get_text(self):
+        """
+        Return the text contained in the edit window.
+
+        This method returns the text contained in the text box,
+        replacing all tabs with 4 spaces and adding a newline at the
+        end. This is suitable for writing to a file.
+        """
         text = self.text_box.document().toPlainText().strip()
         return text.replace('\t', '    ') + '\n'
 
     def update_line_numbers(self):
+        """
+        Update the line numbers in the editor.
+
+        This method updates the line numbers in the left column of the
+        editor whenever the text is changed. The width of the line
+        numbers is set to be wide enough to hold 3 or 4 digits,
+        depending on the number of lines in the text.
+        """
         count = self.text_box.count
         if count >= 1000:
             self.number_box.setWidth(40)
@@ -211,11 +304,30 @@ class NXScriptEditor(NXTab):
         self.scroll_numbers()
 
     def scroll_numbers(self):
+        """
+        Synchronize the scroll bar of the line numbers with the
+        scroll bar of the text box.
+
+        This method is called whenever the text box is scrolled.
+        It sets the value of the line numbers scroll bar to the value
+        of the text box scroll bar and updates the line numbers to
+        ensure that the correct line numbers are displayed.
+        """
         self.number_box.verticalScrollBar().setValue(
             self.text_box.verticalScrollBar().value())
         self.text_box.scrollbar.update()
 
     def run_script(self):
+        """
+        Run the script in the NeXpy console.
+
+        This method runs the script in the edit window in the NeXpy
+        console. If the script contains the string 'sys.argv', it
+        is saved to a temporary file and the 'run' magic is used to
+        run the script with the arguments given in the argument box.
+        Otherwise, the script is executed directly in the NeXpy
+        console.
+        """
         text = self.get_text()
         if 'sys.argv' in text:
             file_name = tempfile.mkstemp('.py')[1]
@@ -228,6 +340,7 @@ class NXScriptEditor(NXTab):
             self.mainwindow.console.execute(self.get_text())
 
     def save_script(self):
+        """Save the script to a file."""
         if self.file_name:
             with open(self.file_name, 'w') as f:
                 f.write(self.get_text())
@@ -235,6 +348,7 @@ class NXScriptEditor(NXTab):
             self.save_script_as()
 
     def save_script_as(self):
+        """Save the script to a new file."""
         file_filter = ';;'.join(("Python Files (*.py)", "Any Files (*.* *)"))
         if self.file_name:
             default_name = self.file_name
@@ -252,6 +366,11 @@ class NXScriptEditor(NXTab):
             self.delete_button.setVisible(True)
 
     def reload_script(self):
+        """Reload a script from a file.
+
+        If the file has changed since it was last loaded, this will
+        overwrite the current script with the new contents of the file.
+        """
         if self.file_name:
             if confirm_action(
                     f"Are you sure you want to reload '{self.file_name}'?",
@@ -262,6 +381,15 @@ class NXScriptEditor(NXTab):
                 self.update_line_numbers()
 
     def delete_script(self):
+        """
+        Delete a script from a file.
+
+        If the file is currently open, this will delete it from the
+        file system and close the script window. If the file is not
+        currently open, this will delete it from the file system only.
+
+        This method will ask for confirmation before taking any action.
+        """
         if self.file_name:
             if confirm_action(
                     f"Are you sure you want to delete '{self.file_name}'?",
