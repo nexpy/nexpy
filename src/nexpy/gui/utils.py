@@ -1216,8 +1216,7 @@ class NXGarbageCollector(QtCore.QObject):
 
     This is done to ensure that garbage collection only happens in the
     GUI thread, as otherwise Qt can crash. It is based on code by Fabio
-    Zadrozny
-    (https://pydev.blogspot.com/2014/03/should-python-garbage-collector-be.html)
+    Zadrozny (https://tinyurl.com/5hdj79sp).
     """
 
     def __init__(self, parent=None):

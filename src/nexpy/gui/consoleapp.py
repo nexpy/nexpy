@@ -20,15 +20,9 @@ import tempfile
 from pathlib import Path
 
 from IPython import __version__ as ipython_version
-from jupyter_client.consoleapp import JupyterConsoleApp, app_aliases, app_flags
-from jupyter_core.application import JupyterApp, base_aliases, base_flags
 from matplotlib import __version__ as mpl_version
 from nexusformat.nexus import NXroot, nxclasses, nxversion
-from qtconsole import __version__
-from qtconsole.jupyter_widget import JupyterWidget
-from qtconsole.rich_jupyter_widget import RichJupyterWidget
-from traitlets import Any, CBool, Dict, Unicode
-from traitlets.config.application import boolean_flag, catch_config_error
+from qtconsole.qtconsoleapp import JupyterQtConsoleApp
 
 from .. import __version__ as nexpy_version
 from .mainwindow import MainWindow
@@ -38,103 +32,27 @@ from .utils import (NXConfigParser, NXGarbageCollector, NXLogger, define_mode,
                     entry_points, initialize_settings, report_exception,
                     resource_icon, timestamp_age)
 
-# -----------------------------------------------------------------------------
-# Globals
-# -----------------------------------------------------------------------------
 
 _tree = None
 _shell = None
 _mainwindow = None
 _nexpy_dir = None
-_examples = """
-nexpy                      # start the GUI application
-"""
-
-# -----------------------------------------------------------------------------
-# Aliases and Flags
-# -----------------------------------------------------------------------------
-
-flags = dict(base_flags)
-qt_flags = {'plain': ({'NXConsoleApp': {'plain': True}},
-                      "Disable rich text support.")}
-qt_flags.update(boolean_flag(
-    'banner', 'NXConsoleApp.display_banner',
-    "Display a banner upon starting the QtConsole.",
-    "Don't display a banner upon starting the QtConsole."
-))
-qt_flags.update(app_flags)
-flags.update(qt_flags)
-
-aliases = dict(base_aliases)
-qt_aliases = dict(style='JupyterWidget.syntax_style',
-                  stylesheet='NXConsoleApp.stylesheet',
-                  editor='JupyterWidget.editor',
-                  paging='ConsoleWidget.paging')
-qt_aliases.update(app_aliases)
-qt_aliases.update({'gui-completion': 'ConsoleWidget.gui_completion'})
-aliases.update(qt_aliases)
-
-qt_aliases = set(qt_aliases)
-qt_flags = set(qt_flags)
-
-# -----------------------------------------------------------------------------
-# NXConsoleApp
-# -----------------------------------------------------------------------------
 
 
-class NXConsoleApp(JupyterApp, JupyterConsoleApp):
-    name = 'nexpy-console'
-    version = __version__
-    description = """
-        The NeXpy Console.
+class NXConsoleApp(JupyterQtConsoleApp):
 
-        This launches a Console-style application using Qt.
-
-        The console is embedded in a GUI that contains a tree view of
-        all NXroot groups and a matplotlib plotting pane. It also has all
-        the added benefits of a Jupyter Qt Console with multiline editing,
-        autocompletion, tooltips, command line histories and the ability to
-        save your session as HTML or print the output.
-
-    """
-    examples = _examples
-
-    classes = [JupyterWidget] + JupyterConsoleApp.classes
-    flags = Dict(flags)
-    aliases = Dict(aliases)
-    frontend_flags = Any(qt_flags)
-    frontend_aliases = Any(qt_aliases)
-
-    stylesheet = Unicode('', config=True,
-                         help="path to a custom CSS stylesheet")
-
-    hide_menubar = CBool(
-        False, config=True,
-        help="Start the console window with the menu bar hidden.")
-
-    plain = CBool(False, config=True,
-                  help="Use a plaintext widget instead of rich text.")
-
-    display_banner = CBool(
-        True, config=True,
-        help="Whether to display a banner upon starting the QtConsole.")
-
-    def _plain_changed(self, name, old, new):
-        kind = 'plain' if new else 'rich'
-        self.config.ConsoleWidget.kind = kind
-        if new:
-            self.widget_factory = JupyterWidget
-        else:
-            self.widget_factory = RichJupyterWidget
-
-    widget_factory = Any(RichJupyterWidget)
-
-    def parse_command_line(self, argv=None):
-        super().parse_command_line(argv)
-        self.build_kernel_argv(argv)
+    display_banner = False
 
     def init_dir(self):
-        """Initialize NeXpy home directory"""
+        """
+        Initialize the NeXpy directory.
+
+        This method creates the NeXpy directory tree and scratch file if
+        they do not already exist. The NeXpy directory is created in the
+        user's home directory as ~/.nexpy. If the user does not have
+        write access to the home directory, a temporary directory is
+        created instead.
+        """
         nexpy_dir = Path.home() / '.nexpy'
         if not nexpy_dir.exists():
             if not os.access(Path.home(), os.W_OK):
@@ -157,7 +75,13 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
             NXroot().save(self.scratch_file)
 
     def init_settings(self):
-        """Initialize access to the NeXpy settings file."""
+        """
+        Initialize NeXpy settings.
+
+        This method initializes the NeXpy settings file located at
+        ~/.nexpy/settings.ini. If the file does not exist, it is
+        created. Any backups that are older than 5 days are removed.
+        """
         self.settings_file = self.nexpy_dir / 'settings.ini'
         self.settings = NXConfigParser(self.settings_file)
         initialize_settings(self.settings)
@@ -184,7 +108,14 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
         self.settings.save()
 
     def init_log(self):
-        """Initialize the NeXpy logger."""
+        """
+        Initialize the NeXpy log file.
+
+        The log file is named 'nexpy.log' and is located in the NeXpy
+        home directory. The log file is rotated every 50KB. The log
+        level is set to 'INFO' unless the environment variable NEXPY_LOG
+        is set to 'DEBUG', 'INFO', 'WARNING', 'ERROR', or 'CRITICAL'.
+        """
         log_file = self.nexpy_dir / 'nexpy.log'
         handler = logging.handlers.RotatingFileHandler(log_file,
                                                        maxBytes=50000,
@@ -220,7 +151,11 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
         sys.stdout = sys.stderr = NXLogger()
 
     def init_plugins(self):
-        """Initialize the NeXpy plugins."""
+        """
+        Initialize the plugins, readers, and writers, by setting the
+        paths of all found plugins in the settings, and loading all
+        plugins found in the entry points.
+        """
         eps = entry_points()
         def initialize_plugin(plugin_group, plugin_dir):
             plugin = None
@@ -241,17 +176,37 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
         initialize_plugin('writers', self.writer_dir)
 
     def init_tree(self):
-        """Initialize the NeXus tree used in the tree view."""
+        """
+        Initialize the NeXpy tree.
+
+        This creates a new NXtree instance and assigns it to the global
+        variable _tree.
+        """
         global _tree
         self.tree = NXtree()
         _tree = self.tree
 
     def init_config(self):
+        """
+        Initialize the configuration options for the console.
+
+        This sets the input separator to an empty string and disables
+        the use of Jedi for autocompletion.
+        """
         self.config.ConsoleWidget.input_sep = ''
         self.config.Completer.use_jedi = False
+        self.config.InteractiveShell.enable_tip = False
 
     def init_gui(self):
-        """Initialize the GUI."""
+        """
+        Initialize the NeXpy graphical user interface.
+
+        This creates a QApplication instance if it does not exist, sets
+        the application name to 'nexpy', and sets the exception hook to
+        report exceptions in the log file. A MainWindow is created,
+        along with a garbage collector to periodically collect any NeXus
+        objects that are no longer referenced.
+        """
         self.app = QtWidgets.QApplication.instance()
         if self.app is None:
             self.app = QtWidgets.QApplication(['nexpy'])
@@ -319,29 +274,33 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
         if args.restore:
             self.window.restore_session()
 
-    def init_colors(self):
-        """Configure the coloring of the widget"""
+    def init_mode(self):
+        """Configure the dark/light mode of the NeXpy widgets."""
         define_mode()
 
     def init_signal(self):
-        """allow clean shutdown on sigint"""
+        """
+        Initialize the signal handler for the application.
+
+        The signal handler is configured to start a timer, so that the
+        interpreter will be given a chance to run every 200
+        milliseconds. This is necessary because the application could be
+        blocked waiting for a real Qt event to occur, and the signal
+        handler needs to have a chance to run.
+
+        This code is based on the following code from Stack Overflow:
+        http://stackoverflow.com/q/4938723/938949
+        """
         signal.signal(signal.SIGINT, lambda sig, frame: self.exit(-2))
-        # need a timer, so that QApplication doesn't block until a real
-        # Qt event fires (can require mouse movement)
-        # timer trick from http://stackoverflow.com/q/4938723/938949
         timer = QtCore.QTimer()
-        # Let the interpreter run each 200 ms:
         timer.timeout.connect(lambda: None)
         timer.start(200)
-        # hold onto ref, so the timer doesn't get cleaned up
         self._sigint_timer = timer
 
-    @catch_config_error
     def initialize(self, args, extra_args):
         if args.faulthandler:
             import faulthandler
             faulthandler.enable(all_threads=False)
-        super().initialize(extra_args)
         self.init_dir()
         self.init_settings()
         self.init_log()
@@ -350,19 +309,21 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
         self.init_config()
         self.init_gui()
         self.init_shell(args)
-        self.init_colors()
+        self.init_mode()
         self.init_signal()
 
     def start(self):
-        super().start()
+        """
+        Start the application.
 
-        # draw the window
+        This method starts the application main loop. It is called by
+        JupyterConsoleApp after the application has been initialized.
+
+        This method is responsible for drawing the window, issuing
+        startup messages, and starting the application main loop.
+        """
         self.window.show()
-
-        # Issue startup messages
         self.window.start()
-
-        # Start the application main loop.
         self.app.exec()
 
 
@@ -372,6 +333,20 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
 
 
 def main(args, extra_args):
+    """
+    Main entry point for NeXpy console application.
+
+    Parameters
+    ----------
+    args : list of str
+        List of command line arguments.
+    extra_args : list of str
+        List of extra command line arguments (not including argv[0]).
+
+    Returns
+    -------
+    None
+    """
     app = NXConsoleApp()
     app.initialize(args, extra_args)
     app.start()
