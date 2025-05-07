@@ -17,7 +17,6 @@ import shutil
 import signal
 import sys
 import tempfile
-from importlib.metadata import entry_points
 from pathlib import Path
 
 from IPython import __version__ as ipython_version
@@ -36,8 +35,8 @@ from .mainwindow import MainWindow
 from .pyqt import QtCore, QtGui, QtVersion, QtWidgets
 from .treeview import NXtree
 from .utils import (NXConfigParser, NXGarbageCollector, NXLogger, define_mode,
-                    initialize_settings, report_exception, resource_icon,
-                    timestamp_age)
+                    entry_points, initialize_settings, report_exception,
+                    resource_icon, timestamp_age)
 
 # -----------------------------------------------------------------------------
 # Globals
@@ -222,6 +221,7 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
 
     def init_plugins(self):
         """Initialize the NeXpy plugins."""
+        eps = entry_points()
         def initialize_plugin(plugin_group, plugin_dir):
             plugin = None
             plugins = self.settings.options(plugin_group)
@@ -231,11 +231,11 @@ class NXConsoleApp(JupyterApp, JupyterConsoleApp):
                     plugin  = str(path)
                     if plugin not in plugins:
                         self.settings.set(plugin_group, plugin, value=None)
-            if 'nexpy.' + plugin_group in entry_points():
-                for entry in entry_points()['nexpy.'+plugin_group]:
-                    plugin = entry.module
-                    if plugin not in plugins:
-                        self.settings.set(plugin_group, plugin, value=None)
+            group_name = 'nexpy.' + plugin_group
+            for entry in eps.select(group=group_name):
+                plugin = entry.module
+                if plugin not in plugins:
+                    self.settings.set(plugin_group, plugin, value=None)
         initialize_plugin('plugins', self.plugin_dir)
         initialize_plugin('readers', self.reader_dir)
         initialize_plugin('writers', self.writer_dir)

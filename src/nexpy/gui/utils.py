@@ -18,12 +18,14 @@ from configparser import ConfigParser
 from datetime import datetime
 
 if sys.version_info < (3, 10):
+    from importlib_metadata import PackageNotFoundError, entry_points
+    from importlib_metadata import version as metadata_version
     from importlib_resources import files as package_files
 else:
+    from importlib.metadata import PackageNotFoundError, entry_points
+    from importlib.metadata import version as metadata_version
     from importlib.resources import files as package_files
 
-from importlib import metadata
-from importlib.metadata import PackageNotFoundError, entry_points
 from importlib.util import module_from_spec, spec_from_file_location
 from pathlib import Path
 from threading import Thread
@@ -141,7 +143,6 @@ def run_pythonw(script_path):
     import platform
     import warnings
 
-    from packaging.version import Version
     if (Version(platform.release()) > Version('19.0.0') and
             'CONDA_PREFIX' in os.environ):
         pythonw_path = Path(sys.exec_prefix).joinpath('bin', 'pythonw')
@@ -726,8 +727,8 @@ def load_plugin(plugin, order=None):
         return {'package': package, 'menu': menu, 'actions': actions,
                 'order': order}
     else:
-        entry = next((e for e in entry_points()['nexpy.plugins']
-                      if e.module == plugin), None)
+        eps = entry_points().select(group='nexpy.plugins')
+        entry = next((e for e in eps if e.module == plugin), None)
         if entry is not None:
             package = entry.dist.name
             menu, actions = entry.load()()
@@ -778,7 +779,7 @@ def is_installed(package_name):
         True if the package is installed, False otherwise.
     """
     try:
-        metadata.version(package_name)
+        metadata_version(package_name)
         return True
     except PackageNotFoundError:
         return False
