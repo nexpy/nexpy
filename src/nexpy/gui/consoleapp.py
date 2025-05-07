@@ -203,12 +203,9 @@ class NXConsoleApp(JupyterQtConsoleApp):
 
         This creates a QApplication instance if it does not exist, sets
         the application name to 'nexpy', and sets the exception hook to
-        report exceptions in the log file. It then creates a NeXpy icon
-        and sets it as the application icon. A stylesheet is applied to
-        tooltips to set the color to dark blue and the background color
-        to beige. Finally, a MainWindow is created, and a garbage
-        collector is created to periodically collect any NeXus objects
-        that are no longer referenced.
+        report exceptions in the log file. A MainWindow is created,
+        along with a garbage collector to periodically collect any NeXus
+        objects that are no longer referenced.
         """
         self.app = QtWidgets.QApplication.instance()
         if self.app is None:
