@@ -37,8 +37,6 @@ dependencies = [
     "fabio",
     "h5py",
     "ipython",
-    "jupyter_client",
-    "jupyter_core",
     "lmfit",
     "matplotlib",
     "mplcursors",
@@ -51,7 +49,6 @@ dependencies = [
     "qtconsole",
     "qtpy",
     "scipy",
-    "traitlets",
     "importlib_metadata; python_version < '3.10'",
     "importlib_resources; python_version < '3.10'"
 ]

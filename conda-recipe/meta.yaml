@@ -24,8 +24,6 @@ requirements:
     - fabio
     - h5py
     - ipython
-    - jupyter_client
-    - jupyter_core
     - lmfit
     - matplotlib
     - mplcursors
@@ -38,7 +36,6 @@ requirements:
     - qtconsole
     - qtpy
     - scipy
-    - traitlets
 
 test:
   imports:
