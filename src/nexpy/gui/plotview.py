@@ -4330,7 +4330,7 @@ class NXProjectionTab(QtWidgets.QWidget):
             elif np.abs(np.abs(rotation_angle) - 90.0) < 5.0:
                 rotation_angle = 90.0
             else:
-                rotation_angle = np.round(rotation_angle)
+                rotation_angle = np.round(rotation_angle / 5.0) * 5.0
         except ZeroDivisionError:
             rotation_angle = 90.0
         rotation_angle = -rotation_angle
