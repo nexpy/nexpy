@@ -4351,8 +4351,12 @@ class NXProjectionTab(QtWidgets.QWidget):
         else:
             plotview = NXPlotView(label)
             plotview.plot(rotated_line)
-            plotviews[label].xtab.minbox.setValue(rotated_xmin)
-            plotviews[label].xtab.maxbox.setValue(rotated_xmax)
+        plotviews[label].xtab.minbox.setValue(rotated_xmin)
+        plotviews[label].xtab.maxbox.setValue(rotated_xmax)
+        idx = len(plotviews[label].plots)
+        legend_label = f"{rotation_angle:.0f}° y = {rotated_y:.2f}"
+        plotviews[label].plots[idx]['legend_label'] = legend_label
+        plotviews[label].legend()
 
 
 class NXNavigationToolbar(NavigationToolbar2QT, QtWidgets.QToolBar):
