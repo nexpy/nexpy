@@ -25,7 +25,7 @@ def main():
                         help='open files from previous session')
     parser.add_argument('-f', '--faulthandler', action='store_true',
                         help='enable faulthandler for system crashes')
-    args, extra_args = parser.parse_known_args()
+    args = parser.parse_args()
 
     for i, f in enumerate(args.filenames):
         args.filenames[i] = f"{Path(f).resolve()}"
@@ -35,7 +35,7 @@ def main():
         run_pythonw(__file__)
 
     from nexpy.gui.consoleapp import main
-    main(args, extra_args)
+    main(args)
 
 
 if __name__ == '__main__':

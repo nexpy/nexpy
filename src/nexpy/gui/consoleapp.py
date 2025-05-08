@@ -41,8 +41,6 @@ _nexpy_dir = None
 
 class NXConsoleApp(JupyterQtConsoleApp):
 
-    display_banner = False
-
     def init_dir(self):
         """
         Initialize the NeXpy directory.
@@ -151,11 +149,7 @@ class NXConsoleApp(JupyterQtConsoleApp):
         sys.stdout = sys.stderr = NXLogger()
 
     def init_plugins(self):
-        """
-        Initialize the plugins, readers, and writers, by setting the
-        paths of all found plugins in the settings, and loading all
-        plugins found in the entry points.
-        """
+        """Initialize plugins, readers, and writers."""
         eps = entry_points()
         def initialize_plugin(plugin_group, plugin_dir):
             plugin = None
@@ -176,23 +170,13 @@ class NXConsoleApp(JupyterQtConsoleApp):
         initialize_plugin('writers', self.writer_dir)
 
     def init_tree(self):
-        """
-        Initialize the NeXpy tree.
-
-        This creates a new NXtree instance and assigns it to the global
-        variable _tree.
-        """
+        """Initialize the root element of the NeXpy tree view."""
         global _tree
         self.tree = NXtree()
         _tree = self.tree
 
     def init_config(self):
-        """
-        Initialize the configuration options for the console.
-
-        This sets the input separator to an empty string and disables
-        the use of Jedi for autocompletion.
-        """
+        """Initialize the configuration options for the NeXpy console."""
         self.config.ConsoleWidget.input_sep = ''
         self.config.Completer.use_jedi = False
         self.config.InteractiveShell.enable_tip = False
@@ -297,7 +281,19 @@ class NXConsoleApp(JupyterQtConsoleApp):
         timer.start(200)
         self._sigint_timer = timer
 
-    def initialize(self, args, extra_args):
+    def initialize(self, args):
+        """
+        Initialize the NeXpy application.
+
+        This method is called by JupyterConsoleApp to initialize the
+        application. It is responsible for initializing the configuration,
+        logging, plugins, tree view, shell and graphical user interface.
+
+        Parameters
+        ----------
+        args : argparse.Namespace
+            The parsed command line arguments.
+        """
         if args.faulthandler:
             import faulthandler
             faulthandler.enable(all_threads=False)
@@ -332,7 +328,7 @@ class NXConsoleApp(JupyterQtConsoleApp):
 # -----------------------------------------------------------------------------
 
 
-def main(args, extra_args):
+def main(args):
     """
     Main entry point for NeXpy console application.
 
@@ -340,15 +336,9 @@ def main(args, extra_args):
     ----------
     args : list of str
         List of command line arguments.
-    extra_args : list of str
-        List of extra command line arguments (not including argv[0]).
-
-    Returns
-    -------
-    None
     """
     app = NXConsoleApp()
-    app.initialize(args, extra_args)
+    app.initialize(args)
     app.start()
     sys.exit(0)
 
