@@ -65,7 +65,7 @@ from .utils import (boundaries, centers, display_message, divgray_map,
                     find_nearest, fix_projection, get_color, in_dark_mode,
                     iterable, keep_data, load_image, parula_map, report_error,
                     report_exception, resource_file, resource_icon,
-                    rotate_data, xtec_map)
+                    rotate_data, rotate_point, xtec_map)
 from .widgets import (NXCheckBox, NXcircle, NXComboBox, NXDoubleSpinBox,
                       NXellipse, NXLabel, NXline, NXLineEdit, NXpolygon,
                       NXPushButton, NXrectangle, NXSlider, NXSpinBox,
@@ -4285,7 +4285,7 @@ class NXProjectionTab(QtWidgets.QWidget):
         self.rotate_line = NXline(self.plotview, self.plot_rotated_line)
         self.rotate_line.on_press(event)
 
-    def plot_rotated_line(self, start_point, end_point):
+    def plot_rotated_line(self, start, end):
         """
         Plot the rotated line on a new plotview.
 
@@ -4305,9 +4305,9 @@ class NXProjectionTab(QtWidgets.QWidget):
 
         Parameters
         ----------
-        start_point : tuple
+        start : tuple
             The starting point of the line.
-        end_point : tuple
+        end : tuple
             The ending point of the line.
         """
         if self.plotview.aspect == 'auto':
@@ -4320,8 +4320,8 @@ class NXProjectionTab(QtWidgets.QWidget):
                 aspect = 1.0
         else:
             aspect = self.plotview.aspect
-        xmin, ymin = start_point
-        xmax, ymax = end_point
+        xmin, ymin = start
+        xmax, ymax = end
         try:
             rotation_angle = np.degrees(np.arctan(aspect * (ymax - ymin) /
                                                   (xmax - xmin)))
@@ -4338,11 +4338,12 @@ class NXProjectionTab(QtWidgets.QWidget):
         self.plotview.tab_widget.setCurrentWidget(self)
         self.rotation_box.setFocus()
         rotated_data = self.plotview.rotate(rotation_angle)
-        angle = np.radians(rotation_angle)
-        rotated_y = ((xmin * np.sin(angle) / aspect) + ymin * np.cos(angle))
-        rotated_xmin = (xmin * np.cos(angle) - aspect * ymin * np.sin(angle))
-        rotated_xmax = (xmax * np.cos(angle) - aspect * ymax * np.sin(angle))
+        center = rotated_data.attrs['x0'], rotated_data.attrs['y0']
+        rotated_xmin = rotate_point(start, rotation_angle, center, aspect)[0]
+        rotated_xmax = rotate_point(end, rotation_angle, center, aspect)[0]
+        rotated_y = rotate_point(start, rotation_angle, center, aspect)[1]
         rotated_line = rotated_data[rotated_y]
+        rotated_line.nxsignal.attrs['long_name'] = 'Rotated Line'
         label = f"Rotation: {self.plotview.label}"
         if label in plotviews:
             plotview = plotviews[label]
