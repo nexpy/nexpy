@@ -1677,6 +1677,10 @@ class NXTab(NXWidget):
             if selected in self.copybox:
                 self.copybox.select(selected)
 
+    def apply(self):
+        """To be implemented by subclasses."""
+        pass
+
 
 class GridParameters(dict):
 
