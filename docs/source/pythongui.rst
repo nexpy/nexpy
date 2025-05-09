@@ -216,7 +216,9 @@ File Menu
     Closes the scratch file.
 
 **Manage Plugins**
-    This opens a dialog, in which plugins that have been discovered within the Python distribution can be enabled or disabled. The order of the plugins in the menu bar can also be changed.
+    This opens a dialog, in which plugins that have been discovered
+    within the Python distribution can be enabled or disabled. The order
+    of the plugins in the menu bar can also be changed.
 
     .. seealso:: `NeXpy Plugins`_
 
