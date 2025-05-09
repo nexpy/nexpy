@@ -2398,6 +2398,7 @@ class NXLineEdit(QtWidgets.QLineEdit):
             self.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
         elif align == 'right':
             self.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
+        self.setToolTip(self.text())
 
     def setText(self, text):
         """
@@ -2409,6 +2410,7 @@ class NXLineEdit(QtWidgets.QLineEdit):
             Text to replace the text box contents.
         """
         super().setText(str(text))
+        self.setToolTip(self.text())
         self.repaint()
 
 
