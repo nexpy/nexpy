@@ -4359,13 +4359,15 @@ class EditTab(NXTab):
             self.display_message('Group is read-only')
             return
         row = 1
-        for field in [f for f in self.group.NXfield if f.ndim == 0]:
+        for row in range(1, self.grid.rowCount()):
+            field_name = self.grid.itemAtPosition(row, 0).widget().text()
+            field = self.group[field_name]
             if field.is_string():
                 value = self.grid.itemAtPosition(row, 1).widget().toPlainText()
-                if field.nxvalue != value:
+                if field.nxvalue != value.rstrip():
                     field.nxdata = value.rstrip()
             else:
-                value = self.grid.itemAtPosition(row, 1).widget().text()
+                value = self.grid.itemAtPosition(row, 1).widget().toPlainText()
                 try:
                     value = field.dtype.type(value)
                 except ValueError:
@@ -4373,7 +4375,6 @@ class EditTab(NXTab):
                     return
                 if not np.isclose(field.nxvalue, value):
                     field.nxdata = value            
-            row += 1
 
 
 class AddDialog(NXDialog):
