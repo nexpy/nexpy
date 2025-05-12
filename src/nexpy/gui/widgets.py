@@ -2274,7 +2274,9 @@ class NXSortModel(QtCore.QSortFilterProxyModel):
 
 
 class NXScrollArea(QtWidgets.QScrollArea):
-    def __init__(self, content=None, horizontal=False, parent=None):
+
+    def __init__(self, content=None, horizontal=False, height=600,
+                 parent=None):
         """Initialize the scroll area.
 
         Parameters
@@ -2283,6 +2285,10 @@ class NXScrollArea(QtWidgets.QScrollArea):
             Widget or layout to be contained within the scroll area.
         horizontal : bool
             True if a horizontal scroll bar is enabled, default False.
+        height : int
+            Maximum height of the scroll area, default 600.
+        parent : QObject, optional
+            Parent of the scroll area (the default is None).
         """
         super().__init__(parent=parent)
         if content:
@@ -2294,6 +2300,7 @@ class NXScrollArea(QtWidgets.QScrollArea):
                 self.setWidget(widget)
         if not horizontal:
             self.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        self.setMaximumHeight(height)
         self.setWidgetResizable(True)
         self.setSizePolicy(QtWidgets.QSizePolicy.Expanding,
                            QtWidgets.QSizePolicy.Expanding)
