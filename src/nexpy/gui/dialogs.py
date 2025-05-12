@@ -25,7 +25,7 @@ from .utils import (convertHTML, display_message, fix_projection, format_mtime,
 from .widgets import (GridParameters, NXCheckBox, NXComboBox, NXDialog,
                       NXDoubleSpinBox, NXLabel, NXLineEdit, NXPanel,
                       NXPlainTextEdit, NXpolygon, NXPushButton, NXScrollArea,
-                      NXSpinBox, NXTab, NXWidget)
+                      NXSpinBox, NXTab, NXTextEdit, NXWidget)
 
 
 class NewDialog(NXDialog):
@@ -3684,11 +3684,13 @@ class ViewTab(NXTab):
         layout = QtWidgets.QVBoxLayout()
         self.properties = GridParameters()
 
-        self.properties.add('class', node.__class__.__name__, 'Class')
-        self.properties.add('name', node.nxname, 'Name')
-        self.properties.add('path', node.nxpath, 'Path')
+        self.properties.add('class', node.__class__.__name__, 'Class',
+                            readonly=True)
+        self.properties.add('name', node.nxname, 'Name', readonly=True)
+        self.properties.add('path', node.nxpath, 'Path', readonly=True)
         if node.nxroot.nxfilename:
-            self.properties.add('file', node.nxroot.nxfilename, 'File')
+            self.properties.add('file', node.nxroot.nxfilename, 'File',
+                                readonly=True)
         target_path_label = 'Target Path'
         target_error = None
         if node.file_exists():
@@ -3700,41 +3702,52 @@ class ViewTab(NXTab):
             target_file_label = 'Target File*'
             target_error = '* Target file does not exist'
         if isinstance(node, NXlink):
-            self.properties.add('target', node._target, target_path_label)
+            self.properties.add('target', node._target, target_path_label,
+                                readonly=True)
             if node._filename:
                 self.properties.add('linkfile', node._filename,
-                                    target_file_label)
+                                    target_file_label, readonly=True)
             elif node.nxfilename and node.nxfilename != node.nxroot.nxfilename:
                 self.properties.add('linkfile', node.nxfilename,
-                                    target_file_label)
+                                    target_file_label, readonly=True)
         elif isinstance(node, NXvirtualfield):
-            self.properties.add('vpath', node._vpath, 'Virtual Path')
-            self.properties.add('vfiles', node._vfiles, 'Virtual Files')
+            self.properties.add('vpath', node._vpath, 'Virtual Path',
+                                readonly=True)
+            self.properties.add('vfiles', node._vfiles, 'Virtual Files',
+                                readonly=True)
         elif node.nxfilename and node.nxfilename != node.nxroot.nxfilename:
-            self.properties.add('target', node.nxfilepath, 'Target Path')
-            self.properties.add('linkfile', node.nxfilename, target_file_label)
+            self.properties.add('target', node.nxfilepath, 'Target Path',
+                                readonly=True)
+            self.properties.add('linkfile', node.nxfilename, target_file_label,
+                                readonly=True)
         if node.nxfilemode:
-            self.properties.add('filemode', node.nxfilemode, 'Mode')
+            self.properties.add('filemode', node.nxfilemode, 'Mode',
+                                readonly=True)
         if target_error:
             pass
         elif isinstance(node, NXfield) and node.shape is not None:
             if node.shape == () or node.shape == (1,):
-                self.properties.add('value', str(node), 'Value')
-            self.properties.add('dtype', node.dtype, 'Dtype')
-            self.properties.add('shape', str(node.shape), 'Shape')
+                self.properties.add('value', str(node), 'Value', readonly=True)
+            self.properties.add('dtype', node.dtype, 'Dtype', readonly=True)
+            self.properties.add('shape', str(node.shape), 'Shape',
+                                readonly=True)
             self.properties.add('maxshape', str(node.maxshape),
-                                'Maximum Shape')
-            self.properties.add('fillvalue', str(node.fillvalue), 'Fill Value')
-            self.properties.add('chunks', str(node.chunks), 'Chunk Size')
+                                'Maximum Shape', readonly=True)
+            self.properties.add('fillvalue', str(node.fillvalue), 'Fill Value',
+                                readonly=True)
+            self.properties.add('chunks', str(node.chunks), 'Chunk Size',
+                                readonly=True)
             self.properties.add('compression', str(node.compression),
-                                'Compression')
+                                'Compression', readonly=True)
             self.properties.add('compression_opts', str(node.compression_opts),
-                                'Compression Options')
-            self.properties.add('shuffle', str(node.shuffle), 'Shuffle Filter')
+                                'Compression Options', readonly=True)
+            self.properties.add('shuffle', str(node.shuffle), 'Shuffle Filter',
+                                readonly=True)
             self.properties.add('fletcher32', str(node.fletcher32),
-                                'Fletcher32 Filter')
+                                'Fletcher32 Filter', readonly=True)
         elif isinstance(node, NXgroup):
-            self.properties.add('entries', len(node.entries), 'No. of Entries')
+            self.properties.add('entries', len(node.entries), 'No. of Entries',
+                                readonly=True)
         layout.addLayout(self.properties.grid(header=False,
                                               title='Properties',
                                               width=200))
@@ -3744,7 +3757,8 @@ class ViewTab(NXTab):
         if node.attrs:
             self.attributes = GridParameters()
             for attr in node.attrs:
-                self.attributes.add(attr, str(node.attrs[attr]), attr)
+                self.attributes.add(attr, str(node.attrs[attr]), attr,
+                                    readonly=True)
             layout.addLayout(self.attributes.grid(header=False,
                                                   title='Attributes',
                                                   width=200))
@@ -4236,6 +4250,130 @@ class ValidateTab(NXTab):
         self.setVisible(True)
         self.raise_()
         self.activateWindow()
+
+
+class EditDialog(NXPanel):
+
+    def __init__(self, parent=None):
+        """Initialize the Edit Panel.
+
+        Parameters
+        ----------
+        parent : QWidget, optional
+            The parent of the dialog. The default is None.
+        """
+        super().__init__('Edit', title='Edit Panel', apply=True, reset=False,
+                         parent=parent)
+        self.tab_class = EditTab
+
+    def activate(self, node):
+        """
+        Activate a tab to edit the contents of a NeXus group.
+        
+        Parameters
+        ----------
+        node : NXobject
+            The node to be edited
+        """
+        label = node.nxroot.nxname + node.nxpath
+        if label not in self.tabs:
+            tab = EditTab(label, node, parent=self)
+            self.add(label, tab, idx=self.idx(label))
+        else:
+            self.tab = label
+        self.setVisible(True)
+        self.raise_()
+        self.activateWindow()
+
+
+class EditTab(NXTab):
+
+    def __init__(self, label, node, parent=None):
+
+        """
+        Initialize the tab to edit the contents of a NeXus group. Only
+        scalar fields are editable in this dialog.
+
+        Parameters
+        ----------
+        label : str
+            The title of the tab
+        node : NXobject
+            The NeXus node to be edited
+        parent : QWidget, optional
+            The parent of the tab
+        """
+        super().__init__(label, parent=parent)
+
+        self.group = node
+        if not isinstance(self.group, NXgroup):
+            raise NeXusError('The node must be a NeXus group')
+
+        field_list = [f for f in self.group.NXfield if f.ndim == 0]
+        if len(field_list) == 0:
+            raise NeXusError(f"No scalar fields found in {self.group.nxpath}")
+
+        self.grid = QtWidgets.QGridLayout()
+        self.grid.setSpacing(10)
+        headers = ['Field', 'Value', '']
+        width = [100, 100, 20]
+        column = 0
+        for header in headers:
+            label = NXLabel(header, bold=True, align='center')
+            self.grid.addWidget(label, 0, column)
+            self.grid.setColumnMinimumWidth(column, width[column])
+            column += 1
+
+        row = 1
+        for field in field_list:
+            self.grid.addWidget(NXLabel(field.nxname), row, 0,
+                                QtCore.Qt.AlignTop)
+            if field.is_string():
+                self.grid.addWidget(NXTextEdit(field.nxvalue, autosize=True),
+                                    row, 1, QtCore.Qt.AlignTop)
+            else:
+                self.grid.addWidget(NXTextEdit(field.nxvalue, align='right',
+                                               autosize=True),
+                                    row, 1)
+                self.grid.addWidget(NXLabel(field.nxunits), row, 2)
+            row += 1
+        self.grid.setContentsMargins(10, 10, 40, 10)
+        self.grid.setSpacing(5)
+        self.scroll_area = NXScrollArea(self.grid, height=800)
+        self.scroll_area.setMinimumHeight(200)
+        self.scroll_area.setSizePolicy(QtWidgets.QSizePolicy.Preferred,
+                                       QtWidgets.QSizePolicy.Preferred)
+        self.set_layout(self.scroll_area)
+        self.set_title(f'Edit {self.group.nxpath}')
+
+    def resize(self):
+        """Update the size of the scroll area and its contents."""
+        super().resize()
+        self.scroll_area.widget().updateGeometry()
+        self.scroll_area.updateGeometry()
+        self.scroll_area.widget().adjustSize()
+        self.scroll_area.adjustSize()
+
+    def apply(self):
+        if not self.group.is_modifiable():
+            self.display_message('Group is read-only')
+            return
+        row = 1
+        for field in [f for f in self.group.NXfield if f.ndim == 0]:
+            if field.is_string():
+                value = self.grid.itemAtPosition(row, 1).widget().toPlainText()
+                if field.nxvalue != value:
+                    field.nxdata = value.rstrip()
+            else:
+                value = self.grid.itemAtPosition(row, 1).widget().text()
+                try:
+                    value = field.dtype.type(value)
+                except ValueError:
+                    self.display_message(f'Invalid value for {field.nxname}')
+                    return
+                if not np.isclose(field.nxvalue, value):
+                    field.nxdata = value            
+            row += 1
 
 
 class AddDialog(NXDialog):
