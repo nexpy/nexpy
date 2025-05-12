@@ -2442,6 +2442,74 @@ class NXTextBox(NXLineEdit):
         self.setText(str(float(f'{value:.4g}')))
 
 
+class NXTextEdit(QtWidgets.QTextEdit):
+
+    def __init__(self, text=None, parent=None, slot=None, readonly=False,
+                 width=None, align='left', autosize=False):
+        """
+        Initialize a text edit box.
+
+        Parameters
+        ----------
+        text : str, optional
+            The text to be displayed in the text edit box, default None.
+        parent : QWidget, optional
+            The parent window of the text edit box, default None.
+        slot : function, optional
+            If given, connect the textChanged signal to the slot.
+        readonly : bool, optional
+            Whether to render the text edit box as read-only, default
+            False.
+        width : int, optional
+            The width of the text edit box in pixels, default None.
+        align : str, optional
+            The alignment of the text in the text edit box, either
+            'left', 'center', or 'right', default 'left'.
+        autosize : bool, optional
+            True if the text edit box should automatically resize to fit
+            its contents, default False.
+        """
+        super().__init__(parent=parent)
+        if slot:
+            self.textChanged.connect(slot)
+        if text is not None:
+            self.setPlainText(str(text))
+        if readonly:
+            self.setReadOnly(True)
+        if width:
+            self.setFixedWidth(width)
+        if align == 'left':
+            self.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
+        elif align == 'center':
+            self.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
+        elif align == 'right':
+            self.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
+        self.setToolTip(self.toPlainText())
+        if autosize:
+            self.setLineWrapMode(QtWidgets.QTextEdit.WidgetWidth)
+            self.document().setDocumentMargin(0)
+            self.update_minimum_height()
+            self.document().documentLayout().documentSizeChanged.connect(
+                self.adjust_height)
+
+    def update_minimum_height(self):
+        """Calculate height for one line of text including all margins"""
+        font_metrics = self.fontMetrics()
+        margins = self.contentsMargins()
+        line_height = font_metrics.lineSpacing()
+        total_margins = margins.top() + margins.bottom()
+        self.setFixedHeight(line_height + total_margins)
+
+    def adjust_height(self):
+        """Dynamically adjust height based on content"""
+        doc_height = self.document().size().height()
+        margins = self.contentsMargins()
+        total_height = int(doc_height + margins.top() + margins.bottom())
+        self.setMinimumHeight(self.fontMetrics().lineSpacing() +
+                              margins.top() + margins.bottom())
+        self.setFixedHeight(max(total_height, self.minimumHeight()))
+
+
 class NXPlainTextEdit(QtWidgets.QPlainTextEdit):
     """An editable text window."""
 
