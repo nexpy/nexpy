@@ -29,7 +29,7 @@ from qtconsole.inprocess import QtInProcessKernelManager
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
 
 from .. import __version__
-from .dialogs import (AddDialog, CustomizeDialog, DirectoryDialog,
+from .dialogs import (AddDialog, CustomizeDialog, DirectoryDialog, EditDialog,
                       ExportDialog, InitializeDialog, LimitDialog, LockDialog,
                       LogDialog, ManageBackupsDialog, ManagePluginsDialog,
                       NewDialog, PasteDialog, PlotDialog, PlotScalarDialog,
@@ -526,11 +526,18 @@ class MainWindow(QtWidgets.QMainWindow):
             triggered=self.view_data)
         self.add_menu_action(self.data_menu, self.view_action)
 
+        self.edit_action = QtWidgets.QAction(
+            "Edit Data", self, shortcut=QtGui.QKeySequence("Ctrl+E"),
+            triggered=self.edit_data)
+        self.add_menu_action(self.data_menu, self.edit_action)
+
         self.validate_action = QtWidgets.QAction(
             "Validate Data", self,
             shortcut=QtGui.QKeySequence("Ctrl+Alt+Shift+V"),
             triggered=self.validate_data)
         self.add_menu_action(self.data_menu, self.validate_action)
+
+        self.edit_menu.addSeparator()
 
         self.add_action = QtWidgets.QAction("Add Data", self,
                                             triggered=self.add_data)
@@ -543,6 +550,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.rename_action = QtWidgets.QAction("Rename Data", self,
                                                triggered=self.rename_data)
         self.add_menu_action(self.data_menu, self.rename_action)
+
+        self.edit_menu.addSeparator()
 
         self.copydata_action = QtWidgets.QAction(
             "Copy Data", self, shortcut=QtGui.QKeySequence("Ctrl+Shift+C"),
@@ -1628,6 +1637,16 @@ class MainWindow(QtWidgets.QMainWindow):
             self.panels['View'].activate(node)
         except NeXusError as error:
             report_error("Viewing Data", error)
+
+    def edit_data(self):
+        """Open an editor for the selected group."""
+        try:
+            node = self.treeview.get_node()
+            if not self.panel_is_running('Edit'):
+                self.panels['Edit'] = EditDialog()
+            self.panels['Edit'].activate(node)
+        except NeXusError as error:
+            report_error("Editing Data", error)
 
     def validate_data(self):
         """
