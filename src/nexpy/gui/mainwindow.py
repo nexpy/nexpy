@@ -1055,6 +1055,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def update_files(self, filename, recent=True):
         """Update the list of recently opened files."""
+        filename = str(filename)
         if recent:
             recent_files = self.settings.options('recent')
             try:

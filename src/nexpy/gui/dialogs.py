@@ -151,7 +151,7 @@ class DirectoryDialog(NXDialog):
         current session is set to the backup file name.
         """
         for i, f in enumerate(self.files):
-            fname = Path(self.directory).joinpath(f)
+            fname = str(Path(self.directory).joinpath(f))
             if i == 0:
                 self.mainwindow.load_file(fname, wait=1)
             else:
