@@ -1677,6 +1677,10 @@ class NXTab(NXWidget):
             if selected in self.copybox:
                 self.copybox.select(selected)
 
+    def apply(self):
+        """To be implemented by subclasses."""
+        pass
+
 
 class GridParameters(dict):
 
@@ -2270,7 +2274,9 @@ class NXSortModel(QtCore.QSortFilterProxyModel):
 
 
 class NXScrollArea(QtWidgets.QScrollArea):
-    def __init__(self, content=None, horizontal=False, parent=None):
+
+    def __init__(self, content=None, horizontal=False, height=600,
+                 parent=None):
         """Initialize the scroll area.
 
         Parameters
@@ -2279,6 +2285,10 @@ class NXScrollArea(QtWidgets.QScrollArea):
             Widget or layout to be contained within the scroll area.
         horizontal : bool
             True if a horizontal scroll bar is enabled, default False.
+        height : int
+            Maximum height of the scroll area, default 600.
+        parent : QObject, optional
+            Parent of the scroll area (the default is None).
         """
         super().__init__(parent=parent)
         if content:
@@ -2290,6 +2300,7 @@ class NXScrollArea(QtWidgets.QScrollArea):
                 self.setWidget(widget)
         if not horizontal:
             self.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        self.setMaximumHeight(height)
         self.setWidgetResizable(True)
         self.setSizePolicy(QtWidgets.QSizePolicy.Expanding,
                            QtWidgets.QSizePolicy.Expanding)
@@ -2398,6 +2409,7 @@ class NXLineEdit(QtWidgets.QLineEdit):
             self.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
         elif align == 'right':
             self.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
+        self.setToolTip(self.text())
 
     def setText(self, text):
         """
@@ -2409,6 +2421,7 @@ class NXLineEdit(QtWidgets.QLineEdit):
             Text to replace the text box contents.
         """
         super().setText(str(text))
+        self.setToolTip(self.text())
         self.repaint()
 
 
@@ -2434,6 +2447,76 @@ class NXTextBox(NXLineEdit):
             Text box value to be formatted as a float
         """
         self.setText(str(float(f'{value:.4g}')))
+
+
+class NXTextEdit(QtWidgets.QTextEdit):
+
+    def __init__(self, text=None, parent=None, slot=None, readonly=False,
+                 width=None, align='left', autosize=False):
+        """
+        Initialize a text edit box.
+
+        Parameters
+        ----------
+        text : str, optional
+            The text to be displayed in the text edit box, default None.
+        parent : QWidget, optional
+            The parent window of the text edit box, default None.
+        slot : function, optional
+            If given, connect the textChanged signal to the slot.
+        readonly : bool, optional
+            Whether to render the text edit box as read-only, default
+            False.
+        width : int, optional
+            The width of the text edit box in pixels, default None.
+        align : str, optional
+            The alignment of the text in the text edit box, either
+            'left', 'center', or 'right', default 'left'.
+        autosize : bool, optional
+            True if the text edit box should automatically resize to fit
+            its contents, default False.
+        """
+        super().__init__(parent=parent)
+        if slot:
+            self.textChanged.connect(slot)
+        if text is not None:
+            self.setPlainText(str(text))
+        if readonly:
+            self.setReadOnly(True)
+        if width:
+            self.setFixedWidth(width)
+        if align == 'left':
+            self.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
+        elif align == 'center':
+            self.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
+        elif align == 'right':
+            self.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
+        self.setToolTip(self.toPlainText())
+        self.setStyleSheet(
+            "QTextEdit { background-color: white; padding: 2px; }")
+        if autosize:
+            self.setLineWrapMode(QtWidgets.QTextEdit.WidgetWidth)
+            self.document().setDocumentMargin(0)
+            self.update_minimum_height()
+            self.document().documentLayout().documentSizeChanged.connect(
+                self.adjust_height)
+
+    def update_minimum_height(self):
+        """Calculate height for one line of text including all margins"""
+        font_metrics = self.fontMetrics()
+        margins = self.contentsMargins()
+        line_height = font_metrics.lineSpacing()
+        total_margins = margins.top() + margins.bottom()
+        self.setFixedHeight(line_height + total_margins)
+
+    def adjust_height(self):
+        """Dynamically adjust height based on content"""
+        doc_height = self.document().size().height()
+        margins = self.contentsMargins()
+        total_height = int(doc_height + margins.top() + margins.bottom())
+        self.setMinimumHeight(self.fontMetrics().lineSpacing() +
+                              margins.top() + margins.bottom())
+        self.setFixedHeight(max(total_height, self.minimumHeight()))
 
 
 class NXPlainTextEdit(QtWidgets.QPlainTextEdit):
