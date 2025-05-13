@@ -2492,6 +2492,8 @@ class NXTextEdit(QtWidgets.QTextEdit):
         elif align == 'right':
             self.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
         self.setToolTip(self.toPlainText())
+        self.setStyleSheet(
+            "QTextEdit { background-color: white; padding: 2px; }")
         if autosize:
             self.setLineWrapMode(QtWidgets.QTextEdit.WidgetWidth)
             self.document().setDocumentMargin(0)
