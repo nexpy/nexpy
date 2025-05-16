@@ -1767,8 +1767,12 @@ class MainWindow(QtWidgets.QMainWindow):
         if isinstance(node, NXlink):
             node = node.nxlink
         self._memroot['entry'][node.nxname] = node
-        self._memroot['entry'].attrs['link'] = [node.nxname, node.nxpath,
-                                                node.nxfilename]
+        if node.nxfilename is None:
+            self._memroot['entry'].attrs['link'] = [node.nxname, node.nxpath,
+                                                    'None']
+        else:
+            self._memroot['entry'].attrs['link'] = [node.nxname, node.nxpath,
+                                                    node.nxfilename]
         return self._memroot['entry'][node.nxname]
 
     @property
