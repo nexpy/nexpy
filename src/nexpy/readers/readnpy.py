@@ -11,7 +11,7 @@ Module to read in a NumPy file and convert it to NeXus.
 """
 from pathlib import Path
 import numpy as np
-from nexusformat.nexus import NeXusError, NXdata, NXentry, NXfield
+from nexusformat.nexus import NeXusError, NXentry, NXfield
 
 from nexpy.gui.importdialog import NXImportDialog
 
@@ -35,7 +35,14 @@ class ImportDialog(NXImportDialog):
         elif not Path(self.import_file).exists():
             raise NeXusError(f"File {self.import_file} does not exist")
         try:
-            data = NXfield(np.load(self.import_file), name='data')
+            input = np.load(self.import_file)
+            output = NXentry()
+            if isinstance(input, np.ndarray):
+                output['field'] = NXfield(input)
+            elif isinstance(input, np.lib.npyio.NpzFile):
+                output = NXentry()
+                for name in input.files:
+                    output[name] = NXfield(input[name])
+            return output
         except Exception as error:
             raise NeXusError(f"Error reading {self.import_file}: {error}")
-        return NXentry(NXdata(data))
