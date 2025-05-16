@@ -7,7 +7,7 @@
 # -----------------------------------------------------------------------------
 
 """
-Module to read in a NumPy file and convert it to NeXus.
+Module to read a NumPy file and convert the array(s) to NeXus fields.
 """
 from pathlib import Path
 import numpy as np
@@ -15,12 +15,13 @@ from nexusformat.nexus import NeXusError, NXentry, NXfield
 
 from nexpy.gui.importdialog import NXImportDialog
 
-filetype = "NumPy Array"
+
+filetype = "NumPy Arrays"
 
 
 class ImportDialog(NXImportDialog):
 
-    """Dialog to import a NumPy array"""
+    """Dialog to import NumPy arrays"""
 
     def __init__(self, parent=None):
 
