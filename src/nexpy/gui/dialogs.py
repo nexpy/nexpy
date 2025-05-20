@@ -3727,7 +3727,8 @@ class ViewTab(NXTab):
             pass
         elif isinstance(node, NXfield) and node.shape is not None:
             if node.shape == () or node.shape == (1,):
-                self.properties.add('value', str(node), 'Value', readonly=True)
+                self.properties.add('value', str(node.nxvalue), 'Value',
+                                    readonly=True)
             self.properties.add('dtype', node.dtype, 'Dtype', readonly=True)
             self.properties.add('shape', str(node.shape), 'Shape',
                                 readonly=True)
