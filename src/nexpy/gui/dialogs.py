@@ -4341,20 +4341,25 @@ class EditTab(NXTab):
             row += 1
         self.grid.setContentsMargins(10, 10, 40, 10)
         self.grid.setSpacing(5)
-        self.scroll_area = NXScrollArea(self.grid, height=800)
-        self.scroll_area.setMinimumHeight(200)
-        self.scroll_area.setSizePolicy(QtWidgets.QSizePolicy.Preferred,
-                                       QtWidgets.QSizePolicy.Preferred)
-        self.set_layout(self.scroll_area)
+        if len(field_list) > 10:
+            self.scroll_area = NXScrollArea(self.grid, height=800)
+            self.scroll_area.setMinimumHeight(200)
+            self.scroll_area.setSizePolicy(QtWidgets.QSizePolicy.Preferred,
+                                           QtWidgets.QSizePolicy.Preferred)
+            self.set_layout(self.scroll_area)
+        else:
+            self.set_layout(self.grid)
+            self.scroll_area = None
         self.set_title(f'Edit {self.group.nxpath}')
 
     def resize(self):
         """Update the size of the scroll area and its contents."""
         super().resize()
-        self.scroll_area.widget().updateGeometry()
-        self.scroll_area.updateGeometry()
-        self.scroll_area.widget().adjustSize()
-        self.scroll_area.adjustSize()
+        if self.scroll_area is not None:
+            self.scroll_area.widget().updateGeometry()
+            self.scroll_area.updateGeometry()
+            self.scroll_area.widget().adjustSize()
+            self.scroll_area.adjustSize()
 
     def apply(self):
         if not self.group.is_modifiable():
