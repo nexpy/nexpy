@@ -6,16 +6,15 @@
 # The full license is in the file COPYING, distributed with this software.
 # -----------------------------------------------------------------------------
 import logging
-import numbers
 from pathlib import Path
 
 import matplotlib as mpl
 import numpy as np
 from matplotlib.legend import Legend
 from matplotlib.rcsetup import validate_aspect, validate_float
-from nexusformat.nexus import (NeXusError, NXattr, NXdata, NXentry, NXfield,
-                               NXgroup, NXlink, NXroot, NXvirtualfield,
-                               nxconsolidate, nxgetconfig, nxload, nxsetconfig)
+from nexusformat.nexus import (NeXusError, NXdata, NXentry, NXfield, NXgroup,
+                               NXlink, NXroot, NXvirtualfield, nxconsolidate,
+                               nxgetconfig, nxload, nxsetconfig)
 from nexusformat.nexus.utils import all_dtypes, map_dtype
 
 from .pyqt import QtCore, QtWidgets, getOpenFileName, getSaveFileName
@@ -4344,8 +4343,6 @@ class EditTab(NXTab):
         if len(field_list) > 10:
             self.scroll_area = NXScrollArea(self.grid, height=800)
             self.scroll_area.setMinimumHeight(200)
-            self.scroll_area.setSizePolicy(QtWidgets.QSizePolicy.Preferred,
-                                           QtWidgets.QSizePolicy.Preferred)
             self.set_layout(self.scroll_area)
         else:
             self.set_layout(self.grid)
@@ -4499,7 +4496,7 @@ class FieldDialog(NXDialog):
 
         self.setWindowTitle("Add NeXus Data")
 
-        self.set_layout(self.define_grid(), self.close_buttons())
+        self.set_layout(self.define_grid(), self.close_buttons(save=True))
         self.set_title("Add NeXus Field")
 
     def define_grid(self):
@@ -4525,14 +4522,18 @@ class FieldDialog(NXDialog):
         self.value_box = NXLineEdit()
         grid.addWidget(value_label, 1, 0)
         grid.addWidget(self.value_box, 1, 1)
-        units_label = NXLabel("Units:")
-        self.units_box = NXLineEdit()
-        grid.addWidget(units_label, 2, 0)
-        grid.addWidget(self.units_box, 2, 1)
         type_label = NXLabel("Datatype:")
         self.type_box = NXComboBox(items=all_dtypes())
-        grid.addWidget(type_label, 3, 0)
-        grid.addWidget(self.type_box, 3, 1)
+        grid.addWidget(type_label, 2, 0)
+        grid.addWidget(self.type_box, 2, 1)
+        units_label = NXLabel("Units:")
+        self.units_box = NXLineEdit()
+        grid.addWidget(units_label, 3, 0)
+        grid.addWidget(self.units_box, 3, 1)
+        longname_label = NXLabel("Long Name:")
+        self.longname_box = NXLineEdit()
+        grid.addWidget(longname_label, 4, 0)
+        grid.addWidget(self.longname_box, 4, 1)
         grid.setColumnMinimumWidth(1, 200)
         return grid
 
@@ -4557,13 +4558,13 @@ class FieldDialog(NXDialog):
 
     def get_name(self):
         """Return the text of the name box."""
-        return self.name_box.text()
+        return self.name_box.text().strip()
 
     def set_name(self, name):
         """
         Set the name to the field selected in the dropdown menu.
         """
-        self.name_box.setText(name)
+        self.name_box.setText(name).strip()
 
     def get_value(self):
         """
@@ -4589,26 +4590,39 @@ class FieldDialog(NXDialog):
         else:
             return None
 
-    def get_units(self):
-        """Return the text of the units box."""
-        return self.units_box.text()
-
     def get_type(self):
         """Return the type of the object as a NumPy dtype."""
         return np.dtype(self.type_box.currentText())
+
+    def get_units(self):
+        """Return the text of the units attribute."""
+        return self.units_box.text().strip()
+
+    def get_longname(self):
+        """Return the text of the long name attribute."""
+        return self.longname_box.text().strip()
 
     def accept(self):
         """Add a new NeXus field to the tree."""
         name = self.get_name()
         value = self.get_value()
         dtype = self.get_type()
-        if value is not None:
-            self.node[name] = NXfield(value, dtype=dtype)
-            logging.info(f"'{name}' added to '{self.node.nxpath}'")
-            units = self.get_units()
+        units = self.get_units()
+        longname = self.get_longname()
+        if name:
+            if value is not None:
+                try:
+                    field = NXfield(value, dtype=dtype)
+                    self.node[name] = field
+                    logging.info(f"'{name}' added to '{self.node.nxpath}'")
+                except NeXusError as error:
+                    report_error("Adding Field", error)
+                    return
             if units:
                 self.node[name].attrs['units'] = units
-        super().accept()
+            if longname:
+                self.node[name].attrs['long_name'] = longname
+            super().accept()
 
 
 class RenameDialog(NXDialog):
