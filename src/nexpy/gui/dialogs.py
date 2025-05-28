@@ -4440,11 +4440,11 @@ class GroupDialog(NXDialog):
 
     def select_group(self):
         """Set the name to correspond to the selected group."""
-        self.set_name(self.group_box.currentText())
+        self.set_name(self.group_box.selected)
 
     def get_name(self):
         """Return the text of the name box."""
-        return self.name_box.text()
+        return self.name_box.text().strip()
 
     def set_name(self, name):
         """
@@ -4514,10 +4514,11 @@ class FieldDialog(NXDialog):
         self.standard_fields = self.validator.valid_fields
         name_label = NXLabel("Name:")
         self.name_box = NXLineEdit()
-        self.field_box = NXComboBox(self.select_field, self.standard_fields)
         grid.addWidget(name_label, 0, 0)
         grid.addWidget(self.name_box, 0, 1)
-        grid.addWidget(self.field_box, 0, 2)
+        self.field_box = NXComboBox(self.select_field, self.standard_fields)
+        if len(self.standard_fields) > 0:
+            grid.addWidget(self.field_box, 0, 2)
         value_label = NXLabel("Value:")
         self.value_box = NXLineEdit()
         grid.addWidget(value_label, 1, 0)
@@ -4535,12 +4536,14 @@ class FieldDialog(NXDialog):
         grid.addWidget(longname_label, 4, 0)
         grid.addWidget(self.longname_box, 4, 1)
         grid.setColumnMinimumWidth(1, 200)
+        if len(self.standard_fields) > 0:
+            self.select_field()
         return grid
 
     def select_field(self):
-        """Set the name box to the selected item in the combo box."""
-        field_name = self.field_box.currentText()
-        self.set_name(self.field_box.currentText())
+        """Set the name to the selected item in the field box."""
+        field_name = self.field_box.selected
+        self.set_name(field_name)
         self.type_box.clear()
         if field_name in self.standard_fields:
             if "@type" in self.standard_fields[field_name]:
@@ -4561,10 +4564,8 @@ class FieldDialog(NXDialog):
         return self.name_box.text().strip()
 
     def set_name(self, name):
-        """
-        Set the name to the field selected in the dropdown menu.
-        """
-        self.name_box.setText(name).strip()
+        """Set the name to the field selected in the dropdown menu."""
+        self.name_box.setText(name)
 
     def get_value(self):
         """
@@ -4610,7 +4611,7 @@ class FieldDialog(NXDialog):
         units = self.get_units()
         longname = self.get_longname()
         if name:
-            if value is not None:
+            if value:
                 try:
                     field = NXfield(value, dtype=dtype)
                     self.node[name] = field
@@ -4618,11 +4619,16 @@ class FieldDialog(NXDialog):
                 except NeXusError as error:
                     report_error("Adding Field", error)
                     return
+            else:
+                report_error("Adding Field", "Field value is empty")
+                return
             if units:
                 self.node[name].attrs['units'] = units
             if longname:
                 self.node[name].attrs['long_name'] = longname
             super().accept()
+        else:
+            report_error("Adding Field", "Field name is empty")
 
 
 class RenameDialog(NXDialog):
