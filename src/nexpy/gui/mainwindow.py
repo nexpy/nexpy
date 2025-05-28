@@ -29,12 +29,12 @@ from qtconsole.inprocess import QtInProcessKernelManager
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
 
 from .. import __version__
-from .dialogs import (AddDialog, CustomizeDialog, DirectoryDialog, EditDialog,
-                      ExportDialog, InitializeDialog, LimitDialog, LockDialog,
-                      LogDialog, ManageBackupsDialog, ManagePluginsDialog,
-                      NewDialog, PasteDialog, PlotDialog, PlotScalarDialog,
-                      ProjectionDialog, RenameDialog, ScanDialog,
-                      SettingsDialog, SignalDialog, UnlockDialog,
+from .dialogs import (CustomizeDialog, DirectoryDialog, EditDialog,
+                      ExportDialog, FieldDialog, GroupDialog, LimitDialog,
+                      LockDialog, LogDialog, ManageBackupsDialog,
+                      ManagePluginsDialog, NewDialog, PasteDialog, PlotDialog,
+                      PlotScalarDialog, ProjectionDialog, RenameDialog,
+                      ScanDialog, SettingsDialog, SignalDialog, UnlockDialog,
                       ValidateDialog, ViewDialog)
 from .fitdialogs import FitDialog
 from .plotview import NXPlotView
@@ -526,30 +526,38 @@ class MainWindow(QtWidgets.QMainWindow):
             triggered=self.view_data)
         self.add_menu_action(self.data_menu, self.view_action)
 
-        self.edit_action = QtWidgets.QAction(
-            "Edit Data", self, shortcut=QtGui.QKeySequence("Ctrl+E"),
-            triggered=self.edit_data)
-        self.add_menu_action(self.data_menu, self.edit_action)
-
         self.validate_action = QtWidgets.QAction(
             "Validate Data", self,
             shortcut=QtGui.QKeySequence("Ctrl+Alt+Shift+V"),
             triggered=self.validate_data)
         self.add_menu_action(self.data_menu, self.validate_action)
 
-        self.edit_menu.addSeparator()
+        self.data_menu.addSeparator()
 
-        self.add_action = QtWidgets.QAction("Add Data", self,
-                                            triggered=self.add_data)
-        self.add_menu_action(self.data_menu, self.add_action)
+        self.group_action = QtWidgets.QAction("Add Group", self,
+                                            triggered=self.add_group)
+        self.add_menu_action(self.data_menu, self.group_action)
 
-        self.initialize_action = QtWidgets.QAction(
-            "Initialize Data", self, triggered=self.initialize_data)
-        self.add_menu_action(self.data_menu, self.initialize_action)
+        self.field_action = QtWidgets.QAction("Add Field", self,
+                                            triggered=self.add_field)
+        self.add_menu_action(self.data_menu, self.field_action)
+
+        self.data_menu.addSeparator()
+
+        self.edit_action = QtWidgets.QAction(
+            "Edit Data", self, shortcut=QtGui.QKeySequence("Ctrl+E"),
+            triggered=self.edit_data)
+        self.add_menu_action(self.data_menu, self.edit_action)
 
         self.rename_action = QtWidgets.QAction("Rename Data", self,
                                                triggered=self.rename_data)
         self.add_menu_action(self.data_menu, self.rename_action)
+
+        self.delete_action = QtWidgets.QAction(
+            "Delete Data", self, shortcut=QtGui.QKeySequence(
+                "Ctrl+Shift+Alt+X"),
+            triggered=self.delete_data)
+        self.add_menu_action(self.data_menu, self.delete_action)
 
         self.edit_menu.addSeparator()
 
@@ -573,12 +581,6 @@ class MainWindow(QtWidgets.QMainWindow):
                 "Ctrl+Shift+Alt+V"),
             triggered=self.paste_link)
         self.add_menu_action(self.data_menu, self.pastelink_action)
-
-        self.delete_action = QtWidgets.QAction(
-            "Delete Data", self, shortcut=QtGui.QKeySequence(
-                "Ctrl+Shift+Alt+X"),
-            triggered=self.delete_data)
-        self.add_menu_action(self.data_menu, self.delete_action)
 
         self.data_menu.addSeparator()
 
@@ -1665,14 +1667,8 @@ class MainWindow(QtWidgets.QMainWindow):
         except NeXusError as error:
             report_error("Validating Data", error)
         
-    def add_data(self):
-        """
-        Add a new NeXus group to the selected node.
-
-        A dialog will appear asking for the new group's name and type.
-        If the selected node is None, the user will be prompted to
-        create a new workspace instead.
-        """
+    def add_group(self):
+        """Add a new NeXus group to the selected node."""
         try:
             node = self.treeview.get_node()
             if node is not None:
@@ -1680,20 +1676,15 @@ class MainWindow(QtWidgets.QMainWindow):
                     raise NeXusError(f"{node.nxfullpath} does not exist")
                 elif node.nxfilemode == 'r':
                     raise NeXusError("NeXus file is locked")
-                dialog = AddDialog(node, parent=self)
+                dialog = GroupDialog(node, parent=self)
                 dialog.exec()
             else:
                 self.new_workspace()
         except NeXusError as error:
-            report_error("Adding Data", error)
+            report_error("Adding Group", error)
 
-    def initialize_data(self):
-        """
-        Opens a dialog to initialize data in the selected group.
-        
-        This can be used to initialize a new NXfield or to add an
-        existing NXfield to an NXgroup.
-        """
+    def add_field(self):
+        """Add a new NeXus field to the selected node."""
         try:
             node = self.treeview.get_node()
             if node is not None:
@@ -1701,14 +1692,12 @@ class MainWindow(QtWidgets.QMainWindow):
                     raise NeXusError(f"{node.nxfullpath} does not exist")
                 elif node.nxfilemode == 'r':
                     raise NeXusError("NeXus file is locked")
-                elif isinstance(node, NXgroup):
-                    dialog = InitializeDialog(node, parent=self)
-                    dialog.exec()
-                else:
-                    raise NeXusError(
-                        "An NXfield can only be added to an NXgroup")
+                dialog = FieldDialog(node, parent=self)
+                dialog.exec()
+            else:
+                self.new_workspace()
         except NeXusError as error:
-            report_error("Initializing Data", error)
+            report_error("Adding Field", error)
 
     def rename_data(self):
         """

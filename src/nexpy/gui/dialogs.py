@@ -16,6 +16,7 @@ from matplotlib.rcsetup import validate_aspect, validate_float
 from nexusformat.nexus import (NeXusError, NXattr, NXdata, NXentry, NXfield,
                                NXgroup, NXlink, NXroot, NXvirtualfield,
                                nxconsolidate, nxgetconfig, nxload, nxsetconfig)
+from nexusformat.nexus.utils import all_dtypes, map_dtype
 
 from .pyqt import QtCore, QtWidgets, getOpenFileName, getSaveFileName
 from .utils import (convertHTML, display_message, fix_projection, format_mtime,
@@ -4378,172 +4379,66 @@ class EditTab(NXTab):
                     field.nxdata = value            
 
 
-class AddDialog(NXDialog):
-
-    data_types = ['char', 'float32', 'float64', 'int8', 'uint8', 'int16',
-                  'uint16', 'int32', 'uint32', 'int64', 'uint64']
+class GroupDialog(NXDialog):
 
     def __init__(self, node, parent=None):
 
         super().__init__(parent=parent)
         """
-        Initialize the dialog to add a NeXus field or attribute.
-
-        The dialog is initialized with a combo box and a button. The
-        combo box contains all the NeXus classes that can be added to
-        the given node. The button is labeled "Add" and calls the
-        select_class slot when clicked.
+        Initialize the dialog to add a NeXus group.
 
         Parameters
         ----------
         node : NXobject
-            The NeXus node to which a NeXus field or attribute will be
-            added.
+            The NeXus node to which a NeXus group will be added.
         parent : QWidget, optional
             The parent window of the dialog, by default None
         """
 
         self.node = node
+        self.validator = self.node.get_validator()
 
+        self.setWindowTitle("Add NeXus Data")
 
-        class_layout = QtWidgets.QHBoxLayout()
-        self.class_box = NXComboBox()
-        if isinstance(self.node, NXgroup):
-            names = ['NXgroup', 'NXfield', 'NXattr']
-            from nexusformat.nexus.validate import GroupValidator
-            self.validator = GroupValidator(self.node.nxclass)
-        else:
-            names = ['NXattr']
-        for name in names:
-            self.class_box.addItem(name)
-        self.class_button = NXPushButton("Add", self.select_class)
-        class_layout.addWidget(self.class_box)
-        class_layout.addWidget(self.class_button)
-        class_layout.addStretch()
+        self.set_layout(self.define_grid(), self.close_buttons())
+        self.set_title("Add NeXus Group")
 
-        if isinstance(self.node, NXfield):
-            self.setWindowTitle("Add NeXus Attribute")
-        else:
-            self.setWindowTitle("Add NeXus Data")
-
-        self.layout = QtWidgets.QVBoxLayout()
-        self.layout.addLayout(class_layout)
-        self.layout.addWidget(self.close_buttons())
-        self.setLayout(self.layout)
-
-    def select_class(self):
-        """
-        Slot to select the class of the NeXus field or attribute to be
-        added.
-
-        Depending on the selected class, the dialog is updated with the
-        appropriate entry fields.
-        """
-        self.class_name = self.class_box.currentText()
-        if self.class_name == "NXgroup":
-            self.layout.insertLayout(1, self.define_grid("NXgroup"))
-        elif self.class_name == "NXfield":
-            self.layout.insertLayout(1, self.define_grid("NXfield"))
-        else:
-            self.layout.insertLayout(1, self.define_grid("NXattr"))
-        self.class_button.setDisabled(True)
-        self.class_box.setDisabled(True)
-
-    def define_grid(self, class_name):
-        """
-        Defines a grid of entry fields for adding a NeXus field or
-        attribute.
-
-        The grid is defined based on the class of the NeXus field or
-        attribute. For a NeXus group, the grid includes a combo box to
-        select the group class and an entry field for the group name.
-        For a NeXus field, the grid includes a combo box to select the
-        field name, an entry field for the field value, an entry field
-        for the field units, and a combo box to select the field
-        datatype. For a NeXus attribute, the grid includes an entry
-        field for the attribute name and an entry field for the
-        attribute value.
+    def define_grid(self):
+        """Defines a grid to set group names and classes.
 
         Parameters
         ----------
         class_name : str
-            The class of the NeXus field or attribute to be added.
+            The class of the NeXus group to be added.
 
         Returns
         -------
         grid : QGridLayout
-            The grid of entry fields for adding a NeXus field or
-            attribute.
+            The grid allowing the name and class of the group to be set.
         """
         grid = QtWidgets.QGridLayout()
         grid.setSpacing(10)
 
+        self.standard_groups = self.validator.valid_groups
         name_label = NXLabel("Name:")
         self.name_box = NXLineEdit()
-        if class_name == "NXgroup":
-            combo_label = NXLabel("Group Class:")
-            self.combo_box = NXComboBox(self.select_combo)
-            self.standard_groups = self.validator.valid_groups
-            for name in self.standard_groups:
-                self.combo_box.addItem(name)
-            self.combo_box.insertSeparator(self.combo_box.count())
-            other_groups = sorted([g for g in self.mainwindow.nxclasses
-                                   if g not in self.standard_groups])
-            for name in other_groups:
-                self.combo_box.addItem(name)
-            grid.addWidget(combo_label, 0, 0)
-            grid.addWidget(self.combo_box, 0, 1)
-            grid.addWidget(name_label, 1, 0)
-            grid.addWidget(self.name_box, 1, 1)
-            self.select_combo()
-        elif class_name == "NXfield":
-            combo_label = NXLabel()
-            self.combo_box = NXComboBox(self.select_combo)
-            self.standard_fields = self.validator.valid_fields
-            for name in self.standard_fields:
-                self.combo_box.addItem(name)
-            grid.addWidget(name_label, 0, 0)
-            grid.addWidget(self.name_box, 0, 1)
-            grid.addWidget(self.combo_box, 0, 2)
-            value_label = NXLabel("Value:")
-            self.value_box = NXLineEdit()
-            grid.addWidget(value_label, 1, 0)
-            grid.addWidget(self.value_box, 1, 1)
-            units_label = NXLabel("Units:")
-            self.units_box = NXLineEdit()
-            grid.addWidget(units_label, 2, 0)
-            grid.addWidget(self.units_box, 2, 1)
-            type_label = NXLabel("Datatype:")
-            self.type_box = NXComboBox()
-            for name in self.data_types:
-                self.type_box.addItem(name)
-            self.type_box.insertSeparator(0)
-            self.type_box.insertItem(0, 'auto')
-            self.type_box.setCurrentIndex(0)
-            grid.addWidget(type_label, 3, 0)
-            grid.addWidget(self.type_box, 3, 1)
-        else:
-            grid.addWidget(name_label, 0, 0)
-            grid.addWidget(self.name_box, 0, 1)
-            value_label = NXLabel("Value:")
-            self.value_box = NXLineEdit()
-            grid.addWidget(value_label, 1, 0)
-            grid.addWidget(self.value_box, 1, 1)
-            type_label = NXLabel("Datatype:")
-            self.type_box = NXComboBox()
-            for name in self.data_types:
-                self.type_box.addItem(name)
-            self.type_box.insertSeparator(0)
-            self.type_box.insertItem(0, 'auto')
-            self.type_box.setCurrentIndex(0)
-            grid.addWidget(type_label, 2, 0)
-            grid.addWidget(self.type_box, 2, 1)
+        group_label = NXLabel("Group Class:")
+        self.group_box = NXComboBox(self.select_group, self.standard_groups)
+        self.group_box.insert(len(self.standard_groups), "")
+        other_groups = sorted([g for g in self.mainwindow.nxclasses
+                               if g not in self.standard_groups])
+        self.group_box.add(*other_groups)
+        grid.addWidget(group_label, 0, 0)
+        grid.addWidget(self.group_box, 0, 1)
+        grid.addWidget(name_label, 1, 0)
+        grid.addWidget(self.name_box, 1, 1)
+        self.select_group()
         grid.setColumnMinimumWidth(1, 200)
         return grid
 
-    def select_combo(self):
-        """Set the name box to the selected item in the combo box."""
-        self.set_name(self.combo_box.currentText())
+    def select_group(self):
+        """Set the name to correspond to the selected group."""
+        self.set_name(self.group_box.currentText())
 
     def get_name(self):
         """Return the text of the name box."""
@@ -4551,28 +4446,129 @@ class AddDialog(NXDialog):
 
     def set_name(self, name):
         """
-        Set the name box to the specified name. If the name is a
-        standard group, set the combo box to the corresponding type. If
-        the name is not a standard group, strip any leading "NX" from
-        the name.
+        Set the name of the group.
+        
+        This is called when a value of the group box is changed. If the
+        name is a base class, the leading "NX" is stripped. If it is a name
+        defined by the NXDL file, the group class is updated to match.
         """
-        if self.class_name == 'NXgroup':
-            if (name in self.standard_groups and 
-                    '@type' in self.standard_groups[name]):
-                self.combo_box.setCurrentText(
-                    self.standard_groups[name]['@type'])
+        if (name in self.standard_groups and 
+                '@type' in self.standard_groups[name]):
+            self.group_box.setCurrentText(self.standard_groups[name]['@type'])
+        else:
+            name = name[2:]
+        self.name_box.setText(name)
+
+    def accept(self):
+        """Add a new NeXus group to the tree."""
+        name = self.get_name()
+        nxclass = self.group_box.selected
+        if name:
+            self.node[name] = NXgroup(nxclass=nxclass)
+        else:
+            group = NXgroup(nxclass=nxclass)
+            name = group.nxname
+            self.node[name] = group
+        logging.info(f"'{self.node[name]}' added to '{self.node.nxpath}'")
+        super().accept()
+
+
+class FieldDialog(NXDialog):
+
+    def __init__(self, node, parent=None):
+
+        super().__init__(parent=parent)
+        """
+        Initialize the dialog to add a NeXus field.
+
+        Parameters
+        ----------
+        node : NXobject
+            The NeXus node to which a NeXus field will be added.
+        parent : QWidget, optional
+            The parent window of the dialog, by default None
+        """
+
+        self.node = node
+        self.validator = self.node.get_validator()
+
+        self.setWindowTitle("Add NeXus Data")
+
+        self.set_layout(self.define_grid(), self.close_buttons())
+        self.set_title("Add NeXus Field")
+
+    def define_grid(self):
+        """
+        Defines a grid to set field names, values, units, and datatypes.
+
+        Returns
+        -------
+        grid : QGridLayout
+            The grid of entry fields for adding a NeXus field.
+        """
+        grid = QtWidgets.QGridLayout()
+        grid.setSpacing(10)
+
+        self.standard_fields = self.validator.valid_fields
+        name_label = NXLabel("Name:")
+        self.name_box = NXLineEdit()
+        self.field_box = NXComboBox(self.select_field, self.standard_fields)
+        grid.addWidget(name_label, 0, 0)
+        grid.addWidget(self.name_box, 0, 1)
+        grid.addWidget(self.field_box, 0, 2)
+        value_label = NXLabel("Value:")
+        self.value_box = NXLineEdit()
+        grid.addWidget(value_label, 1, 0)
+        grid.addWidget(self.value_box, 1, 1)
+        units_label = NXLabel("Units:")
+        self.units_box = NXLineEdit()
+        grid.addWidget(units_label, 2, 0)
+        grid.addWidget(self.units_box, 2, 1)
+        type_label = NXLabel("Datatype:")
+        self.type_box = NXComboBox(items=all_dtypes())
+        grid.addWidget(type_label, 3, 0)
+        grid.addWidget(self.type_box, 3, 1)
+        grid.setColumnMinimumWidth(1, 200)
+        return grid
+
+    def select_field(self):
+        """Set the name box to the selected item in the combo box."""
+        field_name = self.field_box.currentText()
+        self.set_name(self.field_box.currentText())
+        self.type_box.clear()
+        if field_name in self.standard_fields:
+            if "@type" in self.standard_fields[field_name]:
+                valid_dtypes = map_dtype(
+                    self.standard_fields[field_name]["@type"])
             else:
-                name = name[2:]
+                valid_dtypes = map_dtype("NX_CHAR")
+            self.type_box.add(*valid_dtypes)
+            self.type_box.insert(len(valid_dtypes), "")
+            other_dtypes = [dt for dt in all_dtypes()
+                            if dt not in valid_dtypes]
+            self.type_box.add(*other_dtypes)
+        else:
+            self.type_box.add(*all_dtypes())
+
+    def get_name(self):
+        """Return the text of the name box."""
+        return self.name_box.text()
+
+    def set_name(self, name):
+        """
+        Set the name to the field selected in the dropdown menu.
+        """
         self.name_box.setText(name)
 
     def get_value(self):
         """
-        Return the value of the text box as a python object. If the
-        value is empty, return None. If the value is a string, return
-        the string. If the value is a number, return the number as a
-        python object. If the value is a numpy expression, return the
-        result of the expression. If the value can not be interpreted as
-        a python object, return the value as a string.
+        Return the value of the text box as a python object.
+        
+        If the value is empty, return None. If the value is a string,
+        return the string. If the value is a number, return the number
+        as a python object. If the value is a NumPy expression, return
+        the result of the expression. If the value can not be
+        interpreted as a python object, return the value as a string.
         """
         value = self.value_box.text()
         if value:
@@ -4593,186 +4589,21 @@ class AddDialog(NXDialog):
         return self.units_box.text()
 
     def get_type(self):
-        """
-        Return the type of the object as a string. If the object is a
-        group, return the name of the group class. If the object is a
-        field, return the type of the field as a numpy dtype name. If
-        the type is 'auto', return None.
-        """
-        if self.class_name == 'NXgroup':
-            return self.combo_box.currentText()
-        else:
-            dtype = self.type_box.currentText()
-            if dtype == "auto":
-                return None
-            else:
-                return dtype
-
-    def accept(self):
-        """
-        Add a new NeXus object to the tree.
-
-        If the object is a group, it is added with the specified class
-        name. If the object is a field or attribute, it is added with the
-        specified value and type. If the object is a field, it is added
-        with units if specified. The object is added to the tree at the
-        current node, and the node is updated in the tree. The dialog is
-        then closed.
-        """
-        name = self.get_name()
-        if self.class_name == "NXgroup":
-            nxclass = self.get_type()
-            if name:
-                self.node[name] = NXgroup(nxclass=nxclass)
-            else:
-                group = NXgroup(nxclass=nxclass)
-                name = group.nxname
-                self.node.insert(group)
-            logging.info(f"'{self.node[name]}' added to '{self.node.nxpath}'")
-        elif name:
-            value = self.get_value()
-            dtype = self.get_type()
-            if value is not None:
-                if self.class_name == "NXfield":
-                    self.node[name] = NXfield(value, dtype=dtype)
-                    logging.info(f"'{name}' added to '{self.node.nxpath}'")
-                    units = self.get_units()
-                    if units:
-                        self.node[name].attrs['units'] = units
-                else:
-                    self.node.attrs[name] = NXattr(value, dtype=dtype)
-                    logging.info(
-                        f"Attribute '{name}' added to '{self.node.nxpath}'")
-        super().accept()
-
-
-class InitializeDialog(NXDialog):
-
-    data_types = ['float32', 'float64', 'int8', 'uint8', 'int16',
-                  'uint16', 'int32', 'uint32', 'int64', 'uint64']
-
-    def __init__(self, node, parent=None):
-
-        """
-        Initialize dialog to initialize NeXus data.
-
-        Parameters
-        ----------
-        node : NXobject
-            The NeXus node to be initialized.
-        parent : QWidget, optional
-            The parent window of the dialog, by default None
-        """
-        super().__init__(parent=parent)
-
-        self.node = node
-
-        self.setWindowTitle("Initialize NeXus Data")
-
-        grid = QtWidgets.QGridLayout()
-        grid.setSpacing(10)
-
-        name_label = NXLabel("Name:")
-        self.name_box = NXLineEdit()
-        self.combo_box = NXComboBox(self.select_combo)
-        fields = sorted(list(set([g for g in
-                        self.mainwindow.nxclasses[self.node.nxclass][1]])))
-        for name in fields:
-            self.combo_box.addItem(name)
-        grid.addWidget(name_label, 0, 0)
-        grid.addWidget(self.name_box, 0, 1)
-        grid.addWidget(self.combo_box, 0, 2)
-        type_label = NXLabel("Datatype:")
-        self.type_box = NXComboBox()
-        for name in self.data_types:
-            self.type_box.addItem(name)
-        self.type_box.setCurrentIndex(0)
-        grid.addWidget(type_label, 2, 0)
-        grid.addWidget(self.type_box, 2, 1)
-        shape_label = NXLabel("Shape:")
-        self.shape_box = NXLineEdit()
-        grid.addWidget(shape_label, 3, 0)
-        grid.addWidget(self.shape_box, 3, 1)
-        grid.setColumnMinimumWidth(1, 200)
-        fill_label = NXLabel("Fill Value:")
-        self.fill_box = NXLineEdit(0)
-        grid.addWidget(fill_label, 4, 0)
-        grid.addWidget(self.fill_box, 4, 1)
-        grid.setColumnMinimumWidth(1, 200)
-
-        self.layout = QtWidgets.QVBoxLayout()
-        self.layout.addLayout(grid)
-        self.layout.addWidget(self.close_buttons())
-        self.setLayout(self.layout)
-
-    def select_combo(self):
-        """Set the name box to the selected item in the combo box."""
-        self.set_name(self.combo_box.currentText())
-
-    def get_name(self):
-        """Return the text of the name box."""
-        return self.name_box.text()
-
-    def set_name(self, name):
-        """Set the text of the name box."""
-        self.name_box.setText(name)
-
-    @property
-    def dtype(self):
-        """Return the dtype of the data."""
+        """Return the type of the object as a NumPy dtype."""
         return np.dtype(self.type_box.currentText())
 
-    @property
-    def shape(self):
-        """Return the shape of the data."""
-        shape = self.shape_box.text().strip()
-        if shape == '':
-            raise NeXusError("Invalid shape")
-        import ast
-        try:
-            shape = ast.literal_eval(shape)
-            try:
-                iter(shape)
-                return shape
-            except TypeError:
-                if isinstance(shape, numbers.Integral):
-                    return (shape,)
-                else:
-                    raise NeXusError("Invalid shape")
-        except Exception:
-            raise NeXusError("Invalid shape")
-
-    @property
-    def fillvalue(self):
-        """Return the fill value of the data."""
-        try:
-            return np.asarray(eval(self.fill_box.text()), dtype=self.dtype)
-        except Exception:
-            raise NeXusError("Invalid fill value")
-
     def accept(self):
-        """
-        Initialize the data in the given node and close the dialog.
-
-        This will validate the name, dtype, shape, and fillvalue of the
-        data. If any of these are invalid, an error message will be
-        shown and the dialog will not be closed.
-        """
-        try:
-            name = self.get_name().strip()
-            if name:
-                dtype = self.dtype
-                shape = self.shape
-                fillvalue = self.fillvalue
-                self.node[name] = NXfield(dtype=dtype, shape=shape,
-                                          fillvalue=fillvalue)
-                logging.info(
-                    f"'{self.node[name]}' initialized in '{self.node.nxpath}'")
-                super().accept()
-            else:
-                raise NeXusError("Invalid name")
-        except NeXusError as error:
-            report_error("Initializing Data", error)
+        """Add a new NeXus field to the tree."""
+        name = self.get_name()
+        value = self.get_value()
+        dtype = self.get_type()
+        if value is not None:
+            self.node[name] = NXfield(value, dtype=dtype)
+            logging.info(f"'{name}' added to '{self.node.nxpath}'")
+            units = self.get_units()
+            if units:
+                self.node[name].attrs['units'] = units
+        super().accept()
 
 
 class RenameDialog(NXDialog):
@@ -4836,9 +4667,7 @@ class RenameDialog(NXDialog):
             combo_label = NXLabel("New Class:")
             self.combo_box = NXComboBox()
             parent_class = self.node.nxgroup.nxclass
-            standard_groups = sorted(
-                list(set([g for g in
-                          self.mainwindow.nxclasses[parent_class][2]])))
+            standard_groups = self.node.nxgroup.valid_groups()
             for name in standard_groups:
                 self.combo_box.addItem(name)
             self.combo_box.insertSeparator(self.combo_box.count())
@@ -4857,8 +4686,7 @@ class RenameDialog(NXDialog):
             if parent_class != 'NXroot' and parent_class != 'NXtree':
                 combo_label = NXLabel("Valid Fields:")
                 self.combo_box = NXComboBox(self.set_name)
-                fields = sorted(list(set([g for g in
-                                self.mainwindow.nxclasses[parent_class][1]])))
+                fields = self.node.nxgroup.valid_fields()
                 for name in fields:
                     self.combo_box.addItem(name)
                 if self.node.nxname in fields:

@@ -2727,7 +2727,9 @@ class NXComboBox(QtWidgets.QComboBox):
         idx : int
             Index of position before which to insert item
         """
-        if item not in self:
+        if item == "":
+            self.insertSeparator(idx)
+        elif item not in self:
             self.insertItem(idx, str(item))
 
     def remove(self, item):
