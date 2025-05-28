@@ -4521,8 +4521,11 @@ class FieldDialog(NXDialog):
             grid.addWidget(self.field_box, 0, 2)
         value_label = NXLabel("Value:")
         self.value_box = NXLineEdit()
+        self.enumeration_box = NXComboBox(self.select_enumeration)
+        self.enumeration_box.setVisible(False)
         grid.addWidget(value_label, 1, 0)
         grid.addWidget(self.value_box, 1, 1)
+        grid.addWidget(self.enumeration_box, 1, 2)
         type_label = NXLabel("Datatype:")
         self.type_box = NXComboBox(items=all_dtypes())
         grid.addWidget(type_label, 2, 0)
@@ -4556,8 +4559,22 @@ class FieldDialog(NXDialog):
             other_dtypes = [dt for dt in all_dtypes()
                             if dt not in valid_dtypes]
             self.type_box.add(*other_dtypes)
+            if "enumeration" in self.standard_fields[field_name]:
+                self.enumeration_box.clear()
+                self.enumeration_box.add(
+                    *self.standard_fields[field_name]["enumeration"])
+                self.enumeration_box.setVisible(True)
+                self.select_enumeration()
+            else:
+                self.enumeration_box.setVisible(False)
+                self.value_box.setText("")
         else:
             self.type_box.add(*all_dtypes())
+            self.enumeration_box.setVisible(False)
+
+    def select_enumeration(self):
+        """Set the value to the selected item in the enumeration box."""
+        self.value_box.setText(self.enumeration_box.selected)
 
     def get_name(self):
         """Return the text of the name box."""
