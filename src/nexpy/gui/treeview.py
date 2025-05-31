@@ -498,6 +498,7 @@ class NXTreeView(QtWidgets.QTreeView):
         self.mainwindow.duplicate_action.setEnabled(False)
         self.mainwindow.reload_action.setEnabled(False)
         self.mainwindow.remove_action.setEnabled(False)
+        self.mainwindow.export_action.setEnabled(False)
         self.mainwindow.lockfile_action.setEnabled(False)
         self.mainwindow.unlockfile_action.setEnabled(False)
         self.mainwindow.backup_action.setEnabled(False)
@@ -510,16 +511,18 @@ class NXTreeView(QtWidgets.QTreeView):
         self.mainwindow.multiplot_lines_action.setEnabled(False)
         self.mainwindow.plot_weighted_data_action.setEnabled(False)
         self.mainwindow.plot_image_action.setEnabled(False)
-        self.mainwindow.export_action.setEnabled(False)
-        self.mainwindow.rename_action.setEnabled(False)
+        self.mainwindow.view_action.setEnabled(False)
         self.mainwindow.validate_action.setEnabled(False)
-        self.mainwindow.add_action.setEnabled(False)
-        self.mainwindow.initialize_action.setEnabled(False)
+        self.mainwindow.group_action.setEnabled(False)
+        self.mainwindow.field_action.setEnabled(False)
+        self.mainwindow.attribute_action.setEnabled(False)
+        self.mainwindow.edit_action.setEnabled(False)
+        self.mainwindow.rename_action.setEnabled(False)
+        self.mainwindow.delete_action.setEnabled(False)
         self.mainwindow.copydata_action.setEnabled(False)
         self.mainwindow.cutdata_action.setEnabled(False)
         self.mainwindow.pastedata_action.setEnabled(False)
         self.mainwindow.pastelink_action.setEnabled(False)
-        self.mainwindow.delete_action.setEnabled(False)
         self.mainwindow.link_action.setEnabled(False)
         self.mainwindow.signal_action.setEnabled(False)
         self.mainwindow.default_action.setEnabled(False)
@@ -533,7 +536,6 @@ class NXTreeView(QtWidgets.QTreeView):
             self.mainwindow.reload_all_action.setEnabled(False)
             self.mainwindow.remove_all_action.setEnabled(False)
             self.mainwindow.collapse_action.setEnabled(False)
-            self.mainwindow.view_action.setEnabled(False)
             return
         else:
             self.mainwindow.reload_all_action.setEnabled(True)
@@ -542,13 +544,10 @@ class NXTreeView(QtWidgets.QTreeView):
             self.mainwindow.view_action.setEnabled(True)
             if node.nxgroup.is_modifiable():
                 self.mainwindow.rename_action.setEnabled(True)
-            if node.is_modifiable() and not isinstance(node, NXlink):
-                self.mainwindow.add_action.setEnabled(True)
         if isinstance(node, NXroot):
             self.mainwindow.savefile_action.setEnabled(True)
             self.mainwindow.reload_action.setEnabled(True)
             self.mainwindow.remove_action.setEnabled(True)
-            self.mainwindow.validate_action.setEnabled(True)
             if node.nxfilemode:
                 self.mainwindow.duplicate_action.setEnabled(True)
                 if node.nxfilemode == 'r':
@@ -575,10 +574,13 @@ class NXTreeView(QtWidgets.QTreeView):
                 self.mainwindow.export_action.setEnabled(True)
             if node.is_modifiable():
                 if isinstance(node, NXgroup):
-                    self.mainwindow.initialize_action.setEnabled(True)
+                    self.mainwindow.group_action.setEnabled(True)
+                    self.mainwindow.field_action.setEnabled(True)
                     if self.mainwindow.copied_node is not None:
                         self.mainwindow.pastedata_action.setEnabled(True)
                         self.mainwindow.pastelink_action.setEnabled(True)
+                if not (isinstance(node, NXlink) or node.is_linked()):
+                    self.mainwindow.attribute_action.setEnabled(True)
                 self.mainwindow.cutdata_action.setEnabled(True)
                 if not node.is_linked():
                     self.mainwindow.delete_action.setEnabled(True)
@@ -668,11 +670,13 @@ class NXTreeView(QtWidgets.QTreeView):
         self.addMenu(self.mainwindow.plot_image_action)
         self.menu.addSeparator()
         self.addMenu(self.mainwindow.view_action)
-        self.addMenu(self.mainwindow.edit_action)
         self.addMenu(self.mainwindow.validate_action)
-        self.addMenu(self.mainwindow.add_action)
-        self.addMenu(self.mainwindow.initialize_action)
         self.menu.addSeparator()
+        self.addMenu(self.mainwindow.group_action)
+        self.addMenu(self.mainwindow.field_action)
+        self.addMenu(self.mainwindow.attribute_action)
+        self.menu.addSeparator()
+        self.addMenu(self.mainwindow.edit_action)
         self.addMenu(self.mainwindow.rename_action)
         self.addMenu(self.mainwindow.delete_action)
         self.menu.addSeparator()

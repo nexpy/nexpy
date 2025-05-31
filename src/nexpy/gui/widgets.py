@@ -2633,7 +2633,16 @@ class NXComboBox(QtWidgets.QComboBox):
         self.setFocusPolicy(QtCore.Qt.StrongFocus)
         self.setMinimumWidth(80)
         if items:
+            if isinstance(items, dict):
+                tooltips = list(items.values())
+                items = list(items.keys())
+            else:
+                tooltips = None
             self.addItems([str(item) for item in items])
+            if tooltips:
+                for i, tip in enumerate(tooltips):
+                    if isinstance(tip, str):
+                        self.setItemData(i, tip, QtCore.Qt.ToolTipRole)
             if default:
                 self.setCurrentIndex(self.findText(str(default)))
         if slot:
@@ -2705,30 +2714,55 @@ class NXComboBox(QtWidgets.QComboBox):
 
     def add(self, *items):
         """
-        Add items to the list of options.
+        Add a list of items to the dropdown menu.
+
+        If an item is a dictionary, its first key is used as the item
+        text and its first value is used as the item tooltip.
 
         Parameters
         ----------
-        *items : list of str
-            List of options to be added to the dropdown menu.
+        *items :
+            A variable number of items to add to the dropdown menu.
         """
         for item in items:
-            if item not in self:
+            if isinstance(item, dict):
+                tooltip = list(item.values())[0]
+                item = str(item.keys()[0])
+                if item not in self:
+                    self.addItem(item)
+                if isinstance(tooltip, str):
+                    idx = self.findText(item)
+                    self.setItemData(idx, tooltip, QtCore.Qt.ToolTipRole)
+            elif item not in self:
                 self.addItem(str(item))
 
     def insert(self, idx, item):
         """
-        Insert item at the specified index.
+        Insert an item into the list of options at the given index.
 
         Parameters
         ----------
-        item : str or int
-            List of options to be added to the dropdown menu.
         idx : int
-            Index of position before which to insert item
+            Index where the item should be inserted.
+        item : str or dict
+            Item to be inserted. If a string, it is a simple text
+            item. If a dictionary, it is expected to contain a single
+            key-value pair, where the key is the displayed text and
+            the value is the tooltip text.
         """
-        if item not in self:
-            self.insertItem(idx, str(item))
+        if item == "":
+            self.insertSeparator(idx)
+        elif item not in self:
+            if isinstance(item, dict):
+                tooltip = list(item.values())[0]
+                item = str(item.keys()[0])
+                idx = self.findText(item)
+                self.insertItem(idx, item)
+                if isinstance(tooltip, str):
+                    idx = self.findText(item)
+                    self.setItemData(idx, tooltip, QtCore.Qt.ToolTipRole)
+            else:
+                self.insertItem(idx, str(item))
 
     def remove(self, item):
         """

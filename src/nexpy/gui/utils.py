@@ -13,6 +13,7 @@ import logging
 import os
 import re
 import sys
+import textwrap
 import traceback as tb
 from configparser import ConfigParser
 from datetime import datetime
@@ -213,19 +214,11 @@ def iterable(obj):
     return True
 
 
-def wrap(text, length):
+def wrap(text, width=80, compress=False):
     """Wrap text lines based on a given length"""
-    words = text.split()
-    lines = []
-    line = ''
-    for w in words:
-        if len(w) + len(line) > length:
-            lines.append(line)
-            line = ''
-        line = line + w + ' '
-        if w is words[-1]:
-            lines.append(line)
-    return '\n'.join(lines)
+    if compress:
+        text = '\n'.join(re.sub(' +', ' ', line) for line in text.splitlines())
+    return '\n'.join(textwrap.fill(line, width) for line in text.splitlines())
 
 
 def natural_sort(key):
