@@ -12,16 +12,16 @@ import matplotlib as mpl
 import numpy as np
 from matplotlib.legend import Legend
 from matplotlib.rcsetup import validate_aspect, validate_float
-from nexusformat.nexus import (NeXusError, NXdata, NXentry, NXfield, NXgroup,
-                               NXlink, NXroot, NXvirtualfield, nxconsolidate,
-                               nxgetconfig, nxload, nxsetconfig)
+from nexusformat.nexus import (NeXusError, NXattr, NXdata, NXentry, NXfield,
+                               NXgroup, NXlink, NXroot, NXvirtualfield,
+                               nxconsolidate, nxgetconfig, nxload, nxsetconfig)
 from nexusformat.nexus.utils import all_dtypes, map_dtype
 
 from .pyqt import QtCore, QtWidgets, getOpenFileName, getSaveFileName
 from .utils import (convertHTML, display_message, fix_projection, format_mtime,
                     format_timestamp, get_color, get_mtime, human_size,
                     keep_data, load_plugin, natural_sort, report_error,
-                    set_style, timestamp)
+                    set_style, timestamp, wrap)
 from .widgets import (GridParameters, NXCheckBox, NXComboBox, NXDialog,
                       NXDoubleSpinBox, NXLabel, NXLineEdit, NXPanel,
                       NXPlainTextEdit, NXpolygon, NXPushButton, NXScrollArea,
@@ -4398,7 +4398,6 @@ class GroupDialog(NXDialog):
         """
 
         self.node = node
-        self.validator = self.node.get_validator()
 
         self.setWindowTitle("Add NeXus Data")
 
@@ -4421,12 +4420,19 @@ class GroupDialog(NXDialog):
         grid = QtWidgets.QGridLayout()
         grid.setSpacing(10)
 
-        self.standard_groups = self.validator.valid_groups
+        self.standard_groups = self.node.valid_groups()
+        valid_groups = {}
+        for group in self.standard_groups:
+            if 'doc' in self.standard_groups[group]:
+                valid_groups[group] = wrap(self.standard_groups[group]['doc'],
+                                           width=60, compress=True)
+            else:
+                valid_groups[group] = ""
         name_label = NXLabel("Name:")
         self.name_box = NXLineEdit()
         group_label = NXLabel("Group Class:")
-        self.group_box = NXComboBox(self.select_group, self.standard_groups)
-        self.group_box.insert(len(self.standard_groups), "")
+        self.group_box = NXComboBox(self.select_group, valid_groups)
+        self.group_box.insert(len(valid_groups), "")
         other_groups = sorted([g for g in self.mainwindow.nxclasses
                                if g not in self.standard_groups])
         self.group_box.add(*other_groups)
@@ -4465,14 +4471,18 @@ class GroupDialog(NXDialog):
         """Add a new NeXus group to the tree."""
         name = self.get_name()
         nxclass = self.group_box.selected
-        if name:
+        try:
+            if name:
+                if name in self.node:
+                    raise NeXusError(f"Group '{name}' already exists in '"
+                                     f"{self.node.nxpath}'")
+            else:
+                raise NeXusError("Group name is empty")
             self.node[name] = NXgroup(nxclass=nxclass)
-        else:
-            group = NXgroup(nxclass=nxclass)
-            name = group.nxname
-            self.node[name] = group
-        logging.info(f"'{self.node[name]}' added to '{self.node.nxpath}'")
-        super().accept()
+            logging.info(f"'{self.node[name]}' added to '{self.node.nxpath}'")
+            super().accept()
+        except NeXusError as error:
+            report_error("Adding Group", error)
 
 
 class FieldDialog(NXDialog):
@@ -4492,7 +4502,6 @@ class FieldDialog(NXDialog):
         """
 
         self.node = node
-        self.validator = self.node.get_validator()
 
         self.setWindowTitle("Add NeXus Data")
 
@@ -4511,13 +4520,20 @@ class FieldDialog(NXDialog):
         grid = QtWidgets.QGridLayout()
         grid.setSpacing(10)
 
-        self.standard_fields = self.validator.valid_fields
+        self.standard_fields = self.node.valid_fields()
+        valid_fields = {}
+        for field in self.standard_fields:
+            if 'doc' in self.standard_fields[field]:
+                valid_fields[field] = wrap(self.standard_fields[field]['doc'],
+                                           width=60, compress=True)
+            else:
+                valid_fields[field] = ""
         name_label = NXLabel("Name:")
         self.name_box = NXLineEdit()
         grid.addWidget(name_label, 0, 0)
         grid.addWidget(self.name_box, 0, 1)
-        self.field_box = NXComboBox(self.select_field, self.standard_fields)
-        if len(self.standard_fields) > 0:
+        self.field_box = NXComboBox(self.select_field, valid_fields)
+        if len(valid_fields) > 0:
             grid.addWidget(self.field_box, 0, 2)
         value_label = NXLabel("Value:")
         self.value_box = NXLineEdit()
@@ -4539,7 +4555,7 @@ class FieldDialog(NXDialog):
         grid.addWidget(longname_label, 4, 0)
         grid.addWidget(self.longname_box, 4, 1)
         grid.setColumnMinimumWidth(1, 200)
-        if len(self.standard_fields) > 0:
+        if len(valid_fields) > 0:
             self.select_field()
         return grid
 
@@ -4627,25 +4643,197 @@ class FieldDialog(NXDialog):
         dtype = self.get_type()
         units = self.get_units()
         longname = self.get_longname()
-        if name:
-            if value:
-                try:
+        try:
+            if name:
+                if name in self.node:
+                    raise NeXusError(f"Field '{name}' already exists in "
+                                     f"'{self.node.nxpath}'")
+                if value:
                     field = NXfield(value, dtype=dtype)
                     self.node[name] = field
                     logging.info(f"'{name}' added to '{self.node.nxpath}'")
-                except NeXusError as error:
-                    report_error("Adding Field", error)
-                    return
+                else:
+                    raise NeXusError("Field value is empty")
+                if units:
+                    self.node[name].attrs['units'] = units
+                if longname:
+                    self.node[name].attrs['long_name'] = longname
+                super().accept()
             else:
-                report_error("Adding Field", "Field value is empty")
-                return
-            if units:
-                self.node[name].attrs['units'] = units
-            if longname:
-                self.node[name].attrs['long_name'] = longname
-            super().accept()
+                raise NeXusError("Field name is empty")
+        except NeXusError as error:
+            report_error("Adding Field", error)
+
+
+class AttributeDialog(NXDialog):
+
+    def __init__(self, node, parent=None):
+
+        super().__init__(parent=parent)
+        """
+        Initialize the dialog to add a NeXus attribute.
+
+        Parameters
+        ----------
+        node : NXobject
+            The NeXus node to which a NeXus attribute will be added.
+        parent : QWidget, optional
+            The parent window of the dialog, by default None
+        """
+
+        self.node = node
+
+        self.setWindowTitle("Add NeXus Attribute")
+
+        self.set_layout(self.define_grid(), self.close_buttons(save=True))
+        self.set_title("Add NeXus Attribute")
+
+    def define_grid(self):
+        """
+        Defines a grid to set attribute name and value, and datatype.
+
+        Returns
+        -------
+        grid : QGridLayout
+            The grid of entry fields for adding a NeXus field.
+        """
+        grid = QtWidgets.QGridLayout()
+        grid.setSpacing(10)
+
+        self.standard_attributes = self.node.valid_attributes()
+        valid_attributes = {}
+        for attribute in self.standard_attributes:
+            if 'doc' in self.standard_attributes[attribute]:
+                valid_attributes[attribute] = wrap(
+                    self.standard_attributes[attribute]['doc'],
+                    width=60, compress=True)
+            else:
+                valid_attributes[attribute] = ""
+        name_label = NXLabel("Name:")
+        self.name_box = NXLineEdit()
+        grid.addWidget(name_label, 0, 0)
+        grid.addWidget(self.name_box, 0, 1)
+        self.attr_box = NXComboBox(self.select_attribute, valid_attributes)
+        if len(valid_attributes) > 0:
+            grid.addWidget(self.attr_box, 0, 2)
+        value_label = NXLabel("Value:")
+        self.value_box = NXLineEdit()
+        self.enumeration_box = NXComboBox(self.select_enumeration)
+        self.enumeration_box.setVisible(False)
+        grid.addWidget(value_label, 1, 0)
+        grid.addWidget(self.value_box, 1, 1)
+        grid.addWidget(self.enumeration_box, 1, 2)
+        type_label = NXLabel("Datatype:")
+        self.type_box = NXComboBox(items=all_dtypes())
+        grid.addWidget(type_label, 2, 0)
+        grid.addWidget(self.type_box, 2, 1)
+        grid.setColumnMinimumWidth(1, 200)
+        if len(valid_attributes) > 0:
+            self.select_attribute()
+        return grid
+
+    def select_attribute(self):
+        """Set the name to the selected item in the attribute box."""
+        attribute_name = self.attr_box.selected
+        self.set_name(attribute_name)
+        self.type_box.clear()
+        if attribute_name in self.standard_attributes:
+            if "@type" in self.standard_attributes[attribute_name]:
+                valid_dtypes = map_dtype(
+                    self.standard_attributes[attribute_name]["@type"])
+            else:
+                valid_dtypes = map_dtype("NX_CHAR")
+            self.type_box.add(*valid_dtypes)
+            self.type_box.insert(len(valid_dtypes), "")
+            other_dtypes = [dt for dt in all_dtypes()
+                            if dt not in valid_dtypes]
+            self.type_box.add(*other_dtypes)
+            if "enumeration" in self.standard_attributes[attribute_name]:
+                self.enumeration_box.clear()
+                self.enumeration_box.add(
+                    *self.standard_attributes[attribute_name]["enumeration"])
+                self.enumeration_box.setVisible(True)
+                if attribute_name not in self.node.attrs:
+                    self.select_enumeration()
+            else:
+                self.enumeration_box.setVisible(False)
+                self.value_box.setText("")
         else:
-            report_error("Adding Field", "Field name is empty")
+            self.type_box.add(*all_dtypes())
+            self.enumeration_box.setVisible(False)
+        if attribute_name in self.node.attrs:
+            self.value_box.setText(self.node.attrs[attribute_name])
+
+    def select_enumeration(self):
+        """Set the value to the selected item in the enumeration box."""
+        self.value_box.setText(self.enumeration_box.selected)
+
+    def get_name(self):
+        """Return the text of the name box."""
+        return self.name_box.text().strip()
+
+    def set_name(self, name):
+        """Set the name to the field selected in the dropdown menu."""
+        self.name_box.setText(name)
+
+    def get_value(self):
+        """
+        Return the value of the text box as a python object.
+        
+        If the value is empty, return None. If the value is a string,
+        return the string. If the value is a number, return the number
+        as a python object. If the value is a NumPy expression, return
+        the result of the expression. If the value can not be
+        interpreted as a python object, return the value as a string.
+        """
+        value = self.value_box.text()
+        if value:
+            dtype = self.get_type()
+            if dtype == "char":
+                return value
+            else:
+                from .consoleapp import _shell
+                try:
+                    return eval(value, {"__builtins__": {}}, _shell)
+                except Exception:
+                    return value
+        else:
+            return None
+
+    def get_type(self):
+        """Return the type of the object as a NumPy dtype."""
+        return np.dtype(self.type_box.currentText())
+
+    def accept(self):
+        """Add a new NeXus field to the tree."""
+        name = self.get_name()
+        value = self.get_value()
+        dtype = self.get_type()
+        try:
+            if name:
+                if name in self.node.attrs:
+                    if value == self.node.attrs[name]:
+                        display_message("Adding Attribute",
+                                        f"Value of attribute '{name}' in "
+                                        f"'{self.node.nxpath}' is unchanged")
+                        super().accept()
+                        return
+                    elif not self.confirm_action(
+                            f"Overwrite existing attribute '{name}'?",
+                            f"Current value: {self.node.attrs[name]}"):
+                        return
+                if value:
+                    attribute = NXattr(value, dtype=dtype)
+                    self.node.attrs[name] = attribute
+                    logging.info(
+                        f"Attribute '{name}' added to '{self.node.nxpath}'")
+                    super().accept()
+                else:
+                    raise NeXusError("Attribute value is empty")
+            else:
+                raise NeXusError("Attribute name is empty")
+        except NeXusError as error:
+            report_error("Adding Attribute", error)
 
 
 class RenameDialog(NXDialog):

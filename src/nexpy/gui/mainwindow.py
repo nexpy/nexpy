@@ -29,9 +29,9 @@ from qtconsole.inprocess import QtInProcessKernelManager
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
 
 from .. import __version__
-from .dialogs import (CustomizeDialog, DirectoryDialog, EditDialog,
-                      ExportDialog, FieldDialog, GroupDialog, LimitDialog,
-                      LockDialog, LogDialog, ManageBackupsDialog,
+from .dialogs import (AttributeDialog, CustomizeDialog, DirectoryDialog,
+                      EditDialog, ExportDialog, FieldDialog, GroupDialog,
+                      LimitDialog, LockDialog, LogDialog, ManageBackupsDialog,
                       ManagePluginsDialog, NewDialog, PasteDialog, PlotDialog,
                       PlotScalarDialog, ProjectionDialog, RenameDialog,
                       ScanDialog, SettingsDialog, SignalDialog, UnlockDialog,
@@ -541,6 +541,10 @@ class MainWindow(QtWidgets.QMainWindow):
         self.field_action = QtWidgets.QAction("Add Field", self,
                                             triggered=self.add_field)
         self.add_menu_action(self.data_menu, self.field_action)
+
+        self.attribute_action = QtWidgets.QAction("Add Attribute", self,
+                                            triggered=self.add_attribute)
+        self.add_menu_action(self.data_menu, self.attribute_action)
 
         self.data_menu.addSeparator()
 
@@ -1678,8 +1682,6 @@ class MainWindow(QtWidgets.QMainWindow):
                     raise NeXusError("NeXus file is locked")
                 dialog = GroupDialog(node, parent=self)
                 dialog.exec()
-            else:
-                self.new_workspace()
         except NeXusError as error:
             report_error("Adding Group", error)
 
@@ -1694,10 +1696,22 @@ class MainWindow(QtWidgets.QMainWindow):
                     raise NeXusError("NeXus file is locked")
                 dialog = FieldDialog(node, parent=self)
                 dialog.exec()
-            else:
-                self.new_workspace()
         except NeXusError as error:
             report_error("Adding Field", error)
+
+    def add_attribute(self):
+        """Add a new NeXus attribute to the selected node."""
+        try:
+            node = self.treeview.get_node()
+            if node is not None:
+                if not node.exists():
+                    raise NeXusError(f"{node.nxfullpath} does not exist")
+                elif node.nxfilemode == 'r':
+                    raise NeXusError("NeXus file is locked")
+                dialog = AttributeDialog(node, parent=self)
+                dialog.exec()
+        except NeXusError as error:
+            report_error("Adding Attribute", error)
 
     def rename_data(self):
         """
