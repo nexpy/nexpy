@@ -3008,7 +3008,6 @@ class NXPlotView(QtWidgets.QDialog):
     def closeEvent(self, event):
         """Close this widget and mark it for deletion."""
         self.close_view()
-        self.deleteLater()
         event.accept()
 
     def close(self):
