@@ -1462,6 +1462,8 @@ class NXPlotView(QtWidgets.QDialog):
         """
         if self.colorbar:
             if Version(mpl.__version__) >= Version('3.1.0'):
+                self.set_data_norm()
+                self.image.set_norm(self.norm)
                 self.colorbar.update_normal(self.image)
             else:
                 self.colorbar.set_norm(self.norm)
@@ -4603,6 +4605,10 @@ class NXNavigationToolbar(NavigationToolbar2QT, QtWidgets.QToolBar):
         self.plotview.ytab.set_sliders(ymin, ymax)
         self.plotview.ytab.block_signals(False)
         if self.plotview.image:
+            if isinstance(self.plotview.image.norm, LogNorm):
+                self.plotview.vtab.log = True
+            else:
+                self.plotview.vtab.log = False
             self.plotview.update_colorbar()
         self.plotview.update_panels()
 
