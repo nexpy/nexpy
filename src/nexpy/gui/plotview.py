@@ -62,10 +62,10 @@ from nexusformat.nexus import NeXusError, NXdata, NXfield
 from .dialogs import (CustomizeDialog, ExportDialog, LimitDialog,
                       ProjectionDialog, ScanDialog, StyleDialog)
 from .utils import (boundaries, centers, display_message, divgray_map,
-                    find_nearest, fix_projection, get_color, in_dark_mode,
-                    iterable, keep_data, load_image, parula_map, report_error,
-                    report_exception, resource_file, resource_icon,
-                    rotate_data, rotate_point, xtec_map)
+                    find_nearest, fix_projection, get_color, get_mainwindow,
+                    in_dark_mode, iterable, keep_data, load_image, parula_map,
+                    report_error, report_exception, resource_file,
+                    resource_icon, rotate_data, rotate_point, xtec_map)
 from .widgets import (NXCheckBox, NXcircle, NXComboBox, NXDoubleSpinBox,
                       NXellipse, NXLabel, NXline, NXLineEdit, NXpolygon,
                       NXPushButton, NXrectangle, NXSlider, NXSpinBox,
@@ -316,7 +316,7 @@ class NXPlotView(QtWidgets.QDialog):
         y-axis, and 2 for the x-axis.
     """
 
-    def __init__(self, label=None, parent=None):
+    def __init__(self, label=None, mainwindow=None, parent=None):
 
         """
         Initialize the NXPlotView window.
@@ -328,21 +328,20 @@ class NXPlotView(QtWidgets.QDialog):
             used as the key to select an instance in the 'dialogs' dictionary.
             If a label is not given, the window will be labeled as
             "Figure 1", "Figure 2", etc.
+        mainwindow : QMainWindow, optional
+            The main window of the application, by default None
         parent : QWidget, optional
             The parent window of the dialog, by default None
         """
-        if parent is not None:
-            self.mainwindow = parent
-        else:
-            from .consoleapp import _mainwindow
-            self.mainwindow = _mainwindow
-            parent = self.mainwindow
 
-        super().__init__(parent)
+        super().__init__(parent=parent)
+
+        if mainwindow:
+            self.mainwindow = mainwindow
+        else:
+            self.mainwindow = get_mainwindow()
 
         self.setMinimumSize(750, 550)
-        self.setSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding,
-                           QtWidgets.QSizePolicy.MinimumExpanding)
         self.setFocusPolicy(QtCore.Qt.ClickFocus)
 
         if label in plotviews:

@@ -427,7 +427,7 @@ class NXTreeItem(QtGui.QStandardItem):
 
 class NXTreeView(QtWidgets.QTreeView):
 
-    def __init__(self, tree, parent=None):
+    def __init__(self, tree, mainwindow):
         """
         Initialize a NeXus tree view.
 
@@ -435,13 +435,15 @@ class NXTreeView(QtWidgets.QTreeView):
         ----------
         tree : NXtree
             The root of the tree.
+        mainwindow : NXMainWindow
+            The main window of the application.
         parent : QWidget, optional
             The parent of the view.
         """
-        super().__init__(parent=parent)
+        super().__init__()
 
         self.tree = tree
-        self.mainwindow = parent
+        self.mainwindow = mainwindow
         self._model = QtGui.QStandardItemModel()
         self.proxymodel = NXSortModel(self)
         self.proxymodel.setSourceModel(self._model)
