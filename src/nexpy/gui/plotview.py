@@ -192,13 +192,6 @@ def get_plotview():
 class NXCanvas(FigureCanvas):
     """Subclass of Matplotlib's FigureCanvas."""
 
-    def __init__(self, figure):
-
-        FigureCanvas.__init__(self, figure)
-
-        self.setSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding,
-                           QtWidgets.QSizePolicy.MinimumExpanding)
-
     def get_default_filename(self):
         """Return a string suitable for use as a default filename."""
         basename = (self.manager.get_window_title().replace('NeXpy: ', '')
