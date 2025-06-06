@@ -381,7 +381,7 @@ class NXPlotView(QtWidgets.QDialog):
         self.ytab = NXPlotTab('y', plotview=self)
         self.ztab = NXPlotTab('z', zaxis=True, plotview=self)
         self.ptab = NXProjectionTab(plotview=self)
-        self.otab = NXNavigationToolbar(self.canvas, self.tab_widget)
+        self.otab = NXNavigationToolbar(self.canvas)
         self.figuremanager.toolbar = self.otab
         self.tab_widget.addTab(self.xtab, 'x')
         self.tab_widget.addTab(self.ytab, 'y')
@@ -3985,7 +3985,7 @@ class NXPlotTab(QtWidgets.QWidget):
         _pause_icon = resource_icon('pause-icon.png')
         _forward_icon = resource_icon('forward-icon.png')
         _refresh_icon = resource_icon('refresh-icon.png')
-        self.toolbar = QtWidgets.QToolBar(parent=self)
+        self.toolbar = QtWidgets.QToolBar()
         self.toolbar.setIconSize(QtCore.QSize(16, 16))
         self.add_action(_refresh_icon, self.plotview.replot_data, "Replot",
                         checkable=False)
@@ -4377,7 +4377,7 @@ class NXNavigationToolbar(NavigationToolbar2QT, QtWidgets.QToolBar):
         ('Add', 'Add plot data to tree', 'hand', 'add_data')
     )
 
-    def __init__(self, canvas, parent=None, coordinates=True):
+    def __init__(self, canvas, coordinates=True):
         """
         Initialize the navigation toolbar.
 
@@ -4391,11 +4391,11 @@ class NXNavigationToolbar(NavigationToolbar2QT, QtWidgets.QToolBar):
             Whether to display the coordinates of the mouse position, by
             default True
         """
-        QtWidgets.QToolBar.__init__(self, parent=parent)
+        QtWidgets.QToolBar.__init__(self)
         self.setAllowedAreas(QtCore.Qt.BottomToolBarArea)
 
         self.coordinates = coordinates
-        self._actions = {}  # mapping of toolitem method names to QActions.
+        self._actions = {}
         self._subplot_dialog = None
 
         for text, tooltip_text, image_file, callback in self.toolitems:

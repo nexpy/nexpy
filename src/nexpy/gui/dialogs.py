@@ -162,7 +162,7 @@ class DirectoryDialog(NXDialog):
 
 class PlotDialog(NXDialog):
 
-    def __init__(self, node, parent=None, lines=False):
+    def __init__(self, node, lines=False, parent=None):
 
         """
         Initialize the dialog to plot arbitrary NeXus data in 1D or 2D.
