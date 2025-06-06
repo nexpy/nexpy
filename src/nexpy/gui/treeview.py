@@ -94,7 +94,9 @@ class NXtree(NXgroup):
             for row in range(self._item.rowCount()):
                 for item in self._item.child(row).walk():
                     self.sync_children(item)
-            self._view.dataChanged(self._item.index(), self._item.index())
+            index = self._item.index()
+            if index.isValid():
+                self._view.dataChanged(index, index)
             self._view.update()
             self._view.status_message(self._view.node)
 
