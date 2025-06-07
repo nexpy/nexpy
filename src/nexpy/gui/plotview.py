@@ -664,8 +664,8 @@ class NXPlotView(QtWidgets.QDialog):
             self.canvas._update_screen(self.screen)
         except Exception:
             pass
-        self.canvas.activateWindow()
-        self.canvas.setFocus()
+        self.activateWindow()
+        self.setFocus()
         self.update_active()
 
     def update_active(self):
