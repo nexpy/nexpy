@@ -62,10 +62,10 @@ from nexusformat.nexus import NeXusError, NXdata, NXfield
 from .dialogs import (CustomizeDialog, ExportDialog, LimitDialog,
                       ProjectionDialog, ScanDialog, StyleDialog)
 from .utils import (boundaries, centers, display_message, divgray_map,
-                    find_nearest, fix_projection, get_color, in_dark_mode,
-                    iterable, keep_data, load_image, parula_map, report_error,
-                    report_exception, resource_file, resource_icon,
-                    rotate_data, rotate_point, xtec_map)
+                    find_nearest, fix_projection, get_color, get_mainwindow,
+                    in_dark_mode, iterable, keep_data, load_image, parula_map,
+                    report_error, report_exception, resource_file,
+                    resource_icon, rotate_data, rotate_point, xtec_map)
 from .widgets import (NXCheckBox, NXcircle, NXComboBox, NXDoubleSpinBox,
                       NXellipse, NXLabel, NXline, NXLineEdit, NXpolygon,
                       NXPushButton, NXrectangle, NXSlider, NXSpinBox,
@@ -192,13 +192,6 @@ def get_plotview():
 class NXCanvas(FigureCanvas):
     """Subclass of Matplotlib's FigureCanvas."""
 
-    def __init__(self, figure):
-
-        FigureCanvas.__init__(self, figure)
-
-        self.setSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding,
-                           QtWidgets.QSizePolicy.MinimumExpanding)
-
     def get_default_filename(self):
         """Return a string suitable for use as a default filename."""
         basename = (self.manager.get_window_title().replace('NeXpy: ', '')
@@ -316,7 +309,7 @@ class NXPlotView(QtWidgets.QDialog):
         y-axis, and 2 for the x-axis.
     """
 
-    def __init__(self, label=None, parent=None):
+    def __init__(self, label=None, mainwindow=None, parent=None):
 
         """
         Initialize the NXPlotView window.
@@ -328,21 +321,22 @@ class NXPlotView(QtWidgets.QDialog):
             used as the key to select an instance in the 'dialogs' dictionary.
             If a label is not given, the window will be labeled as
             "Figure 1", "Figure 2", etc.
+        mainwindow : QMainWindow, optional
+            The main window of the application, by default None
         parent : QWidget, optional
             The parent window of the dialog, by default None
         """
-        if parent is not None:
-            self.mainwindow = parent
+
+
+        if mainwindow:
+            self.mainwindow = mainwindow
         else:
-            from .consoleapp import _mainwindow
-            self.mainwindow = _mainwindow
+            self.mainwindow = get_mainwindow()
             parent = self.mainwindow
 
-        super().__init__(parent)
+        super().__init__(parent=parent)
 
         self.setMinimumSize(750, 550)
-        self.setSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding,
-                           QtWidgets.QSizePolicy.MinimumExpanding)
         self.setFocusPolicy(QtCore.Qt.ClickFocus)
 
         if label in plotviews:
@@ -382,7 +376,7 @@ class NXPlotView(QtWidgets.QDialog):
         self.ytab = NXPlotTab('y', plotview=self)
         self.ztab = NXPlotTab('z', zaxis=True, plotview=self)
         self.ptab = NXProjectionTab(plotview=self)
-        self.otab = NXNavigationToolbar(self.canvas, self.tab_widget)
+        self.otab = NXNavigationToolbar(self.canvas)
         self.figuremanager.toolbar = self.otab
         self.tab_widget.addTab(self.xtab, 'x')
         self.tab_widget.addTab(self.ytab, 'y')
@@ -672,8 +666,8 @@ class NXPlotView(QtWidgets.QDialog):
             self.canvas._update_screen(self.screen)
         except Exception:
             pass
-        self.canvas.activateWindow()
-        self.canvas.setFocus()
+        self.activateWindow()
+        self.setFocus()
         self.update_active()
 
     def update_active(self):
@@ -1470,6 +1464,8 @@ class NXPlotView(QtWidgets.QDialog):
         """
         if self.colorbar:
             if Version(mpl.__version__) >= Version('3.1.0'):
+                self.set_data_norm()
+                self.image.set_norm(self.norm)
                 self.colorbar.update_normal(self.image)
             else:
                 self.colorbar.set_norm(self.norm)
@@ -3016,7 +3012,6 @@ class NXPlotView(QtWidgets.QDialog):
     def closeEvent(self, event):
         """Close this widget and mark it for deletion."""
         self.close_view()
-        self.deleteLater()
         event.accept()
 
     def close(self):
@@ -3986,7 +3981,7 @@ class NXPlotTab(QtWidgets.QWidget):
         _pause_icon = resource_icon('pause-icon.png')
         _forward_icon = resource_icon('forward-icon.png')
         _refresh_icon = resource_icon('refresh-icon.png')
-        self.toolbar = QtWidgets.QToolBar(parent=self)
+        self.toolbar = QtWidgets.QToolBar()
         self.toolbar.setIconSize(QtCore.QSize(16, 16))
         self.add_action(_refresh_icon, self.plotview.replot_data, "Replot",
                         checkable=False)
@@ -4378,7 +4373,7 @@ class NXNavigationToolbar(NavigationToolbar2QT, QtWidgets.QToolBar):
         ('Add', 'Add plot data to tree', 'hand', 'add_data')
     )
 
-    def __init__(self, canvas, parent=None, coordinates=True):
+    def __init__(self, canvas, coordinates=True):
         """
         Initialize the navigation toolbar.
 
@@ -4392,11 +4387,11 @@ class NXNavigationToolbar(NavigationToolbar2QT, QtWidgets.QToolBar):
             Whether to display the coordinates of the mouse position, by
             default True
         """
-        QtWidgets.QToolBar.__init__(self, parent=parent)
+        QtWidgets.QToolBar.__init__(self)
         self.setAllowedAreas(QtCore.Qt.BottomToolBarArea)
 
         self.coordinates = coordinates
-        self._actions = {}  # mapping of toolitem method names to QActions.
+        self._actions = {}
         self._subplot_dialog = None
 
         for text, tooltip_text, image_file, callback in self.toolitems:
@@ -4612,6 +4607,10 @@ class NXNavigationToolbar(NavigationToolbar2QT, QtWidgets.QToolBar):
         self.plotview.ytab.set_sliders(ymin, ymax)
         self.plotview.ytab.block_signals(False)
         if self.plotview.image:
+            if isinstance(self.plotview.image.norm, LogNorm):
+                self.plotview.vtab.log = True
+            else:
+                self.plotview.vtab.log = False
             self.plotview.update_colorbar()
         self.plotview.update_panels()
 

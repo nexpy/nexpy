@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2013-2021, NeXpy Development Team.
+# Copyright (c) 2013-2025, NeXpy Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -8,8 +8,9 @@
 
 """The Qt MainWindow for NeXpy
 
-This is an expanded version on the Jupyter QtConsole with the addition
-of a Matplotlib plotting pane and a tree view for displaying NeXus data.
+This contains a tree view to display NeXus data, a Matplotlib canvas to
+plot the data, and a Jupyter console to execute Python commands. The
+namespace of the console includes the NeXus data loaded into the tree.
 """
 
 # -----------------------------------------------------------------------------
@@ -95,12 +96,18 @@ class MainWindow(QtWidgets.QMainWindow):
 
         super().__init__()
         self.resize(1000, 800)
+
         self.app = app
         self._app = app.app
         self._app.setStyle("QMacStyle")
         self.settings = settings
         self.config = config
+
+        self.dialogs = []
+        self.panels = {}
+        self.log_window = None
         self.copied_node = None
+        self._memroot = None
 
         self.default_directory = Path.home()
         self.nexpy_dir = self.app.nexpy_dir
@@ -114,20 +121,10 @@ class MainWindow(QtWidgets.QMainWindow):
 
         mainwindow = QtWidgets.QWidget()
 
-        rightpane = QtWidgets.QWidget()
+        self.mainview = NXPlotView(label="Main", mainwindow=self)
 
-        self.dialogs = []
-        self.panels = {}
-        self.log_window = None
-        self._memroot = None
-
-        main_plotview = NXPlotView(label="Main", parent=self)
-
-        self.console = NXRichJupyterWidget(config=self.config,
-                                           parent=rightpane)
+        self.console = NXRichJupyterWidget(config=self.config)
         self.console.setMinimumSize(750, 100)
-        self.console.setSizePolicy(QtWidgets.QSizePolicy.Expanding,
-                                   QtWidgets.QSizePolicy.Fixed)
         self.console._confirm_exit = True
         self.console.kernel_manager = QtInProcessKernelManager(
             config=self.config)
@@ -157,27 +154,22 @@ class MainWindow(QtWidgets.QMainWindow):
             self.shell._last_traceback = stb
         self.shell._showtraceback = new_stb
 
+        self.tree = tree
+        self.treeview = NXTreeView(self.tree, mainwindow=self)
+        self.treeview.setMinimumWidth(200)
+        self.treeview.setMaximumWidth(400)
+
+        rightpane = QtWidgets.QWidget()
+
         right_splitter = QtWidgets.QSplitter(rightpane)
         right_splitter.setOrientation(QtCore.Qt.Vertical)
-        right_splitter.addWidget(main_plotview)
+        right_splitter.addWidget(self.mainview)
         right_splitter.addWidget(self.console)
 
         rightlayout = QtWidgets.QVBoxLayout()
         rightlayout.addWidget(right_splitter)
         rightlayout.setContentsMargins(0, 0, 0, 0)
         rightpane.setLayout(rightlayout)
-
-        self.tree = tree
-        self.treeview = NXTreeView(self.tree, parent=self)
-        self.treeview.setMinimumWidth(200)
-        self.treeview.setMaximumWidth(400)
-        self.treeview.setSizePolicy(QtWidgets.QSizePolicy.Preferred,
-                                    QtWidgets.QSizePolicy.Expanding)
-        self.user_ns['plotview'] = self.plotview
-        self.user_ns['plotviews'] = self.plotviews = self.plotview.plotviews
-        self.user_ns['treeview'] = self.treeview
-        self.user_ns['nxtree'] = self.user_ns['_tree'] = self.tree
-        self.user_ns['mainwindow'] = self
 
         left_splitter = QtWidgets.QSplitter(mainwindow)
         left_splitter.setOrientation(QtCore.Qt.Horizontal)
@@ -190,6 +182,12 @@ class MainWindow(QtWidgets.QMainWindow):
         mainwindow.setLayout(mainlayout)
 
         self.setCentralWidget(mainwindow)
+
+        self.user_ns['plotview'] = self.plotview
+        self.user_ns['plotviews'] = self.plotviews = self.plotview.plotviews
+        self.user_ns['treeview'] = self.treeview
+        self.user_ns['nxtree'] = self.user_ns['_tree'] = self.tree
+        self.user_ns['mainwindow'] = self
 
         self.nxclasses = get_base_classes()
 
@@ -1519,7 +1517,7 @@ class MainWindow(QtWidgets.QMainWindow):
                     except (KeyError, NeXusError):
                         pass
                 elif node.is_plottable():
-                    dialog = PlotDialog(node, parent=self, lines=True)
+                    dialog = PlotDialog(node, lines=True, parent=self)
                     dialog.show()
                 else:
                     raise NeXusError("Data not plottable")
@@ -2140,7 +2138,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def new_plot_window(self):
         """Create a new plot window"""
-        return NXPlotView(parent=self)
+        return NXPlotView()
 
     def close_window(self):
         """
@@ -2650,20 +2648,6 @@ class MainWindow(QtWidgets.QMainWindow):
             except Exception:
                 pass
 
-    def close_widgets(self):
-        """
-        Close all open dialog windows, including plot windows
-        other than the main window.
-        """
-        windows = self.dialogs
-        windows += [self.plotviews[pv]
-                    for pv in self.plotviews if pv != 'Main']
-        for window in windows:
-            try:
-                window.close()
-            except Exception:
-                pass
-
     def closeEvent(self, event):
         """Customize the close event to confirm request to quit."""
         if confirm_action("Are you sure you want to quit NeXpy?",
@@ -2671,7 +2655,6 @@ class MainWindow(QtWidgets.QMainWindow):
             self.console.kernel_client.stop_channels()
             self.console.kernel_manager.shutdown_kernel()
             self.close_files()
-            self.close_widgets()
             logging.info('NeXpy closed\n'+80*'-')
             self._app.quit()
             return event.accept()

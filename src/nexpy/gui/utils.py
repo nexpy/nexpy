@@ -165,6 +165,12 @@ def run_pythonw(script_path):
             warnings.warn(msg)
 
 
+def get_mainwindow():
+    """Return the NeXpy main window"""
+    from .consoleapp import _mainwindow
+    return _mainwindow
+
+
 def is_file_locked(filename, wait=5, expiry=None):
     """
     Check if a file is locked.
@@ -891,8 +897,8 @@ def in_dark_mode():
         True if the application is in dark mode, False otherwise.
     """
     try:
-        from .consoleapp import _mainwindow
-        app = _mainwindow.app.app
+        mainwindow = get_mainwindow()
+        app = mainwindow.app.app
         return (app.palette().window().color().value() <
                 app.palette().windowText().color().value())
     except Exception:
@@ -910,22 +916,22 @@ def define_mode():
     This function is typically called when the application is first
     launched or when the user changes the display mode from the menu.
     """
-    from .consoleapp import _mainwindow
+    mainwindow = get_mainwindow()
     if in_dark_mode():
-        _mainwindow.console.set_default_style('linux')
-        _mainwindow.statusBar().setPalette(_mainwindow.app.app.palette())
+        mainwindow.console.set_default_style('linux')
+        mainwindow.statusBar().setPalette(mainwindow.app.app.palette())
     else:
-        _mainwindow.console.set_default_style()
-        _mainwindow.statusBar().setPalette(_mainwindow.app.app.palette())
+        mainwindow.console.set_default_style()
+        mainwindow.statusBar().setPalette(mainwindow.app.app.palette())
 
-    for dialog in _mainwindow.dialogs:
+    for dialog in mainwindow.dialogs:
         if dialog.windowTitle() == 'Script Editor':
             for tab in [dialog.tabs[t] for t in dialog.tabs]:
                 tab.define_style()
         elif dialog.windowTitle().startswith('Log File'):
             dialog.format_log()
 
-    for plotview in _mainwindow.plotviews.values():
+    for plotview in mainwindow.plotviews.values():
         if in_dark_mode():
             plotview.otab.setStyleSheet('color: white')
         else:
