@@ -1142,7 +1142,7 @@ class NXDialog(QtWidgets.QDialog, NXWidget):
             parent = self.mainwindow
         QtWidgets.QDialog.__init__(self, parent=parent)
         self.set_attributes()
-        self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
+        self.setAttribute(QtCore.Qt.WA_DeleteOnClose, True)
         self.setSizeGripEnabled(True)
         self.mainwindow.dialogs.append(self)
         if not default:

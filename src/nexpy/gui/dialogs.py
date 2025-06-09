@@ -458,7 +458,6 @@ class PlotScalarDialog(NXDialog):
             The parent window of the dialog, by default None
         """
         super().__init__(parent=parent)
-        self.setAttribute(QtCore.Qt.WA_DeleteOnClose, True)
 
         if isinstance(node, NXfield):
             self.node = node
