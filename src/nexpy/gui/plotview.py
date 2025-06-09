@@ -327,12 +327,14 @@ class NXPlotView(QtWidgets.QDialog):
             The parent window of the dialog, by default None
         """
 
-        super().__init__(parent=parent)
 
         if mainwindow:
             self.mainwindow = mainwindow
         else:
             self.mainwindow = get_mainwindow()
+            parent = self.mainwindow
+
+        super().__init__(parent=parent)
 
         self.setMinimumSize(750, 550)
         self.setFocusPolicy(QtCore.Qt.ClickFocus)

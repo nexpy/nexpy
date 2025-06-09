@@ -19,7 +19,8 @@ from nexusformat.nexus import NeXusError, NXfield, NXroot
 
 from .pyqt import QtCore, QtGui, QtWidgets, getOpenFileName
 from .utils import (boundaries, confirm_action, display_message, find_nearest,
-                    format_float, get_color, natural_sort, report_error)
+                    format_float, get_color, get_mainwindow, natural_sort,
+                    report_error)
 
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
@@ -1136,8 +1137,7 @@ class NXDialog(QtWidgets.QDialog, NXWidget):
         -----
         If parent is None, the parent will be set to the main window.
         """
-        from .consoleapp import _mainwindow
-        self.mainwindow = _mainwindow
+        self.mainwindow = get_mainwindow()
         if parent is None:
             parent = self.mainwindow
         QtWidgets.QDialog.__init__(self, parent=parent)
