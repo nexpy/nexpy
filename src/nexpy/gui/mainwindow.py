@@ -2648,20 +2648,6 @@ class MainWindow(QtWidgets.QMainWindow):
             except Exception:
                 pass
 
-    def close_widgets(self):
-        """
-        Close all open dialog windows, including plot windows
-        other than the main window.
-        """
-        windows = self.dialogs
-        windows += [self.plotviews[pv]
-                    for pv in self.plotviews if pv != 'Main']
-        for window in windows:
-            try:
-                window.close()
-            except Exception:
-                pass
-
     def closeEvent(self, event):
         """Customize the close event to confirm request to quit."""
         if confirm_action("Are you sure you want to quit NeXpy?",
@@ -2669,7 +2655,6 @@ class MainWindow(QtWidgets.QMainWindow):
             self.console.kernel_client.stop_channels()
             self.console.kernel_manager.shutdown_kernel()
             self.close_files()
-            self.close_widgets()
             logging.info('NeXpy closed\n'+80*'-')
             self._app.quit()
             return event.accept()
