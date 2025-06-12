@@ -857,6 +857,30 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.help_menu.addSeparator()
 
+        self.nexpyReleaseAct = QtWidgets.QAction(
+            "Open NeXpy Release Notes", self,
+            triggered=self._open_nexpy_release_notes)
+        self.add_menu_action(self.help_menu, self.nexpyReleaseAct)
+
+        self.nexpyIssuesAct = QtWidgets.QAction(
+            "Open NeXpy Issues", self,
+            triggered=self._open_nexpy_issues)
+        self.add_menu_action(self.help_menu, self.nexpyIssuesAct)
+
+        self.help_menu.addSeparator()
+
+        self.nexusformatReleaseAct = QtWidgets.QAction(
+            "Open NeXus API Release Notes", self,
+            triggered=self._open_nexusformat_release_notes)
+        self.add_menu_action(self.help_menu, self.nexusformatReleaseAct)
+
+        self.nexusformatIssuesAct = QtWidgets.QAction(
+            "Open NeXus API Issues", self,
+            triggered=self._open_nexusformat_issues)
+        self.add_menu_action(self.help_menu, self.nexusformatIssuesAct)
+
+        self.help_menu.addSeparator()
+
         self.ipythonHelpAct = QtWidgets.QAction(
             "Open iPython Help Online", self,
             triggered=self._open_ipython_online_help)
@@ -2467,7 +2491,7 @@ class MainWindow(QtWidgets.QMainWindow):
         webbrowser.open(url, new=1, autoraise=True)
 
     def _open_nexusformat_online_notebook(self):
-        """Open the Nexusformat online notebook in a web browser."""
+        """Open the nexusformat online notebook in a web browser."""
         url = (
             "https://colab.research.google.com/github/nexpy/nexusformat/blob/"
             "master/src/nexusformat/notebooks/nexusformat.ipynb")
@@ -2476,6 +2500,26 @@ class MainWindow(QtWidgets.QMainWindow):
     def _open_nexus_online_help(self):
         """Open the Nexus base classes in a web browser."""
         url = "http://download.nexusformat.org/doc/html/classes/base_classes/"
+        webbrowser.open(url, new=1, autoraise=True)
+
+    def _open_nexpy_release_notes(self):
+        """Open NeXpy release notes in a web browser."""
+        url = "https://github.com/nexpy/nexpy/releases"
+        webbrowser.open(url, new=1, autoraise=True)
+
+    def _open_nexpy_issues(self):
+        """Open NeXpy issues in a web browser."""
+        url = "https://github.com/nexpy/nexpy/issues"
+        webbrowser.open(url, new=1, autoraise=True)
+
+    def _open_nexusformat_release_notes(self):
+        """Open nexusformat release notes in a web browser."""
+        url = "https://github.com/nexpy/nexusformat/releases"
+        webbrowser.open(url, new=1, autoraise=True)
+
+    def _open_nexusformat_issues(self):
+        """Open nexusformat issues in a web browser."""
+        url = "https://github.com/nexpy/nexusformat/issues"
         webbrowser.open(url, new=1, autoraise=True)
 
     def _open_ipython_online_help(self):
