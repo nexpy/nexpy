@@ -48,14 +48,14 @@ def get_models():
     filenames = set()
 
     models_path = package_files('nexpy.api.frills.models')
-    sys.path.append(models_path)
+    sys.path.append(str(models_path))
     for f in models_path.glob("*.py"):
         if f.stem != '__init__':
             filenames.add(f.stem)
 
     private_path = Path.home() / '.nexpy' / 'models'
     if private_path.is_dir():
-        sys.path.append(private_path)
+        sys.path.append(str(private_path))
         for f in private_path.glob('*.py'):
             if f.stem != '__init__':
                 filenames.add(f.stem)
