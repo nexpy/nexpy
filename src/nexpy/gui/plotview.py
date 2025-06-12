@@ -4516,8 +4516,11 @@ class NXNavigationToolbar(NavigationToolbar2QT, QtWidgets.QToolBar):
     def release_zoom(self, event):
         """The release mouse button callback in zoom mode."""
         if event.button == 1:
-            super().release_zoom(event)
-            self._update_release()
+            try:
+                super().release_zoom(event)
+                self._update_release()
+            except ValueError:
+                self.release(event)
         elif event.button == 3:
             self.plotview.zoom = None
             if not event.inaxes:
