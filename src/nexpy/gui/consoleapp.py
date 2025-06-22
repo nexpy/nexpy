@@ -61,9 +61,9 @@ class NXConsoleApp(JupyterQtConsoleApp):
                              'writers', 'scripts']:
             directory = nexpy_dir / subdirectory
             directory.mkdir(exist_ok=True)
-        global _nexpy_dir
-        self.nexpy_dir = _nexpy_dir = nexpy_dir
+        self.nexpy_dir = nexpy_dir
         self.backup_dir = self.nexpy_dir / 'backups'
+        self.model_dir = self.nexpy_dir / 'models'
         self.plugin_dir = self.nexpy_dir / 'plugins'
         self.reader_dir = self.nexpy_dir / 'readers'
         self.writer_dir = self.nexpy_dir / 'writers'
@@ -149,7 +149,7 @@ class NXConsoleApp(JupyterQtConsoleApp):
         sys.stdout = sys.stderr = NXLogger()
 
     def init_plugins(self):
-        """Initialize plugins, readers, and writers."""
+        """Initialize plugins, readers, writers, and models."""
         eps = entry_points()
         def initialize_plugin(plugin_group, plugin_dir):
             plugin = None
@@ -168,10 +168,10 @@ class NXConsoleApp(JupyterQtConsoleApp):
         initialize_plugin('plugins', self.plugin_dir)
         initialize_plugin('readers', self.reader_dir)
         initialize_plugin('writers', self.writer_dir)
+        initialize_plugin('models', self.writer_dir)
 
     def init_tree(self):
         """Initialize the root element of the NeXpy tree view."""
-        global _tree
         self.tree = NXtree()
         _tree = self.tree
 
