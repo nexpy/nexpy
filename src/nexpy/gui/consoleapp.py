@@ -33,10 +33,7 @@ from .utils import (NXConfigParser, NXGarbageCollector, NXLogger, define_mode,
                     resource_icon, timestamp_age)
 
 
-_tree = None
-_shell = None
 _mainwindow = None
-_nexpy_dir = None
 
 
 class NXConsoleApp(JupyterQtConsoleApp):
@@ -168,7 +165,6 @@ class NXConsoleApp(JupyterQtConsoleApp):
     def init_tree(self):
         """Initialize the root element of the NeXpy tree view."""
         self.tree = NXtree()
-        _tree = self.tree
 
     def init_config(self):
         """Initialize the configuration options for the NeXpy console."""
@@ -211,8 +207,6 @@ class NXConsoleApp(JupyterQtConsoleApp):
 
     def init_shell(self, args):
         """Initialize imports in the shell."""
-        global _shell
-        _shell = self.window.user_ns
         s = ("import nexusformat.nexus as nx\n"
              "from nexusformat.nexus import NXgroup, NXfield, NXattr, NXlink\n"
              "from nexusformat.nexus import *\n"
@@ -316,11 +310,6 @@ class NXConsoleApp(JupyterQtConsoleApp):
         self.window.show()
         self.window.start()
         self.app.exec()
-
-
-# -----------------------------------------------------------------------------
-# Main entry point
-# -----------------------------------------------------------------------------
 
 
 def main(args):

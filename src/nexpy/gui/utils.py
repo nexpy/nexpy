@@ -311,11 +311,12 @@ def keep_data(data):
     data : NXdata
         NXdata group containing the data to be stored
     """
-    from .consoleapp import _nexpy_dir, _tree
-    if 'w0' not in _tree:
-        _tree['w0'] = nxload(_nexpy_dir.joinpath('w0.nxs'), 'rw')
+    mainwindow = get_mainwindow()
+    tree = mainwindow.tree
+    if 'w0' not in tree:
+        tree['w0'] = nxload(mainwindow.nexpy_dir.joinpath('w0.nxs'), 'rw')
     ind = []
-    for key in _tree['w0']:
+    for key in tree['w0']:
         try:
             if key.startswith('s'):
                 ind.append(int(key[1:]))
@@ -324,7 +325,7 @@ def keep_data(data):
     if ind == []:
         ind = [0]
     data.nxname = 's'+str(sorted(ind)[-1]+1)
-    _tree['w0'][data.nxname] = data
+    tree['w0'][data.nxname] = data
 
 
 def fix_projection(shape, axes, limits):

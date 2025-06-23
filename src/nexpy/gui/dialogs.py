@@ -4615,9 +4615,9 @@ class FieldDialog(NXDialog):
             if dtype == "char":
                 return value
             else:
-                from .consoleapp import _shell
                 try:
-                    return eval(value, {"__builtins__": {}}, _shell)
+                    return eval(value, {"__builtins__": {}},
+                                self.mainwindow.user_ns)
                 except Exception:
                     return value
         else:
@@ -4791,9 +4791,9 @@ class AttributeDialog(NXDialog):
             if dtype == "char":
                 return value
             else:
-                from .consoleapp import _shell
                 try:
-                    return eval(value, {"__builtins__": {}}, _shell)
+                    return eval(value, {"__builtins__": {}},
+                                self.mainwindow.user_ns)
                 except Exception:
                     return value
         else:
