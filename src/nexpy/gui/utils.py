@@ -883,12 +883,6 @@ def initialize_settings(settings):
     if 'plugins' not in settings.sections():
         settings.add_section('plugins')
 
-    if 'readers' not in settings.sections():
-        settings.add_section('readers')
-
-    if 'writers' not in settings.sections():
-        settings.add_section('writers')
-
     settings.save()
 
 
