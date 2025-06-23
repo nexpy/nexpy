@@ -183,7 +183,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.user_ns['plotview'] = self.plotview
         self.user_ns['plotviews'] = self.plotviews = self.plotview.plotviews
         self.user_ns['treeview'] = self.treeview
-        self.user_ns['nxtree'] = self.user_ns['_tree'] = self.tree
+        self.user_ns['nxtree'] = self.tree
         self.user_ns['mainwindow'] = self
 
         self.nxclasses = get_base_classes()
@@ -1689,7 +1689,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 elif node.nxfilemode == 'r':
                     raise NeXusError("NeXus file is locked")
                 dialog = GroupDialog(node, parent=self)
-                dialog.exec()
+                dialog.show()
         except NeXusError as error:
             report_error("Adding Group", error)
 
@@ -1703,7 +1703,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 elif node.nxfilemode == 'r':
                     raise NeXusError("NeXus file is locked")
                 dialog = FieldDialog(node, parent=self)
-                dialog.exec()
+                dialog.show()
         except NeXusError as error:
             report_error("Adding Field", error)
 
@@ -1717,7 +1717,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 elif node.nxfilemode == 'r':
                     raise NeXusError("NeXus file is locked")
                 dialog = AttributeDialog(node, parent=self)
-                dialog.exec()
+                dialog.show()
         except NeXusError as error:
             report_error("Adding Attribute", error)
 
@@ -1738,7 +1738,7 @@ class MainWindow(QtWidgets.QMainWindow):
                           node.nxgroup.nxfilemode != 'r'):
                         path = node.nxpath
                         dialog = RenameDialog(node, parent=self)
-                        dialog.exec()
+                        dialog.show()
                         logging.info(f"'{path}' renamed as '{node.nxpath}'")
                     else:
                         raise NeXusError("NeXus file is locked")
