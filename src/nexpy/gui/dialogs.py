@@ -5650,6 +5650,7 @@ class ManagePluginsDialog(NXDialog):
                 name, actions = p['menu'], p['actions']
                 self.mainwindow.add_plugin_menu(
                     name, actions, before=self.mainwindow.view_menu)
+                self.mainwindow.plugins[plugin] = p
             for plugin in self.plugins:
                 self.settings.set('plugins', plugin,
                                   self.plugins[plugin]['order'])
