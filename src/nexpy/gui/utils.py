@@ -693,6 +693,32 @@ def load_image(filename):
     return data
 
 
+def import_plugin(plugin_path):
+    """
+    Import a plugin module from a given path.
+
+    Parameters
+    ----------
+    plugin_path : Path
+        The path to the plugin module.
+
+    Returns
+    -------
+    module : module
+        The imported plugin module, or None if the import failed.
+    """
+    plugin_name = plugin_path.stem
+    if plugin_path.is_dir():
+        plugin_path = plugin_path.joinpath('__init__.py')
+    if (spec := spec_from_file_location(plugin_name, plugin_path)) is not None:
+        module = module_from_spec(spec)
+        sys.modules[spec.name] = module
+        spec.loader.exec_module(module)
+        return module
+    else:
+        return None
+
+
 def load_plugin(plugin, order=None):
     """
     Load a specified plugin and return its configuration details.
@@ -717,11 +743,10 @@ def load_plugin(plugin, order=None):
         A tuple containing the package name, plugin path or module name,
         menu name, and a list of menu actions.
     """
-
     if Path(plugin).is_dir():
-        path = Path(plugin)
-        package = path.name
-        module = import_plugin(package, path)
+        plugin_path = Path(plugin)
+        package = plugin_path.stem
+        module = import_plugin(plugin_path)
         menu, actions = module.plugin_menu()
         return {'package': package, 'menu': menu, 'actions': actions,
                 'order': order}
@@ -736,31 +761,55 @@ def load_plugin(plugin, order=None):
         else:
             raise PackageNotFoundError(f"'{plugin}' is not installed")
 
-def import_plugin(plugin_name, plugin_path):
-    """
-    Import a plugin module from a given path.
 
-    Parameters
-    ----------
-    plugin_name : str
-        The name of the plugin.
-    plugin_path : Path
-        The path to the plugin module.
+def load_readers():
+    readers = {}
+    private_path = Path.home() / '.nexpy' / 'readers'
+    for reader in private_path.iterdir():
+        try:
+            reader_module = import_plugin(reader)
+            if reader_module is not None:
+                readers[reader.stem] = reader_module
+        except Exception:
+            pass
+    public_path = package_files('nexpy').joinpath('readers')
+    for reader in public_path.glob('*.py'):
+        if reader.stem != '__init__':
+            try:
+                reader_module = import_plugin(reader)
+                if reader_module is not None:
+                    readers[reader.stem] = reader_module
+            except Exception:
+                pass
+    eps = entry_points().select(group='nexpy.readers')
+    for entry in eps:
+        readers[entry.name] = entry.load()
+    return readers
 
-    Returns
-    -------
-    module : module
-        The imported plugin module, or None if the import failed.
-    """
-    if plugin_path.is_dir():
-        plugin_path = plugin_path.joinpath('__init__.py')
-    if (spec := spec_from_file_location(plugin_name, plugin_path)) is not None:
-        module = module_from_spec(spec)
-        sys.modules[spec.name] = module
-        spec.loader.exec_module(module)
-        return module
-    else:
-        return None
+
+def load_models():
+    models = {}
+    private_path = Path.home() / '.nexpy' / 'models'
+    for model in private_path.iterdir():
+        try:
+            model_module = import_plugin(model)
+            if model_module is not None:
+                models[model.stem] = model_module
+        except Exception:
+            pass
+    public_path = package_files('nexpy.api.frills.models')
+    for model in public_path.glob('*.py'):
+        if model.stem != '__init__':
+            try:
+                model_module = import_plugin(model)
+                if model_module is not None:
+                    models[model.stem] = model_module
+            except Exception:
+                pass
+    eps = entry_points().select(group='nexpy.models')
+    for entry in eps:
+        models[entry.name] = entry.load()
+    return models
 
 
 def is_installed(package_name):

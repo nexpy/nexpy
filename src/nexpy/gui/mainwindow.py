@@ -13,9 +13,6 @@ plot the data, and a Jupyter console to execute Python commands. The
 namespace of the console includes the NeXus data loaded into the tree.
 """
 
-# -----------------------------------------------------------------------------
-# Imports
-# -----------------------------------------------------------------------------
 import logging
 import sys
 import webbrowser
@@ -37,14 +34,13 @@ from .dialogs import (AttributeDialog, CustomizeDialog, DirectoryDialog,
                       PlotScalarDialog, ProjectionDialog, RenameDialog,
                       ScanDialog, SettingsDialog, SignalDialog, UnlockDialog,
                       ValidateDialog, ViewDialog)
-from .fitdialogs import FitDialog
 from .plotview import NXPlotView
 from .pyqt import QtCore, QtGui, QtWidgets, getOpenFileName, getSaveFileName
 from .scripteditor import NXScriptWindow
 from .treeview import NXTreeView
 from .utils import (confirm_action, define_mode, display_message, get_colors,
-                    get_name, import_plugin, is_file_locked, load_image,
-                    load_plugin, natural_sort, package_files, report_error,
+                    get_name, is_file_locked, load_image, load_plugin,
+                    load_readers, natural_sort, package_files, report_error,
                     timestamp)
 
 
@@ -921,31 +917,20 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def init_import_menu(self):
         """Add an import menu item for every module in the readers directory"""
-        import_files = {}
         self.import_menu = QtWidgets.QMenu("Import", self)
         self.file_menu.addMenu(self.import_menu)
-        private_path = self.reader_dir
-        if private_path.is_dir():
-            for f in private_path.glob('*.py'):
-                if f.stem != '__init__':
-                    import_files[f.stem] = private_path.joinpath(f.name)
-        public_path = package_files('nexpy').joinpath('readers')
-        for f in public_path.glob('*.py'):
-            if f.stem != '__init__':
-                import_files[f.stem] = public_path.joinpath(f.name)
-        self.importer = {}
-        for import_name in sorted(import_files):
+        readers = load_readers()
+        self.readers = {}
+        for reader in readers:
             try:
-                import_module = import_plugin(import_name,
-                                              import_files[import_name])
                 import_action = QtWidgets.QAction(
-                    "Import "+import_module.filetype, self,
+                    "Import "+readers[reader].filetype, self,
                     triggered=self.show_import_dialog)
                 self.add_menu_action(self.import_menu, import_action, self)
-                self.importer[import_action] = import_module
+                self.readers[import_action] = readers[reader]
             except Exception as error:
                 logging.warning(
-                    f'The "{import_name}" importer could not be added '
+                    f'The "{reader}" importer could not be added '
                     'to the Import menu\n' + 36*' ' + f'Error: {error}')
 
     def new_workspace(self):
@@ -1270,7 +1255,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def show_import_dialog(self):
         """Show the import dialog."""
         try:
-            import_module = self.importer[self.sender()]
+            import_module = self.readers[self.sender()]
             self.import_dialog = import_module.ImportDialog(parent=self)
             self.import_dialog.show()
         except NeXusError as error:
@@ -2053,6 +2038,7 @@ class MainWindow(QtWidgets.QMainWindow):
         --------
         :ref:`Fitting NeXus Data`_.
         """
+        from .fitdialogs import FitDialog
         try:
             node = self.treeview.get_node()
             if node is None:
@@ -2095,6 +2081,7 @@ class MainWindow(QtWidgets.QMainWindow):
         --------
         :ref:`Fitting NeXus Data`_.
         """
+        from .fitdialogs import FitDialog
         try:
             node = self.treeview.get_node()
             if node is None:

@@ -151,24 +151,19 @@ class NXConsoleApp(JupyterQtConsoleApp):
     def init_plugins(self):
         """Initialize plugins, readers, writers, and models."""
         eps = entry_points()
-        def initialize_plugin(plugin_group, plugin_dir):
-            plugin = None
-            plugins = self.settings.options(plugin_group)
-            for path in plugin_dir.iterdir():
-                if (path.is_dir() and not (path.name.startswith('_') or
-                                           path.name.startswith('.'))):
-                    plugin  = str(path)
-                    if plugin not in plugins:
-                        self.settings.set(plugin_group, plugin, value=None)
-            group_name = 'nexpy.' + plugin_group
-            for entry in eps.select(group=group_name):
-                plugin = entry.module
+        plugin = None
+        plugins = self.settings.options('plugins')
+        for path in self.plugin_dir.iterdir():
+            if (path.is_dir() and not (path.name.startswith('_') or
+                                       path.name.startswith('.'))):
+                plugin  = str(path)
                 if plugin not in plugins:
-                    self.settings.set(plugin_group, plugin, value=None)
-        initialize_plugin('plugins', self.plugin_dir)
-        initialize_plugin('readers', self.reader_dir)
-        initialize_plugin('writers', self.writer_dir)
-        initialize_plugin('models', self.writer_dir)
+                    self.settings.set('plugins', plugin, value=None)
+        group_name = 'nexpy.plugins'
+        for entry in eps.select(group=group_name):
+            plugin = entry.module
+            if plugin not in plugins:
+                self.settings.set('plugins', plugin, value=None)
 
     def init_tree(self):
         """Initialize the root element of the NeXpy tree view."""
