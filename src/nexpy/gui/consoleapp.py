@@ -55,7 +55,7 @@ class NXConsoleApp(JupyterQtConsoleApp):
             else:
                 nexpy_dir.mkdir(exist_ok=True)
         for subdirectory in ['backups', 'models', 'plugins', 'readers',
-                             'writers', 'scripts']:
+                             'scripts']:
             directory = nexpy_dir / subdirectory
             directory.mkdir(exist_ok=True)
         self.nexpy_dir = nexpy_dir
@@ -63,7 +63,6 @@ class NXConsoleApp(JupyterQtConsoleApp):
         self.model_dir = self.nexpy_dir / 'models'
         self.plugin_dir = self.nexpy_dir / 'plugins'
         self.reader_dir = self.nexpy_dir / 'readers'
-        self.writer_dir = self.nexpy_dir / 'writers'
         self.script_dir = self.nexpy_dir / 'scripts'
         self.scratch_file = self.nexpy_dir / 'w0.nxs'
         if not self.scratch_file.exists():
@@ -146,7 +145,15 @@ class NXConsoleApp(JupyterQtConsoleApp):
         sys.stdout = sys.stderr = NXLogger()
 
     def init_plugins(self):
-        """Initialize plugins, readers, writers, and models."""
+        """
+        Initialize plugins.
+        
+        This method looks for plugins stored as files in the NeXpy
+        directory or registered as entry points, and adds them to the
+        list of plugins in the NeXpy settings file. These will be added
+        as additional menu items if enabled by the Manage Plugins
+        dialog.
+        """
         eps = entry_points()
         plugin = None
         plugins = self.settings.options('plugins')
