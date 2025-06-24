@@ -7,9 +7,7 @@
 # -----------------------------------------------------------------------------
 import inspect
 import re
-import sys
 import types
-from importlib import import_module
 from itertools import cycle
 
 import numpy as np
