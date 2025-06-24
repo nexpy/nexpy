@@ -110,7 +110,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.backup_dir = self.app.backup_dir
         self.plugin_dir = self.app.plugin_dir
         self.reader_dir = self.app.reader_dir
-        self.writer_dir = self.app.writer_dir
         self.model_dir = self.app.model_dir
         self.script_dir = self.app.script_dir
         self.scratch_file = self.app.scratch_file
