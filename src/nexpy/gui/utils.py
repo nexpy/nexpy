@@ -766,13 +766,14 @@ def load_plugin(plugin, order=None):
 def load_readers():
     readers = {}
     private_path = Path.home() / '.nexpy' / 'readers'
-    for reader in private_path.iterdir():
-        try:
-            reader_module = import_plugin(reader)
-            if reader_module is not None:
-                readers[reader.stem] = reader_module
-        except Exception:
-            pass
+    if private_path.exists():
+        for reader in private_path.iterdir():
+            try:
+                reader_module = import_plugin(reader)
+                if reader_module is not None:
+                    readers[reader.stem] = reader_module
+            except Exception:
+                pass
     public_path = package_files('nexpy').joinpath('readers')
     for reader in public_path.glob('*.py'):
         if reader.stem != '__init__':
@@ -791,13 +792,14 @@ def load_readers():
 def load_models():
     models = {}
     private_path = Path.home() / '.nexpy' / 'models'
-    for model in private_path.iterdir():
-        try:
-            model_module = import_plugin(model)
-            if model_module is not None:
-                models[model.stem] = model_module
-        except Exception:
-            pass
+    if private_path.exists():
+        for model in private_path.iterdir():
+            try:
+                model_module = import_plugin(model)
+                if model_module is not None:
+                    models[model.stem] = model_module
+            except Exception:
+                pass
     public_path = package_files('nexpy.api.frills.models')
     for model in public_path.glob('*.py'):
         if model.stem != '__init__':
