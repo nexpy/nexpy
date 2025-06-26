@@ -8,14 +8,16 @@
 """
 Module to read in a SPEC file and convert it to NeXus.
 """
+from importlib.util import find_spec
 from pathlib import Path
 
 import numpy as np
+from nexusformat.nexus.tree import (NeXusError, NXdata, NXentry, NXfield,
+                                    NXlog, NXroot)
+
 from nexpy.gui.importdialog import NXImportDialog
 from nexpy.gui.pyqt import QtWidgets, getOpenFileName
 from nexpy.gui.widgets import NXLabel, NXLineEdit
-from nexusformat.nexus.tree import (NeXusError, NXdata, NXentry, NXfield,
-                                    NXlog, NXroot)
 
 filetype = "SPEC File"
 
@@ -27,16 +29,13 @@ class ImportDialog(NXImportDialog):
 
         super().__init__(parent=parent)
 
-        try:
-            import spec2nexus
-        except ImportError:
+        if find_spec("spec2nexus") is None:
             raise NeXusError("Please install the 'spec2nexus' module")
 
         self.accepted = False
-        self.import_file = None     # must set in self.get_data()
+        self.import_file = None
         self.spec = None
 
-        # progress bar is updated via calls to pdate_progress()
         self.progress_bar = QtWidgets.QProgressBar()
         self.progress_bar.setVisible(False)
 
