@@ -395,5 +395,5 @@ class NXScriptEditor(NXTab):
                     f"Are you sure you want to delete '{self.file_name}'?",
                     "This cannot be reversed"):
                 Path(self.file_name).unlink()
-                self.mainwindow.remove_script_action(self.file_name)
+                self.mainwindow.refresh_script_menus()
                 self.panel.close()
