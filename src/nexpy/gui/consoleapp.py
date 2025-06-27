@@ -33,10 +33,7 @@ from .utils import (NXConfigParser, NXGarbageCollector, NXLogger, define_mode,
                     resource_icon, timestamp_age)
 
 
-_tree = None
-_shell = None
 _mainwindow = None
-_nexpy_dir = None
 
 
 class NXConsoleApp(JupyterQtConsoleApp):
@@ -58,15 +55,14 @@ class NXConsoleApp(JupyterQtConsoleApp):
             else:
                 nexpy_dir.mkdir(exist_ok=True)
         for subdirectory in ['backups', 'models', 'plugins', 'readers',
-                             'writers', 'scripts']:
+                             'scripts']:
             directory = nexpy_dir / subdirectory
             directory.mkdir(exist_ok=True)
-        global _nexpy_dir
-        self.nexpy_dir = _nexpy_dir = nexpy_dir
+        self.nexpy_dir = nexpy_dir
         self.backup_dir = self.nexpy_dir / 'backups'
+        self.model_dir = self.nexpy_dir / 'models'
         self.plugin_dir = self.nexpy_dir / 'plugins'
         self.reader_dir = self.nexpy_dir / 'readers'
-        self.writer_dir = self.nexpy_dir / 'writers'
         self.script_dir = self.nexpy_dir / 'scripts'
         self.scratch_file = self.nexpy_dir / 'w0.nxs'
         if not self.scratch_file.exists():
@@ -149,31 +145,33 @@ class NXConsoleApp(JupyterQtConsoleApp):
         sys.stdout = sys.stderr = NXLogger()
 
     def init_plugins(self):
-        """Initialize plugins, readers, and writers."""
+        """
+        Initialize plugins.
+        
+        This method looks for plugins stored as files in the NeXpy
+        directory or registered as entry points, and adds them to the
+        list of plugins in the NeXpy settings file. These will be added
+        as additional menu items if enabled by the Manage Plugins
+        dialog.
+        """
         eps = entry_points()
-        def initialize_plugin(plugin_group, plugin_dir):
-            plugin = None
-            plugins = self.settings.options(plugin_group)
-            for path in plugin_dir.iterdir():
-                if (path.is_dir() and not (path.name.startswith('_') or
-                                           path.name.startswith('.'))):
-                    plugin  = str(path)
-                    if plugin not in plugins:
-                        self.settings.set(plugin_group, plugin, value=None)
-            group_name = 'nexpy.' + plugin_group
-            for entry in eps.select(group=group_name):
-                plugin = entry.module
+        plugin = None
+        plugins = self.settings.options('plugins')
+        for path in self.plugin_dir.iterdir():
+            if (path.is_dir() and not (path.name.startswith('_') or
+                                       path.name.startswith('.'))):
+                plugin  = str(path)
                 if plugin not in plugins:
-                    self.settings.set(plugin_group, plugin, value=None)
-        initialize_plugin('plugins', self.plugin_dir)
-        initialize_plugin('readers', self.reader_dir)
-        initialize_plugin('writers', self.writer_dir)
+                    self.settings.set('plugins', plugin, value=None)
+        group_name = 'nexpy.plugins'
+        for entry in eps.select(group=group_name):
+            plugin = entry.module
+            if plugin not in plugins:
+                self.settings.set('plugins', plugin, value=None)
 
     def init_tree(self):
         """Initialize the root element of the NeXpy tree view."""
-        global _tree
         self.tree = NXtree()
-        _tree = self.tree
 
     def init_config(self):
         """Initialize the configuration options for the NeXpy console."""
@@ -216,8 +214,6 @@ class NXConsoleApp(JupyterQtConsoleApp):
 
     def init_shell(self, args):
         """Initialize imports in the shell."""
-        global _shell
-        _shell = self.window.user_ns
         s = ("import nexusformat.nexus as nx\n"
              "from nexusformat.nexus import NXgroup, NXfield, NXattr, NXlink\n"
              "from nexusformat.nexus import *\n"
@@ -321,11 +317,6 @@ class NXConsoleApp(JupyterQtConsoleApp):
         self.window.show()
         self.window.start()
         self.app.exec()
-
-
-# -----------------------------------------------------------------------------
-# Main entry point
-# -----------------------------------------------------------------------------
 
 
 def main(args):

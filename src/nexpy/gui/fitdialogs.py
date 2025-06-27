@@ -7,11 +7,8 @@
 # -----------------------------------------------------------------------------
 import inspect
 import re
-import sys
 import types
-from importlib import import_module
 from itertools import cycle
-from pathlib import Path
 
 import numpy as np
 from lmfit import Model, Parameters
@@ -21,7 +18,7 @@ from nexusformat.nexus import (NeXusError, NXdata, NXentry, NXfield, NXnote,
 
 from .plotview import NXPlotView, linestyles
 from .pyqt import QtCore, QtWidgets
-from .utils import display_message, format_float, package_files, report_error
+from .utils import display_message, format_float, load_models, report_error
 from .widgets import (NXCheckBox, NXColorBox, NXComboBox, NXDialog, NXLabel,
                       NXLineEdit, NXMessageBox, NXPanel, NXPushButton,
                       NXrectangle, NXScrollArea, NXTab)
@@ -33,10 +30,11 @@ def get_models():
 
     This function returns a dictionary of LMFIT models, including those
     defined in the LMFIT package and those defined in the
-    ``nexpy.api.frills.models`` package. Additional models can also be
-    defined in the ``~/.nexpy/models`` directory for use by NeXpy. The
-    models are returned as a dictionary where the keys are the names of
-    the models and the values are the classes defining the models.
+    ``nexpy.models`` package. Additional models can also be defined in
+    the ``~/.nexpy/models`` directory or in another installed package,
+    which declares the entry point ``nexpy.models``. The models are
+    returned as a dictionary where the keys are the names of the models
+    and the values are the classes defining the models.
     """
     from lmfit.models import lmfit_models
     models = lmfit_models
@@ -45,28 +43,15 @@ def get_models():
     if 'Gaussian-2D' in models:
         del models['Gaussian-2D']
 
-    filenames = set()
+    nexpy_models = load_models()
 
-    models_path = package_files('nexpy.api.frills.models')
-    sys.path.append(str(models_path))
-    for f in models_path.glob("*.py"):
-        if f.stem != '__init__':
-            filenames.add(f.stem)
-
-    private_path = Path.home() / '.nexpy' / 'models'
-    if private_path.is_dir():
-        sys.path.append(str(private_path))
-        for f in private_path.glob('*.py'):
-            if f.stem != '__init__':
-                filenames.add(f.stem)
-
-    for name in sorted(filenames):
+    for model in nexpy_models:
         try:
-            module = import_module(name)
-            models.update(dict((n.strip('Model'), m)
-                               for n, m in inspect.getmembers(module,
-                                                              inspect.isclass)
-                               if issubclass(m, Model) and n != 'Model'))
+            models.update(
+                dict((n.strip('Model'), m)
+                for n, m in inspect.getmembers(nexpy_models[model],
+                                               inspect.isclass)
+                if issubclass(m, Model) and n != 'Model'))
         except ImportError:
             pass
 

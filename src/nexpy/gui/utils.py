@@ -311,11 +311,12 @@ def keep_data(data):
     data : NXdata
         NXdata group containing the data to be stored
     """
-    from .consoleapp import _nexpy_dir, _tree
-    if 'w0' not in _tree:
-        _tree['w0'] = nxload(_nexpy_dir.joinpath('w0.nxs'), 'rw')
+    mainwindow = get_mainwindow()
+    tree = mainwindow.tree
+    if 'w0' not in tree:
+        tree['w0'] = nxload(mainwindow.nexpy_dir.joinpath('w0.nxs'), 'rw')
     ind = []
-    for key in _tree['w0']:
+    for key in tree['w0']:
         try:
             if key.startswith('s'):
                 ind.append(int(key[1:]))
@@ -324,7 +325,7 @@ def keep_data(data):
     if ind == []:
         ind = [0]
     data.nxname = 's'+str(sorted(ind)[-1]+1)
-    _tree['w0'][data.nxname] = data
+    tree['w0'][data.nxname] = data
 
 
 def fix_projection(shape, axes, limits):
@@ -693,6 +694,32 @@ def load_image(filename):
     return data
 
 
+def import_plugin(plugin_path):
+    """
+    Import a plugin module from a given path.
+
+    Parameters
+    ----------
+    plugin_path : Path
+        The path to the plugin module.
+
+    Returns
+    -------
+    module : module
+        The imported plugin module, or None if the import failed.
+    """
+    plugin_name = plugin_path.stem
+    if plugin_path.is_dir():
+        plugin_path = plugin_path.joinpath('__init__.py')
+    if (spec := spec_from_file_location(plugin_name, plugin_path)) is not None:
+        module = module_from_spec(spec)
+        sys.modules[spec.name] = module
+        spec.loader.exec_module(module)
+        return module
+    else:
+        return None
+
+
 def load_plugin(plugin, order=None):
     """
     Load a specified plugin and return its configuration details.
@@ -717,11 +744,10 @@ def load_plugin(plugin, order=None):
         A tuple containing the package name, plugin path or module name,
         menu name, and a list of menu actions.
     """
-
     if Path(plugin).is_dir():
-        path = Path(plugin)
-        package = path.name
-        module = import_plugin(package, path)
+        plugin_path = Path(plugin)
+        package = plugin_path.stem
+        module = import_plugin(plugin_path)
         menu, actions = module.plugin_menu()
         return {'package': package, 'menu': menu, 'actions': actions,
                 'order': order}
@@ -736,31 +762,64 @@ def load_plugin(plugin, order=None):
         else:
             raise PackageNotFoundError(f"'{plugin}' is not installed")
 
-def import_plugin(plugin_name, plugin_path):
-    """
-    Import a plugin module from a given path.
 
-    Parameters
-    ----------
-    plugin_name : str
-        The name of the plugin.
-    plugin_path : Path
-        The path to the plugin module.
+def load_readers():
+    readers = {}
+    private_path = Path.home() / '.nexpy' / 'readers'
+    if private_path.exists():
+        for reader in private_path.iterdir():
+            try:
+                reader_module = import_plugin(reader)
+                if reader_module is not None:
+                    readers[reader.stem] = reader_module
+            except Exception:
+                pass
+    public_path = package_files('nexpy').joinpath('readers')
+    for reader in public_path.glob('*.py'):
+        if reader.stem != '__init__':
+            try:
+                reader_module = import_plugin(reader)
+                if reader_module is not None:
+                    readers[reader.stem] = reader_module
+            except Exception:
+                pass
+    eps = entry_points().select(group='nexpy.readers')
+    for entry in eps:
+        try:
+            readers[entry.name] = entry.load()
+        except Exception:
+            pass
+            
+    return readers
 
-    Returns
-    -------
-    module : module
-        The imported plugin module, or None if the import failed.
-    """
-    if plugin_path.is_dir():
-        plugin_path = plugin_path.joinpath('__init__.py')
-    if (spec := spec_from_file_location(plugin_name, plugin_path)) is not None:
-        module = module_from_spec(spec)
-        sys.modules[spec.name] = module
-        spec.loader.exec_module(module)
-        return module
-    else:
-        return None
+
+def load_models():
+    models = {}
+    private_path = Path.home() / '.nexpy' / 'models'
+    if private_path.exists():
+        for model in private_path.iterdir():
+            try:
+                model_module = import_plugin(model)
+                if model_module is not None:
+                    models[model.stem] = model_module
+            except Exception:
+                pass
+    public_path = package_files('nexpy').joinpath('models')
+    for model in public_path.glob('*.py'):
+        if model.stem != '__init__':
+            try:
+                model_module = import_plugin(model)
+                if model_module is not None:
+                    models[model.stem] = model_module
+            except Exception:
+                pass
+    eps = entry_points().select(group='nexpy.models')
+    for entry in eps:
+        try:
+            models[entry.name] = entry.load()
+        except Exception:
+            pass
+    return models
 
 
 def is_installed(package_name):
@@ -832,12 +891,6 @@ def initialize_settings(settings):
 
     if 'plugins' not in settings.sections():
         settings.add_section('plugins')
-
-    if 'readers' not in settings.sections():
-        settings.add_section('readers')
-
-    if 'writers' not in settings.sections():
-        settings.add_section('writers')
 
     settings.save()
 

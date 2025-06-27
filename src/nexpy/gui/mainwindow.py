@@ -13,9 +13,6 @@ plot the data, and a Jupyter console to execute Python commands. The
 namespace of the console includes the NeXus data loaded into the tree.
 """
 
-# -----------------------------------------------------------------------------
-# Imports
-# -----------------------------------------------------------------------------
 import logging
 import sys
 import webbrowser
@@ -37,14 +34,13 @@ from .dialogs import (AttributeDialog, CustomizeDialog, DirectoryDialog,
                       PlotScalarDialog, ProjectionDialog, RenameDialog,
                       ScanDialog, SettingsDialog, SignalDialog, UnlockDialog,
                       ValidateDialog, ViewDialog)
-from .fitdialogs import FitDialog
 from .plotview import NXPlotView
 from .pyqt import QtCore, QtGui, QtWidgets, getOpenFileName, getSaveFileName
 from .scripteditor import NXScriptWindow
 from .treeview import NXTreeView
 from .utils import (confirm_action, define_mode, display_message, get_colors,
-                    get_name, import_plugin, is_file_locked, load_image,
-                    load_plugin, natural_sort, package_files, report_error,
+                    get_name, is_file_locked, load_image, load_plugin,
+                    load_readers, natural_sort, package_files, report_error,
                     timestamp)
 
 
@@ -114,7 +110,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.backup_dir = self.app.backup_dir
         self.plugin_dir = self.app.plugin_dir
         self.reader_dir = self.app.reader_dir
-        self.writer_dir = self.app.writer_dir
+        self.model_dir = self.app.model_dir
         self.script_dir = self.app.script_dir
         self.scratch_file = self.app.scratch_file
         self.settings_file = self.app.settings_file
@@ -186,7 +182,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.user_ns['plotview'] = self.plotview
         self.user_ns['plotviews'] = self.plotviews = self.plotview.plotviews
         self.user_ns['treeview'] = self.treeview
-        self.user_ns['nxtree'] = self.user_ns['_tree'] = self.tree
+        self.user_ns['nxtree'] = self.tree
         self.user_ns['mainwindow'] = self
 
         self.nxclasses = get_base_classes()
@@ -920,31 +916,20 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def init_import_menu(self):
         """Add an import menu item for every module in the readers directory"""
-        import_files = {}
         self.import_menu = QtWidgets.QMenu("Import", self)
         self.file_menu.addMenu(self.import_menu)
-        private_path = self.reader_dir
-        if private_path.is_dir():
-            for f in private_path.glob('*.py'):
-                if f.stem != '__init__':
-                    import_files[f.stem] = private_path.joinpath(f.name)
-        public_path = package_files('nexpy').joinpath('readers')
-        for f in public_path.glob('*.py'):
-            if f.stem != '__init__':
-                import_files[f.stem] = public_path.joinpath(f.name)
-        self.importer = {}
-        for import_name in sorted(import_files):
+        readers = load_readers()
+        self.readers = {}
+        for reader in readers:
             try:
-                import_module = import_plugin(import_name,
-                                              import_files[import_name])
                 import_action = QtWidgets.QAction(
-                    "Import "+import_module.filetype, self,
+                    "Import "+readers[reader].filetype, self,
                     triggered=self.show_import_dialog)
                 self.add_menu_action(self.import_menu, import_action, self)
-                self.importer[import_action] = import_module
+                self.readers[import_action] = readers[reader]
             except Exception as error:
                 logging.warning(
-                    f'The "{import_name}" importer could not be added '
+                    f'The "{reader}" importer could not be added '
                     'to the Import menu\n' + 36*' ' + f'Error: {error}')
 
     def new_workspace(self):
@@ -1269,7 +1254,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def show_import_dialog(self):
         """Show the import dialog."""
         try:
-            import_module = self.importer[self.sender()]
+            import_module = self.readers[self.sender()]
             self.import_dialog = import_module.ImportDialog(parent=self)
             self.import_dialog.show()
         except NeXusError as error:
@@ -1703,7 +1688,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 elif node.nxfilemode == 'r':
                     raise NeXusError("NeXus file is locked")
                 dialog = GroupDialog(node, parent=self)
-                dialog.exec()
+                dialog.show()
         except NeXusError as error:
             report_error("Adding Group", error)
 
@@ -1717,7 +1702,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 elif node.nxfilemode == 'r':
                     raise NeXusError("NeXus file is locked")
                 dialog = FieldDialog(node, parent=self)
-                dialog.exec()
+                dialog.show()
         except NeXusError as error:
             report_error("Adding Field", error)
 
@@ -1731,7 +1716,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 elif node.nxfilemode == 'r':
                     raise NeXusError("NeXus file is locked")
                 dialog = AttributeDialog(node, parent=self)
-                dialog.exec()
+                dialog.show()
         except NeXusError as error:
             report_error("Adding Attribute", error)
 
@@ -1752,7 +1737,7 @@ class MainWindow(QtWidgets.QMainWindow):
                           node.nxgroup.nxfilemode != 'r'):
                         path = node.nxpath
                         dialog = RenameDialog(node, parent=self)
-                        dialog.exec()
+                        dialog.show()
                         logging.info(f"'{path}' renamed as '{node.nxpath}'")
                     else:
                         raise NeXusError("NeXus file is locked")
@@ -2052,6 +2037,7 @@ class MainWindow(QtWidgets.QMainWindow):
         --------
         :ref:`Fitting NeXus Data`_.
         """
+        from .fitdialogs import FitDialog
         try:
             node = self.treeview.get_node()
             if node is None:
@@ -2094,6 +2080,7 @@ class MainWindow(QtWidgets.QMainWindow):
         --------
         :ref:`Fitting NeXus Data`_.
         """
+        from .fitdialogs import FitDialog
         try:
             node = self.treeview.get_node()
             if node is None:
