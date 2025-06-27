@@ -785,7 +785,11 @@ def load_readers():
                 pass
     eps = entry_points().select(group='nexpy.readers')
     for entry in eps:
-        readers[entry.name] = entry.load()
+        try:
+            readers[entry.name] = entry.load()
+        except Exception:
+            pass
+            
     return readers
 
 
@@ -800,7 +804,7 @@ def load_models():
                     models[model.stem] = model_module
             except Exception:
                 pass
-    public_path = package_files('nexpy.api.frills.models')
+    public_path = package_files('nexpy').joinpath('models')
     for model in public_path.glob('*.py'):
         if model.stem != '__init__':
             try:
@@ -811,7 +815,10 @@ def load_models():
                 pass
     eps = entry_points().select(group='nexpy.models')
     for entry in eps:
-        models[entry.name] = entry.load()
+        try:
+            models[entry.name] = entry.load()
+        except Exception:
+            pass
     return models
 
 
