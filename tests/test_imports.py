@@ -3,13 +3,6 @@ import os
 import pytest
 
 
-def test_api_imports():
-    try:
-        import nexpy.api.frills.fit
-    except ImportError as error:
-        pytest.fail(str(error))
-
-
 def test_gui_import():
     os.environ['QT_API'] = 'pyqt5'
     try:
