@@ -30,11 +30,11 @@ def get_models():
 
     This function returns a dictionary of LMFIT models, including those
     defined in the LMFIT package and those defined in the
-    ``nexpy.api.frills.models`` package. Additional models can also be
-    defined in the ``~/.nexpy/models`` directory or in another installed
-    package, which declares the entry point ``nexpy.models``. The models
-    are returned as a dictionary where the keys are the names of the
-    models and the values are the classes defining the models.
+    ``nexpy.models`` package. Additional models can also be defined in
+    the ``~/.nexpy/models`` directory or in another installed package,
+    which declares the entry point ``nexpy.models``. The models are
+    returned as a dictionary where the keys are the names of the models
+    and the values are the classes defining the models.
     """
     from lmfit.models import lmfit_models
     models = lmfit_models
