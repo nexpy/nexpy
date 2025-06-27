@@ -1116,6 +1116,10 @@ class SettingsDialog(NXDialog):
         self.parameters.add('lockexpiry', cfg['lockexpiry'], 'Lock Expiry (s)')
         self.parameters.add('lockdirectory', cfg['lockdirectory'],
                             'Lock Directory')
+        self.parameters.add('scriptdirectory',
+                            self.mainwindow.settings.get('settings',
+                                                         'scriptdirectory'),
+                            'Script Directory')
         self.parameters.add('definitions', cfg['definitions'],
                             'NeXus Definitions Directory')
         self.parameters.add('recursive', ['True', 'False'], 'File Recursion')
@@ -1154,6 +1158,8 @@ class SettingsDialog(NXDialog):
                                      cfg['lockexpiry'])
         self.mainwindow.settings.set('settings', 'lockdirectory',
                                      cfg['lockdirectory'])
+        self.mainwindow.settings.set('settings', 'scriptdirectory',
+                                     self.parameters['scriptdirectory'].value)
         self.mainwindow.settings.set('settings', 'definitions',
                                      cfg['definitions'])
         self.mainwindow.settings.set('settings', 'recursive',
