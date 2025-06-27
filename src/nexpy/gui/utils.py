@@ -889,6 +889,12 @@ def initialize_settings(settings):
     else:
         settings.set('settings', 'style', 'default')
 
+    script_directory = os.environ.get('NX_SCRIPTDIRECTORY', '')
+    if script_directory and Path(script_directory).is_dir():
+        settings.set('settings', 'scriptdirectory', script_directory)
+    elif not settings.has_option('settings', 'scriptdirectory'):
+        settings.set('settings', 'scriptdirectory', None)
+
     if 'plugins' not in settings.sections():
         settings.add_section('plugins')
 

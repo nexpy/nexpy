@@ -192,13 +192,16 @@ class NXScriptWindow(NXPanel):
         """
         if file_name:
             label = Path(file_name).name
+            tooltip = file_name
         else:
             label = f'Untitled {self.count+1}'
+            tooltip = label
         super().activate(label, file_name)
         if file_name:
             self.tab.default_directory = Path(file_name).parent
         else:
             self.tab.default_directory = self.mainwindow.script_dir
+        self.tabwidget.setTabToolTip(self.tab.index, tooltip)
 
 
 class NXScriptEditor(NXTab):
@@ -361,8 +364,8 @@ class NXScriptEditor(NXTab):
                 f.write(self.get_text())
             self.file_name = file_name
             self.tab_label = Path(self.file_name).name
-            self.mainwindow.add_script_action(self.file_name,
-                                              self.mainwindow.script_menu)
+            self.panel.tabwidget.setTabToolTip(self.index, file_name)
+            self.mainwindow.refresh_script_menus()
             self.delete_button.setVisible(True)
 
     def reload_script(self):
@@ -395,5 +398,5 @@ class NXScriptEditor(NXTab):
                     f"Are you sure you want to delete '{self.file_name}'?",
                     "This cannot be reversed"):
                 Path(self.file_name).unlink()
-                self.mainwindow.remove_script_action(self.file_name)
+                self.mainwindow.refresh_script_menus()
                 self.panel.close()

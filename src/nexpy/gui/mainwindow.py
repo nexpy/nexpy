@@ -101,6 +101,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.dialogs = []
         self.panels = {}
+        self.scripts = {}
         self.log_window = None
         self.copied_node = None
         self._memroot = None
@@ -827,8 +828,20 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.script_menu.addSeparator()
 
-        self.scripts = {}
-        self.add_script_directory(self.script_dir, self.script_menu)
+        if self.settings.has_option('settings', 'scriptdirectory'):
+            self.public_script_dir = self.settings.get('settings',
+                                                       'scriptdirectory')
+        
+        self.public_script_menu = QtWidgets.QMenu('Public Scripts', self)
+        self.script_menu.addMenu(self.public_script_menu)
+        self.add_script_directory(self.public_script_dir,
+                                  self.public_script_menu)
+
+        self.script_menu.addSeparator()
+
+        self.private_script_menu = QtWidgets.QMenu('Private Scripts', self)
+        self.script_menu.addMenu(self.private_script_menu)
+        self.add_script_directory(self.script_dir, self.private_script_menu)
 
     def init_help_menu(self):
         """Initialize the Help menu."""
@@ -2432,15 +2445,27 @@ class MainWindow(QtWidgets.QMainWindow):
         menu : QMenu
             The menu to add the actions to.
         """
+        if directory is None or not Path(directory).is_dir():
+            menu.setEnabled(False)
+            return
+        directory = Path(directory)
         names = sorted(path.name for path in directory.iterdir())
+        empty_directory = True
         for name in names:
             item_path = directory / name
+            if name.startswith('.') or name.startswith('_'):
+                continue
             if item_path.is_dir():
                 submenu = QtWidgets.QMenu(name, self)
                 menu.addMenu(submenu)
                 self.add_script_directory(item_path, submenu)
             elif item_path.suffix == '.py':
                 self.add_script_action(item_path, menu)
+                empty_directory = False
+        if empty_directory:
+            menu.setEnabled(False)
+        else:
+            menu.setEnabled(True)
 
     def add_script_action(self, file_name, menu):
         """
@@ -2459,18 +2484,12 @@ class MainWindow(QtWidgets.QMainWindow):
         self.add_menu_action(menu, script_action, self)
         self.scripts[script_action] = (menu, str(file_name))
 
-    def remove_script_action(self, file_name):
-        """
-        Remove an action for a Python script from the menu.
-
-        Parameters
-        ----------
-        file_name : Path
-            The path to the Python script.
-        """
-        for action, (menu, name) in self.scripts.items():
-            if name == str(file_name):
-                menu.removeAction(action)
+    def refresh_script_menus(self):
+        self.public_script_menu.clear()
+        self.add_script_directory(self.public_script_dir,
+                                  self.public_script_menu)
+        self.private_script_menu.clear()
+        self.add_script_directory(self.script_dir, self.private_script_menu)
 
     def _open_nexpy_online_help(self):
         """Open the NeXpy online help in a web browser."""
