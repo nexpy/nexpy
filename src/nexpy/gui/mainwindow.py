@@ -1055,13 +1055,12 @@ class MainWindow(QtWidgets.QMainWindow):
                 self, 'Choose Directory', directory)
             if directory is None or not Path(directory).exists():
                 return
-            tree_files = [Path(self.tree[root].nxfilename)
-                          for root in self.tree]
+            tree_files = [self.tree[root].nxfilename for root in self.tree]
             nxfiles = sorted([f.name for f in Path(directory).iterdir()
                               if (f.suffix.lower() in 
                                   ('.nxs', '.nx5', '.h5', 'hdf5', 'hdf',
                                    '.cxi', 'nxspe') and
-                                  f not in tree_files and
+                                  str(f) not in tree_files and
                                   not f.is_symlink())],
                              key=natural_sort)
             if len(nxfiles) == 0:
