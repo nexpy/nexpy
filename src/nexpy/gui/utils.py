@@ -55,6 +55,7 @@ from nexusformat.nexus import (NeXusError, NXcollection, NXdata, NXfield,
                                NXLock, NXLockException, NXnote, nxgetconfig,
                                nxload, nxsetconfig)
 
+
 ansi_re = re.compile(r'\x1b' + r'\[([\dA-Fa-f;]*?)m')
 
 
