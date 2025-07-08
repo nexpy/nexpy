@@ -32,6 +32,7 @@ from pathlib import Path
 from threading import Thread
 
 import numpy as np
+from ansi2html import Ansi2HTMLConverter
 from IPython.core.ultratb import ColorTB
 from matplotlib import __version__ as mplversion
 from matplotlib import rcParams
@@ -53,7 +54,6 @@ except ImportError:
 from nexusformat.nexus import (NeXusError, NXcollection, NXdata, NXfield,
                                NXLock, NXLockException, NXnote, nxgetconfig,
                                nxload, nxsetconfig)
-
 
 ansi_re = re.compile(r'\x1b' + r'\[([\dA-Fa-f;]*?)m')
 
@@ -446,14 +446,12 @@ def modification_time(filename):
         return ''
 
 
-def convertHTML(text):
+def convertHTML(text, dark_bg=None):
     """Replace ANSI color codes with HTML"""
     try:
-        from ansi2html import Ansi2HTMLConverter
-        if in_dark_mode():
-            conv = Ansi2HTMLConverter(dark_bg=True, inline=True)
-        else:
-            conv = Ansi2HTMLConverter(dark_bg=False, inline=True)
+        if dark_bg is None:
+            dark_bg = in_dark_mode()
+        conv = Ansi2HTMLConverter(dark_bg=dark_bg, inline=True)
         return conv.convert(text).replace('AAAAAA', 'FFFFFF')
     except ImportError:
         return ansi_re.sub('', text)
