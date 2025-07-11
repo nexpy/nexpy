@@ -1521,8 +1521,6 @@ class FitTab(NXTab):
             dashed line. The model is plotted with a legend label that
             includes the name of the tab and the name of the model.
         """
-        if 'Fit' not in self.plotviews:
-            self.plot_data()
         model_name = self.plot_combo.currentText()
         if model is False:
             if model_name == 'Composite Model':
