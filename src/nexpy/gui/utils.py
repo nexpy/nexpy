@@ -33,7 +33,7 @@ from threading import Thread
 
 import numpy as np
 from ansi2html import Ansi2HTMLConverter
-from IPython.core.ultratb import ColorTB
+from IPython.core.ultratb import FormattedTB
 from matplotlib import __version__ as mplversion
 from matplotlib import rcParams
 from matplotlib.colors import colorConverter, hex2color, rgb2hex
@@ -119,7 +119,13 @@ def report_exception(*args):
         exc = args[0]
         error_type, error, traceback = exc.__class__, exc, exc.__traceback__
     message = ''.join(tb.format_exception_only(error_type, error))
-    information = ColorTB(mode="Context").text(error_type, error, traceback)
+    if in_dark_mode():
+        theme = 'linux'
+    else:
+        theme = 'lightbg'
+    information = FormattedTB(mode="Context", theme_name=theme).text(
+        error_type, error,
+                                                   traceback)
     logging.error('Exception in GUI event loop\n'+information+'\n')
     message_box = QtWidgets.QMessageBox()
     message_box.setText(message)
@@ -447,12 +453,10 @@ def modification_time(filename):
         return ''
 
 
-def convertHTML(text, dark_bg=None):
+def convertHTML(text):
     """Replace ANSI color codes with HTML"""
     try:
-        if dark_bg is None:
-            dark_bg = in_dark_mode()
-        conv = Ansi2HTMLConverter(dark_bg=dark_bg, inline=True)
+        conv = Ansi2HTMLConverter(dark_bg=in_dark_mode(), inline=True)
         return conv.convert(text).replace('AAAAAA', 'FFFFFF')
     except ImportError:
         return ansi_re.sub('', text)
@@ -977,9 +981,11 @@ def define_mode():
     mainwindow = get_mainwindow()
     if in_dark_mode():
         mainwindow.console.set_default_style('linux')
+        mainwindow.shell.colors = 'linux'
         mainwindow.statusBar().setPalette(mainwindow.app.app.palette())
     else:
         mainwindow.console.set_default_style()
+        mainwindow.shell.colors = 'lightbg'
         mainwindow.statusBar().setPalette(mainwindow.app.app.palette())
 
     for dialog in mainwindow.dialogs:

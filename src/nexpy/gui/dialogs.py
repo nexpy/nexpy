@@ -5306,7 +5306,6 @@ class LogDialog(NXDialog):
         self.text_box.setMinimumHeight(600)
         self.text_box.setFocusPolicy(QtCore.Qt.StrongFocus)
         self.text_box.setReadOnly(True)
-        self.text_box.setStyleSheet("background-color: #000000;")
 
         self.file_combo = NXComboBox(self.show_log)
         for file_name in self.get_filesindirectory(
@@ -5361,7 +5360,7 @@ class LogDialog(NXDialog):
         file.
         """
         with open(self.file_name, 'r') as f:
-            self.text_box.setText(convertHTML(f.read(), dark_bg=True))
+            self.text_box.setText(convertHTML(f.read()))
         self.text_box.verticalScrollBar().setValue(
             self.text_box.verticalScrollBar().maximum())
         self.setWindowTitle(f"Log File: {self.file_name}")
