@@ -5307,15 +5307,16 @@ class LogDialog(NXDialog):
         self.text_box.setFocusPolicy(QtCore.Qt.StrongFocus)
         self.text_box.setReadOnly(True)
 
+        self.switch_box = NXCheckBox('Switch Light/Dark Mode', self.show_log)
         self.file_combo = NXComboBox(self.show_log)
         for file_name in self.get_filesindirectory(
                 'nexpy', extension='.log*', directory=self.log_directory):
             self.file_combo.add(file_name.name)
         self.file_combo.select('nexpy.log')
         self.issue_button = NXPushButton('Open NeXpy Issue', self.open_issue)
-        footer_layout = self.make_layout(self.issue_button,
-                                         'stretch',
+        footer_layout = self.make_layout(self.switch_box, 'stretch',
                                          self.file_combo, 'stretch',
+                                         self.issue_button,
                                          self.close_buttons(close=True),
                                          align='justified')
         self.set_layout(self.text_box, footer_layout)
@@ -5359,8 +5360,9 @@ class LogDialog(NXDialog):
         messages. The window title is also set to the name of the log
         file.
         """
+        switch = self.switch_box.isChecked()
         with open(self.file_name, 'r') as f:
-            self.text_box.setText(convertHTML(f.read()))
+            self.text_box.setText(convertHTML(f.read(), switch=switch))
         self.text_box.verticalScrollBar().setValue(
             self.text_box.verticalScrollBar().maximum())
         self.setWindowTitle(f"Log File: {self.file_name}")

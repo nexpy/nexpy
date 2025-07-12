@@ -453,10 +453,14 @@ def modification_time(filename):
         return ''
 
 
-def convertHTML(text):
+def convertHTML(text, switch=False):
     """Replace ANSI color codes with HTML"""
     try:
-        conv = Ansi2HTMLConverter(dark_bg=in_dark_mode(), inline=True)
+        if switch:
+            dark_bg = not in_dark_mode()
+        else:
+            dark_bg = in_dark_mode()
+        conv = Ansi2HTMLConverter(dark_bg=dark_bg, inline=True)
         return conv.convert(text).replace('AAAAAA', 'FFFFFF')
     except ImportError:
         return ansi_re.sub('', text)
