@@ -5307,7 +5307,8 @@ class LogDialog(NXDialog):
         self.text_box.setFocusPolicy(QtCore.Qt.StrongFocus)
         self.text_box.setReadOnly(True)
 
-        self.switch_box = NXCheckBox('Switch Light/Dark Mode', self.show_log)
+        self.switch_box = NXCheckBox('Switch Light/Dark Mode',
+                                     self.switch_mode)
         self.file_combo = NXComboBox(self.show_log)
         for file_name in self.get_filesindirectory(
                 'nexpy', extension='.log*', directory=self.log_directory):
@@ -5346,6 +5347,8 @@ class LogDialog(NXDialog):
         top of the window stack, and give it focus.
         """
         self.format_log()
+        self.text_box.verticalScrollBar().setValue(
+            self.text_box.verticalScrollBar().maximum())
         self.setVisible(True)
         self.raise_()
         self.activateWindow()
@@ -5363,9 +5366,18 @@ class LogDialog(NXDialog):
         switch = self.switch_box.isChecked()
         with open(self.file_name, 'r') as f:
             self.text_box.setText(convertHTML(f.read(), switch=switch))
-        self.text_box.verticalScrollBar().setValue(
-            self.text_box.verticalScrollBar().maximum())
         self.setWindowTitle(f"Log File: {self.file_name}")
+
+    def switch_mode(self):
+        """
+        Switch the log file between light and dark mode.
+
+        This method is called when the switch box is checked. It
+        formats the log file and shows it in the dialog.
+        """
+        scroll_position = self.text_box.verticalScrollBar().value()
+        self.format_log()
+        self.text_box.verticalScrollBar().setValue(scroll_position)
 
     def reject(self):
         """
