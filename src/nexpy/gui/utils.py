@@ -997,7 +997,7 @@ def define_mode():
             for tab in [dialog.tabs[t] for t in dialog.tabs]:
                 tab.define_style()
         elif dialog.windowTitle().startswith('Log File'):
-            dialog.format_log()
+            dialog.switch_mode()
 
     for plotview in mainwindow.plotviews.values():
         if in_dark_mode():
