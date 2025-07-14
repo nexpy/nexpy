@@ -373,11 +373,13 @@ def fix_projection(shape, axes, limits):
 
 
 def find_nearest(array, value):
+    """Return the array value that is closest to the given value."""
     idx = (np.abs(array-value)).argmin()
     return array[idx]
 
 
 def find_nearest_index(array, value):
+    """Return the index of the nearest value in an array."""
     return (np.abs(array-value)).argmin()
 
 
@@ -454,7 +456,22 @@ def modification_time(filename):
 
 
 def convertHTML(text, switch=False):
-    """Replace ANSI color codes with HTML"""
+    """
+    Convert text with ANSI escape sequences to HTML.
+
+    Parameters
+    ----------
+    text : str
+        Text containing ANSI escape sequences
+    switch : bool, optional
+        If True, switch dark mode of the converted text. Default is
+        False.
+
+    Returns
+    -------
+    str
+        Text with ANSI escape sequences converted to HTML
+    """
     try:
         if switch:
             dark_bg = not in_dark_mode()
@@ -466,10 +483,27 @@ def convertHTML(text, switch=False):
         return ansi_re.sub('', text)
 
 
-def get_name(filename, entries=[]):
-    """Return a valid object name from a filename."""
+def get_name(filename, entries=None):
+    """
+    Return a valid Python object name based on the filename stem.
+    
+    If the filename stem already exists in the entries dictionary,
+    append a number to the name.
+
+    Parameters
+    ----------
+    filename : str
+        File name
+    entries : dict, optional
+        Dictionary of existing entry names. If None, no check is made.
+
+    Returns
+    -------
+    str
+        Unique name
+    """
     name = re.sub(r'\W|^(?=\d)','_', Path(filename).stem)
-    if name in entries:
+    if entries and name in entries:
         ind = []
         for key in entries:
             try:
@@ -602,8 +636,8 @@ def xtec_map():
     """
     Generate a color map for use with the XTEC package.
 
-    The color map data is the same as the 'tab10' map, but with the lowest
-    value set to 'white'.
+    The color map data is the same as the 'tab10' map, but with the
+    lowest value set to 'white'.
     """
     from matplotlib import colormaps
     from matplotlib.colors import ListedColormap
@@ -636,14 +670,14 @@ def load_image(filename):
     """
     Load an image file and convert it to a NeXus NXdata object.
 
-    The image can be in any format supported by PIL (Python Imaging Library)
-    or fabio. The data is stored in a NXfield in the NXdata object with the
-    name 'z'. The axes are named 'y' and 'x' and are also stored in NXfield
-    objects.
+    The image can be in any format supported by PIL (Python Imaging
+    Library) or fabio. The data is stored in a NXfield in the NXdata
+    object with the name 'z'. The axes are named 'y' and 'x' and are
+    also stored in NXfield objects.
 
     If the image is in color, the data is stored in a 3D array and the
-    interpretation of the array is set to 'rgb-image' or 'rgba-image' depending
-    on the number of color channels.
+    interpretation of the array is set to 'rgb-image' or 'rgba-image'
+    depending on the number of color channels.
 
     The title of the NXdata object is set to the name of the file.
 
@@ -771,6 +805,24 @@ def load_plugin(plugin, order=None):
 
 
 def load_readers():
+    """
+    Load the available data readers.
+
+    The data readers are loaded from the following sources in order:
+
+    1. The user's private directory, ``~/.nexpy/readers``.
+    2. The public directory, ``nexpy/readers``.
+    3. The ``nexpy.readers`` entry point.
+
+    The readers are loaded as Python modules and their contents are
+    added to a dictionary, which is returned.
+
+    Returns
+    -------
+    dict
+        A dictionary of data readers, where the key is the name of the
+        reader and the value is the module containing the reader.
+    """
     readers = {}
     private_path = Path.home() / '.nexpy' / 'readers'
     if private_path.exists():
@@ -801,6 +853,24 @@ def load_readers():
 
 
 def load_models():
+    """
+    Load the available models.
+
+    The models are loaded from the following sources in order:
+
+    1. The user's private directory, ``~/.nexpy/models``.
+    2. The public directory, ``nexpy/models``.
+    3. The ``nexpy.models`` entry point.
+
+    The models are loaded as Python modules and their contents are added
+    to a dictionary, which is returned.
+
+    Returns
+    -------
+    dict
+        A dictionary of models, where the key is the name of the model
+        and the value is the module containing the model.
+    """
     models = {}
     private_path = Path.home() / '.nexpy' / 'models'
     if private_path.exists():
@@ -869,7 +939,8 @@ def initialize_settings(settings):
     be set by the system administrator. If any configuration parameter
     has not been set before, default values are used.
 
-    The environment variable names are in upper case and preceded by 'NX_'
+    The environment variable names are in upper case and preceded by
+    'NX_'
 
     Parameters
     ----------
@@ -951,11 +1022,11 @@ def in_dark_mode():
     """
     Return True if the application is in dark mode, False otherwise.
 
-    This works by comparing the value of the window and windowText colors
-    in the application's palette. If the window color is darker than the
-    windowText color, the application is in dark mode. Otherwise, it is
-    in light mode. If the application is not properly initialized, this
-    function will return False.
+    This works by comparing the value of the window and windowText
+    colors in the application's palette. If the window color is darker
+    than the windowText color, the application is in dark mode.
+    Otherwise, it is in light mode. If the application is not properly
+    initialized, this function will return False.
 
     Returns
     -------
