@@ -693,7 +693,12 @@ def load_image(filename):
     """
     if Path(filename).suffix.lower() in ['.png', '.jpg', '.jpeg', '.gif']:
         with Image.open(filename) as PIL_image:
-            im = np.array(PIL_image)
+            if PIL_image.mode in ['LA', 'P']:
+                im = np.array(PIL_image.convert('RGBA'))
+            elif PIL_image.mode not in ['RGB', 'RGBA']:
+                im = np.array(PIL_image.convert('RGB'))
+            else:
+                im = np.array(PIL_image)
         z = NXfield(im, name='z')
         y = NXfield(range(z.shape[0]), name='y')
         x = NXfield(range(z.shape[1]), name='x')
