@@ -1236,8 +1236,14 @@ class MainWindow(QtWidgets.QMainWindow):
             node = self.treeview.get_node()
             name = node.nxname
             if isinstance(node, NXroot):
-                if confirm_action(
-                        f"Are you sure you want to remove '{name}'?"):
+                if node.nxfilename is None:
+                    warning = (f"This will delete '{name}' and cannot be "
+                               "undone. Save it to a file if you want to keep "
+                               "the data for future use.")
+                else:
+                    warning = "This will remove it from the tree"
+                if confirm_action(f"Are you sure you want to remove '{name}'?",
+                                  information=warning):
                     del self.tree[name]
                     self.settings.remove_option('session', node.nxfilename)
                     self.settings.save()
