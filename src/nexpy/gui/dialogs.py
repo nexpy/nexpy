@@ -51,9 +51,11 @@ class NewDialog(NXDialog):
         self.names = GridParameters()
         self.names.add('root', self.tree.get_new_name(), 'Workspace', None)
         self.names.add('entry', 'entry', 'Entry', True)
+        self.save_box = NXCheckBox("Save File", checked=False)
 
         self.set_layout(self.names.grid(header=None),
-                        self.close_layout(save=True))
+                        self.make_layout(self.save_box,
+                                         self.close_buttons(save=True)))
 
     def accept(self):
         """
@@ -72,15 +74,11 @@ class NewDialog(NXDialog):
         else:
             self.tree[root] = NXroot()
             self.treeview.select_node(self.tree[root])
-        dir = self.mainwindow.backup_dir / timestamp()
-        dir.mkdir()
-        fname = dir.joinpath(root+'_backup.nxs')
-        self.tree[root].save(fname, 'w')
+        if self.save_box.isChecked():
+            self.treeview.select_node(self.tree[root])
+            self.mainwindow.save_file()
         self.treeview.update()
         logging.info(f"New workspace '{root}' created")
-        self.mainwindow.settings.set('backups', fname)
-        self.mainwindow.settings.set('session', fname)
-        self.mainwindow.settings.save()
         super().accept()
 
 
@@ -764,9 +762,9 @@ class ExportDialog(NXDialog):
 
         The dialog is initialized with two tabs, the first for exporting
         to a NeXus file and the second for exporting to a text file. The
-        NeXus tab allows the entry name and data name to be set. The text
-        tab allows the delimiter, title, headers, errors and fields to be
-        set.
+        NeXus tab allows the entry name and data name to be set. The
+        text tab allows the delimiter, title, headers, errors and fields
+        to be set.
 
         Parameters
         ----------
