@@ -4199,12 +4199,16 @@ class ValidateTab(NXTab):
         True and the Check Base Class and Inspect Base Class buttons to
         False.
         """
-        self.node.validate(level=self.log_level, application=self.application,
-                           definitions=self.definitions)
-        self.show_log()
-        self.pushbutton['Validate Entry'].setChecked(True)
-        for button in ['Check Base Class', 'Inspect Base Class']:
-            self.pushbutton[button].setChecked(False)
+        try:
+            self.node.validate(level=self.log_level,
+                               application=self.application,
+                               definitions=self.definitions)
+            self.show_log()
+            for button in ['Check Base Class', 'Inspect Base Class']:
+                self.pushbutton[button].setChecked(False)
+        except NeXusError as error:
+            report_error("Validating Entry", error)
+            self.pushbutton['Validate Entry'].setChecked(False)
 
     def check(self):
         """
