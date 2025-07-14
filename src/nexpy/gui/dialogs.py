@@ -51,9 +51,11 @@ class NewDialog(NXDialog):
         self.names = GridParameters()
         self.names.add('root', self.tree.get_new_name(), 'Workspace', None)
         self.names.add('entry', 'entry', 'Entry', True)
+        self.save_box = NXCheckBox("Save File", checked=False)
 
         self.set_layout(self.names.grid(header=None),
-                        self.close_layout(save=True))
+                        self.make_layout(self.save_box,
+                                         self.close_buttons(save=True)))
 
     def accept(self):
         """
@@ -72,15 +74,11 @@ class NewDialog(NXDialog):
         else:
             self.tree[root] = NXroot()
             self.treeview.select_node(self.tree[root])
-        dir = self.mainwindow.backup_dir / timestamp()
-        dir.mkdir()
-        fname = dir.joinpath(root+'_backup.nxs')
-        self.tree[root].save(fname, 'w')
+        if self.save_box.isChecked():
+            self.treeview.select_node(self.tree[root])
+            self.mainwindow.save_file()
         self.treeview.update()
         logging.info(f"New workspace '{root}' created")
-        self.mainwindow.settings.set('backups', fname)
-        self.mainwindow.settings.set('session', fname)
-        self.mainwindow.settings.save()
         super().accept()
 
 
@@ -764,9 +762,9 @@ class ExportDialog(NXDialog):
 
         The dialog is initialized with two tabs, the first for exporting
         to a NeXus file and the second for exporting to a text file. The
-        NeXus tab allows the entry name and data name to be set. The text
-        tab allows the delimiter, title, headers, errors and fields to be
-        set.
+        NeXus tab allows the entry name and data name to be set. The
+        text tab allows the delimiter, title, headers, errors and fields
+        to be set.
 
         Parameters
         ----------
@@ -4201,12 +4199,16 @@ class ValidateTab(NXTab):
         True and the Check Base Class and Inspect Base Class buttons to
         False.
         """
-        self.node.validate(level=self.log_level, application=self.application,
-                           definitions=self.definitions)
-        self.show_log()
-        self.pushbutton['Validate Entry'].setChecked(True)
-        for button in ['Check Base Class', 'Inspect Base Class']:
-            self.pushbutton[button].setChecked(False)
+        try:
+            self.node.validate(level=self.log_level,
+                               application=self.application,
+                               definitions=self.definitions)
+            self.show_log()
+            for button in ['Check Base Class', 'Inspect Base Class']:
+                self.pushbutton[button].setChecked(False)
+        except NeXusError as error:
+            report_error("Validating Entry", error)
+            self.pushbutton['Validate Entry'].setChecked(False)
 
     def check(self):
         """
@@ -5306,17 +5308,18 @@ class LogDialog(NXDialog):
         self.text_box.setMinimumHeight(600)
         self.text_box.setFocusPolicy(QtCore.Qt.StrongFocus)
         self.text_box.setReadOnly(True)
-        self.text_box.setStyleSheet("background-color: #000000;")
 
+        self.switch_box = NXCheckBox('Switch Light/Dark Mode',
+                                     self.switch_mode)
         self.file_combo = NXComboBox(self.show_log)
         for file_name in self.get_filesindirectory(
                 'nexpy', extension='.log*', directory=self.log_directory):
             self.file_combo.add(file_name.name)
         self.file_combo.select('nexpy.log')
         self.issue_button = NXPushButton('Open NeXpy Issue', self.open_issue)
-        footer_layout = self.make_layout(self.issue_button,
-                                         'stretch',
+        footer_layout = self.make_layout(self.switch_box, 'stretch',
                                          self.file_combo, 'stretch',
+                                         self.issue_button,
                                          self.close_buttons(close=True),
                                          align='justified')
         self.set_layout(self.text_box, footer_layout)
@@ -5346,6 +5349,8 @@ class LogDialog(NXDialog):
         top of the window stack, and give it focus.
         """
         self.format_log()
+        self.text_box.verticalScrollBar().setValue(
+            self.text_box.verticalScrollBar().maximum())
         self.setVisible(True)
         self.raise_()
         self.activateWindow()
@@ -5360,11 +5365,21 @@ class LogDialog(NXDialog):
         messages. The window title is also set to the name of the log
         file.
         """
+        switch = self.switch_box.isChecked()
         with open(self.file_name, 'r') as f:
-            self.text_box.setText(convertHTML(f.read(), dark_bg=True))
-        self.text_box.verticalScrollBar().setValue(
-            self.text_box.verticalScrollBar().maximum())
+            self.text_box.setText(convertHTML(f.read(), switch=switch))
         self.setWindowTitle(f"Log File: {self.file_name}")
+
+    def switch_mode(self):
+        """
+        Switch the log file between light and dark mode.
+
+        This method is called when the switch box is checked. It
+        formats the log file and shows it in the dialog.
+        """
+        scroll_position = self.text_box.verticalScrollBar().value()
+        self.format_log()
+        self.text_box.verticalScrollBar().setValue(scroll_position)
 
     def reject(self):
         """

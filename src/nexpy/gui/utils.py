@@ -33,7 +33,7 @@ from threading import Thread
 
 import numpy as np
 from ansi2html import Ansi2HTMLConverter
-from IPython.core.ultratb import ColorTB
+from IPython.core.ultratb import FormattedTB
 from matplotlib import __version__ as mplversion
 from matplotlib import rcParams
 from matplotlib.colors import colorConverter, hex2color, rgb2hex
@@ -119,7 +119,13 @@ def report_exception(*args):
         exc = args[0]
         error_type, error, traceback = exc.__class__, exc, exc.__traceback__
     message = ''.join(tb.format_exception_only(error_type, error))
-    information = ColorTB(mode="Context").text(error_type, error, traceback)
+    if in_dark_mode():
+        theme = 'linux'
+    else:
+        theme = 'lightbg'
+    information = FormattedTB(mode="Context", theme_name=theme).text(
+        error_type, error,
+                                                   traceback)
     logging.error('Exception in GUI event loop\n'+information+'\n')
     message_box = QtWidgets.QMessageBox()
     message_box.setText(message)
@@ -367,11 +373,13 @@ def fix_projection(shape, axes, limits):
 
 
 def find_nearest(array, value):
+    """Return the array value that is closest to the given value."""
     idx = (np.abs(array-value)).argmin()
     return array[idx]
 
 
 def find_nearest_index(array, value):
+    """Return the index of the nearest value in an array."""
     return (np.abs(array-value)).argmin()
 
 
@@ -447,10 +455,27 @@ def modification_time(filename):
         return ''
 
 
-def convertHTML(text, dark_bg=None):
-    """Replace ANSI color codes with HTML"""
+def convertHTML(text, switch=False):
+    """
+    Convert text with ANSI escape sequences to HTML.
+
+    Parameters
+    ----------
+    text : str
+        Text containing ANSI escape sequences
+    switch : bool, optional
+        If True, switch dark mode of the converted text. Default is
+        False.
+
+    Returns
+    -------
+    str
+        Text with ANSI escape sequences converted to HTML
+    """
     try:
-        if dark_bg is None:
+        if switch:
+            dark_bg = not in_dark_mode()
+        else:
             dark_bg = in_dark_mode()
         conv = Ansi2HTMLConverter(dark_bg=dark_bg, inline=True)
         return conv.convert(text).replace('AAAAAA', 'FFFFFF')
@@ -458,10 +483,27 @@ def convertHTML(text, dark_bg=None):
         return ansi_re.sub('', text)
 
 
-def get_name(filename, entries=[]):
-    """Return a valid object name from a filename."""
+def get_name(filename, entries=None):
+    """
+    Return a valid Python object name based on the filename stem.
+    
+    If the filename stem already exists in the entries dictionary,
+    append a number to the name.
+
+    Parameters
+    ----------
+    filename : str
+        File name
+    entries : dict, optional
+        Dictionary of existing entry names. If None, no check is made.
+
+    Returns
+    -------
+    str
+        Unique name
+    """
     name = re.sub(r'\W|^(?=\d)','_', Path(filename).stem)
-    if name in entries:
+    if entries and name in entries:
         ind = []
         for key in entries:
             try:
@@ -594,8 +636,8 @@ def xtec_map():
     """
     Generate a color map for use with the XTEC package.
 
-    The color map data is the same as the 'tab10' map, but with the lowest
-    value set to 'white'.
+    The color map data is the same as the 'tab10' map, but with the
+    lowest value set to 'white'.
     """
     from matplotlib import colormaps
     from matplotlib.colors import ListedColormap
@@ -628,14 +670,14 @@ def load_image(filename):
     """
     Load an image file and convert it to a NeXus NXdata object.
 
-    The image can be in any format supported by PIL (Python Imaging Library)
-    or fabio. The data is stored in a NXfield in the NXdata object with the
-    name 'z'. The axes are named 'y' and 'x' and are also stored in NXfield
-    objects.
+    The image can be in any format supported by PIL (Python Imaging
+    Library) or fabio. The data is stored in a NXfield in the NXdata
+    object with the name 'z'. The axes are named 'y' and 'x' and are
+    also stored in NXfield objects.
 
     If the image is in color, the data is stored in a 3D array and the
-    interpretation of the array is set to 'rgb-image' or 'rgba-image' depending
-    on the number of color channels.
+    interpretation of the array is set to 'rgb-image' or 'rgba-image'
+    depending on the number of color channels.
 
     The title of the NXdata object is set to the name of the file.
 
@@ -651,7 +693,12 @@ def load_image(filename):
     """
     if Path(filename).suffix.lower() in ['.png', '.jpg', '.jpeg', '.gif']:
         with Image.open(filename) as PIL_image:
-            im = np.array(PIL_image)
+            if PIL_image.mode in ['LA', 'P']:
+                im = np.array(PIL_image.convert('RGBA'))
+            elif PIL_image.mode not in ['RGB', 'RGBA']:
+                im = np.array(PIL_image.convert('RGB'))
+            else:
+                im = np.array(PIL_image)
         z = NXfield(im, name='z')
         y = NXfield(range(z.shape[0]), name='y')
         x = NXfield(range(z.shape[1]), name='x')
@@ -763,6 +810,24 @@ def load_plugin(plugin, order=None):
 
 
 def load_readers():
+    """
+    Load the available data readers.
+
+    The data readers are loaded from the following sources in order:
+
+    1. The user's private directory, ``~/.nexpy/readers``.
+    2. The public directory, ``nexpy/readers``.
+    3. The ``nexpy.readers`` entry point.
+
+    The readers are loaded as Python modules and their contents are
+    added to a dictionary, which is returned.
+
+    Returns
+    -------
+    dict
+        A dictionary of data readers, where the key is the name of the
+        reader and the value is the module containing the reader.
+    """
     readers = {}
     private_path = Path.home() / '.nexpy' / 'readers'
     if private_path.exists():
@@ -793,6 +858,24 @@ def load_readers():
 
 
 def load_models():
+    """
+    Load the available models.
+
+    The models are loaded from the following sources in order:
+
+    1. The user's private directory, ``~/.nexpy/models``.
+    2. The public directory, ``nexpy/models``.
+    3. The ``nexpy.models`` entry point.
+
+    The models are loaded as Python modules and their contents are added
+    to a dictionary, which is returned.
+
+    Returns
+    -------
+    dict
+        A dictionary of models, where the key is the name of the model
+        and the value is the module containing the model.
+    """
     models = {}
     private_path = Path.home() / '.nexpy' / 'models'
     if private_path.exists():
@@ -861,7 +944,8 @@ def initialize_settings(settings):
     be set by the system administrator. If any configuration parameter
     has not been set before, default values are used.
 
-    The environment variable names are in upper case and preceded by 'NX_'
+    The environment variable names are in upper case and preceded by
+    'NX_'
 
     Parameters
     ----------
@@ -943,11 +1027,11 @@ def in_dark_mode():
     """
     Return True if the application is in dark mode, False otherwise.
 
-    This works by comparing the value of the window and windowText colors
-    in the application's palette. If the window color is darker than the
-    windowText color, the application is in dark mode. Otherwise, it is
-    in light mode. If the application is not properly initialized, this
-    function will return False.
+    This works by comparing the value of the window and windowText
+    colors in the application's palette. If the window color is darker
+    than the windowText color, the application is in dark mode.
+    Otherwise, it is in light mode. If the application is not properly
+    initialized, this function will return False.
 
     Returns
     -------
@@ -977,9 +1061,11 @@ def define_mode():
     mainwindow = get_mainwindow()
     if in_dark_mode():
         mainwindow.console.set_default_style('linux')
+        mainwindow.shell.colors = 'linux'
         mainwindow.statusBar().setPalette(mainwindow.app.app.palette())
     else:
         mainwindow.console.set_default_style()
+        mainwindow.shell.colors = 'lightbg'
         mainwindow.statusBar().setPalette(mainwindow.app.app.palette())
 
     for dialog in mainwindow.dialogs:
@@ -987,7 +1073,7 @@ def define_mode():
             for tab in [dialog.tabs[t] for t in dialog.tabs]:
                 tab.define_style()
         elif dialog.windowTitle().startswith('Log File'):
-            dialog.format_log()
+            dialog.switch_mode()
 
     for plotview in mainwindow.plotviews.values():
         if in_dark_mode():

@@ -306,10 +306,11 @@ class FitTab(NXTab):
                                               align='justified')
 
         if self.plotview is None:
-            self.fitview.plot(self._data, fmt='o', color=color)
-        self.data_num = self.fitview.num
-        self.data_label = self.fitview.plots[self.fitview.num]['label']
-        self.cursor = self.fitview.plots[self.fitview.num]['cursor']
+            self.plotview = NXPlotView('Fit')
+            self.plotview.plot(self._data, fmt='o', color=color)
+        self.data_num = self.plotview.num
+        self.data_label = self.plotview.plots[self.plotview.num]['label']
+        self.cursor = self.plotview.plots[self.plotview.num]['cursor']
         if self.cursor:
             @self.cursor.connect("add")
             def add_selection(sel):
@@ -368,7 +369,7 @@ class FitTab(NXTab):
         self.choose_model()
         self.set_button_visibility()
 
-        self.cid = self.fitview.canvas.mpl_connect('button_release_event',
+        self.cid = self.plotview.canvas.mpl_connect('button_release_event',
                                                    self.on_button_release)
         self.composite_model = ''
         self.composite_dialog = None
@@ -379,8 +380,8 @@ class FitTab(NXTab):
         self.linestyles = [linestyles[ls] for ls in linestyles
                            if ls != 'Solid' and ls != 'None']
         self.linestyle = cycle(self.linestyles)
-        self.xlo, self.xhi = self.fitview.ax.get_xlim()
-        self.ylo, self.yhi = self.fitview.ax.get_ylim()
+        self.xlo, self.xhi = self.plotview.ax.get_xlim()
+        self.ylo, self.yhi = self.plotview.ax.get_ylim()
 
         if group:
             self.load_fit(group)
@@ -392,12 +393,16 @@ class FitTab(NXTab):
     def fitview(self):
         """The plotting window for the fitting data."""
         if self.plotview and self.plotview.label in self.plotviews:
-            _fitview = self.plotview
+            return self.plotview
         elif 'Fit' in self.plotviews:
-            _fitview = self.plotviews['Fit']
+            self.plotview = self.plotviews['Fit']
+            return self.plotview
         else:
-            _fitview = NXPlotView('Fit')
-        return _fitview
+            return None
+
+    @fitview.setter
+    def fitview(self, plotview):
+        self.plotview = plotview
 
     def initialize_data(self, data):
         """
@@ -1434,7 +1439,7 @@ class FitTab(NXTab):
             A tuple of two floats, the minimum and maximum values of the
             x-axis.
         """
-        return self.fitview.xtab.get_limits()
+        return self.plotview.xtab.get_limits()
 
     @property
     def plot_min(self):
@@ -1457,19 +1462,18 @@ class FitTab(NXTab):
         linestyles and plot the mask. Finally, raise the plotview to the
         top.
         """
-        if self.plotview is None:
-            if 'Fit' not in self.plotviews:
-                self.fitview.plot(self._data, fmt='o', color=self.color)
-            else:
-                self.fitview.plot(self._data,
-                                  xmin=self.plot_min, xmax=self.plot_max,
-                                  color=self.color)
-            for label in ['label', 'legend_label']:
-                self.fitview.plots[self.fitview.num][label] = self.data_label
-            self.remove_plots()
+        if self.fitview is None:
+            self.fitview = NXPlotView('Fit')
+            self.fitview.plot(self._data, fmt='o', color=self.color)
+        elif self.fitview.label == 'Fit':
+            self.fitview.plot(self._data,
+                              xmin=self.plot_min, xmax=self.plot_max,
+                              color=self.color)
         else:
             self.fitview.plots[self.data_num]['plot'].set_color(self.color)
-            self.remove_plots()
+        for label in ['label', 'legend_label']:
+            self.fitview.plots[self.fitview.num][label] = self.data_label
+        self.remove_plots()
         self.linestyle = cycle(self.linestyles)
         self.plot_mask()
         self.fitview.raise_()
@@ -1484,6 +1488,8 @@ class FitTab(NXTab):
         linestyles and plot the mask. Finally, raise the plotview to the
         top.
         """
+        if self.fitview is None:
+            self.plot_data()
         mask_data = self.signal_mask()
         if mask_data:
             if self.mask_num in self.fitview.plots:
@@ -1521,7 +1527,7 @@ class FitTab(NXTab):
             dashed line. The model is plotted with a legend label that
             includes the name of the tab and the name of the model.
         """
-        if 'Fit' not in self.plotviews:
+        if self.fitview is None:
             self.plot_data()
         model_name = self.plot_combo.currentText()
         if model is False:
@@ -1798,6 +1804,8 @@ class FitTab(NXTab):
         progress, draw a rectangle with the zoom extent and make the
         mask button visible. In either case, the plot window is redrawn.
         """
+        if self.fitview is None:
+            return
         self.fitview.otab.release_zoom(event)
         if event.button == 1:
             self.remove_rectangle()
@@ -1818,6 +1826,8 @@ class FitTab(NXTab):
         coordinates of the rectangle to the zoom extent and makes the
         mask button visible. The plot window is then redrawn.
         """
+        if self.fitview is None:
+            return
         x, dx = self.xlo, self.xhi-self.xlo
         y, dy = self.ylo, self.yhi-self.ylo
         if self.rectangle:
@@ -1838,6 +1848,8 @@ class FitTab(NXTab):
         plot window. It removes any rectangle that was drawn and
         redraws the plot window.
         """
+        if self.fitview is None:
+            return
         if self.rectangle:
             self.rectangle.remove()
         self.rectangle = None
@@ -1851,6 +1863,8 @@ class FitTab(NXTab):
         It removes the mask plot from the plot window and redraws the
         plot window.
         """
+        if self.fitview is None:
+            return
         if self.mask_num in self.fitview.plots:
             self.fitview.plots[self.mask_num]['plot'].remove()
             del self.fitview.plots[self.mask_num]
@@ -1865,6 +1879,8 @@ class FitTab(NXTab):
         It removes any additional plots from the plot window and
         redraws the plot window.
         """
+        if self.fitview is None:
+            return
         for num in [n for n in self.plot_nums if n in self.fitview.plots]:
             self.fitview.plots[num]['plot'].remove()
             del self.fitview.plots[num]
@@ -1882,6 +1898,8 @@ class FitTab(NXTab):
         when the 'Apply' button is clicked. The plot window is then
         redrawn.
         """
+        if self.fitview is None:
+            return
         self.remove_plots()
         if self.model is not None:
             self.fitview.plot(self.get_model(), fmt='-', color=self.color,
@@ -1894,10 +1912,11 @@ class FitTab(NXTab):
         This method is called when the window is closed. It disconnects any
         signal connections and removes any masks and plots from the plot window.
         """
+        if self.fitview is None:
+            return
         self.fitview.canvas.mpl_disconnect(self.cid)
         self.remove_masks()
-        if self.plotview:
-            self.remove_plots()
+        self.remove_plots()
 
 
 class CompositeDialog(NXDialog):
