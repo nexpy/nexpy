@@ -31,10 +31,9 @@ import numpy as np
 from nexpy.gui.importdialog import NXImportDialog
 from nexpy.gui.utils import report_error
 from nexpy.gui.widgets import (NXCheckBox, NXComboBox, NXLabel, NXLineEdit,
-                               NXPushButton)
+                               NXPushButton, NXTextEdit)
 from nexusformat.nexus import NXdata, NXentry, NXfield, NXgroup
 from nexusformat.nexus.validate import GroupValidator
-from qtpy import QtWidgets
 
 filetype = "Text File"
 
@@ -49,7 +48,7 @@ class ImportDialog(NXImportDialog):
 
         super().__init__(parent=parent)
 
-        self.textbox = QtWidgets.QTextEdit()
+        self.textbox = NXTextEdit()
         self.textbox.setMinimumWidth(400)
         self.textbox.setMinimumHeight(200)
         self.textbox.setReadOnly(True)
