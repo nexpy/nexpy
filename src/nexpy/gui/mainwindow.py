@@ -790,11 +790,25 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.window_menu.addSeparator()
 
-        self.equalizewindow_action = QtWidgets.QAction(
+        self.equalize_action = QtWidgets.QAction(
             "Equalize Plot Sizes", self, shortcut=QtGui.QKeySequence(
                 "Ctrl+Shift+E"),
-            triggered=self.equalize_windows)
-        self.add_menu_action(self.window_menu, self.equalizewindow_action)
+            triggered=self.equalize_plots)
+        self.add_menu_action(self.window_menu, self.equalize_action)
+
+        self.window_menu.addSeparator()
+
+        self.cascade_action = QtWidgets.QAction(
+            "Cascade Plots", self, shortcut=QtGui.QKeySequence(
+                "Ctrl+Shift+Alt+C"),
+            triggered=self.cascade_plots)
+        self.add_menu_action(self.window_menu, self.cascade_action)
+
+        self.tile_action = QtWidgets.QAction(
+            "Tile Plots", self, shortcut=QtGui.QKeySequence(
+                "Ctrl+Shift+Alt+T"),
+            triggered=self.tile_plots)
+        self.add_menu_action(self.window_menu, self.tile_action)
 
         self.window_menu.addSeparator()
 
@@ -2191,7 +2205,7 @@ class MainWindow(QtWidgets.QMainWindow):
             except Exception:
                 pass
 
-    def equalize_windows(self):
+    def equalize_plots(self):
         """
         Resize all plot windows except the main window and the currently
         active window to the size of the currently active window.
@@ -2204,6 +2218,40 @@ class MainWindow(QtWidgets.QMainWindow):
         for label in [label for label in self.plotviews
                       if (label != 'Main' and label != self.plotview.label)]:
             self.plotviews[label].resize(self.plotview.size())
+
+    def cascade_plots(self):
+        pvs = [self.plotviews[pv] for pv in self.plotviews]
+        if len(pvs) <= 1:
+            return
+        available_geometry = self.app.app.primaryScreen().availableGeometry()
+        last_left = available_geometry.right() - pvs[-1].width()
+        last_top = available_geometry.bottom() - pvs[-1].height()
+        offset_x = int((last_left - available_geometry.left()) / (len(pvs)-1))
+        offset_y = int((last_top - available_geometry.top()) / (len(pvs)-1))
+        left, top = available_geometry.left(), available_geometry.top()
+        self.move(left, top)
+        for pv in pvs[1:]:
+            left += offset_x
+            top += offset_y
+            pv.move(left, top)
+            pv.make_active()
+
+    def tile_plots(self):
+        pvs = [self.plotviews[pv] for pv in self.plotviews if pv != 'Main']
+        if len(pvs) <= 1:
+            return
+        available_geometry = self.app.app.primaryScreen().availableGeometry()
+        left, top = available_geometry.left(), available_geometry.top()
+        pvs[0].move(left, top)
+        for pv in pvs[1:]:
+            left += pv.canvas.width()
+            if left + pv.canvas.width() > available_geometry.right():
+                left = available_geometry.left()
+                top += pv.canvas.height()
+            if top + pv.canvas.height() > available_geometry.bottom():
+                top = available_geometry.top()
+            pv.move(left, top)
+            pv.make_active()
 
     def update_active(self, number):
         """
