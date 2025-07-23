@@ -590,7 +590,7 @@ class NXWidget(QtWidgets.QWidget):
         """
         dirname = self.get_default_directory(self.filename.text())
         filename = Path(getOpenFileName(self, 'Open File', dirname))
-        if filename.exists():
+        if filename.is_file():
             self.filename.setText(str(filename))
             self.set_default_directory(filename.parent)
 
