@@ -800,13 +800,13 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.active_action = {}
 
-        self.active_action[1] = QtWidgets.QAction(
-            'Main', self, shortcut=QtGui.QKeySequence("Ctrl+1"),
-            triggered=lambda: self.make_active(1),
+        self.active_action[0] = QtWidgets.QAction(
+            'Main', self, shortcut=QtGui.QKeySequence("Ctrl+0"),
+            triggered=lambda: self.make_active(0),
             checkable=True)
-        self.add_menu_action(self.window_menu, self.active_action[1])
-        self.active_action[1].setChecked(True)
-        self.previous_active = 1
+        self.add_menu_action(self.window_menu, self.active_action[0])
+        self.active_action[0].setChecked(True)
+        self.previous_active = 0
 
         self.window_separator = self.window_menu.addSeparator()
 
