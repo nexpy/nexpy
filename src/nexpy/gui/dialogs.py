@@ -1880,6 +1880,10 @@ class StyleTab(NXTab):
                                 ('Tighten Layout', self.tight_layout),
                                 ('Reset Layout', self.reset_layout)))
         self.set_title('Plot Style')
+        pars = self.plotview.figure.subplotpars
+        self.original_layout = {'left': pars.left, 'right': pars.right,
+                                'bottom': pars.bottom, 'top': pars.right}
+
 
     def label_parameters(self):
         """
@@ -1969,9 +1973,6 @@ class StyleTab(NXTab):
         before calling tight_layout, so that the layout can be reset
         if needed.
         """
-        pars = self.plotview.figure.subplotpars
-        self.previous_layout = {'left': pars.left, 'right': pars.right,
-                                'bottom': pars.bottom, 'top': pars.right}
         self.plotview.figure.tight_layout()
         self.plotview.draw()
 
@@ -1985,20 +1986,14 @@ class StyleTab(NXTab):
         done by tight_layout is not what you want. The original layout
         is restored, and the plot is redrawn.
         """
-        self.plotview.figure.subplots_adjust(**self.previous_layout)
+        self.plotview.figure.subplots_adjust(**self.original_layout)
         self.plotview.draw()
 
     def adjust_layout(self):
         """
         Call the configure_subplots method of the Options Tab to adjust
         the layout of the active plotview.
-
-        The current layout is saved before calling configure_subplots,
-        so that the layout can be reset if needed.
         """
-        pars = self.plotview.figure.subplotpars
-        self.previous_layout = {'left': pars.left, 'right': pars.right,
-                                'bottom': pars.bottom, 'top': pars.right}
         self.plotview.otab.configure_subplots()
 
     def save_default(self):
@@ -4113,7 +4108,7 @@ class ValidateTab(NXTab):
             self.pushbutton['Validate Entry'].setVisible(False)
             self.application_box = None
 
-        self.text_box = QtWidgets.QTextEdit()
+        self.text_box = NXTextEdit()
         self.text_box.setMinimumWidth(800)
         self.text_box.setMinimumHeight(600)
         self.text_box.setFocusPolicy(QtCore.Qt.StrongFocus)
@@ -5303,7 +5298,7 @@ class LogDialog(NXDialog):
 
         self.log_directory = self.mainwindow.nexpy_dir
 
-        self.text_box = QtWidgets.QTextEdit()
+        self.text_box = NXTextEdit()
         self.text_box.setMinimumWidth(800)
         self.text_box.setMinimumHeight(600)
         self.text_box.setFocusPolicy(QtCore.Qt.StrongFocus)
