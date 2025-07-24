@@ -5304,6 +5304,10 @@ class LogDialog(NXDialog):
         self.text_box.setFocusPolicy(QtCore.Qt.StrongFocus)
         self.text_box.setReadOnly(True)
 
+        search_layout = self.make_layout(
+            self.search_box(self.text_box, 'Search Log...', 200),
+            align='right')
+
         self.switch_box = NXCheckBox('Switch Light/Dark Mode',
                                      self.switch_mode)
         self.file_combo = NXComboBox(self.show_log)
@@ -5317,7 +5321,7 @@ class LogDialog(NXDialog):
                                          self.issue_button,
                                          self.close_buttons(close=True),
                                          align='justified')
-        self.set_layout(self.text_box, footer_layout)
+        self.set_layout(search_layout, self.text_box, footer_layout)
 
         self.show_log()
 

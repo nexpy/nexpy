@@ -989,6 +989,37 @@ class NXWidget(QtWidgets.QWidget):
                         widget.deleteLater()
         grid.deleteLater()
 
+    def search_box(self, editor, search_text='Search...', width=200,
+                   align='right'):
+        """
+        Create a search box widget that searches the given text editor.
+
+        The search box is connected to the text editor's highlighter so
+        that when the user enters a search string into the box, the all
+        occurrences of the string in the text editor will be
+        highlighted.
+
+        Parameters
+        ----------
+        editor : QTextEdit or QPlainTextEdit
+            The text editor to be searched.
+        search_text : str, optional
+            The text to display in the search box.
+        width : int, optional
+            The width of the search box.
+        align : str, optional
+            The alignment of the search box.
+
+        Returns
+        -------
+        box : NXLineEdit
+            The search box widget.
+        """
+        box = NXLineEdit(width=width, align=align)
+        box.setPlaceholderText(search_text)
+        box.textChanged.connect(editor.highlighter.set_selection)
+        return box
+
     def start_progress(self, limits):
         """
         Set up a progress bar with the given limits.
