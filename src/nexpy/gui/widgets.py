@@ -2451,6 +2451,8 @@ class NXTextBox(NXLineEdit):
 
 class NXTextEdit(QtWidgets.QTextEdit):
 
+    selectionChanged = QtCore.Signal(str)
+
     def __init__(self, text=None, parent=None, slot=None, readonly=False,
                  width=None, align='left', autosize=False):
         """
@@ -2500,6 +2502,9 @@ class NXTextEdit(QtWidgets.QTextEdit):
             self.update_minimum_height()
             self.document().documentLayout().documentSizeChanged.connect(
                 self.adjust_height)
+        self.cursorPositionChanged.connect(self.handle_selection)
+        self.highlighter = NXHighlighter(self)
+        self.selectionChanged.connect(self.highlighter.set_selection)
 
     def update_minimum_height(self):
         """Calculate height for one line of text including all margins"""
@@ -2518,9 +2523,19 @@ class NXTextEdit(QtWidgets.QTextEdit):
                               margins.top() + margins.bottom())
         self.setFixedHeight(max(total_height, self.minimumHeight()))
 
+    def handle_selection(self):
+        cursor = self.textCursor()
+        selected = cursor.selectedText()
+        if selected and not selected.isspace():
+            self.selectionChanged.emit(selected)
+        else:
+            self.selectionChanged.emit("")
+
 
 class NXPlainTextEdit(QtWidgets.QPlainTextEdit):
     """An editable text window."""
+
+    selectionChanged = QtCore.Signal(str)
 
     def __init__(self, text=None, wrap=True, parent=None):
         """
@@ -2545,6 +2560,9 @@ class NXPlainTextEdit(QtWidgets.QPlainTextEdit):
         if text:
             self.setPlainText(text)
         self.setFocusPolicy(QtCore.Qt.StrongFocus)
+        self.cursorPositionChanged.connect(self.handle_selection)
+        self.highlighter = NXHighlighter(self)
+        self.selectionChanged.connect(self.highlighter.set_selection)
 
     def __repr__(self):
         return 'NXPlainTextEdit()'
@@ -2579,6 +2597,63 @@ class NXPlainTextEdit(QtWidgets.QPlainTextEdit):
             return text.replace('\t', tab_spaces*' ')
         else:
             return text + '\n'
+
+    def handle_selection(self):
+        cursor = self.textCursor()
+        selected = cursor.selectedText()
+        if selected and not selected.isspace():
+            self.selectionChanged.emit(selected)
+        else:
+            self.selectionChanged.emit("")
+
+
+class NXHighlighter(QtGui.QSyntaxHighlighter):
+    """A highlighter for text edit boxes."""
+
+    def __init__(self, editor):
+        """
+        Initialize a highlighter for the given text edit box.
+
+        Parameters
+        ----------
+        editor : QTextEdit or QPlainTextEdit
+            The text edit box to be highlighted.
+        """
+        super().__init__(editor.document())
+        self.editor = editor
+        self.selected_text = ""
+        self.format = QtGui.QTextCharFormat()
+        self.format.setBackground(QtGui.QColor("yellow"))
+    
+    def set_selection(self, text):
+        """
+        Set the text to be selected in the text edit box.
+
+        Parameters
+        ----------
+        text : str
+            The text to select.
+        """
+        self.selected_text = text
+        self.rehighlight()
+
+    def highlightBlock(self, text):
+        """
+        Highlight all occurrences of the selected text in the block of text.
+
+        Parameters
+        ----------
+        text : str
+            The block of text to be highlighted.
+        """
+        if self.selected_text and len(self.selected_text) > 0:
+            start = 0
+            while True:
+                start = text.find(self.selected_text, start)
+                if start == -1:
+                    break
+                self.setFormat(start, len(self.selected_text), self.format)
+                start += len(self.selected_text)
 
 
 class NXMessageBox(QtWidgets.QMessageBox):
