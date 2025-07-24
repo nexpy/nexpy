@@ -13,7 +13,7 @@ from pygments.formatter import Formatter
 
 from .pyqt import QtCore, QtGui, QtWidgets, getSaveFileName
 from .utils import confirm_action, in_dark_mode
-from .widgets import NXLineEdit, NXPanel, NXPushButton, NXTab
+from .widgets import NXLineEdit, NXPanel, NXPlainTextEdit, NXPushButton, NXTab
 
 
 def hex2QColor(c):
@@ -75,7 +75,7 @@ class NXFormatter(Formatter):
             self.data.extend([self.styles[t], ]*v)
 
 
-class NXHighlighter(QtGui.QSyntaxHighlighter):
+class NXSyntaxHighlighter(QtGui.QSyntaxHighlighter):
 
     def __init__(self, parent):
 
@@ -127,7 +127,7 @@ class NXScrollBar(QtWidgets.QScrollBar):
             self.blockSignals(False)
 
 
-class NXScriptTextEdit(QtWidgets.QPlainTextEdit):
+class NXScriptTextEdit(NXPlainTextEdit):
 
     def __init__(self, slot=None, parent=None):
         """
@@ -259,7 +259,7 @@ class NXScriptEditor(NXTab):
         else:
             self.delete_button.setVisible(False)
 
-        self.hl = NXHighlighter(self.text_box.document())
+        self.hl = NXSyntaxHighlighter(self.text_box.document())
 
         self.text_box.setFocus()
         self.number_box.setFocusPolicy(QtCore.Qt.NoFocus)
@@ -277,7 +277,7 @@ class NXScriptEditor(NXTab):
                                           'background-color: #eee; '
                                           'padding: 0; margin: 0; border: 0')
             self.text_box.setStyleSheet('background-color: white')
-        self.highlighter = NXHighlighter(self.text_box.document())
+        self.highlighter = NXSyntaxHighlighter(self.text_box.document())
 
     def get_text(self):
         """
