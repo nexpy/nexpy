@@ -2242,11 +2242,13 @@ class MainWindow(QtWidgets.QMainWindow):
             return
         available_geometry = self.app.app.primaryScreen().availableGeometry()
         left, top = available_geometry.left(), available_geometry.top()
+        self.move(left, top)
+        left += self.treeview.minimumWidth()
         pvs[0].move(left, top)
         for pv in pvs[1:]:
             left += pv.canvas.width()
             if left + pv.canvas.width() > available_geometry.right():
-                left = available_geometry.left()
+                left = available_geometry.left() + self.treeview.minimumWidth()
                 top += pv.canvas.height()
             if top + pv.canvas.height() > available_geometry.bottom():
                 top = available_geometry.top()
