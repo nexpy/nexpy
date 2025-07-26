@@ -8,111 +8,9 @@
 import tempfile
 from pathlib import Path
 
-import pygments
-from pygments.formatter import Formatter
-
 from .pyqt import QtCore, QtGui, QtWidgets, getSaveFileName
 from .utils import confirm_action, in_dark_mode
-from .widgets import NXLineEdit, NXPanel, NXPlainTextEdit, NXPushButton, NXTab
-
-
-def hex2QColor(c):
-    """Convert a hex color code to a QColor."""
-    r = int(c[0:2], 16)
-    g = int(c[2:4], 16)
-    b = int(c[4:6], 16)
-    return QtGui.QColor(r, g, b)
-
-
-class NXFormatter(Formatter):
-
-    def __init__(self):
-
-        """Initialize the formatter for the syntax highlighter."""
-        if in_dark_mode():
-            super().__init__(style='monokai')
-        else:
-            super().__init__(style='tango')
-        self.data = []
-        self.styles = {}
-        for token, style in self.style:
-            qtf = QtGui.QTextCharFormat()
-            if style['color']:
-                qtf.setForeground(hex2QColor(style['color']))
-            if style['bgcolor']:
-                qtf.setBackground(hex2QColor(style['bgcolor']))
-            if style['bold']:
-                qtf.setFontWeight(QtGui.QFont.Bold)
-            if style['italic']:
-                qtf.setFontItalic(True)
-            if style['underline']:
-                qtf.setFontUnderline(True)
-            self.styles[str(token)] = qtf
-
-    def __repr__(self):
-        return f"NXFormatter(style='{self.style_name}')"
-
-    def format(self, tokensource, outfile):
-        """
-        Format a source of tokens into a list of styles.
-
-        Parameters
-        ----------
-        tokensource : iterable
-            An iterable of (token_type, token_value) pairs.
-        outfile : file-like
-            Ignored, but required by the Formatter API.
-
-        Returns
-        -------
-        data : list
-            A list of styles, one for each character in the source.
-        """
-        self.data = []
-        for ttype, value in tokensource:
-            v = len(value)
-            t = str(ttype)
-            self.data.extend([self.styles[t], ]*v)
-
-
-class NXSyntaxHighlighter(QtGui.QSyntaxHighlighter):
-
-    def __init__(self, parent):
-
-        """
-        Initialize the syntax highlighter.
-
-        Parameters
-        ----------
-        parent : QWidget
-            The parent of the syntax highlighter.
-        """
-        super().__init__(parent)
-
-        self.formatter = NXFormatter()
-        self.lexer = pygments.lexers.PythonLexer()
-
-    def highlightBlock(self, text):
-        """
-        Highlight the given block of text.
-
-        The given text is the block of text which the syntax highlighter
-        should highlight. The text is formatted according to the
-        highlighting rules defined by the syntax highlighter.
-
-        Parameters
-        ----------
-        text : str
-            The block of text to be highlighted.
-        """
-        text = str(self.document().toPlainText())+'\n'
-        pygments.highlight(text, self.lexer, self.formatter)
-        p = self.currentBlock().position()
-        for i in range(len(str(text))):
-            try:
-                self.setFormat(i, 1, self.formatter.data[p+i])
-            except IndexError:
-                pass
+from .widgets import NXLineEdit, NXPanel, NXPlainTextEdit, NXPushButton, NXTab, NXHighlighter
 
 
 class NXScrollBar(QtWidgets.QScrollBar):
@@ -150,6 +48,7 @@ class NXScriptTextEdit(NXPlainTextEdit):
         self.blockCountChanged.connect(parent.update_line_numbers)
         self.scrollbar = NXScrollBar(parent=self)
         self.setVerticalScrollBar(self.scrollbar)
+        self.syntax_colors = True
         if slot:
             self.scrollbar.valueChanged.connect(slot)
 
@@ -233,8 +132,13 @@ class NXScriptEditor(NXTab):
         self.number_box.setVerticalScrollBarPolicy(
             QtCore.Qt.ScrollBarAlwaysOff)
         self.text_box = NXScriptTextEdit(slot=self.scroll_numbers, parent=self)
+        self.text_box.setHorizontalScrollBarPolicy(
+            QtCore.Qt.ScrollBarAlwaysOff)
+        self.text_box.setVerticalScrollBarPolicy(
+            QtCore.Qt.ScrollBarAlwaysOff)
         self.text_layout = self.make_layout(self.number_box, self.text_box,
                                             align='justified')
+        
         self.text_layout.setSpacing(0)
 
         run_button = NXPushButton('Run Script', self.run_script)
@@ -249,7 +153,9 @@ class NXScriptEditor(NXTab):
                                          save_button, save_as_button,
                                          self.reload_button,
                                          self.delete_button, close_button)
-        self.set_layout(self.text_layout, button_layout)
+        self.set_layout(self.search_layout(self.text_box),
+                        self.text_layout,
+                        button_layout)
 
         if self.file_name:
             with open(self.file_name, 'r') as f:
@@ -259,7 +165,7 @@ class NXScriptEditor(NXTab):
         else:
             self.delete_button.setVisible(False)
 
-        self.hl = NXSyntaxHighlighter(self.text_box.document())
+        self.highlighter = NXHighlighter(self.text_box)
 
         self.text_box.setFocus()
         self.number_box.setFocusPolicy(QtCore.Qt.NoFocus)
@@ -277,7 +183,7 @@ class NXScriptEditor(NXTab):
                                           'background-color: #eee; '
                                           'padding: 0; margin: 0; border: 0')
             self.text_box.setStyleSheet('background-color: white')
-        self.highlighter = NXSyntaxHighlighter(self.text_box.document())
+        self.highlighter = NXHighlighter(self.text_box)
 
     def get_text(self):
         """

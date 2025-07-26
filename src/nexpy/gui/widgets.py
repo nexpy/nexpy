@@ -16,11 +16,15 @@ import numpy as np
 from matplotlib import colors
 from matplotlib.patches import Ellipse, Polygon, Rectangle
 from nexusformat.nexus import NeXusError, NXfield, NXroot
+from pygments.formatter import Formatter
+from pygments.lexers import PythonLexer
+from pygments.styles import get_style_by_name
+from pygments.token import Token
 
 from .pyqt import QtCore, QtGui, QtWidgets, getOpenFileName
 from .utils import (boundaries, confirm_action, display_message, find_nearest,
-                    format_float, get_color, get_mainwindow, natural_sort,
-                    report_error)
+                    format_float, get_color, get_mainwindow, in_dark_mode,
+                    natural_sort, report_error)
 
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
@@ -989,8 +993,8 @@ class NXWidget(QtWidgets.QWidget):
                         widget.deleteLater()
         grid.deleteLater()
 
-    def search_box(self, editor, search_text='Search...', width=200,
-                   align='right'):
+    def search_layout(self, editor, search_text='Search...', width=200,
+                      align='right'):
         """
         Create a search box widget that searches the given text editor.
 
@@ -1015,10 +1019,24 @@ class NXWidget(QtWidgets.QWidget):
         box : NXLineEdit
             The search box widget.
         """
-        box = NXLineEdit(width=width, align=align)
-        box.setPlaceholderText(search_text)
-        box.textChanged.connect(editor.highlighter.set_selection)
-        return box
+        self.search_box = NXLineEdit(width=width, align='right')
+        self.search_box.setPlaceholderText(search_text)
+        self.search_box.textChanged.connect(editor.highlighter.setSearchText)
+        editor.selectionChanged.connect(self.clear_search_box)
+        next_button = QtWidgets.QToolButton()
+        next_button.setText('↓')
+        next_button.clicked.connect(editor.highlighter.findNext)
+        prev_button = QtWidgets.QToolButton()
+        prev_button.setText('↑')
+        prev_button.clicked.connect(editor.highlighter.findPrevious)
+        return self.make_layout(self.search_box, next_button, prev_button,
+                                align=align, spacing=2)
+
+    def clear_search_box(self):
+        """
+        Clear the search box.
+        """
+        self.search_box.clear()
 
     def start_progress(self, limits):
         """
@@ -2535,7 +2553,8 @@ class NXTextEdit(QtWidgets.QTextEdit):
                 self.adjust_height)
         self.cursorPositionChanged.connect(self.handle_selection)
         self.highlighter = NXHighlighter(self)
-        self.selectionChanged.connect(self.highlighter.set_selection)
+        self.selectionChanged.connect(self.highlighter.setSearchText)
+        self.syntax_colors = False
 
     def update_minimum_height(self):
         """Calculate height for one line of text including all margins"""
@@ -2593,7 +2612,8 @@ class NXPlainTextEdit(QtWidgets.QPlainTextEdit):
         self.setFocusPolicy(QtCore.Qt.StrongFocus)
         self.cursorPositionChanged.connect(self.handle_selection)
         self.highlighter = NXHighlighter(self)
-        self.selectionChanged.connect(self.highlighter.set_selection)
+        self.selectionChanged.connect(self.highlighter.setSearchText)
+        self.syntax_colors = False
 
     def __repr__(self):
         return 'NXPlainTextEdit()'
@@ -2638,53 +2658,118 @@ class NXPlainTextEdit(QtWidgets.QPlainTextEdit):
             self.selectionChanged.emit("")
 
 
+class NXFormatter(Formatter):
+
+    def __init__(self):
+        if in_dark_mode():
+            self.style_name = 'monokai'
+        else:
+            self.style_name = 'tango'
+        style = get_style_by_name(self.style_name)
+        self.styles = {}
+        for token, style_def in style.styles.items():
+            fmt = QtGui.QTextCharFormat()
+            if style_def:
+                parts = style_def.split()
+                for part in parts:
+                    if part.startswith('bold'):
+                        fmt.setFontWeight(QtGui.QFont.Bold)
+                    elif part.startswith('italic'):
+                        fmt.setFontItalic(True)
+                    elif part.startswith('underline'):
+                        fmt.setFontUnderline(True)
+                    elif part.startswith('#') and len(part) == 7:
+                        fmt.setForeground(QtGui.QColor(part))
+                    # Add more parsing if needed
+            self.styles[token] = fmt
+
+    def __repr__(self):
+        return f"NXFormatter(style='{self.style_name}')"
+
+    def format_for_token(self, token):
+        # Return QTextCharFormat for token if exists, else default
+        return self.styles.get(token, QtGui.QTextCharFormat())
+
+
 class NXHighlighter(QtGui.QSyntaxHighlighter):
     """A highlighter for text edit boxes."""
 
     def __init__(self, editor):
-        """
-        Initialize a highlighter for the given text edit box.
-
-        Parameters
-        ----------
-        editor : QTextEdit or QPlainTextEdit
-            The text edit box to be highlighted.
-        """
-        super().__init__(editor.document())
         self.editor = editor
-        self.selected_text = ""
-        self.format = QtGui.QTextCharFormat()
-        self.format.setBackground(QtGui.QColor("yellow"))
-    
-    def set_selection(self, text):
-        """
-        Set the text to be selected in the text edit box.
+        self.document = editor.document()
+        super().__init__(self.document)
+        self.lexer = PythonLexer()
+        self.formatter = NXFormatter()
+        self.searchText = ""
+        self.searchFormat = QtGui.QTextCharFormat()
+        self.searchFormat.setBackground(QtGui.QColor(255, 255, 0, 150))
+        palette = self.editor.palette()
+        palette.setBrush(palette.Highlight, QtGui.QColor(255, 255, 0, 100))
+        palette.setBrush(palette.HighlightedText,
+                         QtGui.QBrush(QtCore.Qt.NoBrush))
+        self.editor.setPalette(palette)
 
-        Parameters
-        ----------
-        text : str
-            The text to select.
-        """
-        self.selected_text = text
+    def setSearchText(self, text):
+        self.searchText = text
         self.rehighlight()
 
-    def highlightBlock(self, text):
-        """
-        Highlight all occurrences of the selected text in the block of text.
+    def findNext(self):
+        self.editor.blockSignals(True)
+        cursor = self.editor.textCursor()
+        pos = cursor.selectionEnd()
+        found = self.document.find(
+            QtCore.QRegularExpression(self.searchText), pos)
+        if not found.isNull():
+            self.editor.setTextCursor(found)
+            self.editor.ensureCursorVisible()
+        else:
+            found = self.document.find(
+                QtCore.QRegularExpression(self.searchText), 0)
+            if not found.isNull():
+                self.editor.setTextCursor(found)
+                self.editor.ensureCursorVisible()
+        self.editor.blockSignals(False)
 
-        Parameters
-        ----------
-        text : str
-            The block of text to be highlighted.
-        """
-        if self.selected_text and len(self.selected_text) > 0:
-            start = 0
-            while True:
-                start = text.find(self.selected_text, start)
-                if start == -1:
-                    break
-                self.setFormat(start, len(self.selected_text), self.format)
-                start += len(self.selected_text)
+    def findPrevious(self):
+        self.editor.blockSignals(True)
+        cursor = self.editor.textCursor()
+        pos = cursor.selectionStart()
+        found = self.document.find(
+            QtCore.QRegularExpression(self.searchText), pos,
+            QtGui.QTextDocument.FindBackward)
+        if not found.isNull():
+            self.editor.setTextCursor(found)
+            self.editor.ensureCursorVisible()
+        else:
+            found = self.document.find(
+                QtCore.QRegularExpression(self.searchText),
+                self.document.characterCount()-1,
+                QtGui.QTextDocument.FindBackward)
+            if not found.isNull():
+                self.editor.setTextCursor(found)
+                self.editor.ensureCursorVisible()
+        self.editor.blockSignals(False)
+
+    def highlightBlock(self, text):
+        if self.editor.syntax_colors:
+            offset = 0
+            for token, value in self.lexer.get_tokens(text):
+                length = len(value)
+                if length == 0:
+                    continue
+                fmt = self.formatter.format_for_token(token)
+                self.setFormat(offset, length, fmt)
+                offset += length
+        if self.searchText:
+            expression = QtCore.QRegularExpression(self.searchText)
+            it = expression.globalMatch(text)
+            while it.hasNext():
+                match = it.next()
+                start = match.capturedStart()
+                length = match.capturedLength()
+                overlay_format = QtGui.QTextCharFormat()
+                overlay_format.setBackground(self.searchFormat.background())
+                self.setFormat(start, length, overlay_format)
 
 
 class NXMessageBox(QtWidgets.QMessageBox):
