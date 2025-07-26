@@ -163,6 +163,7 @@ class NXScriptEditor(NXTab):
             self.text_box.setPlainText(text)
             self.update_line_numbers()
         else:
+            self.text_box.setPlainText('')
             self.delete_button.setVisible(False)
 
         self.highlighter = NXHighlighter(self.text_box)
