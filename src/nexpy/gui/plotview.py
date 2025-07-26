@@ -141,7 +141,9 @@ def new_figure_manager(label=None, *args, **kwargs):
     """
     if label is None:
         label = ''
-    if label and label != 'Main':
+    if label == 'Main':
+        num = 0
+    elif label:
         nums = [plotviews[p].number for p in plotviews
                 if plotviews[p].number > 100]
         if nums:
@@ -618,8 +620,8 @@ class NXPlotView(QtWidgets.QDialog):
         """
         Restore original signal connections.
 
-        This assumes a previous call to the deactivate function, which sets the
-        current value of _active_mode.
+        This assumes a previous call to the deactivate function, which
+        sets the current value of _active_mode.
         """
         if self._active_mode == 'zoom rect':
             self.otab.zoom()
