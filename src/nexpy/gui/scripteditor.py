@@ -168,7 +168,7 @@ class NXScriptEditor(NXTab):
 
         self.highlighter = NXHighlighter(self.text_box)
 
-        self.text_box.setFocus()
+        QtCore.QTimer.singleShot(0, self.text_box.setFocus)
         self.number_box.setFocusPolicy(QtCore.Qt.NoFocus)
         self.define_style()
 
