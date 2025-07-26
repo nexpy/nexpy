@@ -2660,36 +2660,54 @@ class NXPlainTextEdit(QtWidgets.QPlainTextEdit):
 
 class NXFormatter(Formatter):
 
-    def __init__(self):
-        if in_dark_mode():
-            self.style_name = 'monokai'
+    def __init__(self, style_name=None):
+        if style_name is None:
+            if in_dark_mode():
+                self.style_name = 'monokai'
+            else:
+                self.style_name = 'tango'
         else:
-            self.style_name = 'tango'
+            self.style_name = style_name
         style = get_style_by_name(self.style_name)
         self.styles = {}
-        for token, style_def in style.styles.items():
+        for token, style_str in style.styles.items():
             fmt = QtGui.QTextCharFormat()
-            if style_def:
-                parts = style_def.split()
+            if style_str:
+                parts = style_str.split()                
                 for part in parts:
-                    if part.startswith('bold'):
+                    if part == 'bold':
                         fmt.setFontWeight(QtGui.QFont.Bold)
-                    elif part.startswith('italic'):
+                    elif part == 'italic':
                         fmt.setFontItalic(True)
-                    elif part.startswith('underline'):
+                    elif part == 'underline':
                         fmt.setFontUnderline(True)
-                    elif part.startswith('#') and len(part) == 7:
+                    elif part.startswith('#'):
                         fmt.setForeground(QtGui.QColor(part))
-                    # Add more parsing if needed
             self.styles[token] = fmt
 
     def __repr__(self):
         return f"NXFormatter(style='{self.style_name}')"
 
     def format_for_token(self, token):
-        # Return QTextCharFormat for token if exists, else default
-        return self.styles.get(token, QtGui.QTextCharFormat())
+        """
+        Return the format for a given token or the default if not found.
 
+        Parameters
+        ----------
+        token : str
+            The token to be formatted.
+
+        Returns
+        -------
+        fmt : QtGui.QTextCharFormat
+            The format for the given token or the default if not found.
+        """
+        t = token
+        while t not in self.styles:
+            if t is Token:
+                return QtGui.QTextCharFormat()
+            t = t.parent
+        return self.styles[t]
 
 class NXHighlighter(QtGui.QSyntaxHighlighter):
     """A highlighter for text edit boxes."""
@@ -2708,6 +2726,18 @@ class NXHighlighter(QtGui.QSyntaxHighlighter):
         palette.setBrush(palette.HighlightedText,
                          QtGui.QBrush(QtCore.Qt.NoBrush))
         self.editor.setPalette(palette)
+
+    def update_style(self, style_name):
+        """
+        Update the style of the syntax highlighter.
+
+        Parameters
+        ----------
+        style_name : str
+            The name of the style to be used.
+        """
+        self.formatter = NXFormatter(style_name)
+        self.rehighlight()
 
     def setSearchText(self, text):
         self.searchText = text
