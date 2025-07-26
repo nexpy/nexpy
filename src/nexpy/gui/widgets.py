@@ -2713,6 +2713,14 @@ class NXHighlighter(QtGui.QSyntaxHighlighter):
     """A highlighter for text edit boxes."""
 
     def __init__(self, editor):
+        """
+        Initialize the highlighter for the given text editor.
+
+        Parameters
+        ----------
+        editor : QTextEdit or QPlainTextEdit
+            The text editor to be highlighted.
+        """
         self.editor = editor
         self.document = editor.document()
         super().__init__(self.document)
@@ -2740,10 +2748,19 @@ class NXHighlighter(QtGui.QSyntaxHighlighter):
         self.rehighlight()
 
     def setSearchText(self, text):
+        """
+        Set the search text to highlight it in the editor.
+
+        Parameters
+        ----------
+        text : str
+            The text to search for.
+        """
         self.searchText = text
         self.rehighlight()
 
     def findNext(self):
+        """Find the next occurrence of the search text."""
         self.editor.blockSignals(True)
         cursor = self.editor.textCursor()
         pos = cursor.selectionEnd()
@@ -2767,6 +2784,7 @@ class NXHighlighter(QtGui.QSyntaxHighlighter):
         self.editor.blockSignals(False)
 
     def findPrevious(self):
+        """Find the previous occurrence of the search text."""
         self.editor.blockSignals(True)
         cursor = self.editor.textCursor()
         pos = cursor.selectionStart()
@@ -2792,6 +2810,20 @@ class NXHighlighter(QtGui.QSyntaxHighlighter):
         self.editor.blockSignals(False)
 
     def highlightBlock(self, text):
+        """
+        Highlight the given text block in the editor.
+
+        This method is called whenever the text of the editor changes.
+        It first checks if the syntax colors are enabled for the editor.
+        If they are, it highlights the syntax of the code block using
+        the lexer and formatter.  If a search text is specified, it
+        highlights the search text using the search format.
+
+        Parameters
+        ----------
+        text : str
+            The text block to highlight.
+        """
         if self.editor.syntax_colors:
             offset = 0
             for token, value in self.lexer.get_tokens(text):
