@@ -2719,15 +2719,21 @@ class NXHighlighter(QtGui.QSyntaxHighlighter):
         pos = cursor.selectionEnd()
         found = self.document.find(
             QtCore.QRegularExpression(self.searchText), pos)
+        if found.isNull():
+            found = self.document.find(
+                QtCore.QRegularExpression(self.searchText), 0)
         if not found.isNull():
             self.editor.setTextCursor(found)
             self.editor.ensureCursorVisible()
+            extra_selection = QtWidgets.QTextEdit.ExtraSelection()
+            extra_selection.cursor = found
+            format = QtGui.QTextCharFormat()
+            format.setBackground(QtGui.QColor(255, 165, 0, 120))
+            extra_selection.format = format
+            self.editor.setExtraSelections([extra_selection])
         else:
-            found = self.document.find(
-                QtCore.QRegularExpression(self.searchText), 0)
-            if not found.isNull():
-                self.editor.setTextCursor(found)
-                self.editor.ensureCursorVisible()
+            self.editor.setExtraSelections([])
+
         self.editor.blockSignals(False)
 
     def findPrevious(self):
@@ -2737,17 +2743,22 @@ class NXHighlighter(QtGui.QSyntaxHighlighter):
         found = self.document.find(
             QtCore.QRegularExpression(self.searchText), pos,
             QtGui.QTextDocument.FindBackward)
-        if not found.isNull():
-            self.editor.setTextCursor(found)
-            self.editor.ensureCursorVisible()
-        else:
+        if found.isNull():
             found = self.document.find(
                 QtCore.QRegularExpression(self.searchText),
                 self.document.characterCount()-1,
                 QtGui.QTextDocument.FindBackward)
-            if not found.isNull():
-                self.editor.setTextCursor(found)
-                self.editor.ensureCursorVisible()
+        if not found.isNull():
+            self.editor.setTextCursor(found)
+            self.editor.ensureCursorVisible()
+            extra_selection = QtWidgets.QTextEdit.ExtraSelection()
+            extra_selection.cursor = found
+            format = QtGui.QTextCharFormat()
+            format.setBackground(QtGui.QColor(255, 165, 0, 120))
+            extra_selection.format = format
+            self.editor.setExtraSelections([extra_selection])
+        else:
+            self.editor.setExtraSelections([])
         self.editor.blockSignals(False)
 
     def highlightBlock(self, text):
