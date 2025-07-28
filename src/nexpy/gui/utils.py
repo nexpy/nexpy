@@ -800,13 +800,14 @@ def load_plugin(plugin, order=None):
     else:
         eps = entry_points().select(group='nexpy.plugins')
         entry = next((e for e in eps if e.module == plugin), None)
-        if entry is not None:
+        try:
             package = entry.dist.name
             menu, actions = entry.load()()
             return {'package': package, 'menu': menu, 'actions': actions,
                     'order': order}
-        else:
-            raise PackageNotFoundError(f"'{plugin}' is not installed")
+        except Exception:
+            return {'package': plugin, 'menu': 'unavailable', 'actions': [],
+                    'order': 'Disabled'}
 
 
 def load_readers():

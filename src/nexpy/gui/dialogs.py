@@ -5590,7 +5590,9 @@ class ManagePluginsDialog(NXDialog):
             try:
                 self.plugins[plugin] = load_plugin(plugin)
             except Exception as error:
-                report_error("Managing plugins", error)
+                self.plugins[plugin] = {'package': plugin,
+                                        'menu': 'unavailable',
+                                        'order': 'Disabled'}
 
         self.grid = QtWidgets.QGridLayout()
         self.grid.setSpacing(10)
@@ -5602,8 +5604,7 @@ class ManagePluginsDialog(NXDialog):
             self.grid.addWidget(label, 0, column)
             self.grid.setColumnMinimumWidth(column, width[column])
             column += 1
-
-        self.order_options = list(range(1, len(self.plugins)+1)) +['Disabled']
+        self.order_options = list(range(1, len(self.plugins)+1)) + ['Disabled']
         for row, plugin in enumerate(self.plugins):
             p = self.plugins[plugin]
             self.grid.addWidget(NXLabel(p['package']), row+1, 0)
@@ -5617,14 +5618,19 @@ class ManagePluginsDialog(NXDialog):
 
     def update_plugins(self):
         """
-        Set the order of plugins in the settings from the current dialog box
-        layout. Check that the order is unique and sequential, otherwise
-        raise a NeXusError.
+        Set the order of plugins in the settings from the current dialog
+        box layout. Check that the order is unique and sequential,
+        otherwise raise a NeXusError.
         """
         for row, plugin in enumerate(self.plugins):
             p = self.plugins[plugin]
             order = self.grid.itemAtPosition(row+1, 2).widget().currentText()
-            p['order'] = order
+            if order != 'Disabled' and p['menu'] == 'unavailable':
+                p['order'] = 'Disabled'
+                self.grid.itemAtPosition(row+1, 2).widget().select('Disabled')
+                raise NeXusError(f"Plugin '{p['package']}' is unavailable")
+            else:
+                p['order'] = order
         order_set = [int(p['order']) for p in self.plugins.values()
                      if p['order'] != 'Disabled']
         if sorted(order_set) != list(range(1, len(order_set)+1)):

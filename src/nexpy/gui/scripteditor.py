@@ -163,11 +163,12 @@ class NXScriptEditor(NXTab):
             self.text_box.setPlainText(text)
             self.update_line_numbers()
         else:
+            self.text_box.setPlainText('')
             self.delete_button.setVisible(False)
 
         self.highlighter = NXHighlighter(self.text_box)
 
-        self.text_box.setFocus()
+        QtCore.QTimer.singleShot(0, self.text_box.setFocus)
         self.number_box.setFocusPolicy(QtCore.Qt.NoFocus)
         self.define_style()
 

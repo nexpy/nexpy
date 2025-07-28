@@ -2660,41 +2660,67 @@ class NXPlainTextEdit(QtWidgets.QPlainTextEdit):
 
 class NXFormatter(Formatter):
 
-    def __init__(self):
-        if in_dark_mode():
-            self.style_name = 'monokai'
+    def __init__(self, style_name=None):
+        if style_name is None:
+            if in_dark_mode():
+                self.style_name = 'monokai'
+            else:
+                self.style_name = 'tango'
         else:
-            self.style_name = 'tango'
+            self.style_name = style_name
         style = get_style_by_name(self.style_name)
         self.styles = {}
-        for token, style_def in style.styles.items():
+        for token, style_str in style.styles.items():
             fmt = QtGui.QTextCharFormat()
-            if style_def:
-                parts = style_def.split()
+            if style_str:
+                parts = style_str.split()                
                 for part in parts:
-                    if part.startswith('bold'):
+                    if part == 'bold':
                         fmt.setFontWeight(QtGui.QFont.Bold)
-                    elif part.startswith('italic'):
+                    elif part == 'italic':
                         fmt.setFontItalic(True)
-                    elif part.startswith('underline'):
+                    elif part == 'underline':
                         fmt.setFontUnderline(True)
-                    elif part.startswith('#') and len(part) == 7:
+                    elif part.startswith('#'):
                         fmt.setForeground(QtGui.QColor(part))
-                    # Add more parsing if needed
             self.styles[token] = fmt
 
     def __repr__(self):
         return f"NXFormatter(style='{self.style_name}')"
 
     def format_for_token(self, token):
-        # Return QTextCharFormat for token if exists, else default
-        return self.styles.get(token, QtGui.QTextCharFormat())
+        """
+        Return the format for a given token or the default if not found.
 
+        Parameters
+        ----------
+        token : str
+            The token to be formatted.
+
+        Returns
+        -------
+        fmt : QtGui.QTextCharFormat
+            The format for the given token or the default if not found.
+        """
+        t = token
+        while t not in self.styles:
+            if t is Token:
+                return QtGui.QTextCharFormat()
+            t = t.parent
+        return self.styles[t]
 
 class NXHighlighter(QtGui.QSyntaxHighlighter):
     """A highlighter for text edit boxes."""
 
     def __init__(self, editor):
+        """
+        Initialize the highlighter for the given text editor.
+
+        Parameters
+        ----------
+        editor : QTextEdit or QPlainTextEdit
+            The text editor to be highlighted.
+        """
         self.editor = editor
         self.document = editor.document()
         super().__init__(self.document)
@@ -2709,11 +2735,32 @@ class NXHighlighter(QtGui.QSyntaxHighlighter):
                          QtGui.QBrush(QtCore.Qt.NoBrush))
         self.editor.setPalette(palette)
 
+    def update_style(self, style_name):
+        """
+        Update the style of the syntax highlighter.
+
+        Parameters
+        ----------
+        style_name : str
+            The name of the style to be used.
+        """
+        self.formatter = NXFormatter(style_name)
+        self.rehighlight()
+
     def setSearchText(self, text):
+        """
+        Set the search text to highlight it in the editor.
+
+        Parameters
+        ----------
+        text : str
+            The text to search for.
+        """
         self.searchText = text
         self.rehighlight()
 
     def findNext(self):
+        """Find the next occurrence of the search text."""
         self.editor.blockSignals(True)
         cursor = self.editor.textCursor()
         pos = cursor.selectionEnd()
@@ -2737,6 +2784,7 @@ class NXHighlighter(QtGui.QSyntaxHighlighter):
         self.editor.blockSignals(False)
 
     def findPrevious(self):
+        """Find the previous occurrence of the search text."""
         self.editor.blockSignals(True)
         cursor = self.editor.textCursor()
         pos = cursor.selectionStart()
@@ -2762,6 +2810,20 @@ class NXHighlighter(QtGui.QSyntaxHighlighter):
         self.editor.blockSignals(False)
 
     def highlightBlock(self, text):
+        """
+        Highlight the given text block in the editor.
+
+        This method is called whenever the text of the editor changes.
+        It first checks if the syntax colors are enabled for the editor.
+        If they are, it highlights the syntax of the code block using
+        the lexer and formatter.  If a search text is specified, it
+        highlights the search text using the search format.
+
+        Parameters
+        ----------
+        text : str
+            The text block to highlight.
+        """
         if self.editor.syntax_colors:
             offset = 0
             for token, value in self.lexer.get_tokens(text):

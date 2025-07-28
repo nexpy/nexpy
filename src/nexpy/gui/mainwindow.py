@@ -2220,6 +2220,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.plotviews[label].resize(self.plotview.size())
 
     def cascade_plots(self):
+        """Cascade plot windows across the available screen."""
         pvs = [self.plotviews[pv] for pv in self.plotviews]
         if len(pvs) <= 1:
             return
@@ -2237,6 +2238,7 @@ class MainWindow(QtWidgets.QMainWindow):
             pv.make_active()
 
     def tile_plots(self):
+        """Tile plot windows across the available screen."""
         pvs = [self.plotviews[pv] for pv in self.plotviews if pv != 'Main']
         if len(pvs) <= 1:
             return
