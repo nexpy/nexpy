@@ -470,7 +470,6 @@ class NXTreeView(QtWidgets.QTreeView):
 
         self.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
         self.setExpandsOnDoubleClick(False)
-        self.doubleClicked.connect(self.mainwindow.plot_data)
         self.selectionModel().selectionChanged.connect(self.selection_changed)
         self.expanded.connect(self.expand_node)
 
@@ -902,3 +901,24 @@ class NXTreeView(QtWidgets.QTreeView):
         node = self.get_node()
         if node is not None:
             self.popMenu(self.get_node()).exec(self.mapToGlobal(point))
+
+    def mouseDoubleClickEvent(self, event):
+        """
+        Called when the user double-clicks in the treeview.
+
+        If a node is double-clicked, it is plotted in a new plot window
+        if the Shift key is held down. Otherwise, it is plotted in the
+        current default plot window.
+
+        Parameters
+        ----------
+        event : QMouseEvent
+            The double-click event in the treeview.
+        """
+        index = self.indexAt(event.pos())
+        if index.isValid():
+            if event.modifiers() & QtCore.Qt.ShiftModifier:
+                self.mainwindow.plot_data(new_plot=True)
+            else:
+                self.mainwindow.plot_data()
+        super().mouseDoubleClickEvent(event)

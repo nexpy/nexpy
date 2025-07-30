@@ -1497,7 +1497,7 @@ class MainWindow(QtWidgets.QMainWindow):
         except NeXusError as error:
             report_error("Managing Plugins", error)
 
-    def plot_data(self):
+    def plot_data(self, new_plot=False):
         """
         Plot the selected data.
 
@@ -1513,6 +1513,8 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.treeview.status_message(node)
                 if isinstance(node, NXgroup) and node.plottable_data:
                     try:
+                        if new_plot:
+                            self.new_plot_window()
                         node.plot()
                         self.plotview.make_active()
                         return
@@ -2160,6 +2162,12 @@ class MainWindow(QtWidgets.QMainWindow):
                 triggered=lambda: self.plotviews[label].make_active(),
                 checkable=False)
             self.window_menu.addAction(self.active_action[number])
+        elif label.startswith('Rotation'):
+            self.active_action[number] = QtWidgets.QAction(
+                label, self,
+                triggered=lambda: self.plotviews[label].make_active(),
+                checkable=False)
+            self.window_menu.addAction(self.active_action[number])
         else:
             numbers = [num for num in sorted(self.active_action) if num < 100]
             if number > numbers[-1]:
@@ -2239,7 +2247,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def tile_plots(self):
         """Tile plot windows across the available screen."""
-        pvs = [self.plotviews[pv] for pv in self.plotviews if pv != 'Main']
+        pvs = [self.plotviews[pv] for pv in self.plotviews
+               if pv != 'Main' and self.plotviews[pv].number < 100]
         if len(pvs) <= 1:
             return
         available_geometry = self.app.app.primaryScreen().availableGeometry()
@@ -2254,6 +2263,7 @@ class MainWindow(QtWidgets.QMainWindow):
                        + self.menuBar().height())
         top += top_min
         pvs[0].move(left, top)
+        pvs[0].make_active()
         for pv in pvs[1:]:
             left += pv.canvas.width()
             if left + pv.canvas.width() > available_geometry.right():
