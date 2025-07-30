@@ -2229,8 +2229,9 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def cascade_plots(self):
         """Cascade plot windows across the available screen."""
-        pvs = [self.plotviews[pv] for pv in self.plotviews
-               if self.plotviews[pv].number < 100]
+        pvs = sorted([self.plotviews[pv] for pv in self.plotviews
+                      if self.plotviews[pv].number < 100],
+                     key=lambda obj: obj.number)
         if len(pvs) <= 1:
             return
         available_geometry = self.app.app.primaryScreen().availableGeometry()
@@ -2248,8 +2249,9 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def tile_plots(self):
         """Tile plot windows across the available screen."""
-        pvs = [self.plotviews[pv] for pv in self.plotviews
-               if pv != 'Main' and self.plotviews[pv].number < 100]
+        pvs = sorted([self.plotviews[pv] for pv in self.plotviews
+                      if pv != 'Main' and self.plotviews[pv].number < 100],
+                     key=lambda obj: obj.number)
         if len(pvs) <= 1:
             return
         available_geometry = self.app.app.primaryScreen().availableGeometry()
