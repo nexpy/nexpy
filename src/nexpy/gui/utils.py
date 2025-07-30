@@ -795,19 +795,13 @@ def load_plugin(plugin, order=None):
         package = plugin_path.stem
         module = import_plugin(plugin_path)
         menu, actions = module.plugin_menu()
-        return {'package': package, 'menu': menu, 'actions': actions,
-                'order': order}
     else:
         eps = entry_points().select(group='nexpy.plugins')
         entry = next((e for e in eps if e.module == plugin), None)
-        try:
-            package = entry.dist.name
-            menu, actions = entry.load()()
-            return {'package': package, 'menu': menu, 'actions': actions,
-                    'order': order}
-        except Exception:
-            return {'package': plugin, 'menu': 'unavailable', 'actions': [],
-                    'order': 'Disabled'}
+        package = entry.dist.name
+        menu, actions = entry.load()()
+    return {'package': package, 'menu': menu, 'actions': actions,
+            'order': order}
 
 
 def load_readers():
