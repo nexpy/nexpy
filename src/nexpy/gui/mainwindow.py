@@ -2229,7 +2229,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def cascade_plots(self):
         """Cascade plot windows across the available screen."""
-        pvs = [self.plotviews[pv] for pv in self.plotviews]
+        pvs = [self.plotviews[pv] for pv in self.plotviews
+               if self.plotviews[pv].number < 100]
         if len(pvs) <= 1:
             return
         available_geometry = self.app.app.primaryScreen().availableGeometry()
