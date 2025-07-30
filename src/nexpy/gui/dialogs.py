@@ -5589,9 +5589,10 @@ class ManagePluginsDialog(NXDialog):
                        if p not in self.plugins]:
             try:
                 self.plugins[plugin] = load_plugin(plugin)
-            except Exception as error:
+            except Exception:
                 self.plugins[plugin] = {'package': plugin,
                                         'menu': 'unavailable',
+                                        'actions': [],
                                         'order': 'Disabled'}
 
         self.grid = QtWidgets.QGridLayout()
@@ -5618,19 +5619,30 @@ class ManagePluginsDialog(NXDialog):
 
     def update_plugins(self):
         """
-        Set the order of plugins in the settings from the current dialog
-        box layout. Check that the order is unique and sequential,
-        otherwise raise a NeXusError.
+        Update the plugin order.
+
+        The order of the plugins is updated by reading the values from
+        the grid of widgets. The order is checked to ensure that it is
+        unique and sequential, and an error is raised if it is not. If a
+        plugin is unavailable, the order is set to 'Disabled' and the
+        selection is reset.
         """
         for row, plugin in enumerate(self.plugins):
-            p = self.plugins[plugin]
-            order = self.grid.itemAtPosition(row+1, 2).widget().currentText()
-            if order != 'Disabled' and p['menu'] == 'unavailable':
-                p['order'] = 'Disabled'
-                self.grid.itemAtPosition(row+1, 2).widget().select('Disabled')
-                raise NeXusError(f"Plugin '{p['package']}' is unavailable")
+            order_combo = self.grid.itemAtPosition(row+1, 2).widget()
+            order = order_combo.selected
+            if order == 'Disabled':
+                self.plugins[plugin]['order'] = 'Disabled'
             else:
-                p['order'] = order
+                if self.plugins[plugin]['menu'] == 'unavailable':
+                    try:
+                        self.plugins[plugin] = load_plugin(plugin)
+                    except Exception as error:
+                        self.plugins[plugin]['order'] = 'Disabled'
+                        order_combo.select('Disabled')
+                        raise NeXusError(
+                            f"Plugin '{plugin}' could not be loaded\n{error}")
+                else:
+                    self.plugins[plugin]['order'] = order
         order_set = [int(p['order']) for p in self.plugins.values()
                      if p['order'] != 'Disabled']
         if sorted(order_set) != list(range(1, len(order_set)+1)):
