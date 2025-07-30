@@ -2245,15 +2245,22 @@ class MainWindow(QtWidgets.QMainWindow):
         available_geometry = self.app.app.primaryScreen().availableGeometry()
         left, top = available_geometry.left(), available_geometry.top()
         self.move(left, top)
-        left += self.treeview.minimumWidth()
+        left_min = self.treeview.minimumWidth()
+        left += left_min
+        if sys.platform == 'darwin':
+            top_min = 0
+        else:
+            top_min = (self.frameGeometry().height() - self.geometry().height()
+                       + self.menuBar().height())
+        top += top_min
         pvs[0].move(left, top)
         for pv in pvs[1:]:
             left += pv.canvas.width()
             if left + pv.canvas.width() > available_geometry.right():
-                left = available_geometry.left() + self.treeview.minimumWidth()
+                left = available_geometry.left() + left_min
                 top += pv.canvas.height()
             if top + pv.canvas.height() > available_geometry.bottom():
-                top = available_geometry.top()
+                top = available_geometry.top() + top_min
             pv.move(left, top)
             pv.make_active()
 
