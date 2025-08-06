@@ -3637,6 +3637,10 @@ class ScanTab(NXTab):
             self.scan_data = nxconsolidate(self.scan_files, self.data_path,
                                            self.scan_path,
                                            idx=self.get_slice())
+            import tempfile
+            with nxload(tempfile.mkstemp(suffix='.nxs')[1], mode='w') as root:
+                root['data'] = self.scan_data
+            self.scan_root = root
         except Exception:
             raise NeXusError("Files not selected")
 
@@ -3821,10 +3825,18 @@ class ScanTab(NXTab):
         dialogs. It will also close the file dialog if it is open.
         """
         try:
+            if Path(self.scan_root.nxfilename).exists():
+                Path(self.scan_root.nxfilename).unlink()
+        except Exception:
+            pass
+        try:
             self.file_box.close()
+        except Exception:
+            pass
+        try:
             if self._rectangle:
                 self._rectangle.remove()
-                self.plotview.draw()
+            self.plotview.draw()
         except Exception:
             pass
         super().close()
