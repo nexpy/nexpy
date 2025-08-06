@@ -3441,8 +3441,8 @@ class ScanTab(NXTab):
         Set the scan axis of the dialog to the currently selected node.
 
         The currently selected node must be a scalar NXfield. If the
-        selected node is not a scalar NXfield, a NeXusError is raised and
-        reported.
+        selected node is not a scalar NXfield, a NeXusError is raised
+        and reported.
         """
         scan_axis = self.treeview.node
         if not isinstance(scan_axis, NXfield):
@@ -3456,13 +3456,14 @@ class ScanTab(NXTab):
         """
         Create a dialog to select files to plot.
 
-        The dialog will show a list of files with checkboxes. The list of
-        files is determined by the data_path argument passed to the
+        The dialog will show a list of files with checkboxes. The list
+        of files is determined by the data_path argument passed to the
         constructor. The list of files is filtered to only include files
-        that have a scan axis with the scan_path argument. If no scan_path
-        argument is provided, all files are included. The dialog also
-        allows the user to select a prefix for the files. The selected
-        files are returned as a list of (file name, scan value) tuples.
+        that have a scan axis with the scan_path argument. If no
+        scan_path argument is provided, all files are included. The
+        dialog also allows the user to select a prefix for the files.
+        The selected files are returned as a list of (file name, scan
+        value) tuples.
         """
         if self.file_box in self.mainwindow.dialogs:
             try:
@@ -3542,10 +3543,11 @@ class ScanTab(NXTab):
                     self.files[f].value = ''
 
     def get_axes(self):
+        """Return a list of NXfields containing the data axes."""
         return self.plotview.xtab.get_axes()
 
-
     def set_limits(self):
+        """Plot the limits rectangle when the axis limits change."""
         self.draw_rectangle()
 
     def get_limits(self, axis=None):
@@ -3576,6 +3578,18 @@ class ScanTab(NXTab):
                     for axis in range(self.plotview.ndim)]
 
     def get_slice(self):
+        """
+        Return a tuple of slice objects for the axes of the data.
+
+        The slice objects are generated from the limits boxes. The
+        start and stop indices of each slice are the start and stop
+        values of the corresponding limits box, respectively.
+
+        Returns
+        -------
+        slice : tuple of slice objects
+            A tuple of slice objects for the axes of the data.
+        """
         idx = self.get_limits()
         return tuple(slice(start, stop) for (start, stop) in idx)
 
@@ -3716,12 +3730,12 @@ class ScanTab(NXTab):
 
     def get_rectangle(self):
         """
-        Return the coordinates of the rectangle defining the projection limits.
+        Return the coordinates of the rectangle.
 
-        The coordinates are returned as a list of four tuples, each tuple
-        containing the x and y coordinates of a vertex of the rectangle.
-        If the plot is skewed, the coordinates are transformed to the
-        skewed coordinates.
+        The coordinates are returned as a list of four tuples, each
+        tuple containing the x and y coordinates of a vertex of the
+        rectangle. If the plot is skewed, the coordinates are
+        transformed to the skewed coordinates.
         """
         xp = self.plotview.xaxis.dim
         yp = self.plotview.yaxis.dim
