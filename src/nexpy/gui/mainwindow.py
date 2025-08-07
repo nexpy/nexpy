@@ -2236,8 +2236,7 @@ class MainWindow(QtWidgets.QMainWindow):
         available_geometry = self.app.app.primaryScreen().availableGeometry()
         left, top = available_geometry.left(), available_geometry.top()
         self.move(left, top)
-        if len(pvs) == 1:
-            pvs[0].make_active()
+        if len(pvs) <= 1:
             return
         last_left = available_geometry.right() - pvs[-1].width()
         last_top = available_geometry.bottom() - pvs[-1].height()
@@ -2284,18 +2283,15 @@ class MainWindow(QtWidgets.QMainWindow):
         """Tile panels along the bottom of the available screen."""
         available_geometry = self.app.app.primaryScreen().availableGeometry()
         left, bottom = available_geometry.left(), available_geometry.bottom()
-        i = 0
         for p in self.panels:
             panel = self.panels[p]
             height = panel.frameGeometry().height()
             width = panel.frameGeometry().width()
             if panel.isVisible():
-                if i > 0:
-                    left += width
-                i += 1
                 if left + width > available_geometry.right():
                     left = available_geometry.left()
                 panel.move(left, bottom - height)
+                left += width
 
     def update_active(self, number):
         """
