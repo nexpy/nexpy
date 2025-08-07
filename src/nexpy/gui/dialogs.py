@@ -2614,12 +2614,12 @@ class ProjectionTab(NXTab):
 
     def get_rectangle(self):
         """
-        Return the coordinates of the rectangle defining the projection limits.
+        Return the coordinates of the projection limits rectangle.
 
-        The coordinates are returned as a list of four tuples, each tuple
-        containing the x and y coordinates of a vertex of the rectangle.
-        If the plot is skewed, the coordinates are transformed to the
-        skewed coordinates.
+        The coordinates are returned as a list of four tuples, each
+        tuple containing the x and y coordinates of a vertex of the
+        rectangle. If the plot is skewed, the coordinates are
+        transformed to the skewed coordinates.
         """
         xp = self.plotview.xaxis.dim
         yp = self.plotview.yaxis.dim
@@ -3378,26 +3378,72 @@ class ScanTab(NXTab):
         """
         super().__init__(label, parent=parent)
 
+        grid = QtWidgets.QGridLayout()
+        grid.setSpacing(10)
+        headers = ['Axis', 'Minimum', 'Maximum']
+        width = [50, 100, 100]
+        column = 0
+        for header in headers:
+            label = NXLabel(header, bold=True, align='center')
+            grid.addWidget(label, 0, column)
+            grid.setColumnMinimumWidth(column, width[column])
+            column += 1
+        row = 0
+        self.minbox = {}
+        self.maxbox = {}
+        for axis in range(self.plotview.ndim):
+            row += 1
+            self.minbox[axis] = NXSpinBox(self.set_limits)
+            self.maxbox[axis] = NXSpinBox(self.set_limits)
+            grid.addWidget(self.label(self.plotview.axis[axis].name), row, 0)
+            grid.addWidget(self.minbox[axis], row, 1)
+            grid.addWidget(self.maxbox[axis], row, 2)
+
         self.set_layout(
+            grid, self.checkboxes(("hide", "Hide Limits", False)),
             self.textboxes(('Scan', '')),
             self.action_buttons(('Select Scan', self.select_scan),
                                 ('Select Files', self.select_files)),
             self.action_buttons(('Plot', self.plot_scan),
                                 ('Copy', self.copy_scan),
                                 ('Save', self.save_scan)))
+        self.checkbox["hide"].stateChanged.connect(self.hide_rectangle)
         self.file_box = None
         self.scan_files = None
         self.scan_values = None
         self.scan_data = None
+        self.scan_root = None
         self.files = None
+        self.initialize()
+        self._rectangle = None
+
+    def initialize(self):
+        """
+        Initialize the projection limits and copy widgets.
+
+        This function is called when the dialog is first created and
+        after the data has been changed. It sets the minimum and maximum
+        limits to the centers of the data and sets the current limits to
+        the current limits of the plot. The copy widgets are also
+        updated to reflect the current state of the other tabs.
+        """
+        for axis in range(self.plotview.ndim):
+            self.minbox[axis].data = self.maxbox[axis].data = \
+                self.plotview.axis[axis].centers
+            self.minbox[axis].setMaximum(self.minbox[axis].data.size-1)
+            self.maxbox[axis].setMaximum(self.maxbox[axis].data.size-1)
+            self.block_signals(True)
+            self.minbox[axis].setValue(self.plotview.axis[axis].lo)
+            self.maxbox[axis].setValue(self.plotview.axis[axis].hi)
+            self.block_signals(False)
 
     def select_scan(self):
         """
         Set the scan axis of the dialog to the currently selected node.
 
         The currently selected node must be a scalar NXfield. If the
-        selected node is not a scalar NXfield, a NeXusError is raised and
-        reported.
+        selected node is not a scalar NXfield, a NeXusError is raised
+        and reported.
         """
         scan_axis = self.treeview.node
         if not isinstance(scan_axis, NXfield):
@@ -3411,13 +3457,14 @@ class ScanTab(NXTab):
         """
         Create a dialog to select files to plot.
 
-        The dialog will show a list of files with checkboxes. The list of
-        files is determined by the data_path argument passed to the
+        The dialog will show a list of files with checkboxes. The list
+        of files is determined by the data_path argument passed to the
         constructor. The list of files is filtered to only include files
-        that have a scan axis with the scan_path argument. If no scan_path
-        argument is provided, all files are included. The dialog also
-        allows the user to select a prefix for the files. The selected
-        files are returned as a list of (file name, scan value) tuples.
+        that have a scan axis with the scan_path argument. If no
+        scan_path argument is provided, all files are included. The
+        dialog also allows the user to select a prefix for the files.
+        The selected files are returned as a list of (file name, scan
+        value) tuples.
         """
         if self.file_box in self.mainwindow.dialogs:
             try:
@@ -3496,6 +3543,58 @@ class ScanTab(NXTab):
                 else:
                     self.files[f].value = ''
 
+    def get_axes(self):
+        """Return a list of NXfields containing the data axes."""
+        return self.plotview.xtab.get_axes()
+
+    def set_limits(self):
+        """Plot the limits rectangle when the axis limits change."""
+        self.scan_data = None
+        self.draw_rectangle()
+
+    def get_limits(self, axis=None):
+        """
+        Return the limits of the plot for the given axis.
+
+        Parameters
+        ----------
+        axis : int or None
+            The axis for which to return the limits. If None, return the
+            limits for all axes.
+
+        Returns
+        -------
+        limits : list of tuples of int
+            The limits of the plot for the given axis or axes. Each
+            tuple is a pair of start and stop indices.
+        """
+        def get_indices(minbox, maxbox):
+            start, stop = minbox.index, maxbox.index+1
+            if minbox.reversed:
+                start, stop = len(maxbox.data)-stop, len(minbox.data)-start
+            return start, stop
+        if axis:
+            return get_indices(self.minbox[axis], self.maxbox[axis])
+        else:
+            return [get_indices(self.minbox[axis], self.maxbox[axis])
+                    for axis in range(self.plotview.ndim)]
+
+    def get_slice(self):
+        """
+        Return a tuple of slice objects for the axes of the data.
+
+        The slice objects are generated from the limits boxes. The
+        start and stop indices of each slice are the start and stop
+        values of the corresponding limits box, respectively.
+
+        Returns
+        -------
+        slice : tuple of slice objects
+            A tuple of slice objects for the axes of the data.
+        """
+        idx = self.get_limits()
+        return tuple(slice(start, stop) for (start, stop) in idx)
+
     @property
     def data_path(self):
         """Return the path to the data to be plotted."""
@@ -3537,10 +3636,23 @@ class ScanTab(NXTab):
                                for f in self.files if self.files[f].vary]
             self.scan_values = [self.files[f].value for f in self.files
                                 if self.files[f].vary]
-            self.scan_data = nxconsolidate(self.scan_files, self.data_path,
-                                           self.scan_path)
+            self.create_scan_data()
         except Exception:
-            raise NeXusError("Files not selected")
+            report_error("Choosing Scan Files", "Files not selected")
+
+    def create_scan_data(self):
+        """Create the consolidated scan data."""
+        self.scan_data = nxconsolidate(self.scan_files, self.data_path,
+                                       self.scan_path, idx=self.get_slice())
+        try:
+            if Path(self.scan_root.nxfilename).exists():
+                Path(self.scan_root.nxfilename).unlink()
+        except Exception:
+            pass
+        import tempfile
+        with nxload(tempfile.mkstemp(suffix='.nxs')[1], mode='w') as root:
+            root['data'] = self.scan_data
+        self.scan_root = root
 
     def plot_scan(self):
         """
@@ -3554,6 +3666,8 @@ class ScanTab(NXTab):
         NeXusError
             If the data cannot be plotted.
         """
+        if self.scan_data is None:
+            self.create_scan_data()
         try:
             self.scanview.plot(self.scan_data)
             self.scanview.make_active()
@@ -3573,6 +3687,8 @@ class ScanTab(NXTab):
         NeXusError
             If the data cannot be copied.
         """
+        if self.scan_data is None:
+            self.create_scan_data()
         try:
             self.mainwindow.copied_node = self.mainwindow.copy_node(
                 self.scan_data)
@@ -3591,6 +3707,8 @@ class ScanTab(NXTab):
         NeXusError
             If the data cannot be saved.
         """
+        if self.scan_data is None:
+            self.create_scan_data()
         try:
             keep_data(self.scan_data)
         except NeXusError as error:
@@ -3605,6 +3723,116 @@ class ScanTab(NXTab):
             from .plotview import NXPlotView
             return NXPlotView('Scan')
 
+    def block_signals(self, block=True):
+        """
+        Block signals from the limits boxes.
+
+        Parameters
+        ----------
+        block : bool
+            True to block signals, False to unblock signals
+        """
+        for axis in range(self.plotview.ndim):
+            self.minbox[axis].blockSignals(block)
+            self.maxbox[axis].blockSignals(block)
+
+    @property
+    def rectangle(self):
+        """The rectangle defining the projection limits."""
+        if self._rectangle not in self.plotview.ax.patches:
+            self._rectangle = NXpolygon(self.get_rectangle(), closed=True,
+                                        plotview=self.plotview).shape
+            self._rectangle.set_edgecolor(self.plotview._gridcolor)
+            self._rectangle.set_facecolor('none')
+            self._rectangle.set_linestyle('dashed')
+            self._rectangle.set_linewidth(2)
+        return self._rectangle
+
+    def get_rectangle(self):
+        """
+        Return the coordinates of the rectangle.
+
+        The coordinates are returned as a list of four tuples, each
+        tuple containing the x and y coordinates of a vertex of the
+        rectangle. If the plot is skewed, the coordinates are
+        transformed to the skewed coordinates.
+        """
+        xp = self.plotview.xaxis.dim
+        yp = self.plotview.yaxis.dim
+        x0 = self.minbox[xp].minBoundaryValue(self.minbox[xp].index)
+        x1 = self.maxbox[xp].maxBoundaryValue(self.maxbox[xp].index)
+        y0 = self.minbox[yp].minBoundaryValue(self.minbox[yp].index)
+        y1 = self.maxbox[yp].maxBoundaryValue(self.maxbox[yp].index)
+        xy = [(x0, y0), (x0, y1), (x1, y1), (x1, y0)]
+        if self.plotview.skew is not None:
+            return [self.plotview.transform(_x, _y) for _x, _y in xy]
+        else:
+            return xy
+
+    def draw_rectangle(self):
+        """
+        Redraw the rectangle in the plot based on the current limits.
+
+        Notes
+        -----
+        The coordinates of the rectangle are obtained from the limits of
+        the x and y axes. If the plot is skewed, the coordinates are
+        transformed to the skewed coordinates.
+        """
+        self.rectangle.set_xy(self.get_rectangle())
+        self.plotview.draw()
+
+    def rectangle_visible(self):
+        """
+        Return True if the rectangle defining the projection limits
+        should be visible.
+
+        The rectangle is visible unless the 'Hide Limits' checkbox is
+        checked.
+        """
+        return not self.checkbox["hide"].isChecked()
+
+    def hide_rectangle(self):
+        """
+        Hide or show the rectangle defining the projection limits based
+        on the 'Hide Limits' checkbox.
+
+        If the checkbox is checked, hide the rectangle. Otherwise, show
+        it.
+        """
+        if self.checkbox["hide"].isChecked():
+            self.rectangle.set_visible(False)
+        else:
+            self.rectangle.set_visible(True)
+        self.plotview.draw()
+
+    def update(self):
+        """
+        Update the limits boxes and the rectangle in the plot based on
+        the current limits of the axes.
+
+        Notes
+        -----
+        If the limits of the x or y axes have changed, the limits boxes
+        are updated to reflect the new limits. The rectangle is then
+        redrawn based on the updated limits.
+        """
+        self.block_signals(True)
+        for axis in range(self.plotview.ndim):
+            lo, hi = self.plotview.axis[axis].get_limits()
+            minbox, maxbox = self.minbox[axis], self.maxbox[axis]
+            ilo, ihi = minbox.indexFromValue(lo), maxbox.indexFromValue(hi)
+            if (self.plotview.axis[axis] is self.plotview.xaxis or
+                    self.plotview.axis[axis] is self.plotview.yaxis):
+                ilo = ilo + 1
+                ihi = max(ilo, ihi-1)
+                if lo > minbox.value():
+                    minbox.setValue(minbox.valueFromIndex(ilo))
+                if hi < maxbox.value():
+                    maxbox.setValue(maxbox.valueFromIndex(ihi))
+        self.block_signals(False)
+        self.draw_rectangle()
+
     def close(self):
         """
         Close the dialog.
@@ -3613,7 +3841,18 @@ class ScanTab(NXTab):
         dialogs. It will also close the file dialog if it is open.
         """
         try:
+            if Path(self.scan_root.nxfilename).exists():
+                Path(self.scan_root.nxfilename).unlink()
+        except Exception:
+            pass
+        try:
             self.file_box.close()
+        except Exception:
+            pass
+        try:
+            if self._rectangle:
+                self._rectangle.remove()
+            self.plotview.draw()
         except Exception:
             pass
         super().close()

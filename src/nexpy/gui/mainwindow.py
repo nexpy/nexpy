@@ -2232,15 +2232,16 @@ class MainWindow(QtWidgets.QMainWindow):
         pvs = sorted([self.plotviews[pv] for pv in self.plotviews
                       if self.plotviews[pv].number < 100],
                      key=lambda obj: obj.number)
+        self.tile_panels()
+        available_geometry = self.app.app.primaryScreen().availableGeometry()
+        left, top = available_geometry.left(), available_geometry.top()
+        self.move(left, top)
         if len(pvs) <= 1:
             return
-        available_geometry = self.app.app.primaryScreen().availableGeometry()
         last_left = available_geometry.right() - pvs[-1].width()
         last_top = available_geometry.bottom() - pvs[-1].height()
         offset_x = int((last_left - available_geometry.left()) / (len(pvs)-1))
         offset_y = int((last_top - available_geometry.top()) / (len(pvs)-1))
-        left, top = available_geometry.left(), available_geometry.top()
-        self.move(left, top)
         for pv in pvs[1:]:
             left += offset_x
             top += offset_y
@@ -2252,11 +2253,12 @@ class MainWindow(QtWidgets.QMainWindow):
         pvs = sorted([self.plotviews[pv] for pv in self.plotviews
                       if pv != 'Main' and self.plotviews[pv].number < 100],
                      key=lambda obj: obj.number)
-        if len(pvs) <= 1:
-            return
+        self.tile_panels()
         available_geometry = self.app.app.primaryScreen().availableGeometry()
         left, top = available_geometry.left(), available_geometry.top()
         self.move(left, top)
+        if len(pvs) <= 1:
+            return
         left_min = self.treeview.minimumWidth()
         left += left_min
         if sys.platform == 'darwin':
@@ -2276,6 +2278,20 @@ class MainWindow(QtWidgets.QMainWindow):
                 top = available_geometry.top() + top_min
             pv.move(left, top)
             pv.make_active()
+
+    def tile_panels(self):
+        """Tile panels along the bottom of the available screen."""
+        available_geometry = self.app.app.primaryScreen().availableGeometry()
+        left, bottom = available_geometry.left(), available_geometry.bottom()
+        for p in self.panels:
+            panel = self.panels[p]
+            height = panel.frameGeometry().height()
+            width = panel.frameGeometry().width()
+            if panel.isVisible():
+                if left + width > available_geometry.right():
+                    left = available_geometry.left()
+                panel.move(left, bottom - height)
+                left += width
 
     def update_active(self, number):
         """
