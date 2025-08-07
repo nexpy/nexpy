@@ -3412,6 +3412,7 @@ class ScanTab(NXTab):
         self.scan_files = None
         self.scan_values = None
         self.scan_data = None
+        self.scan_root = None
         self.files = None
         self.initialize()
         self._rectangle = None
@@ -3548,6 +3549,7 @@ class ScanTab(NXTab):
 
     def set_limits(self):
         """Plot the limits rectangle when the axis limits change."""
+        self.scan_data = None
         self.draw_rectangle()
 
     def get_limits(self, axis=None):
@@ -3634,15 +3636,23 @@ class ScanTab(NXTab):
                                for f in self.files if self.files[f].vary]
             self.scan_values = [self.files[f].value for f in self.files
                                 if self.files[f].vary]
-            self.scan_data = nxconsolidate(self.scan_files, self.data_path,
-                                           self.scan_path,
-                                           idx=self.get_slice())
-            import tempfile
-            with nxload(tempfile.mkstemp(suffix='.nxs')[1], mode='w') as root:
-                root['data'] = self.scan_data
-            self.scan_root = root
+            self.create_scan_data()
         except Exception:
-            raise NeXusError("Files not selected")
+            report_error("Choosing Scan Files", "Files not selected")
+
+    def create_scan_data(self):
+        """Create the consolidated scan data."""
+        self.scan_data = nxconsolidate(self.scan_files, self.data_path,
+                                       self.scan_path, idx=self.get_slice())
+        try:
+            if Path(self.scan_root.nxfilename).exists():
+                Path(self.scan_root.nxfilename).unlink()
+        except Exception:
+            pass
+        import tempfile
+        with nxload(tempfile.mkstemp(suffix='.nxs')[1], mode='w') as root:
+            root['data'] = self.scan_data
+        self.scan_root = root
 
     def plot_scan(self):
         """
@@ -3656,6 +3666,8 @@ class ScanTab(NXTab):
         NeXusError
             If the data cannot be plotted.
         """
+        if self.scan_data is None:
+            self.create_scan_data()
         try:
             self.scanview.plot(self.scan_data)
             self.scanview.make_active()
@@ -3675,6 +3687,8 @@ class ScanTab(NXTab):
         NeXusError
             If the data cannot be copied.
         """
+        if self.scan_data is None:
+            self.create_scan_data()
         try:
             self.mainwindow.copied_node = self.mainwindow.copy_node(
                 self.scan_data)
@@ -3693,6 +3707,8 @@ class ScanTab(NXTab):
         NeXusError
             If the data cannot be saved.
         """
+        if self.scan_data is None:
+            self.create_scan_data()
         try:
             keep_data(self.scan_data)
         except NeXusError as error:
