@@ -853,9 +853,6 @@ class FitTab(NXTab):
                                 if error:
                                     parameter.stderr = float(
                                         saved_parameters[p].attrs['error'])
-                                    parameter.vary = True
-                                else:
-                                    parameter.vary = False
                     self.models.append({'name': model_name,
                                         'class': model_class,
                                         'model': model,
