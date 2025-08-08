@@ -286,8 +286,10 @@ class FitTab(NXTab):
         self.form_combo = NXComboBox()
         self.compose_button = NXPushButton(
             "Compose Models", self.compose_model)
+        self.import_button = NXPushButton("Import Model", self.import_fit)
         model_layout = self.make_layout(add_button, self.model_combo,
                                         self.form_combo, 'stretch',
+                                        self.import_button,
                                         self.compose_button, align='justified')
 
         self.parameter_layout = self.initialize_parameter_grid()
@@ -499,6 +501,7 @@ class FitTab(NXTab):
             Set to True if the data have been fitted.
         """
         if len(self.models) == 0:
+            self.import_button.setVisible(True)
             self.compose_button.setVisible(False)
             self.remove_button.setVisible(False)
             self.remove_combo.setVisible(False)
@@ -514,6 +517,7 @@ class FitTab(NXTab):
             self.plot_combo.setVisible(False)
             self.plot_checkbox.setVisible(False)
         else:
+            self.import_button.setVisible(False)
             if len(self.models) > 1:
                 self.compose_button.setVisible(True)
             self.remove_button.setVisible(True)
@@ -790,9 +794,18 @@ class FitTab(NXTab):
         except Exception:
             return None, None
 
+    def import_fit(self):
+        """Select the NXprocess group containing the fit."""
+        group = self.treeview.node
+        if not isinstance(group, NXprocess):
+            display_message("Import Fit",
+                "Select a valid NXprocess group in the tree")
+        else:
+            self.load_fit(group)
+
     def load_fit(self, group):
         """
-        Loads a fit from a NeXus NXprocess group.
+        Load a fit from a NeXus NXprocess group.
 
         Parameters
         ----------
@@ -840,9 +853,6 @@ class FitTab(NXTab):
                                 if error:
                                     parameter.stderr = float(
                                         saved_parameters[p].attrs['error'])
-                                    parameter.vary = True
-                                else:
-                                    parameter.vary = False
                     self.models.append({'name': model_name,
                                         'class': model_class,
                                         'model': model,
