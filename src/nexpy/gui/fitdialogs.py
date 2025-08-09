@@ -1348,7 +1348,7 @@ class FitTab(NXTab):
                 p.value = make_float(p.box['value'].text())
                 p.min = make_float(p.box['min'].text())
                 p.max = make_float(p.box['max'].text())
-                p.vary = not p.box['fixed'].checkState()
+                p.vary = not p.box['fixed'].isChecked()
         for m in self.models:
             for parameter in m['parameters']:
                 p = m['parameters'][parameter]
