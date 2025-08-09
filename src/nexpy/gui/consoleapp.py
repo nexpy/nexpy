@@ -195,10 +195,7 @@ class NXConsoleApp(JupyterQtConsoleApp):
         self.app.setApplicationName('nexpy')
         sys.excepthook = report_exception
         try:
-            if 'svg' in QtGui.QImageReader.supportedImageFormats():
-                self.app.icon = resource_icon('NeXpy.svg')
-            else:
-                self.app.icon = resource_icon('NeXpy.png')
+            self.app.icon = resource_icon('NeXpy.png')
             QtWidgets.QApplication.setWindowIcon(self.app.icon)
             self.icon_pixmap = QtGui.QPixmap(
                 self.app.icon.pixmap(QtCore.QSize(64, 64)))
