@@ -298,13 +298,13 @@ class FitTab(NXTab):
         self.remove_combo = NXComboBox()
         self.restore_button = NXPushButton("Restore Parameters",
                                            self.restore_parameters)
-        self.save_parameters_button = NXPushButton("Copy Parameters",
+        self.copy_parameters_button = NXPushButton("Copy Parameters",
                                                    self.copy_parameters)
         self.remove_layout = self.make_layout(self.remove_button,
                                               self.remove_combo,
                                               'stretch',
                                               self.restore_button,
-                                              self.save_parameters_button,
+                                              self.copy_parameters_button,
                                               align='justified')
 
         if self.plotview is None:
@@ -508,7 +508,7 @@ class FitTab(NXTab):
             self.remove_button.setVisible(False)
             self.remove_combo.setVisible(False)
             self.restore_button.setVisible(False)
-            self.save_parameters_button.setVisible(False)
+            self.copy_parameters_button.setVisible(False)
             self.fit_button.setVisible(False)
             self.fit_combo.setVisible(False)
             self.fit_checkbox.setVisible(False)
@@ -525,7 +525,7 @@ class FitTab(NXTab):
                 self.compose_button.setVisible(True)
             self.remove_button.setVisible(True)
             self.remove_combo.setVisible(True)
-            self.save_parameters_button.setVisible(True)
+            self.copy_parameters_button.setVisible(True)
             self.fit_button.setVisible(True)
             self.fit_combo.setVisible(True)
             self.fit_checkbox.setVisible(True)
@@ -887,7 +887,7 @@ class FitTab(NXTab):
             else:
                 self.model = self.eval_model(self.composite_model)
             self.write_parameters()
-            self.save_parameters_button.setVisible(True)
+            self.copy_parameters_button.setVisible(True)
             self.save_fit_button.setVisible(False)
 
     def convert_parameter_name(self, parameter, saved_parameters):
