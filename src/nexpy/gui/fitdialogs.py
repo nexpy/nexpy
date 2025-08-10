@@ -298,8 +298,8 @@ class FitTab(NXTab):
         self.remove_combo = NXComboBox()
         self.restore_button = NXPushButton("Restore Parameters",
                                            self.restore_parameters)
-        self.save_parameters_button = NXPushButton("Save Parameters",
-                                                   self.save_parameters)
+        self.save_parameters_button = NXPushButton("Copy Parameters",
+                                                   self.copy_parameters)
         self.remove_layout = self.make_layout(self.remove_button,
                                               self.remove_combo,
                                               'stretch',
@@ -332,11 +332,13 @@ class FitTab(NXTab):
         else:
             self.fit_checkbox = NXCheckBox('Use Poisson Errors',
                                            self.define_errors)
+        self.copy_fit_button = NXPushButton("Copy Fit", self.copy_fit)
         self.save_fit_button = NXPushButton("Save Fit", self.save_fit)
         self.adjust_layout = self.make_layout(self.fit_button,
                                               self.fit_combo,
                                               self.fit_checkbox,
                                               'stretch',
+                                              self.copy_fit_button,
                                               self.save_fit_button,
                                               align='justified')
 
@@ -512,6 +514,7 @@ class FitTab(NXTab):
             self.fit_checkbox.setVisible(False)
             self.fit_status.setVisible(False)
             self.report_button.setVisible(False)
+            self.copy_fit_button.setVisible(False)
             self.save_fit_button.setVisible(False)
             self.plot_model_button.setVisible(False)
             self.plot_combo.setVisible(False)
@@ -533,8 +536,10 @@ class FitTab(NXTab):
                 self.restore_button.setVisible(True)
                 self.fit_status.setVisible(True)
                 self.report_button.setVisible(True)
+                self.copy_fit_button.setVisible(True)
                 self.save_fit_button.setVisible(True)
             else:
+                self.copy_fit_button.setVisible(False)
                 self.save_fit_button.setVisible(False)
 
     @property
@@ -870,13 +875,17 @@ class FitTab(NXTab):
                     self.model += model['model']
                     self.composite_model += '+' + model['name']
                 self.add_model_parameters(model_index)
-            try:
-                if 'model' in group:
-                    composite_model = group['model'].nxvalue
-                    self.model = self.eval_model(composite_model)
-                    self.composite_model = composite_model
-            except NeXusError:
-                pass
+            if 'composite_model' in group.attrs:
+                composite_model = group.attrs['composite_model']
+            elif 'model' in group and isinstance(group['model'], NXfield):
+                composite_model = group['model'].nxvalue
+            else:
+                composite_model = None
+            if composite_model is not None:
+                self.model = self.eval_model(composite_model)
+                self.composite_model = composite_model
+            else:
+                self.model = self.eval_model(self.composite_model)
             self.write_parameters()
             self.save_parameters_button.setVisible(True)
             self.save_fit_button.setVisible(False)
@@ -1653,18 +1662,7 @@ class FitTab(NXTab):
             self.fit_status.setText('Fit failed')
 
     def report_fit(self):
-        """
-        Display the results of a fit in a message box.
-
-        This function is used to display the results of a fit in a message box.
-        The message box contains a text box that displays the fit results.
-        The fit results are formatted as a multi-line string, with each line
-        containing a different piece of information about the fit. The
-        information includes the fit message, the chi^2 and reduced chi^2, the
-        number of function evaluations, the number of variables, the number
-        of data points, and the number of degrees of freedom. The fit report
-        is also included.
-        """
+        """Display the results of a fit in a message box."""
         if self.fit.result.errorbars:
             errors = 'Uncertainties estimated'
         else:
@@ -1687,30 +1685,14 @@ class FitTab(NXTab):
         layout.addItem(spacer, layout.rowCount(), 0, 1, layout.columnCount())
         message_box.exec()
 
-    def save_fit(self):
-        """
-        Save the fit results in a NXprocess group.
-
-        If the fit results have not been calculated, a message is posted
-        to the status bar and the function returns without doing
-        anything else.
-
-        The NXprocess group is built from the data, model, and
-        parameters. The model and data are stored in the group as
-        datasets, and the parameters are stored as attributes of the
-        datasets. The program name and version are stored as attributes
-        of the group. The fit statistics are stored as attributes of a
-        'statistics' dataset in the group. The fit report is stored as a
-        note in the group.
-
-        The group is then written to disk using the write_group method.
-        """
+    def store_fit(self):
+        """Store the results of a fit in a NXprocess group."""
         if self.fit is None:
             self.fit_status.setText('Fit not available for saving')
             return
         self.read_parameters()
         group = NXprocess()
-        group['model'] = self.composite_model
+        group.attrs['composite_model'] = self.composite_model
         group['data'] = self.data
         for m in self.models:
             group[m['name']] = self.get_model(m['model'])
@@ -1742,41 +1724,34 @@ class FitTab(NXTab):
             f'No. of Data Points = {self.fit.result.ndata}\n'
             f'No. of Degrees of Freedom = {self.fit.result.nfree}\n'
             f'{self.fit.fit_report()}')
-        self.write_group(group)
+        return group
 
-    def save_parameters(self):
+    def copy_fit(self):
         """
-        Save the fit model in a NXprocess group.
+        Copy the results of a fit to the clipboard.
 
-        The group contains the model name, the data, and a 'parameters'
-        dataset containing the values of all the model parameters. The
-        group is then written to disk using the write_group method.
+        The results of the fit are copied to the clipboard as a
+        NXprocess group containing the model, data, and parameters. The
+        group can then be pasted into another NeXus group in the tree.
         """
-        self.read_parameters()
-        group = NXprocess()
-        group['model'] = self.composite_model
-        group['data'] = self.data
-        for m in self.models:
-            group[m['name']] = self.get_model(m['model'])
-            parameters = NXparameters(attrs={'model': m['class']})
-            for n, p in m['parameters'].items():
-                n = n.replace(m['model'].prefix, '')
-                parameters[n] = NXfield(p.value, error=p.stderr,
-                                        initial_value=p.init_value,
-                                        min=str(p.min), max=str(p.max),
-                                        vary=p.vary, expr=p.expr)
-            group[m['name']].insert(parameters)
-        group['title'] = 'Fit Model'
-        group['model'] = self.get_model()
+        group = self.store_fit()
+        self.mainwindow.copied_node = self.mainwindow.copy_node(group)
+
+    def save_fit(self):
+        """Save the results of a fit to the scratch file.
+
+        The results of the fit are written to the NeXpy scratch file as
+        a NXprocess group containing the model, data, and parameters.
+        """
+        group = self.store_fit()
         self.write_group(group)
 
     def write_group(self, group):
         """
-        Write a group to the scratch file.
+        Write a group to the NeXpy scratch file.
 
         The group is written to the first free number in the scratch file,
-        starting from 'f1'. The group name is then displayed in the status
-        bar.
+        starting from 'f1'.
         """
         if 'w0' not in self.tree:
             self.tree['w0'] = nxload(self.mainwindow.scratch_file, 'rw')
@@ -1792,6 +1767,31 @@ class FitTab(NXTab):
         name = 'f'+str(sorted(ind)[-1]+1)
         self.tree['w0'][name] = group
         self.fit_status.setText(f'Parameters saved to w0/{name}')
+
+    def copy_parameters(self):
+        """Copy the current parameters to the clipboard.
+
+        The parameters are copied to the clipboard as a NXprocess group
+        containing the model, data, and parameters. The group can then
+        be pasted into another NeXus group in the tree.
+        """
+        self.read_parameters()
+        group = NXprocess()
+        group.attrs['composite_model'] = self.composite_model
+        group['data'] = self.data
+        for m in self.models:
+            group[m['name']] = self.get_model(m['model'])
+            parameters = NXparameters(attrs={'model': m['class']})
+            for n, p in m['parameters'].items():
+                n = n.replace(m['model'].prefix, '')
+                parameters[n] = NXfield(p.value, error=p.stderr,
+                                        initial_value=p.init_value,
+                                        min=str(p.min), max=str(p.max),
+                                        vary=p.vary, expr=p.expr)
+            group[m['name']].insert(parameters)
+        group['title'] = 'Fit Model'
+        group['model'] = self.get_model()
+        self.mainwindow.copied_node = self.mainwindow.copy_node(group)
 
     def restore_parameters(self):
         """
