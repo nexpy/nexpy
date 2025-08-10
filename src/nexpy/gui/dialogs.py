@@ -4551,7 +4551,8 @@ class EditTab(NXTab):
         if not isinstance(self.group, NXgroup):
             raise NeXusError('The node must be a NeXus group')
 
-        field_list = [f for f in self.group.NXfield if f.ndim == 0]
+        field_list = [f for f in self.group.NXfield
+                      if f.ndim == 0 or (f.ndim == 1 and f.shape[0] == 1)]
         if len(field_list) == 0:
             raise NeXusError(f"No scalar fields found in {self.group.nxpath}")
 
@@ -4567,21 +4568,24 @@ class EditTab(NXTab):
             column += 1
 
         row = 1
+        grid_height = 0
         for field in field_list:
             self.grid.addWidget(NXLabel(field.nxname), row, 0,
                                 QtCore.Qt.AlignTop)
             if field.is_string():
-                self.grid.addWidget(NXTextEdit(field.nxvalue, autosize=True),
-                                    row, 1, QtCore.Qt.AlignTop)
+                field_box = NXTextEdit(field.nxvalue, autosize=True)
+                grid_height += field_box.document().size().height()
+                self.grid.addWidget(field_box, row, 1, QtCore.Qt.AlignTop)
             else:
-                self.grid.addWidget(NXTextEdit(field.nxvalue, align='right',
-                                               autosize=True),
-                                    row, 1)
+                field_box = NXTextEdit(field.nxvalue, align='right',
+                                       autosize=True)
+                grid_height += field_box.document().size().height()
+                self.grid.addWidget(field_box, row, 1)
                 self.grid.addWidget(NXLabel(field.nxunits), row, 2)
             row += 1
         self.grid.setContentsMargins(10, 10, 40, 10)
         self.grid.setSpacing(5)
-        if len(field_list) > 10:
+        if grid_height > 800:
             self.scroll_area = NXScrollArea(self.grid, height=800)
             self.scroll_area.setMinimumHeight(200)
             self.set_layout(self.scroll_area)
