@@ -4164,7 +4164,6 @@ class ViewTab(NXTab):
     def save_scalar_fields(self):
         if not self.group.is_modifiable():
             self.display_message('Group is read-only')
-            self.save_button.clearFocus()
             return
         row = 1
         for row in range(1, self.grid.rowCount()):
@@ -4183,7 +4182,6 @@ class ViewTab(NXTab):
                     return
                 if not np.isclose(field.nxvalue, value):
                     field.nxdata = value
-        self.save_button.clearFocus()
 
 
 class ViewTableModel(QtCore.QAbstractTableModel):

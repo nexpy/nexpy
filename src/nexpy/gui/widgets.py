@@ -3169,6 +3169,11 @@ class NXPushButton(QtWidgets.QPushButton):
         else:
             self.parent().keyPressEvent(event)
 
+    def mouseReleaseEvent(self, event: QtGui.QMouseEvent):
+        """Clear focus after a mouse release event."""
+        super().mouseReleaseEvent(event)
+        self.clearFocus()
+
 
 class NXColorButton(QtWidgets.QPushButton):
 
