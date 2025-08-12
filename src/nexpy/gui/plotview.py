@@ -1917,8 +1917,10 @@ class NXPlotView(QtWidgets.QDialog):
             raise NeXusError('Can only rotate 2D data.')
         try:
             angle = float(angle)
+            if not (angle > -360.0 and angle < 360.0):
+                raise ValueError
         except (ValueError, TypeError):
-            raise NeXusError('Rotation angle must be a number.')
+            raise NeXusError('Rotation angle is invalid.')
         return rotate_data(self.plotdata, angle, aspect=self.get_aspect())
 
     @property
