@@ -28,8 +28,8 @@ from qtconsole.rich_jupyter_widget import RichJupyterWidget
 
 from .. import __version__
 from .dialogs import (AttributeDialog, CustomizeDialog, DirectoryDialog,
-                      EditDialog, ExportDialog, FieldDialog, GroupDialog,
-                      LimitDialog, LockDialog, LogDialog, ManageBackupsDialog,
+                      ExportDialog, FieldDialog, GroupDialog, LimitDialog,
+                      LockDialog, LogDialog, ManageBackupsDialog,
                       ManagePluginsDialog, NewDialog, PasteDialog, PlotDialog,
                       PlotScalarDialog, ProjectionDialog, RenameDialog,
                       ScanDialog, SettingsDialog, SignalDialog, UnlockDialog,
@@ -542,11 +542,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.add_menu_action(self.data_menu, self.attribute_action)
 
         self.data_menu.addSeparator()
-
-        self.edit_action = QtWidgets.QAction(
-            "Edit Data", self, shortcut=QtGui.QKeySequence("Ctrl+E"),
-            triggered=self.edit_data)
-        self.add_menu_action(self.data_menu, self.edit_action)
 
         self.rename_action = QtWidgets.QAction("Rename Data", self,
                                                triggered=self.rename_data)
@@ -1685,16 +1680,6 @@ class MainWindow(QtWidgets.QMainWindow):
             self.panels['View'].activate(node)
         except NeXusError as error:
             report_error("Viewing Data", error)
-
-    def edit_data(self):
-        """Open an editor for the selected group."""
-        try:
-            node = self.treeview.get_node()
-            if not self.panel_is_running('Edit'):
-                self.panels['Edit'] = EditDialog()
-            self.panels['Edit'].activate(node)
-        except NeXusError as error:
-            report_error("Editing Data", error)
 
     def validate_data(self):
         """

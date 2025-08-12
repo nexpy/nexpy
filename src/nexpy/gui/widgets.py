@@ -2085,6 +2085,10 @@ class GridParameter:
             Whether the field contains a color value, default False.
         spinbox : bool, optional
             Whether the field should be a spin box, default False.
+        readonly : bool, optional
+            Whether the field is read-only, default False.
+        width : int, optional
+            Width of the box, default None
         """
         self.name = name
         self._value = value

@@ -519,7 +519,6 @@ class NXTreeView(QtWidgets.QTreeView):
         self.mainwindow.group_action.setEnabled(False)
         self.mainwindow.field_action.setEnabled(False)
         self.mainwindow.attribute_action.setEnabled(False)
-        self.mainwindow.edit_action.setEnabled(False)
         self.mainwindow.rename_action.setEnabled(False)
         self.mainwindow.delete_action.setEnabled(False)
         self.mainwindow.copydata_action.setEnabled(False)
@@ -570,7 +569,6 @@ class NXTreeView(QtWidgets.QTreeView):
             self.mainwindow.copydata_action.setEnabled(True)
             if isinstance(node, NXgroup):
                 self.mainwindow.validate_action.setEnabled(True)
-                self.mainwindow.edit_action.setEnabled(True)
             if isinstance(node, NXlink):
                 self.mainwindow.link_action.setEnabled(True)
             if isinstance(node, NXdata):
@@ -679,7 +677,6 @@ class NXTreeView(QtWidgets.QTreeView):
         self.addMenu(self.mainwindow.field_action)
         self.addMenu(self.mainwindow.attribute_action)
         self.menu.addSeparator()
-        self.addMenu(self.mainwindow.edit_action)
         self.addMenu(self.mainwindow.rename_action)
         self.addMenu(self.mainwindow.delete_action)
         self.menu.addSeparator()

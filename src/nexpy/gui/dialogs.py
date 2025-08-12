@@ -3920,7 +3920,6 @@ class ViewTab(NXTab):
 
         layout = QtWidgets.QVBoxLayout()
         self.properties = GridParameters()
-
         self.properties.add('class', node.__class__.__name__, 'Class',
                             readonly=True)
         self.properties.add('name', node.nxname, 'Name', readonly=True)
@@ -4001,20 +4000,83 @@ class ViewTab(NXTab):
                                                   title='Attributes',
                                                   width=200))
 
-        hlayout = QtWidgets.QHBoxLayout()
-        hlayout.addStretch()
-        hlayout.addLayout(layout)
-        if (isinstance(node, NXfield) and node.shape is not None and
-                node.shape != () and node.shape != (1,)):
-            try:
-                table = self.table()
-                hlayout.addLayout(table)
-            except OSError:
-                pass
-        hlayout.addStretch()
-        self.setLayout(hlayout)
+        self.scroll_area = None
+
+        if isinstance(node, NXgroup):
+            self.group = node
+            field_list = [f for f in self.group.NXfield
+                          if f.ndim == 0 or (f.ndim == 1 and f.shape[0] == 1)]
+            if len(field_list) > 0:
+                layout.addWidget(NXLabel('Scalar Fields', bold=True,
+                                         align='center'))
+                self.grid = QtWidgets.QGridLayout()
+                row = 0
+                grid_height = 0
+                for field in field_list:
+                    self.grid.addWidget(NXLabel(field.nxname), row, 0,
+                                        QtCore.Qt.AlignTop)
+                    if field.is_string():
+                        field_box = NXTextEdit(field.nxvalue, autosize=True)
+                        grid_height += field_box.document().size().height()
+                        self.grid.addWidget(field_box, row, 1,
+                                            QtCore.Qt.AlignTop)
+                    else:
+                        field_box = NXTextEdit(field.nxvalue, align='right',
+                                               autosize=True)
+                        grid_height += field_box.document().size().height()
+                        self.grid.addWidget(field_box, row, 1)
+                        self.grid.addWidget(NXLabel(field.nxunits), row, 2)
+                    row += 1
+                self.grid.setContentsMargins(10, 0, 40, 10)
+                self.grid.setSpacing(5)
+                self.grid.setColumnStretch(1, 1)
+                group_widget = NXWidget()
+                group_widget.setSizePolicy(QtWidgets.QSizePolicy.Expanding,
+                                           QtWidgets.QSizePolicy.Expanding)
+                grid_container = NXWidget()
+                grid_container.setSizePolicy(QtWidgets.QSizePolicy.Expanding,
+                                             QtWidgets.QSizePolicy.Expanding)
+                grid_container.setLayout(self.grid)
+                if grid_height > 400:
+                    grid_container = NXWidget()
+                    grid_container.setLayout(self.grid)
+                    self.scroll_area = NXScrollArea(grid_container, height=600)
+                    self.scroll_area.setMinimumHeight(400)
+                    grid_layout = QtWidgets.QVBoxLayout()
+                    grid_layout.addWidget(self.scroll_area)
+                    group_widget.setLayout(grid_layout)
+                else:
+                    group_widget.setLayout(self.grid)
+                layout.addWidget(group_widget)
+                self.save_button = NXPushButton('Save', self.save_scalar_fields)
+                layout.addWidget(self.save_button,
+                                 alignment=QtCore.Qt.AlignCenter)
+            self.setLayout(layout)
+        else:
+            self.group = None
+            hlayout = QtWidgets.QHBoxLayout()
+            hlayout.addStretch()
+            hlayout.addLayout(layout)
+            if (isinstance(node, NXfield) and node.shape is not None and
+                    node.shape != () and node.shape != (1,)):
+                try:
+                    table = self.table()
+                    hlayout.addLayout(table)
+                except OSError:
+                    pass
+            hlayout.addStretch()
+            self.setLayout(hlayout)
 
         self.setWindowTitle(node.nxroot.nxname+node.nxpath)
+
+    def resize(self):
+        """Update the size of the scroll area and its contents."""
+        super().resize()
+        if self.scroll_area is not None:
+            self.scroll_area.widget().updateGeometry()
+            self.scroll_area.updateGeometry()
+            self.scroll_area.widget().adjustSize()
+            self.scroll_area.adjustSize()
 
     def table(self):
         """
@@ -4098,6 +4160,30 @@ class ViewTab(NXTab):
         vheight = self.table_view.verticalHeader().length()
         hheight = self.table_view.horizontalHeader().height()
         self.table_view.setFixedHeight(vheight + hheight)
+
+    def save_scalar_fields(self):
+        if not self.group.is_modifiable():
+            self.display_message('Group is read-only')
+            self.save_button.clearFocus()
+            return
+        row = 1
+        for row in range(1, self.grid.rowCount()):
+            field_name = self.grid.itemAtPosition(row, 0).widget().text()
+            field = self.group[field_name]
+            if field.is_string():
+                value = self.grid.itemAtPosition(row, 1).widget().toPlainText()
+                if field.nxvalue != value.rstrip():
+                    field.nxdata = value.rstrip()
+            else:
+                value = self.grid.itemAtPosition(row, 1).widget().toPlainText()
+                try:
+                    value = field.dtype.type(value)
+                except ValueError:
+                    self.display_message(f'Invalid value for {field.nxname}')
+                    return
+                if not np.isclose(field.nxvalue, value):
+                    field.nxdata = value
+        self.save_button.clearFocus()
 
 
 class ViewTableModel(QtCore.QAbstractTableModel):
@@ -4492,138 +4578,6 @@ class ValidateTab(NXTab):
         self.setVisible(True)
         self.raise_()
         self.activateWindow()
-
-
-class EditDialog(NXPanel):
-
-    def __init__(self, parent=None):
-        """Initialize the Edit Panel.
-
-        Parameters
-        ----------
-        parent : QWidget, optional
-            The parent of the dialog. The default is None.
-        """
-        super().__init__('Edit', title='Edit Panel', apply=True, reset=False,
-                         parent=parent)
-        self.tab_class = EditTab
-
-    def activate(self, node):
-        """
-        Activate a tab to edit the contents of a NeXus group.
-        
-        Parameters
-        ----------
-        node : NXobject
-            The node to be edited
-        """
-        label = node.nxroot.nxname + node.nxpath
-        if label not in self.tabs:
-            tab = EditTab(label, node, parent=self)
-            self.add(label, tab, idx=self.idx(label))
-        else:
-            self.tab = label
-        self.setVisible(True)
-        self.raise_()
-        self.activateWindow()
-
-
-class EditTab(NXTab):
-
-    def __init__(self, label, node, parent=None):
-
-        """
-        Initialize the tab to edit the contents of a NeXus group. Only
-        scalar fields are editable in this dialog.
-
-        Parameters
-        ----------
-        label : str
-            The title of the tab
-        node : NXobject
-            The NeXus node to be edited
-        parent : QWidget, optional
-            The parent of the tab
-        """
-        super().__init__(label, parent=parent)
-
-        self.group = node
-        if not isinstance(self.group, NXgroup):
-            raise NeXusError('The node must be a NeXus group')
-
-        field_list = [f for f in self.group.NXfield
-                      if f.ndim == 0 or (f.ndim == 1 and f.shape[0] == 1)]
-        if len(field_list) == 0:
-            raise NeXusError(f"No scalar fields found in {self.group.nxpath}")
-
-        self.grid = QtWidgets.QGridLayout()
-        self.grid.setSpacing(10)
-        headers = ['Field', 'Value', '']
-        width = [100, 100, 20]
-        column = 0
-        for header in headers:
-            label = NXLabel(header, bold=True, align='center')
-            self.grid.addWidget(label, 0, column)
-            self.grid.setColumnMinimumWidth(column, width[column])
-            column += 1
-
-        row = 1
-        grid_height = 0
-        for field in field_list:
-            self.grid.addWidget(NXLabel(field.nxname), row, 0,
-                                QtCore.Qt.AlignTop)
-            if field.is_string():
-                field_box = NXTextEdit(field.nxvalue, autosize=True)
-                grid_height += field_box.document().size().height()
-                self.grid.addWidget(field_box, row, 1, QtCore.Qt.AlignTop)
-            else:
-                field_box = NXTextEdit(field.nxvalue, align='right',
-                                       autosize=True)
-                grid_height += field_box.document().size().height()
-                self.grid.addWidget(field_box, row, 1)
-                self.grid.addWidget(NXLabel(field.nxunits), row, 2)
-            row += 1
-        self.grid.setContentsMargins(10, 10, 40, 10)
-        self.grid.setSpacing(5)
-        if grid_height > 800:
-            self.scroll_area = NXScrollArea(self.grid, height=800)
-            self.scroll_area.setMinimumHeight(200)
-            self.set_layout(self.scroll_area)
-        else:
-            self.set_layout(self.grid)
-            self.scroll_area = None
-        self.set_title(f'Edit {self.group.nxpath}')
-
-    def resize(self):
-        """Update the size of the scroll area and its contents."""
-        super().resize()
-        if self.scroll_area is not None:
-            self.scroll_area.widget().updateGeometry()
-            self.scroll_area.updateGeometry()
-            self.scroll_area.widget().adjustSize()
-            self.scroll_area.adjustSize()
-
-    def apply(self):
-        if not self.group.is_modifiable():
-            self.display_message('Group is read-only')
-            return
-        row = 1
-        for row in range(1, self.grid.rowCount()):
-            field_name = self.grid.itemAtPosition(row, 0).widget().text()
-            field = self.group[field_name]
-            if field.is_string():
-                value = self.grid.itemAtPosition(row, 1).widget().toPlainText()
-                if field.nxvalue != value.rstrip():
-                    field.nxdata = value.rstrip()
-            else:
-                value = self.grid.itemAtPosition(row, 1).widget().toPlainText()
-                try:
-                    value = field.dtype.type(value)
-                except ValueError:
-                    self.display_message(f'Invalid value for {field.nxname}')
-                    return
-                if not np.isclose(field.nxvalue, value):
-                    field.nxdata = value            
 
 
 class GroupDialog(NXDialog):
