@@ -7,7 +7,6 @@
 # -----------------------------------------------------------------------------
 import inspect
 import re
-import types
 from itertools import cycle
 
 import numpy as np
@@ -85,104 +84,6 @@ def get_methods():
 
 
 all_methods = get_methods()
-
-
-class NXModel(Model):
-
-    valid_forms = ()
-
-    def __init__(self, module, **kwargs):
-        """
-        Initialize a Model from a module.
-
-        Parameters
-        ----------
-        module : module
-            A module containing a function values() and a list of
-            parameters.
-        **kwargs :
-            Additional keyword arguments are passed to the Model
-            constructor.
-        """
-        self.module = module
-        super().__init__(self.module.values,
-                         param_names=self.module.parameters,
-                         independent_vars=self._get_x(), **kwargs)
-
-    def _parse_params(self):
-        """
-        Initialize the parameter names and default values.
-
-        This method is called by Model.__init__ after the parameters
-        have been set. It is used to set the internal parameter names
-        and default values used by the Model class. The names of the
-        parameters are set to the prefix plus the parameter name, and
-        the default values are set to an empty dictionary.
-        """
-        if self._prefix is None:
-            self._prefix = ''
-        self._param_names = [f"{self._prefix}{p}"
-                             for p in self._param_root_names]
-        self.def_vals = {}
-
-    def _get_x(self):
-        """Return a list of the names of the independent variables."""
-        return [key for key in inspect.signature(self.module.values).parameters
-                if key != 'p']
-
-    def make_funcargs(self, params=None, kwargs=None, strip=True):
-        """
-        Return a dictionary of keyword arguments for the model function.
-
-        Parameters
-        ----------
-        params : Parameters, optional
-            The Parameters to use.
-        kwargs : dict, optional
-            Additional keyword arguments to pass to the model function.
-        strip : bool, optional
-            Whether to strip the prefix from the parameter names. By
-            default, this is True.
-
-        Returns
-        -------
-        function_out : dict
-            A dictionary of keyword arguments for the model function.
-        """
-        self._func_allargs = ['x'] + self._param_root_names
-        out = super().make_funcargs(params=params, kwargs=kwargs, strip=strip)
-        function_out = {}
-        function_out['p'] = [out[p]
-                             for p in out if p in self._param_root_names]
-        for key in out:
-            if key not in self._param_root_names:
-                function_out[key] = out[key]
-        return function_out
-
-    def guess(self, y, x=None, **kwargs):
-        """
-        Estimate initial model parameter values from data.
-
-        Parameters
-        ----------
-        y : ndarray
-            data to fit
-        x : ndarray, optional
-            x-values of the data, by default None
-        **kwargs :
-            Additional keyword arguments are passed to the model's guess
-            method.
-
-        Returns
-        -------
-        Parameters
-            A Parameters object with the estimated values.
-        """
-        _guess = self.module.guess(x, y)
-        pars = self.make_params()
-        for i, p in enumerate(pars):
-            pars[p].value = _guess[i]
-        return pars
 
 
 class FitDialog(NXPanel):
@@ -950,9 +851,7 @@ class FitTab(NXTab):
         model : Model
             An instance of the specified model class.
         """
-        if isinstance(self.all_models[model_class], types.ModuleType):
-            return NXModel(self.all_models[model_class], prefix=model_name+'_')
-        elif self.all_models[model_class].valid_forms:
+        if self.all_models[model_class].valid_forms:
             return self.all_models[model_class](prefix=model_name+'_',
                                                 form=self.form_combo.selected)
         else:
