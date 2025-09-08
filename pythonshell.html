@@ -48,10 +48,10 @@
 <p>The Python interface to NeXus is provided by the <a class="reference external" href="https://github.com/nexpy/nexusformat">nexusformat</a> package, which is distributed
 separately from NeXpy.</p>
 <p>The Python API can be used within a standard Python or IPython shell:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ python
-Python 3.10.6 | packaged by conda-forge | (main, Aug 22 2022, 20:41:54) [Clang 13.0.1 ] on darwin
-Type &quot;help&quot;, &quot;copyright&quot;, &quot;credits&quot; or &quot;license&quot; for more information.
-&gt;&gt;&gt; from nexusformat.nexus import *
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">%</span> <span class="n">python</span>
+<span class="n">Python</span> <span class="mf">3.13</span><span class="o">.</span><span class="mi">5</span> <span class="o">|</span> <span class="n">packaged</span> <span class="n">by</span> <span class="n">conda</span><span class="o">-</span><span class="n">forge</span> <span class="o">|</span> <span class="p">(</span><span class="n">main</span><span class="p">,</span> <span class="n">Jun</span> <span class="mi">16</span> <span class="mi">2025</span><span class="p">,</span> <span class="mi">08</span><span class="p">:</span><span class="mi">23</span><span class="p">:</span><span class="mi">50</span><span class="p">)</span> <span class="p">[</span><span class="n">Clang</span> <span class="mf">18.1</span><span class="o">.</span><span class="mi">8</span> <span class="p">]</span> <span class="n">on</span> <span class="n">darwin</span>
+<span class="n">Type</span> <span class="s2">&quot;help&quot;</span><span class="p">,</span> <span class="s2">&quot;copyright&quot;</span><span class="p">,</span> <span class="s2">&quot;credits&quot;</span> <span class="ow">or</span> <span class="s2">&quot;license&quot;</span> <span class="k">for</span> <span class="n">more</span> <span class="n">information</span><span class="o">.</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="kn">from</span> <span class="nn">nexusformat.nexus</span> <span class="kn">import</span> <span class="o">*</span>
 </pre></div>
 </div>
 <div class="admonition note">
@@ -69,39 +69,60 @@ provides a tutorial for the Python API. It can be run in
 <div class="section" id="loading-nexus-data">
 <h2>Loading NeXus Data<a class="headerlink" href="#loading-nexus-data" title="Permalink to this headline">¶</a></h2>
 <p>The entire tree structure of a NeXus file can be loaded by a single command:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">=</span><span class="n">nxload</span><span class="p">(</span><span class="s1">&#39;sns/data/ARCS_7326_tof.nxs&#39;</span><span class="p">)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">root</span><span class="o">=</span><span class="n">nxload</span><span class="p">(</span><span class="s1">&#39;data/GUP-75927-22-1/cno/bg_1/cno_30K.nxs&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>The assigned variable now contains the entire tree structure of the
 file, which can be displayed by printing the ‘tree’ property:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">tree</span><span class="p">)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">root</span><span class="o">.</span><span class="n">tree</span><span class="p">)</span>
 <span class="go">root:NXroot</span>
-<span class="go"> @HDF5_Version = &#39;1.8.2&#39;</span>
-<span class="go"> @NeXus_version = &#39;4.2.1&#39;</span>
-<span class="go"> @file_name = &#39;ARCS_7326_tof.nxs&#39;</span>
-<span class="go"> @file_time = &#39;2010-05-05T01:59:25-05:00&#39;</span>
+<span class="go"> @HDF5_Version = &#39;1.10.6&#39;</span>
+<span class="go"> @default = &#39;f1&#39;</span>
+<span class="go"> @file_name = &#39;/net/s6iddata/export/s6buf1/GUP-75927-22-1/cno...&#39;</span>
+<span class="go"> @file_time = &#39;2022-03-18T19:30:16.169496&#39;</span>
+<span class="go"> @h5py_version = &#39;3.3.0&#39;</span>
+<span class="go"> @nexusformat_version = &#39;0.7.5.dev10+gf0406c7&#39;</span>
 <span class="go"> entry:NXentry</span>
-<span class="go">   data:NXdata</span>
-<span class="go">     @axes = [&#39;rotation_angle&#39; &#39;tilt_angle&#39; &#39;sample_angle&#39; &#39;time_of_flight&#39;]</span>
-<span class="go">     @signal = &#39;data&#39;</span>
-<span class="go">     data = float32(631x461x4x825)</span>
-<span class="go">     rotation_angle = float32(632)</span>
-<span class="go">       @units = &#39;degree&#39;</span>
-<span class="go">     sample_angle = float32(5)</span>
-<span class="go">       @units = &#39;degree&#39;</span>
-<span class="go">     tilt_angle = float32(462)</span>
-<span class="go">       @units = &#39;degree&#39;</span>
-<span class="go">     time_of_flight = float32(826)</span>
-<span class="go">       @units = &#39;microsecond&#39;</span>
-<span class="go">   run_number = &#39;7326&#39;</span>
-<span class="go">   sample:NXsample</span>
-<span class="go">     pulse_time = 2854.947473649946</span>
-<span class="go">       @units = &#39;microsecond&#39;</span>
+<span class="go"> entry:NXentry</span>
+<span class="go">   @default = &#39;nxmasked_combine&#39;</span>
+<span class="go">   instrument:NXinstrument</span>
+<span class="go">     detector:NXdetector</span>
+<span class="go">       description = &#39;Pilatus CdTe 2M&#39;</span>
+<span class="go">       distance = 680.0</span>
+<span class="go">         @units = &#39;mm&#39;</span>
+<span class="go">       frame_time = 0.1</span>
+<span class="go">         @units = &#39;second&#39;</span>
+<span class="go">       pitch = 0.0</span>
+<span class="go">         @units = &#39;degree&#39;</span>
+<span class="go">       pixel_mask = int8(1679x1475)</span>
+<span class="go">       pixel_size = 0.17200000000000001</span>
+<span class="go">         @units = &#39;mm&#39;</span>
+<span class="go">       roll = 0.0</span>
+<span class="go">         @units = &#39;degree&#39;</span>
+<span class="go">       shape = [1679 1475]</span>
+<span class="go">       yaw = 0.0</span>
+<span class="go">         @units = &#39;degree&#39;</span>
+<span class="go">     goniometer:NXgoniometer</span>
+<span class="go">       chi = -90.0</span>
+<span class="go">         @units = &#39;degree&#39;</span>
+<span class="go">       phi = -5.0</span>
+<span class="go">         @end = 360.0</span>
+<span class="go">         @step = 0.10000000149011612</span>
+<span class="go">         @units = &#39;degree&#39;</span>
+<span class="go">     monochromator:NXmonochromator</span>
+<span class="go">       energy = 86.72528557354696</span>
+<span class="go">         @units = &#39;keV&#39;</span>
+<span class="go">       wavelength = 0.1429619938135147</span>
+<span class="go">         @units = &#39;angstrom&#39;</span>
+<span class="go">   nxcombine:NXprocess</span>
+<span class="go">     @default = &#39;transform&#39;</span>
+<span class="go">     date = &#39;2022-03-22T16:22:12.851076&#39;</span>
+<span class="go"> ...</span>
 </pre></div>
 </div>
 <p>Individual data items are immediately accessible from the command-line:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">entry</span><span class="o">.</span><span class="n">run_number</span><span class="p">)</span>
-<span class="go">7326</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">root</span><span class="p">[</span><span class="s1">&#39;entry/instrument/detector/distance&#39;</span><span class="p">])</span>
+<span class="go">680.0</span>
 </pre></div>
 </div>
 <p>Only the tree structure and the values of smaller data sets are read
@@ -119,7 +140,7 @@ other configuration variables are described later.</p>
 <p>There is a second optional argument to the load module that defines the
 access mode for the existing data. For example, the following opens the
 file in read/write mode:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">=</span><span class="n">nxload</span><span class="p">(</span><span class="s1">&#39;chopper.nxs&#39;</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;rw&#39;</span><span class="p">)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">root</span><span class="o">=</span><span class="n">nxload</span><span class="p">(</span><span class="s1">&#39;chopper.nxs&#39;</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;rw&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>The default mode is ‘r’, <em>i.e.</em>, readonly access. The <cite>nxload</cite> function
@@ -156,11 +177,12 @@ function, which is then saved to a file:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">b</span><span class="o">=</span><span class="n">nxload</span><span class="p">(</span><span class="s1">&#39;function.nxs&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">b</span><span class="o">.</span><span class="n">tree</span><span class="p">)</span>
 <span class="go">root:NXroot</span>
-<span class="go">  @HDF5_Version = &#39;1.12.2&#39;</span>
-<span class="go"> @file_name = &#39;/home/username/function.nxs&#39;</span>
-<span class="go"> @file_time = &#39;2023-02-10T15:50:17.419158&#39;</span>
-<span class="go"> @h5py_version = &#39;3.7.0&#39;</span>
-<span class="go"> @nexusformat_version = &#39;1.0.0&#39;</span>
+<span class="go"> @HDF5_Version = &#39;1.14.6&#39;</span>
+<span class="go"> @creator = &#39;nexusformat&#39;</span>
+<span class="go"> @creator_version = &#39;2.0.0&#39;</span>
+<span class="go"> @file_name = &#39;/home/user/function.nxs&#39;</span>
+<span class="go"> @file_time = &#39;2025-09-08T10:51:44.001605&#39;</span>
+<span class="go"> @h5py_version = &#39;3.13.0&#39;</span>
 <span class="go"> entry:NXentry</span>
 <span class="go">   data:NXdata</span>
 <span class="go">     @axes = [&#39;axis1&#39;, &#39;axis2&#39;]</span>
@@ -204,19 +226,19 @@ arguments can be used to define NXfield <a class="reference internal" href="#att
 </div></blockquote>
 <ol class="arabic" start="2">
 <li><p>Dictionary assignment to the NeXus group:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="p">[</span><span class="s1">&#39;entry/sample/temperature&#39;</span><span class="p">]</span><span class="o">=</span><span class="mf">40.0</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">root</span><span class="p">[</span><span class="s1">&#39;entry/sample/temperature&#39;</span><span class="p">]</span><span class="o">=</span><span class="mf">40.0</span>
 </pre></div>
 </div>
 </li>
 <li><p>Attribute assignment as the child of a NeXus group:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">entry</span><span class="o">.</span><span class="n">sample</span><span class="o">.</span><span class="n">temperature</span><span class="o">=</span><span class="mf">40.0</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">root</span><span class="o">.</span><span class="n">entry</span><span class="o">.</span><span class="n">sample</span><span class="o">.</span><span class="n">temperature</span><span class="o">=</span><span class="mf">40.0</span>
 </pre></div>
 </div>
 </li>
 </ol>
 <blockquote>
 <div><p>The assigned values are automatically converted to an NXfield:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">entry</span><span class="o">.</span><span class="n">sample</span><span class="o">.</span><span class="n">temperature</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">root</span><span class="o">.</span><span class="n">entry</span><span class="o">.</span><span class="n">sample</span><span class="o">.</span><span class="n">temperature</span>
 <span class="go">NXfield(40.0)</span>
 </pre></div>
 </div>
@@ -295,19 +317,19 @@ is too large to be stored in memory and has to be written as slabs:</p>
 <span id="attributes"></span><h4>NeXus attributes<a class="headerlink" href="#nexus-attributes" title="Permalink to this headline">¶</a></h4>
 <p>The NeXus standard allows additional attributes to be attached to
 NXfields to contain metadata</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="p">[</span><span class="s1">&#39;entry/sample/temperature&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">units</span><span class="o">=</span><span class="s1">&#39;K&#39;</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">root</span><span class="p">[</span><span class="s1">&#39;entry/sample/temperature&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">units</span><span class="o">=</span><span class="s1">&#39;K&#39;</span>
 </pre></div>
 </div>
 <p>These have a class of NXattr. They can be defined using the ‘attrs’
 dictionary if necessary to avoid name clashes:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="p">[</span><span class="s1">&#39;entry/sample/temperature&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;units&#39;</span><span class="p">]</span><span class="o">=</span><span class="s1">&#39;K&#39;</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">root</span><span class="p">[</span><span class="s1">&#39;entry/sample/temperature&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;units&#39;</span><span class="p">]</span><span class="o">=</span><span class="s1">&#39;K&#39;</span>
 </pre></div>
 </div>
 <p>Other common attributes include the ‘signal’ and ‘axes’ attributes used
 to define the plottable signal and independent axes, respectively, in a
 NXdata group.</p>
 <p>When a NeXus tree is printed, the attributes are prefixed by ‘&#64;’:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">entry</span><span class="o">.</span><span class="n">sample</span><span class="o">.</span><span class="n">tree</span><span class="p">)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">root</span><span class="p">[</span><span class="s1">&#39;entry/sample&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">tree</span><span class="p">)</span>
 <span class="go">sample:NXsample</span>
 <span class="go">  temperature = 40.0</span>
 <span class="go">    @units = &#39;K&#39;</span>
@@ -398,8 +420,9 @@ are compressed with the <code class="docutils literal notranslate"><span class="
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">z</span> <span class="o">=</span> <span class="n">NXfield</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span><span class="mi">1000</span><span class="p">,</span><span class="mi">1000</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">chunks</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">100</span><span class="p">,</span><span class="mi">100</span><span class="p">))</span>
 </pre></div>
 </div>
-<p>If chunk sizes are not specified, <em>e.g.</em>, with <code class="docutils literal notranslate"><span class="pre">chunks=True</span></code>, HDF5
-will choose default sizes.</p>
+<p>By default, any field with more than 10000 elements will be
+initialized with <code class="docutils literal notranslate"><span class="pre">chunks=True</span></code>. If chunk sizes are not specified,
+HDF5 will choose default values.</p>
 </li>
 <li><p>Maximum array shape:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">z</span> <span class="o">=</span> <span class="n">NXfield</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">1000</span><span class="p">,</span><span class="mi">1000</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">maxshape</span><span class="o">=</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span><span class="mi">1000</span><span class="p">,</span><span class="mi">1000</span><span class="p">))</span>
@@ -636,7 +659,7 @@ of the NXinstrument subgroups:</p>
 more memory or disk space.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>In earlier verions, links were required to have the same name
+<p>In earlier versions, links were required to have the same name
 as their parents, but this restriction has now been lifted.</p>
 </div>
 <p>In the Python API, the user who is only interested in accessing the data
@@ -984,7 +1007,7 @@ of all the metadata contained in the original NXdata group:</p>
 the sum method, but the result is divided by the number of data
 elements in the summation:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">average</span><span class="p">()</span>
-<span class="go">1.5</span>
+<span class="go">NXfield(1.5)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">nxsignal</span>
 <span class="go">NXfield([ 0.,  1.,  2.,  3.])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">nxsignal</span>
@@ -1001,7 +1024,7 @@ assuming the signal is one-dimensional:</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">y</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="p">(</span><span class="n">x</span><span class="o">-</span><span class="mi">3</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">=</span><span class="n">NXdata</span><span class="p">(</span><span class="n">y</span><span class="p">,</span><span class="n">x</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">moment</span><span class="p">()</span>
-<span class="go">3.0000002539776141</span>
+<span class="go">NXfield(3.000000253977615)</span>
 </pre></div>
 </div>
 </dd>
@@ -1182,10 +1205,29 @@ method can only be applied to NXentry, NXsubentry, and NXroot groups
 definition files contained within the package. Alternative
 definitions my be defined, either by setting the path to the
 definitions directory using <code class="docutils literal notranslate"><span class="pre">`nxsetconfig(definitions=&quot;/path/</span>
-<span class="pre">to/definitions&quot;)`</span></code> or by defining the NX_DEFINITIONS
+<span class="pre">to/definitions&quot;)`</span></code> or by defining the <code class="docutils literal notranslate"><span class="pre">NX_DEFINITIONS</span></code>
 environment variable. The path should contain subdirectories
 named ‘base_classes’, ‘applications’ and
 ‘contributed_definitions’.</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>These functions do not produce any output when run within
+the NeXpy shell. Please use the ‘Validate Data’ menu item.</p>
+</div>
+</div>
+<div class="section" id="serializing-nexus-data">
+<h2>Serializing NeXus Data<a class="headerlink" href="#serializing-nexus-data" title="Permalink to this headline">¶</a></h2>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Serialization is only possible in v2.0.0. See <a class="reference internal" href="includeme.html"><span class="doc">Installation</span></a>
+for more details.</p>
+</div>
+<p>NeXus groups and fields have functions that allow them to be serialized and deserialized for transmission over a network. The NeXus objects are converted into Python dictionaries, whose values can be used to reconstruct the original file using class methods.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">input_root</span> <span class="o">=</span> <span class="n">nxload</span><span class="p">(</span><span class="s1">&#39;chopper.nxs&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">input_root</span><span class="o">.</span><span class="n">serialize</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">output_root</span> <span class="o">=</span> <span class="n">NXroot</span><span class="o">.</span><span class="n">deserialize</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+</pre></div>
 </div>
 </div>
 <div class="section" id="nexus-file-operations">
@@ -1437,7 +1479,7 @@ manually by calling <code class="docutils literal notranslate"><span class="pre"
 <p>All of the configuration parameters defined in the previous section can
 be defined. The equivalent environment variable name is constructed by
 prefixing the parameter name in upper case by ‘NX_’, <em>e.g.</em>,
-‘NX_COMPRESSION’, ‘NX_DEFINITIONS’, ‘NX_ENCODING’, <em>etc</em>.</p>
+<code class="docutils literal notranslate"><span class="pre">NX_COMPRESSION</span></code>, <code class="docutils literal notranslate"><span class="pre">NX_DEFINITIONS</span></code>, <code class="docutils literal notranslate"><span class="pre">NX_ENCODING</span></code>, <em>etc</em>.</p>
 </div>
 </div>
 </div>
@@ -1496,6 +1538,7 @@ prefixing the parameter name in upper case by ‘NX_’, <em>e.g.</em>,
 </ul>
 </li>
 <li><a class="reference internal" href="#validating-nexus-data">Validating NeXus Data</a></li>
+<li><a class="reference internal" href="#serializing-nexus-data">Serializing NeXus Data</a></li>
 <li><a class="reference internal" href="#nexus-file-operations">NeXus File Operations</a><ul>
 <li><a class="reference internal" href="#multiple-operations">Multiple operations</a></li>
 <li><a class="reference internal" href="#file-locking">File Locking</a><ul>

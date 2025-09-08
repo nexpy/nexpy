@@ -8,8 +8,8 @@ separately from NeXpy.
 
 The Python API can be used within a standard Python or IPython shell::
 
- $ python
- Python 3.10.6 | packaged by conda-forge | (main, Aug 22 2022, 20:41:54) [Clang 13.0.1 ] on darwin
+ % python
+ Python 3.13.5 | packaged by conda-forge | (main, Jun 16 2025, 08:23:50) [Clang 18.1.8 ] on darwin
  Type "help", "copyright", "credits" or "license" for more information.
  >>> from nexusformat.nexus import *
 
@@ -23,44 +23,64 @@ The Python API can be used within a standard Python or IPython shell::
              `Google Colaboratory
              <https://colab.research.google.com/github/nexpy/nexusformat/blob/master/src/nexusformat/notebooks/nexusformat.ipynb>`__.
 
-
 Loading NeXus Data
 ==================
 The entire tree structure of a NeXus file can be loaded by a single command::
 
- >>> a=nxload('sns/data/ARCS_7326_tof.nxs')
+ >>> root=nxload('data/GUP-75927-22-1/cno/bg_1/cno_30K.nxs')
 
 The assigned variable now contains the entire tree structure of the
 file, which can be displayed by printing the 'tree' property::
 
- >>> print(a.tree)
+ >>> print(root.tree)
  root:NXroot
-  @HDF5_Version = '1.8.2'
-  @NeXus_version = '4.2.1'
-  @file_name = 'ARCS_7326_tof.nxs'
-  @file_time = '2010-05-05T01:59:25-05:00'
+  @HDF5_Version = '1.10.6'
+  @default = 'f1'
+  @file_name = '/net/s6iddata/export/s6buf1/GUP-75927-22-1/cno...'
+  @file_time = '2022-03-18T19:30:16.169496'
+  @h5py_version = '3.3.0'
+  @nexusformat_version = '0.7.5.dev10+gf0406c7'
   entry:NXentry
-    data:NXdata
-      @axes = ['rotation_angle' 'tilt_angle' 'sample_angle' 'time_of_flight']
-      @signal = 'data'
-      data = float32(631x461x4x825)
-      rotation_angle = float32(632)
-        @units = 'degree'
-      sample_angle = float32(5)
-        @units = 'degree'
-      tilt_angle = float32(462)
-        @units = 'degree'
-      time_of_flight = float32(826)
-        @units = 'microsecond'
-    run_number = '7326'
-    sample:NXsample
-      pulse_time = 2854.947473649946
-        @units = 'microsecond'
+  entry:NXentry
+    @default = 'nxmasked_combine'
+    instrument:NXinstrument
+      detector:NXdetector
+        description = 'Pilatus CdTe 2M'
+        distance = 680.0
+          @units = 'mm'
+        frame_time = 0.1
+          @units = 'second'
+        pitch = 0.0
+          @units = 'degree'
+        pixel_mask = int8(1679x1475)
+        pixel_size = 0.17200000000000001
+          @units = 'mm'
+        roll = 0.0
+          @units = 'degree'
+        shape = [1679 1475]
+        yaw = 0.0
+          @units = 'degree'
+      goniometer:NXgoniometer
+        chi = -90.0
+          @units = 'degree'
+        phi = -5.0
+          @end = 360.0
+          @step = 0.10000000149011612
+          @units = 'degree'
+      monochromator:NXmonochromator
+        energy = 86.72528557354696
+          @units = 'keV'
+        wavelength = 0.1429619938135147
+          @units = 'angstrom'
+    nxcombine:NXprocess
+      @default = 'transform'
+      date = '2022-03-22T16:22:12.851076'
+  ...
 
 Individual data items are immediately accessible from the command-line::
 
- >>> print(a.entry.run_number)
- 7326
+ >>> print(root['entry/instrument/detector/distance'])
+ 680.0
 
 Only the tree structure and the values of smaller data sets are read
 from the file to avoid using up memory unnecessarily. In the above
@@ -77,7 +97,7 @@ There is a second optional argument to the load module that defines the
 access mode for the existing data. For example, the following opens the
 file in read/write mode::
 
- >>> a=nxload('chopper.nxs', mode='rw')
+ >>> root=nxload('chopper.nxs', mode='rw')
 
 The default mode is 'r', *i.e.*, readonly access. The `nxload` function
 will accept any mode values allowed when opening h5py files, such as
@@ -111,11 +131,12 @@ This file can then be loaded again::
  >>> b=nxload('function.nxs')
  >>> print(b.tree)
  root:NXroot
-   @HDF5_Version = '1.12.2'
-  @file_name = '/home/username/function.nxs'
-  @file_time = '2023-02-10T15:50:17.419158'
-  @h5py_version = '3.7.0'
-  @nexusformat_version = '1.0.0'
+  @HDF5_Version = '1.14.6'
+  @creator = 'nexusformat'
+  @creator_version = '2.0.0'
+  @file_name = '/home/user/function.nxs'
+  @file_time = '2025-09-08T10:51:44.001605'
+  @h5py_version = '3.13.0'
   entry:NXentry
     data:NXdata
       @axes = ['axis1', 'axis2']
@@ -154,15 +175,15 @@ There are three ways to create an NXfield.
 
 2. Dictionary assignment to the NeXus group::
 
-    >>> a['entry/sample/temperature']=40.0
+    >>> root['entry/sample/temperature']=40.0
 
 3. Attribute assignment as the child of a NeXus group::
 
-    >>> a.entry.sample.temperature=40.0
+    >>> root.entry.sample.temperature=40.0
 
   The assigned values are automatically converted to an NXfield::
 
-    >>> a.entry.sample.temperature
+    >>> root.entry.sample.temperature
     NXfield(40.0)
 
   Dictionary and attribute assignments are equivalent, but dictionary
@@ -235,12 +256,12 @@ NeXus attributes
 The NeXus standard allows additional attributes to be attached to
 NXfields to contain metadata ::
 
- >>> a['entry/sample/temperature'].units='K'
+ >>> root['entry/sample/temperature'].units='K'
 
 These have a class of NXattr. They can be defined using the 'attrs'
 dictionary if necessary to avoid name clashes::
 
- >>> a['entry/sample/temperature'].attrs['units']='K'
+ >>> root['entry/sample/temperature'].attrs['units']='K'
 
 Other common attributes include the 'signal' and 'axes' attributes used
 to define the plottable signal and independent axes, respectively, in a
@@ -248,7 +269,7 @@ NXdata group.
 
 When a NeXus tree is printed, the attributes are prefixed by '@'::
 
- >>> print(a.entry.sample.tree)
+ >>> print(root['entry/sample'].tree)
  sample:NXsample
    temperature = 40.0
      @units = 'K'
@@ -336,8 +357,9 @@ HDF5 attributes that specify how the data are stored.
 
     >>> z = NXfield(shape=(1000,1000,1000), dtype=np.float32, chunks=(1,100,100))
 
-  If chunk sizes are not specified, *e.g.*, with ``chunks=True``, HDF5
-  will choose default sizes.
+  By default, any field with more than 10000 elements will be
+  initialized with ``chunks=True``. If chunk sizes are not specified,
+  HDF5 will choose default values.
 
 * Maximum array shape::
 
@@ -552,7 +574,7 @@ However, they may also be needed as plotting axes in a NXdata group::
 Links allow the same data to be used in different contexts without using
 more memory or disk space.
 
-.. note:: In earlier verions, links were required to have the same name
+.. note:: In earlier versions, links were required to have the same name
           as their parents, but this restriction has now been lifted.
 
 In the Python API, the user who is only interested in accessing the data
@@ -883,7 +905,7 @@ Some statistical operations can be performed on the NXdata group.
     elements in the summation::
 
      >>> a.average()
-     1.5
+     NXfield(1.5)
      >>> a.average(0).nxsignal
      NXfield([ 0.,  1.,  2.,  3.])
      >>> a.average(1).nxsignal
@@ -897,7 +919,7 @@ Some statistical operations can be performed on the NXdata group.
      >>> y=np.exp(-(x-3)**2)
      >>> a=NXdata(y,x)
      >>> a.moment()
-     3.0000002539776141
+     NXfield(3.000000253977615)
 
 
 Slicing
@@ -1056,11 +1078,25 @@ NXgroup objects have the following methods.
           definition files contained within the package. Alternative
           definitions my be defined, either by setting the path to the
           definitions directory using ```nxsetconfig(definitions="/path/
-          to/definitions")``` or by defining the NX_DEFINITIONS
+          to/definitions")``` or by defining the ``NX_DEFINITIONS``
           environment variable. The path should contain subdirectories
           named 'base_classes', 'applications' and
           'contributed_definitions'.
 
+.. warning:: These functions do not produce any output when run within
+             the NeXpy shell. Please use the 'Validate Data' menu item.
+
+Serializing NeXus Data
+======================
+
+.. note:: Serialization is only possible in v2.0.0. See :doc:`includeme`
+          for more details.
+
+NeXus groups and fields have functions that allow them to be serialized and deserialized for transmission over a network. The NeXus objects are converted into Python dictionaries, whose values can be used to reconstruct the original file using class methods.
+
+ >>> input_root = nxload('chopper.nxs')
+ >>> s = input_root.serialize()
+ >>> output_root = NXroot.deserialize(s)
 
 
 NeXus File Operations
@@ -1288,4 +1324,4 @@ manually by calling ``nxsetconfig``.
 All of the configuration parameters defined in the previous section can
 be defined. The equivalent environment variable name is constructed by
 prefixing the parameter name in upper case by 'NX\_', *e.g.*,
-'NX_COMPRESSION', 'NX_DEFINITIONS', 'NX_ENCODING', *etc*.
+``NX_COMPRESSION``, ``NX_DEFINITIONS``, ``NX_ENCODING``, *etc*.
