@@ -904,8 +904,8 @@ easily be converted to an NXfield:</p>
 </div>
 </div>
 </div>
-<div class="section" id="nxdata">
-<h4>NXdata<a class="headerlink" href="#nxdata" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="nxdata-operations">
+<h4>NXdata Operations<a class="headerlink" href="#nxdata-operations" title="Permalink to this headline">¶</a></h4>
 <p>Similar operations can also be performed on whole NXdata groups. If two
 NXdata groups are to be added, the rank and dimensions of the main
 signal array must match (although the names could be different):</p>
@@ -1051,8 +1051,8 @@ values themselves (assuming the array is monotonic):</p>
 </pre></div>
 </div>
 </div>
-<div class="section" id="id1">
-<h4>NXdata Groups<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="nxdata">
+<h4>NXdata<a class="headerlink" href="#nxdata" title="Permalink to this headline">¶</a></h4>
 <p>It is also possible to slice whole NXdata groups. In this case, the
 slicing works on the multidimensional NXfield, but the full NXdata group
 is returned with both the signal data and the associated axes limited by
@@ -1213,21 +1213,7 @@ named ‘base_classes’, ‘applications’ and
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
 <p>These functions do not produce any output when run within
-the NeXpy shell. Please use the ‘Validate Data’ menu item.</p>
-</div>
-</div>
-<div class="section" id="serializing-nexus-data">
-<h2>Serializing NeXus Data<a class="headerlink" href="#serializing-nexus-data" title="Permalink to this headline">¶</a></h2>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Serialization is only possible in v2.0.0. See <a class="reference internal" href="includeme.html"><span class="doc">Installation</span></a>
-for more details.</p>
-</div>
-<p>NeXus groups and fields have functions that allow them to be serialized and deserialized for transmission over a network. The NeXus objects are converted into Python dictionaries, whose values can be used to reconstruct the original file using class methods.</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">input_root</span> <span class="o">=</span> <span class="n">nxload</span><span class="p">(</span><span class="s1">&#39;chopper.nxs&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">input_root</span><span class="o">.</span><span class="n">serialize</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">output_root</span> <span class="o">=</span> <span class="n">NXroot</span><span class="o">.</span><span class="n">deserialize</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
-</pre></div>
+the NeXpy shell. Please use the <span class="xref std std-ref">validate-data</span> menu item when using NeXpy.</p>
 </div>
 </div>
 <div class="section" id="nexus-file-operations">
@@ -1368,6 +1354,28 @@ appended. If a stale lock is encountered, it may be cleared by calling
 external process is also using <em>nexusformat</em>.</p>
 </div>
 </div>
+</div>
+</div>
+<div class="section" id="serializing-nexus-data">
+<h2>Serializing NeXus Data<a class="headerlink" href="#serializing-nexus-data" title="Permalink to this headline">¶</a></h2>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Serialization is only possible in v2.0.0. See <a class="reference internal" href="includeme.html"><span class="doc">Installation</span></a>
+for more details.</p>
+</div>
+<p>NeXus groups and fields have functions that allow them to be serialized
+and deserialized for transmission over a network. The NeXus objects are
+converted into Python dictionaries, whose values can be used to
+reconstruct the original file using class methods.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">input_root</span> <span class="o">=</span> <span class="n">nxload</span><span class="p">(</span><span class="s1">&#39;chopper.nxs&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">input_root</span><span class="o">.</span><span class="n">serialize</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">output_root</span> <span class="o">=</span> <span class="n">NXroot</span><span class="o">.</span><span class="n">deserialize</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If the NeXus tree contains any external links, their
+respective files will have to be separately serialized and deserialized before the links will be resolved.</p>
 </div>
 </div>
 <div class="section" id="configuration-parameters">
@@ -1522,12 +1530,12 @@ prefixing the parameter name in upper case by ‘NX_’, <em>e.g.</em>,
 <li><a class="reference internal" href="#manipulating-nexus-data">Manipulating NeXus Data</a><ul>
 <li><a class="reference internal" href="#arithmetic-operations">Arithmetic Operations</a><ul>
 <li><a class="reference internal" href="#nxfield">NXfield</a></li>
-<li><a class="reference internal" href="#nxdata">NXdata</a></li>
+<li><a class="reference internal" href="#nxdata-operations">NXdata Operations</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#slicing">Slicing</a><ul>
 <li><a class="reference internal" href="#nxfields">NXfields</a></li>
-<li><a class="reference internal" href="#id1">NXdata Groups</a></li>
+<li><a class="reference internal" href="#nxdata">NXdata</a></li>
 </ul>
 </li>
 </ul>
@@ -1538,7 +1546,6 @@ prefixing the parameter name in upper case by ‘NX_’, <em>e.g.</em>,
 </ul>
 </li>
 <li><a class="reference internal" href="#validating-nexus-data">Validating NeXus Data</a></li>
-<li><a class="reference internal" href="#serializing-nexus-data">Serializing NeXus Data</a></li>
 <li><a class="reference internal" href="#nexus-file-operations">NeXus File Operations</a><ul>
 <li><a class="reference internal" href="#multiple-operations">Multiple operations</a></li>
 <li><a class="reference internal" href="#file-locking">File Locking</a><ul>
@@ -1547,6 +1554,7 @@ prefixing the parameter name in upper case by ‘NX_’, <em>e.g.</em>,
 </li>
 </ul>
 </li>
+<li><a class="reference internal" href="#serializing-nexus-data">Serializing NeXus Data</a></li>
 <li><a class="reference internal" href="#configuration-parameters">Configuration Parameters</a><ul>
 <li><a class="reference internal" href="#environment-variables">Environment variables</a></li>
 </ul>

@@ -7,8 +7,8 @@ invoked from the command line by::
 
  > nexpy
 
-.. note:: This assumes that the Python 'bin' directory is in your standard shell
-          path.
+.. note:: This assumes that the Python 'bin' directory is in your
+          standard shell path.
 
 .. image:: /images/nexpy-gui.png
    :align: center
@@ -151,8 +151,9 @@ File Menu
 
 **Import**
     Imports data from other formats. Some importers are provided with
-    the NeXpy distribution, but others will be loaded from the user's
-    ``~/.nexpy/readers`` directory.
+    the NeXpy distribution, but others can be loaded from the user's
+    ``~/.nexpy/readers`` directory or imported from third-party
+    packages that have defined a ``nexpy.readers`` entry point.
 
     .. seealso:: `Importing NeXus Data`_
 
@@ -226,8 +227,16 @@ File Menu
     Open a dialog to modify settings for this session. It is also
     possible to save them as the default for subsequent sessions.
 
+Edit Menu
+^^^^^^^^^
+This menu contains editing functions that apply to the IPython shell.
+
 Data Menu
 ^^^^^^^^^
+
+.. note:: This menu provides a number of functions that can be applied
+          to the item selected in the tree view. If the function is not available for the selected item, it is not enabled. The same functions are available by right-clicking on the corresponding tree item.
+
 **Plot Data**
     Plots the selected tree item in the plotting pane. If the selected
     item is not a valid NXdata, NXmonitor, or NXlog group, a plot dialog
@@ -243,6 +252,14 @@ Data Menu
               the original plotting limits, the slider limits are
               increased to cover the expanded range.
 
+**Plot All Signals**
+    Plots the main signal and all auxiliary signals if they have been
+    defined by the selected NXdata group.
+
+**Plot Weighted Data**
+    Plots the data normalized by the weights array if defined in the
+    selected NXdata group.
+
 **Plot RGB(A) Image**
     Plots the selected tree item as an RGB(A) image. In such images, the
     fastest varying dimension, which should be of size 3 or 4, contains
@@ -254,6 +271,12 @@ Data Menu
     or a field. All the metadata associated with the item, including any
     attributes, are displayed. For multidimensional data, a 10 x 10 slab
     of values is displayed, with spin boxes to select the slab offsets.
+
+    If the selected tree item is a group containing scalar fields, they
+    will be listed in a table. Their values are editable if the file has
+    been unlocked.
+
+.. _validate-data:
 
 **Validate Data**
     Displays a text window, in which the contents of the selected group
@@ -272,34 +295,30 @@ Data Menu
 
 .. note:: Group validation is only available in NeXpy v2.0.0.
 
-**Add Data**
-    Adds data to the selected tree item. If the selected item is a
-    group, the added data can be a group or field. If the selected item
-    is a field, the added data must be a field attribute.
-
-    When adding a field, the 'Add Data' dialog allows the name, value
-    and data type to be specified. A dropdown menu can be used to enter
-    field names that are defined by the NeXus standard, but the user is
-    free to enter alternative names. The value field can be any valid
-    Python expression, including NumPy functions such as np.linspace().
-
-    When adding a group, the 'Add Data' dialog allows the name and class
-    of the group to be specified. A dropdown menu display can be used to
-    enter one of the defined NeXus classes. Those above the dashed line
+**Add Group**
+    Adds a group to the selected group in the tree with the specified
+    name and base class. A dropdown menu display lists valid base
+    classes defined by the NeXus standard; those above the dashed line
     are valid in the context of the selected tree item, but any of the
     other classes can also be selected.
 
     .. note:: If you click on the dropdown menus and hover over any
               item, a tooltip gives a description of its use.
 
-**Initialize Data**
-    Adds a NeXus field to the selected tree item with the specified
-    shape and data type, but without a predefined value. This is useful
-    when creating large arrays that have to be entered as slabs. The
-    shape box must contain a single integer, for a one-dimensional
-    array, or a tuple (or list) of integers, for a multidimensional
-    array. As with the 'Add Data' dialog, dropdown menus show the field
-    names defined by the NeXus standard.
+**Add Field**
+    Adds a field to the selected group in the tree with the specified
+    name, value, and data type. A dropdown menu can be used to enter
+    field names that are defined by the NeXus standard, but the user is
+    free to enter alternative names. The value field can be any valid
+    Python expression, including NumPy functions such as
+    ``np.linspace()``. Units and long name attributes can also be specified.
+
+**Add Attribute**
+    Adds an attribute to the selected group or field in the tree with
+    the specified name, value, and data type. A dropdown menu can be
+    used to enter attribute names that are defined by the NeXus
+    standard, but the user is free to enter alternative names. The value
+    field can be any valid Python expression.
 
 **Rename Data**
     Renames the selected tree item. If the item is a group, its class
@@ -375,6 +394,11 @@ Data Menu
     before calling a non-linear least-squares fitting module.
 
     .. seealso:: `Fitting NeXus Data`_.
+
+View Menu
+^^^^^^^^^
+This menu contains functions to enter full screen mode and
+increase/decrease font sizes.
 
 Window Menu
 ^^^^^^^^^^^
@@ -497,6 +521,9 @@ Window Menu
        :align: center
        :width: 90%
 
+**Show All Limits**
+    This opens the limits panel for every open plot window.
+
 **Reset Plot Limits**
     This restores the axis and signal limits to the original values.
 
@@ -519,8 +546,22 @@ Window Menu
               will not be added to the NeXpy menu. They can be modified
               using the standard Pyplot commands.
 
+**Close Plot Window**
+    Closes the currently active NeXpy plot window.
+
 **Equalize Plot Sizes**
     All plot windows are resized to match the main window.
+
+**Cascade Plots**
+    Repositions all open NeXpy plot windows to cascade from the upper
+    left corner of the screen to the lower right. This does not apply to
+    special windows, such as the Projection, Fit, and Rotation windows.
+
+**Tile Plots**
+    Tiles all open NeXpy plot windows in a grid starting at the upper
+    left corner moving from left to right, adding extra rows as
+    necessary. This does not apply to special windows, such as the
+    Projection, Fit, and Rotation windows.
 
 **Main, Figure 1, Figure 2...**
     These menu items set the selected plotting window to be active. As
@@ -558,6 +599,16 @@ Script Menu
     Opens the startup script, ``~/.nexpy/config.py``, which is run when
     NeXpy is launched. This can be used to customize imports and other
     settings that affect the IPython shell.
+
+**Public Scripts**
+    A tree view of all the scripts stored in the public script
+    directory. The location of this directory may be defined by the
+    environment variable ``NX_SCRIPTDIRECTORY`` or specified in the
+    ``Edit Settings`` dialog.
+
+**Private Scripts**
+    A tree view of all the scripts stored in the private script
+    directory located in ``~/.nexpy/scripts``.
 
 Help Menus
 ^^^^^^^^^^
@@ -1121,13 +1172,17 @@ background to be combined before they are plotted.
 
 Saving the Fit
 ^^^^^^^^^^^^^^^^
-The original data, the fitted data, constituent models, and the
-parameters can all be saved to an NXprocess group in the Tree Pane,
-using the 'Save Fit' button, for subsequent plotting, refitting, or
-copying to another NeXus file. The group, named 'f1', 'f2', etc., is
-stored in the default scratch NXroot group, w0. If you choose to fit
-this entry again, it will load the models and parameters from the saved
-fit.
+The original data, the fitted data, the constituent models, and their
+parameters can all be saved to an NXprocess group in the Tree Pane using
+the 'Copy Fit' or 'Save Fit' buttons. If the 'Copy Fit' button is used,
+the NXprocess group can be pasted into any group in the tree that is
+unlocked. If the 'Save Fit' button is used, the group is saved to the
+scratch group, ``w0`` and named ``f1``, ``f2``, *etc*.
+
+If the NXprocess group is selected in the tree, it can be loaded into
+a new fit panel for further refinement. If new data is being fitted, a
+``Import Model`` button allows the parameters of an earlier fit to be
+loaded when its corresponding NXprocess group is selected in the tree.
 
 Closing the Fit Panel
 ^^^^^^^^^^^^^^^^^^^^^
@@ -1181,12 +1236,7 @@ NeXpy::
             return self.make_params(amplitude=data.max(), Tc=x.mean(), beta=0.33)
 
 .. warning:: Prior to v0.12.6, NeXpy defined its own system for
-             generating fitting functions. This system is now
-             deprecated, but legacy functions are still available at
-             the end of the model list. If you have produced your own
-             functions in the past, they will also be on this list.
-             However, we recommend that all new functions now adhere to
-             LMFIT model definitions.
+             generating fitting functions. In v2.0.0, this system is no longer supported. Legacy functions should be converted into valid LMFIT models.
 
 Importing NeXus Data
 --------------------
@@ -1249,7 +1299,8 @@ Defining a Reader
 It is possible to add a reader to the File:Import menu using the
 existing samples as a guide in the nexpy.readers directory. User-defined
 import dialogs can be added to their private readers directory in
-``~/.nexpy/readers``.
+``~/.nexpy/readers`` or installed in third-party packages that have the
+``nexpy.readers`` entry point defined.
 
 Here is an example of an import dialog::
 

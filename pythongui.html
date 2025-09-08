@@ -53,8 +53,8 @@ invoked from the command line by:</p>
 </div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>This assumes that the Python ‘bin’ directory is in your standard shell
-path.</p>
+<p>This assumes that the Python ‘bin’ directory is in your
+standard shell path.</p>
 </div>
 <a class="reference internal image-reference" href="_images/nexpy-gui.png"><img alt="_images/nexpy-gui.png" class="align-center" src="_images/nexpy-gui.png" style="width: 90%;" /></a>
 <p>The illustration shows the main features of the GUI:</p>
@@ -182,8 +182,9 @@ variable will not be deleted.</p>
 <dt><strong>Collapse Tree</strong></dt><dd><p>Collapses all expanded items in the tree.</p>
 </dd>
 <dt><strong>Import</strong></dt><dd><p>Imports data from other formats. Some importers are provided with
-the NeXpy distribution, but others will be loaded from the user’s
-<code class="docutils literal notranslate"><span class="pre">~/.nexpy/readers</span></code> directory.</p>
+the NeXpy distribution, but others can be loaded from the user’s
+<code class="docutils literal notranslate"><span class="pre">~/.nexpy/readers</span></code> directory or imported from third-party
+packages that have defined a <code class="docutils literal notranslate"><span class="pre">nexpy.readers</span></code> entry point.</p>
 <div class="admonition seealso">
 <p class="admonition-title">See also</p>
 <p><a class="reference internal" href="#importing-nexus-data">Importing NeXus Data</a></p>
@@ -257,8 +258,17 @@ possible to save them as the default for subsequent sessions.</p>
 </dd>
 </dl>
 </div>
+<div class="section" id="edit-menu">
+<h3>Edit Menu<a class="headerlink" href="#edit-menu" title="Permalink to this headline">¶</a></h3>
+<p>This menu contains editing functions that apply to the IPython shell.</p>
+</div>
 <div class="section" id="data-menu">
 <h3>Data Menu<a class="headerlink" href="#data-menu" title="Permalink to this headline">¶</a></h3>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This menu provides a number of functions that can be applied
+to the item selected in the tree view. If the function is not available for the selected item, it is not enabled. The same functions are available by right-clicking on the corresponding tree item.</p>
+</div>
 <dl>
 <dt><strong>Plot Data</strong></dt><dd><p>Plots the selected tree item in the plotting pane. If the selected
 item is not a valid NXdata, NXmonitor, or NXlog group, a plot dialog
@@ -275,6 +285,12 @@ the original plotting limits, the slider limits are
 increased to cover the expanded range.</p>
 </div>
 </dd>
+<dt><strong>Plot All Signals</strong></dt><dd><p>Plots the main signal and all auxiliary signals if they have been
+defined by the selected NXdata group.</p>
+</dd>
+<dt><strong>Plot Weighted Data</strong></dt><dd><p>Plots the data normalized by the weights array if defined in the
+selected NXdata group.</p>
+</dd>
 <dt><strong>Plot RGB(A) Image</strong></dt><dd><p>Plots the selected tree item as an RGB(A) image. In such images, the
 fastest varying dimension, which should be of size 3 or 4, contains
 the RGB(A) values for each pixel. By convention, the first pixel is
@@ -284,7 +300,12 @@ in the upper-left corner, rather than the lower-left.</p>
 or a field. All the metadata associated with the item, including any
 attributes, are displayed. For multidimensional data, a 10 x 10 slab
 of values is displayed, with spin boxes to select the slab offsets.</p>
+<p>If the selected tree item is a group containing scalar fields, they
+will be listed in a table. Their values are editable if the file has
+been unlocked.</p>
 </dd>
+</dl>
+<dl id="validate-data">
 <dt><strong>Validate Data</strong></dt><dd><p>Displays a text window, in which the contents of the selected group
 are checked against the NeXus standard. There are options to check
 that the group contents conform to the base class or, in the case of
@@ -302,17 +323,9 @@ class can also be displayed.</p>
 <p>Group validation is only available in NeXpy v2.0.0.</p>
 </div>
 <dl>
-<dt><strong>Add Data</strong></dt><dd><p>Adds data to the selected tree item. If the selected item is a
-group, the added data can be a group or field. If the selected item
-is a field, the added data must be a field attribute.</p>
-<p>When adding a field, the ‘Add Data’ dialog allows the name, value
-and data type to be specified. A dropdown menu can be used to enter
-field names that are defined by the NeXus standard, but the user is
-free to enter alternative names. The value field can be any valid
-Python expression, including NumPy functions such as np.linspace().</p>
-<p>When adding a group, the ‘Add Data’ dialog allows the name and class
-of the group to be specified. A dropdown menu display can be used to
-enter one of the defined NeXus classes. Those above the dashed line
+<dt><strong>Add Group</strong></dt><dd><p>Adds a group to the selected group in the tree with the specified
+name and base class. A dropdown menu display lists valid base
+classes defined by the NeXus standard; those above the dashed line
 are valid in the context of the selected tree item, but any of the
 other classes can also be selected.</p>
 <div class="admonition note">
@@ -321,13 +334,18 @@ other classes can also be selected.</p>
 item, a tooltip gives a description of its use.</p>
 </div>
 </dd>
-<dt><strong>Initialize Data</strong></dt><dd><p>Adds a NeXus field to the selected tree item with the specified
-shape and data type, but without a predefined value. This is useful
-when creating large arrays that have to be entered as slabs. The
-shape box must contain a single integer, for a one-dimensional
-array, or a tuple (or list) of integers, for a multidimensional
-array. As with the ‘Add Data’ dialog, dropdown menus show the field
-names defined by the NeXus standard.</p>
+<dt><strong>Add Field</strong></dt><dd><p>Adds a field to the selected group in the tree with the specified
+name, value, and data type. A dropdown menu can be used to enter
+field names that are defined by the NeXus standard, but the user is
+free to enter alternative names. The value field can be any valid
+Python expression, including NumPy functions such as
+<code class="docutils literal notranslate"><span class="pre">np.linspace()</span></code>. Units and long name attributes can also be specified.</p>
+</dd>
+<dt><strong>Add Attribute</strong></dt><dd><p>Adds an attribute to the selected group or field in the tree with
+the specified name, value, and data type. A dropdown menu can be
+used to enter attribute names that are defined by the NeXus
+standard, but the user is free to enter alternative names. The value
+field can be any valid Python expression.</p>
 </dd>
 <dt><strong>Rename Data</strong></dt><dd><p>Renames the selected tree item. If the item is a group, its class
 can also be changed. Dropdown menus provide a list of valid group
@@ -410,6 +428,11 @@ before calling a non-linear least-squares fitting module.</p>
 </div>
 </dd>
 </dl>
+</div>
+<div class="section" id="view-menu">
+<h3>View Menu<a class="headerlink" href="#view-menu" title="Permalink to this headline">¶</a></h3>
+<p>This menu contains functions to enter full screen mode and
+increase/decrease font sizes.</p>
 </div>
 <div class="section" id="window-menu">
 <h3>Window Menu<a class="headerlink" href="#window-menu" title="Permalink to this headline">¶</a></h3>
@@ -527,6 +550,8 @@ entered in the box by the corresponding file, where they can be
 edited if necessary.</p>
 <a class="reference internal image-reference" href="_images/scan-panel.png"><img alt="_images/scan-panel.png" class="align-center" src="_images/scan-panel.png" style="width: 90%;" /></a>
 </dd>
+<dt><strong>Show All Limits</strong></dt><dd><p>This opens the limits panel for every open plot window.</p>
+</dd>
 <dt><strong>Reset Plot Limits</strong></dt><dd><p>This restores the axis and signal limits to the original values.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -551,7 +576,18 @@ will not be added to the NeXpy menu. They can be modified
 using the standard Pyplot commands.</p>
 </div>
 </dd>
+<dt><strong>Close Plot Window</strong></dt><dd><p>Closes the currently active NeXpy plot window.</p>
+</dd>
 <dt><strong>Equalize Plot Sizes</strong></dt><dd><p>All plot windows are resized to match the main window.</p>
+</dd>
+<dt><strong>Cascade Plots</strong></dt><dd><p>Repositions all open NeXpy plot windows to cascade from the upper
+left corner of the screen to the lower right. This does not apply to
+special windows, such as the Projection, Fit, and Rotation windows.</p>
+</dd>
+<dt><strong>Tile Plots</strong></dt><dd><p>Tiles all open NeXpy plot windows in a grid starting at the upper
+left corner moving from left to right, adding extra rows as
+necessary. This does not apply to special windows, such as the
+Projection, Fit, and Rotation windows.</p>
 </dd>
 <dt><strong>Main, Figure 1, Figure 2…</strong></dt><dd><p>These menu items set the selected plotting window to be active. As
 new windows are created, they are dynamically added to this list.</p>
@@ -592,6 +628,14 @@ referenced in the script as <code class="docutils literal notranslate"><span cla
 <dt><strong>Open Startup Script</strong></dt><dd><p>Opens the startup script, <code class="docutils literal notranslate"><span class="pre">~/.nexpy/config.py</span></code>, which is run when
 NeXpy is launched. This can be used to customize imports and other
 settings that affect the IPython shell.</p>
+</dd>
+<dt><strong>Public Scripts</strong></dt><dd><p>A tree view of all the scripts stored in the public script
+directory. The location of this directory may be defined by the
+environment variable <code class="docutils literal notranslate"><span class="pre">NX_SCRIPTDIRECTORY</span></code> or specified in the
+<code class="docutils literal notranslate"><span class="pre">Edit</span> <span class="pre">Settings</span></code> dialog.</p>
+</dd>
+<dt><strong>Private Scripts</strong></dt><dd><p>A tree view of all the scripts stored in the private script
+directory located in <code class="docutils literal notranslate"><span class="pre">~/.nexpy/scripts</span></code>.</p>
 </dd>
 </dl>
 </div>
@@ -1143,13 +1187,16 @@ background to be combined before they are plotted.</p>
 </div>
 <div class="section" id="saving-the-fit">
 <h3>Saving the Fit<a class="headerlink" href="#saving-the-fit" title="Permalink to this headline">¶</a></h3>
-<p>The original data, the fitted data, constituent models, and the
-parameters can all be saved to an NXprocess group in the Tree Pane,
-using the ‘Save Fit’ button, for subsequent plotting, refitting, or
-copying to another NeXus file. The group, named ‘f1’, ‘f2’, etc., is
-stored in the default scratch NXroot group, w0. If you choose to fit
-this entry again, it will load the models and parameters from the saved
-fit.</p>
+<p>The original data, the fitted data, the constituent models, and their
+parameters can all be saved to an NXprocess group in the Tree Pane using
+the ‘Copy Fit’ or ‘Save Fit’ buttons. If the ‘Copy Fit’ button is used,
+the NXprocess group can be pasted into any group in the tree that is
+unlocked. If the ‘Save Fit’ button is used, the group is saved to the
+scratch group, <code class="docutils literal notranslate"><span class="pre">w0</span></code> and named <code class="docutils literal notranslate"><span class="pre">f1</span></code>, <code class="docutils literal notranslate"><span class="pre">f2</span></code>, <em>etc</em>.</p>
+<p>If the NXprocess group is selected in the tree, it can be loaded into
+a new fit panel for further refinement. If new data is being fitted, a
+<code class="docutils literal notranslate"><span class="pre">Import</span> <span class="pre">Model</span></code> button allows the parameters of an earlier fit to be
+loaded when its corresponding NXprocess group is selected in the tree.</p>
 </div>
 <div class="section" id="closing-the-fit-panel">
 <h3>Closing the Fit Panel<a class="headerlink" href="#closing-the-fit-panel" title="Permalink to this headline">¶</a></h3>
@@ -1204,12 +1251,7 @@ NeXpy:</p>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
 <p>Prior to v0.12.6, NeXpy defined its own system for
-generating fitting functions. This system is now
-deprecated, but legacy functions are still available at
-the end of the model list. If you have produced your own
-functions in the past, they will also be on this list.
-However, we recommend that all new functions now adhere to
-LMFIT model definitions.</p>
+generating fitting functions. In v2.0.0, this system is no longer supported. Legacy functions should be converted into valid LMFIT models.</p>
 </div>
 </div>
 </div>
@@ -1263,7 +1305,8 @@ selection of data from multiple columns, is under development.</p>
 <p>It is possible to add a reader to the <a class="reference external" href="File:Import">File:Import</a> menu using the
 existing samples as a guide in the nexpy.readers directory. User-defined
 import dialogs can be added to their private readers directory in
-<code class="docutils literal notranslate"><span class="pre">~/.nexpy/readers</span></code>.</p>
+<code class="docutils literal notranslate"><span class="pre">~/.nexpy/readers</span></code> or installed in third-party packages that have the
+<code class="docutils literal notranslate"><span class="pre">nexpy.readers</span></code> entry point defined.</p>
 <p>Here is an example of an import dialog:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Module to read in a TIFF file and convert it to NeXus.</span>
@@ -1521,7 +1564,9 @@ analysis, and finally the functions themselves:</p>
 <li><a class="reference internal" href="#">Python Graphical User Interface</a><ul>
 <li><a class="reference internal" href="#nexpy-menu-bar">NeXpy Menu Bar</a><ul>
 <li><a class="reference internal" href="#file-menu">File Menu</a></li>
+<li><a class="reference internal" href="#edit-menu">Edit Menu</a></li>
 <li><a class="reference internal" href="#data-menu">Data Menu</a></li>
+<li><a class="reference internal" href="#view-menu">View Menu</a></li>
 <li><a class="reference internal" href="#window-menu">Window Menu</a></li>
 <li><a class="reference internal" href="#script-menu">Script Menu</a></li>
 <li><a class="reference internal" href="#help-menus">Help Menus</a></li>
