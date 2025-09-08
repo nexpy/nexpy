@@ -804,8 +804,8 @@ easily be converted to an NXfield::
             >>> x.nxvalue
             array([1., 2., 3., 4.])
 
-NXdata
-^^^^^^
+NXdata Operations
+^^^^^^^^^^^^^^^^^
 Similar operations can also be performed on whole NXdata groups. If two
 NXdata groups are to be added, the rank and dimensions of the main
 signal array must match (although the names could be different)::
@@ -939,8 +939,8 @@ values themselves (assuming the array is monotonic)::
  >>> print(x[0.5:1.5])
  [ 0.50265482  0.56548668  0.62831853 ...,  1.38230077  1.44513262 1.50796447]
 
-NXdata Groups
-^^^^^^^^^^^^^
+NXdata
+^^^^^^
 It is also possible to slice whole NXdata groups. In this case, the
 slicing works on the multidimensional NXfield, but the full NXdata group
 is returned with both the signal data and the associated axes limited by
@@ -1084,20 +1084,7 @@ NXgroup objects have the following methods.
           'contributed_definitions'.
 
 .. warning:: These functions do not produce any output when run within
-             the NeXpy shell. Please use the 'Validate Data' menu item.
-
-Serializing NeXus Data
-======================
-
-.. note:: Serialization is only possible in v2.0.0. See :doc:`includeme`
-          for more details.
-
-NeXus groups and fields have functions that allow them to be serialized and deserialized for transmission over a network. The NeXus objects are converted into Python dictionaries, whose values can be used to reconstruct the original file using class methods.
-
- >>> input_root = nxload('chopper.nxs')
- >>> s = input_root.serialize()
- >>> output_root = NXroot.deserialize(s)
-
+             the NeXpy shell. Please use the :ref:`validate-data` menu item when using NeXpy.
 
 NeXus File Operations
 =====================
@@ -1233,6 +1220,24 @@ appended. If a stale lock is encountered, it may be cleared by calling
 
 .. note:: This lock is advisory. It is only guaranteed to work if the
           external process is also using *nexusformat*.
+
+Serializing NeXus Data
+======================
+
+.. note:: Serialization is only possible in v2.0.0. See :doc:`includeme`
+          for more details.
+
+NeXus groups and fields have functions that allow them to be serialized
+and deserialized for transmission over a network. The NeXus objects are
+converted into Python dictionaries, whose values can be used to
+reconstruct the original file using class methods.
+
+ >>> input_root = nxload('chopper.nxs')
+ >>> s = input_root.serialize()
+ >>> output_root = NXroot.deserialize(s)
+
+.. note:: If the NeXus tree contains any external links, their
+          respective files will have to be separately serialized and deserialized before the links will be resolved.
 
 Configuration Parameters
 ========================
