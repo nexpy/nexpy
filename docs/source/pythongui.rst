@@ -293,8 +293,6 @@ Data Menu
        :align: center
        :width: 90%
 
-.. note:: Group validation is only available in NeXpy v2.0.0.
-
 **Add Group**
     Adds a group to the selected group in the tree with the specified
     name and base class. A dropdown menu display lists valid base
@@ -825,24 +823,21 @@ limits and parameters using text boxes and sliders.
        :width: 90%
 
     The projection tab allows the Projection, Limits, and Scan panels to
-    be opened. In v2.0.0, it also allows the aspect ratio and skew angle
-    to be defined and a new plot window to be opened containing the
-    currently plotted two-dimensional data rotated at an arbitrary
-    angle. This allows projections to be applied along non-orthogonal
-    axes.
+    be opened. The aspect ratio and skew angle can be defined and a new
+    plot window opened containing the currently plotted two-dimensional
+    data rotated at an arbitrary angle. This allows projections to be
+    applied along non-orthogonal axes.
 
-    .. note:: In v2.0.0, arbitrary one-dimensional cuts through the
-              current two-dimensional plot can be plotted in a new
-              window by dragging along the required line with the Shift
-              key depressed. Subsequent cuts will be overplotted in
-              this window until it is closed.
+    .. note:: For a quick view of rotated data, arbitrary
+              one-dimensional cuts through the current
+              two-dimensional plot can be plotted in a new window by
+              dragging along the required line with the Shift key
+              depressed. Subsequent cuts will be overplotted in this
+              window until it is closed.
 
     .. image:: /images/rotation-plot.png
        :align: center
        :width: 90%
-
-
-
 
 **Options Tab**
 
@@ -1370,13 +1365,13 @@ available in the NeXpy package examples directory.
           directory (in ``~/.nexpy/plugins``), which will be searched
           on startup for any valid plugin modules. These do not have to
           be configured as installable packages. However, in v2.0.0,
-          plugins can no longer be installed into the NeXpy pacakge
+          plugins can no longer be installed into the NeXpy package
           itself.
 
-In v2.0.0, a new "Manage Plugins" dialog allows any plugins to be
-enabled/disabled, and their order in the menu bar changed. Duplicate
-menu names will not be loaded, but a warning will be added to the NeXpy
-log file.
+The "Manage Plugins" dialog, launched from the File menu, allows any
+plugins to be enabled/disabled, and their order in the menu bar changed.
+Duplicate menu names will not be loaded, but a warning will be added to
+the NeXpy log file.
 
 .. image:: /images/manage-plugins.png
    :align: center

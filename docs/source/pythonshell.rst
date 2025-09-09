@@ -1041,10 +1041,6 @@ to produce a valid NeXus file.
 
 Validating NeXus Data
 =====================
-
-.. note:: Validation is only possible in v2.0.0. See :doc:`includeme`
-          for more details.
-
 NeXus groups can be checked against the current definitions of the NeXus
 standard to look for non-compliant entries. The results are colorized,
 with errors printed in red, warnings printed in orange, and
@@ -1223,10 +1219,6 @@ appended. If a stale lock is encountered, it may be cleared by calling
 
 Serializing NeXus Data
 ======================
-
-.. note:: Serialization is only possible in v2.0.0. See :doc:`includeme`
-          for more details.
-
 NeXus groups and fields have functions that allow them to be serialized
 and deserialized for transmission over a network. The NeXus objects are
 converted into Python dictionaries, whose values can be used to
@@ -1237,7 +1229,9 @@ reconstruct the original file using class methods.
  >>> output_root = NXroot.deserialize(s)
 
 .. note:: If the NeXus tree contains any external links, their
-          respective files will have to be separately serialized and deserialized before the links will be resolved.
+          respective files will have to be separately serialized.
+          deserialized and saved to the same relative file location
+          before the links will be resolved.
 
 Configuration Parameters
 ========================

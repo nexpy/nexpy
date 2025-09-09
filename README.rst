@@ -53,24 +53,6 @@ latest development version in the `NeXpy Git repository
 
     $ git clone https://github.com/nexpy/nexusformat.git
 
-Version 2.0.0
--------------
-In preparation for the release of v2.0.0, beta versions of both packages
-have been uploaded to the `PyPI server
-<https://pypi.org/project/NeXpy/2.0.0b1/>`__. Users are invited to test
-it by installing using pip::
-
-    $ pip install nexpy==2.0.0b1
-
-New features include the ability to rotate 2D plots, validate NeXus
-groups against the standard, and enable/disable/reorder plugin menus
-dynamically.
-
-See the `release notes
-<https://github.com/nexpy/nexpy/releases/tag/v2.0.0b1>`__ for more
-details. Please report any issues to `Github
-<https://github.com/nexpy/nexpy/issues>`__ with relevant tracebacks.
-
 Required Libraries
 ==================
 Python Command-Line API
@@ -93,11 +75,14 @@ is installed.
 =================  =================================================
 Library            URL
 =================  =================================================
-nexusformat        https://github.com/nexpy/nexusformat
+nexusformat        https://github.com/nexpy/nexusformat/
 h5py               https://www.h5py.org
 numpy              https://numpy.org/
 scipy              https://scipy.org/
-IPython            https://ipython.org/
+packaging          https://packaging.pypa.io/
+dateutil           https://dateutil.readthedocs.io/
+colored            https://dslackw.gitlab.io/colored/
+pygments           https://pygments.org/
 =================  =================================================
 
 NeXpy GUI
@@ -118,20 +103,21 @@ Library            URL
 =================  =================================================
 IPython            https://ipython.org/
 qtconsole          https://qtconsole.readthedocs.io/
+qtpy               https://github.com/spyder-ide/qtpy
 matplotlib         https://matplotlib.org/
 lmfit              https://lmfit.github.io/lmfit-py/
-pylatexenc         https://pylatexenc.readthedocs.io/
+fabio              https://github.com/silx-kit/fabio
 pillow             https://pillow.readthedocs.io/
+pylatexenc         https://pylatexenc.readthedocs.io/
 ansi2html          https://pypi.python.org/pypi/ansi2html/
 mplcursors         https://mplcursors.readthedocs.io/
 =================  =================================================
 
 Additional Packages
 -------------------
-Importers may require additional libraries to read the imported files in their
-native format, *e.g.*, `spec2nexus <http://spec2nexus.readthedocs.org/>`__ for
-reading SPEC files and `FabIO <https://pythonhosted.org/fabio/>`__ for
-importing TIFF and CBF images.
+Importers may require additional libraries to read the imported files in
+their native format, *e.g.*, `spec2nexus
+<http://spec2nexus.readthedocs.org/>`__ for reading SPEC files.
 
 From v0.9.1, a new 2D smoothing option is available in the list of
 interpolations in the signal tab if `astropy <http://www.astropy.org>`__
@@ -139,21 +125,21 @@ is installed. It is labelled 'convolve' and provides, by default, a
 2-pixel Gaussian smoothing of the data. The number of pixels can be
 changed in the shell by setting ``plotview.smooth``.
 
-=================  ==========================================================
+=================  =================================================
 Library            URL
-=================  ==========================================================
-fabio              https://pythonhosted.org/fabio/
+=================  =================================================
 spec2nexus         http://spec2nexus.readthedocs.org/
 astropy            http://www.astropy.org/
-=================  ==========================================================
+=================  =================================================
 
-.. note:: NeXpy should still run without these additional packages, but invoking
-          the relevant menu items may trigger a warning.
+.. note:: NeXpy should still run without these additional packages, but
+          invoking the relevant menu items may trigger a warning.
 
 Running the GUI
 ---------------
-To run from the installed location, add the $prefix/bin directory to your path
-if you installed outside the python installation, and then run::
+To run from the installed location, add the $prefix/bin directory to
+your path if you installed outside the python installation, and then
+run::
 
     $ nexpy [-r]
 
@@ -184,5 +170,6 @@ NeXpy was originally developed by Paul Kienzle, who also wrote the
 standard Python interface to the NeXus C-API. The original version of
 NeXpy was initially developed by Boyana Norris, Jason Sarich, and Daniel
 Lowell, and Ray Osborn using wxPython, and formed the inspiration for
-the current PyQt version. I am grateful to Tom Schoonjans for installing
-the packages on conda-forge.
+the current PyQt version. Validation of NeXus files was developed by
+Kaitlyn Marlor and Justin Wozniak. I am grateful to Tom Schoonjans for
+installing the packages on conda-forge.
