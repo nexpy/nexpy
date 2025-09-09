@@ -44,10 +44,6 @@ This documentation describes two packages.
   .. image:: https://img.shields.io/conda/vn/conda-forge/nexusformat
      :target: https://anaconda.org/conda-forge/nexusformat
 
-.. note:: Beta versions of v2.0.0 of both
-          `NeXpy <https://github.com/nexpy/nexpy>`__ and
-          `nexusformat <https://github.com/nexpy/nexusformat>`__ are available on PyPI. Please see the Installation page for more details.
-
 ----
 
 .. toctree::

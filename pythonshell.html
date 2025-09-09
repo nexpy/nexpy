@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Python Interface to NeXus &#8212; NeXpy 2.0.0b2 documentation</title>
+    <title>Python Interface to NeXus &#8212; NeXpy 2.0.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/sphinxdoc.css" />
     <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
@@ -33,7 +33,7 @@
         <li class="right" >
           <a href="includeme.html" title="Installation"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 2.0.0b2 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 2.0.0 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Python Interface to NeXus</a></li> 
       </ul>
     </div>  
@@ -1156,11 +1156,6 @@ to produce a valid NeXus file.</p>
 </div>
 <div class="section" id="validating-nexus-data">
 <h2>Validating NeXus Data<a class="headerlink" href="#validating-nexus-data" title="Permalink to this headline">¶</a></h2>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Validation is only possible in v2.0.0. See <a class="reference internal" href="includeme.html"><span class="doc">Installation</span></a>
-for more details.</p>
-</div>
 <p>NeXus groups can be checked against the current definitions of the NeXus
 standard to look for non-compliant entries. The results are colorized,
 with errors printed in red, warnings printed in orange, and
@@ -1358,11 +1353,6 @@ external process is also using <em>nexusformat</em>.</p>
 </div>
 <div class="section" id="serializing-nexus-data">
 <h2>Serializing NeXus Data<a class="headerlink" href="#serializing-nexus-data" title="Permalink to this headline">¶</a></h2>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Serialization is only possible in v2.0.0. See <a class="reference internal" href="includeme.html"><span class="doc">Installation</span></a>
-for more details.</p>
-</div>
 <p>NeXus groups and fields have functions that allow them to be serialized
 and deserialized for transmission over a network. The NeXus objects are
 converted into Python dictionaries, whose values can be used to
@@ -1375,7 +1365,9 @@ reconstruct the original file using class methods.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>If the NeXus tree contains any external links, their
-respective files will have to be separately serialized and deserialized before the links will be resolved.</p>
+respective files will have to be separately serialized.
+deserialized and saved to the same relative file location
+before the links will be resolved.</p>
 </div>
 </div>
 <div class="section" id="configuration-parameters">
@@ -1610,7 +1602,7 @@ prefixing the parameter name in upper case by ‘NX_’, <em>e.g.</em>,
         <li class="right" >
           <a href="includeme.html" title="Installation"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 2.0.0b2 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 2.0.0 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Python Interface to NeXus</a></li> 
       </ul>
     </div>
