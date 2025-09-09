@@ -277,6 +277,7 @@ Data Menu
     been unlocked.
 
 .. _validate-data:
+
 **Validate Data**
     Displays a text window, in which the contents of the selected group
     are checked against the NeXus standard. There are options to check

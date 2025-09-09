@@ -1080,7 +1080,8 @@ NXgroup objects have the following methods.
           'contributed_definitions'.
 
 .. warning:: These functions do not produce any output when run within
-             the NeXpy shell. Please use the :ref:`validate-data` menu item when using NeXpy.
+             the NeXpy shell. Please use the :ref:`Validate Data
+             <validate-data>` menu item when using NeXpy.
 
 NeXus File Operations
 =====================
