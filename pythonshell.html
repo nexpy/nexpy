@@ -328,6 +328,11 @@ dictionary if necessary to avoid name clashes:</p>
 <p>Other common attributes include the ‘signal’ and ‘axes’ attributes used
 to define the plottable signal and independent axes, respectively, in a
 NXdata group.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">nxunits</span></code> property of an NXfield can be used to read
+and set units.</p>
+</div>
 <p>When a NeXus tree is printed, the attributes are prefixed by ‘&#64;’:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">root</span><span class="p">[</span><span class="s1">&#39;entry/sample&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">tree</span><span class="p">)</span>
 <span class="go">sample:NXsample</span>
@@ -745,8 +750,8 @@ is the absolute or relative file path of the external file.</p>
 respect to the parent file. If it is required to store the absolute file
 path, add the keyword argument, <code class="docutils literal notranslate"><span class="pre">abspath=True</span></code>.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">root</span><span class="p">[</span><span class="s1">&#39;entry/data/data&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">NXlink</span><span class="p">(</span><span class="s1">&#39;/counts&#39;</span><span class="p">,</span>
-<span class="go">                                     file=&#39;/home/user/external_counts.nxs&#39;,</span>
-<span class="go">                                     abspath=True)</span>
+<span class="go">                                 file=&#39;/home/user/external_counts.nxs&#39;,</span>
+<span class="go">                                 abspath=True)</span>
 </pre></div>
 </div>
 <div class="admonition warning">
@@ -754,6 +759,37 @@ path, add the keyword argument, <code class="docutils literal notranslate"><span
 <p>If the files are moved without preserving their relative
 file paths, the parent file will still open but the link
 will be broken.</p>
+</div>
+</div>
+<div class="section" id="modifying-links">
+<h4>Modifying Links<a class="headerlink" href="#modifying-links" title="Permalink to this headline">¶</a></h4>
+<p>The path to a linked object is given by the <code class="docutils literal notranslate"><span class="pre">nxtarget</span></code> property.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">root</span><span class="p">[</span><span class="s1">&#39;entry/data/polar_angle&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">nxtarget</span>
+<span class="go">&#39;entry/instrument/detector/polar_angle&#39;</span>
+</pre></div>
+</div>
+<p>If the link is external, <code class="docutils literal notranslate"><span class="pre">nxtarget</span></code> returns the object path within the
+external file, whose file path is given by the <code class="docutils literal notranslate"><span class="pre">nxfilename</span></code> property.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">external_link</span> <span class="o">=</span> <span class="n">NXlink</span><span class="p">(</span><span class="s1">&#39;/counts&#39;</span><span class="p">,</span>
+<span class="go">                           file=&#39;/home/user/external_counts.nxs&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">external_link</span><span class="o">.</span><span class="n">nxtarget</span>
+<span class="go">&#39;/counts&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">external_link</span><span class="o">.</span><span class="n">nxfilename</span>
+<span class="go">&#39;/home/user/external_counts.nxs&#39;</span>
+</pre></div>
+</div>
+<p>HDF5 does not allow link targets to be changed, so the link has to be
+deleted and recreated. To facilitate this operation, <em>nexusformat</em> has
+added a setter function that allows the field path and/or file path to
+be modified (as long as the file is unlocked). If a single value is
+given, the object path is changed, provided that it points to a valid
+NeXus object.</p>
+<p>If the link is external and <code class="docutils literal notranslate"><span class="pre">nxtarget</span></code> is a two-value tuple, the
+values correspond to the object path in the external file and the file
+path, respectively.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">external_link</span><span class="o">.</span><span class="n">nxtarget</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;/counts&#39;</span><span class="p">,</span>
+<span class="go">                              &#39;/home/user/external_counts.nxs&#39;)</span>
+</pre></div>
 </div>
 </div>
 </div>
@@ -1511,6 +1547,7 @@ prefixing the parameter name in upper case by ‘NX_’, <em>e.g.</em>,
 <li><a class="reference internal" href="#nexus-links">NeXus Links</a><ul>
 <li><a class="reference internal" href="#creating-a-link">Creating a Link</a></li>
 <li><a class="reference internal" href="#external-links">External Links</a></li>
+<li><a class="reference internal" href="#modifying-links">Modifying Links</a></li>
 </ul>
 </li>
 </ul>
