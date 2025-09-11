@@ -267,6 +267,9 @@ Other common attributes include the 'signal' and 'axes' attributes used
 to define the plottable signal and independent axes, respectively, in a
 NXdata group.
 
+.. note:: The ``nxunits`` property of an NXfield can be used to read
+          and set units.
+
 When a NeXus tree is printed, the attributes are prefixed by '@'::
 
  >>> print(root['entry/sample'].tree)
@@ -654,12 +657,43 @@ respect to the parent file. If it is required to store the absolute file
 path, add the keyword argument, ``abspath=True``.
 
  >>> root['entry/data/data'] = NXlink('/counts',
-                                      file='/home/user/external_counts.nxs',
-                                      abspath=True)
+                                  file='/home/user/external_counts.nxs',
+                                  abspath=True)
 
 .. warning:: If the files are moved without preserving their relative
              file paths, the parent file will still open but the link
              will be broken.
+
+Modifying Links
+^^^^^^^^^^^^^^^
+The path to a linked object is given by the ``nxtarget`` property.
+
+ >>> root['entry/data/polar_angle'].nxtarget
+ 'entry/instrument/detector/polar_angle'
+
+If the link is external, ``nxtarget`` returns the object path within the
+external file, whose file path is given by the ``nxfilename`` property.
+
+ >>> external_link = NXlink('/counts',
+                            file='/home/user/external_counts.nxs')
+ >>> external_link.nxtarget
+ '/counts'
+ >>> external_link.nxfilename
+ '/home/user/external_counts.nxs'
+
+HDF5 does not allow link targets to be changed, so the link has to be
+deleted and recreated. To facilitate this operation, *nexusformat* has
+added a setter function that allows the field path and/or file path to
+be modified (as long as the file is unlocked). If a single value is
+given, the object path is changed, provided that it points to a valid
+NeXus object.
+
+If the link is external and ``nxtarget`` is a two-value tuple, the
+values correspond to the object path in the external file and the file
+path, respectively.
+
+ >>> external_link.nxtarget = ('/counts',
+                               '/home/user/external_counts.nxs')
 
 Plotting NeXus Data
 ===================
