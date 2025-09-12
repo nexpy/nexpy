@@ -10,7 +10,7 @@ readme = "README.md"
 license = {file = "COPYING"}
 authors = [{name = "Raymond Osborn", email = "rayosborn@mac.com"}]
 classifiers = [
-  "Development Status :: 4 - Beta",
+  "Development Status :: 5 - Production/Stable",
   "License :: OSI Approved :: BSD License",
   "Intended Audience :: Developers",
   "Intended Audience :: Science/Research",
@@ -40,7 +40,7 @@ dependencies = [
     "lmfit",
     "matplotlib",
     "mplcursors",
-    "nexusformat >= 2.0.0b6",
+    "nexusformat >= 2.0.0",
     "numpy",
     "packaging",
     "pillow",
