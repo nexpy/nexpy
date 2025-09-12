@@ -3,9 +3,10 @@
 ------------------------
 About the example plugin
 ------------------------
-This contains an example of a package, ``chopper_plugin`` that provides a
-plugin menu to NeXpy. The entire directory can be copied to another location
-to form the template of another plugin, which should be given a unique name.
+This contains an example of a package, ``chopper_plugin`` that provides
+a plugin menu to NeXpy. The entire directory can be copied to another
+location to form the template of another plugin, which should be given a
+unique name.
 
 The package has an example ``pyproject.toml`` file, which defines the
 name of the package and an entry point labelled ``nexpy.plugins``, which
@@ -20,8 +21,8 @@ plugin discoverable.
 
 In this example, a menu item, 'Chopper', is added to the top-level NeXpy
 menu, with two sub-menu items designed to operated on ``chopper.nxs``,
-which is included as an example file. When loaded, select the ``chopper``
-root in the NeXpy tree before clicking on either menu item.
+which is included as an example file. When loaded, select the
+``chopper`` root in the NeXpy tree before clicking on either menu item.
 
 The requirement for a plugin is that a function ``plugin_menu``
 initializes the submenu items in the package's ``__init__.py``. These
