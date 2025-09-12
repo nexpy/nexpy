@@ -862,7 +862,7 @@ limits and parameters using text boxes and sliders.
       image aspect ratio and skew angles, turn axis grids on or off and
       set their styles, modify the point plot markers and lines, scale
       or add an offset to 1D plots, and draw legends.
-    * **Modify** - opens a style panel that allows the labels and font
+    * **Modify** - opens the Style Panel that allows the labels and font
       sizes of the plot to be adjusted dynamically. The plot margins
       can also be changed from the Matplotlib defaults.
     * **Save** - saves plot to PNG file.
