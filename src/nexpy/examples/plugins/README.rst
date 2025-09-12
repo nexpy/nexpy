@@ -8,7 +8,7 @@ plugin menu to NeXpy. The entire directory can be copied to another location
 to form the template of another plugin, which should be given a unique name.
 
 The package has an example ``pyproject.toml`` file, which defines the name
-of the package and an entry point labelled ``nexpy.readers``, which 
+of the package and an entry point labelled ``nexpy.plugins``, which 
 allows NeXpy to discover the plugin when the package has been installed, 
 using ``python -m pip install .``.
 
