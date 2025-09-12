@@ -857,12 +857,14 @@ limits and parameters using text boxes and sliders.
       automatically to fill the available space or setting the x and y
       scales to be equal. This is only valid if the units of the x and y
       axes are identical.
-    * **Subplot** - configures the spacing around the plot.
     * **Edit** - opens the Customize Panel to edit both image and point
       plots. Use this to change the title and axis labels, modify the
       image aspect ratio and skew angles, turn axis grids on or off and
       set their styles, modify the point plot markers and lines, scale
       or add an offset to 1D plots, and draw legends.
+    * **Modify** - opens a style panel that allows the labels and font
+      sizes of the plot to be adjusted dynamically. The plot margins
+      can also be changed from the Matplotlib defaults.
     * **Save** - saves plot to PNG file.
     * **Export** - exports plotted data to a NeXus file or, for
       one-dimensional data, a multi-column ASCII file.
