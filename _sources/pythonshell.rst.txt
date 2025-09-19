@@ -60,13 +60,6 @@ file, which can be displayed by printing the 'tree' property::
         shape = [1679 1475]
         yaw = 0.0
           @units = 'degree'
-      goniometer:NXgoniometer
-        chi = -90.0
-          @units = 'degree'
-        phi = -5.0
-          @end = 360.0
-          @step = 0.10000000149011612
-          @units = 'degree'
       monochromator:NXmonochromator
         energy = 86.72528557354696
           @units = 'keV'
