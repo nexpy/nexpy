@@ -136,42 +136,6 @@ def report_exception(*args):
     return message_box.exec()
 
 
-def run_pythonw(script_path):
-    """
-    Execute the NeXpy startup script using 'pythonw' on MacOS.
-
-    This relaunches the script in a subprocess using a framework build
-    of Python in order to fix the frozen menubar issue in MacOS 10.15
-    Catalina.
-
-    Based on https://github.com/napari/napari/pull/1554.
-    """
-    if 'PYTHONEXECUTABLE' in os.environ:
-        return
-    import platform
-    import warnings
-
-    if (Version(platform.release()) > Version('19.0.0') and
-            'CONDA_PREFIX' in os.environ):
-        pythonw_path = Path(sys.exec_prefix).joinpath('bin', 'pythonw')
-        if pythonw_path.exists():
-            cmd = [pythonw_path, script_path]
-            env = os.environ.copy()
-            if len(sys.argv) > 1:
-                cmd.extend(sys.argv[1:])
-            import subprocess
-            result = subprocess.run(cmd, env=env, cwd=Path.cwd())
-            sys.exit(result.returncode)
-        else:
-            msg = ("'pythonw' executable not found.\n"
-                   "To unfreeze the menubar on macOS, "
-                   "click away from nexpy to another app, "
-                   "then reactivate nexpy. To avoid this problem, "
-                   "please install python.app in conda using:\n\n"
-                   "conda install -c conda-forge python.app\n")
-            warnings.warn(msg)
-
-
 def get_mainwindow():
     """Return the NeXpy main window"""
     from .consoleapp import _mainwindow
