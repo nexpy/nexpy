@@ -2737,9 +2737,15 @@ class NXHighlighter(QtGui.QSyntaxHighlighter):
         self.searchFormat = QtGui.QTextCharFormat()
         self.searchFormat.setBackground(QtGui.QColor(255, 255, 0, 150))
         palette = self.editor.palette()
-        palette.setBrush(palette.Highlight, QtGui.QColor(255, 255, 0, 100))
-        palette.setBrush(palette.HighlightedText,
-                         QtGui.QBrush(QtCore.Qt.NoBrush))
+        if hasattr(palette, "ColorRole"):
+            palette.setBrush(palette.ColorRole.Highlight,
+                             QtGui.QColor(255, 255, 0, 100))
+            palette.setBrush(palette.ColorRole.HighlightedText,
+                             QtGui.QBrush(QtCore.Qt.NoBrush))
+        else:
+            palette.setBrush(palette.Highlight, QtGui.QColor(255, 255, 0, 100))
+            palette.setBrush(palette.HighlightedText,
+                             QtGui.QBrush(QtCore.Qt.NoBrush))
         self.editor.setPalette(palette)
 
     def update_style(self, style_name):
