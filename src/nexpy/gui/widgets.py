@@ -32,23 +32,7 @@ bold_font = QtGui.QFont()
 bold_font.setBold(True)
 
 
-class NXWidget(QtWidgets.QWidget):
-
-    def __init__(self, parent=None):
-        """
-        Initialize a NeXpy widget.
-
-        Parameters
-        ----------
-        parent : QWidget, optional
-            The parent window of the dialog, by default None
-        """
-        from .consoleapp import _mainwindow
-        self.mainwindow = _mainwindow
-        if parent is None:
-            parent = self.mainwindow
-        super().__init__(parent=parent)
-        self.set_attributes()
+class NXWidgetMixin:
 
     def set_attributes(self):
         """
@@ -1167,7 +1151,26 @@ class NXWidget(QtWidgets.QWidget):
         event.accept()
 
 
-class NXDialog(QtWidgets.QDialog, NXWidget):
+class NXWidget(NXWidgetMixin, QtWidgets.QWidget):
+
+    def __init__(self, parent=None):
+        """
+        Initialize a NeXpy widget.
+
+        Parameters
+        ----------
+        parent : QWidget, optional
+            The parent window of the dialog, by default None
+        """
+        from .consoleapp import _mainwindow
+        self.mainwindow = _mainwindow
+        if parent is None:
+            parent = self.mainwindow
+        super().__init__(parent=parent)
+        self.set_attributes()
+
+
+class NXDialog(NXWidgetMixin, QtWidgets.QDialog):
 
     def __init__(self, parent=None, default=False):
         """
