@@ -30,10 +30,6 @@ def main():
     for i, f in enumerate(args.filenames):
         args.filenames[i] = f"{Path(f).resolve()}"
 
-    if sys.platform == 'darwin':
-        from nexpy.gui.utils import run_pythonw
-        run_pythonw(__file__)
-
     from nexpy.gui.consoleapp import main
     main(args)
 
