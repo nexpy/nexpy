@@ -2760,7 +2760,7 @@ class NXHighlighter(QtGui.QSyntaxHighlighter):
         text : str
             The text to search for.
         """
-        self.searchText = text
+        self.searchText = QtCore.QRegularExpression.escape(text)
         self.rehighlight()
 
     def findNext(self):
@@ -2768,11 +2768,10 @@ class NXHighlighter(QtGui.QSyntaxHighlighter):
         self.editor.blockSignals(True)
         cursor = self.editor.textCursor()
         pos = cursor.selectionEnd()
-        found = self.document.find(
-            QtCore.QRegularExpression(self.searchText), pos)
+        regex = QtCore.QRegularExpression(self.searchText)
+        found = self.document.find(regex, pos)
         if found.isNull():
-            found = self.document.find(
-                QtCore.QRegularExpression(self.searchText), 0)
+            found = self.document.find(regex, 0)
         if not found.isNull():
             self.editor.setTextCursor(found)
             self.editor.ensureCursorVisible()
@@ -2784,7 +2783,6 @@ class NXHighlighter(QtGui.QSyntaxHighlighter):
             self.editor.setExtraSelections([extra_selection])
         else:
             self.editor.setExtraSelections([])
-
         self.editor.blockSignals(False)
 
     def findPrevious(self):
