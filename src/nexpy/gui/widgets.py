@@ -1140,16 +1140,6 @@ class NXWidgetMixin:
         self.activateWindow()
         self.setFocus()
 
-    def closeEvent(self, event):
-        """
-        Stop the thread and close the dialog.
-
-        This is called when the dialog is closed. It will stop any
-        currently running thread and close the dialog.
-        """
-        self.stop_thread()
-        event.accept()
-
 
 class NXWidget(NXWidgetMixin, QtWidgets.QWidget):
 
@@ -1168,6 +1158,16 @@ class NXWidget(NXWidgetMixin, QtWidgets.QWidget):
             parent = self.mainwindow
         super().__init__(parent=parent)
         self.set_attributes()
+
+    def closeEvent(self, event):
+        """
+        Stop the thread and close the dialog.
+
+        This is called when the dialog is closed. It will stop any
+        currently running thread and close the dialog.
+        """
+        self.stop_thread()
+        event.accept()
 
 
 class NXDialog(NXWidgetMixin, QtWidgets.QDialog):
@@ -1273,16 +1273,26 @@ class NXDialog(NXWidgetMixin, QtWidgets.QDialog):
                 return True
         return QtWidgets.QWidget.eventFilter(self, widget, event)
 
-    def closeEvent(self, event):
+    def cleanup(self):
         """
-        Called when the dialog is closed.
+        Clean up the dialog after it has been closed.
 
-        This removes the dialog from the main window's list of dialogs.
+        Stop the thread and remove the dialog from the list of dialogs.
         """
+        self.stop_thread()
         try:
             self.mainwindow.dialogs.remove(self)
         except Exception:
             pass
+
+    def closeEvent(self, event):
+        """
+        Called when the dialog is closed.
+
+        This stops any existing threads and removes the dialog from the
+        main window's list of dialogs.
+        """
+        self.cleanup()
         event.accept()
 
     def accept(self):
@@ -1292,18 +1302,16 @@ class NXDialog(NXWidgetMixin, QtWidgets.QDialog):
         This usually needs to be subclassed in each dialog.
         """
         self.accepted = True
-        if self in self.mainwindow.dialogs:
-            self.mainwindow.dialogs.remove(self)
-        QtWidgets.QDialog.accept(self)
+        self.cleanup()
+        super().accept()
 
     def reject(self):
         """
         Cancels the dialog without saving the result.
         """
         self.accepted = False
-        if self in self.mainwindow.dialogs:
-            self.mainwindow.dialogs.remove(self)
-        QtWidgets.QDialog.reject(self)
+        self.cleanup()
+        super().reject()
 
 
 class NXPanel(NXDialog):
