@@ -4166,7 +4166,7 @@ class ViewTab(NXTab):
             self.display_message('Group is read-only')
             return
         row = 1
-        for row in range(1, self.grid.rowCount()):
+        for row in range(0, self.grid.rowCount()):
             field_name = self.grid.itemAtPosition(row, 0).widget().text()
             field = self.group[field_name]
             if field.is_string():
