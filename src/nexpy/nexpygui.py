@@ -7,7 +7,6 @@
 # The full license is in the file COPYING, distributed with this software.
 # -----------------------------------------------------------------------------
 import argparse
-import sys
 from pathlib import Path
 
 import nexpy
