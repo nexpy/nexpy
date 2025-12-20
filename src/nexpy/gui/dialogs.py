@@ -4822,8 +4822,12 @@ class FieldDialog(NXDialog):
             return None
 
     def get_type(self):
-        """Return the type of the object as a NumPy dtype."""
-        return np.dtype(self.type_box.currentText())
+        """Return the requested type of the object."""
+        dtype = self.type_box.currentText()
+        if dtype == "str" or dtype == "bytes":
+            return "char"
+        else:
+            return np.dtype(dtype)
 
     def get_units(self):
         """Return the text of the units attribute."""
@@ -4999,7 +5003,11 @@ class AttributeDialog(NXDialog):
 
     def get_type(self):
         """Return the type of the object as a NumPy dtype."""
-        return np.dtype(self.type_box.currentText())
+        dtype = self.type_box.currentText()
+        if dtype == "str" or dtype == "bytes":
+            return "char"
+        else:
+            return np.dtype(dtype)
 
     def accept(self):
         """Add a new NeXus field to the tree."""
