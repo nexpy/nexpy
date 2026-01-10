@@ -10,17 +10,33 @@ See the [NeXpy documentation](http://nexpy.github.io/nexpy) for more details.
 
 Installing and Running
 ======================
-Released versions of NeXpy can be installed using either
+Released versions of NeXpy can be installed in an isolated environment using
 
 ```
-    $ pip install nexpy
+    $ uv tool install nexpy[qt]
 ```
 
-or::
+or
+
+```
+    $ pipx install nexpy[qt]
+```
+
+Alternatively, NeXpy can be installed into an existing Python environment using
+
+```
+    $ pip install nexpy[qt]
+```
+
+or
 
 ```
     $ conda install -c conda-forge nexpy
 ```
+
+The `[qt]` extra installs PyQt5 as the Qt binding. If you prefer a different
+binding, you can use `[pyqt6]`, `[pyside2]`, or `[pyside6]` instead. Conda
+installations include PyQt by default.
 
 The source code can be downloaded from the NeXpy Git repository:
 
@@ -54,9 +70,10 @@ open file is available if [IPython](https://ipython.org/) is installed.
 
 NeXpy GUI
 ---------
-The GUI is built using PyQt. The 
-[qtpy package](https://github.com/spyder-ide/qtpy) is used to import whatever 
-PyQt library is installed, whether PyQt5, PyQt6, PySide2, or PySide6.
+The GUI is built using Qt. The
+[qtpy package](https://github.com/spyder-ide/qtpy) is used to import whatever
+Qt binding is installed. One of PyQt5, PyQt6, PySide2, or PySide6 must be
+installed separately (see installation instructions above).
 
 The GUI embeds an [IPython shell](http://ipython.org/) and
 [Matplotlib plotting pane](http://matplotlib.sourceforge.net), within a Qt
