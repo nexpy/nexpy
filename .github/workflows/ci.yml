@@ -3,31 +3,36 @@ name: CI
 on:
   push:
     branches:
-      - 'main'
+      - main
   pull_request:
     branches:
-      - 'main'
+      - main
 
 jobs:
-  build:
-
+  test:
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
-        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]
-        os: [ubuntu-latest, macOS-latest, windows-latest]
+        # Full Python coverage with PyQt5 and PyQt6 on Linux
+        python: ["3.10", "3.11", "3.12", "3.13", "3.14"]
+        qt: [pyqt5, pyqt6]
+        os: [ubuntu-latest]
+        include:
+          # Spot-check PySide6 on Linux
+          - {python: "3.12", qt: pyside6, os: ubuntu-latest}
+          # Spot-check PyQt5 on macOS and Windows
+          - {python: "3.12", qt: pyqt5, os: macos-latest}
+          - {python: "3.12", qt: pyqt5, os: windows-latest}
+          # Spot-check PyQt6 on macOS and Windows
+          - {python: "3.12", qt: pyqt6, os: macos-latest}
+          - {python: "3.12", qt: pyqt6, os: windows-latest}
 
     steps:
-      - uses: actions/checkout@v6
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v6
-        with:
-          python-version: ${{ matrix.python-version }}
-      - name: Install dependencies
-        run: |
-          python -m pip install pyqt5
-          python -m pip install .
-          python -m pip install pytest
-      - name: Test with pytest
-        run: |
-          pytest
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+
+      - name: Run tests
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: uv run --python ${{ matrix.python }} --extra ${{ matrix.qt }} pytest
