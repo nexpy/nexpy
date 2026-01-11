@@ -21,9 +21,8 @@ jobs:
         include:
           # Spot-check PySide6 on Linux
           - {python: "3.12", qt: pyside6, os: ubuntu-latest}
-          # Spot-check PyQt5 on macOS and Windows
+          # Spot-check PyQt5 on macOS (Windows has wheel issues)
           - {python: "3.12", qt: pyqt5, os: macos-latest}
-          - {python: "3.12", qt: pyqt5, os: windows-latest}
           # Spot-check PyQt6 on macOS and Windows
           - {python: "3.12", qt: pyqt6, os: macos-latest}
           - {python: "3.12", qt: pyqt6, os: windows-latest}
@@ -31,6 +30,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v5
+
+      - name: Install Linux display dependencies
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y libegl1
 
       - name: Run tests
         env:
