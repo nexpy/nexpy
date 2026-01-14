@@ -4358,7 +4358,7 @@ class NXProjectionTab(QtWidgets.QWidget):
         plotviews[label].legend()
 
 
-class NXNavigationToolbar(NavigationToolbar2QT, QtWidgets.QToolBar):
+class NXNavigationToolbar(NavigationToolbar2QT):
 
     toolitems = (
         ('Home', 'Reset original view', 'home', 'home'),
