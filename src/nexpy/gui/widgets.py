@@ -1192,7 +1192,7 @@ class NXDialog(NXWidgetMixin, QtWidgets.QDialog):
         self.mainwindow = get_mainwindow()
         if parent is None:
             parent = self.mainwindow
-        QtWidgets.QDialog.__init__(self, parent=parent)
+        super().__init__(parent=parent)
         self.set_attributes()
         self.setAttribute(QtCore.Qt.WA_DeleteOnClose, True)
         self.setSizeGripEnabled(True)
@@ -1271,7 +1271,7 @@ class NXDialog(NXWidgetMixin, QtWidgets.QDialog):
             elif key == QtCore.Qt.Key_Escape:
                 event.ignore()
                 return True
-        return QtWidgets.QWidget.eventFilter(self, widget, event)
+        return super().eventFilter(widget, event)
 
     def cleanup(self):
         """
@@ -1282,7 +1282,7 @@ class NXDialog(NXWidgetMixin, QtWidgets.QDialog):
         self.stop_thread()
         try:
             self.mainwindow.dialogs.remove(self)
-        except Exception:
+        except ValueError:
             pass
 
     def closeEvent(self, event):
@@ -1295,23 +1295,11 @@ class NXDialog(NXWidgetMixin, QtWidgets.QDialog):
         self.cleanup()
         event.accept()
 
-    def accept(self):
-        """
-        Accepts the result.
-
-        This usually needs to be subclassed in each dialog.
-        """
-        self.accepted = True
+    def done(self, result):
+        """Close the dialog and clean up."""
+        self.accepted = (result == QtWidgets.QDialog.Accepted)
         self.cleanup()
-        super().accept()
-
-    def reject(self):
-        """
-        Cancels the dialog without saving the result.
-        """
-        self.accepted = False
-        self.cleanup()
-        super().reject()
+        super().done(result)
 
 
 class NXPanel(NXDialog):
