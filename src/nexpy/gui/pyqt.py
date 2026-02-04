@@ -10,16 +10,16 @@ import os
 from qtpy import QtCore, QtGui, QtWidgets
 
 if QtCore.PYQT5:
-    QtVersion = f"PyQt5 {QtCore.__version__}"
+    QtVersion = f"PyQt5 v{QtCore.__version__}"
     os.environ['QT_API'] = 'pyqt5'
 elif QtCore.PYQT6:
-    QtVersion = f"PyQt6 {QtCore.__version__}"
+    QtVersion = f"PyQt6 v{QtCore.__version__}"
     os.environ['QT_API'] = 'pyqt6'
 elif QtCore.PYSIDE2:
-    QtVersion = f"PySide2 {QtCore.__version__}"
+    QtVersion = f"PySide2 v{QtCore.__version__}"
     os.environ['QT_API'] = 'pyside2'
 elif QtCore.PYSIDE6:
-    QtVersion = f"PySide6 {QtCore.__version__}"
+    QtVersion = f"PySide6 v{QtCore.__version__}"
     os.environ['QT_API'] = 'pyside6'
 
 

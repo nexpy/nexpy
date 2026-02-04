@@ -179,9 +179,9 @@ class NXConsoleApp(JupyterQtConsoleApp):
         self.config.Completer.use_jedi = False
         self.config.RichJupyterWidget.banner = (
             f"Python {sys.version}\n"
-            f"GUI: {QtVersion} | Shell: IPython {ipython_version} | "
-            f"Graphics: Matplotlib {mpl_version}\n"
-            f"NeXpy: {nexpy_version} | NeXus API: nexusformat {nxversion}")
+            f"GUI: {QtVersion} | Shell: IPython v{ipython_version} | "
+            f"Graphics: Matplotlib v{mpl_version}\n"
+            f"NeXpy v{nexpy_version} | NeXus API: nexusformat v{nxversion}")
         self.config.RichJupyterWidget.include_other_output = False
         self.config.InteractiveShell.banner1 = ""
         self.config.InteractiveShell.banner2 = ""
