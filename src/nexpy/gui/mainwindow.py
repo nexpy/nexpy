@@ -46,32 +46,35 @@ from .utils import (confirm_action, define_mode, display_message, get_colors,
 
 class NXRichJupyterWidget(RichJupyterWidget):
 
-    def _is_complete(self, source, interactive=True):
-        """Check if source is a complete block of code.
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.kernel_manager = QtInProcessKernelManager(config=self.config)
+        self.kernel_manager.start_kernel()
+        self.kernel_manager.kernel.gui = 'qt'
+        self.kernel_client = self.kernel_manager.client()
+        self.kernel_client.start_channels()
+        self._confirm_exit = True
+        self.exit_requested.connect(self.close)
 
-        Parameters
-        ----------
-        source : str
-            Source code to check.
-        interactive : bool, optional
-            If True, consider IPython syntax like '%%' cell magics.
-            Default is True.
+        self.shell = self.kernel_manager.kernel.shell
+        self.shell._old_stb = self.shell._showtraceback
+        try:
+            self.shell.set_hook('complete_command', nxcompleter,
+                                re_key=r"(?:.*\=)?(?:.*\()?(?:.*,)?(.+?)\[")
+        except NameError:
+            pass
 
-        Returns
-        -------
-        complete : bool
-            True if source is complete.
-        indent : str
-            Indentation to apply to the next input, if any.
-        """
-        shell = self.kernel_manager.kernel.shell
-        status, indent_spaces = shell.input_transformer_manager.check_complete(
-            source)
-        if indent_spaces is None:
-            indent = ''
-        else:
-            indent = ' ' * indent_spaces
-        return status != 'incomplete', indent
+        def new_stb(etype, evalue, stb):
+            self.shell._old_stb(etype, evalue, [stb[-1]])
+            self.shell._last_traceback = stb
+        self.shell._showtraceback = new_stb
+
+        self.shellview = self._control
+        self.shellview.setFocusPolicy(QtCore.Qt.ClickFocus)
+
+    def shutdown(self):
+        self.kernel_client.stop_channels()
+        self.kernel_manager.shutdown_kernel()
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -122,34 +125,13 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.console = NXRichJupyterWidget(config=self.config)
         self.console.setMinimumSize(750, 100)
-        self.console._confirm_exit = True
-        self.console.kernel_manager = QtInProcessKernelManager(
-            config=self.config)
-        self.console.kernel_manager.start_kernel()
-        self.console.kernel_manager.kernel.gui = 'qt'
-        self.console.kernel_client = self.console.kernel_manager.client()
-        self.console.kernel_client.start_channels()
-        self.console.exit_requested.connect(self.close)
         self.console.show()
 
-        self.shellview = self.console._control
-        self.shellview.setFocusPolicy(QtCore.Qt.ClickFocus)
-
-        self.kernel = self.console.kernel_manager.kernel
-        self.shell = self.kernel.shell
-        self.user_ns = self.console.kernel_manager.kernel.shell.user_ns
+        self.shell = self.console.shell
         self.shell.ask_exit = self.close
-        self.shell._old_stb = self.shell._showtraceback
-        try:
-            self.shell.set_hook('complete_command', nxcompleter,
-                                re_key=r"(?:.*\=)?(?:.*\()?(?:.*,)?(.+?)\[")
-        except NameError:
-            pass
+        self.user_ns = self.shell.user_ns
 
-        def new_stb(etype, evalue, stb):
-            self.shell._old_stb(etype, evalue, [stb[-1]])
-            self.shell._last_traceback = stb
-        self.shell._showtraceback = new_stb
+        self.shellview = self.console.shellview
 
         self.tree = tree
         self.treeview = NXTreeView(self.tree, mainwindow=self)
@@ -2780,8 +2762,7 @@ class MainWindow(QtWidgets.QMainWindow):
         """Customize the close event to confirm request to quit."""
         if confirm_action("Are you sure you want to quit NeXpy?",
                           icon=self.app.icon_pixmap):
-            self.console.kernel_client.stop_channels()
-            self.console.kernel_manager.shutdown_kernel()
+            self.console.shutdown()
             self.close_files()
             logging.info('NeXpy closed\n'+80*'-')
             self._app.quit()
