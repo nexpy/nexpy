@@ -486,7 +486,7 @@ class NXTreeView(QtWidgets.QTreeView):
 
     def update(self):
         """Update the tree view."""
-        super().update()
+        self.viewport().update()
 
     def selection_changed(self):
         """

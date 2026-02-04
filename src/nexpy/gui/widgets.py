@@ -32,23 +32,7 @@ bold_font = QtGui.QFont()
 bold_font.setBold(True)
 
 
-class NXWidget(QtWidgets.QWidget):
-
-    def __init__(self, parent=None):
-        """
-        Initialize a NeXpy widget.
-
-        Parameters
-        ----------
-        parent : QWidget, optional
-            The parent window of the dialog, by default None
-        """
-        from .consoleapp import _mainwindow
-        self.mainwindow = _mainwindow
-        if parent is None:
-            parent = self.mainwindow
-        super().__init__(parent=parent)
-        self.set_attributes()
+class NXWidgetMixin:
 
     def set_attributes(self):
         """
@@ -1156,6 +1140,25 @@ class NXWidget(QtWidgets.QWidget):
         self.activateWindow()
         self.setFocus()
 
+
+class NXWidget(NXWidgetMixin, QtWidgets.QWidget):
+
+    def __init__(self, parent=None):
+        """
+        Initialize a NeXpy widget.
+
+        Parameters
+        ----------
+        parent : QWidget, optional
+            The parent window of the dialog, by default None
+        """
+        from .consoleapp import _mainwindow
+        self.mainwindow = _mainwindow
+        if parent is None:
+            parent = self.mainwindow
+        super().__init__(parent=parent)
+        self.set_attributes()
+
     def closeEvent(self, event):
         """
         Stop the thread and close the dialog.
@@ -1167,7 +1170,7 @@ class NXWidget(QtWidgets.QWidget):
         event.accept()
 
 
-class NXDialog(QtWidgets.QDialog, NXWidget):
+class NXDialog(NXWidgetMixin, QtWidgets.QDialog):
 
     def __init__(self, parent=None, default=False):
         """
@@ -1189,7 +1192,7 @@ class NXDialog(QtWidgets.QDialog, NXWidget):
         self.mainwindow = get_mainwindow()
         if parent is None:
             parent = self.mainwindow
-        QtWidgets.QDialog.__init__(self, parent=parent)
+        super().__init__(parent=parent)
         self.set_attributes()
         self.setAttribute(QtCore.Qt.WA_DeleteOnClose, True)
         self.setSizeGripEnabled(True)
@@ -1268,39 +1271,35 @@ class NXDialog(QtWidgets.QDialog, NXWidget):
             elif key == QtCore.Qt.Key_Escape:
                 event.ignore()
                 return True
-        return QtWidgets.QWidget.eventFilter(self, widget, event)
+        return super().eventFilter(widget, event)
+
+    def cleanup(self):
+        """
+        Clean up the dialog after it has been closed.
+
+        Stop the thread and remove the dialog from the list of dialogs.
+        """
+        self.stop_thread()
+        try:
+            self.mainwindow.dialogs.remove(self)
+        except ValueError:
+            pass
 
     def closeEvent(self, event):
         """
         Called when the dialog is closed.
 
-        This removes the dialog from the main window's list of dialogs.
+        This stops any existing threads and removes the dialog from the
+        main window's list of dialogs.
         """
-        try:
-            self.mainwindow.dialogs.remove(self)
-        except Exception:
-            pass
+        self.cleanup()
         event.accept()
 
-    def accept(self):
-        """
-        Accepts the result.
-
-        This usually needs to be subclassed in each dialog.
-        """
-        self.accepted = True
-        if self in self.mainwindow.dialogs:
-            self.mainwindow.dialogs.remove(self)
-        QtWidgets.QDialog.accept(self)
-
-    def reject(self):
-        """
-        Cancels the dialog without saving the result.
-        """
-        self.accepted = False
-        if self in self.mainwindow.dialogs:
-            self.mainwindow.dialogs.remove(self)
-        QtWidgets.QDialog.reject(self)
+    def done(self, result):
+        """Close the dialog and clean up."""
+        self.accepted = (result == QtWidgets.QDialog.Accepted)
+        self.cleanup()
+        super().done(result)
 
 
 class NXPanel(NXDialog):
@@ -2734,9 +2733,15 @@ class NXHighlighter(QtGui.QSyntaxHighlighter):
         self.searchFormat = QtGui.QTextCharFormat()
         self.searchFormat.setBackground(QtGui.QColor(255, 255, 0, 150))
         palette = self.editor.palette()
-        palette.setBrush(palette.Highlight, QtGui.QColor(255, 255, 0, 100))
-        palette.setBrush(palette.HighlightedText,
-                         QtGui.QBrush(QtCore.Qt.NoBrush))
+        if hasattr(palette, "ColorRole"):
+            palette.setBrush(palette.ColorRole.Highlight,
+                             QtGui.QColor(255, 255, 0, 100))
+            palette.setBrush(palette.ColorRole.HighlightedText,
+                             QtGui.QBrush(QtCore.Qt.NoBrush))
+        else:
+            palette.setBrush(palette.Highlight, QtGui.QColor(255, 255, 0, 100))
+            palette.setBrush(palette.HighlightedText,
+                             QtGui.QBrush(QtCore.Qt.NoBrush))
         self.editor.setPalette(palette)
 
     def update_style(self, style_name):
