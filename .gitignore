@@ -63,4 +63,6 @@ src/nexpy/_version.py
 
 # miscellaneous system files
 .directoryhash
- 
+
+# uv
+uv.lock
