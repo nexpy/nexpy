@@ -135,8 +135,8 @@ class NXConsoleApp(JupyterQtConsoleApp):
         logging.root.setLevel(levels[level])
         logging.info('NeXpy launched')
         logging.info('Log level is ' + level)
-        logging.info('Python ' + sys.version.split()[0] + ': '
-                     + sys.executable)
+        logging.info('Python ' + sys.version)
+        logging.info(sys.executable)
         logging.info(QtVersion)
         logging.info('IPython v' + ipython_version)
         logging.info('Matplotlib v' + mpl_version)
@@ -177,6 +177,14 @@ class NXConsoleApp(JupyterQtConsoleApp):
         """Initialize the configuration options for the NeXpy console."""
         self.config.ConsoleWidget.input_sep = ''
         self.config.Completer.use_jedi = False
+        self.config.RichJupyterWidget.banner = (
+            f"Python {sys.version}\n"
+            f"GUI: {QtVersion} | Shell: IPython {ipython_version} | "
+            f"Graphics: Matplotlib {mpl_version}\n"
+            f"NeXpy: {nexpy_version} | NeXus API: nexusformat {nxversion}")
+        self.config.RichJupyterWidget.include_other_output = False
+        self.config.InteractiveShell.banner1 = ""
+        self.config.InteractiveShell.banner2 = ""
         self.config.InteractiveShell.enable_tip = False
 
     def init_gui(self):
