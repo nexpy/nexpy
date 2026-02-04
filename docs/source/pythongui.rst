@@ -1473,7 +1473,7 @@ argument), a couple of buttons to activate different parts of the
 analysis, and finally the functions themselves::
 
   import numpy as np
-  from nexpy.gui.datadialogs import GridParameters, NXDialog
+  from nexpy.gui.dialogs import GridParameters, NXDialog
   from nexpy.gui.mainwindow import report_error
   from nexusformat.nexus import NeXusError
 
