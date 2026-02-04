@@ -594,15 +594,20 @@ class MainWindow(QtWidgets.QMainWindow):
             plugin_order = self.settings.get('plugins', plugin)
             if plugin_order is None:
                 self.new_plugins = True
-                logging.info(f'New plugin "{plugin}" found but not installed')
+                logging.info(f"New plugin '{plugin}' found but not installed")
             else:
                 try:
                     self.plugins[plugin] = load_plugin(plugin, plugin_order)
-                    logging.info(f'Installing plugin from "{plugin}"')
+                    logging.info(f"Installing plugin from '{plugin}'")
                 except Exception as error:
+                    error_type = type(error).__name__
+                    if error_type == 'PackageNotFoundError':
+                        error_type = ''
+                    else:
+                        error_type += ':'
                     logging.warning(
-                        f'The "{plugin}" plugin could not be added to the '
-                        'main menu\n' + 36*' ' + f'Error: {error}')
+                        f"The '{plugin}' plugin not added to the main menu\n"
+                        + 36*' ' + f"{error_type} {error}")
 
         def sorted_plugins():
             return sorted(self.plugins, key=lambda k: self.plugins[k]['order'])

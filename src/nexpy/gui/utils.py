@@ -762,8 +762,14 @@ def load_plugin(plugin, order=None):
     else:
         eps = entry_points().select(group='nexpy.plugins')
         entry = next((e for e in eps if e.module == plugin), None)
+        if entry is None:
+            raise PackageNotFoundError(f"'{plugin}'")
         package = entry.dist.name
-        menu, actions = entry.load()()
+        logging.disable(logging.INFO) 
+        try:
+            menu, actions = entry.load()()
+        finally:
+            logging.disable(logging.NOTSET)
     return {'package': package, 'menu': menu, 'actions': actions,
             'order': order}
 
