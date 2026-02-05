@@ -15,12 +15,12 @@ import nexpy
 
 def main():
     try:
-        from qtpy import QtWidgets  # noqa: F401
+        from qtpy import QtWidgets
     except ImportError:
         sys.exit(
             "No Qt binding found. Reinstall with a Qt extra, e.g.:\n"
-            "  uv tool install nexpy[qt]\n"
             "  pip install nexpy[qt]\n\n"
+            "  uv tool install nexpy[qt]\n"
             "Available Qt bindings: [qt], [pyqt5], [pyqt6], [pyside2], [pyside6]"
         )
 

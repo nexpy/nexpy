@@ -10,7 +10,30 @@ See the [NeXpy documentation](http://nexpy.github.io/nexpy) for more details.
 
 Installing and Running
 ======================
-Released versions of NeXpy can be installed in an isolated environment using
+Released versions of NeXpy can be installed into an existing environment using
+
+```
+    $ pip install nexpy
+```
+
+or
+
+```
+    $ conda install -c conda-forge nexpy
+```
+
+NeXpy will only run if a PyQt library (PyQt5, PyQt6, PySide2 or PySide6) is
+also installed. With *pip* (but not *conda*), a Qt binding can also be
+installed as an optional extra package
+
+```
+    $ pip install nexpy[qt]
+```
+
+The `[qt]` extra installs PyQt5 as the Qt binding. If you prefer a different
+binding, you can use `[pyqt6]`, `[pyside2]`, or `[pyside6]` instead.
+
+NeXpy can be installed in an isolated environment using
 
 ```
     $ uv tool install nexpy[qt]
@@ -22,26 +45,28 @@ or
     $ pipx install nexpy[qt]
 ```
 
-Alternatively, NeXpy can be installed into an existing Python environment using
-
-```
-    $ pip install nexpy[qt]
-```
-
-or
-
-```
-    $ conda install -c conda-forge nexpy
-```
-
-The `[qt]` extra installs PyQt5 as the Qt binding. If you prefer a different
-binding, you can use `[pyqt6]`, `[pyside2]`, or `[pyside6]` instead. Conda
-installations include PyQt by default.
-
 The source code can be downloaded from the NeXpy Git repository:
 
 ```
     $ git clone https://github.com/nexpy/nexpy.git
+```
+
+Once installed, NeXpy can be run from the command line:
+
+```
+    $ nexpy -h
+    usage: nexpy [-h] [-v] [-r] [-f] [filenames ...]
+
+    Launch NeXpy
+
+    positional arguments:
+      filenames             NeXus file(s) to open on launch (optional)
+
+    options:
+      -h, --help            show this help message and exit
+      -v, --version         show program's version number and exit
+      -r, --restore         open files from previous session
+      -f, --faulthandler    enable faulthandler for system crashes
 ```
 
 Prerequisites
