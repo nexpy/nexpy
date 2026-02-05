@@ -46,7 +46,7 @@
   <div class="section" id="installation">
 <h1>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h1>
 <p>Released versions of NeXpy are available on <a class="reference external" href="https://pypi.python.org/pypi/NeXpy/">PyPI</a> and <a class="reference external" href="https://anaconda.org/conda-forge/nexpy">conda-forge</a>.</p>
-<p>You can therefore install using ‘pip’:</p>
+<p>NeXpy can be installed into an existing environment using ‘pip’:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ pip install nexpy
 </pre></div>
 </div>
@@ -59,6 +59,22 @@
 <p>You can add conda-forge to your default channels so that it is
 automatically searched when installing. Just type
 <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">config</span> <span class="pre">--add</span> <span class="pre">channels</span> <span class="pre">conda-forge</span></code>.</p>
+</div>
+<p>NeXpy will only run if a PyQt library (PyQt5, PyQt6, PySide2 or PySide6) is
+also installed. With ‘pip’ (but not ‘conda’), a Qt binding can also be
+installed as an optional extra package:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ pip install nexpy[qt]
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">[qt]</span></code> extra installs PyQt5 as the Qt binding. If you prefer a different
+binding, you can use <code class="docutils literal notranslate"><span class="pre">[pyqt6]</span></code>, <code class="docutils literal notranslate"><span class="pre">[pyside2]</span></code>, or <code class="docutils literal notranslate"><span class="pre">[pyside6]</span></code> instead.</p>
+<p>NeXpy can be installed in an isolated environment using <a class="reference external" href="https://docs.astral.sh/uv/">uv</a>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ uv tool install nexpy[qt]
+</pre></div>
+</div>
+<p>or <a class="reference external" href="https://pipx.pypa.io/">pipx</a>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ pipx install nexpy[qt]
+</pre></div>
 </div>
 <p>If you have the <a class="reference external" href="https://pypi.python.org/pypi/setuptools">Python Setup Tools</a>, you can install the
 package from the source code either by downloading one of the <a class="reference external" href="https://github.com/nexpy/nexpy/releases">Github
