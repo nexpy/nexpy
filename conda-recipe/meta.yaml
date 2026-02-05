@@ -1,10 +1,10 @@
 package:
   name: nexpy
-  version: "2.0.0"
+  version: "2.0.1"
 
 source:
   git_url: https://github.com/nexpy/nexpy.git
-  git_tag: v2.0.0
+  git_tag: v2.0.1
 
 build:
   entry_points:
@@ -27,7 +27,7 @@ requirements:
     - lmfit
     - matplotlib
     - mplcursors
-    - nexusformat >= 2.0.0b3
+    - nexusformat >= 2.0.1
     - numpy
     - packaging
     - pillow
@@ -40,12 +40,8 @@ requirements:
 test:
   imports:
     - nexpy
-    - nexpy.api
-    - nexpy.api.frills
-    - nexpy.api.frills.models
-    - nexpy.definitions
     - nexpy.gui
-    - nexpy.plugins
+    - nexpy.models
     - nexpy.readers
 
   commands:
