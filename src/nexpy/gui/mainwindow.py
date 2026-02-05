@@ -607,7 +607,7 @@ class MainWindow(QtWidgets.QMainWindow):
                         error_type += ':'
                     logging.warning(
                         f"The '{plugin}' plugin not added to the main menu\n"
-                        + 36*' ' + f"{error_type} {error}")
+                        + 31*' ' + f"{error_type} {error}")
 
         def sorted_plugins():
             return sorted(self.plugins, key=lambda k: self.plugins[k]['order'])
