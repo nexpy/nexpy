@@ -4,6 +4,27 @@ Released versions of NeXpy are available on `PyPI
 <https://pypi.python.org/pypi/NeXpy/>`__ and `conda-forge
 <https://anaconda.org/conda-forge/nexpy>`__.
 
+NeXpy can be installed into an existing environment using 'pip'::
+
+    $ pip install nexpy
+
+or 'conda'::
+
+    $ conda install -c conda-forge nexpy
+
+.. note:: You can add conda-forge to your default channels so that it is
+          automatically searched when installing. Just type
+          ``conda config --add channels conda-forge``.
+
+NeXpy will only run if a PyQt library (PyQt5, PyQt6, PySide2 or PySide6) is
+also installed. With 'pip' (but not 'conda'), a Qt binding can also be
+installed as an optional extra package::
+
+    $ pip install nexpy[qt]
+
+The ``[qt]`` extra installs PyQt5 as the Qt binding. If you prefer a different
+binding, you can use ``[pyqt6]``, ``[pyside2]``, or ``[pyside6]`` instead.
+
 NeXpy can be installed in an isolated environment using `uv
 <https://docs.astral.sh/uv/>`__::
 
@@ -12,23 +33,6 @@ NeXpy can be installed in an isolated environment using `uv
 or `pipx <https://pipx.pypa.io/>`__::
 
     $ pipx install nexpy[qt]
-
-Alternatively, NeXpy can be installed into an existing Python environment
-using 'pip'::
-
-    $ pip install nexpy[qt]
-
-or 'conda'::
-
-    $ conda install -c conda-forge nexpy
-
-The ``[qt]`` extra installs PyQt5 as the Qt binding. If you prefer a different
-binding, you can use ``[pyqt6]``, ``[pyside2]``, or ``[pyside6]`` instead.
-Conda installations include PyQt by default.
-
-.. note:: You can add conda-forge to your default channels so that it is
-          automatically searched when installing. Just type
-          ``conda config --add channels conda-forge``.
 
 If you have the `Python Setup Tools
 <https://pypi.python.org/pypi/setuptools>`__, you can install the
