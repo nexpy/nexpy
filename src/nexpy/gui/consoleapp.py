@@ -114,8 +114,9 @@ class NXConsoleApp(JupyterQtConsoleApp):
         handler = logging.handlers.RotatingFileHandler(log_file,
                                                        maxBytes=50000,
                                                        backupCount=5)
-        fmt = '%(asctime)s - %(levelname)s - %(message)s'
-        formatter = logging.Formatter(fmt, None)
+        formatter = logging.Formatter(
+            fmt='%(asctime)s - %(levelname)s - %(message)s',
+            datefmt='%Y-%m-%d %H:%M:%S')
         handler.setFormatter(formatter)
         try:
             if logging.root.hasHandlers():
