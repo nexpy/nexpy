@@ -54,7 +54,8 @@ class ImportDialog(NXImportDialog):
         self.textbox.setReadOnly(True)
 
         self.skipbox = NXLineEdit(0, width=20, align='center')
-        self. headbox = NXCheckBox()
+        self.headbox = NXCheckBox()
+        self.titlebox = NXCheckBox()
         self.delimiters = {'Whitespace': None, 'Tab': '\t', 'Space': ' ',
                            'Comma': ',', 'Colon': ':', 'Semicolon': ';'}
         self.delcombo = NXComboBox(items=self.delimiters)
@@ -84,7 +85,8 @@ class ImportDialog(NXImportDialog):
                                             self.customize_data)
 
         self.set_layout(self.filebox(slot=self.read_file), self.textbox,
-                        self.make_layout('Header Row', self.headbox,
+                        self.make_layout('Title Row', self.titlebox,
+                                         'Header Row', self.headbox,
                                          'stretch',
                                          'Skipped Rows', self.skipbox,
                                          'stretch',
@@ -141,6 +143,13 @@ class ImportDialog(NXImportDialog):
                 self.data[c]['signal'] = 'field'
 
     @property
+    def has_title(self):
+        if self.titlebox.isChecked():
+            return True
+        else:
+            return None
+
+    @property
     def header(self):
         if self.headbox.isChecked():
             return True
@@ -148,6 +157,11 @@ class ImportDialog(NXImportDialog):
             return None
 
     def read_data(self):
+        if self.has_title:
+            self.title = self.text[0]
+            self.text = self.text[1:]
+        else:
+            self.title = None
         delimiter = self.delimiters[self.delcombo.selected]
         skip_header = int(self.skipbox.text())
         if self.header:
@@ -193,6 +207,8 @@ class ImportDialog(NXImportDialog):
     def get_data(self):
         group = NXgroup(name=self.groupbox.text())
         group.nxclass = self.groupcombo.selected
+        if self.title:
+            group['title'] = self.title
         for i, col in enumerate([c for c in self.data
                                  if self.data[c]['signal'] != 'exclude']):
             name = self.data[col]['name']
@@ -220,5 +236,4 @@ class ImportDialog(NXImportDialog):
                 self.activateWindow()
                 return
         self.accepted = True
-        self.mainwindow.import_data()
         super().accept()
