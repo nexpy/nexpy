@@ -9,6 +9,7 @@
 import bisect
 import math
 import warnings
+from collections import Counter
 from operator import attrgetter
 from pathlib import Path
 
@@ -2884,7 +2885,7 @@ class NXMessageBox(QtWidgets.QMessageBox):
 
 class NXComboBox(QtWidgets.QComboBox):
 
-    def __init__(self, slot=None, items=[], default=None, align=None):
+    def __init__(self, slot=None, items=None, default=None, align=None):
         """
         Initialize the dropdown menu with an initial list of items
 
@@ -2915,7 +2916,7 @@ class NXComboBox(QtWidgets.QComboBox):
                     if isinstance(tip, str):
                         self.setItemData(i, tip, QtCore.Qt.ToolTipRole)
             if default:
-                self.setCurrentIndex(self.findText(str(default)))
+                self.select(default)
         if slot:
             self.activated.connect(slot)
         if align:
@@ -2996,7 +2997,9 @@ class NXComboBox(QtWidgets.QComboBox):
             A variable number of items to add to the dropdown menu.
         """
         for item in items:
-            if isinstance(item, dict):
+            if item == "":
+                self.insertSeparator(self.count())
+            elif isinstance(item, dict):
                 tooltip = list(item.values())[0]
                 item = str(item.keys()[0])
                 if item not in self:
@@ -3085,6 +3088,161 @@ class NXComboBox(QtWidgets.QComboBox):
             Currently selected option in the dropdown menu.
         """
         return self.currentText()
+
+
+class NXMultiComboBox(QtWidgets.QWidget):
+
+    def __init__(self, slot=None, items=None, default=None, parent=None):
+        """
+        Initialize the Multi-Combo Box.
+
+        The Multi-Combo Box is a widget that allows the user to select
+        from a list of options in one of two dropdown menus. If a number
+        of options share a common prefix (separated by an underscore),
+        they are grouped together in the second dropdown menu that is
+        only displayed when the common prefix is selected in the first
+        dropdown menu.
+
+        Parameters
+        ----------
+        slot : function, optional
+            A function to be called when the selection is changed.
+            Default is None.
+        items : list of lists, optional
+            A list of lists of strings containing the options to be
+            displayed in the dropdown menus. Default is None.
+        default : str, optional
+            The option to be selected by default. Default is None.
+        parent : QObject, optional
+            The parent window of the multi combo box. Default is None.
+        """
+        super().__init__(parent)
+        self.layout = QtWidgets.QHBoxLayout(self)
+        self.layout.setContentsMargins(0, 0, 0, 0)
+        
+        self.main_combo = NXComboBox()
+        self.main_combo.activated.connect(self._on_main_selected)
+        self.layout.addWidget(self.main_combo)
+        
+        self.sub_combo = NXComboBox()
+        self.sub_combo.setVisible(False)
+        self.layout.addWidget(self.sub_combo)
+        
+        if slot:
+            self.slot = slot
+            self.sub_combo.activated.connect(slot)
+
+        self.set_data(items)
+        if default:
+            self.select(default)
+
+    def set_data(self, items):
+        """
+        Set the data to be displayed.
+
+        Parameters
+        ----------
+        items : list of str
+            A list of strings containing the options to be displayed in
+            the dropdown menus.
+
+        Notes
+        -----
+        If there are multiple items with the same prefix, a placeholder
+        item is added to the main combo box. When selected, another
+        combo box is made visible and populated with the items that
+        match the selected prefix.
+        """
+        self.all_items = [str(item) for item in items]
+        prefixes = [name.split('_')[0] for name in self.all_items
+                    if '_' in name]
+        counts = Counter(prefixes)
+        self.prefixes = {p for p, count in counts.items() if count > 1}
+        self.main_combo.clear()        
+        added_placeholders = set()
+        for name in self.all_items:
+            prefix = name.split('_')[0] if '_' in name else None
+            if prefix in self.prefixes:
+                if prefix not in added_placeholders:
+                    self.main_combo.add(f"{prefix} >")
+                    added_placeholders.add(prefix)
+            else:
+                self.main_combo.add(name)
+
+    def _on_main_selected(self, index):
+        """
+        Called when the main combo box selection is changed.
+
+        If the selected text ends with ' >', it is assumed to be a
+        prefix and a sub-combo box is populated with the items
+        that match the selected prefix. The sub-combo box is then
+        made visible. Otherwise, the sub-combo box is made invisible.
+
+        Parameters
+        ----------
+        index : int
+            Index of the selected item in the main combo box.
+
+        Notes
+        -----
+        This function is connected to the main combo box's activated
+        signal.
+        """
+        text = self.main_combo.itemText(index)
+        if text.endswith(" >"):
+            prefix = text.replace(" >", "")
+            sub_items = [n for n in self.all_items 
+                         if n.startswith(f"{prefix}_")]
+            self.sub_combo.clear()
+            self.sub_combo.add(*sub_items)
+            self.sub_combo.setVisible(True)
+            self.sub_combo.select(sub_items[0])
+            self.slot()
+        else:
+            self.sub_combo.setVisible(False)
+            self.slot()
+
+    def select(self, item):
+        """
+        Select the given item in the combo box.
+
+        Parameters
+        ----------
+        item : str
+            The item to select in the combo box.
+
+        Notes
+        -----
+        If the item is in the main combo box, it is selected and the
+        sub combo box is made invisible. If the item is in the sub
+        combo box, it is selected and the sub combo box is made
+        visible.
+        """
+        item = str(item)
+        if item in self.main_combo:
+            self.main_combo.setCurrentIndex(self.main_combo.findText(item))
+        elif item in self.sub_combo:
+            self.sub_combo.setCurrentIndex(self.sub_combo.findText(item))
+            self.sub_combo.setVisible(True)
+        self.repaint()
+
+    @property
+    def selected(self):
+        """
+        Return the currently selected item in the combo box.
+
+        If the sub combo box is visible, the selected item in the sub
+        combo box is returned. Otherwise, the selected item in the main
+        combo box is returned.
+
+        Returns
+        -------
+        str
+            The currently selected item in the combo box.
+        """
+        if self.sub_combo.isVisible():
+            return self.sub_combo.currentText()
+        return self.main_combo.currentText()
 
 
 class NXCheckBox(QtWidgets.QCheckBox):
