@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2013-2025, NeXpy Development Team.
+# Copyright (c) 2013-2026, NeXpy Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -9,7 +9,11 @@
 """
 Base class for import dialogs
 """
-from .widgets import NXDialog
+from pathlib import Path
+
+from nexusformat.nexus import NeXusError
+
+from .widgets import NXDialog, NXLabel, NXLineEdit
 
 filetype = "Text File"  # Defines the Import Menu label
 
@@ -32,7 +36,51 @@ class NXImportDialog(NXDialog):
         """
         super().__init__(parent)
         self.default_directory = self.mainwindow.default_directory
-        self.import_file = None     # must define in subclass
+        self.import_file = None
+        self.import_name = None
+        self.selection_buttons = self.radiobuttons(
+            ('root', "Save to Root", True),
+            ('selection', "Save to Selection", False))
+
+    def selection_layout(self):
+        self.imported_name_box = NXLineEdit()
+        imported_name_layout = self.make_layout(NXLabel("Imported Name"),
+                                                self.imported_name_box,
+                                                align='center')
+        close_layout = self.make_layout(self.selection_buttons,
+                                        self.close_buttons(save=True),
+                                        align='justified')
+        return self.make_layout(imported_name_layout, close_layout,
+                                vertical=True)
+
+    def choose_file(self):
+        super().choose_file()
+        self.import_file = self.get_filename()
+        if not self.import_file:
+            raise NeXusError("No file specified")
+        elif not Path(self.import_file).exists():
+            raise NeXusError(f"File {self.import_file} does not exist")
+        else:
+            self.import_name = self.import_file
+
+    @property
+    def import_name(self):
+        try:
+            return self.imported_name_box.text()
+        except AttributeError:
+            return Path(self.import_file).stem if self.import_file else ""
+
+    @import_name.setter
+    def import_name(self, name):
+        name = Path(name).stem if name else ""
+        try:
+            self.imported_name_box.setText(name)
+        except AttributeError:
+            pass
+
+    @property
+    def add_root(self):
+        return self.radiobutton['root'].isChecked()
 
     def get_data(self):
         """

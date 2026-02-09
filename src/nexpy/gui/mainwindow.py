@@ -1285,26 +1285,38 @@ class MainWindow(QtWidgets.QMainWindow):
         try:
             if self.import_dialog.accepted:
                 imported_data = self.import_dialog.get_data()
-                try:
-                    name = self.tree.get_name(self.import_dialog.import_file)
-                except Exception:
-                    name = self.tree.get_new_name()
-                if isinstance(imported_data, NXentry):
-                    self.tree[name] = self.user_ns[name] = NXroot(
-                        imported_data)
-                elif isinstance(imported_data, NXroot):
-                    self.tree[name] = self.user_ns[name] = imported_data
+                if self.import_dialog.import_name is None:
+                    name = self.import_dialog.import_file.stem
                 else:
-                    raise NeXusError(
-                        'Imported data must be an NXroot or NXentry group')
-                self.treeview.select_node(self.tree[name])
-                self.treeview.setFocus()
+                    name = self.import_dialog.import_name
+                if self.import_dialog.add_root:
+                    try:
+                        name = self.tree.get_name(name)
+                    except Exception:
+                        name = self.tree.get_new_name()
+                    if isinstance(imported_data, NXroot):
+                        self.tree[name] = imported_data
+                    elif isinstance(imported_data, NXentry):
+                        self.tree[name] = NXroot(imported_data)
+                    else:
+                        self.tree[name] = NXroot(NXentry(imported_data))
+                    self.user_ns[name] = self.tree[name]
+                    self.treeview.select_node(self.tree[name])
+                else:
+                    if isinstance(self.treeview.node, NXgroup):
+                        group = self.treeview.node
+                        group[name] = imported_data
+                        self.treeview.select_node(group[name])
+                    else:
+                        raise NeXusError(
+                            "Can only import into an NXgroup node")
                 try:
                     self.default_directory = Path(
                         self.import_dialog.import_file).parent
                 except Exception:
                     pass
-                logging.info(f"Workspace '{name}' imported")
+                self.treeview.setFocus()
+                logging.info(f"'{name}' imported")
         except NeXusError as error:
             report_error("Importing File", error)
 
