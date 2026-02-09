@@ -29,7 +29,7 @@ from pathlib import Path
 
 import numpy as np
 from nexpy.gui.importdialog import NXImportDialog
-from nexpy.gui.utils import parse_label, report_error
+from nexpy.gui.utils import in_dark_mode, parse_label, report_error
 from nexpy.gui.widgets import (NXCheckBox, NXComboBox, NXLabel, NXLineEdit,
                                NXPushButton, NXTextEdit)
 from nexpy.gui.pyqt import QtGui
@@ -53,6 +53,8 @@ class ImportDialog(NXImportDialog):
         self.textbox.setMinimumWidth(400)
         self.textbox.setMinimumHeight(200)
         self.textbox.setReadOnly(True)
+        if in_dark_mode():
+            self.textbox.setStyleSheet("background-color: #1E1E1E;")
 
         self.text = []
 
@@ -136,7 +138,7 @@ class ImportDialog(NXImportDialog):
         cursor = self.textbox.textCursor()
         if self.has_title and len(self.text) > 0:
             title_fmt = QtGui.QTextCharFormat()
-            title_fmt.setForeground(QtGui.QColor("red"))
+            title_fmt.setForeground(QtGui.QColor("#EF5350"))
             title_fmt.setFontWeight(QtGui.QFont.Weight.Bold)
             cursor.movePosition(QtGui.QTextCursor.MoveOperation.Start)
             cursor.movePosition(QtGui.QTextCursor.MoveOperation.EndOfLine,
@@ -146,7 +148,7 @@ class ImportDialog(NXImportDialog):
         else:
             skip_start_index = 0
         faded_fmt = QtGui.QTextCharFormat()
-        faded_fmt.setForeground(QtGui.QColor(180, 180, 180))
+        faded_fmt.setForeground(QtGui.QColor("#888888"))
         for i in range(skip_start_index, skip_start_index + self.skip_header):
             if i < len(self.text):
                 cursor.movePosition(QtGui.QTextCursor.MoveOperation.Start)
@@ -159,13 +161,18 @@ class ImportDialog(NXImportDialog):
         header_idx = header_idx = skip_start_index + self.skip_header
         if self.has_header and len(self.text) > header_idx:
             header_fmt = QtGui.QTextCharFormat()
-            header_fmt.setForeground(QtGui.QColor("blue"))        
+            header_fmt.setForeground(QtGui.QColor("#42A5F5"))        
+            header_fmt.setFontWeight(QtGui.QFont.Weight.Bold)
             cursor.movePosition(QtGui.QTextCursor.MoveOperation.Start)
             for _ in range(header_idx):
                 cursor.movePosition(QtGui.QTextCursor.MoveOperation.NextBlock)
             cursor.movePosition(QtGui.QTextCursor.MoveOperation.EndOfLine,
                                 QtGui.QTextCursor.MoveMode.KeepAnchor)
             cursor.setCharFormat(header_fmt)
+        if in_dark_mode():
+            self.textbox.setStyleSheet("background-color: #1E1E1E;")
+        else:
+            self.textbox.setStyleSheet("background-color: white;")
         self.textbox.repaint()
 
     def select_class(self):
