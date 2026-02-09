@@ -29,7 +29,7 @@ from pathlib import Path
 
 import numpy as np
 from nexpy.gui.importdialog import NXImportDialog
-from nexpy.gui.utils import report_error
+from nexpy.gui.utils import parse_label, report_error
 from nexpy.gui.widgets import (NXCheckBox, NXComboBox, NXLabel, NXLineEdit,
                                NXPushButton, NXTextEdit)
 from nexusformat.nexus import NXdata, NXentry, NXfield, NXgroup
@@ -178,12 +178,11 @@ class ImportDialog(NXImportDialog):
             return
         self.data = {}
         for i, _ in enumerate(input[0]):
-            if input.dtype.names is not None:
-                name = input.dtype.names[i]
-                dtype = input.dtype[i].name
+            if self.headers:
+                name, units = parse_label(self.headers[i])
             else:
-                name = 'Col'+str(i+1)
-                dtype = input.dtype.name
+                name, units = 'Col'+str(i+1), None
+            dtype = input.dtype.name
             if dtype not in self.data_types:
                 dtype = 'char'
             data = [c[i] for c in input]
@@ -191,8 +190,9 @@ class ImportDialog(NXImportDialog):
             if self.groupcombo.selected in ['NXdata', 'NXmonitor', 'NXlog']:
                 if i <= 2 and dtype != 'char':
                     signal = ['axis', 'signal', 'errors'][i]
-            self.data['Col'+str(i+1)] = {'name': name, 'dtype': dtype,
-                                         'signal': signal, 'data': data}
+            self.data['Col'+str(i+1)] = {'name': name, 'units': units,
+                                         'dtype': dtype, 'signal': signal,
+                                         'data': data}
 
     def customize_data(self):
         self.read_data()
@@ -214,7 +214,9 @@ class ImportDialog(NXImportDialog):
             name = self.data[col]['name']
             group[name] = NXfield(self.data[col]['data'],
                                   dtype=self.data[col]['dtype'])
-            if self.header and name != self.headers[i]:
+            if self.data[col]['units']:
+                group[name].nxunits = self.data[col]['units']
+            if self.has_header and name != self.headers[i]:
                 group[name].long_name = self.headers[i]
             if isinstance(group, NXdata):
                 if self.data[col]['signal'] == 'signal':
