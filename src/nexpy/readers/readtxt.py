@@ -29,9 +29,10 @@ from pathlib import Path
 
 import numpy as np
 from nexpy.gui.importdialog import NXImportDialog
-from nexpy.gui.utils import report_error
+from nexpy.gui.utils import parse_label, report_error
 from nexpy.gui.widgets import (NXCheckBox, NXComboBox, NXLabel, NXLineEdit,
                                NXPushButton, NXTextEdit)
+from nexpy.gui.pyqt import QtGui
 from nexusformat.nexus import NXdata, NXentry, NXfield, NXgroup
 from nexusformat.nexus.validate import GroupValidator
 
@@ -53,8 +54,12 @@ class ImportDialog(NXImportDialog):
         self.textbox.setMinimumHeight(200)
         self.textbox.setReadOnly(True)
 
-        self.skipbox = NXLineEdit(0, width=20, align='center')
-        self. headbox = NXCheckBox()
+        self.text = []
+
+        self.skipbox = NXLineEdit(0, slot=self.write_box, width=20,
+                                  align='center')
+        self.headbox = NXCheckBox(slot=self.write_box)
+        self.titlebox = NXCheckBox(slot=self.write_box)
         self.delimiters = {'Whitespace': None, 'Tab': '\t', 'Space': ' ',
                            'Comma': ',', 'Colon': ':', 'Semicolon': ';'}
         self.delcombo = NXComboBox(items=self.delimiters)
@@ -84,9 +89,11 @@ class ImportDialog(NXImportDialog):
                                             self.customize_data)
 
         self.set_layout(self.filebox(slot=self.read_file), self.textbox,
-                        self.make_layout('Header Row', self.headbox,
+                        self.make_layout('Title Row', self.titlebox,
                                          'stretch',
                                          'Skipped Rows', self.skipbox,
+                                         'stretch',
+                                         'Header Row', self.headbox,
                                          'stretch',
                                          'Delimiters', self.delcombo),
                         NXLabel('Output Group', bold=True),
@@ -100,6 +107,7 @@ class ImportDialog(NXImportDialog):
         self.data = None
 
     def read_file(self):
+        """Read the text file"""
         if self.get_filename() == '':
             self.choose_file()
         file_path = Path(self.get_filename())
@@ -107,16 +115,61 @@ class ImportDialog(NXImportDialog):
             self.import_file = file_path
             with open(self.import_file, 'r') as f:
                 text = f.read()
-                self.textbox.setText(text.replace('\t', ' \t\u25B3'))
-                self.textbox.repaint()
                 self.text = []
                 for line in text.splitlines():
                     if line.split():
                         self.text.append(line)
             if [s for s in self.text if '\t' in s]:
                 self.delcombo.select('Tab')
+            self.write_box()
+
+    def write_box(self):
+        """
+        Write the file text to the text preview box.
+
+        If the first line of the text is a title, it is colored red.
+        If any lines are skipped, they are faded. If there is a line of
+        headers, it is colored blue.
+        """
+        processed_text = "\n".join(self.text).replace('\t', ' \t\u25B3')
+        self.textbox.setPlainText(processed_text)
+        cursor = self.textbox.textCursor()
+        if self.has_title and len(self.text) > 0:
+            title_fmt = QtGui.QTextCharFormat()
+            title_fmt.setForeground(QtGui.QColor("red"))
+            title_fmt.setFontWeight(QtGui.QFont.Weight.Bold)
+            cursor.movePosition(QtGui.QTextCursor.MoveOperation.Start)
+            cursor.movePosition(QtGui.QTextCursor.MoveOperation.EndOfLine,
+                                QtGui.QTextCursor.MoveMode.KeepAnchor)
+            cursor.setCharFormat(title_fmt)
+            skip_start_index = 1
+        else:
+            skip_start_index = 0
+        faded_fmt = QtGui.QTextCharFormat()
+        faded_fmt.setForeground(QtGui.QColor(180, 180, 180))
+        for i in range(skip_start_index, skip_start_index + self.skip_header):
+            if i < len(self.text):
+                cursor.movePosition(QtGui.QTextCursor.MoveOperation.Start)
+                for _ in range(i):
+                    cursor.movePosition(
+                        QtGui.QTextCursor.MoveOperation.NextBlock)
+                cursor.movePosition(QtGui.QTextCursor.MoveOperation.EndOfLine,
+                                    QtGui.QTextCursor.MoveMode.KeepAnchor)
+                cursor.setCharFormat(faded_fmt)
+        header_idx = header_idx = skip_start_index + self.skip_header
+        if self.has_header and len(self.text) > header_idx:
+            header_fmt = QtGui.QTextCharFormat()
+            header_fmt.setForeground(QtGui.QColor("blue"))        
+            cursor.movePosition(QtGui.QTextCursor.MoveOperation.Start)
+            for _ in range(header_idx):
+                cursor.movePosition(QtGui.QTextCursor.MoveOperation.NextBlock)
+            cursor.movePosition(QtGui.QTextCursor.MoveOperation.EndOfLine,
+                                QtGui.QTextCursor.MoveMode.KeepAnchor)
+            cursor.setCharFormat(header_fmt)
+        self.textbox.repaint()
 
     def select_class(self):
+        """Update the group and field combo boxes for the selected class"""
         self.groupbox.setText(self.groupcombo.selected[2:])
         if self.groupcombo.selected not in ['NXdata', 'NXmonitor', 'NXlog']:
             for item in ['signal', 'axis', 'errors']:
@@ -125,12 +178,14 @@ class ImportDialog(NXImportDialog):
             self.signalcombo.add('signal', 'axis', 'errors')
 
     def select_field(self):
+        """Update the combo boxes for the selected field"""
         col = self.fieldcombo.selected
         self.fieldbox.setText(self.data[col]['name'])
         self.typecombo.select(self.data[col]['dtype'])
         self.signalcombo.select(self.data[col]['signal'])
 
     def update_field(self):
+        """Update the field data structure with the current values"""
         col = self.fieldcombo.selected
         self.data[col]['name'] = self.fieldbox.text()
         self.data[col]['dtype'] = self.typecombo.selected
@@ -141,22 +196,44 @@ class ImportDialog(NXImportDialog):
                 self.data[c]['signal'] = 'field'
 
     @property
-    def header(self):
+    def has_title(self):
+        if self.titlebox.isChecked():
+            return True
+        else:
+            return None
+
+    @property
+    def has_header(self):
         if self.headbox.isChecked():
             return True
         else:
             return None
 
+    @property
+    def skip_header(self):
+        try:
+            return int(self.skipbox.text())
+        except ValueError:
+            return 0
+
     def read_data(self):
+        """Read the text file and create the data structure"""
+        if self.has_title:
+            self.title = self.text[0]
+        else:
+            self.title = None
         delimiter = self.delimiters[self.delcombo.selected]
-        skip_header = int(self.skipbox.text())
-        if self.header:
+        skip_header = self.skip_header
+        if self.has_title:
+            skip_header += 1
+        if self.has_header:
             self.headers = self.text[skip_header].split(delimiter)
         else:
             self.headers = None
+        skip_header += 1
         try:
             input = np.genfromtxt(self.text, delimiter=delimiter,
-                                  names=self.header, skip_header=skip_header,
+                                  skip_header=skip_header,
                                   dtype=None, autostrip=True, encoding='utf8')
         except ValueError as error:
             report_error("Importing Text File", error)
@@ -164,12 +241,11 @@ class ImportDialog(NXImportDialog):
             return
         self.data = {}
         for i, _ in enumerate(input[0]):
-            if input.dtype.names is not None:
-                name = input.dtype.names[i]
-                dtype = input.dtype[i].name
+            if self.headers:
+                name, units = parse_label(self.headers[i])
             else:
-                name = 'Col'+str(i+1)
-                dtype = input.dtype.name
+                name, units = 'Col'+str(i+1), None
+            dtype = input.dtype.name
             if dtype not in self.data_types:
                 dtype = 'char'
             data = [c[i] for c in input]
@@ -177,10 +253,12 @@ class ImportDialog(NXImportDialog):
             if self.groupcombo.selected in ['NXdata', 'NXmonitor', 'NXlog']:
                 if i <= 2 and dtype != 'char':
                     signal = ['axis', 'signal', 'errors'][i]
-            self.data['Col'+str(i+1)] = {'name': name, 'dtype': dtype,
-                                         'signal': signal, 'data': data}
+            self.data['Col'+str(i+1)] = {'name': name, 'units': units,
+                                         'dtype': dtype, 'signal': signal,
+                                         'data': data}
 
     def customize_data(self):
+        """Create combo boxes to allow the fields to be customized."""
         self.read_data()
         if self.data is not None:
             self.fieldcombo.add(*list(self.data))
@@ -191,14 +269,19 @@ class ImportDialog(NXImportDialog):
             self.insert_layout(5, self.field_layout)
 
     def get_data(self):
+        """Return the data as an NXentry"""
         group = NXgroup(name=self.groupbox.text())
         group.nxclass = self.groupcombo.selected
+        if self.title:
+            group['title'] = self.title
         for i, col in enumerate([c for c in self.data
                                  if self.data[c]['signal'] != 'exclude']):
             name = self.data[col]['name']
             group[name] = NXfield(self.data[col]['data'],
                                   dtype=self.data[col]['dtype'])
-            if self.header and name != self.headers[i]:
+            if self.data[col]['units']:
+                group[name].nxunits = self.data[col]['units']
+            if self.has_header and name != self.headers[i]:
                 group[name].long_name = self.headers[i]
             if isinstance(group, NXdata):
                 if self.data[col]['signal'] == 'signal':
@@ -210,9 +293,7 @@ class ImportDialog(NXImportDialog):
         return NXentry(group)
 
     def accept(self):
-        """
-        Completes the data import.
-        """
+        """Complete the data import."""
         if self.data is None:
             self.read_data()
             if self.data is None:
@@ -220,5 +301,4 @@ class ImportDialog(NXImportDialog):
                 self.activateWindow()
                 return
         self.accepted = True
-        self.mainwindow.import_data()
         super().accept()
