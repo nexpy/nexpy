@@ -28,7 +28,7 @@ jobs:
           - {python: "3.12", qt: pyqt6, os: windows-latest}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: astral-sh/setup-uv@v5
 
       - name: Install Linux display dependencies
