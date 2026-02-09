@@ -277,9 +277,6 @@ class ImportDialog(NXImportDialog):
             header[key] = value
 
         if note:
-            return NXentry(
-                NXdata(
-                    v, (z, y, x),
-                    CBF_header=note, header=header))
+            return NXdata(v, (z, y, x), CBF_header=note, header=header)
         else:
-            return NXentry(NXdata(v, (z, y, x), header=header))
+            return NXdata(v, (z, y, x), header=header)
