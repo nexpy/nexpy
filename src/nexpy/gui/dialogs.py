@@ -23,9 +23,9 @@ from .utils import (convertHTML, display_message, fix_projection, format_mtime,
                     keep_data, load_plugin, natural_sort, report_error,
                     set_style, timestamp, wrap)
 from .widgets import (GridParameters, NXCheckBox, NXComboBox, NXDialog,
-                      NXDoubleSpinBox, NXLabel, NXLineEdit, NXPanel,
-                      NXPlainTextEdit, NXpolygon, NXPushButton, NXScrollArea,
-                      NXSpinBox, NXTab, NXTextEdit, NXWidget)
+                      NXDoubleSpinBox, NXLabel, NXLineEdit, NXMultiComboBox,
+                      NXPanel, NXPlainTextEdit, NXpolygon, NXPushButton,
+                      NXScrollArea, NXSpinBox, NXTab, NXTextEdit, NXWidget)
 
 
 class NewDialog(NXDialog):
@@ -4618,21 +4618,14 @@ class GroupDialog(NXDialog):
         grid.setSpacing(10)
 
         self.standard_groups = self.node.valid_groups()
-        valid_groups = {}
-        for group in self.standard_groups:
-            if 'doc' in self.standard_groups[group]:
-                valid_groups[group] = wrap(self.standard_groups[group]['doc'],
-                                           width=60, compress=True)
-            else:
-                valid_groups[group] = ""
+        valid_groups = list(self.standard_groups) + [""]
+        other_groups = sorted([g for g in self.mainwindow.nxclasses
+                               if g not in self.standard_groups])
+        all_groups = valid_groups + other_groups
         name_label = NXLabel("Name:")
         self.name_box = NXLineEdit()
         group_label = NXLabel("Group Class:")
-        self.group_box = NXComboBox(self.select_group, valid_groups)
-        self.group_box.insert(len(valid_groups), "")
-        other_groups = sorted([g for g in self.mainwindow.nxclasses
-                               if g not in self.standard_groups])
-        self.group_box.add(*other_groups)
+        self.group_box = NXMultiComboBox(self.select_group, all_groups)
         grid.addWidget(group_label, 0, 0)
         grid.addWidget(self.group_box, 0, 1)
         grid.addWidget(name_label, 1, 0)
@@ -4659,7 +4652,7 @@ class GroupDialog(NXDialog):
         """
         if (name in self.standard_groups and 
                 '@type' in self.standard_groups[name]):
-            self.group_box.setCurrentText(self.standard_groups[name]['@type'])
+            self.group_box.select(self.standard_groups[name]['@type'])
         else:
             name = name[2:]
         self.name_box.setText(name)
