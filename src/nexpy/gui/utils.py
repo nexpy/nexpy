@@ -630,6 +630,26 @@ def cmyk_to_rgb(c, m, y, k):
     return r, g, b
 
 
+def parse_label(text):
+    """
+    Parse a label string and return the name and units.
+
+    The label string is assumed to be in the format "name [units]".
+
+    Parameters
+    ----------
+    text : str
+        Label string to parse.
+    """
+    pattern = r"(.*?)\s*[(\[](.*?)[)\]]"
+    match = re.search(pattern, text)
+    if match:
+        name = match.group(1).strip()
+        units = match.group(2).strip()
+        return name, units
+    return text.strip(), None
+
+
 def load_image(filename):
     """
     Load an image file and convert it to a NeXus NXdata object.
