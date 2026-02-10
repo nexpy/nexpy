@@ -253,7 +253,8 @@ class ImportDialog(NXImportDialog):
 
     def get_data(self):
         """Return the data as an NXdata group"""
-        group = NXdata()
+        group = NXgroup()
+        group.nxclass = self.import_class
         if self.title:
             group['title'] = self.title
         for i, col in enumerate([c for c in self.data
