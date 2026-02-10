@@ -44,10 +44,11 @@ class NXImportDialog(NXDialog):
 
     def selection_layout(self):
         self.imported_name_box = NXLineEdit()
-        valid_groups = ['NXdata', 'NXmonitor', 'NXlog']
+        main_groups = ['NXdata', 'NXmonitor', 'NXlog', 'NXcollection',
+                        'NXparameters']
         other_groups = sorted([g for g in self.mainwindow.nxclasses
-                               if g not in valid_groups])
-        all_groups = valid_groups + [''] + other_groups
+                               if g not in main_groups])
+        all_groups = main_groups + [''] + other_groups
         self.imported_class_box = NXHierarchicalComboBox(items=all_groups)
         output_layout = self.make_layout(NXLabel("Imported Name"),
                                          self.imported_name_box,
