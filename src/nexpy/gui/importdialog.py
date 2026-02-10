@@ -13,7 +13,7 @@ from pathlib import Path
 
 from nexusformat.nexus import NeXusError
 
-from .widgets import NXDialog, NXLabel, NXLineEdit
+from .widgets import NXDialog, NXHierarchicalComboBox, NXLabel, NXLineEdit
 
 filetype = "Text File"  # Defines the Import Menu label
 
@@ -44,13 +44,20 @@ class NXImportDialog(NXDialog):
 
     def selection_layout(self):
         self.imported_name_box = NXLineEdit()
-        imported_name_layout = self.make_layout(NXLabel("Imported Name"),
-                                                self.imported_name_box,
-                                                align='center')
+        valid_groups = ['NXdata', 'NXmonitor', 'NXlog']
+        other_groups = sorted([g for g in self.mainwindow.nxclasses
+                               if g not in valid_groups])
+        all_groups = valid_groups + [''] + other_groups
+        self.imported_class_box = NXHierarchicalComboBox(items=all_groups)
+        output_layout = self.make_layout(NXLabel("Imported Name"),
+                                         self.imported_name_box,
+                                         NXLabel("Imported Class"),
+                                         self.imported_class_box,
+                                         align='justified')
         close_layout = self.make_layout(self.selection_buttons,
                                         self.close_buttons(save=True),
                                         align='justified')
-        return self.make_layout(imported_name_layout, close_layout,
+        return self.make_layout(output_layout, close_layout,
                                 vertical=True)
 
     def choose_file(self):
@@ -79,8 +86,13 @@ class NXImportDialog(NXDialog):
             pass
 
     @property
-    def add_root(self):
-        return self.radiobutton['root'].isChecked()
+    def import_class(self):
+        try:
+            return self.imported_class_box.currentText()
+        except AttributeError:
+            return "NXdata"
+
+    @property
 
     def get_data(self):
         """
