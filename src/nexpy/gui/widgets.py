@@ -3090,159 +3090,89 @@ class NXComboBox(QtWidgets.QComboBox):
         return self.currentText()
 
 
-class NXMultiComboBox(QtWidgets.QWidget):
-
+class NXHierarchicalComboBox(NXComboBox):
+    
     def __init__(self, slot=None, items=None, default=None, parent=None):
         """
-        Initialize the Multi-Combo Box.
+        Initialize a hierarchical dropdown menu.
 
-        The Multi-Combo Box is a widget that allows the user to select
-        from a list of options in one of two dropdown menus. If a number
-        of options share a common prefix (separated by an underscore),
-        they are grouped together in the second dropdown menu that is
-        only displayed when the common prefix is selected in the first
-        dropdown menu.
+        If a number of options share a common prefix (separated by an
+        underscore), the options are grouped together and displayed
+        in the dropdown menu when the prefix is selected. A "Back"
+        option is provided to return to the top-level menu.
 
         Parameters
         ----------
-        slot : function, optional
-            A function to be called when the selection is changed.
-            Default is None.
+        slot : callable, optional
+            A callable that is called when the selection is changed.
         items : list of lists, optional
             A list of lists of strings containing the options to be
-            displayed in the dropdown menus. Default is None.
+            displayed in the dropdown menus.
         default : str, optional
-            The option to be selected by default. Default is None.
-        parent : QObject, optional
-            The parent window of the multi combo box. Default is None.
+            The option to be selected by default when the menu is
+            initialized.
+        parent : QWidget, optional
+            The parent window of the hierarchical combo box. Default is
+            None.
         """
         super().__init__(parent)
-        self.layout = QtWidgets.QHBoxLayout(self)
-        self.layout.setContentsMargins(0, 0, 0, 0)
-        
-        self.main_combo = NXComboBox()
-        self.main_combo.activated.connect(self._on_main_selected)
-        self.layout.addWidget(self.main_combo)
-        
-        self.sub_combo = NXComboBox()
-        self.sub_combo.setVisible(False)
-        self.layout.addWidget(self.sub_combo)
-        
+        self.all_items = []
+        self.prefix_counts = {}
+        self.activated.connect(self._handle_activation)
         if slot:
             self.slot = slot
-            self.sub_combo.activated.connect(slot)
-
+        else:
+            self.slot = None
         self.set_data(items)
         if default:
             self.select(default)
 
     def set_data(self, items):
-        """
-        Set the data to be displayed.
+        """Processes items and counts prefix occurrences."""
+        self.all_items = items
+        raw_prefixes = [item.split('_')[0] for item in items if '_' in item]
+        self.prefix_counts = Counter(raw_prefixes)        
+        self.show_root()
 
-        Parameters
-        ----------
-        items : list of str
-            A list of strings containing the options to be displayed in
-            the dropdown menus.
-
-        Notes
-        -----
-        If there are multiple items with the same prefix, a placeholder
-        item is added to the main combo box. When selected, another
-        combo box is made visible and populated with the items that
-        match the selected prefix.
-        """
-        self.all_items = [str(item) for item in items]
-        prefixes = [name.split('_')[0] for name in self.all_items
-                    if '_' in name]
-        counts = Counter(prefixes)
-        self.prefixes = {p for p, count in counts.items() if count > 1}
-        self.main_combo.clear()        
-        added_placeholders = set()
-        for name in self.all_items:
-            prefix = name.split('_')[0] if '_' in name else None
-            if prefix in self.prefixes:
-                if prefix not in added_placeholders:
-                    self.main_combo.add(f"{prefix} >")
-                    added_placeholders.add(prefix)
+    def show_root(self):
+        """Displays top-level items and categories with > 1 entry."""
+        self.clear()
+        display_list = []
+        added_categories = set()
+        for item in self.all_items:
+            if '_' in item:
+                prefix = item.split('_')[0]
+                if self.prefix_counts[prefix] > 1:
+                    category_label = f"{prefix} ▶"
+                    if category_label not in added_categories:
+                        display_list.append(category_label)
+                        added_categories.add(category_label)
+                else:
+                    display_list.append(item)
             else:
-                self.main_combo.add(name)
+                display_list.append(item)
+        self.add(*display_list)
+        self.setCurrentIndex(0)
 
-    def _on_main_selected(self, index):
-        """
-        Called when the main combo box selection is changed.
+    def show_prefix_group(self, prefix):
+        """Displays items belonging to a multi-item prefix."""
+        self.clear()
+        filtered = [item for item in self.all_items
+                    if item.startswith(f"{prefix}_")]
+        self.add(*filtered)
+        self.add("◀ Back")
+        self.setCurrentIndex(0)
 
-        If the selected text ends with ' >', it is assumed to be a
-        prefix and a sub-combo box is populated with the items
-        that match the selected prefix. The sub-combo box is then
-        made visible. Otherwise, the sub-combo box is made invisible.
-
-        Parameters
-        ----------
-        index : int
-            Index of the selected item in the main combo box.
-
-        Notes
-        -----
-        This function is connected to the main combo box's activated
-        signal.
-        """
-        text = self.main_combo.itemText(index)
-        if text.endswith(" >"):
-            prefix = text.replace(" >", "")
-            sub_items = [n for n in self.all_items 
-                         if n.startswith(f"{prefix}_")]
-            self.sub_combo.clear()
-            self.sub_combo.add(*sub_items)
-            self.sub_combo.setVisible(True)
-            self.sub_combo.select(sub_items[0])
+    def _handle_activation(self, index):
+        """PyQt slot to handle item selection."""
+        text = self.itemText(index)
+        if text == "◀ Back":
+            self.show_root()
+        elif text.endswith(" ▶"):
+            prefix = text[:-2]
+            self.show_prefix_group(prefix)
+        if self.slot is not None:
             self.slot()
-        else:
-            self.sub_combo.setVisible(False)
-            self.slot()
-
-    def select(self, item):
-        """
-        Select the given item in the combo box.
-
-        Parameters
-        ----------
-        item : str
-            The item to select in the combo box.
-
-        Notes
-        -----
-        If the item is in the main combo box, it is selected and the
-        sub combo box is made invisible. If the item is in the sub
-        combo box, it is selected and the sub combo box is made
-        visible.
-        """
-        item = str(item)
-        if item in self.main_combo:
-            self.main_combo.setCurrentIndex(self.main_combo.findText(item))
-        elif item in self.sub_combo:
-            self.sub_combo.setCurrentIndex(self.sub_combo.findText(item))
-            self.sub_combo.setVisible(True)
-        self.repaint()
-
-    @property
-    def selected(self):
-        """
-        Return the currently selected item in the combo box.
-
-        If the sub combo box is visible, the selected item in the sub
-        combo box is returned. Otherwise, the selected item in the main
-        combo box is returned.
-
-        Returns
-        -------
-        str
-            The currently selected item in the combo box.
-        """
-        if self.sub_combo.isVisible():
-            return self.sub_combo.currentText()
-        return self.main_combo.currentText()
 
 
 class NXCheckBox(QtWidgets.QCheckBox):
