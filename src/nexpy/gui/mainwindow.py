@@ -1289,7 +1289,7 @@ class MainWindow(QtWidgets.QMainWindow):
                     name = self.import_dialog.import_file.stem
                 else:
                     name = self.import_dialog.import_name
-                if self.import_dialog.add_root:
+                if self.import_dialog.add_tree:
                     try:
                         name = self.tree.get_name(name)
                     except Exception:

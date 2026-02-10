@@ -39,7 +39,7 @@ class NXImportDialog(NXDialog):
         self.import_file = None
         self.import_name = None
         self.selection_buttons = self.radiobuttons(
-            ('root', "Save to Root", True),
+            ('tree', "Save to Tree", True),
             ('selection', "Save to Selection", False))
 
     def selection_layout(self):
@@ -93,6 +93,8 @@ class NXImportDialog(NXDialog):
             return "NXdata"
 
     @property
+    def add_tree(self):
+        return self.radiobutton['tree'].isChecked()
 
     def get_data(self):
         """
