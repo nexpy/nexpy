@@ -38,36 +38,45 @@ class NXImportDialog(NXDialog):
         self.default_directory = self.mainwindow.default_directory
         self.import_file = None
         self.import_name = None
+        self.import_class = "NXcollection"
         self.selection_buttons = self.radiobuttons(
             ('tree', "Save to Tree", True),
             ('selection', "Save to Selection", False))
 
-    def selection_layout(self):
+    def selection_layout(self, lock_class=False):
         self.imported_name_box = NXLineEdit()
+        self.imported_name_label = NXLabel("Imported Name")
         main_groups = ['NXdata', 'NXmonitor', 'NXlog', 'NXcollection',
-                        'NXparameters']
+                       'NXparameters']
         other_groups = sorted([g for g in self.mainwindow.nxclasses
                                if g not in main_groups])
         all_groups = main_groups + [''] + other_groups
         self.imported_class_box = NXHierarchicalComboBox(items=all_groups)
-        output_layout = self.make_layout(NXLabel("Imported Name"),
+        self.imported_class_label = NXLabel("Imported Class")
+        output_layout = self.make_layout(self.imported_name_label,
                                          self.imported_name_box,
-                                         NXLabel("Imported Class"),
+                                         self.imported_class_label,
                                          self.imported_class_box,
                                          align='justified')
         close_layout = self.make_layout(self.selection_buttons,
                                         self.close_buttons(save=True),
                                         align='justified')
+        if lock_class:
+            self.lock_class()
         return self.make_layout(output_layout, close_layout,
                                 vertical=True)
 
     def choose_file(self):
         super().choose_file()
-        self.import_file = self.get_filename()
-        if not self.import_file:
-            raise NeXusError("No file specified")
-        elif not Path(self.import_file).exists():
-            raise NeXusError(f"File {self.import_file} does not exist")
+        try:
+            self.import_file = self.get_filename()
+            if not self.import_file:
+                raise NeXusError("No file specified")
+            elif not Path(self.import_file).exists():
+                raise NeXusError(f"File {self.import_file} does not exist")
+            self.default_directory = Path(self.import_file).parent
+        except NeXusError:
+            self.import_file = None
         else:
             self.import_name = self.import_file
 
@@ -91,7 +100,22 @@ class NXImportDialog(NXDialog):
         try:
             return self.imported_class_box.currentText()
         except AttributeError:
-            return "NXdata"
+            return self.default_class
+
+    @import_class.setter
+    def import_class(self, name):
+        try:
+            if name not in self.imported_class_box:
+                self.imported_class_box.add(name)
+            self.imported_class_box.select(name)
+        except AttributeError:
+            pass
+
+    def lock_class(self):
+        self.imported_class_box.setEnabled(False)
+
+    def unlock_class(self):
+        self.imported_class_box.setEnabled(True)
 
     @property
     def add_tree(self):
