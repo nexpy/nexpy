@@ -23,12 +23,10 @@ class ImportDialog(NXImportDialog):
     """Dialog to import a TIFF image"""
 
     def __init__(self, parent=None):
-
         super().__init__(parent=parent)
-
-        self.set_layout(self.filebox(), self.selection_layout())
-
+        self.set_layout(self.filebox(), self.selection_layout(lock_class=True))
         self.set_title("Import "+str(filetype))
+        self.import_class = "NXdata"
 
     def get_data(self):
         try:
@@ -39,5 +37,4 @@ class ImportDialog(NXImportDialog):
         z = NXfield(im.data, name='z')
         y = NXfield(np.arange(z.shape[0], dtype=float), name='y')
         x = NXfield(np.arange(z.shape[1], dtype=float), name='x')
-
         return NXdata(z, (y, x))

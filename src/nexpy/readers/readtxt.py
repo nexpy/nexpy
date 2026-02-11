@@ -220,7 +220,7 @@ class ImportDialog(NXImportDialog):
                                   skip_header=skip_header,
                                   dtype=None, autostrip=True, encoding='utf8')
         except ValueError as error:
-            report_error("Importing Text File", error)
+            report_error("Importing text file", error)
             self.data = None
             return
         self.data = {}
@@ -253,7 +253,7 @@ class ImportDialog(NXImportDialog):
 
     def get_data(self):
         """Return the data as an NXdata group"""
-        group = NXgroup()
+        group = NXgroup(name=self.import_name)
         group.nxclass = self.import_class
         if self.title:
             group['title'] = self.title
